@@ -194,3 +194,16 @@ select, .btn, .seg button {
 .anode.off { stroke-dasharray: 3 4; opacity: .6; }
 .rvv { font-size: 11px; }
 .rl { font-size: 12.5px; font-weight: 500; }
+
+.rsvg { position: relative; }
+.trib { cursor: pointer; outline: none; }
+.trib:hover .anode, .trib.sel .anode { stroke-width: 4.5; }
+.trib:focus-visible .anode { stroke-width: 4.5; }
+.tip { position: absolute; transform: translateX(-50%); z-index: 6; width: min(320px, 90%); max-height: 300px; overflow: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 12.5px;
+  box-shadow: 0 12px 34px rgba(0,0,0,.2); }
+.tip-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 14px; }
+.tip-h button { background: none; border: 0; font-size: 20px; line-height: 1; color: var(--muted); cursor: pointer; }
+.tip-k { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin-bottom: 6px; }
+.tip .ev, .tip .warn { margin: 4px 0; padding-left: 16px; }
+.tip p { margin: 6px 0 0; }

@@ -5,6 +5,33 @@ import type { AgentInfo, AgentReport } from './types'
 const THRESH = 0.1 // |sesgo| mínimo para teñir de verde/rojo
 const H = 380, YM = 190, GX = 40, XE = 900, NR = 19, TOP = 62
 
+let selected: string | null = null // agente con tooltip abierto
+let ctx: { infos: AgentInfo[]; reports: AgentReport[] } = { infos: [], reports: [] }
+let keyBound = false
+let tip = ''
+
+const STATUS: Record<string, string> = { ok: 'OK', degraded: 'Degradado', no_data: 'Sin datos' }
+const fmt = (v: unknown): string =>
+  typeof v === 'number' ? String(Math.round(v * 1e4) / 1e4)
+    : typeof v === 'object' && v !== null ? JSON.stringify(v).slice(0, 80) : String(v)
+
+/** Contenido del tooltip de un agente a partir de su último reporte. */
+function tipHtml(r: AgentReport | undefined, id: string): string {
+  const head = `<div class="tip-h"><b>${esc(agentName(id))}</b><button data-close aria-label="Cerrar">×</button></div>`
+  if (!r) return `${head}<p class="muted">Aún sin reporte: se ejecuta al cerrar la próxima vela.</p>`
+  const dir = Math.abs(r.bias) < THRESH ? 'Neutral' : r.bias > 0 ? 'Compra' : 'Venta'
+  const ev = r.evidence.slice(0, 4).map((e) => `<li>${esc(e)}</li>`).join('')
+  const wn = r.warnings.map((w) => `<li>${esc(w)}</li>`).join('')
+  const mt = Object.entries(r.metrics).slice(0, 6)
+    .map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(fmt(v))}</td></tr>`).join('')
+  return head +
+    `<div class="tip-k"><span class="chip" data-s="${esc(r.status)}">${esc(STATUS[r.status] ?? r.status)}</span>` +
+    `<b style="color:${tint(r.bias)}">${dir} ${sg(r.bias)}</b><span class="muted">confianza ${Math.round(r.confidence * 100)}% · ${r.horizon_bars} velas</span></div>` +
+    (ev ? `<ul class="ev">${ev}</ul>` : '') + (wn ? `<ul class="warn">${wn}</ul>` : '') +
+    (mt ? `<table class="metrics">${mt}</table>` : '') +
+    `<p class="muted">v${esc(r.version)} · ${new Date(r.asof).toISOString().slice(0, 16).replace('T', ' ')} UTC</p>`
+}
+
 type Row = { id: string; bias: number; conf: number; live: boolean }
 
 /** Color de un sesgo: gris (neutro) → verde/rojo según intensidad. */
@@ -30,6 +57,23 @@ function particles(pathId: string, n: number, dur: number, r: number, fill: stri
  * Grosor y velocidad del arroyo = confianza.
  */
 export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentReport[]): void {
+  ctx = { infos, reports }
+  tip = ''
+  el.onclick = (e) => {
+    const t = e.target as HTMLElement
+    if (t.closest('[data-close]')) selected = null
+    else {
+      const g = t.closest<HTMLElement>('[data-id]')
+      selected = g ? (selected === g.dataset.id ? null : g.dataset.id!) : t.closest('.tip') ? selected : null
+    }
+    renderRiver(el, ctx.infos, ctx.reports)
+  }
+  if (!keyBound) {
+    keyBound = true
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && selected) { selected = null; renderRiver(el, ctx.infos, ctx.reports) }
+    })
+  }
   const byId = new Map(reports.map((r) => [r.agent_id, r]))
   const ids = [...new Set([...infos.map((i) => i.id), ...reports.map((r) => r.agent_id)])]
   const rows: Row[] = ids.map((id) => {
@@ -72,7 +116,12 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
       `<stop offset="1" style="stop-color:${col}"/></linearGradient>`)
     const lblY = up ? cy - NR - 9 : cy + NR + 17
     const val = r.live ? sg(r.bias) : '—'
-    return `<g class="trib">` +
+    if (r.id === selected) {
+      const pos = `left:${Math.min(80, Math.max(20, (px[i] / 1200) * 100)).toFixed(1)}%;` +
+        (up ? `top:${(((cy + NR + 14) / H) * 100).toFixed(1)}%` : `bottom:${(((H - cy + NR + 14) / H) * 100).toFixed(1)}%`)
+      tip = `<div class="tip" style="${pos}" role="dialog">${tipHtml(byId.get(r.id), r.id)}</div>`
+    }
+    return `<g class="trib${r.id === selected ? ' sel' : ''}" data-id="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(agentName(r.id))}: ver detalles">` +
       (r.live ? `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w + 8}" stroke-linecap="round" opacity=".28" filter="url(#rblur)"/>` : '') +
       `<path id="rp${i}" d="${d}" fill="none" stroke="${r.live ? `url(#rg${i})` : col}" stroke-width="${w.toFixed(1)}" stroke-linecap="round"` +
       `${r.live ? '' : ' stroke-dasharray="3 8"'}/>` +
@@ -99,7 +148,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   el.style.setProperty('--rt', Math.abs(b) < THRESH ? 'transparent' : tint(b, 1.8))
   el.innerHTML = `<div class="river-head"><h3>Río de decisión <span class="sim">simulada · hasta T20</span></h3>` +
     `<span class="chips"><i class="c up">${ups} compra</i><i class="c flat">${flat} neutral</i><i class="c down">${downs} venta</i></span></div>` +
-    `<svg viewBox="0 0 1200 ${H}" role="img" aria-label="${esc(verdict)}: ${ups} agentes en verde, ${downs} en rojo">` +
+    `<div class="rsvg"><svg viewBox="0 0 1200 ${H}" role="img" aria-label="${esc(verdict)}: ${ups} agentes en verde, ${downs} en rojo">` +
     `<defs><filter id="rblur" x="-30%" y="-120%" width="160%" height="340%"><feGaussianBlur stdDeviation="9"/></filter>` +
     `<linearGradient id="rv" gradientUnits="userSpaceOnUse" x1="${GX}" y1="0" x2="${XE}" y2="0">${stops.join('')}</linearGradient>${defs.join('')}</defs>` +
     `<path d="${main}" stroke="url(#rv)" stroke-width="${mainW + 16}" stroke-linecap="round" fill="none" opacity=".45" filter="url(#rblur)"/>` +
@@ -110,5 +159,5 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     particles('rmain', 6, 5, 2.4, '#fff') +
     `<text x="${XE + 85}" y="${YM - 4}" class="rbig" style="fill:${mainCol}" filter="url(#rblur)" opacity=".55" aria-hidden="true">${esc(verdict)}</text>` +
     `<text x="${XE + 85}" y="${YM - 4}" class="rbig" style="fill:${mainCol}">${esc(verdict)}</text>` +
-    `<text x="${XE + 85}" y="${YM + 24}" class="rv">${syn ? sg(b) : '—'} · acuerdo ${syn ? Math.round(syn.agreement * 100) : 0}%</text></svg>`
+    `<text x="${XE + 85}" y="${YM + 24}" class="rv">${syn ? sg(b) : '—'} · acuerdo ${syn ? Math.round(syn.agreement * 100) : 0}%</text></svg>${tip}</div>`
 }
