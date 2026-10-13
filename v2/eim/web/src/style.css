@@ -242,3 +242,10 @@ select, .btn, .seg button {
 .evcard { position: absolute; z-index: 4; max-width: 320px; padding: 8px 12px; font-size: 12px; pointer-events: none;
   background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.12); }
 .evcard ul { margin: 4px 0 0; padding-left: 16px; }
+
+.replay { position: absolute; left: 12px; right: 12px; bottom: 22px; z-index: 3; display: flex; gap: 10px;
+  align-items: center; padding: 4px 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); font-size: 12px; }
+.replay input { flex: 1; }
+.replay[data-replaying="true"] { border-color: var(--accent); }
+#t-log h4 { margin: 14px 0 6px; font-size: 12px; color: var(--muted); font-weight: 600; }

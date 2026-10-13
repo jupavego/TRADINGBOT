@@ -71,6 +71,29 @@ class ReportStore:
             rows = self._con.execute(q, [symbol, timeframe]).fetchall()
         return [AgentReport.model_validate_json(r[0]) for r in rows]
 
+    @property
+    def connection(self):
+        """(conexión, cerrojo) compartidos con el libro de operaciones."""
+        return self._con, self._lock
+
+    def at(self, symbol: str, timeframe: str, asof: int) -> list[AgentReport]:
+        """El último reporte de cada agente con `asof_ms <= asof` (estado en un instante)."""
+        q = ("SELECT report FROM reports WHERE symbol = ? AND timeframe = ? AND asof_ms <= ? "
+             "QUALIFY row_number() OVER "
+             "(PARTITION BY agent_id ORDER BY asof_ms DESC, version DESC) = 1 "
+             "ORDER BY agent_id")
+        with self._lock:
+            rows = self._con.execute(q, [symbol, timeframe, asof]).fetchall()
+        return [AgentReport.model_validate_json(r[0]) for r in rows]
+
+    def asofs(self, symbol: str, timeframe: str, limit: int = 2000) -> list[int]:
+        """Instantes distintos con reportes, ascendentes (los últimos `limit`)."""
+        with self._lock:
+            rows = self._con.execute(
+                "SELECT DISTINCT asof_ms FROM reports WHERE symbol = ? AND timeframe = ? "
+                f"ORDER BY asof_ms DESC LIMIT {int(limit)}", [symbol, timeframe]).fetchall()
+        return sorted(r[0] for r in rows)
+
     def close(self) -> None:
         with self._lock:
             self._con.close()

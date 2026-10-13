@@ -1,4 +1,4 @@
-import type { AgentInfo, Overlay, AgentReport, Snapshot, StreamMsg } from './types'
+import type { AgentInfo, Overlay, AgentReport, Snapshot, StreamMsg, Decision, Trade, Replay } from './types'
 
 /** Base de la API: variable VITE_API_URL o el mismo host en el puerto 8000. */
 const base = (): string =>
@@ -65,3 +65,19 @@ export function openStream(
   connect()
   return { close() { stopped = true; clearTimeout(timer); ws?.close() } }
 }
+
+export const fetchJournal = (
+  symbol: string, tf: string, signal?: AbortSignal,
+): Promise<{ mode: string; decisions: Decision[]; trades: Trade[] }> =>
+  getJson(`/v2/journal?symbol=${symbol}&tf=${tf}`, signal)
+
+export const fetchTrades = (
+  symbol: string, tf: string, signal?: AbortSignal,
+): Promise<{ mode: string; trades: Trade[] }> => getJson(`/v2/trades?symbol=${symbol}&tf=${tf}`, signal)
+
+export const fetchAsofs = (symbol: string, tf: string, signal?: AbortSignal): Promise<number[]> =>
+  getJson(`/v2/replay/asofs?symbol=${symbol}&tf=${tf}`, signal)
+
+export const fetchReplay = (
+  symbol: string, tf: string, asof: number, signal?: AbortSignal,
+): Promise<Replay> => getJson(`/v2/replay?symbol=${symbol}&tf=${tf}&asof=${asof}`, signal)

@@ -30,6 +30,11 @@
         <div id="layerbar" class="layerbar" role="group" aria-label="Capas"></div>
         <div id="evcard" class="evcard" hidden></div>
         <div id="banner" class="banner" hidden></div>
+        <div id="replay" class="replay" hidden>
+          <span id="replay-label" class="muted">En vivo</span>
+          <input id="replay-range" type="range" min="0" max="0" value="0" aria-label="Reproducir decisiones pasadas" />
+          <button id="replay-live" class="btn" hidden>Volver a en vivo</button>
+        </div>
         <div id="source" class="source"></div>
       </section>
       <section class="bottom">
@@ -40,7 +45,7 @@
         </nav>
         <div class="tabbody" id="t-esc">Sin contenido todavía.</div>
         <div class="tabbody" id="t-plan" hidden>Sin contenido todavía.</div>
-        <div class="tabbody" id="t-log" hidden><div id="journal"></div></div>
+        <div class="tabbody" id="t-log" hidden><div id="trades-log"></div><h4>Reportes de agentes</h4><div id="journal"></div></div>
       </section>
     </main>
   </div>

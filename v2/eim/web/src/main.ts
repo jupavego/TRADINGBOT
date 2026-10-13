@@ -1,10 +1,11 @@
 import './style.css'
-import { fetchAgents, fetchOverlays, fetchReports, fetchSnapshot, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
+import { fetchAgents, fetchAsofs, fetchJournal, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { renderRiver } from './river'
 import { latestPerAgent, renderJournal, renderSide } from './panels'
 import { mountLayerBar, showCard } from './layers_ui'
 import { MoreView } from './more'
+import { renderLog, TradeMarks } from './trades_ui'
 import { applyTheme, initialTheme, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg } from './types'
 
@@ -25,11 +26,15 @@ let lastClose: number | null = null
 let infos: AgentInfo[] = []
 let latest: AgentReport[] = []
 let journal: AgentReport[] = []
+let replaying = false
+let asofs: number[] = []
+let replayTimer: number | undefined
 
 let theme: Theme = initialTheme()
 applyTheme(theme)
 const chart = new PriceChart($('chart'))
 const more = new MoreView($('more'))
+const marks = new TradeMarks(chart)
 chart.layers.modeLabel = MODE_LABEL[mode]
 mountLayerBar($('layerbar'), chart.layers)
 chart.chart.subscribeCrosshairMove((p) => {
@@ -79,7 +84,52 @@ async function loadAgents(signal: AbortSignal): Promise<void> {
   paintAgents()
 }
 
+async function loadTrades(signal?: AbortSignal): Promise<void> {
+  try {
+    const [j, a] = await Promise.all([fetchJournal(symbol, tf, signal), fetchAsofs(symbol, tf, signal)])
+    marks.set(j.trades)
+    renderLog($('trades-log'), j.trades, j.decisions)
+    asofs = a
+  } catch (e) {
+    if ((e as Error).name === 'AbortError') return
+    marks.set([]); asofs = []
+    $('trades-log').innerHTML = '<p class="muted">No se pudo cargar la bitácora.</p>'
+  }
+  paintReplayBar()
+}
+
+function paintReplayBar(): void {
+  const bar = $('replay'), range = $<HTMLInputElement>('replay-range')
+  bar.hidden = asofs.length < 2
+  range.max = String(Math.max(0, asofs.length - 1))
+  if (!replaying) range.value = range.max
+  bar.dataset.replaying = String(replaying)
+  $('replay-live').hidden = !replaying
+  $('replay-label').textContent = replaying
+    ? `Reproducción · ${new Date(asofs[Number(range.value)]).toISOString().slice(0, 16).replace('T', ' ')} UTC (Simulado)`
+    : 'En vivo'
+}
+
+async function showReplay(i: number): Promise<void> {
+  replaying = true; paintReplayBar()
+  try {
+    const r = await fetchReplay(symbol, tf, asofs[i])
+    if (!replaying || Number($<HTMLInputElement>('replay-range').value) !== i) return
+    chart.setData(r.candles, null)
+    chart.layers.replace(r.overlays)
+    marks.set(r.trades)
+    latest = r.reports; paintAgents()
+  } catch { $('banner').hidden = false; $('banner').textContent = 'No se pudo reconstruir ese instante.' }
+}
+
+function leaveReplay(): void {
+  if (!replaying) return
+  replaying = false; clearTimeout(replayTimer)
+  void load()
+}
+
 function onMsg(m: StreamMsg): void {
+  if (replaying) return
   if (m.type === 'status') { state = m.state; paintLive() }
   else if (m.type === 'reports') {
     if (m.symbol !== symbol || m.timeframe !== tf) return
@@ -87,6 +137,7 @@ function onMsg(m: StreamMsg): void {
     chart.layers.replace(m.overlays)
     journal = [...latest, ...journal].slice(0, 200)
     paintAgents()
+    void loadTrades()
   } else if (m.type === 'tick') {
     if (m.symbol !== symbol || m.timeframe !== tf) return
     state = 'up'; paintLive()
@@ -97,12 +148,14 @@ function onMsg(m: StreamMsg): void {
 
 async function load(): Promise<void> {
   stream?.close(); loadAbort?.abort()
+  replaying = false; clearTimeout(replayTimer)
   loadAbort = new AbortController()
   link = false; state = 'connecting'; lastClose = null
   $('price').textContent = '—'; delete $('price').dataset.dir
   paintLive()
   more.setContext(symbol, tf)
   void loadAgents(loadAbort.signal)
+  void loadTrades(loadAbort.signal)
   chart.layers.clear()
   fetchOverlays(symbol, tf, loadAbort.signal).then((o) => chart.layers.replace(o)).catch(() => {})
   try {
@@ -145,6 +198,15 @@ function build(): void {
       document.querySelectorAll<HTMLElement>('.tabbody').forEach((p) => { p.hidden = p.id !== b.dataset.tab })
     }
   })
+  const range = $<HTMLInputElement>('replay-range')
+  range.oninput = () => {
+    const i = Number(range.value)
+    clearTimeout(replayTimer)
+    if (i >= Number(range.max)) { leaveReplay(); return }
+    replayTimer = window.setTimeout(() => void showReplay(i), 120)
+    replaying = true; paintReplayBar()
+  }
+  $('replay-live').onclick = () => leaveReplay()
   const modeEl = $('mode')
   modeEl.textContent = `Modo: ${MODE_LABEL[mode]}`
   $('theme').onclick = () => {
