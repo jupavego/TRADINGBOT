@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 
 from eim.core import MarketSnapshot
+from eim.data.micro import read_micro
 from eim.data.store import Store
 from eim.data.timeframes import tf_ms
 
@@ -23,6 +24,7 @@ def build_snapshot(
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}
     funding = oi = ls = basis = None
+    micro = book = None
     if candles:
         lo, hi = candles[0].t, candles[-1].t
         sources["candles"] = store.source("candles", symbol, timeframe) or "desconocida"
@@ -37,6 +39,13 @@ def build_snapshot(
             if series:
                 sources[name] = store.source(name, symbol, tf) or "desconocida"
                 coverage[name] = (series[0][0], series[-1][0])
+        bars, book = read_micro(store.root, symbol, lo, step, (hi - lo) // step + 1)
+        if bars:
+            micro = bars
+            sources["micro"] = "binance_ws"
+            coverage["micro"] = (bars[0].t, bars[-1].t)
+        if book is not None:
+            sources["orderbook"] = book.source
     return MarketSnapshot(
         symbol=symbol,
         timeframe=timeframe,
@@ -45,6 +54,8 @@ def build_snapshot(
         open_interest=oi,
         long_short_ratio=ls,
         basis=basis,
+        micro=micro,
+        orderbook=book,
         asof=asof,
         sources=sources,
         coverage=coverage,

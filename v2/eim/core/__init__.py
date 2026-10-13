@@ -9,6 +9,7 @@ from eim.core.market import (
     LiquidationLevel,
     Liquidations,
     MarketSnapshot,
+    MicroBar,
     NewsItem,
 )
 from eim.core.mode import Mode
@@ -24,6 +25,7 @@ __all__ = [
     "LiquidationLevel",
     "Liquidations",
     "MarketSnapshot",
+    "MicroBar",
     "Mode",
     "NewsItem",
     "Overlay",
