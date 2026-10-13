@@ -19,7 +19,9 @@ import httpx
 from eim.data.collectors.book import LocalBook
 from eim.data.collectors.writer import HourlyWriter
 
-WS = "wss://fstream.binance.com/stream?streams={s}@aggTrade/{s}@depth@100ms"
+WS_DEPTH = "wss://fstream.binance.com/stream?streams={s}@depth@100ms"
+# aggTrade ya no se sirve por /stream: vive en el endpoint /market
+WS_TRADES = "wss://fstream.binance.com/market/stream?streams={s}@aggTrade"
 REST = "https://fapi.binance.com/fapi/v1/depth"
 
 
@@ -82,33 +84,53 @@ class Collector:
             w.flush()
 
 
-async def run(root, symbol: str, stop: asyncio.Event | None = None) -> None:
+async def _stream(col: Collector, url: str, stop: asyncio.Event, on_open, after=None) -> None:
+    """Una conexión con reintentos: ante cualquier corte registra el hueco y reconecta."""
     import websockets
 
-    col = Collector(root, symbol)
     backoff = 1.0
+    while not stop.is_set():
+        try:
+            async with websockets.connect(url, ping_interval=20, open_timeout=15) as ws:
+                backoff = 1.0
+                on_open()
+                async for raw in ws:
+                    col.on_message(json.loads(raw))
+                    if after:
+                        await after()
+                    if stop.is_set():
+                        break
+        except Exception as exc:  # corte de red, 429, etc. → registrar hueco y reintentar
+            col.gap(int(time.time() * 1000), "ws", f"{type(exc).__name__}: {exc}"[:200])
+            col.flush()
+            await asyncio.sleep(backoff)
+            backoff = min(backoff * 2, 60.0)
+
+
+async def run(root, symbol: str, stop: asyncio.Event | None = None) -> None:
+    """Dos conexiones: profundidad (+ snapshot REST) y trades (endpoint `/market`)."""
+    col = Collector(root, symbol)
     stop = stop or asyncio.Event()
+    s = col.symbol.lower()
+
+    def depth_open() -> None:
+        col.book.desync()
+        col.need_snapshot = True
+
+    def trades_open() -> None:
+        col.last_trade_id = None
+
     async with httpx.AsyncClient(timeout=10) as http:
-        while not stop.is_set():
-            try:
-                async with websockets.connect(WS.format(s=col.symbol.lower()),
-                                              ping_interval=20, open_timeout=15) as ws:
-                    backoff = 1.0
-                    col.last_trade_id, col.need_snapshot = None, True
-                    col.book.desync()
-                    async for raw in ws:
-                        col.on_message(json.loads(raw))
-                        if col.need_snapshot:
-                            r = await http.get(REST, params={"symbol": col.symbol, "limit": 1000})
-                            r.raise_for_status()
-                            col.load_snapshot(r.json())
-                        if stop.is_set():
-                            break
-            except Exception as exc:  # corte de red, 429, etc. → registrar hueco y reintentar
-                col.gap(int(time.time() * 1000), "ws", f"{type(exc).__name__}: {exc}"[:200])
-                col.flush()
-                await asyncio.sleep(backoff)
-                backoff = min(backoff * 2, 60.0)
+        async def snapshot() -> None:
+            if col.need_snapshot:
+                r = await http.get(REST, params={"symbol": col.symbol, "limit": 1000})
+                r.raise_for_status()
+                col.load_snapshot(r.json())
+
+        await asyncio.gather(
+            _stream(col, WS_DEPTH.format(s=s), stop, depth_open, snapshot),
+            _stream(col, WS_TRADES.format(s=s), stop, trades_open),
+        )
     col.flush()
 
 
