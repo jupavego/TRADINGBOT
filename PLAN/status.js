@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T00:00:31",
+ "generated": "2026-10-13T00:21:55",
  "tasks": [
   {
    "id": "T01",
@@ -53,8 +53,8 @@ window.EIM_STATUS = {
     "T02",
     "T03"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/agents: `base.py` (reportes degraded/no_data), `registry.py` (id+versión, `default_registry`), `runner.py` (paralelo, timeout, excepción→degraded). `structure/` (frm/brm/irm/params/agent, sin I/O): salida idéntica al golden de T02 (RTOL 1e-9); sesgo=(convicción−50)/50, confianza=score IRM/100, evidencia con reglas SR/M disparadas. Tests en tests/agents. Gate OK.",
    "effort": "alto",
    "phase": 1,
    "goal": "Registro y ejecutor de agentes, y migrar el motor EIM (FRM→BRM→IRM) como agente `structure` sin cambiar su comportamiento."
