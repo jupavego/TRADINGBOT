@@ -1,6 +1,7 @@
 import './style.css'
 import { fetchAgents, fetchReports, fetchSnapshot, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
+import { renderRiver } from './river'
 import { latestPerAgent, renderJournal, renderSide } from './panels'
 import { applyTheme, initialTheme, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg } from './types'
@@ -52,6 +53,7 @@ function paintPrice(c: Candle): void {
 
 function paintAgents(): void {
   renderSide($('side'), $('synth'), infos, latest)
+  renderRiver($('river'), infos, latest)
   renderJournal($('journal'), journal)
 }
 

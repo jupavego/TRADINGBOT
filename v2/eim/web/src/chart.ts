@@ -44,7 +44,8 @@ export class PriceChart {
     const last = candles.length ? candles[candles.length - 1].t : -1
     const all = forming && forming.t > last ? [...candles, forming] : candles
     this.series.setData(all.map(toBar))
-    this.chart.timeScale().fitContent()
+    const n = all.length
+    this.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - 90), to: n + 6 })
   }
 
   /** Vela en formación o cierre: `update` reemplaza la barra del mismo tiempo o añade una nueva. */

@@ -158,3 +158,15 @@ select, .btn, .seg button {
 .tiles { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
 .desk { grid-template-columns: minmax(0, 1fr); grid-template-rows: 560px 190px; grid-template-areas: "chart" "bottom"; }
 @media (max-width: 900px) { .desk { grid-template-rows: 380px 190px; } .side { margin: 12px; } }
+
+.river { margin: 12px 20px 0; padding: 12px 18px 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.river-head { display: flex; justify-content: space-between; align-items: baseline; }
+.river-head h3 { margin: 0; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.river svg { width: 100%; height: auto; display: block; }
+.rl { font-size: 13px; fill: var(--text); }
+.rv { font-size: 12px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.rbig { font-size: 22px; font-weight: 700; }
+.flow { animation: flow 4s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -56; } }
+@media (prefers-reduced-motion: reduce) { .flow { animation: none; } }
+@media (max-width: 900px) { .river { margin: 12px; } }
