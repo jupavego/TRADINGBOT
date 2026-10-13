@@ -79,6 +79,8 @@ class MarketSnapshot(Frozen):
     forming: Candle | None = None
     funding: list[tuple[int, float]] | None = None
     open_interest: list[tuple[int, float]] | None = None
+    long_short_ratio: list[tuple[int, float]] | None = None  # cuentas long/short (global)
+    basis: list[tuple[int, float]] | None = None  # (futuro−índice)/índice del perpetuo
     orderbook: Book | None = None
     liquidations: Liquidations | None = None
     asof: int

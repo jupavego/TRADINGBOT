@@ -57,4 +57,14 @@ def sync_derivatives(
     oi = provider.open_interest(symbol, timeframe, o[-1][0] + tf_ms(timeframe) if o else start, end)
     if oi:
         store.upsert_series("open_interest", symbol, timeframe, oi, provider.name)
-    return {"funding": len(rates), "open_interest": len(oi)}
+    out = {"funding": len(rates), "open_interest": len(oi)}
+    for kind in ("long_short_ratio", "basis"):  # opcionales: el proveedor puede no tenerlos
+        fetch = getattr(provider, kind, None)
+        if fetch is None:
+            continue
+        old = store.read_series(kind, symbol, timeframe)
+        rows = fetch(symbol, timeframe, old[-1][0] + tf_ms(timeframe) if old else start, end)
+        if rows:
+            store.upsert_series(kind, symbol, timeframe, rows, provider.name)
+        out[kind] = len(rows)
+    return out
