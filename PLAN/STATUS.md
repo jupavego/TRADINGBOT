@@ -36,3 +36,17 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T30 | Ejecución en testnet + reconciliación | T29 | ☐ | |
 | T31 | Paper trading + kill-switch + monitoreo | T30 | ☐ | |
 | T32 | Endurecimiento y documentación | T31 | ☐ | |
+| T33 | Auditoría de repos y fuentes (4 agentes nuevos) | — | ☐ | |
+| T34 | Biblioteca de indicadores técnicos (catálogo Binance) | T05 | ☐ | |
+| T35 | Agente `technical` (confluencia multi-marco) | T34 | ☐ | |
+| T36 | Calendario económico: proveedor + agente | T05 | ☐ | |
+| T37 | Calendario: impacto histórico y ventanas | T36 T03 | ☐ | |
+| T38 | Arbitraje: motor de oportunidades netas (Binance) | T03 T05 | ☐ | |
+| T39 | Agente `arbitrage` + escáner UI | T38 T10 | ☐ | |
+| T40 | Copy trading: datos y descubrimiento de líderes | T03 T33 | ☐ | |
+| T41 | Copy trading: evaluación de líderes + agente `smart_money` | T40 T05 | ☐ | |
+| T42 | Copy trading: replicación simulada | T41 T25 | ☐ | |
+| T43 | Arbitraje: simulación y backtest con costos | T38 T25 | ☐ | |
+| T44 | Integración de agentes nuevos (síntesis, riesgo, UI) | T20 T35 T36 T37 T41 T39 | ☐ | |
+| T45 | Arbitraje en testnet (dos patas, selección automática) | T30 T43 | ☐ | |
+| T46 | Copy trading en testnet + asignador de capital | T30 T42 T45 | ☐ | |
