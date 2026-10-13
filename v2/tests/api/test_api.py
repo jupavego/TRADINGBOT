@@ -68,10 +68,11 @@ def test_agents_listed_before_any_run(client):
 def test_stream_ticks_then_reports_persisted(client):
     got: list[dict] = []
     with client.websocket_connect("/v2/stream?symbol=ETHUSDT&tf=1h") as ws:
-        for _ in range(12):
+        for _ in range(16):
             msg = ws.receive_json()
             got.append(msg)
-            if msg["type"] == "reports":
+            # el primer "reports" es el análisis inicial (bootstrap); se espera el del cierre
+            if msg["type"] == "reports" and any(m["type"] == "tick" and m["closed"] for m in got):
                 break
     types = [m["type"] for m in got]
     assert "tick" in types and types[-1] == "reports"
@@ -82,8 +83,8 @@ def test_stream_ticks_then_reports_persisted(client):
     assert len(rep["reports"]) >= 7 and isinstance(rep["overlays"], list)
     # persistidos y consultables por REST
     rows = client.get("/v2/reports", params={"symbol": "ETHUSDT", "tf": "1h"}).json()
+    rows = [r for r in rows if r["asof"] == rep["asof"]]  # el bootstrap dejó filas más viejas
     assert {r["agent_id"] for r in rows} == {r["agent_id"] for r in rep["reports"]}
-    assert all(r["asof"] == rep["asof"] for r in rows)
     rng = client.get("/v2/reports", params={"agent": "structure", "start": rep["asof"] + 1})
     assert rng.json() == []
     assert len(client.get("/v2/overlays").json()) == len(rep["overlays"])
@@ -111,3 +112,12 @@ def test_parse_kline():
 def test_cors_env(monkeypatch):
     monkeypatch.setenv("EIM_CORS_ORIGINS", "http://a.test, http://b.test")
     assert Settings.from_env().cors_origins == ("http://a.test", "http://b.test")
+
+
+def test_bootstrap_publishes_reports_without_waiting_for_close(client):
+    with client.websocket_connect("/v2/stream?symbol=ETHUSDT&tf=1h") as ws:
+        first = next(m for m in (ws.receive_json() for _ in range(6)) if m["type"] == "reports")
+    assert first["asof"] == T0 + 300 * STEP  # última vela almacenada + un marco
+    assert len(first["reports"]) >= 7
+    rows = client.get("/v2/reports", params={"symbol": "ETHUSDT", "tf": "1h"}).json()
+    assert sum(1 for r in rows if r["asof"] == first["asof"]) >= 7

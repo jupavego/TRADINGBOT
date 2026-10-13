@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import time
 from dataclasses import dataclass, field
 
 from eim.agents.registry import AgentRegistry
@@ -69,7 +70,24 @@ class Hub:
                     q.get_nowait()
             q.put_nowait(msg)
 
+    async def _bootstrap(self, ch: Channel) -> None:
+        """Análisis inicial sobre la última vela cerrada del almacén, para ver los agentes en
+        cualquier marco sin esperar al próximo cierre. No hace nada si ya hay reportes al día."""
+        step = tf_ms(ch.timeframe)
+        now = int(time.time() * 1000)
+        last = await asyncio.to_thread(
+            self._store.read_candles, ch.symbol, ch.timeframe, None, now - step + 1, 1)
+        if not last:
+            return
+        stored = await asyncio.to_thread(self._reports.latest, ch.symbol, ch.timeframe)
+        done = {r.asof for r in stored}
+        if last[0].t + step in done:
+            return
+        await self._on_close(ch, last[0], persist_candle=False)
+
     async def _pump(self, ch: Channel) -> None:
+        with contextlib.suppress(Exception):
+            await self._bootstrap(ch)
         async for ev in self._source.stream(ch.symbol, ch.timeframe):
             if ev["type"] == "status":
                 ch.status = {
@@ -88,9 +106,9 @@ class Hub:
             if ev["closed"]:
                 await self._on_close(ch, candle)
 
-    async def _on_close(self, ch: Channel, candle: Candle) -> None:
+    async def _on_close(self, ch: Channel, candle: Candle, persist_candle: bool = True) -> None:
         try:
-            reports = await asyncio.to_thread(self._analyze, ch, candle)
+            reports = await asyncio.to_thread(self._analyze, ch, candle, persist_candle)
         except Exception as exc:
             self._broadcast(ch, {"type": "error", "detail": f"{type(exc).__name__}: {exc}"})
             return
@@ -100,8 +118,11 @@ class Hub:
             "reports": [r.model_dump() for r in reports], "overlays": overlays_of(reports),
         })
 
-    def _analyze(self, ch: Channel, candle: Candle) -> list[AgentReport]:
-        self._store.upsert_candles(ch.symbol, ch.timeframe, [candle], self._source.name)
+    def _analyze(
+        self, ch: Channel, candle: Candle, persist_candle: bool = True
+    ) -> list[AgentReport]:
+        if persist_candle:
+            self._store.upsert_candles(ch.symbol, ch.timeframe, [candle], self._source.name)
         asof = candle.t + tf_ms(ch.timeframe)
         snap = build_snapshot(self._store, ch.symbol, ch.timeframe, self._bars, asof=asof)
         reports = run_agents(self._registry.latest(), snap, timeout=self._timeout)
