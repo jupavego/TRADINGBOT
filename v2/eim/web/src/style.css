@@ -189,3 +189,8 @@ select, .btn, .seg button {
 .node { stroke: var(--panel); stroke-width: 2; }
 .conf { fill: none; stroke-width: 2; opacity: .55; }
 @media (prefers-reduced-motion: reduce) { .river animateMotion { display: none; } .river circle[r] > animateMotion { display: none; } }
+
+.anode { fill: var(--panel); stroke-width: 3; filter: drop-shadow(0 3px 8px rgba(0,0,0,.14)); }
+.anode.off { stroke-dasharray: 3 4; opacity: .6; }
+.rvv { font-size: 11px; }
+.rl { font-size: 12.5px; font-weight: 500; }
