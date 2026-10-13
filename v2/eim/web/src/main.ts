@@ -3,6 +3,7 @@ import { fetchAgents, fetchReports, fetchSnapshot, openStream, SYMBOLS, TIMEFRAM
 import { PriceChart } from './chart'
 import { renderRiver } from './river'
 import { latestPerAgent, renderJournal, renderSide } from './panels'
+import { MoreView } from './more'
 import { applyTheme, initialTheme, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg } from './types'
 
@@ -27,6 +28,7 @@ let journal: AgentReport[] = []
 let theme: Theme = initialTheme()
 applyTheme(theme)
 const chart = new PriceChart($('chart'))
+const more = new MoreView($('more'))
 
 function paintLive(): void {
   const el = $('live')
@@ -91,6 +93,7 @@ async function load(): Promise<void> {
   link = false; state = 'connecting'; lastClose = null
   $('price').textContent = '—'; delete $('price').dataset.dir
   paintLive()
+  more.setContext(symbol, tf)
   void loadAgents(loadAbort.signal)
   try {
     const snap = await fetchSnapshot(symbol, tf, 500, loadAbort.signal)
@@ -136,7 +139,14 @@ function build(): void {
   modeEl.textContent = `Modo: ${MODE_LABEL[mode]}`
   $('theme').onclick = () => {
     theme = theme === 'light' ? 'dark' : 'light'
-    applyTheme(theme); chart.restyle()
+    applyTheme(theme); chart.restyle(); more.restyle()
+  }
+  const mb = $<HTMLButtonElement>('more-btn')
+  mb.onclick = () => {
+    const on = mb.getAttribute('aria-pressed') !== 'true'
+    mb.setAttribute('aria-pressed', String(on))
+    mb.textContent = on ? 'Volver a la mesa' : 'Más análisis'
+    more.toggle(on)
   }
 }
 

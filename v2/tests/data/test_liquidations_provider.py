@@ -14,6 +14,7 @@ from eim.data.providers.liquidations import (
     BinanceLiquidations,
     LiquidationsUnavailable,
     aggregate,
+    dedupe_rows,
     resolve_liquidation_symbol,
 )
 
@@ -68,6 +69,12 @@ def test_aggregate_sides_and_levels():
     daily, levels = aggregate(rows, price_bins=10)
     assert len(daily) == 1 and daily[0].longs_usd == 25_000 and daily[0].shorts_usd == 10_400
     assert sum(lv.longs_usd for lv in levels) == 25_000 and len(levels) == 2
+
+
+def test_dedupe_rows_matches_legacy_drop_duplicates():
+    row = {"time": "1", "side": "SELL", "original_quantity": "10", "average_price": "2500"}
+    other = {**row, "time": "2"}
+    assert dedupe_rows([row, dict(row), other, dict(other)]) == [row, other]
 
 
 def test_fetch_marks_stale_and_exposes_symbols(tmp_path):

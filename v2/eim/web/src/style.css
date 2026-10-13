@@ -207,3 +207,29 @@ select, .btn, .seg button {
 .tip-k { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin-bottom: 6px; }
 .tip .ev, .tip .warn { margin: 4px 0; padding-left: 16px; }
 .tip p { margin: 6px 0 0; }
+
+/* ── Más análisis (T11) ── */
+#app[data-view="more"] > :not(.topbar):not(#more) { display: none; }
+.more { margin: 12px 20px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.more[hidden] { display: none; }
+.more-body { padding: 14px 16px 18px; }
+.mrow { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
+.mrow label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+.mrow input, .mrow select { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; max-width: 160px; }
+.msrc { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.mchart { position: relative; height: 380px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.mt { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mt th, .mt td { padding: 3px 8px; border-top: 1px solid var(--grid); text-align: left; }
+.mt th { color: var(--muted); font-weight: 500; }
+.mt.heat td, .mt.heat th { text-align: center; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+.more h4 { margin: 10px 0 6px; font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+.kpi-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.kpi { border: 1px solid var(--line); border-radius: 12px; padding: 8px 14px; min-width: 140px; display: flex; flex-direction: column; }
+.kpi b { font-size: 22px; }
+.kpi span { color: var(--muted); font-size: 11px; }
+.alert.bad { border-color: var(--down); color: var(--down); }
+.up { color: var(--up); } .down { color: var(--down); } .warn { color: var(--warn); }
+.bcell { width: 45%; }
+.bl, .bs { display: inline-block; height: 8px; vertical-align: middle; }
+.bl { background: var(--down); } .bs { background: var(--up); }
