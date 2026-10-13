@@ -139,6 +139,41 @@ class BinanceFutures:
             cursor = nxt
         return sorted(out.items())
 
+    def _hist(
+        self, path: str, params: dict[str, Any], field: str, timeframe: str, start: int, end: int
+    ) -> list[tuple[int, float]]:
+        """Serie `/futures/data/*` paginada (Binance retiene ~30 días)."""
+        step = tf_ms(timeframe)
+        out: dict[int, float] = {}
+        cursor = max(start, self._clock() - _OI_RETENTION_MS)
+        while cursor < end:
+            rows = self._get(path, {**params, "period": timeframe, "startTime": cursor,
+                                    "endTime": end - 1, "limit": 500})
+            if not rows:
+                break
+            for r in rows:
+                t = int(r["timestamp"])
+                if start <= t < end:
+                    out[t] = float(r[field])
+            nxt = int(rows[-1]["timestamp"]) + step
+            if nxt <= cursor:
+                break
+            cursor = nxt
+        return sorted(out.items())
+
+    def long_short_ratio(
+        self, symbol: str, timeframe: str, start: int, end: int
+    ) -> list[tuple[int, float]]:
+        """Ratio long/short de cuentas (global); ~30 días de histórico."""
+        return self._hist("/futures/data/globalLongShortAccountRatio", {"symbol": symbol},
+                          "longShortRatio", timeframe, start, end)
+
+    def basis(self, symbol: str, timeframe: str, start: int, end: int) -> list[tuple[int, float]]:
+        """Basis del perpetuo ((futuro−índice)/índice); ~30 días de histórico."""
+        return self._hist("/futures/data/basis",
+                          {"pair": symbol, "contractType": "PERPETUAL"},
+                          "basisRate", timeframe, start, end)
+
 
 def _dedupe(candles: list[Candle]) -> list[Candle]:
     return sorted({c.t: c for c in candles}.values(), key=lambda c: c.t)

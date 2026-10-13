@@ -22,7 +22,7 @@ def build_snapshot(
     candles = store.read_candles(symbol, timeframe, end=asof - step + 1, last=n)
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}
-    funding = oi = None
+    funding = oi = ls = basis = None
     if candles:
         lo, hi = candles[0].t, candles[-1].t
         sources["candles"] = store.source("candles", symbol, timeframe) or "desconocida"
@@ -30,7 +30,10 @@ def build_snapshot(
         end = min(asof, hi + step)
         funding = store.read_series("funding", symbol, start=lo, end=end) or None
         oi = store.read_series("open_interest", symbol, timeframe, start=lo, end=end) or None
-        for name, series, tf in (("funding", funding, "-"), ("open_interest", oi, timeframe)):
+        ls = store.read_series("long_short_ratio", symbol, timeframe, start=lo, end=end) or None
+        basis = store.read_series("basis", symbol, timeframe, start=lo, end=end) or None
+        for name, series, tf in (("funding", funding, "-"), ("open_interest", oi, timeframe),
+                                 ("long_short_ratio", ls, timeframe), ("basis", basis, timeframe)):
             if series:
                 sources[name] = store.source(name, symbol, tf) or "desconocida"
                 coverage[name] = (series[0][0], series[-1][0])
@@ -40,6 +43,8 @@ def build_snapshot(
         candles=candles,
         funding=funding,
         open_interest=oi,
+        long_short_ratio=ls,
+        basis=basis,
         asof=asof,
         sources=sources,
         coverage=coverage,

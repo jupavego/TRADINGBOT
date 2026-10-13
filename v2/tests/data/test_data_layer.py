@@ -131,9 +131,14 @@ def test_sync_derivatives(tmp_path):
     def handler(req: httpx.Request) -> httpx.Response:
         if "fundingRate" in req.url.path:
             return httpx.Response(200, json=[{"fundingTime": T0, "fundingRate": "0.0002"}])
+        if "LongShort" in req.url.path:
+            return httpx.Response(200, json=[{"longShortRatio": "1.2", "timestamp": R0}])
+        if "basis" in req.url.path:
+            return httpx.Response(200, json=[{"basisRate": "0.001", "timestamp": R0}])
         return httpx.Response(200, json=[{"sumOpenInterest": "5", "timestamp": R0}])
 
     store = Store(tmp_path)
     assert sync_derivatives(store, _make(handler), "BTCUSDT", "1h", T0, NOW) == {
-        "funding": 1, "open_interest": 1}
+        "funding": 1, "open_interest": 1, "long_short_ratio": 1, "basis": 1}
+    assert store.read_series("basis", "BTCUSDT", "1h") == [(R0, 0.001)]
     assert store.read_series("funding", "BTCUSDT") == [(T0, 0.0002)]

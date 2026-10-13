@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T13:45:17",
+ "generated": "2026-10-13T14:08:06",
  "tasks": [
   {
    "id": "T01",
@@ -242,8 +242,8 @@ window.EIM_STATUS = {
     "T03",
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/agents/derivatives (z de funding y de cambio de OI; 6 reglas precio/OI/funding con evidencia y advertencia de squeeze; ajustes contrarian por long/short y basis; `no_data` sin funding u OI). Proveedor Binance con `long_short_ratio` y `basis`, `sync_derivatives` y `MarketSnapshot` ampliados (opcionales). Registrado en `default_registry`. Tests en tests/agents/derivatives.",
    "effort": "medio",
    "phase": 5,
    "goal": "Agente que lee funding, open interest y (si hay) basis/long-short ratio y emite sesgo y advertencias de apalancamiento extremo."
