@@ -76,6 +76,10 @@ def test_default_registry_has_structure():
     assert "structure" in default_registry().ids()
 
 
+# El CSV fixture (~6 semanas, sin liquidaciones) no alcanza para estos dos: deben dar no_data.
+NO_DATA = {"seasonality", "liquidations"}
+
+
 def test_new_agents_registered_and_run():
     from tests.agents.conftest import make_snapshot
 
@@ -83,5 +87,8 @@ def test_new_agents_registered_and_run():
     assert {"structure", "ema", "vwap", "price_action"} <= set(reg.ids())
     reps = run_agents(reg.latest(), make_snapshot())
     assert {r.agent_id for r in reps} == set(reg.ids())
-    assert all(r.status in {"ok", "degraded"} for r in reps)
+    assert all(r.status in {"ok", "degraded"} for r in reps if r.agent_id not in NO_DATA)
     assert not [r for r in reps if r.status == "degraded" and r.agent_id in {"ema", "price_action"}]
+    by_id = {r.agent_id: r for r in reps}
+    assert {i: by_id[i].status for i in NO_DATA} == dict.fromkeys(NO_DATA, "no_data")
+    assert by_id["elliott"].status == "ok"

@@ -36,6 +36,40 @@ class Book(Frozen):
     source: str
 
 
+class LiquidationDay(Frozen):
+    """Liquidaciones forzadas de un día (UTC): notional USD por lado de la POSICIÓN liquidada."""
+
+    t: int  # inicio del día, ms epoch UTC
+    longs_usd: float
+    shorts_usd: float
+
+
+class LiquidationLevel(Frozen):
+    """Notional liquidado acumulado en un nivel de precio (centro del bin)."""
+
+    price: float
+    longs_usd: float
+    shorts_usd: float
+
+
+class Liquidations(Frozen):
+    """Liquidaciones ya descargadas (I/O en `data/providers/liquidations.py`).
+
+    `liquidation_symbol` es el contrato coin-margined real (ETHUSD_PERP), distinto del
+    `requested_symbol` (ETHUSDT). Binance dejó de publicar el dataset en octubre de 2024.
+    """
+
+    requested_symbol: str
+    liquidation_symbol: str
+    most_recent_date: str  # YYYY-MM-DD del último archivo publicado
+    stale: bool
+    stale_age_days: int
+    days_with_data: int
+    source: str
+    daily: list[LiquidationDay]
+    levels: list[LiquidationLevel] = []
+
+
 class MarketSnapshot(Frozen):
     """Estado de mercado inmutable que consume `Agent.run`."""
 
@@ -46,6 +80,7 @@ class MarketSnapshot(Frozen):
     funding: list[tuple[int, float]] | None = None
     open_interest: list[tuple[int, float]] | None = None
     orderbook: Book | None = None
+    liquidations: Liquidations | None = None
     asof: int
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}
