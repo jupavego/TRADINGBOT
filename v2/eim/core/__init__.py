@@ -9,6 +9,7 @@ from eim.core.market import (
     LiquidationLevel,
     Liquidations,
     MarketSnapshot,
+    NewsItem,
 )
 from eim.core.mode import Mode
 from eim.core.report import AgentReport, Overlay
@@ -24,6 +25,7 @@ __all__ = [
     "Liquidations",
     "MarketSnapshot",
     "Mode",
+    "NewsItem",
     "Overlay",
     "Scenario",
     "Synthesis",
