@@ -50,6 +50,7 @@ def default_registry() -> AgentRegistry:
     from eim.agents.liquidations import LiquidationsAgent
     from eim.agents.plan import PlanAgent
     from eim.agents.price_action import PriceActionAgent
+    from eim.agents.regime import RegimeAgent
     from eim.agents.seasonality import SeasonalityAgent
     from eim.agents.structure import StructureAgent
     from eim.agents.vwap import VWAPAgent
@@ -57,6 +58,6 @@ def default_registry() -> AgentRegistry:
     reg = AgentRegistry()
     for agent in (StructureAgent(), EMAAgent(), VWAPAgent(), PriceActionAgent(),
                   ElliottAgent(), SeasonalityAgent(), LiquidationsAgent(), LevelsAgent(),
-                  DerivativesAgent(), PlanAgent()):
+                  DerivativesAgent(), RegimeAgent(), PlanAgent()):
         reg.register(agent)
     return reg
