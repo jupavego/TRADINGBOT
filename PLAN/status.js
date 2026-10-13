@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T15:40:31",
+ "generated": "2026-10-13T15:57:49",
  "tasks": [
   {
    "id": "T01",
@@ -254,8 +254,8 @@ window.EIM_STATUS = {
    "deps": [
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/agents/regime: `bocpd.py` (Adams–MacKay Normal–Gamma propio, hazard 1/800, sin instalar Kats), `labeling.py` (etiquetas tendencia↑/↓, rango, volátil por tramo; matriz de transición, permanencia, entropía), `agent.py` (BOCPD sobre retorno y log\\|ret\\|; sesgo 0; advertencia si el esquema es inestable; overlays `marker`). Registrado en `default_registry` y excluido del voto en síntesis. Tests con series sintéticas (retraso ≤ ~11 velas, 0 falsas alarmas en 9000 velas de ruido).",
    "effort": "medio-alto",
    "phase": 5,
    "goal": "Detectar cambios de régimen (tendencia/rango/alta volatilidad) y validar que el esquema de regímenes es estable y no ruido."
