@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T00:21:55",
+ "generated": "2026-10-13T00:45:46",
  "tasks": [
   {
    "id": "T01",
@@ -65,8 +65,8 @@ window.EIM_STATUS = {
    "deps": [
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/agents: `vwap/` (diario/semanal/quincenal/mensual+anclado, bandas ±1σ/±2σ, overlays `level` por período, avisa período parcial), `price_action/` (swings, patrones, BOS/CHOCH, zonas S/R como `zone`), y `ema/` (extra pedido: las 44 variables FRM en `metrics.variables`/`groups`, overlays EMA y cruces). Los 3 en `default_registry` y corren en el runner. Regresión contra golden RTOL 1e-9. Gate OK.",
    "effort": "bajo-medio",
    "phase": 1,
    "goal": "Migrar `eim_vwap.py` y `eim_price_action.py` a agentes puros con la interfaz común."
