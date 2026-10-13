@@ -2,7 +2,14 @@
 
 from eim.core.agent import Agent
 from eim.core.forecast import ForecastSet, Scenario, Synthesis
-from eim.core.market import Book, Candle, MarketSnapshot
+from eim.core.market import (
+    Book,
+    Candle,
+    LiquidationDay,
+    LiquidationLevel,
+    Liquidations,
+    MarketSnapshot,
+)
 from eim.core.mode import Mode
 from eim.core.report import AgentReport, Overlay
 
@@ -12,6 +19,9 @@ __all__ = [
     "Book",
     "Candle",
     "ForecastSet",
+    "LiquidationDay",
+    "LiquidationLevel",
+    "Liquidations",
     "MarketSnapshot",
     "Mode",
     "Overlay",
