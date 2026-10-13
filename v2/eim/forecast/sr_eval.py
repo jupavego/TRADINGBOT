@@ -64,12 +64,15 @@ def collect(forecasts: list[ForecastSet], candles: list[Candle], draws: int = 30
         d = cl[-1] - last
         realized = "neutral" if abs(d) < half else ("bull" if d > 0 else "bear")
         for lv in sc[realized].levels:
-            snap = _metrics(lv["role"], lv["price"], hi, lo, cl, a)
+            ctx_lv = lv.get("context")
+            snap_price = ctx_lv["price"] if ctx_lv else lv["price"]  # ajustado a estructura
+            snap = _metrics(lv["role"], snap_price, hi, lo, cl, a)
             stat = _metrics(lv["role"], lv["stat_price"], hi, lo, cl, a)
             offs = rng.uniform(-TOL_ATR, TOL_ATR, draws) * a
             rnd = np.mean([_metrics(lv["role"], lv["stat_price"] + o, hi, lo, cl, a)
                            for o in offs], axis=0)
-            rows.append({"i": i, "group": _group(lv["methods"]), "role": lv["role"],
+            group = _group(ctx_lv["methods"] if ctx_lv else [])
+            rows.append({"i": i, "group": group, "role": lv["role"],
                          "snap": snap, "stat": stat, "rand": tuple(rnd)})
     return rows
 
@@ -139,10 +142,11 @@ def main() -> None:  # pragma: no cover - uso manual con datos reales
     ap.add_argument("--data-dir", default="data")
     ap.add_argument("--horizon", type=int, default=25)
     ap.add_argument("--n", type=int, default=200)
+    ap.add_argument("--stride", type=int, default=1)
     a = ap.parse_args()
     candles = Store(a.data_dir).read_candles(a.symbol, a.timeframe)
     fcs = list(backfill(BaseEngine(), candles, symbol=a.symbol, timeframe=a.timeframe,
-                        horizon=a.horizon, n=a.n))
+                        horizon=a.horizon, n=a.n, stride=a.stride))
     print(f"{len(fcs)} pronósticos walk-forward")
     print(format_report(summarize(collect(fcs, candles), a.horizon)))
 

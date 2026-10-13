@@ -32,8 +32,9 @@ export class ScenarioLayer implements ISeriesPrimitive<Time> {
     this.origin = lastCandle ? { t: lastCandle.t, p: lastCandle.c } : null
     this.redraw()
   }
-  setView(selected: ScenarioId | null, candles: boolean): void {
-    this.selected = selected; this.candlesMode = candles; this.redraw()
+  private ctxOn = false
+  setView(selected: ScenarioId | null, candles: boolean, context = false): void {
+    this.selected = selected; this.candlesMode = candles; this.ctxOn = context; this.redraw()
   }
   requestRedraw(): void { this.redraw() }
 
@@ -82,11 +83,18 @@ export class ScenarioLayer implements ISeriesPrimitive<Time> {
       if (y == null) continue
       ctx.globalAlpha = alpha; ctx.strokeStyle = col; ctx.lineWidth = 1.2; ctx.setLineDash([5, 4])
       ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); ctx.setLineDash([])
-      const how = l.source === 'estructural' ? l.methods.join(' + ') : 'estadístico'
-      const txt = `${l.role === 'techo' ? 'Techo' : 'Piso'} ${l.price.toFixed(0)} · ${how}`
+      const txt = `${l.role === 'techo' ? 'Techo' : 'Piso'} ${l.price.toFixed(0)} · estadístico`
       ctx.fillStyle = col; ctx.globalAlpha = Math.max(alpha, 0.6)
       ctx.textAlign = 'right'  // termina en el borde derecho del tramo: no se corta
       ctx.fillText(txt, x1 - 4, l.role === 'techo' ? y - 3 : y + 11); ctx.textAlign = 'left'
+      const c = this.ctxOn ? l.context : null  // contexto opcional: Fibonacci/Elliott/pivote, no confirma
+      const yc = c ? this.eng.y(c.price) : null
+      if (c && yc != null) {
+        ctx.globalAlpha = alpha * 0.6; ctx.lineWidth = 1; ctx.setLineDash([1, 4])
+        ctx.beginPath(); ctx.moveTo(x0, yc); ctx.lineTo(x1, yc); ctx.stroke(); ctx.setLineDash([])
+        ctx.textAlign = 'right'; ctx.fillText(`contexto: ${c.methods.join(' + ')}`, x1 - 4, l.role === 'techo' ? yc - 3 : yc + 11)
+        ctx.textAlign = 'left'
+      }
     }
   }
 

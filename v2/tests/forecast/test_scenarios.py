@@ -110,4 +110,5 @@ def test_each_scenario_has_ceiling_and_floor(fs):
         assert set(roles) == {"techo", "piso"}
         assert roles["techo"]["price"] > roles["piso"]["price"]
         for lv in roles.values():
-            assert lv["source"] in ("estructural", "estadístico") and lv["note"]
+            assert lv["source"] == "estadístico" and lv["note"] and lv["price"] == lv["stat_price"]
+            assert lv["context"] is None or lv["context"]["methods"]

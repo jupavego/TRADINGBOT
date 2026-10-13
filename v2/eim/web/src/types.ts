@@ -133,10 +133,10 @@ export interface Scenario {
   levels?: ScenarioLevel[]
 }
 
-/** Techo/piso de un escenario: nivel estructural (Fibonacci/Elliott/pivote) o estadístico. */
+/** Techo/piso estadístico de un escenario + contexto estructural opcional (no confirma). */
 export interface ScenarioLevel {
-  role: 'techo' | 'piso'; price: number; source: string; methods: string[]; confluence: number
-  stat_price: number; note: string
+  role: 'techo' | 'piso'; price: number; source: string; stat_price: number; note: string
+  context: { price: number; methods: string[]; confluence: number } | null
 }
 
 export interface ForecastSet {

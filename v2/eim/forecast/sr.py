@@ -1,11 +1,10 @@
-"""Techo y piso por escenario (T19+): niveles estadísticos confirmados por estructura.
+"""Techo y piso por escenario (T19+): nivel estadístico principal + contexto estructural opcional.
 
-Para cada escenario se calcula primero la envolvente estadística de sus trayectorias (techo = p90
-del máximo, piso = p10 del mínimo). Luego se buscan niveles estructurales cercanos (±0.75 ATR):
-retrocesos/extensiones de Fibonacci del último tramo, proyecciones de onda tipo Elliott
-(igualdad y 1.618 del tramo previo medidas desde el último retroceso) y pivotes recientes. Si hay
-estructura cerca, el nivel se ajusta a ella y se reporta la confluencia (nº de métodos); si no,
-queda el nivel estadístico y se dice. Son referencias probabilísticas, no garantías.
+Techo = p90 del máximo y piso = p10 del mínimo de las trayectorias del escenario (calibrados: el
+precio los toca ≈10 % de las veces). Aparte se informa, como CONTEXTO que no mueve el nivel, la
+estructura cercana (±0.75 ATR): retrocesos/extensiones de Fibonacci del último tramo, proyecciones
+de onda tipo Elliott (×1 y ×1.618 del tramo previo) y pivotes recientes. Su validación (`sr_eval`)
+muestra un aporte marginal: no confirman nada. Son referencias probabilísticas, no garantías.
 """
 
 from __future__ import annotations
@@ -60,21 +59,19 @@ def _pick(target: float, cands: list[tuple[float, str]], atr_abs: float) -> dict
 def scenario_levels(
     group_paths: np.ndarray, cands: list[tuple[float, str]], atr_abs: float
 ) -> list[dict]:
-    """Techo y piso de un escenario a partir de sus trayectorias (m, h, 4)."""
+    """Techo y piso de un escenario. El nivel PRINCIPAL es estadístico (calibrado); la estructura
+    cercana (Fibonacci/Elliott/pivote) se entrega aparte como `context`, sin mover el nivel."""
     ceil_stat = float(np.quantile(group_paths[:, :, 1].max(axis=1), 0.9))
     floor_stat = float(np.quantile(group_paths[:, :, 2].min(axis=1), 0.1))
     out = []
     for role, stat in (("techo", ceil_stat), ("piso", floor_stat)):
+        pct = "90" if role == "techo" else "10"
         s = _pick(stat, cands, atr_abs)
-        if s:
-            out.append({"role": role, "price": s["price"], "source": "estructural",
-                        "methods": s["methods"], "confluence": len(s["methods"]),
-                        "stat_price": stat,
-                        "note": f"{role} ajustado a {', '.join(s['methods'])} "
-                                f"(envolvente estadística {stat:.2f})"})
-        else:
-            out.append({"role": role, "price": stat, "source": "estadístico", "methods": [],
-                        "confluence": 0, "stat_price": stat,
-                        "note": f"{role} estadístico (p{'90' if role == 'techo' else '10'} de "
-                                "las trayectorias); sin estructura cercana"})
+        ctx = ({"price": s["price"], "methods": s["methods"], "confluence": len(s["methods"])}
+               if s else None)
+        note = f"{role} estadístico (p{pct} de las trayectorias del escenario)"
+        if ctx:
+            note += f"; contexto: {', '.join(ctx['methods'])} en {ctx['price']:.2f} (no confirma)"
+        out.append({"role": role, "price": stat, "source": "estadístico", "stat_price": stat,
+                    "context": ctx, "note": note})
     return out
