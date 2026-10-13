@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T04:00:44",
+ "generated": "2026-10-13T04:15:33",
  "tasks": [
   {
    "id": "T01",
@@ -168,18 +168,6 @@ window.EIM_STATUS = {
    "effort": "medio-alto",
    "phase": 3,
    "goal": "Dibujar en el gráfico en tiempo real lo que marca el agente: canal/rango, zonas de soporte y resistencia, y el plan (entrada, SL, TP1, TP2)."
-  },
-  {
-   "id": "T15",
-   "title": "Marcas de operaciones + bitácora + reproducción",
-   "deps": [
-    "T14"
-   ],
-   "state": "pending",
-   "notes": "",
-   "effort": "medio",
-   "phase": 3,
-   "goal": "Ver cómo \"opera\" el agente en el gráfico (en modo simulado) y poder reproducir sus decisiones pasadas."
   },
   {
    "id": "T16",

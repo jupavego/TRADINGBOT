@@ -72,3 +72,43 @@ export interface Synthesis {
   /** true mientras no exista la síntesis real (T20): calculada en el navegador. */
   simulated: boolean
 }
+
+/** Operación del libro simulado (siempre mode=SIMULADO). Tiempos en ms. */
+export interface Trade {
+  id: string
+  plan_id: string
+  side: 1 | -1
+  entry_t: number
+  entry: number
+  sl0: number
+  tp1: number
+  tp2: number | null
+  status: 'ABIERTA' | 'SL' | 'TP1' | 'TP2' | 'INVALIDADO' | 'EXPIRADO'
+  exit_t: number | null
+  exit: number | null
+  r: number | null
+  fees_r: number | null
+  funding_r: number | null
+  mode: string
+  evidence: string[]
+  funding_source: string
+}
+
+export interface Decision {
+  asof: number
+  plan_id: string | null
+  action: string
+  bias: number
+  confidence: number
+  evidence: string[]
+  mode: string
+}
+
+export interface Replay {
+  asof: number
+  mode: string
+  candles: Candle[]
+  reports: AgentReport[]
+  overlays: Overlay[]
+  trades: Trade[]
+}

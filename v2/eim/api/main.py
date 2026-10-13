@@ -15,6 +15,7 @@ from eim.api.live import Hub, overlays_of
 from eim.api.more import MoreSources, build_more_router
 from eim.api.reports_db import ReportStore
 from eim.api.sources import BinanceKlineSource, LiveSource
+from eim.api.trades import build_trades_router
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
@@ -54,6 +55,7 @@ def create_app(
         allow_headers=["*"],
     )
     app.state.hub, app.state.reports, app.state.store = hub, reports, store
+    app.include_router(build_trades_router(store, reports))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
 
     @app.get("/v2/health")
