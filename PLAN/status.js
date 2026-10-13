@@ -1,12 +1,12 @@
 window.EIM_STATUS = {
- "generated": "2026-10-12T23:17:31",
+ "generated": "2026-10-12T23:21:27",
  "tasks": [
   {
    "id": "T01",
    "title": "Cimientos: paquete, contratos, git, gate",
    "deps": [],
    "state": "done",
-   "notes": "eim/core (contratos pydantic) + tests/core; pyproject, .gitignore, skill eim-new-agent. Gate OK (12 tests).",
+   "notes": "v2/eim/core (contratos pydantic) + v2/tests/core; pyproject, .gitignore, skill eim-new-agent. Gate OK (12 tests).",
    "effort": "medio",
    "phase": 0,
    "goal": "Crear el esqueleto del paquete `eim/` con los contratos de datos y un gate de calidad, sin tocar `F7/`."

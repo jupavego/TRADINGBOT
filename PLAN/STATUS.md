@@ -4,7 +4,7 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 
 | ID | Tarea | Depende de | Estado | Notas de cierre |
 |---|---|---|---|---|
-| T01 | Cimientos: paquete, contratos, git, gate | — | ☑ | eim/core (contratos pydantic) + tests/core; pyproject, .gitignore, skill eim-new-agent. Gate OK (12 tests). |
+| T01 | Cimientos: paquete, contratos, git, gate | — | ☑ | v2/eim/core (contratos pydantic) + v2/tests/core; pyproject, .gitignore, skill eim-new-agent. Gate OK (12 tests). |
 | T02 | Red de seguridad: regresión del legado | T01 | ☐ | |
 | T03 | Capa de datos y almacén | T01 | ☐ | |
 | T04 | Auditoría de repos (licencia/seguridad) | — | ☐ | |

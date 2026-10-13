@@ -1,12 +1,12 @@
 # EIM — Agente de trading de futuros (BTC/ETH)
 
-Sistema de inteligencia estructural de mercado → agente multiagente de trading. Documentos F0–F6 = especificación vinculante (F0 `MSI-META-001.md` es la constitución; el código no puede contradecirla). `F7/` = código legado (se migra al paquete `eim/`; no se edita salvo bugs). `repos/` = referencias; perfiles en `repos/repo_profiles_master.md` (grep por nombre, no leer entero).
+Sistema de inteligencia estructural de mercado → agente multiagente de trading. Documentos F0–F6 = especificación vinculante (F0 `MSI-META-001.md` es la constitución; el código no puede contradecirla). **`v2/` = código NUEVO (aquí vive todo: `v2/eim/`, `v2/tests/`, `v2/pyproject.toml`); toda ruta `eim/`, `tests/`, `pyproject.toml` de `PLAN/` es relativa a `v2/`.** Lo previo (`F0`–`F7`, `repos/`) NO se mezcla con v2. `F7/` = código legado (se migra al paquete `eim/`; no se edita salvo bugs). `repos/` = referencias; perfiles en `repos/repo_profiles_master.md` (grep por nombre, no leer entero).
 
 ## Protocolo de sesión (ahorra tokens)
 1. Tu tarea está en `PLAN/Txx.md`. Lee SOLO ese archivo y los archivos que él lista. No explores el repo en general.
 2. Verifica prerrequisitos en `PLAN/STATUS.md`; si faltan, detente y avisa.
 3. No amplíes el alcance. Lo que quede fuera → una línea en `PLAN/BACKLOG.md`.
-4. Antes de terminar: corre el gate (`python -m ruff check eim tests && python -m pytest -q`), cumple los criterios de aceptación y marca la tarea en `PLAN/STATUS.md` con 2–3 líneas (qué quedó y dónde). Al marcar el estado, cambia ☐→◐ al empezar y ◐→☑ al terminar, y luego corre `python PLAN/build_roadmap.py` para refrescar `PLAN/roadmap.html`.
+4. Antes de terminar: corre el gate (desde `v2/`: `python -m ruff check eim tests && python -m pytest -q`), cumple los criterios de aceptación y marca la tarea en `PLAN/STATUS.md` con 2–3 líneas (qué quedó y dónde). Al marcar el estado, cambia ☐→◐ al empezar y ◐→☑ al terminar, y luego corre `python PLAN/build_roadmap.py` para refrescar `PLAN/roadmap.html`.
 5. Archivos legados grandes (`F7/eim_engine.py`, `F7/web/index.html`): Grep/offset, nunca lectura completa.
 6. Contratos de datos: `PLAN/CONTRATOS.md`. Especificación de interfaz: `PLAN/UI_SPEC.md` (solo tareas de UI).
 
@@ -27,7 +27,7 @@ Contrato central: `Agent.run(MarketSnapshot) -> AgentReport` (sesgo −1..+1, co
 - Código de terceros: revisar licencia y seguridad antes de copiar (ver T04). Solo claves de testnet sin permiso de retiro.
 
 ## Comandos
-- Gate: `python -m ruff check eim tests && python -m pytest -q`
-- API dev: `python -m uvicorn eim.api.main:app --port 8000 --reload`
-- Web dev: `cd eim/web && npm run dev`
+- Gate (desde `v2/`): `python -m ruff check eim tests && python -m pytest -q`
+- API dev (desde `v2/`): `python -m uvicorn eim.api.main:app --port 8000 --reload`
+- Web dev: `cd v2/eim/web && npm run dev`
 - Navegador integrado: usar `http://127.0.0.1:PUERTO` (con `localhost` falla).

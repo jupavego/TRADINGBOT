@@ -5,6 +5,8 @@ description: Checklist y plantilla para crear un agente analizador EIM (paquete,
 
 # Crear un agente EIM
 
+Todo el código nuevo vive en `v2/` (rutas `eim/`, `tests/` relativas a `v2/`).
+
 Contrato: `Agent.run(MarketSnapshot) -> AgentReport` (ver `PLAN/CONTRATOS.md`). Puro: sin red, sin disco, sin estado global, determinista.
 
 ## Checklist
@@ -17,7 +19,7 @@ Contrato: `Agent.run(MarketSnapshot) -> AgentReport` (ver `PLAN/CONTRATOS.md`). 
 4. Overlays con `id` estable, `agent_id`, `confidence` y `evidence`.
 5. Tests en `tests/agents/<nombre>/` con fixtures en `tests/fixtures/` (sin red): caso normal, sin datos, determinismo (dos corridas iguales), sesgo en [-1,1].
 6. Registro: añadir al registro de agentes (T05) indicando la versión.
-7. Gate: `python -m ruff check eim tests && python -m pytest -q`.
+7. Gate (desde `v2/`): `python -m ruff check eim tests && python -m pytest -q`.
 
 ## Plantilla
 ```python
