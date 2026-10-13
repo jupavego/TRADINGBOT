@@ -185,7 +185,7 @@ select, .btn, .seg button {
 .pill { fill: var(--bg); stroke: var(--line); stroke-width: 1; filter: drop-shadow(0 2px 6px rgba(0,0,0,.08)); }
 .pill.off { opacity: .6; stroke-dasharray: 3 4; }
 .rvv { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.rbig { font-size: 26px; font-weight: 700; letter-spacing: -.01em; filter: drop-shadow(0 0 14px currentColor); }
+.rbig { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
 .node { stroke: var(--panel); stroke-width: 2; }
-.conf { fill: var(--panel); stroke-width: 2; opacity: .9; }
+.conf { fill: none; stroke-width: 2; opacity: .55; }
 @media (prefers-reduced-motion: reduce) { .river animateMotion { display: none; } .river circle[r] > animateMotion { display: none; } }

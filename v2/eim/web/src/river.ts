@@ -3,7 +3,7 @@ import { simulateSynthesis } from './synth'
 import type { AgentInfo, AgentReport } from './types'
 
 const THRESH = 0.1 // |sesgo| mínimo para teñir de verde/rojo
-const X0 = 235, XM = 600, XE = 915, YM = 170, H = 340
+const X0 = 235, XM = 600, XE = 880, YM = 170, H = 340
 
 type Row = { id: string; bias: number; conf: number; live: boolean }
 
@@ -43,7 +43,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   const ys = rows.map((_, i) => (n === 1 ? YM : 35 + i * gap))
   const cx = rows.map((_, i) => XM + 25 + (i * (XE - XM - 90)) / Math.max(1, n - 1))
   let sw = 0, sb = 0
-  const stops = ['<stop offset="0" style="stop-color:var(--line)"/>']
+  const stops: string[] = ['']
   const defs: string[] = []
   const tribs = rows.map((r, i) => {
     if (r.live) { sw += r.conf; sb += r.conf * r.bias }
@@ -67,7 +67,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
       `<text x="${X0 - pw + 22}" y="${ys[i] + 4.5}" class="rl">${esc(agentName(r.id))}</text>` +
       `<text x="${X0 - 18}" y="${ys[i] + 4.5}" text-anchor="end" class="rvv" style="fill:${r.live ? col : 'var(--muted)'}">${val}</text>` +
       `<circle cx="${X0}" cy="${ys[i]}" r="${(w / 2 + 3).toFixed(1)}" fill="${col}" class="node"/>` +
-      `<circle cx="${cx[i]}" cy="${YM}" r="${(w / 2 + 4).toFixed(1)}" class="conf" style="stroke:${col}"/></g>`
+      `<circle cx="${cx[i]}" cy="${YM}" r="${(w / 2 + 2).toFixed(1)}" class="conf" style="stroke:${col}"/></g>`
   }).join('')
 
   const ups = rows.filter((r) => r.live && r.bias >= THRESH).length
@@ -78,6 +78,8 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   const verdict = Math.abs(b) < THRESH ? 'Neutral' : b > 0 ? 'Sesgo de compra' : 'Sesgo de venta'
   const mainW = 28 + Math.min(1, sw / Math.max(1, n)) * 30
   const mainCol = tint(b, 1.8)
+  const first = rows.findIndex((r) => r.live)
+  stops[0] = `<stop offset="0" style="stop-color:${first >= 0 ? tint(rows[first].bias) : 'var(--line)'}" stop-opacity="0"/>`
   stops.push(`<stop offset="1" style="stop-color:${mainCol}"/>`)
   const main = `M${XM - 40} ${YM} L${XE + 40} ${YM}`
 
@@ -85,14 +87,15 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   el.innerHTML = `<div class="river-head"><h3>Río de decisión <span class="sim">simulada · hasta T20</span></h3>` +
     `<span class="chips"><i class="c up">${ups} compra</i><i class="c flat">${flat} neutral</i><i class="c down">${downs} venta</i></span></div>` +
     `<svg viewBox="0 0 1200 ${H}" role="img" aria-label="${esc(verdict)}: ${ups} agentes en verde, ${downs} en rojo">` +
-    `<defs><filter id="rblur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>` +
+    `<defs><filter id="rblur" x="-30%" y="-120%" width="160%" height="340%"><feGaussianBlur stdDeviation="9"/></filter>` +
     `<linearGradient id="rv" gradientUnits="userSpaceOnUse" x1="${XM}" y1="0" x2="${XE}" y2="0">${stops.join('')}</linearGradient>${defs.join('')}</defs>` +
     `<path d="${main}" stroke="url(#rv)" stroke-width="${mainW + 16}" stroke-linecap="round" fill="none" opacity=".45" filter="url(#rblur)"/>` +
-    tribs +
     `<path d="${main}" stroke="url(#rv)" stroke-width="${mainW.toFixed(1)}" stroke-linecap="round" fill="none"/>` +
     `<path d="M${XM - 30} ${YM - mainW * 0.22} L${XE + 30} ${YM - mainW * 0.22}" stroke="#fff" stroke-opacity=".28" stroke-width="3" stroke-linecap="round" fill="none"/>` +
+    tribs +
     `<path id="rmain" d="${main}" fill="none" stroke="none"/>` +
     particles('rmain', 6, 4.5, 2.4, '#fff') +
-    `<text x="${XE + 75}" y="${YM - 4}" class="rbig" style="fill:${mainCol}">${esc(verdict)}</text>` +
-    `<text x="${XE + 75}" y="${YM + 24}" class="rv">${syn ? sg(b) : '—'} · acuerdo ${syn ? Math.round(syn.agreement * 100) : 0}%</text></svg>`
+    `<text x="${XE + 85}" y="${YM - 4}" class="rbig" style="fill:${mainCol}" filter="url(#rblur)" opacity=".55" aria-hidden="true">${esc(verdict)}</text>` +
+    `<text x="${XE + 85}" y="${YM - 4}" class="rbig" style="fill:${mainCol}">${esc(verdict)}</text>` +
+    `<text x="${XE + 85}" y="${YM + 24}" class="rv">${syn ? sg(b) : '—'} · acuerdo ${syn ? Math.round(syn.agreement * 100) : 0}%</text></svg>`
 }
