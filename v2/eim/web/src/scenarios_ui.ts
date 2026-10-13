@@ -13,6 +13,7 @@ export class ScenarioPanel {
   private last: Candle | null = null
   private sel: ScenarioId | null = null
   private candles = false
+  private context = false
   private horizon = 25
   private err = ''
   private abort: AbortController | null = null
@@ -28,7 +29,8 @@ export class ScenarioPanel {
         const id = card.dataset.id as ScenarioId
         this.sel = this.sel === id ? null : id
         this.apply()
-      } else if (t.closest('#scen-candles')) { this.candles = !this.candles; this.apply() }
+      } else if (t.closest('#scen-ctx')) { this.context = !this.context; this.apply() }
+      else if (t.closest('#scen-candles')) { this.candles = !this.candles; this.apply() }
     }
     el.onchange = (e) => {
       const t = e.target as HTMLSelectElement
@@ -70,7 +72,7 @@ export class ScenarioPanel {
     const rk = `${this.key}|${this.horizon}`
     if (this.fs && rk !== this.roomFor) { this.roomFor = rk; this.chart.makeRoom(this.fs.horizon_bars) }
     this.chart.scen.set(this.fs, this.last)
-    this.chart.scen.setView(this.sel, this.candles)
+    this.chart.scen.setView(this.sel, this.candles, this.context)
     this.render()
   }
 
@@ -90,6 +92,7 @@ export class ScenarioPanel {
     const bar = '<div class="scen-bar"><label>Velas a proyectar <select id="scen-h">' +
       HORIZONS.map((h) => `<option${h === this.horizon ? ' selected' : ''}>${h}</option>`).join('') +
       `</select></label><button id="scen-candles" aria-pressed="${this.candles}">Ver escenario como velas</button>` +
+      `<button id="scen-ctx" aria-pressed="${this.context}" title="Fibonacci, ondas de Elliott y pivotes cercanos al techo/piso. Validación: aporte marginal; no confirman.">Contexto Fib/Elliott</button>` +
       (this.candles ? `<span class="muted">Velas simuladas de «${SCEN_LABEL[this.sel ?? 'neutral']}» — ` +
         'elige una tarjeta para cambiar de escenario.</span>' : '') + '</div>'
     if (!this.fs) {
@@ -105,6 +108,7 @@ export class ScenarioPanel {
         `style="--c:${scenColor(s.id)}"><h4><span>${SCEN_LABEL[s.id]}</span>` +
         `<span class="num">${(s.probability * 100).toFixed(0)}%</span></h4>` +
         `<p>${esc(s.narrative)}</p><p><b>Invalidación:</b> ${esc(s.invalidation.condition)}</p>` +
+        (s.levels ?? []).map((l) => `<p class="meta"><b>${l.role === 'techo' ? 'Techo' : 'Piso'} ${l.price.toFixed(2)}</b> — ${esc(l.note)}</p>`).join('') +
         `<p class="meta">motor ${esc(s.engine)} · n_paths ${s.n_paths} · simulado</p></button>`
     }).join('')
     this.el.innerHTML = bar + warn + `<div class="scen-cards">${cards}</div>` +

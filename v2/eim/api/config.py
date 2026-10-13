@@ -22,6 +22,7 @@ class Settings:
     snapshot_bars: int = 500
     agent_timeout_s: float = 30.0
     reconnect_max_s: float = 30.0
+    auto_history: bool = False  # EIM_AUTO_HISTORY (1 por defecto en from_env)
     extra: dict[str, str] = field(default_factory=dict)
 
     @property
@@ -41,4 +42,5 @@ class Settings:
             ws_url=env.get("EIM_WS_URL", d.ws_url),
             heartbeat_s=float(env.get("EIM_HEARTBEAT_S", d.heartbeat_s)),
             snapshot_bars=int(env.get("EIM_SNAPSHOT_BARS", d.snapshot_bars)),
+            auto_history=env.get("EIM_AUTO_HISTORY", "1") != "0",
         )

@@ -5,6 +5,7 @@ import { renderRiver } from './river'
 import { latestPerAgent, renderJournal, renderSide } from './panels'
 import { mountLayerBar, showCard } from './layers_ui'
 import { ScenarioPanel } from './scenarios_ui'
+import { CalibrationPanel } from './calibration_ui'
 import { MoreView } from './more'
 import { renderLog, TradeMarks } from './trades_ui'
 import { applyTheme, initialTheme, type Theme } from './theme'
@@ -37,6 +38,7 @@ const chart = new PriceChart($('chart'))
 const more = new MoreView($('more'))
 const marks = new TradeMarks(chart)
 const scenarios = new ScenarioPanel($('t-esc'), chart, () => ({ symbol, tf }))
+const calibration = new CalibrationPanel($('t-cal'), () => ({ symbol, tf }))
 chart.layers.modeLabel = MODE_LABEL[mode]
 mountLayerBar($('layerbar'), chart.layers)
 chart.chart.subscribeCrosshairMove((p) => {
@@ -163,6 +165,7 @@ async function load(): Promise<void> {
   more.setContext(symbol, tf)
   void loadAgents(loadAbort.signal)
   void loadTrades(loadAbort.signal)
+  void calibration.reload()
   chart.layers.clear()
   fetchOverlays(symbol, tf, loadAbort.signal).then((o) => chart.layers.replace(o)).catch(() => {})
   try {

@@ -32,8 +32,9 @@ export class ScenarioLayer implements ISeriesPrimitive<Time> {
     this.origin = lastCandle ? { t: lastCandle.t, p: lastCandle.c } : null
     this.redraw()
   }
-  setView(selected: ScenarioId | null, candles: boolean): void {
-    this.selected = selected; this.candlesMode = candles; this.redraw()
+  private ctxOn = false
+  setView(selected: ScenarioId | null, candles: boolean, context = false): void {
+    this.selected = selected; this.candlesMode = candles; this.ctxOn = context; this.redraw()
   }
   requestRedraw(): void { this.redraw() }
 
@@ -67,8 +68,34 @@ export class ScenarioLayer implements ISeriesPrimitive<Time> {
     const txt = `${SCEN_LABEL[s.id]} ${(s.probability * 100).toFixed(0)}%`
     const tw = ctx.measureText(txt).width + 10
     ctx.globalAlpha = Math.max(alpha, 0.5); ctx.fillStyle = col
-    ctx.fillRect(x + 4, y - 8, tw, 16)
-    ctx.fillStyle = cssVar('--panel'); ctx.fillText(txt, x + 9, y + 4)
+    // etiqueta completa, alineada al final de la línea y por encima de ella (no se corta en el borde)
+    ctx.fillRect(x - tw, y - 22, tw, 16)
+    ctx.fillStyle = cssVar('--panel'); ctx.fillText(txt, x - tw + 5, y - 10)
+  }
+
+  /** Techo y piso del escenario: segmentos horizontales sobre el tramo proyectado. */
+  private floors(ctx: Ctx, s: Scenario, col: string, alpha: number): void {
+    const m = this.pts(s.path)
+    if (!m || !s.levels?.length) return
+    const x0 = m[0][0], x1 = m[m.length - 1][0]
+    for (const l of s.levels) {
+      const y = this.eng.y(l.price)
+      if (y == null) continue
+      ctx.globalAlpha = alpha; ctx.strokeStyle = col; ctx.lineWidth = 1.2; ctx.setLineDash([5, 4])
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); ctx.setLineDash([])
+      const txt = `${l.role === 'techo' ? 'Techo' : 'Piso'} ${l.price.toFixed(0)} · estadístico`
+      ctx.fillStyle = col; ctx.globalAlpha = Math.max(alpha, 0.6)
+      ctx.textAlign = 'right'  // termina en el borde derecho del tramo: no se corta
+      ctx.fillText(txt, x1 - 4, l.role === 'techo' ? y - 3 : y + 11); ctx.textAlign = 'left'
+      const c = this.ctxOn ? l.context : null  // contexto opcional: Fibonacci/Elliott/pivote, no confirma
+      const yc = c ? this.eng.y(c.price) : null
+      if (c && yc != null) {
+        ctx.globalAlpha = alpha * 0.6; ctx.lineWidth = 1; ctx.setLineDash([1, 4])
+        ctx.beginPath(); ctx.moveTo(x0, yc); ctx.lineTo(x1, yc); ctx.stroke(); ctx.setLineDash([])
+        ctx.textAlign = 'right'; ctx.fillText(`contexto: ${c.methods.join(' + ')}`, x1 - 4, l.role === 'techo' ? yc - 3 : yc + 11)
+        ctx.textAlign = 'left'
+      }
+    }
   }
 
   private candles(ctx: Ctx, s: Scenario, col: string): void {
@@ -107,12 +134,14 @@ export class ScenarioLayer implements ISeriesPrimitive<Time> {
       const s = this.fs.scenarios.find((x) => x.id === (sel ?? 'neutral')) ?? this.fs.scenarios[0]
       this.band(ctx, s, scenColor(s.id), 0.08)
       this.candles(ctx, s, scenColor(s.id))
+      this.floors(ctx, s, scenColor(s.id), 0.9)
     } else {
       for (const s of this.fs.scenarios) {
         const dim = sel != null && sel !== s.id
         const col = scenColor(s.id)
         this.band(ctx, s, col, dim ? 0.04 : 0.14)
         this.line(ctx, s, col, dim ? 0.3 : 0.95, sel === s.id ? 3 : 2)
+        this.floors(ctx, s, col, dim ? 0.25 : 0.8)
       }
     }
     ctx.restore()

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T05:12:06",
+ "generated": "2026-10-13T12:17:56",
  "tasks": [
   {
    "id": "T01",
@@ -215,8 +215,8 @@ window.EIM_STATUS = {
     "T17",
     "T18"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/forecast: `calibration.py` (evaluador por pronóstico: escenario cumplido, bandas 50/80/90 terminal y por vela, Brier, pinball y dirección vs caminata aleatoria con la misma σ; curva de calibración; veredicto textual), `backfill.py` (walk-forward sin mirar el futuro; CLI). `ForecastSet.quantiles` (aditivo). API `eim/api/calibration.py`: `GET /v2/calibration`, `POST /v2/calibration/backfill`. UI: pestaña «Calibración» (`calibration_ui.ts`). Backfill ETH 1h fixture: 826 evaluados (muestra efectiva ≈33): cob. 56/83/90 %, Brier skill +0.6 %, pinball skill +0.2 %, dirección 56 % → **no supera la caminata aleatoria**. **Pendiente: decisión humana sobre el veredicto antes de dar por buena la proyección.**",
    "effort": "medio",
    "phase": 4,
    "goal": "Medir si las probabilidades y bandas de los escenarios son fiables, y mostrarlo."
