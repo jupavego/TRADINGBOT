@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T01:44:13",
+ "generated": "2026-10-13T02:00:00",
  "tasks": [
   {
    "id": "T01",
@@ -113,8 +113,8 @@ window.EIM_STATUS = {
    "deps": [
     "T09"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/web/src: `panels.ts` (tarjetas por agente: barra de sesgo −1..+1, confianza, estado, 3 líneas de evidencia, expandible a métricas/advertencias; bitácora de `/v2/reports`), `synth.ts` (síntesis SIMULADA en el navegador hasta T20, acuerdo, contribuciones, alerta de desacuerdo). Se actualiza con el mensaje WS `reports`. Verificado con API sobre fixture, claro y oscuro; falta ver el cambio al cerrar vela en vivo (sin red). Pendiente: visto bueno del usuario a la interfaz antes de Fase 3.",
    "effort": "medio",
    "phase": 2,
    "goal": "Columna derecha con una tarjeta por agente y un panel de síntesis, actualizados en vivo. **Punto de decisión humana al cerrar:** ¿la interfaz sirve?"

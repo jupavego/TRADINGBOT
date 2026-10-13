@@ -1,8 +1,9 @@
 import './style.css'
-import { fetchSnapshot, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
+import { fetchAgents, fetchReports, fetchSnapshot, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
+import { latestPerAgent, renderJournal, renderSide } from './panels'
 import { applyTheme, initialTheme, type Theme } from './theme'
-import type { Candle, Mode, StreamMsg } from './types'
+import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg } from './types'
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T
 
@@ -18,6 +19,9 @@ let state: 'connecting' | 'up' | 'down' = 'connecting'
 let stream: StreamHandle | null = null
 let loadAbort: AbortController | null = null
 let lastClose: number | null = null
+let infos: AgentInfo[] = []
+let latest: AgentReport[] = []
+let journal: AgentReport[] = []
 
 let theme: Theme = initialTheme()
 applyTheme(theme)
@@ -46,9 +50,32 @@ function paintPrice(c: Candle): void {
   lastClose = c.c
 }
 
+function paintAgents(): void {
+  renderSide($('side'), infos, latest)
+  renderJournal($('journal'), journal)
+}
+
+async function loadAgents(signal: AbortSignal): Promise<void> {
+  try {
+    const [i, r] = await Promise.all([
+      fetchAgents(symbol, tf, signal), fetchReports(symbol, tf, 200, signal),
+    ])
+    infos = i; journal = r; latest = latestPerAgent(r)
+  } catch (e) {
+    if ((e as Error).name === 'AbortError') return
+    infos = []; latest = []; journal = []
+  }
+  paintAgents()
+}
+
 function onMsg(m: StreamMsg): void {
   if (m.type === 'status') { state = m.state; paintLive() }
-  else if (m.type === 'tick') {
+  else if (m.type === 'reports') {
+    if (m.symbol !== symbol || m.timeframe !== tf) return
+    latest = m.reports as AgentReport[]
+    journal = [...latest, ...journal].slice(0, 200)
+    paintAgents()
+  } else if (m.type === 'tick') {
     if (m.symbol !== symbol || m.timeframe !== tf) return
     state = 'up'; paintLive()
     chart.update(m.candle)
@@ -62,6 +89,7 @@ async function load(): Promise<void> {
   link = false; state = 'connecting'; lastClose = null
   $('price').textContent = '—'; delete $('price').dataset.dir
   paintLive()
+  void loadAgents(loadAbort.signal)
   try {
     const snap = await fetchSnapshot(symbol, tf, 500, loadAbort.signal)
     chart.setData(snap.candles, snap.forming)
@@ -95,6 +123,13 @@ function build(): void {
     tf = b.dataset.tf!; mark(); void load()
   }
   mark()
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.tabs button')
+  tabs.forEach((b) => {
+    b.onclick = () => {
+      tabs.forEach((x) => x.setAttribute('aria-selected', String(x === b)))
+      document.querySelectorAll<HTMLElement>('.tabbody').forEach((p) => { p.hidden = p.id !== b.dataset.tab })
+    }
+  })
   const modeEl = $('mode')
   modeEl.textContent = `Modo: ${MODE_LABEL[mode]}`
   $('theme').onclick = () => {

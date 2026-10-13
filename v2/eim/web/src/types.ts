@@ -37,3 +37,38 @@ export type StreamMsg =
   | { type: 'reports'; symbol: string; timeframe: string; asof: number; reports: unknown[]; overlays: Overlay[] }
   | { type: 'error'; detail: string }
   | { type: 'heartbeat'; t: number }
+
+export type AgentStatus = 'ok' | 'degraded' | 'no_data'
+
+export interface AgentReport {
+  agent_id: string
+  version: string
+  asof: number
+  bias: number
+  confidence: number
+  horizon_bars: number
+  evidence: string[]
+  metrics: Record<string, unknown>
+  warnings: string[]
+  overlays: Overlay[]
+  status: AgentStatus
+}
+
+export interface AgentInfo {
+  id: string
+  version: string
+  last_asof: number | null
+  status: AgentStatus | 'sin_ejecutar'
+  bias: number | null
+  confidence: number | null
+}
+
+export interface Synthesis {
+  bias: number
+  confidence: number
+  agreement: number
+  contributions: Record<string, number>
+  thesis: string
+  /** true mientras no exista la síntesis real (T20): calculada en el navegador. */
+  simulated: boolean
+}

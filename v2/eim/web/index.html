@@ -23,19 +23,18 @@
         <div id="banner" class="banner" hidden></div>
         <div id="source" class="source"></div>
       </section>
-      <aside class="side" aria-label="Agentes y síntesis">
-        <div class="placeholder">
-          <h3>Agentes y síntesis</h3>
-          <p>Disponible en la tarea T10.</p>
-        </div>
+      <aside id="side" class="side" aria-label="Agentes y síntesis">
+        <p class="muted">Cargando agentes…</p>
       </aside>
       <section class="bottom">
         <nav class="tabs" role="tablist">
-          <button role="tab" aria-selected="true">Escenarios</button>
-          <button role="tab" aria-selected="false">Plan</button>
-          <button role="tab" aria-selected="false">Bitácora</button>
+          <button role="tab" aria-selected="true" data-tab="t-esc">Escenarios</button>
+          <button role="tab" aria-selected="false" data-tab="t-plan">Plan</button>
+          <button role="tab" aria-selected="false" data-tab="t-log">Bitácora</button>
         </nav>
-        <div class="tabbody">Sin contenido todavía.</div>
+        <div class="tabbody" id="t-esc">Sin contenido todavía.</div>
+        <div class="tabbody" id="t-plan" hidden>Sin contenido todavía.</div>
+        <div class="tabbody" id="t-log" hidden><div id="journal"></div></div>
       </section>
     </main>
   </div>
