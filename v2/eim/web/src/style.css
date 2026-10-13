@@ -1,0 +1,83 @@
+:root, :root[data-theme="light"] {
+  --bg: #faf7f2; --panel: #fffdf9; --text: #2b2823; --muted: #8a8378; --line: #e6dfd3;
+  --grid: #f0ebe1; --accent: #b4561f; --up: #2f8f5b; --down: #c64a3b; --warn: #b9831c;
+  --radius: 10px;
+}
+:root[data-theme="dark"] {
+  --bg: #16181b; --panel: #1d2024; --text: #e8e4dc; --muted: #8d9097; --line: #2c3036;
+  --grid: #24272c; --accent: #e08a52; --up: #3fb27a; --down: #e0604f; --warn: #d9a441;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+#app { display: flex; flex-direction: column; height: 100vh; }
+
+.topbar {
+  display: flex; align-items: center; gap: 14px; padding: 10px 20px;
+  border-bottom: 1px solid var(--line); background: var(--panel); flex-wrap: wrap;
+}
+.brand { font-weight: 700; letter-spacing: .12em; }
+.spacer { flex: 1; }
+select, .btn, .seg button {
+  font: inherit; color: var(--text); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; cursor: pointer;
+}
+.seg { display: inline-flex; }
+.seg button { border-radius: 0; margin-left: -1px; }
+.seg button:first-child { border-radius: 8px 0 0 8px; margin-left: 0; }
+.seg button:last-child { border-radius: 0 8px 8px 0; }
+.seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.price { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 110px; }
+.price[data-dir="up"] { color: var(--up); }
+.price[data-dir="down"] { color: var(--down); }
+.live { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+.live i { width: 9px; height: 9px; border-radius: 50%; background: var(--warn); }
+.live[data-state="up"] i { background: var(--up); box-shadow: 0 0 0 0 var(--up); animation: pulse 2s infinite; }
+.live[data-state="down"] i { background: var(--down); }
+@keyframes pulse { 70% { box-shadow: 0 0 0 7px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+.mode {
+  padding: 3px 10px; border: 1px solid var(--accent); color: var(--accent);
+  border-radius: 999px; font-weight: 600; font-size: 12px; white-space: nowrap;
+}
+
+.desk {
+  flex: 1; min-height: 0; display: grid; gap: 12px; padding: 12px 20px 16px;
+  grid-template-columns: minmax(0, 7fr) minmax(220px, 3fr);
+  grid-template-rows: minmax(0, 1fr) 150px;
+  grid-template-areas: "chart side" "bottom bottom";
+}
+.chart-wrap, .side, .bottom {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.chart-wrap { grid-area: chart; position: relative; min-height: 0; overflow: hidden; }
+#chart { position: absolute; inset: 0 0 22px 0; }
+.source { position: absolute; left: 12px; bottom: 4px; font-size: 11px; color: var(--muted); }
+.banner {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 5;
+  background: var(--panel); border: 1px solid var(--down); color: var(--down);
+  padding: 6px 14px; border-radius: 8px; font-size: 13px; max-width: 90%;
+}
+.side { grid-area: side; padding: 16px; overflow: auto; }
+.placeholder { color: var(--muted); }
+.placeholder h3 { margin: 0 0 6px; color: var(--text); font-size: 15px; }
+.bottom { grid-area: bottom; display: flex; flex-direction: column; min-height: 0; }
+.tabs { display: flex; gap: 4px; padding: 6px 10px 0; border-bottom: 1px solid var(--line); }
+.tabs button {
+  font: inherit; background: none; border: 0; padding: 6px 12px; color: var(--muted);
+  cursor: pointer; border-bottom: 2px solid transparent;
+}
+.tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+.tabbody { padding: 14px; color: var(--muted); overflow: auto; }
+
+@media (max-width: 900px) {
+  .topbar { padding: 8px 12px; gap: 10px; }
+  .desk {
+    padding: 8px 12px 12px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(300px, 1fr) 90px 130px;
+    grid-template-areas: "chart" "side" "bottom";
+  }
+}
