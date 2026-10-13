@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EIM · Mesa de trading</title>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">EIM</div>
+      <select id="symbol" aria-label="Activo"></select>
+      <div id="tfs" class="seg" role="group" aria-label="Marco temporal"></div>
+      <div id="price" class="price">—</div>
+      <div id="live" class="live" data-state="connecting"><i></i><span>Conectando…</span></div>
+      <div class="spacer"></div>
+      <span id="mode" class="mode" title="Modo de operación">Modo: Análisis</span>
+      <button id="theme" class="btn" aria-label="Cambiar tema">Tema</button>
+    </header>
+    <main class="desk">
+      <section class="chart-wrap">
+        <div id="chart"></div>
+        <div id="banner" class="banner" hidden></div>
+        <div id="source" class="source"></div>
+      </section>
+      <aside class="side" aria-label="Agentes y síntesis">
+        <div class="placeholder">
+          <h3>Agentes y síntesis</h3>
+          <p>Disponible en la tarea T10.</p>
+        </div>
+      </aside>
+      <section class="bottom">
+        <nav class="tabs" role="tablist">
+          <button role="tab" aria-selected="true">Escenarios</button>
+          <button role="tab" aria-selected="false">Plan</button>
+          <button role="tab" aria-selected="false">Bitácora</button>
+        </nav>
+        <div class="tabbody">Sin contenido todavía.</div>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

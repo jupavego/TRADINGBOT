@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T01:22:30",
+ "generated": "2026-10-13T01:44:13",
  "tasks": [
   {
    "id": "T01",
@@ -101,8 +101,8 @@ window.EIM_STATUS = {
    "deps": [
     "T08"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/web (Vite 5 + TS + Lightweight Charts 5): `api.ts` (REST snapshot + WS con reconexión exponencial), `chart.ts`, `theme.ts` (claro por defecto/oscuro), `main.ts`, tipos a mano en `types.ts`. Layout UI_SPEC con barra superior (activo, marco, precio, En vivo/Sin conexión, modo), columna derecha y pestañas vacías. Verificado con API real: 500 velas BTCUSDT, última vela y precio cambian por tick; claro/oscuro/tablet por screenshot; banner \"Sin conexión\" y reconexión; ETH/15m. Gate OK.",
    "effort": "medio",
    "phase": 2,
    "goal": "Proyecto Vite + TypeScript con la \"Mesa de trading\" base: layout, tema claro/oscuro y gráfico de velas en tiempo real."
