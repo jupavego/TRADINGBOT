@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T02:00:00",
+ "generated": "2026-10-13T02:56:45",
  "tasks": [
   {
    "id": "T01",
@@ -125,8 +125,8 @@ window.EIM_STATUS = {
    "deps": [
     "T10"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Vista «Más análisis» (botón en la barra): `web/src/more*.ts` + API `eim/api/more.py` (`/v2/more/*`). Portado: `backtest/vrm.py` (idéntico al legado, test de regresión), `analytics/bitacora*.py` (ledger>historial>estimado, apalancamiento obligatorio), `providers/multi_asset.py` (Binance/Yahoo); liquidaciones (`stale` visible), estacionalidad (cobertura real) y VWAP por periodos reutilizan los agentes v2. Verificado con navegador y contra el legado. Bug heredado corregido: el proveedor de liquidaciones duplicaba importes (faltaba `drop_duplicates`). Diferencia consciente: estacionalidad excluye el mes en curso. F7/web intacto.",
    "effort": "medio",
    "phase": 2,
    "goal": "Llevar a la UI nueva lo que aún solo existe en `F7/web/index.html`: Backtest/VRM, Bitácora de trading, Multi-activo, Liquidaciones, Estacionalidad, VWAP por periodos."

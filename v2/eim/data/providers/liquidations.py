@@ -51,6 +51,19 @@ def resolve_liquidation_symbol(requested_symbol: str) -> str:
     )
 
 
+def dedupe_rows(rows: list[dict]) -> list[dict]:
+    """Quita filas idénticas (Binance publica cada liquidación dos veces; el legado hacía
+    `drop_duplicates()`). Sin esto los importes salen duplicados."""
+    seen: set[tuple] = set()
+    out = []
+    for r in rows:
+        key = tuple(sorted(r.items()))
+        if key not in seen:
+            seen.add(key)
+            out.append(r)
+    return out
+
+
 def aggregate(
     rows: list[dict], *, price_bins: int = 40
 ) -> tuple[list[LiquidationDay], list[LiquidationLevel]]:
@@ -160,7 +173,7 @@ class BinanceLiquidations:
             raise LiquidationsUnavailable(f"no se pudo descargar ningún archivo de {liq_symbol}")
         latest = datetime.strptime(all_dates[-1], "%Y-%m-%d").replace(tzinfo=UTC)
         age = (self._clock() - int(latest.timestamp() * 1000)) // _DAY_MS
-        daily, levels = aggregate(rows, price_bins=price_bins)
+        daily, levels = aggregate(dedupe_rows(rows), price_bins=price_bins)
         req = requested_symbol.upper()
         return Liquidations(
             requested_symbol=req, liquidation_symbol=liq_symbol,

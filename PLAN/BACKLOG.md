@@ -7,3 +7,5 @@
 - [T07] `build_snapshot` (data/snapshot.py) aún no rellena `snapshot.liquidations` ni hay cierres mensuales de 1M propios; conectar `BinanceLiquidations.fetch` al almacén/API en T08. El agente `seasonality` necesita historia mensual larga (velas 1d/1M) en el snapshot.
 - [T09] La API emite `status up` al abrir el WS aunque la fuente no entregue ticks (en esta red `fstream.binance.com` conecta pero no envía; el spot `wss://stream.binance.com:9443/ws` sí vía `EIM_WS_URL`). Añadir detección de feed silencioso (sin ticks en N s → estado `stale`) y mostrar "Datos detenidos" en la UI.
 - [T09] Vite 8 exige Node ≥20.19; se fijó Vite 5 por Node 20.18. Reevaluar al actualizar Node.
+
+- T11: Liquidaciones sin mapa de calor precio×tiempo (solo totales diarios y niveles); `/v2/more/*` sin caché del backtest; pestañas legadas Histórico/Variables crudas/Price Action/Elliott ya cubiertas por agentes, sin vista dedicada.

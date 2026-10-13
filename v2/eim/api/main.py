@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from eim.agents.registry import AgentRegistry, default_registry
 from eim.api.config import Settings
 from eim.api.live import Hub, overlays_of
+from eim.api.more import MoreSources, build_more_router
 from eim.api.reports_db import ReportStore
 from eim.api.sources import BinanceKlineSource, LiveSource
 from eim.data.snapshot import build_snapshot
@@ -32,6 +33,7 @@ def create_app(
     settings: Settings | None = None,
     source: LiveSource | None = None,
     registry: AgentRegistry | None = None,
+    more: MoreSources | None = None,
 ) -> FastAPI:
     cfg = settings or Settings.from_env()
     store = Store(cfg.data_dir)
@@ -52,6 +54,7 @@ def create_app(
         allow_headers=["*"],
     )
     app.state.hub, app.state.reports, app.state.store = hub, reports, store
+    app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
 
     @app.get("/v2/health")
     def health() -> dict:
