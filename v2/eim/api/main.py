@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from eim.agents.registry import AgentRegistry, default_registry
 from eim.api.config import Settings
+from eim.api.forecast import Forecaster, build_forecast_router
 from eim.api.live import Hub, overlays_of
 from eim.api.more import MoreSources, build_more_router
 from eim.api.reports_db import ReportStore
@@ -41,7 +42,8 @@ def create_app(
     reports = ReportStore(cfg.reports_path)
     reg = registry or default_registry()
     src = source or BinanceKlineSource(cfg.ws_url, cfg.reconnect_max_s)
-    hub = Hub(src, store, reports, reg, cfg.snapshot_bars, cfg.agent_timeout_s)
+    forecaster = Forecaster(store, reports)
+    hub = Hub(src, store, reports, reg, cfg.snapshot_bars, cfg.agent_timeout_s, forecaster)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
@@ -55,7 +57,9 @@ def create_app(
         allow_headers=["*"],
     )
     app.state.hub, app.state.reports, app.state.store = hub, reports, store
+    app.state.forecaster = forecaster
     app.include_router(build_trades_router(store, reports))
+    app.include_router(build_forecast_router(forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
 
     @app.get("/v2/health")

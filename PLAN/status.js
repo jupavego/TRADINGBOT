@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T04:30:57",
+ "generated": "2026-10-13T04:59:59",
  "tasks": [
   {
    "id": "T01",
@@ -189,8 +189,8 @@ window.EIM_STATUS = {
     "T16",
     "T08"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/forecast/scenarios.py (`build_forecast`: clasifica por retorno terminal con umbral `neutral_atr`·ATR, prob. = proporción, mediana/banda 10–90/medoide, invalidación por ATR o SL del plan, deriva externa para T20, grupo vacío → prob. 0 + aviso). v2/eim/api: `forecast.py` (`GET /v2/forecast?symbol&tf&h`, `Forecaster`), `forecast_db.py` (tabla `forecasts`), Hub emite `forecast` por WS al cierre. Tests en tests/forecast/test_scenarios.py. Gate OK.",
    "effort": "medio-alto",
    "phase": 4,
    "goal": "Convertir las trayectorias en exactamente tres escenarios (alcista, neutral, bajista) con probabilidad, banda, secuencia de velas representativa y condición de invalidación; exponerlos por API."

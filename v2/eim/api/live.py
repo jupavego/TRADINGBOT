@@ -40,9 +40,11 @@ class Hub:
         registry: AgentRegistry,
         snapshot_bars: int = 500,
         agent_timeout_s: float = 30.0,
+        forecaster=None,
     ) -> None:
         self._source, self._store, self._reports = source, store, reports
         self._registry, self._bars, self._timeout = registry, snapshot_bars, agent_timeout_s
+        self._forecaster = forecaster
         self._channels: dict[tuple[str, str], Channel] = {}
 
     def subscribe(self, symbol: str, timeframe: str) -> tuple[Channel, asyncio.Queue]:
@@ -117,6 +119,19 @@ class Hub:
             "asof": candle.t + tf_ms(ch.timeframe),
             "reports": [r.model_dump() for r in reports], "overlays": overlays_of(reports),
         })
+        await self._emit_forecast(ch)
+
+    async def _emit_forecast(self, ch: Channel) -> None:
+        """Pronóstico al cierre de vela; si faltan datos o falla, no interrumpe el flujo."""
+        if self._forecaster is None:
+            return
+        try:
+            fs = await asyncio.to_thread(self._forecaster.run, ch.symbol, ch.timeframe)
+        except Exception as exc:
+            detail = f"{type(exc).__name__}: {exc}"
+            self._broadcast(ch, {"type": "forecast_error", "detail": detail})
+            return
+        self._broadcast(ch, {"type": "forecast", "forecast": fs.model_dump()})
 
     def _analyze(
         self, ch: Channel, candle: Candle, persist_candle: bool = True
