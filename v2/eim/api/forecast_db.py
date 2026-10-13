@@ -36,3 +36,11 @@ class ForecastStore:
                 "SELECT forecast FROM forecasts WHERE symbol = ? AND timeframe = ? "
                 f"ORDER BY made_at DESC LIMIT {int(limit)}", [symbol, timeframe]).fetchall()
         return [ForecastSet.model_validate_json(r[0]) for r in rows]
+
+    def horizon_all(self, symbol: str, timeframe: str, horizon: int) -> list[ForecastSet]:
+        """Todos los pronósticos de un horizonte, por `made_at` ascendente (para evaluar)."""
+        with self._lock:
+            rows = self._con.execute(
+                "SELECT forecast FROM forecasts WHERE symbol = ? AND timeframe = ? AND horizon = ? "
+                "ORDER BY made_at", [symbol, timeframe, horizon]).fetchall()
+        return [ForecastSet.model_validate_json(r[0]) for r in rows]

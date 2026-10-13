@@ -262,3 +262,8 @@ select, .btn, .seg button {
 .scen h4 { margin: 0 0 4px; display: flex; justify-content: space-between; color: var(--c); }
 .scen p { margin: 4px 0; font-size: 12px; color: var(--muted); }
 .scen .meta, .meta { font-size: 11px; }
+.cal-grid { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+.cal-t { border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
+.cal-t th, .cal-t td { padding: 2px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+.cal-t td:first-child, .cal-t th:first-child { text-align: left; }
+.cal-v { margin: 0 0 8px; padding-left: 18px; font-size: 13px; }

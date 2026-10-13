@@ -85,3 +85,25 @@ export const fetchReplay = (
 export const fetchForecast = (
   symbol: string, tf: string, h: number, signal?: AbortSignal,
 ): Promise<ForecastSet> => getJson(`/v2/forecast?symbol=${symbol}&tf=${tf}&h=${h}`, signal)
+
+export interface CalibrationReport {
+  n_evaluated: number; n_pending: number; n_effective: number; n_backfill?: number; horizon: number
+  coverage?: Record<string, { nominal: number; terminal: number | null; pooled: number | null }>
+  brier?: number; brier_rw?: number; brier_skill?: number | null
+  pinball_skill?: number | null; ece?: number
+  directional?: { n: number; accuracy: number | null }
+  curve?: { p_pred: number; p_obs: number; n: number }[]
+  verdict: string[]; source?: string
+}
+
+export const fetchCalibration = (
+  symbol: string, tf: string, h: number, signal?: AbortSignal,
+): Promise<CalibrationReport> => getJson(`/v2/calibration?symbol=${symbol}&tf=${tf}&h=${h}`, signal)
+
+export async function runBackfill(symbol: string, tf: string, h: number): Promise<CalibrationReport> {
+  const r = await fetch(`${base()}/v2/calibration/backfill?symbol=${symbol}&tf=${tf}&h=${h}&origins=800`,
+    { method: 'POST' })
+  const body = await r.json().catch(() => ({ detail: r.statusText }))
+  if (!r.ok) throw new Error(String(body.detail ?? r.statusText))
+  return body as CalibrationReport
+}

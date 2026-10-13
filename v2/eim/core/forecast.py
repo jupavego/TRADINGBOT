@@ -37,6 +37,8 @@ class ForecastSet(Frozen):
     engine: str
     baseline_engine: str
     warnings: list[str] = []
+    # Cuantiles del cierre simulado por instante sobre TODAS las trayectorias ('5'..'95'); T19.
+    quantiles: dict[str, list[tuple[int, float]]] = {}
 
     @model_validator(mode="after")
     def _check_scenarios(self) -> ForecastSet:

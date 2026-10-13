@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnec
 from fastapi.middleware.cors import CORSMiddleware
 
 from eim.agents.registry import AgentRegistry, default_registry
+from eim.api.calibration import build_calibration_router
 from eim.api.config import Settings
 from eim.api.forecast import Forecaster, build_forecast_router
 from eim.api.live import Hub, overlays_of
@@ -60,6 +61,7 @@ def create_app(
     app.state.forecaster = forecaster
     app.include_router(build_trades_router(store, reports))
     app.include_router(build_forecast_router(forecaster))
+    app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
 
     @app.get("/v2/health")

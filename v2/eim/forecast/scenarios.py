@@ -121,6 +121,18 @@ def build_scenarios(
     return out, warnings
 
 
+QUANTILE_LEVELS = (5, 10, 25, 50, 75, 90, 95)
+
+
+def _quantiles(paths: np.ndarray, snapshot: MarketSnapshot) -> dict[str, list[tuple[int, float]]]:
+    """Cuantiles del cierre por instante sobre todas las trayectorias (insumo de T19)."""
+    last_t = snapshot.candles[-1].t
+    step = tf_ms(snapshot.timeframe)
+    times = [last_t + (i + 1) * step for i in range(paths.shape[1])]
+    qs = np.quantile(paths[:, :, 3], [q / 100 for q in QUANTILE_LEVELS], axis=0)
+    return {str(q): _tp(times, row) for q, row in zip(QUANTILE_LEVELS, qs, strict=True)}
+
+
 def _with_drift(engine: Engine, drift: float | None) -> Engine:
     params = getattr(engine, "params", None)
     if drift is None or params is None or not hasattr(params, "drift"):
@@ -147,4 +159,4 @@ def build_forecast(
     return ForecastSet(
         symbol=snapshot.symbol, timeframe=snapshot.timeframe, made_at=snapshot.asof,
         horizon_bars=horizon, scenarios=scen, engine=eng.name, baseline_engine="base",
-        warnings=warns)
+        warnings=warns, quantiles=_quantiles(paths, snapshot))
