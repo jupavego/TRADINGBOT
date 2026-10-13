@@ -43,8 +43,12 @@ class AgentRegistry:
 
 def default_registry() -> AgentRegistry:
     """Registro con los agentes disponibles (cada tarea nueva añade el suyo aquí)."""
+    from eim.agents.ema import EMAAgent
+    from eim.agents.price_action import PriceActionAgent
     from eim.agents.structure import StructureAgent
+    from eim.agents.vwap import VWAPAgent
 
     reg = AgentRegistry()
-    reg.register(StructureAgent())
+    for agent in (StructureAgent(), EMAAgent(), VWAPAgent(), PriceActionAgent()):
+        reg.register(agent)
     return reg

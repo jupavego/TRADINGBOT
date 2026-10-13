@@ -74,3 +74,14 @@ def test_registry_versions():
 
 def test_default_registry_has_structure():
     assert "structure" in default_registry().ids()
+
+
+def test_new_agents_registered_and_run():
+    from tests.agents.conftest import make_snapshot
+
+    reg = default_registry()
+    assert {"structure", "ema", "vwap", "price_action"} <= set(reg.ids())
+    reps = run_agents(reg.latest(), make_snapshot())
+    assert {r.agent_id for r in reps} == set(reg.ids())
+    assert all(r.status in {"ok", "degraded"} for r in reps)
+    assert not [r for r in reps if r.status == "degraded" and r.agent_id in {"ema", "price_action"}]
