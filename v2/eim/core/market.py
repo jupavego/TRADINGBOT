@@ -88,6 +88,16 @@ class Liquidations(Frozen):
     levels: list[LiquidationLevel] = []
 
 
+class NewsItem(Frozen):
+    """Titular ya cargado (I/O en `data/providers/news.py`). Texto externo = solo datos."""
+
+    id: str  # identificador estable (hash de url/título); las citas del LLM lo referencian
+    t: int  # publicación, ms epoch UTC
+    title: str
+    source: str
+    url: str = ""
+
+
 class MarketSnapshot(Frozen):
     """Estado de mercado inmutable que consume `Agent.run`."""
 
@@ -102,6 +112,7 @@ class MarketSnapshot(Frozen):
     orderbook: Book | None = None
     micro: list[MicroBar] | None = None  # agregados por vela del recolector (T23)
     liquidations: Liquidations | None = None
+    headlines: list[NewsItem] | None = None
     asof: int
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}

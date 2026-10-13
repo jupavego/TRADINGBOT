@@ -77,7 +77,7 @@ def test_default_registry_has_structure():
 
 
 # El CSV fixture (~6 semanas, sin liquidaciones) no alcanza para estos dos: deben dar no_data.
-NO_DATA = {"seasonality", "liquidations", "derivatives", "microstructure"}
+NO_DATA = {"seasonality", "liquidations", "derivatives", "microstructure", "context"}
 
 
 def test_new_agents_registered_and_run():

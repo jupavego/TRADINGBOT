@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T15:57:49",
+ "generated": "2026-10-13T16:44:02",
  "tasks": [
   {
    "id": "T01",
@@ -279,8 +279,8 @@ window.EIM_STATUS = {
    "deps": [
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/agents/context (`ContextAgent` con `analyzer` inyectado; salida pydantic `{tema, sentimiento, catalizadores[{texto,fuente}], riesgo_evento, fuentes}`; bias siempre 0, métricas `confidence_multiplier`/`event_pause`; afirmaciones sin fuente válida descartadas; titulares con patrones de inyección excluidos antes del LLM; sin clave/red/titulares → `no_data`). I/O en data/providers: `news.py` (RSS → `NewsItem`, `MarketSnapshot.headlines`) y `claude_context.py` (API con `cache_control`, tool_choice forzado, temperatura 0.1, `CostGuard`). Tests con LLM simulado en tests/agents/context. Pendiente manual: ejecución con clave real.",
    "effort": "medio",
    "phase": 5,
    "goal": "Un agente que lee noticias/sentimiento y devuelve contexto estructurado (el calendario económico lo cubre el agente determinista `calendar`, T36; este agente puede leer su salida). **Solo informa; nunca ejecuta ni fija tamaño.**"
