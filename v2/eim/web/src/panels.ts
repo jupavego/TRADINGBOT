@@ -99,11 +99,11 @@ function synthesis(reports: AgentReport[]): string {
     `<div>${ring(syn.agreement, 'acuerdo')}<span>Acuerdo</span></div></div>` +
     (dis ? '<div class="alert" role="alert">⚠ Los agentes se contradicen: ' +
       `<b>${dis.up.map(agentName).join(', ')}</b> (alcista) vs <b>${dis.down.map(agentName).join(', ')}</b> (bajista)</div>` : '') +
-    `<h4>Contribución por agente</h4><table class="contrib">${contrib}</table></section>`
+    `<div class="hero-contrib"><h4>Contribución por agente</h4><table class="contrib">${contrib}</table></div></section>`
 }
 
 /** Pinta la columna derecha: síntesis + mosaicos. Conserva los mosaicos expandidos. */
-export function renderSide(el: HTMLElement, infos: AgentInfo[], reports: AgentReport[]): void {
+export function renderSide(el: HTMLElement, synEl: HTMLElement, infos: AgentInfo[], reports: AgentReport[]): void {
   const opened = new Set(
     [...el.querySelectorAll<HTMLDetailsElement>('details.tile[open]')].map((d) => d.dataset.id),
   )
@@ -114,7 +114,8 @@ export function renderSide(el: HTMLElement, infos: AgentInfo[], reports: AgentRe
     bias: r.bias, confidence: r.confidence,
   }))]
   const tiles = all.map((i) => tile(byId.get(i.id) ?? null, i, opened.has(i.id))).join('')
-  el.innerHTML = `${synthesis(reports)}<h3 class="sh">Agentes</h3>` +
+  synEl.innerHTML = synthesis(reports)
+  el.innerHTML = '<h3 class="sh">Agentes</h3>' +
     `<div class="tiles">${tiles || '<p class="muted">Sin agentes registrados.</p>'}</div>`
 }
 

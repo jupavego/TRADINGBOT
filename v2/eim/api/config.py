@@ -17,7 +17,7 @@ class Settings:
         "http://127.0.0.1:5173",
         "http://localhost:5173",
     )
-    ws_url: str = "wss://fstream.binance.com/ws"
+    ws_url: str = "wss://fstream.binance.com/market/ws"
     heartbeat_s: float = 15.0
     snapshot_bars: int = 500
     agent_timeout_s: float = 30.0

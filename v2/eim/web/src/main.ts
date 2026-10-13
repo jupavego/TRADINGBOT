@@ -51,7 +51,7 @@ function paintPrice(c: Candle): void {
 }
 
 function paintAgents(): void {
-  renderSide($('side'), infos, latest)
+  renderSide($('side'), $('synth'), infos, latest)
   renderJournal($('journal'), journal)
 }
 

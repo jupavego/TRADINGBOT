@@ -13,7 +13,7 @@ body {
   background: var(--bg); color: var(--text);
   font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
-#app { display: flex; flex-direction: column; height: 100vh; }
+#app { display: flex; flex-direction: column; min-height: 100vh; }
 
 .topbar {
   display: flex; align-items: center; gap: 14px; padding: 10px 20px;
@@ -137,3 +137,24 @@ select, .btn, .seg button {
 .contrib .bar { width: 100%; min-width: 120px; }
 .contrib td { padding: 5px 6px; }
 .contrib .bar { height: 8px; display: block; }
+
+.synth { padding: 12px 20px 0; }
+.hero { display: grid; grid-template-columns: auto auto minmax(280px, 1fr); gap: 8px 40px; align-items: center; }
+.hero > h3 { grid-column: 1 / -1; }
+.hero > .alert { grid-column: 1 / -1; margin: 0; }
+.hero > p { grid-column: 1 / -1; }
+.hero-main { justify-content: flex-start; }
+.gauge { width: 260px; max-width: none; }
+.kpis { flex-direction: column; gap: 10px; margin: 0; }
+.hero-contrib h4 { margin-top: 0; }
+.desk { flex: none; grid-template-rows: 520px 190px; }
+.side { overflow: auto; min-height: 0; }
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; }
+  .desk { grid-template-rows: 380px auto 190px; }
+}
+
+.side { margin: 12px 20px 0; padding: 0; overflow: visible; display: block; }
+.tiles { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.desk { grid-template-columns: minmax(0, 1fr); grid-template-rows: 560px 190px; grid-template-areas: "chart" "bottom"; }
+@media (max-width: 900px) { .desk { grid-template-rows: 380px 190px; } .side { margin: 12px; } }
