@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-12T23:21:27",
+ "generated": "2026-10-12T23:48:34",
  "tasks": [
   {
    "id": "T01",
@@ -39,8 +39,8 @@ window.EIM_STATUS = {
    "id": "T04",
    "title": "Auditoría de repos (licencia/seguridad)",
    "deps": [],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "PLAN/notas/T04_auditoria.md: 13 repos con veredicto. Rojas: market-regime y limit-order-book sin licencia real, Freqtrade GPL, OpenBB redirige a org nueva, circuit-framework descartado. Usar: Optuna, Kronos oficial.",
    "effort": "medio",
    "phase": 0,
    "goal": "Decidir qué se puede reciclar y cómo, sin riesgo legal ni de seguridad."
