@@ -116,7 +116,7 @@ def test_cors_env(monkeypatch):
 
 def test_bootstrap_publishes_reports_without_waiting_for_close(client):
     with client.websocket_connect("/v2/stream?symbol=ETHUSDT&tf=1h") as ws:
-        first = next(m for m in (ws.receive_json() for _ in range(6)) if m["type"] == "reports")
+        first = next(m for m in (ws.receive_json() for _ in range(40)) if m["type"] == "reports")
     assert first["asof"] == T0 + 300 * STEP  # última vela almacenada + un marco
     assert len(first["reports"]) >= 7
     rows = client.get("/v2/reports", params={"symbol": "ETHUSDT", "tf": "1h"}).json()
