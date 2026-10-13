@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T03:09:28",
+ "generated": "2026-10-13T03:30:54",
  "tasks": [
   {
    "id": "T01",
@@ -295,7 +295,7 @@ window.EIM_STATUS = {
    "notes": "",
    "effort": "medio",
    "phase": 5,
-   "goal": "Un agente que lee noticias/sentimiento/calendario y devuelve contexto estructurado. **Solo informa; nunca ejecuta ni fija tamaño.**"
+   "goal": "Un agente que lee noticias/sentimiento y devuelve contexto estructurado (el calendario económico lo cubre el agente determinista `calendar`, T36; este agente puede leer su salida). **Solo informa; nunca ejecuta ni fija tamaño.**"
   },
   {
    "id": "T25",
@@ -394,6 +394,187 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 7,
    "goal": "Dejar el sistema mantenible y seguro."
+  },
+  {
+   "id": "T33",
+   "title": "Auditoría de repos y fuentes (4 agentes nuevos)",
+   "deps": [],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 8,
+   "goal": "Verificar con evidencia (no solo README) qué repos y fuentes de datos se pueden usar para copy trading, arbitraje, calendario económico e indicadores técnicos, y fijar el alcance de copy trading."
+  },
+  {
+   "id": "T34",
+   "title": "Biblioteca de indicadores técnicos (catálogo Binance)",
+   "deps": [
+    "T05"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 8,
+   "goal": "Implementar, validar y catalogar todos los indicadores técnicos del gráfico de Binance, más los derivables de sus datos propios (taker buy/sell, mark/index/premium)."
+  },
+  {
+   "id": "T35",
+   "title": "Agente technical (confluencia multi-marco)",
+   "deps": [
+    "T34"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 8,
+   "goal": "Agente que lee **todos** los indicadores de T34 y los convierte en un sesgo único y honesto, sin contar 40 veces la misma señal."
+  },
+  {
+   "id": "T36",
+   "title": "Calendario económico: proveedor + agente",
+   "deps": [
+    "T05"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 8,
+   "goal": "Que el sistema conozca los eventos macro y cripto de alto impacto (FOMC, CPI, NFP, PCE, PIB, vencimientos de futuros trimestrales, decisiones regulatorias) y cuantifique el riesgo de evento. **Es un agente de riesgo, no direccional.**"
+  },
+  {
+   "id": "T37",
+   "title": "Calendario: impacto histórico y ventanas",
+   "deps": [
+    "T36",
+    "T03"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 8,
+   "goal": "Medir con datos cuánto mueven BTC/ETH cada tipo de evento y fijar las ventanas de pausa por evidencia, no por intuición."
+  },
+  {
+   "id": "T38",
+   "title": "Arbitraje: motor de oportunidades netas (Binance)",
+   "deps": [
+    "T03",
+    "T05"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 8,
+   "goal": "Detectar y valorar, en una sola capa, las oportunidades de arbitraje dentro de Binance, siempre **netas de costos y con su riesgo declarado**."
+  },
+  {
+   "id": "T39",
+   "title": "Agente arbitrage + escáner UI",
+   "deps": [
+    "T38",
+    "T10"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 8,
+   "goal": "Exponer el motor de T38 como agente y como escáner visible, sin mezclarlo con el sesgo direccional."
+  },
+  {
+   "id": "T40",
+   "title": "Copy trading: datos y descubrimiento de líderes",
+   "deps": [
+    "T03",
+    "T33"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 8,
+   "goal": "Capturar de forma fiable y legítima las posiciones y operaciones de los traders a seguir, y guardarlas con historial propio."
+  },
+  {
+   "id": "T41",
+   "title": "Copy trading: evaluación de líderes + agente smart_money",
+   "deps": [
+    "T40",
+    "T05"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 8,
+   "goal": "Decidir a quién vale la pena seguir con métricas robustas (no con \"100 % de acierto\") y convertir sus posiciones en un agente direccional."
+  },
+  {
+   "id": "T42",
+   "title": "Copy trading: replicación simulada",
+   "deps": [
+    "T41",
+    "T25"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 8,
+   "goal": "Convertir los cambios de posición de un líder aprobado en órdenes propias proporcionales, **solo en simulación**, y medir lo que realmente habría ocurrido."
+  },
+  {
+   "id": "T43",
+   "title": "Arbitraje: simulación y backtest con costos",
+   "deps": [
+    "T38",
+    "T25"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 8,
+   "goal": "Responder con datos si cada estrategia de arbitraje deja dinero neto en Binance y con qué riesgo, antes de ejecutar nada."
+  },
+  {
+   "id": "T44",
+   "title": "Integración de agentes nuevos (síntesis, riesgo, UI)",
+   "deps": [
+    "T20",
+    "T35",
+    "T36",
+    "T37",
+    "T41",
+    "T39"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 8,
+   "goal": "Conectar cada agente nuevo al lugar correcto del sistema, respetando que no todos son direccionales."
+  },
+  {
+   "id": "T45",
+   "title": "Arbitraje en testnet (dos patas, selección automática)",
+   "deps": [
+    "T30",
+    "T43"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 9,
+   "goal": "Ejecutar automáticamente, **solo en testnet**, las estrategias que T43 declaró Viable o Marginal, con selección automática entre ellas."
+  },
+  {
+   "id": "T46",
+   "title": "Copy trading en testnet + asignador de capital",
+   "deps": [
+    "T30",
+    "T42",
+    "T45"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 9,
+   "goal": "Replicar líderes aprobados en testnet y repartir el capital entre los tres carriles (direccional, copy trading, arbitraje) sin que uno consuma el margen de otro."
   }
  ]
 };

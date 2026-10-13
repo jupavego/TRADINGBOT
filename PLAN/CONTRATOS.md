@@ -11,3 +11,10 @@ Todos: inmutables (`frozen`), con `source: str` donde aplique, tiempos en UTC (m
 - **ForecastSet**: `symbol, timeframe, made_at, horizon_bars (20..30), scenarios: list[Scenario]` (exactamente 3), `engine, baseline_engine, warnings`.
 - **Synthesis**: `bias, confidence, agreement 0..1, contributions: dict[agent_id, float], thesis: str`.
 - **Mode**: `ANALISIS | SIMULADO | TESTNET | REAL` — toda vista de plan/operación lo muestra.
+
+## Ampliaciones (Fase 8, aditivas; las implementa la tarea indicada)
+- **Candle** (T34): campos opcionales `taker_buy_v`, `trades`.
+- **EconEvent** (T36): `id, t_utc, name, country, impact ∈ {bajo,medio,alto}, previous, forecast, actual|None, revised|None, source, fetched_at`. `MarketSnapshot.events: list[EconEvent]|None`.
+- **CostModel / Opportunity** (T38): `Opportunity{strategy, legs[], gross_edge, costs{fees,slippage,funding,borrow}, net_edge, capital_required, annualized, risk{legging,basis,liquidation,liquidity}, valid_until, source, coverage}`. Nunca se reporta sin desglose de costos.
+- **Leader / LeaderPosition / LeaderFill** (T40): `address|id, symbol, side, size, entry, leverage, t, observed_at, source`. `MarketSnapshot.leaders: list[LeaderPosition]|None` (solo líderes aprobados).
+- **Agentes no direccionales:** `calendar` y `arbitrage` emiten `bias=0`; su información va en `metrics` y no suma a `Synthesis.bias` (T44).
