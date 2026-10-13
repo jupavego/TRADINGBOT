@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T04:59:59",
+ "generated": "2026-10-13T05:12:06",
  "tasks": [
   {
    "id": "T01",
@@ -202,8 +202,8 @@ window.EIM_STATUS = {
     "T09",
     "T17"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/web/src/scenarios.ts (primitiva: 3 trayectorias + banda + etiqueta de prob., desde el último cierre; modo velas simuladas, cuerpo lleno=sube/hueco=baja) y scenarios_ui.ts (pestaña Escenarios: tarjetas con prob./narrativa/invalidación/motor/n_paths, resaltado, selector 20/25/30, toggle velas, avisos de línea base y cobertura). Capa «Escenarios» en el motor de capas; se refresca por WS `forecast` al cerrar vela. Verificado con datos reales de Binance (BTCUSDT 1h): prob. suman 1, origen = último cierre, claro y oscuro. Pendiente T19: aviso de línea base usa `engine==baseline_engine`, no métrica evaluada.",
    "effort": "medio-alto",
    "phase": 4,
    "goal": "Dibujar los tres escenarios desde el punto actual y permitir ver cada uno como secuencia de velas."

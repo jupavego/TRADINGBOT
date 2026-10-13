@@ -4,6 +4,7 @@ import { PriceChart } from './chart'
 import { renderRiver } from './river'
 import { latestPerAgent, renderJournal, renderSide } from './panels'
 import { mountLayerBar, showCard } from './layers_ui'
+import { ScenarioPanel } from './scenarios_ui'
 import { MoreView } from './more'
 import { renderLog, TradeMarks } from './trades_ui'
 import { applyTheme, initialTheme, type Theme } from './theme'
@@ -35,6 +36,7 @@ applyTheme(theme)
 const chart = new PriceChart($('chart'))
 const more = new MoreView($('more'))
 const marks = new TradeMarks(chart)
+const scenarios = new ScenarioPanel($('t-esc'), chart, () => ({ symbol, tf }))
 chart.layers.modeLabel = MODE_LABEL[mode]
 mountLayerBar($('layerbar'), chart.layers)
 chart.chart.subscribeCrosshairMove((p) => {
@@ -143,6 +145,11 @@ function onMsg(m: StreamMsg): void {
     state = 'up'; paintLive()
     chart.update(m.candle)
     paintPrice(m.candle)
+    if (m.closed) scenarios.setLast(m.candle)
+  } else if (m.type === 'forecast') {
+    scenarios.push(m.forecast, null)
+  } else if (m.type === 'forecast_error') {
+    scenarios.fail(m.detail)
   }
 }
 
@@ -163,6 +170,8 @@ async function load(): Promise<void> {
     chart.setData(snap.candles, snap.forming)
     const last = snap.forming ?? snap.candles[snap.candles.length - 1]
     if (last) paintPrice(last)
+    scenarios.setLast(snap.candles[snap.candles.length - 1] ?? null)
+    void scenarios.reload()
     const src = Object.entries(snap.sources).map(([k, v]) => `${k}: ${v}`).join(' · ')
     const cov = snap.candles.length
       ? `${new Date(snap.candles[0].t).toISOString().slice(0, 10)} → ` +
@@ -224,4 +233,4 @@ function build(): void {
 
 build()
 void load()
-;(window as unknown as { __eim: unknown }).__eim = { chart, layers: chart.layers }
+;(window as unknown as { __eim: unknown }).__eim = { chart, layers: chart.layers, scen: chart.scen }

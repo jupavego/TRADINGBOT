@@ -2,12 +2,13 @@ import type { IChartApi, ISeriesApi, ISeriesPrimitive, SeriesAttachedParameter, 
 import type { Overlay } from './types'
 import { cssVar } from './theme'
 
-export type LayerId = 'ninguna' | 'canal' | 'niveles' | 'plan' | 'vwap' | 'liq' | 'elliott'
+export type LayerId = 'ninguna' | 'canal' | 'niveles' | 'plan' | 'vwap' | 'liq' | 'elliott' | 'escenarios'
 
 export const LAYERS: { id: LayerId; label: string; on: boolean }[] = [
   { id: 'canal', label: 'Canal', on: true },
   { id: 'niveles', label: 'Niveles', on: true },
   { id: 'plan', label: 'Plan', on: true },
+  { id: 'escenarios', label: 'Escenarios', on: true },
   { id: 'vwap', label: 'VWAP', on: false },
   { id: 'liq', label: 'Liquidaciones', on: false },
   { id: 'elliott', label: 'Elliott', on: false },
@@ -56,6 +57,7 @@ export class LayerEngine implements ISeriesPrimitive<Time> {
   }
   detached(): void { this.redraw = () => {} }
 
+  isOn(id: LayerId): boolean { return this.enabled.has(id) }
   setEnabled(s: Iterable<LayerId>): void { this.enabled = new Set(s); this.redraw() }
   setTimes(ms: number[]): void { this.times = ms; this.redraw() }
   pushTime(ms: number): void {
@@ -75,7 +77,7 @@ export class LayerEngine implements ISeriesPrimitive<Time> {
   }
 
   // --- tiempo → píxel (extrapola más allá de la última vela) ---
-  private x(tMs: number): number | null {
+  x(tMs: number): number | null {
     const ts = this.times
     if (ts.length < 2) return null
     const step = ts[ts.length - 1] - ts[ts.length - 2]
@@ -89,7 +91,7 @@ export class LayerEngine implements ISeriesPrimitive<Time> {
     }
     return this.chart.timeScale().logicalToCoordinate(idx as never)
   }
-  private y(p: number): number | null { return this.series.priceToCoordinate(p) }
+  y(p: number): number | null { return this.series.priceToCoordinate(p) }
 
   private build(width: number): void {
     const out: Shape[] = []
