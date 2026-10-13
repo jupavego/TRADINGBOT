@@ -18,6 +18,7 @@ dependencies = [
     "python-multipart",
     "openpyxl",
     "yfinance",
+    "websockets",
 ]
 
 [project.optional-dependencies]
