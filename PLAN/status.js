@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T03:46:59",
+ "generated": "2026-10-13T04:00:44",
  "tasks": [
   {
    "id": "T01",
@@ -163,8 +163,8 @@ window.EIM_STATUS = {
     "T12",
     "T13"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/web/src: `layers.ts` (LayerEngine: overlays por id, reemplazo por agente, primitiva de Lightweight Charts que dibuja zonas como bandas, canal como 2 líneas + relleno, plan con etiquetas y R:R; extrapola tiempo futuro), `layers_ui.ts` (fila de capas con estado en localStorage; tarjeta de evidencia al hover), `api.fetchOverlays`; etiqueta \"Propuesta · Análisis\" en el plan. Verificado con datos reales BTCUSDT 1h: coordenadas de capas = priceToCoordinate de los precios del overlay; claro y oscuro. Plan probado con overlay sintético (el agente no emitió plan con esos datos). Niveles = solo agente `levels`.",
    "effort": "medio-alto",
    "phase": 3,
    "goal": "Dibujar en el gráfico en tiempo real lo que marca el agente: canal/rango, zonas de soporte y resistencia, y el plan (entrada, SL, TP1, TP2)."

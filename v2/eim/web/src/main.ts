@@ -1,8 +1,9 @@
 import './style.css'
-import { fetchAgents, fetchReports, fetchSnapshot, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
+import { fetchAgents, fetchOverlays, fetchReports, fetchSnapshot, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { renderRiver } from './river'
 import { latestPerAgent, renderJournal, renderSide } from './panels'
+import { mountLayerBar, showCard } from './layers_ui'
 import { MoreView } from './more'
 import { applyTheme, initialTheme, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg } from './types'
@@ -29,6 +30,12 @@ let theme: Theme = initialTheme()
 applyTheme(theme)
 const chart = new PriceChart($('chart'))
 const more = new MoreView($('more'))
+chart.layers.modeLabel = MODE_LABEL[mode]
+mountLayerBar($('layerbar'), chart.layers)
+chart.chart.subscribeCrosshairMove((p) => {
+  const w = $('chart').clientWidth
+  showCard($('evcard'), p.point ? chart.layers.hit(p.point.x, p.point.y) : null, p.point?.x ?? 0, p.point?.y ?? 0, w)
+})
 
 function paintLive(): void {
   const el = $('live')
@@ -77,6 +84,7 @@ function onMsg(m: StreamMsg): void {
   else if (m.type === 'reports') {
     if (m.symbol !== symbol || m.timeframe !== tf) return
     latest = m.reports as AgentReport[]
+    chart.layers.replace(m.overlays)
     journal = [...latest, ...journal].slice(0, 200)
     paintAgents()
   } else if (m.type === 'tick') {
@@ -95,6 +103,8 @@ async function load(): Promise<void> {
   paintLive()
   more.setContext(symbol, tf)
   void loadAgents(loadAbort.signal)
+  chart.layers.clear()
+  fetchOverlays(symbol, tf, loadAbort.signal).then((o) => chart.layers.replace(o)).catch(() => {})
   try {
     const snap = await fetchSnapshot(symbol, tf, 500, loadAbort.signal)
     chart.setData(snap.candles, snap.forming)
@@ -152,4 +162,4 @@ function build(): void {
 
 build()
 void load()
-;(window as unknown as { __eim: unknown }).__eim = { chart }
+;(window as unknown as { __eim: unknown }).__eim = { chart, layers: chart.layers }
