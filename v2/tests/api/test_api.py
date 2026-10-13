@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from collections.abc import AsyncIterator
 
 import pytest
@@ -68,8 +69,11 @@ def test_agents_listed_before_any_run(client):
 def test_stream_ticks_then_reports_persisted(client):
     got: list[dict] = []
     with client.websocket_connect("/v2/stream?symbol=ETHUSDT&tf=1h") as ws:
-        for _ in range(16):
+        deadline = time.monotonic() + 60  # el análisis de todos los agentes puede tardar varios s
+        while time.monotonic() < deadline:
             msg = ws.receive_json()
+            if msg["type"] == "heartbeat":
+                continue
             got.append(msg)
             # el primer "reports" es el análisis inicial (bootstrap); se espera el del cierre
             if msg["type"] == "reports" and any(m["type"] == "tick" and m["closed"] for m in got):

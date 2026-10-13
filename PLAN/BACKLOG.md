@@ -10,4 +10,3 @@
 
 - T11: Liquidaciones sin mapa de calor precio×tiempo (solo totales diarios y niveles); `/v2/more/*` sin caché del backtest; pestañas legadas Histórico/Variables crudas/Price Action/Elliott ya cubiertas por agentes, sin vista dedicada.
 - [Fase 8] Arbitraje entre exchanges y con DEX (fuera del alcance «solo Binance»); estrategias de alta frecuencia; copy trading de perfiles Binance si T33 no lo permite (reevaluar vía API oficial si Binance la publica).
-- tests/api/test_api.py::test_stream_ticks_then_reports_persisted falla tras T12/T13 (el análisis con levels+plan tarda más que los 16 heartbeats del test; llegan solo heartbeats). Subir el límite de mensajes o el heartbeat del test. Detectado en T14.
