@@ -36,6 +36,24 @@ class Book(Frozen):
     source: str
 
 
+class MicroBar(Frozen):
+    """Agregados de microestructura de una vela (recolector en vivo; `t` = inicio de la vela).
+
+    `ofi` = order flow imbalance sobre muestras top-of-book (≈1/s, Cont-Kukanov-Stoikov);
+    `delta` = volumen comprador agresor − vendedor agresor; `complete` = sin huecos de
+    secuencia durante la vela (si es False, los agregados subestiman la actividad real).
+    """
+
+    t: int
+    ofi: float
+    delta: float
+    buy_v: float
+    sell_v: float
+    trades: int
+    depth_imb: float | None  # (bid−ask)/(bid+ask) del top-10, promedio de la vela
+    complete: bool
+
+
 class LiquidationDay(Frozen):
     """Liquidaciones forzadas de un día (UTC): notional USD por lado de la POSICIÓN liquidada."""
 
@@ -82,6 +100,7 @@ class MarketSnapshot(Frozen):
     long_short_ratio: list[tuple[int, float]] | None = None  # cuentas long/short (global)
     basis: list[tuple[int, float]] | None = None  # (futuro−índice)/índice del perpetuo
     orderbook: Book | None = None
+    micro: list[MicroBar] | None = None  # agregados por vela del recolector (T23)
     liquidations: Liquidations | None = None
     asof: int
     sources: dict[str, str] = {}

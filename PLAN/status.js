@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T14:08:06",
+ "generated": "2026-10-13T15:40:31",
  "tasks": [
   {
    "id": "T01",
@@ -267,8 +267,8 @@ window.EIM_STATUS = {
     "T03",
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/data/collectors (`binance_ws` aggTrade+depth@100ms → Parquet por hora; `book.py` reconstrucción con `pu`/poda de fantasmas, resync por snapshot REST, reconexión; `writer.py`), `data/micro.py` (OFI/delta/profundidad por vela), `MicroBar` + `MarketSnapshot.micro/orderbook` poblados en `build_snapshot`. Agente `microstructure` (OFI, CVD, profundidad, divergencia, Parkinson/GK; `no_data` sin recolección; degradado con huecos), registrado. Tests: tests/data/test_collector.py, tests/agents/microstructure. **Pendiente manual:** la corrida ≥30 min contra Binance no se ejecutó aquí (sin red en tests); lanzar `python -m eim.data.collectors.binance_ws ETHUSDT --root data` y revisar `micro/gaps`.",
    "effort": "alto",
    "phase": 5,
    "goal": "Recolectar trades y order book en vivo y calcular order flow imbalance (OFI), CVD y volatilidad realizada."
