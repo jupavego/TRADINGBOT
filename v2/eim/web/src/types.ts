@@ -36,6 +36,8 @@ export type StreamMsg =
   | { type: 'tick'; symbol: string; timeframe: string; candle: Candle; closed: boolean; source: string }
   | { type: 'reports'; symbol: string; timeframe: string; asof: number; reports: unknown[]; overlays: Overlay[] }
   | { type: 'error'; detail: string }
+  | { type: 'forecast'; forecast: ForecastSet }
+  | { type: 'forecast_error'; detail: string }
   | { type: 'heartbeat'; t: number }
 
 export type AgentStatus = 'ok' | 'degraded' | 'no_data'
@@ -111,4 +113,32 @@ export interface Replay {
   reports: AgentReport[]
   overlays: Overlay[]
   trades: Trade[]
+}
+
+export type ScenarioId = 'bull' | 'neutral' | 'bear'
+export type TP = [number, number]
+
+/** Escenario del contrato (PLAN/CONTRATOS.md). Las velas son SIMULADAS. */
+export interface Scenario {
+  id: ScenarioId
+  probability: number
+  path: TP[]
+  band_low: TP[]
+  band_high: TP[]
+  candles: Candle[]
+  invalidation: { level: number; level_low?: number; condition: string }
+  narrative: string
+  n_paths: number
+  engine: string
+}
+
+export interface ForecastSet {
+  symbol: string
+  timeframe: string
+  made_at: number
+  horizon_bars: number
+  scenarios: Scenario[]
+  engine: string
+  baseline_engine: string
+  warnings: string[]
 }

@@ -1,11 +1,11 @@
 :root, :root[data-theme="light"] {
   --bg: #faf7f2; --panel: #fffdf9; --text: #2b2823; --muted: #8a8378; --line: #e6dfd3;
-  --grid: #f0ebe1; --accent: #b4561f; --up: #2f8f5b; --down: #c64a3b; --warn: #b9831c;
+  --grid: #f0ebe1; --accent: #b4561f; --up: #2f8f5b; --down: #c64a3b; --warn: #b9831c; --neutral: #3b7dc4;
   --radius: 10px;
 }
 :root[data-theme="dark"] {
   --bg: #16181b; --panel: #1d2024; --text: #e8e4dc; --muted: #8d9097; --line: #2c3036;
-  --grid: #24272c; --accent: #e08a52; --up: #3fb27a; --down: #e0604f; --warn: #d9a441;
+  --grid: #24272c; --accent: #e08a52; --up: #3fb27a; --down: #e0604f; --warn: #d9a441; --neutral: #5aa0e6;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
@@ -249,3 +249,16 @@ select, .btn, .seg button {
 .replay input { flex: 1; }
 .replay[data-replaying="true"] { border-color: var(--accent); }
 #t-log h4 { margin: 14px 0 6px; font-size: 12px; color: var(--muted); font-weight: 600; }
+
+.scen-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; color: var(--text); font-size: 12px; }
+.scen-bar select { font: inherit; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+.scen-bar button { font: inherit; font-size: 12px; padding: 2px 10px; border-radius: 999px; cursor: pointer; background: var(--panel); color: var(--muted); border: 1px solid var(--line); }
+.scen-bar button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.scen-warn { margin: 0 0 10px; padding: 6px 10px; border: 1px solid var(--warn); color: var(--warn); border-radius: var(--radius); font-size: 12px; }
+.scen-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.scen { text-align: left; font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--c); border-radius: var(--radius); padding: 10px 12px; cursor: pointer; }
+.scen[aria-pressed="true"] { border-color: var(--c); box-shadow: 0 0 0 1px var(--c); }
+.scen[data-dim="true"] { opacity: .55; }
+.scen h4 { margin: 0 0 4px; display: flex; justify-content: space-between; color: var(--c); }
+.scen p { margin: 4px 0; font-size: 12px; color: var(--muted); }
+.scen .meta, .meta { font-size: 11px; }
