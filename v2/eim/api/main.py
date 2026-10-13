@@ -10,13 +10,16 @@ from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnec
 from fastapi.middleware.cors import CORSMiddleware
 
 from eim.agents.registry import AgentRegistry, default_registry
+from eim.api.calibration import build_calibration_router
 from eim.api.config import Settings
 from eim.api.forecast import Forecaster, build_forecast_router
+from eim.api.history import HistoryLoader
 from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.more import MoreSources, build_more_router
 from eim.api.reports_db import ReportStore
 from eim.api.sources import BinanceKlineSource, LiveSource
 from eim.api.trades import build_trades_router
+from eim.data.providers.binance import BinanceFutures
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
@@ -36,6 +39,7 @@ def create_app(
     source: LiveSource | None = None,
     registry: AgentRegistry | None = None,
     more: MoreSources | None = None,
+    history: HistoryLoader | None = None,
 ) -> FastAPI:
     cfg = settings or Settings.from_env()
     store = Store(cfg.data_dir)
@@ -43,7 +47,9 @@ def create_app(
     reg = registry or default_registry()
     src = source or BinanceKlineSource(cfg.ws_url, cfg.reconnect_max_s)
     forecaster = Forecaster(store, reports)
-    hub = Hub(src, store, reports, reg, cfg.snapshot_bars, cfg.agent_timeout_s, forecaster)
+    if history is None and source is None and cfg.auto_history:  # en vivo: historia automática
+        history = HistoryLoader(store, BinanceFutures())
+    hub = Hub(src, store, reports, reg, cfg.snapshot_bars, cfg.agent_timeout_s, forecaster, history)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
@@ -60,6 +66,7 @@ def create_app(
     app.state.forecaster = forecaster
     app.include_router(build_trades_router(store, reports))
     app.include_router(build_forecast_router(forecaster))
+    app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
 
     @app.get("/v2/health")
@@ -70,6 +77,8 @@ def create_app(
     @app.get("/v2/snapshot")
     def snapshot(symbol: str = "ETHUSDT", tf: str = "1h", n: int = Query(500, ge=1, le=5000)):
         _check(symbol, tf)
+        if history is not None:
+            history.ensure(symbol, tf)
         snap = build_snapshot(store, symbol, tf, n)
         if not snap.candles:
             raise HTTPException(404, f"sin velas almacenadas para {symbol} {tf}")

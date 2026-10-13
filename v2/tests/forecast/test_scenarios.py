@@ -102,3 +102,13 @@ def test_api_forecast_btcusdt(tmp_path):
         assert client.get("/v2/forecast", params={"symbol": "ETHUSDT"}).status_code == 404
         saved = app.state.forecaster.db.query("BTCUSDT", "1h")
         assert [s.model_dump() for s in saved] == [fs.model_dump()]
+
+
+def test_each_scenario_has_ceiling_and_floor(fs):
+    for s in fs.scenarios:
+        roles = {lv["role"]: lv for lv in s.levels}
+        assert set(roles) == {"techo", "piso"}
+        assert roles["techo"]["price"] > roles["piso"]["price"]
+        for lv in roles.values():
+            assert lv["source"] == "estadístico" and lv["note"] and lv["price"] == lv["stat_price"]
+            assert lv["context"] is None or lv["context"]["methods"]

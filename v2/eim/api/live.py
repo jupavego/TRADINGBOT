@@ -47,10 +47,12 @@ class Hub:
         snapshot_bars: int = 500,
         agent_timeout_s: float = 30.0,
         forecaster=None,
+        history=None,
     ) -> None:
         self._source, self._store, self._reports = source, store, reports
         self._registry, self._bars, self._timeout = registry, snapshot_bars, agent_timeout_s
         self._forecaster = forecaster
+        self._history = history
         self._channels: dict[tuple[str, str], Channel] = {}
 
     def subscribe(self, symbol: str, timeframe: str) -> tuple[Channel, asyncio.Queue]:
@@ -81,6 +83,8 @@ class Hub:
     async def _bootstrap(self, ch: Channel) -> None:
         """Análisis inicial sobre la última vela cerrada del almacén, para ver los agentes en
         cualquier marco sin esperar al próximo cierre. No hace nada si ya hay reportes al día."""
+        if self._history is not None:  # marco sin historia: se descarga antes de analizar
+            await asyncio.to_thread(self._history.ensure, ch.symbol, ch.timeframe)
         step = tf_ms(ch.timeframe)
         now = int(time.time() * 1000)
         last = await asyncio.to_thread(

@@ -11,6 +11,7 @@ from eim.core import ForecastSet
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
+from eim.forecast.base_engine import BaseEngine
 from eim.forecast.engine import MAX_HORIZON, MIN_HORIZON
 from eim.forecast.scenarios import build_forecast
 from eim.synthesis import drift_of, synthesize
@@ -25,6 +26,7 @@ class Forecaster:
                  n_paths: int = 500) -> None:
         self._store, self._reports, self._bars, self._n = store, reports, bars, n_paths
         self.db = ForecastStore(*reports.connection)
+        self.engine = BaseEngine()
 
     def _stops(self, symbol: str, tf: str) -> dict[str, float]:
         """SL del último plan vigente: invalida el escenario de su lado."""

@@ -129,6 +129,13 @@ export interface Scenario {
   narrative: string
   n_paths: number
   engine: string
+  levels?: ScenarioLevel[]
+}
+
+/** Techo/piso estadístico de un escenario + contexto estructural opcional (no confirma). */
+export interface ScenarioLevel {
+  role: 'techo' | 'piso'; price: number; source: string; stat_price: number; note: string
+  context: { price: number; methods: string[]; confluence: number } | null
 }
 
 export interface ForecastSet {

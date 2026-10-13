@@ -17,6 +17,7 @@ from eim.core import Candle, ForecastSet, MarketSnapshot, Scenario
 from eim.data.timeframes import tf_ms
 from eim.forecast.base_engine import BaseEngine
 from eim.forecast.engine import Engine, check_horizon
+from eim.forecast.sr import scenario_levels, structural_levels
 
 IDS = ("bull", "neutral", "bear")
 LABEL = {"bull": "alcista", "neutral": "neutral", "bear": "bajista"}
@@ -93,6 +94,7 @@ def build_scenarios(
     delta = paths[:, -1, 3] - last
     warnings: list[str] = []
     out: list[Scenario] = []
+    cands = structural_levels(snapshot, atr_abs)
     for k, sid in enumerate(IDS):
         idx = np.flatnonzero(lab == k)
         prob = len(idx) / n
@@ -117,8 +119,21 @@ def build_scenarios(
             id=sid, probability=prob, path=_tp(times, np.median(closes, axis=0)),
             band_low=_tp(times, lo_q), band_high=_tp(times, hi_q), candles=candles,
             invalidation=_invalidation(sid, last, atr_abs, p, stops), narrative=narrative,
-            n_paths=len(idx), engine=engine_name))
+            n_paths=len(idx), engine=engine_name,
+            levels=scenario_levels(g, cands, atr_abs)))
     return out, warnings
+
+
+QUANTILE_LEVELS = (5, 10, 25, 50, 75, 90, 95)
+
+
+def _quantiles(paths: np.ndarray, snapshot: MarketSnapshot) -> dict[str, list[tuple[int, float]]]:
+    """Cuantiles del cierre por instante sobre todas las trayectorias (insumo de T19)."""
+    last_t = snapshot.candles[-1].t
+    step = tf_ms(snapshot.timeframe)
+    times = [last_t + (i + 1) * step for i in range(paths.shape[1])]
+    qs = np.quantile(paths[:, :, 3], [q / 100 for q in QUANTILE_LEVELS], axis=0)
+    return {str(q): _tp(times, row) for q, row in zip(QUANTILE_LEVELS, qs, strict=True)}
 
 
 def _with_drift(engine: Engine, drift: float | None) -> Engine:
@@ -147,4 +162,4 @@ def build_forecast(
     return ForecastSet(
         symbol=snapshot.symbol, timeframe=snapshot.timeframe, made_at=snapshot.asof,
         horizon_bars=horizon, scenarios=scen, engine=eng.name, baseline_engine="base",
-        warnings=warns)
+        warnings=warns, quantiles=_quantiles(paths, snapshot))
