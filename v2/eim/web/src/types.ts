@@ -34,7 +34,7 @@ export type StreamState = 'connecting' | 'up' | 'down'
 export type StreamMsg =
   | { type: 'status'; state: StreamState; detail?: string; source?: string }
   | { type: 'tick'; symbol: string; timeframe: string; candle: Candle; closed: boolean; source: string }
-  | { type: 'reports'; symbol: string; timeframe: string; asof: number; reports: unknown[]; overlays: Overlay[] }
+  | { type: 'reports'; symbol: string; timeframe: string; asof: number; reports: unknown[]; overlays: Overlay[]; synthesis: Synthesis | null }
   | { type: 'error'; detail: string }
   | { type: 'forecast'; forecast: ForecastSet }
   | { type: 'forecast_error'; detail: string }
@@ -71,8 +71,6 @@ export interface Synthesis {
   agreement: number
   contributions: Record<string, number>
   thesis: string
-  /** true mientras no exista la síntesis real (T20): calculada en el navegador. */
-  simulated: boolean
 }
 
 /** Operación del libro simulado (siempre mode=SIMULADO). Tiempos en ms. */
@@ -111,6 +109,7 @@ export interface Replay {
   mode: string
   candles: Candle[]
   reports: AgentReport[]
+  synthesis: Synthesis | null
   overlays: Overlay[]
   trades: Trade[]
 }

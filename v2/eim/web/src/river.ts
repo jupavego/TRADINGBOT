@@ -1,12 +1,11 @@
 import { agentName, esc } from './panels'
-import { simulateSynthesis } from './synth'
-import type { AgentInfo, AgentReport } from './types'
+import type { AgentInfo, AgentReport, Synthesis } from './types'
 
 const THRESH = 0.1 // |sesgo| mínimo para teñir de verde/rojo
 const H = 380, YM = 190, GX = 40, XE = 900, NR = 19, TOP = 62
 
 let selected: string | null = null // agente con tooltip abierto
-let ctx: { infos: AgentInfo[]; reports: AgentReport[] } = { infos: [], reports: [] }
+let ctx: { infos: AgentInfo[]; reports: AgentReport[]; synthesis: Synthesis | null } = { infos: [], reports: [], synthesis: null }
 let keyBound = false
 let tip = ''
 
@@ -56,8 +55,8 @@ function particles(pathId: string, n: number, dur: number, r: number, fill: stri
  * cauce, tiñéndolo según el sesgo acumulado de los agentes que ya han confluido.
  * Grosor y velocidad del arroyo = confianza.
  */
-export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentReport[]): void {
-  ctx = { infos, reports }
+export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentReport[], synthesis: Synthesis | null): void {
+  ctx = { infos, reports, synthesis }
   tip = ''
   el.onclick = (e) => {
     const t = e.target as HTMLElement
@@ -66,12 +65,12 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
       const g = t.closest<HTMLElement>('[data-id]')
       selected = g ? (selected === g.dataset.id ? null : g.dataset.id!) : t.closest('.tip') ? selected : null
     }
-    renderRiver(el, ctx.infos, ctx.reports)
+    renderRiver(el, ctx.infos, ctx.reports, ctx.synthesis)
   }
   if (!keyBound) {
     keyBound = true
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && selected) { selected = null; renderRiver(el, ctx.infos, ctx.reports) }
+      if (e.key === 'Escape' && selected) { selected = null; renderRiver(el, ctx.infos, ctx.reports, ctx.synthesis) }
     })
   }
   const byId = new Map(reports.map((r) => [r.agent_id, r]))
@@ -136,7 +135,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   const ups = rows.filter((r) => r.live && r.bias >= THRESH).length
   const downs = rows.filter((r) => r.live && r.bias <= -THRESH).length
   const flat = rows.filter((r) => r.live).length - ups - downs
-  const syn = simulateSynthesis(reports)
+  const syn = synthesis
   const b = syn?.bias ?? 0
   const verdict = Math.abs(b) < THRESH ? 'Neutral' : b > 0 ? 'Sesgo de compra' : 'Sesgo de venta'
   const mainCol = tint(b, 1.8)
@@ -146,7 +145,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   const main = `M${GX} ${YM} L${XE + 40} ${YM}`
 
   el.style.setProperty('--rt', Math.abs(b) < THRESH ? 'transparent' : tint(b, 1.8))
-  el.innerHTML = `<div class="river-head"><h3>Río de decisión <span class="sim">simulada · hasta T20</span></h3>` +
+  el.innerHTML = `<div class="river-head"><h3>Río de decisión</h3>` +
     `<span class="chips"><i class="c up">${ups} compra</i><i class="c flat">${flat} neutral</i><i class="c down">${downs} venta</i></span></div>` +
     `<div class="rsvg"><svg viewBox="0 0 1200 ${H}" role="img" aria-label="${esc(verdict)}: ${ups} agentes en verde, ${downs} en rojo">` +
     `<defs><filter id="rblur" x="-30%" y="-120%" width="160%" height="340%"><feGaussianBlur stdDeviation="9"/></filter>` +

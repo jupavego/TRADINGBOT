@@ -15,6 +15,12 @@ from eim.core import AgentReport, Candle
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import tf_ms
+from eim.synthesis import synthesize
+
+
+def synthesis_of(reports: list[AgentReport], expected: list[str] | None = None) -> dict | None:
+    syn = synthesize(reports, expected=expected)
+    return syn.model_dump() if syn else None
 
 
 def overlays_of(reports: list[AgentReport]) -> list[dict]:
@@ -118,6 +124,7 @@ class Hub:
             "type": "reports", "symbol": ch.symbol, "timeframe": ch.timeframe,
             "asof": candle.t + tf_ms(ch.timeframe),
             "reports": [r.model_dump() for r in reports], "overlays": overlays_of(reports),
+            "synthesis": synthesis_of(reports, [a.id for a in self._registry.latest()]),
         })
         await self._emit_forecast(ch)
 

@@ -262,3 +262,4 @@ select, .btn, .seg button {
 .scen h4 { margin: 0 0 4px; display: flex; justify-content: space-between; color: var(--c); }
 .scen p { margin: 4px 0; font-size: 12px; color: var(--muted); }
 .scen .meta, .meta { font-size: 11px; }
+.thesis { font-size: 13px; line-height: 1.45; color: var(--muted); margin: 10px 0 0; }

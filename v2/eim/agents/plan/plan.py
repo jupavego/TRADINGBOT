@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 
 from eim.agents.plan.params import PlanParams
+from eim.core import AgentReport
+from eim.synthesis import synthesize
 
 
 @dataclass(frozen=True)
@@ -28,17 +30,12 @@ class Plan:
         return "largo" if self.side > 0 else "corto"
 
 
-def combine(structure_bias: float, structure_conf: float, levels_bias: float,
-            levels_conf: float, p: PlanParams) -> tuple[float, float]:
-    """Sesgo y confianza combinados (síntesis provisional hasta T20)."""
-    w = structure_conf + levels_conf
-    if w <= 0:
+def combine(reports: list[AgentReport], p: PlanParams) -> tuple[float, float]:
+    """Sesgo y confianza de la dirección: la síntesis (T20) de `structure` y `levels`."""
+    syn = synthesize(reports, expected=[r.agent_id for r in reports])
+    if syn is None:
         return 0.0, 0.0
-    bias = (structure_bias * structure_conf + levels_bias * levels_conf) / w
-    conf = w / 2
-    if structure_bias * levels_bias < 0:
-        conf *= p.disagree_penalty
-    return bias, min(conf, p.max_confidence)
+    return syn.bias, min(syn.confidence, p.max_confidence)
 
 
 def propose(side: int, close: float, a: float, supports: list[float],

@@ -1,4 +1,4 @@
-import type { AgentInfo, Overlay, AgentReport, Snapshot, StreamMsg, Decision, Trade, Replay, ForecastSet } from './types'
+import type { AgentInfo, Overlay, AgentReport, Snapshot, StreamMsg, Decision, Trade, Replay, ForecastSet, Synthesis } from './types'
 
 /** Base de la API: variable VITE_API_URL o el mismo host en el puerto 8000. */
 const base = (): string =>
@@ -26,6 +26,11 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
 
 export const fetchAgents = (symbol: string, tf: string, signal?: AbortSignal): Promise<AgentInfo[]> =>
   getJson(`/v2/agents?symbol=${symbol}&tf=${tf}`, signal)
+
+export const fetchSynthesis = (
+  symbol: string, tf: string, signal?: AbortSignal,
+): Promise<{ synthesis: Synthesis | null }> =>
+  getJson(`/v2/synthesis?symbol=${symbol}&tf=${tf}`, signal)
 
 export const fetchReports = (
   symbol: string, tf: string, limit = 100, signal?: AbortSignal,

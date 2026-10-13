@@ -1,5 +1,5 @@
-import { disagreeing, simulateSynthesis } from './synth'
-import type { AgentInfo, AgentReport } from './types'
+import { disagreeing } from './synth'
+import type { AgentInfo, AgentReport, Synthesis } from './types'
 
 const LABEL: Record<string, string> = {
   structure: 'Estructura', vwap: 'VWAP', price_action: 'Price action', elliott: 'Elliott',
@@ -86,9 +86,8 @@ function tile(r: AgentReport | null, info: AgentInfo, open: boolean): string {
     `${metricRows(r.metrics)}<p class="muted">v${esc(r.version)} · horizonte ${r.horizon_bars} velas</p></div></details>`
 }
 
-function synthesis(reports: AgentReport[]): string {
-  const syn = simulateSynthesis(reports)
-  const head = '<section class="hero"><h3>Síntesis <span class="sim">simulada · hasta T20</span></h3>'
+function synthesis(reports: AgentReport[], syn: Synthesis | null): string {
+  const head = '<section class="hero"><h3>Síntesis</h3>'
   if (!syn) return `${head}<p class="muted">Sin reportes todavía: se calcula al haber agentes con datos.</p></section>`
   const dis = disagreeing(reports)
   const contrib = Object.entries(syn.contributions).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
@@ -99,11 +98,12 @@ function synthesis(reports: AgentReport[]): string {
     `<div>${ring(syn.agreement, 'acuerdo')}<span>Acuerdo</span></div></div>` +
     (dis ? '<div class="alert" role="alert">⚠ Los agentes se contradicen: ' +
       `<b>${dis.up.map(agentName).join(', ')}</b> (alcista) vs <b>${dis.down.map(agentName).join(', ')}</b> (bajista)</div>` : '') +
+    (syn.thesis ? `<p class="thesis">${esc(syn.thesis)}</p>` : '') +
     `<div class="hero-contrib"><h4>Contribución por agente</h4><table class="contrib">${contrib}</table></div></section>`
 }
 
 /** Pinta la columna derecha: síntesis + mosaicos. Conserva los mosaicos expandidos. */
-export function renderSide(el: HTMLElement, synEl: HTMLElement, infos: AgentInfo[], reports: AgentReport[]): void {
+export function renderSide(el: HTMLElement, synEl: HTMLElement, infos: AgentInfo[], reports: AgentReport[], syn: Synthesis | null): void {
   const opened = new Set(
     [...el.querySelectorAll<HTMLDetailsElement>('details.tile[open]')].map((d) => d.dataset.id),
   )
@@ -114,7 +114,7 @@ export function renderSide(el: HTMLElement, synEl: HTMLElement, infos: AgentInfo
     bias: r.bias, confidence: r.confidence,
   }))]
   const tiles = all.map((i) => tile(byId.get(i.id) ?? null, i, opened.has(i.id))).join('')
-  synEl.innerHTML = synthesis(reports)
+  synEl.innerHTML = synthesis(reports, syn)
   el.innerHTML = '<h3 class="sh">Agentes</h3>' +
     `<div class="tiles">${tiles || '<p class="muted">Sin agentes registrados.</p>'}</div>`
 }
