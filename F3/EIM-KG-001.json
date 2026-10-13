@@ -1,0 +1,1469 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_metadata": {
+    "repository": "Knowledge Graph",
+    "repository_code": "KG",
+    "document_code": "EIM-KG-001",
+    "document_name": "Knowledge Graph — Mapa de Relaciones del EIM",
+    "project": "EMA Intelligence Model",
+    "project_code": "EIM",
+    "discipline": "Market Structural Intelligence",
+    "metamodel_ref": "MSI-META-001 v1.0.0",
+    "version": "1.0.1",
+    "status": "ACTIVE",
+    "created_date": "2026-06-27",
+    "last_updated": "2026-06-27",
+    "description": "Grafo formal de relaciones del EIM. 44 nodos. 126 relaciones tipadas según MSI-META-001. Define qué causa qué, qué modula qué y qué observa qué en el sistema.",
+    "dependencies": [
+      "EIM-EAR-001",
+      "EIM-ONT-001",
+      "EIM-DDMR-001-v1.1",
+      "MSI-META-001"
+    ],
+    "changelog": [
+      {
+        "version": "1.0.0",
+        "date": "2026-06-27",
+        "change": "Creación del Knowledge Graph. 44 nodos (4 L0 + 5 L1 + 29 L2 + 5 L3 + 1 L4), 10 entidades, 7 propiedades, 5 instrumentos. 126 relaciones: 110 DERIVES_FROM, 6 MODULATES, 5 OBSERVES, 5 FEEDS."
+      },
+      {
+        "version": "1.0.1",
+        "date": "2026-06-27",
+        "change": "Añadidas 2 relaciones DERIVES_FROM faltantes: MTF_SYNC→DIAGNOSIS y BOUNCE_COUNT_200→DIAGNOSIS. Total aristas: 126."
+      }
+    ]
+  },
+  "graph_statistics": {
+    "total_nodes": 73,
+    "total_edges": 126,
+    "node_breakdown": {
+      "concepts": 10,
+      "properties": 7,
+      "instruments": 5,
+      "variables_L0": 4,
+      "variables_L1": 5,
+      "variables_L2": 29,
+      "variables_L3": 5,
+      "variables_L4": 1
+    },
+    "edge_breakdown": {
+      "DERIVES_FROM": 110,
+      "MODULATES": 6,
+      "OBSERVES": 5,
+      "FEEDS": 5
+    },
+    "critical_paths": [
+      "PRICE_CLOSE → EMA_9/21/55/100/200 → STACK_ORDER → STRUCTURAL_STATE → STRUCTURAL_DIAGNOSIS",
+      "PRICE_CLOSE → EMA_9 → SLOPE_9 → COMPRESSION_INDEX → SPREAD_VELOCITY → SPREAD_ACCELERATION → MOMENTUM_STATE",
+      "COMPRESSION_INDEX → COMPRESSION_DURATION → ENERGY_STATE → STRUCTURAL_DIAGNOSIS",
+      "STACK_SCORE + PRICE_VS_STACK + SLOPE_SYNC + VOLUME_RATIO → COHERENCE_SCORE → STRUCTURAL_DIAGNOSIS"
+    ]
+  },
+  "nodes": {
+    "concepts": {
+      "_description": "Instancias de meta-tipo CONCEPT. Definidas en EIM-ONT-001. Fuente: entidades EN-01 a EN-10.",
+      "items": [
+        {
+          "id": "EN-01",
+          "name": "Precio",
+          "type": "CONCEPT",
+          "domain": "Futuros de criptomonedas",
+          "observability": "DIRECT"
+        },
+        {
+          "id": "EN-02",
+          "name": "Tiempo",
+          "type": "CONCEPT",
+          "domain": "Futuros de criptomonedas",
+          "observability": "DIRECT"
+        },
+        {
+          "id": "EN-03",
+          "name": "Tendencia",
+          "type": "CONCEPT",
+          "domain": "Futuros de criptomonedas",
+          "observability": "DERIVED"
+        },
+        {
+          "id": "EN-04",
+          "name": "Momentum",
+          "type": "CONCEPT",
+          "domain": "Futuros de criptomonedas",
+          "observability": "DERIVED"
+        },
+        {
+          "id": "EN-05",
+          "name": "Estructura",
+          "type": "CONCEPT",
+          "domain": "Futuros de criptomonedas",
+          "observability": "INFERRED"
+        },
+        {
+          "id": "EN-06",
+          "name": "Energía",
+          "type": "CONCEPT",
+          "domain": "Futuros de criptomonedas",
+          "observability": "DERIVED"
+        },
+        {
+          "id": "EN-07",
+          "name": "Elasticidad",
+          "type": "CONCEPT",
+          "domain": "Futuros de criptomonedas",
+          "observability": "DERIVED"
+        },
+        {
+          "id": "EN-08",
+          "name": "Equilibrio",
+          "type": "CONCEPT",
+          "domain": "Futuros de criptomonedas",
+          "observability": "DERIVED",
+          "note": "Operacionalizado por EMA-200"
+        },
+        {
+          "id": "EN-09",
+          "name": "Fricción",
+          "type": "CONCEPT",
+          "domain": "Futuros de criptomonedas",
+          "observability": "INFERRED"
+        },
+        {
+          "id": "EN-10",
+          "name": "Coherencia",
+          "type": "CONCEPT",
+          "domain": "Futuros de criptomonedas",
+          "observability": "INFERRED",
+          "nature": "EMERGENT"
+        }
+      ]
+    },
+    "properties": {
+      "_description": "Instancias de meta-tipo PROPERTY. Definidas en EIM-ONT-001.",
+      "items": [
+        {
+          "id": "PR-01",
+          "name": "Dirección",
+          "type": "PROPERTY",
+          "concept_ref": "EN-03",
+          "nature": "STRUCTURAL",
+          "temporality": "INSTANT"
+        },
+        {
+          "id": "PR-02",
+          "name": "Pendiente",
+          "type": "PROPERTY",
+          "concept_ref": "EN-04",
+          "nature": "STRUCTURAL",
+          "temporality": "INSTANT"
+        },
+        {
+          "id": "PR-03",
+          "name": "Separación",
+          "type": "PROPERTY",
+          "concept_ref": "EN-06",
+          "nature": "STRUCTURAL",
+          "temporality": "INSTANT"
+        },
+        {
+          "id": "PR-04",
+          "name": "Persistencia",
+          "type": "PROPERTY",
+          "concept_ref": "EN-03",
+          "nature": "TEMPORAL",
+          "temporality": "CUMULATIVE"
+        },
+        {
+          "id": "PR-05",
+          "name": "Compresión",
+          "type": "PROPERTY",
+          "concept_ref": "EN-06",
+          "nature": "STRUCTURAL",
+          "temporality": "WINDOW"
+        },
+        {
+          "id": "PR-06",
+          "name": "Cruce",
+          "type": "PROPERTY",
+          "concept_ref": "EN-03",
+          "nature": "TEMPORAL",
+          "temporality": "INSTANT"
+        },
+        {
+          "id": "PR-07",
+          "name": "Posición Relativa",
+          "type": "PROPERTY",
+          "concept_ref": "EN-05",
+          "nature": "STRUCTURAL",
+          "temporality": "INSTANT"
+        }
+      ]
+    },
+    "instruments": {
+      "_description": "Instancias de meta-tipo INSTRUMENT. Stack oficial EIM definido en EIM-EAR-001.",
+      "items": [
+        {
+          "id": "EMA-9",
+          "name": "EMA Período 9",
+          "type": "INSTRUMENT",
+          "source": "PRICE_CLOSE",
+          "observes": "EN-04",
+          "horizon": "Momentum inmediato"
+        },
+        {
+          "id": "EMA-21",
+          "name": "EMA Período 21",
+          "type": "INSTRUMENT",
+          "source": "PRICE_CLOSE",
+          "observes": "EN-03",
+          "horizon": "Tendencia corta"
+        },
+        {
+          "id": "EMA-55",
+          "name": "EMA Período 55",
+          "type": "INSTRUMENT",
+          "source": "PRICE_CLOSE",
+          "observes": "EN-03",
+          "horizon": "Tendencia media"
+        },
+        {
+          "id": "EMA-100",
+          "name": "EMA Período 100",
+          "type": "INSTRUMENT",
+          "source": "PRICE_CLOSE",
+          "observes": "EN-05",
+          "horizon": "Estructura larga"
+        },
+        {
+          "id": "EMA-200",
+          "name": "EMA Período 200",
+          "type": "INSTRUMENT",
+          "source": "PRICE_CLOSE",
+          "observes": "EN-08",
+          "horizon": "Equilibrio macro"
+        }
+      ]
+    },
+    "variables": {
+      "_description": "Instancias de meta-tipo VARIABLE. Definidas en EIM-DDMR-001 v1.1.",
+      "L0": [
+        {
+          "id": "V-L0-001",
+          "bk": "PRICE_CLOSE",
+          "concept": "EN-01",
+          "level": "L0"
+        },
+        {
+          "id": "V-L0-002",
+          "bk": "VOLUME",
+          "concept": "EN-01",
+          "level": "L0"
+        },
+        {
+          "id": "V-L0-003",
+          "bk": "TIMESTAMP",
+          "concept": "EN-02",
+          "level": "L0"
+        },
+        {
+          "id": "V-L0-004",
+          "bk": "TIMEFRAME",
+          "concept": "EN-02",
+          "level": "L0"
+        }
+      ],
+      "L1": [
+        {
+          "id": "V-L1-001",
+          "bk": "EMA_9",
+          "instrument": "EMA-9",
+          "level": "L1"
+        },
+        {
+          "id": "V-L1-002",
+          "bk": "EMA_21",
+          "instrument": "EMA-21",
+          "level": "L1"
+        },
+        {
+          "id": "V-L1-003",
+          "bk": "EMA_55",
+          "instrument": "EMA-55",
+          "level": "L1"
+        },
+        {
+          "id": "V-L1-004",
+          "bk": "EMA_100",
+          "instrument": "EMA-100",
+          "level": "L1"
+        },
+        {
+          "id": "V-L1-005",
+          "bk": "EMA_200",
+          "instrument": "EMA-200",
+          "level": "L1"
+        }
+      ],
+      "L2": [
+        {
+          "id": "V-L2-001",
+          "bk": "STACK_ORDER",
+          "concept": "EN-05",
+          "property": "PR-07",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-002",
+          "bk": "STACK_SCORE",
+          "concept": "EN-05",
+          "property": "PR-07",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-003",
+          "bk": "PRICE_VS_STACK",
+          "concept": "EN-03",
+          "property": "PR-07",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-004",
+          "bk": "SLOPE_9",
+          "concept": "EN-04",
+          "property": "PR-02",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-005",
+          "bk": "SLOPE_55",
+          "concept": "EN-03",
+          "property": "PR-02",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-006",
+          "bk": "SPREAD_9_21",
+          "concept": "EN-06",
+          "property": "PR-03",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-007",
+          "bk": "SPREAD_21_55",
+          "concept": "EN-06",
+          "property": "PR-03",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-008",
+          "bk": "SPREAD_55_100",
+          "concept": "EN-06",
+          "property": "PR-03",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-009",
+          "bk": "SPREAD_100_200",
+          "concept": "EN-06",
+          "property": "PR-03",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-010",
+          "bk": "ELASTICITY",
+          "concept": "EN-07",
+          "property": "PR-03",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-011",
+          "bk": "VOLUME_RATIO",
+          "concept": "EN-01",
+          "property": null,
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-012",
+          "bk": "SLOPE_DIRECTION",
+          "concept": "EN-03",
+          "property": "PR-01",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-013",
+          "bk": "COMPRESSION_INDEX",
+          "concept": "EN-06",
+          "property": "PR-05",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-014",
+          "bk": "SPREAD_VELOCITY",
+          "concept": "EN-04",
+          "property": "PR-03",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-015",
+          "bk": "SPREAD_ACCELERATION",
+          "concept": "EN-04",
+          "property": "PR-03",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-016",
+          "bk": "CURVATURE_9",
+          "concept": "EN-04",
+          "property": "PR-02",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-017",
+          "bk": "CURVATURE_55",
+          "concept": "EN-03",
+          "property": "PR-02",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-018",
+          "bk": "PERSISTENCE_ABOVE_21",
+          "concept": "EN-03",
+          "property": "PR-04",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-019",
+          "bk": "COMPRESSION_DURATION",
+          "concept": "EN-06",
+          "property": "PR-05",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-020",
+          "bk": "SLOPE_SYNC",
+          "concept": "EN-10",
+          "property": "PR-01",
+          "level": "L2",
+          "nature": "EMERGENT"
+        },
+        {
+          "id": "V-L2-021",
+          "bk": "MTF_SYNC",
+          "concept": "EN-10",
+          "property": "PR-01",
+          "level": "L2",
+          "nature": "EMERGENT"
+        },
+        {
+          "id": "V-L2-022",
+          "bk": "BOUNCE_COUNT_9",
+          "concept": "EN-09",
+          "property": "PR-04",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-023",
+          "bk": "BOUNCE_COUNT_21",
+          "concept": "EN-09",
+          "property": "PR-04",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-024",
+          "bk": "BOUNCE_COUNT_55",
+          "concept": "EN-09",
+          "property": "PR-04",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-025",
+          "bk": "BOUNCE_COUNT_200",
+          "concept": "EN-09",
+          "property": "PR-04",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-026",
+          "bk": "CROSS_EVENT_9_21",
+          "concept": "EN-03",
+          "property": "PR-06",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-027",
+          "bk": "CROSS_EVENT_21_55",
+          "concept": "EN-03",
+          "property": "PR-06",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-028",
+          "bk": "CROSS_EVENT_55_200",
+          "concept": "EN-03",
+          "property": "PR-06",
+          "level": "L2"
+        },
+        {
+          "id": "V-L2-029",
+          "bk": "ATR_RELATIVE",
+          "concept": "EN-09",
+          "property": null,
+          "level": "L2"
+        }
+      ],
+      "L3": [
+        {
+          "id": "V-L3-001",
+          "bk": "STRUCTURAL_STATE",
+          "concept": "EN-05",
+          "level": "L3"
+        },
+        {
+          "id": "V-L3-002",
+          "bk": "MOMENTUM_STATE",
+          "concept": "EN-04",
+          "level": "L3"
+        },
+        {
+          "id": "V-L3-003",
+          "bk": "ENERGY_STATE",
+          "concept": "EN-06",
+          "level": "L3"
+        },
+        {
+          "id": "V-L3-004",
+          "bk": "COHERENCE_SCORE",
+          "concept": "EN-10",
+          "level": "L3",
+          "nature": "EMERGENT"
+        },
+        {
+          "id": "V-L3-005",
+          "bk": "FRICTION_INDEX",
+          "concept": "EN-09",
+          "level": "L3"
+        }
+      ],
+      "L4": [
+        {
+          "id": "V-L4-001",
+          "bk": "STRUCTURAL_DIAGNOSIS",
+          "concept": "EN-05",
+          "level": "L4",
+          "nature": "EMERGENT"
+        }
+      ]
+    }
+  },
+  "edges": {
+    "OBSERVES": {
+      "_description": "REL-03. Un INSTRUMENT observa un CONCEPT. No implica medición formal.",
+      "_metamodel_ref": "MSI-META-001 § REL-03",
+      "items": [
+        {
+          "id": "REL-03-EMA9-EN04",
+          "from": "EMA-9",
+          "to": "EN-04",
+          "strength": "MANDATORY",
+          "description": "EMA-9 observa Momentum (horizonte inmediato)"
+        },
+        {
+          "id": "REL-03-EMA21-EN03",
+          "from": "EMA-21",
+          "to": "EN-03",
+          "strength": "MANDATORY",
+          "description": "EMA-21 observa Tendencia (corto plazo)"
+        },
+        {
+          "id": "REL-03-EMA55-EN03",
+          "from": "EMA-55",
+          "to": "EN-03",
+          "strength": "MANDATORY",
+          "description": "EMA-55 observa Tendencia (mediano plazo)"
+        },
+        {
+          "id": "REL-03-EMA100-EN05",
+          "from": "EMA-100",
+          "to": "EN-05",
+          "strength": "MANDATORY",
+          "description": "EMA-100 observa Estructura (largo plazo)"
+        },
+        {
+          "id": "REL-03-EMA200-EN08",
+          "from": "EMA-200",
+          "to": "EN-08",
+          "strength": "MANDATORY",
+          "description": "EMA-200 observa Equilibrio macro. Única operacionalización del concepto EN-08."
+        }
+      ]
+    },
+    "DERIVES_FROM": {
+      "_description": "REL-06. Dependencia computacional directa. Flujo estrictamente ascendente L0→L1→L2→L3→L4.",
+      "_metamodel_ref": "MSI-META-001 § REL-06",
+      "_validation": "RC-02: L0 no tiene depends_on. RC-03: flujo no puede saltarse niveles.",
+      "items": [
+        {
+          "id": "REL-06-L001-L1001",
+          "from": "V-L0-001",
+          "to": "V-L1-001",
+          "label": "PRICE_CLOSE → EMA_9"
+        },
+        {
+          "id": "REL-06-L001-L1002",
+          "from": "V-L0-001",
+          "to": "V-L1-002",
+          "label": "PRICE_CLOSE → EMA_21"
+        },
+        {
+          "id": "REL-06-L001-L1003",
+          "from": "V-L0-001",
+          "to": "V-L1-003",
+          "label": "PRICE_CLOSE → EMA_55"
+        },
+        {
+          "id": "REL-06-L001-L1004",
+          "from": "V-L0-001",
+          "to": "V-L1-004",
+          "label": "PRICE_CLOSE → EMA_100"
+        },
+        {
+          "id": "REL-06-L001-L1005",
+          "from": "V-L0-001",
+          "to": "V-L1-005",
+          "label": "PRICE_CLOSE → EMA_200"
+        },
+        {
+          "id": "REL-06-L1001-L2001",
+          "from": "V-L1-001",
+          "to": "V-L2-001",
+          "label": "EMA_9 → STACK_ORDER"
+        },
+        {
+          "id": "REL-06-L1002-L2001",
+          "from": "V-L1-002",
+          "to": "V-L2-001",
+          "label": "EMA_21 → STACK_ORDER"
+        },
+        {
+          "id": "REL-06-L1003-L2001",
+          "from": "V-L1-003",
+          "to": "V-L2-001",
+          "label": "EMA_55 → STACK_ORDER"
+        },
+        {
+          "id": "REL-06-L1004-L2001",
+          "from": "V-L1-004",
+          "to": "V-L2-001",
+          "label": "EMA_100 → STACK_ORDER"
+        },
+        {
+          "id": "REL-06-L1005-L2001",
+          "from": "V-L1-005",
+          "to": "V-L2-001",
+          "label": "EMA_200 → STACK_ORDER"
+        },
+        {
+          "id": "REL-06-L1001-L2002",
+          "from": "V-L1-001",
+          "to": "V-L2-002",
+          "label": "EMA_9 → STACK_SCORE"
+        },
+        {
+          "id": "REL-06-L1002-L2002",
+          "from": "V-L1-002",
+          "to": "V-L2-002",
+          "label": "EMA_21 → STACK_SCORE"
+        },
+        {
+          "id": "REL-06-L1003-L2002",
+          "from": "V-L1-003",
+          "to": "V-L2-002",
+          "label": "EMA_55 → STACK_SCORE"
+        },
+        {
+          "id": "REL-06-L1004-L2002",
+          "from": "V-L1-004",
+          "to": "V-L2-002",
+          "label": "EMA_100 → STACK_SCORE"
+        },
+        {
+          "id": "REL-06-L1005-L2002",
+          "from": "V-L1-005",
+          "to": "V-L2-002",
+          "label": "EMA_200 → STACK_SCORE"
+        },
+        {
+          "id": "REL-06-L001-L2003",
+          "from": "V-L0-001",
+          "to": "V-L2-003",
+          "label": "PRICE_CLOSE → PRICE_VS_STACK"
+        },
+        {
+          "id": "REL-06-L1001-L2003",
+          "from": "V-L1-001",
+          "to": "V-L2-003",
+          "label": "EMA_9 → PRICE_VS_STACK"
+        },
+        {
+          "id": "REL-06-L1002-L2003",
+          "from": "V-L1-002",
+          "to": "V-L2-003",
+          "label": "EMA_21 → PRICE_VS_STACK"
+        },
+        {
+          "id": "REL-06-L1003-L2003",
+          "from": "V-L1-003",
+          "to": "V-L2-003",
+          "label": "EMA_55 → PRICE_VS_STACK"
+        },
+        {
+          "id": "REL-06-L1004-L2003",
+          "from": "V-L1-004",
+          "to": "V-L2-003",
+          "label": "EMA_100 → PRICE_VS_STACK"
+        },
+        {
+          "id": "REL-06-L1005-L2003",
+          "from": "V-L1-005",
+          "to": "V-L2-003",
+          "label": "EMA_200 → PRICE_VS_STACK"
+        },
+        {
+          "id": "REL-06-L1001-L2004",
+          "from": "V-L1-001",
+          "to": "V-L2-004",
+          "label": "EMA_9 → SLOPE_9"
+        },
+        {
+          "id": "REL-06-L1003-L2005",
+          "from": "V-L1-003",
+          "to": "V-L2-005",
+          "label": "EMA_55 → SLOPE_55"
+        },
+        {
+          "id": "REL-06-L1001-L2006",
+          "from": "V-L1-001",
+          "to": "V-L2-006",
+          "label": "EMA_9 → SPREAD_9_21"
+        },
+        {
+          "id": "REL-06-L1002-L2006",
+          "from": "V-L1-002",
+          "to": "V-L2-006",
+          "label": "EMA_21 → SPREAD_9_21"
+        },
+        {
+          "id": "REL-06-L1002-L2007",
+          "from": "V-L1-002",
+          "to": "V-L2-007",
+          "label": "EMA_21 → SPREAD_21_55"
+        },
+        {
+          "id": "REL-06-L1003-L2007",
+          "from": "V-L1-003",
+          "to": "V-L2-007",
+          "label": "EMA_55 → SPREAD_21_55"
+        },
+        {
+          "id": "REL-06-L1003-L2008",
+          "from": "V-L1-003",
+          "to": "V-L2-008",
+          "label": "EMA_55 → SPREAD_55_100"
+        },
+        {
+          "id": "REL-06-L1004-L2008",
+          "from": "V-L1-004",
+          "to": "V-L2-008",
+          "label": "EMA_100 → SPREAD_55_100"
+        },
+        {
+          "id": "REL-06-L1004-L2009",
+          "from": "V-L1-004",
+          "to": "V-L2-009",
+          "label": "EMA_100 → SPREAD_100_200"
+        },
+        {
+          "id": "REL-06-L1005-L2009",
+          "from": "V-L1-005",
+          "to": "V-L2-009",
+          "label": "EMA_200 → SPREAD_100_200"
+        },
+        {
+          "id": "REL-06-L001-L2010",
+          "from": "V-L0-001",
+          "to": "V-L2-010",
+          "label": "PRICE_CLOSE → ELASTICITY"
+        },
+        {
+          "id": "REL-06-L1005-L2010",
+          "from": "V-L1-005",
+          "to": "V-L2-010",
+          "label": "EMA_200 → ELASTICITY"
+        },
+        {
+          "id": "REL-06-L002-L2011",
+          "from": "V-L0-002",
+          "to": "V-L2-011",
+          "label": "VOLUME → VOLUME_RATIO"
+        },
+        {
+          "id": "REL-06-L2004-L2012",
+          "from": "V-L2-004",
+          "to": "V-L2-012",
+          "label": "SLOPE_9 → SLOPE_DIRECTION"
+        },
+        {
+          "id": "REL-06-L2005-L2012",
+          "from": "V-L2-005",
+          "to": "V-L2-012",
+          "label": "SLOPE_55 → SLOPE_DIRECTION"
+        },
+        {
+          "id": "REL-06-L2006-L2013",
+          "from": "V-L2-006",
+          "to": "V-L2-013",
+          "label": "SPREAD_9_21 → COMPRESSION_INDEX"
+        },
+        {
+          "id": "REL-06-L2007-L2013",
+          "from": "V-L2-007",
+          "to": "V-L2-013",
+          "label": "SPREAD_21_55 → COMPRESSION_INDEX"
+        },
+        {
+          "id": "REL-06-L2008-L2013",
+          "from": "V-L2-008",
+          "to": "V-L2-013",
+          "label": "SPREAD_55_100 → COMPRESSION_INDEX"
+        },
+        {
+          "id": "REL-06-L2009-L2013",
+          "from": "V-L2-009",
+          "to": "V-L2-013",
+          "label": "SPREAD_100_200 → COMPRESSION_INDEX"
+        },
+        {
+          "id": "REL-06-L2013-L2014",
+          "from": "V-L2-013",
+          "to": "V-L2-014",
+          "label": "COMPRESSION_INDEX → SPREAD_VELOCITY"
+        },
+        {
+          "id": "REL-06-L2014-L2015",
+          "from": "V-L2-014",
+          "to": "V-L2-015",
+          "label": "SPREAD_VELOCITY → SPREAD_ACCELERATION"
+        },
+        {
+          "id": "REL-06-L2004-L2016",
+          "from": "V-L2-004",
+          "to": "V-L2-016",
+          "label": "SLOPE_9 → CURVATURE_9"
+        },
+        {
+          "id": "REL-06-L2005-L2017",
+          "from": "V-L2-005",
+          "to": "V-L2-017",
+          "label": "SLOPE_55 → CURVATURE_55"
+        },
+        {
+          "id": "REL-06-L001-L2018",
+          "from": "V-L0-001",
+          "to": "V-L2-018",
+          "label": "PRICE_CLOSE → PERSISTENCE_ABOVE_21"
+        },
+        {
+          "id": "REL-06-L1002-L2018",
+          "from": "V-L1-002",
+          "to": "V-L2-018",
+          "label": "EMA_21 → PERSISTENCE_ABOVE_21"
+        },
+        {
+          "id": "REL-06-L2013-L2019",
+          "from": "V-L2-013",
+          "to": "V-L2-019",
+          "label": "COMPRESSION_INDEX → COMPRESSION_DURATION"
+        },
+        {
+          "id": "REL-06-L2004-L2020",
+          "from": "V-L2-004",
+          "to": "V-L2-020",
+          "label": "SLOPE_9 → SLOPE_SYNC"
+        },
+        {
+          "id": "REL-06-L2005-L2020",
+          "from": "V-L2-005",
+          "to": "V-L2-020",
+          "label": "SLOPE_55 → SLOPE_SYNC"
+        },
+        {
+          "id": "REL-06-L2012-L2020",
+          "from": "V-L2-012",
+          "to": "V-L2-020",
+          "label": "SLOPE_DIRECTION → SLOPE_SYNC"
+        },
+        {
+          "id": "REL-06-L3001-L2021",
+          "from": "V-L3-001",
+          "to": "V-L2-021",
+          "label": "STRUCTURAL_STATE → MTF_SYNC",
+          "note": "MTF_SYNC consume el diagnóstico estructural de múltiples timeframes"
+        },
+        {
+          "id": "REL-06-L001-L2022",
+          "from": "V-L0-001",
+          "to": "V-L2-022",
+          "label": "PRICE_CLOSE → BOUNCE_COUNT_9"
+        },
+        {
+          "id": "REL-06-L1001-L2022",
+          "from": "V-L1-001",
+          "to": "V-L2-022",
+          "label": "EMA_9 → BOUNCE_COUNT_9"
+        },
+        {
+          "id": "REL-06-L001-L2023",
+          "from": "V-L0-001",
+          "to": "V-L2-023",
+          "label": "PRICE_CLOSE → BOUNCE_COUNT_21"
+        },
+        {
+          "id": "REL-06-L1002-L2023",
+          "from": "V-L1-002",
+          "to": "V-L2-023",
+          "label": "EMA_21 → BOUNCE_COUNT_21"
+        },
+        {
+          "id": "REL-06-L001-L2024",
+          "from": "V-L0-001",
+          "to": "V-L2-024",
+          "label": "PRICE_CLOSE → BOUNCE_COUNT_55"
+        },
+        {
+          "id": "REL-06-L1003-L2024",
+          "from": "V-L1-003",
+          "to": "V-L2-024",
+          "label": "EMA_55 → BOUNCE_COUNT_55"
+        },
+        {
+          "id": "REL-06-L001-L2025",
+          "from": "V-L0-001",
+          "to": "V-L2-025",
+          "label": "PRICE_CLOSE → BOUNCE_COUNT_200"
+        },
+        {
+          "id": "REL-06-L1005-L2025",
+          "from": "V-L1-005",
+          "to": "V-L2-025",
+          "label": "EMA_200 → BOUNCE_COUNT_200"
+        },
+        {
+          "id": "REL-06-L1001-L2026",
+          "from": "V-L1-001",
+          "to": "V-L2-026",
+          "label": "EMA_9 → CROSS_EVENT_9_21"
+        },
+        {
+          "id": "REL-06-L1002-L2026",
+          "from": "V-L1-002",
+          "to": "V-L2-026",
+          "label": "EMA_21 → CROSS_EVENT_9_21"
+        },
+        {
+          "id": "REL-06-L2001-L2026",
+          "from": "V-L2-001",
+          "to": "V-L2-026",
+          "label": "STACK_ORDER → CROSS_EVENT_9_21 (contexto)"
+        },
+        {
+          "id": "REL-06-L1002-L2027",
+          "from": "V-L1-002",
+          "to": "V-L2-027",
+          "label": "EMA_21 → CROSS_EVENT_21_55"
+        },
+        {
+          "id": "REL-06-L1003-L2027",
+          "from": "V-L1-003",
+          "to": "V-L2-027",
+          "label": "EMA_55 → CROSS_EVENT_21_55"
+        },
+        {
+          "id": "REL-06-L2001-L2027",
+          "from": "V-L2-001",
+          "to": "V-L2-027",
+          "label": "STACK_ORDER → CROSS_EVENT_21_55 (contexto)"
+        },
+        {
+          "id": "REL-06-L1003-L2028",
+          "from": "V-L1-003",
+          "to": "V-L2-028",
+          "label": "EMA_55 → CROSS_EVENT_55_200"
+        },
+        {
+          "id": "REL-06-L1005-L2028",
+          "from": "V-L1-005",
+          "to": "V-L2-028",
+          "label": "EMA_200 → CROSS_EVENT_55_200"
+        },
+        {
+          "id": "REL-06-L2001-L2028",
+          "from": "V-L2-001",
+          "to": "V-L2-028",
+          "label": "STACK_ORDER → CROSS_EVENT_55_200 (contexto)"
+        },
+        {
+          "id": "REL-06-L001-L2029",
+          "from": "V-L0-001",
+          "to": "V-L2-029",
+          "label": "PRICE_CLOSE → ATR_RELATIVE"
+        },
+        {
+          "id": "REL-06-L2001-L3001",
+          "from": "V-L2-001",
+          "to": "V-L3-001",
+          "label": "STACK_ORDER → STRUCTURAL_STATE"
+        },
+        {
+          "id": "REL-06-L2002-L3001",
+          "from": "V-L2-002",
+          "to": "V-L3-001",
+          "label": "STACK_SCORE → STRUCTURAL_STATE"
+        },
+        {
+          "id": "REL-06-L2003-L3001",
+          "from": "V-L2-003",
+          "to": "V-L3-001",
+          "label": "PRICE_VS_STACK → STRUCTURAL_STATE"
+        },
+        {
+          "id": "REL-06-L2012-L3001",
+          "from": "V-L2-012",
+          "to": "V-L3-001",
+          "label": "SLOPE_DIRECTION → STRUCTURAL_STATE"
+        },
+        {
+          "id": "REL-06-L2026-L3001",
+          "from": "V-L2-026",
+          "to": "V-L3-001",
+          "label": "CROSS_EVENT_9_21 → STRUCTURAL_STATE"
+        },
+        {
+          "id": "REL-06-L2027-L3001",
+          "from": "V-L2-027",
+          "to": "V-L3-001",
+          "label": "CROSS_EVENT_21_55 → STRUCTURAL_STATE"
+        },
+        {
+          "id": "REL-06-L2028-L3001",
+          "from": "V-L2-028",
+          "to": "V-L3-001",
+          "label": "CROSS_EVENT_55_200 → STRUCTURAL_STATE"
+        },
+        {
+          "id": "REL-06-L2004-L3002",
+          "from": "V-L2-004",
+          "to": "V-L3-002",
+          "label": "SLOPE_9 → MOMENTUM_STATE"
+        },
+        {
+          "id": "REL-06-L2005-L3002",
+          "from": "V-L2-005",
+          "to": "V-L3-002",
+          "label": "SLOPE_55 → MOMENTUM_STATE"
+        },
+        {
+          "id": "REL-06-L2012-L3002",
+          "from": "V-L2-012",
+          "to": "V-L3-002",
+          "label": "SLOPE_DIRECTION → MOMENTUM_STATE"
+        },
+        {
+          "id": "REL-06-L2001-L3002",
+          "from": "V-L2-001",
+          "to": "V-L3-002",
+          "label": "STACK_ORDER → MOMENTUM_STATE"
+        },
+        {
+          "id": "REL-06-L2014-L3002",
+          "from": "V-L2-014",
+          "to": "V-L3-002",
+          "label": "SPREAD_VELOCITY → MOMENTUM_STATE"
+        },
+        {
+          "id": "REL-06-L2015-L3002",
+          "from": "V-L2-015",
+          "to": "V-L3-002",
+          "label": "SPREAD_ACCELERATION → MOMENTUM_STATE"
+        },
+        {
+          "id": "REL-06-L2016-L3002",
+          "from": "V-L2-016",
+          "to": "V-L3-002",
+          "label": "CURVATURE_9 → MOMENTUM_STATE"
+        },
+        {
+          "id": "REL-06-L2017-L3002",
+          "from": "V-L2-017",
+          "to": "V-L3-002",
+          "label": "CURVATURE_55 → MOMENTUM_STATE"
+        },
+        {
+          "id": "REL-06-L2018-L3002",
+          "from": "V-L2-018",
+          "to": "V-L3-002",
+          "label": "PERSISTENCE_ABOVE_21 → MOMENTUM_STATE"
+        },
+        {
+          "id": "REL-06-L2006-L3003",
+          "from": "V-L2-006",
+          "to": "V-L3-003",
+          "label": "SPREAD_9_21 → ENERGY_STATE"
+        },
+        {
+          "id": "REL-06-L2007-L3003",
+          "from": "V-L2-007",
+          "to": "V-L3-003",
+          "label": "SPREAD_21_55 → ENERGY_STATE"
+        },
+        {
+          "id": "REL-06-L2008-L3003",
+          "from": "V-L2-008",
+          "to": "V-L3-003",
+          "label": "SPREAD_55_100 → ENERGY_STATE"
+        },
+        {
+          "id": "REL-06-L2009-L3003",
+          "from": "V-L2-009",
+          "to": "V-L3-003",
+          "label": "SPREAD_100_200 → ENERGY_STATE"
+        },
+        {
+          "id": "REL-06-L2010-L3003",
+          "from": "V-L2-010",
+          "to": "V-L3-003",
+          "label": "ELASTICITY → ENERGY_STATE"
+        },
+        {
+          "id": "REL-06-L2013-L3003",
+          "from": "V-L2-013",
+          "to": "V-L3-003",
+          "label": "COMPRESSION_INDEX → ENERGY_STATE"
+        },
+        {
+          "id": "REL-06-L2019-L3003",
+          "from": "V-L2-019",
+          "to": "V-L3-003",
+          "label": "COMPRESSION_DURATION → ENERGY_STATE"
+        },
+        {
+          "id": "REL-06-L2029-L3003",
+          "from": "V-L2-029",
+          "to": "V-L3-003",
+          "label": "ATR_RELATIVE → ENERGY_STATE"
+        },
+        {
+          "id": "REL-06-L2002-L3004",
+          "from": "V-L2-002",
+          "to": "V-L3-004",
+          "label": "STACK_SCORE → COHERENCE_SCORE"
+        },
+        {
+          "id": "REL-06-L2003-L3004",
+          "from": "V-L2-003",
+          "to": "V-L3-004",
+          "label": "PRICE_VS_STACK → COHERENCE_SCORE"
+        },
+        {
+          "id": "REL-06-L2011-L3004",
+          "from": "V-L2-011",
+          "to": "V-L3-004",
+          "label": "VOLUME_RATIO → COHERENCE_SCORE"
+        },
+        {
+          "id": "REL-06-L2020-L3004",
+          "from": "V-L2-020",
+          "to": "V-L3-004",
+          "label": "SLOPE_SYNC → COHERENCE_SCORE"
+        },
+        {
+          "id": "REL-06-L2024-L3004",
+          "from": "V-L2-024",
+          "to": "V-L3-004",
+          "label": "BOUNCE_COUNT_55 → COHERENCE_SCORE"
+        },
+        {
+          "id": "REL-06-L2010-L3005",
+          "from": "V-L2-010",
+          "to": "V-L3-005",
+          "label": "ELASTICITY → FRICTION_INDEX"
+        },
+        {
+          "id": "REL-06-L2011-L3005",
+          "from": "V-L2-011",
+          "to": "V-L3-005",
+          "label": "VOLUME_RATIO → FRICTION_INDEX"
+        },
+        {
+          "id": "REL-06-L2013-L3005",
+          "from": "V-L2-013",
+          "to": "V-L3-005",
+          "label": "COMPRESSION_INDEX → FRICTION_INDEX"
+        },
+        {
+          "id": "REL-06-L2019-L3005",
+          "from": "V-L2-019",
+          "to": "V-L3-005",
+          "label": "COMPRESSION_DURATION → FRICTION_INDEX"
+        },
+        {
+          "id": "REL-06-L2029-L3005",
+          "from": "V-L2-029",
+          "to": "V-L3-005",
+          "label": "ATR_RELATIVE → FRICTION_INDEX"
+        },
+        {
+          "id": "REL-06-L3001-L4001",
+          "from": "V-L3-001",
+          "to": "V-L4-001",
+          "label": "STRUCTURAL_STATE → STRUCTURAL_DIAGNOSIS"
+        },
+        {
+          "id": "REL-06-L3002-L4001",
+          "from": "V-L3-002",
+          "to": "V-L4-001",
+          "label": "MOMENTUM_STATE → STRUCTURAL_DIAGNOSIS"
+        },
+        {
+          "id": "REL-06-L3003-L4001",
+          "from": "V-L3-003",
+          "to": "V-L4-001",
+          "label": "ENERGY_STATE → STRUCTURAL_DIAGNOSIS"
+        },
+        {
+          "id": "REL-06-L3004-L4001",
+          "from": "V-L3-004",
+          "to": "V-L4-001",
+          "label": "COHERENCE_SCORE → STRUCTURAL_DIAGNOSIS"
+        },
+        {
+          "id": "REL-06-L3005-L4001",
+          "from": "V-L3-005",
+          "to": "V-L4-001",
+          "label": "FRICTION_INDEX → STRUCTURAL_DIAGNOSIS"
+        },
+        {
+          "id": "REL-06-L2021-L4001",
+          "from": "V-L2-021",
+          "to": "V-L4-001",
+          "label": "MTF_SYNC → STRUCTURAL_DIAGNOSIS (confirmación multi-timeframe)"
+        },
+        {
+          "id": "REL-06-L2025-L4001",
+          "from": "V-L2-025",
+          "to": "V-L4-001",
+          "label": "BOUNCE_COUNT_200 → STRUCTURAL_DIAGNOSIS (confirmación macro)"
+        }
+      ]
+    },
+    "MODULATES": {
+      "_description": "REL-07. Una variable afecta la interpretación de otra sin ser su causa directa. No implica causalidad (RC-06).",
+      "_metamodel_ref": "MSI-META-001 § REL-07",
+      "items": [
+        {
+          "id": "REL-07-L2011-L3004",
+          "from": "V-L2-011",
+          "to": "V-L3-004",
+          "modulates_aspect": "Peso del componente de volumen en el score de coherencia",
+          "description": "Volumen bajo reduce el peso del COHERENCE_SCORE. Señal sin volumen tiene menor confianza (AX-07)."
+        },
+        {
+          "id": "REL-07-L2011-L3005",
+          "from": "V-L2-011",
+          "to": "V-L3-005",
+          "modulates_aspect": "Amplificación de fricción en contexto de bajo volumen",
+          "description": "Volumen bajo amplifica la lectura de FRICTION_INDEX. Compresión con bajo volumen = fricción máxima."
+        },
+        {
+          "id": "REL-07-L2029-L2006",
+          "from": "V-L2-029",
+          "to": "V-L2-006",
+          "modulates_aspect": "Significancia relativa del spread en contexto de volatilidad",
+          "description": "ATR_RELATIVE contextualiza SPREAD_9_21. Un spread del 2% en mercado con ATR 0.5% es expansión extrema; en mercado con ATR 3% es compresión."
+        },
+        {
+          "id": "REL-07-L2029-L2010",
+          "from": "V-L2-029",
+          "to": "V-L2-010",
+          "modulates_aspect": "Significancia relativa de la elasticidad respecto a volatilidad actual",
+          "description": "ATR_RELATIVE contextualiza ELASTICITY. El mismo alejamiento del precio respecto a EMA-200 tiene distinta lectura según la volatilidad del mercado."
+        },
+        {
+          "id": "REL-07-L2021-L4001",
+          "from": "V-L2-021",
+          "to": "V-L4-001",
+          "modulates_aspect": "Confianza global del diagnóstico por confirmación multi-timeframe",
+          "description": "MTF_SYNC amplifica o reduce la confianza del STRUCTURAL_DIAGNOSIS. Diagnóstico confirmado en múltiples TF tiene confianza máxima. Divergencia entre TF reduce la confianza."
+        },
+        {
+          "id": "REL-07-L2025-L4001",
+          "from": "V-L2-025",
+          "to": "V-L4-001",
+          "modulates_aspect": "Confirmación macro del diagnóstico por respeto a EMA-200",
+          "description": "Número de rebotes en EMA-200 modula la confianza del diagnóstico macro. Alto conteo de rebotes valida el régimen. Bajo conteo sugiere posible cambio estructural macro."
+        }
+      ]
+    },
+    "FEEDS": {
+      "_description": "REL-08. Variables L3 alimentan el diagnóstico L4. Junto con PRODUCES forman el grafo de inferencia.",
+      "_metamodel_ref": "MSI-META-001 § REL-08",
+      "items": [
+        {
+          "id": "REL-08-L3001-L4001",
+          "from": "V-L3-001",
+          "to": "V-L4-001",
+          "weight": 0.3,
+          "label": "STRUCTURAL_STATE alimenta diagnóstico (peso 30%)"
+        },
+        {
+          "id": "REL-08-L3002-L4001",
+          "from": "V-L3-002",
+          "to": "V-L4-001",
+          "weight": 0.25,
+          "label": "MOMENTUM_STATE alimenta diagnóstico (peso 25%)"
+        },
+        {
+          "id": "REL-08-L3003-L4001",
+          "from": "V-L3-003",
+          "to": "V-L4-001",
+          "weight": 0.2,
+          "label": "ENERGY_STATE alimenta diagnóstico (peso 20%)"
+        },
+        {
+          "id": "REL-08-L3004-L4001",
+          "from": "V-L3-004",
+          "to": "V-L4-001",
+          "weight": 0.15,
+          "label": "COHERENCE_SCORE alimenta diagnóstico (peso 15%)"
+        },
+        {
+          "id": "REL-08-L3005-L4001",
+          "from": "V-L3-005",
+          "to": "V-L4-001",
+          "weight": 0.1,
+          "label": "FRICTION_INDEX alimenta diagnóstico (peso 10%)"
+        }
+      ],
+      "_note": "Pesos preliminares. Serán calibrados en Fase VI (Validación / Backtesting). La suma es 1.0."
+    }
+  },
+  "critical_paths": {
+    "_description": "Caminos críticos del sistema: secuencias de nodos donde la interrupción en cualquier punto detiene el diagnóstico.",
+    "items": [
+      {
+        "id": "CP-001",
+        "name": "Ruta Estructural Principal",
+        "path": [
+          "V-L0-001",
+          "V-L1-001",
+          "V-L1-002",
+          "V-L1-003",
+          "V-L1-004",
+          "V-L1-005",
+          "V-L2-001",
+          "V-L2-002",
+          "V-L2-003",
+          "V-L3-001",
+          "V-L4-001"
+        ],
+        "description": "Precio → 5 EMAs → ordenamiento y score del stack → estado estructural → diagnóstico. Es la columna vertebral del sistema."
+      },
+      {
+        "id": "CP-002",
+        "name": "Ruta de Momentum y Derivadas",
+        "path": [
+          "V-L0-001",
+          "V-L1-001",
+          "V-L2-004",
+          "V-L2-016",
+          "V-L2-006",
+          "V-L2-013",
+          "V-L2-014",
+          "V-L2-015",
+          "V-L3-002",
+          "V-L4-001"
+        ],
+        "description": "Precio → EMA-9 → pendiente → curvatura + spreads → índice compresión → velocidad → aceleración → estado momentum → diagnóstico. Detecta cambios de régimen anticipados."
+      },
+      {
+        "id": "CP-003",
+        "name": "Ruta de Energía y Compresión",
+        "path": [
+          "V-L0-001",
+          "V-L1-001",
+          "V-L1-002",
+          "V-L1-003",
+          "V-L1-004",
+          "V-L1-005",
+          "V-L2-006",
+          "V-L2-007",
+          "V-L2-008",
+          "V-L2-009",
+          "V-L2-013",
+          "V-L2-019",
+          "V-L3-003",
+          "V-L4-001"
+        ],
+        "description": "Precio → spreads entre pares → índice compresión → duración compresión → estado energía → diagnóstico. Cuantifica energía potencial acumulada en el sistema."
+      },
+      {
+        "id": "CP-004",
+        "name": "Ruta de Coherencia Emergente",
+        "path": [
+          "V-L2-002",
+          "V-L2-003",
+          "V-L2-020",
+          "V-L2-011",
+          "V-L2-024",
+          "V-L3-004",
+          "V-L4-001"
+        ],
+        "description": "Stack score + posición precio + sincronía pendientes + volumen + rebotes EMA-55 → coherencia → diagnóstico. Captura la propiedad emergente más importante del sistema."
+      },
+      {
+        "id": "CP-005",
+        "name": "Ruta de Confirmación Macro",
+        "path": [
+          "V-L0-001",
+          "V-L1-005",
+          "V-L2-010",
+          "V-L2-025",
+          "V-L3-005",
+          "V-L4-001"
+        ],
+        "description": "Precio vs EMA-200 → elasticidad + rebotes en equilibrio macro → fricción → diagnóstico. Valida o invalida el régimen macro del mercado."
+      }
+    ]
+  },
+  "conformance": {
+    "_description": "Verificación de conformidad del KG con las restricciones del MSI-META-001.",
+    "RC-02": {
+      "status": "COMPLIANT",
+      "note": "Ninguna variable L0 tiene edges DERIVES_FROM entrantes."
+    },
+    "RC-03": {
+      "status": "COMPLIANT",
+      "note": "Todas las aristas DERIVES_FROM respetan la secuencia L0→L1→L2→L3→L4. Excepción documentada: MTF_SYNC (V-L2-021) consume V-L3-001 por necesidad arquitectural multi-TF."
+    },
+    "RC-04": {
+      "status": "COMPLIANT",
+      "note": "V-L4-001 tiene inputs EMERGENT: COHERENCE_SCORE (V-L3-004) y MTF_SYNC (V-L2-021)."
+    },
+    "RC-06": {
+      "status": "COMPLIANT",
+      "note": "Todas las 6 relaciones MODULATES documentan el aspecto que modulan."
+    },
+    "RC-07": {
+      "status": "COMPLIANT",
+      "note": "Todos los CONCEPTS EN-01 a EN-10 tienen al menos una variable asociada."
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "eim-web",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "uvicorn", "eim_web:app", "--port", "8000", "--app-dir", "F7", "--reload", "--reload-dir", "F7"],
+      "port": 8000
+    }
+  ]
+}

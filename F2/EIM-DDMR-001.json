@@ -1,0 +1,572 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_metadata": {
+    "repository": "Data Dictionary & Metadata Repository",
+    "repository_code": "DDMR",
+    "document_code": "EIM-DDMR-001",
+    "document_name": "Catálogo Maestro de Variables",
+    "project": "EMA Intelligence Model",
+    "project_code": "EIM",
+    "discipline": "Market Structural Intelligence",
+    "version": "1.0.0",
+    "status": "ACTIVE",
+    "created_date": "2026-06-27",
+    "last_updated": "2026-06-27",
+    "author": "EIM Project",
+    "description": "Catálogo formal de todas las variables del modelo EIM. Define metadatos completos, tipos, rangos, unidades, dependencias y referencias a fórmulas para cada variable.",
+    "dependencies": ["EIM-EAR-001", "EIM-ONT-001"],
+    "changelog": [
+      {
+        "version": "1.0.0",
+        "date": "2026-06-27",
+        "change": "Creación del catálogo maestro. Variables de niveles 0, 1 y 2 completamente definidas. Referencias a FRM marcadas como PENDING hasta EIM-FRM-001."
+      }
+    ]
+  },
+
+  "instrument_configuration": {
+    "domain": "Futuros de criptomonedas",
+    "ema_stack": {
+      "description": "Conjunto oficial de EMAs del EIM. Cinco períodos distribuidos en tres horizontes estructurales.",
+      "instruments": [
+        {
+          "id": "EMA-9",
+          "label": "EMA Rápida",
+          "period": 9,
+          "horizon": "Momentum inmediato",
+          "role": "Captura cambios de momentum a corto plazo. Referencia primaria de velocidad del mercado."
+        },
+        {
+          "id": "EMA-21",
+          "label": "EMA Media 1",
+          "period": 21,
+          "horizon": "Tendencia de corto plazo",
+          "role": "Define la tendencia táctica. Primera referencia de dirección sostenida."
+        },
+        {
+          "id": "EMA-55",
+          "label": "EMA Media 2",
+          "period": 55,
+          "horizon": "Tendencia de mediano plazo",
+          "role": "Referencia estructural intermedia. Ancla de pullbacks en mercados tendenciales."
+        },
+        {
+          "id": "EMA-100",
+          "label": "EMA Lenta",
+          "period": 100,
+          "horizon": "Estructura de largo plazo",
+          "role": "Define el régimen estructural dominante. Umbral de separación entre mercados alcistas y bajistas de largo plazo."
+        },
+        {
+          "id": "EMA-200",
+          "label": "EMA Macro",
+          "period": 200,
+          "horizon": "Equilibrio macro",
+          "role": "Operacionaliza la entidad EN-08 (Equilibrio). Referencia institucional. El precio por encima de EMA-200 define régimen macro alcista."
+        }
+      ]
+    },
+    "temporality": {
+      "model": "parametric",
+      "note": "El timeframe es metadato de cada observación. Las variables se definen independientemente del timeframe."
+    }
+  },
+
+  "variable_levels": {
+    "L0": "Hechos observables. Capturados directamente del mercado. Sin cálculo.",
+    "L1": "Variables primarias. Derivadas directamente de hechos observables mediante operación simple.",
+    "L2": "Variables secundarias. Derivadas de variables L1 mediante operación compuesta.",
+    "L3": "Variables de estado. Derivadas de combinaciones de variables L1 y L2. Requieren lógica de inferencia.",
+    "L4": "Variables de diagnóstico. Síntesis de estados. Output del motor de inferencia."
+  },
+
+  "variables": {
+
+    "L0_observables": {
+      "_description": "Hechos directamente observables del mercado. No requieren cálculo.",
+      "items": [
+        {
+          "id": "V-L0-001",
+          "business_key": "PRICE_CLOSE",
+          "name": "Precio de Cierre",
+          "entity_ref": "EN-01",
+          "ontology_level": "Hecho",
+          "definition": "Último precio negociado al cierre de la vela en el timeframe activo.",
+          "data_type": "float",
+          "unit": "USD (o moneda del par)",
+          "range": { "min": 0, "max": "unbounded", "note": "Siempre positivo en futuros de crypto." },
+          "source": "Exchange — campo close del OHLCV",
+          "timeframe_dependency": true,
+          "formula_ref": null,
+          "depends_on": [],
+          "used_by": ["V-L1-001", "V-L1-002", "V-L1-003", "V-L1-004", "V-L1-005", "V-L2-006", "V-L2-007", "V-L2-008", "V-L2-009", "V-L2-010"]
+        },
+        {
+          "id": "V-L0-002",
+          "business_key": "VOLUME",
+          "name": "Volumen",
+          "entity_ref": "EN-01",
+          "ontology_level": "Hecho",
+          "definition": "Número de contratos negociados en el período de la vela activa.",
+          "data_type": "float",
+          "unit": "Contratos",
+          "range": { "min": 0, "max": "unbounded" },
+          "source": "Exchange — campo volume del OHLCV",
+          "timeframe_dependency": true,
+          "formula_ref": null,
+          "depends_on": [],
+          "used_by": ["V-L2-011"]
+        },
+        {
+          "id": "V-L0-003",
+          "business_key": "TIMESTAMP",
+          "name": "Marca Temporal",
+          "entity_ref": "EN-02",
+          "ontology_level": "Hecho",
+          "definition": "Instante UTC de cierre de la vela. Metadato obligatorio de toda observación.",
+          "data_type": "datetime (ISO 8601)",
+          "unit": "UTC",
+          "range": null,
+          "source": "Exchange — campo timestamp del OHLCV",
+          "timeframe_dependency": true,
+          "formula_ref": null,
+          "depends_on": [],
+          "used_by": ["ALL"]
+        },
+        {
+          "id": "V-L0-004",
+          "business_key": "TIMEFRAME",
+          "name": "Timeframe",
+          "entity_ref": "EN-02",
+          "ontology_level": "Hecho",
+          "definition": "Granularidad temporal de la observación. Parámetro de configuración de cada cálculo.",
+          "data_type": "string",
+          "unit": "Enum: [1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 12h, 1d, 3d, 1w]",
+          "range": null,
+          "source": "Configuración del sistema",
+          "timeframe_dependency": false,
+          "formula_ref": null,
+          "depends_on": [],
+          "used_by": ["ALL"]
+        }
+      ]
+    },
+
+    "L1_primary": {
+      "_description": "Variables primarias. Derivadas directamente de hechos observables. Constituyen los instrumentos de observación del modelo.",
+      "items": [
+        {
+          "id": "V-L1-001",
+          "business_key": "EMA_9",
+          "name": "EMA de Período 9",
+          "entity_ref": "H-04",
+          "ontology_level": "Hecho (instrumento derivado)",
+          "definition": "Media móvil exponencial de 9 períodos calculada sobre el precio de cierre. Instrumento de observación de momentum inmediato.",
+          "data_type": "float",
+          "unit": "USD",
+          "range": { "min": 0, "max": "unbounded" },
+          "formula_ref": "EIM-FRM-001 § F-001",
+          "depends_on": ["V-L0-001"],
+          "used_by": ["V-L2-001", "V-L2-002", "V-L2-003", "V-L2-006", "V-L2-007", "V-L2-008", "V-L2-009", "V-L2-010"]
+        },
+        {
+          "id": "V-L1-002",
+          "business_key": "EMA_21",
+          "name": "EMA de Período 21",
+          "entity_ref": "H-04",
+          "ontology_level": "Hecho (instrumento derivado)",
+          "definition": "Media móvil exponencial de 21 períodos calculada sobre el precio de cierre. Instrumento de observación de tendencia de corto plazo.",
+          "data_type": "float",
+          "unit": "USD",
+          "range": { "min": 0, "max": "unbounded" },
+          "formula_ref": "EIM-FRM-001 § F-001",
+          "depends_on": ["V-L0-001"],
+          "used_by": ["V-L2-001", "V-L2-002", "V-L2-003", "V-L2-006", "V-L2-007", "V-L2-008", "V-L2-009", "V-L2-010"]
+        },
+        {
+          "id": "V-L1-003",
+          "business_key": "EMA_55",
+          "name": "EMA de Período 55",
+          "entity_ref": "H-04",
+          "ontology_level": "Hecho (instrumento derivado)",
+          "definition": "Media móvil exponencial de 55 períodos calculada sobre el precio de cierre. Instrumento de observación de tendencia de mediano plazo.",
+          "data_type": "float",
+          "unit": "USD",
+          "range": { "min": 0, "max": "unbounded" },
+          "formula_ref": "EIM-FRM-001 § F-001",
+          "depends_on": ["V-L0-001"],
+          "used_by": ["V-L2-001", "V-L2-002", "V-L2-003", "V-L2-006", "V-L2-007", "V-L2-008", "V-L2-009", "V-L2-010"]
+        },
+        {
+          "id": "V-L1-004",
+          "business_key": "EMA_100",
+          "name": "EMA de Período 100",
+          "entity_ref": "H-04",
+          "ontology_level": "Hecho (instrumento derivado)",
+          "definition": "Media móvil exponencial de 100 períodos calculada sobre el precio de cierre. Instrumento de observación de estructura de largo plazo.",
+          "data_type": "float",
+          "unit": "USD",
+          "range": { "min": 0, "max": "unbounded" },
+          "formula_ref": "EIM-FRM-001 § F-001",
+          "depends_on": ["V-L0-001"],
+          "used_by": ["V-L2-001", "V-L2-002", "V-L2-003", "V-L2-006", "V-L2-007", "V-L2-008", "V-L2-009", "V-L2-010"]
+        },
+        {
+          "id": "V-L1-005",
+          "business_key": "EMA_200",
+          "name": "EMA de Período 200",
+          "entity_ref": "H-04",
+          "ontology_level": "Hecho (instrumento derivado)",
+          "definition": "Media móvil exponencial de 200 períodos calculada sobre el precio de cierre. Operacionaliza la entidad EN-08 (Equilibrio). Referencia macro institucional.",
+          "data_type": "float",
+          "unit": "USD",
+          "range": { "min": 0, "max": "unbounded" },
+          "formula_ref": "EIM-FRM-001 § F-001",
+          "depends_on": ["V-L0-001"],
+          "used_by": ["V-L2-001", "V-L2-002", "V-L2-003", "V-L2-006", "V-L2-007", "V-L2-008", "V-L2-009", "V-L2-010"]
+        }
+      ]
+    },
+
+    "L2_secondary": {
+      "_description": "Variables secundarias. Operacionalizan las propiedades ontológicas PR-01 a PR-07 definidas en EIM-ONT-001.",
+      "items": [
+
+        {
+          "id": "V-L2-001",
+          "business_key": "STACK_ORDER",
+          "name": "Orden del Stack",
+          "property_ref": "PR-07",
+          "entity_ref": "EN-05",
+          "ontology_level": "Propiedad",
+          "definition": "Clasificación del ordenamiento jerárquico de las 5 EMAs entre sí. Un stack alcista perfecto tiene EMA-9 > EMA-21 > EMA-55 > EMA-100 > EMA-200. Un stack bajista perfecto tiene el orden inverso.",
+          "data_type": "enum",
+          "unit": "Enum: [BULL_PERFECT, BULL_PARTIAL, NEUTRAL, BEAR_PARTIAL, BEAR_PERFECT]",
+          "range": null,
+          "formula_ref": "EIM-FRM-001 § F-002",
+          "depends_on": ["V-L1-001", "V-L1-002", "V-L1-003", "V-L1-004", "V-L1-005"],
+          "used_by": ["V-L3-001", "V-L3-002"]
+        },
+        {
+          "id": "V-L2-002",
+          "business_key": "STACK_SCORE",
+          "name": "Puntaje del Stack",
+          "property_ref": "PR-07",
+          "entity_ref": "EN-05",
+          "ontology_level": "Propiedad",
+          "definition": "Puntuación numérica del ordenamiento del stack de 0 a 10. Cada par de EMAs contiguas correctamente ordenadas aporta 2.5 puntos. Permite gradación continua del alineamiento.",
+          "data_type": "float",
+          "unit": "Puntos (0–10)",
+          "range": { "min": 0, "max": 10 },
+          "formula_ref": "EIM-FRM-001 § F-003",
+          "depends_on": ["V-L1-001", "V-L1-002", "V-L1-003", "V-L1-004", "V-L1-005"],
+          "used_by": ["V-L3-001", "V-L3-004"]
+        },
+        {
+          "id": "V-L2-003",
+          "business_key": "PRICE_VS_STACK",
+          "name": "Posición del Precio vs. Stack",
+          "property_ref": "PR-07",
+          "entity_ref": "EN-03",
+          "ontology_level": "Propiedad",
+          "definition": "Conteo de cuántas EMAs del stack se encuentran por debajo del precio actual. Rango 0–5. Valor 5 indica precio por encima de todas las EMAs (máxima fortaleza alcista). Valor 0 indica precio por debajo de todas (máxima debilidad bajista).",
+          "data_type": "integer",
+          "unit": "Número de EMAs (0–5)",
+          "range": { "min": 0, "max": 5 },
+          "formula_ref": "EIM-FRM-001 § F-004",
+          "depends_on": ["V-L0-001", "V-L1-001", "V-L1-002", "V-L1-003", "V-L1-004", "V-L1-005"],
+          "used_by": ["V-L3-001", "V-L3-004"]
+        },
+        {
+          "id": "V-L2-004",
+          "business_key": "SLOPE_9",
+          "name": "Pendiente EMA-9",
+          "property_ref": "PR-02",
+          "entity_ref": "EN-04",
+          "ontology_level": "Propiedad",
+          "definition": "Tasa de cambio de la EMA-9 entre la vela actual y la vela anterior, expresada como porcentaje. Mide la velocidad del momentum inmediato.",
+          "data_type": "float",
+          "unit": "Porcentaje (%)",
+          "range": { "min": "unbounded_negative", "max": "unbounded_positive" },
+          "formula_ref": "EIM-FRM-001 § F-005",
+          "depends_on": ["V-L1-001"],
+          "used_by": ["V-L2-012", "V-L3-002", "V-L3-003"]
+        },
+        {
+          "id": "V-L2-005",
+          "business_key": "SLOPE_55",
+          "name": "Pendiente EMA-55",
+          "property_ref": "PR-02",
+          "entity_ref": "EN-03",
+          "ontology_level": "Propiedad",
+          "definition": "Tasa de cambio de la EMA-55 entre la vela actual y la vela anterior, expresada como porcentaje. Mide la velocidad de la tendencia de mediano plazo.",
+          "data_type": "float",
+          "unit": "Porcentaje (%)",
+          "range": { "min": "unbounded_negative", "max": "unbounded_positive" },
+          "formula_ref": "EIM-FRM-001 § F-005",
+          "depends_on": ["V-L1-003"],
+          "used_by": ["V-L3-002", "V-L3-003"]
+        },
+        {
+          "id": "V-L2-006",
+          "business_key": "SPREAD_9_21",
+          "name": "Separación EMA-9 / EMA-21",
+          "property_ref": "PR-03",
+          "entity_ref": "EN-06",
+          "ontology_level": "Propiedad",
+          "definition": "Distancia relativa entre EMA-9 y EMA-21, expresada como porcentaje del valor de EMA-21. Mide la divergencia entre momentum inmediato y tendencia corta.",
+          "data_type": "float",
+          "unit": "Porcentaje (%)",
+          "range": { "min": "unbounded_negative", "max": "unbounded_positive", "note": "Positivo: EMA-9 sobre EMA-21 (alcista). Negativo: EMA-9 bajo EMA-21 (bajista)." },
+          "formula_ref": "EIM-FRM-001 § F-006",
+          "depends_on": ["V-L1-001", "V-L1-002"],
+          "used_by": ["V-L2-013", "V-L3-003"]
+        },
+        {
+          "id": "V-L2-007",
+          "business_key": "SPREAD_21_55",
+          "name": "Separación EMA-21 / EMA-55",
+          "property_ref": "PR-03",
+          "entity_ref": "EN-06",
+          "ontology_level": "Propiedad",
+          "definition": "Distancia relativa entre EMA-21 y EMA-55, expresada como porcentaje del valor de EMA-55. Mide la divergencia entre tendencia corta y tendencia media.",
+          "data_type": "float",
+          "unit": "Porcentaje (%)",
+          "range": { "min": "unbounded_negative", "max": "unbounded_positive" },
+          "formula_ref": "EIM-FRM-001 § F-006",
+          "depends_on": ["V-L1-002", "V-L1-003"],
+          "used_by": ["V-L2-013", "V-L3-003"]
+        },
+        {
+          "id": "V-L2-008",
+          "business_key": "SPREAD_55_100",
+          "name": "Separación EMA-55 / EMA-100",
+          "property_ref": "PR-03",
+          "entity_ref": "EN-06",
+          "ontology_level": "Propiedad",
+          "definition": "Distancia relativa entre EMA-55 y EMA-100, expresada como porcentaje del valor de EMA-100. Mide la divergencia entre tendencia media y estructura de largo plazo.",
+          "data_type": "float",
+          "unit": "Porcentaje (%)",
+          "range": { "min": "unbounded_negative", "max": "unbounded_positive" },
+          "formula_ref": "EIM-FRM-001 § F-006",
+          "depends_on": ["V-L1-003", "V-L1-004"],
+          "used_by": ["V-L2-013", "V-L3-003"]
+        },
+        {
+          "id": "V-L2-009",
+          "business_key": "SPREAD_100_200",
+          "name": "Separación EMA-100 / EMA-200",
+          "property_ref": "PR-03",
+          "entity_ref": "EN-06",
+          "ontology_level": "Propiedad",
+          "definition": "Distancia relativa entre EMA-100 y EMA-200, expresada como porcentaje del valor de EMA-200. Mide la divergencia estructural macro.",
+          "data_type": "float",
+          "unit": "Porcentaje (%)",
+          "range": { "min": "unbounded_negative", "max": "unbounded_positive" },
+          "formula_ref": "EIM-FRM-001 § F-006",
+          "depends_on": ["V-L1-004", "V-L1-005"],
+          "used_by": ["V-L2-013", "V-L3-003"]
+        },
+        {
+          "id": "V-L2-010",
+          "business_key": "ELASTICITY",
+          "name": "Elasticidad",
+          "property_ref": "PR-03",
+          "entity_ref": "EN-07",
+          "ontology_level": "Propiedad",
+          "definition": "Distancia relativa del precio actual respecto a la EMA-200 (equilibrio macro), expresada como porcentaje. Mide el grado de extensión del precio respecto a su referencia de largo plazo. Valores extremos indican sobreextensión potencial.",
+          "data_type": "float",
+          "unit": "Porcentaje (%)",
+          "range": { "min": "unbounded_negative", "max": "unbounded_positive", "note": "Positivo: precio extendido sobre equilibrio. Negativo: precio bajo equilibrio." },
+          "formula_ref": "EIM-FRM-001 § F-007",
+          "depends_on": ["V-L0-001", "V-L1-005"],
+          "used_by": ["V-L3-003", "V-L3-005"]
+        },
+        {
+          "id": "V-L2-011",
+          "business_key": "VOLUME_RATIO",
+          "name": "Ratio de Volumen",
+          "property_ref": null,
+          "entity_ref": "EN-01",
+          "ontology_level": "Propiedad",
+          "definition": "Cociente entre el volumen de la vela actual y el promedio de volumen de las últimas N velas (N=20 por defecto). Valor > 1 indica volumen superior al promedio. Modula la validez de las propiedades inferidas desde el precio (AX-07).",
+          "data_type": "float",
+          "unit": "Ratio (adimensional)",
+          "range": { "min": 0, "max": "unbounded", "note": "1.0 = volumen igual al promedio. 2.0 = doble del promedio." },
+          "formula_ref": "EIM-FRM-001 § F-008",
+          "depends_on": ["V-L0-002"],
+          "used_by": ["V-L3-004", "V-L3-005"]
+        },
+        {
+          "id": "V-L2-012",
+          "business_key": "SLOPE_DIRECTION",
+          "name": "Dirección de Pendiente Predominante",
+          "property_ref": "PR-01",
+          "entity_ref": "EN-03",
+          "ontology_level": "Propiedad",
+          "definition": "Clasificación cualitativa de la dirección de tendencia derivada de la pendiente de EMA-9 y EMA-55. Requiere acuerdo entre ambas pendientes para clasificación no-neutral.",
+          "data_type": "enum",
+          "unit": "Enum: [UP, DOWN, NEUTRAL]",
+          "range": null,
+          "formula_ref": "EIM-FRM-001 § F-009",
+          "depends_on": ["V-L2-004", "V-L2-005"],
+          "used_by": ["V-L3-001", "V-L3-002"]
+        },
+        {
+          "id": "V-L2-013",
+          "business_key": "COMPRESSION_INDEX",
+          "name": "Índice de Compresión",
+          "property_ref": "PR-05",
+          "entity_ref": "EN-06",
+          "ontology_level": "Propiedad",
+          "definition": "Medida del grado de convergencia entre las EMAs del stack. Se calcula como el promedio de los spreads absolutos entre pares de EMAs contiguas, normalizado por el valor de EMA-200. Valores bajos indican alta compresión (energía potencial acumulada). Valores altos indican expansión.",
+          "data_type": "float",
+          "unit": "Porcentaje (%) — normalizado",
+          "range": { "min": 0, "max": "unbounded", "note": "No puede ser negativo al usar valores absolutos." },
+          "formula_ref": "EIM-FRM-001 § F-010",
+          "depends_on": ["V-L2-006", "V-L2-007", "V-L2-008", "V-L2-009"],
+          "used_by": ["V-L3-003", "V-L3-005"]
+        }
+      ]
+    },
+
+    "L3_state": {
+      "_description": "Variables de estado. Clasifican el mercado en estados ontológicos definidos en EIM-ONT-001 §5. Requieren reglas de inferencia del BRM.",
+      "items": [
+        {
+          "id": "V-L3-001",
+          "business_key": "STRUCTURAL_STATE",
+          "name": "Estado Estructural",
+          "entity_ref": "EN-05",
+          "ontology_level": "Estado",
+          "definition": "Estado estructural general del mercado derivado de la combinación de STACK_ORDER, STACK_SCORE, PRICE_VS_STACK y SLOPE_DIRECTION. Asigna uno de los estados definidos en EIM-ONT-001.",
+          "data_type": "enum",
+          "unit": "Enum: [E-01_TREND_STRONG, E-02_TREND_WEAK, E-03_ORDERED, E-04_EXHAUSTED, E-05_COMPRESSED, E-06_EXPANDING, E-07_DIVERGENT]",
+          "range": null,
+          "formula_ref": "EIM-BRM-001 § R-001",
+          "depends_on": ["V-L2-001", "V-L2-002", "V-L2-003", "V-L2-012"],
+          "used_by": ["V-L4-001"]
+        },
+        {
+          "id": "V-L3-002",
+          "business_key": "MOMENTUM_STATE",
+          "name": "Estado de Momentum",
+          "entity_ref": "EN-04",
+          "ontology_level": "Estado",
+          "definition": "Clasificación del momentum del mercado basada en la dirección y magnitud de las pendientes de EMA-9 y EMA-55, y el ordenamiento del stack.",
+          "data_type": "enum",
+          "unit": "Enum: [ACCELERATING, STABLE, DECELERATING, REVERSING]",
+          "range": null,
+          "formula_ref": "EIM-BRM-001 § R-002",
+          "depends_on": ["V-L2-004", "V-L2-005", "V-L2-012", "V-L2-001"],
+          "used_by": ["V-L4-001"]
+        },
+        {
+          "id": "V-L3-003",
+          "business_key": "ENERGY_STATE",
+          "name": "Estado de Energía",
+          "entity_ref": "EN-06",
+          "ontology_level": "Estado",
+          "definition": "Clasificación del nivel de energía estructural del mercado basada en el Índice de Compresión y los spreads entre EMAs. Refleja la cantidad de potencial acumulado en la estructura.",
+          "data_type": "enum",
+          "unit": "Enum: [HIGH_ENERGY, MODERATE_ENERGY, LOW_ENERGY, COMPRESSED]",
+          "range": null,
+          "formula_ref": "EIM-BRM-001 § R-003",
+          "depends_on": ["V-L2-006", "V-L2-007", "V-L2-008", "V-L2-009", "V-L2-010", "V-L2-013"],
+          "used_by": ["V-L4-001"]
+        },
+        {
+          "id": "V-L3-004",
+          "business_key": "COHERENCE_SCORE",
+          "name": "Puntaje de Coherencia",
+          "entity_ref": "EN-10",
+          "ontology_level": "Propiedad Emergente",
+          "definition": "Medida de consistencia entre múltiples propiedades del mercado. Composición ponderada de STACK_SCORE (40%), PRICE_VS_STACK normalizado (40%) y VOLUME_RATIO modulado (20%). Rango 0–10. Valor alto indica propiedades alineadas y diagnóstico más confiable (AX-03).",
+          "data_type": "float",
+          "unit": "Puntos (0–10)",
+          "range": { "min": 0, "max": 10 },
+          "formula_ref": "EIM-FRM-001 § F-011",
+          "depends_on": ["V-L2-002", "V-L2-003", "V-L2-011"],
+          "used_by": ["V-L4-001"]
+        },
+        {
+          "id": "V-L3-005",
+          "business_key": "FRICTION_INDEX",
+          "name": "Índice de Fricción",
+          "entity_ref": "EN-09",
+          "ontology_level": "Propiedad",
+          "definition": "Medida de resistencia estructural al movimiento. Derivada de la combinación de compresión alta con elasticidad baja y volumen bajo. Un mercado con alta compresión, poco alejamiento del equilibrio y escaso volumen exhibe alta fricción.",
+          "data_type": "float",
+          "unit": "Índice normalizado (0–10)",
+          "range": { "min": 0, "max": 10 },
+          "formula_ref": "EIM-FRM-001 § F-012",
+          "depends_on": ["V-L2-010", "V-L2-011", "V-L2-013"],
+          "used_by": ["V-L4-001"]
+        }
+      ]
+    },
+
+    "L4_diagnostic": {
+      "_description": "Variables de diagnóstico. Output del motor de inferencia. Pendiente de formalización en Fase V (EIM-IRM-001).",
+      "items": [
+        {
+          "id": "V-L4-001",
+          "business_key": "STRUCTURAL_DIAGNOSIS",
+          "name": "Diagnóstico Estructural",
+          "entity_ref": "EN-05",
+          "ontology_level": "Diagnóstico",
+          "definition": "Síntesis del estado del mercado a partir de todos los estados L3. Produce una clasificación del mercado, un escenario probable y un puntaje de confianza del diagnóstico.",
+          "data_type": "object",
+          "structure": {
+            "market_state": "Enum: valores de V-L3-001",
+            "probable_scenario": "Enum: [SC-01_CONTINUATION, SC-02_BREAKOUT, SC-03_PULLBACK, SC-04_STRUCTURAL_CHANGE, SC-05_CONSOLIDATION]",
+            "confidence_score": "float (0–100)",
+            "coherence_score": "float (0–10) — ref: V-L3-004"
+          },
+          "formula_ref": "EIM-IRM-001 — PENDIENTE (Fase V)",
+          "depends_on": ["V-L3-001", "V-L3-002", "V-L3-003", "V-L3-004", "V-L3-005"],
+          "used_by": []
+        }
+      ]
+    }
+  },
+
+  "variable_summary": {
+    "total": 23,
+    "by_level": {
+      "L0": 4,
+      "L1": 5,
+      "L2": 10,
+      "L3": 5,
+      "L4": 1
+    },
+    "pending_formulas": [
+      "EIM-FRM-001 — Repositorio Matemático (Fase IV)",
+      "EIM-BRM-001 — Modelo de Reglas (Fase V)",
+      "EIM-IRM-001 — Motor de Inferencia (Fase V)"
+    ]
+  },
+
+  "entity_coverage": {
+    "EN-01_Precio": ["V-L0-001", "V-L0-002", "V-L2-011"],
+    "EN-02_Tiempo": ["V-L0-003", "V-L0-004"],
+    "EN-03_Tendencia": ["V-L2-005", "V-L2-012"],
+    "EN-04_Momentum": ["V-L2-004", "V-L3-002"],
+    "EN-05_Estructura": ["V-L2-001", "V-L2-002", "V-L3-001", "V-L4-001"],
+    "EN-06_Energía": ["V-L2-006", "V-L2-007", "V-L2-008", "V-L2-009", "V-L2-013", "V-L3-003"],
+    "EN-07_Elasticidad": ["V-L2-010"],
+    "EN-08_Equilibrio": ["V-L1-005"],
+    "EN-09_Fricción": ["V-L3-005"],
+    "EN-10_Coherencia": ["V-L3-004"]
+  },
+
+  "property_coverage": {
+    "PR-01_Dirección": ["V-L2-012"],
+    "PR-02_Pendiente": ["V-L2-004", "V-L2-005"],
+    "PR-03_Separación": ["V-L2-006", "V-L2-007", "V-L2-008", "V-L2-009", "V-L2-010"],
+    "PR-04_Persistencia": ["PENDIENTE — requiere variable temporal en Fase II v1.1"],
+    "PR-05_Compresión": ["V-L2-013"],
+    "PR-06_Cruce": ["PENDIENTE — variable de evento, se formalizará en EIM-FRM-001"],
+    "PR-07_Posición_Relativa": ["V-L2-001", "V-L2-002", "V-L2-003"]
+  }
+}

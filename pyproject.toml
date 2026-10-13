@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eim"
+version = "0.1.0"
+description = "EIM — agente multiagente de trading de futuros (BTC/ETH)"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2",
+    "pandas",
+    "numpy",
+    "fastapi",
+    "uvicorn",
+    "duckdb",
+    "httpx",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff", "pyright"]
+
+[tool.setuptools.packages.find]
+include = ["eim*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.pyright]
+include = ["eim"]
+pythonVersion = "3.11"

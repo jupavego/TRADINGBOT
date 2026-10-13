@@ -1,0 +1,2489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EIM — Panel de Diagnóstico</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.2.1/dist/chartjs-chart-financial.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    /* Paleta: Bosque/Hoja/Sol/Naranja/Aventura/Cielo/Tronco/Crema
+       Remix v2 — mismos 8 colores, tonos más profundos/menos saturados
+       para una lectura más corporativa y descansada. */
+    --bg:        #F6F2E9;   /* Crema, atenuado */
+    --panel:     #FDFCFA;
+    --panel-2:   #EFE9DC;
+    --border:    #DED4C2;
+    --text:      #2B241C;
+    --text-dim:  #8D6E63;   /* Tronco */
+    --accent:    #4E93C0;   /* Cielo, profundizado */
+    --green:     #5EA23C;   /* Bosque, profundizado */
+    --red:       #D24942;   /* Aventura, profundizado */
+    --amber:     #DC6F24;   /* Naranja, profundizado — advertencias/badges */
+    --sol:       #E8B923;   /* Sol, profundizado — highlight puntual (zigzag de Elliott) */
+    --gray:      #8D6E63;   /* Tronco */
+    /* Rampa EMA: Hoja (rápida) → Tronco (lenta) — "de la hoja al tronco" */
+    --ema-1: #A0CB6A; --ema-2: #99B767; --ema-3: #939D64; --ema-4: #8C8460; --ema-5: #8D6E63;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  header { margin-bottom: 22px; }
+  header h1 { font-size: 1.4rem; margin: 0 0 4px; letter-spacing: 0.02em; }
+  header p  { margin: 0; color: var(--text-dim); font-size: 0.9rem; }
+
+  /* ── Tabs ─────────────────────────────────────────────── */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+  .tab-btn {
+    background: none; border: none; color: var(--text-dim);
+    padding: 10px 18px; font-size: 0.9rem; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .controls {
+    display: flex; gap: 12px; align-items: end; flex-wrap: wrap;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px; margin-bottom: 24px;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+  .field input, .field select {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    padding: 9px 12px; border-radius: 6px; font-size: 0.95rem; min-width: 110px;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+  .checkbox-row { display: flex; flex-wrap: wrap; gap: 12px; padding-top: 6px; }
+  .checkbox-row label {
+    display: flex; align-items: center; gap: 5px; font-size: 0.85rem;
+    color: var(--text); text-transform: none; letter-spacing: normal; cursor: pointer;
+  }
+  .checkbox-row input[type="checkbox"] { accent-color: var(--accent); cursor: pointer; }
+  .heatmap-table { border-collapse: collapse; font-size: 0.8rem; }
+  .heatmap-table td, .heatmap-table th {
+    padding: 5px 8px; text-align: center; border: 1px solid var(--border); white-space: nowrap;
+  }
+  .heatmap-table th { background: var(--panel-2); font-weight: 600; }
+  .heatmap-table td.hm-row-label { background: var(--panel-2); font-weight: 600; text-align: right; }
+  .warn-banner {
+    background: #4A2A1E; border: 1px solid #B5533E; color: #F2D9CE;
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 0.9rem;
+  }
+  .mtf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; margin-top: 16px; }
+  .mtf-card .chart-box { height: 220px; }
+  .mtf-card h3 { margin: 0 0 4px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+
+  button.run {
+    background: var(--accent); color: #FFFFFF; border: none;
+    padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 0.95rem;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  button.run:hover { opacity: 0.88; }
+  button.run:disabled { opacity: 0.5; cursor: wait; }
+
+  .status { color: var(--text-dim); font-size: 0.85rem; margin: -8px 0 20px; min-height: 1.2em; }
+  .status.error { color: var(--red); }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px; margin-bottom: 18px;
+  }
+  .card h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin: 0 0 16px; }
+
+  .meta-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .meta-row .symbol { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .meta-row .ts { color: var(--text-dim); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+
+  .badges { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .badge {
+    padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+    background: var(--panel-2); border: 1px solid var(--border);
+  }
+  .badge .label { display: block; font-size: 0.65rem; text-transform: uppercase; color: var(--text-dim); font-weight: 500; margin-bottom: 2px; }
+  .badge.bull { border-color: var(--green); color: var(--green); }
+  .badge.bear { border-color: var(--red); color: var(--red); }
+  .badge.warn { border-color: var(--amber); color: var(--amber); }
+
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 18px; }
+  .metric .m-top { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px; }
+  .metric .m-val { font-weight: 700; color: var(--text); }
+  .meter { height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; }
+  .meter > div { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .metric-desc { color: var(--text-dim); font-size: 0.72rem; margin: 6px 0 0; line-height: 1.4; }
+
+  .prob-bar { display: flex; height: 34px; border-radius: 8px; overflow: hidden; margin-bottom: 10px; font-size: 0.85rem; font-weight: 700; }
+  .prob-up   { background: var(--green); color: #FFFFFF; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+  .prob-down { background: var(--red);   color: #FFFFFF; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+  .prob-note { color: var(--text-dim); font-size: 0.78rem; margin: 0; line-height: 1.5; }
+
+  .scenario-card { background: linear-gradient(135deg, var(--panel-2), var(--panel)); border: 1px solid var(--accent); }
+  .scenario-card .sc-name { font-size: 1.15rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+  .scenario-card .sc-code { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.03em; }
+
+  .explanation { line-height: 1.6; color: var(--text); font-size: 0.95rem; }
+
+  table.detail { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  table.detail td { padding: 7px 4px; border-bottom: 1px solid var(--border); }
+  table.detail td:first-child { color: var(--text-dim); width: 55%; }
+  table.detail td:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+  .disclaimer { color: var(--text-dim); font-size: 0.78rem; text-align: center; margin-top: 28px; line-height: 1.5; }
+  .empty { color: var(--text-dim); text-align: center; padding: 40px 0; }
+
+  /* ── Histórico ────────────────────────────────────────── */
+  .chart-box { position: relative; height: 360px; }
+  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
+  .chart-header h2 { margin: 0; }
+  .chart-tools { display: flex; gap: 6px; }
+  .zoom-reset, .chart-pan {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text-dim);
+    padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; cursor: pointer;
+  }
+  .chart-pan { font-weight: 700; padding: 5px 10px; }
+  .zoom-reset:hover, .chart-pan:hover { color: var(--text); border-color: var(--accent); }
+  .zoom-hint { color: var(--text-dim); font-size: 0.72rem; margin: -10px 0 12px; }
+  .chart-box canvas { cursor: grab; }
+  .chart-box canvas:active { cursor: grabbing; }
+  .table-scroll { max-height: 420px; overflow-y: auto; overflow-x: auto; }
+  table.hist.bitacora-table { font-size: 0.74rem; }
+  table.hist.bitacora-table th, table.hist.bitacora-table td { padding: 5px 4px; white-space: nowrap; }
+  table.hist.bitacora-table td:last-child, table.hist.bitacora-table th:last-child { text-align: right; }
+  .money-usdt { font-weight: 700; }
+  .money-cop { display: block; font-size: 0.82em; color: var(--text-dim); font-weight: 400; }
+  table.hist { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  table.hist th {
+    position: sticky; top: 0; background: var(--panel);
+    text-align: left; color: var(--text-dim); font-weight: 600;
+    font-size: 0.72rem; text-transform: uppercase; padding: 8px 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.hist td { padding: 7px 6px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  table.hist tr:hover td { background: var(--panel-2); }
+
+  /* ── Backtest ─────────────────────────────────────────── */
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+  .kpi { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .kpi .kpi-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; }
+  .kpi .kpi-value { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .dist-row { display: grid; grid-template-columns: 170px 1fr 46px; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 0.85rem; }
+  .dist-track { height: 10px; background: var(--panel-2); border-radius: 5px; overflow: hidden; }
+  .dist-fill { height: 100%; background: var(--ema-3); border-radius: 5px; }
+  .dist-count { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-dim); }
+
+  /* ── Elliott ───────────────────────────────────────────── */
+  /* ── Metodología (desplegable) ────────────────────────── */
+  details.methodology {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px; margin-bottom: 20px;
+  }
+  details.methodology summary {
+    cursor: pointer; font-weight: 600; color: var(--accent); list-style: none; font-size: 0.9rem;
+  }
+  details.methodology summary::-webkit-details-marker { display: none; }
+  details.methodology summary::before { content: '▸ '; }
+  details.methodology[open] summary::before { content: '▾ '; }
+  details.methodology .body { margin-top: 12px; font-size: 0.87rem; line-height: 1.65; color: var(--text); }
+  details.methodology .body p { margin: 0 0 10px; }
+  details.methodology .body p:last-child { margin-bottom: 0; }
+  details.methodology .body strong { color: var(--accent); }
+
+  .warn-banner {
+    background: rgba(220, 111, 36, 0.08); border: 1px solid var(--amber); color: var(--amber);
+    border-radius: 8px; padding: 12px 16px; font-size: 0.85rem; line-height: 1.5; margin-bottom: 20px;
+  }
+  .rule-ok { color: var(--green); }
+  .rule-bad { color: var(--red); }
+
+  /* ── Price Action ─────────────────────────────────────── */
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 600; background: var(--panel-2); border: 1px solid var(--border); margin: 0 4px 4px 0; }
+  .tag.up { color: var(--green); border-color: var(--green); }
+  .tag.down { color: var(--red); border-color: var(--red); }
+
+  /* ── Guía visual de velas (catálogo de referencia) ──────── */
+  .candle-guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .candle-col { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .candle-col h4 { text-align: center; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--text); }
+  .candle-card { display: flex; align-items: center; gap: 12px; padding: 7px 2px; border-bottom: 1px solid var(--border); }
+  .candle-card:last-child { border-bottom: none; }
+  .candle-visual { width: 26px; height: 54px; position: relative; flex-shrink: 0; }
+  .candle-wick { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 2px; height: 100%; background: var(--text-dim); }
+  .candle-body-shape { position: absolute; left: 50%; transform: translateX(-50%); width: 13px; border-radius: 1px; }
+  .candle-card.cbull .candle-body-shape { background: var(--green); border: 1px solid var(--green); }
+  .candle-card.cbear .candle-body-shape { background: var(--red); border: 1px solid var(--red); }
+  .candle-card.cneutral .candle-body-shape { background: var(--gray); border: 1px solid var(--gray); }
+  .candle-info h5 { margin: 0; font-size: 0.82rem; color: var(--text); display: flex; align-items: center; gap: 6px; }
+  .candle-info p { margin: 2px 0 0; font-size: 0.72rem; color: var(--text-dim); }
+  .candle-detected { display: inline-block; font-size: 0.62rem; font-weight: 700; color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; padding: 1px 4px; }
+
+  /* ── Variables crudas ─────────────────────────────────── */
+  .raw-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .raw-group h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); margin: 0 0 10px; }
+  table.kv { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  table.kv td { padding: 5px 4px; border-bottom: 1px solid var(--border); }
+  table.kv td:first-child { color: var(--text-dim); }
+  table.kv td:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>EIM — Panel de Diagnóstico</h1>
+    <p>EMA Intelligence Model v1.0 · Binance Futuros</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="realtime">Tiempo Real</button>
+    <button class="tab-btn" data-tab="historical">Histórico</button>
+    <button class="tab-btn" data-tab="backtest">Backtest</button>
+    <button class="tab-btn" data-tab="vwap">VWAP</button>
+    <button class="tab-btn" data-tab="vwap-periods">VWAP Períodos</button>
+    <button class="tab-btn" data-tab="pa">Price Action</button>
+    <button class="tab-btn" data-tab="elliott">Elliott</button>
+    <button class="tab-btn" data-tab="raw">Variables Crudas</button>
+    <button class="tab-btn" data-tab="multi-asset">Multi-Activo</button>
+    <button class="tab-btn" data-tab="liquidations">Liquidaciones</button>
+    <button class="tab-btn" data-tab="seasonality">Estacionalidad</button>
+    <button class="tab-btn" data-tab="bitacora">Bitácora</button>
+  </div>
+
+  <!-- ═══════════════ TIEMPO REAL ═══════════════ -->
+  <section class="tab-panel active" id="panel-realtime">
+    <details class="methodology">
+      <summary>¿Qué es esto y cuál es la metodología?</summary>
+      <div class="body">
+        <p>Diagnóstico estructural del mercado basado en <strong>5 medias móviles exponenciales</strong> (EMA 9/21/55/100/200) y la separación entre ellas — el núcleo original del proyecto (EIM-FRM-001 / EIM-BRM-001 / EIM-IRM-001).</p>
+        <p><strong>Metodología:</strong> el motor calcula ~44 variables sobre las EMAs (orden del stack, pendientes, spreads, índice de compresión, curvatura, cruces, rebotes) para la vela actual — Módulo FRM. Luego clasifica esas variables en 3 estados categóricos mediante reglas fijas — Estructura, Momentum y Energía (Módulo BRM). Finalmente, un motor de inferencia combina esos estados en un diagnóstico final: convicción (0-100), escenario probable, y confianza (Módulo IRM).</p>
+        <p>Los umbrales usados (θ) son provisionales — se calibran corriendo la pestaña <strong>Backtest</strong> y ajustando según el accuracy resultante.</p>
+        <p>El diagnóstico numérico corre sobre el <strong>timeframe principal</strong> elegido abajo. Los gráficos de EMA multi-timeframe (1h/4h/1d) son solo visuales — para confirmación por contexto, no recalculan el diagnóstico en cada uno (eso es lo que MTF_SYNC, F-019, hará cuando se implemente).</p>
+      </div>
+    </details>
+    <div class="controls">
+      <div class="field">
+        <label for="rt-symbol">Símbolo</label>
+        <input id="rt-symbol" list="symbols" value="BTCUSDT" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="rt-timeframe">Timeframe principal</label>
+        <select id="rt-timeframe">
+          <option value="1h">1h</option>
+          <option value="4h" selected>4h</option>
+          <option value="1d">1d</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Timeframes del gráfico EMA</label>
+        <div class="checkbox-row">
+          <label><input type="checkbox" class="rt-mtf" value="1h" checked> 1h</label>
+          <label><input type="checkbox" class="rt-mtf" value="4h" checked> 4h</label>
+          <label><input type="checkbox" class="rt-mtf" value="1d" checked> 1d</label>
+        </div>
+      </div>
+      <button class="run" id="rt-run">Ejecutar diagnóstico</button>
+    </div>
+    <div class="status" id="rt-status"></div>
+    <div id="rt-result"><div class="empty">Configura símbolo y timeframe, luego ejecuta el diagnóstico.</div></div>
+    <div id="rt-mtf-result"></div>
+  </section>
+
+  <!-- ═══════════════ HISTÓRICO ═══════════════ -->
+  <section class="tab-panel" id="panel-historical">
+    <details class="methodology">
+      <summary>¿Qué es esto y cuál es la metodología?</summary>
+      <div class="body">
+        <p>Corre el mismo motor EMA (FRM → BRM → IRM) de la pestaña <strong>Tiempo Real</strong>, pero sobre las últimas N velas cerradas en vez de solo la vela actual — para ver la <strong>evolución</strong> del diagnóstico, no solo su valor presente.</p>
+        <p><strong>Metodología:</strong> el gráfico superpone el precio (velas japonesas) con las 5 EMAs; la tabla muestra, para cada una de las últimas 60 velas, en qué estado estructural estaba el mercado y qué escenario predijo el IRM en ese momento.</p>
+      </div>
+    </details>
+    <div class="controls">
+      <div class="field">
+        <label for="h-symbol">Símbolo</label>
+        <input id="h-symbol" list="symbols" value="BTCUSDT" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="h-timeframe">Timeframe</label>
+        <select id="h-timeframe">
+          <option value="1h">1h</option>
+          <option value="4h" selected>4h</option>
+          <option value="1d">1d</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="h-candles">Velas</label>
+        <input id="h-candles" type="number" min="400" max="3000" step="50" value="500">
+      </div>
+      <button class="run" id="h-run">Ejecutar histórico</button>
+    </div>
+    <div class="status" id="h-status"></div>
+    <div id="h-result"><div class="empty">Elige símbolo, timeframe y número de velas, luego ejecuta.</div></div>
+  </section>
+
+  <!-- ═══════════════ BACKTEST ═══════════════ -->
+  <section class="tab-panel" id="panel-backtest">
+    <details class="methodology">
+      <summary>¿Qué es esto y cuál es la metodología?</summary>
+      <div class="body">
+        <p>Valida qué tan bien acertó el motor EMA en el pasado — no es un diagnóstico, es la <strong>evaluación</strong> del diagnóstico (protocolo EIM-VRM-001).</p>
+        <p><strong>Metodología:</strong> para cada vela ya diagnosticada (excluyendo el warmup inicial y las últimas velas, de las que aún no se conoce el "futuro"), se toma el escenario que el IRM predijo en ese momento y se compara contra lo que realmente pasó en las siguientes velas dentro del <strong>horizonte</strong> elegido (ej. si predijo "ruptura", ¿aumentó realmente la compresión?). De ahí salen las métricas MET-001 (accuracy), MET-005 (estabilidad — cuánto cambia el diagnóstico sin razón) y MET-006 (cobertura de estados).</p>
+        <p>Sirve para calibrar los umbrales θ del BRM: ajustas un umbral en el código, vuelves a correr el backtest, y comparas el accuracy.</p>
+      </div>
+    </details>
+    <div class="controls">
+      <div class="field">
+        <label for="b-symbol">Símbolo</label>
+        <input id="b-symbol" list="symbols" value="BTCUSDT" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="b-timeframe">Timeframe</label>
+        <select id="b-timeframe">
+          <option value="1h">1h</option>
+          <option value="4h" selected>4h</option>
+          <option value="1d">1d</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="b-candles">Velas</label>
+        <input id="b-candles" type="number" min="500" max="3000" step="100" value="2000">
+      </div>
+      <div class="field">
+        <label for="b-horizon">Horizonte</label>
+        <input id="b-horizon" type="number" min="1" max="48" step="1" value="6">
+      </div>
+      <button class="run" id="b-run">Ejecutar backtest</button>
+    </div>
+    <div class="status" id="b-status"></div>
+    <div id="b-result"><div class="empty">Protocolo EIM-VRM-001 — evalúa la calidad del diagnóstico contra el futuro real.</div></div>
+  </section>
+
+  <!-- ═══════════════ VWAP ═══════════════ -->
+  <section class="tab-panel" id="panel-vwap">
+    <details class="methodology">
+      <summary>¿Qué es esto y cuál es la metodología?</summary>
+      <div class="body">
+        <p><strong>VWAP</strong> (Volume Weighted Average Price) es el precio promedio ponderado por volumen — la referencia de "precio justo" del día que usan las mesas institucionales, complementaria al enfoque de EMAs del núcleo original.</p>
+        <p><strong>Metodología:</strong> se acumula (precio típico × volumen) / volumen desde las 00:00 UTC, reiniciando cada día — <em>VWAP diario</em>. Sobre eso se calculan bandas de desviación estándar (±1σ/±2σ) para medir sobreextensión. También se calcula un <em>VWAP anclado</em> al inicio de toda la ventana cargada (sin reinicio diario), útil para tendencias más largas.</p>
+        <p>La lectura direccional combina la posición del precio frente al VWAP (0-1σ = sesgo normal, más de 1σ = empieza a pesar la reversión) con la pendiente del VWAP.</p>
+      </div>
+    </details>
+    <div class="controls">
+      <div class="field">
+        <label for="v-symbol">Símbolo</label>
+        <input id="v-symbol" list="symbols" value="BTCUSDT" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="v-timeframe">Timeframe</label>
+        <select id="v-timeframe">
+          <option value="1h">1h</option>
+          <option value="4h" selected>4h</option>
+          <option value="1d">1d</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="v-candles">Velas</label>
+        <input id="v-candles" type="number" min="400" max="3000" step="50" value="500">
+      </div>
+      <button class="run" id="v-run">Ejecutar VWAP</button>
+    </div>
+    <div class="status" id="v-status"></div>
+    <div id="v-result"><div class="empty">VWAP diario (ancla 00:00 UTC) con bandas ±1σ/±2σ, más VWAP anclado a la ventana cargada.</div></div>
+  </section>
+
+  <!-- ═══════════════ VWAP PERÍODOS ═══════════════ -->
+  <section class="tab-panel" id="panel-vwap-periods">
+    <details class="methodology">
+      <summary>¿Qué es esto y cuál es la metodología?</summary>
+      <div class="body">
+        <p>El mismo VWAP de la pestaña <strong>VWAP</strong>, pero calculado en varios períodos a la vez sobre la misma ventana de velas: <em>diario</em> (reinicia 00:00 UTC), <em>semanal</em> (reinicia lunes 00:00 UTC), <em>quincenal</em> (reinicia los días 1 y 16 de cada mes — la quincena de nómina en español/LatAm, no un bloque rodante de 14 días) y <em>mensual</em> (reinicia el día 1).</p>
+        <p>Cada período tiene su propia banda de desviación estándar (±1σ/±2σ) y su propia lectura direccional heurística — útil para ver si el precio está en el mismo lado del VWAP en todos los horizontes (confluencia) o si diverge entre el corto y el largo plazo.</p>
+      </div>
+    </details>
+    <div class="controls">
+      <div class="field">
+        <label for="vp-symbol">Símbolo</label>
+        <input id="vp-symbol" list="symbols" value="BTCUSDT" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="vp-timeframe">Timeframe</label>
+        <select id="vp-timeframe">
+          <option value="1h">1h</option>
+          <option value="4h" selected>4h</option>
+          <option value="1d">1d</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="vp-candles">Velas</label>
+        <input id="vp-candles" type="number" min="400" max="3000" step="50" value="500">
+      </div>
+      <div class="field">
+        <label>Períodos</label>
+        <div class="checkbox-row">
+          <label><input type="checkbox" class="vp-period" value="daily" checked> Diario</label>
+          <label><input type="checkbox" class="vp-period" value="weekly" checked> Semanal</label>
+          <label><input type="checkbox" class="vp-period" value="quincenal" checked> Quincenal</label>
+          <label><input type="checkbox" class="vp-period" value="monthly" checked> Mensual</label>
+        </div>
+      </div>
+      <button class="run" id="vp-run">Ejecutar VWAP por períodos</button>
+    </div>
+    <div class="status" id="vp-status"></div>
+    <div id="vp-result"><div class="empty">Elige símbolo, timeframe y los períodos a comparar, luego ejecuta.</div></div>
+  </section>
+
+  <!-- ═══════════════ PRICE ACTION ═══════════════ -->
+  <section class="tab-panel" id="panel-pa">
+    <details class="methodology">
+      <summary>¿Qué es esto y cuál es la metodología?</summary>
+      <div class="body">
+        <p>Lectura de la <strong>acción del precio</strong> sin indicadores — mira directamente la geometría de las velas y sus pivotes, en vez de derivarla de medias móviles.</p>
+        <p><strong>Metodología:</strong> los <em>swings</em> (pivotes) se detectan con un fractal de 5 velas: un máximo/mínimo cuenta como swing si es el más extremo dentro de una ventana de 2 velas a cada lado (por eso un swing solo se confirma 2 velas después de ocurrir). Los <em>patrones de vela</em> se detectan por geometría del cuerpo/mechas (ver catálogo al final de esta pestaña). La <em>estructura de mercado</em> compara cada nuevo swing contra el anterior del mismo tipo (máximo más alto = HH, más bajo = LH; mínimo más alto = HL, más bajo = LL) y marca rupturas: <strong>BOS</strong> (Break of Structure, continuación) cuando el precio rompe un swing a favor de la tendencia vigente, <strong>CHOCH</strong> (Change of Character, posible reversión) cuando lo rompe en contra. Las <em>zonas de soporte/resistencia</em> agrupan swings cercanos entre sí (dentro de 0.5%) y cuentan cuántas veces fue "tocada" cada zona.</p>
+      </div>
+    </details>
+    <div class="controls">
+      <div class="field">
+        <label for="pa-symbol">Símbolo</label>
+        <input id="pa-symbol" list="symbols" value="BTCUSDT" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="pa-timeframe">Timeframe</label>
+        <select id="pa-timeframe">
+          <option value="1h">1h</option>
+          <option value="4h" selected>4h</option>
+          <option value="1d">1d</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="pa-candles">Velas</label>
+        <input id="pa-candles" type="number" min="400" max="3000" step="50" value="500">
+      </div>
+      <button class="run" id="pa-run">Ejecutar Price Action</button>
+    </div>
+    <div class="status" id="pa-status"></div>
+    <div id="pa-result"><div class="empty">Swings, patrones de vela, estructura de mercado (BOS/CHOCH) y zonas de soporte/resistencia — sobre velas cerradas.</div></div>
+
+    <div class="card">
+      <h2>Catálogo de patrones de vela usados en el análisis</h2>
+      <table class="hist">
+        <thead><tr><th>Patrón</th><th>Señal</th><th>Definición</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Envolvente alcista</td>
+            <td><span class="badge bull" style="padding:4px 10px"><span class="label"></span>Alcista</span></td>
+            <td>Una vela bajista seguida de una vela alcista cuyo cuerpo envuelve por completo el cuerpo de la anterior. Sugiere que los compradores tomaron el control tras la presión vendedora.</td>
+          </tr>
+          <tr>
+            <td>Envolvente bajista</td>
+            <td><span class="badge bear" style="padding:4px 10px"><span class="label"></span>Bajista</span></td>
+            <td>Una vela alcista seguida de una vela bajista cuyo cuerpo envuelve por completo el cuerpo de la anterior. Sugiere que los vendedores tomaron el control tras el impulso comprador.</td>
+          </tr>
+          <tr>
+            <td>Martillo</td>
+            <td><span class="badge bull" style="padding:4px 10px"><span class="label"></span>Alcista</span></td>
+            <td>Cuerpo pequeño en la parte superior de la vela, con mecha inferior larga (al menos 2× el cuerpo) y mecha superior mínima. Más confiable tras una tendencia bajista: el precio cayó fuerte pero los compradores lo empujaron de vuelta arriba.</td>
+          </tr>
+          <tr>
+            <td>Estrella fugaz</td>
+            <td><span class="badge bear" style="padding:4px 10px"><span class="label"></span>Bajista</span></td>
+            <td>Cuerpo pequeño en la parte inferior, con mecha superior larga y mecha inferior mínima. Más confiable tras una tendencia alcista: el precio subió fuerte pero los vendedores lo rechazaron.</td>
+          </tr>
+          <tr>
+            <td>Doji</td>
+            <td><span class="badge" style="padding:4px 10px"><span class="label"></span>Neutral / indecisión</span></td>
+            <td>Apertura y cierre casi idénticos (cuerpo mínimo frente al rango total). Señala equilibrio entre compradores y vendedores; su importancia depende de dónde aparece (ej. tras una tendencia extendida pesa más).</td>
+          </tr>
+          <tr>
+            <td>Inside bar</td>
+            <td><span class="badge" style="padding:4px 10px"><span class="label"></span>Neutral / compresión</span></td>
+            <td>El rango (máximo-mínimo) de la vela actual queda completamente contenido dentro del rango de la vela anterior. Indica pausa o consolidación; suele anticipar un movimiento fuerte al romper el rango.</td>
+          </tr>
+          <tr>
+            <td>Outside bar</td>
+            <td><span class="badge" style="padding:4px 10px"><span class="label"></span>Neutral / expansión</span></td>
+            <td>El rango de la vela actual envuelve por completo el rango de la anterior. Indica alta volatilidad y un posible cambio de control; la dirección del cierre inclina la lectura hacia alcista o bajista.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Guía visual de velas japonesas (referencia)</h2>
+      <p class="zoom-hint" style="margin-top:0">
+        Catálogo ampliado de 20 patrones nombrados. Los marcados <span class="candle-detected">detectado</span> son los que
+        <strong>este módulo identifica automáticamente</strong> en tus velas (tabla de arriba); los demás son referencia visual —
+        patrones de 2-3 velas o variantes que todavía no están implementados.
+      </p>
+      <div class="candle-guide">
+        <div class="candle-col">
+          <h4>Alcistas</h4>
+          <div class="candle-card cbull">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:15px; top:35px;"></div></div>
+            <div class="candle-info"><h5>Martillo <span class="candle-detected">detectado</span></h5><p>Patrón BULL</p></div>
+          </div>
+          <div class="candle-card cbull">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:15px; top:10px;"></div></div>
+            <div class="candle-info"><h5>Inverted Hammer</h5><p>Patrón BULL</p></div>
+          </div>
+          <div class="candle-card cbull">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:40px; top:10px;"></div></div>
+            <div class="candle-info"><h5>Bullish Engulfing <span class="candle-detected">detectado</span></h5><p>Patrón BULL</p></div>
+          </div>
+          <div class="candle-card cbull">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:20px; top:20px;"></div></div>
+            <div class="candle-info"><h5>Morning Star</h5><p>Patrón BULL</p></div>
+          </div>
+          <div class="candle-card cbull">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:50px; top:5px;"></div></div>
+            <div class="candle-info"><h5>Three White Soldiers</h5><p>Patrón BULL</p></div>
+          </div>
+          <div class="candle-card cbull">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:30px; top:15px;"></div></div>
+            <div class="candle-info"><h5>Piercing Pattern</h5><p>Patrón BULL</p></div>
+          </div>
+          <div class="candle-card cbull">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:20px; top:20px;"></div></div>
+            <div class="candle-info"><h5>Tweezer Bottom</h5><p>Patrón BULL</p></div>
+          </div>
+          <div class="candle-card cbull">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:15px; top:22px;"></div></div>
+            <div class="candle-info"><h5>Bullish Harami</h5><p>Patrón BULL</p></div>
+          </div>
+        </div>
+
+        <div class="candle-col">
+          <h4>Bajistas</h4>
+          <div class="candle-card cbear">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:15px; top:10px;"></div></div>
+            <div class="candle-info"><h5>Shooting Star <span class="candle-detected">detectado</span></h5><p>Patrón BEAR</p></div>
+          </div>
+          <div class="candle-card cbear">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:15px; top:35px;"></div></div>
+            <div class="candle-info"><h5>Hanging Man</h5><p>Patrón BEAR</p></div>
+          </div>
+          <div class="candle-card cbear">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:40px; top:10px;"></div></div>
+            <div class="candle-info"><h5>Bearish Engulfing <span class="candle-detected">detectado</span></h5><p>Patrón BEAR</p></div>
+          </div>
+          <div class="candle-card cbear">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:20px; top:20px;"></div></div>
+            <div class="candle-info"><h5>Evening Star</h5><p>Patrón BEAR</p></div>
+          </div>
+          <div class="candle-card cbear">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:50px; top:5px;"></div></div>
+            <div class="candle-info"><h5>Three Black Crows</h5><p>Patrón BEAR</p></div>
+          </div>
+          <div class="candle-card cbear">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:30px; top:15px;"></div></div>
+            <div class="candle-info"><h5>Dark Cloud Cover</h5><p>Patrón BEAR</p></div>
+          </div>
+          <div class="candle-card cbear">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:20px; top:20px;"></div></div>
+            <div class="candle-info"><h5>Tweezer Top</h5><p>Patrón BEAR</p></div>
+          </div>
+          <div class="candle-card cbear">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:15px; top:22px;"></div></div>
+            <div class="candle-info"><h5>Bearish Harami</h5><p>Patrón BEAR</p></div>
+          </div>
+        </div>
+
+        <div class="candle-col">
+          <h4>Consolidación</h4>
+          <div class="candle-card cneutral">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:2px; top:29px;"></div></div>
+            <div class="candle-info"><h5>Doji <span class="candle-detected">detectado</span></h5><p>Patrón NEUTRAL</p></div>
+          </div>
+          <div class="candle-card cneutral">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:2px; top:29px;"></div></div>
+            <div class="candle-info"><h5>Long Legged Doji</h5><p>Patrón NEUTRAL</p></div>
+          </div>
+          <div class="candle-card cneutral">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:10px; top:25px;"></div></div>
+            <div class="candle-info"><h5>Spinning Top</h5><p>Patrón NEUTRAL</p></div>
+          </div>
+          <div class="candle-card cneutral">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:60px; top:0px;"></div></div>
+            <div class="candle-info"><h5>Marubozu</h5><p>Patrón NEUTRAL</p></div>
+          </div>
+          <div class="candle-card cneutral" style="opacity:0.85">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:30px; top:12px; width:20px;"></div></div>
+            <div class="candle-info"><h5>Inside bar <span class="candle-detected">detectado</span></h5><p>Estructural (2 velas) — no es forma de una sola vela</p></div>
+          </div>
+          <div class="candle-card cneutral" style="opacity:0.85">
+            <div class="candle-visual"><div class="candle-wick"></div><div class="candle-body-shape" style="height:44px; top:5px; width:20px;"></div></div>
+            <div class="candle-info"><h5>Outside bar <span class="candle-detected">detectado</span></h5><p>Estructural (2 velas) — no es forma de una sola vela</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ ELLIOTT ═══════════════ -->
+  <section class="tab-panel" id="panel-elliott">
+    <details class="methodology">
+      <summary>¿Qué es esto y cuál es la metodología?</summary>
+      <div class="body">
+        <p>Conteo tentativo de <strong>ondas de Elliott</strong> — la teoría que dice que el precio se mueve en ciclos de 5 ondas a favor de la tendencia (impulso, numeradas 1-5) seguidos de 3 ondas en contra (corrección, etiquetadas A-B-C).</p>
+        <p><strong>Metodología:</strong> primero se extraen pivotes vía <em>zigzag</em> — un pivote se confirma cuando el precio revierte al menos el umbral % elegido (preset de plazo) desde el extremo anterior. Luego se toman los últimos hasta 9 pivotes y se etiquetan, en orden, como 0-1-2-3-4-5-A-B-C. Finalmente se valida ese etiquetado contra las <strong>3 reglas duras</strong> de Elliott: la onda 2 no puede retroceder más allá del inicio de la onda 1; la onda 3 no puede ser la más corta entre las ondas 1/3/5; la onda 4 no puede solaparse con el territorio de precio de la onda 1.</p>
+        <p><strong>Sobre la alerta de "regla violada":</strong> el algoritmo siempre etiqueta los últimos 9 pivotes como si ahí empezara justo un ciclo nuevo — sin verificar si esa suposición es correcta. Por eso es común (y hasta esperable) que el conteo se vea visualmente "limpio" — piernas de zigzag grandes y parejas — y aun así viole alguna regla dura: la limpieza visual del zigzag depende del umbral %, pero las reglas dependen de las proporciones exactas entre los precios de cada onda, que son dos cosas distintas. Una violación no dice "el gráfico está mal dibujado"; dice "el punto que asumimos como Onda 0 probablemente no es el verdadero inicio del ciclo" — puede que estés viendo un grado de onda distinto, o que el ciclo real haya empezado en otro pivote. En ese caso, prueba otro preset de plazo (cambia qué pivotes se capturan) hasta encontrar una alineación que sí cumpla las 3 reglas.</p>
+      </div>
+    </details>
+    <div class="warn-banner">
+      ⚠ Conteo <strong>tentativo y heurístico</strong>. No existe una forma 100% objetiva de contar ondas de Elliott —
+      este algoritmo etiqueta los últimos pivotes vía zigzag y valida contra las 3 reglas duras, pero puede
+      re-contar en cuanto llegue una vela nueva. Trátalo como una hipótesis, no como un hecho.
+    </div>
+    <div class="controls">
+      <div class="field">
+        <label for="el-symbol">Símbolo</label>
+        <input id="el-symbol" list="symbols" value="BTCUSDT" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="el-timeframe">Timeframe</label>
+        <select id="el-timeframe">
+          <option value="1h">1h</option>
+          <option value="4h" selected>4h</option>
+          <option value="1d">1d</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="el-candles">Velas</label>
+        <input id="el-candles" type="number" min="400" max="3000" step="50" value="500">
+      </div>
+      <div class="field">
+        <label for="el-preset">Plazo del conteo</label>
+        <select id="el-preset">
+          <option value="1.5">Corto plazo (1.5%)</option>
+          <option value="3" selected>Medio plazo (3%)</option>
+          <option value="6">Largo plazo (6%)</option>
+          <option value="custom">Personalizado…</option>
+        </select>
+      </div>
+      <div class="field" id="el-custom-field" style="display:none">
+        <label for="el-threshold">Umbral zigzag (%)</label>
+        <input id="el-threshold" type="number" min="0.5" max="20" step="0.5" value="3">
+      </div>
+      <button class="run" id="el-run">Calcular conteo</button>
+    </div>
+    <p class="zoom-hint" style="margin:-4px 0 20px">
+      Los presets fijan un umbral ya probado según el horizonte que te interesa — un umbral mal elegido
+      (muy bajo = demasiado ruido, muy alto = pierde pivotes reales) es la causa más común de un conteo mal calculado.
+    </p>
+    <div class="status" id="el-status"></div>
+    <div id="el-result"><div class="empty">Elige el plazo del conteo y ejecuta.</div></div>
+  </section>
+
+  <!-- ═══════════════ VARIABLES CRUDAS ═══════════════ -->
+  <section class="tab-panel" id="panel-raw">
+    <details class="methodology">
+      <summary>¿Qué es esto y cuál es la metodología?</summary>
+      <div class="body">
+        <p>Vista de depuración/calibración: expone <strong>todas</strong> las variables intermedias que calcula el FRM (~44, agrupadas en Bloques 1, 2 y 3 según el orden de cálculo del Apéndice A) más los estados del BRM y el diagnóstico del IRM para la vela actual — sin filtrar, a diferencia de las pestañas Tiempo Real o Histórico, que solo muestran un subconjunto curado para mantener la lectura simple.</p>
+        <p>Útil cuando quieres ver el detalle exacto detrás de un diagnóstico (ej. por qué salió "compresión" — revisa COMPRESSION_INDEX y COMPRESSION_DURATION aquí), o cuando estés calibrando los umbrales θ del BRM y necesites ver el valor crudo de la variable que un umbral evalúa.</p>
+      </div>
+    </details>
+    <div class="controls">
+      <div class="field">
+        <label for="raw-symbol">Símbolo</label>
+        <input id="raw-symbol" list="symbols" value="BTCUSDT" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="raw-timeframe">Timeframe</label>
+        <select id="raw-timeframe">
+          <option value="1h">1h</option>
+          <option value="4h" selected>4h</option>
+          <option value="1d">1d</option>
+        </select>
+      </div>
+      <button class="run" id="raw-run">Ver variables completas</button>
+    </div>
+    <div class="status" id="raw-status"></div>
+    <div id="raw-result"><div class="empty">Muestra las ~44 variables L1/L2 del FRM + estados L3 para la vela actual — vista de depuración/calibración.</div></div>
+  </section>
+
+  <!-- ═══════════════ MULTI-ACTIVO ═══════════════ -->
+  <section class="tab-panel" id="panel-multi-asset">
+    <details class="methodology">
+      <summary>¿Qué es esto y cuál es la metodología?</summary>
+      <div class="body">
+        <p>Visor de velas puro — como en un exchange — para comparar varios activos, no solo el símbolo cripto que diagnostica el motor EMA. <strong>No pasa por el pipeline FRM/BRM/IRM</strong>: es solo precio, sin EMAs ni diagnóstico.</p>
+        <p><strong>Fuentes reales por activo</strong> (ninguna es sintética ni derivada): Ethereum, Bitcoin y Oro vienen de Binance Futuros — el Oro es <strong>XAUUSDT</strong>, el futuro perpetuo de oro liquidado en USDT que Binance mismo opera (lanzado el 5 de enero de 2026), no un proxy externo. El S&amp;P 500 (^GSPC) y el Nasdaq Composite (^IXIC) vienen de Yahoo Finance, porque Binance todavía no lista futuros de índices bursátiles.</p>
+        <p>Los índices y el oro solo ofrecen timeframes 1d/1sem/1mes (Yahoo Finance no tiene velas de 4h nativas, y no se fabrica una por resampleo).</p>
+      </div>
+    </details>
+    <div class="controls">
+      <div class="field">
+        <label for="ma-asset">Activo</label>
+        <select id="ma-asset"></select>
+      </div>
+      <div class="field">
+        <label for="ma-timeframe">Timeframe</label>
+        <select id="ma-timeframe"></select>
+      </div>
+      <div class="field">
+        <label for="ma-candles">Velas</label>
+        <input id="ma-candles" type="number" min="10" max="1500" step="10" value="200">
+      </div>
+      <button class="run" id="ma-run">Cargar velas</button>
+    </div>
+    <div class="status" id="ma-status"></div>
+    <div id="ma-result"><div class="empty">Elige un activo, timeframe y número de velas, luego carga el gráfico.</div></div>
+  </section>
+
+  <!-- ═══════════════ LIQUIDACIONES ═══════════════ -->
+  <section class="tab-panel" id="panel-liquidations">
+    <details class="methodology">
+      <summary>¿Qué es esto y cuál es la metodología?</summary>
+      <div class="body">
+        <p>Mapa de liquidaciones forzadas <strong>reales</strong> de Binance Futuros — no una estimación sintética por apalancamiento teórico ni un proxy de Open Interest (se investigaron varios repos de referencia con ambos enfoques antes de decidir esto; ver repos/repo_profiles_master.md). La fuente es el dataset oficial <code>liquidationSnapshot</code> que publica Binance en data.binance.vision.</p>
+        <p><strong>Dos límites reales que hay que conocer:</strong> (1) Binance solo publica este dataset para el mercado <em>coin-margined</em> (contratos liquidados en la propia moneda, ej. ETHUSD_PERP), no para ETHUSDT/BTCUSDT (USDⓈ-M) — se usa el contrato coin-margined equivalente como el dato real más cercano disponible, correlacionado pero no idéntico. (2) Binance dejó de publicar archivos nuevos de este dataset desde octubre de 2024 — es un mapa <strong>real pero histórico</strong>, no representa el mercado actual. Si el resultado lo marca, verás un aviso explícito.</p>
+      </div>
+    </details>
+    <div class="controls">
+      <div class="field">
+        <label for="lq-symbol">Símbolo</label>
+        <select id="lq-symbol">
+          <option value="ETHUSDT">ETHUSDT (→ ETHUSD_PERP)</option>
+          <option value="BTCUSDT">BTCUSDT (→ BTCUSD_PERP)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="lq-days">Días</label>
+        <input id="lq-days" type="number" min="1" max="120" step="1" value="30">
+      </div>
+      <div class="field">
+        <label for="lq-bins">Niveles de precio</label>
+        <input id="lq-bins" type="number" min="10" max="80" step="5" value="30">
+      </div>
+      <button class="run" id="lq-run">Generar mapa de liquidaciones</button>
+    </div>
+    <div class="status" id="lq-status"></div>
+    <div id="lq-result"><div class="empty">Datos reales de liquidación forzada — ver metodología para límites de cobertura.</div></div>
+  </section>
+
+  <!-- ═══════════════ ESTACIONALIDAD ═══════════════ -->
+  <section class="tab-panel" id="panel-seasonality">
+    <details class="methodology">
+      <summary>¿Qué es esto y cuál es la metodología?</summary>
+      <div class="body">
+        <p>Matriz Año × Mes de variación % de cierre a cierre — el mapa de estacionalidad clásico. Cada celda es el retorno real del mes correspondiente para el activo elegido; la fila inferior promedia cada mes a través de todos los años disponibles.</p>
+        <p><strong>Cobertura real, no uniforme entre activos:</strong> los índices (S&amp;P 500, Nasdaq) vía Yahoo Finance cubren décadas, así que 2015-2026 no tiene huecos. Los futuros perpetuos cripto de Binance (ETHUSDT, BTCUSDT) no llegan a 2015 (el mercado USDⓈ-M arrancó en 2019); el Oro (XAUUSDT) recién se lanzó en enero de 2026. Un año sin datos reales del activo simplemente no aparece como fila — nunca se rellena. Revisa siempre el aviso de "cobertura real" que muestra el resultado.</p>
+      </div>
+    </details>
+    <div class="controls">
+      <div class="field">
+        <label for="sn-asset">Activo</label>
+        <select id="sn-asset"></select>
+      </div>
+      <div class="field">
+        <label for="sn-start">Año inicial</label>
+        <input id="sn-start" type="number" min="1990" max="2026" step="1" value="2015">
+      </div>
+      <div class="field">
+        <label for="sn-end">Año final</label>
+        <input id="sn-end" type="number" min="1990" max="2026" step="1" value="2026">
+      </div>
+      <button class="run" id="sn-run">Generar matriz</button>
+    </div>
+    <div class="status" id="sn-status"></div>
+    <div id="sn-result"><div class="empty">Elige un activo y rango de años, luego genera la matriz.</div></div>
+  </section>
+
+  <!-- ═══════════════ BITÁCORA ═══════════════ -->
+  <section class="tab-panel" id="panel-bitacora">
+    <details class="methodology">
+      <summary>¿Qué es esto y cuál es la metodología?</summary>
+      <div class="body">
+        <p>Reconstruye tu <strong>bitácora de trading</strong> a partir de un export real de Binance Futuros ("Historial de órdenes" o "Historial de trading") — el mismo formato que tu plantilla manual (Short/Long, Cantidad, Fechas, Precios, Duración, Porcentaje, Ganancia, Saldo), pero generado automáticamente desde tus ejecuciones reales.</p>
+        <p><strong>Metodología:</strong> se toman todas las ejecuciones (FILLED) y se agrupan en operaciones completas usando un algoritmo de posición corrida por símbolo — desde que la posición sale de cero hasta que vuelve a cero. El precio de entrada/salida es el promedio ponderado de todas las ejecuciones parciales de cada lado. Maneja entradas escalonadas y ejecuciones que cruzan de largo a corto (o viceversa) en una sola orden.</p>
+        <p><strong>Fuente de la ganancia por operación (de más a menos confiable):</strong> si subes el "Historial de transacciones", cada operación dentro de su rango de fechas usa el REALIZED_PNL/COMMISSION real del libro contable de Binance ("ledger"). Si tu archivo principal es un "Historial de trading", ya trae Ganancia Realizada/Comisión reales por fila y se usan directamente ("trading history") — no se recalculan por precio. Solo cuando ninguna de las dos existe (típicamente con "Historial de órdenes", que no trae esos campos) se estima por reconstrucción de precio ("estimado"), y esa estimación es <strong>bruta</strong> (sin comisión). La columna "Fuente" de la tabla te dice cuál aplicó a cada fila.</p>
+        <p><strong>Otros límites honestos:</strong> el <strong>apalancamiento no viene en ningún export de Binance</strong> — es un dato que tú ingresas, no algo que el reporte confirme; por eso no lo pre-llenamos con un valor por defecto: debes escribirlo tú mismo. El saldo en COP es una conversión simple (USDT × TRM que ingreses), no un balance real de cuenta. Si no ingresas tu saldo real actual, la columna "Saldo" es solo PnL acumulado desde el capital inicial que declares (o desde cero) — no un balance de cuenta verificado.</p>
+      </div>
+    </details>
+    <div class="controls">
+      <div class="field">
+        <label for="bt-file">Historial de órdenes (.xlsx)</label>
+        <input id="bt-file" type="file" accept=".xlsx,.xls">
+      </div>
+      <div class="field">
+        <label for="bt-income-file">Historial de transacciones (opcional)</label>
+        <input id="bt-income-file" type="file" accept=".xlsx,.xls">
+      </div>
+      <div class="field">
+        <label for="bt-balance">Saldo actual real (USDT)</label>
+        <input id="bt-balance" type="number" min="0" step="1" placeholder="ej. 1131.02">
+      </div>
+      <div class="field">
+        <label for="bt-capital">o Capital inicial (USDT)</label>
+        <input id="bt-capital" type="number" min="0" step="10" value="0">
+      </div>
+      <div class="field">
+        <label for="bt-trm">TRM (COP/USDT)</label>
+        <input id="bt-trm" type="number" min="0" step="10" placeholder="ej. 3150">
+      </div>
+      <div class="field">
+        <label for="bt-leverage">Apalancamiento usado (no viene en el export — escríbelo tú)</label>
+        <input id="bt-leverage" type="number" min="1" max="125" step="1" placeholder="ej. 20" required>
+      </div>
+      <button class="run" id="bt-run">Generar bitácora</button>
+    </div>
+    <p class="zoom-hint" style="margin-top:-6px">
+      Si subes también el "Historial de transacciones", cada operación se valida/mejora contra el REALIZED_PNL real de Binance
+      (marcada "ledger" en la tabla). Si tu archivo principal ya es un "Historial de trading", sus operaciones parten de
+      Ganancia Realizada/Comisión reales ("trading history") aunque no subas nada más — solo sin ninguno de los dos
+      queda como estimación por precio ("estimado").
+    </p>
+    <div class="status" id="bt-status"></div>
+    <div id="bt-result"><div class="empty">Sube tu Historial de órdenes de Binance Futuros para generar la bitácora.</div></div>
+  </section>
+
+  <datalist id="symbols">
+    <option value="BTCUSDT"><option value="ETHUSDT">
+    <option value="SOLUSDT"><option value="BNBUSDT">
+    <option value="XRPUSDT">
+  </datalist>
+
+  <p class="disclaimer">
+    Este panel expone señales analíticas derivadas de reglas matemáticas sobre medias móviles.
+    No constituye asesoría de inversión personalizada — es un insumo más para tu propio criterio de operación.
+  </p>
+</div>
+
+<script>
+if (window.ChartZoom) Chart.register(window.ChartZoom);
+
+const ZOOM_OPTIONS = {
+  pan:  { enabled: true, mode: 'x', modifierKey: null, threshold: 5 },
+  zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+};
+// Desplaza el eje X un % del rango visible — más confiable que depender solo del arrastre.
+function panChart(chart, direction) {
+  // chart.pan() espera un delta en PÍXELES (no en unidades de dato) — se desplaza
+  // un 20% del ancho visible del área de trazado en cada clic.
+  const width = chart.chartArea ? chart.chartArea.width : 300;
+  chart.pan({ x: direction * width * 0.2 * -1 }, undefined, 'default');
+}
+
+/* ── Utilidades compartidas ─────────────────────────────── */
+function prettyCode(code) {
+  return (code || '').replace(/^[A-Z]+-\d+_/, '').replace(/_/g, ' ');
+}
+function biasClass(score, mid = 50) {
+  if (score === null || score === undefined) return '';
+  if (score >= mid + 15) return 'bull';
+  if (score <= mid - 15) return 'bear';
+  return '';
+}
+function meterColor(pct, inverse = false) {
+  const good = inverse ? pct <= 35 : pct >= 65;
+  const bad  = inverse ? pct >= 65 : pct <= 35;
+  if (good) return 'var(--green)';
+  if (bad)  return 'var(--red)';
+  return 'var(--amber)';
+}
+function metric(label, value, max, inverse = false, desc = '') {
+  const pct = Math.max(0, Math.min(100, (value / max) * 100));
+  return `
+    <div class="metric">
+      <div class="m-top"><span>${label}</span><span class="m-val">${value.toFixed(1)} / ${max}</span></div>
+      <div class="meter"><div style="width:${pct}%; background:${meterColor(pct, inverse)}"></div></div>
+      ${desc ? `<p class="metric-desc">${desc}</p>` : ''}
+    </div>`;
+}
+function probBar(probUp, probDown) {
+  return `
+    <div class="prob-bar">
+      <div class="prob-up" style="width:${probUp}%">${probUp % 1 === 0 ? probUp : probUp.toFixed(1)}% subir</div>
+      <div class="prob-down" style="width:${probDown}%">${probDown % 1 === 0 ? probDown : probDown.toFixed(1)}% bajar</div>
+    </div>`;
+}
+async function callApi(path, body, statusEl) {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Error desconocido');
+  return data;
+}
+
+/* ── Tabs ────────────────────────────────────────────────── */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ── Tiempo real ─────────────────────────────────────────── */
+const rtRun = document.getElementById('rt-run');
+const rtStatus = document.getElementById('rt-status');
+const rtResult = document.getElementById('rt-result');
+
+function renderDiagnosis(diag) {
+  const combBadge = diag.combination_status === 'IMPOSIBLE'
+    ? '<span class="badge warn"><span class="label">Combinación</span>IMPOSIBLE</span>'
+    : diag.combination_status === 'INUSUAL'
+      ? '<span class="badge warn"><span class="label">Combinación</span>INUSUAL</span>'
+      : '';
+  const mtfRow = diag.mtf_sync !== null && diag.mtf_sync !== undefined
+    ? `<tr><td>Sincronía multi-timeframe (MTF_SYNC)</td><td>${diag.mtf_sync.toFixed(0)}%</td></tr>` : '';
+
+  rtResult.innerHTML = `
+    <div class="card">
+      <div class="meta-row">
+        <span class="symbol">${diag.symbol}</span>
+        <span class="ts">${diag.timeframe} · ${new Date(diag.timestamp).toLocaleString('es-CO')}</span>
+      </div>
+      <div class="badges">
+        <span class="badge ${biasClass(diag.conviction_score)}"><span class="label">Estructura</span>${prettyCode(diag.structural_state)}</span>
+        <span class="badge"><span class="label">Momentum</span>${prettyCode(diag.momentum_state)}</span>
+        <span class="badge"><span class="label">Energía</span>${prettyCode(diag.energy_state)}</span>
+        ${combBadge}
+      </div>
+    </div>
+    <div class="card">
+      <h2>Métricas del diagnóstico</h2>
+      <div class="metrics">
+        ${metric('Convicción', diag.conviction_score, 100, false,
+          'Fuerza del sesgo direccional de la estructura de EMAs. Por encima de 50 = sesgo alcista; por debajo de 50 = sesgo bajista; cerca de 50 = sin sesgo claro.')}
+        ${metric('Confianza', diag.confidence_score, 95, false,
+          'Qué tan confiable es este diagnóstico, según la coherencia entre variables, la fricción estructural y (si aplica) la confirmación multi-timeframe.')}
+        ${metric('Coherencia', diag.coherence_score, 10, false,
+          'Qué tan alineados están el stack de EMAs, el volumen y los rebotes entre sí. Alto = señales consistentes; bajo = señales contradictorias.')}
+        ${metric('Fricción', diag.friction_index, 10, true,
+          'Resistencia estructural al movimiento (compresión, baja elasticidad, bajo volumen). Alto = el movimiento esperado podría ser lento o trabarse.')}
+      </div>
+    </div>
+    <div class="card">
+      <h2>Lectura direccional (heurística)</h2>
+      ${probBar(diag.prob_up_pct, diag.prob_down_pct)}
+      <p class="prob-note">Combina convicción y confianza en una sola lectura direccional — no es una probabilidad estadística validada, es una heurística explícita: la convicción se "encoge" hacia 50/50 en proporción a cuánta confianza tiene el propio diagnóstico.</p>
+    </div>
+    <div class="card scenario-card">
+      <div class="sc-code">Escenario probable</div>
+      <div class="sc-name">${prettyCode(diag.probable_scenario)}</div>
+    </div>
+    <div class="card">
+      <h2>Explicación</h2>
+      <p class="explanation">${diag.explanation}</p>
+    </div>
+    <div class="card">
+      <h2>Detalle</h2>
+      <table class="detail">
+        <tr><td>Rebotes en EMA-200 (ventana)</td><td>${diag.bounce_count_200}</td></tr>
+        ${mtfRow}
+        <tr><td>FRM</td><td>${diag.frm_version}</td></tr>
+        <tr><td>BRM</td><td>${diag.brm_version}</td></tr>
+        <tr><td>IRM</td><td>${diag.irm_version}</td></tr>
+      </table>
+    </div>`;
+}
+
+/* ── Tiempo real: gráfico EMA multi-timeframe ───────────────
+   Solo visual — cada gráfico muestra precio + 5 EMAs de su propio
+   timeframe (vía /api/historical, el mismo endpoint de la pestaña
+   Histórico). No recalcula un diagnóstico por timeframe; eso es lo que
+   MTF_SYNC (F-019, EIM-FRM-001) hará cuando se implemente — ver
+   metodología de esta pestaña. */
+let rtMtfCharts = {};
+
+async function renderMtfCharts(symbol, timeframes) {
+  const mtfContainer = document.getElementById('rt-mtf-result');
+  if (!timeframes.length) { mtfContainer.innerHTML = ''; return; }
+
+  mtfContainer.innerHTML = `<div class="mtf-grid">${timeframes.map(tf => `
+    <div class="card mtf-card" id="mtf-card-${tf}">
+      <h3>${tf} <span class="badge" id="mtf-status-${tf}">cargando…</span></h3>
+      <div class="chart-box"><canvas id="mtfCanvas-${tf}"></canvas></div>
+    </div>`).join('')}</div>`;
+
+  await Promise.all(timeframes.map(async (tf) => {
+    const badge = document.getElementById(`mtf-status-${tf}`);
+    try {
+      const records = await callApi('/api/historical', { symbol, timeframe: tf, candles: 400 }, null);
+      const visible = records.slice(-120);
+      const last = records[records.length - 1];
+      badge.textContent = prettyCode(last.STRUCTURAL_STATE);
+      badge.className = `badge ${biasClass(last.CONVICTION_SCORE)}`;
+
+      const ctx = document.getElementById(`mtfCanvas-${tf}`).getContext('2d');
+      if (rtMtfCharts[tf]) rtMtfCharts[tf].destroy();
+      const xs = visible.map(r => new Date(r.timestamp).getTime());
+      const candles = visible.map((r, i) => ({ x: xs[i], o: r.open, h: r.high, l: r.low, c: r.close }));
+      const emaLine = (key) => visible.map((r, i) => ({ x: xs[i], y: r[key] }));
+
+      rtMtfCharts[tf] = new Chart(ctx, {
+        // 'type' explícito a nivel de chart (no solo por dataset): sin esto,
+        // Chart.js 4.4.x no invoca el parser especializado del controlador
+        // candlestick y la vela queda con y:null — bug real reproducido y
+        // confirmado en el navegador, no un ajuste cosmético.
+        type: 'candlestick',
+        data: {
+          datasets: [
+            { type: 'candlestick', label: 'Precio', data: candles, order: 0,
+              color: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' },
+              borderColor: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' } },
+            { type: 'line', label: 'EMA 9',   data: emaLine('EMA_9'),   borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ema-1'), borderWidth: 1, pointRadius: 0, order: 1 },
+            { type: 'line', label: 'EMA 21',  data: emaLine('EMA_21'),  borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ema-2'), borderWidth: 1, pointRadius: 0, order: 1 },
+            { type: 'line', label: 'EMA 55',  data: emaLine('EMA_55'),  borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ema-3'), borderWidth: 1, pointRadius: 0, order: 1 },
+            { type: 'line', label: 'EMA 100', data: emaLine('EMA_100'), borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ema-4'), borderWidth: 1, pointRadius: 0, order: 1 },
+            { type: 'line', label: 'EMA 200', data: emaLine('EMA_200'), borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ema-5'), borderWidth: 1, pointRadius: 0, order: 1 },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: { mode: 'index', intersect: false },
+          },
+          scales: {
+            x: { type: 'time', ticks: { color: '#8D6E63', maxTicksLimit: 6 }, grid: { color: '#DED4C2' } },
+            y: { ticks: { color: '#8D6E63' }, grid: { color: '#DED4C2' } },
+          },
+        },
+      });
+    } catch (err) {
+      badge.textContent = 'error';
+      document.getElementById(`mtf-card-${tf}`)
+        .insertAdjacentHTML('beforeend', `<p class="prob-note" style="color:var(--red)">Error: ${err.message}</p>`);
+    }
+  }));
+}
+
+rtRun.addEventListener('click', async () => {
+  const symbol    = document.getElementById('rt-symbol').value.trim().toUpperCase() || 'BTCUSDT';
+  const timeframe = document.getElementById('rt-timeframe').value;
+  const mtfTimeframes = [...document.querySelectorAll('.rt-mtf:checked')].map(el => el.value);
+  rtRun.disabled = true;
+  rtStatus.className = 'status';
+  rtStatus.textContent = `Consultando Binance y ejecutando pipeline EIM para ${symbol} (${timeframe})…`;
+  try {
+    const [diag] = await Promise.all([
+      callApi('/api/diagnose', { symbol, timeframe, context: 500 }, rtStatus),
+      renderMtfCharts(symbol, mtfTimeframes),
+    ]);
+    renderDiagnosis(diag);
+    rtStatus.textContent = `Última ejecución: ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    rtStatus.className = 'status error';
+    rtStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    rtRun.disabled = false;
+  }
+});
+
+/* ── Histórico ───────────────────────────────────────────── */
+const hRun = document.getElementById('h-run');
+const hStatus = document.getElementById('h-status');
+const hResult = document.getElementById('h-result');
+let histChart = null;
+
+function renderHistorical(records) {
+  hResult.innerHTML = `
+    <div class="card">
+      <div class="chart-header"><h2>Precio y estructura de EMAs</h2>
+        <div class="chart-tools">
+          <button class="chart-pan" id="hist-pan-left" title="Desplazar hacia atrás">◀</button>
+          <button class="chart-pan" id="hist-pan-right" title="Desplazar hacia adelante">▶</button>
+          <button class="zoom-reset" id="hist-zoom-reset">Restablecer zoom</button>
+        </div>
+      </div>
+      <p class="zoom-hint">Rueda del mouse para zoom, arrastrar para desplazar.</p>
+      <div class="chart-box"><canvas id="histCanvas"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Últimas 60 velas — estados y escenarios</h2>
+      <div class="table-scroll">
+        <table class="hist">
+          <thead><tr>
+            <th>Fecha</th><th>Close</th><th>Estructura</th><th>Momentum</th><th>Escenario</th><th>Confianza</th>
+          </tr></thead>
+          <tbody id="histTableBody"></tbody>
+        </table>
+      </div>
+    </div>`;
+
+  const ctx = document.getElementById('histCanvas').getContext('2d');
+  if (histChart) histChart.destroy();
+  const xs = records.map(r => new Date(r.timestamp).getTime());
+  const candles = records.map((r, i) => ({ x: xs[i], o: r.open, h: r.high, l: r.low, c: r.close }));
+  const emaLine = (key) => records.map((r, i) => ({ x: xs[i], y: r[key] }));
+
+  histChart = new Chart(ctx, {
+    type: 'candlestick', // ver nota de rtMtfCharts sobre por qué es obligatorio aquí
+    data: {
+      datasets: [
+        { type: 'candlestick', label: 'Precio', data: candles, order: 0,
+          color: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' },
+          borderColor: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' } },
+        { type: 'line', label: 'EMA 9',   data: emaLine('EMA_9'),   borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ema-1'), borderWidth: 1.3, pointRadius: 0, order: 1 },
+        { type: 'line', label: 'EMA 21',  data: emaLine('EMA_21'),  borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ema-2'), borderWidth: 1.3, pointRadius: 0, order: 1 },
+        { type: 'line', label: 'EMA 55',  data: emaLine('EMA_55'),  borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ema-3'), borderWidth: 1.3, pointRadius: 0, order: 1 },
+        { type: 'line', label: 'EMA 100', data: emaLine('EMA_100'), borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ema-4'), borderWidth: 1.3, pointRadius: 0, order: 1 },
+        { type: 'line', label: 'EMA 200', data: emaLine('EMA_200'), borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ema-5'), borderWidth: 1.3, pointRadius: 0, order: 1 },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#2B241C', usePointStyle: true, boxWidth: 8 } },
+        tooltip: { mode: 'index', intersect: false },
+        zoom: ZOOM_OPTIONS,
+      },
+      scales: {
+        x: { type: 'time', ticks: { color: '#8D6E63', maxTicksLimit: 10 }, grid: { color: '#DED4C2' } },
+        y: { ticks: { color: '#8D6E63' }, grid: { color: '#DED4C2' } },
+      },
+    },
+  });
+  document.getElementById('hist-zoom-reset').addEventListener('click', () => histChart.resetZoom());
+  document.getElementById('hist-pan-left').addEventListener('click', () => panChart(histChart, -1));
+  document.getElementById('hist-pan-right').addEventListener('click', () => panChart(histChart, 1));
+
+  const tbody = document.getElementById('histTableBody');
+  const last60 = records.slice(-60).reverse();
+  tbody.innerHTML = last60.map(r => `
+    <tr>
+      <td>${new Date(r.timestamp).toLocaleString('es-CO')}</td>
+      <td>${r.close.toFixed(2)}</td>
+      <td>${prettyCode(r.STRUCTURAL_STATE)}</td>
+      <td>${prettyCode(r.MOMENTUM_STATE)}</td>
+      <td>${prettyCode(r.PROBABLE_SCENARIO)}</td>
+      <td>${r.CONFIDENCE_SCORE.toFixed(1)}%</td>
+    </tr>`).join('');
+}
+
+hRun.addEventListener('click', async () => {
+  const symbol    = document.getElementById('h-symbol').value.trim().toUpperCase() || 'BTCUSDT';
+  const timeframe = document.getElementById('h-timeframe').value;
+  const candles   = parseInt(document.getElementById('h-candles').value, 10) || 500;
+  hRun.disabled = true;
+  hStatus.className = 'status';
+  hStatus.textContent = `Descargando ${candles} velas de ${symbol} (${timeframe}) y corriendo el pipeline…`;
+  try {
+    const records = await callApi('/api/historical', { symbol, timeframe, candles }, hStatus);
+    renderHistorical(records);
+    hStatus.textContent = `${records.length} velas procesadas · ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    hStatus.className = 'status error';
+    hStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    hRun.disabled = false;
+  }
+});
+
+/* ── Backtest ────────────────────────────────────────────── */
+const bRun = document.getElementById('b-run');
+const bStatus = document.getElementById('b-status');
+const bResult = document.getElementById('b-result');
+
+function renderBacktest(m) {
+  const dist = m.scenario_distribution || {};
+  const entries = Object.entries(dist).sort((a, b) => b[1] - a[1]);
+  const maxCount = Math.max(...entries.map(e => e[1]), 1);
+  const distHtml = entries.map(([name, count]) => `
+    <div class="dist-row">
+      <span>${prettyCode(name)}</span>
+      <div class="dist-track"><div class="dist-fill" style="width:${(count / maxCount * 100)}%"></div></div>
+      <span class="dist-count">${count}</span>
+    </div>`).join('');
+
+  bResult.innerHTML = `
+    <div class="card">
+      <h2>Métricas VRM (MET-001 a MET-006)</h2>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-label">Accuracy (MET-001)</div><div class="kpi-value">${m['MET-001_accuracy_global']}%</div></div>
+        <div class="kpi"><div class="kpi-label">Estabilidad (MET-005)</div><div class="kpi-value">${m['MET-005_stability']}</div></div>
+        <div class="kpi"><div class="kpi-label">Cobertura (MET-006)</div><div class="kpi-value">${m['MET-006_coverage']}</div></div>
+        <div class="kpi"><div class="kpi-label">Convicción prom.</div><div class="kpi-value">${m.avg_conviction_score}</div></div>
+        <div class="kpi"><div class="kpi-label">Confianza prom.</div><div class="kpi-value">${m.avg_confidence_score}%</div></div>
+        <div class="kpi"><div class="kpi-label">Evaluados</div><div class="kpi-value">${m.correct_diagnoses}/${m.total_evaluated}</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Distribución de escenarios</h2>
+      ${distHtml}
+    </div>`;
+}
+
+/* ── VWAP ────────────────────────────────────────────────── */
+const vRun = document.getElementById('v-run');
+const vStatus = document.getElementById('v-status');
+const vResult = document.getElementById('v-result');
+let vwapChart = null;
+
+const VWAP_POSITION_LABELS = {
+  EXTREMO_SOBRE:  'Extremo sobre VWAP (>2σ)',
+  ESTIRADO_SOBRE: 'Estirado sobre VWAP (1-2σ)',
+  SOBRE_VWAP:     'Sobre VWAP (0-1σ)',
+  BAJO_VWAP:      'Bajo VWAP (0-1σ)',
+  ESTIRADO_BAJO:  'Estirado bajo VWAP (1-2σ)',
+  EXTREMO_BAJO:   'Extremo bajo VWAP (>2σ)',
+  SIN_DATOS:      'Sin datos suficientes (inicio de sesión)',
+};
+function vwapBadgeClass(pos) {
+  if (pos === 'SOBRE_VWAP') return 'bull';
+  if (pos === 'BAJO_VWAP') return 'bear';
+  if (pos === 'EXTREMO_SOBRE' || pos === 'ESTIRADO_SOBRE' || pos === 'EXTREMO_BAJO' || pos === 'ESTIRADO_BAJO') return 'warn';
+  return '';
+}
+
+function renderVwap(payload) {
+  const { records, current } = payload;
+  const slope = current.VWAP_DAY_SLOPE;
+  const slopeLabel = slope === null || slope === undefined ? '—'
+    : (slope > 0.01 ? `Subiendo (${slope.toFixed(3)}%/vela)` : slope < -0.01 ? `Bajando (${slope.toFixed(3)}%/vela)` : 'Plano');
+
+  vResult.innerHTML = `
+    <div class="card">
+      <div class="meta-row">
+        <span class="symbol">${current.close.toFixed(2)}</span>
+        <span class="ts">${new Date(current.timestamp).toLocaleString('es-CO')}</span>
+      </div>
+      <div class="badges">
+        <span class="badge ${vwapBadgeClass(current.VWAP_DAY_POSITION)}"><span class="label">Posición vs VWAP diario</span>${VWAP_POSITION_LABELS[current.VWAP_DAY_POSITION] || current.VWAP_DAY_POSITION}</span>
+        <span class="badge"><span class="label">VWAP diario</span>${current.VWAP_DAY != null ? current.VWAP_DAY.toFixed(2) : '—'}</span>
+        <span class="badge"><span class="label">Tendencia VWAP</span>${slopeLabel}</span>
+      </div>
+      ${current.note ? `<p class="metric-desc" style="margin-top:14px">${current.note}</p>` : ''}
+    </div>
+    <div class="card">
+      <h2>Lectura direccional (heurística)</h2>
+      ${probBar(current.prob_up_pct, current.prob_down_pct)}
+      <p class="prob-note">Combina la posición vs VWAP y su pendiente en una sola lectura — no es una probabilidad estadística validada, es una heurística explícita: 0-1σ a favor de la pendiente = sesgo de continuación; más allá de 1σ empieza a pesar la reversión hacia el VWAP.</p>
+    </div>
+    <div class="card">
+      <div class="chart-header"><h2>Precio vs VWAP diario (bandas ±1σ/±2σ)</h2>
+        <div class="chart-tools">
+          <button class="chart-pan" id="vwap-pan-left" title="Desplazar hacia atrás">◀</button>
+          <button class="chart-pan" id="vwap-pan-right" title="Desplazar hacia adelante">▶</button>
+          <button class="zoom-reset" id="vwap-zoom-reset">Restablecer zoom</button>
+        </div>
+      </div>
+      <p class="zoom-hint">Rueda del mouse para zoom, arrastrar para desplazar.</p>
+      <div class="chart-box"><canvas id="vwapCanvas"></canvas></div>
+    </div>`;
+
+  const ctx = document.getElementById('vwapCanvas').getContext('2d');
+  if (vwapChart) vwapChart.destroy();
+  const xs = records.map(r => new Date(r.timestamp).getTime());
+  const candles = records.map((r, i) => ({ x: xs[i], o: r.open, h: r.high, l: r.low, c: r.close }));
+  const bandLine = (key) => records.map((r, i) => ({ x: xs[i], y: r[key] }));
+
+  vwapChart = new Chart(ctx, {
+    type: 'candlestick', // ver nota de rtMtfCharts sobre por qué es obligatorio aquí
+    data: {
+      datasets: [
+        { type: 'candlestick', label: 'Precio', data: candles, order: 0,
+          color: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' },
+          borderColor: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' } },
+        { type: 'line', label: 'VWAP diario',  data: bandLine('VWAP_DAY'),         borderColor: '#4E93C0', borderWidth: 2, pointRadius: 0, order: 1 },
+        { type: 'line', label: '+2σ',          data: bandLine('VWAP_DAY_UPPER_2'), borderColor: 'rgba(78,147,192,0.35)', borderDash: [4, 4], borderWidth: 1, pointRadius: 0, order: 3 },
+        { type: 'line', label: '+1σ',          data: bandLine('VWAP_DAY_UPPER_1'), borderColor: 'rgba(78,147,192,0.6)',  borderWidth: 1, pointRadius: 0, order: 2, fill: '+1', backgroundColor: 'rgba(78,147,192,0.08)' },
+        { type: 'line', label: '-1σ',          data: bandLine('VWAP_DAY_LOWER_1'), borderColor: 'rgba(78,147,192,0.6)',  borderWidth: 1, pointRadius: 0, order: 2 },
+        { type: 'line', label: '-2σ',          data: bandLine('VWAP_DAY_LOWER_2'), borderColor: 'rgba(78,147,192,0.35)', borderDash: [4, 4], borderWidth: 1, pointRadius: 0, order: 3 },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#2B241C', usePointStyle: true, boxWidth: 8 } },
+        tooltip: { mode: 'index', intersect: false },
+        zoom: ZOOM_OPTIONS,
+      },
+      scales: {
+        x: { type: 'time', ticks: { color: '#8D6E63', maxTicksLimit: 10 }, grid: { color: '#DED4C2' } },
+        y: { ticks: { color: '#8D6E63' }, grid: { color: '#DED4C2' } },
+      },
+    },
+  });
+  document.getElementById('vwap-zoom-reset').addEventListener('click', () => vwapChart.resetZoom());
+  document.getElementById('vwap-pan-left').addEventListener('click', () => panChart(vwapChart, -1));
+  document.getElementById('vwap-pan-right').addEventListener('click', () => panChart(vwapChart, 1));
+}
+
+vRun.addEventListener('click', async () => {
+  const symbol    = document.getElementById('v-symbol').value.trim().toUpperCase() || 'BTCUSDT';
+  const timeframe = document.getElementById('v-timeframe').value;
+  const candles   = parseInt(document.getElementById('v-candles').value, 10) || 500;
+  vRun.disabled = true;
+  vStatus.className = 'status';
+  vStatus.textContent = `Calculando VWAP para ${symbol} (${timeframe})…`;
+  try {
+    const payload = await callApi('/api/vwap', { symbol, timeframe, candles }, vStatus);
+    renderVwap(payload);
+    vStatus.textContent = `Última ejecución: ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    vStatus.className = 'status error';
+    vStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    vRun.disabled = false;
+  }
+});
+
+/* ── Price Action ────────────────────────────────────────── */
+const paRun = document.getElementById('pa-run');
+const paStatus = document.getElementById('pa-status');
+const paResult = document.getElementById('pa-result');
+let paChart = null;
+let paVolumeChart = null;
+
+const PATTERN_FIELDS = [
+  ['BULLISH_ENGULFING', 'Envolvente alcista', 'up'],
+  ['BEARISH_ENGULFING', 'Envolvente bajista', 'down'],
+  ['HAMMER', 'Martillo', 'up'],
+  ['SHOOTING_STAR', 'Estrella fugaz', 'down'],
+  ['DOJI', 'Doji', ''],
+  ['INSIDE_BAR', 'Inside bar', ''],
+  ['OUTSIDE_BAR', 'Outside bar', ''],
+];
+
+function structureBadgeClass(s) {
+  if (s === 'BULLISH') return 'bull';
+  if (s === 'BEARISH') return 'bear';
+  return '';
+}
+
+function renderPriceAction(payload) {
+  const { records, sr_zones, nearest_resistance, nearest_support, current_close } = payload;
+  const lastStructure = records.length ? records[records.length - 1].STRUCTURE_STATE : 'UNDEFINED';
+
+  const resText = nearest_resistance ? `${nearest_resistance.price.toFixed(2)} (${nearest_resistance.touches} toques)` : '—';
+  const supText = nearest_support ? `${nearest_support.price.toFixed(2)} (${nearest_support.touches} toques)` : '—';
+
+  const events = records.filter(r => r.STRUCTURE_EVENT !== 'NONE').slice(-20).reverse();
+  const eventsRows = events.map(r => `
+    <tr>
+      <td>${new Date(r.timestamp).toLocaleString('es-CO')}</td>
+      <td>${prettyCode(r.STRUCTURE_EVENT)}</td>
+      <td>${r.close.toFixed(2)}</td>
+    </tr>`).join('') || '<tr><td colspan="3" style="color:var(--text-dim)">Sin rupturas de estructura en la ventana.</td></tr>';
+
+  const patternRows = records.slice().reverse().map(r => {
+    const tags = PATTERN_FIELDS.filter(([k]) => r[k]).map(([, label, cls]) => `<span class="tag ${cls}">${label}</span>`).join('');
+    return tags ? { r, tags } : null;
+  }).filter(Boolean).slice(0, 20).map(({ r, tags }) => `
+    <tr><td>${new Date(r.timestamp).toLocaleString('es-CO')}</td><td>${r.close.toFixed(2)}</td><td>${tags}</td></tr>`).join('')
+    || '<tr><td colspan="3" style="color:var(--text-dim)">Sin patrones detectados en las últimas velas.</td></tr>';
+
+  const zonesRows = sr_zones.slice().sort((a, b) => b.touches - a.touches).slice(0, 12)
+    .sort((a, b) => b.price - a.price)
+    .map(z => `<tr><td>${z.price.toFixed(2)}</td><td>${z.touches}</td><td>${z.price > current_close ? 'Resistencia' : 'Soporte'}</td></tr>`).join('');
+
+  paResult.innerHTML = `
+    <div class="card">
+      <div class="meta-row">
+        <span class="symbol">${current_close.toFixed(2)}</span>
+      </div>
+      <div class="badges">
+        <span class="badge ${structureBadgeClass(lastStructure)}"><span class="label">Estructura de mercado</span>${prettyCode(lastStructure)}</span>
+        <span class="badge"><span class="label">Resistencia más cercana</span>${resText}</span>
+        <span class="badge"><span class="label">Soporte más cercano</span>${supText}</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="chart-header"><h2>Precio y swings</h2>
+        <div class="chart-tools">
+          <button class="chart-pan" id="pa-pan-left" title="Desplazar hacia atrás">◀</button>
+          <button class="chart-pan" id="pa-pan-right" title="Desplazar hacia adelante">▶</button>
+          <button class="zoom-reset" id="pa-zoom-reset">Restablecer zoom</button>
+        </div>
+      </div>
+      <p class="zoom-hint">Rueda del mouse para zoom, arrastrar para desplazar.</p>
+      <div class="chart-box"><canvas id="paCanvas"></canvas></div>
+      <div class="chart-box" style="height:110px; margin-top:6px"><canvas id="paVolumeCanvas"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Rupturas de estructura recientes (BOS / CHOCH)</h2>
+      <div class="table-scroll"><table class="hist">
+        <thead><tr><th>Fecha</th><th>Evento</th><th>Close</th></tr></thead>
+        <tbody>${eventsRows}</tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h2>Patrones de vela recientes</h2>
+      <div class="table-scroll"><table class="hist">
+        <thead><tr><th>Fecha</th><th>Close</th><th>Patrones</th></tr></thead>
+        <tbody>${patternRows}</tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h2>Zonas de soporte / resistencia (top 12 por toques)</h2>
+      <table class="hist">
+        <thead><tr><th>Precio</th><th>Toques</th><th>Tipo</th></tr></thead>
+        <tbody>${zonesRows}</tbody>
+      </table>
+    </div>`;
+
+  const ctx = document.getElementById('paCanvas').getContext('2d');
+  if (paChart) paChart.destroy();
+  if (paVolumeChart) paVolumeChart.destroy();
+  const xs = records.map(r => new Date(r.timestamp).getTime());
+  const candles = records.map((r, i) => ({ x: xs[i], o: r.open, h: r.high, l: r.low, c: r.close }));
+  const swingHighs = records.map((r, i) => r.SWING_HIGH ? { x: xs[i], y: r.high } : null).filter(Boolean);
+  const swingLows  = records.map((r, i) => r.SWING_LOW  ? { x: xs[i], y: r.low }  : null).filter(Boolean);
+  const volumes = records.map((r, i) => ({ x: xs[i], y: r.volume }));
+
+  // Marcadores de patrones de vela directamente sobre el gráfico — antes
+  // solo aparecían en la tabla "Patrones de vela recientes". Alcistas
+  // debajo del low, bajistas encima del high, neutrales (doji/inside/
+  // outside) en el close, cada uno con su propio ícono/color para poder
+  // distinguirlos sin abrir la tabla.
+  const off = (v) => v * 0.997;
+  const onH = (v) => v * 1.003;
+  const patternMarker = (key, yFn) => records
+    .map((r, i) => (r[key] ? { x: xs[i], y: yFn(r) } : null))
+    .filter(Boolean);
+
+  const patternDatasets = [
+    { key: 'BULLISH_ENGULFING', label: 'Envolvente alcista', color: '#5EA23C', style: 'circle',      y: r => off(r.low) },
+    { key: 'HAMMER',            label: 'Martillo',            color: '#5EA23C', style: 'star',        y: r => off(r.low) },
+    { key: 'BEARISH_ENGULFING', label: 'Envolvente bajista',  color: '#D24942', style: 'circle',      y: r => onH(r.high) },
+    { key: 'SHOOTING_STAR',     label: 'Estrella fugaz',      color: '#D24942', style: 'star',        y: r => onH(r.high) },
+    { key: 'DOJI',               label: 'Doji',                color: '#C9A15A', style: 'cross',       y: r => r.close },
+    { key: 'INSIDE_BAR',         label: 'Inside bar',          color: '#8D6E63', style: 'rect',        y: r => onH(r.high) },
+    { key: 'OUTSIDE_BAR',        label: 'Outside bar',         color: '#8D6E63', style: 'rectRounded', y: r => off(r.low) },
+  ].map(p => ({
+    type: 'scatter', label: p.label, data: patternMarker(p.key, p.y),
+    backgroundColor: p.color, borderColor: p.color, pointRadius: 4, pointStyle: p.style, order: 0,
+  }));
+
+  // Nota técnica: el volumen se dibuja en un CANVAS SEPARADO (paVolumeCanvas),
+  // no como un segundo eje Y dentro del mismo Chart — se probó esa vía y
+  // Chart.js (con candlestick + bar + scatter mezclados en dos ejes Y)
+  // rompía el autoescalado del eje de precio, que quedaba fijo en 0–1 sin
+  // importar type/yAxisID explícitos (reproducido en el navegador, no es
+  // teórico). Dos gráficos independientes con el mismo eje X es el patrón
+  // ya usado y probado en el resto de la app; el zoom/pan se sincroniza a
+  // mano entre ambos vía syncVolumeXRange().
+  paChart = new Chart(ctx, {
+    type: 'candlestick', // ver nota de rtMtfCharts sobre por qué es obligatorio aquí
+    data: {
+      datasets: [
+        { type: 'candlestick', label: 'Precio', data: candles, order: 2,
+          color: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' },
+          borderColor: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' } },
+        { type: 'scatter', label: 'Swing High', data: swingHighs, backgroundColor: '#D24942', pointRadius: 5, pointStyle: 'triangle', order: 1 },
+        { type: 'scatter', label: 'Swing Low',  data: swingLows,  backgroundColor: '#5EA23C', pointRadius: 5, pointStyle: 'rectRot', order: 1 },
+        ...patternDatasets,
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: true },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#2B241C', usePointStyle: true, boxWidth: 8 } },
+        zoom: {
+          ...ZOOM_OPTIONS,
+          zoom: { ...ZOOM_OPTIONS.zoom, onZoomComplete: syncVolumeXRange },
+          pan:  { ...ZOOM_OPTIONS.pan,  onPanComplete:  syncVolumeXRange },
+        },
+      },
+      scales: {
+        x: { type: 'time', ticks: { color: '#8D6E63', maxTicksLimit: 10 }, grid: { color: '#DED4C2' } },
+        y: { ticks: { color: '#8D6E63' }, grid: { color: '#DED4C2' } },
+      },
+    },
+  });
+
+  const volCtx = document.getElementById('paVolumeCanvas').getContext('2d');
+  paVolumeChart = new Chart(volCtx, {
+    data: { datasets: [{ type: 'bar', label: 'Volumen', data: volumes, backgroundColor: 'rgba(141,110,99,0.55)' }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { type: 'time', ticks: { display: false }, grid: { display: false } },
+        y: { ticks: { color: '#8D6E63', maxTicksLimit: 3 }, grid: { color: '#DED4C2' } },
+      },
+    },
+  });
+
+  function syncVolumeXRange({ chart }) {
+    paVolumeChart.options.scales.x.min = chart.scales.x.min;
+    paVolumeChart.options.scales.x.max = chart.scales.x.max;
+    paVolumeChart.update('none');
+  }
+
+  document.getElementById('pa-zoom-reset').addEventListener('click', () => { paChart.resetZoom(); syncVolumeXRange({ chart: paChart }); });
+  document.getElementById('pa-pan-left').addEventListener('click', () => { panChart(paChart, -1); syncVolumeXRange({ chart: paChart }); });
+  document.getElementById('pa-pan-right').addEventListener('click', () => { panChart(paChart, 1); syncVolumeXRange({ chart: paChart }); });
+}
+
+paRun.addEventListener('click', async () => {
+  const symbol    = document.getElementById('pa-symbol').value.trim().toUpperCase() || 'BTCUSDT';
+  const timeframe = document.getElementById('pa-timeframe').value;
+  const candles   = parseInt(document.getElementById('pa-candles').value, 10) || 500;
+  paRun.disabled = true;
+  paStatus.className = 'status';
+  paStatus.textContent = `Descargando velas cerradas de ${symbol} (${timeframe}) y calculando estructura…`;
+  try {
+    const payload = await callApi('/api/price-action', { symbol, timeframe, candles }, paStatus);
+    renderPriceAction(payload);
+    paStatus.textContent = `Última ejecución: ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    paStatus.className = 'status error';
+    paStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    paRun.disabled = false;
+  }
+});
+
+/* ── Elliott ─────────────────────────────────────────────── */
+const elRun = document.getElementById('el-run');
+const elStatus = document.getElementById('el-status');
+const elResult = document.getElementById('el-result');
+let elChart = null;
+const IMPULSE_LABELS = ["0", "1", "2", "3", "4", "5"];
+
+function renderElliott(payload) {
+  const { price, pivots, threshold_pct, rule_violations, valid_count,
+          prob_up_pct, prob_down_pct, next_expected_label, wave_note } = payload;
+  const impulseComplete = IMPULSE_LABELS.every(l => pivots.some(p => p.wave_label === l));
+
+  let statusHtml;
+  if (!pivots.length) {
+    statusHtml = '<p style="color:var(--text-dim)">No se detectaron pivotes con este umbral — prueba bajar el % de reversión.</p>';
+  } else if (!impulseComplete) {
+    statusHtml = `<p style="color:var(--text-dim)">Conteo incompleto todavía (solo ${pivots.length} pivote(s) detectado(s)) — esperando más reversiones para completar 0-1-2-3-4-5.</p>`;
+  } else if (valid_count) {
+    statusHtml = '<p class="rule-ok">✓ El conteo impulsivo actual cumple las 3 reglas duras de Elliott.</p>';
+  } else {
+    statusHtml = '<p class="rule-bad">✗ El conteo impulsivo actual VIOLA reglas duras de Elliott:</p>' +
+      '<ul style="color:var(--red); margin:6px 0 12px 18px;">' + rule_violations.map(v => `<li>${v}</li>`).join('') + '</ul>' +
+      '<p class="metric-desc">Esto NO significa que el zigzag esté mal dibujado — de hecho es común que se vea más "limpio" visualmente ' +
+      'justo cuando esto pasa, porque el algoritmo simplemente toma los últimos 9 pivotes y los fuerza en la plantilla 0-1-2-3-4-5-A-B-C, ' +
+      'sin verificar si ahí realmente arranca un ciclo nuevo. Una violación es una señal de que ese punto de partida asumido (la "Onda 0") ' +
+      'probablemente está mal ubicado — quizás estás viendo un grado de onda distinto, o el ciclo real empezó en otro pivote más atrás o más adelante. ' +
+      'Prueba otro preset de plazo (cambia qué pivotes se capturan) para buscar una alineación que sí cumpla las 3 reglas.</p>';
+  }
+
+  const pivotRows = pivots.map(p => `
+    <tr>
+      <td>${p.wave_label}</td>
+      <td>${p.type === 'H' ? 'Máximo' : 'Mínimo'}</td>
+      <td>${p.price.toFixed(2)}</td>
+      <td>${new Date(p.timestamp).toLocaleString('es-CO')}</td>
+    </tr>`).join('');
+
+  const nextLabelText = next_expected_label
+    ? `Próxima onda esperada: <strong>${next_expected_label}</strong>.`
+    : '';
+
+  elResult.innerHTML = `
+    <div class="card">
+      <h2>Conteo tentativo (umbral zigzag ${threshold_pct}%)</h2>
+      ${statusHtml}
+    </div>
+    <div class="card">
+      <h2>Lectura direccional (heurística)</h2>
+      ${pivots.length ? probBar(prob_up_pct, prob_down_pct) : ''}
+      <p class="prob-note">${wave_note || ''} ${nextLabelText} Basado en las características clásicas de cada onda (la 3 suele extenderse más, la 5 suele agotarse, las correcciones 2/4/B suelen estar acotadas) — no es una probabilidad estadística validada.</p>
+    </div>
+    <div class="card">
+      <div class="chart-header"><h2>Precio y pivotes etiquetados</h2>
+        <div class="chart-tools">
+          <button class="chart-pan" id="el-pan-left" title="Desplazar hacia atrás">◀</button>
+          <button class="chart-pan" id="el-pan-right" title="Desplazar hacia adelante">▶</button>
+          <button class="zoom-reset" id="el-zoom-reset">Restablecer zoom</button>
+        </div>
+      </div>
+      <p class="zoom-hint">Rueda del mouse para zoom, arrastrar para desplazar.</p>
+      <div class="chart-box"><canvas id="elCanvas"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Pivotes</h2>
+      <table class="hist">
+        <thead><tr><th>Onda</th><th>Tipo</th><th>Precio</th><th>Fecha</th></tr></thead>
+        <tbody>${pivotRows}</tbody>
+      </table>
+    </div>`;
+
+  const ctx = document.getElementById('elCanvas').getContext('2d');
+  if (elChart) elChart.destroy();
+  const xs = price.map(r => new Date(r.timestamp).getTime());
+  const candles = price.map((r, i) => ({ x: xs[i], o: r.open, h: r.high, l: r.low, c: r.close }));
+  const pivotMap = new Map(pivots.map(p => [p.timestamp, p]));
+  // OJO: el hueco entre pivotes debe ser {x, y:null}, NUNCA un `null` suelto
+  // reemplazando todo el punto — Chart.js necesita el x para indexar/parsear
+  // cada entrada; un `null` completo revienta el parseo interno ("Cannot
+  // read properties of null (reading 'x')"), bug real encontrado al probar.
+  const zigzagData = price.map((r, i) => ({
+    x: xs[i],
+    y: pivotMap.has(r.timestamp) ? pivotMap.get(r.timestamp).price : null,
+  }));
+
+  elChart = new Chart(ctx, {
+    type: 'candlestick', // ver nota de rtMtfCharts sobre por qué es obligatorio aquí
+    data: {
+      datasets: [
+        { type: 'candlestick', label: 'Precio', data: candles, order: 1,
+          color: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' },
+          borderColor: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' } },
+        { type: 'line', label: 'Zigzag / Ondas', data: zigzagData, borderColor: '#E8B923', backgroundColor: '#C99A1D', borderWidth: 2, pointRadius: 4, spanGaps: true, order: 0 },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: true },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#2B241C', usePointStyle: true, boxWidth: 8 } },
+        zoom: ZOOM_OPTIONS,
+      },
+      scales: {
+        x: { type: 'time', ticks: { color: '#8D6E63', maxTicksLimit: 10 }, grid: { color: '#DED4C2' } },
+        y: { ticks: { color: '#8D6E63' }, grid: { color: '#DED4C2' } },
+      },
+    },
+  });
+  document.getElementById('el-zoom-reset').addEventListener('click', () => elChart.resetZoom());
+  document.getElementById('el-pan-left').addEventListener('click', () => panChart(elChart, -1));
+  document.getElementById('el-pan-right').addEventListener('click', () => panChart(elChart, 1));
+}
+
+document.getElementById('el-preset').addEventListener('change', (e) => {
+  document.getElementById('el-custom-field').style.display = e.target.value === 'custom' ? 'flex' : 'none';
+});
+
+elRun.addEventListener('click', async () => {
+  const symbol        = document.getElementById('el-symbol').value.trim().toUpperCase() || 'BTCUSDT';
+  const timeframe      = document.getElementById('el-timeframe').value;
+  const candles        = parseInt(document.getElementById('el-candles').value, 10) || 500;
+  const presetVal      = document.getElementById('el-preset').value;
+  const threshold_pct  = presetVal === 'custom'
+    ? (parseFloat(document.getElementById('el-threshold').value) || 3)
+    : parseFloat(presetVal);
+  elRun.disabled = true;
+  elStatus.className = 'status';
+  elStatus.textContent = `Calculando zigzag y conteo tentativo para ${symbol} (${timeframe})…`;
+  try {
+    const payload = await callApi('/api/elliott', { symbol, timeframe, candles, threshold_pct }, elStatus);
+    renderElliott(payload);
+    elStatus.textContent = `Última ejecución: ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    elStatus.className = 'status error';
+    elStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    elRun.disabled = false;
+  }
+});
+
+/* ── Variables crudas ────────────────────────────────────── */
+const rawRun = document.getElementById('raw-run');
+const rawStatus = document.getElementById('raw-status');
+const rawResult = document.getElementById('raw-result');
+
+function fmtVal(v) {
+  if (v === null || v === undefined) return '—';
+  if (typeof v === 'boolean') return v ? 'Sí' : 'No';
+  if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toFixed(3);
+  return String(v).replace(/_/g, ' ');
+}
+
+const RAW_GROUPS = [
+  { title: 'Medias móviles (EMA)', fields: [
+      ['EMA_9', 'EMA 9'], ['EMA_21', 'EMA 21'], ['EMA_55', 'EMA 55'],
+      ['EMA_100', 'EMA 100'], ['EMA_200', 'EMA 200'],
+  ]},
+  { title: 'Posición y estructura del stack', fields: [
+      ['STACK_ORDER', 'Orden del stack'], ['STACK_SCORE', 'Score del stack (0-10)'],
+      ['PRICE_VS_STACK', 'EMAs bajo el precio (0-5)'], ['SLOPE_DIRECTION', 'Dirección predominante'],
+  ]},
+  { title: 'Pendientes (% por vela)', fields: [
+      ['SLOPE_9', 'Pendiente EMA 9'], ['SLOPE_21', 'Pendiente EMA 21'], ['SLOPE_55', 'Pendiente EMA 55'],
+      ['SLOPE_100', 'Pendiente EMA 100'], ['SLOPE_200', 'Pendiente EMA 200'],
+  ]},
+  { title: 'Separación entre EMAs (spread %)', fields: [
+      ['SPREAD_9_21', 'Spread 9/21'], ['SPREAD_21_55', 'Spread 21/55'],
+      ['SPREAD_55_100', 'Spread 55/100'], ['SPREAD_100_200', 'Spread 100/200'],
+  ]},
+  { title: 'Compresión y energía', fields: [
+      ['COMPRESSION_INDEX', 'Índice de compresión'], ['COMPRESSION_DURATION', 'Duración compresión (velas)'],
+      ['SPREAD_VELOCITY', 'Velocidad del spread'], ['SPREAD_ACCELERATION', 'Aceleración del spread'],
+      ['ATR_RELATIVE', 'ATR relativo (%)'], ['ELASTICITY', 'Elasticidad vs EMA-200 (%)'],
+  ]},
+  { title: 'Volumen y sincronía', fields: [
+      ['VOLUME_RATIO', 'Ratio de volumen'], ['SLOPE_SYNC', 'Sincronía de pendientes (%)'],
+      ['PERSISTENCE_ABOVE_21', 'Persistencia sobre EMA-21 (velas)'],
+  ]},
+  { title: 'Curvatura', fields: [
+      ['CURVATURE_9', 'Curvatura EMA 9'], ['CURVATURE_55', 'Curvatura EMA 55'],
+  ]},
+  { title: 'Rebotes en EMA (ventana 50 velas)', fields: [
+      ['BOUNCE_COUNT_9', 'Rebotes EMA 9'], ['BOUNCE_COUNT_21', 'Rebotes EMA 21'],
+      ['BOUNCE_COUNT_55', 'Rebotes EMA 55'], ['BOUNCE_COUNT_200', 'Rebotes EMA 200'],
+  ]},
+  { title: 'Scores compuestos', fields: [
+      ['COHERENCE_SCORE', 'Coherencia (0-10)'], ['FRICTION_INDEX', 'Fricción (0-10)'],
+  ]},
+  { title: 'Estados clasificados (BRM)', fields: [
+      ['STRUCTURAL_STATE', 'Estado estructural'], ['MOMENTUM_STATE', 'Estado de momentum'],
+      ['ENERGY_STATE', 'Estado de energía'], ['COMBINATION_STATUS', 'Validez de la combinación'],
+  ]},
+  { title: 'Diagnóstico IRM', fields: [
+      ['conviction_score', 'Convicción (0-100)'], ['probable_scenario', 'Escenario probable'],
+      ['confidence_score', 'Confianza (0-95)'],
+  ]},
+];
+const CROSS_PAIRS = [[9, 21], [21, 55], [55, 200]];
+
+function renderRaw(payload) {
+  const raw = { ...payload.raw, ...payload.diagnosis };
+
+  const groupCards = RAW_GROUPS.map(g => `
+    <div class="raw-group">
+      <h3>${g.title}</h3>
+      <table class="kv">
+        ${g.fields.map(([key, label]) => `<tr><td>${label}</td><td>${fmtVal(raw[key])}</td></tr>`).join('')}
+      </table>
+    </div>`).join('');
+
+  const crossRows = CROSS_PAIRS.map(([f, s]) => {
+    const occurred = raw[`CROSS_${f}_${s}_occurred`];
+    const direction = raw[`CROSS_${f}_${s}_direction`];
+    const magnitude = raw[`CROSS_${f}_${s}_magnitude`];
+    return `<tr><td>Cruce ${f}/${s}</td><td>${occurred ? `${direction} (${Number(magnitude).toFixed(3)}%)` : '—'}</td></tr>`;
+  }).join('');
+
+  rawResult.innerHTML = `
+    <div class="card">
+      <div class="meta-row">
+        <span class="symbol">${raw.symbol}</span>
+        <span class="ts">${raw.timeframe} · ${new Date(raw.timestamp).toLocaleString('es-CO')}</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="raw-groups">
+        ${groupCards}
+        <div class="raw-group">
+          <h3>Cruces de EMA</h3>
+          <table class="kv">${crossRows}</table>
+        </div>
+      </div>
+    </div>`;
+}
+
+rawRun.addEventListener('click', async () => {
+  const symbol    = document.getElementById('raw-symbol').value.trim().toUpperCase() || 'BTCUSDT';
+  const timeframe = document.getElementById('raw-timeframe').value;
+  rawRun.disabled = true;
+  rawStatus.className = 'status';
+  rawStatus.textContent = `Consultando Binance y calculando todas las variables para ${symbol} (${timeframe})…`;
+  try {
+    const payload = await callApi('/api/raw', { symbol, timeframe, context: 500 }, rawStatus);
+    renderRaw(payload);
+    rawStatus.textContent = `Última ejecución: ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    rawStatus.className = 'status error';
+    rawStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    rawRun.disabled = false;
+  }
+});
+
+bRun.addEventListener('click', async () => {
+  const symbol    = document.getElementById('b-symbol').value.trim().toUpperCase() || 'BTCUSDT';
+  const timeframe = document.getElementById('b-timeframe').value;
+  const candles   = parseInt(document.getElementById('b-candles').value, 10) || 2000;
+  const horizon   = parseInt(document.getElementById('b-horizon').value, 10) || 6;
+  bRun.disabled = true;
+  bStatus.className = 'status';
+  bStatus.textContent = `Corriendo backtest sobre ${candles} velas de ${symbol} (${timeframe}), horizonte ${horizon}… esto puede tardar un momento.`;
+  try {
+    const metrics = await callApi('/api/backtest', { symbol, timeframe, candles, horizon }, bStatus);
+    renderBacktest(metrics);
+    bStatus.textContent = `Backtest completo · ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    bStatus.className = 'status error';
+    bStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    bRun.disabled = false;
+  }
+});
+
+/* ── Bitácora ────────────────────────────────────────────── */
+const btRun = document.getElementById('bt-run');
+const btStatus = document.getElementById('bt-status');
+const btResult = document.getElementById('bt-result');
+let btChart = null;
+let lastBitacoraPayload = null;
+
+function downloadBitacoraExcel() {
+  if (!lastBitacoraPayload) return;
+  const { summary: s, trades } = lastBitacoraPayload;
+
+  const resumenRows = [
+    ['Operaciones', s.total_trades],
+    ...(s.income_ledger ? [['Verificadas contra libro real', s.verified_trades], ['Estimadas por reconstrucción', s.estimated_trades]] : []),
+    ['Win rate (%)', s.win_rate_pct],
+    ['Ganadoras', s.wins],
+    ['Perdedoras', s.losses],
+    ['PnL total (USDT)', s.total_pnl_usdt],
+    ...(s.total_pnl_cop != null ? [['PnL total (COP)', s.total_pnl_cop]] : []),
+    ['Ganancia promedio (USDT)', s.avg_win_usdt],
+    ['Pérdida promedio (USDT)', s.avg_loss_usdt],
+    ['Mejor operación (USDT)', s.best_trade_usdt],
+    ['Peor operación (USDT)', s.worst_trade_usdt],
+    ['Duración promedio (horas)', +(s.avg_duration_seconds / 3600).toFixed(1)],
+    ['Apalancamiento (asumido, no viene en el export de Binance)', s.leverage],
+    ['Capital inicial (USDT)', s.starting_capital_usdt],
+    ['Origen del capital inicial / saldo', {
+      reconciliado_a_saldo_real: 'Anclado a tu saldo real declarado',
+      capital_inicial_declarado_por_usuario: 'Capital inicial declarado por ti, no verificado',
+      sin_ancla_es_pnl_acumulado_desde_cero: 'SIN ANCLA — el saldo es solo PnL acumulado desde cero',
+    }[s.capital_source] || s.capital_source],
+    ['Saldo final (USDT)', s.final_saldo_usdt],
+    ...(s.final_saldo_cop != null ? [['Saldo final (COP)', s.final_saldo_cop]] : []),
+    ...(s.trm ? [['TRM usada (COP/USDT)', s.trm]] : []),
+    ...(s.income_ledger ? [
+      ['— Libro contable real (Historial de transacciones) —', ''],
+      ['Periodo cubierto', `${s.income_ledger.date_range_start} a ${s.income_ledger.date_range_end}`],
+      ['Ganancia Realizada real (USDT)', s.income_ledger.total_realized_pnl],
+      ['Comisiones reales (USDT)', s.income_ledger.total_commission],
+      ['Funding real (USDT)', s.income_ledger.total_funding_fee],
+      ['Transferencias reales (USDT)', s.income_ledger.total_transfers],
+    ] : []),
+  ];
+
+  const opsRows = trades.slice().reverse().map(t => ({
+    'Símbolo': t.symbol,
+    'Lado': t.side,
+    'Cantidad (BTC)': t.qty,
+    'Apalancamiento': t.leverage,
+    'Apertura': new Date(t.open_time).toLocaleString('es-CO'),
+    'Cierre': new Date(t.close_time).toLocaleString('es-CO'),
+    'Precio entrada': t.entry_price,
+    'Precio salida': t.exit_price,
+    'Diferencia de precio': t.price_diff,
+    'Duración (h)': +(t.duration_seconds / 3600).toFixed(2),
+    'Porcentaje (%)': t.pct_return,
+    'Ganancia (USDT)': t.pnl_usdt,
+    'Ganancia bruta o neta': t.pnl_basis === 'neta_de_comision' ? 'neta' : 'bruta',
+    ...(t.pnl_cop != null ? { 'Ganancia (COP)': t.pnl_cop } : {}),
+    'Saldo (USDT)': t.saldo_usdt,
+    ...(t.saldo_cop != null ? { 'Saldo (COP)': t.saldo_cop } : {}),
+    'Fuente': { ledger: 'ledger (real)', trading_history: 'trading history (real)', estimado: 'estimado' }[t.pnl_source] || t.pnl_source,
+  }));
+
+  const wb = XLSX.utils.book_new();
+  const wsResumen = XLSX.utils.aoa_to_sheet([['Métrica', 'Valor'], ...resumenRows]);
+  const wsOps = XLSX.utils.json_to_sheet(opsRows);
+  XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+  XLSX.utils.book_append_sheet(wb, wsOps, 'Operaciones');
+
+  const ts = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `Bitacora_EIM_${ts}.xlsx`);
+}
+
+function formatDuration(sec) {
+  if (sec === null || sec === undefined) return '—';
+  const d = Math.floor(sec / 86400);
+  const h = Math.floor((sec % 86400) / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+function fmtMoney(v) {
+  return v === null || v === undefined ? '—' : v.toLocaleString('es-CO', { maximumFractionDigits: 2 });
+}
+
+async function uploadBitacora(file, incomeFile, leverage, capital, trm, currentBalance) {
+  const fd = new FormData();
+  fd.append('file', file);
+  if (incomeFile) fd.append('income_file', incomeFile);
+  fd.append('leverage', leverage);
+  fd.append('starting_capital_usdt', capital);
+  if (trm) fd.append('trm', trm);
+  if (currentBalance) fd.append('current_balance_usdt', currentBalance);
+  const res = await fetch('/api/bitacora', { method: 'POST', body: fd });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Error desconocido');
+  return data;
+}
+
+function renderBitacora(payload) {
+  lastBitacoraPayload = payload;
+  const { summary: s, trades } = payload;
+  const hasCop = s.total_pnl_cop !== null && s.total_pnl_cop !== undefined;
+
+  const hasLedger = s.income_ledger != null;
+  // Distinto de hasLedger: puede haber datos reales por fila ("trading_history")
+  // sin haber subido el Historial de transacciones — ver eim_bitacora.py.
+  const hasSourceInfo = trades.some(t => t.pnl_source !== 'estimado');
+
+  const kpis = [
+    ['Operaciones', s.total_trades],
+    hasSourceInfo ? ['Verificadas vs. estimadas', `${s.verified_trades} / ${s.estimated_trades}`] : null,
+    ['Win rate', `${s.win_rate_pct}%`],
+    ['PnL total (USDT)', fmtMoney(s.total_pnl_usdt)],
+    hasCop ? ['PnL total (COP)', fmtMoney(s.total_pnl_cop)] : null,
+    ['Ganancia prom.', fmtMoney(s.avg_win_usdt)],
+    ['Pérdida prom.', fmtMoney(s.avg_loss_usdt)],
+    ['Mejor operación', fmtMoney(s.best_trade_usdt)],
+    ['Peor operación', fmtMoney(s.worst_trade_usdt)],
+    ['Duración prom.', formatDuration(s.avg_duration_seconds)],
+    ['Capital inicial (USDT)', fmtMoney(s.starting_capital_usdt)],
+    ['Saldo final (USDT)', fmtMoney(s.final_saldo_usdt)],
+    hasCop ? ['Saldo final (COP)', fmtMoney(s.final_saldo_cop)] : null,
+  ].filter(Boolean);
+
+  const kpiHtml = kpis.map(([label, value]) => `
+    <div class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value">${value}</div></div>`).join('');
+
+  const capitalNotes = {
+    reconciliado_a_saldo_real: `<p class="metric-desc">Capital inicial calculado automáticamente (${fmtMoney(s.starting_capital_usdt)} USDT) para que el saldo final coincida con el saldo real que ingresaste. Si tenías una posición abierta al momento de consultar tu saldo real, o hubo comisiones/abonos/retiros durante el periodo, los valores intermedios de la curva pueden no ser exactos — solo el punto final está anclado.</p>`,
+    capital_inicial_declarado_por_usuario: `<p class="metric-desc">La columna "Saldo" parte del capital inicial que declaraste (${fmtMoney(s.starting_capital_usdt)} USDT) — no fue verificado contra tu saldo real de Binance. Si ese número no es exacto, toda la curva de saldo se desplaza en esa misma diferencia.</p>`,
+    sin_ancla_es_pnl_acumulado_desde_cero: `<p class="metric-desc" style="color:var(--amber, #b58900)">⚠ No ingresaste capital inicial ni saldo real: la columna "Saldo" es solo <strong>PnL acumulado desde cero</strong>, no un balance de cuenta. Ingresa tu saldo real actual arriba para anclar la curva a un valor verificable.</p>`,
+  };
+  const reconcileNote = capitalNotes[s.capital_source] || '';
+  const leverageNote = `<p class="metric-desc">Apalancamiento (${s.leverage}x): dato que ingresaste tú, ningún export de Binance lo confirma — la columna "%" depende de este valor.</p>`;
+
+  const fmtDateShort = (iso) => new Date(iso).toLocaleString('es-CO', {
+    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+  });
+  const money = (usdt, cop) => hasCop
+    ? `<span class="money-usdt">${fmtMoney(usdt)}</span><span class="money-cop">${fmtMoney(cop)} COP</span>`
+    : `<span class="money-usdt">${fmtMoney(usdt)}</span>`;
+
+  const SOURCE_TAGS = {
+    ledger: '<span class="tag up" title="Historial de transacciones: REALIZED_PNL/COMMISSION reales de Binance">ledger</span>',
+    trading_history: '<span class="tag up" title="Ganancia Realizada/Comisión reales, leídas directo del Historial de trading">trading history</span>',
+    estimado: '<span class="tag" title="Reconstruido por precio de entrada/salida — no hay dato real de Binance disponible para esta operación">estimado</span>',
+  };
+  const sourceTag = (t) => hasSourceInfo ? (SOURCE_TAGS[t.pnl_source] || SOURCE_TAGS.estimado) : '';
+
+  const rows = trades.slice().reverse().map(t => `
+    <tr>
+      <td><span class="tag ${t.side === 'Long' ? 'up' : 'down'}">${t.side}</span></td>
+      <td>${t.qty}</td>
+      <td>${fmtDateShort(t.open_time)}</td>
+      <td>${fmtDateShort(t.close_time)}</td>
+      <td>${t.entry_price.toFixed(2)}</td>
+      <td>${t.exit_price.toFixed(2)}</td>
+      <td>${t.price_diff.toFixed(2)}</td>
+      <td>${formatDuration(t.duration_seconds)}</td>
+      <td title="Depende del apalancamiento que ingresaste (${t.leverage}x), no viene del export">${t.pct_return !== null ? t.pct_return.toFixed(1) + '%' : '—'}</td>
+      <td style="color:${t.pnl_usdt >= 0 ? 'var(--green)' : 'var(--red)'}" title="${t.pnl_basis === 'neta_de_comision' ? 'Neta de comisión — real de Binance' : 'Bruta — comisión no descontada (estimada por reconstrucción de precios)'}">${money(t.pnl_usdt, t.pnl_cop)}</td>
+      <td>${money(t.saldo_usdt, t.saldo_cop)}</td>
+      ${hasSourceInfo ? `<td>${sourceTag(t)}</td>` : ''}
+    </tr>`).join('');
+
+  const symbols = [...new Set(trades.map(t => t.symbol))].join(', ');
+  const leverages = [...new Set(trades.map(t => t.leverage))].join('x, ') + 'x';
+
+  const ledgerCard = hasLedger ? `
+    <div class="card">
+      <h2>Validación contra el libro contable real de Binance</h2>
+      <p class="zoom-hint" style="margin-top:0">Historial de transacciones: ${new Date(s.income_ledger.date_range_start).toLocaleDateString('es-CO')} — ${new Date(s.income_ledger.date_range_end).toLocaleDateString('es-CO')}. Las operaciones dentro de este rango usan la ganancia REAL de Binance (neta de comisión); fuera de rango, quedan como estimación por reconstrucción de precios.</p>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-label">Ganancia Realizada real (bruta)</div><div class="kpi-value">${fmtMoney(s.income_ledger.total_realized_pnl)}</div></div>
+        <div class="kpi"><div class="kpi-label">Comisiones reales</div><div class="kpi-value">${fmtMoney(s.income_ledger.total_commission)}</div></div>
+        <div class="kpi"><div class="kpi-label">Funding real</div><div class="kpi-value">${fmtMoney(s.income_ledger.total_funding_fee)}</div></div>
+        <div class="kpi"><div class="kpi-label">Transferencias reales</div><div class="kpi-value">${fmtMoney(s.income_ledger.total_transfers)}</div></div>
+      </div>
+    </div>` : '';
+
+  btResult.innerHTML = `
+    <div class="card">
+      <h2>Resumen</h2>
+      <div class="kpi-row">${kpiHtml}</div>
+      ${reconcileNote}
+      ${leverageNote}
+    </div>
+    ${ledgerCard}
+    <div class="card">
+      <div class="chart-header"><h2>Curva de capital (saldo por operación)</h2>
+        <div class="chart-tools">
+          <button class="chart-pan" id="bt-pan-left" title="Desplazar hacia atrás">◀</button>
+          <button class="chart-pan" id="bt-pan-right" title="Desplazar hacia adelante">▶</button>
+          <button class="zoom-reset" id="bt-zoom-reset">Restablecer zoom</button>
+        </div>
+      </div>
+      <p class="zoom-hint">Rueda del mouse para zoom, botones para desplazar.</p>
+      <div class="chart-box"><canvas id="btCanvas"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="chart-header"><h2>Operaciones (${trades.length})</h2>
+        <button class="zoom-reset" id="bt-download-xlsx">⬇ Descargar Excel</button>
+      </div>
+      <p class="zoom-hint" style="margin-top:-6px">Símbolo: ${symbols} · Apalancamiento: ${leverages} (fijo, igual en todas las filas)</p>
+      <div class="table-scroll"><table class="hist bitacora-table">
+        <thead><tr>
+          <th>Lado</th><th>Cantidad</th>
+          <th>Apertura</th><th>Cierre</th><th>Entrada</th><th>Salida</th>
+          <th>Diferencia</th><th>Duración</th><th>%</th><th>Ganancia</th><th>Saldo</th>${hasSourceInfo ? '<th>Fuente</th>' : ''}
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </div>`;
+
+  const ctx = document.getElementById('btCanvas').getContext('2d');
+  if (btChart) btChart.destroy();
+  const equityData = trades.map(t => ({ x: new Date(t.close_time).getTime(), y: t.saldo_usdt }));
+  btChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [
+        { label: 'Saldo (USDT)', data: equityData, borderColor: '#4E93C0', backgroundColor: 'rgba(78,147,192,0.1)', borderWidth: 2, pointRadius: 2, fill: true },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#2B241C', usePointStyle: true, boxWidth: 8 } },
+        zoom: ZOOM_OPTIONS,
+      },
+      scales: {
+        x: { type: 'time', ticks: { color: '#8D6E63', maxTicksLimit: 10 }, grid: { color: '#DED4C2' } },
+        y: { ticks: { color: '#8D6E63' }, grid: { color: '#DED4C2' } },
+      },
+    },
+  });
+  document.getElementById('bt-zoom-reset').addEventListener('click', () => btChart.resetZoom());
+  document.getElementById('bt-pan-left').addEventListener('click', () => panChart(btChart, -1));
+  document.getElementById('bt-pan-right').addEventListener('click', () => panChart(btChart, 1));
+  document.getElementById('bt-download-xlsx').addEventListener('click', downloadBitacoraExcel);
+}
+
+btRun.addEventListener('click', async () => {
+  const fileInput = document.getElementById('bt-file');
+  const file = fileInput.files[0];
+  if (!file) {
+    btStatus.className = 'status error';
+    btStatus.textContent = 'Selecciona primero un archivo .xlsx exportado de Binance Futuros.';
+    return;
+  }
+  const incomeFile = document.getElementById('bt-income-file').files[0] || null;
+  const leverageRaw = document.getElementById('bt-leverage').value;
+  if (!leverageRaw) {
+    btStatus.className = 'status error';
+    btStatus.textContent = 'Ingresa el apalancamiento que usaste — no viene en el export de Binance, así que no se puede asumir un valor por defecto.';
+    return;
+  }
+  const leverage = parseFloat(leverageRaw);
+  const capital  = parseFloat(document.getElementById('bt-capital').value) || 0;
+  const trm      = parseFloat(document.getElementById('bt-trm').value) || 0;
+  const balance  = parseFloat(document.getElementById('bt-balance').value) || 0;
+
+  btRun.disabled = true;
+  btStatus.className = 'status';
+  btStatus.textContent = `Procesando ${file.name}${incomeFile ? ' + ' + incomeFile.name : ''}…`;
+  try {
+    const payload = await uploadBitacora(file, incomeFile, leverage, capital, trm, balance);
+    renderBitacora(payload);
+    const v = payload.summary.verified_trades;
+    const verifiedNote = v !== undefined ? ` (${v} verificadas contra el libro real)` : '';
+    btStatus.textContent = `${payload.summary.total_trades} operaciones reconstruidas${verifiedNote} · ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    btStatus.className = 'status error';
+    btStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    btRun.disabled = false;
+  }
+});
+
+/* ── Utilidades compartidas: activos, montos compactos, mapas de calor ── */
+let ASSETS_CACHE = null;
+
+async function loadAssets() {
+  if (ASSETS_CACHE) return ASSETS_CACHE;
+  const res = await fetch('/api/assets');
+  const data = await res.json();
+  ASSETS_CACHE = data.assets;
+  return ASSETS_CACHE;
+}
+
+function fmtCompactUsd(v) {
+  if (v === null || v === undefined) return '—';
+  const abs = Math.abs(v);
+  if (abs >= 1e9) return (v / 1e9).toFixed(2) + 'B';
+  if (abs >= 1e6) return (v / 1e6).toFixed(2) + 'M';
+  if (abs >= 1e3) return (v / 1e3).toFixed(1) + 'K';
+  return v.toFixed(0);
+}
+
+function buildHeatmapTable(matrix, priceLevels, timestamps, rgb, maxVal) {
+  const order = priceLevels.map((_, i) => i).sort((a, b) => priceLevels[b] - priceLevels[a]);
+  const header = '<tr><th>Precio</th>' +
+    timestamps.map(t => `<th>${new Date(t).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}</th>`).join('') +
+    '</tr>';
+  const rows = order.map(pi => {
+    const cells = timestamps.map((_, ti) => {
+      const v = matrix[pi][ti];
+      const alpha = maxVal > 0 && v > 0 ? Math.min(1, v / maxVal) * 0.85 + 0.08 : 0;
+      const bg = v > 0 ? `rgba(${rgb},${alpha.toFixed(2)})` : 'transparent';
+      return `<td style="background:${bg}" title="${v > 0 ? '$' + fmtCompactUsd(v) : ''}">${v > 0 ? fmtCompactUsd(v) : ''}</td>`;
+    }).join('');
+    return `<tr><td class="hm-row-label">${priceLevels[pi].toFixed(2)}</td>${cells}</tr>`;
+  }).join('');
+  return `<table class="heatmap-table"><thead>${header}</thead><tbody>${rows}</tbody></table>`;
+}
+
+/* ── Multi-Activo ────────────────────────────────────────── */
+const maAssetSel   = document.getElementById('ma-asset');
+const maTimeframeSel = document.getElementById('ma-timeframe');
+const maRun    = document.getElementById('ma-run');
+const maStatus = document.getElementById('ma-status');
+const maResult = document.getElementById('ma-result');
+let maChart = null;
+
+function updateMaTimeframes() {
+  loadAssets().then(assets => {
+    const asset = assets.find(a => a.key === maAssetSel.value);
+    if (!asset) return;
+    maTimeframeSel.innerHTML = asset.intervals.map(iv => `<option value="${iv}">${iv}</option>`).join('');
+  });
+}
+
+async function populateAssetSelectors() {
+  const assets = await loadAssets();
+  for (const sel of [maAssetSel, document.getElementById('sn-asset')]) {
+    if (sel) sel.innerHTML = assets.map(a => `<option value="${a.key}">${a.label}</option>`).join('');
+  }
+  updateMaTimeframes();
+}
+maAssetSel.addEventListener('change', updateMaTimeframes);
+populateAssetSelectors();
+
+function renderMultiAsset(records, assetLabel) {
+  maResult.innerHTML = `
+    <div class="card">
+      <div class="chart-header"><h2>${assetLabel}</h2>
+        <div class="chart-tools">
+          <button class="chart-pan" id="ma-pan-left" title="Desplazar hacia atrás">◀</button>
+          <button class="chart-pan" id="ma-pan-right" title="Desplazar hacia adelante">▶</button>
+          <button class="zoom-reset" id="ma-zoom-reset">Restablecer zoom</button>
+        </div>
+      </div>
+      <p class="zoom-hint">Rueda del mouse para zoom, arrastrar para desplazar.</p>
+      <div class="chart-box"><canvas id="maCanvas"></canvas></div>
+    </div>`;
+
+  const ctx = document.getElementById('maCanvas').getContext('2d');
+  if (maChart) maChart.destroy();
+  const candles = records.map(r => ({
+    x: new Date(r.timestamp).getTime(), o: r.open, h: r.high, l: r.low, c: r.close,
+  }));
+
+  maChart = new Chart(ctx, {
+    type: 'candlestick', // ver nota de rtMtfCharts sobre por qué es obligatorio aquí
+    data: {
+      datasets: [
+        { type: 'candlestick', label: assetLabel, data: candles,
+          color: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' },
+          borderColor: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' } },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode: 'index', intersect: false },
+        zoom: ZOOM_OPTIONS,
+      },
+      scales: {
+        x: { type: 'time', ticks: { color: '#8D6E63', maxTicksLimit: 10 }, grid: { color: '#DED4C2' } },
+        y: { ticks: { color: '#8D6E63' }, grid: { color: '#DED4C2' } },
+      },
+    },
+  });
+  document.getElementById('ma-zoom-reset').addEventListener('click', () => maChart.resetZoom());
+  document.getElementById('ma-pan-left').addEventListener('click', () => panChart(maChart, -1));
+  document.getElementById('ma-pan-right').addEventListener('click', () => panChart(maChart, 1));
+}
+
+maRun.addEventListener('click', async () => {
+  const asset_key = maAssetSel.value;
+  const timeframe = maTimeframeSel.value;
+  const candles   = parseInt(document.getElementById('ma-candles').value, 10) || 200;
+  maRun.disabled = true;
+  maStatus.className = 'status';
+  maStatus.textContent = `Cargando ${asset_key}…`;
+  try {
+    const records = await callApi('/api/multi-asset', { asset_key, timeframe, candles }, maStatus);
+    renderMultiAsset(records, records[0]?.asset_label || asset_key);
+    maStatus.textContent = `${records.length} velas · ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    maStatus.className = 'status error';
+    maStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    maRun.disabled = false;
+  }
+});
+
+/* ── Liquidaciones ───────────────────────────────────────── */
+const lqRun    = document.getElementById('lq-run');
+const lqStatus = document.getElementById('lq-status');
+const lqResult = document.getElementById('lq-result');
+
+function renderLiquidations(data) {
+  const hm = data.heatmap;
+  const maxVal = Math.max(1, ...hm.long_liquidations_usd.flat(), ...hm.short_liquidations_usd.flat());
+
+  const staleBanner = data.stale ? `
+    <div class="warn-banner">
+      ⚠ Dataset histórico, no en vivo: el archivo más reciente disponible es del <strong>${data.most_recent_date}</strong>
+      (${data.stale_age_days} días de antigüedad). Binance parece haber descontinuado la publicación de este
+      dataset — este mapa refleja liquidaciones reales de ese período, pero <strong>no representa el mercado actual</strong>.
+    </div>` : '';
+
+  const dailyRows = data.daily_totals.slice().reverse().map(d => `
+    <tr>
+      <td>${new Date(d.date).toLocaleDateString('es-CO')}</td>
+      <td style="color:var(--green)">$${fmtCompactUsd(d.longs_usd)}</td>
+      <td style="color:var(--red)">$${fmtCompactUsd(d.shorts_usd)}</td>
+      <td>${d.price ? d.price.toFixed(2) : '—'}</td>
+    </tr>`).join('');
+
+  lqResult.innerHTML = `
+    ${staleBanner}
+    <div class="card">
+      <h2>Fuente</h2>
+      <p class="zoom-hint" style="margin-top:0">${data.source}</p>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-label">Símbolo pedido</div><div class="kpi-value">${data.requested_symbol}</div></div>
+        <div class="kpi"><div class="kpi-label">Símbolo real usado</div><div class="kpi-value">${data.liquidation_symbol}</div></div>
+        <div class="kpi"><div class="kpi-label">Días con datos</div><div class="kpi-value">${data.days_with_data}</div></div>
+        <div class="kpi"><div class="kpi-label">Long liquidado</div><div class="kpi-value" style="color:var(--green)">$${fmtCompactUsd(hm.total_long_usd)}</div></div>
+        <div class="kpi"><div class="kpi-label">Short liquidado</div><div class="kpi-value" style="color:var(--red)">$${fmtCompactUsd(hm.total_short_usd)}</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Mapa de calor — liquidaciones de LARGOS (USD)</h2>
+      <p class="zoom-hint" style="margin-top:0">Posiciones long forzadas a cerrar (lado SELL de la orden de liquidación) por nivel de precio y día.</p>
+      <div class="table-scroll">${buildHeatmapTable(hm.long_liquidations_usd, hm.price_levels, hm.timestamps, '94,162,60', maxVal)}</div>
+    </div>
+    <div class="card">
+      <h2>Mapa de calor — liquidaciones de CORTOS (USD)</h2>
+      <p class="zoom-hint" style="margin-top:0">Posiciones short forzadas a cerrar (lado BUY de la orden de liquidación) por nivel de precio y día.</p>
+      <div class="table-scroll">${buildHeatmapTable(hm.short_liquidations_usd, hm.price_levels, hm.timestamps, '210,73,66', maxVal)}</div>
+    </div>
+    <div class="card">
+      <h2>Totales diarios</h2>
+      <div class="table-scroll">
+        <table class="hist">
+          <thead><tr><th>Fecha</th><th>Longs liquidados</th><th>Shorts liquidados</th><th>Precio prom.</th></tr></thead>
+          <tbody>${dailyRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+lqRun.addEventListener('click', async () => {
+  const symbol     = document.getElementById('lq-symbol').value;
+  const days       = parseInt(document.getElementById('lq-days').value, 10) || 30;
+  const price_bins = parseInt(document.getElementById('lq-bins').value, 10) || 30;
+  lqRun.disabled = true;
+  lqStatus.className = 'status';
+  lqStatus.textContent = `Descargando liquidaciones reales de ${symbol}…`;
+  try {
+    const data = await callApi('/api/liquidations', { symbol, days, price_bins }, lqStatus);
+    renderLiquidations(data);
+    lqStatus.textContent = `${data.days_with_data} días con datos · ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    lqStatus.className = 'status error';
+    lqStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    lqRun.disabled = false;
+  }
+});
+
+/* ── VWAP Períodos ───────────────────────────────────────── */
+const vpRun    = document.getElementById('vp-run');
+const vpStatus = document.getElementById('vp-status');
+const vpResult = document.getElementById('vp-result');
+let vpChart = null;
+
+const VP_PERIOD_LABELS = { daily: 'Diario', weekly: 'Semanal', quincenal: 'Quincenal', monthly: 'Mensual' };
+const VP_PERIOD_PREFIX = { daily: 'VWAP_DAY', weekly: 'VWAP_WEEK', quincenal: 'VWAP_QUINCENA', monthly: 'VWAP_MONTH' };
+const VP_COLORS = { daily: '#C9A15A', weekly: '#5EA2C9', quincenal: '#9C7BD9', monthly: '#D2704F' };
+
+function renderVwapPeriods(payload, periods) {
+  const kpiCards = periods.map(p => {
+    const c = payload.current[p];
+    return `
+      <div class="card">
+        <h2>VWAP ${VP_PERIOD_LABELS[p]}</h2>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-label">VWAP</div><div class="kpi-value">${c.vwap != null ? c.vwap.toFixed(2) : '—'}</div></div>
+          <div class="kpi"><div class="kpi-label">Posición</div><div class="kpi-value">${prettyCode(c.position)}</div></div>
+          <div class="kpi"><div class="kpi-label">Pendiente</div><div class="kpi-value">${c.slope != null ? c.slope.toFixed(3) + '%' : '—'}</div></div>
+        </div>
+        ${probBar(c.prob_up_pct, c.prob_down_pct)}
+        <p class="prob-note">${c.note}</p>
+      </div>`;
+  }).join('');
+
+  vpResult.innerHTML = `
+    <div class="card">
+      <div class="chart-header"><h2>Precio + VWAP por período</h2>
+        <div class="chart-tools">
+          <button class="chart-pan" id="vp-pan-left" title="Desplazar hacia atrás">◀</button>
+          <button class="chart-pan" id="vp-pan-right" title="Desplazar hacia adelante">▶</button>
+          <button class="zoom-reset" id="vp-zoom-reset">Restablecer zoom</button>
+        </div>
+      </div>
+      <p class="zoom-hint">Rueda del mouse para zoom, arrastrar para desplazar.</p>
+      <div class="chart-box"><canvas id="vpCanvas"></canvas></div>
+    </div>
+    ${kpiCards}`;
+
+  const ctx = document.getElementById('vpCanvas').getContext('2d');
+  if (vpChart) vpChart.destroy();
+  const records = payload.records;
+  const xs = records.map(r => new Date(r.timestamp).getTime());
+  const candles = records.map((r, i) => ({ x: xs[i], o: r.open, h: r.high, l: r.low, c: r.close }));
+  const lineFor = (key) => records.map((r, i) => ({ x: xs[i], y: r[key] }));
+
+  const datasets = [
+    { type: 'candlestick', label: 'Precio', data: candles, order: 0,
+      color: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' },
+      borderColor: { up: '#5EA23C', down: '#D24942', unchanged: '#8D6E63' } },
+  ];
+  periods.forEach(p => {
+    datasets.push({
+      type: 'line', label: `VWAP ${VP_PERIOD_LABELS[p]}`, data: lineFor(VP_PERIOD_PREFIX[p]),
+      borderColor: VP_COLORS[p], borderWidth: 1.5, pointRadius: 0, order: 1,
+    });
+  });
+
+  vpChart = new Chart(ctx, {
+    type: 'candlestick', // ver nota de rtMtfCharts sobre por qué es obligatorio aquí
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#2B241C', usePointStyle: true, boxWidth: 8 } },
+        tooltip: { mode: 'index', intersect: false },
+        zoom: ZOOM_OPTIONS,
+      },
+      scales: {
+        x: { type: 'time', ticks: { color: '#8D6E63', maxTicksLimit: 10 }, grid: { color: '#DED4C2' } },
+        y: { ticks: { color: '#8D6E63' }, grid: { color: '#DED4C2' } },
+      },
+    },
+  });
+  document.getElementById('vp-zoom-reset').addEventListener('click', () => vpChart.resetZoom());
+  document.getElementById('vp-pan-left').addEventListener('click', () => panChart(vpChart, -1));
+  document.getElementById('vp-pan-right').addEventListener('click', () => panChart(vpChart, 1));
+}
+
+vpRun.addEventListener('click', async () => {
+  const symbol    = document.getElementById('vp-symbol').value.trim().toUpperCase() || 'BTCUSDT';
+  const timeframe = document.getElementById('vp-timeframe').value;
+  const candles   = parseInt(document.getElementById('vp-candles').value, 10) || 500;
+  const periods   = [...document.querySelectorAll('.vp-period:checked')].map(el => el.value);
+  if (!periods.length) {
+    vpStatus.className = 'status error';
+    vpStatus.textContent = 'Selecciona al menos un período.';
+    return;
+  }
+  vpRun.disabled = true;
+  vpStatus.className = 'status';
+  vpStatus.textContent = `Calculando VWAP (${periods.join(', ')}) para ${symbol}…`;
+  try {
+    const payload = await callApi('/api/vwap-periods', { symbol, timeframe, candles, periods }, vpStatus);
+    renderVwapPeriods(payload, periods);
+    vpStatus.textContent = `Última ejecución: ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    vpStatus.className = 'status error';
+    vpStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    vpRun.disabled = false;
+  }
+});
+
+/* ── Estacionalidad ──────────────────────────────────────── */
+const snRun    = document.getElementById('sn-run');
+const snStatus = document.getElementById('sn-status');
+const snResult = document.getElementById('sn-result');
+
+function seasonalityCellStyle(v) {
+  if (v === null || v === undefined) return { bg: 'transparent', text: '—' };
+  const rgb = v >= 0 ? '94,162,60' : '210,73,66';
+  const alpha = Math.min(1, Math.abs(v) / 12) * 0.85 + 0.08;
+  return { bg: `rgba(${rgb},${alpha.toFixed(2)})`, text: `${v.toFixed(1)}%` };
+}
+
+function renderSeasonality(data) {
+  const monthHeader = data.months.map(m => `<th>${m}</th>`).join('');
+  const rows = data.rows.map(row => {
+    const cells = data.months.map(m => {
+      const { bg, text } = seasonalityCellStyle(row[m]);
+      return `<td style="background:${bg}">${text}</td>`;
+    }).join('');
+    return `<tr><td class="hm-row-label">${row.year}</td>${cells}</tr>`;
+  }).join('');
+
+  const avgCells = data.months.map(m => {
+    const { bg, text } = seasonalityCellStyle(data.monthly_average_pct[m]);
+    return `<td style="background:${bg}"><strong>${text}</strong></td>`;
+  }).join('');
+
+  snResult.innerHTML = `
+    <div class="card">
+      <h2>${data.asset_label}</h2>
+      <p class="zoom-hint" style="margin-top:0">Cobertura real de datos: <strong>${data.real_data_range.start}</strong> a <strong>${data.real_data_range.end}</strong>. Rango pedido: ${data.requested_range.start_year}-${data.requested_range.end_year}. Un año sin fila es un año sin dato real, no un cero.</p>
+      <div class="table-scroll">
+        <table class="heatmap-table">
+          <thead><tr><th>Año</th>${monthHeader}</tr></thead>
+          <tbody>
+            ${rows}
+            <tr><td class="hm-row-label">Promedio</td>${avgCells}</tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+snRun.addEventListener('click', async () => {
+  const asset_key  = document.getElementById('sn-asset').value;
+  const start_year = parseInt(document.getElementById('sn-start').value, 10) || 2015;
+  const end_year   = parseInt(document.getElementById('sn-end').value, 10) || 2026;
+  snRun.disabled = true;
+  snStatus.className = 'status';
+  snStatus.textContent = `Calculando estacionalidad de ${asset_key}…`;
+  try {
+    const data = await callApi('/api/seasonality', { asset_key, start_year, end_year }, snStatus);
+    renderSeasonality(data);
+    snStatus.textContent = `${data.rows.length} años con datos reales · ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    snStatus.className = 'status error';
+    snStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    snRun.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

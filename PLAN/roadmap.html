@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EIM — Ruta de desarrollo</title>
+<style>
+:root{
+  --bg:#f6f2ea; --card:#fffdf8; --line:#e6dfd0; --line2:#d6cdb8;
+  --tx:#2b2924; --tx2:#6b665b; --tx3:#9a9486;
+  --done:#3b7d3a; --done-bg:#e4efdc;
+  --prog:#2a62b8; --prog-bg:#dfe9f7;
+  --ready:#a86a0c; --ready-bg:#fbefd6;
+  --block:#9a9486; --block-bg:#eee9dd;
+  --gate:#8a3b8f;
+}
+:root[data-theme="dark"]{
+  --bg:#17160f; --card:#201f17; --line:#33311f; --line2:#46432c;
+  --tx:#ece8da; --tx2:#aaa593; --tx3:#7b7767;
+  --done:#7cc27a; --done-bg:#22331f;
+  --prog:#7aa8ee; --prog-bg:#1d2a42;
+  --ready:#e6b05a; --ready-bg:#3a2d12;
+  --block:#7b7767; --block-bg:#2a281b;
+  --gate:#d08ad6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 24px 56px}
+header{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+h1{font-size:24px;font-weight:600;margin:0}
+.sub{color:var(--tx2);font-size:13px;margin-top:2px}
+.sp{margin-left:auto;display:flex;gap:10px;align-items:center;font-size:13px;color:var(--tx2)}
+.live{display:inline-flex;align-items:center;gap:6px}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--done);display:inline-block}
+.live.off i{background:var(--ready)}
+button{font:inherit;color:var(--tx);background:transparent;border:1px solid var(--line2);border-radius:8px;padding:4px 12px;cursor:pointer}
+button:hover{background:var(--card)}
+.top{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;margin-bottom:22px}
+@media(max-width:860px){.top{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.card h2{font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--tx2);margin:0 0 10px;text-transform:uppercase}
+.big{display:flex;align-items:baseline;gap:10px}
+.big b{font-size:40px;font-weight:600;line-height:1}
+.bar{height:10px;border-radius:6px;background:var(--block-bg);overflow:hidden;margin:12px 0 10px;display:flex}
+.bar span{display:block;height:100%}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--tx2)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.next{display:grid;gap:8px}
+.nrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:var(--ready-bg);border:1px solid transparent}
+.nrow b{color:var(--ready);min-width:38px}
+.nrow span{flex:1;font-size:14px}
+.empty{color:var(--tx3);font-size:14px}
+.miles{display:flex;gap:0;margin:0 0 24px;overflow-x:auto;padding:4px 0 8px}
+.ms{flex:1;min-width:150px;position:relative;padding:0 8px;text-align:center}
+.ms:before{content:"";position:absolute;top:11px;left:-50%;right:50%;height:2px;background:var(--line2)}
+.ms:first-child:before{display:none}
+.ms.on:before{background:var(--done)}
+.dot{position:relative;width:22px;height:22px;border-radius:50%;margin:0 auto 6px;background:var(--card);border:2px solid var(--line2);display:grid;place-items:center;font-size:12px;color:var(--bg)}
+.ms.on .dot{background:var(--done);border-color:var(--done)}
+.ms.cur .dot{border-color:var(--prog);box-shadow:0 0 0 4px var(--prog-bg)}
+.ms small{display:block;color:var(--tx2);font-size:12px;line-height:1.3}
+.ms b{font-size:13px;font-weight:600}
+.phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+.ph{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 10px}
+.ph header{margin:0 0 8px;gap:10px;align-items:center}
+.ph .n{width:26px;height:26px;border-radius:8px;background:var(--block-bg);display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--tx2)}
+.ph.full .n{background:var(--done-bg);color:var(--done)}
+.ph h3{font-size:15px;margin:0;font-weight:600}
+.ph .cnt{margin-left:auto;font-size:12px;color:var(--tx2)}
+.pb{height:4px;background:var(--block-bg);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.pb span{display:block;height:100%;background:var(--done)}
+.t{border-top:1px solid var(--line);padding:7px 2px;cursor:pointer}
+.t:first-of-type{border-top:0}
+.tr{display:flex;align-items:center;gap:8px}
+.st{width:18px;height:18px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:11px;font-weight:700}
+.st.done{background:var(--done);color:var(--bg)}
+.st.progress{background:var(--prog);color:var(--bg);animation:pulse 1.6s infinite}
+.st.ready{background:var(--ready-bg);color:var(--ready);border:1.5px solid var(--ready)}
+.st.blocked{background:var(--block-bg);color:var(--block)}
+@keyframes pulse{50%{box-shadow:0 0 0 5px var(--prog-bg)}}
+.tid{font-size:12px;color:var(--tx2);min-width:30px}
+.tt{flex:1;font-size:14px;line-height:1.3}
+.t.done .tt{color:var(--tx2)}
+.tag{font-size:11px;padding:1px 7px;border-radius:6px;white-space:nowrap}
+.tag.ready{background:var(--ready-bg);color:var(--ready)}
+.tag.block{background:var(--block-bg);color:var(--tx3)}
+.tag.gate{background:transparent;color:var(--gate);border:1px solid var(--gate)}
+.det{display:none;margin:8px 0 4px 26px;font-size:13px;color:var(--tx2)}
+.t.open .det{display:block}
+.det p{margin:4px 0}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
+.chip{font-size:12px;padding:1px 8px;border-radius:6px;background:var(--block-bg)}
+.chip.done{background:var(--done-bg);color:var(--done)}
+.chip.progress{background:var(--prog-bg);color:var(--prog)}
+code{background:var(--block-bg);padding:1px 6px;border-radius:5px;font-size:12.5px}
+.cmd{display:flex;gap:8px;align-items:center;margin-top:6px}
+.foot{margin-top:26px;color:var(--tx3);font-size:12.5px}
+.warn{background:var(--ready-bg);color:var(--ready);padding:10px 14px;border-radius:10px;margin-bottom:16px;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>EIM — Agente de trading · Ruta de desarrollo</h1>
+      <div class="sub">Se actualiza sola desde <code>PLAN/STATUS.md</code>. Cada tarea se hace en una sesión nueva: <code>Ejecuta PLAN/Txx.md</code></div>
+    </div>
+    <div class="sp">
+      <span class="live" id="live"><i></i><span id="upd">cargando…</span></span>
+      <button id="theme" type="button">Tema</button>
+    </div>
+  </header>
+  <div class="warn" id="warn">No se pudo leer <code>status.js</code>. Ejecuta <code>python PLAN/build_roadmap.py</code> y deja este archivo en la misma carpeta.</div>
+
+  <div class="top">
+    <div class="card">
+      <h2>Avance general</h2>
+      <div class="big"><b id="pct">0 %</b><span id="frac" style="color:var(--tx2)"></span></div>
+      <div class="bar" id="bar"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="card">
+      <h2>Listas para empezar</h2>
+      <div class="next" id="next"></div>
+    </div>
+  </div>
+
+  <div class="miles" id="miles"></div>
+  <div class="phases" id="phases"></div>
+
+  <div class="foot">◆ = punto de decisión tuya (no se avanza sin tu visto bueno). “Lista” = todas sus dependencias están hechas. Las fases 3 en adelante no empiezan hasta cerrar las anteriores que indica cada tarea.</div>
+</div>
+
+<script>
+var PHASES=[
+ {n:0,name:"Cimientos",ids:["T01","T02","T03","T04"]},
+ {n:1,name:"Agentes",ids:["T05","T06","T07"]},
+ {n:2,name:"API y UI base",ids:["T08","T09","T10","T11"]},
+ {n:3,name:"Niveles y plan",ids:["T12","T13","T14","T15"]},
+ {n:4,name:"Proyección (3 escenarios)",ids:["T16","T17","T18","T19"]},
+ {n:5,name:"Inteligencia",ids:["T20","T21","T22","T23","T24"]},
+ {n:6,name:"Validación",ids:["T25","T26","T27","T28"]},
+ {n:7,name:"Operación",ids:["T29","T30","T31","T32"]}
+];
+var GATES={T10:"¿La interfaz sirve?",T19:"¿Probabilidades calibradas?",T27:"¿Hay ventaja estadística?",T31:"¿Pasamos a dinero real?"};
+var MILES=[
+ {id:"T09",t:"Gráfico en vivo",s:"Velas reales en tiempo real"},
+ {id:"T10",t:"Panel de agentes",s:"Ves qué opina cada agente"},
+ {id:"T14",t:"Análisis dibujado",s:"Canal, soportes y plan en el gráfico"},
+ {id:"T18",t:"3 escenarios",s:"Proyección sobre el gráfico"},
+ {id:"T27",t:"Puerta de edge",s:"¿Funciona de verdad?"},
+ {id:"T30",t:"Testnet",s:"Opera con dinero de prueba"}
+];
+var OPEN={},cur="",data=null;
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+function derive(tasks){
+  var m={};tasks.forEach(function(t){m[t.id]=t});
+  tasks.forEach(function(t){
+    if(t.state==="pending"){
+      var wait=t.deps.filter(function(d){return !m[d]||m[d].state!=="done"});
+      t.view=wait.length?"blocked":"ready";t.wait=wait;
+    }else t.view=t.state;
+  });
+  return m;
+}
+function copy(txt,btn){
+  function ok(){var o=btn.textContent;btn.textContent="Copiado";setTimeout(function(){btn.textContent=o},1200)}
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(txt).then(ok,fb)}else fb();
+  function fb(){var a=document.createElement("textarea");a.value=txt;document.body.appendChild(a);a.select();try{document.execCommand("copy");ok()}catch(e){}document.body.removeChild(a)}
+}
+function icon(v){return v==="done"?"✓":v==="progress"?"…":v==="ready"?"▶":"·"}
+function render(){
+  var tasks=data.tasks,m=derive(tasks),total=tasks.length;
+  var c={done:0,progress:0,ready:0,blocked:0};tasks.forEach(function(t){c[t.view]++});
+  document.getElementById("pct").textContent=Math.round(c.done/total*100)+" %";
+  document.getElementById("frac").textContent=c.done+" de "+total+" tareas";
+  var w=function(n){return (n/total*100)+"%"};
+  document.getElementById("bar").innerHTML='<span style="width:'+w(c.done)+';background:var(--done)"></span><span style="width:'+w(c.progress)+';background:var(--prog)"></span><span style="width:'+w(c.ready)+';background:var(--ready)"></span>';
+  document.getElementById("legend").innerHTML=[["done","Hechas",c.done],["prog","En curso",c.progress],["ready","Listas",c.ready],["block","En espera",c.blocked]].map(function(x){
+    var col={done:"var(--done)",prog:"var(--prog)",ready:"var(--ready)",block:"var(--block)"}[x[0]];
+    return '<span><i style="background:'+col+'"></i>'+x[1]+" "+x[2]+"</span>"}).join("");
+  var nx=tasks.filter(function(t){return t.view==="ready"||t.view==="progress"}).slice(0,6);
+  document.getElementById("next").innerHTML=nx.length?nx.map(function(t){
+    return '<div class="nrow"><b>'+t.id+'</b><span>'+esc(t.title)+(t.view==="progress"?" · en curso":"")+'</span><button type="button" data-copy="Ejecuta PLAN/'+t.id+'.md">Copiar comando</button></div>'}).join(""):'<div class="empty">Nada pendiente por iniciar. Revisa las tareas en espera.</div>';
+  var firstOpen=-1;
+  document.getElementById("miles").innerHTML=MILES.map(function(x,i){
+    var t=m[x.id],on=t&&t.view==="done";
+    if(!on&&firstOpen<0)firstOpen=i;
+    return {x:x,on:on}}).map(function(o,i){
+      return '<div class="ms'+(o.on?" on":"")+(i===firstOpen?" cur":"")+'"><div class="dot">'+(o.on?"✓":"")+'</div><b>'+o.x.t+'</b><small>'+o.x.s+' · '+o.x.id+'</small></div>'}).join("");
+  document.getElementById("phases").innerHTML=PHASES.map(function(p){
+    var ts=p.ids.map(function(i){return m[i]}).filter(Boolean),d=ts.filter(function(t){return t.view==="done"}).length;
+    return '<div class="ph'+(d===ts.length&&ts.length?" full":"")+'"><header><div class="n">'+p.n+'</div><h3>'+p.name+'</h3><span class="cnt">'+d+"/"+ts.length+'</span></header><div class="pb"><span style="width:'+(ts.length?d/ts.length*100:0)+'%"></span></div>'+
+    ts.map(function(t){
+      var tag=t.view==="ready"?'<span class="tag ready">Lista</span>':t.view==="blocked"?'<span class="tag block">Espera '+t.wait.join(", ")+'</span>':"";
+      var gate=GATES[t.id]?'<span class="tag gate" title="'+esc(GATES[t.id])+'">◆ decisión</span>':"";
+      var deps=t.deps.length?t.deps.map(function(d){var s=m[d]?m[d].view:"";return '<span class="chip '+s+'">'+d+'</span>'}).join(""):'<span class="chip">sin dependencias</span>';
+      return '<div class="t '+t.view+(OPEN[t.id]?" open":"")+'" data-id="'+t.id+'"><div class="tr"><span class="st '+t.view+'">'+icon(t.view)+'</span><span class="tid">'+t.id+'</span><span class="tt">'+esc(t.title)+'</span>'+gate+tag+'</div><div class="det">'+
+        (t.goal?'<p>'+esc(t.goal)+'</p>':"")+'<div class="chips">Depende de: '+deps+'</div>'+(t.effort?'<p>Esfuerzo: '+esc(t.effort)+'</p>':"")+(GATES[t.id]?'<p style="color:var(--gate)">Decisión: '+esc(GATES[t.id])+'</p>':"")+(t.notes?'<p>Cierre: '+esc(t.notes)+'</p>':"")+
+        '<div class="cmd"><code>Ejecuta PLAN/'+t.id+'.md</code><button type="button" data-copy="Ejecuta PLAN/'+t.id+'.md">Copiar</button></div></div></div>'}).join("")+'</div>'}).join("");
+  var gen=new Date(data.generated),age=(Date.now()-gen.getTime())/60000;
+  document.getElementById("upd").textContent="Actualizado "+gen.toLocaleString("es-CO",{dateStyle:"short",timeStyle:"short"});
+}
+document.addEventListener("click",function(e){
+  var b=e.target.closest("[data-copy]");if(b){copy(b.getAttribute("data-copy"),b);return}
+  var t=e.target.closest(".t");if(t&&!e.target.closest(".det")){var id=t.getAttribute("data-id");OPEN[id]=!OPEN[id];t.classList.toggle("open")}
+});
+document.getElementById("theme").onclick=function(){
+  var r=document.documentElement,d=r.getAttribute("data-theme")==="dark"?"light":"dark";r.setAttribute("data-theme",d);
+  try{localStorage.setItem("eim-theme",d)}catch(e){}
+};
+try{var th=localStorage.getItem("eim-theme");if(th)document.documentElement.setAttribute("data-theme",th);else if(matchMedia("(prefers-color-scheme: dark)").matches)document.documentElement.setAttribute("data-theme","dark")}catch(e){}
+function load(){
+  var old=document.getElementById("sj");if(old)old.remove();
+  var s=document.createElement("script");s.id="sj";s.src="status.js?t="+Date.now();
+  s.onload=function(){
+    document.getElementById("warn").style.display="none";document.getElementById("live").className="live";
+    var j=JSON.stringify(window.EIM_STATUS);
+    if(j!==cur){cur=j;data=JSON.parse(j);render()}
+  };
+  s.onerror=function(){document.getElementById("warn").style.display="block";document.getElementById("live").className="live off"};
+  document.body.appendChild(s);
+}
+load();setInterval(load,4000);
+</script>
+</body>
+</html>

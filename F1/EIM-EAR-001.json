@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_metadata": {
+    "repository": "Enterprise Architecture Repository",
+    "repository_code": "EAR",
+    "document_code": "EIM-EAR-001",
+    "document_name": "Enterprise Architecture Repository — Estructura Base",
+    "project": "EMA Intelligence Model",
+    "project_code": "EIM",
+    "discipline": "Market Structural Intelligence",
+    "discipline_code": "MSI",
+    "version": "1.0.0",
+    "status": "ACTIVE",
+    "created_date": "2026-06-27",
+    "last_updated": "2026-06-27",
+    "author": "EIM Project",
+    "description": "Repositorio de arquitectura empresarial del proyecto EIM. Fuente única de verdad (SSOT) para toda entidad, variable, regla, fórmula, relación y componente del sistema.",
+    "dependencies": [],
+    "changelog": [
+      {
+        "version": "1.0.0",
+        "date": "2026-06-27",
+        "change": "Creación del repositorio base. Estructura de contenedores y catálogos vacíos listos para poblamiento progresivo por fase."
+      }
+    ]
+  },
+
+  "project_definition": {
+    "name": "EMA Intelligence Model",
+    "code": "EIM",
+    "discipline": "Market Structural Intelligence",
+    "domain": "Futuros de criptomonedas",
+    "premise": "El mercado es un sistema dinámico compuesto por propiedades estructurales, temporales y emergentes. Las EMAs son instrumentos de observación para inferir el estado interno del mercado, no el fenómeno de estudio.",
+    "goal": "Construir una metodología científica, reproducible y extensible para diagnosticar el estado estructural de un mercado mediante análisis integrado de propiedades derivadas de EMAs.",
+    "design_principles": [
+      "P01 — Las EMAs son instrumentos de medición, no el objeto de estudio.",
+      "P02 — Ninguna variable describe por sí sola el estado del mercado.",
+      "P03 — Toda interpretación requiere contexto.",
+      "P04 — El mercado se analiza mediante propiedades emergentes.",
+      "P05 — Toda variable debe poseer definición formal.",
+      "P06 — Todo cálculo debe ser reproducible.",
+      "P07 — Todo diagnóstico debe ser explicable.",
+      "P08 — Todo conocimiento del sistema debe estar documentado en el EAR."
+    ]
+  },
+
+  "architecture": {
+    "temporality": {
+      "model": "parametric",
+      "description": "La dimensión temporal es metadato de cada observación, no supuesto implícito del modelo. Permite operación multi-timeframe sin rediseño.",
+      "default_timeframe": "TBD — a definir en EIM-EAR-002",
+      "supported_timeframes": "ilimitado — parametrizable por observación"
+    },
+    "target_platforms": [
+      "Python",
+      "SQL Server",
+      "PostgreSQL",
+      "Power BI",
+      "TradingView (Pine Script)",
+      "REST APIs",
+      "Machine Learning pipelines"
+    ],
+    "documentation_formats": {
+      "narrative": "Markdown (.md)",
+      "structured_data": "JSON (.json)",
+      "human_reports": "Excel (.xlsx) — solo cuando el consumidor es humano"
+    }
+  },
+
+  "repository_catalog": {
+    "EAR": {
+      "name": "Enterprise Architecture Repository",
+      "role": "SSOT del proyecto. Contiene la arquitectura completa, entidades, catálogos, versionado y gobierno del dato.",
+      "documents": [
+        {
+          "code": "EIM-EAR-001",
+          "name": "Estructura Base",
+          "status": "ACTIVE",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "ONT": {
+      "name": "Ontology Repository",
+      "role": "Diccionario ontológico del mercado. Define el lenguaje, entidades y niveles del sistema.",
+      "documents": [
+        {
+          "code": "EIM-ONT-001",
+          "name": "Ontología del Mercado — Fase I",
+          "status": "ACTIVE",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "DDMR": {
+      "name": "Data Dictionary & Metadata Repository",
+      "role": "Catálogo maestro de variables con metadatos, tipos, rangos, dependencias y fórmulas de cálculo.",
+      "documents": []
+    },
+    "FRM": {
+      "name": "Formula Repository",
+      "role": "Repositorio de todas las fórmulas matemáticas del modelo con definición formal y condiciones de aplicabilidad.",
+      "documents": []
+    },
+    "BRM": {
+      "name": "Business Rules Model",
+      "role": "Catálogo de reglas de inferencia, umbrales, condiciones y lógica del sistema experto.",
+      "documents": []
+    },
+    "IRM": {
+      "name": "Inference Repository",
+      "role": "Motor de inferencia: reglas de diagnóstico, estados, transiciones y condiciones de activación.",
+      "documents": []
+    },
+    "PRM": {
+      "name": "Pattern Repository",
+      "role": "Catálogo de patrones estructurales observados, con condiciones de identificación y comportamiento esperado.",
+      "documents": []
+    },
+    "VRM": {
+      "name": "Validation Repository",
+      "role": "Resultados de backtesting, métricas estadísticas de validación y reportes de calidad del modelo.",
+      "documents": []
+    },
+    "KG": {
+      "name": "Knowledge Graph",
+      "role": "Grafo de relaciones entre entidades, variables y propiedades del modelo.",
+      "documents": []
+    }
+  },
+
+  "entity_registry": {
+    "_description": "Registro central de todas las entidades del modelo. Toda entidad debe existir aquí antes de ser referenciada en cualquier otro repositorio.",
+    "entities": []
+  },
+
+  "variable_registry": {
+    "_description": "Registro central de todas las variables del modelo. Poblado progresivamente desde el DDMR.",
+    "variables": []
+  },
+
+  "relationship_registry": {
+    "_description": "Registro central de todas las relaciones entre entidades y variables. Poblado desde el Knowledge Graph.",
+    "relationships": []
+  },
+
+  "governance": {
+    "ssot_policy": "Ninguna variable, regla o fórmula puede existir fuera del EAR. Todo componente debe estar documentado antes de su implementación.",
+    "versioning_policy": "Versionado semántico (MAJOR.MINOR.PATCH). Cambios de fase incrementan MAJOR. Cambios de contenido incrementan MINOR. Correcciones incrementan PATCH.",
+    "id_policy": "Todo elemento tiene un identificador permanente con formato: [PROJECT_CODE]-[REPO_CODE]-[SEQUENCE]. Ejemplo: EIM-ONT-001.",
+    "dependency_policy": "Todo documento declara sus dependencias explícitamente. No se aprueba un documento si sus dependencias no están en estado ACTIVE.",
+    "status_values": ["DRAFT", "REVIEW", "ACTIVE", "DEPRECATED", "ARCHIVED"]
+  },
+
+  "roadmap": {
+    "phases": [
+      {
+        "id": "I",
+        "name": "Ontología del Mercado",
+        "repository": "ONT",
+        "deliverable": "Diccionario Ontológico",
+        "status": "IN_PROGRESS"
+      },
+      {
+        "id": "II",
+        "name": "Diccionario Maestro de Variables",
+        "repository": "DDMR",
+        "deliverable": "Repositorio Maestro de Metadatos",
+        "status": "PENDING"
+      },
+      {
+        "id": "III",
+        "name": "Modelo de Relaciones",
+        "repository": "KG",
+        "deliverable": "Knowledge Graph",
+        "status": "PENDING"
+      },
+      {
+        "id": "IV",
+        "name": "Formalización Matemática",
+        "repository": "FRM",
+        "deliverable": "Repositorio Matemático",
+        "status": "PENDING"
+      },
+      {
+        "id": "V",
+        "name": "Motor de Inferencia",
+        "repository": "IRM",
+        "deliverable": "Sistema Experto",
+        "status": "PENDING"
+      },
+      {
+        "id": "VI",
+        "name": "Validación",
+        "repository": "VRM",
+        "deliverable": "Backtesting",
+        "status": "PENDING"
+      },
+      {
+        "id": "VII",
+        "name": "Implementación",
+        "repository": "N/A",
+        "deliverable": "Software",
+        "status": "PENDING"
+      }
+    ]
+  }
+}
