@@ -7,7 +7,7 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T01 | Cimientos: paquete, contratos, git, gate | — | ☑ | v2/eim/core (contratos pydantic) + v2/tests/core; pyproject, .gitignore, skill eim-new-agent. Gate OK (12 tests). |
 | T02 | Red de seguridad: regresión del legado | T01 | ☐ | |
 | T03 | Capa de datos y almacén | T01 | ☑ | v2/eim/data: `providers/` (Provider, BinanceFutures con reintentos/tasa), `store.py` (Parquet+DuckDB, huecos), `sync.py` (relleno incremental), `snapshot.py` (`build_snapshot`). Manual real: 6000 velas 1h BTCUSDT, 0 huecos. Evaluación OpenBB en PLAN/notas/T03_openbb.md. Gate OK (19 tests). |
-| T04 | Auditoría de repos (licencia/seguridad) | — | ☐ | |
+| T04 | Auditoría de repos (licencia/seguridad) | — | ☑ | PLAN/notas/T04_auditoria.md: 13 repos con veredicto. Rojas: market-regime y limit-order-book sin licencia real, Freqtrade GPL, OpenBB redirige a org nueva, circuit-framework descartado. Usar: Optuna, Kronos oficial. |
 | T05 | Runner de agentes + agente `structure` | T01 T02 T03 | ☐ | |
 | T06 | Agentes VWAP + price action | T05 | ☐ | |
 | T07 | Agentes Elliott + estacionalidad + liquidaciones | T05 | ☐ | |
