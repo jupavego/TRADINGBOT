@@ -53,7 +53,7 @@ class PlanAgent:
                     res.append(up)
                 if lo < close:
                     sup.append(lo)
-        bias, conf = combine(st.bias, st.confidence, lv.bias, lv.confidence, self.params)
+        bias, conf = combine([st, lv], self.params)
         return bias, conf, sup, res
 
     # --- run ------------------------------------------------------------

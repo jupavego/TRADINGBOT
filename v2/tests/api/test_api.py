@@ -93,6 +93,11 @@ def test_stream_ticks_then_reports_persisted(client):
     assert rng.json() == []
     assert len(client.get("/v2/overlays").json()) == len(rep["overlays"])
     assert all(a["last_asof"] == rep["asof"] for a in client.get("/v2/agents").json())
+    # síntesis real (T20): en el flujo y por REST, con contribuciones y tesis
+    syn = rep["synthesis"]
+    assert syn is None or (syn["thesis"] and set(syn["contributions"]) <= {
+        r["agent_id"] for r in rep["reports"]})
+    assert client.get("/v2/synthesis").json()["synthesis"] == syn
 
 
 def test_heartbeat_when_idle(client):

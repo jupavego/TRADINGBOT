@@ -1,5 +1,5 @@
 import './style.css'
-import { fetchAgents, fetchAsofs, fetchJournal, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
+import { fetchAgents, fetchAsofs, fetchJournal, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { renderRiver } from './river'
 import { latestPerAgent, renderJournal, renderSide } from './panels'
@@ -9,7 +9,7 @@ import { CalibrationPanel } from './calibration_ui'
 import { MoreView } from './more'
 import { renderLog, TradeMarks } from './trades_ui'
 import { applyTheme, initialTheme, type Theme } from './theme'
-import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg } from './types'
+import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T
 
@@ -27,6 +27,7 @@ let loadAbort: AbortController | null = null
 let lastClose: number | null = null
 let infos: AgentInfo[] = []
 let latest: AgentReport[] = []
+let synthesis: Synthesis | null = null
 let journal: AgentReport[] = []
 let replaying = false
 let asofs: number[] = []
@@ -70,20 +71,21 @@ function paintPrice(c: Candle): void {
 }
 
 function paintAgents(): void {
-  renderSide($('side'), $('synth'), infos, latest)
-  renderRiver($('river'), infos, latest)
+  renderSide($('side'), $('synth'), infos, latest, synthesis)
+  renderRiver($('river'), infos, latest, synthesis)
   renderJournal($('journal'), journal)
 }
 
 async function loadAgents(signal: AbortSignal): Promise<void> {
   try {
-    const [i, r] = await Promise.all([
+    const [i, r, s] = await Promise.all([
       fetchAgents(symbol, tf, signal), fetchReports(symbol, tf, 200, signal),
+      fetchSynthesis(symbol, tf, signal),
     ])
-    infos = i; journal = r; latest = latestPerAgent(r)
+    infos = i; journal = r; latest = latestPerAgent(r); synthesis = s.synthesis
   } catch (e) {
     if ((e as Error).name === 'AbortError') return
-    infos = []; latest = []; journal = []
+    infos = []; latest = []; journal = []; synthesis = null
   }
   paintAgents()
 }
@@ -122,7 +124,7 @@ async function showReplay(i: number): Promise<void> {
     chart.setData(r.candles, null)
     chart.layers.replace(r.overlays)
     marks.set(r.trades)
-    latest = r.reports; paintAgents()
+    latest = r.reports; synthesis = r.synthesis; paintAgents()
   } catch { $('banner').hidden = false; $('banner').textContent = 'No se pudo reconstruir ese instante.' }
 }
 
@@ -138,6 +140,7 @@ function onMsg(m: StreamMsg): void {
   else if (m.type === 'reports') {
     if (m.symbol !== symbol || m.timeframe !== tf) return
     latest = m.reports as AgentReport[]
+    synthesis = m.synthesis
     chart.layers.replace(m.overlays)
     journal = [...latest, ...journal].slice(0, 200)
     paintAgents()

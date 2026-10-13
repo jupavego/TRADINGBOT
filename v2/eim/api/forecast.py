@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 from fastapi import APIRouter, HTTPException, Query
 
 from eim.api.forecast_db import ForecastStore
@@ -13,6 +14,7 @@ from eim.data.timeframes import SYMBOLS, TF_MS
 from eim.forecast.base_engine import BaseEngine
 from eim.forecast.engine import MAX_HORIZON, MIN_HORIZON
 from eim.forecast.scenarios import build_forecast
+from eim.synthesis import drift_of, synthesize
 
 DEFAULT_HORIZON = 25
 
@@ -34,11 +36,21 @@ class Forecaster:
                 return {("bull" if plan["side"] == "long" else "bear"): float(plan["sl"])}
         return {}
 
+    def _synthesis_drift(self, symbol: str, tf: str, snap, asof: int | None) -> float | None:
+        rs = self._reports.at(symbol, tf, asof) if asof else self._reports.latest(symbol, tf)
+        syn = synthesize(rs)
+        closes = np.array([c.c for c in snap.candles])
+        if syn is None or len(closes) < 3:
+            return None
+        return drift_of(syn, float(np.std(np.diff(np.log(closes)))))
+
     def run(self, symbol: str, tf: str, horizon: int = DEFAULT_HORIZON,
             asof: int | None = None, drift: float | None = None) -> ForecastSet:
         snap = build_snapshot(self._store, symbol, tf, self._bars, asof=asof)
         if not snap.candles:
             raise LookupError(f"sin velas almacenadas para {symbol} {tf}")
+        if drift is None:  # T20: la síntesis inclina la proyección
+            drift = self._synthesis_drift(symbol, tf, snap, asof)
         fs = build_forecast(snap, horizon, self._n, drift=drift, stops=self._stops(symbol, tf))
         self.db.save(fs)
         return fs

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
 
-from eim.api.live import overlays_of
+from eim.api.live import overlays_of, synthesis_of
 from eim.api.reports_db import ReportStore
 from eim.core import Mode
 from eim.data.store import Store
@@ -75,6 +75,7 @@ def build_trades_router(store: Store, reports: ReportStore) -> APIRouter:
         return {
             "asof": asof, "mode": MODE, "candles": [c.model_dump() for c in candles],
             "reports": [r.model_dump() for r in rs], "overlays": overlays_of(rs),
+            "synthesis": synthesis_of(rs),
             "trades": [t.to_json() for t in view],
         }
 

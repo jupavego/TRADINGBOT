@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T12:17:56",
+ "generated": "2026-10-13T13:45:17",
  "tasks": [
   {
    "id": "T01",
@@ -229,8 +229,8 @@ window.EIM_STATUS = {
     "T07",
     "T12"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/synthesis (`synthesize`: sesgo ponderado por peso·confianza, acuerdo, penalización por desacuerdo/degradados/ausentes, pesos y régimen en `params.py`, tesis por plantilla; `drift_of`). Integrado: plan usa la síntesis (`combine`), Forecaster inclina la proyección con su deriva, API `/v2/synthesis` + campo `synthesis` en WS y replay, UI sin «simulada». Tests en tests/synthesis.",
    "effort": "medio",
    "phase": 5,
    "goal": "Combinar los reportes de los agentes en una tesis con sesgo, confianza y nivel de acuerdo, y alimentar con ella al plan y a la proyección."

@@ -14,7 +14,7 @@ from eim.api.calibration import build_calibration_router
 from eim.api.config import Settings
 from eim.api.forecast import Forecaster, build_forecast_router
 from eim.api.history import HistoryLoader
-from eim.api.live import Hub, overlays_of
+from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.more import MoreSources, build_more_router
 from eim.api.reports_db import ReportStore
 from eim.api.sources import BinanceKlineSource, LiveSource
@@ -106,6 +106,12 @@ def create_app(
         _check(symbol, tf)
         rows = reports.query(symbol, tf, start, end, agent, limit)
         return [r.model_dump() for r in rows]
+
+    @app.get("/v2/synthesis")
+    def get_synthesis(symbol: str = "ETHUSDT", tf: str = "1h") -> dict:
+        """Síntesis real (T20); `synthesis` es null si ningún agente aporta."""
+        _check(symbol, tf)
+        return {"synthesis": synthesis_of(reports.latest(symbol, tf), [a.id for a in reg.latest()])}
 
     @app.get("/v2/overlays")
     def overlays(symbol: str = "ETHUSDT", tf: str = "1h") -> list[dict]:
