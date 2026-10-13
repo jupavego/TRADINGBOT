@@ -1,5 +1,7 @@
 # EIM — Agente de trading de futuros (BTC/ETH)
 
+> Colaboradores nuevos: ver `ONBOARDING.md` (instalación, flujo con ramas/PR, config de Claude).
+
 Sistema de inteligencia estructural de mercado → agente multiagente de trading. Documentos F0–F6 = especificación vinculante (F0 `MSI-META-001.md` es la constitución; el código no puede contradecirla). **`v2/` = código NUEVO (aquí vive todo: `v2/eim/`, `v2/tests/`, `v2/pyproject.toml`); toda ruta `eim/`, `tests/`, `pyproject.toml` de `PLAN/` es relativa a `v2/`.** Lo previo (`F0`–`F7`, `repos/`) NO se mezcla con v2. `F7/` = código legado (se migra al paquete `eim/`; no se edita salvo bugs). `repos/` = referencias; perfiles en `repos/repo_profiles_master.md` (grep por nombre, no leer entero).
 
 ## Protocolo de sesión (ahorra tokens)
