@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T16:44:02",
+ "generated": "2026-10-13T17:30:07",
  "tasks": [
   {
    "id": "T01",
@@ -292,8 +292,8 @@ window.EIM_STATUS = {
     "T13",
     "T20"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/backtest: motor propio (decisión y prueba mínima con Nautilus en PLAN/notas/T25_motor.md). `engine.py` (ejecución en apertura siguiente, SL antes que TP, funding 8 h, margen aislado y liquidación), `perp.py`, `params.py` (comisiones maker/taker, deslizamiento por volatilidad/tamaño), `strategy.py` (contrato `Strategy`/`Signal` + `PlanStrategy` agentes→síntesis→plan), `walkforward.py` (ventanas disjuntas), `metrics.py` (Sharpe/Sortino/DD/R/acierto/PF/exposición con IC bootstrap, desglose de costos), `report.py`+`cli.py` (JSON/MD en reports/backtest/). Tests de integridad en tests/backtest (sin look-ahead, costos 0 = bruto, liquidación, funding). Backtest real es lento (~1 s/evaluación del agente de plan): usar `eval_step`>1.",
    "effort": "alto",
    "phase": 6,
    "goal": "Evaluar la estrategia completa (agentes → síntesis → plan) con costos y mecánica reales de futuros perpetuos, sin sesgo de anticipación."
