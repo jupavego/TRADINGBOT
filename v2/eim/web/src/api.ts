@@ -4,7 +4,7 @@ import type { AgentInfo, AgentReport, Snapshot, StreamMsg } from './types'
 const base = (): string =>
   (import.meta.env.VITE_API_URL as string | undefined) ?? `http://${location.hostname}:8000`
 
-export const SYMBOLS = ['BTCUSDT', 'ETHUSDT'] as const
+export const SYMBOLS = ['ETHUSDT', 'BTCUSDT'] as const
 export const TIMEFRAMES = ['15m', '1h', '4h'] as const
 
 export async function fetchSnapshot(
