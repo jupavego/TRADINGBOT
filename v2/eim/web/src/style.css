@@ -233,3 +233,12 @@ select, .btn, .seg button {
 .bcell { width: 45%; }
 .bl, .bs { display: inline-block; height: 8px; vertical-align: middle; }
 .bl { background: var(--down); } .bs { background: var(--up); }
+
+/* T14: capas sobre el gráfico */
+.layerbar { position: absolute; top: 8px; left: 10px; z-index: 3; display: flex; gap: 4px; flex-wrap: wrap; }
+.layerbar button { font: inherit; font-size: 12px; padding: 2px 10px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--panel); color: var(--muted); }
+.layerbar button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.evcard { position: absolute; z-index: 4; max-width: 320px; padding: 8px 12px; font-size: 12px; pointer-events: none;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+.evcard ul { margin: 4px 0 0; padding-left: 16px; }

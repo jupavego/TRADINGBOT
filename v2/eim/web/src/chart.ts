@@ -4,6 +4,7 @@ import {
 } from 'lightweight-charts'
 import type { Candle } from './types'
 import { cssVar } from './theme'
+import { LayerEngine } from './layers'
 
 const toBar = (c: Candle): CandlestickData<UTCTimestamp> => ({
   time: Math.floor(c.t / 1000) as UTCTimestamp, open: c.o, high: c.h, low: c.l, close: c.c,
@@ -13,6 +14,8 @@ const toBar = (c: Candle): CandlestickData<UTCTimestamp> => ({
 export class PriceChart {
   readonly chart: IChartApi
   readonly series: ISeriesApi<'Candlestick'>
+  readonly layers = new LayerEngine()
+  private lastT = -1
 
   constructor(el: HTMLElement) {
     this.chart = createChart(el, {
@@ -22,6 +25,7 @@ export class PriceChart {
       layout: { background: { type: ColorType.Solid, color: 'transparent' }, fontFamily: 'inherit' },
     })
     this.series = this.chart.addSeries(CandlestickSeries, {})
+    this.series.attachPrimitive(this.layers)
     this.restyle()
   }
 
@@ -34,6 +38,7 @@ export class PriceChart {
       rightPriceScale: { borderColor: cssVar('--line') },
       timeScale: { borderColor: cssVar('--line') },
     })
+    this.layers.requestRedraw()
     this.series.applyOptions({
       upColor: up, downColor: down, borderUpColor: up, borderDownColor: down,
       wickUpColor: up, wickDownColor: down,
@@ -44,12 +49,17 @@ export class PriceChart {
     const last = candles.length ? candles[candles.length - 1].t : -1
     const all = forming && forming.t > last ? [...candles, forming] : candles
     this.series.setData(all.map(toBar))
+    this.layers.setTimes(all.map((c) => c.t))
+    this.lastT = all.length ? all[all.length - 1].t : -1
     const n = all.length
     this.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - 90), to: n + 6 })
   }
 
   /** Vela en formación o cierre: `update` reemplaza la barra del mismo tiempo o añade una nueva. */
-  update(c: Candle): void { this.series.update(toBar(c)) }
+  update(c: Candle): void {
+    this.series.update(toBar(c))
+    if (c.t > this.lastT) { this.lastT = c.t; this.layers.pushTime(c.t) }
+  }
 
   destroy(): void { this.chart.remove() }
 }

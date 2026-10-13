@@ -1,4 +1,4 @@
-import type { AgentInfo, AgentReport, Snapshot, StreamMsg } from './types'
+import type { AgentInfo, Overlay, AgentReport, Snapshot, StreamMsg } from './types'
 
 /** Base de la API: variable VITE_API_URL o el mismo host en el puerto 8000. */
 const base = (): string =>
@@ -31,6 +31,9 @@ export const fetchReports = (
   symbol: string, tf: string, limit = 100, signal?: AbortSignal,
 ): Promise<AgentReport[]> =>
   getJson(`/v2/reports?symbol=${symbol}&tf=${tf}&limit=${limit}`, signal)
+
+export const fetchOverlays = (symbol: string, tf: string, signal?: AbortSignal): Promise<Overlay[]> =>
+  getJson(`/v2/overlays?symbol=${symbol}&tf=${tf}`, signal)
 
 export interface StreamHandle { close(): void }
 
