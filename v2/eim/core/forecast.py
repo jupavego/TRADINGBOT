@@ -24,6 +24,8 @@ class Scenario(Frozen):
     narrative: str
     n_paths: int = Field(ge=1)
     engine: str
+    # Techo y piso del escenario (T19+): [{role, price, source, methods, confluence, note}].
+    levels: list[dict] = []
 
 
 class ForecastSet(Frozen):

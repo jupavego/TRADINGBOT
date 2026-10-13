@@ -17,6 +17,7 @@ from eim.core import Candle, ForecastSet, MarketSnapshot, Scenario
 from eim.data.timeframes import tf_ms
 from eim.forecast.base_engine import BaseEngine
 from eim.forecast.engine import Engine, check_horizon
+from eim.forecast.sr import scenario_levels, structural_levels
 
 IDS = ("bull", "neutral", "bear")
 LABEL = {"bull": "alcista", "neutral": "neutral", "bear": "bajista"}
@@ -93,6 +94,7 @@ def build_scenarios(
     delta = paths[:, -1, 3] - last
     warnings: list[str] = []
     out: list[Scenario] = []
+    cands = structural_levels(snapshot, atr_abs)
     for k, sid in enumerate(IDS):
         idx = np.flatnonzero(lab == k)
         prob = len(idx) / n
@@ -117,7 +119,8 @@ def build_scenarios(
             id=sid, probability=prob, path=_tp(times, np.median(closes, axis=0)),
             band_low=_tp(times, lo_q), band_high=_tp(times, hi_q), candles=candles,
             invalidation=_invalidation(sid, last, atr_abs, p, stops), narrative=narrative,
-            n_paths=len(idx), engine=engine_name))
+            n_paths=len(idx), engine=engine_name,
+            levels=scenario_levels(g, cands, atr_abs)))
     return out, warnings
 
 

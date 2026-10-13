@@ -105,6 +105,7 @@ export class ScenarioPanel {
         `style="--c:${scenColor(s.id)}"><h4><span>${SCEN_LABEL[s.id]}</span>` +
         `<span class="num">${(s.probability * 100).toFixed(0)}%</span></h4>` +
         `<p>${esc(s.narrative)}</p><p><b>Invalidación:</b> ${esc(s.invalidation.condition)}</p>` +
+        (s.levels ?? []).map((l) => `<p class="meta"><b>${l.role === 'techo' ? 'Techo' : 'Piso'} ${l.price.toFixed(2)}</b> — ${esc(l.note)}</p>`).join('') +
         `<p class="meta">motor ${esc(s.engine)} · n_paths ${s.n_paths} · simulado</p></button>`
     }).join('')
     this.el.innerHTML = bar + warn + `<div class="scen-cards">${cards}</div>` +

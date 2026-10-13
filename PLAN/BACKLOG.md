@@ -10,3 +10,4 @@
 
 - T11: Liquidaciones sin mapa de calor precio×tiempo (solo totales diarios y niveles); `/v2/more/*` sin caché del backtest; pestañas legadas Histórico/Variables crudas/Price Action/Elliott ya cubiertas por agentes, sin vista dedicada.
 - [Fase 8] Arbitraje entre exchanges y con DEX (fuera del alcance «solo Binance»); estrategias de alta frecuencia; copy trading de perfiles Binance si T33 no lo permite (reevaluar vía API oficial si Binance la publica).
+- Techo/piso por escenario: hecho con Fibonacci + proyección de onda tipo Elliott (zigzag) + pivotes + envolvente estadística. Pendiente: usar el conteo de ondas del agente `elliott` (en vez de zigzag propio), zonas de `levels` con toques/volumen, confluencia ponderada y evaluar en calibración si techo/piso se respetan.
