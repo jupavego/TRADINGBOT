@@ -12,7 +12,7 @@ class SynthesisParams(BaseModel):
     weights: dict[str, float] = Field(default_factory=dict)
     # Agentes que no votan: `plan` deriva de structure/levels (doble conteo) y los no
     # direccionales emiten bias=0 (T44).
-    excluded: frozenset[str] = frozenset({"plan", "calendar", "arbitrage"})
+    excluded: frozenset[str] = frozenset({"plan", "calendar", "arbitrage", "regime"})
     # Multiplicadores de peso por régimen y agente (cuando exista el agente de régimen, T22).
     regime_weights: dict[str, dict[str, float]] = Field(default_factory=dict)
     degraded_factor: float = 0.5      # un agente degradado pesa y confía la mitad
