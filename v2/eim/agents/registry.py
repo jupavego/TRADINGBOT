@@ -45,6 +45,7 @@ def default_registry() -> AgentRegistry:
     """Registro con los agentes disponibles (cada tarea nueva añade el suyo aquí)."""
     from eim.agents.elliott import ElliottAgent
     from eim.agents.ema import EMAAgent
+    from eim.agents.levels import LevelsAgent
     from eim.agents.liquidations import LiquidationsAgent
     from eim.agents.price_action import PriceActionAgent
     from eim.agents.seasonality import SeasonalityAgent
@@ -53,6 +54,6 @@ def default_registry() -> AgentRegistry:
 
     reg = AgentRegistry()
     for agent in (StructureAgent(), EMAAgent(), VWAPAgent(), PriceActionAgent(),
-                  ElliottAgent(), SeasonalityAgent(), LiquidationsAgent()):
+                  ElliottAgent(), SeasonalityAgent(), LiquidationsAgent(), LevelsAgent()):
         reg.register(agent)
     return reg
