@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T04:20:02",
+ "generated": "2026-10-13T04:30:57",
  "tasks": [
   {
    "id": "T01",
@@ -176,8 +176,8 @@ window.EIM_STATUS = {
     "T03",
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/forecast: `engine.py` (interfaz `Engine.sample -> (n,h,4)`, horizonte 20–30, `valid_candles`), `base_engine.py` (GARCH(1,1) + bootstrap conjunto de formas de vela en unidades de σ, deriva y semilla), `kronos_engine.py` (opcional, extra `[kronos]`, se omite sin deps; predictor inyectable), `eval.py` (pinball + cobertura 50/80 walk-forward). ETH 1h fixture: cob50 56.8 %, cob80 83.2 %. Kronos sin evaluar (no instalado; PINNED_REVISION pendiente). Tests en tests/forecast.",
    "effort": "alto",
    "phase": 4,
    "goal": "Generar muchas trayectorias futuras de velas OHLC (20–30 velas) desde el precio actual, con un motor base estadístico y, opcionalmente, Kronos."
