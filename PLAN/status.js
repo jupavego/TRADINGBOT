@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-12T23:21:27",
+ "generated": "2026-10-12T23:33:50",
  "tasks": [
   {
    "id": "T01",
@@ -17,8 +17,8 @@ window.EIM_STATUS = {
    "deps": [
     "T01"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/tests/legacy (_runner, generate_golden, test_golden) + golden JSON en v2/tests/fixtures/golden (no parquet: sin pyarrow y *.parquet está en .gitignore) + fixture ethusdt_1h_1000.csv. Cubiertos: FRM, BRM, IRM, VWAP (día/semana/quincena/mes + anclado), price action (+zonas S/R), Elliott, estacionalidad (con cierres mensuales sintéticos: el CSV cubre ~6 semanas). NO cubiertos: eim_engine (orquesta feed de red; su pipeline FRM→BRM→IRM sí), eim_liquidations/market_data/data/web/bitacora (requieren red/estado). Tolerancia rtol/atol 1e-9; umbral θ-001 alterado en copia (EIM_LEGACY_DIR) hace fallar el test. Gate OK (19 tests).",
    "effort": "medio",
    "phase": 0,
    "goal": "Congelar el comportamiento actual de F7 (ya corregido en sesiones previas) con \"golden outputs\", para migrar sin regresiones."

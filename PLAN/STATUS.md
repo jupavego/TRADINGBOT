@@ -5,7 +5,7 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | ID | Tarea | Depende de | Estado | Notas de cierre |
 |---|---|---|---|---|
 | T01 | Cimientos: paquete, contratos, git, gate | — | ☑ | v2/eim/core (contratos pydantic) + v2/tests/core; pyproject, .gitignore, skill eim-new-agent. Gate OK (12 tests). |
-| T02 | Red de seguridad: regresión del legado | T01 | ☐ | |
+| T02 | Red de seguridad: regresión del legado | T01 | ☑ | v2/tests/legacy (_runner, generate_golden, test_golden) + golden JSON en v2/tests/fixtures/golden (no parquet: sin pyarrow y *.parquet está en .gitignore) + fixture ethusdt_1h_1000.csv. Cubiertos: FRM, BRM, IRM, VWAP (día/semana/quincena/mes + anclado), price action (+zonas S/R), Elliott, estacionalidad (con cierres mensuales sintéticos: el CSV cubre ~6 semanas). NO cubiertos: eim_engine (orquesta feed de red; su pipeline FRM→BRM→IRM sí), eim_liquidations/market_data/data/web/bitacora (requieren red/estado). Tolerancia rtol/atol 1e-9; umbral θ-001 alterado en copia (EIM_LEGACY_DIR) hace fallar el test. Gate OK (19 tests). |
 | T03 | Capa de datos y almacén | T01 | ☐ | |
 | T04 | Auditoría de repos (licencia/seguridad) | — | ☐ | |
 | T05 | Runner de agentes + agente `structure` | T01 T02 T03 | ☐ | |
