@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-12T23:34:49",
+ "generated": "2026-10-12T23:55:29",
  "tasks": [
   {
    "id": "T01",
@@ -29,8 +29,8 @@ window.EIM_STATUS = {
    "deps": [
     "T01"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/data: `providers/` (Provider, BinanceFutures con reintentos/tasa), `store.py` (Parquet+DuckDB, huecos), `sync.py` (relleno incremental), `snapshot.py` (`build_snapshot`). Manual real: 6000 velas 1h BTCUSDT, 0 huecos. Evaluación OpenBB en PLAN/notas/T03_openbb.md. Gate OK (19 tests).",
    "effort": "medio",
    "phase": 0,
    "goal": "Proveedores de datos con interfaz común y un almacén local (DuckDB/Parquet) que alimente `MarketSnapshot` sin que los agentes toquen red ni disco."
@@ -39,8 +39,8 @@ window.EIM_STATUS = {
    "id": "T04",
    "title": "Auditoría de repos (licencia/seguridad)",
    "deps": [],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "PLAN/notas/T04_auditoria.md: 13 repos con veredicto. Rojas: market-regime y limit-order-book sin licencia real, Freqtrade GPL, OpenBB redirige a org nueva, circuit-framework descartado. Usar: Optuna, Kronos oficial.",
    "effort": "medio",
    "phase": 0,
    "goal": "Decidir qué se puede reciclar y cómo, sin riesgo legal ni de seguridad."

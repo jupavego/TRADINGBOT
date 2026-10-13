@@ -6,8 +6,8 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 |---|---|---|---|---|
 | T01 | Cimientos: paquete, contratos, git, gate | — | ☑ | v2/eim/core (contratos pydantic) + v2/tests/core; pyproject, .gitignore, skill eim-new-agent. Gate OK (12 tests). |
 | T02 | Red de seguridad: regresión del legado | T01 | ☑ | v2/tests/legacy (_runner, generate_golden, test_golden) + golden JSON en v2/tests/fixtures/golden (no parquet: sin pyarrow y *.parquet está en .gitignore) + fixture ethusdt_1h_1000.csv. Cubiertos: FRM, BRM, IRM, VWAP (día/semana/quincena/mes + anclado), price action (+zonas S/R), Elliott, estacionalidad (con cierres mensuales sintéticos: el CSV cubre ~6 semanas). NO cubiertos: eim_engine (orquesta feed de red; su pipeline FRM→BRM→IRM sí), eim_liquidations/market_data/data/web/bitacora (requieren red/estado). Tolerancia rtol/atol 1e-9; umbral θ-001 alterado en copia (EIM_LEGACY_DIR) hace fallar el test. Gate OK (19 tests). |
-| T03 | Capa de datos y almacén | T01 | ☐ | |
-| T04 | Auditoría de repos (licencia/seguridad) | — | ☐ | |
+| T03 | Capa de datos y almacén | T01 | ☑ | v2/eim/data: `providers/` (Provider, BinanceFutures con reintentos/tasa), `store.py` (Parquet+DuckDB, huecos), `sync.py` (relleno incremental), `snapshot.py` (`build_snapshot`). Manual real: 6000 velas 1h BTCUSDT, 0 huecos. Evaluación OpenBB en PLAN/notas/T03_openbb.md. Gate OK (19 tests). |
+| T04 | Auditoría de repos (licencia/seguridad) | — | ☑ | PLAN/notas/T04_auditoria.md: 13 repos con veredicto. Rojas: market-regime y limit-order-book sin licencia real, Freqtrade GPL, OpenBB redirige a org nueva, circuit-framework descartado. Usar: Optuna, Kronos oficial. |
 | T05 | Runner de agentes + agente `structure` | T01 T02 T03 | ☐ | |
 | T06 | Agentes VWAP + price action | T05 | ☐ | |
 | T07 | Agentes Elliott + estacionalidad + liquidaciones | T05 | ☐ | |
