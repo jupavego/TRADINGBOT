@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T03:09:28",
+ "generated": "2026-10-13T03:25:32",
  "tasks": [
   {
    "id": "T01",
@@ -137,8 +137,8 @@ window.EIM_STATUS = {
    "deps": [
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/agents/levels: `pivots.py` (ATR, fractales, clustering 1D → zonas con toques/recencia/volumen, 2 arriba y 2 abajo), `channel.py` (Theil–Sen sobre pivotes, rango si deriva/ancho<0.35, canal roto tras 3 cierres fuera, extendido adelante), `agent.py` (sesgo por posición en canal + cercanía a zonas; overlays `zone`/`channel`/`range`), registrado en `default_registry`. Tests sintéticos + fixture en tests/agents/levels.",
    "effort": "alto",
    "phase": 3,
    "goal": "Agente puro que detecta zonas de soporte/resistencia y el canal o rango vigente, y los emite como overlays."
