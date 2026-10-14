@@ -14,10 +14,10 @@ from collections.abc import Callable, Iterable
 from dataclasses import asdict, dataclass
 
 INFO, WARN, CRITICAL = "info", "warn", "critical"
-# tipos (los cinco del entregable 3 + servicio e informe)
+# tipos (los cinco del entregable 3 de T31 + servicio, informe y copia de seguridad de T32)
 DISCONNECT, DIVERGENCE, KILL, DRAWDOWN, DEGRADED = (
     "desconexion", "divergencia", "kill_switch", "drawdown", "agentes_degradados")
-SERVICE, REPORT = "servicio", "informe"
+SERVICE, REPORT, BACKUP = "servicio", "informe", "copia_seguridad"
 
 _DDL = """
 CREATE TABLE IF NOT EXISTS op_alerts (

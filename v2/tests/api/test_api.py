@@ -7,7 +7,6 @@ import time
 from collections.abc import AsyncIterator
 
 import pytest
-from fastapi.testclient import TestClient
 
 from eim.api.config import Settings
 from eim.api.main import create_app
@@ -15,6 +14,7 @@ from eim.api.sources import LiveEvent, parse_kline
 from eim.core import Candle
 from eim.data.store import Store
 from eim.data.timeframes import tf_ms
+from tests.local_client import LocalClient
 
 STEP = tf_ms("1h")
 T0 = 1_700_000_000_000 // STEP * STEP
@@ -48,7 +48,7 @@ def client(tmp_path):
     Store(tmp_path).upsert_candles("ETHUSDT", "1h", hist, "test")
     nxt = Candle(t=hist[-1].t + STEP, o=2200, h=2210, l=2190, c=2205, v=50)
     cfg = Settings(data_dir=tmp_path, heartbeat_s=0.2, snapshot_bars=300)
-    with TestClient(create_app(cfg, source=FakeSource(nxt))) as c:
+    with LocalClient(create_app(cfg, source=FakeSource(nxt))) as c:
         yield c
 
 

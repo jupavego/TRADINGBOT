@@ -107,7 +107,7 @@ export const fetchCalibration = (
 
 export async function runBackfill(symbol: string, tf: string, h: number): Promise<CalibrationReport> {
   const r = await fetch(`${base()}/v2/calibration/backfill?symbol=${symbol}&tf=${tf}&h=${h}&origins=800`,
-    { method: 'POST' })
+    { method: 'POST', headers: { 'X-EIM-Confirm': 'backfill' } })
   const body = await r.json().catch(() => ({ detail: r.statusText }))
   if (!r.ok) throw new Error(String(body.detail ?? r.statusText))
   return body as CalibrationReport

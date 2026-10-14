@@ -12,3 +12,6 @@ dist/
 build/
 v2/reports/calibration/cache/
 v2/data/
+
+# T32: copias de seguridad locales (pueden contener el historial de operación)
+v2/backups/

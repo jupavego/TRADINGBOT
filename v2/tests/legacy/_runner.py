@@ -1,6 +1,6 @@
 """Ejecuta los módulos legados de F7/ sobre el CSV fixture y produce salidas canónicas.
 
-Solo lectura sobre F7/: se añade a sys.path, no se modifica.
+Solo lectura sobre legacy/F7/ (archivado en T32): se añade a sys.path, no se modifica.
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ import pandas as pd
 
 V2 = Path(__file__).resolve().parents[2]
 # EIM_LEGACY_DIR permite apuntar a una copia modificada (comprobación de sensibilidad).
-F7 = Path(os.environ.get("EIM_LEGACY_DIR", V2.parent / "F7"))
+F7 = Path(os.environ.get("EIM_LEGACY_DIR", V2.parent / "legacy" / "F7"))
 FIXTURES = V2 / "tests" / "fixtures"
 GOLDEN = FIXTURES / "golden"
 CSV = FIXTURES / "ethusdt_1h_1000.csv"

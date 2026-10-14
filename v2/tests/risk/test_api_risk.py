@@ -2,13 +2,13 @@
 
 import pytest
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 
 from eim.api.reports_db import ReportStore
 from eim.api.risk import build_risk_router
 from eim.core import AgentReport, Candle, Overlay
 from eim.data.store import Store
 from eim.risk import KillSwitch
+from tests.local_client import LocalClient
 
 H = 3_600_000
 T0 = 1_700_000_000_000 // H * H
@@ -43,7 +43,7 @@ def ctx(tmp_path):
     ks = KillSwitch()
     app = FastAPI()
     app.include_router(build_risk_router(store, reports, lambda: clock["now"], ks))
-    with TestClient(app) as c:
+    with LocalClient(app) as c:
         yield c, reports, clock, ks
     reports.close()
 

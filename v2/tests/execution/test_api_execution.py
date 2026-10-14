@@ -2,7 +2,6 @@
 
 import pytest
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 
 from eim.api.execution import build_execution_router, build_runtime
 from eim.api.reports_db import ReportStore
@@ -11,6 +10,7 @@ from eim.data.store import Store
 from eim.execution.binance_testnet import ENV_KEY, BinanceTestnetBroker, Credentials
 from eim.risk import KillSwitch
 from tests.execution.fake_binance import KEY, SECRET, FakeBinance
+from tests.local_client import LocalClient
 from tests.risk.helpers import CFG
 from tests.risk.test_api_risk import LAST_CLOSE, P, _candles, _plan, _rep
 
@@ -38,7 +38,7 @@ def _app(tmp_path, kind="testnet"):
 @pytest.fixture
 def ctx(tmp_path):
     app, fx, reports = _app(tmp_path)
-    with TestClient(app) as c:
+    with LocalClient(app) as c:
         yield c, fx
     reports.close()
 
@@ -72,7 +72,7 @@ def test_execute_requires_header_then_opens_protected(ctx):
 
 def test_execution_off_sends_nothing(tmp_path):
     app, fx, reports = _app(tmp_path, kind="off")
-    with TestClient(app) as c:
+    with LocalClient(app) as c:
         assert c.get("/v2/risk", params=P).json()["mode"] == "SIMULADO"
         assert c.post("/v2/risk/execute", params=P, headers=GO).status_code == 409
         assert c.get("/v2/execution").json()["enabled"] is False

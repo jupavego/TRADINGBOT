@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Header, HTTPException, Query
 
+from eim.api.execution import confirm
 from eim.api.forecast import DEFAULT_HORIZON, Forecaster
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
@@ -47,7 +48,9 @@ def build_calibration_router(store: Store, forecaster: Forecaster) -> APIRouter:
     @router.post("/calibration/backfill")
     def run_backfill(symbol: str = "ETHUSDT", tf: str = "1h",
                      h: int = Query(DEFAULT_HORIZON, ge=MIN_HORIZON, le=MAX_HORIZON),
-                     origins: int = Query(600, ge=1, le=2000)) -> dict:
+                     origins: int = Query(600, ge=1, le=2000),
+                     x_eim_confirm: str | None = Header(None)) -> dict:
+        confirm(x_eim_confirm, "backfill")   # escribe en la base: no vale un POST «simple» (T32)
         _check(symbol, tf)
         candles = store.read_candles(symbol, tf)
         k = 0

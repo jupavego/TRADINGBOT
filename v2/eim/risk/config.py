@@ -68,4 +68,5 @@ def load_config(path: str | Path | None = None, version: str = DEFAULT_VERSION) 
     data = json.loads(raw)
     if data.get("version") != p.stem:
         raise ValueError(f"versión '{data.get('version')}' no coincide con el archivo {p.name}")
-    return RiskConfig(**data, sha256=hashlib.sha256(raw).hexdigest())
+    # Hash sobre fin de línea LF: el mismo archivo da el mismo hash en todo equipo (T32).
+    return RiskConfig(**data, sha256=hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest())

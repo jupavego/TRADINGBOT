@@ -11,10 +11,10 @@
         "--port",
         "8000",
         "--app-dir",
-        "F7",
+        "legacy/F7",
         "--reload",
         "--reload-dir",
-        "F7"
+        "legacy/F7"
       ],
       "port": 8000
     },
