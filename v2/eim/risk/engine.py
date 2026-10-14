@@ -85,7 +85,9 @@ class RiskEngine:
         d = RiskDecision(
             approved=isinstance(sized, Sizing), symbol=plan.symbol, timeframe=plan.timeframe,
             plan_id=plan.plan_id, side=plan.side, mode=plan.mode, asof=plan.asof,
-            decided_at=market.now, reasons=tuple(reasons), checks=tuple(checks),
+            decided_at=market.now, entry=plan.entry, sized_at=market.last_price or plan.entry,
+            sl=plan.sl, tp=plan.tp,
+            reasons=tuple(reasons), checks=tuple(checks),
             config_version=self.config.version, config_sha256=self.config.sha256,
             account_source=account.source, **fields)
         d = d.model_copy(update={"seal": _digest(d)})

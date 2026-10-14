@@ -122,3 +122,23 @@ export async function setKillSwitch(on: boolean, reason: string): Promise<void> 
     throw new Error(String(body.detail ?? r.statusText))
   }
 }
+
+/** Envía el plan vigente aprobado al broker de testnet (T30): el servidor reevalúa el riesgo. */
+export async function executePlan(symbol: string, tf: string): Promise<{ executed: boolean }> {
+  const r = await fetch(`${base()}/v2/risk/execute?symbol=${symbol}&tf=${tf}`,
+    { method: 'POST', headers: { 'X-EIM-Confirm': 'execute' } })
+  const body = await r.json().catch(() => ({ detail: r.statusText }))
+  if (!r.ok) throw new Error(String(body.detail ?? r.statusText))
+  return body as { executed: boolean }
+}
+
+/** Modo de operación del servidor (`/v2/health`): TESTNET si hay broker de testnet (T30). */
+export async function fetchMode(): Promise<string | null> {
+  try {
+    const r = await fetch(`${base()}/v2/health`)
+    if (!r.ok) return null
+    return ((await r.json()) as { mode?: string }).mode ?? null
+  } catch {
+    return null
+  }
+}

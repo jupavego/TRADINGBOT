@@ -2,8 +2,10 @@
 
 1. Comportamiento: la única puerta (`OrderGateway`) rechaza decisiones fabricadas, alteradas,
    vetadas, caducadas, de otra configuración o con el kill-switch activo.
-2. Estático: ningún módulo de `eim/` contiene llamadas de envío de órdenes ni peticiones
-   firmadas a un exchange; un `Broker` solo se invoca desde `execution/gateway.py`.
+2. Estático: solo `execution/binance_testnet.py` contiene endpoints de órdenes o peticiones
+   firmadas (y solo hacia la testnet); el ejecutor solo se invoca (`.place(`) desde
+   `execution/gateway.py` y el broker solo recibe órdenes (`.post_order(`) desde
+   `execution/service.py`.
 """
 
 import re
@@ -112,6 +114,8 @@ ORDER_PATTERNS = [
     r'"type"\s*:\s*"order"',           # acción de órdenes del endpoint /exchange de Hyperliquid
 ]
 GATEWAY = EIM / "execution" / "gateway.py"
+TESTNET = EIM / "execution" / "binance_testnet.py"
+SERVICE = EIM / "execution" / "service.py"
 
 
 def _sources():
@@ -121,6 +125,8 @@ def _sources():
 def test_no_order_endpoints_anywhere():
     hits = []
     for p in _sources():
+        if p == TESTNET:
+            continue
         text = p.read_text(encoding="utf-8")
         hits += [f"{p.relative_to(EIM)}: {pat}" for pat in ORDER_PATTERNS
                  if re.search(pat, text)]
@@ -131,6 +137,20 @@ def test_broker_place_only_called_by_gateway():
     callers = [p.relative_to(EIM) for p in _sources()
                if p != GATEWAY and re.search(r"\.place\(", p.read_text(encoding="utf-8"))]
     assert callers == []
+
+
+def test_post_order_only_called_by_service():
+    callers = [p.relative_to(EIM) for p in _sources()
+               if p != SERVICE and re.search(r"\.post_order\(", p.read_text(encoding="utf-8"))]
+    assert callers == []
+
+
+def test_testnet_module_only_knows_testnet_hosts():
+    text = TESTNET.read_text(encoding="utf-8")
+    hosts = set(re.findall(r"https?://([\w.-]+)", text))
+    assert hosts == {"testnet.binancefuture.com"}
+    assert not re.search(r"fapi\.binance\.com|api\.binance\.com", text.replace(
+        "demo-fapi.binance.com", ""))
 
 
 def test_gateway_verifies_before_placing():

@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from eim.agents.registry import AgentRegistry, default_registry
 from eim.api.calibration import build_calibration_router
 from eim.api.config import Settings
+from eim.api.execution import build_execution_router, build_runtime, recon_loop
 from eim.api.forecast import Forecaster, build_forecast_router
 from eim.api.history import HistoryLoader
 from eim.api.live import Hub, overlays_of, synthesis_of
@@ -24,7 +25,7 @@ from eim.data.providers.binance import BinanceFutures
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
-from eim.risk import global_kill_switch
+from eim.risk import global_kill_switch, load_config
 
 API_VERSION = "2.0.0"
 
@@ -52,10 +53,20 @@ def create_app(
     if history is None and source is None and cfg.auto_history:  # en vivo: historia automática
         history = HistoryLoader(store, BinanceFutures())
     hub = Hub(src, store, reports, reg, cfg.snapshot_bars, cfg.agent_timeout_s, forecaster, history)
+    kill = global_kill_switch()
+    kill.attach(cfg.data_dir / "kill_switch.json")
+    runtime = build_runtime(cfg.execution, kill, load_config())
+
+    def now_ms() -> int:
+        return int(time.time() * 1000)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
+        task = (asyncio.create_task(recon_loop(runtime, cfg.recon_interval_s, now_ms))
+                if runtime.recon is not None else None)
         yield
+        if task is not None:
+            task.cancel()
         await hub.close()
         reports.close()
 
@@ -67,8 +78,8 @@ def create_app(
     app.state.hub, app.state.reports, app.state.store = hub, reports, store
     app.state.forecaster = forecaster
     app.include_router(build_trades_router(store, reports))
-    global_kill_switch().attach(cfg.data_dir / "kill_switch.json")
-    app.include_router(build_risk_router(store, reports))
+    app.include_router(build_risk_router(store, reports, kill=kill, runtime=runtime))
+    app.include_router(build_execution_router(runtime, now_ms))
     app.include_router(build_forecast_router(forecaster))
     app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
@@ -76,7 +87,7 @@ def create_app(
     @app.get("/v2/health")
     def health() -> dict:
         return {"status": "ok", "version": API_VERSION, "now": int(time.time() * 1000),
-                "agents": len(reg.ids()), "live_source": src.name}
+                "agents": len(reg.ids()), "live_source": src.name, "mode": runtime.mode.value}
 
     @app.get("/v2/snapshot")
     def snapshot(symbol: str = "ETHUSDT", tf: str = "1h", n: int = Query(500, ge=1, le=5000)):

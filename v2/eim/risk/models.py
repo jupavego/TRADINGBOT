@@ -83,6 +83,10 @@ class RiskDecision(BaseModel):
     risk_amount: float = 0.0                     # pérdida hasta el SL (sin costos)
     risk_frac: float = 0.0
     liquidation_price: float | None = None
+    entry: float = 0.0                           # entrada del plan (precio de una LIMIT)
+    sized_at: float = 0.0                        # precio actual con el que se dimensionó
+    sl: float = 0.0
+    tp: tuple[float, ...] = ()
     reasons: tuple[str, ...] = ()                # motivos de veto (o de recorte si aprobado)
     checks: tuple[Check, ...] = ()
     config_version: str

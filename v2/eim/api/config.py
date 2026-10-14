@@ -9,7 +9,8 @@ from pathlib import Path
 
 @dataclass(frozen=True)
 class Settings:
-    """Entorno: EIM_DATA_DIR, EIM_REPORTS_DB, EIM_CORS_ORIGINS, EIM_WS_URL, EIM_HEARTBEAT_S."""
+    """Entorno: EIM_DATA_DIR, EIM_REPORTS_DB, EIM_CORS_ORIGINS, EIM_WS_URL, EIM_HEARTBEAT_S,
+    EIM_EXECUTION (off | testnet), EIM_RECON_S (segundos entre reconciliaciones)."""
 
     data_dir: Path = Path("data")
     reports_db: Path | None = None
@@ -23,6 +24,8 @@ class Settings:
     agent_timeout_s: float = 30.0
     reconnect_max_s: float = 30.0
     auto_history: bool = False  # EIM_AUTO_HISTORY (1 por defecto en from_env)
+    execution: str = "off"      # T30: "testnet" activa el broker de testnet (claves por entorno)
+    recon_interval_s: float = 30.0
     extra: dict[str, str] = field(default_factory=dict)
 
     @property
@@ -43,4 +46,6 @@ class Settings:
             heartbeat_s=float(env.get("EIM_HEARTBEAT_S", d.heartbeat_s)),
             snapshot_bars=int(env.get("EIM_SNAPSHOT_BARS", d.snapshot_bars)),
             auto_history=env.get("EIM_AUTO_HISTORY", "1") != "0",
+            execution=env.get("EIM_EXECUTION", d.execution).strip().lower(),
+            recon_interval_s=float(env.get("EIM_RECON_S", d.recon_interval_s)),
         )
