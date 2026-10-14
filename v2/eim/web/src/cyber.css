@@ -170,3 +170,13 @@
   :root[data-theme="cyber"] body::before { animation: none; display: none; }
   :root[data-theme="cyber"] .tile { transition: none; }
 }
+
+/* Avatares: neón con halo y barrido suave */
+:root[data-theme="cyber"] .avatar { color: var(--accent); filter: drop-shadow(0 0 4px rgba(var(--glow), .55)); }
+:root[data-theme="cyber"] .tile[data-t="up"] .avatar { color: var(--up); filter: drop-shadow(0 0 5px rgba(18, 229, 143, .55)); }
+:root[data-theme="cyber"] .tile[data-t="down"] .avatar { color: var(--down); filter: drop-shadow(0 0 5px rgba(255, 61, 95, .55)); }
+:root[data-theme="cyber"] .tile.idle .avatar { color: var(--neutral); filter: none; }
+:root[data-theme="cyber"] .avatar .hex { stroke-dasharray: 90 12; animation: hexspin 9s linear infinite; }
+:root[data-theme="cyber"] .tile:hover .avatar .glyph { filter: drop-shadow(0 0 3px currentColor); }
+@keyframes hexspin { to { stroke-dashoffset: -204; } }
+@media (prefers-reduced-motion: reduce) { :root[data-theme="cyber"] .avatar .hex { animation: none; } }

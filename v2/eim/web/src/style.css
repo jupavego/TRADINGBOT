@@ -268,3 +268,27 @@ select, .btn, .seg button {
 .cal-t th, .cal-t td { padding: 2px 10px; border-bottom: 1px solid var(--line); text-align: right; }
 .cal-t td:first-child, .cal-t th:first-child { text-align: left; }
 .cal-v { margin: 0 0 8px; padding-left: 18px; font-size: 13px; }
+
+/* Panel inferior (Escenarios · Calibración · Plan · Bitácora): crece hacia abajo con su contenido,
+   sin barra de desplazamiento propia; la página entera hace el scroll. */
+.desk { grid-template-rows: 560px auto; }
+.bottom { min-height: 190px; }
+.tabbody { overflow: visible; flex: none; }
+@media (max-width: 900px) { .desk { grid-template-rows: 380px auto; } }
+
+/* Avatares de agentes */
+.tile summary { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 10px; }
+.tile summary .avatar { grid-row: 1 / span 2; grid-column: 1; }
+.tile summary .aname { grid-column: 2; }
+.tile summary .chip { grid-column: 3; justify-self: end; }
+.tile .big { grid-column: 2; }
+.tile .ring { grid-column: 3; }
+.avatar { width: 46px; height: 46px; flex: none; color: var(--muted); }
+.tile[data-t="up"] .avatar { color: var(--up); }
+.tile[data-t="down"] .avatar { color: var(--down); }
+.avatar .hex { fill: color-mix(in srgb, currentColor 8%, transparent); stroke: currentColor; stroke-width: 1.4; stroke-opacity: .55; }
+.avatar .notch { stroke: currentColor; stroke-width: 2; stroke-linecap: round; fill: none; }
+.avatar .glyph { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.avatar .glyph .f { fill: currentColor; fill-opacity: .35; }
+.avatar .glyph .t { fill: currentColor; stroke: none; font: 600 8px var(--f-num, monospace); text-anchor: middle; }
+.tile.idle .avatar { opacity: .6; }
