@@ -10,6 +10,7 @@ import { CalibrationPanel } from './calibration_ui'
 import { MoreView } from './more'
 import { renderLog, TradeMarks } from './trades_ui'
 import { RiskPanel } from './risk_ui'
+import { OperationPanel } from './operation_ui'
 import { applyTheme, initialTheme, nextTheme, THEME_LABEL, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
 
@@ -43,6 +44,7 @@ const marks = new TradeMarks(chart)
 const scenarios = new ScenarioPanel($('t-esc'), chart, () => ({ symbol, tf }))
 const calibration = new CalibrationPanel($('t-cal'), () => ({ symbol, tf }))
 const risk = new RiskPanel($('t-plan'), () => ({ symbol, tf }))
+const operation = new OperationPanel($('t-op'))
 chart.layers.modeLabel = MODE_LABEL[mode]
 mountLayerBar($('layerbar'), chart.layers)
 chart.chart.subscribeCrosshairMove((p) => {
@@ -216,6 +218,7 @@ function build(): void {
     b.onclick = () => {
       tabs.forEach((x) => x.setAttribute('aria-selected', String(x === b)))
       document.querySelectorAll<HTMLElement>('.tabbody').forEach((p) => { p.hidden = p.id !== b.dataset.tab })
+      if (b.dataset.tab === 't-op') void operation.reload()
     }
   })
   const range = $<HTMLInputElement>('replay-range')

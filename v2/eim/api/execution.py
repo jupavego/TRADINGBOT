@@ -22,6 +22,8 @@ from eim.execution.binance_testnet import BinanceTestnetBroker
 from eim.execution.broker import Broker, BrokerError
 from eim.execution.reconcile import Reconciler
 from eim.execution.service import ExecutionService
+from eim.execution.sim_broker import SimBroker
+from eim.operation.equity import EquityBook, account_state
 from eim.risk import AccountState, KillSwitch, RiskConfig
 
 CONFIRM_HEADER = "X-EIM-Confirm"
@@ -41,23 +43,32 @@ class ExecutionRuntime:
     recon: Reconciler | None = None
     error: str = ""
     lock: threading.Lock = field(default_factory=threading.Lock)
+    equity_book: EquityBook | None = None         # T31: historial de capital (día/semana/pico)
     _equity: tuple[float, float] | None = None   # (monotónico, capital): caché corta
 
     @property
     def mode(self) -> Mode:
         return self.svc.mode if self.svc is not None else Mode.SIMULADO
 
-    def account(self) -> AccountState:
-        """Cuenta desde el exchange. Sin historial propio aún: inicio de día/semana y pico =
-        capital actual (las reglas de pérdida diaria/semanal no ven pérdidas previas; T31)."""
+    @property
+    def paper(self) -> bool:
+        return self.svc is not None and isinstance(self.svc.broker, SimBroker)
+
+    def equity(self, fresh: bool = False) -> float:
         assert self.svc is not None
-        if self._equity is None or time.monotonic() - self._equity[0] > EQUITY_TTL_S:
+        if fresh or self._equity is None or time.monotonic() - self._equity[0] > EQUITY_TTL_S:
             self._equity = (time.monotonic(), self.svc.broker.equity())
-        eq = self._equity[1]
-        return AccountState(
-            equity=eq, day_start_equity=eq, week_start_equity=eq, peak_equity=eq,
-            open_symbols=tuple(t.symbol for t in self.svc.active()),
-            source=f"{self.mode.value}: saldo del exchange (sin historial diario)")
+        return self._equity[1]
+
+    def account(self, now: int | None = None) -> AccountState:
+        """Cuenta desde el broker; inicio de día/semana y pico salen del historial de capital
+        (`equity_book`, T31). Sin historial, equivalen al capital actual."""
+        assert self.svc is not None
+        where = "simulador SimBroker" if self.paper else "saldo del exchange"
+        return account_state(
+            self.equity(), now if now is not None else int(time.time() * 1000),
+            self.equity_book, list(self.svc.trades.values()),
+            tuple(t.symbol for t in self.svc.active()), f"{self.mode.value}: {where}")
 
     def reconcile(self, now: int):
         assert self.recon is not None
@@ -66,16 +77,19 @@ class ExecutionRuntime:
 
 
 def build_runtime(kind: str, kill: KillSwitch, cfg: RiskConfig,
-                  broker_factory: Callable[[], Broker] = BinanceTestnetBroker) -> ExecutionRuntime:
+                  broker_factory: Callable[[], Broker] = BinanceTestnetBroker,
+                  clock: Callable[[], int] | None = None) -> ExecutionRuntime:
+    """`off` sin broker · `paper` SimBroker en memoria (SIMULADO, T31) · `testnet` Binance."""
     if kind in ("", "off"):
         return ExecutionRuntime()
-    if kind != "testnet":
-        return ExecutionRuntime(error=f"EIM_EXECUTION='{kind}' no soportado (solo testnet)")
+    if kind not in ("testnet", "paper"):
+        return ExecutionRuntime(error=f"EIM_EXECUTION='{kind}' no soportado (paper | testnet)")
     try:
-        broker = broker_factory()
+        broker = SimBroker() if kind == "paper" else broker_factory()
     except BrokerError as e:
         return ExecutionRuntime(error=f"testnet no disponible: {e}")
-    svc = ExecutionService(broker, kill)
+    svc = (ExecutionService(broker, kill, clock=clock) if clock is not None
+           else ExecutionService(broker, kill))
     return ExecutionRuntime(svc=svc, recon=Reconciler(svc, cfg))
 
 

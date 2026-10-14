@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-14T11:32:26",
+ "generated": "2026-10-14T12:04:18",
  "tasks": [
   {
    "id": "T01",
@@ -365,8 +365,8 @@ window.EIM_STATUS = {
    "deps": [
     "T30"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**Construido; falta la corrida de ≥ 4 semanas** (criterio de aceptación). Por decisión del usuario (2026-10-14) corre en papel con `SimBroker` (T30 sin la prueba E2E en testnet); alertas: notificación local de Windows + UI. v2/eim/operation: `cycle.py` (datos REST → agentes → pronóstico → `RiskDesk.execute` por la puerta única → precio del simulador por el camino de cada vela de 15m con SL/TP en su disparo → capital → kill-switch por drawdown → reconciliación → alertas), `supervisor.py` (bucle con latido `data/operation/heartbeat.json`, reintento exponencial, alerta tras 3 fallos, informe semanal automático cada lunes UTC), `watchdog.py` + `__main__.py` (`python -m eim.operation run`: relanza la API si muere o si el latido se detiene), `state.py` (libro y SimBroker persistidos: sobreviven al reinicio), `equity.py` (historial `op_equity` → inicio de día/semana y pico reales para el motor de riesgo), `alerts.py`/`notify.py` (desconexión, divergencia, kill-switch, drawdown ≥5 %, agentes degradados; por transición, en DuckDB `op_alerts`, registro JSONL por día), `weekly.py`/`report.py` (resultados vs ventanas OOS de T27, desviaciones, calibración de escenarios, incidentes, vetos → `reports/operation/semana_AAAA-Www.md/json`). `RiskDesk` extraído de `api/risk.py` (API y servicio comparten ruta). API `GET /v2/operation`, `POST /v2/operation/report`; UI pestaña «Operación» (`web/src/operation_ui.ts`). Tests en tests/operation (30). **Verificado en vivo (2026-10-14):** ciclo con datos reales de Binance (BTC/ETH 1h), kill-switch → alerta crítica + notificación, informe parcial, `taskkill` del proceso → relanzado en 10 s con cursores restaurados; estado de prueba borrado. Arranque: `python -m eim.operation run` desde `v2/`.",
    "effort": "medio",
    "phase": 7,
    "goal": "Operar de forma continua en testnet/paper durante semanas con monitoreo y alertas, y producir la evidencia para decidir si se pasa a capital real."

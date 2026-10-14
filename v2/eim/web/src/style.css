@@ -315,3 +315,19 @@ select, .btn, .seg button {
 .risk-ok[data-ok="false"] > b:first-child { color: var(--down); }
 .risk-kill { border-color: var(--down); color: var(--down); }
 @media (max-width: 700px) { .risk-grid { grid-template-columns: 1fr; } }
+
+/* T31 — pestaña Operación */
+.op-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; align-items: start; margin: 8px 0; }
+.op-grid h4 { margin: 0 0 4px; }
+.op-kill { margin: 8px 0; }
+.op-kill-btn { border-color: var(--down); color: var(--down); font-weight: 600; }
+.op-svc[data-state="operando"] .op-state { color: var(--up); }
+.op-svc[data-state="reintentando"] .op-state, .op-svc .bad { color: var(--down); }
+.op-risk meter { width: 70px; vertical-align: middle; }
+.op-alerts tr[data-level="critical"] td:nth-child(3) { color: var(--down); }
+.op-alerts tr[data-level="warn"] td:nth-child(3) { color: var(--warn); }
+td[data-sign="1"] { color: var(--up); }
+td[data-sign="-1"] { color: var(--down); }
+.op-reports { margin: 4px 0; padding-left: 18px; font-size: 12px; }
+.link { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; }
+.op-report { max-height: 360px; overflow: auto; white-space: pre-wrap; font-size: 12px; border: 1px solid var(--grid); border-radius: 8px; padding: 8px; }

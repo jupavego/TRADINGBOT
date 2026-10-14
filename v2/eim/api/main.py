@@ -17,14 +17,17 @@ from eim.api.forecast import Forecaster, build_forecast_router
 from eim.api.history import HistoryLoader
 from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.more import MoreSources, build_more_router
+from eim.api.operation import build_operation_router
 from eim.api.reports_db import ReportStore
-from eim.api.risk import build_risk_router
+from eim.api.risk import RiskDesk, build_risk_router
 from eim.api.sources import BinanceKlineSource, LiveSource
 from eim.api.trades import build_trades_router
 from eim.data.providers.binance import BinanceFutures
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
+from eim.operation.cycle import OperationParams
+from eim.operation.supervisor import Operation, Supervisor
 from eim.risk import global_kill_switch, load_config
 
 API_VERSION = "2.0.0"
@@ -43,6 +46,7 @@ def create_app(
     registry: AgentRegistry | None = None,
     more: MoreSources | None = None,
     history: HistoryLoader | None = None,
+    operation_provider=None,
 ) -> FastAPI:
     cfg = settings or Settings.from_env()
     store = Store(cfg.data_dir)
@@ -56,14 +60,29 @@ def create_app(
     kill = global_kill_switch()
     kill.attach(cfg.data_dir / "kill_switch.json")
     runtime = build_runtime(cfg.execution, kill, load_config())
+    desk = RiskDesk(store, reports, kill=kill, runtime=runtime)
+    op = None
+    if cfg.operate:   # T31: el ciclo continuo reconcilia; no hace falta el bucle aparte
+        op = Operation(store=store, provider=operation_provider or BinanceFutures(),
+                       reports=reports, registry=reg, desk=desk,
+                       params=OperationParams(timeframe=cfg.operate_tf,
+                                              poll_s=cfg.operate_poll_s,
+                                              snapshot_bars=cfg.snapshot_bars,
+                                              agent_timeout_s=cfg.agent_timeout_s),
+                       data_dir=cfg.data_dir, reports_dir=cfg.operation_reports,
+                       edge_path=cfg.edge_results, forecaster=forecaster)
 
     def now_ms() -> int:
         return int(time.time() * 1000)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
-        task = (asyncio.create_task(recon_loop(runtime, cfg.recon_interval_s, now_ms))
-                if runtime.recon is not None else None)
+        if op is not None:
+            task = asyncio.create_task(Supervisor(op).run())
+        elif runtime.recon is not None:
+            task = asyncio.create_task(recon_loop(runtime, cfg.recon_interval_s, now_ms))
+        else:
+            task = None
         yield
         if task is not None:
             task.cancel()
@@ -78,7 +97,9 @@ def create_app(
     app.state.hub, app.state.reports, app.state.store = hub, reports, store
     app.state.forecaster = forecaster
     app.include_router(build_trades_router(store, reports))
-    app.include_router(build_risk_router(store, reports, kill=kill, runtime=runtime))
+    app.state.operation = op
+    app.include_router(build_risk_router(store, reports, desk=desk))
+    app.include_router(build_operation_router(desk, lambda: op, cfg.operation_reports))
     app.include_router(build_execution_router(runtime, now_ms))
     app.include_router(build_forecast_router(forecaster))
     app.include_router(build_calibration_router(store, forecaster))
@@ -87,7 +108,8 @@ def create_app(
     @app.get("/v2/health")
     def health() -> dict:
         return {"status": "ok", "version": API_VERSION, "now": int(time.time() * 1000),
-                "agents": len(reg.ids()), "live_source": src.name, "mode": runtime.mode.value}
+                "agents": len(reg.ids()), "live_source": src.name, "mode": runtime.mode.value,
+                "operation": op.status["state"] if op is not None else "apagado"}
 
     @app.get("/v2/snapshot")
     def snapshot(symbol: str = "ETHUSDT", tf: str = "1h", n: int = Query(500, ge=1, le=5000)):

@@ -41,6 +41,21 @@
       ],
       "cwd": "v2",
       "port": 8000
+    },
+    {
+      "name": "eim-v2-operation",
+      "runtimeExecutable": ".venv/Scripts/python.exe",
+      "runtimeArgs": [
+        "-m",
+        "eim.operation",
+        "run",
+        "--execution",
+        "paper",
+        "--poll",
+        "60"
+      ],
+      "cwd": "v2",
+      "port": 8000
     }
   ]
 }

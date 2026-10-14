@@ -42,84 +42,105 @@ def _check(symbol: str, tf: str) -> None:
         raise HTTPException(400, f"símbolo o marco no soportado: {symbol} {tf}")
 
 
-def build_risk_router(store: Store, reports: ReportStore,
-                      clock: Callable[[], int] = _now,
-                      kill: KillSwitch | None = None,
-                      runtime: ExecutionRuntime | None = None) -> APIRouter:
-    con, lock = reports.connection
-    ledger = SimLedger(con, lock)
-    journal = RiskJournal(con, lock)
-    cfg = load_config()
-    kill = kill or global_kill_switch()
-    engine = RiskEngine(cfg, journal, kill)
-    rt = runtime or ExecutionRuntime()
-    mode = rt.mode
-    router = APIRouter(prefix="/v2/risk")
+class RiskDesk:
+    """Evaluación del plan vigente y envío por la puerta única. La usan la API y el servicio
+    de operación continua (T31): una sola ruta de código hacia las órdenes."""
 
-    def config_view() -> dict:
-        return cfg.model_dump(include={"version", "sha256", "risk_per_trade", "max_leverage",
-                                       "max_daily_loss", "max_weekly_loss", "max_open_trades"})
+    def __init__(self, store: Store, reports: ReportStore, clock: Callable[[], int] = _now,
+                 kill: KillSwitch | None = None, runtime: ExecutionRuntime | None = None) -> None:
+        con, lock = reports.connection
+        self.store, self.reports, self.clock = store, reports, clock
+        self.ledger = SimLedger(con, lock)
+        self.journal = RiskJournal(con, lock)
+        self.cfg = load_config()
+        self.kill = kill or global_kill_switch()
+        self.engine = RiskEngine(self.cfg, self.journal, self.kill)
+        self.rt = runtime or ExecutionRuntime()
+        self.mode = self.rt.mode
 
-    def evaluate(symbol: str, tf: str) -> tuple[dict, RiskDecision | None]:
+    def config_view(self) -> dict:
+        return self.cfg.model_dump(include={"version", "sha256", "risk_per_trade",
+                                            "max_leverage", "max_daily_loss",
+                                            "max_weekly_loss", "max_open_trades"})
+
+    def evaluate(self, symbol: str, tf: str) -> tuple[dict, RiskDecision | None]:
         """Evalúa el plan vigente del agente `plan` (y registra la decisión)."""
         _check(symbol, tf)
-        now, bar = clock(), TF_MS[tf]
-        base = {"mode": mode.value, "config": config_view(), "kill_switch": kill.state()}
+        rt, store, reports = self.rt, self.store, self.reports
+        now, bar = self.clock(), TF_MS[tf]
+        base = {"mode": self.mode.value, "config": self.config_view(),
+                "kill_switch": self.kill.state()}
         latest = reports.latest(symbol, tf)
         rep = next((r for r in latest if r.agent_id == "plan"), None)
-        req = plan_request(rep, symbol, tf, mode) if rep is not None else None
+        req = plan_request(rep, symbol, tf, self.mode) if rep is not None else None
         if req is None:
             return {**base, "plan": None, "decision": None,
                     "detail": "sin plan vigente: nada que dimensionar"}, None
         if rt.svc is not None:
             try:
-                account = rt.account()
+                account = rt.account(now)
             except BrokerError as e:
-                raise HTTPException(502, f"cuenta de {mode.value} no disponible: {e}") from None
+                raise HTTPException(
+                    502, f"cuenta de {self.mode.value} no disponible: {e}") from None
         else:
-            sync_trades(store, reports, ledger, symbol, tf)
+            sync_trades(store, reports, self.ledger, symbol, tf)
             # la operación simulada de este mismo plan es la que se dimensiona: no cuenta
-            trades = [t for s in SYMBOLS for t in ledger.trades(s, tf)
+            trades = [t for s in SYMBOLS for t in self.ledger.trades(s, tf)
                       if not (t.symbol == symbol and t.plan_id == req.plan_id)]
-            account = account_from_trades(trades, PAPER_EQUITY, cfg.risk_per_trade, now, bar,
-                                          ACCOUNT_SOURCE)
+            account = account_from_trades(trades, PAPER_EQUITY, self.cfg.risk_per_trade, now,
+                                          bar, ACCOUNT_SOURCE)
         last = store.read_candles(symbol, tf, last=1)
         market = market_context(latest, last[-1].t + bar if last else None, now, bar,
                                 last[-1].c if last else None)
-        d = engine.evaluate(req, account, market)
+        d = self.engine.evaluate(req, account, market)
         return {**base, "plan": req.model_dump(mode="json"),
                 "decision": d.model_dump(mode="json", exclude={"seal"}),
                 "account": account.model_dump()}, d
 
-    @router.get("")
-    def risk(symbol: str = "ETHUSDT", tf: str = "1h") -> dict:
-        return evaluate(symbol, tf)[0]
-
-    @router.post("/execute")
-    def execute(symbol: str = "ETHUSDT", tf: str = "1h",
-                x_eim_confirm: str | None = Header(None)) -> dict:
-        """Evalúa el plan vigente y, si el motor lo aprueba, lo envía al broker de testnet."""
-        _confirm(x_eim_confirm, "execute")
+    def execute(self, symbol: str, tf: str) -> dict:
+        """Evalúa y, si el motor aprueba, envía por `OrderGateway`. Lanza HTTPException."""
+        rt = self.rt
         if rt.svc is None:
             raise HTTPException(409, rt.error or "ejecución desactivada (EIM_EXECUTION)")
-        view, d = evaluate(symbol, tf)
+        view, d = self.evaluate(symbol, tf)
         if d is None or not d.approved:
             return {**view, "executed": False}
         try:
             with rt.lock:
-                key = OrderGateway(engine, rt.svc).submit(d, clock())
+                key = OrderGateway(self.engine, rt.svc).submit(d, self.clock())
         except PermissionError as e:
             raise HTTPException(409, str(e)) from None
         except BrokerError as e:
             raise HTTPException(502, str(e)) from None
         return {**view, "executed": True, "trade": rt.svc.trades[key].to_json()}
 
+
+def build_risk_router(store: Store, reports: ReportStore,
+                      clock: Callable[[], int] = _now,
+                      kill: KillSwitch | None = None,
+                      runtime: ExecutionRuntime | None = None,
+                      desk: RiskDesk | None = None) -> APIRouter:
+    desk = desk or RiskDesk(store, reports, clock, kill, runtime)
+    kill, journal = desk.kill, desk.journal
+    router = APIRouter(prefix="/v2/risk")
+
+    @router.get("")
+    def risk(symbol: str = "ETHUSDT", tf: str = "1h") -> dict:
+        return desk.evaluate(symbol, tf)[0]
+
+    @router.post("/execute")
+    def execute(symbol: str = "ETHUSDT", tf: str = "1h",
+                x_eim_confirm: str | None = Header(None)) -> dict:
+        """Evalúa el plan vigente y, si el motor lo aprueba, lo envía al broker."""
+        _confirm(x_eim_confirm, "execute")
+        return desk.execute(symbol, tf)
+
     @router.get("/decisions")
     def decisions(symbol: str = "ETHUSDT", tf: str = "1h",
                   limit: int = Query(200, ge=1, le=2000)) -> dict:
         _check(symbol, tf)
         rows = journal.query(symbol, tf, limit)
-        return {"mode": mode.value,
+        return {"mode": desk.mode.value,
                 "decisions": [d.model_dump(mode="json", exclude={"seal"}) for d in rows]}
 
     @router.get("/kill-switch")
@@ -130,14 +151,14 @@ def build_risk_router(store: Store, reports: ReportStore,
     def kill_on(reason: str = Query("activado manualmente", max_length=200),
                 x_eim_confirm: str | None = Header(None)) -> dict:
         _confirm(x_eim_confirm)
-        kill.activate(reason, clock(), by="manual")
+        kill.activate(reason, desk.clock(), by="manual")
         return kill.state()
 
     @router.post("/kill-switch/deactivate")
     def kill_off(reason: str = Query("", max_length=200),
                  x_eim_confirm: str | None = Header(None)) -> dict:
         _confirm(x_eim_confirm)
-        kill.deactivate(clock(), by="manual", reason=reason)
+        kill.deactivate(desk.clock(), by="manual", reason=reason)
         return kill.state()
 
     return router

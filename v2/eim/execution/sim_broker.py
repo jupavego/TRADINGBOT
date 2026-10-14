@@ -11,7 +11,7 @@ reduce-only sin posición → rechazo, condicional que dispararía al instante �
 from __future__ import annotations
 
 import math
-from dataclasses import replace
+from dataclasses import asdict, replace
 
 from eim.core import Mode
 from eim.execution.broker import (
@@ -116,6 +116,22 @@ class SimBroker:
     def equity(self) -> float:
         upnl = sum(q * (self._px.get(s, e or 0.0) - (e or 0.0)) for s, (q, e) in self._pos.items())
         return self.balance + upnl
+
+    # --- persistencia (paper trading continuo, T31) --------------------------
+    def dump(self) -> dict:
+        """Estado completo serializable: el libro sobrevive a un reinicio del servicio."""
+        return {"balance": self.balance, "leverage": self.leverage, "seq": self._seq,
+                "px": self._px, "limit_px": self._limit_px,
+                "pos": {s: list(v) for s, v in self._pos.items()},
+                "orders": [asdict(o) for o in self._orders.values()]}
+
+    def load(self, d: dict) -> None:
+        self.balance, self._seq = float(d["balance"]), int(d["seq"])
+        self.leverage = {k: int(v) for k, v in d["leverage"].items()}
+        self._px = {k: float(v) for k, v in d["px"].items()}
+        self._limit_px = dict(d["limit_px"])
+        self._pos = {s: (float(q), e) for s, (q, e) in d["pos"].items()}
+        self._orders = {o["client_id"]: OrderState(**o) for o in d["orders"]}
 
     # --- casación ----------------------------------------------------------
     def _reduces(self, symbol: str, side: int) -> bool:
