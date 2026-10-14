@@ -21,7 +21,7 @@ from eim.api.more import MoreSources, build_more_router
 from eim.api.operation import build_operation_router
 from eim.api.reports_db import ReportStore
 from eim.api.risk import RiskDesk, build_risk_router
-from eim.api.security import LocalOnlyMiddleware
+from eim.api.security import BodyLimitMiddleware, LocalOnlyMiddleware, ws_token_subprotocol
 from eim.api.sources import BinanceKlineSource, LiveSource
 from eim.api.trades import build_trades_router
 from eim.data.calendar_sync import CalendarSync
@@ -104,6 +104,7 @@ def create_app(
         CORSMiddleware, allow_origins=list(cfg.cors_origins), allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(BodyLimitMiddleware)   # 413 antes de recibir cuerpos enormes (T32)
     # Exterior: rechaza Host ajeno / cliente remoto antes que cualquier otra cosa (T32).
     app.add_middleware(LocalOnlyMiddleware, allowed_hosts=cfg.allowed_hosts,
                        origins=cfg.cors_origins, token=cfg.api_token)
@@ -115,7 +116,7 @@ def create_app(
     app.include_router(build_operation_router(desk, lambda: op, cfg.operation_reports))
     app.include_router(build_execution_router(runtime, now_ms))
     app.include_router(build_backup_router(reports, cfg.data_dir, cfg.backup_dir,
-                                           cfg.backup_keep))
+                                           cfg.backup_keep, lambda: op))
     app.include_router(build_forecast_router(forecaster))
     app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
@@ -175,7 +176,9 @@ def create_app(
         if symbol not in SYMBOLS or tf not in TF_MS:
             await ws.close(code=1008, reason="símbolo o marco no soportado")
             return
-        await ws.accept()
+        # Acceso remoto con token: el subprotocolo ofrecido debe devolverse al aceptar.
+        hdrs = {k.lower(): v for k, v in ws.headers.items()}
+        await ws.accept(subprotocol=ws_token_subprotocol(hdrs))
         ch, q = hub.subscribe(symbol, tf)
         try:
             await ws.send_json(ch.status)

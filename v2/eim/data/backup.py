@@ -24,13 +24,14 @@ import shutil
 import subprocess
 import threading
 import time
-import urllib.request
 from collections.abc import Callable
 from contextlib import nullcontext
 from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
+
+from eim.data.local_api import DEFAULT_API, post_local
 
 PKG = Path(__file__).resolve().parents[1]                  # v2/eim
 CONFIG_DIRS = {"risk": PKG / "risk" / "versions", "calibration": PKG / "calibration" / "versions"}
@@ -68,11 +69,16 @@ def _tables(con) -> dict[str, int]:
     return {n: con.execute(f'SELECT count(*) FROM "{n}"').fetchone()[0] for n in names}
 
 
+def _sql_path(p: Path) -> str:
+    """Literal SQL de una ruta (ATTACH no admite parámetros): comillas simples duplicadas."""
+    return "'" + p.as_posix().replace("'", "''") + "'"
+
+
 def copy_db_hot(con, lock, dst: Path) -> dict[str, int]:
     """Copia consistente desde la conexión abierta de la API (mismo cerrojo que los escritores)."""
     with lock or nullcontext():
         src = con.execute("SELECT current_database()").fetchone()[0]
-        con.execute(f"ATTACH '{dst.as_posix()}' AS eim_backup")
+        con.execute(f"ATTACH {_sql_path(dst)} AS eim_backup")
         try:
             con.execute(f'COPY FROM DATABASE "{src}" TO eim_backup')
         finally:
@@ -84,11 +90,11 @@ def copy_db_cold(src: Path, dst: Path) -> dict[str, int]:
     """Copia con la API detenida. Si la base está en uso → BackupError (usar la vía API)."""
     con = duckdb.connect()
     try:
-        con.execute(f"ATTACH '{src.as_posix()}' AS src (READ_ONLY)")
+        con.execute(f"ATTACH {_sql_path(src)} AS src (READ_ONLY)")
     except (duckdb.IOException, duckdb.BinderException) as e:   # otro proceso / este mismo
         raise BackupError(f"la base está en uso (¿API en marcha?): {e}") from e
     try:
-        con.execute(f"ATTACH '{dst.as_posix()}' AS eim_backup")
+        con.execute(f"ATTACH {_sql_path(dst)} AS eim_backup")
         con.execute("COPY FROM DATABASE src TO eim_backup")
         con.execute("USE src")
         return _tables(con)
@@ -109,8 +115,11 @@ def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | 
            clock: Callable[[], float] = time.time) -> Path:
     """Crea una copia y poda las más antiguas (se conservan `keep`). Devuelve su carpeta."""
     stamp = datetime.fromtimestamp(clock(), UTC).strftime("%Y%m%d-%H%M%S")
-    out = dest_root / f"{PREFIX}{stamp}"
-    tmp = dest_root / f".{PREFIX}{stamp}.partial"
+    out, n = dest_root / f"{PREFIX}{stamp}", 1
+    while out.exists():                          # dos copias en el mismo segundo
+        n += 1
+        out = dest_root / f"{PREFIX}{stamp}-{n}"
+    tmp = dest_root / f".{out.name}.partial"
     shutil.rmtree(tmp, ignore_errors=True)
     tmp.mkdir(parents=True)
     try:
@@ -179,20 +188,24 @@ def verify(backup: Path) -> list[str]:
     return problems
 
 
-def restore(backup: Path, data_dir: Path) -> list[str]:
-    """Restaura base y estado en `data_dir` (API DETENIDA). La base actual se conserva como
-    `reports.duckdb.antes-de-restaurar`. La configuración versionada vive en git: no se pisa."""
+def restore(backup: Path, data_dir: Path,
+            clock: Callable[[], float] = time.time) -> list[str]:
+    """Restaura base y estado en `data_dir` (API DETENIDA). Lo que se reemplaza se conserva con
+    el sufijo `.antes-de-restaurar-<AAAAMMDD-HHMMSS>` (cada restauración el suyo: restaurar dos
+    veces no pierde el original). La configuración versionada vive en git: no se pisa."""
     problems = verify(backup)
     if problems:
         raise BackupError("copia no íntegra: " + "; ".join(problems))
     db = data_dir / DB_NAME
     data_dir.mkdir(parents=True, exist_ok=True)
+    suffix = ".antes-de-restaurar-" + datetime.fromtimestamp(clock(), UTC).strftime(
+        "%Y%m%d-%H%M%S")
     restored = []
     if (backup / DB_NAME).exists():
         if db.exists():
             try:          # otro proceso con la base abierta: bloqueo de DuckDB / de Windows
                 duckdb.connect(str(db)).close()
-                os.replace(db, db.with_name(DB_NAME + ".antes-de-restaurar"))
+                os.replace(db, db.with_name(DB_NAME + suffix))
             except (duckdb.IOException, PermissionError) as e:
                 raise BackupError(f"detén la API antes de restaurar: {e}") from e
         db.with_name(DB_NAME + ".wal").unlink(missing_ok=True)
@@ -203,7 +216,10 @@ def restore(backup: Path, data_dir: Path) -> list[str]:
         shutil.copy2(state / "kill_switch.json", data_dir / "kill_switch.json")
         restored.append("kill_switch.json")
     if (state / "operation").exists():
-        _copy_tree(state / "operation", data_dir / "operation")
+        op = data_dir / "operation"
+        if op.exists():   # sin restos de un estado que la copia no tenía (p. ej. otro modo)
+            op.rename(op.with_name("operation" + suffix))
+        _copy_tree(state / "operation", op)
         restored.append("operation/")
     if (backup / "market").exists():
         _copy_tree(backup / "market", data_dir)
@@ -217,22 +233,18 @@ def due_today(dest_root: Path, now_s: float) -> bool:
     return not any(p.name.startswith(f"{PREFIX}{day}") for p in listing(dest_root))
 
 
-def _via_api(api: str) -> dict:
-    req = urllib.request.Request(f"{api}/v2/backup", method="POST",
-                                 headers={"X-EIM-Confirm": "backup"})
-    with urllib.request.urlopen(req, timeout=300) as resp:  # noqa: S310 - API local del usuario
-        return json.loads(resp.read())
-
-
 def main(argv: list[str] | None = None) -> int:
+    """Mismos valores por defecto que la API (`EIM_DATA_DIR`, `EIM_BACKUP_DIR`,
+    `EIM_BACKUP_KEEP`): la CLI encuentra las copias que hizo el servicio."""
+    env = os.environ
     ap = argparse.ArgumentParser(prog="eim.data.backup")
     ap.add_argument("cmd", choices=["create", "verify", "restore", "list"])
     ap.add_argument("backup", nargs="?", help="carpeta de la copia (verify/restore)")
-    ap.add_argument("--data-dir", type=Path, default=Path("data"))
-    ap.add_argument("--dest", type=Path, default=Path("backups"))
-    ap.add_argument("--keep", type=int, default=14)
+    ap.add_argument("--data-dir", type=Path, default=Path(env.get("EIM_DATA_DIR", "data")))
+    ap.add_argument("--dest", type=Path, default=Path(env.get("EIM_BACKUP_DIR", "backups")))
+    ap.add_argument("--keep", type=int, default=int(env.get("EIM_BACKUP_KEEP", "14")))
     ap.add_argument("--with-market", action="store_true")
-    ap.add_argument("--api", default="http://127.0.0.1:8000",
+    ap.add_argument("--api", default=DEFAULT_API,
                     help="si la base está en uso, la copia la hace la API en marcha")
     a = ap.parse_args(argv)
     if a.cmd == "list":
@@ -244,7 +256,9 @@ def main(argv: list[str] | None = None) -> int:
             out = create(a.data_dir, a.dest, with_market=a.with_market, keep=a.keep)
         except BackupError as e:
             print(f"{e} → pidiendo la copia a la API ({a.api})")
-            print(json.dumps(_via_api(a.api), ensure_ascii=False, indent=1))
+            q = "?with_market=true" if a.with_market else ""
+            res = post_local(a.api, f"/v2/backup{q}", "backup", timeout=300)
+            print(json.dumps(res, ensure_ascii=False, indent=1))
             return 0
         print(out)
         return 0

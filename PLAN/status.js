@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-14T15:34:18",
+ "generated": "2026-10-14T15:58:21",
  "tasks": [
   {
    "id": "T01",
@@ -378,7 +378,7 @@ window.EIM_STATUS = {
     "T31"
    ],
    "state": "done",
-   "notes": "**Hecha en paralelo a la corrida de 4 semanas de T31 por decisión del usuario (2026-10-14).** Auditoría en v2/docs/SEGURIDAD.md (+ skill security-review: sin hallazgos): API solo local (`eim/api/security.py`: Host permitido contra DNS rebinding, cliente de bucle local o `EIM_API_TOKEN`, Origin en WebSocket), `X-EIM-Confirm` en `calibration/backfill` + test que recorre todo POST, tope de 20 MB en subidas, Vite 5→6.4.4 (`npm audit` 0), `pip-audit` 0, hash de `risk_v1` independiente de CRLF + `.gitattributes`. Docs en v2/docs/ (ARQUITECTURA, OPERACION, RUNBOOK, NUEVO_AGENTE). Copias: `eim/data/backup.py` (en caliente bajo el cerrojo DuckDB, verificación por SHA-256, restauración, poda; CLI `python -m eim.data.backup`, `POST /v2/backup`, copia diaria automática del servicio con alerta), `tests/test_param_versions.py` (versiones inmutables), `requirements-lock.txt` + política de dependencias. `F7/` → `legacy/F7/` con README (solo oráculo de regresión). BACKLOG priorizado (P0–P3). Gate: 683 tests. **Pendiente: reiniciar la corrida de papel para cargar los cambios.**",
+   "notes": "**Hecha en paralelo a la corrida de 4 semanas de T31 por decisión del usuario (2026-10-14).** Auditoría en v2/docs/SEGURIDAD.md (+ skill security-review: sin hallazgos): API solo local (`eim/api/security.py`: Host permitido contra DNS rebinding, cliente de bucle local o `EIM_API_TOKEN`, Origin en WebSocket), `X-EIM-Confirm` en `calibration/backfill` + test que recorre todo POST, límite de cuerpo de 41 MB (413), Vite 5→6.4.4 (`npm audit` 0), `pip-audit` 0, hash de `risk_v1` independiente de CRLF + `.gitattributes`. Docs en v2/docs/ (ARQUITECTURA, OPERACION, RUNBOOK, NUEVO_AGENTE). Copias: `eim/data/backup.py` (en caliente bajo el cerrojo DuckDB, verificación por SHA-256, restauración, poda; CLI `python -m eim.data.backup`, `POST /v2/backup`, copia diaria automática del servicio con alerta), `tests/test_param_versions.py` (versiones inmutables), `requirements-lock.txt` + política de dependencias. `F7/` → `legacy/F7/` con README (solo oráculo de regresión). BACKLOG priorizado (P0–P3). Gate: 689 tests. Revisión de código (high): 10 hallazgos, 10 corregidos (CLI con variables de entorno, copia a demanda serializada con el ciclo, reintento horario, restauración sin pisar copias previas, rutas con comillas, token en WebSocket, límite de cuerpo por petición, cliente común `eim/data/local_api.py`). **Pendiente: reiniciar la corrida de papel para cargar los cambios.**",
    "effort": "medio",
    "phase": 7,
    "goal": "Dejar el sistema mantenible y seguro."

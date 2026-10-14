@@ -19,7 +19,7 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 | Operación en papel (servicio continuo) | `python -m eim.operation run --execution paper` | API + ciclo + vigilante que relanza el proceso; copia diaria automática |
 | Operación en testnet | `EIM_TESTNET_API_KEY=… EIM_TESTNET_API_SECRET=… python -m eim.operation run --execution testnet` | Antes: `python -m eim.execution.smoke` (BACKLOG T30/T31) |
 | Informe del periodo | `python -m eim.operation report [--from AAAA-MM-DD] [--to AAAA-MM-DD]` | Lo genera la API en marcha |
-| Copia de seguridad a demanda | `python -m eim.data.backup create` | Si la API está en marcha, se la pide a ella |
+| Copia de seguridad a demanda | `python -m eim.data.backup create` | Si la API está en marcha, se la pide a ella. La CLI usa `EIM_DATA_DIR`, `EIM_BACKUP_DIR` y `EIM_BACKUP_KEEP` como la API |
 
 **Nunca** lances la API con `--host 0.0.0.0`: además de quedar en la red, el middleware de
 `eim/api/security.py` rechazará a los clientes remotos (403) y los `Host` ajenos (400).
@@ -32,7 +32,7 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 | `EIM_OPERATE`, `EIM_OPERATE_TF`, `EIM_OPERATE_POLL_S` | `0`, `1h`, `60` | Servicio continuo (lo fija `eim.operation run`) |
 | `EIM_BACKUP_DIR`, `EIM_BACKUP_KEEP` | `backups`, `14` | Copias; se conservan las N más recientes |
 | `EIM_ALLOWED_HOSTS` | `127.0.0.1,localhost,::1` | Cabeceras `Host` aceptadas |
-| `EIM_API_TOKEN` | — | Sin él, ningún cliente remoto entra. Con él: `Authorization: Bearer <token>` |
+| `EIM_API_TOKEN` | — | Sin él, ningún cliente remoto entra. Con él: `Authorization: Bearer <token>`; en WebSocket, subprotocolo `eim-token.<token>` (los navegadores no admiten cabeceras ahí) |
 | `EIM_CORS_ORIGINS` | `http://127.0.0.1:5173,http://localhost:5173` | Orígenes del navegador (también para el WebSocket) |
 | `EIM_TESTNET_API_KEY` / `_SECRET` / `_URL` | — | Solo testnet; el broker bloquea cualquier otro host |
 | `EIM_CALENDAR`, `EIM_CALENDAR_S` | `1`, `21600` | Calendario económico (Fed/BLS/BEA): consulta al arrancar y cada 6 h en `data/calendar/` (T36). `0` lo apaga |
@@ -46,8 +46,8 @@ registros del servicio, versiones de parámetros (`eim/risk/versions`, `eim/cali
 `--with-market` (se pueden volver a descargar). **Nunca** se copian claves.
 
 - **Automática:** con el servicio de operación, una copia por día UTC en `EIM_BACKUP_DIR`. Si falla,
-  alerta `copia_seguridad` (una vez) y se reintenta en cada ciclo sin detener la operación.
-- **A demanda:** `python -m eim.data.backup create [--with-market]` o `POST /v2/backup` (cabecera `X-EIM-Confirm: backup`).
+  alerta `copia_seguridad` (una vez) y se reintenta cada hora (no en cada ciclo: la copia retiene el cerrojo de la base) sin detener la operación.
+- **A demanda:** `python -m eim.data.backup create [--with-market]` o `POST /v2/backup` (cabecera `X-EIM-Confirm: backup`). Con el servicio en marcha, la copia espera a que termine el ciclo en curso: base y libro simulado quedan consistentes entre sí.
 - **Verificar:** `python -m eim.data.backup verify [carpeta]` (por defecto la última). Hazlo tras cada copia manual.
 - **Listar:** `python -m eim.data.backup list`.
 - **Restaurar:** ver `docs/RUNBOOK.md` §5.

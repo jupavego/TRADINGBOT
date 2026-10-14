@@ -75,7 +75,9 @@ python -m eim.data.backup restore backups/eim_AAAAMMDD-HHMMSS --data-dir data
 python -m eim.operation run --execution paper
 ```
 `restore` verifica hashes antes de tocar nada, se niega si la base está abierta, guarda la base
-actual como `reports.duckdb.antes-de-restaurar` y restaura kill-switch y estado del servicio.
+actual como `reports.duckdb.antes-de-restaurar-<AAAAMMDD-HHMMSS>` y la carpeta `operation/` como
+`operation.antes-de-restaurar-<…>` (cada restauración con su sello: repetirla no pierde el original)
+y restaura kill-switch y estado del servicio.
 La configuración versionada no se restaura (vive en git; la copia la conserva para auditoría).
 Velas: si no se copiaron, se vuelven a descargar solas (`EIM_AUTO_HISTORY=1`).
 En testnet, tras restaurar: reconciliar (§2) antes de reactivar.
@@ -95,7 +97,7 @@ la fuente de datos (§3). No se fuerza la ejecución: el riesgo tiene la última
 
 ## 8. Copia diaria fallida
 Alerta `copia_seguridad` con el error (disco lleno, ruta inexistente, permisos). Corregir y esperar
-el siguiente ciclo (se reintenta solo) o forzar `python -m eim.data.backup create`. La operación no
+el reintento automático (cada hora) o forzar `python -m eim.data.backup create`. La operación no
 se detiene por esto.
 
 ## 9. Sospecha de clave comprometida (testnet)
