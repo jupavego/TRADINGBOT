@@ -1,4 +1,5 @@
 import './style.css'
+import './cyber.css'
 import { fetchAgents, fetchAsofs, fetchJournal, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { renderRiver } from './river'
@@ -8,7 +9,7 @@ import { ScenarioPanel } from './scenarios_ui'
 import { CalibrationPanel } from './calibration_ui'
 import { MoreView } from './more'
 import { renderLog, TradeMarks } from './trades_ui'
-import { applyTheme, initialTheme, type Theme } from './theme'
+import { applyTheme, initialTheme, nextTheme, THEME_LABEL, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T
@@ -224,9 +225,12 @@ function build(): void {
   $('replay-live').onclick = () => leaveReplay()
   const modeEl = $('mode')
   modeEl.textContent = `Modo: ${MODE_LABEL[mode]}`
-  $('theme').onclick = () => {
-    theme = theme === 'light' ? 'dark' : 'light'
-    applyTheme(theme); chart.restyle(); more.restyle()
+  const themeBtn = $('theme')
+  const paintTheme = (): void => { themeBtn.textContent = `Tema: ${THEME_LABEL[theme]}` }
+  paintTheme()
+  themeBtn.onclick = () => {
+    theme = nextTheme(theme)
+    applyTheme(theme); paintTheme(); chart.restyle(); more.restyle()
   }
   const mb = $<HTMLButtonElement>('more-btn')
   mb.onclick = () => {
