@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T17:30:07",
+ "generated": "2026-10-13T18:32:26",
  "tasks": [
   {
    "id": "T01",
@@ -304,8 +304,8 @@ window.EIM_STATUS = {
    "deps": [
     "T25"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/calibration: `space.py` (9 params acotados: umbrales del plan ↔ VRM C-1, peso structure/levels y desacuerdo ↔ C-2; C-3 al BACKLOG), `inputs.py` (caché de structure/levels; fidelidad 7/7 entradas idénticas), `evaluate.py` (mediana Sharpe por ventana − 2·DD − 0.05·nº params), `search.py` (optuna TPE + selección por peor caso ±10 %), `nested.py` (1 año train → 6 meses test, 5 pliegues, control ETHUSDT), `cli.py`. PlanAgent acepta `synth`/`raw`. **Resultado (reports/calibration/params_v1_btc_1h.md): fuera de muestra no mejora de forma robusta (gana 1/5 pliegues, Sharpe OOS −2.45 vigente vs −2.40) → se mantienen los valores previos** (versión `eim/calibration/versions/params_v1_btc_1h.json`, estado rechazado). La estrategia pierde en todos los pliegues y en ETH: insumo clave para T27.",
    "effort": "medio-alto",
    "phase": 6,
    "goal": "Calibrar umbrales θ, pesos de síntesis y parámetros del plan sin sobreajustar. Salda la deuda pendiente del VRM (Fase VI)."

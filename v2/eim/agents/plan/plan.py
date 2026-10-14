@@ -6,7 +6,7 @@ from dataclasses import dataclass, replace
 
 from eim.agents.plan.params import PlanParams
 from eim.core import AgentReport
-from eim.synthesis import synthesize
+from eim.synthesis import SynthesisParams, synthesize
 
 
 @dataclass(frozen=True)
@@ -30,9 +30,10 @@ class Plan:
         return "largo" if self.side > 0 else "corto"
 
 
-def combine(reports: list[AgentReport], p: PlanParams) -> tuple[float, float]:
+def combine(reports: list[AgentReport], p: PlanParams,
+            synth: SynthesisParams | None = None) -> tuple[float, float]:
     """Sesgo y confianza de la dirección: la síntesis (T20) de `structure` y `levels`."""
-    syn = synthesize(reports, expected=[r.agent_id for r in reports])
+    syn = synthesize(reports, synth, expected=[r.agent_id for r in reports])
     if syn is None:
         return 0.0, 0.0
     return syn.bias, min(syn.confidence, p.max_confidence)
