@@ -1,0 +1,382 @@
+{
+ "meta": {
+  "mode": "SIMULADO",
+  "timeframe": "1h",
+  "window": 4380,
+  "params": {
+   "plan.min_abs_bias": 0.15,
+   "plan.min_confidence": 0.3,
+   "plan.min_rr": 1.5,
+   "plan.sl_buffer_atr": 0.5,
+   "plan.max_sl_atr": 5.0,
+   "plan.expiry_bars": 48,
+   "synth.w_structure": 1.0,
+   "synth.disagree_penalty": 0.5,
+   "strategy.tp_index": 0
+  },
+  "backtest": {
+   "initial_equity": 10000.0,
+   "leverage": 5.0,
+   "risk_frac": 0.01,
+   "lookback": 500,
+   "eval_step": 6,
+   "max_hold_bars": 96,
+   "bars_per_year": 8766.0,
+   "costs": {
+    "taker_fee": 0.0005,
+    "maker_fee": 0.0002,
+    "slip_base_bps": 1.0,
+    "slip_vol_k": 0.1,
+    "slip_impact_k": 5.0,
+    "slip_cap_bps": 100.0,
+    "funding_interval_ms": 28800000,
+    "mmr": 0.005
+   }
+  },
+  "seed": 0
+ },
+ "assets": {
+  "BTCUSDT": {
+   "symbol": "BTCUSDT",
+   "n_windows": 7,
+   "windows": [
+    {
+     "from_t": 1674345600000,
+     "to_t": 1690110000000,
+     "sharpe": -1.7393795733287385,
+     "total_return": -0.12491862622589289,
+     "max_drawdown": 0.12491862622589288,
+     "n_trades": 28,
+     "expectancy_r": -0.46301833589438174,
+     "bh_sharpe": 1.4032255362784782
+    },
+    {
+     "from_t": 1690113600000,
+     "to_t": 1705878000000,
+     "sharpe": -2.277219579662557,
+     "total_return": -0.15174278196572466,
+     "max_drawdown": 0.16988984070452975,
+     "n_trades": 32,
+     "expectancy_r": -0.5298726895409542,
+     "bh_sharpe": 1.8324910115834856
+    },
+    {
+     "from_t": 1705881600000,
+     "to_t": 1721646000000,
+     "sharpe": -2.9880276376657546,
+     "total_return": -0.16816225543245222,
+     "max_drawdown": 0.18850981883448134,
+     "n_trades": 33,
+     "expectancy_r": -0.5477122243470073,
+     "bh_sharpe": 2.1414793476424028
+    },
+    {
+     "from_t": 1721649600000,
+     "to_t": 1737414000000,
+     "sharpe": -3.0208205112971647,
+     "total_return": -0.21856042076284288,
+     "max_drawdown": 0.23276433558389578,
+     "n_trades": 44,
+     "expectancy_r": -0.5490346656929392,
+     "bh_sharpe": 1.821857802591389
+    },
+    {
+     "from_t": 1737417600000,
+     "to_t": 1753182000000,
+     "sharpe": -2.398649877698595,
+     "total_return": -0.16242183286591394,
+     "max_drawdown": 0.16775193293288476,
+     "n_trades": 42,
+     "expectancy_r": -0.40841909565349227,
+     "bh_sharpe": 0.8897497596619973
+    },
+    {
+     "from_t": 1753185600000,
+     "to_t": 1768950000000,
+     "sharpe": -1.912709625898199,
+     "total_return": -0.12668617570742613,
+     "max_drawdown": 0.14494531652865572,
+     "n_trades": 36,
+     "expectancy_r": -0.3618976792802523,
+     "bh_sharpe": -1.334274664371228
+    },
+    {
+     "from_t": 1768953600000,
+     "to_t": 1784718000000,
+     "sharpe": -2.4516013141993924,
+     "total_return": -0.14408462569981662,
+     "max_drawdown": 0.15876357735153832,
+     "n_trades": 27,
+     "expectancy_r": -0.5821871360771653,
+     "bh_sharpe": -1.0157011481851899
+    }
+   ],
+   "metrics": {
+    "n_trades": 242,
+    "total_return": -0.6979098665691705,
+    "sharpe": -2.3853689336940396,
+    "sortino": -3.0188780534929505,
+    "max_drawdown": 0.6979098665691705,
+    "expectancy_r": -0.48782412937980585,
+    "win_rate": 0.2809917355371901,
+    "profit_factor": 0.5180030298011205,
+    "exposure": 0.08727984344422701,
+    "ci95": {
+     "expectancy_r": [
+      -0.656201893133858,
+      -0.287085489304834
+     ],
+     "win_rate": [
+      0.23140495867768596,
+      0.33884297520661155
+     ],
+     "profit_factor": [
+      0.3927681359727307,
+      0.6891620561181464
+     ],
+     "sharpe": [
+      -3.4178870774421863,
+      -1.3601501022624758
+     ]
+    }
+   },
+   "buy_hold": {
+    "sharpe": 0.8831087662706605,
+    "total_return": 1.8840545502229005,
+    "p_strategy_gt_bh": 1.0,
+    "ci95_sharpe_diff": [
+     -4.567027679119834,
+     -1.8784513912123486
+    ]
+   },
+   "random": {
+    "n": 500,
+    "sharpe_mean": -2.008862851019884,
+    "sharpe_p5_p95": [
+     -2.7052046476195506,
+     -1.3020907373215798
+    ],
+    "expectancy_r_mean": -0.4266532620109159,
+    "p_sharpe": 0.8083832335329342,
+    "p_expectancy": 0.7724550898203593
+   },
+   "diagnostic": {
+    "gross_r_mean": -0.12378506625223352,
+    "cost_r_mean": 0.36403906312757234,
+    "random_gross_r_mean": -0.06268807915569427,
+    "p_gross_vs_random": 0.780439121756487,
+    "p_gross_gt0": 0.9084183163367326
+   },
+   "p_expectancy_gt0": 1.0,
+   "frac_windows_sharpe_pos": 0.0,
+   "data_hash": "6d2af63569ccda2c",
+   "source": "binance-futures-ws"
+  },
+  "ETHUSDT": {
+   "symbol": "ETHUSDT",
+   "n_windows": 7,
+   "windows": [
+    {
+     "from_t": 1674345600000,
+     "to_t": 1690110000000,
+     "sharpe": -5.213587473089689,
+     "total_return": -0.26391919327634694,
+     "max_drawdown": 0.27733126756224125,
+     "n_trades": 34,
+     "expectancy_r": -0.8907077752632375,
+     "bh_sharpe": 0.8186336053105204
+    },
+    {
+     "from_t": 1690113600000,
+     "to_t": 1705878000000,
+     "sharpe": -1.6658906411469594,
+     "total_return": -0.10485797513002237,
+     "max_drawdown": 0.15397668666117642,
+     "n_trades": 28,
+     "expectancy_r": -0.38639246098152746,
+     "bh_sharpe": 1.4394014084530338
+    },
+    {
+     "from_t": 1705881600000,
+     "to_t": 1721646000000,
+     "sharpe": -2.2478550169943783,
+     "total_return": -0.1365402479636083,
+     "max_drawdown": 0.16428357433307558,
+     "n_trades": 37,
+     "expectancy_r": -0.3854792058732245,
+     "bh_sharpe": 1.450454297439913
+    },
+    {
+     "from_t": 1721649600000,
+     "to_t": 1737414000000,
+     "sharpe": -2.1276331734846927,
+     "total_return": -0.13512251842556688,
+     "max_drawdown": 0.16383338732206926,
+     "n_trades": 42,
+     "expectancy_r": -0.332986143634796,
+     "bh_sharpe": 0.15140181685744053
+    },
+    {
+     "from_t": 1737417600000,
+     "to_t": 1753182000000,
+     "sharpe": -3.139946655178912,
+     "total_return": -0.16182755283389072,
+     "max_drawdown": 0.19961767770050004,
+     "n_trades": 28,
+     "expectancy_r": -0.6206523313058018,
+     "bh_sharpe": 0.7009555440198952
+    },
+    {
+     "from_t": 1753185600000,
+     "to_t": 1768950000000,
+     "sharpe": -4.444967068795003,
+     "total_return": -0.2471330542045158,
+     "max_drawdown": 0.24959050739318672,
+     "n_trades": 31,
+     "expectancy_r": -0.9051659347774473,
+     "bh_sharpe": -0.407912710645541
+    },
+    {
+     "from_t": 1768953600000,
+     "to_t": 1784718000000,
+     "sharpe": -1.1096056255290057,
+     "total_return": -0.07265499538141906,
+     "max_drawdown": 0.1057079250103103,
+     "n_trades": 37,
+     "expectancy_r": -0.19064842299831916,
+     "bh_sharpe": -1.0562391101376039
+    }
+   ],
+   "metrics": {
+    "n_trades": 237,
+    "total_return": -0.71205663454554,
+    "sharpe": -2.799279449613237,
+    "sortino": -3.5733017557470608,
+    "max_drawdown": 0.7226249020472103,
+    "expectancy_r": -0.5141080287848301,
+    "win_rate": 0.270042194092827,
+    "profit_factor": 0.4768854175005166,
+    "exposure": 0.09634703196347032,
+    "ci95": {
+     "expectancy_r": [
+      -0.6924426373119986,
+      -0.33013510010563135
+     ],
+     "win_rate": [
+      0.21508438818565404,
+      0.32489451476793246
+     ],
+     "profit_factor": [
+      0.3445681489643248,
+      0.6340746755684767
+     ],
+     "sharpe": [
+      -3.8532700225038563,
+      -1.715102007504635
+     ]
+    }
+   },
+   "buy_hold": {
+    "sharpe": 0.38611162641575536,
+    "total_return": 0.17957321740196597,
+    "p_strategy_gt_bh": 1.0,
+    "ci95_sharpe_diff": [
+     -4.638578036469064,
+     -1.6852198766170183
+    ]
+   },
+   "random": {
+    "n": 500,
+    "sharpe_mean": -2.1171347469099264,
+    "sharpe_p5_p95": [
+     -2.890119495302242,
+     -1.3768843541841969
+    ],
+    "expectancy_r_mean": -0.4197176997257623,
+    "p_sharpe": 0.9341317365269461,
+    "p_expectancy": 0.872255489021956
+   },
+   "diagnostic": {
+    "gross_r_mean": -0.21811466451054431,
+    "cost_r_mean": 0.29599336427428574,
+    "random_gross_r_mean": -0.12711768606658128,
+    "p_gross_vs_random": 0.874251497005988,
+    "p_gross_gt0": 0.9948010397920416
+   },
+   "p_expectancy_gt0": 1.0,
+   "frac_windows_sharpe_pos": 0.0,
+   "data_hash": "d1f46cb59f18d07f",
+   "source": "binance-futures"
+  }
+ },
+ "p_raw": {
+  "BTCUSDT:vs_buy_hold": 1.0,
+  "BTCUSDT:vs_random": 0.8083832335329342,
+  "BTCUSDT:expectancy_gt0": 1.0,
+  "ETHUSDT:vs_buy_hold": 1.0,
+  "ETHUSDT:vs_random": 0.9341317365269461,
+  "ETHUSDT:expectancy_gt0": 1.0
+ },
+ "p_holm": {
+  "BTCUSDT:vs_random": 1.0,
+  "ETHUSDT:vs_random": 1.0,
+  "BTCUSDT:vs_buy_hold": 1.0,
+  "BTCUSDT:expectancy_gt0": 1.0,
+  "ETHUSDT:vs_buy_hold": 1.0,
+  "ETHUSDT:expectancy_gt0": 1.0
+ },
+ "scenarios": {
+  "n_evaluated": 400,
+  "n_pending": 0,
+  "horizon": 25,
+  "n_effective": 400,
+  "coverage": {
+   "50": {
+    "nominal": 0.5,
+    "terminal": 0.53,
+    "pooled": 0.5383
+   },
+   "80": {
+    "nominal": 0.8,
+    "terminal": 0.8025,
+    "pooled": 0.8017
+   },
+   "90": {
+    "nominal": 0.9,
+    "terminal": 0.91,
+    "pooled": 0.8906999999999999
+   }
+  },
+  "n_with_bands": 400,
+  "brier": 0.6328315,
+  "brier_rw": 0.6305346689655509,
+  "brier_skill": -0.003642672080533371,
+  "pinball": 0.004931223915506967,
+  "pinball_rw": 0.004873899823792562,
+  "pinball_skill": -0.011761442333010352,
+  "ece": 0.011974999999999934,
+  "directional": {
+   "n": 382,
+   "accuracy": 0.49476439790575916
+  },
+  "top_hit": 0.48,
+  "realized_freq": {
+   "bull": 0.2375,
+   "neutral": 0.505,
+   "bear": 0.2575
+  },
+  "mean_prob": {
+   "bull": 0.2825875,
+   "neutral": 0.436425,
+   "bear": 0.2809875
+  },
+  "verdict": [
+   "400 pron\u00f3sticos evaluados; por solape entre horizontes la muestra efectiva es \u224816 independientes: las diferencias peque\u00f1as no son concluyentes.",
+   "Las bandas 50/80/90 cubren cerca de lo nominal (\u00b15 pp).",
+   "Las probabilidades de escenario NO superan a la caminata aleatoria (Brier skill -0.4%).",
+   "La distribuci\u00f3n terminal NO supera a la caminata aleatoria (pinball skill -1.2%).",
+   "Acierto direccional 49.5% (n=382): no distinguible del azar.",
+   "Conclusi\u00f3n: no supera la l\u00ednea base; usar la proyecci\u00f3n solo como rango de incertidumbre, no como se\u00f1al."
+  ]
+ }
+}
