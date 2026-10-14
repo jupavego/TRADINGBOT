@@ -1,9 +1,12 @@
+import { avatar } from './avatars'
 import { disagreeing } from './synth'
 import type { AgentInfo, AgentReport, Synthesis } from './types'
 
 const LABEL: Record<string, string> = {
   structure: 'Estructura', vwap: 'VWAP', price_action: 'Price action', elliott: 'Elliott',
   ema: 'EMA / FRM', liquidations: 'Liquidaciones', seasonality: 'Estacionalidad', context: 'Contexto',
+  derivatives: 'Derivados', levels: 'Niveles', microstructure: 'Microestructura', plan: 'Plan',
+  regime: 'Régimen',
 }
 export const agentName = (id: string): string => LABEL[id] ?? id
 
@@ -69,7 +72,7 @@ function tile(r: AgentReport | null, info: AgentInfo, open: boolean): string {
   const id = esc(info.id)
   if (!r || r.status === 'no_data') {
     const why = r?.warnings[0] ?? 'Aún sin reporte; se actualiza al cerrar la próxima vela.'
-    return `<details class="tile idle" data-id="${id}"><summary><span class="aname">${esc(agentName(info.id))}</span>${chip}</summary>` +
+    return `<details class="tile idle" data-id="${id}" data-t="flat"><summary>${avatar(info.id)}<span class="aname">${esc(agentName(info.id))}</span>${chip}</summary>` +
       `<p class="muted">${esc(why)}</p></details>`
   }
   const mix = Math.round(Math.min(1, Math.abs(r.bias)) * 38)
@@ -78,7 +81,7 @@ function tile(r: AgentReport | null, info: AgentInfo, open: boolean): string {
   const ev = r.evidence.slice(0, 3).map((e) => `<li>${esc(e)}</li>`).join('')
   const warns = r.warnings.map((w) => `<li>${esc(w)}</li>`).join('')
   return `<details class="tile" data-id="${id}" data-t="${tone(r.bias)}" style="background:${tint}"${open ? ' open' : ''}>` +
-    `<summary><span class="aname">${esc(agentName(r.agent_id))}</span>${chip}` +
+    `<summary>${avatar(r.agent_id)}<span class="aname">${esc(agentName(r.agent_id))}</span>${chip}` +
     `<span class="big num">${sgn(r.bias)}</span>${ring(r.confidence, 'confianza')}</summary>` +
     `<div class="vd">${verdict(r.bias)} · confianza ${Math.round(r.confidence * 100)}%</div>` +
     `<ul class="ev">${ev || '<li class="muted">Sin evidencia.</li>'}</ul>` +
