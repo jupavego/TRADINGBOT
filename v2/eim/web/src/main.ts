@@ -77,7 +77,7 @@ function paintPrice(c: Candle): void {
 
 function paintAgents(): void {
   renderSide($('side'), $('synth'), infos, latest, synthesis)
-  renderRiver($('river'), infos, latest, synthesis)
+  renderRiver($('river'), infos, latest, synthesis, tf)
   renderJournal($('journal'), journal)
 }
 
