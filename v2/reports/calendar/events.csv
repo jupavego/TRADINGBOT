@@ -1,0 +1,445 @@
+t_utc,iso_utc,name,impact,source
+1675278000000,2023-02-01T19:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1679508000000,2023-03-22T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1680249600000,2023-03-31T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1683136800000,2023-05-03T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1686765600000,2023-06-14T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1688112000000,2023-06-30T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1690394400000,2023-07-26T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1695232800000,2023-09-20T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1695974400000,2023-09-29T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1698861600000,2023-11-01T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1702494000000,2023-12-13T19:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1706727600000,2024-01-31T19:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1710957600000,2024-03-20T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1711699200000,2024-03-29T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1714586400000,2024-05-01T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1718215200000,2024-06-12T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1719561600000,2024-06-28T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1722448800000,2024-07-31T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1726682400000,2024-09-18T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1727424000000,2024-09-27T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1731006000000,2024-11-07T19:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1734548400000,2024-12-18T19:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1735916400000,2025-01-03T15:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1736256600000,2025-01-07T13:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1736262000000,2025-01-07T15:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1736515800000,2025-01-10T13:30:00+00:00,Employment Situation,alto,bls
+1736861400000,2025-01-14T13:30:00+00:00,Producer Price Index,medio,bls
+1736947800000,2025-01-15T13:30:00+00:00,Consumer Price Index,alto,bls
+1736947800000,2025-01-15T13:30:00+00:00,Real Earnings,bajo,bls
+1737034200000,2025-01-16T13:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1737126000000,2025-01-17T15:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1737558000000,2025-01-22T15:00:00+00:00,Usual Weekly Earnings of Wage and Salary Workers,bajo,bls
+1738076400000,2025-01-28T15:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1738076400000,2025-01-28T15:00:00+00:00,Union Membership (Annual),bajo,bls
+1738162800000,2025-01-29T15:00:00+00:00,Quarterly Data Series on Business Employment Dynamics,bajo,bls
+1738177200000,2025-01-29T19:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1738243800000,2025-01-30T13:30:00+00:00,Gross Domestic Product,alto,bea
+1738330200000,2025-01-31T13:30:00+00:00,Employment Cost Index,medio,bls
+1738330200000,2025-01-31T13:30:00+00:00,Personal Income and Outlays,alto,bea
+1738681200000,2025-02-04T15:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1738762200000,2025-02-05T13:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1738767600000,2025-02-05T15:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1738848600000,2025-02-06T13:30:00+00:00,Productivity and Costs,bajo,bls
+1738854000000,2025-02-06T15:00:00+00:00,Travel and Tourism Satellite Account,bajo,bea
+1738935000000,2025-02-07T13:30:00+00:00,Employment Situation,alto,bls
+1739367000000,2025-02-12T13:30:00+00:00,Consumer Price Index,alto,bls
+1739367000000,2025-02-12T13:30:00+00:00,Real Earnings,bajo,bls
+1739453400000,2025-02-13T13:30:00+00:00,Producer Price Index,medio,bls
+1739539800000,2025-02-14T13:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1739977200000,2025-02-19T15:00:00+00:00,County Employment and Wages,bajo,bls
+1739977200000,2025-02-19T15:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1740063600000,2025-02-20T15:00:00+00:00,Major Work Stoppages (Annual),bajo,bls
+1740495600000,2025-02-25T15:00:00+00:00,People with a Disability: Labor Force Characteristics,bajo,bls
+1740663000000,2025-02-27T13:30:00+00:00,Gross Domestic Product,alto,bea
+1740749400000,2025-02-28T13:30:00+00:00,Personal Income and Outlays,alto,bea
+1741186800000,2025-03-05T15:00:00+00:00,County Employment and Wages Full Data Update,bajo,bls
+1741186800000,2025-03-05T15:00:00+00:00,State Unemployment (Annual),bajo,bls
+1741267800000,2025-03-06T13:30:00+00:00,Productivity and Costs,bajo,bls
+1741267800000,2025-03-06T13:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1741354200000,2025-03-07T13:30:00+00:00,Employment Situation,alto,bls
+1741701600000,2025-03-11T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1741782600000,2025-03-12T12:30:00+00:00,Consumer Price Index,alto,bls
+1741782600000,2025-03-12T12:30:00+00:00,Real Earnings,bajo,bls
+1741869000000,2025-03-13T12:30:00+00:00,Producer Price Index,medio,bls
+1741960800000,2025-03-14T14:00:00+00:00,Employer Costs for Employee Compensation,bajo,bls
+1742220000000,2025-03-17T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1742301000000,2025-03-18T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1742407200000,2025-03-19T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1742473800000,2025-03-20T12:30:00+00:00,U.S. International Transactions,bajo,bea
+1742479200000,2025-03-20T14:00:00+00:00,Employment Situation of Veterans,bajo,bls
+1742479200000,2025-03-20T14:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1742565600000,2025-03-21T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1742565600000,2025-03-21T14:00:00+00:00,Total Factor Productivity,bajo,bls
+1742992200000,2025-03-26T12:30:00+00:00,U.S. International Investment Position,bajo,bea
+1743078600000,2025-03-27T12:30:00+00:00,Corporate Profits,bajo,bea
+1743078600000,2025-03-27T12:30:00+00:00,Gross Domestic Product,alto,bea
+1743148800000,2025-03-28T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1743165000000,2025-03-28T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1743170400000,2025-03-28T14:00:00+00:00,Gross Domestic Product by State and Personal Income by State,bajo,bea
+1743170400000,2025-03-28T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1743429600000,2025-03-31T14:00:00+00:00,Space Economy Statellite Account,bajo,bea
+1743516000000,2025-04-01T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1743602400000,2025-04-02T14:00:00+00:00,Arts and Cultural Production Satellite Account,bajo,bea
+1743602400000,2025-04-02T14:00:00+00:00,Occupational Employment and Wages,bajo,bls
+1743683400000,2025-04-03T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1743769800000,2025-04-04T12:30:00+00:00,Employment Situation,alto,bls
+1744207200000,2025-04-09T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1744288200000,2025-04-10T12:30:00+00:00,Consumer Price Index,alto,bls
+1744288200000,2025-04-10T12:30:00+00:00,Real Earnings,bajo,bls
+1744374600000,2025-04-11T12:30:00+00:00,Producer Price Index,medio,bls
+1744720200000,2025-04-15T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1744812000000,2025-04-16T14:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1744812000000,2025-04-16T14:00:00+00:00,Usual Weekly Earnings of Wage and Salary Workers,bajo,bls
+1744984800000,2025-04-18T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1745330400000,2025-04-22T14:00:00+00:00,College Enrollment and Work Activity of High School Graduates,bajo,bls
+1745416800000,2025-04-23T14:00:00+00:00,Employment Characteristics of Families,bajo,bls
+1745503200000,2025-04-24T14:00:00+00:00,Productivity and Costs by Industry: Manufacturing and Mining Industries,bajo,bls
+1745604000000,2025-04-25T18:00:00+00:00,Integrated BEA-BLS Industry-Level Production Account,bajo,bea
+1745935200000,2025-04-29T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1745935200000,2025-04-29T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1746016200000,2025-04-30T12:30:00+00:00,Employment Cost Index,medio,bls
+1746016200000,2025-04-30T12:30:00+00:00,Gross Domestic Product,alto,bea
+1746021600000,2025-04-30T14:00:00+00:00,Personal Income and Outlays,alto,bea
+1746189000000,2025-05-02T12:30:00+00:00,Employment Situation,alto,bls
+1746534600000,2025-05-06T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1746626400000,2025-05-07T14:00:00+00:00,Quarterly Data Series on Business Employment Dynamics,bajo,bls
+1746640800000,2025-05-07T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1746707400000,2025-05-08T12:30:00+00:00,Productivity and Costs,bajo,bls
+1747139400000,2025-05-13T12:30:00+00:00,Consumer Price Index,alto,bls
+1747139400000,2025-05-13T12:30:00+00:00,Real Earnings,bajo,bls
+1747312200000,2025-05-15T12:30:00+00:00,Producer Price Index,medio,bls
+1747398600000,2025-05-16T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1747749600000,2025-05-20T14:00:00+00:00,Labor Force Characteristics of Foreign-born Workers,bajo,bls
+1747749600000,2025-05-20T14:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1747836000000,2025-05-21T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1748440800000,2025-05-28T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1748521800000,2025-05-29T12:30:00+00:00,Corporate Profits,bajo,bea
+1748521800000,2025-05-29T12:30:00+00:00,Gross Domestic Product,alto,bea
+1748527200000,2025-05-29T14:00:00+00:00,Productivity and Costs by Industry: Wholesale Trade and Retail Trade,bajo,bls
+1748527200000,2025-05-29T14:00:00+00:00,Productivity by State,bajo,bls
+1748608200000,2025-05-30T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1748959200000,2025-06-03T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1749045600000,2025-06-04T14:00:00+00:00,County Employment and Wages,bajo,bls
+1749126600000,2025-06-05T12:30:00+00:00,Productivity and Costs,bajo,bls
+1749126600000,2025-06-05T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1749132000000,2025-06-05T14:00:00+00:00,Marine Economy Satellite Account,bajo,bea
+1749213000000,2025-06-06T12:30:00+00:00,Employment Situation,alto,bls
+1749645000000,2025-06-11T12:30:00+00:00,Consumer Price Index,alto,bls
+1749645000000,2025-06-11T12:30:00+00:00,Real Earnings,bajo,bls
+1749731400000,2025-06-12T12:30:00+00:00,Producer Price Index,medio,bls
+1749823200000,2025-06-13T14:00:00+00:00,Employer Costs for Employee Compensation,bajo,bls
+1750163400000,2025-06-17T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1750255200000,2025-06-18T14:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1750269600000,2025-06-18T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1750768200000,2025-06-24T12:30:00+00:00,U.S. International Transactions,bajo,bea
+1750773600000,2025-06-24T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1750941000000,2025-06-26T12:30:00+00:00,Corporate Profits,bajo,bea
+1750941000000,2025-06-26T12:30:00+00:00,Gross Domestic Product,alto,bea
+1750946400000,2025-06-26T14:00:00+00:00,American Time Use Survey,bajo,bls
+1750946400000,2025-06-26T14:00:00+00:00,Productivity and Costs by Industry: Selected Service-Providing Industries,bajo,bls
+1751011200000,2025-06-27T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1751027400000,2025-06-27T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1751032800000,2025-06-27T14:00:00+00:00,Gross Domestic Product by State and Personal Income by State,bajo,bea
+1751286600000,2025-06-30T12:30:00+00:00,U.S. International Investment Position,bajo,bea
+1751292000000,2025-06-30T14:00:00+00:00,Trade in Value Added,bajo,bea
+1751378400000,2025-07-01T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1751464800000,2025-07-02T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1751545800000,2025-07-03T12:30:00+00:00,Employment Situation,alto,bls
+1751545800000,2025-07-03T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1751551200000,2025-07-03T14:00:00+00:00,U.S. Trade in Services Detailed Tables,bajo,bea
+1752156000000,2025-07-10T14:00:00+00:00,Prototype Distribution of State Personal Income,bajo,bea
+1752237000000,2025-07-11T12:30:00+00:00,New Foreign Direct Investment in the United States,bajo,bea
+1752582600000,2025-07-15T12:30:00+00:00,Consumer Price Index,alto,bls
+1752582600000,2025-07-15T12:30:00+00:00,Real Earnings,bajo,bls
+1752669000000,2025-07-16T12:30:00+00:00,Producer Price Index,medio,bls
+1752755400000,2025-07-17T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1752847200000,2025-07-18T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1753187400000,2025-07-22T12:30:00+00:00,Direct Investment by Country and Industry,bajo,bea
+1753192800000,2025-07-22T14:00:00+00:00,Usual Weekly Earnings of Wage and Salary Workers,bajo,bls
+1753279200000,2025-07-23T14:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1753797600000,2025-07-29T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1753878600000,2025-07-30T12:30:00+00:00,Gross Domestic Product,alto,bea
+1753884000000,2025-07-30T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1753884000000,2025-07-30T14:00:00+00:00,Quarterly Data Series on Business Employment Dynamics,bajo,bls
+1753898400000,2025-07-30T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1753965000000,2025-07-31T12:30:00+00:00,Employment Cost Index,medio,bls
+1753965000000,2025-07-31T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1754051400000,2025-08-01T12:30:00+00:00,Employment Situation,alto,bls
+1754397000000,2025-08-05T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1754569800000,2025-08-07T12:30:00+00:00,Productivity and Costs,bajo,bls
+1754575200000,2025-08-07T14:00:00+00:00,Distribution of U.S. Personal Income,bajo,bea
+1755001800000,2025-08-12T12:30:00+00:00,Consumer Price Index,alto,bls
+1755001800000,2025-08-12T12:30:00+00:00,Real Earnings,bajo,bls
+1755093600000,2025-08-13T14:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1755174600000,2025-08-14T12:30:00+00:00,Producer Price Index,medio,bls
+1755261000000,2025-08-15T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1755612000000,2025-08-19T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1755784800000,2025-08-21T14:00:00+00:00,Summer Youth Labor Force,bajo,bls
+1755865800000,2025-08-22T12:30:00+00:00,Activities of U.S. Multinational Enterprises,bajo,bea
+1756216800000,2025-08-26T14:00:00+00:00,"Number of Jobs, Labor Market Experience, Marital Status, and Health for those Born 1957-1964",bajo,bls
+1756303200000,2025-08-27T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1756384200000,2025-08-28T12:30:00+00:00,Corporate Profits,bajo,bea
+1756384200000,2025-08-28T12:30:00+00:00,Gross Domestic Product,alto,bea
+1756389600000,2025-08-28T14:00:00+00:00,Employment Projections and Occupational Outlook Handbook,bajo,bls
+1756389600000,2025-08-28T14:00:00+00:00,Total Factor Productivity for Detailed Industries,bajo,bls
+1756470600000,2025-08-29T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1756908000000,2025-09-03T14:00:00+00:00,Experimental Research and Development Satellite Account,bajo,bea
+1756908000000,2025-09-03T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1756989000000,2025-09-04T12:30:00+00:00,Productivity and Costs,bajo,bls
+1756989000000,2025-09-04T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1757075400000,2025-09-05T12:30:00+00:00,Employment Situation,alto,bls
+1757426400000,2025-09-09T14:00:00+00:00,County Employment and Wages,bajo,bls
+1757426400000,2025-09-09T14:00:00+00:00,Current Employment Statistics Preliminary Benchmark (State and Area),bajo,bls
+1757507400000,2025-09-10T12:30:00+00:00,Producer Price Index,medio,bls
+1757593800000,2025-09-11T12:30:00+00:00,Consumer Price Index,alto,bls
+1757593800000,2025-09-11T12:30:00+00:00,Real Earnings,bajo,bls
+1757685600000,2025-09-12T14:00:00+00:00,Employer Costs for Employee Compensation,bajo,bls
+1758025800000,2025-09-16T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1758031200000,2025-09-16T14:00:00+00:00,Gross Domestic Product for Puerto Rico,bajo,bea
+1758117600000,2025-09-17T14:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1758132000000,2025-09-17T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1758290400000,2025-09-19T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1758630600000,2025-09-23T12:30:00+00:00,U.S. International Transactions,bajo,bea
+1758803400000,2025-09-25T12:30:00+00:00,Corporate Profits,bajo,bea
+1758803400000,2025-09-25T12:30:00+00:00,Gross Domestic Product,alto,bea
+1758808800000,2025-09-25T14:00:00+00:00,Employee Benefits in the United States,bajo,bls
+1758808800000,2025-09-25T14:00:00+00:00,Unpaid Eldercare in the United States,bajo,bls
+1758873600000,2025-09-26T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1758889800000,2025-09-26T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1758895200000,2025-09-26T14:00:00+00:00,Gross Domestic Product by State and Personal Income by State,bajo,bea
+1759149000000,2025-09-29T12:30:00+00:00,U.S. International Investment Position,bajo,bea
+1759240800000,2025-09-30T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1759240800000,2025-09-30T14:00:00+00:00,People with Health Conditions or Difficulties that Limit Work,bajo,bls
+1759327200000,2025-10-01T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1761309000000,2025-10-24T12:30:00+00:00,Consumer Price Index,alto,bls
+1761760800000,2025-10-29T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1763559000000,2025-11-19T13:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1763564400000,2025-11-19T15:00:00+00:00,Services Supplied Through Affiliates,bajo,bea
+1763645400000,2025-11-20T13:30:00+00:00,Employment Situation,alto,bls
+1763731800000,2025-11-21T13:30:00+00:00,Real Earnings,bajo,bls
+1764077400000,2025-11-25T13:30:00+00:00,Producer Price Index,medio,bls
+1764687600000,2025-12-02T15:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1764768600000,2025-12-03T13:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1764860400000,2025-12-04T15:00:00+00:00,Usual Weekly Earnings of Wage and Salary Workers,bajo,bls
+1764941400000,2025-12-05T13:30:00+00:00,Activities of U.S. Affiliates of Foreign Multinational Enterprises,bajo,bea
+1764946800000,2025-12-05T15:00:00+00:00,Personal Income and Outlays,alto,bea
+1765292400000,2025-12-09T15:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1765373400000,2025-12-10T13:30:00+00:00,Employment Cost Index,medio,bls
+1765393200000,2025-12-10T19:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1765459800000,2025-12-11T13:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1765465200000,2025-12-11T15:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1765891800000,2025-12-16T13:30:00+00:00,Employment Situation,alto,bls
+1765983600000,2025-12-17T15:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1765983600000,2025-12-17T15:00:00+00:00,Quarterly Data Series on Business Employment Dynamics,bajo,bls
+1766064600000,2025-12-18T13:30:00+00:00,Consumer Price Index,alto,bls
+1766064600000,2025-12-18T13:30:00+00:00,Real Earnings,bajo,bls
+1766156400000,2025-12-19T15:00:00+00:00,Consumer Expenditures,bajo,bls
+1766156400000,2025-12-19T15:00:00+00:00,County Employment and Wages,bajo,bls
+1766156400000,2025-12-19T15:00:00+00:00,Total Factor Productivity for Major Industries,bajo,bls
+1766496600000,2025-12-23T13:30:00+00:00,Corporate Profits,bajo,bea
+1766496600000,2025-12-23T13:30:00+00:00,Gross Domestic Product,alto,bea
+1766736000000,2025-12-26T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1767106800000,2025-12-30T15:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1767798000000,2026-01-07T15:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1767798000000,2026-01-07T15:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1767879000000,2026-01-08T13:30:00+00:00,Productivity and Costs,bajo,bls
+1767879000000,2026-01-08T13:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1767965400000,2026-01-09T13:30:00+00:00,Employment Situation,alto,bls
+1768311000000,2026-01-13T13:30:00+00:00,Consumer Price Index,alto,bls
+1768311000000,2026-01-13T13:30:00+00:00,Real Earnings,bajo,bls
+1768397400000,2026-01-14T13:30:00+00:00,Producer Price Index,medio,bls
+1768397400000,2026-01-14T13:30:00+00:00,U.S. International Transactions,bajo,bea
+1768483800000,2026-01-15T13:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1768575600000,2026-01-16T15:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1768575600000,2026-01-16T15:00:00+00:00,Occupational Requirements in the United States,bajo,bls
+1768575600000,2026-01-16T15:00:00+00:00,U.S. International Investment Position,bajo,bea
+1769088600000,2026-01-22T13:30:00+00:00,Corporate Profits,bajo,bea
+1769088600000,2026-01-22T13:30:00+00:00,Gross Domestic Product,alto,bea
+1769094000000,2026-01-22T15:00:00+00:00,Employer-Reported Workplace Injuries and Illnesses (Annual),bajo,bls
+1769094000000,2026-01-22T15:00:00+00:00,Personal Income and Outlays,alto,bea
+1769094000000,2026-01-22T15:00:00+00:00,Work Experience of the Population (Annual),bajo,bls
+1769175000000,2026-01-23T13:30:00+00:00,Gross Domestic Product by State and Personal Income by State,bajo,bea
+1769526000000,2026-01-27T15:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1769526000000,2026-01-27T15:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1769612400000,2026-01-28T15:00:00+00:00,Usual Weekly Earnings of Wage and Salary Workers,bajo,bls
+1769626800000,2026-01-28T19:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1769693400000,2026-01-29T13:30:00+00:00,Productivity and Costs,bajo,bls
+1769693400000,2026-01-29T13:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1769779800000,2026-01-30T13:30:00+00:00,Producer Price Index,medio,bls
+1770298200000,2026-02-05T13:30:00+00:00,Gross Domestic Product by County and Metropolitan Area and Personal Income by County and Metropolitan Area,bajo,bea
+1770303600000,2026-02-05T15:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1770390000000,2026-02-06T15:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1770730200000,2026-02-10T13:30:00+00:00,Employment Cost Index,medio,bls
+1770730200000,2026-02-10T13:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1770816600000,2026-02-11T13:30:00+00:00,Employment Situation,alto,bls
+1770989400000,2026-02-13T13:30:00+00:00,Consumer Price Index,alto,bls
+1770989400000,2026-02-13T13:30:00+00:00,Real Earnings,bajo,bls
+1771426800000,2026-02-18T15:00:00+00:00,Union Membership (Annual),bajo,bls
+1771507800000,2026-02-19T13:30:00+00:00,Real Personal Consumption Expenditures by State and Real Personal Income by State,bajo,bea
+1771507800000,2026-02-19T13:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1771513200000,2026-02-19T15:00:00+00:00,Census of Fatal Occupational Injuries,bajo,bls
+1771513200000,2026-02-19T15:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1771594200000,2026-02-20T13:30:00+00:00,Gross Domestic Product,alto,bea
+1771594200000,2026-02-20T13:30:00+00:00,Personal Income and Outlays,alto,bea
+1771599600000,2026-02-20T15:00:00+00:00,Major Work Stoppages (Annual),bajo,bls
+1771945200000,2026-02-24T15:00:00+00:00,Employer Costs for Employee Compensation,bajo,bls
+1772118000000,2026-02-26T15:00:00+00:00,Quarterly Data Series on Business Employment Dynamics,bajo,bls
+1772199000000,2026-02-27T13:30:00+00:00,Producer Price Index,medio,bls
+1772550000000,2026-03-03T15:00:00+00:00,People with a Disability: Labor Force Characteristics,bajo,bls
+1772717400000,2026-03-05T13:30:00+00:00,Productivity and Costs,bajo,bls
+1772717400000,2026-03-05T13:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1772722800000,2026-03-05T15:00:00+00:00,Outdoor Recreation Economic Statistics,bajo,bea
+1772803800000,2026-03-06T13:30:00+00:00,Employment Situation,alto,bls
+1773151200000,2026-03-10T14:00:00+00:00,County Employment and Wages,bajo,bls
+1773232200000,2026-03-11T12:30:00+00:00,Consumer Price Index,alto,bls
+1773232200000,2026-03-11T12:30:00+00:00,Real Earnings,bajo,bls
+1773318600000,2026-03-12T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1773405000000,2026-03-13T12:30:00+00:00,Gross Domestic Product,alto,bea
+1773405000000,2026-03-13T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1773410400000,2026-03-13T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1773837000000,2026-03-18T12:30:00+00:00,Producer Price Index,medio,bls
+1773856800000,2026-03-18T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1773928800000,2026-03-19T14:00:00+00:00,Total Factor Productivity,bajo,bls
+1774015200000,2026-03-20T14:00:00+00:00,Employer Costs for Employee Compensation,bajo,bls
+1774355400000,2026-03-24T12:30:00+00:00,Productivity and Costs,bajo,bls
+1774441800000,2026-03-25T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1774441800000,2026-03-25T12:30:00+00:00,U.S. International Transactions and Investment Position,bajo,bea
+1774598400000,2026-03-27T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1774965600000,2026-03-31T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1775133000000,2026-04-02T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1775219400000,2026-04-03T12:30:00+00:00,Employment Situation,alto,bls
+1775656800000,2026-04-08T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1775737800000,2026-04-09T12:30:00+00:00,Corporate Profits,bajo,bea
+1775737800000,2026-04-09T12:30:00+00:00,Gross Domestic Product,alto,bea
+1775737800000,2026-04-09T12:30:00+00:00,Gross Domestic Product by State and Personal Income by State,bajo,bea
+1775737800000,2026-04-09T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1775824200000,2026-04-10T12:30:00+00:00,Consumer Price Index,alto,bls
+1775824200000,2026-04-10T12:30:00+00:00,Real Earnings,bajo,bls
+1776169800000,2026-04-14T12:30:00+00:00,Producer Price Index,medio,bls
+1776256200000,2026-04-15T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1776348000000,2026-04-16T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1776348000000,2026-04-16T14:00:00+00:00,Usual Weekly Earnings of Wage and Salary Workers,bajo,bls
+1776866400000,2026-04-22T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1776952800000,2026-04-23T14:00:00+00:00,Employment Characteristics of Families,bajo,bls
+1777298400000,2026-04-27T14:00:00+00:00,Integrated BEA-BLS Industry-Level Production Account,bajo,bea
+1777384800000,2026-04-28T14:00:00+00:00,Employment Situation of Veterans,bajo,bls
+1777471200000,2026-04-29T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1777471200000,2026-04-29T14:00:00+00:00,Quarterly Data Series on Business Employment Dynamics,bajo,bls
+1777485600000,2026-04-29T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1777552200000,2026-04-30T12:30:00+00:00,Employment Cost Index,medio,bls
+1777552200000,2026-04-30T12:30:00+00:00,Gross Domestic Product,alto,bea
+1777552200000,2026-04-30T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1777984200000,2026-05-05T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1777989600000,2026-05-05T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1777989600000,2026-05-05T14:00:00+00:00,"Labor Market Experience, Education, Partner Status, and Health for those Born 1980-1984",bajo,bls
+1778076000000,2026-05-06T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1778157000000,2026-05-07T12:30:00+00:00,Productivity and Costs,bajo,bls
+1778243400000,2026-05-08T12:30:00+00:00,Employment Situation,alto,bls
+1778589000000,2026-05-12T12:30:00+00:00,Consumer Price Index,alto,bls
+1778589000000,2026-05-12T12:30:00+00:00,Real Earnings,bajo,bls
+1778675400000,2026-05-13T12:30:00+00:00,Producer Price Index,medio,bls
+1778761800000,2026-05-14T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1778853600000,2026-05-15T14:00:00+00:00,Occupational Employment and Wages,bajo,bls
+1779199200000,2026-05-19T14:00:00+00:00,Labor Force Characteristics of Foreign-born Workers,bajo,bls
+1779199200000,2026-05-19T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1779372000000,2026-05-21T14:00:00+00:00,Global Value Chains (Trade in Value Added),bajo,bea
+1779458400000,2026-05-22T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1779971400000,2026-05-28T12:30:00+00:00,Corporate Profits,bajo,bea
+1779971400000,2026-05-28T12:30:00+00:00,Gross Domestic Product,alto,bea
+1779971400000,2026-05-28T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1779976800000,2026-05-28T14:00:00+00:00,Productivity and Costs by Industry: Wholesale Trade and Retail Trade,bajo,bls
+1779976800000,2026-05-28T14:00:00+00:00,Productivity by State,bajo,bls
+1780408800000,2026-06-02T14:00:00+00:00,County Employment and Wages,bajo,bls
+1780408800000,2026-06-02T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1780495200000,2026-06-03T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1780576200000,2026-06-04T12:30:00+00:00,Productivity and Costs,bajo,bls
+1780662600000,2026-06-05T12:30:00+00:00,Employment Situation,alto,bls
+1781008200000,2026-06-09T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1781094600000,2026-06-10T12:30:00+00:00,Consumer Price Index,alto,bls
+1781094600000,2026-06-10T12:30:00+00:00,New Foreign Direct Investment in the United States,bajo,bea
+1781094600000,2026-06-10T12:30:00+00:00,Real Earnings,bajo,bls
+1781181000000,2026-06-11T12:30:00+00:00,Producer Price Index,medio,bls
+1781272800000,2026-06-12T14:00:00+00:00,Employer Costs for Employee Compensation,bajo,bls
+1781613000000,2026-06-16T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1781618400000,2026-06-16T14:00:00+00:00,Distribution of U.S. Personal Income,bajo,bea
+1781631000000,2026-06-16T17:30:00+00:00,U.S. Household Production Economic Statistics,bajo,bea
+1781719200000,2026-06-17T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1782223200000,2026-06-23T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1782304200000,2026-06-24T12:30:00+00:00,U.S. International Transactions and Investment Position,bajo,bea
+1782309600000,2026-06-24T14:00:00+00:00,Productivity and Costs by Industry: Manufacturing and Mining Industries,bajo,bls
+1782309600000,2026-06-24T14:00:00+00:00,Total Factor Productivity for Detailed Industries,bajo,bls
+1782390600000,2026-06-25T12:30:00+00:00,Corporate Profits,bajo,bea
+1782390600000,2026-06-25T12:30:00+00:00,Gross Domestic Product,alto,bea
+1782390600000,2026-06-25T12:30:00+00:00,Gross Domestic Product by State and Personal Income by State,bajo,bea
+1782390600000,2026-06-25T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1782396000000,2026-06-25T14:00:00+00:00,American Time Use Survey,bajo,bls
+1782460800000,2026-06-26T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1782828000000,2026-06-30T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1782914400000,2026-07-01T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1782995400000,2026-07-02T12:30:00+00:00,Employment Situation,alto,bls
+1783427400000,2026-07-07T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1783432800000,2026-07-07T14:00:00+00:00,U.S. Trade in Services Detailed Tables,bajo,bea
+1783686600000,2026-07-10T12:30:00+00:00,Activities of U.S. Affiliates of Foreign Multinational Enterprises,bajo,bea
+1784032200000,2026-07-14T12:30:00+00:00,Consumer Price Index,alto,bls
+1784032200000,2026-07-14T12:30:00+00:00,Real Earnings,bajo,bls
+1784118600000,2026-07-15T12:30:00+00:00,Producer Price Index,medio,bls
+1784210400000,2026-07-16T14:00:00+00:00,Prototype Distribution of State Personal Income,bajo,bea
+1784291400000,2026-07-17T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1784637000000,2026-07-21T12:30:00+00:00,Direct Investment by Country and Industry,bajo,bea
+1784642400000,2026-07-21T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1784642400000,2026-07-21T14:00:00+00:00,Usual Weekly Earnings of Wage and Salary Workers,bajo,bls
+1784728800000,2026-07-22T14:00:00+00:00,State Job Openings and Labor Turnover,bajo,bls
+1785333600000,2026-07-29T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1785333600000,2026-07-29T14:00:00+00:00,Quarterly Data Series on Business Employment Dynamics,bajo,bls
+1785348000000,2026-07-29T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1785414600000,2026-07-30T12:30:00+00:00,Gross Domestic Product,alto,bea
+1785414600000,2026-07-30T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1785501000000,2026-07-31T12:30:00+00:00,Employment Cost Index,medio,bls
+1785846600000,2026-08-04T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1785852000000,2026-08-04T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1786019400000,2026-08-06T12:30:00+00:00,Productivity and Costs,bajo,bls
+1786105800000,2026-08-07T12:30:00+00:00,Employment Situation,alto,bls
+1786537800000,2026-08-12T12:30:00+00:00,Consumer Price Index,alto,bls
+1786537800000,2026-08-12T12:30:00+00:00,Real Earnings,bajo,bls
+1786624200000,2026-08-13T12:30:00+00:00,Producer Price Index,medio,bls
+1787056200000,2026-08-18T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1787234400000,2026-08-20T14:00:00+00:00,Summer Youth Labor Force,bajo,bls
+1787320800000,2026-08-21T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1787747400000,2026-08-26T12:30:00+00:00,Corporate Profits,bajo,bea
+1787747400000,2026-08-26T12:30:00+00:00,Gross Domestic Product,alto,bea
+1787747400000,2026-08-26T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1787752800000,2026-08-26T14:00:00+00:00,Access to and Use of Leave,bajo,bls
+1787839200000,2026-08-27T14:00:00+00:00,Employment Projections and Occupational Outlook Handbook,bajo,bls
+1787839200000,2026-08-27T14:00:00+00:00,Worker Displacement,bajo,bls
+1787925600000,2026-08-28T14:00:00+00:00,County Employment and Wages,bajo,bls
+1787925600000,2026-08-28T14:00:00+00:00,Current Employment Statistics Preliminary Benchmark (National),bajo,bls
+1788271200000,2026-09-01T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1788357600000,2026-09-02T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1788438600000,2026-09-03T12:30:00+00:00,Productivity and Costs,bajo,bls
+1788438600000,2026-09-03T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1788525000000,2026-09-04T12:30:00+00:00,Employment Situation,alto,bls
+1788962400000,2026-09-09T14:00:00+00:00,Employer Costs for Employee Compensation,bajo,bls
+1789043400000,2026-09-10T12:30:00+00:00,Producer Price Index,medio,bls
+1789129800000,2026-09-11T12:30:00+00:00,Consumer Price Index,alto,bls
+1789129800000,2026-09-11T12:30:00+00:00,Real Earnings,bajo,bls
+1789561800000,2026-09-16T12:30:00+00:00,U.S. Import and Export Price Indexes,bajo,bls
+1789581600000,2026-09-16T18:00:00+00:00,Decisión de tipos FOMC,alto,fed_fomc
+1789740000000,2026-09-18T14:00:00+00:00,State Employment and Unemployment (Monthly),bajo,bls
+1790253000000,2026-09-24T12:30:00+00:00,U.S. International Transactions and Investment Position,bajo,bea
+1790258400000,2026-09-24T14:00:00+00:00,Employee Tenure,bajo,bls
+1790258400000,2026-09-24T14:00:00+00:00,Job Flexibilities and Work Schedules,bajo,bls
+1790323200000,2026-09-25T08:00:00+00:00,Vencimiento futuros trimestrales Binance (BTC/ETH),medio,binance_expiry
+1790344800000,2026-09-25T14:00:00+00:00,Employee Benefits in the United States,bajo,bls
+1790690400000,2026-09-29T14:00:00+00:00,Job Openings and Labor Turnover Survey,medio,bls
+1790771400000,2026-09-30T12:30:00+00:00,Corporate Profits,bajo,bea
+1790771400000,2026-09-30T12:30:00+00:00,Gross Domestic Product,alto,bea
+1790771400000,2026-09-30T12:30:00+00:00,Gross Domestic Product by State and Personal Income by State,bajo,bea
+1790771400000,2026-09-30T12:30:00+00:00,Personal Income and Outlays,alto,bea
+1790776800000,2026-09-30T14:00:00+00:00,Metropolitan Area Employment and Unemployment (Monthly),bajo,bls
+1790944200000,2026-10-02T12:30:00+00:00,Employment Situation,alto,bls
+1791289800000,2026-10-06T12:30:00+00:00,U.S. International Trade in Goods and Services,medio,bea
+1791295200000,2026-10-06T14:00:00+00:00,Services Supplied Through Affiliates,bajo,bea
+1791981000000,2026-10-14T12:30:00+00:00,Consumer Price Index,alto,bls
+1791981000000,2026-10-14T12:30:00+00:00,Real Earnings,bajo,bls
