@@ -1,4 +1,5 @@
 import { avatar } from './avatars'
+import { calendarDetail, calendarVerdict } from './calendar_ui'
 import { disagreeing } from './synth'
 import { rememberOpenFamilies, technicalDetail } from './technical_ui'
 import type { AgentInfo, AgentReport, Synthesis } from './types'
@@ -7,7 +8,7 @@ const LABEL: Record<string, string> = {
   structure: 'Estructura', vwap: 'VWAP', price_action: 'Price action', elliott: 'Elliott',
   ema: 'EMA / FRM', liquidations: 'Liquidaciones', seasonality: 'Estacionalidad', context: 'Contexto',
   derivatives: 'Derivados', levels: 'Niveles', microstructure: 'Microestructura', plan: 'Plan',
-  regime: 'Régimen', technical: 'Técnico',
+  regime: 'Régimen', technical: 'Técnico', calendar: 'Calendario',
 }
 export const agentName = (id: string): string => LABEL[id] ?? id
 
@@ -67,6 +68,12 @@ function ring(p: number, label: string): string {
     `<b>${Math.round(p * 100)}</b></span>`
 }
 
+function detail(r: AgentReport): string {
+  if (r.agent_id === 'technical') return technicalDetail(r.metrics)
+  if (r.agent_id === 'calendar') return calendarDetail(r.metrics)
+  return metricRows(r.metrics)
+}
+
 function tile(r: AgentReport | null, info: AgentInfo, open: boolean): string {
   const status = r?.status ?? info.status
   const chip = `<span class="chip" data-s="${esc(status)}">${esc(STATUS[status] ?? status)}</span>`
@@ -84,10 +91,10 @@ function tile(r: AgentReport | null, info: AgentInfo, open: boolean): string {
   return `<details class="tile" data-id="${id}" data-t="${tone(r.bias)}" style="background:${tint}"${open ? ' open' : ''}>` +
     `<summary>${avatar(r.agent_id)}<span class="aname">${esc(agentName(r.agent_id))}</span>${chip}` +
     `<span class="big num">${sgn(r.bias)}</span>${ring(r.confidence, 'confianza')}</summary>` +
-    `<div class="vd">${verdict(r.bias)} · confianza ${Math.round(r.confidence * 100)}%</div>` +
+    `<div class="vd">${r.agent_id === 'calendar' ? calendarVerdict(r.metrics) : verdict(r.bias)} · confianza ${Math.round(r.confidence * 100)}%</div>` +
     `<ul class="ev">${ev || '<li class="muted">Sin evidencia.</li>'}</ul>` +
     `<div class="more">${biasBar(r.bias)}${warns ? `<ul class="warn">${warns}</ul>` : ''}` +
-    `${r.agent_id === 'technical' ? technicalDetail(r.metrics) : metricRows(r.metrics)}<p class="muted">v${esc(r.version)} · horizonte ${r.horizon_bars} velas</p></div></details>`
+    `${detail(r)}<p class="muted">v${esc(r.version)} · horizonte ${r.horizon_bars} velas</p></div></details>`
 }
 
 function synthesis(reports: AgentReport[], syn: Synthesis | null): string {

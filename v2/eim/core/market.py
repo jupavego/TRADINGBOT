@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, ConfigDict, model_validator
+
+if TYPE_CHECKING:
+    from eim.core.events import EconEvent
 
 
 class Frozen(BaseModel):
@@ -121,6 +126,8 @@ class MarketSnapshot(Frozen):
     headlines: list[NewsItem] | None = None
     # Velas cerradas de marcos vecinos (T35, aditivo): {"15m": [...], "4h": [...]}.
     candles_tf: dict[str, list[Candle]] | None = None
+    # Calendario económico (T36): ventana −24 h … +7 d respecto de `asof`.
+    events: list[EconEvent] | None = None
     asof: int
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}

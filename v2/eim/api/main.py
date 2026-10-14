@@ -24,6 +24,7 @@ from eim.api.risk import RiskDesk, build_risk_router
 from eim.api.security import BodyLimitMiddleware, LocalOnlyMiddleware, ws_token_subprotocol
 from eim.api.sources import BinanceKlineSource, LiveSource
 from eim.api.trades import build_trades_router
+from eim.data.calendar_sync import CalendarSync
 from eim.data.providers.binance import BinanceFutures
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
@@ -75,6 +76,10 @@ def create_app(
                        edge_path=cfg.edge_results, forecaster=forecaster,
                        backup_dir=cfg.backup_dir, backup_keep=cfg.backup_keep)
 
+    # T36: solo en vivo (con fuente inyectada —tests— no hay red).
+    calendar = (CalendarSync(cfg.data_dir, interval_s=cfg.calendar_interval_s)
+                if source is None and cfg.calendar else None)
+
     def now_ms() -> int:
         return int(time.time() * 1000)
 
@@ -86,9 +91,11 @@ def create_app(
             task = asyncio.create_task(recon_loop(runtime, cfg.recon_interval_s, now_ms))
         else:
             task = None
+        cal_task = asyncio.create_task(calendar.loop()) if calendar is not None else None
         yield
-        if task is not None:
-            task.cancel()
+        for t in (task, cal_task):
+            if t is not None:
+                t.cancel()
         await hub.close()
         reports.close()
 
