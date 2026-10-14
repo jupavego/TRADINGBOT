@@ -1,7 +1,9 @@
+import { calendarDetail } from './calendar_ui'
 import { agentName, esc } from './panels'
 import { core, hexPath, holoDefs, platform } from './river_holo'
 import { animateSphere } from './river_sphere'
 import { PCT_NOTE, upDown } from './synth'
+import { rememberOpenFamilies, technicalDetail } from './technical_ui'
 import type { AgentInfo, AgentReport, Synthesis } from './types'
 
 const THRESH = 0.1 // |sesgo| mínimo para teñir de verde/rojo
@@ -30,7 +32,8 @@ function tipHtml(r: AgentReport | undefined, id: string): string {
     `<div class="tip-k"><span class="chip" data-s="${esc(r.status)}">${esc(STATUS[r.status] ?? r.status)}</span>` +
     `<b style="color:${tint(r.bias)}">${dir} ${sg(r.bias)}</b><span class="muted">confianza ${Math.round(r.confidence * 100)}% · ${r.horizon_bars} velas</span></div>` +
     (ev ? `<ul class="ev">${ev}</ul>` : '') + (wn ? `<ul class="warn">${wn}</ul>` : '') +
-    (mt ? `<table class="metrics">${mt}</table>` : '') +
+    (r.agent_id === 'technical' ? technicalDetail(r.metrics) : r.agent_id === 'calendar' ? calendarDetail(r.metrics)
+      : mt ? `<table class="metrics">${mt}</table>` : '') +
     `<p class="muted">v${esc(r.version)} · ${new Date(r.asof).toISOString().slice(0, 16).replace('T', ' ')} UTC</p>`
 }
 
@@ -67,9 +70,11 @@ function pulses(pathId: string, n: number, dur: number, r: number, col: string):
  */
 export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentReport[], synthesis: Synthesis | null, tf = ''): void {
   ctx = { infos, reports, synthesis, tf }
+  rememberOpenFamilies(el)
   tip = ''
   el.onclick = (e) => {
     const t = e.target as HTMLElement
+    if (t.closest('.tip') && !t.closest('[data-close]')) return // dentro del detalle (p. ej. abrir una familia)
     if (t.closest('[data-close]')) selected = null
     else {
       const g = t.closest<HTMLElement>('[data-id]')

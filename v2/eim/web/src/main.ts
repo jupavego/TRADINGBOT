@@ -1,9 +1,11 @@
 import './style.css'
 import './cyber.css'
+import './sim.css'
+import './setups.css'
 import { fetchAgents, fetchAsofs, fetchJournal, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { renderRiver } from './river'
-import { latestPerAgent, renderJournal, renderSide } from './panels'
+import { latestPerAgent, renderJournal, renderSynth } from './panels'
 import { mountLayerBar, showCard } from './layers_ui'
 import { ScenarioPanel } from './scenarios_ui'
 import { CalibrationPanel } from './calibration_ui'
@@ -11,6 +13,8 @@ import { MoreView } from './more'
 import { renderLog, TradeMarks } from './trades_ui'
 import { RiskPanel } from './risk_ui'
 import { OperationPanel } from './operation_ui'
+import { TradeSimulator } from './sim_ui'
+import { SetupsPanel } from './setups_ui'
 import { applyTheme, initialTheme, nextTheme, THEME_LABEL, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
 
@@ -45,6 +49,8 @@ const scenarios = new ScenarioPanel($('t-esc'), chart, () => ({ symbol, tf }))
 const calibration = new CalibrationPanel($('t-cal'), () => ({ symbol, tf }))
 const risk = new RiskPanel($('t-plan'), () => ({ symbol, tf }))
 const operation = new OperationPanel($('t-op'))
+const sim = new TradeSimulator($('simbar'), chart)
+const setups = new SetupsPanel($('setups'), (x) => sim.apply(x))
 chart.layers.modeLabel = MODE_LABEL[mode]
 mountLayerBar($('layerbar'), chart.layers)
 chart.chart.subscribeCrosshairMove((p) => {
@@ -73,10 +79,11 @@ function paintPrice(c: Candle): void {
   el.textContent = c.c.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   if (lastClose !== null && c.c !== lastClose) el.dataset.dir = c.c > lastClose ? 'up' : 'down'
   lastClose = c.c
+  if (!replaying) sim.setLast(c.c)
 }
 
 function paintAgents(): void {
-  renderSide($('side'), $('synth'), infos, latest, synthesis)
+  renderSynth($('synth'), latest, synthesis)
   renderRiver($('river'), infos, latest, synthesis, tf)
   renderJournal($('journal'), journal)
 }
@@ -151,6 +158,7 @@ function onMsg(m: StreamMsg): void {
     paintAgents()
     void loadTrades()
     void risk.reload()
+    setups.soon()
   } else if (m.type === 'tick') {
     if (m.symbol !== symbol || m.timeframe !== tf) return
     state = 'up'; paintLive()
@@ -172,6 +180,8 @@ async function load(): Promise<void> {
   $('price').textContent = '—'; delete $('price').dataset.dir
   paintLive()
   more.setContext(symbol, tf)
+  sim.setSymbol(symbol)
+  setups.setSymbol(symbol)
   void loadAgents(loadAbort.signal)
   void loadTrades(loadAbort.signal)
   void calibration.reload()

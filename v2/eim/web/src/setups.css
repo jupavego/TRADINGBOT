@@ -1,0 +1,52 @@
+/* Operaciones sugeridas: debajo de la esfera, tres tarjetas en fila. */
+.setups { margin: 12px 20px 0; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.su-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; font-size: 12px; }
+.su-head .sh { margin: 0; }
+.su-head .sim { margin-left: 0; font-size: 11px; }
+.su-lev { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.setups input { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; min-width: 0; }
+.su-lev input { width: 62px; text-align: right; }
+.su-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.su-card { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line); border-left: 3px solid var(--muted); border-radius: 10px; background: var(--bg); min-width: 0; }
+.su-card[data-side="long"] { border-left-color: var(--up); }
+.su-card[data-side="short"] { border-left-color: var(--down); }
+.su-card header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.su-rank { font-size: 15px; }
+.su-side { font-weight: 700; letter-spacing: .08em; }
+.su-card[data-side="long"] .su-side { color: var(--up); }
+.su-card[data-side="short"] .su-side { color: var(--down); }
+.su-tag { font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.su-tag[data-ok="true"] { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+.su-tag[data-ok="false"] { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
+.su-h { margin-left: auto; font-size: 12px; }
+.su-lv { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.su-lv > div, .su-res { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.su-lv span, .su-res span, .su-amt span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.su-lv b { font-size: 16px; }
+.su-lv small, .su-res small { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.setups .up { color: var(--up); }
+.setups .down { color: var(--down); }
+.su-stats { margin: 0; font-size: 12px; color: var(--muted); }
+.su-stats b { color: var(--text); font-weight: 600; }
+.su-amt { display: flex; flex-direction: column; gap: 4px; }
+.su-out { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+.su-res b { font-size: 17px; }
+.su-pos, .su-warn { grid-column: 1 / -1; margin: 0; font-size: 11px; }
+.su-warn { color: var(--warn); }
+.su-out > p.muted:only-child { grid-column: 1 / -1; margin: 0; font-size: 12px; }
+.su-card .btn { align-self: flex-start; }
+.su-foot { margin: 10px 0 0; font-size: 11px; }
+@media (max-width: 900px) { .setups { margin: 12px; } }
+
+:root[data-theme="cyber"] .setups {
+  border-color: rgba(var(--glow), .22); border-radius: var(--radius); background: var(--glass); backdrop-filter: blur(10px);
+  box-shadow: 0 0 28px rgba(var(--glow), .07), inset 0 0 40px rgba(var(--glow), .035);
+}
+:root[data-theme="cyber"] .su-card { background: rgba(4, 10, 19, .6); border-color: rgba(var(--glow), .18); border-radius: 3px; }
+:root[data-theme="cyber"] .su-card[data-side="long"] { border-left-color: var(--up); }
+:root[data-theme="cyber"] .su-card[data-side="short"] { border-left-color: var(--down); }
+:root[data-theme="cyber"] .su-side { font-family: var(--f-display); font-size: 12px; }
+:root[data-theme="cyber"] .su-card[data-side="long"] .su-side { text-shadow: 0 0 8px rgba(18, 229, 143, .6); }
+:root[data-theme="cyber"] .su-card[data-side="short"] .su-side { text-shadow: 0 0 8px rgba(255, 61, 95, .6); }
+:root[data-theme="cyber"] .setups input { background: rgba(4, 10, 19, .7); border-color: rgba(var(--glow), .25); border-radius: 3px; font-family: var(--f-num); }
+:root[data-theme="cyber"] .su-lv b, :root[data-theme="cyber"] .su-res b { font-family: var(--f-num); }
