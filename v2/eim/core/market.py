@@ -119,6 +119,8 @@ class MarketSnapshot(Frozen):
     micro: list[MicroBar] | None = None  # agregados por vela del recolector (T23)
     liquidations: Liquidations | None = None
     headlines: list[NewsItem] | None = None
+    # Velas cerradas de marcos vecinos (T35, aditivo): {"15m": [...], "4h": [...]}.
+    candles_tf: dict[str, list[Candle]] | None = None
     asof: int
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}

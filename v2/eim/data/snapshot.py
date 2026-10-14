@@ -7,7 +7,7 @@ import time
 from eim.core import MarketSnapshot
 from eim.data.micro import read_micro
 from eim.data.store import Store
-from eim.data.timeframes import tf_ms
+from eim.data.timeframes import TF_MS, tf_ms
 
 
 def build_snapshot(
@@ -23,7 +23,7 @@ def build_snapshot(
     candles = store.read_candles(symbol, timeframe, end=asof - step + 1, last=n)
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}
-    funding = oi = ls = basis = None
+    funding = oi = ls = basis = candles_tf = None
     micro = book = None
     if candles:
         lo, hi = candles[0].t, candles[-1].t
@@ -46,6 +46,7 @@ def build_snapshot(
             coverage["micro"] = (bars[0].t, bars[-1].t)
         if book is not None:
             sources["orderbook"] = book.source
+        candles_tf = _neighbor_candles(store, symbol, timeframe, n, asof, sources, coverage)
     return MarketSnapshot(
         symbol=symbol,
         timeframe=timeframe,
@@ -56,7 +57,23 @@ def build_snapshot(
         basis=basis,
         micro=micro,
         orderbook=book,
+        candles_tf=candles_tf,
         asof=asof,
         sources=sources,
         coverage=coverage,
     )
+
+
+def _neighbor_candles(store: Store, symbol: str, timeframe: str, n: int, asof: int,
+                      sources: dict[str, str], coverage: dict[str, tuple[int, int]]):
+    """Velas cerradas a `asof` de los marcos vecinos; None si no hay ninguno almacenado."""
+    ladder = sorted(TF_MS, key=TF_MS.__getitem__)
+    i = ladder.index(timeframe)
+    out = {}
+    for tf in ladder[max(0, i - 1):i] + ladder[i + 1:i + 2]:
+        cs = store.read_candles(symbol, tf, end=asof - TF_MS[tf] + 1, last=n)
+        if cs:
+            out[tf] = cs
+            sources[f"candles_{tf}"] = store.source("candles", symbol, tf) or "desconocida"
+            coverage[f"candles_{tf}"] = (cs[0].t, cs[-1].t)
+    return out or None

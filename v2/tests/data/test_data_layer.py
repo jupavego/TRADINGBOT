@@ -142,3 +142,24 @@ def test_sync_derivatives(tmp_path):
         "funding": 1, "open_interest": 1, "long_short_ratio": 1, "basis": 1}
     assert store.read_series("basis", "BTCUSDT", "1h") == [(R0, 0.001)]
     assert store.read_series("funding", "BTCUSDT") == [(T0, 0.0002)]
+
+
+def test_build_snapshot_neighbor_timeframes(tmp_path):
+    """T35: velas cerradas del marco inferior y superior, sin incluir velas aún abiertas."""
+    store = Store(tmp_path)
+    q, h4 = H // 4, 4 * H
+    base = T0 - T0 % h4
+
+    def cs(step: int, n: int) -> list[Candle]:
+        return [Candle(t=base + k * step, o=1, h=2, l=0.5, c=1.5, v=1) for k in range(n)]
+
+    store.upsert_candles("BTCUSDT", "1h", cs(H, 40), "s1h")
+    store.upsert_candles("BTCUSDT", "15m", cs(q, 160), "s15m")
+    store.upsert_candles("BTCUSDT", "4h", cs(h4, 10), "s4h")
+    asof = base + 30 * H + 1  # 4h en curso: la de base+28h aún no cerró
+    snap = build_snapshot(store, "BTCUSDT", "1h", 20, asof=asof)
+    assert set(snap.candles_tf) == {"15m", "4h"}
+    assert snap.candles_tf["15m"][-1].t == base + 30 * H - q
+    assert snap.candles_tf["4h"][-1].t == base + 24 * H
+    assert snap.sources["candles_4h"] == "s4h" and "candles_15m" in snap.coverage
+    assert build_snapshot(store, "ETHUSDT", "1h", 5, asof=asof).candles_tf is None

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T21:11:38",
+ "generated": "2026-10-13T22:13:25",
  "tasks": [
   {
    "id": "T01",
@@ -411,8 +411,8 @@ window.EIM_STATUS = {
    "deps": [
     "T34"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/agents/technical: `rules.py` (24 reglas de voto documentadas: cruces, umbrales, divergencias RSI/CVD, %b; ATR/TradeSize/AVL/Basis no votan, con motivo), `combine.py` (duplicados exactos colapsados + grupos por correlación ≥0.85 dentro de cada familia → test: duplicar un indicador no cambia el sesgo; régimen ADX/ancho BOLL → pesos por familia en `params.py`), `frame.py` (marcos vecinos: `MarketSnapshot.candles_tf` nuevo, rellenado por `build_snapshot`; superior agregado si falta), `agent.py`. En `default_registry`; **fuera de la síntesis** (`excluded`) hasta T44. UI: tarjeta «Técnico» con familias desplegables (`web/src/technical_ui.ts`); se restauró el estilo base `.bar` perdido en T10. **IC (reports/technical_ic.md, `python -m eim.analytics.technical_ic`)**: solo h=1 vela de 1h es significativo tras Holm y con signo de reversión (tendencia IC≈−0.03, osciladores ≈+0.04); a 6/24 velas nada supera el azar; el sesgo agregado no es significativo en ninguna prueba → agente descriptivo, sin edge. Flujo sin medir (histórico sin `taker_buy_v`).",
    "effort": "alto",
    "phase": 8,
    "goal": "Agente que lee **todos** los indicadores de T34 y los convierte en un sesgo único y honesto, sin contar 40 veces la misma señal."

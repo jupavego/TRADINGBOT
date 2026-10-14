@@ -33,6 +33,10 @@ const GLYPH: Record<string, string> = {
   // Microestructura: libro de órdenes (bids / asks)
   microstructure: '<path d="M24 12v24" opacity=".5"/><path d="M22 15h-6M22 20h-9M22 25h-5M22 30h-8"/>' +
     '<path d="M26 17h8M26 22h5M26 27h10M26 32h6"/>',
+  // Técnico: osciladores apilados por familia (tablero de indicadores)
+  technical: '<path d="M12 17h24M12 24h24M12 31h24" opacity=".45"/>' +
+    '<circle cx="18" cy="17" r="2.2" class="f"/><circle cx="29" cy="24" r="2.2" class="f"/>' +
+    '<circle cx="22" cy="31" r="2.2" class="f"/>',
   // Plan: retícula de objetivo
   plan: '<circle cx="24" cy="24" r="9"/><circle cx="24" cy="24" r="3" class="f"/>' +
     '<path d="M24 10v6M24 32v6M10 24h6M32 24h6"/>',
