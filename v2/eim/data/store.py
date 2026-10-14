@@ -10,8 +10,10 @@ import duckdb
 from eim.core import Candle
 from eim.data.timeframes import tf_ms
 
-_CANDLE_SCHEMA = "t BIGINT, o DOUBLE, h DOUBLE, l DOUBLE, c DOUBLE, v DOUBLE"
-_CANDLE_COLS = "t, o, h, l, c, v"
+_CANDLE_SCHEMA = (
+    "t BIGINT, o DOUBLE, h DOUBLE, l DOUBLE, c DOUBLE, v DOUBLE, taker_buy_v DOUBLE, trades BIGINT"
+)
+_CANDLE_COLS = "t, o, h, l, c, v, taker_buy_v, trades"
 
 
 def _lit(path: Path) -> str:
@@ -43,7 +45,7 @@ class Store:
     ) -> int:
         """Inserta/reemplaza por `t`. Devuelve el total de filas tras la operación."""
         tf_ms(timeframe)
-        rows = [(c.t, c.o, c.h, c.l, c.c, c.v) for c in candles]
+        rows = [(c.t, c.o, c.h, c.l, c.c, c.v, c.taker_buy_v, c.trades) for c in candles]
         return self._upsert("candles", symbol, timeframe, rows, _CANDLE_SCHEMA, source)
 
     def read_candles(
@@ -56,7 +58,11 @@ class Store:
     ) -> list[Candle]:
         """Velas con `start <= t < end`; `last=n` devuelve solo las n más recientes."""
         rows = self._read("candles", symbol, timeframe, _CANDLE_COLS, start, end, last)
-        return [Candle(t=int(t), o=o, h=h, l=lo, c=c, v=v) for t, o, h, lo, c, v in rows]
+        return [
+            Candle(t=int(t), o=o, h=h, l=lo, c=c, v=v, taker_buy_v=tb,
+                   trades=None if n is None else int(n))
+            for t, o, h, lo, c, v, tb, n in rows
+        ]
 
     def find_gaps(
         self, symbol: str, timeframe: str, start: int | None = None, end: int | None = None
@@ -109,7 +115,7 @@ class Store:
             con.executemany(f"INSERT INTO new VALUES ({ph})", rows)
         if f.exists():
             con.execute(
-                f"CREATE TABLE merged AS SELECT *, 1 AS pri FROM new UNION ALL "
+                f"CREATE TABLE merged AS SELECT *, 1 AS pri FROM new UNION ALL BY NAME "
                 f"SELECT *, 0 AS pri FROM read_parquet({_lit(f)}, hive_partitioning=false)"
             )
         else:
@@ -147,9 +153,14 @@ class Store:
             where.append("t < ?")
             params.append(end)
         w = f"WHERE {' AND '.join(where)}" if where else ""
-        base = f"SELECT {cols} FROM read_parquet({_lit(f)}, hive_partitioning=false) {w}"
+        con = duckdb.connect()
+        src = f"read_parquet({_lit(f)}, hive_partitioning=false)"
+        if kind == "candles":  # archivos previos a T34 no tienen las columnas opcionales
+            con.execute(f"CREATE TABLE empty ({_CANDLE_SCHEMA})")
+            src = f"(SELECT * FROM empty UNION ALL BY NAME SELECT * FROM {src})"
+        base = f"SELECT {cols} FROM {src} {w}"
         if last is not None:
             q = f"SELECT * FROM ({base} ORDER BY t DESC LIMIT {int(last)}) ORDER BY t"
         else:
             q = f"{base} ORDER BY t"
-        return duckdb.connect().execute(q, params).fetchall()
+        return con.execute(q, params).fetchall()

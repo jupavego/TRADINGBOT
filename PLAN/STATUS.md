@@ -37,7 +37,7 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T31 | Paper trading + kill-switch + monitoreo | T30 | ☐ | |
 | T32 | Endurecimiento y documentación | T31 | ☐ | |
 | T33 | Auditoría de repos y fuentes (4 agentes nuevos) | — | ☐ | |
-| T34 | Biblioteca de indicadores técnicos (catálogo Binance) | T05 | ☐ | |
+| T34 | Biblioteca de indicadores técnicos (catálogo Binance) | T05 | ☑ | v2/eim/indicators: `CATALOG.md` (28 indicadores ☑ + 4 series directas del proveedor descartadas con motivo; fuentes y fecha 2026-10-13; lista B y parámetros pendientes de confirmar en la interfaz), un archivo por familia (`trend`, `momentum`, `volatility`, `volume`, `flow`) + `_core.py` (convenciones NaN/ventanas) + `registry.py` (`SPECS`, `compute`, `candle_arrays`). `Candle` ampliado con `taker_buy_v`/`trades` (proveedor, WS, almacén compatible con Parquet previo). FRM (agente `ema`) usa ahora `indicators.ema`/`true_range` (golden intacto). Tests en tests/indicators: referencia fijada (rtol 1e-9), truncado sin look-ahead, casos borde. **Límite:** la referencia es una implementación ingenua propia (se hizo antes del veredicto de T33) → contraste con TA-Lib/pandas-ta-classic pendiente en BACKLOG. |
 | T35 | Agente `technical` (confluencia multi-marco) | T34 | ☐ | |
 | T36 | Calendario económico: proveedor + agente | T05 | ☐ | |
 | T37 | Calendario: impacto histórico y ventanas | T36 T03 | ☐ | |

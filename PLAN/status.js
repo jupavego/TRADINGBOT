@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T19:12:57",
+ "generated": "2026-10-13T20:17:06",
  "tasks": [
   {
    "id": "T01",
@@ -399,8 +399,8 @@ window.EIM_STATUS = {
    "deps": [
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/indicators: `CATALOG.md` (28 indicadores ☑ + 4 series directas del proveedor descartadas con motivo; fuentes y fecha 2026-10-13; lista B y parámetros pendientes de confirmar en la interfaz), un archivo por familia (`trend`, `momentum`, `volatility`, `volume`, `flow`) + `_core.py` (convenciones NaN/ventanas) + `registry.py` (`SPECS`, `compute`, `candle_arrays`). `Candle` ampliado con `taker_buy_v`/`trades` (proveedor, WS, almacén compatible con Parquet previo). FRM (agente `ema`) usa ahora `indicators.ema`/`true_range` (golden intacto). Tests en tests/indicators: referencia fijada (rtol 1e-9), truncado sin look-ahead, casos borde. **Límite:** la referencia es una implementación ingenua propia (se hizo antes del veredicto de T33) → contraste con TA-Lib/pandas-ta-classic pendiente en BACKLOG.",
    "effort": "alto",
    "phase": 8,
    "goal": "Implementar, validar y catalogar todos los indicadores técnicos del gráfico de Binance, más los derivables de sus datos propios (taker buy/sell, mark/index/premium)."
