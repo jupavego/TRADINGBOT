@@ -1,12 +1,13 @@
 import { avatar } from './avatars'
 import { disagreeing } from './synth'
+import { rememberOpenFamilies, technicalDetail } from './technical_ui'
 import type { AgentInfo, AgentReport, Synthesis } from './types'
 
 const LABEL: Record<string, string> = {
   structure: 'Estructura', vwap: 'VWAP', price_action: 'Price action', elliott: 'Elliott',
   ema: 'EMA / FRM', liquidations: 'Liquidaciones', seasonality: 'Estacionalidad', context: 'Contexto',
   derivatives: 'Derivados', levels: 'Niveles', microstructure: 'Microestructura', plan: 'Plan',
-  regime: 'Régimen',
+  regime: 'Régimen', technical: 'Técnico',
 }
 export const agentName = (id: string): string => LABEL[id] ?? id
 
@@ -86,7 +87,7 @@ function tile(r: AgentReport | null, info: AgentInfo, open: boolean): string {
     `<div class="vd">${verdict(r.bias)} · confianza ${Math.round(r.confidence * 100)}%</div>` +
     `<ul class="ev">${ev || '<li class="muted">Sin evidencia.</li>'}</ul>` +
     `<div class="more">${biasBar(r.bias)}${warns ? `<ul class="warn">${warns}</ul>` : ''}` +
-    `${metricRows(r.metrics)}<p class="muted">v${esc(r.version)} · horizonte ${r.horizon_bars} velas</p></div></details>`
+    `${r.agent_id === 'technical' ? technicalDetail(r.metrics) : metricRows(r.metrics)}<p class="muted">v${esc(r.version)} · horizonte ${r.horizon_bars} velas</p></div></details>`
 }
 
 function synthesis(reports: AgentReport[], syn: Synthesis | null): string {
@@ -110,6 +111,7 @@ export function renderSide(el: HTMLElement, synEl: HTMLElement, infos: AgentInfo
   const opened = new Set(
     [...el.querySelectorAll<HTMLDetailsElement>('details.tile[open]')].map((d) => d.dataset.id),
   )
+  rememberOpenFamilies(el)
   const byId = new Map(reports.map((r) => [r.agent_id, r]))
   const ids = new Set(infos.map((i) => i.id))
   const all = [...infos, ...reports.filter((r) => !ids.has(r.agent_id)).map((r): AgentInfo => ({

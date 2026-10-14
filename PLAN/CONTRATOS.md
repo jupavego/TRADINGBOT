@@ -14,6 +14,7 @@ Todos: inmutables (`frozen`), con `source: str` donde aplique, tiempos en UTC (m
 
 ## Ampliaciones (Fase 8, aditivas; las implementa la tarea indicada)
 - **Candle** (T34, ☑): campos opcionales `taker_buy_v: float|None` (volumen base comprado por agresores; kline campo 9 / WS `V`) y `trades: int|None` (nº de operaciones; campo 8 / WS `n`). None si la fuente no los entrega (yfinance, almacén previo a T34). Almacén: columnas nuevas en Parquet; los archivos antiguos se leen con NULL.
+- **MarketSnapshot.candles_tf** (T35, ☑): `dict[tf, list[Candle]] | None` — velas cerradas de los marcos vecinos (inferior y superior en `TF_MS`) que `build_snapshot` lee del almacén si existen (`sources`/`coverage` con clave `candles_<tf>`). El agente `technical` las usa para el acuerdo multi-marco; si falta el superior lo agrega desde las velas del snapshot (solo grupos completos).
 - **EconEvent** (T36): `id, t_utc, name, country, impact ∈ {bajo,medio,alto}, previous, forecast, actual|None, revised|None, source, fetched_at`. `MarketSnapshot.events: list[EconEvent]|None`.
 - **CostModel / Opportunity** (T38): `Opportunity{strategy, legs[], gross_edge, costs{fees,slippage,funding,borrow}, net_edge, capital_required, annualized, risk{legging,basis,liquidation,liquidity}, valid_until, source, coverage}`. Nunca se reporta sin desglose de costos.
 - **Leader / LeaderPosition / LeaderFill** (T40): `address|id, symbol, side, size, entry, leverage, t, observed_at, source`. `MarketSnapshot.leaders: list[LeaderPosition]|None` (solo líderes aprobados).
