@@ -36,7 +36,7 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T30 | Ejecución en testnet + reconciliación | T29 | ☐ | |
 | T31 | Paper trading + kill-switch + monitoreo | T30 | ☐ | |
 | T32 | Endurecimiento y documentación | T31 | ☐ | |
-| T33 | Auditoría de repos y fuentes (4 agentes nuevos) | — | ☐ | |
+| T33 | Auditoría de repos y fuentes (4 agentes nuevos) | — | ☑ | `PLAN/notas/T33_auditoria.md`: 27 candidatos con veredicto y evidencia (clones aislados en `C:	33clones`, sin ejecutar). Copy: Hyperliquid `/info`+WS oficial = base (sin leaderboard oficial → universo vía WS `trades.users` + `vaultDetails`); Binance solo manual (endpoints `/bapi` privados, `robots.txt` los prohíbe); Hype-W = señuelo APK. Arb: conector oficial Binance + ccxt/SDK HL, solo funding/basis. Ind: TA-Lib + pandas-ta-classic (pandas-ta original: repo 404). Cal: FOMC+BLS ICS+BEA JSON+FRED (sin consenso gratis). **Alcance aprobado por el usuario (2026-10-13)** → T40 desbloqueada. |
 | T34 | Biblioteca de indicadores técnicos (catálogo Binance) | T05 | ☐ | |
 | T35 | Agente `technical` (confluencia multi-marco) | T34 | ☐ | |
 | T36 | Calendario económico: proveedor + agente | T05 | ☐ | |
