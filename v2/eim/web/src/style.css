@@ -306,3 +306,12 @@ select, .btn, .seg button {
 .fam-t td:nth-child(2) { width: 30%; }
 .fam-t td:nth-child(2) .bar { display: block; }
 .fam-t td:last-child { text-align: left; font-size: 11.5px; }
+
+/* T29: pestaña Plan con decisión de riesgo */
+.risk-grid { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; gap: 12px; align-items: start; margin: 8px 0; }
+.risk-ok { border: 1px solid var(--up); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
+.risk-ok[data-ok="false"] { border-color: var(--down); }
+.risk-ok[data-ok="true"] > b:first-child { color: var(--up); }
+.risk-ok[data-ok="false"] > b:first-child { color: var(--down); }
+.risk-kill { border-color: var(--down); color: var(--down); }
+@media (max-width: 700px) { .risk-grid { grid-template-columns: 1fr; } }

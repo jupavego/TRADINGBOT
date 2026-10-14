@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T23:41:00",
+ "generated": "2026-10-14T09:23:57",
  "tasks": [
   {
    "id": "T01",
@@ -341,8 +341,8 @@ window.EIM_STATUS = {
    "deps": [
     "T27"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "**Construido con T27 en NO PASA por decisión del usuario (2026-10-14)**: capa solo defensiva, sin órdenes; T30/T31 siguen sin dinero real. v2/eim/risk: `config.py` + `versions/risk_v1.json` (pydantic frozen, versión = nombre de archivo, SHA-256 en cada decisión; REAL prohibido), `rules.py` (plan/geometría y R:R, modo, datos obsoletos/agentes críticos degradados, ventana de evento `calendar.blackout` + pausa de `context`, pérdida diaria/semanal, máx. abiertas total/por símbolo, enfriamiento tras pérdidas seguidas), `sizing.py` (riesgo fijo 0.5 % a SL, apalancamiento entero ≤3× con dist. liquidación ≥2× dist. SL, tope de nocional/margen), `killswitch.py` (global, manual o por drawdown/desconexión/reconciliación; solo se apaga a mano), `engine.py` (`RiskDecision` siempre registrada, sellada con HMAC de proceso; `verify` caduca a 60 s), `inputs.py` (plan desde reporte, cuenta desde el libro SIMULADO), `journal.py` (DuckDB `risk_decisions`). `eim/execution/gateway.py`: única puerta a un `Broker` (T30), exige `verify`. API `/v2/risk` (+`/decisions`, `/kill-switch[/activate|/deactivate]`); UI pestaña «Plan» (`web/src/risk_ui.ts`) con tamaño aprobado o motivos del veto y kill-switch. Tests en tests/risk (175: cada regla, combinaciones de hasta 3 vetos, sello/alteración/caducidad/kill-switch en la puerta, escaneo estático de endpoints de órdenes); cobertura risk+gateway 99 %, api/risk 97 %. Verificado en navegador (sin plan vigente en vivo; aprobado/vetado con respuesta de ejemplo).",
    "effort": "alto",
    "phase": 7,
    "goal": "Capa determinista que decide tamaño y puede vetar cualquier plan. Ningún LLM ni agente puede saltársela."

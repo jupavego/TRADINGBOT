@@ -9,6 +9,7 @@ import { ScenarioPanel } from './scenarios_ui'
 import { CalibrationPanel } from './calibration_ui'
 import { MoreView } from './more'
 import { renderLog, TradeMarks } from './trades_ui'
+import { RiskPanel } from './risk_ui'
 import { applyTheme, initialTheme, nextTheme, THEME_LABEL, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
 
@@ -41,6 +42,7 @@ const more = new MoreView($('more'))
 const marks = new TradeMarks(chart)
 const scenarios = new ScenarioPanel($('t-esc'), chart, () => ({ symbol, tf }))
 const calibration = new CalibrationPanel($('t-cal'), () => ({ symbol, tf }))
+const risk = new RiskPanel($('t-plan'), () => ({ symbol, tf }))
 chart.layers.modeLabel = MODE_LABEL[mode]
 mountLayerBar($('layerbar'), chart.layers)
 chart.chart.subscribeCrosshairMove((p) => {
@@ -146,6 +148,7 @@ function onMsg(m: StreamMsg): void {
     journal = [...latest, ...journal].slice(0, 200)
     paintAgents()
     void loadTrades()
+    void risk.reload()
   } else if (m.type === 'tick') {
     if (m.symbol !== symbol || m.timeframe !== tf) return
     state = 'up'; paintLive()
@@ -170,6 +173,7 @@ async function load(): Promise<void> {
   void loadAgents(loadAbort.signal)
   void loadTrades(loadAbort.signal)
   void calibration.reload()
+  void risk.reload()
   chart.layers.clear()
   fetchOverlays(symbol, tf, loadAbort.signal).then((o) => chart.layers.replace(o)).catch(() => {})
   try {
