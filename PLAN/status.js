@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T22:13:25",
+ "generated": "2026-10-13T23:41:00",
  "tasks": [
   {
    "id": "T01",
@@ -329,8 +329,8 @@ window.EIM_STATUS = {
    "deps": [
     "T27"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/lab/esn_connectome (fuera de `eim/`): `connectome.py` (subgrafo voraz de 1.000 neuronas de FlyWire v783, CC BY 4.0, signo por neurotransmisor; solo se versiona `data/subgraph_1000.npz`), `esn.py` (ESN numpy, variantes aleatorio/conectoma/topología), `models.py` (lectura de cuantiles μ̂+ŝ·q), `run_lab.py` (walk-forward 1 año→6 meses, 12 celdas BTC/ETH, h=25, costos 12 pb), `summarize.py`, `test_lab.py`. **Veredicto (v2/reports/esn_connectome.md): NO GANA → archivado**: conectoma ≈ aleatorio en N=100/500/1000 (C1 falla); todos los ESN ≈ +1 % pinball vs cono, igual que una regresión lineal con rezagos; dirección 50–51 %, neto −13 a −19 pb/op. Kronos sin evaluar (sin torch).",
    "effort": "medio",
    "phase": 6,
    "goal": "Probar si un Echo State Network con reservorio basado en el conectoma de Drosophila mejora la proyección frente a un ESN aleatorio y a los motores de T16. Evidencia previa: resistencia al sobreajuste en series caóticas (no financieras); la única prueba financiera encontrada fue negativa."
