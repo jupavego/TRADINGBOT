@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-14T10:02:56",
+ "generated": "2026-10-14T11:32:26",
  "tasks": [
   {
    "id": "T01",
@@ -353,8 +353,8 @@ window.EIM_STATUS = {
    "deps": [
     "T29"
    ],
-   "state": "progress",
-   "notes": "v2/eim/execution: `broker.py` (contrato `Broker`, ids de cliente deterministas), `sim_broker.py` (`SimBroker`, SIMULADO), `binance_testnet.py` (`BinanceTestnetBroker`: solo hosts de testnet, claves por `EIM_TESTNET_API_KEY/SECRET`, firma HMAC en cuerpo, SL/TP por `/fapi/v1/algoOrder`), `service.py` (SL y TP `closePosition` ANTES de la entrada → todo fill nace protegido; reintentos que consultan por id antes de reenviar; rechazos y fills parciales), `reconcile.py` (libro vs exchange, SL perdido → se repone o cierra, huérfanas, desvío/desconexión → kill-switch y cierre ordenado), `smoke.py` (prueba E2E en testnet). `RiskDecision` sella entrada/SL/TP; `OrderGateway` es la única puerta. API: `EIM_EXECUTION=testnet` → modo TESTNET, `POST /v2/risk/execute`, `/v2/execution` (+`/reconcile`, `/flatten`), reconciliación cada `EIM_RECON_S`; UI: cabecera y pestaña Plan en Testnet con botón «Ejecutar en testnet». Tests en tests/execution (39, exchange simulado con caídas de red, respuestas perdidas, 503, rechazos, fills parciales). Revisión de código: 10 hallazgos, 9 corregidos. **Pendiente para ☑: correr `python -m eim.execution.smoke` con claves de testnet (no hay claves en este entorno).**",
+   "state": "done",
+   "notes": "v2/eim/execution: `broker.py` (contrato `Broker`, ids de cliente deterministas), `sim_broker.py` (`SimBroker`, SIMULADO), `binance_testnet.py` (`BinanceTestnetBroker`: solo hosts de testnet, claves por `EIM_TESTNET_API_KEY/SECRET`, firma HMAC en cuerpo, SL/TP por `/fapi/v1/algoOrder`), `service.py` (SL y TP `closePosition` ANTES de la entrada → todo fill nace protegido; reintentos que consultan por id antes de reenviar; rechazos y fills parciales), `reconcile.py` (libro vs exchange, SL perdido → se repone o cierra, huérfanas, desvío/desconexión → kill-switch y cierre ordenado), `smoke.py` (prueba E2E en testnet). `RiskDecision` sella entrada/SL/TP; `OrderGateway` es la única puerta. API: `EIM_EXECUTION=testnet` → modo TESTNET, `POST /v2/risk/execute`, `/v2/execution` (+`/reconcile`, `/flatten`), reconciliación cada `EIM_RECON_S`; UI: cabecera y pestaña Plan en Testnet con botón «Ejecutar en testnet». Tests en tests/execution (39, exchange simulado con caídas de red, respuestas perdidas, 503, rechazos, fills parciales). Revisión de código: 10 hallazgos, 9 corregidos. Fusionado en main (PR #39, `a77746e`, 2026-10-14). **Pendiente manual: prueba E2E en testnet real (`python -m eim.execution.smoke`) con claves de testnet; los criterios «abrir/cerrar con SL/TP en testnet» y «cortar la red no deja posición sin SL» solo están probados contra el exchange simulado.**",
    "effort": "alto",
    "phase": 7,
    "goal": "Adaptador de ejecución para Binance Futures **testnet**, con la misma interfaz que el simulador, y reconciliación de posición."
