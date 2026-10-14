@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import numpy as np
 
 from eim.agents.base import no_data_report
@@ -11,6 +13,11 @@ from eim.agents.plan.params import PlanParams
 from eim.agents.plan.plan import Plan, advance, combine, improve, propose
 from eim.agents.structure import StructureAgent
 from eim.core import AgentReport, MarketSnapshot, Mode, Overlay
+from eim.synthesis import SynthesisParams
+
+# (reportes de structure y levels, soportes, resistencias) de un instante; no dependen de params.
+RawInputs = tuple[list[AgentReport], list[float], list[float]]
+RawFn = Callable[[MarketSnapshot, float, int], RawInputs | None]
 
 
 def _px(x: float) -> str:
@@ -27,14 +34,20 @@ class PlanAgent:
     version = "1.0.0"
     requires = {"candles"}
 
-    def __init__(self, params: PlanParams | None = None) -> None:
+    def __init__(self, params: PlanParams | None = None, synth: SynthesisParams | None = None,
+                 raw: RawFn | None = None) -> None:
+        """`synth`: parámetros de la síntesis (T26). `raw`: proveedor alternativo de insumos
+        (p. ej. memoizado para calibración); por defecto se corren `structure` y `levels`."""
         self.params = params or PlanParams()
+        self.synth = synth
+        self._raw = raw or self.raw_inputs
         self._structure = StructureAgent()
         self._levels = LevelsAgent()
 
     # --- insumos de un instante ----------------------------------------
-    def _inputs(self, snap: MarketSnapshot, close: float, t: int):
-        """(sesgo, confianza, soportes, resistencias) o None si `levels` no tiene datos."""
+    def raw_inputs(self, snap: MarketSnapshot, close: float, t: int) -> RawInputs | None:
+        """Reportes de structure/levels y niveles bajo/sobre el precio; None si `levels` no
+        tiene datos. Independiente de `params`/`synth` (memoizable)."""
         st = self._structure.run(snap)
         lv = self._levels.run(snap)
         if lv.status == "no_data":
@@ -53,7 +66,15 @@ class PlanAgent:
                     res.append(up)
                 if lo < close:
                     sup.append(lo)
-        bias, conf = combine([st, lv], self.params)
+        return [st, lv], sup, res
+
+    def _inputs(self, snap: MarketSnapshot, close: float, t: int):
+        """(sesgo, confianza, soportes, resistencias) o None si `levels` no tiene datos."""
+        raw = self._raw(snap, close, t)
+        if raw is None:
+            return None
+        reports, sup, res = raw
+        bias, conf = combine(reports, self.params, self.synth)
         return bias, conf, sup, res
 
     # --- run ------------------------------------------------------------

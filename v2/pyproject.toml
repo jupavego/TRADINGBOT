@@ -22,7 +22,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "ruff", "pyright"]
+dev = ["pytest", "ruff", "pyright", "optuna>=4"]
+calib = ["optuna>=4"]  # T26: calibración (MIT)
 kronos = ["torch>=2", "einops", "huggingface_hub==0.33.1", "safetensors"]
 
 [tool.setuptools.packages.find]
