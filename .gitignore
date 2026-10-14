@@ -11,3 +11,4 @@ __pycache__/
 dist/
 build/
 v2/reports/calibration/cache/
+v2/data/

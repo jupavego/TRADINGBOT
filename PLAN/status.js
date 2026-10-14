@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T20:55:03",
+ "generated": "2026-10-13T20:58:22",
  "tasks": [
   {
    "id": "T01",
@@ -317,8 +317,8 @@ window.EIM_STATUS = {
     "T26",
     "T19"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/reports/edge_gate.md (criterios C1–C7 fijados antes de calcular, resultados, Holm, veredicto) + datos en v2/reports/edge/edge_results.json; código `eim/backtest/edge.py` (réplica con lado aleatorio, bootstrap/permutación, Holm) y `eim/calibration/gate_cli.py`, tests en tests/backtest/test_edge.py. **Veredicto: NO PASA**: 7 ventanas OOS por activo, BTC Sharpe −2.39 / ETH −2.80 (comprar y mantener +0.88 / +0.39), R neto −0.49/−0.51 con IC95 % negativo, DD ≈70 %, 0/14 ventanas positivas; no supera la entrada aleatoria ni antes de costos (costos ≈0.3–0.36 R/operación); escenarios sin skill (Brier −0.4 %, pinball −1.2 %) aunque con bandas calibradas. Hipótesis en BACKLOG. **Bloquea T29 hasta decisión del usuario.**",
    "effort": "medio",
    "phase": 6,
    "goal": "Responder con evidencia: ¿el sistema tiene ventaja estadística fuera de muestra, neta de costos? De la respuesta depende seguir a T29 o volver atrás."
