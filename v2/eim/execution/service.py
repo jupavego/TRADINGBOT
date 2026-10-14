@@ -59,6 +59,9 @@ class LiveTrade:
     exit_reason: str = ""
     sl_role: str = "s"                     # cambia al reparar el SL (s2, s3…)
     closes: int = 0
+    opened_at: int | None = None           # ms del primer fill
+    closed_at: int | None = None
+    exit_price: float | None = None        # precio medio de salida (None si se desconoce)
     events: list[str] = field(default_factory=list)
 
     def cid(self, role: str) -> str:
@@ -66,6 +69,19 @@ class LiveTrade:
 
     def to_json(self) -> dict:
         return {k: getattr(self, k) for k in self.__dataclass_fields__}
+
+    @property
+    def pnl(self) -> float | None:
+        """Resultado bruto (sin comisiones ni funding) de una operación cerrada."""
+        if self.exit_price is None or self.avg_entry is None:
+            return None
+        return (self.exit_price - self.avg_entry) * self.side * self.filled
+
+    @property
+    def r(self) -> float | None:
+        """Resultado bruto en R (riesgo inicial = |entrada − SL|)."""
+        risk = abs((self.avg_entry or 0.0) - self.sl) * self.filled
+        return None if self.pnl is None or risk <= 0 else self.pnl / risk
 
 
 class ExecutionError(BrokerError):
@@ -183,7 +199,7 @@ class ExecutionService:
             self._log(tr, f"entrada llenada {st.filled}/{tr.qty} a {st.avg_price}")
         tr.filled, tr.avg_entry = st.filled, st.avg_price or tr.avg_entry
         if tr.filled > 0 and tr.status == PENDING:
-            tr.status = OPEN
+            tr.status, tr.opened_at = OPEN, self._clock()
         elif tr.filled == 0 and st.status in (CANCELED, EXPIRED, REJECTED):
             self._fail(tr, f"entrada {st.status} sin llenar")
 
@@ -202,15 +218,17 @@ class ExecutionService:
         if tr.status != OPEN:
             return
         pos = b.position(tr.symbol).qty
-        hit = [r for r, cond in ((tr.sl_role, True), ("t", True))
-               if (o := b.get_order(tr.symbol, tr.cid(r), cond)) is not None
-               and o.status == TRIGGERED]
+        fired = [(r, o) for r, cond in ((tr.sl_role, True), ("t", True))
+                 if (o := b.get_order(tr.symbol, tr.cid(r), cond)) is not None
+                 and o.status == TRIGGERED]
+        hit = [r for r, _ in fired]
         if hit or pos * tr.side <= 0:
             if st.is_open:
                 self._cancel_quiet(tr, "e", False)
             self._cancel_protection(tr)
-            tr.status = CLOSED
+            tr.status, tr.closed_at = CLOSED, self._clock()
             tr.exit_reason = ("TP" if hit == ["t"] else "SL") if hit else "posición cerrada fuera"
+            tr.exit_price = fired[0][1].avg_price if fired else None
             self._log(tr, f"cerrada: {tr.exit_reason}")
 
     def repair_sl(self, tr: LiveTrade) -> None:
@@ -241,12 +259,17 @@ class ExecutionService:
             if tag:
                 tag.closes = n
             cid = tag.cid(f"x{n}") if tag else client_id(f"flat:{self._clock()}", symbol, "x")
-            self._ensure(OrderSpec(cid, symbol, -1 if qty > 0 else 1, MARKET,
-                                   qty=abs(qty), reduce_only=True))
+            done = self._ensure(OrderSpec(cid, symbol, -1 if qty > 0 else 1, MARKET,
+                                          qty=abs(qty), reduce_only=True))
+            exit_px = done.avg_price
+        else:
+            exit_px = None
         flat = b.position(symbol).qty == 0
         for tr in trades:
             if flat:
                 self._cancel_protection(tr)
                 tr.status, tr.exit_reason = CLOSED, f"cierre ordenado: {reason}"
+                tr.closed_at = self._clock()
+                tr.exit_price = exit_px if tr.filled else None
                 self._log(tr, tr.exit_reason)
         return flat

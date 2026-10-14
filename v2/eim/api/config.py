@@ -10,7 +10,9 @@ from pathlib import Path
 @dataclass(frozen=True)
 class Settings:
     """Entorno: EIM_DATA_DIR, EIM_REPORTS_DB, EIM_CORS_ORIGINS, EIM_WS_URL, EIM_HEARTBEAT_S,
-    EIM_EXECUTION (off | testnet), EIM_RECON_S (segundos entre reconciliaciones)."""
+    EIM_EXECUTION (off | paper | testnet), EIM_RECON_S (segundos entre reconciliaciones),
+    EIM_OPERATE=1 (servicio de operación continua, T31), EIM_OPERATE_TF, EIM_OPERATE_POLL_S,
+    EIM_OPERATION_REPORTS (carpeta del informe semanal), EIM_EDGE_RESULTS."""
 
     data_dir: Path = Path("data")
     reports_db: Path | None = None
@@ -26,6 +28,11 @@ class Settings:
     auto_history: bool = False  # EIM_AUTO_HISTORY (1 por defecto en from_env)
     execution: str = "off"      # T30: "testnet" activa el broker de testnet (claves por entorno)
     recon_interval_s: float = 30.0
+    operate: bool = False       # T31: ciclo continuo datos→…→ejecución dentro del proceso
+    operate_tf: str = "1h"
+    operate_poll_s: float = 60.0
+    operation_reports: Path = Path("reports/operation")
+    edge_results: Path = Path("reports/edge/edge_results.json")
     extra: dict[str, str] = field(default_factory=dict)
 
     @property
@@ -48,4 +55,9 @@ class Settings:
             auto_history=env.get("EIM_AUTO_HISTORY", "1") != "0",
             execution=env.get("EIM_EXECUTION", d.execution).strip().lower(),
             recon_interval_s=float(env.get("EIM_RECON_S", d.recon_interval_s)),
+            operate=env.get("EIM_OPERATE", "0") == "1",
+            operate_tf=env.get("EIM_OPERATE_TF", d.operate_tf),
+            operate_poll_s=float(env.get("EIM_OPERATE_POLL_S", d.operate_poll_s)),
+            operation_reports=Path(env.get("EIM_OPERATION_REPORTS", str(d.operation_reports))),
+            edge_results=Path(env.get("EIM_EDGE_RESULTS", str(d.edge_results))),
         )

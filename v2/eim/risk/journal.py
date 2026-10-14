@@ -44,3 +44,17 @@ class RiskJournal:
                 "ORDER BY asof_ms DESC, decided_at DESC LIMIT ?", [symbol, timeframe, limit]
             ).fetchall()
         return [RiskDecision.model_validate_json(r[0]) for r in rows]
+
+    def recent(self, since: int = 0, until: int | None = None, approved: bool | None = None,
+               limit: int = 200) -> list[RiskDecision]:
+        """Decisiones de todos los símbolos con `decided_at` en [since, until), recientes 1.º."""
+        sql = "SELECT decision FROM risk_decisions WHERE decided_at >= ?"
+        args: list = [since]
+        if until is not None:
+            sql, args = sql + " AND decided_at < ?", [*args, until]
+        if approved is not None:
+            sql, args = sql + " AND approved = ?", [*args, approved]
+        with self._lock:
+            rows = self._con.execute(f"{sql} ORDER BY decided_at DESC LIMIT {int(limit)}",
+                                     args).fetchall()
+        return [RiskDecision.model_validate_json(r[0]) for r in rows]
