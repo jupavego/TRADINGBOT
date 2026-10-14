@@ -1,6 +1,6 @@
 # Especificación de interfaz (decisiones del usuario; no cambiar sin consultar)
 
-**Estilo:** limpio, amplio, dinámico e integral. Tema claro y cálido por defecto (como el panel F7 actual), tema oscuro opcional con interruptor. Tipografía sobria, mucho espacio, bordes finos, sin adornos. Por defecto se ven pocas capas; el resto se activa con un clic (divulgación progresiva).
+**Estilo:** limpio, amplio, dinámico e integral. Tema **futurista** por defecto (HUD neón: fondo azul noche, paneles de vidrio, acentos cian; verde = compra, rojo = venta, gris = neutral); temas oscuro y claro/cálido (como el panel F7) disponibles con el interruptor Tema. Tipografía sobria, mucho espacio, bordes finos, sin adornos. Por defecto se ven pocas capas; el resto se activa con un clic (divulgación progresiva).
 
 **Layout "Mesa de trading":**
 - Barra superior: activo, marco temporal, estado "En vivo" (punto), etiqueta de **modo** (Análisis/Simulado/Testnet) siempre visible.

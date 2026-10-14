@@ -1,0 +1,172 @@
+/* ── Tema futurista (HUD neón). Mantiene la semántica: verde = compra, rojo = venta, gris = neutral. ── */
+:root[data-theme="cyber"] {
+  --bg: #040a13; --panel: #08131f; --text: #d9f4ff; --muted: #6d8fa3; --line: #123047;
+  --grid: #0c1f30; --accent: #22e1ff; --up: #12e58f; --down: #ff3d5f; --warn: #ffb547; --neutral: #8b98a6;
+  --glow: 34, 225, 255;
+  --glass: rgba(8, 19, 31, .74);
+  --hud: rgba(var(--glow), .9);
+  --radius: 6px;
+  --f-display: "Orbitron", "Rajdhani", system-ui, sans-serif;
+  --f-body: "Exo 2", system-ui, "Segoe UI", sans-serif;
+  --f-num: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
+  color-scheme: dark;
+}
+
+/* Fondo: resplandores, retícula y líneas de barrido */
+:root[data-theme="cyber"] body {
+  font-family: var(--f-body); font-size: 14px; letter-spacing: .01em;
+  background:
+    radial-gradient(60% 50% at 85% 10%, rgba(var(--glow), .13), transparent 70%),
+    radial-gradient(50% 40% at 0% 80%, rgba(255, 61, 95, .06), transparent 70%),
+    linear-gradient(rgba(var(--glow), .045) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, rgba(var(--glow), .045) 1px, transparent 1px) 0 0 / 44px 44px,
+    var(--bg);
+  background-attachment: fixed;
+}
+:root[data-theme="cyber"] body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 3px);
+}
+:root[data-theme="cyber"] body::before {
+  content: ""; position: fixed; left: 0; right: 0; height: 140px; top: -140px; pointer-events: none; z-index: 49;
+  background: linear-gradient(transparent, rgba(var(--glow), .05), transparent);
+  animation: cy-sweep 9s linear infinite;
+}
+@keyframes cy-sweep { to { transform: translateY(calc(100vh + 140px)); } }
+
+/* Paneles de vidrio con esquinas de HUD */
+:root[data-theme="cyber"] :is(.hero, .chart-wrap, .bottom, .more) {
+  border: 1px solid rgba(var(--glow), .22); border-radius: var(--radius);
+  background:
+    linear-gradient(var(--hud), var(--hud)) top left / 18px 2px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) top left / 2px 18px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) top right / 18px 2px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) top right / 2px 18px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) bottom left / 18px 2px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) bottom left / 2px 18px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) bottom right / 18px 2px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) bottom right / 2px 18px no-repeat,
+    var(--glass);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 0 28px rgba(var(--glow), .07), inset 0 0 40px rgba(var(--glow), .035);
+  backdrop-filter: blur(10px);
+}
+:root[data-theme="cyber"] .river {
+  border: 1px solid rgba(var(--glow), .22); border-radius: var(--radius);
+  box-shadow: 0 0 28px rgba(var(--glow), .07), inset 0 0 40px rgba(var(--glow), .04);
+}
+:root[data-theme="cyber"] .river::before { background-image: radial-gradient(rgba(var(--glow), .35) 1px, transparent 1px); opacity: .35; }
+
+/* Barra superior */
+:root[data-theme="cyber"] .topbar {
+  z-index: 20; background: rgba(4, 10, 19, .82); backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(90deg, transparent, rgba(var(--glow), .8), transparent) 1;
+  box-shadow: 0 6px 24px rgba(var(--glow), .06);
+}
+@media (min-width: 901px) { :root[data-theme="cyber"] .topbar { position: sticky; top: 0; } }
+:root[data-theme="cyber"] .brand {
+  font-family: var(--f-display); font-weight: 900; font-size: 18px; letter-spacing: .3em; color: var(--accent);
+  text-shadow: 0 0 6px rgba(var(--glow), .8), 0 0 18px rgba(var(--glow), .45);
+}
+:root[data-theme="cyber"] .price {
+  font-family: var(--f-num); font-size: 22px; font-weight: 600; color: var(--text);
+  text-shadow: 0 0 10px rgba(var(--glow), .35);
+}
+:root[data-theme="cyber"] .price[data-dir="up"] { color: var(--up); text-shadow: 0 0 12px rgba(18, 229, 143, .6); }
+:root[data-theme="cyber"] .price[data-dir="down"] { color: var(--down); text-shadow: 0 0 12px rgba(255, 61, 95, .6); }
+:root[data-theme="cyber"] .live { font-family: var(--f-display); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; }
+:root[data-theme="cyber"] .live[data-state="up"] i { box-shadow: 0 0 8px var(--up); }
+:root[data-theme="cyber"] .live[data-state="down"] i { box-shadow: 0 0 8px var(--down); }
+:root[data-theme="cyber"] .mode {
+  font-family: var(--f-display); font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  border-radius: 3px; background: rgba(var(--glow), .08); box-shadow: 0 0 12px rgba(var(--glow), .25), inset 0 0 8px rgba(var(--glow), .15);
+}
+
+/* Controles */
+:root[data-theme="cyber"] :is(select, .btn, .seg button) {
+  background: rgba(var(--glow), .04); border-color: rgba(var(--glow), .35); color: var(--text); border-radius: 3px;
+  font-family: var(--f-display); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  transition: box-shadow .2s, border-color .2s, background .2s;
+}
+:root[data-theme="cyber"] select option { background: var(--panel); color: var(--text); }
+:root[data-theme="cyber"] :is(select, .btn, .seg button):hover {
+  border-color: var(--accent); box-shadow: 0 0 12px rgba(var(--glow), .35);
+}
+:root[data-theme="cyber"] .seg button[aria-pressed="true"],
+:root[data-theme="cyber"] .btn[aria-pressed="true"] {
+  background: var(--accent); border-color: var(--accent); color: #031019; font-weight: 700;
+  box-shadow: 0 0 16px rgba(var(--glow), .6);
+}
+:root[data-theme="cyber"] :is(.layerbar button, .scen-bar button) {
+  font-family: var(--f-display); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  background: rgba(4, 10, 19, .7); border-color: rgba(var(--glow), .25);
+}
+:root[data-theme="cyber"] :is(.layerbar button, .scen-bar button)[aria-pressed="true"] {
+  box-shadow: 0 0 10px rgba(var(--glow), .45), inset 0 0 6px rgba(var(--glow), .2);
+}
+
+/* Títulos y cifras */
+:root[data-theme="cyber"] :is(.sh, .side h3, .river-head h3, .hero h3, .more h4, #t-log h4) {
+  font-family: var(--f-display); font-size: 11px; letter-spacing: .22em; color: var(--accent);
+  text-shadow: 0 0 8px rgba(var(--glow), .5);
+}
+:root[data-theme="cyber"] :is(.hero-num b, .tile .big, .kpi b, .rbig, .num, .ring b, .metrics td:last-child) { font-family: var(--f-num); }
+:root[data-theme="cyber"] .hero-num b { text-shadow: 0 0 16px currentColor; }
+:root[data-theme="cyber"] .hero-num[data-t="up"] b { color: var(--up); }
+:root[data-theme="cyber"] .hero-num[data-t="down"] b { color: var(--down); }
+:root[data-theme="cyber"] .hero-num:not([data-t="up"]):not([data-t="down"]) b { color: var(--neutral); }
+
+/* Velocímetro y anillos: neón con neutral gris al centro */
+:root[data-theme="cyber"] #gg stop:nth-child(2) { stop-color: var(--neutral); }
+:root[data-theme="cyber"] .gauge path { filter: drop-shadow(0 0 6px rgba(var(--glow), .35)); }
+:root[data-theme="cyber"] .gauge line, :root[data-theme="cyber"] .gauge circle { filter: drop-shadow(0 0 4px rgba(var(--glow), .9)); }
+:root[data-theme="cyber"] .rf { filter: drop-shadow(0 0 3px rgba(var(--glow), .9)); }
+
+/* Tarjetas de agentes */
+:root[data-theme="cyber"] .tile {
+  border-radius: var(--radius); border: 1px solid rgba(var(--glow), .18);
+  border-left: 3px solid var(--neutral); box-shadow: inset 0 0 24px rgba(0, 0, 0, .35);
+  transition: box-shadow .25s, border-color .25s, transform .25s;
+}
+:root[data-theme="cyber"] .tile[data-t="up"] { border-left-color: var(--up); }
+:root[data-theme="cyber"] .tile[data-t="down"] { border-left-color: var(--down); }
+:root[data-theme="cyber"] .tile:hover { border-color: rgba(var(--glow), .5); box-shadow: 0 0 18px rgba(var(--glow), .18); transform: translateY(-1px); }
+:root[data-theme="cyber"] .tile[data-t="up"] .big { color: var(--up); text-shadow: 0 0 10px rgba(18, 229, 143, .5); }
+:root[data-theme="cyber"] .tile[data-t="down"] .big { color: var(--down); text-shadow: 0 0 10px rgba(255, 61, 95, .5); }
+:root[data-theme="cyber"] .tile[data-t="flat"] .big { color: var(--neutral); }
+
+/* Chips del río: compra / neutral / venta */
+:root[data-theme="cyber"] .c { background: rgba(4, 10, 19, .6); font-family: var(--f-num); }
+:root[data-theme="cyber"] .c.up { box-shadow: 0 0 10px rgba(18, 229, 143, .3); }
+:root[data-theme="cyber"] .c.down { box-shadow: 0 0 10px rgba(255, 61, 95, .3); }
+:root[data-theme="cyber"] .c.flat { color: var(--neutral); border-color: color-mix(in srgb, var(--neutral) 45%, var(--line)); }
+:root[data-theme="cyber"] .anode { filter: drop-shadow(0 0 6px rgba(var(--glow), .45)); }
+
+/* Pestañas */
+:root[data-theme="cyber"] .tabs { border-bottom-color: rgba(var(--glow), .18); }
+:root[data-theme="cyber"] .tabs button { font-family: var(--f-display); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+:root[data-theme="cyber"] .tabs button[aria-selected="true"] {
+  color: var(--accent); border-bottom-color: var(--accent); text-shadow: 0 0 8px rgba(var(--glow), .6);
+  box-shadow: 0 6px 10px -8px rgba(var(--glow), .9);
+}
+
+/* Avisos y tarjetas flotantes */
+:root[data-theme="cyber"] .alert { background: rgba(255, 181, 71, .06); box-shadow: 0 0 14px rgba(255, 181, 71, .12); border-radius: 3px; }
+:root[data-theme="cyber"] .alert.bad, :root[data-theme="cyber"] .banner { background: rgba(255, 61, 95, .08); box-shadow: 0 0 14px rgba(255, 61, 95, .25); }
+:root[data-theme="cyber"] :is(.tip, .evcard) {
+  background: rgba(6, 15, 26, .92); border: 1px solid rgba(var(--glow), .4); border-radius: 4px;
+  box-shadow: 0 0 24px rgba(var(--glow), .2); backdrop-filter: blur(8px);
+}
+:root[data-theme="cyber"] .replay { background: rgba(4, 10, 19, .8); border-color: rgba(var(--glow), .3); }
+:root[data-theme="cyber"] .replay input { accent-color: var(--accent); }
+:root[data-theme="cyber"] .scen { background: rgba(4, 10, 19, .55); border-radius: 4px; }
+:root[data-theme="cyber"] .scen[aria-pressed="true"] { box-shadow: 0 0 0 1px var(--c), 0 0 16px color-mix(in srgb, var(--c) 45%, transparent); }
+:root[data-theme="cyber"] :is(.kpi, .mchart) { border-color: rgba(var(--glow), .2); background: rgba(4, 10, 19, .45); }
+
+/* Barras de desplazamiento */
+:root[data-theme="cyber"] * { scrollbar-color: rgba(var(--glow), .35) transparent; scrollbar-width: thin; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="cyber"] body::before { animation: none; display: none; }
+  :root[data-theme="cyber"] .tile { transition: none; }
+}
