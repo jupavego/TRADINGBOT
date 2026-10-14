@@ -29,8 +29,8 @@ Binance (REST/WS)  ──► data/ (proveedores + almacén parquet/DuckDB)
 | Paquete | Responsabilidad | Regla clave |
 |---|---|---|
 | `core` | Contratos pydantic: `MarketSnapshot`, `AgentReport`, velas, overlays | Fuente única de tipos |
-| `data` | Proveedores (`providers/`: Binance, liquidaciones, multi-activo, noticias, contexto Claude), almacén (`store.py`, parquet + DuckDB), `snapshot.py`, `sync.py`, `collectors/`, **`backup.py`** | **Todo el I/O vive aquí** |
-| `agents/<id>` | 14 analizadores: structure, ema, vwap, price_action, elliott, seasonality, liquidations, levels, derivatives, microstructure, regime, context, technical, plan. Registro en `agents/registry.py` | Funciones puras sobre el snapshot (sin red/disco/estado) |
+| `data` | Proveedores (`providers/`: Binance, liquidaciones, multi-activo, noticias, contexto Claude, calendario oficial Fed/BLS/BEA + FRED), almacén (`store.py`, parquet + DuckDB), `snapshot.py`, `sync.py`, `calendar.py` (calendario point-in-time) + `calendar_sync.py`, `collectors/`, **`backup.py`** | **Todo el I/O vive aquí** |
+| `agents/<id>` | 15 analizadores: structure, ema, vwap, price_action, elliott, seasonality, liquidations, levels, derivatives, microstructure, regime, context, technical, calendar (riesgo de evento, `bias=0`), plan. Registro en `agents/registry.py` | Funciones puras sobre el snapshot (sin red/disco/estado) |
 | `indicators` | Biblioteca de indicadores técnicos (numpy puro) | Sin I/O |
 | `forecast` | Motor de trayectorias (`base_engine`, `kronos_engine` opcional), escenarios, techo/piso, calibración | Siempre probabilístico: 3 escenarios + bandas; velas «simuladas» |
 | `synthesis` | Agrega reportes en una tesis con desacuerdo | |

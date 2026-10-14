@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-14T13:32:40",
+ "generated": "2026-10-14T15:34:18",
  "tasks": [
   {
    "id": "T01",
@@ -423,8 +423,8 @@ window.EIM_STATUS = {
    "deps": [
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Fuentes oficiales de T33 (sin consenso → `forecast=None`, nunca inventado): `eim/data/providers/calendar.py` (Fed FOMC HTML → 14:00 ET, BLS ICS en ET, BEA JSON en UTC; ET→UTC con `zoneinfo`, probado en EST/EDT), `providers/fred.py` (opcional `EIM_FRED_API_KEY`: real/anterior/revisado por *vintage* ALFRED). `eim/data/calendar.py`: historial **point-in-time** solo-añadir (`data/calendar/events.parquet` + `fetches.parquet`; revisiones y cancelaciones = filas nuevas), vencimientos trimestrales Binance por regla (último viernes 08:00 UTC, contrastado con `exchangeInfo`); `calendar_sync.py` (al arrancar la API y cada 6 h, `EIM_CALENDAR`). `EconEvent` en `core/events.py`; `snapshot.events` −24 h…+7 d con `sources`/`coverage` por fuente. Agente `eim/agents/calendar/` (`bias=0` siempre): próximo alto impacto, minutos, ventana pre/post, `blackout` (+1 vela de margen; lo veta T29), `risk_windows`, sorpresa (n/d sin consenso), confianza = completitud×frescura, `degraded` si fuente obsoleta/ausente/horizonte corto, marcador por evento. UI: tarjeta «Calendario» con próximos eventos (`web/src/calendar_ui.ts`). Tests: tests/agents/calendar (21) + tests/data/test_calendar_provider.py (14, recortes reales en tests/fixtures/calendar). Verificado en vivo (2026-10-14): IPC 12:30 UTC e IPP 15-oct en la tarjeta. Pendientes en BACKLOG (T36).",
    "effort": "medio",
    "phase": 8,
    "goal": "Que el sistema conozca los eventos macro y cripto de alto impacto (FOMC, CPI, NFP, PCE, PIB, vencimientos de futuros trimestrales, decisiones regulatorias) y cuantifique el riesgo de evento. **Es un agente de riesgo, no direccional.**"

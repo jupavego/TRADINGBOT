@@ -21,7 +21,9 @@ class Settings:
     EIM_OPERATION_REPORTS (carpeta del informe semanal), EIM_EDGE_RESULTS,
     EIM_ALLOWED_HOSTS (cabeceras Host aceptadas; solo bucle local por defecto) y
     EIM_API_TOKEN (sin él, ningún cliente remoto entra; ver eim/api/security.py),
-    EIM_BACKUP_DIR / EIM_BACKUP_KEEP (copias de seguridad; diaria automática con EIM_OPERATE=1)."""
+    EIM_BACKUP_DIR / EIM_BACKUP_KEEP (copias de seguridad; diaria automática con EIM_OPERATE=1),
+    EIM_CALENDAR=0 desactiva el calendario económico en vivo (T36), EIM_CALENDAR_S (segundos
+    entre consultas) y EIM_FRED_API_KEY (opcional: valores reales; la lee `providers/fred.py`)."""
 
     data_dir: Path = Path("data")
     reports_db: Path | None = None
@@ -46,6 +48,8 @@ class Settings:
     edge_results: Path = Path("reports/edge/edge_results.json")
     backup_dir: Path = Path("backups")
     backup_keep: int = 14
+    calendar: bool = False      # T36: refresco del calendario (1 por defecto en from_env)
+    calendar_interval_s: float = 6 * 3600
     extra: dict[str, str] = field(default_factory=dict)
 
     @property
@@ -76,4 +80,6 @@ class Settings:
             edge_results=Path(env.get("EIM_EDGE_RESULTS", str(d.edge_results))),
             backup_dir=Path(env.get("EIM_BACKUP_DIR", str(d.backup_dir))),
             backup_keep=int(env.get("EIM_BACKUP_KEEP", d.backup_keep)),
+            calendar=env.get("EIM_CALENDAR", "1") != "0",
+            calendar_interval_s=float(env.get("EIM_CALENDAR_S", d.calendar_interval_s)),
         )

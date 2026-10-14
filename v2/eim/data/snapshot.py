@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 
 from eim.core import MarketSnapshot
+from eim.data.calendar import read_calendar
 from eim.data.micro import read_micro
 from eim.data.store import Store
 from eim.data.timeframes import TF_MS, tf_ms
@@ -17,6 +18,7 @@ def build_snapshot(
 
     `sources` y `coverage` reflejan lo realmente almacenado: si hay menos de `n` velas,
     la cobertura lo muestra. Funding y OI se limitan a la ventana de las velas.
+    `events` (T36): calendario conocido a `asof` en −24 h … +7 d; None si nunca se sincronizó.
     """
     step = tf_ms(timeframe)
     asof = asof if asof is not None else int(time.time() * 1000)
@@ -47,6 +49,12 @@ def build_snapshot(
         if book is not None:
             sources["orderbook"] = book.source
         candles_tf = _neighbor_candles(store, symbol, timeframe, n, asof, sources, coverage)
+    events = None
+    cal = read_calendar(store.root, asof)
+    if cal is not None:
+        events, cal_sources, cal_coverage = cal
+        sources |= cal_sources
+        coverage |= cal_coverage
     return MarketSnapshot(
         symbol=symbol,
         timeframe=timeframe,
@@ -58,6 +66,7 @@ def build_snapshot(
         micro=micro,
         orderbook=book,
         candles_tf=candles_tf,
+        events=events,
         asof=asof,
         sources=sources,
         coverage=coverage,
