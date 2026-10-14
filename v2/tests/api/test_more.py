@@ -6,7 +6,6 @@ from datetime import UTC, datetime
 
 import pandas as pd
 import pytest
-from fastapi.testclient import TestClient
 
 from eim.api.config import Settings
 from eim.api.main import create_app
@@ -15,6 +14,7 @@ from eim.core import Candle, LiquidationDay, Liquidations
 from eim.data.store import Store
 from tests.api.test_api import FakeSource, _candles
 from tests.legacy import _runner as r
+from tests.local_client import LocalClient
 
 MONTH = [Candle(t=int(datetime(2020 + i // 12, i % 12 + 1, 1, tzinfo=UTC).timestamp() * 1000),
                 o=100 + i, h=200 + i * 2, l=90 + i, c=100 + i * 2, v=1) for i in range(40)]
@@ -35,7 +35,7 @@ def client(tmp_path):
         ohlcv=lambda a, tf, n: (MONTH[:n], "fuente-prueba"),
         monthly=lambda a, y: (MONTH, "fuente-prueba"))
     cfg = Settings(data_dir=tmp_path, heartbeat_s=0.2, snapshot_bars=300)
-    with TestClient(create_app(cfg, source=FakeSource(_candles(1)[0]), more=more)) as c:
+    with LocalClient(create_app(cfg, source=FakeSource(_candles(1)[0]), more=more)) as c:
         yield c
 
 
@@ -100,3 +100,10 @@ def test_bitacora_matches_legacy_and_requires_leverage(client):
     bad = client.post("/v2/more/bitacora", files={"file": ("x.csv", b"a", "text/csv")},
                       data={"leverage": 10})
     assert bad.status_code == 400
+
+
+def test_bitacora_upload_cap(client, monkeypatch):
+    import eim.api.more as more
+    monkeypatch.setattr(more, "MAX_UPLOAD_BYTES", 1024)
+    big = {"file": ("x.xlsx", b"0" * 2048, "application/octet-stream")}
+    assert client.post("/v2/more/bitacora", files=big, data={"leverage": 10}).status_code == 413

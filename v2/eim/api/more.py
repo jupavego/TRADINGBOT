@@ -28,6 +28,8 @@ from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
 
+MAX_UPLOAD_BYTES = 20 * 2**20  # exports de Binance: pocos MB; tope contra subidas gigantes (T32)
+
 
 def jsonable(obj: Any) -> Any:
     """numpy/pandas → nativos; NaN/Inf → None (JSON no los admite)."""
@@ -164,6 +166,12 @@ def build_more_router(store: Store, src: MoreSources | None = None,
         res["coverage"] = {"start": _ts(snap.candles[0].t), "end": _ts(snap.candles[-1].t)}
         return jsonable(res)
 
+    async def _read_capped(f: UploadFile) -> bytes:
+        data = await f.read(MAX_UPLOAD_BYTES + 1)
+        if len(data) > MAX_UPLOAD_BYTES:
+            raise HTTPException(413, f"archivo mayor a {MAX_UPLOAD_BYTES // 2**20} MB")
+        return data
+
     @r.post("/bitacora")
     async def bitacora(
         file: UploadFile = File(...),
@@ -176,8 +184,8 @@ def build_more_router(store: Store, src: MoreSources | None = None,
         """`leverage` es obligatorio: ningún export de Binance lo trae y no se asume."""
         if not (file.filename or "").lower().endswith((".xlsx", ".xls")):
             raise HTTPException(400, "Solo se aceptan archivos .xlsx/.xls de Binance.")
-        data = await file.read()
-        income = await income_file.read() if income_file is not None else None
+        data = await _read_capped(file)
+        income = await _read_capped(income_file) if income_file is not None else None
         try:
             res = build_bitacora(
                 data, leverage=leverage, starting_capital_usdt=starting_capital_usdt, trm=trm,

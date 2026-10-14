@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnec
 from fastapi.middleware.cors import CORSMiddleware
 
 from eim.agents.registry import AgentRegistry, default_registry
+from eim.api.backup import build_backup_router
 from eim.api.calibration import build_calibration_router
 from eim.api.config import Settings
 from eim.api.execution import build_execution_router, build_runtime, recon_loop
@@ -20,6 +21,7 @@ from eim.api.more import MoreSources, build_more_router
 from eim.api.operation import build_operation_router
 from eim.api.reports_db import ReportStore
 from eim.api.risk import RiskDesk, build_risk_router
+from eim.api.security import LocalOnlyMiddleware
 from eim.api.sources import BinanceKlineSource, LiveSource
 from eim.api.trades import build_trades_router
 from eim.data.providers.binance import BinanceFutures
@@ -70,7 +72,8 @@ def create_app(
                                               snapshot_bars=cfg.snapshot_bars,
                                               agent_timeout_s=cfg.agent_timeout_s),
                        data_dir=cfg.data_dir, reports_dir=cfg.operation_reports,
-                       edge_path=cfg.edge_results, forecaster=forecaster)
+                       edge_path=cfg.edge_results, forecaster=forecaster,
+                       backup_dir=cfg.backup_dir, backup_keep=cfg.backup_keep)
 
     def now_ms() -> int:
         return int(time.time() * 1000)
@@ -94,6 +97,9 @@ def create_app(
         CORSMiddleware, allow_origins=list(cfg.cors_origins), allow_methods=["*"],
         allow_headers=["*"],
     )
+    # Exterior: rechaza Host ajeno / cliente remoto antes que cualquier otra cosa (T32).
+    app.add_middleware(LocalOnlyMiddleware, allowed_hosts=cfg.allowed_hosts,
+                       origins=cfg.cors_origins, token=cfg.api_token)
     app.state.hub, app.state.reports, app.state.store = hub, reports, store
     app.state.forecaster = forecaster
     app.include_router(build_trades_router(store, reports))
@@ -101,6 +107,8 @@ def create_app(
     app.include_router(build_risk_router(store, reports, desk=desk))
     app.include_router(build_operation_router(desk, lambda: op, cfg.operation_reports))
     app.include_router(build_execution_router(runtime, now_ms))
+    app.include_router(build_backup_router(reports, cfg.data_dir, cfg.backup_dir,
+                                           cfg.backup_keep))
     app.include_router(build_forecast_router(forecaster))
     app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))

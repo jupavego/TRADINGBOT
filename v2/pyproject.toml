@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "ruff", "pyright", "optuna>=4"]
+dev = ["pytest", "ruff", "pyright", "optuna>=4", "pip-audit"]  # pip-audit: T32
 calib = ["optuna>=4"]  # T26: calibración (MIT)
 kronos = ["torch>=2", "einops", "huggingface_hub==0.33.1", "safetensors"]
 

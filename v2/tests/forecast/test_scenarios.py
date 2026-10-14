@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from fastapi.testclient import TestClient
 
 from eim.api.config import Settings
 from eim.api.main import create_app
@@ -13,6 +12,7 @@ from eim.data.timeframes import tf_ms
 from eim.forecast import BaseEngine, BaseParams
 from eim.forecast.scenarios import ScenarioParams, build_forecast, classify
 from tests.agents.conftest import make_snapshot
+from tests.local_client import LocalClient
 
 
 @pytest.fixture(scope="module")
@@ -92,7 +92,7 @@ def test_api_forecast_btcusdt(tmp_path):
                       c=float(p * 1.001), v=10.0) for i, p in enumerate(price)]
     Store(tmp_path).upsert_candles("BTCUSDT", "1h", candles, "test")
     app = create_app(Settings(data_dir=tmp_path))
-    with TestClient(app) as client:
+    with LocalClient(app) as client:
         r = client.get("/v2/forecast", params={"symbol": "BTCUSDT", "tf": "1h", "h": 25})
         assert r.status_code == 200
         fs = ForecastSet.model_validate(r.json())

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pytest
-from fastapi.testclient import TestClient
 
 from eim.api.config import Settings
 from eim.api.main import create_app
@@ -12,6 +11,7 @@ from eim.forecast.backfill import backfill
 from eim.forecast.calibration import evaluate_forecast, summarize, verdict
 from eim.forecast.scenarios import build_forecast
 from tests.agents.conftest import make_snapshot
+from tests.local_client import LocalClient
 
 
 @pytest.fixture(scope="module")
@@ -68,9 +68,11 @@ def test_verdict_small_sample_and_baseline():
 def test_api_backfill_and_report(tmp_path, candles):
     Store(tmp_path).upsert_candles("ETHUSDT", "1h", candles, "test")
     app = create_app(Settings(data_dir=tmp_path))
-    with TestClient(app) as client:
+    with LocalClient(app) as client:
         assert client.get("/v2/calibration", params={"h": 20}).json()["n_evaluated"] == 0
-        r = client.post("/v2/calibration/backfill", params={"h": 20, "origins": 520})
+        url, q = "/v2/calibration/backfill", {"h": 20, "origins": 520}
+        assert client.post(url, params=q).status_code == 403            # sin cabecera (CSRF)
+        r = client.post(url, params=q, headers={"X-EIM-Confirm": "backfill"})
         assert r.status_code == 200, r.text
         j = r.json()
         assert j["saved"] == 520 and j["n_evaluated"] >= 500 and j["n_backfill"] == 520

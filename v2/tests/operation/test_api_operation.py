@@ -2,11 +2,11 @@
 
 import pytest
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 
 from eim.api.operation import build_operation_router
 from eim.api.risk import build_risk_router
 from eim.operation import alerts as A
+from tests.local_client import LocalClient
 from tests.operation.helpers import SYM, Market, Rig
 
 
@@ -18,7 +18,7 @@ def ctx(tmp_path):
     app.include_router(build_risk_router(op.desk.store, rig.reports, desk=op.desk))
     app.include_router(build_operation_router(op.desk, lambda: rig.op, rig.root / "out",
                                               rig.now))
-    with TestClient(app) as c:
+    with LocalClient(app) as c:
         yield c, rig
     rig.close()
 
@@ -77,7 +77,7 @@ def test_without_service(tmp_path):
     op = rig.build()
     app = FastAPI()
     app.include_router(build_operation_router(op.desk, lambda: None, tmp_path / "out"))
-    with TestClient(app) as c:
+    with LocalClient(app) as c:
         body = c.get("/v2/operation").json()
         assert body["service"] is None and body["alerts"] == []
         assert c.post("/v2/operation/report",

@@ -1,0 +1,4 @@
+# Versiones de parámetros: su SHA-256 se registra en cada decisión de riesgo y en el manifiesto de
+# las copias; deben tener los mismos bytes en todos los equipos (sin conversión CRLF de Windows).
+v2/eim/risk/versions/*.json text eol=lf
+v2/eim/calibration/versions/*.json text eol=lf

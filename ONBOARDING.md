@@ -82,7 +82,8 @@ cd v2/eim/web && npm run dev
 
 - Abre **`http://127.0.0.1:5173`** (usa `127.0.0.1`, no `localhost`: en el navegador integrado de Claude `localhost` falla).
 - La API se conecta al WebSocket de Binance Futures. Si tu red lo bloquea, usa el spot: `EIM_WS_URL=wss://stream.binance.com:9443/ws` (ver backlog T09).
-- Variables de entorno opcionales: `EIM_DATA_DIR`, `EIM_REPORTS_DB`, `EIM_CORS_ORIGINS`, `EIM_WS_URL`, `EIM_HEARTBEAT_S`, `EIM_SNAPSHOT_BARS`.
+- Variables de entorno opcionales: tabla completa en `v2/docs/OPERACION.md` §2.
+- Operación continua en papel, copias de seguridad e incidentes: `v2/docs/OPERACION.md` y `v2/docs/RUNBOOK.md`.
 - Los datos descargados (`*.parquet`, `*.duckdb`) **no se versionan**: cada quien tiene su propio almacén local y se rellena solo al usar la API.
 - `.claude/launch.json` ya define los servidores de vista previa (`eim-v2-web`) para la app de escritorio de Claude.
 
@@ -91,7 +92,8 @@ cd v2/eim/web && npm run dev
 - **Nunca** subas claves, tokens ni archivos `.env`. Si algún día se usan claves del exchange: **solo testnet y sin permiso de retiro**.
 - Sin dinero real hasta superar la puerta de edge (T27) y semanas de paper trading (T31).
 - Antes de copiar código de terceros, revisa licencia y seguridad (resultado de la auditoría en `PLAN/notas/T04_auditoria.md`).
-- No edites `F7/` (código legado) salvo bugs. La carpeta `repos/` no se versiona.
+- `legacy/F7/` es código legado archivado (T32): no se edita; solo sirve de oráculo de regresión. La carpeta `repos/` no se versiona.
+- La API es **solo local** (rechaza otros equipos y cabeceras `Host` ajenas); no la expongas con `--host 0.0.0.0`. Detalle: `v2/docs/SEGURIDAD.md`.
 
 ## 6. Flujo de trabajo colaborativo
 
@@ -165,7 +167,7 @@ Estos elementos son **locales de cada cuenta/equipo** (no se versionan):
 ### 7.3 Buenas prácticas de sesión (ahorran tokens)
 - Una tarea por sesión nueva; el prompt es solo `Ejecuta PLAN/TNN.md`.
 - No pidas explorar el repo entero; la tarea lista los archivos que importan.
-- Archivos grandes del legado (`F7/eim_engine.py`, `F7/web/index.html`): buscar con Grep/offset, nunca leer completos.
+- Archivos grandes del legado (`legacy/F7/eim_engine.py`, `legacy/F7/web/index.html`): buscar con Grep/offset, nunca leer completos.
 - Verifica gráficos con datos renderizados o captura de pantalla, no solo «sin errores en consola».
 
 ## 8. Reglas de código (resumen de `CLAUDE.md`)
@@ -186,7 +188,7 @@ Estos elementos son **locales de cada cuenta/equipo** (no se versionan):
 - [ ] Repo clonado, entorno virtual creado, `pip install -e ".[dev]"` y `npm install` hechos
 - [ ] Gate en verde: `python -m ruff check eim tests && python -m pytest -q`
 - [ ] API + web corriendo en `http://127.0.0.1:5173`
-- [ ] Leídos: `CLAUDE.md`, `PLAN/00_MASTER.md`, `PLAN/STATUS.md`
+- [ ] Leídos: `CLAUDE.md`, `PLAN/00_MASTER.md`, `PLAN/STATUS.md`, `v2/docs/ARQUITECTURA.md` y `v2/docs/OPERACION.md`
 - [ ] Tarea acordada con el otro desarrollador y reclamada en `STATUS.md` (◐)
 - [ ] Primera rama creada y primer PR abierto
 

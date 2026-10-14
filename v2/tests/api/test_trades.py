@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-from fastapi.testclient import TestClient
 
 from eim.api.config import Settings
 from eim.api.main import create_app
@@ -11,6 +10,7 @@ from eim.core import AgentReport, Candle, Overlay
 from eim.data.store import Store
 from eim.data.timeframes import tf_ms
 from eim.execution.sim_ledger import build_trades, trade_at
+from tests.local_client import LocalClient
 
 STEP = tf_ms("1h")
 T0 = 1_700_000_000_000 // STEP * STEP
@@ -91,7 +91,7 @@ def client(tmp_path):
             yield {"type": "status", "state": "up", "detail": ""}
             await asyncio.sleep(3600)
 
-    with TestClient(create_app(cfg, source=Idle())) as c:
+    with LocalClient(create_app(cfg, source=Idle())) as c:
         c.app.state.reports.save("ETHUSDT", "1h", [LONG])
         c.app.state.reports.save("ETHUSDT", "1h", [SHORT])
         yield c

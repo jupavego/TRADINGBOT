@@ -6,13 +6,22 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from eim.api.security import LOOPBACK_HOSTS
+
+
+def _csv(value: str | None) -> tuple[str, ...]:
+    return tuple(x.strip() for x in (value or "").split(",") if x.strip())
+
 
 @dataclass(frozen=True)
 class Settings:
     """Entorno: EIM_DATA_DIR, EIM_REPORTS_DB, EIM_CORS_ORIGINS, EIM_WS_URL, EIM_HEARTBEAT_S,
     EIM_EXECUTION (off | paper | testnet), EIM_RECON_S (segundos entre reconciliaciones),
     EIM_OPERATE=1 (servicio de operación continua, T31), EIM_OPERATE_TF, EIM_OPERATE_POLL_S,
-    EIM_OPERATION_REPORTS (carpeta del informe semanal), EIM_EDGE_RESULTS."""
+    EIM_OPERATION_REPORTS (carpeta del informe semanal), EIM_EDGE_RESULTS,
+    EIM_ALLOWED_HOSTS (cabeceras Host aceptadas; solo bucle local por defecto) y
+    EIM_API_TOKEN (sin él, ningún cliente remoto entra; ver eim/api/security.py),
+    EIM_BACKUP_DIR / EIM_BACKUP_KEEP (copias de seguridad; diaria automática con EIM_OPERATE=1)."""
 
     data_dir: Path = Path("data")
     reports_db: Path | None = None
@@ -20,6 +29,8 @@ class Settings:
         "http://127.0.0.1:5173",
         "http://localhost:5173",
     )
+    allowed_hosts: tuple[str, ...] = LOOPBACK_HOSTS
+    api_token: str | None = field(default=None, repr=False)
     ws_url: str = "wss://fstream.binance.com/market/ws"
     heartbeat_s: float = 15.0
     snapshot_bars: int = 500
@@ -33,6 +44,8 @@ class Settings:
     operate_poll_s: float = 60.0
     operation_reports: Path = Path("reports/operation")
     edge_results: Path = Path("reports/edge/edge_results.json")
+    backup_dir: Path = Path("backups")
+    backup_keep: int = 14
     extra: dict[str, str] = field(default_factory=dict)
 
     @property
@@ -47,8 +60,9 @@ class Settings:
         return cls(
             data_dir=Path(env.get("EIM_DATA_DIR", str(d.data_dir))),
             reports_db=Path(env["EIM_REPORTS_DB"]) if env.get("EIM_REPORTS_DB") else None,
-            cors_origins=tuple(o.strip() for o in origins.split(",") if o.strip())
-            if origins else d.cors_origins,
+            cors_origins=_csv(origins) or d.cors_origins,
+            allowed_hosts=_csv(env.get("EIM_ALLOWED_HOSTS")) or d.allowed_hosts,
+            api_token=env.get("EIM_API_TOKEN") or None,
             ws_url=env.get("EIM_WS_URL", d.ws_url),
             heartbeat_s=float(env.get("EIM_HEARTBEAT_S", d.heartbeat_s)),
             snapshot_bars=int(env.get("EIM_SNAPSHOT_BARS", d.snapshot_bars)),
@@ -60,4 +74,6 @@ class Settings:
             operate_poll_s=float(env.get("EIM_OPERATE_POLL_S", d.operate_poll_s)),
             operation_reports=Path(env.get("EIM_OPERATION_REPORTS", str(d.operation_reports))),
             edge_results=Path(env.get("EIM_EDGE_RESULTS", str(d.edge_results))),
+            backup_dir=Path(env.get("EIM_BACKUP_DIR", str(d.backup_dir))),
+            backup_keep=int(env.get("EIM_BACKUP_KEEP", d.backup_keep)),
         )

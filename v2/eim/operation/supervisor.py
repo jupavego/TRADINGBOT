@@ -20,10 +20,22 @@ from pathlib import Path
 from eim.api.forecast import DEFAULT_HORIZON
 from eim.api.forecast_db import ForecastStore
 from eim.api.risk import RiskDesk
+from eim.data import backup
 from eim.execution.sim_broker import SimBroker
 from eim.operation import report as report_io
 from eim.operation import state, weekly
-from eim.operation.alerts import CRITICAL, INFO, REPORT, SERVICE, Alert, AlertCenter, Sink
+from eim.operation.alerts import (
+    BACKUP,
+    CRITICAL,
+    INFO,
+    REPORT,
+    SERVICE,
+    WARN,
+    Alert,
+    AlertCenter,
+    Condition,
+    Sink,
+)
 from eim.operation.cycle import CycleResult, OperationCycle, OperationParams
 from eim.operation.equity import EquityBook
 from eim.operation.notify import JsonLog, WindowsToast
@@ -41,6 +53,7 @@ class Operation:
     def __init__(self, *, store, provider, reports, registry, desk: RiskDesk,
                  params: OperationParams, data_dir: Path, reports_dir: Path, edge_path: Path,
                  forecaster=None, sinks: Iterable[Sink] | None = None,
+                 backup_dir: Path | None = None, backup_keep: int = 14,
                  clock: Callable[[], int] = _now) -> None:
         con, lock = reports.connection
         rt = desk.rt
@@ -48,6 +61,8 @@ class Operation:
         self.desk, self.store, self.params, self.clock = desk, store, params, clock
         self.reports_dir, self.edge_path = reports_dir, edge_path
         self.root = data_dir / "operation"
+        self.data_dir, self.backup_dir, self.backup_keep = data_dir, backup_dir, backup_keep
+        self._db = (con, lock)
         self.book = EquityBook(con, lock, self.mode) if rt.svc is not None else None
         rt.equity_book = self.book
         self.log = JsonLog(self.root / "logs", clock)
@@ -73,6 +88,7 @@ class Operation:
         res = self.cycle.run(now)
         state.save(self.state_path, self.desk.rt.svc, self.cursors, self.mode)
         self.weekly_if_due(now)
+        self.backup_if_due(now)
         row = res.to_json()
         row["cycle_t"] = row.pop("t")
         self.log.write("ciclo", "info" if res.ok else "warn", **row)
@@ -125,6 +141,23 @@ class Operation:
         self.cursors.last_report_week = prev
         state.save(self.state_path, self.desk.rt.svc, self.cursors, self.mode)
         self.alerts.emit(Alert(now, REPORT, INFO, "Informe semanal listo", out["md"]))
+
+    def backup_if_due(self, now: int) -> None:
+        """Copia de seguridad diaria (UTC). Un fallo alerta (una vez; se reintenta cada ciclo)
+        pero nunca detiene la operación."""
+        if self.backup_dir is None or not backup.due_today(self.backup_dir, now / 1000):
+            return
+        err = ""
+        try:
+            out = backup.create(self.data_dir, self.backup_dir, con=self._db[0],
+                                lock=self._db[1], keep=self.backup_keep,
+                                clock=lambda: now / 1000)
+            self.log.write("copia_seguridad", path=str(out))
+        except Exception as e:  # noqa: BLE001 - se alerta y se sigue operando
+            err = f"{type(e).__name__}: {e}"
+            self.log.write("copia_seguridad", "warn", error=err)
+        self.alerts.update(now, [Condition("copia_seguridad", BACKUP, bool(err), WARN,
+                                           "Copia de seguridad fallida", err)])
 
 
 class Supervisor:
