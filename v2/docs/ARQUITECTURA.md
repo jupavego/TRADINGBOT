@@ -70,7 +70,7 @@ Escritura (todas exigen la cabecera `X-EIM-Confirm: <acción>`; test `test_every
 | `POST /v2/backup` | `backup` |
 | `POST /v2/calibration/backfill` | `backfill` |
 
-Excepción: `POST /v2/more/bitacora` (procesa un archivo y responde, sin efecto lateral; tope 20 MB).
+Excepción: `POST /v2/more/bitacora` (procesa un archivo y responde, sin efecto lateral). Todo cuerpo de petición > 41 MB → 413 (`BodyLimitMiddleware`).
 
 ## Modos
 `Análisis` (sin ejecución) · `Simulado` (SimBroker, papel) · `Testnet` (`EIM_EXECUTION=testnet`).

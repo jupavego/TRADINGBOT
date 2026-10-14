@@ -13,10 +13,10 @@ import argparse
 import json
 import os
 import sys
-import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
 
+from eim.data.local_api import DEFAULT_API, post_local
 from eim.operation.notify import JsonLog
 from eim.operation.watchdog import Watchdog
 
@@ -37,7 +37,7 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("report", help="informe del periodo (vía la API en marcha)")
     p.add_argument("--from", dest="start")
     p.add_argument("--to", dest="end")
-    p.add_argument("--api", default="http://127.0.0.1:8000")
+    p.add_argument("--api", default=DEFAULT_API)
     a = ap.parse_args(argv)
 
     if a.cmd == "run":
@@ -55,10 +55,8 @@ def main(argv: list[str] | None = None) -> int:
         q.append(f"start={_ms(a.start)}")
     if a.end:
         q.append(f"end={_ms(a.end)}")
-    req = urllib.request.Request(f"{a.api}/v2/operation/report?{'&'.join(q)}", method="POST",
-                                 headers={"X-EIM-Confirm": "report"})
-    with urllib.request.urlopen(req, timeout=120) as resp:  # noqa: S310 - URL local del usuario
-        print(json.dumps(json.loads(resp.read()), ensure_ascii=False, indent=1))
+    res = post_local(a.api, f"/v2/operation/report?{'&'.join(q)}", "report")
+    print(json.dumps(res, ensure_ascii=False, indent=1))
     return 0
 
 

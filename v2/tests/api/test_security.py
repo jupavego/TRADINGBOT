@@ -105,3 +105,52 @@ def test_every_mutating_post_requires_confirm_header(tmp_path):
                      and not any(q["in"] == "header" and q["name"].lower() == "x-eim-confirm"
                                  for q in op.get("parameters", [])))
     assert missing == [], f"POST sin cabecera X-EIM-Confirm (CSRF): {missing}"
+
+
+def _echo_app(max_bytes: int) -> FastAPI:
+    from fastapi import Request
+
+    from eim.api.security import BodyLimitMiddleware
+    app = FastAPI()
+
+    @app.post("/echo")
+    async def echo(request: Request) -> dict:
+        return {"n": len(await request.body())}
+
+    app.add_middleware(BodyLimitMiddleware, max_bytes=max_bytes)
+    return app
+
+
+def test_body_limit_by_content_length_and_stream():
+    with LocalClient(_echo_app(100)) as c:
+        assert c.post("/echo", content=b"x" * 100).json() == {"n": 100}
+        assert c.post("/echo", content=b"x" * 101).status_code == 413
+        chunks = (b"x" * 60 for _ in range(3))                  # sin Content-Length
+        assert c.post("/echo", content=chunks).status_code == 413
+
+
+def test_websocket_token_as_subprotocol():
+    from eim.api.security import WS_TOKEN_PREFIX, ws_token_subprotocol
+    assert ws_token_subprotocol({"sec-websocket-protocol": f"x, {WS_TOKEN_PREFIX}abc"}) \
+        == f"{WS_TOKEN_PREFIX}abc"
+    with LocalClient(_app("s3cr3t"), client=("192.168.1.20", 4000)) as c:
+        with pytest.raises(WebSocketDisconnect):
+            with c.websocket_connect("/ws") as w:
+                w.receive_json()
+        with c.websocket_connect("/ws", subprotocols=[f"{WS_TOKEN_PREFIX}s3cr3t"]) as w:
+            assert w.receive_json() == {"ok": True}
+
+
+def test_stream_echoes_token_subprotocol(tmp_path):
+    """Un navegador remoto exige que el servidor devuelva el subprotocolo que ofreció."""
+    from eim.api.main import create_app
+    from eim.api.security import WS_TOKEN_PREFIX
+    from eim.core import Candle
+    from tests.api.test_api import FakeSource
+    cfg = Settings(data_dir=tmp_path, heartbeat_s=0.2, api_token="s3cr3t")
+    app = create_app(cfg, source=FakeSource(Candle(t=0, o=1, h=1, l=1, c=1, v=1)))
+    sub = f"{WS_TOKEN_PREFIX}s3cr3t"
+    with LocalClient(app, client=("192.168.1.20", 4000)) as c:
+        with c.websocket_connect("/v2/stream?symbol=ETHUSDT&tf=1h", subprotocols=[sub]) as w:
+            assert w.accepted_subprotocol == sub
+            assert w.receive_json()["type"] == "status"

@@ -102,8 +102,8 @@ def test_bitacora_matches_legacy_and_requires_leverage(client):
     assert bad.status_code == 400
 
 
-def test_bitacora_upload_cap(client, monkeypatch):
-    import eim.api.more as more
-    monkeypatch.setattr(more, "MAX_UPLOAD_BYTES", 1024)
-    big = {"file": ("x.xlsx", b"0" * 2048, "application/octet-stream")}
+
+def test_bitacora_body_limit(client):
+    from eim.api.security import MAX_BODY_BYTES
+    big = {"file": ("x.xlsx", b"0" * (MAX_BODY_BYTES + 1), "application/octet-stream")}
     assert client.post("/v2/more/bitacora", files=big, data={"leverage": 10}).status_code == 413
