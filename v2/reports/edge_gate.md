@@ -151,8 +151,8 @@ tiene ventaja estadística fuera de muestra neta de costos.** Tampoco la tiene a
 frente a una entrada al azar con el mismo riesgo.
 
 Consecuencia (según el plan): **no se avanza a T29** (motor de riesgo) ni a testnet/dinero real.
-Las hipótesis de mejora están en `PLAN/BACKLOG.md` (no se implementan aquí). La decisión de
-cómo seguir es del usuario.
+Las hipótesis de mejora están en `PLAN/BACKLOG.md` (no se implementan aquí). **Decisión del
+usuario (2026-10-13): acepta el NO PASA.** T29 no se inicia; se vuelve a las hipótesis del BACKLOG.
 
 ## 5. Riesgos y limitaciones conocidos de esta evaluación
 
