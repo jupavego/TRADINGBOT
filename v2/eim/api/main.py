@@ -17,12 +17,14 @@ from eim.api.history import HistoryLoader
 from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.more import MoreSources, build_more_router
 from eim.api.reports_db import ReportStore
+from eim.api.risk import build_risk_router
 from eim.api.sources import BinanceKlineSource, LiveSource
 from eim.api.trades import build_trades_router
 from eim.data.providers.binance import BinanceFutures
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
+from eim.risk import global_kill_switch
 
 API_VERSION = "2.0.0"
 
@@ -65,6 +67,8 @@ def create_app(
     app.state.hub, app.state.reports, app.state.store = hub, reports, store
     app.state.forecaster = forecaster
     app.include_router(build_trades_router(store, reports))
+    global_kill_switch().attach(cfg.data_dir / "kill_switch.json")
+    app.include_router(build_risk_router(store, reports))
     app.include_router(build_forecast_router(forecaster))
     app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))

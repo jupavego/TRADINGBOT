@@ -31,15 +31,13 @@
     },
     {
       "name": "eim-v2-api",
-      "runtimeExecutable": "v2/.venv/Scripts/python.exe",
+      "runtimeExecutable": ".venv/Scripts/python.exe",
       "runtimeArgs": [
         "-m",
         "uvicorn",
         "eim.api.main:app",
         "--port",
-        "8000",
-        "--app-dir",
-        "v2"
+        "8000"
       ],
       "cwd": "v2",
       "port": 8000

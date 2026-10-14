@@ -19,19 +19,24 @@ def _check(symbol: str, tf: str) -> None:
         raise HTTPException(400, f"símbolo o marco no soportado: {symbol} {tf}")
 
 
+def sync_trades(store: Store, reports: ReportStore, ledger: SimLedger, symbol: str,
+                tf: str) -> list[Trade]:
+    """Reconstruye el libro desde los planes persistidos y lo guarda."""
+    plans = reports.query(symbol, tf, agent_id="plan", limit=100_000)
+    t0 = min((o.t_from for r in plans for o in r.overlays), default=None)
+    candles = store.read_candles(symbol, tf, start=t0) if t0 is not None else []
+    trades = build_trades(symbol, tf, plans, candles)
+    ledger.replace(symbol, tf, trades)
+    return trades
+
+
 def build_trades_router(store: Store, reports: ReportStore) -> APIRouter:
     con, lock = reports.connection
     ledger = SimLedger(con, lock)
     router = APIRouter(prefix="/v2")
 
     def sync(symbol: str, tf: str) -> list[Trade]:
-        """Reconstruye el libro desde los planes persistidos y lo guarda."""
-        plans = reports.query(symbol, tf, agent_id="plan", limit=100_000)
-        t0 = min((o.t_from for r in plans for o in r.overlays), default=None)
-        candles = store.read_candles(symbol, tf, start=t0) if t0 is not None else []
-        trades = build_trades(symbol, tf, plans, candles)
-        ledger.replace(symbol, tf, trades)
-        return trades
+        return sync_trades(store, reports, ledger, symbol, tf)
 
     @router.get("/trades")
     def trades(symbol: str = "ETHUSDT", tf: str = "1h") -> dict:
