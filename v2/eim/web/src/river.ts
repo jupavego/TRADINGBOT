@@ -1,3 +1,4 @@
+import { orb } from './agent_orbs'
 import { calendarDetail } from './calendar_ui'
 import { agentName, esc } from './panels'
 import { core, hexPath, holoDefs, platform } from './river_holo'
@@ -7,7 +8,7 @@ import { rememberOpenFamilies, technicalDetail } from './technical_ui'
 import type { AgentInfo, AgentReport, Synthesis } from './types'
 
 const THRESH = 0.1 // |sesgo| mínimo para teñir de verde/rojo
-const W = 1200, CX = W / 2, NR = 19, ROW = 52, R = 104, TOP = 54
+const W = 1200, CX = W / 2, NR = 21, ROW = 52, R = 104, TOP = 54
 
 let selected: string | null = null // agente con tooltip abierto
 let ctx: { infos: AgentInfo[]; reports: AgentReport[]; synthesis: Synthesis | null; tf: string } = { infos: [], reports: [], synthesis: null, tf: '' }
@@ -140,7 +141,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
         (y < H / 2 ? `top:${(((y + NR + 10) / H) * 100).toFixed(1)}%` : `bottom:${(((H - y + NR + 10) / H) * 100).toFixed(1)}%`)
       tip = `<div class="tip" style="${pos}" role="dialog">${tipHtml(byId.get(r.id), r.id)}</div>`
     }
-    const lx = nx + s * 30, anchor = isLeft ? 'start' : 'end'
+    const lx = nx + s * (NR + 11), anchor = isLeft ? 'start' : 'end'
     const bw = 92, bx = isLeft ? lx : lx - bw
     const pct = r.live ? `${Math.round(r.conf * 100)}%` : 'sin datos'
     return `<g class="trib${r.id === selected ? ' sel' : ''}" data-id="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(agentName(r.id))}: ver detalles">` +
@@ -150,11 +151,10 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
       `<circle cx="${x0}" cy="${y}" r="3" fill="${col}"/>` +
       (r.live ? pulses(`rp${i}`, 1 + Math.round(r.conf * 3), 4.8 - 2.2 * r.conf, 1.8 + r.conf * 1.4, col) : '') +
       `<circle cx="${tx}" cy="${ty}" r="${(w / 2 + 2).toFixed(1)}" fill="${col}" opacity=".9"/>` +
-      `<circle cx="${nx}" cy="${y}" r="${NR + 6}" fill="none" stroke="${col}" stroke-width="1" stroke-dasharray="4 5" opacity=".7" class="hspin"/>` +
-      (r.live ? `<circle cx="${nx}" cy="${y}" r="${NR + 4}" fill="${col}" opacity=".2" filter="url(#rblur)"/>` : '') +
-      `<circle cx="${nx}" cy="${y}" r="${NR}" class="anode${r.live ? '' : ' off'}" style="stroke:${col}"/>` +
-      `<text x="${nx}" y="${y + 4}" text-anchor="middle" class="rvv" style="fill:${col}">${r.live ? sg(r.bias) : '—'}</text>` +
-      `<text x="${lx}" y="${y - 5}" text-anchor="${anchor}" class="rl">${esc(agentName(r.id))}</text>` +
+      `<circle cx="${nx}" cy="${y}" r="${NR + 4}" fill="none" stroke="${col}" stroke-width="1" stroke-dasharray="4 5" opacity=".7" class="hspin"/>` +
+      orb(r.id, nx, y, NR, r.live && Math.abs(r.bias) < THRESH ? 'var(--holo)' : col, r.live, i) +
+      `<text x="${lx}" y="${y - 5}" text-anchor="${anchor}" class="rl">${esc(agentName(r.id))}` +
+      `<tspan dx="6" class="rvv" style="fill:${col}">${r.live ? sg(r.bias) : '—'}</tspan></text>` +
       `<rect x="${bx}" y="${y + 4}" width="${bw}" height="3" rx="1.5" class="cbar"/>` +
       (r.live ? `<rect x="${(isLeft ? bx : bx + bw * (1 - r.conf)).toFixed(1)}" y="${y + 4}" width="${(bw * r.conf).toFixed(1)}" height="3" rx="1.5" fill="${col}"/>` : '') +
       `<text x="${isLeft ? bx + bw + 6 : bx - 6}" y="${y + 13}" text-anchor="${anchor}" class="rv">${pct}</text></g>`
