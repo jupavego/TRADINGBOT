@@ -363,3 +363,18 @@ td[data-sign="-1"] { color: var(--down); }
 .contrib td.pct[data-t="down"] { color: var(--down); }
 .contrib td.pct[data-t="flat"] { color: var(--muted); font-weight: 400; }
 .hero-contrib h4 .muted { font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+/* Agentes como esferas 3D (agent_orbs.ts) */
+.orb-shadow { fill: #000; opacity: .3; filter: blur(2px); }
+.orb-grid ellipse { fill: none; stroke: #fff; stroke-width: .6; opacity: .2; }
+.orb-grid .orb-mer { opacity: .22; }
+.orb-rim { opacity: .9; }
+.orb-glyph :is(path, circle, rect) { fill: none; stroke: #fff; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
+.orb-glyph .f { fill: #fff; fill-opacity: .55; }
+.orb-glyph .t { fill: #fff; stroke: none; font: 700 9px var(--f-num, monospace); text-anchor: middle; }
+.orb-glyph { filter: drop-shadow(0 0 2px rgba(255, 255, 255, .8)); }
+.orb-spec { fill: #fff; opacity: .45; filter: blur(1.2px); }
+.orb.off { opacity: .55; filter: grayscale(1); }
+.trib:hover .orb-body, .trib.sel .orb-body, .trib:focus-visible .orb-body { filter: brightness(1.25); }
+.trib:hover .orb-rim, .trib.sel .orb-rim { stroke-width: 2.2; }
+@media (prefers-reduced-motion: reduce) { .orb-mer animate { display: none; } }
