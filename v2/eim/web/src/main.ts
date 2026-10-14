@@ -1,6 +1,6 @@
 import './style.css'
 import './cyber.css'
-import { fetchAgents, fetchAsofs, fetchJournal, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
+import { fetchAgents, fetchAsofs, fetchJournal, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { renderRiver } from './river'
 import { latestPerAgent, renderJournal, renderSide } from './panels'
@@ -18,7 +18,7 @@ const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) 
 const MODE_LABEL: Record<Mode, string> = {
   ANALISIS: 'Análisis', SIMULADO: 'Simulado', TESTNET: 'Testnet', REAL: 'Real',
 }
-const mode: Mode = 'ANALISIS' // hasta T27/T31 la UI no opera
+const mode: Mode = 'ANALISIS' // propuestas del gráfico: análisis (no son órdenes)
 
 let symbol: string = SYMBOLS[0]
 let tf = '1h'
@@ -229,6 +229,10 @@ function build(): void {
   $('replay-live').onclick = () => leaveReplay()
   const modeEl = $('mode')
   modeEl.textContent = `Modo: ${MODE_LABEL[mode]}`
+  // con ejecución en testnet (T30) el servidor manda: la cabecera muestra TESTNET
+  void fetchMode().then((m) => {
+    if (m === 'TESTNET') { modeEl.textContent = `Modo: ${MODE_LABEL.TESTNET}`; modeEl.dataset.mode = m }
+  })
   const themeBtn = $('theme')
   const paintTheme = (): void => { themeBtn.textContent = `Tema: ${THEME_LABEL[theme]}` }
   paintTheme()
