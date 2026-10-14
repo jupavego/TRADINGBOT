@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import threading
 import time
 from collections.abc import Callable, Iterable
 from pathlib import Path
@@ -41,6 +42,7 @@ from eim.operation.equity import EquityBook
 from eim.operation.notify import JsonLog, WindowsToast
 
 FAILS_BEFORE_ALERT = 3
+BACKUP_RETRY_MS = 3_600_000
 
 
 def _now() -> int:
@@ -63,6 +65,8 @@ class Operation:
         self.root = data_dir / "operation"
         self.data_dir, self.backup_dir, self.backup_keep = data_dir, backup_dir, backup_keep
         self._db = (con, lock)
+        self._step_lock = threading.RLock()
+        self._backup_retry_at = 0          # tras un fallo, reintento espaciado (BACKUP_RETRY_MS)
         self.book = EquityBook(con, lock, self.mode) if rt.svc is not None else None
         rt.equity_book = self.book
         self.log = JsonLog(self.root / "logs", clock)
@@ -84,11 +88,12 @@ class Operation:
 
     # --- un paso (bloqueante: corre en un hilo) ----------------------------
     def step(self) -> CycleResult:
-        now = self.clock()
-        res = self.cycle.run(now)
-        state.save(self.state_path, self.desk.rt.svc, self.cursors, self.mode)
-        self.weekly_if_due(now)
-        self.backup_if_due(now)
+        with self._step_lock:       # una copia a demanda nunca ve un ciclo a medias
+            now = self.clock()
+            res = self.cycle.run(now)
+            state.save(self.state_path, self.desk.rt.svc, self.cursors, self.mode)
+            self.weekly_if_due(now)
+            self.backup_if_due(now)
         row = res.to_json()
         row["cycle_t"] = row.pop("t")
         self.log.write("ciclo", "info" if res.ok else "warn", **row)
@@ -143,21 +148,31 @@ class Operation:
         self.alerts.emit(Alert(now, REPORT, INFO, "Informe semanal listo", out["md"]))
 
     def backup_if_due(self, now: int) -> None:
-        """Copia de seguridad diaria (UTC). Un fallo alerta (una vez; se reintenta cada ciclo)
-        pero nunca detiene la operación."""
-        if self.backup_dir is None or not backup.due_today(self.backup_dir, now / 1000):
+        """Copia de seguridad diaria (UTC). Un fallo alerta (una vez) y se reintenta cada
+        `BACKUP_RETRY_MS` (no en cada ciclo: la copia retiene el cerrojo de la base); nunca
+        detiene la operación."""
+        if (self.backup_dir is None or now < self._backup_retry_at
+                or not backup.due_today(self.backup_dir, now / 1000)):
             return
         err = ""
         try:
-            out = backup.create(self.data_dir, self.backup_dir, con=self._db[0],
-                                lock=self._db[1], keep=self.backup_keep,
-                                clock=lambda: now / 1000)
+            out = self.backup_now(clock=lambda: now / 1000)
             self.log.write("copia_seguridad", path=str(out))
         except Exception as e:  # noqa: BLE001 - se alerta y se sigue operando
             err = f"{type(e).__name__}: {e}"
+            self._backup_retry_at = now + BACKUP_RETRY_MS
             self.log.write("copia_seguridad", "warn", error=err)
         self.alerts.update(now, [Condition("copia_seguridad", BACKUP, bool(err), WARN,
                                            "Copia de seguridad fallida", err)])
+
+    def backup_now(self, with_market: bool = False, clock: Callable[[], float] = time.time):
+        """Copia entre ciclos (base + estado del servicio consistentes entre sí)."""
+        if self.backup_dir is None:
+            raise RuntimeError("sin carpeta de copias")
+        with self._step_lock:
+            return backup.create(self.data_dir, self.backup_dir, con=self._db[0],
+                                 lock=self._db[1], with_market=with_market,
+                                 keep=self.backup_keep, clock=clock)
 
 
 class Supervisor:

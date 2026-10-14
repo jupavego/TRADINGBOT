@@ -3,8 +3,12 @@
 - `Host` fuera de `allowed_hosts` → 400. Frena el *DNS rebinding*: una web maliciosa que hace
   resolver su dominio a 127.0.0.1 llega con su propio `Host` y queda fuera (CORS no protege aquí).
 - Cliente que no es de bucle local (127.0.0.0/8, ::1) → 403, salvo que exista `EIM_API_TOKEN` y
-  la petición traiga `Authorization: Bearer <token>`. Sin token configurado no hay acceso remoto.
+  la petición traiga `Authorization: Bearer <token>`. Un navegador no puede poner cabeceras en
+  un WebSocket: ahí el token va como subprotocolo `eim-token.<token>` (la API lo devuelve al
+  aceptar, como exige el protocolo). Sin token configurado no hay acceso remoto.
 - WebSocket con `Origin` que no está en `cors_origins` → se cierra (CORS no cubre WebSocket).
+- Cuerpo de petición mayor que `MAX_BODY_BYTES` → 413, antes de que el servidor lo reciba entero
+  (por `Content-Length` y, si no viene, contando lo recibido).
 
 Middleware ASGI puro: cubre HTTP y WebSocket por igual.
 """
@@ -15,7 +19,13 @@ import hmac
 import ipaddress
 import json
 
+from fastapi import HTTPException
+
 LOOPBACK_HOSTS = ("127.0.0.1", "localhost", "::1")
+WS_TOKEN_PREFIX = "eim-token."
+# Dos exports de la bitácora (`/v2/more/bitacora`: operaciones + ingresos, pocos MB cada uno)
+# con margen; ningún otro endpoint recibe cuerpos grandes.
+MAX_BODY_BYTES = 41 * 2**20
 
 
 def _hostname(host: str) -> str:
@@ -38,12 +48,24 @@ def _headers(scope) -> dict[str, str]:
     return {k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers", [])}
 
 
+def _same(given: str, token: str) -> bool:
+    return hmac.compare_digest(given.encode(), token.encode())
+
+
+def ws_token_subprotocol(headers: dict[str, str]) -> str | None:
+    """Subprotocolo `eim-token.…` ofrecido en el saludo del WebSocket (o None)."""
+    offered = [p.strip() for p in headers.get("sec-websocket-protocol", "").split(",")]
+    return next((p for p in offered if p.startswith(WS_TOKEN_PREFIX)), None)
+
+
 def token_ok(headers: dict[str, str], token: str | None) -> bool:
     if not token:
         return False
     auth = headers.get("authorization", "")
-    given = auth[7:] if auth.lower().startswith("bearer ") else ""
-    return hmac.compare_digest(given.encode(), token.encode())
+    if auth.lower().startswith("bearer ") and _same(auth[7:], token):
+        return True
+    sub = ws_token_subprotocol(headers)
+    return sub is not None and _same(sub[len(WS_TOKEN_PREFIX):], token)
 
 
 def check(scope, allowed_hosts, origins, token: str | None) -> tuple[int, str] | None:
@@ -57,6 +79,14 @@ def check(scope, allowed_hosts, origins, token: str | None) -> tuple[int, str] |
     if scope["type"] == "websocket" and h.get("origin") and h["origin"] not in origins:
         return 403, "origen de WebSocket no permitido"
     return None
+
+
+async def _reject(send, code: int, reason: str) -> None:
+    body = json.dumps({"detail": reason}).encode()
+    await send({"type": "http.response.start", "status": code,
+                "headers": [(b"content-type", b"application/json"),
+                            (b"content-length", str(len(body)).encode())]})
+    await send({"type": "http.response.body", "body": body})
 
 
 class LocalOnlyMiddleware:
@@ -77,8 +107,31 @@ class LocalOnlyMiddleware:
             await receive()                                   # websocket.connect
             await send({"type": "websocket.close", "code": 1008, "reason": reason})
             return
-        body = json.dumps({"detail": reason}).encode()
-        await send({"type": "http.response.start", "status": code,
-                    "headers": [(b"content-type", b"application/json"),
-                                (b"content-length", str(len(body)).encode())]})
-        await send({"type": "http.response.body", "body": body})
+        await _reject(send, code, reason)
+
+
+class BodyLimitMiddleware:
+    def __init__(self, app, max_bytes: int = MAX_BODY_BYTES) -> None:
+        self.app, self.max_bytes = app, max_bytes
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+        length = _headers(scope).get("content-length", "")
+        if length.isdigit() and int(length) > self.max_bytes:
+            return await _reject(send, 413, self._reason())
+        seen = 0
+
+        async def limited():
+            nonlocal seen
+            msg = await receive()
+            if msg["type"] == "http.request":
+                seen += len(msg.get("body", b""))
+                if seen > self.max_bytes:            # cuerpo por trozos sin Content-Length
+                    raise HTTPException(413, self._reason())
+            return msg
+
+        await self.app(scope, limited, send)
+
+    def _reason(self) -> str:
+        return f"cuerpo de la petición mayor a {self.max_bytes // 2**20} MB"

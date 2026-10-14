@@ -6,6 +6,7 @@ import subprocess
 import sys
 import threading
 from contextlib import contextmanager
+from pathlib import Path
 
 import duckdb
 import pytest
@@ -15,6 +16,7 @@ from eim.api.backup import build_backup_router
 from eim.api.reports_db import ReportStore
 from eim.data import backup as B
 from eim.operation import alerts as A
+from eim.operation.supervisor import BACKUP_RETRY_MS
 from tests.local_client import LocalClient
 from tests.operation.helpers import Market, Rig
 
@@ -95,12 +97,33 @@ def test_restore(tmp_path):
     con.execute("DELETE FROM t")
     con.close()
     (d / "kill_switch.json").write_text('{"active": true}', encoding="utf-8")
-    assert B.restore(out, d) == ["reports.duckdb", "kill_switch.json", "operation/"]
+    (d / "operation" / "state_testnet.json").write_text("{}", encoding="utf-8")  # no copiado
+    assert B.restore(out, d, clock=lambda: T0) == ["reports.duckdb", "kill_switch.json",
+                                                   "operation/"]
     con = duckdb.connect(str(d / B.DB_NAME), read_only=True)
     assert con.execute("SELECT count(*) FROM t").fetchone()[0] == 3
     con.close()
     assert json.loads((d / "kill_switch.json").read_text())["active"] is False
-    assert (d / "reports.duckdb.antes-de-restaurar").exists()
+    assert not (d / "operation" / "state_testnet.json").exists()            # sin restos
+    assert (d / "operation.antes-de-restaurar-20261014-174640" / "state_testnet.json").exists()
+    assert (d / "reports.duckdb.antes-de-restaurar-20261014-174640").exists()
+    B.restore(out, d, clock=lambda: T0 + 60)              # segunda restauración: no pisa la 1.ª
+    assert (d / "reports.duckdb.antes-de-restaurar-20261014-174640").exists()
+    assert (d / "reports.duckdb.antes-de-restaurar-20261014-174740").exists()
+
+
+def test_paths_with_quotes(tmp_path):
+    root = tmp_path / "D'Angelo"
+    d = _data(root)
+    out = B.create(d, root / "bk", clock=lambda: T0)                      # copia en frío
+    assert B.verify(out) == []
+    store = ReportStore(d / B.DB_NAME)
+    try:
+        con, lock = store.connection
+        hot = B.create(d, root / "bk", con=con, lock=lock, clock=lambda: T0 + 1)
+        assert B.verify(hot) == []
+    finally:
+        store.close()
 
 
 def test_restore_refuses_open_db_or_corrupt_copy(tmp_path):
@@ -138,6 +161,18 @@ def test_cli_create_verify_list(tmp_path, capsys):
     assert B.main(["list", "--dest", str(bk)]) == 0
 
 
+def test_cli_defaults_follow_env(tmp_path, monkeypatch, capsys):
+    d, bk = _data(tmp_path), tmp_path / "otra_unidad"
+    monkeypatch.setenv("EIM_DATA_DIR", str(d))
+    monkeypatch.setenv("EIM_BACKUP_DIR", str(bk))
+    monkeypatch.setenv("EIM_BACKUP_KEEP", "1")
+    assert B.main(["create"]) == 0 and B.main(["create"]) == 0
+    assert len(B.listing(bk)) == 1                                       # keep=1 del entorno
+    capsys.readouterr()
+    assert B.main(["list"]) == 0
+    assert str(bk) in capsys.readouterr().out
+
+
 def test_api_backup_requires_confirm(tmp_path):
     d = _data(tmp_path)
     store = ReportStore(d / B.DB_NAME)
@@ -147,14 +182,38 @@ def test_api_backup_requires_confirm(tmp_path):
         with LocalClient(app) as c:
             assert c.post("/v2/backup").status_code == 403                # sin cabecera
             r = c.post("/v2/backup", headers={"X-EIM-Confirm": "backup"}).json()
-            assert r["problems"] == []
-            assert c.get("/v2/backup").json()["backups"] == [r["path"].split("\\")[-1]
-                                                             .split("/")[-1]]
+            assert r["tables"]["t"] == 3 and r["files"] >= 3
+            assert c.get("/v2/backup").json()["backups"] == [r["name"]]
+            assert B.verify(Path(r["path"])) == []
     finally:
         store.close()
 
 
-def test_service_daily_backup_and_failure_alert(tmp_path):
+def test_api_backup_waits_for_operation_cycle(tmp_path):
+    rig = Rig(tmp_path, Market())
+    op = rig.build()
+    op.backup_dir = tmp_path / "bk"
+    app = FastAPI()
+    app.include_router(build_backup_router(rig.reports, tmp_path, tmp_path / "bk", 3,
+                                           lambda: op))
+    try:
+        with LocalClient(app) as c:
+            op._step_lock.acquire()                                       # ciclo en curso
+            res = {}
+            t = threading.Thread(target=lambda: res.update(r=c.post(
+                "/v2/backup", headers={"X-EIM-Confirm": "backup"})))
+            t.start()
+            t.join(0.5)
+            assert t.is_alive() and B.listing(op.backup_dir) == []
+            op._step_lock.release()
+            t.join(20)
+            assert res["r"].status_code == 200
+            assert B.listing(op.backup_dir)[0].name == res["r"].json()["name"]
+    finally:
+        rig.close()
+
+
+def test_service_daily_backup_and_failure_alert(tmp_path, monkeypatch):
     rig = Rig(tmp_path, Market())
     op = rig.build()
     try:
@@ -169,11 +228,18 @@ def test_service_daily_backup_and_failure_alert(tmp_path):
         op.backup_dir.write_text("no es carpeta", encoding="utf-8")      # fallo forzado
         rig.advance(86_400_000)
         op.step()
-        op.step()
         fails = [a for a in rig.sent if a.kind == A.BACKUP and not a.resolved]
-        assert len(fails) == 1                                           # sin repetir
+        assert len(fails) == 1
         op.backup_dir.unlink()
+        calls, orig = [], B.create
+        monkeypatch.setattr(B, "create", lambda *a, **k: calls.append(1) or orig(*a, **k))
+        rig.advance(60_000)
+        op.step()                                      # dentro de la espera: no reintenta
+        assert calls == []
+        rig.advance(BACKUP_RETRY_MS)
         op.step()
+        assert calls == [1]
+        assert len([a for a in rig.sent if a.kind == A.BACKUP and not a.resolved]) == 1
         assert any(a.kind == A.BACKUP and a.resolved for a in rig.sent)
     finally:
         rig.close()
