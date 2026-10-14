@@ -44,7 +44,7 @@ def _brief(e: EconEvent, asof: int) -> dict:
 
 class CalendarAgent:
     id = "calendar"
-    version = "1.0.0"
+    version = "1.1.0"
     requires = {"events"}
 
     def __init__(self, params: CalendarParams | None = None) -> None:
@@ -77,16 +77,26 @@ class CalendarAgent:
         return (sum(scores) / len(scores) if scores else 0.0), state, problems
 
     # --- ventanas de riesgo --------------------------------------------------
-    def _windows(self, events: list[EconEvent]) -> list[tuple[EconEvent, int, int]]:
-        """(evento, inicio, fin) de la ventana de riesgo de cada evento medio/alto."""
+    def _windows(self, events: list[EconEvent]) -> list[tuple[EconEvent, int, int, bool, str]]:
+        """(evento, inicio, fin, abre blackout, base) de cada ventana de riesgo.
+
+        Publicaciones medidas en T37 usan su ventana por evidencia (`event_windows`); una
+        ventana (0, 0) significa "no mueve el mercado" y no genera ventana. El resto usa la
+        ventana por impacto (solo medio/alto)."""
         p, out = self.params, []
         for e in events:
+            if (w := p.event_windows.get(e.name)) is not None:
+                if w.pre or w.post:
+                    out.append((e, e.t_utc - w.pre * _MIN_MS, e.t_utc + w.post * _MIN_MS,
+                                w.blackout, f"evidencia T37: {w.evidence}"))
+                continue
             pre, post = p.pre_minutes.get(e.impact), p.post_minutes.get(e.impact)
             if pre is None or post is None:
                 continue
             if e.impact == "alto":
                 post = max(post, p.post_minutes_by_source.get(_src(e), 0))
-            out.append((e, e.t_utc - pre * _MIN_MS, e.t_utc + post * _MIN_MS))
+            out.append((e, e.t_utc - pre * _MIN_MS, e.t_utc + post * _MIN_MS,
+                        e.impact in p.blackout_impacts, "por defecto (impacto, sin evidencia)"))
         return out
 
     @staticmethod
@@ -127,11 +137,12 @@ class CalendarAgent:
         nxt = min(future_high, key=lambda e: e.t_utc, default=None)
         wins = self._windows(events)
         order = sorted(wins, key=lambda w: (-_RANK[w[0].impact], abs(w[0].t_utc - asof)))
-        active = [(e, "pre" if asof < e.t_utc else "post") for e, a, b in order if a <= asof < b]
+        active = [(e, "pre" if asof < e.t_utc else "post") for e, a, b, _k, _s in order
+                  if a <= asof < b]
         # El reporte vale hasta la próxima vela: una ventana que empieza antes también bloquea.
         until = asof + p.lookahead_bars * self._bar_ms(snapshot)
-        blocking = [(e, "pre" if asof < e.t_utc else "post") for e, a, b in order
-                    if e.impact in p.blackout_impacts and a <= max(asof, until - 1) and asof < b]
+        blocking = [(e, "pre" if asof < e.t_utc else "post") for e, a, b, k, _s in order
+                    if k and a <= max(asof, until - 1) and asof < b]
         top = active[0] if active else None
         reason = ""
         if blocking:
@@ -148,7 +159,8 @@ class CalendarAgent:
             "window_event": _brief(top[0], asof) if top else None,
             "blackout": bool(blocking), "blackout_reason": reason,
             "risk_windows": [{"id": e.id, "name": e.name, "impact": e.impact, "start": a,
-                              "end": b} for e, a, b in wins if b > asof],
+                              "end": b, "blackout": k, "basis": basis}
+                             for e, a, b, k, basis in wins if b > asof],
             "surprise": surprise,
             "upcoming": [_brief(e, asof) for e in relevant if e.t_utc > asof][:p.upcoming_max],
             "recent": [_brief(e, asof) | {"actual": e.actual, "previous": e.previous,
@@ -183,7 +195,7 @@ class CalendarAgent:
                                               "impact": e.impact},
                     label=f"{e.name} · {e.impact}", confidence=confidence,
                     evidence=[e.source], valid_until=b)
-            for e, _a, b in wins
+            for e, _a, b, _k, _s in wins
         ]
         return AgentReport(
             agent_id=self.id, version=self.version, asof=asof, bias=0.0,

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-14T15:58:21",
+ "generated": "2026-10-14T16:48:11",
  "tasks": [
   {
    "id": "T01",
@@ -436,8 +436,8 @@ window.EIM_STATUS = {
     "T36",
     "T03"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "`v2/eim/analytics/event_study.py` (velas 15 m, ventana −60 min…+4 h; normal = misma hora UTC en 20 días hábiles sin eventos; log-cociente de rango, distribución p10…p90, bootstrap + Holm; ventana = velas contiguas significativas ≥×1.25; `by_surprise` listo sin consenso) + `event_report.py` (`python -m eim.analytics.event_report [--fetch]`, eventos usados en `reports/calendar/events.csv`). **`reports/calendar_impact.md`**: FOMC −30/+225 (n=30), IPC −15/+30, NFP +45, IPP +30, PIB/PCE/JOLTS +15 (n≈20, desde 2025), vencimiento −60/0 (n=13, solo BTC); comercio exterior no mueve el mercado → sin ventana; ECI n=7 insuficiente → ventana por impacto; la dirección no es predecible. Ventanas con cita (n, p Holm) en `agents/calendar/params.py` (`T37_WINDOWS`, prioridad sobre impacto; IPP abre `blackout` aunque sea «medio»); `risk_windows` lleva `blackout`/`basis`; agente 1.1.0. T29 (regla `evento`) consulta `blackout`. Velas 15 m BTC/ETH rellenadas desde 2023. Tests: test_event_study (9, sintéticos con efecto conocido) + test_t37_windows (7).",
    "effort": "medio",
    "phase": 8,
    "goal": "Medir con datos cuánto mueven BTC/ETH cada tipo de evento y fijar las ventanas de pausa por evidencia, no por intuición."

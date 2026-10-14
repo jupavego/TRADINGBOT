@@ -44,7 +44,8 @@ def _snap(asof: int, events=EVENTS, fetched_age_h: float = 6, known_days: float 
         sources={"events": "bea, binance_expiry, bls, fed_fomc"}, coverage=cov)
 
 
-AGENT = CalendarAgent()
+# Lógica de ventanas por impacto (sin las ventanas por evidencia de T37: ver test_t37_windows).
+AGENT = CalendarAgent(CalendarParams(event_windows={}))
 
 
 def test_well_before_event_no_window():
@@ -148,7 +149,7 @@ def test_never_directional(offset):
 
 
 def test_registered():
-    assert default_registry().get("calendar").version == "1.0.0"
+    assert default_registry().get("calendar").version == "1.1.0"
 
 
 def test_blackout_covers_next_bar_and_reaches_risk_engine():
