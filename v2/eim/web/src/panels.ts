@@ -1,8 +1,5 @@
-import { avatar } from './avatars'
-import { calendarDetail, calendarVerdict } from './calendar_ui'
-import { disagreeing, PCT_NOTE, type Share, shares, upDown } from './synth'
-import { rememberOpenFamilies, technicalDetail } from './technical_ui'
-import type { AgentInfo, AgentReport, Synthesis } from './types'
+import { disagreeing, PCT_NOTE, shares, upDown } from './synth'
+import type { AgentReport, Synthesis } from './types'
 
 const LABEL: Record<string, string> = {
   structure: 'Estructura', vwap: 'VWAP', price_action: 'Price action', elliott: 'Elliott',
@@ -20,24 +17,6 @@ export const esc = (s: unknown): string =>
   String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
 const sgn = (n: number): string => (n > 0 ? '+' : '') + n.toFixed(2)
-
-/** Barra −1..+1 con el origen al centro; verde si sube, rojo si baja. */
-function biasBar(b: number): string {
-  const pct = Math.min(1, Math.abs(b)) * 50
-  const side = b >= 0 ? 'left:50%;background:var(--up)' : 'right:50%;background:var(--down)'
-  return `<span class="bar" role="img" aria-label="sesgo ${sgn(b)}">` +
-    `<i style="${side};width:${pct}%"></i></span>`
-}
-
-const fmtMetric = (v: unknown): string =>
-  typeof v === 'number' ? String(Math.round(v * 1e4) / 1e4)
-    : typeof v === 'object' && v !== null ? JSON.stringify(v).slice(0, 120) : String(v)
-
-function metricRows(m: Record<string, unknown>): string {
-  const rows = Object.entries(m).slice(0, 12)
-    .map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(fmtMetric(v))}</td></tr>`).join('')
-  return rows ? `<table class="metrics">${rows}</table>` : ''
-}
 
 const verdict = (b: number): string => {
   const a = Math.abs(b)
@@ -72,44 +51,6 @@ function ring(p: number, label: string): string {
     `<b>${Math.round(p * 100)}</b></span>`
 }
 
-function detail(r: AgentReport): string {
-  if (r.agent_id === 'technical') return technicalDetail(r.metrics)
-  if (r.agent_id === 'calendar') return calendarDetail(r.metrics)
-  return metricRows(r.metrics)
-}
-
-/** Valor grande del mosaico: aporte del agente a la proyección (%) o por qué no aporta. */
-function share(r: AgentReport, sh: Share | undefined, inSyn: boolean): string {
-  if (r.agent_id === 'calendar') return '<span class="big pct" data-t="flat" style="color:var(--muted)">—<i>no direccional</i></span>'
-  if (!inSyn) return '<span class="big pct" data-t="flat" style="color:var(--muted)">—<i>fuera de la síntesis</i></span>'
-  if (!sh || !sh.dir) return '<span class="big pct" data-t="flat" style="color:var(--muted)">0%<i>neutral</i></span>'
-  return `<span class="big pct" data-t="${sh.dir > 0 ? 'up' : 'down'}" style="color:var(--${sh.dir > 0 ? 'up' : 'down'})" title="${esc(PCT_NOTE)}">${sh.dir > 0 ? '▲' : '▼'} ${sh.pct}%` +
-    `<i>${sh.dir > 0 ? 'subida' : 'bajada'}</i></span>`
-}
-
-function tile(r: AgentReport | null, info: AgentInfo, open: boolean, syn: Synthesis | null, sh: Map<string, Share>): string {
-  const status = r?.status ?? info.status
-  const chip = `<span class="chip" data-s="${esc(status)}">${esc(STATUS[status] ?? status)}</span>`
-  const id = esc(info.id)
-  if (!r || r.status === 'no_data') {
-    const why = r?.warnings[0] ?? 'Aún sin reporte; se actualiza al cerrar la próxima vela.'
-    return `<details class="tile idle" data-id="${id}" data-t="flat"><summary>${avatar(info.id)}<span class="aname">${esc(agentName(info.id))}</span>${chip}</summary>` +
-      `<p class="muted">${esc(why)}</p></details>`
-  }
-  const mix = Math.round(Math.min(1, Math.abs(r.bias)) * 38)
-  const tint = tone(r.bias) === 'flat' ? 'var(--panel)'
-    : `color-mix(in srgb, var(--${tone(r.bias)}) ${mix}%, var(--panel))`
-  const ev = r.evidence.slice(0, 3).map((e) => `<li>${esc(e)}</li>`).join('')
-  const warns = r.warnings.map((w) => `<li>${esc(w)}</li>`).join('')
-  return `<details class="tile" data-id="${id}" data-t="${tone(r.bias)}" style="background:${tint}"${open ? ' open' : ''}>` +
-    `<summary>${avatar(r.agent_id)}<span class="aname">${esc(agentName(r.agent_id))}</span>${chip}` +
-    `${share(r, sh.get(r.agent_id), !!syn && r.agent_id in syn.contributions)}${ring(r.confidence, 'confianza')}</summary>` +
-    `<div class="vd">${r.agent_id === 'calendar' ? calendarVerdict(r.metrics) : verdict(r.bias)} · sesgo ${sgn(r.bias)} · confianza ${Math.round(r.confidence * 100)}%</div>` +
-    `<ul class="ev">${ev || '<li class="muted">Sin evidencia.</li>'}</ul>` +
-    `<div class="more">${biasBar(r.bias)}${warns ? `<ul class="warn">${warns}</ul>` : ''}` +
-    `${detail(r)}<p class="muted">v${esc(r.version)} · horizonte ${r.horizon_bars} velas</p></div></details>`
-}
-
 function synthesis(reports: AgentReport[], syn: Synthesis | null): string {
   const head = '<section class="hero"><h3>Síntesis</h3>'
   if (!syn) return `${head}<p class="muted">Sin reportes todavía: se calcula al haber agentes con datos.</p></section>`
@@ -141,23 +82,9 @@ function synthesis(reports: AgentReport[], syn: Synthesis | null): string {
     `<table class="contrib">${contrib}</table></div></section>`
 }
 
-/** Pinta la columna derecha: síntesis + mosaicos. Conserva los mosaicos expandidos. */
-export function renderSide(el: HTMLElement, synEl: HTMLElement, infos: AgentInfo[], reports: AgentReport[], syn: Synthesis | null): void {
-  const opened = new Set(
-    [...el.querySelectorAll<HTMLDetailsElement>('details.tile[open]')].map((d) => d.dataset.id),
-  )
-  rememberOpenFamilies(el)
-  const byId = new Map(reports.map((r) => [r.agent_id, r]))
-  const ids = new Set(infos.map((i) => i.id))
-  const all = [...infos, ...reports.filter((r) => !ids.has(r.agent_id)).map((r): AgentInfo => ({
-    id: r.agent_id, version: r.version, last_asof: r.asof, status: r.status,
-    bias: r.bias, confidence: r.confidence,
-  }))]
-  const sh = new Map((shares(syn) ?? []).map((x) => [x.id, x]))
-  const tiles = all.map((i) => tile(byId.get(i.id) ?? null, i, opened.has(i.id), syn, sh)).join('')
+/** Pinta la síntesis (los agentes viven alrededor de la esfera del río). */
+export function renderSynth(synEl: HTMLElement, reports: AgentReport[], syn: Synthesis | null): void {
   synEl.innerHTML = synthesis(reports, syn)
-  el.innerHTML = '<h3 class="sh">Agentes</h3>' +
-    `<div class="tiles">${tiles || '<p class="muted">Sin agentes registrados.</p>'}</div>`
 }
 
 /** Última versión de cada agente a partir de reportes. */

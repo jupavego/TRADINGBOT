@@ -23,13 +23,6 @@ function dur(min: number): string {
 }
 const num = (v: number | null): string => (v === null ? 'n/d' : String(Math.round(v * 1000) / 1000))
 
-/** Resumen de la cabecera del mosaico (sustituye a «Neutral»: este agente no da dirección). */
-export function calendarVerdict(m: Metrics): string {
-  if (m.blackout) return '⚠ Ventana de riesgo de evento'
-  const n = m.upcoming?.find((e) => e.impact === 'alto')
-  return n ? `No direccional · próximo alto impacto ${dur(n.minutes)}` : 'No direccional · sin alto impacto en 7 d'
-}
-
 export function calendarDetail(m: Metrics): string {
   const row = (e: Ev, extra = ''): string =>
     `<tr><td class="num">${utc(e.t_utc)}</td><td><span class="imp" data-i="${esc(e.impact)}">${esc(IMP[e.impact] ?? e.impact)}</span></td>` +
