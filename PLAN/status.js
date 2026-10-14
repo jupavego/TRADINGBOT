@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-13T19:12:57",
+ "generated": "2026-10-13T20:15:48",
  "tasks": [
   {
    "id": "T01",
@@ -387,8 +387,8 @@ window.EIM_STATUS = {
    "id": "T33",
    "title": "Auditoría de repos y fuentes (4 agentes nuevos)",
    "deps": [],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "`PLAN/notas/T33_auditoria.md`: 27 candidatos con veredicto y evidencia (clones aislados en `C:\t33clones`, sin ejecutar). Copy: Hyperliquid `/info`+WS oficial = base (sin leaderboard oficial → universo vía WS `trades.users` + `vaultDetails`); Binance solo manual (endpoints `/bapi` privados, `robots.txt` los prohíbe); Hype-W = señuelo APK. Arb: conector oficial Binance + ccxt/SDK HL, solo funding/basis. Ind: TA-Lib + pandas-ta-classic (pandas-ta original: repo 404). Cal: FOMC+BLS ICS+BEA JSON+FRED (sin consenso gratis). **Alcance aprobado por el usuario (2026-10-13)** → T40 desbloqueada.",
    "effort": "medio",
    "phase": 8,
    "goal": "Verificar con evidencia (no solo README) qué repos y fuentes de datos se pueden usar para copy trading, arbitraje, calendario económico e indicadores técnicos, y fijar el alcance de copy trading."
