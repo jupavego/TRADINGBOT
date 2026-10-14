@@ -344,3 +344,57 @@ td[data-sign="-1"] { color: var(--down); }
 .op-reports { margin: 4px 0; padding-left: 18px; font-size: 12px; }
 .link { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; }
 .op-report { max-height: 360px; overflow: auto; white-space: pre-wrap; font-size: 12px; border: 1px solid var(--grid); border-radius: 8px; padding: 8px; }
+
+/* ── Río de decisión holográfico: pantalla oscura propia en todos los temas ── */
+.river {
+  --panel: #07121e; --bg: #040a13; --text: #d9f4ff; --muted: #6d8fa3; --line: #173750;
+  --up: #12e58f; --down: #ff3d5f; --holo: #22e1ff;
+  color: var(--text); border-color: rgba(34, 225, 255, .22);
+  background:
+    radial-gradient(55% 70% at 50% 42%, rgba(34, 225, 255, .14), transparent 70%),
+    radial-gradient(40% 50% at 50% 42%, color-mix(in srgb, var(--rt, transparent) 18%, transparent), transparent 70%),
+    linear-gradient(180deg, #071526, #040a13);
+}
+.river::before { background-image: radial-gradient(rgba(34, 225, 255, .3) 1px, transparent 1px); opacity: .3; }
+.river .rl { fill: var(--text); font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+.river .rv { fill: var(--muted); font-size: 11px; }
+.river .rvv { font-size: 11px; font-weight: 700; }
+.river .hsphere { position: absolute; pointer-events: none; }
+.river .rcore { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; cursor: help; display: flex; flex-direction: column; align-items: center; line-height: 1.15;
+  text-shadow: 0 0 4px #040a13, 0 0 10px #040a13, 0 0 18px currentColor; }
+.river .rcore b { display: flex; align-items: baseline; gap: 6px; font: 700 clamp(12px, 1.6vw, 20px)/1.2 var(--f-num, ui-monospace, monospace); opacity: .8; }
+.river .rcore b.lead { font-size: clamp(15px, 2.1vw, 26px); opacity: 1; }
+.river .rcore b i { font: 600 clamp(8px, .85vw, 11px) var(--f-body, system-ui); font-style: normal; letter-spacing: .05em; text-transform: uppercase; }
+.river .rcore small { display: block; font-size: clamp(8px, .75vw, 10px); line-height: 1.3; color: var(--muted); margin-top: 3px; }
+.river .rbig { font: 700 22px var(--f-display, system-ui); letter-spacing: .08em; text-transform: uppercase; }
+.river .anode { fill: #07121e; stroke-width: 2.5; filter: none; }
+.river .cbar { fill: rgba(34, 225, 255, .12); }
+.hring { fill: none; stroke: var(--rc); stroke-width: 1; opacity: .45; }
+.hspin { transform-box: fill-box; transform-origin: center; animation: hspin 18s linear infinite; }
+@keyframes hspin { to { transform: rotate(360deg); } }
+.hdash { animation: hdash 6s linear infinite; }
+.hdash.rev { animation-direction: reverse; animation-duration: 9s; }
+@keyframes hdash { to { stroke-dashoffset: -144; } }
+.hflow { stroke-dasharray: 10 6; animation: hflow 1.2s linear infinite; }
+@keyframes hflow { to { stroke-dashoffset: -16; } }
+@media (prefers-reduced-motion: reduce) {
+  .river :is(.hspin, .hdash, .hflow) { animation: none; }
+  .river :is(animate, animateTransform) { display: none; }
+}
+
+/* ── Síntesis en porcentajes (proyección estimada de subida / bajada) ── */
+.hero-num b.pctb { display: flex; align-items: baseline; gap: 8px; font-size: 22px; line-height: 1.15; opacity: .75; }
+.hero-num b.pctb.lead { font-size: 34px; opacity: 1; }
+.hero-num b.pctb[data-t="up"] { color: var(--up); }
+.hero-num b.pctb[data-t="down"] { color: var(--down); }
+.hero-num b.pctb i { font: 600 11px system-ui, sans-serif; font-style: normal; letter-spacing: .06em; text-transform: uppercase; }
+.hero-num small { font-size: 11px; margin-top: 2px; }
+.contrib .pbar::after { display: none; }
+.contrib td.pct { white-space: nowrap; font-weight: 600; }
+.contrib td.pct[data-t="up"] { color: var(--up); }
+.contrib td.pct[data-t="down"] { color: var(--down); }
+.contrib td.pct[data-t="flat"] { color: var(--muted); font-weight: 400; }
+.hero-contrib h4 .muted { font-weight: 400; text-transform: none; letter-spacing: 0; }
+.tile .big.pct { display: flex; align-items: baseline; gap: 7px; white-space: nowrap; }
+.tile .big.pct i { font: 600 11px system-ui, sans-serif; font-style: normal; letter-spacing: .06em; text-transform: uppercase; opacity: .85; }
+.tile .big.pct[data-t="flat"] { color: var(--muted); }

@@ -1,6 +1,6 @@
 import { avatar } from './avatars'
 import { calendarDetail, calendarVerdict } from './calendar_ui'
-import { disagreeing } from './synth'
+import { disagreeing, PCT_NOTE, type Share, shares, upDown } from './synth'
 import { rememberOpenFamilies, technicalDetail } from './technical_ui'
 import type { AgentInfo, AgentReport, Synthesis } from './types'
 
@@ -47,6 +47,10 @@ const verdict = (b: number): string => {
 }
 const tone = (b: number): string => (b > 0.1 ? 'up' : b < -0.1 ? 'down' : 'flat')
 
+/** Barra 0..100 % teñida según la dirección del aporte. */
+const pctBar = (p: number, t: string): string =>
+  `<span class="bar pbar" role="img" aria-label="${p}%"><i style="left:0;width:${p}%;background:${t === 'flat' ? 'var(--muted)' : `var(--${t})`}"></i></span>`
+
 /** Velocímetro semicircular −1..+1 (rojo → neutro → verde) con aguja. */
 function gauge(b: number): string {
   const th = Math.PI - ((Math.max(-1, Math.min(1, b)) + 1) / 2) * Math.PI
@@ -74,7 +78,16 @@ function detail(r: AgentReport): string {
   return metricRows(r.metrics)
 }
 
-function tile(r: AgentReport | null, info: AgentInfo, open: boolean): string {
+/** Valor grande del mosaico: aporte del agente a la proyección (%) o por qué no aporta. */
+function share(r: AgentReport, sh: Share | undefined, inSyn: boolean): string {
+  if (r.agent_id === 'calendar') return '<span class="big pct" data-t="flat" style="color:var(--muted)">—<i>no direccional</i></span>'
+  if (!inSyn) return '<span class="big pct" data-t="flat" style="color:var(--muted)">—<i>fuera de la síntesis</i></span>'
+  if (!sh || !sh.dir) return '<span class="big pct" data-t="flat" style="color:var(--muted)">0%<i>neutral</i></span>'
+  return `<span class="big pct" data-t="${sh.dir > 0 ? 'up' : 'down'}" style="color:var(--${sh.dir > 0 ? 'up' : 'down'})" title="${esc(PCT_NOTE)}">${sh.dir > 0 ? '▲' : '▼'} ${sh.pct}%` +
+    `<i>${sh.dir > 0 ? 'subida' : 'bajada'}</i></span>`
+}
+
+function tile(r: AgentReport | null, info: AgentInfo, open: boolean, syn: Synthesis | null, sh: Map<string, Share>): string {
   const status = r?.status ?? info.status
   const chip = `<span class="chip" data-s="${esc(status)}">${esc(STATUS[status] ?? status)}</span>`
   const id = esc(info.id)
@@ -90,8 +103,8 @@ function tile(r: AgentReport | null, info: AgentInfo, open: boolean): string {
   const warns = r.warnings.map((w) => `<li>${esc(w)}</li>`).join('')
   return `<details class="tile" data-id="${id}" data-t="${tone(r.bias)}" style="background:${tint}"${open ? ' open' : ''}>` +
     `<summary>${avatar(r.agent_id)}<span class="aname">${esc(agentName(r.agent_id))}</span>${chip}` +
-    `<span class="big num">${sgn(r.bias)}</span>${ring(r.confidence, 'confianza')}</summary>` +
-    `<div class="vd">${r.agent_id === 'calendar' ? calendarVerdict(r.metrics) : verdict(r.bias)} · confianza ${Math.round(r.confidence * 100)}%</div>` +
+    `${share(r, sh.get(r.agent_id), !!syn && r.agent_id in syn.contributions)}${ring(r.confidence, 'confianza')}</summary>` +
+    `<div class="vd">${r.agent_id === 'calendar' ? calendarVerdict(r.metrics) : verdict(r.bias)} · sesgo ${sgn(r.bias)} · confianza ${Math.round(r.confidence * 100)}%</div>` +
     `<ul class="ev">${ev || '<li class="muted">Sin evidencia.</li>'}</ul>` +
     `<div class="more">${biasBar(r.bias)}${warns ? `<ul class="warn">${warns}</ul>` : ''}` +
     `${detail(r)}<p class="muted">v${esc(r.version)} · horizonte ${r.horizon_bars} velas</p></div></details>`
@@ -101,16 +114,31 @@ function synthesis(reports: AgentReport[], syn: Synthesis | null): string {
   const head = '<section class="hero"><h3>Síntesis</h3>'
   if (!syn) return `${head}<p class="muted">Sin reportes todavía: se calcula al haber agentes con datos.</p></section>`
   const dis = disagreeing(reports)
-  const contrib = Object.entries(syn.contributions).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
-    .map(([id, c]) => `<tr><td>${esc(agentName(id))}</td><td>${biasBar(c)}</td><td class="num">${sgn(c)}</td></tr>`).join('')
-  return head + `<div class="hero-main">${gauge(syn.bias)}<div class="hero-num" data-t="${tone(syn.bias)}">` +
-    `<b class="num">${sgn(syn.bias)}</b><span>${verdict(syn.bias)}</span></div></div>` +
+  const sh = shares(syn)
+  const ud = upDown(syn)
+  const ids = new Set(sh?.map((r) => r.id))
+  const rows = [...(sh ?? []), ...Object.keys(syn.contributions).filter((id) => !ids.has(id))
+    .map((id) => ({ id, dir: 0 as const, pct: 0 }))]
+  const contrib = rows.map((r) => {
+    const t = r.dir > 0 ? 'up' : r.dir < 0 ? 'down' : 'flat'
+    const lbl = r.dir > 0 ? `▲ ${r.pct}% subida` : r.dir < 0 ? `▼ ${r.pct}% bajada` : '0% · neutral'
+    return `<tr><td>${esc(agentName(r.id))}</td><td>${pctBar(r.pct, t)}</td>` +
+      `<td class="num pct" data-t="${t}">${lbl}</td></tr>`
+  }).join('')
+  const lead = ud && (ud.up > ud.down ? 'up' : ud.down > ud.up ? 'down' : 'flat')
+  return head + `<div class="hero-main">${gauge(syn.bias)}<div class="hero-num" data-t="${tone(syn.bias)}" title="${esc(PCT_NOTE)}">` +
+    (ud
+      ? `<b class="num pctb${lead === 'up' ? ' lead' : ''}" data-t="up" style="color:var(--up)">▲ ${ud.up}%<i>subida</i></b>` +
+        `<b class="num pctb${lead === 'down' ? ' lead' : ''}" data-t="down" style="color:var(--down)">▼ ${ud.down}%<i>bajada</i></b>`
+      : '<b class="num">—</b>') +
+    `<span>${verdict(syn.bias)} · sesgo ${sgn(syn.bias)}</span><small class="muted">proyección estimada por los agentes</small></div></div>` +
     `<div class="kpis"><div>${ring(syn.confidence, 'confianza')}<span>Confianza</span></div>` +
     `<div>${ring(syn.agreement, 'acuerdo')}<span>Acuerdo</span></div></div>` +
     (dis ? '<div class="alert" role="alert">⚠ Los agentes se contradicen: ' +
       `<b>${dis.up.map(agentName).join(', ')}</b> (alcista) vs <b>${dis.down.map(agentName).join(', ')}</b> (bajista)</div>` : '') +
     (syn.thesis ? `<p class="thesis">${esc(syn.thesis)}</p>` : '') +
-    `<div class="hero-contrib"><h4>Contribución por agente</h4><table class="contrib">${contrib}</table></div></section>`
+    `<div class="hero-contrib"><h4 title="${esc(PCT_NOTE)}">Aporte de cada agente a la proyección <span class="muted">(suma 100 %)</span></h4>` +
+    `<table class="contrib">${contrib}</table></div></section>`
 }
 
 /** Pinta la columna derecha: síntesis + mosaicos. Conserva los mosaicos expandidos. */
@@ -125,7 +153,8 @@ export function renderSide(el: HTMLElement, synEl: HTMLElement, infos: AgentInfo
     id: r.agent_id, version: r.version, last_asof: r.asof, status: r.status,
     bias: r.bias, confidence: r.confidence,
   }))]
-  const tiles = all.map((i) => tile(byId.get(i.id) ?? null, i, opened.has(i.id))).join('')
+  const sh = new Map((shares(syn) ?? []).map((x) => [x.id, x]))
+  const tiles = all.map((i) => tile(byId.get(i.id) ?? null, i, opened.has(i.id), syn, sh)).join('')
   synEl.innerHTML = synthesis(reports, syn)
   el.innerHTML = '<h3 class="sh">Agentes</h3>' +
     `<div class="tiles">${tiles || '<p class="muted">Sin agentes registrados.</p>'}</div>`
