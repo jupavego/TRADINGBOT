@@ -1,13 +1,16 @@
 """Kill-switch: estado global que bloquea nuevas órdenes y pide el cierre ordenado.
 
 Se activa a mano o por reglas (drawdown, desconexión, desvío de reconciliación). Solo se
-desactiva a mano: una regla nunca lo apaga. Cada cambio queda en `events`.
+desactiva a mano: una regla nunca lo apaga. Cada cambio de estado queda en `events`. Con
+`attach(path)` el estado se guarda en disco y sobrevive a un reinicio del proceso.
 """
 
 from __future__ import annotations
 
+import json
 import threading
 from dataclasses import asdict, dataclass
+from pathlib import Path
 
 from eim.risk.config import RiskConfig
 
@@ -27,7 +30,29 @@ class KillSwitch:
         self._reason = ""
         self._since: int | None = None
         self._by = ""
+        self._path: Path | None = None
         self.events: list[KillEvent] = []
+
+    def attach(self, path: str | Path) -> None:
+        """Persiste el estado en `path`; si el archivo dice activo, se reactiva al cargar."""
+        p = Path(path)
+        with self._lock:
+            self._path = p
+            if p.exists():
+                d = json.loads(p.read_text(encoding="utf-8"))
+                if d.get("active"):
+                    self._active, self._reason = True, str(d.get("reason", ""))
+                    self._since, self._by = d.get("since"), str(d.get("by", ""))
+            self._save()
+
+    def _save(self) -> None:          # llamar con el cerrojo tomado
+        if self._path is None:
+            return
+        self._path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self._path.with_suffix(".tmp")
+        tmp.write_text(json.dumps({"active": self._active, "reason": self._reason,
+                                   "since": self._since, "by": self._by}), encoding="utf-8")
+        tmp.replace(self._path)
 
     @property
     def active(self) -> bool:
@@ -41,9 +66,11 @@ class KillSwitch:
 
     def activate(self, reason: str, now: int, by: str = "manual") -> None:
         with self._lock:
-            if not self._active:
-                self._active, self._reason, self._since, self._by = True, reason, now, by
+            if self._active:          # ya activo: se conserva el primer motivo, sin eventos
+                return
+            self._active, self._reason, self._since, self._by = True, reason, now, by
             self.events.append(KillEvent(now, "activate", by, reason))
+            self._save()
 
     def deactivate(self, now: int, by: str = "manual", reason: str = "") -> None:
         if not by.startswith("manual"):
@@ -51,6 +78,7 @@ class KillSwitch:
         with self._lock:
             self._active, self._reason, self._since, self._by = False, "", None, ""
             self.events.append(KillEvent(now, "deactivate", by, reason))
+            self._save()
 
     def check_rules(self, cfg: RiskConfig, now: int, drawdown: float | None = None,
                     disconnected_ms: int | None = None,

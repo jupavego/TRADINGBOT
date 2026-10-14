@@ -48,7 +48,31 @@ def test_first_reason_kept_while_active():
     ks = KillSwitch()
     ks.check_rules(CFG, NOW, drawdown=0.2, recon_drift=0.5)
     assert ks.state()["by"] == "regla:drawdown"
-    assert len(ks.state()["events"]) == 2
+    assert len(ks.state()["events"]) == 1
+    for _ in range(100):                       # monitoreo repetido no acumula eventos
+        ks.check_rules(CFG, NOW, drawdown=0.3)
+    assert len(ks.events) == 1
+
+
+def test_state_survives_restart(tmp_path):
+    path = tmp_path / "ks.json"
+    ks = KillSwitch()
+    ks.attach(path)
+    ks.check_rules(CFG, NOW, disconnected_ms=10**9)
+    reborn = KillSwitch()
+    reborn.attach(path)
+    assert reborn.active and reborn.state()["by"] == "regla:desconexion"
+    reborn.deactivate(NOW + 1)
+    again = KillSwitch()
+    again.attach(path)
+    assert not again.active
+
+
+def test_attach_never_clears_active_state(tmp_path):
+    ks = KillSwitch()
+    ks.activate("x", NOW)
+    ks.attach(tmp_path / "nuevo.json")
+    assert ks.active
 
 
 def test_engine_blocked_while_active():

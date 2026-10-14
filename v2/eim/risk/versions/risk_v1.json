@@ -16,6 +16,7 @@
   "max_consecutive_losses": 3,
   "cooldown_ms": 86400000,
   "max_data_age_bars": 2.0,
+  "max_plan_age_bars": 2.0,
   "max_degraded_agents": 1,
   "critical_agents": ["structure", "levels", "plan"],
   "allowed_modes": ["ANALISIS", "SIMULADO", "TESTNET"],

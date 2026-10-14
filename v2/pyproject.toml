@@ -38,6 +38,7 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
 "eim/api/more.py" = ["B008"]  # idioma FastAPI: File()/Form() en defaults
+"eim/api/risk.py" = ["B008"]  # idioma FastAPI: Header() en defaults
 "eim/analytics/*" = ["E501"]  # migrado literal de F7/eim_bitacora.py
 
 [tool.pytest.ini_options]

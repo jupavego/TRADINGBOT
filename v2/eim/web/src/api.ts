@@ -1,7 +1,7 @@
 import type { AgentInfo, Overlay, AgentReport, Snapshot, StreamMsg, Decision, Trade, Replay, ForecastSet, Synthesis } from './types'
 
 /** Base de la API: variable VITE_API_URL o el mismo host en el puerto 8000. */
-const base = (): string =>
+export const base = (): string =>
   (import.meta.env.VITE_API_URL as string | undefined) ?? `http://${location.hostname}:8000`
 
 export const SYMBOLS = ['BTCUSDT', 'ETHUSDT'] as const
@@ -111,4 +111,14 @@ export async function runBackfill(symbol: string, tf: string, h: number): Promis
   const body = await r.json().catch(() => ({ detail: r.statusText }))
   if (!r.ok) throw new Error(String(body.detail ?? r.statusText))
   return body as CalibrationReport
+}
+
+/** Activa o desactiva el kill-switch (T29). La cabecera propia evita peticiones de otros sitios. */
+export async function setKillSwitch(on: boolean, reason: string): Promise<void> {
+  const r = await fetch(`${base()}/v2/risk/kill-switch/${on ? 'activate' : 'deactivate'}?reason=${encodeURIComponent(reason)}`,
+    { method: 'POST', headers: { 'X-EIM-Confirm': 'kill-switch' } })
+  if (!r.ok) {
+    const body = await r.json().catch(() => ({ detail: r.statusText }))
+    throw new Error(String(body.detail ?? r.statusText))
+  }
 }

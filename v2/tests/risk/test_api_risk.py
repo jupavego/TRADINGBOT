@@ -49,6 +49,7 @@ def ctx(tmp_path):
 
 
 P = {"symbol": "ETHUSDT", "tf": "1h"}
+HDR = {"X-EIM-Confirm": "kill-switch"}
 
 
 def test_no_plan(ctx):
@@ -69,8 +70,29 @@ def test_approved_plan_with_size_and_logged(ctx):
     assert d["mode"] == "SIMULADO" and "SIMULADO" in body["account"]["source"]
     logged = c.get("/v2/risk/decisions", params=P).json()["decisions"]
     assert len(logged) == 1 and logged[0]["approved"]
-    c.get("/v2/risk", params=P)                    # reevaluar reemplaza, no duplica
+    c.get("/v2/risk", params=P)                    # mismo resultado: no duplica
     assert len(c.get("/v2/risk/decisions", params=P).json()["decisions"]) == 1
+
+
+def test_changed_outcome_kept_in_journal(ctx):
+    c, reports, _, ks = ctx
+    reports.save("ETHUSDT", "1h", [_plan(), _rep("structure"), _rep("levels")])
+    c.get("/v2/risk", params=P)
+    ks.activate("prueba", LAST_CLOSE)
+    c.get("/v2/risk", params=P)
+    rows = c.get("/v2/risk/decisions", params=P).json()["decisions"]
+    assert sorted(r["approved"] for r in rows) == [False, True]
+
+
+def test_old_plan_vetoed_even_with_fresh_candles(ctx, tmp_path):
+    c, reports, clock, _ = ctx
+    reports.save("ETHUSDT", "1h", [_plan(), _rep("structure"), _rep("levels")])
+    more = [Candle(t=LAST_CLOSE + i * H, o=2000.0, h=2010.0, l=1990.0, c=2000.0, v=100.0)
+            for i in range(5)]
+    Store(tmp_path).upsert_candles("ETHUSDT", "1h", more, "test")   # el agente plan se detuvo
+    clock["now"] = LAST_CLOSE + 5 * H + 60_000
+    d = c.get("/v2/risk", params=P).json()["decision"]
+    assert not d["approved"] and any(r.startswith("vigencia: plan de hace") for r in d["reasons"])
 
 
 def test_stale_data_vetoed(ctx):
@@ -92,11 +114,14 @@ def test_degraded_critical_agent_vetoed(ctx):
 def test_kill_switch_endpoints(ctx):
     c, reports, _, ks = ctx
     reports.save("ETHUSDT", "1h", [_plan(), _rep("structure"), _rep("levels")])
-    st = c.post("/v2/risk/kill-switch/activate", params={"reason": "prueba"}).json()
+    assert c.post("/v2/risk/kill-switch/activate").status_code == 403    # sin cabecera: CSRF
+    assert not ks.active
+    st = c.post("/v2/risk/kill-switch/activate", params={"reason": "prueba"}, headers=HDR).json()
     assert st["active"] and st["reason"] == "prueba" and ks.active
     d = c.get("/v2/risk", params=P).json()["decision"]
     assert not d["approved"] and d["reasons"][0].startswith("kill-switch")
-    assert not c.post("/v2/risk/kill-switch/deactivate").json()["active"]
+    assert c.post("/v2/risk/kill-switch/deactivate").status_code == 403
+    assert not c.post("/v2/risk/kill-switch/deactivate", headers=HDR).json()["active"]
     assert c.get("/v2/risk", params=P).json()["decision"]["approved"]
 
 

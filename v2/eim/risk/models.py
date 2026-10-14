@@ -47,6 +47,7 @@ class MarketContext(BaseModel):
     now: int                                     # ms
     bar_ms: int
     last_close_t: int | None                     # ms de cierre de la última vela cerrada
+    last_price: float | None = None              # precio actual: el tamaño se calcula aquí
     agent_status: dict[str, str] = {}            # agent_id → ok | degraded | no_data
     blackout: bool = False                       # agente `calendar` (T36/T37)
     blackout_reason: str = ""

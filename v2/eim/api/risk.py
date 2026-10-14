@@ -9,7 +9,7 @@ from __future__ import annotations
 import time
 from collections.abc import Callable
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Header, HTTPException, Query
 
 from eim.api.reports_db import ReportStore
 from eim.api.trades import sync_trades
@@ -28,6 +28,16 @@ ACCOUNT_SOURCE = "libro SIMULADO (T15), capital supuesto 10 000 USDT"
 
 def _now() -> int:
     return int(time.time() * 1000)
+
+
+CONFIRM_HEADER = "X-EIM-Confirm"
+
+
+def _confirm(value: str | None) -> None:
+    """Cabecera propia obligatoria: obliga a una petición CORS con verificación previa, así una
+    página ajena no puede cambiar el kill-switch con un POST «simple» (CSRF)."""
+    if value != "kill-switch":
+        raise HTTPException(403, f"falta la cabecera {CONFIRM_HEADER}: kill-switch")
 
 
 def _check(symbol: str, tf: str) -> None:
@@ -69,7 +79,8 @@ def build_risk_router(store: Store, reports: ReportStore,
         last = store.read_candles(symbol, tf, last=1)
         account = account_from_trades(trades, PAPER_EQUITY, cfg.risk_per_trade, now, bar,
                                       ACCOUNT_SOURCE)
-        market = market_context(latest, last[-1].t + bar if last else None, now, bar)
+        market = market_context(latest, last[-1].t + bar if last else None, now, bar,
+                                last[-1].c if last else None)
         d = engine.evaluate(req, account, market)
         return {**base, "plan": req.model_dump(mode="json"),
                 "decision": d.model_dump(mode="json", exclude={"seal"}),
@@ -88,12 +99,16 @@ def build_risk_router(store: Store, reports: ReportStore,
         return kill.state()
 
     @router.post("/kill-switch/activate")
-    def kill_on(reason: str = Query("activado manualmente", max_length=200)) -> dict:
+    def kill_on(reason: str = Query("activado manualmente", max_length=200),
+                x_eim_confirm: str | None = Header(None)) -> dict:
+        _confirm(x_eim_confirm)
         kill.activate(reason, clock(), by="manual")
         return kill.state()
 
     @router.post("/kill-switch/deactivate")
-    def kill_off(reason: str = Query("", max_length=200)) -> dict:
+    def kill_off(reason: str = Query("", max_length=200),
+                 x_eim_confirm: str | None = Header(None)) -> dict:
+        _confirm(x_eim_confirm)
         kill.deactivate(clock(), by="manual", reason=reason)
         return kill.state()
 

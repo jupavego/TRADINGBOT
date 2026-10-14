@@ -40,6 +40,27 @@ def check_plan(p: PlanRequest, cfg: RiskConfig) -> Check:
     return _c("plan", True, f"SL a {frac:.2%}, R:R {rr:.2f}")
 
 
+def check_freshness(p: PlanRequest, m: MarketContext, cfg: RiskConfig) -> Check:
+    """El plan es reciente y sigue siendo ejecutable al precio actual (no cruzó SL ni TP1 y
+    mantiene el R:R mínimo desde ahí)."""
+    age = (m.now - p.asof) / m.bar_ms
+    if age > cfg.max_plan_age_bars:
+        return _c("vigencia", False,
+                  f"plan de hace {age:.1f} velas (máx. {cfg.max_plan_age_bars:g})")
+    px = m.last_price
+    if px is None:
+        return _c("vigencia", True, f"plan de hace {age:.1f} velas; sin precio actual")
+    if (px - p.sl) * p.side <= 0:
+        return _c("vigencia", False, f"el precio {px:,.2f} ya cruzó el SL")
+    if p.tp and (px - p.tp[0]) * p.side >= 0:
+        return _c("vigencia", False, f"el precio {px:,.2f} ya alcanzó el TP1")
+    if p.tp:
+        rr = (p.tp[0] - px) * p.side / ((px - p.sl) * p.side)
+        if rr < cfg.min_rr:
+            return _c("vigencia", False, f"R:R al precio actual {rr:.2f} < {cfg.min_rr:.2f}")
+    return _c("vigencia", True, f"plan de hace {age:.1f} velas; precio {px:,.2f}")
+
+
 def check_daily_loss(a: AccountState, cfg: RiskConfig) -> Check:
     loss = 1 - a.equity / a.day_start_equity if a.day_start_equity > 0 else 1.0
     ok = loss < cfg.max_daily_loss

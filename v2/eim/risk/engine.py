@@ -54,6 +54,7 @@ class RiskEngine:
                   detail=f"activo: {kill['reason']}" if kill["active"] else "inactivo"),
             rules.check_mode(plan, cfg),
             rules.check_plan(plan, cfg),
+            rules.check_freshness(plan, market, cfg),
             rules.check_data(market, cfg),
             rules.check_event(market),
             rules.check_daily_loss(account, cfg),
@@ -67,8 +68,9 @@ class RiskEngine:
         checks = self._checks(plan, account, market)
         sized: Sizing | str | None = None
         if all(c.ok for c in checks):
+            entry = market.last_price or plan.entry    # se ejecutaría al precio actual
             sized = ("capital ≤ 0" if account.equity <= 0 else
-                     size_position(plan.side, plan.entry, plan.sl, account.equity, self.config))
+                     size_position(plan.side, entry, plan.sl, account.equity, self.config))
             checks.append(Check(rule="tamaño", ok=isinstance(sized, Sizing),
                                 detail=sized if isinstance(sized, str) else
                                 f"{sized.size:.6g} a {sized.leverage:.0f}×"))

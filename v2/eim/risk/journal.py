@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import threading
 
 from eim.risk.models import RiskDecision
@@ -15,8 +17,11 @@ CREATE TABLE IF NOT EXISTS risk_decisions (
 
 
 def decision_id(d: RiskDecision) -> str:
-    """Una fila por (plan, instante del plan, configuración): reevaluar la reemplaza."""
-    return f"{d.symbol}:{d.timeframe}:{d.plan_id}:{d.asof}:{d.config_version}"
+    """Una fila por resultado distinto de un plan: reevaluar con el mismo resultado solo
+    actualiza la hora; un cambio (p. ej. aprobado → vetado) queda como fila nueva."""
+    outcome = hashlib.sha256(json.dumps([d.approved, d.reasons, round(d.size, 12)])
+                             .encode()).hexdigest()[:16]
+    return f"{d.symbol}:{d.timeframe}:{d.plan_id}:{d.asof}:{d.config_version}:{outcome}"
 
 
 class RiskJournal:

@@ -41,6 +41,7 @@ class RiskConfig(BaseModel):
     cooldown_ms: int = Field(ge=0)
     # calidad de datos
     max_data_age_bars: float = Field(gt=0)             # última vela cerrada ≤ esto × marco
+    max_plan_age_bars: float = Field(gt=0)             # reporte del plan ≤ esto × marco
     max_degraded_agents: int = Field(ge=0)
     critical_agents: tuple[str, ...] = ()
     allowed_modes: tuple[str, ...] = ("ANALISIS", "SIMULADO", "TESTNET")

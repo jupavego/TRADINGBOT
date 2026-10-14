@@ -1,9 +1,7 @@
+import { base, setKillSwitch } from './api'
 import { esc } from './panels'
 
 /** Pestaña Plan: el plan vigente (T13) con el tamaño aprobado o los motivos del veto (T29). */
-
-const base = (): string =>
-  (import.meta.env.VITE_API_URL as string | undefined) ?? `http://${location.hostname}:8000`
 
 interface Check { rule: string; ok: boolean; detail: string }
 interface Decision {
@@ -62,10 +60,17 @@ export class RiskPanel {
       if (!b) return
       const on = b.dataset.kill === 'on'
       if (on && !confirm('¿Activar el kill-switch? Bloquea nuevas órdenes hasta desactivarlo a mano.')) return
-      const q = on ? '?reason=' + encodeURIComponent('activado desde la interfaz') : ''
-      void fetch(`${base()}/v2/risk/kill-switch/${on ? 'activate' : 'deactivate'}${q}`, { method: 'POST' })
+      setKillSwitch(on, on ? 'activado desde la interfaz' : 'desactivado desde la interfaz')
         .then(() => this.reload())
+        .catch((err: Error) => alert(`No se pudo cambiar el kill-switch: ${err.message}. ` +
+          'Verifica el estado antes de seguir.'))
     })
+  }
+
+  /** En reproducción la decisión de riesgo no se reconstruye: se dice explícitamente. */
+  replayNote(): void {
+    this.el.innerHTML = '<p class="muted">Reproducción: la decisión de riesgo solo se calcula en vivo ' +
+      '(consulta el registro en <code>/v2/risk/decisions</code>). Vuelve a en vivo para verla.</p>'
   }
 
   async reload(): Promise<void> {

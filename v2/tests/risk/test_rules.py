@@ -112,3 +112,26 @@ def test_one_degraded_non_critical_tolerated():
 def test_zero_equity_vetoed():
     d = run(a=account(equity=0.0, day_start_equity=0.0, week_start_equity=0.0))
     assert not d.approved and d.size == 0
+
+
+@pytest.mark.parametrize("px,needle", [
+    (97_500.0, "cruzó el SL"),
+    (104_500.0, "alcanzó el TP1"),
+    (102_500.0, "R:R al precio actual"),
+])
+def test_freshness_at_current_price(px, needle):
+    d = run(m=market(last_price=px))
+    assert failed(d) == {"vigencia"} and needle in d.reasons[0]
+
+
+def test_old_plan_vetoed():
+    d = run(p=plan(asof=NOW - 3 * H))
+    assert failed(d) == {"vigencia"} and "plan de hace" in d.reasons[0]
+
+
+def test_size_uses_current_price_so_risk_stays_in_budget():
+    # entrada del plan 100 000, SL 98 000; el precio ya está en 99 500 → distancia 1 500
+    d = run(m=market(last_price=99_500.0))
+    assert d.approved
+    assert d.risk_amount == pytest.approx(10_000 * CFG.risk_per_trade)
+    assert d.size == pytest.approx(50.0 / 1_500.0)

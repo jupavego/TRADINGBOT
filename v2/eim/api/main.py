@@ -24,6 +24,7 @@ from eim.data.providers.binance import BinanceFutures
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
+from eim.risk import global_kill_switch
 
 API_VERSION = "2.0.0"
 
@@ -66,6 +67,7 @@ def create_app(
     app.state.hub, app.state.reports, app.state.store = hub, reports, store
     app.state.forecaster = forecaster
     app.include_router(build_trades_router(store, reports))
+    global_kill_switch().attach(cfg.data_dir / "kill_switch.json")
     app.include_router(build_risk_router(store, reports))
     app.include_router(build_forecast_router(forecaster))
     app.include_router(build_calibration_router(store, forecaster))

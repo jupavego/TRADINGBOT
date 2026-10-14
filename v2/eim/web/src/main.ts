@@ -120,7 +120,7 @@ function paintReplayBar(): void {
 }
 
 async function showReplay(i: number): Promise<void> {
-  replaying = true; paintReplayBar()
+  replaying = true; paintReplayBar(); risk.replayNote()
   try {
     const r = await fetchReplay(symbol, tf, asofs[i])
     if (!replaying || Number($<HTMLInputElement>('replay-range').value) !== i) return

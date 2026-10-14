@@ -71,7 +71,7 @@ def account_from_trades(trades: Iterable[Trade], initial_equity: float, risk_fra
 
 
 def market_context(reports: Iterable[AgentReport], last_close_t: int | None, now: int,
-                   bar_ms: int) -> MarketContext:
+                   bar_ms: int, last_price: float | None = None) -> MarketContext:
     """`calendar.metrics.blackout` abre una ventana de evento; `context.metrics.event_pause`
     solo puede añadir una pausa (nunca levanta la del calendario)."""
     status: dict[str, str] = {}
@@ -84,6 +84,6 @@ def market_context(reports: Iterable[AgentReport], last_close_t: int | None, now
         if r.agent_id == "context" and r.metrics.get("event_pause"):
             pause = True
             p_why = f"contexto: riesgo de evento {r.metrics.get('event_risk', 'alto')}"
-    return MarketContext(now=now, bar_ms=bar_ms, last_close_t=last_close_t,
+    return MarketContext(now=now, bar_ms=bar_ms, last_close_t=last_close_t, last_price=last_price,
                          agent_status=status, blackout=blackout, blackout_reason=b_why,
                          event_pause=pause, pause_reason=p_why)
