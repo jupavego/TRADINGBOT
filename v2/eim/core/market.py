@@ -12,7 +12,11 @@ class Frozen(BaseModel):
 
 
 class Candle(Frozen):
-    """Vela OHLCV; `t` en ms epoch UTC."""
+    """Vela OHLCV; `t` en ms epoch UTC.
+
+    Opcionales (T34, aditivos): `taker_buy_v` = volumen base comprado por agresores
+    (taker buy), `trades` = nº de operaciones. None si la fuente no los entrega.
+    """
 
     t: int
     o: float
@@ -20,6 +24,8 @@ class Candle(Frozen):
     l: float  # noqa: E741
     c: float
     v: float
+    taker_buy_v: float | None = None
+    trades: int | None = None
 
     @model_validator(mode="after")
     def _check_ohlc(self) -> Candle:

@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from eim.agents.structure.params import FRMParams
+from eim.indicators import ema, sma, true_range
 
 SPANS = (9, 21, 55, 100, 200)
 _EMA = [f"EMA_{n}" for n in SPANS]
@@ -48,11 +49,8 @@ def _bounces(close: np.ndarray, ema: np.ndarray, window: int) -> list[int]:
 
 
 def _atr_relative(df: pd.DataFrame, period: int) -> pd.Series:
-    pc = df["close"].shift(1)
-    tr = pd.concat(
-        [df["high"] - df["low"], (df["high"] - pc).abs(), (df["low"] - pc).abs()], axis=1
-    ).max(axis=1)
-    return tr.rolling(period).mean() / df["close"] * 100
+    tr = true_range(df["high"], df["low"], df["close"])  # ATR por media simple (legado)
+    return pd.Series(sma(tr, period), index=df.index) / df["close"] * 100
 
 
 def compute_frm(ohlcv: pd.DataFrame, p: FRMParams | None = None) -> pd.DataFrame:
@@ -62,7 +60,7 @@ def compute_frm(ohlcv: pd.DataFrame, p: FRMParams | None = None) -> pd.DataFrame
     close = df["close"]
 
     for n in SPANS:  # F-001
-        df[f"EMA_{n}"] = close.ewm(span=n, adjust=False).mean()
+        df[f"EMA_{n}"] = ema(close.to_numpy(float), n)  # eim.indicators (= ewm adjust=False)
 
     pairs = _stack(df)  # F-002 / F-003
     names = {4: "BULL_PERFECT", 3: "BULL_PARTIAL", 2: "NEUTRAL",

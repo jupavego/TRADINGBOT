@@ -90,7 +90,9 @@ class BinanceFutures:
                 if t >= end or t + step > now:  # descarta la vela en formación
                     continue
                 out.append(Candle(t=t, o=float(r[1]), h=float(r[2]), l=float(r[3]),
-                                  c=float(r[4]), v=float(r[5])))
+                                  c=float(r[4]), v=float(r[5]),
+                                  trades=int(r[8]) if len(r) > 9 else None,
+                                  taker_buy_v=float(r[9]) if len(r) > 9 else None))
             nxt = int(rows[-1][0]) + step
             if nxt <= cursor:
                 break

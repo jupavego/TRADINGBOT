@@ -31,7 +31,9 @@ def parse_kline(msg: dict) -> tuple[Candle, bool] | None:
     if not k:
         return None
     c = Candle(t=int(k["t"]), o=float(k["o"]), h=float(k["h"]), l=float(k["l"]),
-               c=float(k["c"]), v=float(k["v"]))
+               c=float(k["c"]), v=float(k["v"]),
+               taker_buy_v=float(k["V"]) if "V" in k else None,
+               trades=int(k["n"]) if "n" in k else None)
     return c, bool(k["x"])
 
 
