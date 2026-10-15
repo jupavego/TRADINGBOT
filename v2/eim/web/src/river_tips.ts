@@ -33,7 +33,7 @@ const verdict = (b: number): string => {
   return `${b > 0 ? 'Alcista' : 'Bajista'} ${a < 0.35 ? 'leve' : a < 0.65 ? 'moderado' : 'fuerte'}`
 }
 
-const head = (title: string): string =>
+export const head = (title: string): string =>
   `<div class="tip-h"><b>${esc(title)}</b><button data-close aria-label="Cerrar">×</button></div>`
 
 /** Barra 0..100 % teñida según la dirección del aporte. */

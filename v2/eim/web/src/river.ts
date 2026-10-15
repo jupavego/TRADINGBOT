@@ -1,6 +1,8 @@
 import { orb } from './agent_orbs'
+import type { ArbPayload } from './arb_types'
 import { agentName, esc } from './panels'
 import { core, hexPath, holoDefs, platform } from './river_holo'
+import { ARB_ID, arbSatellite, arbTip, SAT_R, setArbData } from './river_arb'
 import { animateSphere } from './river_sphere'
 import { agentTip, CORE_ID, coreTip, sg, THRESH, tint } from './river_tips'
 import { disagreeing, PCT_NOTE, upDown } from './synth'
@@ -13,6 +15,7 @@ let selected: string | null = null // agente con tooltip abierto
 let ctx: { infos: AgentInfo[]; reports: AgentReport[]; synthesis: Synthesis | null; tf: string } = { infos: [], reports: [], synthesis: null, tf: '' }
 let keyBound = false
 let tip = ''
+let sat = { x: 0, y: 0 } // posición del satélite de arbitraje en el último render
 
 type Row = { id: string; bias: number; conf: number; live: boolean }
 
@@ -43,6 +46,11 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   tip = ''
   el.onclick = (e) => {
     const t = e.target as HTMLElement
+    if (t.closest('[data-open-arb]')) { // tooltip del satélite → pestaña «Arbitraje»
+      document.getElementById('tab-arb')?.click()
+      document.querySelector('.bottom')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
+    }
     if (t.closest('.tip') && !t.closest('[data-close]')) return // dentro del detalle (p. ej. abrir una familia)
     if (t.closest('[data-close]')) selected = null
     else {
@@ -58,7 +66,8 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     })
   }
   const byId = new Map(reports.map((r) => [r.agent_id, r]))
-  const ids = [...new Set([...infos.map((i) => i.id), ...reports.map((r) => r.agent_id)])]
+  // arbitrage no va en las columnas: es el satélite de carril propio (sin haz hacia la síntesis)
+  const ids = [...new Set([...infos.map((i) => i.id), ...reports.map((r) => r.agent_id)])].filter((id) => id !== ARB_ID)
   const rows: Row[] = ids.map((id) => {
     const r = byId.get(id)
     const live = !!r && r.status !== 'no_data'
@@ -75,10 +84,14 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   dead.forEach((r) => (left.length <= right.length ? left : right).push(r))
   const per = Math.max(left.length, right.length, 1)
   const colH = (per - 1) * ROW
-  const H = Math.max(460, TOP + colH + 60)
+  let H = Math.max(460, TOP + colH + 60)
   const py = H - 98
   // deja sitio encima del anillo orbital (1,42·R) para los % de subida/bajada
   const cy = Math.min(Math.max(1.42 * R + 72, TOP + colH / 2), py - R - 30)
+  // Satélite de arbitraje: debajo de la última fila y de la esfera (ningún haz baja de ahí),
+  // a la izquierda de la plataforma; el río crece lo justo para que quepa.
+  sat = { x: CX - 268, y: Math.max(TOP + colH, cy + R) + 52 }
+  H = Math.max(H, sat.y + SAT_R + 30)
 
   const syn = synthesis
   const b = syn?.bias ?? 0
@@ -141,6 +154,9 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   const sphere = `<canvas class="hsphere" aria-hidden="true" data-color="${esc(rc)}" data-fill="${fill.toFixed(3)}" style="left:${pct(CX - S, W)};` +
     `top:${pct(cy - S, H)};width:${pct(2 * S, W)};height:${pct(2 * S, H)}"></canvas>`
   if (selected === CORE_ID) tip = `<div class="tip tip-core" style="left:50%;top:2%" role="dialog">${coreTip(syn, reports)}</div>`
+  if (selected === ARB_ID) {
+    tip = `<div class="tip tip-arb" style="left:${pct(sat.x, W)};bottom:${pct(H - sat.y + SAT_R + 18, H)}" role="dialog">${arbTip()}</div>`
+  }
   const dis = disagreeing(reports)
   el.style.setProperty('--rt', Math.abs(b) < THRESH ? 'transparent' : mainCol)
   el.innerHTML = `<div class="river-head"><h3>Río de decisión</h3>` +
@@ -151,6 +167,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     `<defs>${holoDefs(rc)}</defs>` +
     platform(CX, py, rc) + core(CX, cy, R, py, rc) + deco +
     left.map((r, k) => node(r, k, left, true)).join('') + right.map((r, k) => node(r, k, right, false)).join('') +
+    arbSatellite(sat.x, sat.y, selected === ARB_ID) +
     `<text x="${CX}" y="${H - 34}" text-anchor="middle" class="rbig" style="fill:${mainCol}">${esc(verdict)}</text>` +
     `<text x="${CX}" y="${H - 12}" text-anchor="middle" class="rv">sesgo ${syn ? sg(b) : '—'} · confianza ${syn ? Math.round(syn.confidence * 100) : 0}% · ` +
     `acuerdo ${syn ? Math.round(syn.agreement * 100) : 0}% · ` +
@@ -164,4 +181,15 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     `<small>proyección estimada${tf ? ` · ${esc(tf)}` : ''} · clic: síntesis</small>` +
     `</div>${tip}</div>`
   animateSphere(el)
+}
+
+/** Escaneo nuevo de arbitraje (REST/WS): repinta solo el satélite y su tooltip, sin reiniciar
+ * la animación de la esfera central. */
+export function refreshArbitrage(el: HTMLElement, p: ArbPayload): void {
+  setArbData(p)
+  const g = el.querySelector('g.arb-sat')
+  if (!g) return // el río aún no se dibujó: tomará el dato en su próximo render
+  g.outerHTML = arbSatellite(sat.x, sat.y, selected === ARB_ID)
+  const t = el.querySelector('.tip-arb')
+  if (t) t.innerHTML = arbTip()
 }

@@ -5,7 +5,7 @@ import './setups.css'
 import './arb.css'
 import { fetchAgents, fetchAsofs, fetchJournal, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
-import { renderRiver } from './river'
+import { refreshArbitrage, renderRiver } from './river'
 import { latestPerAgent, renderJournal } from './panels'
 import { mountLayerBar, showCard } from './layers_ui'
 import { ScenarioPanel } from './scenarios_ui'
@@ -53,7 +53,8 @@ const risk = new RiskPanel($('t-plan'), () => ({ symbol, tf }))
 const operation = new OperationPanel($('t-op'))
 const sim = new TradeSimulator($('simbar'), chart)
 const setups = new SetupsPanel($('setups'), (x) => sim.apply(x))
-const arb = new ArbPanel($('t-arb'), $('tab-arb')) // independiente del par/marco (T39)
+// independiente del par/marco (T39); cada escaneo también repinta el satélite del río
+const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('river'), p))
 chart.layers.modeLabel = MODE_LABEL[mode]
 mountLayerBar($('layerbar'), chart.layers)
 chart.chart.subscribeCrosshairMove((p) => {

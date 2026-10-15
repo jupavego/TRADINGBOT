@@ -14,7 +14,8 @@ export class ArbPanel {
   private f = { strategy: 'all', asset: 'all', show: 'all' as Show, minBps: '' }
   private seenAlerts = new Set<string>()
 
-  constructor(private readonly el: HTMLElement, private readonly tab: HTMLElement | null) {
+  constructor(private readonly el: HTMLElement, private readonly tab: HTMLElement | null,
+    private readonly onData?: (p: ArbPayload) => void) {
     el.addEventListener('click', (e) => {
       const t = e.target as HTMLElement
       if (t.closest('#arb-reload')) { void this.reload(); return }
@@ -46,6 +47,7 @@ export class ArbPanel {
   push(p: ArbPayload): void {
     this.data = p
     this.skew = p.now - Date.now()
+    this.onData?.(p) // satélite del río de decisión
     this.paintTab()
     this.render()
   }
