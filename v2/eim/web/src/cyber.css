@@ -35,7 +35,7 @@
 @keyframes cy-sweep { to { transform: translateY(calc(100vh + 140px)); } }
 
 /* Paneles de vidrio con esquinas de HUD */
-:root[data-theme="cyber"] :is(.hero, .chart-wrap, .bottom, .more) {
+:root[data-theme="cyber"] :is(.chart-wrap, .bottom, .more) {
   border: 1px solid rgba(var(--glow), .22); border-radius: var(--radius);
   background:
     linear-gradient(var(--hud), var(--hud)) top left / 18px 2px no-repeat,
@@ -106,21 +106,11 @@
 }
 
 /* Títulos y cifras */
-:root[data-theme="cyber"] :is(.sh, .river-head h3, .hero h3, .more h4, #t-log h4) {
+:root[data-theme="cyber"] :is(.sh, .river-head h3, .more h4, #t-log h4) {
   font-family: var(--f-display); font-size: 11px; letter-spacing: .22em; color: var(--accent);
   text-shadow: 0 0 8px rgba(var(--glow), .5);
 }
-:root[data-theme="cyber"] .hero-num b { text-shadow: 0 0 16px currentColor; }
-:root[data-theme="cyber"] .hero-num[data-t="up"] b { color: var(--up); }
-:root[data-theme="cyber"] .hero-num[data-t="down"] b { color: var(--down); }
-:root[data-theme="cyber"] .hero-num:not([data-t="up"]):not([data-t="down"]) b { color: var(--neutral); }
-
-/* Velocímetro y anillos: neón con neutral gris al centro */
-:root[data-theme="cyber"] #gg stop:nth-child(2) { stop-color: var(--neutral); }
-:root[data-theme="cyber"] .gauge path { filter: drop-shadow(0 0 6px rgba(var(--glow), .35)); }
-:root[data-theme="cyber"] .gauge line, :root[data-theme="cyber"] .gauge circle { filter: drop-shadow(0 0 4px rgba(var(--glow), .9)); }
-:root[data-theme="cyber"] .rf { filter: drop-shadow(0 0 3px rgba(var(--glow), .9)); }
-
+:root[data-theme="cyber"] :is(.kpi b, .rbig, .num, .metrics td:last-child) { font-family: var(--f-num); }
 
 /* Chips del río: compra / neutral / venta */
 :root[data-theme="cyber"] .c { background: rgba(4, 10, 19, .6); font-family: var(--f-num); }

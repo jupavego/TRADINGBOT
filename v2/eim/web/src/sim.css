@@ -35,8 +35,8 @@
 .sim-pick { padding: 4px 9px; font-family: system-ui, sans-serif !important; font-size: 15px !important; line-height: 1; }
 .sim-pick[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
 .simbar[data-picking="true"] ~ .chart-wrap { cursor: crosshair; outline: 1px dashed var(--accent); }
-.sim-pcts { display: flex; align-items: center; gap: 8px; }
-.sim-pcts input { flex: 1; accent-color: var(--accent); }
+.sim-pcts { display: flex; align-items: center; gap: 4px 8px; flex-wrap: wrap; min-width: 0; }
+.sim-pcts input { flex: 1 1 120px; min-width: 0; accent-color: var(--accent); }
 .sim-pcts b { font-weight: 500; font-size: 11px; white-space: nowrap; }
 
 .sim-out { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }

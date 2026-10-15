@@ -1,13 +1,12 @@
 import { orb } from './agent_orbs'
-import { calendarDetail } from './calendar_ui'
 import { agentName, esc } from './panels'
 import { core, hexPath, holoDefs, platform } from './river_holo'
 import { animateSphere } from './river_sphere'
-import { PCT_NOTE, upDown } from './synth'
-import { rememberOpenFamilies, technicalDetail } from './technical_ui'
+import { agentTip, CORE_ID, coreTip, sg, THRESH, tint } from './river_tips'
+import { disagreeing, PCT_NOTE, upDown } from './synth'
+import { rememberOpenFamilies } from './technical_ui'
 import type { AgentInfo, AgentReport, Synthesis } from './types'
 
-const THRESH = 0.1 // |sesgo| mínimo para teñir de verde/rojo
 const W = 1200, CX = W / 2, NR = 21, ROW = 52, R = 104, TOP = 54
 
 let selected: string | null = null // agente con tooltip abierto
@@ -15,38 +14,7 @@ let ctx: { infos: AgentInfo[]; reports: AgentReport[]; synthesis: Synthesis | nu
 let keyBound = false
 let tip = ''
 
-const STATUS: Record<string, string> = { ok: 'OK', degraded: 'Degradado', no_data: 'Sin datos' }
-const fmt = (v: unknown): string =>
-  typeof v === 'number' ? String(Math.round(v * 1e4) / 1e4)
-    : typeof v === 'object' && v !== null ? JSON.stringify(v).slice(0, 80) : String(v)
-
-/** Contenido del tooltip de un agente a partir de su último reporte. */
-function tipHtml(r: AgentReport | undefined, id: string): string {
-  const head = `<div class="tip-h"><b>${esc(agentName(id))}</b><button data-close aria-label="Cerrar">×</button></div>`
-  if (!r) return `${head}<p class="muted">Aún sin reporte: se ejecuta al cerrar la próxima vela.</p>`
-  const dir = Math.abs(r.bias) < THRESH ? 'Neutral' : r.bias > 0 ? 'Compra' : 'Venta'
-  const ev = r.evidence.slice(0, 4).map((e) => `<li>${esc(e)}</li>`).join('')
-  const wn = r.warnings.map((w) => `<li>${esc(w)}</li>`).join('')
-  const mt = Object.entries(r.metrics).slice(0, 6)
-    .map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(fmt(v))}</td></tr>`).join('')
-  return head +
-    `<div class="tip-k"><span class="chip" data-s="${esc(r.status)}">${esc(STATUS[r.status] ?? r.status)}</span>` +
-    `<b style="color:${tint(r.bias)}">${dir} ${sg(r.bias)}</b><span class="muted">confianza ${Math.round(r.confidence * 100)}% · ${r.horizon_bars} velas</span></div>` +
-    (ev ? `<ul class="ev">${ev}</ul>` : '') + (wn ? `<ul class="warn">${wn}</ul>` : '') +
-    (r.agent_id === 'technical' ? technicalDetail(r.metrics) : r.agent_id === 'calendar' ? calendarDetail(r.metrics)
-      : mt ? `<table class="metrics">${mt}</table>` : '') +
-    `<p class="muted">v${esc(r.version)} · ${new Date(r.asof).toISOString().slice(0, 16).replace('T', ' ')} UTC</p>`
-}
-
 type Row = { id: string; bias: number; conf: number; live: boolean }
-
-/** Color de un sesgo: gris (neutro) → verde/rojo según intensidad. */
-const tint = (b: number, k = 1): string =>
-  Math.abs(b) < THRESH
-    ? 'var(--muted)'
-    : `color-mix(in srgb, var(--${b > 0 ? 'up' : 'down'}) ${Math.round(Math.min(1, Math.abs(b) * k) * 45 + 55)}%, var(--panel))`
-
-const sg = (b: number): string => (b > 0 ? '+' : '') + b.toFixed(2)
 
 /** Pulsos de luz (cabeza brillante + estela) que recorren un haz hasta la esfera. */
 function pulses(pathId: string, n: number, dur: number, r: number, col: string): string {
@@ -139,7 +107,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     if (r.id === selected) {
       const pos = `left:${Math.min(80, Math.max(20, (nx / W) * 100 + s * 14)).toFixed(1)}%;` +
         (y < H / 2 ? `top:${(((y + NR + 10) / H) * 100).toFixed(1)}%` : `bottom:${(((H - y + NR + 10) / H) * 100).toFixed(1)}%`)
-      tip = `<div class="tip" style="${pos}" role="dialog">${tipHtml(byId.get(r.id), r.id)}</div>`
+      tip = `<div class="tip" style="${pos}" role="dialog">${agentTip(byId.get(r.id), r.id, synthesis)}</div>`
     }
     const lx = nx + s * (NR + 11), anchor = isLeft ? 'start' : 'end'
     const bw = 92, bx = isLeft ? lx : lx - bw
@@ -171,22 +139,28 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   const pct = (v: number, of: number): string => `${((v / of) * 100).toFixed(3)}%`
   const sphere = `<canvas class="hsphere" aria-hidden="true" data-color="${esc(rc)}" data-fill="${fill.toFixed(3)}" style="left:${pct(CX - S, W)};` +
     `top:${pct(cy - S, H)};width:${pct(2 * S, W)};height:${pct(2 * S, H)}"></canvas>`
+  if (selected === CORE_ID) tip = `<div class="tip tip-core" style="left:50%;top:2%" role="dialog">${coreTip(syn, reports)}</div>`
+  const dis = disagreeing(reports)
   el.style.setProperty('--rt', Math.abs(b) < THRESH ? 'transparent' : mainCol)
   el.innerHTML = `<div class="river-head"><h3>Río de decisión</h3>` +
-    `<span class="chips"><i class="c up">${ups} compra</i><i class="c flat">${flat} neutral</i><i class="c down">${downs} venta</i></span></div>` +
+    `<span class="chips"><i class="c up">${ups} compra</i><i class="c flat">${flat} neutral</i><i class="c down">${downs} venta</i>` +
+    (dis ? '<i class="c warn" title="Agentes con convicción en direcciones opuestas: ver la esfera">⚠ se contradicen</i>' : '') +
+    '</span></div>' +
     `<div class="rsvg"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(verdict)}: ${ups} agentes en verde, ${downs} en rojo">` +
     `<defs>${holoDefs(rc)}</defs>` +
     platform(CX, py, rc) + core(CX, cy, R, py, rc) + deco +
     left.map((r, k) => node(r, k, left, true)).join('') + right.map((r, k) => node(r, k, right, false)).join('') +
     `<text x="${CX}" y="${H - 34}" text-anchor="middle" class="rbig" style="fill:${mainCol}">${esc(verdict)}</text>` +
-    `<text x="${CX}" y="${H - 12}" text-anchor="middle" class="rv">sesgo ${syn ? sg(b) : '—'} · acuerdo ${syn ? Math.round(syn.agreement * 100) : 0}% · ` +
+    `<text x="${CX}" y="${H - 12}" text-anchor="middle" class="rv">sesgo ${syn ? sg(b) : '—'} · confianza ${syn ? Math.round(syn.confidence * 100) : 0}% · ` +
+    `acuerdo ${syn ? Math.round(syn.agreement * 100) : 0}% · ` +
     `${live.length} de ${n} agentes con datos</text>` +
-    `</svg>${sphere}<div class="rcore" style="left:${pct(CX, W)};top:${pct(cy, H)}" title="${esc(PCT_NOTE)}">` +
+    `</svg>${sphere}<div class="rcore${selected === CORE_ID ? ' sel' : ''}" data-id="${CORE_ID}" role="button" tabindex="0" ` +
+    `aria-label="Síntesis: ver detalles" style="left:${pct(CX, W)};top:${pct(cy, H)}" title="${esc(PCT_NOTE)}">` +
     (split
       ? `<b class="pu${split.up > split.down ? ' lead' : ''}" style="color:${tint(1)}">▲ ${split.up}%<i>subida</i></b>` +
         `<b class="pd${split.down > split.up ? ' lead' : ''}" style="color:${tint(-1)}">▼ ${split.down}%<i>bajada</i></b>`
       : '<b>—<i>sin señal</i></b>') +
-    `<small>proyección estimada${tf ? ` · ${esc(tf)}` : ''}</small>` +
+    `<small>proyección estimada${tf ? ` · ${esc(tf)}` : ''} · clic: síntesis</small>` +
     `</div>${tip}</div>`
   animateSphere(el)
 }

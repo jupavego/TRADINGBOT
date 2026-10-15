@@ -5,7 +5,7 @@ import './setups.css'
 import { fetchAgents, fetchAsofs, fetchJournal, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { renderRiver } from './river'
-import { latestPerAgent, renderJournal, renderSynth } from './panels'
+import { latestPerAgent, renderJournal } from './panels'
 import { mountLayerBar, showCard } from './layers_ui'
 import { ScenarioPanel } from './scenarios_ui'
 import { CalibrationPanel } from './calibration_ui'
@@ -83,7 +83,6 @@ function paintPrice(c: Candle): void {
 }
 
 function paintAgents(): void {
-  renderSynth($('synth'), latest, synthesis)
   renderRiver($('river'), infos, latest, synthesis, tf)
   renderJournal($('journal'), journal)
 }
