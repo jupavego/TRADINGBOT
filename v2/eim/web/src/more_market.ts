@@ -2,7 +2,7 @@
 import { LineSeries, LineStyle, type UTCTimestamp } from 'lightweight-charts'
 import { PriceChart } from './chart'
 import { cssVar } from './theme'
-import { esc, fmt, getMore, sourceLine, type Json } from './more_api'
+import { esc, fmt, focusAssets, getMore, sourceLine, type Json } from './more_api'
 
 export interface Ctx { symbol: string; tf: string }
 
@@ -104,7 +104,7 @@ export async function vwapView(el: HTMLElement, ctx: Ctx): Promise<void> {
 }
 
 export async function multiAssetView(el: HTMLElement): Promise<void> {
-  const { assets } = await getMore('assets', {})
+  const assets = focusAssets((await getMore('assets', {})).assets)
   el.innerHTML = `<div class="mrow"><label>Activo <select id="ma-a">${assets.map((a: Json) =>
     `<option value="${esc(a.key)}">${esc(a.label)}</option>`).join('')}</select></label>
     <label>Marco <select id="ma-t"></select></label><span id="ma-src" class="msrc"></span></div>

@@ -1,4 +1,6 @@
 /** Cliente de los endpoints `/v2/more/*` ("Más análisis") y utilidades de formato. */
+import { HIDDEN_ASSETS, SYMBOLS } from './api'
+
 const base = (): string =>
   (import.meta.env.VITE_API_URL as string | undefined) ?? `http://${location.hostname}:8000`
 
@@ -33,3 +35,9 @@ export const day = (ms: number): string => new Date(ms).toISOString().slice(0, 1
 
 export const sourceLine = (source: string, cov?: { start: string; end: string } | null): string =>
   `Fuente — ${esc(source)}${cov ? ` · cobertura ${esc(cov.start.slice(0, 10))} → ${esc(cov.end.slice(0, 10))}` : ''}`
+
+/** Activos de contexto sin los que están fuera de foco (p. ej. ETHUSDT); el activo en foco primero. */
+export function focusAssets(xs: Json[]): Json[] {
+  return xs.filter((a) => !HIDDEN_ASSETS.has(String(a.key)))
+    .sort((a, b) => Number(b.key === SYMBOLS[0]) - Number(a.key === SYMBOLS[0]))
+}

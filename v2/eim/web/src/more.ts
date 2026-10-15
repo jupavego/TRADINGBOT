@@ -10,7 +10,7 @@ const TABS: [string, string][] = [
 
 export class MoreView {
   private tab = 'backtest'
-  private ctx: Ctx = { symbol: 'ETHUSDT', tf: '1h' }
+  private ctx: Ctx = { symbol: 'BTCUSDT', tf: '1h' }
   private open = false
 
   constructor(private root: HTMLElement) {

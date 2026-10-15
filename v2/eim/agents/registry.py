@@ -41,9 +41,12 @@ class AgentRegistry:
         return [self.get(i) for i in self.ids()]
 
 
-def default_registry() -> AgentRegistry:
-    """Registro con los agentes disponibles (cada tarea nueva añade el suyo aquí)."""
+def default_registry(arb_assets: tuple[str, ...] | None = None) -> AgentRegistry:
+    """Registro con los agentes disponibles (cada tarea nueva añade el suyo aquí).
+
+    `arb_assets` limita los activos del agente de arbitraje (foco); None = los del motor."""
     from eim.agents.arbitrage import ArbitrageAgent
+    from eim.agents.arbitrage.params import ArbAgentParams
     from eim.agents.calendar import CalendarAgent
     from eim.agents.context import ContextAgent
     from eim.agents.derivatives import DerivativesAgent
@@ -64,6 +67,14 @@ def default_registry() -> AgentRegistry:
     for agent in (StructureAgent(), EMAAgent(), VWAPAgent(), PriceActionAgent(),
                   ElliottAgent(), SeasonalityAgent(), LiquidationsAgent(), LevelsAgent(),
                   DerivativesAgent(), MicrostructureAgent(), RegimeAgent(), ContextAgent(),
-                  TechnicalAgent(), CalendarAgent(), ArbitrageAgent(), PlanAgent()):
+                  TechnicalAgent(), CalendarAgent(), _arb(ArbitrageAgent, ArbAgentParams,
+                                                          arb_assets), PlanAgent()):
         reg.register(agent)
     return reg
+
+
+def _arb(agent_cls, params_cls, assets: tuple[str, ...] | None):
+    if assets is None:
+        return agent_cls()
+    base = params_cls()
+    return agent_cls(params_cls(engine=base.engine.model_copy(update={"assets": assets})))

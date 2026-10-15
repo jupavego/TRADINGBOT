@@ -341,3 +341,5 @@ td[data-sign="-1"] { color: var(--down); }
 .river .rcore { cursor: pointer; }
 .river .rcore.sel b { text-shadow: 0 0 12px currentColor; }
 .c.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+/* Activo en foco (etiqueta fija cuando la UI sigue un solo símbolo) */
+.sym-focus { font-weight: 600; letter-spacing: .04em; padding: 5px 10px; border: 1px solid var(--line); border-radius: 8px; white-space: nowrap; }

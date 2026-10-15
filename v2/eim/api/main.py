@@ -62,7 +62,7 @@ def create_app(
     cfg = settings or Settings.from_env()
     store = Store(cfg.data_dir)
     reports = ReportStore(cfg.reports_path)
-    reg = registry or default_registry()
+    reg = registry or default_registry(arb_assets=cfg.arb_assets)
     src = source or BinanceKlineSource(cfg.ws_url, cfg.reconnect_max_s)
     forecaster = Forecaster(store, reports)
     if history is None and source is None and cfg.auto_history:  # en vivo: historia automática
@@ -88,9 +88,11 @@ def create_app(
     calendar = (CalendarSync(cfg.data_dir, interval_s=cfg.calendar_interval_s)
                 if source is None and cfg.calendar else None)
     # T39: escáner de arbitraje, también solo en vivo; la fotografía va a data/arbitrage/.
-    arb_sync = (ArbSync(cfg.data_dir, interval_s=cfg.arbitrage_interval_s)
+    arb_sync = (ArbSync(cfg.data_dir, interval_s=cfg.arbitrage_interval_s, assets=cfg.arb_assets,
+                        tri_assets=cfg.arb_tri_assets)
                 if source is None and cfg.arbitrage else None)
-    arb_desk = ArbDesk(ArbStore(cfg.data_dir), alerts=AlertParams(
+    arb_agent = reg.get("arbitrage") if "arbitrage" in reg.ids() else None  # mismo foco
+    arb_desk = ArbDesk(ArbStore(cfg.data_dir), agent=arb_agent, alerts=AlertParams(
         min_score=cfg.arb_alert_score, hold_s=cfg.arb_alert_hold_s))
     # T47: bróker simulado; base propia y servicio en vivo solo con la fuente real.
     paper_store = PaperStore(cfg.data_dir / "paper.duckdb")

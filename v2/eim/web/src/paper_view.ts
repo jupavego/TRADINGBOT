@@ -1,5 +1,5 @@
 /** Vista «Bróker simulado» (T47): cuentas de papel por perfil, estilo panel de futuros. */
-import { fetchSnapshot, openStream, SYMBOLS, type StreamHandle } from './api'
+import { fetchSnapshot, openStream, symbolPicker, type StreamHandle } from './api'
 import { balanceView } from './paper_balance'
 import { EquityChart, PaperPriceChart, PROFILE_VAR } from './paper_chart'
 import { esc, getPaper, nf, pct, pct0, postPaper, px, usd, utc } from './paper_fmt'
@@ -19,7 +19,7 @@ const TEMPLATE = `
 <header class="pp-head">
   <h2 class="pp-title">Bróker simulado</h2>
   <span class="mode" data-mode="SIMULADO">Modo: Simulado · papel, sin órdenes reales</span>
-  <select data-k="symbol" aria-label="Activo">${SYMBOLS.map((s) => `<option>${s}</option>`).join('')}</select>
+  ${symbolPicker('data-k="symbol"')}
   <span class="pp-perp">Perpetuo USDT-M</span>
   <b class="price num" data-x="price">—</b>
   <span class="spacer"></span>
@@ -79,7 +79,7 @@ export class PaperView {
     this.learn = new PaperLearn(this.bodies.learn)
     this.chart = new PaperPriceChart(this.q('pc'))
     this.eq = new EquityChart(this.q('eq'), this.q('eqleg'))
-    this.root.querySelector<HTMLSelectElement>('[data-k="symbol"]')!.value = this.symbol
+    this.pickSymbol()
     this.root.addEventListener('click', (e) => this.onClick(e.target as HTMLElement))
     this.root.addEventListener('change', (e) => this.onChange(e.target as HTMLSelectElement))
     this.markTabs()
@@ -92,9 +92,14 @@ export class PaperView {
     if (!show) { this.stream?.close(); this.stream = null; clearInterval(this.timer); return }
     if (!this.chart) this.build()
     if (symbol && symbol !== this.symbol && !this.v) this.symbol = symbol
-    this.root.querySelector<HTMLSelectElement>('[data-k="symbol"]')!.value = this.symbol
+    this.pickSymbol()
     void this.loadAll()
     this.timer = window.setInterval(() => void this.reload(), POLL_MS)
+  }
+
+  private pickSymbol(): void {
+    const sel = this.root.querySelector<HTMLSelectElement>('select[data-k="symbol"]')
+    if (sel) sel.value = this.symbol
   }
 
   restyle(): void { this.chart?.restyle(); this.eq?.restyle(); if (this.v) this.paintAll() }
