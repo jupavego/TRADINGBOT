@@ -56,6 +56,11 @@
       ],
       "cwd": "v2",
       "port": 8000
+    },
+    {
+      "name": "eim-v2-api-running",
+      "url": "http://127.0.0.1:8000",
+      "port": 8000
     }
   ]
 }

@@ -77,7 +77,8 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   const colH = (per - 1) * ROW
   const H = Math.max(460, TOP + colH + 60)
   const py = H - 98
-  const cy = Math.min(Math.max(TOP + R + 8, TOP + colH / 2), py - R - 30)
+  // deja sitio encima del anillo orbital (1,42·R) para los % de subida/bajada
+  const cy = Math.min(Math.max(1.42 * R + 72, TOP + colH / 2), py - R - 30)
 
   const syn = synthesis
   const b = syn?.bias ?? 0
@@ -155,7 +156,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     `acuerdo ${syn ? Math.round(syn.agreement * 100) : 0}% · ` +
     `${live.length} de ${n} agentes con datos</text>` +
     `</svg>${sphere}<div class="rcore${selected === CORE_ID ? ' sel' : ''}" data-id="${CORE_ID}" role="button" tabindex="0" ` +
-    `aria-label="Síntesis: ver detalles" style="left:${pct(CX, W)};top:${pct(cy, H)}" title="${esc(PCT_NOTE)}">` +
+    `aria-label="Síntesis: ver detalles" style="left:${pct(CX, W)};top:${pct(cy - 1.42 * R - 6, H)}" title="${esc(PCT_NOTE)}">` +
     (split
       ? `<b class="pu${split.up > split.down ? ' lead' : ''}" style="color:${tint(1)}">▲ ${split.up}%<i>subida</i></b>` +
         `<b class="pd${split.down > split.up ? ' lead' : ''}" style="color:${tint(-1)}">▼ ${split.down}%<i>bajada</i></b>`
