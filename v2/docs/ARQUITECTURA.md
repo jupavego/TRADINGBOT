@@ -29,9 +29,10 @@ Binance (REST/WS)  ──► data/ (proveedores + almacén parquet/DuckDB)
 | Paquete | Responsabilidad | Regla clave |
 |---|---|---|
 | `core` | Contratos pydantic: `MarketSnapshot`, `AgentReport`, velas, overlays | Fuente única de tipos |
-| `data` | Proveedores (`providers/`: Binance, liquidaciones, multi-activo, noticias, contexto Claude, calendario oficial Fed/BLS/BEA + FRED), almacén (`store.py`, parquet + DuckDB), `snapshot.py`, `sync.py`, `calendar.py` (calendario point-in-time) + `calendar_sync.py`, `collectors/`, **`backup.py`** | **Todo el I/O vive aquí** |
+| `data` | Proveedores (`providers/`: Binance, liquidaciones, multi-activo, noticias, contexto Claude, calendario oficial Fed/BLS/BEA + FRED), almacén (`store.py`, parquet + DuckDB), `snapshot.py`, `sync.py`, `calendar.py` (calendario point-in-time) + `calendar_sync.py`, `arb_market.py` (fotografía de arbitraje: spot + USDⓈ-M/USDC-M, `providers/binance_arb.py`), `collectors/`, **`backup.py`** | **Todo el I/O vive aquí** |
 | `agents/<id>` | 15 analizadores: structure, ema, vwap, price_action, elliott, seasonality, liquidations, levels, derivatives, microstructure, regime, context, technical, calendar (riesgo de evento, `bias=0`), plan. Registro en `agents/registry.py` | Funciones puras sobre el snapshot (sin red/disco/estado) |
 | `indicators` | Biblioteca de indicadores técnicos (numpy puro) | Sin I/O |
+| `arbitrage` | Oportunidades netas dentro de Binance (T38): carry de funding, base/cash-and-carry, triangular (informativo), USDT-M vs USDC-M; selector; CLI `python -m eim.arbitrage.cli` | Puro sobre `ArbMarket`; sin desglose de costos no hay oportunidad; sin ejecución (T45) |
 | `forecast` | Motor de trayectorias (`base_engine`, `kronos_engine` opcional), escenarios, techo/piso, calibración | Siempre probabilístico: 3 escenarios + bandas; velas «simuladas» |
 | `synthesis` | Agrega reportes en una tesis con desacuerdo | |
 | `backtest` | VRM (migrado del legado) + simulador de perpetuos con costos, `edge.py` (puerta T27) | |

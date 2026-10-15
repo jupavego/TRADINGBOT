@@ -1,6 +1,8 @@
 """Contratos de datos EIM (ver PLAN/CONTRATOS.md)."""
 
 from eim.core.agent import Agent
+from eim.core.arb_market import ArbMarket, FuturesContract, PremiumInfo, SpotPair
+from eim.core.arbitrage import ArbScan, CostModel, Costs, Fill, Leg, Opportunity, Risk
 from eim.core.events import EconEvent
 from eim.core.forecast import ForecastSet, Scenario, Synthesis
 from eim.core.market import (
@@ -21,10 +23,17 @@ MarketSnapshot.model_rebuild()
 __all__ = [
     "Agent",
     "AgentReport",
+    "ArbMarket",
+    "ArbScan",
     "Book",
     "Candle",
+    "CostModel",
+    "Costs",
     "EconEvent",
+    "Fill",
     "ForecastSet",
+    "FuturesContract",
+    "Leg",
     "LiquidationDay",
     "LiquidationLevel",
     "Liquidations",
@@ -32,7 +41,11 @@ __all__ = [
     "MicroBar",
     "Mode",
     "NewsItem",
+    "Opportunity",
     "Overlay",
+    "PremiumInfo",
+    "Risk",
     "Scenario",
+    "SpotPair",
     "Synthesis",
 ]

@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "eim-web",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "v2/.venv/Scripts/python.exe",
       "runtimeArgs": [
         "-m",
         "uvicorn",
