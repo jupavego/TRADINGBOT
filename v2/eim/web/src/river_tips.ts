@@ -1,3 +1,4 @@
+import { arbDetail } from './arb_view'
 import { calendarDetail } from './calendar_ui'
 import { agentName, esc } from './panels'
 import { disagreeing, PCT_NOTE, shares, upDown } from './synth'
@@ -41,7 +42,7 @@ const pbar = (p: number, dir: number): string =>
 
 /** Aporte del agente a la proyección de la síntesis (o por qué no aporta). */
 function share(id: string, syn: Synthesis | null): string {
-  if (id === 'calendar') return '<span class="muted">no direccional (no suma a la proyección)</span>'
+  if (id === 'calendar' || id === 'arbitrage') return '<span class="muted">no direccional (no suma a la proyección)</span>'
   if (!syn || !(id in syn.contributions)) return '<span class="muted">fuera de la síntesis</span>'
   const s = shares(syn)?.find((x) => x.id === id)
   if (!s || !s.dir) return '<b>0 %</b> <span class="muted">· neutral</span>'
@@ -63,7 +64,7 @@ export function agentTip(r: AgentReport | undefined, id: string, syn: Synthesis 
     `<div class="tip-share"><span class="muted">Aporte a la proyección</span>${share(id, syn)}</div>` +
     (ev ? `<ul class="ev">${ev}</ul>` : '') + (wn ? `<ul class="warn">${wn}</ul>` : '') +
     (r.agent_id === 'technical' ? technicalDetail(r.metrics) : r.agent_id === 'calendar' ? calendarDetail(r.metrics)
-      : mt ? `<table class="metrics">${mt}</table>` : '') +
+      : r.agent_id === 'arbitrage' ? arbDetail(r.metrics) : mt ? `<table class="metrics">${mt}</table>` : '') +
     `<p class="muted">v${esc(r.version)} · ${new Date(r.asof).toISOString().slice(0, 16).replace('T', ' ')} UTC</p>`
 }
 

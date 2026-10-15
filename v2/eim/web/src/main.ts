@@ -2,6 +2,7 @@ import './style.css'
 import './cyber.css'
 import './sim.css'
 import './setups.css'
+import './arb.css'
 import { fetchAgents, fetchAsofs, fetchJournal, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { renderRiver } from './river'
@@ -15,6 +16,7 @@ import { RiskPanel } from './risk_ui'
 import { OperationPanel } from './operation_ui'
 import { TradeSimulator } from './sim_ui'
 import { SetupsPanel } from './setups_ui'
+import { ArbPanel } from './arb_ui'
 import { applyTheme, initialTheme, nextTheme, THEME_LABEL, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
 
@@ -51,6 +53,7 @@ const risk = new RiskPanel($('t-plan'), () => ({ symbol, tf }))
 const operation = new OperationPanel($('t-op'))
 const sim = new TradeSimulator($('simbar'), chart)
 const setups = new SetupsPanel($('setups'), (x) => sim.apply(x))
+const arb = new ArbPanel($('t-arb'), $('tab-arb')) // independiente del par/marco (T39)
 chart.layers.modeLabel = MODE_LABEL[mode]
 mountLayerBar($('layerbar'), chart.layers)
 chart.chart.subscribeCrosshairMove((p) => {
@@ -146,6 +149,7 @@ function leaveReplay(): void {
 }
 
 function onMsg(m: StreamMsg): void {
+  if (m.type === 'arbitrage') { arb.push(m); return } // escáner: no depende de la reproducción
   if (replaying) return
   if (m.type === 'status') { state = m.state; paintLive() }
   else if (m.type === 'reports') {
@@ -228,6 +232,7 @@ function build(): void {
       tabs.forEach((x) => x.setAttribute('aria-selected', String(x === b)))
       document.querySelectorAll<HTMLElement>('.tabbody').forEach((p) => { p.hidden = p.id !== b.dataset.tab })
       if (b.dataset.tab === 't-op') void operation.reload()
+      if (b.dataset.tab === 't-arb') void arb.reload()
     }
   })
   const range = $<HTMLInputElement>('replay-range')
@@ -263,4 +268,5 @@ function build(): void {
 
 build()
 void load()
+void arb.reload()
 ;(window as unknown as { __eim: unknown }).__eim = { chart, layers: chart.layers, scen: chart.scen }

@@ -45,6 +45,8 @@ export const GLYPH: Record<string, string> = {
   // Calendario: hoja de calendario con un evento marcado
   calendar: '<rect x="13" y="15" width="22" height="20" rx="2"/><path d="M13 21h22M18 12v5M30 12v5"/>' +
     '<rect x="25" y="26" width="5" height="5" class="f"/>',
+  // Arbitraje: dos patas opuestas (compra / venta) entre dos mercados
+  arbitrage: '<path d="M13 19h20l-4-4M35 29H15l4 4"/><circle cx="24" cy="24" r="1.8" class="f"/>',
   // Plan: retícula de objetivo
   plan: '<circle cx="24" cy="24" r="9"/><circle cx="24" cy="24" r="3" class="f"/>' +
     '<path d="M24 10v6M24 32v6M10 24h6M32 24h6"/>',

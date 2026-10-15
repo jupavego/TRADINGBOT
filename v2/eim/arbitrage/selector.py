@@ -8,6 +8,8 @@ bajo el margen mínimo, liquidez insuficiente.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from eim.arbitrage.params import ArbParams
 from eim.core import Opportunity
 from eim.core.market import Frozen
@@ -18,9 +20,13 @@ class Ranked(Frozen):
     score: float  # pb por día ajustados por riesgo
 
 
+RejectCode = Literal["informative", "incomplete", "stale", "below_min", "illiquid"]
+
+
 class Rejected(Frozen):
     opportunity: Opportunity
     reason: str
+    code: RejectCode  # categoría estable del motivo (T39: resumen de descartes)
 
 
 class Selection(Frozen):
@@ -33,18 +39,18 @@ def score(o: Opportunity, p: ArbParams) -> float:
     return o.net_bps / days * (1.0 - p.risk_aversion * o.risk.penalty(p.risk_weights))
 
 
-def reject_reason(o: Opportunity, p: ArbParams, now: int) -> str | None:
+def reject_reason(o: Opportunity, p: ArbParams, now: int) -> tuple[RejectCode, str] | None:
     if o.strategy not in p.selectable:
-        return "informativa: estrategia fuera del alcance seleccionable (T33)"
+        return "informative", "informativa: estrategia fuera del alcance seleccionable (T33)"
     if not o.executable:
-        return "pata incompleta: el libro visible no cubre la cantidad"
+        return "incomplete", "pata incompleta: el libro visible no cubre la cantidad"
     if o.valid_until < now:
-        return "precio caducado"
+        return "stale", "precio caducado"
     if o.net_bps < p.min_net_bps:
-        return f"neto {o.net_bps:.1f} pb < mínimo {p.min_net_bps:g} pb"
+        return "below_min", f"neto {o.net_bps:.1f} pb < mínimo {p.min_net_bps:g} pb"
     if o.risk.liquidity > p.max_liquidity_risk:
-        return (f"liquidez insuficiente: consume {o.risk.liquidity:.0%} del libro visible "
-                f"(máx. {p.max_liquidity_risk:.0%})")
+        return "illiquid", (f"liquidez insuficiente: consume {o.risk.liquidity:.0%} del libro "
+                            f"visible (máx. {p.max_liquidity_risk:.0%})")
     return None
 
 
@@ -55,7 +61,7 @@ def select(opps: list[Opportunity], p: ArbParams, now: int | None = None) -> Sel
     for o in opps:
         why = reject_reason(o, p, o.asof if now is None else now)
         if why:
-            rejected.append(Rejected(opportunity=o, reason=why))
+            rejected.append(Rejected(opportunity=o, code=why[0], reason=why[1]))
         else:
             ranked.append(Ranked(opportunity=o, score=score(o, p)))
     ranked.sort(key=lambda r: r.score, reverse=True)

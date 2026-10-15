@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnec
 from fastapi.middleware.cors import CORSMiddleware
 
 from eim.agents.registry import AgentRegistry, default_registry
+from eim.api.arbitrage import ArbDesk, build_arbitrage_router
 from eim.api.backup import build_backup_router
 from eim.api.calibration import build_calibration_router
 from eim.api.config import Settings
@@ -25,6 +26,9 @@ from eim.api.security import BodyLimitMiddleware, LocalOnlyMiddleware, ws_token_
 from eim.api.setups import build_setups_router
 from eim.api.sources import BinanceKlineSource, LiveSource
 from eim.api.trades import build_trades_router
+from eim.arbitrage.alerts import AlertParams
+from eim.data.arb_store import ArbStore
+from eim.data.arb_sync import ArbSync
 from eim.data.calendar_sync import CalendarSync
 from eim.data.providers.binance import BinanceFutures
 from eim.data.snapshot import build_snapshot
@@ -80,6 +84,11 @@ def create_app(
     # T36: solo en vivo (con fuente inyectada —tests— no hay red).
     calendar = (CalendarSync(cfg.data_dir, interval_s=cfg.calendar_interval_s)
                 if source is None and cfg.calendar else None)
+    # T39: escáner de arbitraje, también solo en vivo; la fotografía va a data/arbitrage/.
+    arb_sync = (ArbSync(cfg.data_dir, interval_s=cfg.arbitrage_interval_s)
+                if source is None and cfg.arbitrage else None)
+    arb_desk = ArbDesk(ArbStore(cfg.data_dir), alerts=AlertParams(
+        min_score=cfg.arb_alert_score, hold_s=cfg.arb_alert_hold_s))
 
     def now_ms() -> int:
         return int(time.time() * 1000)
@@ -93,8 +102,11 @@ def create_app(
         else:
             task = None
         cal_task = asyncio.create_task(calendar.loop()) if calendar is not None else None
+        arb_task = (asyncio.create_task(arb_sync.loop(
+            lambda mkt: hub.broadcast_all(arb_desk.payload(mkt))))
+            if arb_sync is not None else None)
         yield
-        for t in (task, cal_task):
+        for t in (task, cal_task, arb_task):
             if t is not None:
                 t.cancel()
         await hub.close()
@@ -122,6 +134,8 @@ def create_app(
     app.include_router(build_setups_router(store, reports, lambda: [a.id for a in reg.latest()]))
     app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
+    app.include_router(build_arbitrage_router(arb_desk))
+    app.state.arb_desk = arb_desk
 
     @app.get("/v2/health")
     def health() -> dict:
@@ -137,7 +151,7 @@ def create_app(
         snap = build_snapshot(store, symbol, tf, n)
         if not snap.candles:
             raise HTTPException(404, f"sin velas almacenadas para {symbol} {tf}")
-        return snap.model_dump()
+        return snap.model_dump(exclude={"arb"})  # libros completos: /v2/arbitrage/*
 
     @app.get("/v2/agents")
     def agents(symbol: str = "ETHUSDT", tf: str = "1h") -> list[dict]:

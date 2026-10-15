@@ -1,4 +1,5 @@
 /** Tipos escritos a mano a partir de PLAN/CONTRATOS.md (solo lo que usa la UI base). */
+import type { ArbPayload } from './arb_types'
 
 export interface Candle { t: number; o: number; h: number; l: number; c: number; v: number }
 
@@ -39,6 +40,7 @@ export type StreamMsg =
   | { type: 'forecast'; forecast: ForecastSet }
   | { type: 'forecast_error'; detail: string }
   | { type: 'heartbeat'; t: number }
+  | ArbPayload
 
 export type AgentStatus = 'ok' | 'degraded' | 'no_data'
 

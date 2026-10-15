@@ -43,6 +43,7 @@ class AgentRegistry:
 
 def default_registry() -> AgentRegistry:
     """Registro con los agentes disponibles (cada tarea nueva añade el suyo aquí)."""
+    from eim.agents.arbitrage import ArbitrageAgent
     from eim.agents.calendar import CalendarAgent
     from eim.agents.context import ContextAgent
     from eim.agents.derivatives import DerivativesAgent
@@ -63,6 +64,6 @@ def default_registry() -> AgentRegistry:
     for agent in (StructureAgent(), EMAAgent(), VWAPAgent(), PriceActionAgent(),
                   ElliottAgent(), SeasonalityAgent(), LiquidationsAgent(), LevelsAgent(),
                   DerivativesAgent(), MicrostructureAgent(), RegimeAgent(), ContextAgent(),
-                  TechnicalAgent(), CalendarAgent(), PlanAgent()):
+                  TechnicalAgent(), CalendarAgent(), ArbitrageAgent(), PlanAgent()):
         reg.register(agent)
     return reg
