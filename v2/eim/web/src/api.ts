@@ -5,7 +5,15 @@ import type { ArbPayload } from './arb_types'
 export const base = (): string =>
   (import.meta.env.VITE_API_URL as string | undefined) ?? `http://${location.hostname}:8000`
 
-export const SYMBOLS = ['BTCUSDT', 'ETHUSDT'] as const
+/** Foco actual (2026-10-15): solo BTCUSDT. La API sigue admitiendo ETHUSDT, pero la UI no lo muestra. */
+export const SYMBOLS = ['BTCUSDT'] as const
+/** Activos fuera de foco que se ocultan también en las vistas de contexto (multi-activo, estacionalidad). */
+export const HIDDEN_ASSETS: ReadonlySet<string> = new Set(['ETHUSDT'])
+
+/** Selector de activo, o una etiqueta fija si solo hay uno en foco. */
+export const symbolPicker = (attrs: string): string => SYMBOLS.length > 1
+  ? `<select ${attrs} aria-label="Activo">${SYMBOLS.map((s) => `<option>${s}</option>`).join('')}</select>`
+  : `<span class="sym-focus" title="Activo en foco: el análisis y las proyecciones se concentran en él">${SYMBOLS[0]}</span>`
 export const TIMEFRAMES = ['15m', '1h', '4h'] as const
 
 export async function fetchSnapshot(

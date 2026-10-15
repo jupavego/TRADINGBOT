@@ -4,7 +4,7 @@ import './sim.css'
 import './setups.css'
 import './arb.css'
 import './paper.css'
-import { fetchAgents, fetchAsofs, fetchJournal, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
+import { fetchAgents, fetchAsofs, fetchJournal, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, symbolPicker, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { refreshArbitrage, renderRiver } from './river'
 import { latestPerAgent, renderJournal } from './panels'
@@ -217,9 +217,9 @@ async function load(): Promise<void> {
 }
 
 function build(): void {
-  const sel = $<HTMLSelectElement>('symbol')
-  sel.innerHTML = SYMBOLS.map((s) => `<option>${s}</option>`).join('')
-  sel.onchange = () => { symbol = sel.value; void load() }
+  $('symbol-box').innerHTML = symbolPicker('id="symbol"')
+  const sel = document.querySelector<HTMLSelectElement>('select#symbol')
+  if (sel) sel.onchange = () => { symbol = sel.value; void load() }
   const box = $('tfs')
   box.innerHTML = TIMEFRAMES.map((t) => `<button data-tf="${t}">${t}</button>`).join('')
   const mark = (): void =>

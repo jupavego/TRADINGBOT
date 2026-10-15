@@ -13,7 +13,7 @@ from eim.data.paper_store import PaperStore
 from eim.data.providers.base import Provider
 from eim.data.store import Store
 from eim.data.sync import sync_candles
-from eim.data.timeframes import SYMBOLS, tf_ms
+from eim.data.timeframes import FOCUS, tf_ms
 from eim.paper.balance import balance
 from eim.paper.book import ProfileState, run_profile
 from eim.paper.catalog import CATALOG, generate_ideas
@@ -60,7 +60,7 @@ class PaperDesk:
     def __init__(self, store: Store, pstore: PaperStore, registry: AgentRegistry | None = None,
                  exec_params: ExecParams | None = None,
                  profiles: tuple[ProfileParams, ...] = PROFILES, provider: Provider | None = None,
-                 symbols: tuple[str, ...] = SYMBOLS, poll_s: float = 60.0) -> None:
+                 symbols: tuple[str, ...] = FOCUS, poll_s: float = 60.0) -> None:
         self.store, self.pstore = store, pstore
         self.ep = exec_params or ExecParams()
         self.tf, self.bar = self.ep.timeframe, tf_ms(self.ep.timeframe)

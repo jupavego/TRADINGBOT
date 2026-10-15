@@ -1,4 +1,4 @@
-import { base, setKillSwitch } from './api'
+import { base, setKillSwitch, SYMBOLS } from './api'
 import { esc } from './panels'
 
 /** Pestaña Operación (T31): servicio continuo, posición, P&L, riesgo usado, vetos, alertas,
@@ -110,9 +110,12 @@ function alerts(o: Op): string {
   return head + sink + (list ? `<table class="log op-alerts"><tbody>${list}</tbody></table>` : '')
 }
 
+const inFocus = (sym: string): boolean => (SYMBOLS as readonly string[]).includes(sym)
+
 function vetoed(o: Op): string {
-  if (!o.vetoed.length) return '<p class="muted">Sin vetos en los últimos 7 días.</p>'
-  return '<table class="log"><tbody>' + o.vetoed.slice(0, 10).map((v) =>
+  const vs = o.vetoed.filter((v) => inFocus(v.symbol))   // solo el activo en foco
+  if (!vs.length) return '<p class="muted">Sin vetos en los últimos 7 días.</p>'
+  return '<table class="log"><tbody>' + vs.slice(0, 10).map((v) =>
     `<tr><td>${hhmm(v.t)}</td><td>${v.side > 0 ? 'Largo' : 'Corto'} ${esc(v.symbol)}</td>` +
     `<td class="muted">${esc(v.reasons.join(' · '))}</td></tr>`).join('') + '</tbody></table>'
 }

@@ -23,7 +23,7 @@ from eim.data.providers.base import Provider
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.sync import sync_candles
-from eim.data.timeframes import SYMBOLS, tf_ms
+from eim.data.timeframes import FOCUS, tf_ms
 from eim.execution.broker import BrokerError
 from eim.execution.sim_broker import SimBroker
 from eim.operation.alerts import AlertCenter, conditions
@@ -36,7 +36,7 @@ DAY_MS = 86_400_000
 
 @dataclass(frozen=True)
 class OperationParams:
-    symbols: tuple[str, ...] = SYMBOLS
+    symbols: tuple[str, ...] = FOCUS      # foco actual: solo BTCUSDT
     timeframe: str = "1h"                 # marco operado (el del backtest de T25/T27)
     path_tf: str = "15m"                  # marco que mueve el precio del simulador
     poll_s: float = 60.0
