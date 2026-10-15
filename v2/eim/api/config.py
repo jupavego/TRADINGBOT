@@ -26,7 +26,8 @@ class Settings:
     entre consultas) y EIM_FRED_API_KEY (opcional: valores reales; la lee `providers/fred.py`);
     EIM_ARBITRAGE=0 desactiva el escáner de arbitraje (T39), EIM_ARBITRAGE_S (segundos entre
     escaneos), EIM_ARB_ALERT_SCORE (umbral de alerta, pb/día ajustados) y EIM_ARB_ALERT_S
-    (segundos seguidos sobre el umbral antes de avisar)."""
+    (segundos seguidos sobre el umbral antes de avisar); EIM_PAPER=0 desactiva el servicio en vivo
+    del bróker simulado (T47) y EIM_PAPER_S fija los segundos entre ciclos."""
 
     data_dir: Path = Path("data")
     reports_db: Path | None = None
@@ -57,6 +58,8 @@ class Settings:
     arbitrage_interval_s: float = 10.0  # pausa entre escaneos (cada uno tarda ~1-2 s)
     arb_alert_score: float = 3.0
     arb_alert_hold_s: float = 60.0
+    paper: bool = False         # T47: bróker simulado en vivo (1 por defecto en from_env)
+    paper_poll_s: float = 60.0
     extra: dict[str, str] = field(default_factory=dict)
 
     @property
@@ -93,4 +96,6 @@ class Settings:
             arbitrage_interval_s=float(env.get("EIM_ARBITRAGE_S", d.arbitrage_interval_s)),
             arb_alert_score=float(env.get("EIM_ARB_ALERT_SCORE", d.arb_alert_score)),
             arb_alert_hold_s=float(env.get("EIM_ARB_ALERT_S", d.arb_alert_hold_s)),
+            paper=env.get("EIM_PAPER", "1") != "0",
+            paper_poll_s=float(env.get("EIM_PAPER_S", d.paper_poll_s)),
         )

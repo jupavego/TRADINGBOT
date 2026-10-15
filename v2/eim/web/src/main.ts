@@ -3,6 +3,7 @@ import './cyber.css'
 import './sim.css'
 import './setups.css'
 import './arb.css'
+import './paper.css'
 import { fetchAgents, fetchAsofs, fetchJournal, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { refreshArbitrage, renderRiver } from './river'
@@ -17,6 +18,7 @@ import { OperationPanel } from './operation_ui'
 import { TradeSimulator } from './sim_ui'
 import { SetupsPanel } from './setups_ui'
 import { ArbPanel } from './arb_ui'
+import { PaperView } from './paper_view'
 import { applyTheme, initialTheme, nextTheme, THEME_LABEL, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
 
@@ -55,6 +57,7 @@ const sim = new TradeSimulator($('simbar'), chart)
 const setups = new SetupsPanel($('setups'), (x) => sim.apply(x))
 // independiente del par/marco (T39); cada escaneo también repinta el satélite del río
 const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('river'), p))
+const paper = new PaperView($('paper')) // bróker simulado (T47): vista propia, modo Simulado
 chart.layers.modeLabel = MODE_LABEL[mode]
 mountLayerBar($('layerbar'), chart.layers)
 chart.chart.subscribeCrosshairMove((p) => {
@@ -256,15 +259,24 @@ function build(): void {
   paintTheme()
   themeBtn.onclick = () => {
     theme = nextTheme(theme)
-    applyTheme(theme); paintTheme(); chart.restyle(); more.restyle()
+    applyTheme(theme); paintTheme(); chart.restyle(); more.restyle(); paper.restyle()
   }
-  const mb = $<HTMLButtonElement>('more-btn')
-  mb.onclick = () => {
-    const on = mb.getAttribute('aria-pressed') !== 'true'
-    mb.setAttribute('aria-pressed', String(on))
-    mb.textContent = on ? 'Volver a la mesa' : 'Más análisis'
-    more.toggle(on)
+  const mb = $<HTMLButtonElement>('more-btn'), pb = $<HTMLButtonElement>('paper-btn')
+  // Vistas de pantalla completa: Más análisis y Bróker simulado (una a la vez)
+  const show = (view: 'desk' | 'more' | 'paper'): void => {
+    if (view !== 'more' && mb.getAttribute('aria-pressed') === 'true') more.toggle(false)
+    if (view !== 'paper' && pb.getAttribute('aria-pressed') === 'true') paper.toggle(false)
+    mb.setAttribute('aria-pressed', String(view === 'more'))
+    pb.setAttribute('aria-pressed', String(view === 'paper'))
+    mb.textContent = view === 'more' ? 'Volver a la mesa' : 'Más análisis'
+    pb.textContent = view === 'paper' ? 'Volver a la mesa' : 'Bróker simulado'
+    modeEl.textContent = `Modo: ${MODE_LABEL[view === 'paper' ? 'SIMULADO' : mode]}`
+    if (view === 'more') more.toggle(true)
+    if (view === 'paper') paper.toggle(true, symbol)
+    if (view === 'desk') document.getElementById('app')!.dataset.view = 'desk'
   }
+  mb.onclick = () => show(mb.getAttribute('aria-pressed') === 'true' ? 'desk' : 'more')
+  pb.onclick = () => show(pb.getAttribute('aria-pressed') === 'true' ? 'desk' : 'paper')
 }
 
 build()
