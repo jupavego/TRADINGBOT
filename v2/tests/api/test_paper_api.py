@@ -64,6 +64,11 @@ def test_summary_profiles_and_strategies(client):
         assert p["n_closed"] > 0 and p["curve"] and p["equity"] > 0
         assert set(p["weights"]) == {s["id"] for s in v["strategies"]}
     assert sum(s["n"] for s in v["strategies"]) > 0 and v["insights"]
+    b = v["balance"]
+    assert list(b) == ["todo", "30d", "7d", "24h"]
+    a = b["todo"]["all"]
+    assert a["wins"]["n"] + a["losses"]["n"] == sum(p["n_closed"] for p in v["profiles"])
+    assert set(b["todo"]["profiles"]) == {"conservador", "moderado", "agresivo"}
     assert client.get("/v2/paper?symbol=XRPUSDT").status_code == 400
 
 
