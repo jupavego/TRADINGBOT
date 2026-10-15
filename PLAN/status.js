@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-15T15:13:43",
+ "generated": "2026-10-15T15:19:46",
  "tasks": [
   {
    "id": "T01",
@@ -575,6 +575,22 @@ window.EIM_STATUS = {
    "effort": "alto",
    "phase": 9,
    "goal": "Replicar líderes aprobados en testnet y repartir el capital entre los tres carriles (direccional, copy trading, arbitraje) sin que uno consuma el margen de otro."
+  },
+  {
+   "id": "T47",
+   "title": "Bróker simulado: estrategias en papel, 3 perfiles y automejora",
+   "deps": [
+    "T15",
+    "T17",
+    "T20",
+    "T25",
+    "T34"
+   ],
+   "state": "done",
+   "notes": "v2/eim/paper: contexto compacto por vela (`context`, `generate` walk-forward en paralelo, `data/paper.duckdb` vía `eim/data/paper_store.py`), 29 estrategias en 7 familias (`strategies*`: consenso, plan TP1/TP2, sugerencias #1–#3, escenarios, 8 agentes, 8 indicadores T34, contraria y **control aleatorio**), motor sobre 15 m (`engine`: límite/mercado, SL antes que TP, tiempo, funding real, MFE/MAE), retroalimentación sin mirar el futuro (`feedback`: expectativa contraída con decaimiento, pausa/refuerzo, Holm, vs control; `insights`), 3 perfiles Conservador/Moderado/Agresivo (`book`, `params`). API `/v2/paper` (+`/trades`, `/journal`, `/ideas`, `POST /backtest` con `X-EIM-Confirm`), servicio en vivo `EIM_PAPER`, CLI `python -m eim.paper`. UI: botón «Bróker simulado» arriba a la derecha (`web/src/paper_*.ts`, `paper.css`): tarjetas por perfil, velas con entradas/salidas, cuenta estilo exchange, curvas de capital, Posiciones/Órdenes/Historial/Bitácora/Aprendizaje/Perfiles. Backtest real 60 d BTCUSDT (1.439 velas, 1.591 ops sombra): control −0,20 R/op, ninguna estrategia significativa tras Holm; Conservador −0,8 %, Moderado −67 %, Agresivo −95 % (costos ≥84 % de la pérdida). Tests en tests/paper + tests/api/test_paper_api.py (sin anticipación probada). Verificado en navegador (escritorio y móvil). **Para usarlo: reiniciar la API.**",
+   "effort": "alto",
+   "phase": 7,
+   "goal": "Ejecutar de forma virtual (papel, futuros perpetuos de Binance) TODAS las operaciones que proponen los agentes, las sugerencias intradía y los escenarios, en una vista tipo exchange, y medir qué enfoque rinde y cuál no, con retroalimentación que ajusta el peso de cada estrategia sin mirar el futuro."
   }
  ]
 };

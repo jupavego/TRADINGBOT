@@ -38,6 +38,7 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 | `EIM_CALENDAR`, `EIM_CALENDAR_S` | `1`, `21600` | Calendario económico (Fed/BLS/BEA): consulta al arrancar y cada 6 h en `data/calendar/` (T36). `0` lo apaga |
 | `EIM_ARBITRAGE`, `EIM_ARBITRAGE_S` | `1`, `10` | Escáner de arbitraje Binance (REST público, solo lectura): fotografía cada ~10 s en `data/arbitrage/` (últimas 20), pestaña «Arbitraje» y mensaje WS `arbitrage` (T39). `0` lo apaga. Modo Análisis: no ejecuta |
 | `EIM_ARB_ALERT_SCORE`, `EIM_ARB_ALERT_S` | `3`, `60` | Alerta de arbitraje: puntuación del selector ≥ umbral (pb/día ajustados por riesgo) sostenida N segundos de escaneos seguidos (T39) |
+| `EIM_PAPER`, `EIM_PAPER_S` | `1`, `60` | Bróker simulado (T47): cada ciclo trae velas de 1 h/15 m y funding de BTCUSDT (y de ETHUSDT si ya tiene historial) y analiza las velas cerradas nuevas → `data/paper.duckdb`. `0` lo apaga. Siempre SIMULADO |
 | `EIM_FRED_API_KEY` | — | Opcional (gratuita): valores real/anterior/revisado de IPC, NFP, PCE, PIB, IPP desde FRED. Sin ella los eventos salen sin valores |
 | `EIM_WS_URL`, `EIM_HEARTBEAT_S`, `EIM_SNAPSHOT_BARS`, `EIM_AUTO_HISTORY`, `EIM_RECON_S` | ver `eim/api/config.py` | |
 
@@ -86,6 +87,10 @@ registros del servicio, versiones de parámetros (`eim/risk/versions`, `eim/cali
 
 ## 6. Rutina
 - **Diario:** pestaña «Operación» de la UI (estado, alertas activas, kill-switch, reconciliación).
+- **Bróker simulado (T47):** botón «Bróker simulado» arriba a la derecha. Historial inicial o ampliación:
+  `python -m eim.paper backtest --symbol BTCUSDT --days 60` (si la API está en marcha le delega el trabajo;
+  ≈1,5 s por vela y por proceso, en paralelo) o el botón «Ejecutar» de la vista. Resumen por consola:
+  `python -m eim.paper resumen`. Para empezar de cero: detener la API y borrar `data/paper.duckdb`.
 - **Semanal (lunes UTC):** leer `reports/operation/semana_AAAA-Www.md` (se genera solo).
 - **Mensual:** auditoría de dependencias (§5) y `python -m eim.data.backup verify` sobre una copia
   antigua (prueba de restauración en una carpeta temporal: `restore <copia> --data-dir <tmp>`).
