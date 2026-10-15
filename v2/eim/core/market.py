@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from pydantic import BaseModel, ConfigDict, model_validator
 
 if TYPE_CHECKING:
+    from eim.core.arb_market import ArbMarket
     from eim.core.events import EconEvent
 
 
@@ -128,6 +129,9 @@ class MarketSnapshot(Frozen):
     candles_tf: dict[str, list[Candle]] | None = None
     # Calendario económico (T36): ventana −24 h … +7 d respecto de `asof`.
     events: list[EconEvent] | None = None
+    # Fotografía de arbitraje de Binance (T39): último escaneo con `arb.asof <= asof`; None
+    # si no hay escáner o es demasiado vieja. No depende de `symbol` (BTC y ETH).
+    arb: ArbMarket | None = None
     asof: int
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}

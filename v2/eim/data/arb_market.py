@@ -7,6 +7,7 @@ las estrategias responden `no_data` o `degraded` según lo que falte.
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
+from concurrent.futures import ThreadPoolExecutor
 from typing import TypeVar
 
 from eim.core import ArbMarket, Book, FuturesContract, PremiumInfo, SpotPair
@@ -27,9 +28,14 @@ def load_arb_market(
     max_quarterlies: int = 2,
     borrow_apr: dict[str, float] | None = None,
     borrow_source: str = "manual (configuración del usuario)",
+    workers: int = 8,
 ) -> ArbMarket:
     """Lee libros, contratos, funding previsto y realizado de Binance para `assets` y los
-    pares spot entre `tri_assets` (ciclos triangulares)."""
+    pares spot entre `tri_assets` (ciclos triangulares).
+
+    Libros y funding realizado se piden en paralelo (`workers` hilos, T39): la fotografía
+    tarda ~1 s en vez de ~8 s y las patas quedan casi simultáneas frente a la vigencia de 15 s.
+    """
     now = prov.clock()
     assets, tri = list(assets), set(tri_assets)
     errors: dict[str, str] = {}
@@ -72,12 +78,23 @@ def load_arb_market(
         sources[key] = FUTURES_SOURCE
         coverage[key] = (info.t, info.t)
 
-    spot_books: dict[str, Book] = {}
     wanted_spot = {p.symbol for p in pairs if (p.base in assets and p.quote == "USDT")
                    or (p.base in tri and p.quote in tri) or p.symbol == "USDCUSDT"}
-    for sym in sorted(wanted_spot):
+    spot_syms = sorted(wanted_spot)
+    jobs: list[tuple[str, Callable[[], object]]] = (
+        [(f"book:spot:{s}", lambda s=s: prov.spot_book(s, depth)) for s in spot_syms]
+        + [(f"book:{c.market}:{c.symbol}", lambda s=c.symbol: prov.futures_book(s, depth))
+           for c in contracts]
+        + [(f"funding:{c.symbol}", lambda s=c.symbol: prov.funding_history(
+            s, now - funding_days * DAY_MS, now + 1)) for c in perps])
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as ex:
+        got_all = dict(zip([k for k, _ in jobs], ex.map(lambda j: guard(*j), jobs),
+                           strict=True))
+
+    spot_books: dict[str, Book] = {}
+    for sym in spot_syms:
         key = f"book:spot:{sym}"
-        got = guard(key, lambda s=sym: prov.spot_book(s, depth))
+        got = got_all[key]
         if got:
             spot_books[sym], t = got
             sources[key], coverage[key] = SPOT_SOURCE, (t, t)
@@ -85,7 +102,7 @@ def load_arb_market(
     futures_books: dict[str, Book] = {}
     for c in contracts:
         key = f"book:{c.market}:{c.symbol}"
-        got = guard(key, lambda s=c.symbol: prov.futures_book(s, depth))
+        got = got_all[key]
         if got:
             futures_books[c.symbol], t = got
             sources[key], coverage[key] = FUTURES_SOURCE, (t, t)
@@ -93,8 +110,7 @@ def load_arb_market(
     funding_hist: dict[str, list[tuple[int, float]]] = {}
     for c in perps:
         key = f"funding:{c.symbol}"
-        rows = guard(key, lambda s=c.symbol: prov.funding_history(
-            s, now - funding_days * DAY_MS, now + 1))
+        rows = got_all[key]
         if rows:
             funding_hist[c.symbol] = rows
             sources[key], coverage[key] = FUTURES_SOURCE, (rows[0][0], rows[-1][0])

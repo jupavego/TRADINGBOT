@@ -23,7 +23,10 @@ class Settings:
     EIM_API_TOKEN (sin él, ningún cliente remoto entra; ver eim/api/security.py),
     EIM_BACKUP_DIR / EIM_BACKUP_KEEP (copias de seguridad; diaria automática con EIM_OPERATE=1),
     EIM_CALENDAR=0 desactiva el calendario económico en vivo (T36), EIM_CALENDAR_S (segundos
-    entre consultas) y EIM_FRED_API_KEY (opcional: valores reales; la lee `providers/fred.py`)."""
+    entre consultas) y EIM_FRED_API_KEY (opcional: valores reales; la lee `providers/fred.py`);
+    EIM_ARBITRAGE=0 desactiva el escáner de arbitraje (T39), EIM_ARBITRAGE_S (segundos entre
+    escaneos), EIM_ARB_ALERT_SCORE (umbral de alerta, pb/día ajustados) y EIM_ARB_ALERT_S
+    (segundos seguidos sobre el umbral antes de avisar)."""
 
     data_dir: Path = Path("data")
     reports_db: Path | None = None
@@ -50,6 +53,10 @@ class Settings:
     backup_keep: int = 14
     calendar: bool = False      # T36: refresco del calendario (1 por defecto en from_env)
     calendar_interval_s: float = 6 * 3600
+    arbitrage: bool = False     # T39: escáner de arbitraje (1 por defecto en from_env)
+    arbitrage_interval_s: float = 10.0  # pausa entre escaneos (cada uno tarda ~1-2 s)
+    arb_alert_score: float = 3.0
+    arb_alert_hold_s: float = 60.0
     extra: dict[str, str] = field(default_factory=dict)
 
     @property
@@ -82,4 +89,8 @@ class Settings:
             backup_keep=int(env.get("EIM_BACKUP_KEEP", d.backup_keep)),
             calendar=env.get("EIM_CALENDAR", "1") != "0",
             calendar_interval_s=float(env.get("EIM_CALENDAR_S", d.calendar_interval_s)),
+            arbitrage=env.get("EIM_ARBITRAGE", "1") != "0",
+            arbitrage_interval_s=float(env.get("EIM_ARBITRAGE_S", d.arbitrage_interval_s)),
+            arb_alert_score=float(env.get("EIM_ARB_ALERT_SCORE", d.arb_alert_score)),
+            arb_alert_hold_s=float(env.get("EIM_ARB_ALERT_S", d.arb_alert_hold_s)),
         )

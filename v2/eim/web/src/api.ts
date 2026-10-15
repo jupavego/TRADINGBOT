@@ -1,4 +1,5 @@
 import type { AgentInfo, Overlay, AgentReport, Snapshot, StreamMsg, Decision, Trade, Replay, ForecastSet, Synthesis } from './types'
+import type { ArbPayload } from './arb_types'
 
 /** Base de la API: variable VITE_API_URL o el mismo host en el puerto 8000. */
 export const base = (): string =>
@@ -39,6 +40,10 @@ export const fetchReports = (
 
 export const fetchOverlays = (symbol: string, tf: string, signal?: AbortSignal): Promise<Overlay[]> =>
   getJson(`/v2/overlays?symbol=${symbol}&tf=${tf}`, signal)
+
+/** Escáner de arbitraje (T39): independiente del par y del marco; modo Análisis. */
+export const fetchArbitrage = (signal?: AbortSignal): Promise<ArbPayload> =>
+  getJson('/v2/arbitrage/opportunities', signal)
 
 export interface StreamHandle { close(): void }
 

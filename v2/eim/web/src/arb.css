@@ -1,0 +1,48 @@
+/* Pestaña «Arbitraje» (T39). Colores por tokens del tema: funciona en claro, oscuro y futurista. */
+.arb-head .mode { font-size: 11px; }
+.arb-label { color: var(--warn); border: 1px solid var(--warn); border-radius: 999px; padding: 1px 8px; font-size: 11px; }
+.arb-ev { color: var(--text); font-size: 12px; line-height: 1.5; margin: 0 0 10px; }
+.arb-filters label { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); }
+.arb-filters input { width: 64px; font: inherit; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+.arb-scroll { overflow-x: auto; max-width: 100%; }
+.arb-table { min-width: 980px; }
+.arb-table td { vertical-align: top; padding: 5px 6px; }
+.arb-table td small { display: block; color: var(--muted); font-size: 11px; line-height: 1.35; }
+.arb-table td b { color: var(--text); font-weight: 600; }
+.arb-row { cursor: pointer; }
+.arb-row:hover td { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.arb-row[data-sel="false"] td { opacity: .78; }
+.arb-row[aria-expanded="true"] td { border-top-color: var(--accent); }
+[data-dir="up"] b, td[data-dir="up"] { color: var(--up); }
+[data-dir="down"] b, td[data-dir="down"] { color: var(--down); }
+td[data-dir] b { color: inherit; }
+[data-expired="true"] { color: var(--down) !important; }
+.arb-risk { display: grid; grid-template-columns: repeat(2, 56px); gap: 3px 6px; font-size: 10px; color: var(--muted); }
+.arb-risk span { position: relative; display: block; height: 12px; line-height: 12px; }
+.arb-risk span::before { content: ''; position: absolute; left: 12px; right: 0; top: 4px; height: 4px; border-radius: 2px; background: var(--grid); }
+.arb-risk i { position: absolute; left: 12px; top: 4px; height: 4px; min-width: 2px; border-radius: 2px; }
+.arb-risk [data-lvl="lo"] i { background: var(--up); }
+.arb-risk [data-lvl="mid"] i { background: var(--warn); }
+.arb-risk [data-lvl="hi"] i { background: var(--down); }
+.arb-detail > td { background: color-mix(in srgb, var(--panel) 85%, var(--accent) 4%); padding: 8px 10px 10px; }
+.arb-notes { margin: 6px 0; padding-left: 18px; font-size: 11px; color: var(--muted); }
+.arb-bad { color: var(--down); }
+.arb-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; margin-top: 12px; }
+.arb-grid section { overflow-x: auto; min-width: 0; }
+.arb-grid td small { display: block; color: var(--muted); font-size: 11px; }
+.arb-spark { display: block; }
+.arb-scans { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; }
+.arb-scan summary { cursor: pointer; color: var(--text); }
+.arb-scan ul, .arb-warn ul { margin: 4px 0; padding-left: 18px; font-size: 11px; }
+.arb-warn { margin: 0 0 10px; font-size: 12px; color: var(--warn); }
+.arb-alerts { margin: 0 0 10px; display: grid; gap: 6px; }
+.arb-alert { font-size: 12px; padding: 6px 10px; border-radius: var(--radius); border: 1px solid var(--line); color: var(--text); }
+.arb-alert[data-active="true"] { border-color: var(--up); background: color-mix(in srgb, var(--up) 10%, transparent); }
+.arb-watch summary { cursor: pointer; font-size: 12px; color: var(--text); }
+.arb-watch .arb-alert { margin-top: 4px; }
+.arb-rule { font-size: 11px; margin: 0 0 8px; }
+.arb-foot { font-size: 11px; margin-top: 12px; }
+.tabs button[data-alert="true"] { color: var(--up); }
+.tabs button.flash { animation: arb-flash 1s ease-in-out 3; }
+@keyframes arb-flash { 50% { background: color-mix(in srgb, var(--up) 25%, transparent); } }
+@media (max-width: 900px) { .arb-grid { grid-template-columns: 1fr; } }

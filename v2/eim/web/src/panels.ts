@@ -4,7 +4,7 @@ const LABEL: Record<string, string> = {
   structure: 'Estructura', vwap: 'VWAP', price_action: 'Price action', elliott: 'Elliott',
   ema: 'EMA / FRM', liquidations: 'Liquidaciones', seasonality: 'Estacionalidad', context: 'Contexto',
   derivatives: 'Derivados', levels: 'Niveles', microstructure: 'Microestructura', plan: 'Plan',
-  regime: 'Régimen', technical: 'Técnico', calendar: 'Calendario',
+  regime: 'Régimen', technical: 'Técnico', calendar: 'Calendario', arbitrage: 'Arbitraje',
 }
 export const agentName = (id: string): string => LABEL[id] ?? id
 

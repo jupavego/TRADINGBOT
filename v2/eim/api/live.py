@@ -73,6 +73,11 @@ class Hub:
                 with contextlib.suppress(asyncio.CancelledError, Exception):
                     await ch.task
 
+    def broadcast_all(self, msg: dict) -> None:
+        """Mensaje independiente del par/marco (p. ej. escáner de arbitraje, T39)."""
+        for ch in list(self._channels.values()):
+            self._broadcast(ch, msg)
+
     def _broadcast(self, ch: Channel, msg: dict) -> None:
         for q in list(ch.subscribers):
             if q.full():  # cliente lento: se descarta lo más viejo, nunca se bloquea el hub
