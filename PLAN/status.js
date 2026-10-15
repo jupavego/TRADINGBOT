@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-15T09:34:14",
+ "generated": "2026-10-15T10:20:50",
  "tasks": [
   {
    "id": "T01",
@@ -461,8 +461,8 @@ window.EIM_STATUS = {
     "T03",
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Contratos `eim/core/arbitrage.py` (`CostModel`: VIP/BNB configurables, VIP 0 verificado 2026-10-15, `fill` = VWAP recorriendo el libro; `Leg`, `Costs`, `Risk`, `Opportunity` exige `net = bruto − costos` y desglose; `ArbScan` ok/degraded/no_data) y `core/arb_market.py` (`ArbMarket`). I/O: `data/providers/binance_arb.py` (spot+USDⓈ-M/USDC-M: exchangeInfo, depth, premiumIndex+fundingInfo, funding realizado) y `data/arb_market.py` (errores por pieza en `errors`). `eim/arbitrage/` puro, una estrategia por archivo: `funding_carry` (previsto vs realizado, cruce de liquidaciones; inversa solo con préstamo manual), `basis` (spot/perpetuo vs trimestral al vencimiento; funding como costo), `triangular` (informativo: T33 lo deja fuera del selector), `related_perps` (USDT-M vs USDC-M vía USDCUSDT); `selector.py` (pb/día × (1 − aversión·riesgo), descartes con motivo), CLI `python -m eim.arbitrage.cli`. Tests: tests/arbitrage (32) + tests/data/test_arb_provider.py (3); gate 779. **Escaneo en vivo 2026-10-15:** triangular neto −29…−39 pb en 16 ciclos, carry de funding −20 pb a 24 h, USDT-M/USDC-M −18 pb; solo pasa el cash-and-carry trimestral (≈1,7–3,3 % anual, riesgo de liquidación ×2 alto). Pendientes en BACKLOG (T38).",
    "effort": "alto",
    "phase": 8,
    "goal": "Detectar y valorar, en una sola capa, las oportunidades de arbitraje dentro de Binance, siempre **netas de costos y con su riesgo declarado**."

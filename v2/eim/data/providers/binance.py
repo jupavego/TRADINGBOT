@@ -71,6 +71,10 @@ class BinanceFutures:
                 self._sleep(self._backoff * 2**attempt)
         raise ProviderError(f"{path} agotó {self._max_retries} reintentos ({last_err})")
 
+    def request(self, path: str, params: dict[str, Any] | None = None) -> Any:
+        """GET JSON con reintentos y límite de tasa (lo reutiliza `binance_arb`)."""
+        return self._get(path, params or {})
+
     # --- Datos ------------------------------------------------------------
     def klines(self, symbol: str, timeframe: str, start: int, end: int) -> list[Candle]:
         step = tf_ms(timeframe)
