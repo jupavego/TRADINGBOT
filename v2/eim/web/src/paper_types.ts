@@ -37,6 +37,17 @@ export interface StrategyRow {
   judgement: Judgement; origin_live: number
 }
 
+interface BalanceHalf { n: number; usd: number; avg_usd: number | null; avg_r: number | null; by_reason: Record<string, number> }
+export interface BalanceSummary {
+  n: number; wins: BalanceHalf; losses: BalanceHalf; win_rate: number | null; net: number; pf: number | null
+  payoff: number | null; breakeven: number | null; expectancy_usd: number | null; expectancy_r: number | null
+  costs: number; cost_flips: number; long_wr: { n: number; win_rate: number | null }; short_wr: { n: number; win_rate: number | null }
+}
+export interface BalanceWindow {
+  label: string; since: number | null; all: BalanceSummary; profiles: Record<string, BalanceSummary>
+  feedback: { kind: 'funciono' | 'no_funciono' | 'mejorar'; text: string }[]
+}
+
 export interface Insight { tone: 'good' | 'bad' | 'warn' | 'info'; text: string }
 
 export interface Job { state: string; symbol: string; done: number; total: number; saved: number; error: string; started: number | null; finished: number | null }
@@ -48,6 +59,7 @@ export interface PaperSummary {
   families: Record<string, string>; profiles: ProfileView[]; strategies: StrategyRow[]
   family_stats: { family: string; n: number; sum_r: number; mean_r: number | null; strategies: number }[]
   insights: Insight[]; job: Job; live: { last_tick: number | null; error: string }
+  balance: Record<string, BalanceWindow>
 }
 
 export interface PaperTrade {

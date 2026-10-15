@@ -1,5 +1,6 @@
 /** Vista «Bróker simulado» (T47): cuentas de papel por perfil, estilo panel de futuros. */
 import { fetchSnapshot, openStream, SYMBOLS, type StreamHandle } from './api'
+import { balanceView } from './paper_balance'
 import { EquityChart, PaperPriceChart, PROFILE_VAR } from './paper_chart'
 import { esc, getPaper, nf, pct, pct0, postPaper, px, usd, utc } from './paper_fmt'
 import { PaperJournal } from './paper_journal'
@@ -28,6 +29,7 @@ const TEMPLATE = `
   <button class="btn" data-act="bt">Ejecutar</button>
   <span class="pp-job" data-x="job"></span>
 </header>
+<section class="pp-balance" data-x="bal" aria-label="Balance de operaciones ganadas y perdidas"></section>
 <div class="pp-cards" data-x="cards" role="tablist" aria-label="Perfiles"></div>
 <div class="pp-grid">
   <section class="pp-chart"><div class="pp-chart-h"><h4 class="sh">Velas 1 h · operaciones del perfil</h4><small class="muted" data-x="src"></small></div>
@@ -44,6 +46,7 @@ export class PaperView {
   private symbol = 'BTCUSDT'
   private profile = 'moderado'
   private tab = 'pos'
+  private bal = 'todo'
   private v: PaperSummary | null = null
   private trades: PaperTrade[] = []
   private price: number | null = null
@@ -59,11 +62,11 @@ export class PaperView {
   private bodies: Record<string, HTMLElement> = {}
 
   constructor(private root: HTMLElement) {
-    try { const s = JSON.parse(localStorage.getItem(KEY) ?? '{}'); this.profile = s.profile ?? this.profile; this.tab = s.tab ?? this.tab } catch { /* sin almacenamiento */ }
+    try { const s = JSON.parse(localStorage.getItem(KEY) ?? '{}'); this.profile = s.profile ?? this.profile; this.tab = s.tab ?? this.tab; this.bal = s.bal ?? this.bal } catch { /* sin almacenamiento */ }
   }
 
   private q<T extends HTMLElement>(k: string): T { return this.root.querySelector<T>(`[data-x="${k}"]`)! }
-  private save(): void { try { localStorage.setItem(KEY, JSON.stringify({ profile: this.profile, tab: this.tab })) } catch { /* ignora */ } }
+  private save(): void { try { localStorage.setItem(KEY, JSON.stringify({ profile: this.profile, tab: this.tab, bal: this.bal })) } catch { /* ignora */ } }
 
   private build(): void {
     this.root.innerHTML = TEMPLATE
@@ -156,6 +159,7 @@ export class PaperView {
       ? `${c.contexts} velas analizadas (${c.origins.vivo ?? 0} en vivo · ${c.origins.backtest ?? 0} reconstruidas) · ${utc(c.from!)} → ${utc(c.to!)} UTC`
       : 'sin velas analizadas: ejecuta un backtest'
     this.paintJob(v.job)
+    this.q('bal').innerHTML = balanceView(v, this.bal)
     this.paintCards()
     this.paintAcct()
     this.eq!.set(v.profiles)
@@ -234,6 +238,8 @@ export class PaperView {
   }
 
   private onClick(t: HTMLElement): void {
+    const bal = t.closest<HTMLElement>('[data-bal]')
+    if (bal && this.v) { this.bal = bal.dataset.bal!; this.save(); this.q('bal').innerHTML = balanceView(this.v, this.bal); return }
     const card = t.closest<HTMLElement>('[data-prof]')
     if (card) { this.profile = card.dataset.prof!; this.focus = null; this.save(); void this.reload(); return }
     const tab = t.closest<HTMLElement>('.pp-tabs button')

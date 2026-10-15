@@ -14,6 +14,7 @@ from eim.data.providers.base import Provider
 from eim.data.store import Store
 from eim.data.sync import sync_candles
 from eim.data.timeframes import SYMBOLS, tf_ms
+from eim.paper.balance import balance
 from eim.paper.book import ProfileState, run_profile
 from eim.paper.catalog import CATALOG, generate_ideas
 from eim.paper.engine import Outcome, Path, run_shadow
@@ -130,6 +131,8 @@ class PaperDesk:
             "families": FAMILIES, "profiles": profiles, "strategies": rows,
             "family_stats": fams,
             "insights": insights(rows, fams, profiles, counts),
+            "balance": balance({pid: b.trades for pid, b in v.books.items()},
+                               {i["id"]: i["name"] for i in infos}, now),
             "job": self.job.to_json(), "live": {"last_tick": self.last_tick,
                                                 "error": self.live_error},
         }
