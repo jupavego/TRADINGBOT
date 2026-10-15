@@ -46,3 +46,7 @@ td[data-dir] b { color: inherit; }
 .tabs button.flash { animation: arb-flash 1s ease-in-out 3; }
 @keyframes arb-flash { 50% { background: color-mix(in srgb, var(--up) 25%, transparent); } }
 @media (max-width: 900px) { .arb-grid { grid-template-columns: 1fr; } }
+.river .arb-pv { font: 700 15px var(--f-num, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
+.river .arb-sat:hover .orb-rim, .river .arb-sat.sel .orb-rim { stroke-width: 2.4; }
+.tip-arb { width: min(360px, 92%); max-height: 340px; }
+.tip-arb .tip-btn { margin-top: 8px; font-size: 12px; padding: 3px 12px; }

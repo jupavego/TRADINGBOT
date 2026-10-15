@@ -11,7 +11,7 @@ const RISK: [keyof ArbRow['risk'], string, string][] = [
 ]
 const SCAN: Record<string, string> = { ok: 'OK', degraded: 'Degradado', no_data: 'Sin datos' }
 
-const num = (x: number, d = 2): string =>
+export const num = (x: number, d = 2): string =>
   x.toLocaleString('es-CO', { minimumFractionDigits: d, maximumFractionDigits: d })
 export const usd = (x: number, d = 2): string => `${x > 0 ? '+' : ''}${num(x, d)}`
 export const pct = (x: number | null | undefined, d = 2): string =>
