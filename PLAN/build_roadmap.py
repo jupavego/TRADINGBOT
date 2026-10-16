@@ -24,7 +24,7 @@ def head_info(task_id: str) -> dict:
         m = re.search(r"Esfuerzo:\s*([\wáéíóú-]+)", lines[1])
         if m:
             info["effort"] = m.group(1)
-        m = re.search(r"Fase\s+(\d)", lines[1])
+        m = re.search(r"Fase\s+(\d+)", lines[1])
         if m:
             info["phase"] = int(m.group(1))
     for i, ln in enumerate(lines):
