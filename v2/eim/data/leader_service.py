@@ -6,11 +6,18 @@
   presupuesto de peso) → preselección.
 - Cada `score_every_s` evalúa a todos (en un hilo) y guarda el tablero en `data/leaders/`;
   también al cerrar. Solo lectura de datos públicos: no hay órdenes.
+- Latido en `data/leaders/heartbeat.json` (como mucho cada `HEARTBEAT_EVERY_S`) cada vez que
+  termina una tarea, bien o mal: el vigilante de proceso (`python -m eim.leaders supervise`)
+  relanza el servicio si nada termina en 15 min. Por tarea y no por vuelta del bucle: tras un
+  apagado largo la primera vuelta (arranque de cada líder con relleno) puede tardar minutos.
 """
 
 from __future__ import annotations
 
 import asyncio
+import json
+import logging
+import os
 import time
 from pathlib import Path
 
@@ -28,6 +35,10 @@ from eim.leaders.parse import is_perp
 QUOTE_COINS_MAX = 60  # suscripciones `bbo` (el límite oficial por IP es 1000)
 PORTFOLIO_PER_TICK = 2  # `portfolio` pesa 20: dos por minuto no compiten con la captura
 DAY_MS = 86_400_000
+HEARTBEAT_EVERY_S = 30.0
+HEARTBEAT = "heartbeat.json"
+
+log = logging.getLogger(__name__)
 
 
 class LeaderService(LeaderWatch):
@@ -43,7 +54,7 @@ class LeaderService(LeaderWatch):
         self.quotes = QuoteBook(coins, self.p.exec_delay_ms, self.p.live_max_latency_ms)
         self.score_every_s, self.portfolio_every_s = score_every_s, portfolio_every_s
         start = time.monotonic()
-        self._next = {"score": start + first_score_s, "portfolio": start}
+        self._next = {"score": start + first_score_s, "portfolio": start, "heartbeat": start}
         self.boards_saved = 0
 
     def _coins(self) -> list[str]:
@@ -86,11 +97,35 @@ class LeaderService(LeaderWatch):
             self._next["score"] = now + self.score_every_s
             await self._safe("evaluación", self.score_now())
 
+    async def _safe(self, what: str, coro) -> None:
+        await super()._safe(what, coro)
+        now = time.monotonic()
+        if now >= self._next["heartbeat"]:
+            self._next["heartbeat"] = now + HEARTBEAT_EVERY_S
+            self.heartbeat()
+
+    def heartbeat(self) -> None:
+        """Escritura atómica; `last_heartbeat` en reloj local (el del vigilante). Un fallo de
+        disco no detiene la captura: sin latido, el vigilante acabará relanzando."""
+        ready = len(self.ready)
+        row = {"last_heartbeat": self.clock(), "pid": os.getpid(),
+               "state": "capturando" if ready == len(self.books) else "arrancando",
+               "leaders": len(self.books), "ready": ready, "boards_saved": self.boards_saved,
+               "errors": len(self.errors)}
+        try:
+            self.boards.dir.mkdir(parents=True, exist_ok=True)
+            tmp = self.boards.dir / (HEARTBEAT + ".tmp")
+            tmp.write_text(json.dumps(row), encoding="utf-8")
+            tmp.replace(self.boards.dir / HEARTBEAT)
+        except OSError as exc:
+            log.error("latido: %s", exc)
+
     async def score_now(self) -> None:
         board = await asyncio.to_thread(evaluate, self.store, self.now(), self.p)
         self.boards.save(board)
         self.boards_saved += 1
 
     async def run(self, stop: asyncio.Event, minutes: float | None = None) -> None:
+        self.heartbeat()
         await super().run(stop, minutes)
         await self._safe("evaluación final", self.score_now())

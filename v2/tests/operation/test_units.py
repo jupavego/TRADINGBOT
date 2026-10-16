@@ -14,7 +14,7 @@ from eim.operation import alerts as A
 from eim.operation import report, weekly
 from eim.operation.equity import EquityBook, account_state, drawdown, loss_streak
 from eim.operation.notify import JsonLog, WindowsToast, toast_script
-from eim.operation.watchdog import Watchdog
+from eim.operation.watchdog import Watchdog, instance_lock
 
 DAY = 86_400_000
 MON = 4 * DAY + 2_000 * 7 * DAY          # un lunes 00:00 UTC
@@ -126,6 +126,16 @@ def test_watchdog_restarts_on_exit_and_on_stale_heartbeat(tmp_path):
     assert wd.restarts == 2 and second.terminated                   # 2.º: latido detenido
     assert notes[0].kind == A.SERVICE and "terminó" in notes[0].detail
     assert "latido" in notes[1].detail
+
+
+def test_instance_lock_is_exclusive_until_released(tmp_path):
+    path = tmp_path / "x" / "supervisor.lock"
+    first = instance_lock(path)
+    assert first is not None and instance_lock(path) is None       # segunda instancia: fuera
+    first.close()
+    again = instance_lock(path)
+    assert again is not None
+    again.close()
 
 
 # --- capital -----------------------------------------------------------------------------
