@@ -1,8 +1,11 @@
 ﻿<#
 .SYNOPSIS
   Registra (o quita con -Quitar) una tarea programada de Windows que ejecuta
-  `servicio_continuo.ps1 -ConWeb` al iniciar sesión, para que el bróker simulado siga operando
-  después de reiniciar el equipo (T48). Solo para el usuario actual; no requiere administrador.
+  `servicio_continuo.ps1 -ConWeb` al iniciar sesión, para que el bróker simulado (T48) y la
+  captura de líderes de copy trading (T41) sigan después de reiniciar el equipo. Solo para el
+  usuario actual; no requiere administrador. La tarea ejecuta el script por su ruta: lo que se
+  añada a `servicio_continuo.ps1` entra sin reinstalarla (reinstalar solo actualiza la descripción).
+  El nombre de la tarea no cambia para no dejar una copia vieja registrada.
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File v2\scripts\instalar_inicio_automatico.ps1
@@ -25,6 +28,6 @@ $disparo = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $ajustes = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
   -StartWhenAvailable -ExecutionTimeLimit ([TimeSpan]::Zero)
 Register-ScheduledTask -TaskName $nombre -Action $accion -Trigger $disparo -Settings $ajustes `
-  -Description "Lanza el vigilante del EIM (API + operación en papel + bróker simulado) al iniciar sesión." `
+  -Description "Lanza el vigilante del EIM (API + operación en papel + bróker simulado) y el servicio de líderes de copy trading al iniciar sesión." `
   -Force | Out-Null
 Write-Host "Tarea registrada: '$nombre' (al iniciar sesión). Ejecuta ahora: $script -ConWeb"

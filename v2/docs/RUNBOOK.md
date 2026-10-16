@@ -15,6 +15,7 @@ Comandos desde `v2/`. `API=http://127.0.0.1:8000`. Todo POST lleva `X-EIM-Confir
 | El proceso muere o se cuelga | `proceso_reiniciado` en el registro | §6 |
 | Agentes degradados / plan vetado | `agentes_degradados`, vetos en «Plan» | §7 |
 | Copia diaria fallida | `copia_seguridad` | §8 |
+| Tablero de líderes viejo / `smart_money` sin datos | «Tablero viejo» en «Líderes», aviso «Líderes: servicio reiniciado» | §10 |
 
 Dónde mirar: pestaña «Operación» de la UI · `GET $API/v2/operation` · registro
 `data/operation/logs/op-AAAA-MM-DD.jsonl` · tabla `op_alerts`.
@@ -103,3 +104,27 @@ se detiene por esto.
 ## 9. Sospecha de clave comprometida (testnet)
 Revocar la clave en la testnet, crear otra (solo futuros, sin retiro, con restricción de IP),
 actualizar las variables de entorno y reiniciar. Las claves nunca están en el repo ni en las copias.
+
+## 10. Servicio de líderes (copy trading) detenido o en bucle
+Solo lectura de datos públicos de Hyperliquid: no hay órdenes ni dinero en juego, pero cada
+minuto sin captura retrasa la aprobación de líderes (los días adelante solo cuentan con captura).
+1. ¿Corre? `Get-CimInstance Win32_Process -Filter "Name='python.exe'" | ? CommandLine -match 'eim\.leaders'`
+   → debe haber un `supervise` y un `run`. Latido: `data/leaders/heartbeat.json` (`last_heartbeat`
+   de hace < 1 min salvo en el arranque; `state` `arrancando` → `capturando`). Tablero más reciente:
+   `data/leaders/board_*.json` (cada 5 min).
+2. **Nada corriendo:** `powershell -ExecutionPolicy Bypass -File v2\scripts\servicio_continuo.ps1 -ConWeb`.
+   Si responde «Servicio de líderes NO lanzado: …»: sin líderes en seguimiento (`watch 0x…`) o
+   `data/leaders.duckdb` en uso por otro proceso (un `list`/`score` o un `run` a mano: ciérralo).
+3. **Solo hay `run` (sin `supervise`):** captura huérfana o lanzada a mano; funciona pero nadie la
+   relanza. Detén ambos (comando en `docs/OPERACION.md` §6) y vuelve a lanzar el script.
+4. **Bucle de reinicios** (`proceso_reiniciado` repetido en `data/leaders/logs/op-AAAA-MM-DD.jsonl`):
+   el motivo está en `reason` (código de salida o «latido detenido»). Detén el servicio y lánzalo
+   en primer plano para ver el error: `python -m eim.leaders run --minutes 5`. Salida de consola del
+   servicio: `data/operation/logs/lideres.err.log`. Causas típicas: sin red o Hyperliquid caído
+   (la captura reintenta sola sin morir), disco lleno, base dañada.
+5. **Base dañada:** no hay copia automática todavía (BACKLOG T40 (5)). Renombrar
+   `data/leaders.duckdb` y volver a registrar los líderes (`add 0x… --watch`) reinicia la cuenta de
+   días adelante: último recurso.
+6. **Tras el arreglo:** el tablero se renueva en ≤ 5 min y `smart_money` vuelve a tener datos. Si
+   el apagado fue largo, ver en `docs/OPERACION.md` §6 qué huecos quedan (tope de 10 000
+   ejecuciones y de 24 h por líder al volver).

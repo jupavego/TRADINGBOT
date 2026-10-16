@@ -6,6 +6,8 @@
   list [--status S]                            líderes registrados
   watch|unwatch 0xDIR...                       empezar/dejar de capturar sus datos
   run [--minutes M] [--ws-max N]               vigilante + evaluación (T41): tablero cada 5 min
+  supervise [--ws-max N]                       `run` continuo bajo vigilante de proceso: lo
+                                               relanza si cae o si su latido se detiene
   score [--portfolio] [--json]                 evaluar ahora (con el vigilante apagado)
   report [--minutes M] [--json]                latencia, coincidencia y huecos
   history 0xDIR [--last N]                     historial guardado de un líder
@@ -19,20 +21,25 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import sys
+from pathlib import Path
 
+import duckdb
 from pydantic import ValidationError
 
 from eim.core.leaders import Leader, leader_id
-from eim.data.leader_board import BoardStore
+from eim.data.leader_board import BOARD_DIR, BoardStore
 from eim.data.leader_discover import discover
 from eim.data.leader_eval import evaluate, refresh_portfolios
 from eim.data.leader_report import render, summary
-from eim.data.leader_service import LeaderService
+from eim.data.leader_service import HEARTBEAT, LeaderService
 from eim.data.leader_store import LeaderStore
 from eim.data.providers.leaders import HyperliquidInfo, now_ms
 from eim.leaders.board_text import render_board
 from eim.leaders.parse import vault_leader
+from eim.operation.notify import JsonLog
+from eim.operation.watchdog import Watchdog, instance_lock
 
 
 def _hl_id(addr: str) -> str:
@@ -74,6 +81,33 @@ def _list(store: LeaderStore, status: str | None) -> str:
                      for ld in rows) or "(sin líderes)"
 
 
+def _supervise(a: argparse.Namespace, make_watchdog=Watchdog) -> str:
+    """Un solo vigilante por carpeta de datos (cerrojo `leaders/supervisor.lock`); su hijo
+    `run` es el único proceso que abre `leaders.duckdb`."""
+    root = Path(a.root) / BOARD_DIR
+    lock = instance_lock(root / "supervisor.lock")
+    if lock is None:
+        return "Ya hay un vigilante de líderes en marcha: no se lanza otro."
+    try:
+        try:
+            store = LeaderStore.at_root(a.root)
+        except duckdb.IOException:
+            return "leaders.duckdb está en uso por otro proceso (¿`run` a mano?): detenlo antes."
+        try:
+            tracked = [ld for ld in store.leaders() if ld.venue == "hyperliquid" and ld.tracked]
+        finally:
+            store.close()
+        if not tracked:
+            return "No hay líderes en seguimiento: usa `watch 0x…` primero."
+        cmd = [sys.executable, "-m", "eim.leaders", "--root", str(a.root), "run",
+               "--ws-max", str(a.ws_max)]
+        make_watchdog(cmd, dict(os.environ), root / HEARTBEAT, JsonLog(root / "logs", echo=True),
+                      title="Líderes: servicio reiniciado").run()
+        return "vigilante de líderes detenido"
+    finally:
+        lock.close()
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m eim.leaders", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -98,6 +132,8 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("run")
     p.add_argument("--minutes", type=float, default=None)
     p.add_argument("--ws-max", type=int, default=10, help="líderes por WS (máx. oficial 10)")
+    p = sub.add_parser("supervise")
+    p.add_argument("--ws-max", type=int, default=10)
     p = sub.add_parser("score")
     p.add_argument("--portfolio", action="store_true", help="pedir `portfolio` antes (REST)")
     p.add_argument("--json", action="store_true")
@@ -112,6 +148,9 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.reconfigure(encoding="utf-8")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     logging.getLogger("httpx").setLevel(logging.WARNING)
+    if a.cmd == "supervise":  # no abre la base: se la deja al proceso hijo
+        print(_supervise(a))
+        return 0
     store = LeaderStore.at_root(a.root)
     try:
         out = _dispatch(store, a)

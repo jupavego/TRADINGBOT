@@ -15,6 +15,7 @@ from eim.data.leader_store import LeaderStore
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.leaders.cli import _toggle_watch
+from eim.operation.watchdog import heartbeat_t
 from tests.copytrading import helpers as H
 from tests.leaders.helpers import ACTIVE, FakeInfo, load
 from tests.leaders.helpers import leader as hl_leader
@@ -56,6 +57,18 @@ def test_service_records_follower_price_for_recorded_live_fills(tmp_path):
     assert card.copyability.live_fills > 0 and card.copyability.latency_ms["p50"] < 1_500
     assert card.verdict in ("watch", "rejected") and card.reasons  # 35 min no aprueban a nadie
     assert board.weights == [] and board.positions[lid]
+
+
+def test_service_heartbeat_feeds_the_process_watchdog(tmp_path):
+    store = LeaderStore.at_root(tmp_path)
+    svc = LeaderService(store, FakeInfo([]), [], root=tmp_path, clock=lambda: REC_NOW,
+                        quote_coins=[])
+    asyncio.run(svc._safe("tareas extra", svc.extra_jobs()))  # cada tarea terminada late
+    hb = tmp_path / "leaders" / "heartbeat.json"
+    assert heartbeat_t(hb) == REC_NOW
+    assert json.loads(hb.read_text(encoding="utf-8"))["state"] == "capturando"  # 0 de 0 listos
+    assert BoardStore(tmp_path).latest() is None  # el latido no es un tablero
+    store.close()
 
 
 def test_quote_book_waits_for_order_delay_and_drops_old_fills():
