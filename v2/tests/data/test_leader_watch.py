@@ -171,3 +171,44 @@ def test_ws_limit_split_polling_and_manual_binance(tmp_path):
     assert asyncio.run(w.poll(addrs[11])) == 1
     assert store.query("SELECT action, channel FROM leader_fills WHERE tid = 8") == [
         ("reduce", "rest_poll")]
+
+
+def test_failed_backfill_keeps_gap_open(tmp_path):
+    info = FakeInfo([state(NOW - 5000)])
+    w, store = _watch(tmp_path, info, [leader(TEST)])
+    asyncio.run(w.bootstrap(TEST))
+    w.on_down(NOW - 3000, "corte")
+    real = info.user_fills_by_time
+
+    def boom(*a, **k):
+        raise ConnectionError("sin red")
+
+    info.user_fills_by_time = boom
+    asyncio.run(w._safe("relleno", w.backfill(TEST)))
+    assert TEST in w.pending and len(w.open_gaps[TEST]) == 1  # sigue abierto
+    assert store.query("SELECT count(*) FROM leader_gaps")[0][0] == 0
+    info.user_fills_by_time = real
+    asyncio.run(w.backfill(TEST))
+    assert TEST not in w.pending and store.query("SELECT cause FROM leader_gaps") == [("ws",)]
+
+
+def test_failed_bootstrap_backs_off(tmp_path):
+    info = FakeInfo([state(NOW - 5000)])
+    calls = []
+
+    def boom(user):
+        calls.append(user)
+        raise ConnectionError("422")
+
+    info.clearinghouse_state = boom
+    w, _ = _watch(tmp_path, info, [leader(TEST)])
+    stop = asyncio.Event()
+
+    async def go():
+        task = asyncio.create_task(w._periodic(stop))
+        await asyncio.sleep(2.5)  # ~3 vueltas del bucle de 1 s
+        stop.set()
+        await task
+
+    asyncio.run(go())
+    assert len(calls) == 1 and TEST in w.boot_retry and w.errors

@@ -18,6 +18,7 @@ import asyncio
 import dataclasses
 import logging
 import time
+from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -59,7 +60,8 @@ class LeaderWatch:
         self.open_gaps: dict[str, list[Gap]] = {}
         self.ready: set[str] = set()  # con estado inicial cargado
         self.suspect: dict[str, _Suspect] = {}  # desajuste en observación por dirección
-        self.errors: list[str] = []
+        self.boot_retry: dict[str, tuple[float, float]] = {}  # arranque fallido: (cuándo, espera)
+        self.errors: deque[str] = deque(maxlen=200)
 
     def now(self) -> int:
         """Reloj local alineado con el del exchange."""
@@ -130,26 +132,29 @@ class LeaderWatch:
         since = max(self.store.last_fill_t(book.leader.id) or 0, obs - P.BOOT_LOOKBACK_MS)
         n = await self._fill_since(address, t - P.BACKFILL_MARGIN_MS)  # lo que mueve el libro
         if since < t - P.BACKFILL_MARGIN_MS:  # historial: paginado desde lo más antiguo, con tope
-            raws = await asyncio.to_thread(self.info.user_fills_by_time, address, since)
-            n += self.ingest(address, raws, self.now(), "rest_backfill")
+            n += await self._fill_since(address, since)
+        self.boot_retry.pop(address, None)
         log.info("%s: %d posiciones, %d ejecuciones nuevas en el historial", book.leader.id,
                  len(pos), n)
         await self.funding(address)
 
     async def backfill(self, address: str) -> int:
-        since = self.pending.pop(address)
+        """Rellena los huecos abiertos; si la consulta falla siguen abiertos (se reintenta)."""
+        since, k = self.pending[address], len(self.open_gaps.get(address, []))
+        n = await self._fill_since(address, since)
         gaps = self.open_gaps.pop(address, [])
-        raws = await asyncio.to_thread(self.info.user_fills_by_time, address, since)
-        n = self.ingest(address, raws, self.now(), "rest_backfill")
-        for g in gaps:
+        if gaps[k:]:  # huecos abiertos durante la consulta: quedan para la próxima vuelta
+            self.open_gaps[address] = gaps[k:]
+        elif self.pending.get(address) == since:
+            del self.pending[address]
+        for g in gaps[:k]:
             self.store.add_gap(g, self.now(), n)
         return n
 
     async def poll(self, address: str) -> int:
         book = self.books[address]
         since = max(book.last_fill_t, book.as_of or 0) - P.BACKFILL_MARGIN_MS
-        raws = await asyncio.to_thread(self.info.user_fills_by_time, address, since)
-        return self.ingest(address, raws, self.now(), "rest_poll")
+        return await self._fill_since(address, since, "rest_poll")
 
     async def funding(self, address: str) -> int:
         lid = self.books[address].leader.id
@@ -159,9 +164,10 @@ class LeaderWatch:
         return self.store.add_funding(parse_funding(self.books[address].leader, rows,
                                                     self.now()))
 
-    async def _fill_since(self, address: str, since: int) -> int:
+    async def _fill_since(self, address: str, since: int,
+                          channel: Channel = "rest_backfill") -> int:
         raws = await asyncio.to_thread(self.info.user_fills_by_time, address, since)
-        return self.ingest(address, raws, self.now(), "rest_backfill")
+        return self.ingest(address, raws, self.now(), channel)
 
     async def reconcile(self, address: str, retries: int = 0, final: bool = False
                         ) -> Recon:
@@ -246,7 +252,10 @@ class LeaderWatch:
             now = time.monotonic()
             for a in [a for a, s in list(self.suspect.items()) if s.due <= now]:
                 await self._safe(f"recomprobación {a}", self.recheck(a))
-            for addr in [a for a in self.books if a not in self.ready]:
+            for addr in [a for a in self.books if a not in self.ready
+                         and self.boot_retry.get(a, (0.0, 0.0))[0] <= now]:
+                wait = self.boot_retry.get(addr, (0.0, 2.5))[1] * 2  # 5 s, 10 s… hasta 5 min
+                self.boot_retry[addr] = (now + wait, min(wait, 300.0))
                 await self._safe(f"arranque {addr}", self.bootstrap(addr))
             calm = [a for a in self.ready if a not in self.suspect]
             for job, fn, users in (("recon", self.reconcile, calm),

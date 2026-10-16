@@ -20,6 +20,8 @@ import json
 import logging
 import sys
 
+from pydantic import ValidationError
+
 from eim.core.leaders import Leader, leader_id
 from eim.data.leader_discover import discover
 from eim.data.leader_report import render, summary
@@ -39,12 +41,26 @@ def _add(store: LeaderStore, a: argparse.Namespace) -> str:
         ld = vault_leader(HyperliquidInfo().vault_details(a.address.lower()), now)
     else:
         addr = a.address.strip().lower()
-        ld = Leader(id=_hl_id(addr), venue="hyperliquid", address=addr, label=a.label or "",
-                    origin="manual", discovered_at=now, source="manual")
+        try:
+            ld = Leader(id=_hl_id(addr), venue="hyperliquid", address=addr, label=a.label or "",
+                        origin="manual", discovered_at=now, source="manual")
+        except ValidationError:
+            return f"dirección Hyperliquid inválida: {a.address} (0x + 40 hex)"
     new = store.upsert_leader(ld, now)
     if a.watch:
-        store.set_status(ld.id, "watch", now)
+        _toggle_watch(store, ld.id, True, now)
     return f"{'alta' if new else 'actualizado'}: {ld.id} {ld.label}"
+
+
+def _toggle_watch(store: LeaderStore, lid: str, on: bool, now: int) -> str:
+    """Solo alterna candidate ↔ watch: aprobar o rechazar es decisión de T41/usuario."""
+    current = {ld.id: ld.status for ld in store.leaders()}.get(lid)
+    if current is None:
+        return f"{lid}: no existe"
+    if current in ("approved", "rejected"):
+        return f"{lid}: sin cambios (estado {current})"
+    store.set_status(lid, "watch" if on else "candidate", now)
+    return f"{lid}: ok"
 
 
 def _list(store: LeaderStore, status: str | None) -> str:
@@ -113,10 +129,8 @@ def _dispatch(store: LeaderStore, a: argparse.Namespace) -> str:
     if a.cmd == "list":
         return _list(store, a.status)
     if a.cmd in ("watch", "unwatch"):
-        st = "watch" if a.cmd == "watch" else "candidate"
-        res = [f"{_hl_id(x)}: {'ok' if store.set_status(_hl_id(x), st, now) else 'no existe'}"
-               for x in a.addresses]
-        return "\n".join(res)
+        return "\n".join(_toggle_watch(store, _hl_id(x), a.cmd == "watch", now)
+                         for x in a.addresses)
     if a.cmd == "run":
         watch = LeaderWatch(store, HyperliquidInfo(), store.leaders(("watch", "approved")),
                             ws_max=max(0, min(a.ws_max, 10)))
