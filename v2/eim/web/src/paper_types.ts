@@ -93,3 +93,15 @@ export interface ShadowIdea {
   fill: number | null; exit_t: number | null; exit: number | null; r: number | null
   mfe_r: number; mae_r: number; origin: string; regime: string | null
 }
+
+/** Señales en vivo (T48c): decisión en tiempo real + estado en la sombra + qué hizo cada perfil. */
+export interface ProfileAction { action: string; label: string; text: string; pnl?: number | null; r?: number | null }
+export interface LiveDecision extends ShadowIdea { mark: number | null; profiles: Record<string, ProfileAction> }
+export interface LiveFeed {
+  mode: string; total: number; candles_total: number
+  candles: { timeframe: string; t: number; signals: number }[]
+  status: Record<string, number>
+  profiles: Record<string, { actions: Record<string, number>; taken: number; top_reasons: [string, number][] }>
+  decisions: LiveDecision[]
+  live: { last_tick: number | null; started: number | null; error: string }
+}

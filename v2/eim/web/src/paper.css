@@ -217,3 +217,20 @@ button.pp-chip[aria-pressed="false"] { opacity: .45; }
 .pp-ctx[data-s="pausa"] { color: var(--down); border-color: var(--down); }
 .pp-ctx[data-s="reforzada"] { color: var(--up); border-color: var(--up); }
 :root[data-theme="cyber"] .pp-livebar { background: var(--glass); border-color: rgba(var(--glow), .22); }
+
+/* T48c: Señales en vivo */
+.pp-live-sum { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; margin: 0 0 8px; }
+.pp-ls-prof { display: inline-flex; align-items: center; gap: 5px; }
+.pp-ls-prof i { width: 8px; height: 8px; border-radius: 50%; }
+.pp-lcs { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 0 0 10px; }
+.pp-lc { font-size: 11px; border: 1px solid var(--line); border-radius: 999px; padding: 0 8px; color: var(--muted); white-space: nowrap; }
+.pp-lc[data-n="1"] { color: var(--text); border-color: var(--accent); }
+.pp-live-t td { white-space: normal; }
+.pp-sh, .pp-act { font-size: 11px; font-weight: 600; border-radius: 4px; padding: 0 6px; border: 1px solid var(--line); white-space: nowrap; }
+.pp-sh[data-s="ABIERTA"], .pp-act:is([data-a="abierta"], [data-a="orden"]) { color: var(--accent); border-color: var(--accent); }
+.pp-sh[data-s="CERRADA"] { color: var(--text); }
+.pp-sh[data-s="CANCELADA"], .pp-act[data-a="cancelada"], .pp-act[data-a="fuera"] { color: var(--muted); }
+.pp-act:is([data-a="tp"], [data-a="be"]) { color: var(--up); border-color: var(--up); }
+.pp-act[data-a="sl"] { color: var(--down); border-color: var(--down); }
+.pp-act[data-a="rechazada"] { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 60%, var(--line)); }
+

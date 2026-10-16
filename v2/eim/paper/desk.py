@@ -36,6 +36,7 @@ class View:
     outcomes: list[Outcome] = field(default_factory=list)
     books: dict[str, ProfileState] = field(default_factory=dict)
     summary: dict = field(default_factory=dict)
+    live_ctx: list[tuple[str, int]] = field(default_factory=list)   # velas decididas en vivo
 
 
 def strategy_infos(tfs: tuple[str, ...]) -> list[dict]:
@@ -81,6 +82,8 @@ class PaperDesk(DeskService):
     def _compute(self, symbol: str, stamp: tuple) -> View:
         by_tf = {tf: self.pstore.load(symbol, tf) for tf in self.tfs}
         v = View(symbol, stamp)
+        v.live_ctx = [(tf, int(c["t"])) for tf, cs in by_tf.items() for c in cs
+                      if c.get("origin") == "vivo"]
         infos = strategy_infos(self.tfs)
         firsts = [c[0]["t"] for c in by_tf.values() if c]
         if not firsts:

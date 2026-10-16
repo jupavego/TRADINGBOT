@@ -114,3 +114,19 @@ def test_ctx_has_no_lookahead(tmp_path):
     ps = PaperStore(tmp_path / "p.duckdb")
     assert gen.run(ps, "BTCUSDT", [asof, cs[-1].t + 10 * H1], lambda _t: "backtest") == 1
     assert ps.counts("BTCUSDT", "1h") == {"backtest": 1}
+
+
+def test_live_signals_route(client):
+    ps = client.app.state.paper.pstore
+    for i in range(650, 680):
+        ps.save("BTCUSDT", "1h", ctx_for(client.cs[i]), "vivo", 0)
+    f = client.get("/v2/paper/live?symbol=BTCUSDT&limit=20").json()
+    assert f["mode"] == "SIMULADO" and f["candles_total"] == 30 and f["total"] > 0
+    assert f["live"]["error"] == "" and len(f["decisions"]) <= 20
+    ts = [d["t"] for d in f["decisions"]]
+    assert ts == sorted(ts, reverse=True) and all(d["origin"] == "vivo" for d in f["decisions"])
+    for d in f["decisions"]:
+        assert set(d["profiles"]) == {"conservador", "moderado", "agresivo"}
+    assert set(f["profiles"]) == {"conservador", "moderado", "agresivo"}
+    assert client.get("/v2/paper/live?symbol=XRPUSDT").status_code == 400
+    assert client.get("/v2/paper/live?limit=0").status_code == 422

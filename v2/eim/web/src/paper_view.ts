@@ -6,17 +6,18 @@ import { esc, getPaper, postPaper, px, usd } from './paper_fmt'
 import { acctHtml, cardsHtml, covText, jobHtml, liveStrip } from './paper_head'
 import { PaperJournal } from './paper_journal'
 import { PaperLearn } from './paper_learn'
+import { PaperLive } from './paper_live'
 import { profilesTab } from './paper_profiles'
 import { historyTable, ordersTable, paintMarks, positionsTable, type HistFilter } from './paper_tables'
 import type { Job, PaperSummary, PaperTrade, ProfileView } from './paper_types'
 import type { StreamMsg } from './types'
 
-const TABS: [string, string][] = [['pos', 'Posiciones'], ['ord', 'Órdenes abiertas'], ['hist', 'Historial'],
+const TABS: [string, string][] = [['live', 'Señales en vivo'], ['pos', 'Posiciones'], ['ord', 'Órdenes abiertas'], ['hist', 'Historial'],
   ['log', 'Bitácora'], ['learn', 'Aprendizaje'], ['prof', 'Perfiles']]
 const POLL_MS = 60_000
 const LIVE_MS = 15_000            // repinta la franja «en vivo» (hace X s)
 const CHART_TFS = ['15m', '1h', '4h']
-const KEY = 'eim.paper'
+const KEY = 'eim.paper.v2'          // v2: la pestaña inicial pasa a «Señales en vivo» (T48c)
 
 const TEMPLATE = `
 <header class="pp-head">
@@ -27,11 +28,11 @@ const TEMPLATE = `
   <b class="price num" data-x="price">—</b>
   <span class="spacer"></span>
   <span class="pp-cov muted" data-x="cov"></span>
-  <label class="pp-bt">Backtest <select data-k="days"><option value="7">7 días</option><option value="30" selected>30 días</option>
+  <label class="pp-bt" title="Reconstruye las decisiones de días pasados para que el aprendizaje tenga historial; el servicio en vivo no lo necesita">Historial <select data-k="days"><option value="7">7 días</option><option value="30" selected>30 días</option>
     <option value="60">60 días</option><option value="90">90 días</option></select>
     <select data-k="bttf" aria-label="Temporalidades del backtest"><option value="">15m · 1h · 4h</option>
     <option>15m</option><option>1h</option><option>4h</option></select></label>
-  <button class="btn" data-act="bt">Ejecutar</button>
+  <button class="btn" data-act="bt">Reconstruir historial (backtest)</button>
   <span class="pp-job" data-x="job"></span>
 </header>
 <div class="pp-livebar" data-x="live" aria-live="polite"></div>
@@ -47,13 +48,13 @@ const TEMPLATE = `
     <h4 class="sh">Capital por perfil</h4><div class="pp-eqleg" data-x="eqleg"></div><div class="pp-eq" data-x="eq"></div>
   </aside>
 </div>
-<nav class="tabs pp-tabs" role="tablist">${TABS.map(([id, t]) => `<button role="tab" data-t="${id}" aria-selected="${id === 'pos'}">${t}<small data-n="${id}"></small></button>`).join('')}</nav>
+<nav class="tabs pp-tabs" role="tablist">${TABS.map(([id, t]) => `<button role="tab" data-t="${id}" aria-selected="${id === 'live'}">${t}<small data-n="${id}"></small></button>`).join('')}</nav>
 <div class="pp-body" data-x="body"></div>`
 
 export class PaperView {
   private symbol = 'BTCUSDT'
   private profile = 'moderado'
-  private tab = 'pos'
+  private tab = 'live'
   private bal = 'todo'
   private ctf = '1h'
   private liveTimer: number | undefined
@@ -69,6 +70,7 @@ export class PaperView {
   private timer: number | undefined
   private journal: PaperJournal | null = null
   private learn: PaperLearn | null = null
+  private live: PaperLive | null = null
   private bodies: Record<string, HTMLElement> = {}
 
   constructor(private root: HTMLElement) {
@@ -87,6 +89,7 @@ export class PaperView {
     }
     this.journal = new PaperJournal(this.bodies.log)
     this.learn = new PaperLearn(this.bodies.learn)
+    this.live = new PaperLive(this.bodies.live)
     this.chart = new PaperPriceChart(this.q('pc'))
     this.eq = new EquityChart(this.q('eq'), this.q('eqleg'))
     this.pickSymbol()
@@ -204,7 +207,7 @@ export class PaperView {
 
   private paintJob(j: Job): void {
     const run = j.state === 'corriendo'
-    this.root.querySelector<HTMLButtonElement>('[data-act="bt"]')!.textContent = run ? 'Detener' : 'Ejecutar'
+    this.root.querySelector<HTMLButtonElement>('[data-act="bt"]')!.textContent = run ? 'Detener' : 'Reconstruir historial (backtest)'
     this.q('job').innerHTML = jobHtml(j)
     if (run) { clearTimeout(this.jobTimer); this.jobTimer = window.setTimeout(() => void this.pollJob(), 3000) }
   }
@@ -229,9 +232,10 @@ export class PaperView {
     const names = Object.fromEntries(v.strategies.map((s) => [s.id, s.name]))
     const n = (id: string, x: number | string): void => { this.root.querySelector(`[data-n="${id}"]`)!.textContent = ` ${x}` }
     n('pos', p?.positions.length ?? 0); n('ord', p?.orders.length ?? 0); n('hist', this.trades.length); n('log', p?.events_n ?? '')
-    n('learn', ''); n('prof', '')
+    n('learn', ''); n('prof', ''); n('live', '')
     if (!p) return
-    if (this.tab === 'pos') this.bodies.pos.innerHTML = positionsTable(p.positions, names, this.symbol, this.price, this.focus)
+    if (this.tab === 'live') void this.live!.show({ symbol: this.symbol, names, profiles: v.profiles })
+    else if (this.tab === 'pos') this.bodies.pos.innerHTML = positionsTable(p.positions, names, this.symbol, this.price, this.focus)
     else if (this.tab === 'ord') this.bodies.ord.innerHTML = ordersTable(p.orders, names, this.symbol)
     else if (this.tab === 'hist') this.bodies.hist.innerHTML = historyTable(this.trades, names, this.symbol, this.hist)
     else if (this.tab === 'log') void this.journal!.show({ symbol: this.symbol, names, profiles: v.profiles }, this.profile)
