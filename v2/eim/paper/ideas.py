@@ -22,8 +22,9 @@ class Draft:
     kind: str = "market"         # market | limit
     entry: float | None = None   # obligatorio en límite; en mercado, el cierre de referencia
     fill_h: float = 0.0          # vigencia de la orden límite (horas)
-    hold_h: float = 24.0         # tiempo máximo con la posición abierta (horas)
+    hold_h: float = 24.0         # tiempo máximo con la posición abierta (horas en 1 h)
     key: str = ""                # identidad para no repetir la misma propuesta (p. ej. el plan)
+    scale: bool = True           # True: `hold_h` está en horas de 1 h y se escala al marco (T48)
 
 
 @dataclass(frozen=True)
@@ -48,6 +49,13 @@ class Idea:
     syn_bias: float = 0.0
     regime: str | None = None
     origin: str = "backtest"     # backtest (reconstruida) | vivo (decidida en tiempo real)
+    timeframe: str = "1h"        # marco de decisión (T48)
+    htf: int = 0                 # +1 a favor de la tendencia del marco mayor, −1 en contra (T48b)
+
+    @property
+    def sid(self) -> str:
+        """Estrategia en su marco: la unidad que se evalúa y se pondera (T48)."""
+        return f"{self.strategy}@{self.timeframe}"
 
     @property
     def rr(self) -> float:
@@ -55,7 +63,8 @@ class Idea:
         return abs(self.tp - self.entry) / risk if risk > 0 else 0.0
 
     def to_json(self) -> dict:
-        return {"id": self.id, "strategy": self.strategy, "family": self.family,
+        return {"id": self.id, "strategy": self.strategy, "sid": self.sid,
+                "timeframe": self.timeframe, "htf": self.htf, "family": self.family,
                 "symbol": self.symbol, "t": self.t, "side": self.side, "kind": self.kind,
                 "entry": self.entry, "sl": self.sl, "tp": self.tp, "fill_ms": self.fill_ms,
                 "hold_ms": self.hold_ms, "conf": self.conf, "rr": self.rr, "why": list(self.why),
@@ -104,10 +113,12 @@ def to_idea(info: StrategyInfo, d: Draft, ctx: dict, symbol: str, origin: str) -
     if (entry - d.sl) * d.side <= 0 or (d.tp - entry) * d.side <= 0:
         return None                      # geometría imposible: SL y TP del lado correcto
     syn = ctx.get("syn") or {}
+    tf = str(ctx.get("tf") or "1h")
+    hold_h = d.hold_h * (float(ctx.get("bar_h") or 1.0) if d.scale else 1.0)
     return Idea(
-        id=f"{symbol}:{ctx['t']}:{info.id}", strategy=info.id, family=info.family,
+        id=f"{symbol}:{tf}:{ctx['t']}:{info.id}", strategy=info.id, family=info.family,
         symbol=symbol, t=int(ctx["t"]), side=d.side, kind=d.kind, entry=float(entry),
         sl=float(d.sl), tp=float(d.tp), fill_ms=int(d.fill_h * HOUR_MS) if d.kind == "limit" else 0,
-        hold_ms=int(d.hold_h * HOUR_MS), conf=max(0.0, min(1.0, float(d.conf))), why=d.why,
+        hold_ms=int(hold_h * HOUR_MS), conf=max(0.0, min(1.0, float(d.conf))), why=d.why,
         key=d.key, syn_bias=float(syn.get("bias") or 0.0), regime=ctx.get("regime"),
-        origin=origin)
+        origin=origin, timeframe=tf, htf=int(ctx.get("htf_dir") or 0) * d.side)

@@ -115,7 +115,7 @@
 .pp-dir[data-side="long"] { color: var(--up); font-weight: 600; }
 .pp-dir[data-side="short"] { color: var(--down); font-weight: 600; }
 .pp-live { font-size: 10px; border: 1px solid var(--accent); color: var(--accent); border-radius: 999px; padding: 0 6px; }
-.pp-reason[data-r="TP"] { color: var(--up); }
+.pp-reason:is([data-r="TP"], [data-r="BE"]) { color: var(--up); }
 .pp-reason[data-r="SL"] { color: var(--down); }
 .pp-reason[data-r="TIEMPO"] { color: var(--muted); }
 .pp-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 8px; font-size: 12px; color: var(--muted); }
@@ -131,7 +131,7 @@
 }
 button.pp-chip { cursor: pointer; }
 button.pp-chip[aria-pressed="false"] { opacity: .45; }
-.pp-chip[data-cat="tp"] { color: var(--up); border-color: color-mix(in srgb, var(--up) 50%, var(--line)); }
+.pp-chip:is([data-cat="tp"], [data-cat="be"]) { color: var(--up); border-color: color-mix(in srgb, var(--up) 50%, var(--line)); }
 .pp-chip[data-cat="sl"] { color: var(--down); border-color: color-mix(in srgb, var(--down) 50%, var(--line)); }
 .pp-chip[data-cat="orden"], .pp-chip[data-cat="llenada"] { color: var(--text); }
 .pp-chip[data-cat="cancelada"] { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
@@ -193,3 +193,27 @@ button.pp-chip[aria-pressed="false"] { opacity: .45; }
   .pp-log li .pp-prof { display: none; }
   .pp-log li .pp-ev { grid-column: 1 / -1; }
 }
+
+/* T48: servicio en vivo por marco, insignia de marco, causas y contextos */
+.pp-livebar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; font-size: 12px; padding: 6px 14px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.pp-livebar:empty { display: none; }
+.pp-live-dot { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.pp-live-dot i { width: 9px; height: 9px; border-radius: 50%; background: var(--warn); }
+.pp-live-dot[data-state="up"] i { background: var(--up); animation: pulse 2s infinite; }
+.pp-live-dot[data-state="off"] i { background: var(--down); }
+.pp-live-dot[data-state="stale"] { color: var(--warn); }
+.pp-live-dot[data-state="starting"] i { background: var(--accent); animation: pulse 1s infinite; }
+.pp-tf { color: var(--muted); }
+.pp-tf b, .pp-tfb { color: var(--text); }
+.pp-tfb { font-size: 10px; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; font-family: inherit; white-space: nowrap; }
+.pp-chart-h .seg button { padding: 2px 8px; font-size: 12px; }
+.pp-cause { color: var(--warn); }
+.pp-bal-causes, .pp-bal-tfs { margin: 6px 0 0; font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.pp-bal-causes span, .pp-bal-tfs span { white-space: nowrap; color: var(--muted); }
+.pp-bal-causes b, .pp-bal-tfs b { color: var(--text); }
+.pp-ctxs { font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 8px; }
+.pp-ctx { border: 1px solid var(--line); border-radius: 999px; padding: 0 8px; white-space: nowrap; }
+.pp-ctx[data-s="pausa"] { color: var(--down); border-color: var(--down); }
+.pp-ctx[data-s="reforzada"] { color: var(--up); border-color: var(--up); }
+:root[data-theme="cyber"] .pp-livebar { background: var(--glass); border-color: rgba(var(--glow), .22); }

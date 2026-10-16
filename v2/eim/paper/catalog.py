@@ -14,7 +14,9 @@ CATALOG: dict[str, StrategyInfo] = {s.id: s for s in CORE + IND}
 
 def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str, bar_ms: int,
                    origin_of: Callable[[dict], str] | None = None,
-                   catalog: dict[str, StrategyInfo] | None = None) -> list[Idea]:
+                   catalog: dict[str, StrategyInfo] | None = None,
+                   timeframe: str = "1h", htf: Callable[[int], int] | None = None
+                   ) -> list[Idea]:
     """Todas las ideas candidatas, en orden de tiempo y de catálogo.
 
     `candles` = serie de decisión (1 h) que cubre los contextos; cada estrategia ve el índice de
@@ -24,7 +26,8 @@ def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str,
     ind = Ind(candles)
     out: list[Idea] = []
     for raw in sorted(ctxs, key=lambda c: c["t"]):
-        ctx = {**raw, "symbol": symbol, "bar_h": bar_ms / HOUR_MS}
+        ctx = {**raw, "symbol": symbol, "bar_h": bar_ms / HOUR_MS, "tf": timeframe,
+               "htf_dir": htf(int(raw["t"])) if htf else 0}
         i = ind.index(int(ctx["t"]) - bar_ms)
         origin = origin_of(raw) if origin_of else raw.get("origin", "backtest")
         for info in cat.values():

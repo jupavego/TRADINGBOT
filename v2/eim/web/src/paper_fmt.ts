@@ -43,13 +43,17 @@ export async function postPaper<T>(path: string): Promise<T> {
 }
 
 export const CAT_LABEL: Record<string, string> = {
-  orden: 'Orden', llenada: 'Llenada', tp: 'Take profit', sl: 'Stop loss', tiempo: 'Por tiempo',
+  orden: 'Orden', llenada: 'Llenada', tp: 'Take profit', be: 'Break-even +', sl: 'Stop loss', tiempo: 'Por tiempo',
   cancelada: 'Cancelada', rechazada: 'Rechazada', aprendizaje: 'Aprendizaje',
 }
 export const REASON: Record<string, string> = {
-  TP: 'Take profit', SL: 'Stop loss', TIEMPO: 'Por tiempo', NO_LLENADA: 'No llenada',
+  TP: 'Take profit', SL: 'Stop loss', BE: 'Break-even +', TIEMPO: 'Por tiempo', NO_LLENADA: 'No llenada',
   OBJETIVO_SIN_LLENAR: 'Objetivo sin llenar', GEOMETRIA: 'Precio ya fuera', '': '—',
 }
 export const STATUS: Record<string, string> = {
   CERRADA: 'Cerrada', ABIERTA: 'Abierta', PENDIENTE: 'Pendiente', CANCELADA: 'Cancelada', RECHAZADA: 'Rechazada',
+}
+/** Causa de una pérdida (T48), en corto. */
+export const CAUSE: Record<string, string> = {
+  direccion: 'dirección equivocada', sl_rapido: 'SL rápido', casi_tp: 'casi TP', tiempo: 'por tiempo', costos: 'por costos',
 }

@@ -22,8 +22,21 @@ def _pct(x: float | None) -> str:
     return "—" if x is None else f"{x * 100:.0f} %"
 
 
-def _by_id(rows: Sequence[dict]) -> dict[str, dict]:
-    return {r["id"]: r for r in rows}
+def _by_base(rows: Sequence[dict]) -> dict[str, dict]:
+    """Una estrategia sumando sus marcos (R medio ponderado por operaciones)."""
+    out: dict[str, dict] = {}
+    for r in rows:
+        k = r.get("base", r["id"])
+        a = out.setdefault(k, {"name": r["name"].split(" · ")[0], "n": 0, "sum_r": 0.0})
+        a["n"] += r["n"]
+        a["sum_r"] += r["sum_r"]
+    for a in out.values():
+        a["mean_r"] = a["sum_r"] / a["n"] if a["n"] else None
+    return out
+
+
+SHORT_CAUSE = {"direccion": "dirección equivocada", "sl_rapido": "SL rápido",
+               "casi_tp": "casi TP", "tiempo": "por tiempo", "costos": "por costos"}
 
 
 def _pair(rows: dict[str, dict], a: str, b: str, label: str, what: str) -> dict | None:
@@ -49,8 +62,8 @@ def insights(rows: Sequence[dict], fams: Sequence[dict], profiles: Sequence[dict
                 "text": f"{total} operaciones sombra cerradas ({live} decididas en vivo, el resto "
                         f"reconstruidas) sobre {counts.get('vivo', 0) + counts.get('backtest', 0)}"
                         " velas. Con muestras chicas las conclusiones son provisionales."})
-    by = _by_id(rows)
-    ctrl = next((r for r in rows if r["family"] == "control"), None)
+    by = _by_base(rows)
+    ctrl = by.get("control_aleatorio")
     ok = [r for r in rows if r["n"] >= p.n_min and r["family"] != "control"]
     if ctrl and ctrl["n"] >= MIN_N_TEST:
         beat = [r for r in ok if r["mean_r"] > ctrl["mean_r"]]
@@ -81,6 +94,26 @@ def insights(rows: Sequence[dict], fams: Sequence[dict], profiles: Sequence[dict
                      "el consenso aporta dirección")):
         if pr:
             out.append(pr)
+    tfs: dict[str, list[float]] = {}
+    for r in rows:
+        if r.get("timeframe") and r["n"]:
+            a = tfs.setdefault(r["timeframe"], [0, 0.0])
+            a[0] += r["n"]
+            a[1] += r["sum_r"]
+    if len(tfs) > 1:
+        best_tf = max(tfs, key=lambda k: tfs[k][1] / tfs[k][0])
+        out.append({"tone": "info", "text": "Por temporalidad: " + "; ".join(
+            f"{k} {_fmt(v[1] / v[0])} R/op (n={v[0]})" for k, v in sorted(tfs.items()))
+            + f". La mejor hoy es {best_tf}."})
+    causes: dict[str, int] = {}
+    for r in rows:
+        for k, n in (r.get("by_cause") or {}).items():
+            causes[k] = causes.get(k, 0) + n
+    if sum(causes.values()) >= MIN_N_TEST:
+        tot = sum(causes.values())
+        out.append({"tone": "info", "text": "Por qué se pierde: " + ", ".join(
+            f"{SHORT_CAUSE.get(k, k)} {_pct(n / tot)}"
+            for k, n in sorted(causes.items(), key=lambda kv: -kv[1])) + "."})
     fam = [f for f in fams if f["n"] >= MIN_N_TEST and f["family"] != "control"]
     if len(fam) >= 2:
         best, worst = fam[0], fam[-1]

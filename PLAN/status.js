@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-15T16:46:50",
+ "generated": "2026-10-15T21:35:14",
  "tasks": [
   {
    "id": "T01",
@@ -591,6 +591,18 @@ window.EIM_STATUS = {
    "effort": "alto",
    "phase": 7,
    "goal": "Ejecutar de forma virtual (papel, futuros perpetuos de Binance) TODAS las operaciones que proponen los agentes, las sugerencias intradía y los escenarios, en una vista tipo exchange, y medir qué enfoque rinde y cuál no, con retroalimentación que ajusta el peso de cada estrategia sin mirar el futuro."
+  },
+  {
+   "id": "T48",
+   "title": "Bróker simulado continuo: 3 temporalidades y aprendizaje de cada pérdida",
+   "deps": [
+    "T47"
+   ],
+   "state": "done",
+   "notes": "Multi-marco: contextos e ideas en 15 m / 1 h / 4 h; cada estrategia se evalúa y pondera por separado en cada marco (`estrategia@marco`, `Idea.sid`), tenencias escaladas al marco (las sugerencias y escenarios conservan sus horas); perfiles operan los tres. Aprendizaje de cada pérdida: causa por operación (`Outcome.cause`: dirección, SL rápido, casi TP, tiempo, costos) y pausa por contexto estrategia@marco × régimen × lado (`Learner.context_at`, solo cierres ≤ t; test), visible en bitácora («Aprendizaje por contexto»), balance («Por qué se perdió», acierto por marco), Aprendizaje (filtro por marco, causas y contextos) y conclusiones. Servicio continuo: `eim/paper/service.py` (ciclo por marco, latido `data/paper/heartbeat.json`, backtest por marco), franja «Servicio en vivo» en la vista, `v2/scripts/servicio_continuo.ps1` (vigilante + web, sin duplicar) e `instalar_inicio_automatico.ps1` (tarea al iniciar sesión, no instalada). API `tf` en trades/journal/ideas/backtest; CLI `--tf`. Datos reales: 4 h 60 d (360 velas, −0,19 R/op sombra), 1 h 60 d (−0,28), 15 m en curso; posiciones abiertas en los 3 marcos. Tests en tests/paper/test_t48.py. **T48b (decisión del usuario: «máxima rentabilidad, más acertadas que fallidas»)**, con evidencia en `PLAN/notas/T48_decisiones.md`: filtro de costo por perfil (`max_cost_r`), tendencia del marco mayor obligatoria (`eim/paper/trend.py`, `Idea.htf`), break-even + que cubre costos solo en 1 h/4 h (salida `BE`), pausa ante expectativa negativa en los 3 perfiles y Conservador «solo lo probado». Mismos datos: ponderado 36,3 % → 44,5 % de acierto, esperanza −0,30 → −0,09 R; 1 h Moderado/Agresivo +0,10/+0,13 R con 53 % de acierto. Configuración elegida sobre esos mismos 60 días: validar con la corrida en vivo.",
+   "effort": "alto",
+   "phase": 7,
+   "goal": "Que el bróker simulado opere sin parar en segundo plano sobre BTCUSDT en 15 m, 1 h y 4 h, y que cada pérdida se convierta en aprendizaje (por contexto y por causa) para que con el tiempo las ganadas prevalezcan sobre las perdidas."
   }
  ]
 };
