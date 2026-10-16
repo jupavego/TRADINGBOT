@@ -5,6 +5,7 @@ from eim.core.arb_market import ArbMarket, FuturesContract, PremiumInfo, SpotPai
 from eim.core.arbitrage import ArbScan, CostModel, Costs, Fill, Leg, Opportunity, Risk
 from eim.core.events import EconEvent
 from eim.core.forecast import ForecastSet, Scenario, Synthesis
+from eim.core.leaders import Leader, LeaderFill, LeaderFunding, LeaderPosition
 from eim.core.market import (
     Book,
     Candle,
@@ -33,6 +34,10 @@ __all__ = [
     "Fill",
     "ForecastSet",
     "FuturesContract",
+    "Leader",
+    "LeaderFill",
+    "LeaderFunding",
+    "LeaderPosition",
     "Leg",
     "LiquidationDay",
     "LiquidationLevel",
