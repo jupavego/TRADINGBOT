@@ -4,6 +4,8 @@ Base aparte de `reports.duckdb`: el vigilante corre en su propio proceso y DuckD
 dos procesos escribiendo el mismo archivo. Deduplicación por clave primaria:
 ejecuciones (líder, tid, oid), funding (líder, moneda, t), apalancamiento (líder, moneda, t).
 Las posiciones se guardan como foto solo si cambian (o cada `SNAPSHOT_KEEP_MS`).
+Tablas de la evaluación (T41: cartera, precio del seguidor, veredictos) en
+`leader_score_store.py`.
 """
 
 from __future__ import annotations
@@ -15,6 +17,7 @@ from pathlib import Path
 import duckdb
 
 from eim.core.leaders import Leader, LeaderFill, LeaderFunding, LeaderPosition, LeaderStatus
+from eim.data.leader_score_store import SCORE_DDL, ScoreTables
 from eim.leaders.book import Gap, Recon
 from eim.leaders.params import POSITIONS_MAX_AGE_MS, SNAPSHOT_KEEP_MS
 
@@ -58,13 +61,13 @@ def _shape(positions: list[LeaderPosition]) -> list[tuple]:
                   for p in positions)
 
 
-class LeaderStore:
+class LeaderStore(ScoreTables):
     def __init__(self, path: str | Path) -> None:
         self.path = str(path)
         if self.path != ":memory:":
             Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         self._con = duckdb.connect(self.path)
-        self._con.execute(_DDL)
+        self._con.execute(_DDL + SCORE_DDL)
         self._lock = threading.Lock()
 
     @classmethod

@@ -7,6 +7,7 @@ import time
 from eim.core import MarketSnapshot
 from eim.data.arb_store import ArbStore, arb_sources
 from eim.data.calendar import read_calendar
+from eim.data.leader_board import BoardStore, snapshot_inputs
 from eim.data.micro import read_micro
 from eim.data.store import Store
 from eim.data.timeframes import TF_MS, tf_ms
@@ -21,6 +22,8 @@ def build_snapshot(
     la cobertura lo muestra. Funding y OI se limitan a la ventana de las velas.
     `events` (T36): calendario conocido a `asof` en −24 h … +7 d; None si nunca se sincronizó.
     `arb` (T39): último escaneo de arbitraje no posterior a `asof` (≤ 10 min); None si no hay.
+    `leaders`/`leader_weights` (T41): posiciones y calidad de los líderes aprobados del último
+    tablero no posterior a `asof` (≤ 10 min); None si no hay tablero (vigilante apagado).
     """
     step = tf_ms(timeframe)
     asof = asof if asof is not None else int(time.time() * 1000)
@@ -62,6 +65,12 @@ def build_snapshot(
         arb_src, arb_cov = arb_sources(arb)
         sources |= arb_src
         coverage |= arb_cov
+    leaders = weights = None
+    board = BoardStore(store.root).at(asof)
+    if board is not None:
+        leaders, weights, ld_src, ld_cov = snapshot_inputs(board)
+        sources |= ld_src
+        coverage |= ld_cov
     return MarketSnapshot(
         symbol=symbol,
         timeframe=timeframe,
@@ -75,6 +84,8 @@ def build_snapshot(
         candles_tf=candles_tf,
         events=events,
         arb=arb,
+        leaders=leaders,
+        leader_weights=weights,
         asof=asof,
         sources=sources,
         coverage=coverage,

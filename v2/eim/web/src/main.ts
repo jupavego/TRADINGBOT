@@ -3,6 +3,7 @@ import './cyber.css'
 import './sim.css'
 import './setups.css'
 import './arb.css'
+import './leaders.css'
 import './paper.css'
 import { fetchAgents, fetchAsofs, fetchJournal, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, symbolPicker, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
@@ -18,6 +19,7 @@ import { OperationPanel } from './operation_ui'
 import { TradeSimulator } from './sim_ui'
 import { SetupsPanel } from './setups_ui'
 import { ArbPanel } from './arb_ui'
+import { LeadersPanel } from './leaders_ui'
 import { PaperView } from './paper_view'
 import { applyTheme, initialTheme, nextTheme, THEME_LABEL, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
@@ -57,6 +59,7 @@ const sim = new TradeSimulator($('simbar'), chart)
 const setups = new SetupsPanel($('setups'), (x) => sim.apply(x))
 // independiente del par/marco (T39); cada escaneo también repinta el satélite del río
 const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('river'), p))
+const leaders = new LeadersPanel($('t-lead'), $('tab-lead'))
 const paper = new PaperView($('paper')) // bróker simulado (T47): vista propia, modo Simulado
 chart.layers.modeLabel = MODE_LABEL[mode]
 mountLayerBar($('layerbar'), chart.layers)
@@ -237,6 +240,7 @@ function build(): void {
       document.querySelectorAll<HTMLElement>('.tabbody').forEach((p) => { p.hidden = p.id !== b.dataset.tab })
       if (b.dataset.tab === 't-op') void operation.reload()
       if (b.dataset.tab === 't-arb') void arb.reload()
+      if (b.dataset.tab === 't-lead') void leaders.reload()
     }
   })
   const range = $<HTMLInputElement>('replay-range')

@@ -85,6 +85,7 @@ class LeaderWatch:
             if g is not None:
                 gaps.append(g)
         n = self.store.add_fills(fills)
+        self.on_fills(fills)
         for g in gaps:
             log.warning("hueco %s %s: %s", g.leader_id, g.symbol, g.detail)
             self._open_gap(address, g, g.start - P.BACKFILL_MARGIN_MS)
@@ -235,6 +236,14 @@ class LeaderWatch:
         self.store.add_recon(book.leader.id, rec, obs, resynced, self.offset(), retries)
         self.store.save_positions(book.leader.id, t, obs, pos)
 
+    # --- ganchos (T41: cotizaciones del seguidor y evaluación, en `leader_service.py`) --------
+    def on_fills(self, fills: list) -> None: ...
+
+    async def extra_jobs(self) -> None: ...
+
+    def extra_streams(self) -> list[HyperliquidStream]:
+        return []
+
     # --- bucle --------------------------------------------------------------------------------
     async def _safe(self, what: str, coro) -> None:
         try:
@@ -266,6 +275,7 @@ class LeaderWatch:
                     nxt[job] = now + every[job]
                     for a in users:
                         await self._safe(f"{job} {a}", fn(a))
+            await self._safe("tareas extra", self.extra_jobs())
             try:
                 await asyncio.wait_for(stop.wait(), timeout=1.0)
             except TimeoutError:
@@ -278,6 +288,7 @@ class LeaderWatch:
             stream = HyperliquidStream(subs, self.on_message, on_down=self.on_down,
                                        on_up=self.on_up, clock=self.now, **self.stream_kw)
             tasks.append(asyncio.create_task(stream.run(stop)))
+        tasks += [asyncio.create_task(s.run(stop)) for s in self.extra_streams()]
         if minutes:
             await asyncio.wait({asyncio.create_task(stop.wait())}, timeout=minutes * 60)
             stop.set()

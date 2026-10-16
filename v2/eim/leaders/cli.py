@@ -5,7 +5,8 @@
   discover [--seconds 300] [--coins BTC,ETH]   muestra el WS `trades` y registra candidatos
   list [--status S]                            líderes registrados
   watch|unwatch 0xDIR...                       empezar/dejar de capturar sus datos
-  run [--minutes M] [--ws-max N]               vigilante (WS ≤ N, el resto por REST)
+  run [--minutes M] [--ws-max N]               vigilante + evaluación (T41): tablero cada 5 min
+  score [--portfolio] [--json]                 evaluar ahora (con el vigilante apagado)
   report [--minutes M] [--json]                latencia, coincidencia y huecos
   history 0xDIR [--last N]                     historial guardado de un líder
 
@@ -23,11 +24,14 @@ import sys
 from pydantic import ValidationError
 
 from eim.core.leaders import Leader, leader_id
+from eim.data.leader_board import BoardStore
 from eim.data.leader_discover import discover
+from eim.data.leader_eval import evaluate, refresh_portfolios
 from eim.data.leader_report import render, summary
+from eim.data.leader_service import LeaderService
 from eim.data.leader_store import LeaderStore
-from eim.data.leader_watch import LeaderWatch
 from eim.data.providers.leaders import HyperliquidInfo, now_ms
+from eim.leaders.board_text import render_board
 from eim.leaders.parse import vault_leader
 
 
@@ -53,12 +57,13 @@ def _add(store: LeaderStore, a: argparse.Namespace) -> str:
 
 
 def _toggle_watch(store: LeaderStore, lid: str, on: bool, now: int) -> str:
-    """Solo alterna candidate ↔ watch: aprobar o rechazar es decisión de T41/usuario."""
+    """`watch`: candidate → watch (aprobar o descartar lo decide el scorecard de T41).
+    `unwatch`: cualquier estado → candidate (deja de capturarlo, también al grupo de control)."""
     current = {ld.id: ld.status for ld in store.leaders()}.get(lid)
     if current is None:
         return f"{lid}: no existe"
-    if current in ("approved", "rejected"):
-        return f"{lid}: sin cambios (estado {current})"
+    if on and current in ("approved", "rejected"):
+        return f"{lid}: sin cambios (estado {current}: ya se captura)"
     store.set_status(lid, "watch" if on else "candidate", now)
     return f"{lid}: ok"
 
@@ -93,6 +98,9 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("run")
     p.add_argument("--minutes", type=float, default=None)
     p.add_argument("--ws-max", type=int, default=10, help="líderes por WS (máx. oficial 10)")
+    p = sub.add_parser("score")
+    p.add_argument("--portfolio", action="store_true", help="pedir `portfolio` antes (REST)")
+    p.add_argument("--json", action="store_true")
     p = sub.add_parser("report")
     p.add_argument("--minutes", type=float, default=60.0)
     p.add_argument("--json", action="store_true")
@@ -132,8 +140,8 @@ def _dispatch(store: LeaderStore, a: argparse.Namespace) -> str:
         return "\n".join(_toggle_watch(store, _hl_id(x), a.cmd == "watch", now)
                          for x in a.addresses)
     if a.cmd == "run":
-        watch = LeaderWatch(store, HyperliquidInfo(), store.leaders(("watch", "approved")),
-                            ws_max=max(0, min(a.ws_max, 10)))
+        watch = LeaderService(store, HyperliquidInfo(), store.leaders(), root=a.root,
+                              ws_max=max(0, min(a.ws_max, 10)))
         if not watch.books:
             return "No hay líderes en seguimiento: usa `watch 0x…` primero."
         if watch.manual_only:
@@ -144,6 +152,12 @@ def _dispatch(store: LeaderStore, a: argparse.Namespace) -> str:
         except KeyboardInterrupt:
             pass
         return render(summary(store, start))
+    if a.cmd == "score":
+        if a.portfolio:
+            print(f"carteras: {refresh_portfolios(store, HyperliquidInfo(), now)}", file=sys.stderr)
+        board = evaluate(store, now)
+        BoardStore(a.root).save(board)
+        return board.model_dump_json(indent=1) if a.json else render_board(board)
     if a.cmd == "report":
         s = summary(store, now - int(a.minutes * 60_000))
         return json.dumps(s, indent=1, default=str) if a.json else render(s)

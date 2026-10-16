@@ -70,5 +70,6 @@ def rank(samples: dict[str, TraderSample], now: int, *, window_s: float,
                    source=f"{P.SOURCE}:ws.trades",
                    evidence={"trades": float(s.trades), "notional_usd": round(s.notional, 2),
                              "taker_share": round(s.taker_share, 4),
-                             "coins": ",".join(sorted(s.coins)), "window_s": float(window_s)})
+                             "coins": ",".join(sorted(s.coins)), "window_s": float(window_s),
+                             "universe": float(len(samples))})  # direcciones vistas (T41)
             for s in ok[:top]]

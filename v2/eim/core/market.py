@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 if TYPE_CHECKING:
     from eim.core.arb_market import ArbMarket
     from eim.core.events import EconEvent
-    from eim.core.leaders import LeaderPosition
+    from eim.core.leaders import LeaderPosition, LeaderWeight
 
 
 class Frozen(BaseModel):
@@ -133,9 +133,10 @@ class MarketSnapshot(Frozen):
     # Fotografía de arbitraje de Binance (T39): último escaneo con `arb.asof <= asof`; None
     # si no hay escáner o es demasiado vieja. No depende de `symbol` (BTC y ETH).
     arb: ArbMarket | None = None
-    # Copy trading (T40): posiciones abiertas de líderes aprobados conocidas a `asof`;
-    # None si no hay registro de líderes (lo rellena T41).
+    # Copy trading (T40/T41): posiciones abiertas de líderes aprobados conocidas a `asof`
+    # (todas las monedas) y su peso de calidad; None si no hay tablero de líderes vigente.
     leaders: list[LeaderPosition] | None = None
+    leader_weights: list[LeaderWeight] | None = None
     asof: int
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}

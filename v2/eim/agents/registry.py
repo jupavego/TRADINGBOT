@@ -59,6 +59,7 @@ def default_registry(arb_assets: tuple[str, ...] | None = None) -> AgentRegistry
     from eim.agents.price_action import PriceActionAgent
     from eim.agents.regime import RegimeAgent
     from eim.agents.seasonality import SeasonalityAgent
+    from eim.agents.smart_money import SmartMoneyAgent
     from eim.agents.structure import StructureAgent
     from eim.agents.technical import TechnicalAgent
     from eim.agents.vwap import VWAPAgent
@@ -68,7 +69,8 @@ def default_registry(arb_assets: tuple[str, ...] | None = None) -> AgentRegistry
                   ElliottAgent(), SeasonalityAgent(), LiquidationsAgent(), LevelsAgent(),
                   DerivativesAgent(), MicrostructureAgent(), RegimeAgent(), ContextAgent(),
                   TechnicalAgent(), CalendarAgent(), _arb(ArbitrageAgent, ArbAgentParams,
-                                                          arb_assets), PlanAgent()):
+                                                          arb_assets), SmartMoneyAgent(),
+                  PlanAgent()):
         reg.register(agent)
     return reg
 

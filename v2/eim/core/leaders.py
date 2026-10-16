@@ -34,7 +34,8 @@ def leader_id(venue: str, address: str) -> str:
 
 class Leader(Frozen):
     """Trader a seguir. `status`: candidate (descubierto) → watch (se capturan sus datos) →
-    approved/rejected (lo decide T41 con el usuario). `evidence` = cifras del descubrimiento."""
+    approved/rejected (veredicto del scorecard T41, recalculado en cada evaluación).
+    `evidence` = cifras del descubrimiento."""
 
     id: str
     venue: Venue
@@ -58,7 +59,9 @@ class Leader(Frozen):
 
     @property
     def tracked(self) -> bool:
-        return self.status in ("watch", "approved")
+        """Se capturan sus datos. Los descartados también (grupo de control, T41): sin su
+        rendimiento adelante no se puede medir si el filtro sirve."""
+        return self.status in ("watch", "approved", "rejected")
 
 
 class LeaderPosition(Frozen):
@@ -141,3 +144,55 @@ class LeaderFunding(Frozen):
     t: int
     observed_at: int
     source: str
+
+
+class FollowQuote(Frozen):
+    """Precio que habría obtenido un seguidor (T41): cotización vigente en `follow_at` =
+    `observed_at` + retraso de ejecución. `bid`/`ask` del WS `bbo`; con `allMids` solo hay
+    `mid` (cadencia de segundos, menos preciso). `quote_t` = hora de esa cotización."""
+
+    leader_id: str
+    tid: int
+    oid: int
+    symbol: str
+    observed_at: int
+    follow_at: int
+    quote_t: int
+    bid: float | None = None
+    ask: float | None = None
+    mid: float
+    src: Literal["bbo", "allMids"]
+
+
+class PositionChange(Frozen):
+    """Cambio de la posición firmada de un líder en una moneda durante `window_h` horas."""
+
+    symbol: str
+    window_h: float
+    from_size: float
+    to_size: float
+
+    @property
+    def delta(self) -> float:
+        return self.to_size - self.from_size
+
+
+class LeaderWeight(Frozen):
+    """Lo que el agente `smart_money` necesita de un líder aprobado (T41): su calidad (0..1,
+    del scorecard), el valor de su cuenta para normalizar la exposición, la hora de su foto
+    de posiciones y los cambios recientes."""
+
+    leader_id: str
+    label: str = ""
+    quality: float
+    account_value: float | None = None
+    hold_ms: float | None = None  # mediana de duración de sus operaciones cerradas
+    scored_at: int
+    positions_at: int | None = None  # observed_at de la foto de posiciones usada
+    changes: list[PositionChange] = []
+
+    @model_validator(mode="after")
+    def _check(self) -> LeaderWeight:
+        if not 0 <= self.quality <= 1:
+            raise ValueError("quality debe estar en [0, 1]")
+        return self
