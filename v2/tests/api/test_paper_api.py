@@ -61,8 +61,8 @@ def test_summary_profiles_and_strategies(client):
     assert v["mode"] == "SIMULADO" and v["coverage"]["contexts"] == 200
     assert [p["id"] for p in v["profiles"]] == ["conservador", "moderado", "agresivo"]
     for p in v["profiles"]:
-        assert p["n_closed"] > 0 and p["curve"] and p["equity"] > 0
-        assert set(p["weights"]) == {s["id"] for s in v["strategies"]}
+        assert p["equity"] > 0 and set(p["weights"]) == {s["id"] for s in v["strategies"]}
+    assert sum(p["n_closed"] for p in v["profiles"]) > 0     # el Conservador solo opera lo probado
     assert sum(s["n"] for s in v["strategies"]) > 0 and v["insights"]
     b = v["balance"]
     assert list(b) == ["todo", "30d", "7d", "24h"]
@@ -89,15 +89,16 @@ def test_trades_journal_ideas(client):
 
 def test_backtest_requires_confirm_and_runs(client):
     assert client.post("/v2/paper/backtest?symbol=BTCUSDT&days=0.05").status_code == 403
-    r = client.post("/v2/paper/backtest?symbol=BTCUSDT&days=0.05",
-                    headers={"X-EIM-Confirm": "paper-backtest"})
+    h = {"X-EIM-Confirm": "paper-backtest"}
+    assert client.post("/v2/paper/backtest?days=0.05&tf=1m", headers=h).status_code == 400
+    r = client.post("/v2/paper/backtest?symbol=BTCUSDT&days=0.05&tf=1h,15m", headers=h)
     assert r.status_code == 200 and r.json()["state"] == "corriendo"
     for _ in range(120):
         job = client.get("/v2/paper/status").json()["job"]
         if job["state"] != "corriendo":
             break
         time.sleep(0.25)
-    assert job["state"] == "terminado" and job["total"] == 1
+    assert job["state"] == "terminado" and job["total"] == 1 + 4    # 1 h: 1 vela, 15 m: 4
 
 
 def test_ctx_has_no_lookahead(tmp_path):

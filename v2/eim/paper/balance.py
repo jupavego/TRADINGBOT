@@ -1,7 +1,8 @@
 """Balance de operaciones ganadas frente a perdidas (función pura).
 
 Ponderado de los 3 perfiles: cada operación cerrada pesa igual (acierto conjunto = ganadas /
-total), más el desglose por perfil y por periodo. Ganada = PnL neto > 0 (después de comisiones,
+total), más el desglose por perfil, por marco (15 m / 1 h / 4 h) y por periodo, y la causa de
+cada pérdida (T48). Ganada = PnL neto > 0 (después de comisiones,
 deslizamiento y funding); el resto cuenta como perdida. Incluye la retroalimentación en texto:
 qué funcionó, qué no y qué mejorar.
 """
@@ -16,6 +17,17 @@ WINDOWS: tuple[tuple[str, str, int | None], ...] = (
 MIN_SIDE_N = 20       # operaciones por lado para comparar largos y cortos
 SIDE_GAP = 0.10       # diferencia de acierto que merece un aviso
 TIME_SHARE = 0.25     # fracción de pérdidas por tiempo que merece un aviso
+CAUSE_SHARE = 0.3     # causa dominante de las pérdidas que merece una recomendación
+CAUSE_LABEL = {"direccion": "dirección equivocada", "sl_rapido": "SL rápido", "casi_tp": "casi TP",
+               "tiempo": "por tiempo", "costos": "por costos"}
+CAUSE_TIP = {
+    "direccion": "la dirección falla: exigir más confluencia (síntesis o marco mayor a favor)",
+    "sl_rapido": "el SL salta enseguida: alejar el SL (más ATR) o esperar confirmación de cierre",
+    "casi_tp": "el precio llega cerca del objetivo y se da la vuelta: acercar el TP o asegurar en"
+               " 1 R",
+    "tiempo": "el objetivo no llega a tiempo: acercar el TP o acortar la espera",
+    "costos": "los costos se comen la ganancia: entradas límite (maker) y objetivos más amplios",
+}
 
 
 def _avg(xs: Sequence[float]) -> float | None:
@@ -57,9 +69,17 @@ def summarize(trades: Sequence[dict]) -> dict:
         "costs": sum(_cost(t) for t in trades),
         # perdedoras que habrían ganado antes de costos
         "cost_flips": sum(1 for t in losses if t["pnl"] + _cost(t) > 0),
+        "causes": _count([t.get("cause") for t in losses if t.get("cause")]),
         "long_wr": _rate([t for t in trades if t["side"] > 0]),
         "short_wr": _rate([t for t in trades if t["side"] < 0]),
     }
+
+
+def _count(xs: Sequence[str]) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for x in xs:
+        out[x] = out.get(x, 0) + 1
+    return out
 
 
 def _rate(ts: Sequence[dict]) -> dict:
@@ -84,7 +104,7 @@ def feedback(trades: Sequence[dict], s: dict, names: Mapping[str, str]) -> list[
         return [{"kind": "mejorar", "text": "Sin operaciones cerradas en este periodo."}]
     by: dict[str, list[dict]] = {}
     for t in trades:
-        by.setdefault(t["strategy"], []).append(t)
+        by.setdefault(t.get("sid", t["strategy"]), []).append(t)
     net = sorted(((sum(t["pnl"] for t in ts), k, ts) for k, ts in by.items()), key=lambda x: x[0])
     out: list[dict] = []
     best = net[-1]
@@ -121,6 +141,14 @@ def feedback(trades: Sequence[dict], s: dict, names: Mapping[str, str]) -> list[
         out.append({"kind": "mejorar", "text": f"{_pct(lt / s['losses']['n'])} de las pérdidas "
                     "salen por tiempo: el precio no llega al objetivo en el horizonte; acercar el "
                     "TP o acortar la espera."})
+    causes = s["causes"]
+    if causes and s["losses"]["n"]:
+        top, n_top = max(causes.items(), key=lambda kv: kv[1])
+        share = n_top / s["losses"]["n"]
+        if share >= CAUSE_SHARE and top in CAUSE_TIP:
+            label = CAUSE_LABEL.get(top, top)
+            out.append({"kind": "mejorar", "text": f"{_pct(share)} de las pérdidas son «{label}»:"
+                        f" {CAUSE_TIP[top]}."})
     lg, sh = s["long_wr"], s["short_wr"]
     if (lg["n"] >= MIN_SIDE_N and sh["n"] >= MIN_SIDE_N
             and abs(lg["win_rate"] - sh["win_rate"]) >= SIDE_GAP):
@@ -133,8 +161,9 @@ def feedback(trades: Sequence[dict], s: dict, names: Mapping[str, str]) -> list[
 
 
 def balance(trades_by_profile: Mapping[str, Sequence[dict]], names: Mapping[str, str],
-            now: int) -> dict:
-    """Por periodo: ponderado de todos los perfiles, cada perfil y la retroalimentación."""
+            now: int, timeframes: Sequence[str] = ()) -> dict:
+    """Por periodo: ponderado de todos los perfiles, cada perfil, cada marco y la
+    retroalimentación."""
     out: dict = {}
     for key, label, days in WINDOWS:
         since = None if days is None else now - days * DAY_MS
@@ -144,5 +173,7 @@ def balance(trades_by_profile: Mapping[str, Sequence[dict]], names: Mapping[str,
         s = summarize(pooled)
         out[key] = {"label": label, "since": since, "all": s,
                     "profiles": {pid: summarize(ts) for pid, ts in sel.items()},
+                    "timeframes": {tf: summarize([t for t in pooled if t.get("timeframe") == tf])
+                                   for tf in timeframes},
                     "feedback": feedback(pooled, s, names)}
     return out

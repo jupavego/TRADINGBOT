@@ -26,22 +26,23 @@ def _backtest_local(a: argparse.Namespace) -> int:
     from eim.paper.generate import CtxGenerator, closed_asofs, default_workers
 
     store = Store(a.data)
-    gen = CtxGenerator(store)
-    b = store.bounds(a.symbol, gen.tf)
-    if b is None:
-        print(f"sin velas de {a.symbol} {gen.tf} en {a.data}", file=sys.stderr)
-        return 1
-    n = int(a.days * 24 * 3_600_000 / gen.bar / a.step)
-    asofs = closed_asofs(b[1], gen.bar, n, a.step)
     ps = PaperStore(Path(a.data) / "paper.duckdb")
+    for tf in a.tf.split(","):
+        gen = CtxGenerator(store, timeframe=tf)
+        b = store.bounds(a.symbol, tf)
+        if b is None:
+            print(f"sin velas de {a.symbol} {tf} en {a.data}", file=sys.stderr)
+            continue
+        n = int(a.days * 24 * 3_600_000 / gen.bar / a.step)
+        asofs = closed_asofs(b[1], gen.bar, n, a.step)
 
-    def progress(k: int, total: int) -> None:
-        if k == total or k % 25 == 0:
-            print(f"  {k}/{total} velas", flush=True)
+        def progress(k: int, total: int, tf: str = tf) -> None:
+            if k == total or k % 50 == 0:
+                print(f"  {tf}: {k}/{total} velas", flush=True)
 
-    saved = gen.run(ps, a.symbol, asofs, lambda _t: "backtest", progress=progress,
-                    workers=a.workers or default_workers())
-    print(f"contextos guardados: {saved} ({a.symbol} {gen.tf}, {a.days} días, cada {a.step})")
+        saved = gen.run(ps, a.symbol, asofs, lambda _t: "backtest", progress=progress,
+                        workers=a.workers or default_workers())
+        print(f"contextos guardados: {saved} ({a.symbol} {tf}, {a.days} días, cada {a.step})")
     ps.close()
     return 0
 
@@ -52,7 +53,8 @@ def main(argv: list[str] | None = None) -> int:
     bt = sub.add_parser("backtest", help="reconstruye contextos de los últimos N días")
     bt.add_argument("--symbol", default="BTCUSDT", choices=SYMBOLS)
     bt.add_argument("--days", type=float, default=30)
-    bt.add_argument("--step", type=int, default=1, help="cada cuántas velas de 1 h")
+    bt.add_argument("--step", type=int, default=1, help="cada cuántas velas del marco")
+    bt.add_argument("--tf", default="15m,1h,4h", help="marcos separados por coma")
     bt.add_argument("--data", default="data")
     bt.add_argument("--api", default=DEFAULT_API)
     bt.add_argument("--local", action="store_true", help="no delegar en la API")
@@ -65,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
         if not a.local:
             try:
                 r = post_local(a.api, f"/v2/paper/backtest?symbol={a.symbol}&days={a.days}"
-                                      f"&step={a.step}", "paper-backtest")
+                                      f"&step={a.step}&tf={a.tf}", "paper-backtest")
                 print(json.dumps(r, ensure_ascii=False, indent=1))
                 return 0
             except (urllib.error.URLError, OSError):

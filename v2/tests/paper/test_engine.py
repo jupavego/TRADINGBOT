@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 
 from eim.backtest.params import ZERO_COSTS
@@ -115,3 +117,30 @@ def test_shadow_key_dedupe():
     ideas = [idea(t=T0, key="plan:1", iid="a"), idea(t=T0 + 3 * H1, key="plan:1", iid="b"),
              idea(t=T0 + 4 * H1, key="plan:2", iid="c")]
     assert [o.idea.id for o in run_shadow(ideas, Path(cs), ZERO)] == ["a", "c"]
+
+
+def test_breakeven_plus_after_one_r():
+    # +1 R (102) en la vela 2; la vela 4 vuelve: el SL ya está en entrada + costo + 0,1 R
+    cs = with_bar(with_bar(with_bar(flat(30), 2, 100, 102.2, 99.9, 102), 3, 102, 102.3, 101.5,
+                           101.6), 4, 101, 101.1, 97.5, 97.8)
+    o = simulate(idea(), Path(cs), ZERO)
+    lock_r = 0.1 + ZERO.est_cost_frac * 100 / 2               # +0,1 R neto + costo estimado en R
+    assert o.reason == "BE" and o.exit == pytest.approx(100 + 2 * lock_r)
+    assert o.r == pytest.approx(lock_r)
+    assert o.cause is None                                     # cubre costos: no es pérdida
+    off = simulate(idea(), Path(cs), ExecParams(costs=ZERO_COSTS, funding_8h_assumed=0.0,
+                                                 be_trigger_r=0))
+    assert off.reason == "SL" and off.r == pytest.approx(-1.0)
+
+
+def test_breakeven_trigger_and_sl_same_bar_is_sl():
+    cs = with_bar(flat(30), 2, 100, 102.5, 97.5, 98)
+    assert simulate(idea(), Path(cs), ZERO).reason == "SL"
+
+
+def test_breakeven_only_in_configured_timeframes():
+    cs = with_bar(with_bar(with_bar(flat(30), 2, 100, 102.2, 99.9, 102), 3, 102, 102.3, 101.5,
+                           101.6), 4, 101, 101.1, 97.5, 97.8)
+    o = simulate(replace(idea(), timeframe="15m"), Path(cs), ZERO)
+    assert o.reason == "SL"                                     # 15 m: sin break-even
+

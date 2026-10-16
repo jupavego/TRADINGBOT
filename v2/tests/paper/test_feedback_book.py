@@ -40,18 +40,18 @@ def test_judge_states_and_bounds():
 def test_learner_uses_only_closed_before_t():
     outs = [closed(-1.0, k) for k in range(10)]
     lr = Learner(outs)
-    assert lr.at("s", T0, FB).n == 0                  # nada cerrado aún
-    assert lr.at("s", T0 + 5 * H1, FB).n == 5         # cierres en 1..5 h (exit_t ≤ t)
-    assert lr.at("s", T0 + 5 * H1 - 1, FB).n == 4
-    assert lr.at("s", T0 + 99 * H1, FB).state == "pausa"
+    assert lr.at("s@1h", T0, FB).n == 0                  # nada cerrado aún
+    assert lr.at("s@1h", T0 + 5 * H1, FB).n == 5         # cierres en 1..5 h (exit_t ≤ t)
+    assert lr.at("s@1h", T0 + 5 * H1 - 1, FB).n == 4
+    assert lr.at("s@1h", T0 + 99 * H1, FB).state == "pausa"
 
 
 def test_stats_and_control_comparison():
     outs = ([closed(1.0, k) for k in range(8)] + [closed(-1.0, k, "ctrl", "control")
                                                   for k in range(8)])
-    rows = strategy_stats(outs, [{"id": "s", "name": "S", "family": "consenso"},
-                                 {"id": "ctrl", "name": "C", "family": "control"},
-                                 {"id": "z", "name": "Z", "family": "agentes"}])
+    infos = [{"id": f"{k}@1h", "name": k.upper(), "family": f, "timeframe": "1h"}
+             for k, f in (("s", "consenso"), ("ctrl", "control"), ("z", "agentes"))]
+    rows = strategy_stats(outs, infos)
     s, c, z = rows
     assert s["n"] == 8 and s["win_rate"] == 1 and s["mean_r"] == 1 and s["vs_control"] == 2
     assert s["p"] is not None and s["p_holm"] >= s["p"]
@@ -76,10 +76,14 @@ def test_profile_sizing_and_pnl_consistent_with_r():
 def test_conservative_filters():
     against = replace(closed(1.0, 0).idea, syn_bias=-0.5)
     o1 = replace(closed(1.0, 0), idea=against)
-    o2 = closed(1.0, 2, "ind", "indicadores")
-    st = run_profile(CONS, [o1, o2], Learner([]), mmr=0.004)
-    assert [e["cat"] for e in st.events] == ["rechazada"]   # indicadores: fuera del universo
+    o2 = closed(1.0, 2, "contra", "contrarias")
+    open_cons = CONS.model_copy(update={"feedback": CONS.feedback.model_copy(
+        update={"observe_w": 0.5})})                         # sin el filtro de «solo probado»
+    st = run_profile(open_cons, [o1, o2], Learner([]), mmr=0.004)
+    assert [e["cat"] for e in st.events] == ["rechazada"]   # contrarias: fuera del universo
     assert "síntesis" in st.events[0]["text"] and not st.trades
+    st = run_profile(CONS, [closed(1.0, 0)], Learner([]), mmr=0.004)
+    assert "observación" in st.events[0]["text"]             # Conservador: solo lo probado
 
 
 def test_capacity_and_hedge():
@@ -104,7 +108,7 @@ def test_paused_strategy_rejected_and_logged():
 
 
 def test_cancel_releases_margin():
-    o = Outcome(idea(kind="limit", entry=99, fill_h=2, iid="L"), "CANCELADA", "NO_LLENADA",
+    o = Outcome(idea(kind="limit", entry=99, sl=97, fill_h=2, iid="L"), "CANCELADA", "NO_LLENADA",
                 exit_t=T0 + 2 * H1)
     st = run_profile(MOD, [o], Learner([]), mmr=0.004)
     assert st.used == pytest.approx(0) and not st.slots
@@ -114,3 +118,16 @@ def test_cancel_releases_margin():
 def test_leverage_respects_cap_and_buffer():
     assert leverage_for(MOD, 100, 98, 0.004) <= MOD.max_leverage
     assert leverage_for(MOD, 100, 80, 0.004) == 2      # SL a 20 %: 1/(2·0,2 + 0,004) → 2
+
+
+def test_cost_and_htf_filters():
+    tight = Outcome(idea(sl=99.5, tp=101, iid="tight"), "ABIERTA", "", T0, 100.0, mark=100.0)
+    st = run_profile(MOD, [tight], Learner([]), mmr=0.004)       # 0,0016 / 0,005 = 0,32 R
+    assert "costo estimado" in st.events[-1]["text"]
+    against = Outcome(replace(idea(iid="against"), htf=-1), "ABIERTA", "", T0, 100.0, mark=100.0)
+    st = run_profile(MOD, [against], Learner([]), mmr=0.004)
+    assert "tendencia del marco mayor" in st.events[-1]["text"]
+    loose = MOD.model_copy(update={"require_htf": False})        # sin exigir la tendencia
+    st = run_profile(loose, [against], Learner([]), mmr=0.004)
+    assert [e["cat"] for e in st.events] == ["orden", "llenada"]
+

@@ -1,8 +1,9 @@
 /** Pestaña «Aprendizaje»: qué estrategia funciona y cuál no (evaluación sombra + retroalimentación). */
-import { esc, getPaper, nf, pct0, px, REASON, rr, side, STATUS, utc } from './paper_fmt'
+import { CAUSE, esc, getPaper, nf, pct0, px, REASON, rr, side, STATUS, utc } from './paper_fmt'
 import type { PaperSummary, ShadowIdea, StrategyRow } from './paper_types'
 
 const ROW_H = 24
+const MAX_BARS = 40               // con 3 marcos hay ~90 estrategias: el gráfico muestra extremos
 const LABEL_W = 190
 const VAL_W = 120
 
@@ -42,6 +43,8 @@ function stateChip(r: StrategyRow, v: PaperSummary, profile: string): string {
 export class PaperLearn {
   private open: string | null = null
   private fam = ''
+  private shown: StrategyRow[] = []
+  private tf = ''
   private view: PaperSummary | null = null
   private profile = 'moderado'
 
@@ -54,8 +57,10 @@ export class PaperLearn {
     })
     el.addEventListener('change', (e) => {
       const s = e.target as HTMLSelectElement
-      if (s.dataset.lf !== 'fam') return
-      this.fam = s.value; this.paint()
+      if (s.dataset.lf === 'fam') this.fam = s.value
+      else if (s.dataset.lf === 'tf') this.tf = s.value
+      else return
+      this.paint()
     })
     el.addEventListener('mousemove', (e) => this.tip(e))
     el.addEventListener('mouseleave', () => { const t = el.querySelector<HTMLElement>('.pp-tip'); if (t) t.hidden = true })
@@ -65,7 +70,7 @@ export class PaperLearn {
 
   private rows(): StrategyRow[] {
     const v = this.view!
-    return v.strategies.filter((r) => !this.fam || r.family === this.fam)
+    return v.strategies.filter((r) => (!this.fam || r.family === this.fam) && (!this.tf || r.timeframe === this.tf))
       .sort((a, b) => (b.n ? b.judgement.m : -9) - (a.n ? a.judgement.m : -9))
   }
 
@@ -74,7 +79,7 @@ export class PaperLearn {
     const t = this.el.querySelector<HTMLElement>('.pp-tip')
     if (!t) return
     if (!g) { t.hidden = true; return }
-    const r = this.rows().filter((x) => x.n)[Number(g.dataset.i)]
+    const r = this.shown[Number(g.dataset.i)]
     if (!r) return
     t.hidden = false
     t.innerHTML = `<b>${esc(r.name)}</b><br>Expectativa contraída ${rr(r.judgement.m)} ± ${rr(r.judgement.se, 2)}<br>` +
@@ -91,11 +96,19 @@ export class PaperLearn {
     const fams = v.family_stats.map((f) => `<span class="pp-fam"><b>${esc(v.families[f.family] ?? f.family)}</b> ` +
       `<span class="num">${rr(f.mean_r)}</span> <small class="muted">n=${f.n}</small></span>`).join('')
     const all = this.rows()
+    const tfSel = `<select data-lf="tf"><option value="">15m · 1h · 4h</option>` +
+      (v.timeframes ?? []).map((t) => `<option${t === this.tf ? ' selected' : ''}>${t}</option>`).join('') + '</select>'
+    const tfStats = (v.tf_stats ?? []).map((t) => `<span class="pp-fam"><b>${t.timeframe}</b> <span class="num">${rr(t.mean_r)}</span> ` +
+      `<small class="muted">acierto ${pct0(t.win_rate)} · n=${t.n}</small></span>`).join('')
     const famSel = `<select data-lf="fam"><option value="">Todas las familias</option>` +
       Object.entries(v.families).map(([k, n]) => `<option value="${k}"${k === this.fam ? ' selected' : ''}>${esc(n)}</option>`).join('') + '</select>'
     const width = Math.max(560, this.el.clientWidth - 20)
-    const withN = all.filter((r) => r.n)
-    const chart = withN.length ? bars(withN, Math.min(width, 980)) : '<p class="muted">Aún no hay operaciones cerradas.</p>'
+    let withN = all.filter((r) => r.n)
+    const cut = withN.length > MAX_BARS
+    if (cut) withN = [...withN.slice(0, MAX_BARS / 2), ...withN.slice(-MAX_BARS / 2)]
+    this.shown = withN
+    const chart = (withN.length ? bars(withN, Math.min(width, 980)) : '<p class="muted">Aún no hay operaciones cerradas.</p>') +
+      (cut ? `<p class="muted pp-note">Se muestran las ${MAX_BARS / 2} mejores y las ${MAX_BARS / 2} peores; filtra por marco o familia para ver el resto.</p>` : '')
     const prof = v.profiles.find((p) => p.id === this.profile)?.name ?? this.profile
     const rows = all.map((r) => {
       const side_ = Object.entries(r.by_side).map(([k, s]) => `${k} ${rr(s.mean_r, 2)} (${s.n})`).join(' · ')
@@ -110,8 +123,8 @@ export class PaperLearn {
         `<td class="num">${r.hold_h === null ? '—' : nf(r.hold_h, 1)}</td><td><small>${side_ || '—'}</small></td></tr>`
       return tr + (this.open === r.id ? `<tr class="pp-detail"><td colspan="15" data-detail="${r.id}"><p class="muted">Cargando…</p></td></tr>` : '')
     }).join('')
-    this.el.innerHTML = `<ul class="pp-insights">${ins}</ul><div class="pp-fams">${fams}</div>` +
-      `<div class="pp-filters"><h4 class="sh">Expectativa por estrategia (R por operación)</h4>${famSel}</div>` +
+    this.el.innerHTML = `<ul class="pp-insights">${ins}</ul><div class="pp-fams">${tfStats}</div><div class="pp-fams">${fams}</div>` +
+      `<div class="pp-filters"><h4 class="sh">Expectativa por estrategia (R por operación)</h4>${tfSel}${famSel}</div>` +
       `<div class="pp-chartbox">${chart}<div class="pp-tip" hidden></div></div>` +
       '<p class="muted pp-note">Barra = expectativa contraída hacia 0 (pocas operaciones pesan poco) · bigote = ±1 error estándar · línea discontinua = control aleatorio. ' +
       'El color solo marca el signo; el valor está a la derecha.</p>' +
@@ -132,8 +145,13 @@ export class PaperLearn {
       const s = this.view.strategies.find((x) => x.id === id)!
       const reg = Object.entries(s.by_regime).map(([k, x]) => `${esc(k)}: ${rr(x.mean_r)} (${x.n})`).join(' · ')
       const reasons = Object.entries(s.by_reason).map(([k, n]) => `${REASON[k] ?? k} ${n}`).join(' · ')
-      cell.innerHTML = `<p>${esc(s.description)}</p><p class="muted">Por régimen: ${reg || '—'} · Salidas: ${reasons || '—'} · ` +
+      const causes = Object.entries(s.by_cause ?? {}).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${CAUSE[k] ?? k} ${n}`).join(' · ')
+      const ctx = Object.entries(s.by_context ?? {}).sort((a, b) => a[1].mean_r - b[1].mean_r).map(([k, x]) =>
+        `<span class="pp-ctx" data-s="${x.state}">${esc(k.replace('|', ' · '))}: ${rr(x.mean_r)} (${x.n})${x.state === 'pausa' ? ' · en pausa' : ''}</span>`).join(' ')
+      cell.innerHTML = `<p>${esc(s.description)} <span class="pp-tfb">${esc(s.timeframe)}</span></p><p class="muted">Por régimen: ${reg || '—'} · Salidas: ${reasons || '—'} · ` +
         `últimas 10: ${rr(s.last10_r)} · decididas en vivo: ${s.origin_live}</p>` +
+        `<p class="muted">Por qué perdió: ${causes || '—'}</p>` +
+        (ctx ? `<p class="pp-ctxs"><b>Contextos (régimen · lado):</b> ${ctx}</p>` : '') +
         `<table class="pp-t pp-mini"><thead><tr><th>Señal (UTC)</th><th>Lado</th><th>Entrada / SL / TP</th><th>Estado</th><th>R</th><th>Por qué</th></tr></thead><tbody>` +
         r.ideas.map((o) => `<tr><td class="num">${utc(o.t)}</td><td>${side(o.side)} · ${o.kind === 'limit' ? 'límite' : 'mercado'}</td>` +
           `<td class="num">${px(o.fill ?? o.entry)} / ${px(o.sl)} / ${px(o.tp)}</td>` +

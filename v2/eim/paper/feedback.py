@@ -1,8 +1,12 @@
 """Retroalimentación y estadística por estrategia (funciones puras).
 
-`Learner.at(estrategia, t)` usa SOLO operaciones sombra cerradas en `exit_t ≤ t`: el peso que un
-perfil aplica en `t` no conoce el futuro. Las estrategias en pausa siguen evaluándose en la
+`Learner.at(estrategia@marco, t)` usa SOLO operaciones sombra cerradas en `exit_t ≤ t`: el peso
+que un perfil aplica en `t` no conoce el futuro. Las estrategias en pausa siguen evaluándose en la
 sombra, así que vuelven solas si se recuperan.
+
+Aprendizaje por contexto (T48): además, cada pérdida cuenta en su contexto (estrategia@marco ×
+régimen × lado); un contexto que pierde de forma consistente se pausa aunque la estrategia en
+conjunto siga activa (`Learner.context_at`).
 """
 
 from __future__ import annotations
@@ -62,19 +66,38 @@ def closed(outcomes: Iterable[Outcome]) -> list[Outcome]:
     return [o for o in outcomes if o.status == "CERRADA" and o.r is not None]
 
 
+def context_key(o_or_idea) -> str:
+    """estrategia@marco|régimen|lado (la unidad del aprendizaje por contexto)."""
+    i = getattr(o_or_idea, "idea", o_or_idea)
+    return f"{i.sid}|{i.regime or 'sin dato'}|{'largo' if i.side > 0 else 'corto'}"
+
+
+def _index(pairs: dict[str, list[tuple[int, float]]]):
+    return ({k: [t for t, _ in sorted(v)] for k, v in pairs.items()},
+            {k: [r for _, r in sorted(v)] for k, v in pairs.items()})
+
+
 class Learner:
-    """Resultados sombra cerrados por estrategia, ordenados por cierre."""
+    """Resultados sombra cerrados por estrategia@marco y por contexto, ordenados por cierre."""
 
     def __init__(self, outcomes: Iterable[Outcome]) -> None:
         by: dict[str, list[tuple[int, float]]] = {}
+        ctx: dict[str, list[tuple[int, float]]] = {}
         for o in closed(outcomes):
-            by.setdefault(o.idea.strategy, []).append((o.exit_t, o.r))
-        self._t = {k: [t for t, _ in sorted(v)] for k, v in by.items()}
-        self._r = {k: [r for _, r in sorted(v)] for k, v in by.items()}
+            by.setdefault(o.idea.sid, []).append((o.exit_t, o.r))
+            ctx.setdefault(context_key(o), []).append((o.exit_t, o.r))
+        self._t, self._r = _index(by)
+        self._ct, self._cr = _index(ctx)
 
-    def at(self, strategy: str, t: int, p: FeedbackParams) -> Judgement:
-        ts = self._t.get(strategy, [])
-        return judge(self._r.get(strategy, [])[:bisect_right(ts, t)], p)
+    def at(self, sid: str, t: int, p: FeedbackParams) -> Judgement:
+        ts = self._t.get(sid, [])
+        return judge(self._r.get(sid, [])[:bisect_right(ts, t)], p)
+
+    def context_at(self, idea, t: int, p: FeedbackParams) -> Judgement:
+        """Juicio del contexto de la idea con lo cerrado hasta `t` (sin mirar el futuro)."""
+        k = context_key(idea)
+        ts = self._ct.get(k, [])
+        return judge(self._cr.get(k, [])[:bisect_right(ts, t)], p)
 
 
 def _p_one_sided(r: np.ndarray) -> float | None:
@@ -110,13 +133,21 @@ def _curve(os_: Sequence[Outcome], points: int = 60) -> list[tuple[int, float]]:
     return [(os_[i].exit_t, round(float(cum[i]), 3)) for i in idx]
 
 
+def _contexts(cl: Sequence[Outcome], p: FeedbackParams) -> dict[str, dict]:
+    g: dict[str, list[float]] = {}
+    for o in sorted(cl, key=lambda o: o.exit_t):
+        g.setdefault(context_key(o).split("|", 1)[1], []).append(o.r)
+    return {k: {"n": len(v), "mean_r": round(float(np.mean(v)), 4),
+                "state": judge(v, p).state} for k, v in g.items()}
+
+
 def strategy_stats(outcomes: Sequence[Outcome], strategies: Sequence[dict],
                    p: FeedbackParams | None = None) -> list[dict]:
-    """Ficha por estrategia (todas las del catálogo, aunque no hayan operado)."""
+    """Ficha por estrategia@marco (todas las del catálogo, aunque no hayan operado)."""
     p = p or FeedbackParams()
     by: dict[str, list[Outcome]] = {}
     for o in outcomes:
-        by.setdefault(o.idea.strategy, []).append(o)
+        by.setdefault(o.idea.sid, []).append(o)
     rows: list[dict] = []
     for info in strategies:
         os_ = by.get(info["id"], [])
@@ -146,6 +177,9 @@ def strategy_stats(outcomes: Sequence[Outcome], strategies: Sequence[dict],
             "by_side": _group(cl, lambda o: "largo" if o.idea.side > 0 else "corto"),
             "by_regime": _group(cl, lambda o: o.idea.regime or "sin dato"),
             "by_reason": {k: v["n"] for k, v in _group(cl, lambda o: o.reason).items()},
+            "by_cause": {k: v["n"] for k, v in _group([o for o in cl if o.cause],
+                                                      lambda o: o.cause).items()},
+            "by_context": _contexts(cl, p),
             "curve": _curve(cl),
             "judgement": judge(list(r), p).to_json(),
             "origin_live": sum(o.idea.origin == "vivo" for o in cl),
@@ -154,14 +188,25 @@ def strategy_stats(outcomes: Sequence[Outcome], strategies: Sequence[dict],
             row["pf"] = None
         rows.append(row)
     adj = holm({x["id"]: x["p"] for x in rows if x["p"] is not None})
-    ctrl = next((x for x in rows if x["family"] == "control"), None)
+    ctrls = {x.get("timeframe"): x for x in rows if x["family"] == "control"}
     for x in rows:
+        ctrl = ctrls.get(x.get("timeframe"))     # el control del mismo marco
         x["p_holm"] = None if x["p"] is None else round(adj[x["id"]], 4)
         x["p"] = None if x["p"] is None else round(x["p"], 4)
         x["vs_control"] = (round(x["mean_r"] - ctrl["mean_r"], 4)
                            if ctrl and ctrl["mean_r"] is not None and x["mean_r"] is not None
                            and x is not ctrl else None)
     return rows
+
+
+def timeframe_stats(outcomes: Sequence[Outcome]) -> list[dict]:
+    """Resultado sombra agregado por marco: ¿en qué temporalidad se gana más?"""
+    g: dict[str, list[float]] = {}
+    for o in closed(outcomes):
+        g.setdefault(o.idea.timeframe, []).append(o.r)
+    return [{"timeframe": tf, "n": len(v), "win_rate": round(float(np.mean(np.array(v) > 0)), 4),
+             "mean_r": round(float(np.mean(v)), 4), "sum_r": round(float(np.sum(v)), 3)}
+            for tf, v in sorted(g.items(), key=lambda x: x[0])]
 
 
 def family_stats(rows: Sequence[dict]) -> list[dict]:

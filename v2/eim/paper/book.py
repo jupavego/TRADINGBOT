@@ -2,7 +2,8 @@
 
 Orden de eventos por tiempo: cierres → cancelaciones → llenados → señales. El tamaño usa el
 capital REALIZADO en el instante de la señal y el peso de la retroalimentación con lo cerrado
-hasta entonces. Margen aislado; apalancamiento entero tal que la liquidación quede a ≥
+hasta entonces (por estrategia@marco y, desde T48, por contexto: un contexto que pierde de forma
+consistente se pausa). Margen aislado; apalancamiento entero tal que la liquidación quede a ≥
 `liq_buffer` veces la distancia del SL. Siempre SIMULADO.
 """
 
@@ -13,11 +14,11 @@ import math
 from dataclasses import dataclass, field
 
 from eim.paper.engine import Outcome
-from eim.paper.feedback import Learner
+from eim.paper.feedback import Learner, context_key
 from eim.paper.params import ProfileParams
 
 PRIO = {"close": 0, "cancel": 1, "fill": 2, "signal": 3}
-EXIT_CAT = {"TP": "tp", "SL": "sl", "TIEMPO": "tiempo"}
+EXIT_CAT = {"TP": "tp", "SL": "sl", "BE": "be", "TIEMPO": "tiempo"}
 
 
 @dataclass
@@ -47,11 +48,13 @@ class ProfileState:
     trades: list[dict] = field(default_factory=list)
     curve: list[tuple[int, float]] = field(default_factory=list)
     states: dict[str, str] = field(default_factory=dict)
+    ctx_states: dict[str, str] = field(default_factory=dict)
 
 
 def _ev(st: ProfileState, t: int, cat: str, o: Outcome, text: str, **kw) -> None:
     i = o.idea
     st.events.append({"t": t, "cat": cat, "profile": st.p.id, "strategy": i.strategy,
+                      "sid": i.sid, "timeframe": i.timeframe,
                       "family": i.family, "idea": i.id, "side": i.side, "kind": i.kind,
                       "text": text, "origin": i.origin, **kw})
 
@@ -70,14 +73,32 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
     i, p = o.idea, st.p
     if o.status == "RECHAZADA" or i.family not in p.families:
         return
-    j = learner.at(i.strategy, i.t, p.feedback)
-    if st.states.get(i.strategy, "observacion") != j.state:
-        _ev(st, i.t, "aprendizaje", o, f"{st.states.get(i.strategy, 'observacion')} → {j.state}",
+    j = learner.at(i.sid, i.t, p.feedback)
+    if st.states.get(i.sid, "observacion") != j.state:
+        _ev(st, i.t, "aprendizaje", o, f"{st.states.get(i.sid, 'observacion')} → {j.state}",
             weight=j.weight, m=j.m, n=j.n)
-        st.states[i.strategy] = j.state
+        st.states[i.sid] = j.state
+    jc = learner.context_at(i, i.t, p.feedback)
+    ck = context_key(i)
+    if (st.ctx_states.get(ck) == "pausa") != (jc.state == "pausa"):
+        _ev(st, i.t, "aprendizaje", o, "contexto en pausa" if jc.state == "pausa"
+            else "contexto reactivado", weight=jc.weight, m=jc.m, n=jc.n,
+            context=ck.split("|", 1)[1])
+    st.ctx_states[ck] = jc.state
     why = ""
     if j.state == "pausa":
         why = f"estrategia en pausa: expectativa {j.m:+.2f} R con {j.n} operaciones"
+    elif jc.state == "pausa":
+        reg, lado = ck.split("|")[1:]
+        why = (f"contexto en pausa ({reg}, {lado}): expectativa {jc.m:+.2f} R con {jc.n} "
+               "operaciones en ese contexto")
+    elif j.state == "observacion" and p.feedback.observe_w <= 0:
+        why = f"en observación: el perfil solo opera lo probado ({j.n}/{p.feedback.n_min} ops)"
+    elif p.est_cost_frac / (abs(i.entry - i.sl) / i.entry) > p.max_cost_r:
+        why = (f"costo estimado {p.est_cost_frac / (abs(i.entry - i.sl) / i.entry):.2f} R > "
+               f"{p.max_cost_r:.2f} R: el SL está demasiado cerca para lo que cuesta operar")
+    elif p.require_htf and i.htf < 0:
+        why = "contra la tendencia del marco mayor"
     elif i.conf < p.min_conf:
         why = f"confianza {i.conf:.0%} < {p.min_conf:.0%}"
     elif i.rr < p.min_rr:
@@ -136,7 +157,8 @@ def _close(st: ProfileState, o: Outcome) -> None:
     st.equity += pnl
     st.curve.append((o.exit_t, st.equity))
     i = o.idea
-    tr = {"id": i.id, "strategy": i.strategy, "family": i.family, "side": i.side,
+    tr = {"id": i.id, "strategy": i.strategy, "sid": i.sid, "timeframe": i.timeframe,
+          "family": i.family, "side": i.side, "cause": o.cause,
           "kind": i.kind, "t": i.t, "fill_t": o.fill_t, "exit_t": o.exit_t, "fill": o.fill,
           "exit": o.exit, "sl": i.sl, "tp": i.tp, "qty": s.qty, "notional": notional,
           "leverage": s.leverage, "margin": s.margin, "reason": o.reason, "pnl": pnl,
@@ -146,7 +168,7 @@ def _close(st: ProfileState, o: Outcome) -> None:
           "weight": s.weight, "origin": i.origin, "regime": i.regime, "why": list(i.why)}
     st.trades.append(tr)
     _ev(st, o.exit_t, EXIT_CAT[o.reason], o, f"cierre por {o.reason}", price=o.exit, pnl=pnl,
-        r=o.r, equity=st.equity)
+        r=o.r, equity=st.equity, cause=o.cause)
 
 
 def _cancel(st: ProfileState, o: Outcome) -> None:

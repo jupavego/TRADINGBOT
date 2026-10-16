@@ -1,6 +1,6 @@
 /** Balance superior del bróker simulado: ganadas frente a perdidas (ponderado de los 3 perfiles). */
 import { PROFILE_VAR } from './paper_chart'
-import { esc, nf, pct0, REASON, rr, usd } from './paper_fmt'
+import { CAUSE, esc, nf, pct0, REASON, rr, usd } from './paper_fmt'
 import type { BalanceSummary, BalanceWindow, PaperSummary } from './paper_types'
 
 const FB: Record<string, [string, string]> = {
@@ -25,7 +25,24 @@ function card(kind: 'win' | 'loss', w: BalanceWindow, v: PaperSummary): string {
   return `<article class="pp-bal-card" data-k="${kind}"><h5>${title}</h5>` +
     `<p class="pp-bal-big"><b class="num">${nf(half.n, 0)}</b><span>de ${nf(a.n, 0)} operaciones · <b>${pct0(share)}</b></span></p>` +
     `<p class="pp-bal-sum num">${usd(half.usd, 0)} USDT <small>· media ${half.avg_usd === null ? '—' : usd(half.avg_usd)} USDT (${rr(half.avg_r)})</small></p>` +
-    `<ul class="pp-bal-rows">${rows}</ul><small class="muted">Salidas: ${reasons(half.by_reason)}</small></article>`
+    `<ul class="pp-bal-rows">${rows}</ul><small class="muted">Salidas: ${reasons(half.by_reason)}</small>` +
+    (kind === 'loss' ? causes(a) : '') + '</article>'
+}
+
+/** Por qué se perdió (T48): reparto de las causas de las pérdidas del periodo. */
+function causes(a: BalanceSummary): string {
+  const xs = Object.entries(a.causes ?? {}).sort((x, y) => y[1] - x[1])
+  const tot = xs.reduce((k, [, n]) => k + n, 0)
+  if (!tot) return ''
+  return `<p class="pp-bal-causes"><b>Por qué se perdió:</b> ${xs.map(([k, n]) =>
+    `<span>${esc(CAUSE[k] ?? k)} <b class="num">${pct0(n / tot)}</b></span>`).join('')}</p>`
+}
+
+/** Acierto por temporalidad del periodo (ponderado de los 3 perfiles). */
+function byTf(w: BalanceWindow): string {
+  const xs = Object.entries(w.timeframes ?? {}).filter(([, s]) => s.n)
+  if (!xs.length) return ''
+  return `<p class="pp-bal-tfs">${xs.map(([tf, s]) => `<span><b>${esc(tf)}</b> ${pct0(s.win_rate)} · ${s.n} ops</span>`).join('')}</p>`
 }
 
 function middle(w: BalanceWindow): string {
@@ -36,7 +53,7 @@ function middle(w: BalanceWindow): string {
   const mark = be === null ? '' : `<i class="pp-bal-be" style="left:${Math.round(be * 100)}%" title="Acierto necesario para no perder"></i>`
   return `<div class="pp-bal-mid"><div class="pp-bal-split" role="img" aria-label="Ganadas ${wp} %, perdidas ${100 - wp} %">` +
     `<span data-k="win" style="flex-basis:${wp}%">${wp ? `${wp} %` : ''}</span><span data-k="loss" style="flex-basis:${100 - wp}%">${a.n ? `${100 - wp} %` : ''}</span>${mark}</div>` +
-    `<p class="pp-bal-need ${ok ? 'up' : 'down'}">${ok ? '✓' : '✗'} Acierto ${pct0(wr)} · necesario ${pct0(be)}</p>` +
+    `<p class="pp-bal-need ${ok ? 'up' : 'down'}">${ok ? '✓' : '✗'} Acierto ${pct0(wr)} · necesario ${pct0(be)}</p>` + byTf(w) +
     '<dl class="pp-bal-kv">' +
     `<dt>Ganancia media / pérdida media</dt><dd class="num">${a.payoff === null ? '—' : `${nf(a.payoff)} R`}</dd>` +
     `<dt>Esperanza por operación</dt><dd class="num">${rr(a.expectancy_r)}</dd>` +

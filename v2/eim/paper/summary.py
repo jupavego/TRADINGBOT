@@ -30,7 +30,8 @@ def positions_of(st: ProfileState, mmr: float) -> tuple[list[dict], list[dict], 
     pos, orders, upnl = [], [], 0.0
     for s in st.slots.values():
         o, i = s.o, s.o.idea
-        base = {"id": i.id, "strategy": i.strategy, "family": i.family, "side": i.side,
+        base = {"id": i.id, "strategy": i.strategy, "sid": i.sid, "timeframe": i.timeframe,
+                "family": i.family, "side": i.side,
                 "kind": i.kind, "t": i.t, "qty": s.qty, "sl": i.sl, "tp": i.tp,
                 "leverage": s.leverage, "margin": s.margin, "weight": s.weight,
                 "risk_usd": s.risk_usd, "origin": i.origin, "why": list(i.why)}
@@ -62,7 +63,7 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
     curve = list(st.curve) + ([(now, equity)] if st.curve else [])
     by: dict[str, dict] = {}
     for t in tr:
-        b = by.setdefault(t["strategy"], {"n": 0, "pnl": 0.0, "wins": 0})
+        b = by.setdefault(t["sid"], {"n": 0, "pnl": 0.0, "wins": 0})
         b["n"] += 1
         b["pnl"] += t["pnl"]
         b["wins"] += int(t["pnl"] > 0)

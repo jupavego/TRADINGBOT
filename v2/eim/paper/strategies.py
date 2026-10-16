@@ -81,7 +81,7 @@ def _setup(rank: int | None):
             return None
         return Draft(side=1 if s["side"] == "long" else -1, sl=s["sl"], tp=s["tp"],
                      conf=s["p_tp"] or 0.0, kind="limit", entry=s["entry"],
-                     fill_h=SETUP_FILL_H, hold_h=SETUP_HOLD_H,
+                     fill_h=SETUP_FILL_H, hold_h=SETUP_HOLD_H, scale=False,
                      why=(s["basis"], f"P(llenado) {s['p_fill']:.0%} · P(TP antes que SL) "
                                       f"{s['p_tp']:.0%} · EV {s['ev_r']:+.2f} R · "
                                       f"confluencia {s['conf_n']}"))
@@ -108,7 +108,7 @@ def escenario_dominante(ctx: dict, _x: object, _i: int) -> Draft | None:
     if not finite(sc.get("end"), sc.get("inv"), a) or (sc["end"] - c) * side < 0.5 * a:
         return None
     return Draft(side=side, sl=sc["inv"], tp=sc["end"], conf=sc["p"], entry=c,
-                 hold_h=fc["h"] * _bar_h(ctx),
+                 hold_h=fc["h"] * _bar_h(ctx), scale=False,
                  why=(f"Escenario {'alcista' if side > 0 else 'bajista'} dominante "
                       f"({sc['p']:.0%}); TP en su mediana, SL en su invalidación",))
 
@@ -127,7 +127,7 @@ def escenario_retroceso(ctx: dict, _x: object, _i: int) -> Draft | None:
     if not finite(sc.get("end")) or (c - entry) * side < 0.25 * a:
         return None
     return Draft(side=side, sl=sl, tp=sc["end"], conf=sc["p"] * 0.8, kind="limit", entry=entry,
-                 fill_h=fc["h"] * _bar_h(ctx) / 2, hold_h=fc["h"] * _bar_h(ctx),
+                 fill_h=fc["h"] * _bar_h(ctx) / 2, hold_h=fc["h"] * _bar_h(ctx), scale=False,
                  why=(f"Retroceso al cuantil {'25' if side > 0 else '75'} del cierre simulado "
                       f"a favor del escenario dominante ({sc['p']:.0%})",))
 
@@ -146,7 +146,7 @@ def escenario_rango(ctx: dict, _x: object, _i: int) -> Draft | None:
         return None
     sl = entry - side * 0.5 * abs(mid - entry)
     return Draft(side=side, sl=sl, tp=mid, conf=p, kind="limit", entry=entry,
-                 fill_h=fc["h"] * _bar_h(ctx) / 2, hold_h=fc["h"] * _bar_h(ctx),
+                 fill_h=fc["h"] * _bar_h(ctx) / 2, hold_h=fc["h"] * _bar_h(ctx), scale=False,
                  why=(f"Escenario neutral dominante ({p:.0%}): reversión desde el borde de "
                       "su banda hacia la mediana",))
 
