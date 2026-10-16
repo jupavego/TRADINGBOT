@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-16T08:49:00",
+ "generated": "2026-10-16T10:23:38",
  "tasks": [
   {
    "id": "T01",
@@ -500,8 +500,8 @@ window.EIM_STATUS = {
     "T40",
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Puro `eim/copytrading/`: viajes de plano a plano (`trades.py`: giro reparte comisión; apertura no vista o hueco en la cadena de posiciones → parcial, fuera), `metrics.py` (neto de comisiones y funding, FB, G/P, caída, consistencia diaria, concentración, apalancamiento, promediado, martingala), `stats.py` (Sharpe por operación **deflactado por N billeteras** + IC con Bonferroni), `portfolio.py` (`portfolio` de HL, Modified Dietz: solo preselecciona), `copyability.py` (latencia medida + 300 ms, ask/bid vigente grabado en vivo, comisión tomador), `forward.py` (adelante = tras la 1.ª foto; días = tiempo realmente cubierto; cohortes por veredicto), `scorecard.py` (reglas duras → descartado; adelante < 30 op o < 7 d → vigilancia; DSR < 0,95 o seguidor ≤ 0 → descartado; si no aprobado, calidad = DSR × retención; cada veredicto con motivos), `board.py`. I/O: `data/leader_service.py` (vigilante T40 + WS `bbo`/`allMids` → `leader_follow`, `portfolio` cada 6 h, tablero cada 5 min en `data/leaders/`), `leader_eval.py` (veredicto → estado + historial), `leader_board.py`, `leader_score_store.py`; `rejected` sigue capturado (grupo de control). `build_snapshot` rellena `leaders` + `leader_weights` (nuevo). Agente `smart_money` (calidad, tope 40 % por líder; fuera de la síntesis hasta T44). API `GET /v2/leaders/board`; pestaña «Líderes» (`leaders_ui.ts`, `leaders_view.ts`, `leaders.css`); CLI `score [--portfolio]`. Tests: 36 nuevos (racha con n chico descartada, consistente aprobado, sin líderes → no_data, servicio sobre ejecuciones reales grabadas); gate 941. **Verificado en vivo 2026-10-16** (7 billeteras reales, 30 min): 385/385 reconciliaciones idénticas, 0 huecos, latencia WS p50 194 ms; 12 292 precios del seguidor (`bbo`, antigüedad p50 262 ms); 0 aprobados (nadie tiene 7 d adelante), 3 en vigilancia y 4 descartados con motivo (cartera −26 M USD, caídas ~100 %, latentes −262 k USD); 0xf5d8: en 172 operaciones adelante el líder +366 USD y el seguidor −812 USD (comisiones de tomador). Runner de la API: `smart_money` corrió en la vela de 15:00 UTC con el tablero real → `no_data` («ningún líder aprobado»). Pendientes en BACKLOG (T41).",
    "effort": "alto",
    "phase": 8,
    "goal": "Decidir a quién vale la pena seguir con métricas robustas (no con \"100 % de acierto\") y convertir sus posiciones en un agente direccional."

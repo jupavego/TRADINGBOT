@@ -1,7 +1,8 @@
 """Hyperliquid por API pública oficial (sin claves): `/info` por REST y WS (T40, fuente T33).
 
 - `HyperliquidInfo`: estado de cuenta (`clearinghouseState`), ejecuciones (`userFills`,
-  `userFillsByTime` paginado), funding (`userFunding` paginado) y `vaultDetails`, con
+  `userFillsByTime` paginado), funding (`userFunding` paginado), `vaultDetails` y
+  `portfolio` (T41), con
   reintentos y presupuesto de peso por minuto (límite oficial 1200/IP). Estima además el
   desfase del reloj local frente al del servidor (`time` de `clearinghouseState` contra el
   punto medio del viaje): sin corregirlo la latencia medida sale negativa.
@@ -143,6 +144,10 @@ class HyperliquidInfo:
 
     def vault_details(self, vault: str) -> dict:
         return self.post({"type": "vaultDetails", "vaultAddress": vault})
+
+    def portfolio(self, user: str) -> list:
+        """Valor de cuenta y PnL acumulado por periodo (`day` … `perpAllTime`), T41."""
+        return self.post({"type": "portfolio", "user": user})
 
 
 def _default_connect(url: str):

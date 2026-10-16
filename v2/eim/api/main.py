@@ -17,6 +17,7 @@ from eim.api.config import Settings
 from eim.api.execution import build_execution_router, build_runtime, recon_loop
 from eim.api.forecast import Forecaster, build_forecast_router
 from eim.api.history import HistoryLoader
+from eim.api.leaders import LeaderDesk, build_leaders_router
 from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.more import MoreSources, build_more_router
 from eim.api.operation import build_operation_router
@@ -150,6 +151,10 @@ def create_app(
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
     app.include_router(build_arbitrage_router(arb_desk))
     app.state.arb_desk = arb_desk
+    # T41: tablero de líderes (lo escribe el vigilante en data/leaders/; aquí solo se lee).
+    sm = reg.get("smart_money") if "smart_money" in reg.ids() else None
+    app.state.leader_desk = LeaderDesk(cfg.data_dir, agent=sm)
+    app.include_router(build_leaders_router(app.state.leader_desk))
     app.include_router(build_paper_router(paper))
     app.state.paper = paper
 

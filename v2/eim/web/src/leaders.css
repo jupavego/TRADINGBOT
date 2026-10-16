@@ -1,0 +1,25 @@
+/* Pestaña «Líderes» (T41). Reutiliza la tabla y el detalle del arbitraje; colores por tokens del tema. */
+.ld-table { min-width: 1180px; }
+.ld-table td { vertical-align: top; padding: 5px 6px; }
+.ld-table td small { display: block; color: var(--muted); font-size: 11px; line-height: 1.35; max-width: 260px; }
+.ld-table td b { color: var(--text); font-weight: 600; }
+.ld-row { cursor: pointer; }
+.ld-row:hover td { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.ld-row[data-v="rejected"] td { opacity: .8; }
+.ld-row[aria-expanded="true"] td { border-top-color: var(--accent); }
+.ld-detail > td { background: color-mix(in srgb, var(--panel) 85%, var(--accent) 4%); padding: 8px 10px 10px; }
+.ld-chip { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.ld-chip[data-v="approved"] { color: var(--up); border-color: var(--up); }
+.ld-chip[data-v="watch"] { color: var(--warn); border-color: var(--warn); }
+.ld-chip[data-v="rejected"] { color: var(--down); border-color: var(--down); }
+.ld-reasons { margin: 6px 0 10px; padding-left: 18px; font-size: 12px; line-height: 1.5; }
+.ld-reasons li b { font-weight: 600; margin-right: 4px; }
+.ld-reasons li[data-k="descarte"] b { color: var(--down); }
+.ld-reasons li[data-k="vigilancia"] b { color: var(--warn); }
+.ld-reasons li[data-k="aprobado"] b { color: var(--up); }
+.ld-reasons li[data-k="aviso"] { color: var(--muted); }
+.ld-signals, .ld-cohorts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; margin: 0 0 12px; }
+.ld-signal, .ld-cohort { display: grid; gap: 2px; font-size: 12px; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--radius); color: var(--text); }
+.ld-cohort[data-v="approved"] { border-color: var(--up); }
+.ld-cohort[data-v="watch"] { border-color: var(--warn); }
+.ld-copy { font-size: 12px; line-height: 1.5; color: var(--text); }
