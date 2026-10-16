@@ -7,6 +7,7 @@ from fastapi import APIRouter, Header, HTTPException, Query
 from eim.api.execution import confirm
 from eim.data.timeframes import SYMBOLS
 from eim.paper.desk import PaperDesk
+from eim.paper.live_feed import live_feed
 
 CATS = ("orden", "llenada", "tp", "be", "sl", "tiempo", "cancelada", "rechazada", "aprendizaje")
 
@@ -96,6 +97,16 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
                and (tfs is None or o.idea.timeframe in tfs)]
         os_.sort(key=lambda o: -o["t"])
         return {"mode": "SIMULADO", "total": len(os_), "ideas": os_[:limit]}
+
+    @router.get("/live")
+    def live(symbol: str = "BTCUSDT", limit: int = Query(100, ge=1, le=1000)) -> dict:
+        """Señales en vivo: cada decisión en tiempo real, su estado en la sombra y qué hizo
+        cada perfil con ella y por qué (las reconstruidas por el backtest no aparecen)."""
+        _check(symbol)
+        v = desk.view(symbol)
+        out = live_feed(v.outcomes, v.books, v.live_ctx, limit)
+        out["live"] = desk.live_status()
+        return out
 
     @router.get("/status")
     def status() -> dict:
