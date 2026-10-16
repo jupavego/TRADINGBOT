@@ -98,8 +98,8 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   const verdict = Math.abs(b) < THRESH ? 'Neutral' : b > 0 ? 'Sesgo de compra' : 'Sesgo de venta'
   const mainCol = tint(b, 1.8)
   const split = upDown(syn)
-  // Color de la esfera (y del haz/plataforma): el del porcentaje mayor, más intenso cuanto
-  // mayor es la ventaja; 50/50 o sin señal → cian neutro.
+  // Color del porcentaje mayor, más intenso cuanto mayor es la ventaja (50/50 o sin señal → cian):
+  // solo como respaldo sin señal. Esfera, haz y plataforma se pintan con el reparto subida/bajada.
   const lead = split ? Math.max(split.up, split.down) : 50
   const fill = (lead - 50) / 50
   const rc = split && fill > 0
@@ -151,7 +151,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   // Esfera 3D en un canvas superpuesto (cabe el anillo orbital: semilado 1.42·R).
   const S = 1.42 * R
   const pct = (v: number, of: number): string => `${((v / of) * 100).toFixed(3)}%`
-  const sphere = `<canvas class="hsphere" aria-hidden="true" data-color="${esc(rc)}" data-fill="${fill.toFixed(3)}" style="left:${pct(CX - S, W)};` +
+  const sphere = `<canvas class="hsphere" aria-hidden="true" data-color="${esc(rc)}" data-up="${split ? split.up : ''}" data-fill="${fill.toFixed(3)}" style="left:${pct(CX - S, W)};` +
     `top:${pct(cy - S, H)};width:${pct(2 * S, W)};height:${pct(2 * S, H)}"></canvas>`
   if (selected === CORE_ID) tip = `<div class="tip tip-core" style="left:50%;top:2%" role="dialog">${coreTip(syn, reports)}</div>`
   if (selected === ARB_ID) {
@@ -164,8 +164,8 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     (dis ? '<i class="c warn" title="Agentes con convicción en direcciones opuestas: ver la esfera">⚠ se contradicen</i>' : '') +
     '</span></div>' +
     `<div class="rsvg"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(verdict)}: ${ups} agentes en verde, ${downs} en rojo">` +
-    `<defs>${holoDefs(rc)}</defs>` +
-    platform(CX, py, rc) + core(CX, cy, R, py, rc) + deco +
+    `<defs>${holoDefs(rc, split ? split.up : null, CX, R)}</defs>` +
+    platform(CX, py) + core(CX, cy, R, py) + deco +
     left.map((r, k) => node(r, k, left, true)).join('') + right.map((r, k) => node(r, k, right, false)).join('') +
     arbSatellite(sat.x, sat.y, selected === ARB_ID) +
     `<text x="${CX}" y="${H - 34}" text-anchor="middle" class="rbig" style="fill:${mainCol}">${esc(verdict)}</text>` +

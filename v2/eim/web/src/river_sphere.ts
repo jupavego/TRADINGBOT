@@ -1,78 +1,41 @@
-/** Esfera 3D del río de decisión: poliedro de Goldberg (hexágonos + 12 pentágonos) que gira en
- * un `<canvas>` con profundidad (cara trasera tenue), iluminación, chispas y un anillo orbital.
- * Un único bucle `requestAnimationFrame` busca el canvas vigente en cada cuadro, así sobrevive a
- * los re-renderizados del río (que sustituyen el HTML) y se detiene si el canvas desaparece. */
+/** Esfera 3D del río de decisión al estilo «red de nodos»: cientos de nodos luminosos unidos a sus
+ * vecinos, facetas triangulares translúcidas, destellos y cinturones orbitales de partículas.
+ * Color = reparto subida/bajada (`data-up`): verde a la izquierda y rojo a la derecha, cada uno
+ * con un área proporcional a su % y fundidos en degradado; sin señal → `data-color` (cian).
+ * `data-fill` (ventaja del % mayor) aviva la intensidad. Un único bucle `requestAnimationFrame`
+ * busca el canvas vigente en cada cuadro, así sobrevive a los re-renderizados del río (que
+ * sustituyen el HTML) y se detiene si el canvas desaparece. Geometría en `river_sphere_mesh`;
+ * colores, destellos y capas estáticas en `river_sphere_paint`. */
 
-type V3 = [number, number, number]
+import { DUST, EDGES, FACETS, NODES, RINGS, type V3 } from './river_sphere_mesh'
+import { areaSplit, BAND, colorAt, glowAt, layer, paint, shade, toRgb, type Tint } from './river_sphere_paint'
 
-const norm = (v: V3): V3 => { const l = Math.hypot(...v); return [v[0] / l, v[1] / l, v[2] / l] }
+type Ctx = CanvasRenderingContext2D
 
-/** Aristas del dual de una icosfera subdividida `level` veces (celdas hexagonales). */
-function goldberg(level: number): { pts: V3[]; edges: [number, number][] } {
-  const t = (1 + Math.sqrt(5)) / 2
-  const vs: V3[] = ([[-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
-    [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]] as V3[]).map(norm)
-  let fs: [number, number, number][] = [[0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11], [1, 5, 9], [5, 11, 4],
-    [11, 10, 2], [10, 7, 6], [7, 1, 8], [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9], [4, 9, 5], [2, 4, 11],
-    [6, 2, 10], [8, 6, 7], [9, 8, 1]]
-  for (let s = 0; s < level; s++) {
-    const cache = new Map<string, number>()
-    const mid = (a: number, b: number): number => {
-      const k = a < b ? `${a}_${b}` : `${b}_${a}`
-      let i = cache.get(k)
-      if (i === undefined) {
-        i = vs.length
-        vs.push(norm([(vs[a][0] + vs[b][0]) / 2, (vs[a][1] + vs[b][1]) / 2, (vs[a][2] + vs[b][2]) / 2]))
-        cache.set(k, i)
-      }
-      return i
-    }
-    fs = fs.flatMap(([a, b, c]) => {
-      const ab = mid(a, b), bc = mid(b, c), ca = mid(c, a)
-      return [[a, ab, ca], [b, bc, ab], [c, ca, bc], [ab, bc, ca]] as [number, number, number][]
-    })
-  }
-  // Dual: un punto por cara (centroide) y una arista por cada par de caras que comparten lado.
-  const pts = fs.map(([a, b, c]) => norm([vs[a][0] + vs[b][0] + vs[c][0], vs[a][1] + vs[b][1] + vs[c][1], vs[a][2] + vs[b][2] + vs[c][2]]))
-  const side = new Map<string, number>()
-  const edges: [number, number][] = []
-  fs.forEach(([a, b, c], f) => {
-    for (const [p, q] of [[a, b], [b, c], [c, a]]) {
-      const k = p < q ? `${p}_${q}` : `${q}_${p}`
-      const g = side.get(k)
-      if (g === undefined) side.set(k, f)
-      else edges.push([g, f])
-    }
-  })
-  return { pts, edges }
-}
-
-const MESH = goldberg(2)
-const ORBIT: V3[] = Array.from({ length: 96 }, (_, k) => [Math.cos((k / 96) * 2 * Math.PI) * 1.32, 0, Math.sin((k / 96) * 2 * Math.PI) * 1.32])
 let running = false
-let rgbCache: [string, string] = ['', '0,225,255']
-const sparks = new Map<number, number>() // índice de vértice → instante de encendido
-
-/** Color CSS (incl. `var()` / `color-mix`) → "r,g,b" resolviéndolo con el propio navegador. */
-function toRgb(css: string, host: HTMLElement): string {
-  if (rgbCache[0] === css) return rgbCache[1]
-  const probe = document.createElement('i')
-  probe.style.color = css
-  host.appendChild(probe)
-  const computed = getComputedStyle(probe).color
-  probe.remove()
-  const c = document.createElement('canvas').getContext('2d')!
-  c.fillStyle = computed
-  c.fillRect(0, 0, 1, 1)
-  const [r, g, b] = c.getImageData(0, 0, 1, 1).data
-  rgbCache = [css, `${r},${g},${b}`]
-  return rgbCache[1]
-}
+const sparks = new Map<number, number>() // índice de nodo → instante de encendido
 
 function rotate([x, y, z]: V3, ay: number, ax: number): V3 {
   const cy = Math.cos(ay), sy = Math.sin(ay), cx = Math.cos(ax), sx = Math.sin(ax)
   const x1 = x * cy + z * sy, z1 = -x * sy + z * cy
   return [x1, y * cx - z1 * sx, y * sx + z1 * cx]
+}
+
+function disc(g: Ctx, x: number, y: number, r: number, style: string | CanvasGradient): void {
+  g.fillStyle = style
+  g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill()
+}
+
+/** Tinte de la esfera: reparto subida (verde, izquierda) / bajada (rojo, derecha) como los % de
+ * encima; la frontera deja a cada lado un área igual a su % y se funde en una franja. */
+function tintOf(cv: HTMLCanvasElement, ox: number, R: number): Tint {
+  const up = cv.dataset.up ? Number(cv.dataset.up) : NaN // vacío = sin señal
+  if (up > 0 && up < 100) {
+    const xb = ox + areaSplit(up / 100) * R, band = R * BAND
+    return { a: toRgb('var(--up)', cv), b: toRgb('var(--down)', cv), x0: xb - band, x1: xb + band }
+  }
+  const one = toRgb(up >= 100 ? 'var(--up)' : up <= 0 ? 'var(--down)' : cv.dataset.color || '#22e1ff', cv)
+  return { a: one, b: one, x0: 0, x1: 0 }
 }
 
 function draw(cv: HTMLCanvasElement, now: number, still: boolean): void {
@@ -82,72 +45,163 @@ function draw(cv: HTMLCanvasElement, now: number, still: boolean): void {
   if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr) }
   const g = cv.getContext('2d')!
   g.setTransform(dpr, 0, 0, dpr, 0, 0)
+  g.globalCompositeOperation = 'source-over'
+  g.globalAlpha = 1
   g.clearRect(0, 0, w, h)
-  const rgb = toRgb(cv.dataset.color || '#22e1ff', cv)
+  const fill = Math.min(1, Math.max(0, Number(cv.dataset.fill) || 0)) // ventaja del % mayor (0…1)
   const t = still ? 0.6 : now / 1000
   const R = Math.min(w, h) / 2 / 1.42, ox = w / 2, oy = h / 2
-  const ay = t * 0.32, ax = 0.38 + Math.sin(t * 0.21) * 0.12
-  const P = MESH.pts.map((p) => rotate(p, ay, ax))
+  const ay = t * 0.2, ax = 0.32 + Math.sin(t * 0.21) * 0.1
+  const P = NODES.map((n) => rotate(n.p, ay, ax))
   const px = (p: V3): [number, number] => { const k = 1 + p[2] * 0.12; return [ox + p[0] * R * k, oy - p[1] * R * k] }
-
-  // Cuerpo de vidrio: casi transparente en el centro y más luminoso en el borde (fresnel),
-  // con un reflejo especular arriba a la izquierda; deja ver la cara trasera y el haz.
-  const body = g.createRadialGradient(ox, oy, R * 0.2, ox, oy, R)
-  const fill = Math.min(1, Math.max(0, Number(cv.dataset.fill) || 0)) // ventaja del % mayor (0…1)
-  body.addColorStop(0, `rgba(${rgb},${(0.12 * fill).toFixed(3)})`)
-  body.addColorStop(0.7, `rgba(${rgb},${(0.04 + 0.14 * fill).toFixed(3)})`)
-  body.addColorStop(1, `rgba(${rgb},${(0.22 + 0.3 * fill).toFixed(3)})`)
-  g.fillStyle = body
-  g.beginPath(); g.arc(ox, oy, R, 0, Math.PI * 2); g.fill()
-  const spec = g.createRadialGradient(ox - R * 0.42, oy - R * 0.45, 0, ox - R * 0.42, oy - R * 0.45, R * 0.45)
-  spec.addColorStop(0, 'rgba(255,255,255,.18)'); spec.addColorStop(1, 'rgba(255,255,255,0)')
-  g.fillStyle = spec
-  g.beginPath(); g.arc(ox, oy, R, 0, Math.PI * 2); g.fill()
-
-  // Aristas: primero las traseras (tenues), luego las delanteras (brillo y grosor según z).
-  for (const front of [false, true]) {
-    for (const [a, b] of MESH.edges) {
-      const z = (P[a][2] + P[b][2]) / 2
-      if ((z > 0) !== front) continue
-      const [x1, y1] = px(P[a]), [x2, y2] = px(P[b])
-      g.strokeStyle = `rgba(${rgb},${front ? (0.35 + z * 0.6).toFixed(2) : (0.14 + (1 + z) * 0.12).toFixed(2)})`
-      g.lineWidth = front ? 0.7 + z * 1.1 : 0.6
-      g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke()
-    }
+  const tint = tintOf(cv, ox, R)
+  const solid = paint(g, tint, 0), bright = paint(g, tint, 0.5) // el alfa va en globalAlpha
+  const sprite = (x: number, y: number, s: number, a: number): void => {
+    g.globalAlpha = Math.max(0, Math.min(1, a))
+    g.drawImage(glowAt(tint, x), x - s, y - s, 2 * s, 2 * s)
   }
-  // Chispas: celdas delanteras que se encienden y se apagan.
-  if (!still && Math.random() < 0.08) sparks.set(Math.floor(Math.random() * P.length), now)
-  g.shadowColor = `rgb(${rgb})`; g.shadowBlur = 10
-  for (const [i, t0] of sparks) {
-    const life = (now - t0) / 900
-    if (life > 1) { sparks.delete(i); continue }
-    if (P[i][2] < 0.1) continue
-    const [x, y] = px(P[i])
-    g.fillStyle = `rgba(255,255,255,${(Math.sin(life * Math.PI) * 0.95).toFixed(2)})`
-    g.beginPath(); g.arc(x, y, 1.6 + P[i][2] * 1.6, 0, Math.PI * 2); g.fill()
-  }
-  // Anillo orbital inclinado con un satélite; la mitad trasera queda detrás de la esfera.
-  const O = ORBIT.map((p) => rotate(rotate(p, t * 0.5, 0), 0, 1.15))
-  for (const front of [false, true]) {
+  const flare = (x: number, y: number, l: number, a: number): void => { // cruz de luz
+    g.globalAlpha = Math.max(0, Math.min(1, a))
+    g.strokeStyle = bright; g.lineWidth = 0.8
     g.beginPath()
-    O.forEach((p, k) => {
-      if ((p[2] > 0) !== front) return
-      const [x, y] = px(p)
-      const prev = O[(k + O.length - 1) % O.length]
-      if ((prev[2] > 0) !== front) g.moveTo(x, y); else g.lineTo(x, y)
-    })
-    g.strokeStyle = `rgba(${rgb},${front ? 0.8 : 0.2})`; g.lineWidth = front ? 1.4 : 0.8
-    g.shadowBlur = front ? 8 : 0
+    g.moveTo(x - l, y); g.lineTo(x + l, y); g.moveTo(x, y - l); g.lineTo(x, y + l)
     g.stroke()
   }
-  const sat = O[Math.floor((t * 14) % O.length)]
-  const [sx, sy] = px(sat)
-  g.shadowBlur = 14; g.fillStyle = `rgba(255,255,255,${sat[2] > 0 ? 1 : 0.3})`
-  g.beginPath(); g.arc(sx, sy, sat[2] > 0 ? 3 : 2, 0, Math.PI * 2); g.fill()
-  g.shadowBlur = 0
-  // Contorno brillante.
-  g.strokeStyle = `rgba(${rgb},.9)`; g.lineWidth = 1.5
+  const blit = (name: string, paintLayer: (c: Ctx, rgb: string) => void): void => {
+    g.globalAlpha = 1
+    g.drawImage(layer(name, `${fill.toFixed(3)}|${R.toFixed(1)}`, tint, w, h, dpr, paintLayer), 0, 0, w, h)
+  }
+
+  // Halo exterior (capa estática).
+  blit('halo', (c, rgb) => {
+    const halo = c.createRadialGradient(ox, oy, R * 0.9, ox, oy, R * 1.3)
+    halo.addColorStop(0, `rgba(${rgb},${(0.22 + 0.18 * fill).toFixed(3)})`)
+    halo.addColorStop(1, `rgba(${rgb},0)`)
+    disc(c, ox, oy, R * 1.3, halo)
+  })
+  orbitals(false)
+
+  // Cuerpo (capa estática): interior profundo y opaco a medias, más luminoso hacia el borde.
+  blit('body', (c, rgb) => {
+    disc(c, ox, oy, R, `rgba(${shade(rgb, -0.82)},.72)`)
+    const body = c.createRadialGradient(ox - R * 0.2, oy - R * 0.25, R * 0.1, ox, oy, R)
+    body.addColorStop(0, `rgba(${rgb},${(0.04 + 0.06 * fill).toFixed(3)})`)
+    body.addColorStop(0.75, `rgba(${rgb},${(0.07 + 0.08 * fill).toFixed(3)})`)
+    body.addColorStop(1, `rgba(${rgb},${(0.24 + 0.18 * fill).toFixed(3)})`)
+    disc(c, ox, oy, R, body)
+    const rim = c.createRadialGradient(ox, oy, R * 0.86, ox, oy, R)
+    rim.addColorStop(0, `rgba(${rgb},0)`)
+    rim.addColorStop(1, `rgba(${shade(rgb, 0.5)},${(0.16 + 0.14 * fill).toFixed(3)})`)
+    disc(c, ox, oy, R, rim)
+  })
+  g.globalCompositeOperation = 'lighter'
+  for (const i of [11, 97, 203]) { // nebulosas internas que giran con la red
+    const [x, y] = px(P[i])
+    const neb = g.createRadialGradient(x, y, 0, x, y, R * 0.6)
+    neb.addColorStop(0, colorAt(tint, x, 0, 0.09 + 0.07 * fill))
+    neb.addColorStop(1, colorAt(tint, x, 0, 0))
+    disc(g, ox, oy, R, neb)
+  }
+
+  // Red: aristas del núcleo y traseras (tenues), facetas, y aristas delanteras por brillo.
+  const strokes: Path2D[] = Array.from({ length: 6 }, () => new Path2D())
+  for (const [a, b] of EDGES) {
+    const z = (P[a][2] + P[b][2]) / 2
+    const inner = !NODES[a].shell || !NODES[b].shell
+    const k = inner ? 0 : z <= 0 ? 1 : 2 + Math.min(3, Math.floor(z * 4))
+    const [x1, y1] = px(P[a]), [x2, y2] = px(P[b])
+    strokes[k].moveTo(x1, y1); strokes[k].lineTo(x2, y2)
+  }
+  const edge = (k: number, a: number, lw: number): void => {
+    g.globalAlpha = Math.min(1, a * (0.85 + 0.3 * fill))
+    g.strokeStyle = k > 3 ? bright : solid
+    g.lineWidth = lw
+    g.stroke(strokes[k])
+  }
+  edge(0, 0.2, 0.5); edge(1, 0.2, 0.55)
+  // Facetas: veladura tenue; las «encendidas» son esquirlas de luz que nacen en un vértice.
+  for (const f of FACETS) {
+    const [a, b, c] = f.v.map((i) => px(P[i]))
+    const z = f.v.reduce((s, i) => s + P[i][2], 0) / 3
+    if (z < -0.3 || (f.lit && z < 0)) continue
+    const depth = (0.35 + 0.65 * Math.max(0, z)) * (0.8 + 0.4 * fill)
+    if (f.lit) {
+      const pulse = 0.5 + 0.5 * Math.sin(t * 0.9 + f.ph), mx = (b[0] + c[0]) / 2
+      const shard = g.createLinearGradient(a[0], a[1], mx, (b[1] + c[1]) / 2)
+      shard.addColorStop(0, colorAt(tint, a[0], 0.5, (0.25 + 0.55 * pulse) * depth))
+      shard.addColorStop(1, colorAt(tint, mx, 0, 0.04 * depth))
+      g.globalAlpha = 1
+      g.fillStyle = shard
+    } else {
+      g.globalAlpha = 0.06 * depth
+      g.fillStyle = solid
+    }
+    g.beginPath()
+    g.moveTo(...a); g.lineTo(...b); g.lineTo(...c)
+    g.closePath(); g.fill()
+  }
+  for (let k = 2; k < 6; k++) edge(k, 0.28 + 0.16 * (k - 2), 0.5 + 0.2 * (k - 2))
+
+  // Nodos: los traseros como puntos tenues; los delanteros con destello, más grandes los «hubs».
+  g.fillStyle = solid
+  NODES.forEach((n, i) => {
+    const p = P[i], [x, y] = px(p)
+    if (!n.shell) { sprite(x, y, 3 * n.r, 0.35); return }
+    if (p[2] < 0) {
+      g.globalAlpha = 0.3 + 0.2 * (1 + p[2])
+      g.fillRect(x - 0.6, y - 0.6, 1.2, 1.2)
+      return
+    }
+    const tw = n.hub ? 0.75 + 0.25 * Math.sin(t * 1.6 + n.ph) : 1
+    sprite(x, y, (2.2 + 2.6 * p[2]) * n.r * (n.hub ? 2 : 1) * tw, 0.35 + 0.65 * p[2])
+    if (n.hub && p[2] > 0.35 && tw > 0.9) flare(x, y, 5 + 7 * p[2], (tw - 0.9) * 8 * p[2])
+  })
+  // Chispas: nodos delanteros que se encienden y se apagan.
+  if (!still && Math.random() < 0.06 + 0.08 * fill) sparks.set(Math.floor(Math.random() * NODES.length), now)
+  for (const [i, t0] of sparks) {
+    const life = (now - t0) / 1100
+    if (life > 1) { sparks.delete(i); continue }
+    if (P[i][2] < 0.1 || !NODES[i].shell) continue
+    const [x, y] = px(P[i]), a = Math.sin(life * Math.PI)
+    sprite(x, y, 9 + 6 * P[i][2], a)
+    flare(x, y, 10 + 8 * P[i][2], a)
+  }
+
+  // Contorno luminoso y mitad delantera de las órbitas.
+  g.globalCompositeOperation = 'source-over'
+  g.globalAlpha = 0.75
+  g.strokeStyle = bright; g.lineWidth = 1.1
   g.beginPath(); g.arc(ox, oy, R, 0, Math.PI * 2); g.stroke()
+  orbitals(true)
+  g.globalAlpha = 1
+
+  /** Cinturones orbitales (un cometa de brillo recorre cada uno) y polvo; mitad trasera o delantera. */
+  function orbitals(front: boolean): void {
+    g.globalCompositeOperation = 'lighter'
+    g.fillStyle = bright
+    for (const r of RINGS) {
+      const n = r.pts.length
+      r.pts.forEach((p, k) => {
+        if ((p[2] > 0) !== front) return
+        const head = (((k / n - t * r.speed) % 1) + 1) % 1
+        const a = (0.3 + 0.7 * head ** 6) * (front ? 1 : 0.55)
+        const [x, y] = px(p)
+        if (head > 0.975) { sprite(x, y, 7, a); return }
+        g.globalAlpha = a
+        g.fillRect(x - 0.8, y - 0.8, 1.6, 1.6)
+      })
+    }
+    g.fillStyle = solid
+    for (const d of DUST) {
+      const p = rotate(d.p, ay * 0.6, ax)
+      if ((p[2] > 0) !== front) continue
+      const [x, y] = px(p)
+      g.globalAlpha = Math.max(0, (0.3 + 0.4 * p[2]) * (0.55 + 0.45 * Math.sin(t * 1.3 + d.ph)) * (front ? 1 : 0.5))
+      g.fillRect(x - d.s / 2, y - d.s / 2, d.s, d.s)
+    }
+    g.globalCompositeOperation = 'source-over'
+    g.globalAlpha = 1
+  }
 }
 
 /** Arranca (una sola vez) el bucle que anima el canvas `.hsphere` dentro de `root`. */
