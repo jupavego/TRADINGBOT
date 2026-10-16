@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import statistics
 import time
 from collections import deque
@@ -37,6 +38,7 @@ INFO_URL = "https://api.hyperliquid.xyz/info"
 WS_URL = "wss://api.hyperliquid.xyz/ws"
 _RETRY_STATUS = {429, 500, 502, 503, 504}
 _LIGHT = {"clearinghouseState": 2, "l2Book": 2, "allMids": 2}  # el resto pesa 20
+log = logging.getLogger(__name__)
 
 
 def now_ms() -> int:
@@ -60,6 +62,7 @@ class HyperliquidInfo:
         self._spent: deque[tuple[float, int]] = deque()  # (instante, peso) del último minuto
         self._wall = wall
         self._offsets: deque[int] = deque(maxlen=21)
+        self.last_rtt: tuple[int, int] | None = None  # reloj local antes/después del POST
         self.calls = 0
 
     def clock_offset_ms(self) -> int:
@@ -83,7 +86,9 @@ class HyperliquidInfo:
         for attempt in range(self._max_retries + 1):
             self.calls += 1
             try:
+                a = self._wall()
                 resp = self._client.post(self._url, json=body)
+                self.last_rtt = (a, self._wall())
             except httpx.TransportError as exc:
                 last = f"red: {exc}"
             else:
@@ -100,11 +105,11 @@ class HyperliquidInfo:
         raise ProviderError(f"hyperliquid {body.get('type')} agotó reintentos ({last})")
 
     def clearinghouse_state(self, user: str) -> dict:
-        a = self._wall()
         data = self.post({"type": "clearinghouseState", "user": user})
-        b = self._wall()
-        if isinstance(data, dict) and data.get("time") and b - a < 2_000:  # sin reintentos
-            self._offsets.append(int(data["time"]) - (a + b) // 2)
+        if isinstance(data, dict) and data.get("time") and self.last_rtt:
+            a, b = self.last_rtt  # solo el viaje del POST que respondió (sin esperas ni reintentos)
+            if b - a < 2_000:
+                self._offsets.append(int(data["time"]) - (a + b) // 2)
         return data
 
     def user_fills(self, user: str) -> list[dict]:
@@ -122,8 +127,10 @@ class HyperliquidInfo:
                 return out
             nxt = max(int(r["time"]) for r in rows)
             if nxt <= start:
-                return out
+                break
             start = nxt  # el borde se repite: la deduplicación lo absorbe
+        log.warning("%s truncado en %d filas desde %s: faltan las más recientes",
+                    body.get("type"), len(out), start)
         return out
 
     def user_fills_by_time(self, user: str, start: int, end: int | None = None) -> list[dict]:

@@ -116,3 +116,18 @@ def test_stream_pings_and_drops_silent_connection():
     _run(stream, stop)
     assert any(m == {"method": "ping"} for m in c1.sent)
     assert downs and "latido" in downs[0]
+
+
+def test_clock_offset_ignores_throttle_wait():
+    wall, mono = {"t": 1000}, {"t": 0.0}
+
+    def sleep(s: float) -> None:  # el limitador espera: avanzan ambos relojes
+        wall["t"] += 5_000
+        mono["t"] += s
+
+    info, _ = _info(lambda r: httpx.Response(200, json={"time": 1100, "assetPositions": []}),
+                    weight_per_min=2, wall=lambda: wall["t"], monotonic=lambda: mono["t"])
+    info._sleep = sleep
+    info.clearinghouse_state("0x")  # 1100 − 1000
+    info.clearinghouse_state("0x")  # espera de presupuesto antes del POST
+    assert info.clock_offset_ms() == (100 + (1100 - 6000)) // 2  # mide solo el POST
