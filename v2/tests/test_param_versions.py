@@ -17,6 +17,8 @@ PUBLISHED = {
         "b8bdd3cd35684bd8d7b03a7b06dbf4e4bf3ab4690d19f42a90f1a809367c93a2",
     "risk/versions/risk_v1.json":
         "89b35f701c2371f057b404a0b6f87498d7cdd662197b619b1d165e86c4852684",
+    "risk/versions/risk_copy_v1.json":  # T42: carril de copy trading simulado
+        "765aa312533d81eb5de09d82e17e3df2e9de35d1d21e28a5b0a861f9f49e0eda",
 }
 
 

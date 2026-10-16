@@ -23,3 +23,12 @@
 .ld-cohort[data-v="approved"] { border-color: var(--up); }
 .ld-cohort[data-v="watch"] { border-color: var(--warn); }
 .ld-copy { font-size: 12px; line-height: 1.5; color: var(--text); }
+/* Copia simulada (T42): una subcuenta por líder, desplegable. */
+.cp-acc { border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 10px; margin: 0 0 8px; font-size: 12px; }
+.cp-acc > summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.cp-acc[open] > summary { margin-bottom: 8px; }
+.cp-pos { min-width: 760px; margin-bottom: 8px; }
+.cp-journal { margin: 0; padding-left: 18px; max-height: 260px; overflow: auto; line-height: 1.5; }
+.cp-journal li[data-k="reject"] b, .cp-journal li[data-k="pause"] b, .cp-journal li[data-k="kill"] b { color: var(--down); }
+.cp-journal li[data-k="order"] b { color: var(--up); }
+.cp-journal li[data-k="stop"] b { color: var(--warn); }

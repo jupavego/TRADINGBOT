@@ -2,7 +2,7 @@
 
 - `HyperliquidInfo`: estado de cuenta (`clearinghouseState`), ejecuciones (`userFills`,
   `userFillsByTime` paginado), funding (`userFunding` paginado), `vaultDetails` y
-  `portfolio` (T41), con
+  `portfolio` (T41), `meta` y velas `candleSnapshot` (T42), con
   reintentos y presupuesto de peso por minuto (límite oficial 1200/IP). Estima además el
   desfase del reloj local frente al del servidor (`time` de `clearinghouseState` contra el
   punto medio del viaje): sin corregirlo la latencia medida sale negativa.
@@ -148,6 +148,15 @@ class HyperliquidInfo:
     def portfolio(self, user: str) -> list:
         """Valor de cuenta y PnL acumulado por periodo (`day` … `perpAllTime`), T41."""
         return self.post({"type": "portfolio", "user": user})
+
+    def meta(self) -> dict:
+        """Universo de perpetuos con `szDecimals` (paso de cantidad), T42."""
+        return self.post({"type": "meta"})
+
+    def candles(self, coin: str, interval: str, start: int, end: int) -> list[dict]:
+        """Velas (`candleSnapshot`): como mucho las 5000 más recientes del intervalo, T42."""
+        return self.post({"type": "candleSnapshot", "req": {
+            "coin": coin, "interval": interval, "startTime": start, "endTime": end}})
 
 
 def _default_connect(url: str):

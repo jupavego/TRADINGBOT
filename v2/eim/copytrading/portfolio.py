@@ -8,6 +8,8 @@ Modified Dietz (ΔPnL / capital medio del tramo): los depósitos no cuentan como
 
 from __future__ import annotations
 
+import bisect
+
 from eim.copytrading.params import ScoreParams
 from eim.core.market import Frozen
 
@@ -95,3 +97,20 @@ def portfolio_stats(raw: list, p: ScoreParams) -> PortfolioStats | None:
         max_dd=dd, windows=len(rs), windows_pos=sum(r > 0 for r in rs),
         worst_window=min(rs) if rs else None, best_window=max(steps) if steps else None,
         month_pnl=m_pnl, month_twr=m_twr, volume=vlm)
+
+
+def account_values(raw: list | None) -> list[tuple[int, float]]:
+    """Valor de la cuenta en el tiempo (T42): puntos de todas las series perp (`perpDay` es
+    la más fina) unidos y ordenados. Sirve para fijar la proporción de la copia."""
+    pts: dict[int, float] = {}
+    for name in ("perpAllTime", "perpMonth", "perpWeek", "perpDay"):  # la más fina manda
+        s = _series(raw or [], name)
+        if s:
+            pts.update(dict(s[0]))
+    return sorted(pts.items())
+
+
+def value_at(series: list[tuple[int, float]], t: int) -> float | None:
+    """Último valor conocido en `t` (nunca uno posterior); None si la serie empieza después."""
+    i = bisect.bisect_right([x for x, _ in series], t) - 1
+    return series[i][1] if i >= 0 else None
