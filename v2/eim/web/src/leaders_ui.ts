@@ -1,12 +1,15 @@
-import { fetchLeaders } from './api'
+import { fetchCopy, fetchLeaders } from './api'
+import { copyBox, type CopyPayload } from './copy_view'
 import type { LeadersPayload, Scorecard, Verdict } from './leaders_types'
 import { cohortsBox, f, pct, rankingTable, usd, utc, VERDICT } from './leaders_view'
 import { esc } from './panels'
 
 /** Pestaña «Líderes» (T41): ranking de copy trading con métricas, intervalos y el porqué de
- *  cada veredicto. Siempre modo Análisis: no se copia ninguna orden (T42). */
+ *  cada veredicto (modo Análisis) y, aparte, la copia simulada en vivo (T42, modo Simulado). */
 export class LeadersPanel {
   private data: LeadersPayload | null = null
+  private copy: CopyPayload | null = null
+  private copyErr = ''
   private err = ''
   private open = new Set<string>()
   private show: 'all' | Verdict = 'all'
@@ -35,8 +38,15 @@ export class LeadersPanel {
   async reload(): Promise<void> {
     try { this.data = await fetchLeaders(); this.err = '' }
     catch (e) { this.err = `No se pudo consultar el tablero: ${(e as Error).message}` }
+    try { this.copy = await fetchCopy(); this.copyErr = '' }
+    catch (e) { this.copyErr = `No se pudo consultar la copia simulada: ${(e as Error).message}` }
     this.paintTab()
     this.render()
+  }
+
+  /** Subcuentas desplegadas: se conservan al refrescar. */
+  private openCopy(): Set<string> {
+    return new Set([...this.el.querySelectorAll<HTMLElement>('details.cp-acc[open]')].map((d) => d.dataset.id ?? ''))
   }
 
   private paintTab(): void {
@@ -78,7 +88,8 @@ export class LeadersPanel {
     if (!b) {
       this.el.innerHTML = this.header() + err + this.signals() +
         '<p class="scen-warn">Sin tablero de líderes: arranca el vigilante con <code>python -m eim.leaders run</code> ' +
-        '(desde <code>v2/</code>); evalúa a los líderes capturados cada 5 min y escribe <code>data/leaders/</code>.</p>'
+        '(desde <code>v2/</code>); evalúa a los líderes capturados cada 5 min y escribe <code>data/leaders/</code>.</p>' +
+        copyBox(this.copy, this.copyErr, this.openCopy())
       return
     }
     const stale = d.stale ? `<p class="scen-warn">Tablero viejo (hace ${Math.round(d.age_s ?? 0)} s): el vigilante parece detenido; ` +
@@ -87,6 +98,7 @@ export class LeadersPanel {
     const opt = (v: string, l: string): string => `<option value="${v}"${v === this.show ? ' selected' : ''}>${l}</option>`
     const p = b.params
     this.el.innerHTML = this.header() + err + stale + this.signals() +
+      `<div id="ld-copy">${copyBox(this.copy, this.copyErr, this.openCopy())}</div>` +
       `<h4>¿Sirve el filtro? Rendimiento adelante por veredicto vigente al abrir</h4>${cohortsBox(b.cohorts)}` +
       `<div class="scen-bar"><label>Estado <select id="ld-show">${opt('all', `Todos (${b.leaders.length})`)}` +
       (['approved', 'watch', 'rejected'] as Verdict[]).map((v) => opt(v, `${VERDICT[v]} (${count(v)})`)).join('') +

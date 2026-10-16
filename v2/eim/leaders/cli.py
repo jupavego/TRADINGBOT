@@ -11,8 +11,10 @@
   score [--portfolio] [--json]                 evaluar ahora (con el vigilante apagado)
   report [--minutes M] [--json]                latencia, coincidencia y huecos
   history 0xDIR [--last N]                     historial guardado de un líder
+  copy-sim | copy-status | copy-resume         copia simulada (T42): ver `copy_cli.py`
 
-Solo lectura de datos públicos: no hay claves ni órdenes.
+Solo lectura de datos públicos: no hay claves ni órdenes. `run` lleva además la copia
+simulada en vivo (T42, saldo virtual) salvo `EIM_COPY_SIM=off`.
 """
 
 from __future__ import annotations
@@ -36,6 +38,7 @@ from eim.data.leader_report import render, summary
 from eim.data.leader_service import HEARTBEAT, LeaderService
 from eim.data.leader_store import LeaderStore
 from eim.data.providers.leaders import HyperliquidInfo, now_ms
+from eim.leaders import copy_cli
 from eim.leaders.board_text import render_board
 from eim.leaders.parse import vault_leader
 from eim.operation.notify import JsonLog
@@ -143,6 +146,7 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("history")
     p.add_argument("address")
     p.add_argument("--last", type=int, default=30)
+    copy_cli.add_parsers(sub)
     a = ap.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):  # Windows redirigido a archivo: cp1252 no basta
         sys.stdout.reconfigure(encoding="utf-8")
@@ -150,6 +154,9 @@ def main(argv: list[str] | None = None) -> int:
     logging.getLogger("httpx").setLevel(logging.WARNING)
     if a.cmd == "supervise":  # no abre la base: se la deja al proceso hijo
         print(_supervise(a))
+        return 0
+    if a.cmd.startswith("copy-"):  # abre la base (o una instantánea) por su cuenta
+        print(copy_cli.main(a))
         return 0
     store = LeaderStore.at_root(a.root)
     try:
@@ -180,7 +187,8 @@ def _dispatch(store: LeaderStore, a: argparse.Namespace) -> str:
                          for x in a.addresses)
     if a.cmd == "run":
         watch = LeaderService(store, HyperliquidInfo(), store.leaders(), root=a.root,
-                              ws_max=max(0, min(a.ws_max, 10)))
+                              ws_max=max(0, min(a.ws_max, 10)),
+                              copy_mode=os.environ.get("EIM_COPY_SIM", "tracked"))
         if not watch.books:
             return "No hay líderes en seguimiento: usa `watch 0x…` primero."
         if watch.manual_only:

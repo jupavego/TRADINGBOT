@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-16T10:23:38",
+ "generated": "2026-10-16T15:14:25",
  "tasks": [
   {
    "id": "T01",
@@ -513,8 +513,8 @@ window.EIM_STATUS = {
     "T41",
     "T25"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**Construido; falta la corrida en vivo de ≥ 24 h** (reloj desde 2026-10-16 20:00 UTC; BACKLOG T42 (1)). Puro `eim/copytrading/`: `replicator.py` (objetivo = líder × capital/cuenta fijada por viaje; nunca contra el movimiento del líder; cierre/giro → cierre total; topes 40 %/moneda y 150 %/líder; `szDecimals` de `meta` y mínimo 10 USDC; deslizamiento ≤ 0,5 %; preexistentes no se copian), `copy_risk.py` (toda apertura/aumento → `PlanRequest` → motor T29 con **`risk_copy_v1`**, stop 5 %, señal ≤ 30 s; kill-switch propio), `copy_book.py` (subcuenta virtual 10 000 USDC, comisión tomador HL, funding horario, stops), `copy_engine.py`/`copy_control.py`/`copy_recon.py` (bitácora señal→decisión→riesgo→orden/rechazo con motivo; reconciliación con la foto real: no explicada 2 veces → pausa + alerta, reanudar solo a mano; huecos de captura > 5 min y reinicios se resincronizan con motivo, sin abrir nada), `copy_attrib.py` + `copy_report.py` (aparente vs copiable con causas que suman la brecha). I/O: `data/copy_live.py` dentro del servicio de líderes (`EIM_COPY_SIM=tracked|approved|off`; nunca tumba la captura; relee de la base tras un reinicio), `copy_replay.py` (mismo motor sobre el historial: cotizaciones grabadas, velas 1 min HL `hl_market.py`, costos T25), `copy_store.py` (`copy_state`, `copy_journal`, `copy_sim.json`, instantánea a pedido). CLI `python -m eim.leaders copy-sim|copy-status|copy-resume`; API `GET /v2/leaders/copy`; UI «Líderes» → «Copia simulada» (modo Simulado). Tests: 5 escenarios pedidos + reales grabados (caída a mitad, reenvío del WS antes que el relleno REST, hueco nocturno). **`reports/copytrading_sim.md`** (22 h, 7 billeteras, ninguna aprobada → medición): aparente +778 USD → copiable −53 USD; brecha: tamaño −580 (topes), comisiones −135, no copiadas −68; 94 % de órdenes al bid/ask grabado; 0 pausas en 1 878 reconciliaciones. En vivo desde 19:16 UTC.",
    "effort": "alto",
    "phase": 8,
    "goal": "Convertir los cambios de posición de un líder aprobado en órdenes propias proporcionales, **solo en simulación**, y medir lo que realmente habría ocurrido."

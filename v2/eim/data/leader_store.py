@@ -5,7 +5,7 @@ dos procesos escribiendo el mismo archivo. Deduplicación por clave primaria:
 ejecuciones (líder, tid, oid), funding (líder, moneda, t), apalancamiento (líder, moneda, t).
 Las posiciones se guardan como foto solo si cambian (o cada `SNAPSHOT_KEEP_MS`).
 Tablas de la evaluación (T41: cartera, precio del seguidor, veredictos) en
-`leader_score_store.py`.
+`leader_score_store.py`; las de la copia simulada (T42: estado y bitácora) en `copy_store.py`.
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ from pathlib import Path
 import duckdb
 
 from eim.core.leaders import Leader, LeaderFill, LeaderFunding, LeaderPosition, LeaderStatus
+from eim.data.copy_store import COPY_DDL, CopyTables
 from eim.data.leader_score_store import SCORE_DDL, ScoreTables
 from eim.leaders.book import Gap, Recon
 from eim.leaders.params import POSITIONS_MAX_AGE_MS, SNAPSHOT_KEEP_MS
@@ -61,13 +62,13 @@ def _shape(positions: list[LeaderPosition]) -> list[tuple]:
                   for p in positions)
 
 
-class LeaderStore(ScoreTables):
+class LeaderStore(ScoreTables, CopyTables):
     def __init__(self, path: str | Path) -> None:
         self.path = str(path)
         if self.path != ":memory:":
             Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         self._con = duckdb.connect(self.path)
-        self._con.execute(_DDL + SCORE_DDL)
+        self._con.execute(_DDL + SCORE_DDL + COPY_DDL)
         self._lock = threading.Lock()
 
     @classmethod
@@ -224,4 +225,22 @@ class LeaderStore(ScoreTables):
     def query(self, q: str, params: list | tuple = ()) -> list[tuple]:
         """Lectura libre (informes de `eim.leaders.report`)."""
         return self._exec(q, params)
+
+    def snapshot(self, path: str | Path) -> Path:
+        """Copia coherente de toda la base en `path` (T42: reproducción con el servicio en
+        marcha, que es el único proceso que puede abrir el archivo). Bajo el candado."""
+        dst = Path(path)
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        tmp = dst.with_name(dst.stem + ".tmp.duckdb")
+        tmp.unlink(missing_ok=True)
+        with self._lock:
+            src = self._con.execute("SELECT current_database()").fetchone()[0]
+            lit = str(tmp).replace("'", "''")  # ATTACH no admite parámetros
+            self._con.execute(f"ATTACH '{lit}' AS snap")
+            try:
+                self._con.execute(f'COPY FROM DATABASE "{src}" TO snap')
+            finally:
+                self._con.execute("DETACH snap")
+        tmp.replace(dst)
+        return dst
 

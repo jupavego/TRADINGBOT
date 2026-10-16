@@ -1,3 +1,4 @@
+import type { CopyPayload } from './copy_view'
 import type { AgentInfo, Overlay, AgentReport, Snapshot, StreamMsg, Decision, Trade, Replay, ForecastSet, Synthesis } from './types'
 import type { ArbPayload } from './arb_types'
 import type { LeadersPayload } from './leaders_types'
@@ -56,6 +57,9 @@ export const fetchArbitrage = (signal?: AbortSignal): Promise<ArbPayload> =>
 
 export const fetchLeaders = (signal?: AbortSignal): Promise<LeadersPayload> =>
   getJson('/v2/leaders/board', signal)
+
+export const fetchCopy = (signal?: AbortSignal): Promise<CopyPayload> =>
+  getJson('/v2/leaders/copy', signal)
 
 export interface StreamHandle { close(): void }
 

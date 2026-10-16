@@ -16,6 +16,7 @@ Comandos desde `v2/`. `API=http://127.0.0.1:8000`. Todo POST lleva `X-EIM-Confir
 | Agentes degradados / plan vetado | `agentes_degradados`, vetos en «Plan» | §7 |
 | Copia diaria fallida | `copia_seguridad` | §8 |
 | Tablero de líderes viejo / `smart_money` sin datos | «Tablero viejo» en «Líderes», aviso «Líderes: servicio reiniciado» | §10 |
+| Copia simulada en pausa o con kill-switch | aviso «Copia … en pausa» / «kill-switch» | §11 |
 
 Dónde mirar: pestaña «Operación» de la UI · `GET $API/v2/operation` · registro
 `data/operation/logs/op-AAAA-MM-DD.jsonl` · tabla `op_alerts`.
@@ -128,3 +129,22 @@ minuto sin captura retrasa la aprobación de líderes (los días adelante solo c
 6. **Tras el arreglo:** el tablero se renueva en ≤ 5 min y `smart_money` vuelve a tener datos. Si
    el apagado fue largo, ver en `docs/OPERACION.md` §6 qué huecos quedan (tope de 10 000
    ejecuciones y de 24 h por líder al volver).
+
+## 11. Copia simulada en pausa o con kill-switch (T42)
+Simulación con saldo virtual: no hay dinero en juego. La pausa existe para que una diferencia
+entre la copia y el líder **nunca se «arregle» operando a ciegas**.
+1. Ver qué pasó: `python -m eim.leaders copy-status` y la pestaña «Líderes» → «Copia simulada»
+   (motivo de la pausa, última reconciliación y bitácora). Aviso de Windows «Copia … en pausa» y
+   registro en `data/leaders/logs/op-AAAA-MM-DD.jsonl` (`kind: copia`).
+2. **Pausa por divergencia no explicada**: el líder tiene una posición que la copia no vio como
+   señal (hueco del WS o resincronización de T40) o la subcuenta difiere del objetivo sin motivo.
+   Comparar con `data/leaders/logs` y `leader_gaps`; si la causa es un hueco del flujo, reanudar.
+3. **Kill-switch de la subcuenta** (caída ≥ 25 %): ya cerró todo; es propio de la subcuenta y no
+   toca el kill-switch global de la operación en papel (T31).
+4. Tras un reinicio del servicio (o una caída) la subcuenta se restaura de la base y relee las
+   ejecuciones posteriores a su último guardado; un hueco de captura > 5 min (equipo apagado)
+   se resincroniza solo con la foto real, con motivo en la bitácora (no pausa).
+5. Reanudar (solo a mano): `python -m eim.leaders copy-resume 0x…` (o `--all`). El servicio lo
+   aplica en ≤ 1 min; con la siguiente foto adopta la posición real del líder: cierra lo que el
+   líder ya no tiene y **no** abre lo que abrió sin que lo viéramos (lo marca «apertura no vista»).
+
