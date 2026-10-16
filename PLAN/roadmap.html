@@ -140,11 +140,12 @@ var PHASES=[
  {n:4,name:"Proyección (3 escenarios)",ids:["T16","T17","T18","T19"]},
  {n:5,name:"Inteligencia",ids:["T20","T21","T22","T23","T24"]},
  {n:6,name:"Validación",ids:["T25","T26","T27","T28"]},
- {n:7,name:"Operación",ids:["T29","T30","T31","T32"]},
+ {n:7,name:"Operación",ids:["T29","T30","T31","T32","T47","T48"]},
  {n:8,name:"Agentes adicionales",ids:["T33","T34","T35","T36","T37","T38","T39","T40","T41","T42","T43","T44"]},
- {n:9,name:"Carriles de ejecución",ids:["T45","T46"]}
+ {n:9,name:"Carriles de ejecución",ids:["T45","T46"]},
+ {n:10,name:"Sugerencias validadas",ids:["T49","T50","T51"]}
 ];
-var GATES={T10:"¿La interfaz sirve?",T19:"¿Probabilidades calibradas?",T27:"¿Hay ventaja estadística?",T31:"¿Pasamos a dinero real?",T33:"¿Qué fuente y alcance de copy trading aprobamos?"};
+var GATES={T10:"¿La interfaz sirve?",T19:"¿Probabilidades calibradas?",T27:"¿Hay ventaja estadística?",T31:"¿Pasamos a dinero real?",T33:"¿Qué fuente y alcance de copy trading aprobamos?",T49:"¿Alguna estrategia supera la validación?"};
 var MILES=[
  {id:"T09",t:"Gráfico en vivo",s:"Velas reales en tiempo real"},
  {id:"T10",t:"Panel de agentes",s:"Ves qué opina cada agente"},
@@ -158,7 +159,8 @@ var MILES=[
  {id:"T27",t:"Puerta de edge",s:"¿Funciona de verdad?"},
  {id:"T30",t:"Testnet",s:"Opera con dinero de prueba"},
  {id:"T45",t:"Arbitraje en testnet",s:"Dos patas con selección automática"},
- {id:"T46",t:"Copy trading en testnet",s:"Réplica de líderes + capital compartido"}
+ {id:"T46",t:"Copy trading en testnet",s:"Réplica de líderes + capital compartido"},
+ {id:"T50",t:"Sugerencias validadas",s:"Solo lo que supera la validación fuera de muestra"}
 ];
 var OPEN={},cur="",data=null;
 function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}

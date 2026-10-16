@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-16T15:44:01",
+ "generated": "2026-10-16T18:22:42",
  "tasks": [
   {
    "id": "T01",
@@ -603,6 +603,43 @@ window.EIM_STATUS = {
    "effort": "alto",
    "phase": 7,
    "goal": "Que el bróker simulado opere sin parar en segundo plano sobre BTCUSDT en 15 m, 1 h y 4 h, y que cada pérdida se convierta en aprendizaje (por contexto y por causa) para que con el tiempo las ganadas prevalezcan sobre las perdidas."
+  },
+  {
+   "id": "T49",
+   "title": "Puerta de validación por estrategia (criterios v1, versiones, registro de intentos)",
+   "deps": [
+    "T27",
+    "T48"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 10,
+   "goal": "Decidir, con criterios fijados antes de calcular, qué `estrategia@marco@versión` del bróker simulado tiene evidencia fuera de muestra suficiente (neta de costos, con drawdown y estabilidad aceptables) para alimentar «Operaciones sugeridas intradía»; ninguna estrategia se declara rentable solo porque ganó en un backtest, y «ninguna validada» es un resultado válido."
+  },
+  {
+   "id": "T50",
+   "title": "Publicador de sugerencias validadas (/v2/setups + panel)",
+   "deps": [
+    "T49"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 10,
+   "goal": "Que el panel «Operaciones sugeridas intradía» muestre solo oportunidades de estrategias VALIDADAS por la puerta de T49, con su evidencia, o el mensaje explícito «Sin operaciones validadas para sugerir»; siempre como oportunidades potenciales, nunca como operaciones ejecutadas ni garantías de rentabilidad."
+  },
+  {
+   "id": "T51",
+   "title": "Seguimiento de sugerencias publicadas + ciclo de mejora",
+   "deps": [
+    "T50"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 10,
+   "goal": "Registrar cada oportunidad que el panel publica, resolver qué habría ocurrido con ella y comparar señal contra resultado, para que el ciclo de mejora (diagnóstico → versión nueva → nueva validación en T49) se alimente de lo que de verdad se mostró y para retirar a tiempo una estrategia que se degrada."
   }
  ]
 };
