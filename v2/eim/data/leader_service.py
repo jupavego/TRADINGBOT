@@ -29,7 +29,7 @@ from eim.copytrading.copy_params import CopyParams
 from eim.copytrading.copy_risk import copy_config
 from eim.core.leaders import Leader
 from eim.data.copy_live import CopyLive
-from eim.data.copy_store import SNAPSHOT, take_snapshot_request
+from eim.data.copy_store import take_snapshot_request
 from eim.data.hl_market import exchange_spec
 from eim.data.leader_board import BoardStore
 from eim.data.leader_eval import evaluate, refresh_portfolios
@@ -181,9 +181,9 @@ class LeaderService(LeaderWatch):
             if got:
                 self._copy_call("cotizaciones", self.copy.on_quotes, got, self.now())
             self._copy_call("vuelta", self.copy.tick, self.now())
-        if take_snapshot_request(self.root):  # copia de la base pedida por `copy-sim` (T42)
-            await self._safe("instantánea", asyncio.to_thread(
-                self.store.snapshot, self.boards.dir / SNAPSHOT))
+        snap = take_snapshot_request(self.root)  # copia de la base pedida por `copy-sim` (T42)
+        if snap is not None:
+            await self._safe("instantánea", asyncio.to_thread(self.store.snapshot, snap))
         now = time.monotonic()
         if now >= self._next["portfolio"]:
             self._next["portfolio"] = now + self.portfolio_every_s

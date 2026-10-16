@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS copy_journal (
 """
 SUMMARY = "copy_sim.json"
 CONTROL = "copy_control.json"
-SNAPSHOT = "snapshot.duckdb"
 SNAPSHOT_REQ = "snapshot_request.json"
 
 
@@ -84,10 +83,16 @@ def read_summary(root: str | Path) -> dict | None:
 
 
 def request_resume(root: str | Path, leader_ids: list[str], now: int) -> Path:
-    """Pide al servicio reanudar (solo manual): lo recoge en su siguiente vuelta."""
+    """Pide al servicio reanudar (solo manual): lo recoge en su siguiente vuelta. Se suma a lo
+    ya pedido y aún no recogido (dos pedidos seguidos no se pisan)."""
     path = Path(root) / "leaders" / CONTROL
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"resume": leader_ids, "requested_at": now}), encoding="utf-8")
+    try:
+        prev = json.loads(path.read_text(encoding="utf-8")).get("resume") or []
+    except (OSError, ValueError, AttributeError):
+        prev = []
+    ids = list(dict.fromkeys([*prev, *leader_ids]))
+    path.write_text(json.dumps({"resume": ids, "requested_at": now}), encoding="utf-8")
     return path
 
 
@@ -103,17 +108,32 @@ def take_control(root: str | Path) -> dict | None:
     return d
 
 
+def snapshot_path(root: str | Path, requested_at: int) -> Path:
+    return Path(root) / "leaders" / f"snapshot-{requested_at}.duckdb"
+
+
 def request_snapshot(root: str | Path, now: int) -> Path:
-    """Pide al servicio una copia de `leaders.duckdb` en `<root>/leaders/snapshot.duckdb`."""
+    """Pide al servicio una copia de `leaders.duckdb`; devuelve dónde la dejará (un archivo
+    por pedido: una copia que otro proceso tenga abierta nunca bloquea la siguiente)."""
     path = Path(root) / "leaders" / SNAPSHOT_REQ
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({"requested_at": now}), encoding="utf-8")
-    return Path(root) / "leaders" / SNAPSHOT
+    return snapshot_path(root, now)
 
 
-def take_snapshot_request(root: str | Path) -> bool:
+def take_snapshot_request(root: str | Path) -> Path | None:
+    """Destino de la copia pedida (None sin pedido). Borra, si puede, las copias anteriores."""
     path = Path(root) / "leaders" / SNAPSHOT_REQ
     if not path.exists():
-        return False
+        return None
+    try:
+        t = int(json.loads(path.read_text(encoding="utf-8"))["requested_at"])
+    except (OSError, ValueError, KeyError, TypeError):
+        t = 0
     path.unlink(missing_ok=True)
-    return True
+    for old in path.parent.glob("snapshot-*.duckdb"):
+        try:
+            old.unlink()
+        except OSError:  # abierta por otro proceso: se borra en el próximo pedido
+            pass
+    return snapshot_path(root, t)

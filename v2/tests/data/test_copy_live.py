@@ -153,9 +153,11 @@ def test_restart_after_a_crash_rereads_what_the_subaccount_had_not_saved(tmp_pat
     alerts2: list = []
     svc2.copy.alert = lambda *a: alerts2.append(a)
     asyncio.run(svc2.bootstrap(ACTIVE))
-    asyncio.run(svc2.extra_jobs())  # primera vuelta: relee y procesa lo perdido
     eng = svc2.copy.engines[lid]
-    assert eng.counts["signals"] > 50
+    # T40 reconcilia ANTES de la primera vuelta de tareas: la relectura no debe esperarla
+    _settle(svc2, "active_state1", end + 10_000)
+    assert eng.counts["signals"] > 50 and eng.last_recon.ok, eng.last_recon
+    asyncio.run(svc2.extra_jobs())
     for k in range(3):
         _settle(svc2, "active_state1", end + 30_000 * (k + 1))
         assert eng.last_recon.ok, eng.last_recon

@@ -129,7 +129,7 @@ class CopyEngine(EngineControl, EngineState):
             self.seen[k] = None
         if len(self.seen) > 20_000:
             self.seen = dict.fromkeys(list(self.seen)[-10_000:])
-        self._now = now
+        self._now = max(self._now, now)  # la bitácora nunca retrocede
         coin, acc = sig.coin, self.account
         if sig.t < self.last_sig_t.get(coin, 0):
             # tras un corte, el reenvío del WS (lo más nuevo) puede llegar antes que el relleno

@@ -72,12 +72,10 @@ def _open(a: argparse.Namespace) -> tuple[LeaderStore, str]:
         if a.db:
             raise
     snap = request_snapshot(a.root, now_ms())
-    before = snap.stat().st_mtime if snap.exists() else 0.0
     deadline = time.monotonic() + SNAPSHOT_WAIT_S
     while time.monotonic() < deadline:
         time.sleep(1.0)
-        if snap.exists() and snap.stat().st_mtime > before:
-            time.sleep(1.0)
+        if snap.exists():  # aparece completa: se escribe aparte y se renombra al terminar
             return LeaderStore(snap), f"{snap} (instantánea del servicio)"
     raise SystemExit("leaders.duckdb está en uso y el servicio no respondió a la instantánea "
                      f"en {SNAPSHOT_WAIT_S:.0f} s: usa --db con una copia")
@@ -130,13 +128,13 @@ def _sim(a: argparse.Namespace) -> str:
         cfg = copy_config(p)
         leaders = _select(store, a.leaders)
         end = _end(store)
-        firsts = [ts[0] for ld in leaders if (ts := store.photo_times(ld.id, end))]
-        start = min(firsts, default=end)
+        firsts = {ld.id: ts[0] for ld in leaders if (ts := store.photo_times(ld.id, end))}
+        start = min(firsts.values(), default=end)
         rates = funding_rates(store, start, end)
         cache = Path(a.root) / "cache" / "hl_candles"
         sims, journal = [], []
         for ld in leaders:
-            t0 = (store.photo_times(ld.id, end) or [end])[0]
+            t0 = firsts.get(ld.id, end)
             bars = {c: candles_1m(info, c, t0, end, cache, offline=a.offline)
                     for c in sorted(_coins(store, ld.id, t0))}
             res = replay(store, ld, p, spec, cfg, bars, rates, end)

@@ -102,6 +102,8 @@ class CopyLive:
 
     # --- entradas del servicio ----------------------------------------------------------------
     def on_fills(self, fills: list[LeaderFill], now: int) -> None:
+        if self._catchup:
+            self._catch_up(now)
         for sig in group_fills(fills):
             eng = self.engines.get(sig.leader_id)
             if eng is None or sig.t <= eng.state_t:
@@ -162,6 +164,8 @@ class CopyLive:
 
     def on_recon(self, ld: Leader, t_state: int, obs: int,
                  positions: list[LeaderPosition]) -> None:
+        if self._catchup:
+            self._catch_up(obs)
         eng = self.engines.get(ld.id)
         if eng is None:
             eng = self._engine(ld, obs)
@@ -213,15 +217,16 @@ class CopyLive:
                 self.engines[lid].resume(int(ctl.get("requested_at") or 0), by="manual (CLI)")
 
     def _catch_up(self, now: int) -> None:
+        """Antes del primer evento tras restaurar (T40 puede reconciliar antes de la primera
+        vuelta de tareas): relee lo posterior al último guardado de cada subcuenta."""
+        pending, self._catchup = self._catchup, {}
         n = 0
-        for lid, since in self._catchup.items():
+        for lid, since in pending.items():
             fills = self.store.fills(lid, start=since - CATCHUP_MARGIN_MS)
             n += len(fills)
             if fills:
                 self.on_fills(fills, now)  # tardías: la deduplicación descarta lo ya visto
-        if self._catchup:
-            log.info("copia simulada: %d ejecuciones releídas tras el reinicio", n)
-        self._catchup = {}
+        log.info("copia simulada: %d ejecuciones releídas tras el reinicio", n)
 
     def tick(self, now: int) -> None:
         if self._catchup:

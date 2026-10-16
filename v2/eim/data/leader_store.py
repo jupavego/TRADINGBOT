@@ -228,19 +228,26 @@ class LeaderStore(ScoreTables, CopyTables):
 
     def snapshot(self, path: str | Path) -> Path:
         """Copia coherente de toda la base en `path` (T42: reproducción con el servicio en
-        marcha, que es el único proceso que puede abrir el archivo). Bajo el candado."""
+        marcha, que es el único proceso que puede abrir el archivo). Corre en un cursor propio
+        (transacción aparte de DuckDB) y no toma el candado: la captura sigue escribiendo
+        mientras se copia."""
         dst = Path(path)
         dst.parent.mkdir(parents=True, exist_ok=True)
         tmp = dst.with_name(dst.stem + ".tmp.duckdb")
         tmp.unlink(missing_ok=True)
         with self._lock:
-            src = self._con.execute("SELECT current_database()").fetchone()[0]
+            cur = self._con.cursor()
+        try:
+            src = cur.execute("SELECT current_database()").fetchone()[0]
+            alias = "snap_" + "".join(ch if ch.isalnum() else "_" for ch in dst.stem)
             lit = str(tmp).replace("'", "''")  # ATTACH no admite parámetros
-            self._con.execute(f"ATTACH '{lit}' AS snap")
+            cur.execute(f"ATTACH '{lit}' AS {alias}")
             try:
-                self._con.execute(f'COPY FROM DATABASE "{src}" TO snap')
+                cur.execute(f'COPY FROM DATABASE "{src}" TO {alias}')
             finally:
-                self._con.execute("DETACH snap")
+                cur.execute(f"DETACH {alias}")
+        finally:
+            cur.close()
         tmp.replace(dst)
         return dst
 

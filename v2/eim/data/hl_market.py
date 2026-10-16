@@ -85,10 +85,10 @@ def candles_1m(info, coin: str, start: int, end: int, cache_dir: str | Path,
                 have[bar[0]] = bar
             got = True
             t = u
-    if got:
-        lo = min(x for x in (lo, start) if x is not None)
-        # el último minuto aún abierto no se da por cubierto
-        hi = max(x for x in (hi, min(end, max(have, default=start))) if x is not None)
+    if got and have:
+        # cobertura = velas que hay de verdad (el exchange solo sirve las ~5000 más recientes);
+        # el último minuto, quizá aún abierto, se vuelve a pedir la próxima vez
+        lo, hi = min(have), max(have)
         _write(path, {"coin": coin, "from": lo, "to": hi,
                       "bars": [list(have[k]) for k in sorted(have)]})
     return [have[k] for k in sorted(have) if start <= k < end]
