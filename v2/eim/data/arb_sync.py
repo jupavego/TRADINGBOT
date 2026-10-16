@@ -62,15 +62,19 @@ class ArbSync:
 
     def __init__(self, data_root: Path, provider: BinanceArbData | None = None, *,
                  assets: tuple[str, ...] = ("BTC", "ETH"), interval_s: float = 10.0,
-                 borrow_apr: dict[str, float] | None = None) -> None:
+                 borrow_apr: dict[str, float] | None = None,
+                 tri_assets: tuple[str, ...] | None = None) -> None:
         self.store = ArbStore(data_root)
         self.provider = provider or CachedArbData()
         self.assets, self.interval_s = assets, interval_s
         self.borrow_apr = borrow_apr or {}
+        self.tri_assets = tri_assets            # None = los del cargador (TRI_ASSETS)
         self.last: ArbMarket | None = None
 
     def run_once(self) -> ArbMarket:
-        mkt = load_arb_market(self.provider, assets=self.assets, borrow_apr=self.borrow_apr)
+        extra = {"tri_assets": self.tri_assets} if self.tri_assets is not None else {}
+        mkt = load_arb_market(self.provider, assets=self.assets, borrow_apr=self.borrow_apr,
+                              **extra)
         self.store.save(mkt)
         self.last = mkt
         return mkt

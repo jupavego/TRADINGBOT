@@ -20,6 +20,7 @@ from eim.api.history import HistoryLoader
 from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.more import MoreSources, build_more_router
 from eim.api.operation import build_operation_router
+from eim.api.paper import build_paper_router
 from eim.api.reports_db import ReportStore
 from eim.api.risk import RiskDesk, build_risk_router
 from eim.api.security import BodyLimitMiddleware, LocalOnlyMiddleware, ws_token_subprotocol
@@ -30,12 +31,14 @@ from eim.arbitrage.alerts import AlertParams
 from eim.data.arb_store import ArbStore
 from eim.data.arb_sync import ArbSync
 from eim.data.calendar_sync import CalendarSync
+from eim.data.paper_store import PaperStore
 from eim.data.providers.binance import BinanceFutures
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
 from eim.operation.cycle import OperationParams
 from eim.operation.supervisor import Operation, Supervisor
+from eim.paper.desk import PaperDesk
 from eim.risk import global_kill_switch, load_config
 
 API_VERSION = "2.0.0"
@@ -59,7 +62,7 @@ def create_app(
     cfg = settings or Settings.from_env()
     store = Store(cfg.data_dir)
     reports = ReportStore(cfg.reports_path)
-    reg = registry or default_registry()
+    reg = registry or default_registry(arb_assets=cfg.arb_assets)
     src = source or BinanceKlineSource(cfg.ws_url, cfg.reconnect_max_s)
     forecaster = Forecaster(store, reports)
     if history is None and source is None and cfg.auto_history:  # en vivo: historia automática
@@ -85,10 +88,17 @@ def create_app(
     calendar = (CalendarSync(cfg.data_dir, interval_s=cfg.calendar_interval_s)
                 if source is None and cfg.calendar else None)
     # T39: escáner de arbitraje, también solo en vivo; la fotografía va a data/arbitrage/.
-    arb_sync = (ArbSync(cfg.data_dir, interval_s=cfg.arbitrage_interval_s)
+    arb_sync = (ArbSync(cfg.data_dir, interval_s=cfg.arbitrage_interval_s, assets=cfg.arb_assets,
+                        tri_assets=cfg.arb_tri_assets)
                 if source is None and cfg.arbitrage else None)
-    arb_desk = ArbDesk(ArbStore(cfg.data_dir), alerts=AlertParams(
+    arb_agent = reg.get("arbitrage") if "arbitrage" in reg.ids() else None  # mismo foco
+    arb_desk = ArbDesk(ArbStore(cfg.data_dir), agent=arb_agent, alerts=AlertParams(
         min_score=cfg.arb_alert_score, hold_s=cfg.arb_alert_hold_s))
+    # T47: bróker simulado; base propia y servicio en vivo solo con la fuente real.
+    paper_store = PaperStore(cfg.data_dir / "paper.duckdb")
+    paper = PaperDesk(store, paper_store, reg,
+                      provider=BinanceFutures() if source is None else None,
+                      poll_s=cfg.paper_poll_s)
 
     def now_ms() -> int:
         return int(time.time() * 1000)
@@ -105,12 +115,16 @@ def create_app(
         arb_task = (asyncio.create_task(arb_sync.loop(
             lambda mkt: hub.broadcast_all(arb_desk.payload(mkt))))
             if arb_sync is not None else None)
+        paper_task = (asyncio.create_task(paper.loop())
+                      if source is None and cfg.paper else None)
         yield
-        for t in (task, cal_task, arb_task):
+        for t in (task, cal_task, arb_task, paper_task):
             if t is not None:
                 t.cancel()
+        paper.stop_backtest()
         await hub.close()
         reports.close()
+        paper_store.close()
 
     app = FastAPI(title="EIM API", version=API_VERSION, lifespan=lifespan)
     app.add_middleware(
@@ -136,6 +150,8 @@ def create_app(
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
     app.include_router(build_arbitrage_router(arb_desk))
     app.state.arb_desk = arb_desk
+    app.include_router(build_paper_router(paper))
+    app.state.paper = paper
 
     @app.get("/v2/health")
     def health() -> dict:

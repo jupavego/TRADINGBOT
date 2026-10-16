@@ -1,0 +1,178 @@
+"""Retroalimentación y estadística por estrategia (funciones puras).
+
+`Learner.at(estrategia, t)` usa SOLO operaciones sombra cerradas en `exit_t ≤ t`: el peso que un
+perfil aplica en `t` no conoce el futuro. Las estrategias en pausa siguen evaluándose en la
+sombra, así que vuelven solas si se recuperan.
+"""
+
+from __future__ import annotations
+
+import math
+from bisect import bisect_right
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
+
+import numpy as np
+
+from eim.backtest.edge import holm
+from eim.paper.engine import Outcome
+from eim.paper.params import FeedbackParams
+
+STD_FLOOR = 0.5       # R: evita errores estándar irrisorios con muestras chicas
+MIN_N_TEST = 5        # muestra mínima para el contraste y Holm
+STATES = {"observacion": "En observación", "activa": "Activa", "reforzada": "Reforzada",
+          "reducida": "Reducida", "pausa": "En pausa"}
+
+
+@dataclass(frozen=True)
+class Judgement:
+    weight: float
+    state: str
+    m: float          # expectativa contraída (R por operación)
+    se: float
+    n: int
+
+    def to_json(self) -> dict:
+        return {"weight": round(self.weight, 3), "state": self.state,
+                "state_label": STATES[self.state], "m": round(self.m, 4),
+                "se": None if math.isnan(self.se) else round(self.se, 4), "n": self.n}
+
+
+def judge(rs: Sequence[float], p: FeedbackParams) -> Judgement:
+    n = len(rs)
+    if n == 0:
+        return Judgement(p.observe_w, "observacion", 0.0, float("nan"), 0)
+    r = np.asarray(rs, dtype=float)
+    w = 0.5 ** (np.arange(n)[::-1] / p.half_life)          # 1 = la más reciente
+    sw = float(w.sum())
+    m = float((w * r).sum()) / (sw + p.prior_n)
+    mean_w = float((w * r).sum()) / sw
+    sd = max(STD_FLOOR, math.sqrt(float((w * (r - mean_w) ** 2).sum()) / sw))
+    se = sd / math.sqrt(sw + p.prior_n)
+    if n < p.n_min:
+        return Judgement(p.observe_w, "observacion", m, se, n)
+    if m + p.z_pause * se < 0:
+        return Judgement(0.0, "pausa", m, se, n)
+    weight = min(p.w_max, max(p.w_min, 1 + p.gain * m))
+    state = "reforzada" if weight > 1.05 else "reducida" if weight < 0.95 else "activa"
+    return Judgement(weight, state, m, se, n)
+
+
+def closed(outcomes: Iterable[Outcome]) -> list[Outcome]:
+    return [o for o in outcomes if o.status == "CERRADA" and o.r is not None]
+
+
+class Learner:
+    """Resultados sombra cerrados por estrategia, ordenados por cierre."""
+
+    def __init__(self, outcomes: Iterable[Outcome]) -> None:
+        by: dict[str, list[tuple[int, float]]] = {}
+        for o in closed(outcomes):
+            by.setdefault(o.idea.strategy, []).append((o.exit_t, o.r))
+        self._t = {k: [t for t, _ in sorted(v)] for k, v in by.items()}
+        self._r = {k: [r for _, r in sorted(v)] for k, v in by.items()}
+
+    def at(self, strategy: str, t: int, p: FeedbackParams) -> Judgement:
+        ts = self._t.get(strategy, [])
+        return judge(self._r.get(strategy, [])[:bisect_right(ts, t)], p)
+
+
+def _p_one_sided(r: np.ndarray) -> float | None:
+    """p de H0: media ≤ 0 (aprox. normal); None con muestra chica."""
+    if len(r) < MIN_N_TEST:
+        return None
+    sd = float(r.std(ddof=1))
+    if sd <= 0:
+        return 0.0 if r.mean() > 0 else 1.0
+    z = float(r.mean()) / (sd / math.sqrt(len(r)))
+    return 0.5 * math.erfc(z / math.sqrt(2))
+
+
+def _max_dd(r: np.ndarray) -> float:
+    if not len(r):
+        return 0.0
+    eq = np.concatenate([[0.0], np.cumsum(r)])
+    return float((np.maximum.accumulate(eq) - eq).max())
+
+
+def _group(os_: Sequence[Outcome], key) -> dict[str, dict]:
+    g: dict[str, list[float]] = {}
+    for o in os_:
+        g.setdefault(key(o), []).append(o.r)
+    return {k: {"n": len(v), "mean_r": round(float(np.mean(v)), 4)} for k, v in g.items()}
+
+
+def _curve(os_: Sequence[Outcome], points: int = 60) -> list[tuple[int, float]]:
+    os_ = sorted(os_, key=lambda o: o.exit_t)
+    cum = np.cumsum([o.r for o in os_]) if os_ else np.array([])
+    idx = np.unique(np.linspace(0, len(os_) - 1, min(points, len(os_))).astype(int)) \
+        if os_ else []
+    return [(os_[i].exit_t, round(float(cum[i]), 3)) for i in idx]
+
+
+def strategy_stats(outcomes: Sequence[Outcome], strategies: Sequence[dict],
+                   p: FeedbackParams | None = None) -> list[dict]:
+    """Ficha por estrategia (todas las del catálogo, aunque no hayan operado)."""
+    p = p or FeedbackParams()
+    by: dict[str, list[Outcome]] = {}
+    for o in outcomes:
+        by.setdefault(o.idea.strategy, []).append(o)
+    rows: list[dict] = []
+    for info in strategies:
+        os_ = by.get(info["id"], [])
+        cl = closed(os_)
+        r = np.array([o.r for o in cl], dtype=float)
+        cnt = {s: sum(o.status == s for o in os_) for s in
+               ("ABIERTA", "PENDIENTE", "CANCELADA", "RECHAZADA")}
+        pos, neg = float(r[r > 0].sum()), float(-r[r < 0].sum())
+        hold = [(o.exit_t - o.fill_t) / 3_600_000 for o in cl]
+        row = {
+            **info, "n": len(cl), "open": cnt["ABIERTA"], "pending": cnt["PENDIENTE"],
+            "cancelled": cnt["CANCELADA"], "rejected": cnt["RECHAZADA"],
+            "fill_rate": (round((len(cl) + cnt["ABIERTA"]) / (len(cl) + cnt["ABIERTA"]
+                          + cnt["CANCELADA"]), 3) if len(cl) + cnt["ABIERTA"] + cnt["CANCELADA"]
+                          else None),
+            "win_rate": round(float((r > 0).mean()), 4) if len(r) else None,
+            "mean_r": round(float(r.mean()), 4) if len(r) else None,
+            "median_r": round(float(np.median(r)), 4) if len(r) else None,
+            "sum_r": round(float(r.sum()), 3),
+            "pf": round(pos / neg, 3) if neg > 0 else (None if pos == 0 else float("inf")),
+            "max_dd_r": round(_max_dd(r), 3),
+            "last10_r": round(float(r[-10:].mean()), 4) if len(r) else None,
+            "mfe_r": round(float(np.mean([o.mfe_r for o in cl])), 3) if cl else None,
+            "mae_r": round(float(np.mean([o.mae_r for o in cl])), 3) if cl else None,
+            "hold_h": round(float(np.mean(hold)), 2) if hold else None,
+            "p": _p_one_sided(r),
+            "by_side": _group(cl, lambda o: "largo" if o.idea.side > 0 else "corto"),
+            "by_regime": _group(cl, lambda o: o.idea.regime or "sin dato"),
+            "by_reason": {k: v["n"] for k, v in _group(cl, lambda o: o.reason).items()},
+            "curve": _curve(cl),
+            "judgement": judge(list(r), p).to_json(),
+            "origin_live": sum(o.idea.origin == "vivo" for o in cl),
+        }
+        if row["pf"] == float("inf"):
+            row["pf"] = None
+        rows.append(row)
+    adj = holm({x["id"]: x["p"] for x in rows if x["p"] is not None})
+    ctrl = next((x for x in rows if x["family"] == "control"), None)
+    for x in rows:
+        x["p_holm"] = None if x["p"] is None else round(adj[x["id"]], 4)
+        x["p"] = None if x["p"] is None else round(x["p"], 4)
+        x["vs_control"] = (round(x["mean_r"] - ctrl["mean_r"], 4)
+                           if ctrl and ctrl["mean_r"] is not None and x["mean_r"] is not None
+                           and x is not ctrl else None)
+    return rows
+
+
+def family_stats(rows: Sequence[dict]) -> list[dict]:
+    """Agregado por familia, ponderado por número de operaciones."""
+    fam: dict[str, list[dict]] = {}
+    for x in rows:
+        fam.setdefault(x["family"], []).append(x)
+    out = []
+    for f, xs in fam.items():
+        n = sum(x["n"] for x in xs)
+        s = sum(x["sum_r"] for x in xs)
+        out.append({"family": f, "n": n, "sum_r": round(s, 3),
+                    "mean_r": round(s / n, 4) if n else None, "strategies": len(xs)})
+    return sorted(out, key=lambda x: -(x["mean_r"] if x["mean_r"] is not None else -9))

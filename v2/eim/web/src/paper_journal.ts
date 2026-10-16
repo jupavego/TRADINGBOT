@@ -1,0 +1,111 @@
+/** Bitácora categorizada del bróker simulado: de la orden al cierre, con rechazos y aprendizaje. */
+import { CAT_LABEL, day, esc, getPaper, hm, nf, px, rr, side, tone, usd } from './paper_fmt'
+import type { PaperEvent } from './paper_types'
+
+const CATS = ['orden', 'llenada', 'tp', 'sl', 'tiempo', 'cancelada', 'rechazada', 'aprendizaje']
+const DEFAULT = new Set(CATS.filter((c) => c !== 'rechazada'))
+const PAGE = 150
+const STATE: Record<string, string> = {
+  observacion: 'en observación', activa: 'activa', reforzada: 'reforzada', reducida: 'reducida', pausa: 'en pausa',
+}
+
+interface Ctx { symbol: string; names: Record<string, string>; profiles: { id: string; name: string }[] }
+
+export class PaperJournal {
+  private cats = new Set(DEFAULT)
+  private profile = ''
+  private strategy = ''
+  private events: PaperEvent[] = []
+  private counts: Record<string, number> = {}
+  private total = 0
+  private ctx: Ctx = { symbol: 'BTCUSDT', names: {}, profiles: [] }
+  private abort: AbortController | null = null
+
+  constructor(private el: HTMLElement) {
+    el.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
+      if (!b) return
+      if (b.dataset.cat) {
+        if (this.cats.has(b.dataset.cat)) this.cats.delete(b.dataset.cat); else this.cats.add(b.dataset.cat)
+        void this.load(false)
+      } else if (b.dataset.more) void this.load(true)
+    })
+    el.addEventListener('change', (e) => {
+      const s = e.target as HTMLSelectElement
+      if (s.dataset.jf === 'profile') this.profile = s.value
+      else if (s.dataset.jf === 'strategy') this.strategy = s.value
+      else return
+      void this.load(false)
+    })
+  }
+
+  /** Muestra la bitácora del perfil elegido arriba (se puede cambiar a «todos»). */
+  async show(ctx: Ctx, profile: string): Promise<void> {
+    this.ctx = ctx
+    this.profile = profile
+    await this.load(false)
+  }
+
+  private async load(more: boolean): Promise<void> {
+    this.abort?.abort(); this.abort = new AbortController()
+    if (!this.cats.size) { this.events = []; this.total = 0; this.paint(); return }
+    const before = more && this.events.length ? `&before=${this.events[this.events.length - 1].t}` : ''
+    const q = `/journal?symbol=${this.ctx.symbol}&limit=${PAGE}&cat=${[...this.cats].join(',')}` +
+      (this.profile ? `&profile=${this.profile}` : '') + (this.strategy ? `&strategy=${this.strategy}` : '') + before
+    try {
+      const r = await getPaper<{ counts: Record<string, number>; total: number; events: PaperEvent[] }>(q, this.abort.signal)
+      this.events = more ? [...this.events, ...r.events] : r.events
+      this.counts = r.counts
+      this.total = more ? this.total : r.total
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return
+      this.el.innerHTML = `<p class="alert bad">No se pudo cargar la bitácora: ${esc((e as Error).message)}</p>`
+      return
+    }
+    this.paint()
+  }
+
+  private line(e: PaperEvent): string {
+    const n = this.ctx.names[e.strategy] ?? e.strategy
+    const prof = this.ctx.profiles.find((p) => p.id === e.profile)?.name ?? e.profile
+    let detail = esc(e.text)
+    if (e.cat === 'orden') {
+      detail = `${e.kind === 'limit' ? 'Orden límite' : 'Orden a mercado'} <b>${side(e.side)}</b> ${nf(e.qty ?? 0, 4)} @ ${px(e.price ?? 0)} · ` +
+        `TP ${px(e.tp ?? 0)} · SL ${px(e.sl ?? 0)} · ${e.leverage}x · riesgo ${nf(e.risk_usd ?? 0)} USDT (peso ${nf(e.weight ?? 1)})`
+    } else if (e.cat === 'llenada') {
+      detail = `Llenada a ${px(e.price ?? 0)} · liquidación aprox. ${px(e.liq ?? 0)}`
+    } else if (['tp', 'sl', 'tiempo'].includes(e.cat)) {
+      detail = `Cierre a ${px(e.price ?? 0)} · <b class="${tone(e.pnl)}">${usd(e.pnl ?? 0)} USDT</b> (${rr(e.r ?? null)}) · capital ${nf(e.equity ?? 0)}`
+    } else if (e.cat === 'aprendizaje') {
+      const [a, b] = e.text.split(' → ')
+      detail = `Retroalimentación: pasa de <i>${STATE[a] ?? a}</i> a <b>${STATE[b] ?? b}</b> · expectativa ${rr(e.m ?? 0)} con ${e.n} operaciones · peso ${nf(e.weight ?? 0)}`
+    } else if (e.cat === 'rechazada') detail = `No se opera: ${esc(e.text)}`
+    else if (e.cat === 'cancelada') detail = `Orden cancelada: ${esc(e.text)}`
+    const why = e.why?.length ? `<small class="muted">${esc(e.why.join(' · '))}</small>` : ''
+    return `<li data-cat="${e.cat}"><time class="num">${hm(e.t)}</time><span class="pp-chip" data-cat="${e.cat}">${CAT_LABEL[e.cat]}</span>` +
+      `<span class="pp-prof" data-p="${esc(e.profile)}">${esc(prof)}</span><span class="pp-ev"><b>${esc(n)}</b>` +
+      `${e.origin === 'vivo' ? ' <span class="pp-live">vivo</span>' : ''} · ${detail}${why}</span></li>`
+  }
+
+  private paint(): void {
+    const chips = CATS.map((c) => `<button type="button" class="pp-chip" data-cat="${c}" aria-pressed="${this.cats.has(c)}">` +
+      `${CAT_LABEL[c]} <small class="num">${this.counts[c] ?? 0}</small></button>`).join('')
+    const profs = `<select data-jf="profile"><option value="">Todos los perfiles</option>` +
+      this.ctx.profiles.map((p) => `<option value="${p.id}"${p.id === this.profile ? ' selected' : ''}>${esc(p.name)}</option>`).join('') + '</select>'
+    const strats = `<select data-jf="strategy"><option value="">Todas las estrategias</option>` +
+      Object.entries(this.ctx.names).sort((a, b) => a[1].localeCompare(b[1]))
+        .map(([id, n]) => `<option value="${id}"${id === this.strategy ? ' selected' : ''}>${esc(n)}</option>`).join('') + '</select>'
+    let body = ''
+    let cur = ''
+    for (const e of this.events) {
+      const d = day(e.t)
+      if (d !== cur) { body += `${cur ? '</ul>' : ''}<h5 class="pp-day">${d}</h5><ul class="pp-log">`; cur = d }
+      body += this.line(e)
+    }
+    if (cur) body += '</ul>'
+    const more = this.events.length < this.total ? `<button class="btn" data-more="1">Cargar ${Math.min(PAGE, this.total - this.events.length)} más (de ${this.total})</button>` : ''
+    this.el.innerHTML = `<div class="pp-filters">${profs}${strats}</div><div class="pp-chips">${chips}</div>` +
+      (body || '<p class="muted">Sin eventos con estos filtros.</p>') + more +
+      '<p class="muted pp-note">Horas en UTC. «Rechazada» = la idea existió pero el perfil no la tomó (filtros, cupo, margen o pausa por retroalimentación).</p>'
+  }
+}

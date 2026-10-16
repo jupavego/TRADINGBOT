@@ -1,5 +1,5 @@
 /** Pestañas de "Más análisis": Liquidaciones, Estacionalidad y Bitácora de trading. */
-import { day, esc, fmt, getMore, postMore, sourceLine, usd, type Json } from './more_api'
+import { day, esc, fmt, focusAssets, getMore, postMore, sourceLine, usd, type Json } from './more_api'
 import type { Ctx } from './more_market'
 
 export async function liquidationsView(el: HTMLElement, ctx: Ctx): Promise<void> {
@@ -28,7 +28,7 @@ const heat = (v: number | null): string => {
 }
 
 export async function seasonalityView(el: HTMLElement): Promise<void> {
-  const { assets } = await getMore('assets', {})
+  const assets = focusAssets((await getMore('assets', {})).assets)
   el.innerHTML = `<div class="mrow"><label>Activo <select id="se-a">${assets.map((a: Json) =>
     `<option value="${esc(a.key)}">${esc(a.label)}</option>`).join('')}</select></label>
     <label>Desde <input id="se-y" type="number" value="2015" min="2000" max="2100"></label>
