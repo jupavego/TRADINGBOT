@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-15T15:13:43",
+ "generated": "2026-10-15T20:50:41",
  "tasks": [
   {
    "id": "T01",
@@ -487,8 +487,8 @@ window.EIM_STATUS = {
     "T03",
     "T33"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Contratos `eim/core/leaders.py` (`Leader`, `LeaderPosition`, `LeaderFill`, `LeaderFunding`; `t` del exchange vs `observed_at` local **corregido con el desfase medido** frente al servidor, ≈1,2 s) + `MarketSnapshot.leaders` (aditivo; lo rellena T41). I/O: `data/providers/leaders.py` (Hyperliquid `/info` + WS oficiales, sin claves: reintentos, presupuesto de peso, paginación; WS con `ping` y reconexión exponencial), `data/leader_watch.py` (≤10 líderes por WS `userFills`, resto por REST; huecos por `startPosition`/corte del WS/reconciliación con relleno `userFillsByTime`; reconciliación cada 30 s con re-comprobación a 5/10/15 s antes de resincronizar), `data/leader_store.py` (`data/leaders.duckdb`: ejecuciones con acción apertura/aumento/reducción/cierre/giro, comisión y PnL, funding, apalancamiento, fotos de posiciones, reconciliaciones, huecos; dedupe por clave), `data/leader_discover.py` (muestra del WS `trades` → candidatos; Binance solo manual), `data/leader_report.py`. Puro: `eim/leaders/` (parseo con `Decimal`, libro esperado, descubrimiento); CLI `python -m eim.leaders`. Tests sin red sobre respuestas reales grabadas (`tests/fixtures/leaders/`): 44 (reconexión, duplicado, hueco, cierre parcial, giro, apalancamiento, liquidación, retraso del endpoint); gate 851. **Verificado en vivo 2026-10-15 (35 min, 7 billeteras reales, 5 por WS y 2 por REST):** 441/441 reconciliaciones con posiciones idénticas al exchange al primer intento (0 resincronizaciones, 0 huecos); latencia WS p50 194 ms, p90 372 ms, p99 704 ms, máx. 2,0 s (n = 4 123); 2 457 pagos de funding. Pendientes en BACKLOG (T40).",
    "effort": "alto",
    "phase": 8,
    "goal": "Capturar de forma fiable y legítima las posiciones y operaciones de los traders a seguir, y guardarlas con historial propio."
