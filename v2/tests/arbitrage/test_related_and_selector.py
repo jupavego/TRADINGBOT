@@ -9,6 +9,7 @@ from eim.arbitrage.selector import score
 from eim.core import CostModel, SpotPair
 from tests.arbitrage.helpers import (
     ASOF,
+    T38,
     book,
     carry_market,
     history,
@@ -18,7 +19,7 @@ from tests.arbitrage.helpers import (
     quarterly,
 )
 
-P = ArbParams(assets=("BTC",))
+P = ArbParams(assets=("BTC",), **T38)
 CM = CostModel()
 
 
@@ -64,9 +65,9 @@ def test_selector_orders_by_risk_adjusted_return():
 
 def test_selector_rejects_with_reasons():
     o = scan_all(carry_market(0.003, realized=0.003), CM, P).selection.selected[0].opportunity
-    strict = ArbParams(assets=("BTC",), min_net_bps=1_000)
+    strict = ArbParams(assets=("BTC",), **T38, min_net_bps=1_000)
     assert select([o], strict).rejected[0].reason.startswith("neto")
-    thin = ArbParams(assets=("BTC",), max_liquidity_risk=0.0001)
+    thin = ArbParams(assets=("BTC",), **T38, max_liquidity_risk=0.0001)
     assert select([o], thin).rejected[0].reason.startswith("liquidez insuficiente")
     assert select([o], P, now=ASOF + 60_000).rejected[0].reason == "precio caducado"
 
@@ -90,3 +91,10 @@ def test_scan_all_every_opportunity_has_breakdown():
     for o in every:
         assert o.costs.fees > 0 and o.net_edge == pytest.approx(o.gross_edge - o.costs.total)
         assert o.source and o.coverage
+
+
+def test_selector_skips_disabled_variants_as_informative():
+    o = scan_all(carry_market(0.003, realized=0.003), CM, P).selection.selected[0].opportunity
+    off = ArbParams(assets=("BTC",), **{**T38, "disabled_variants": (o.variant,)})
+    rej = select([o], off).rejected[0]
+    assert rej.code == "informative" and "variante desactivada" in rej.reason

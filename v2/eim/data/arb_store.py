@@ -43,6 +43,10 @@ class ArbStore:
             old.unlink(missing_ok=True)
         return path
 
+    def all(self) -> list[ArbMarket]:
+        """Todas las fotografías guardadas, de la más antigua a la más reciente."""
+        return [m for _, f in self._files() if (m := self._load(f)) is not None]
+
     def latest(self) -> ArbMarket | None:
         files = self._files()
         return self._load(files[-1][1]) if files else None

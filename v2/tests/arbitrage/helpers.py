@@ -4,6 +4,11 @@ from __future__ import annotations
 
 from eim.core import ArbMarket, Book, FuturesContract, PremiumInfo, SpotPair
 
+# Supuestos de T38 con los que se escribieron los tests de mecánica del motor (T43 cambió
+# los valores por defecto con evidencia; estos tests prueban la mecánica, no la calibración).
+T38 = {"carry_horizon_h": 24.0, "perp_leverage": 2.0, "daily_move": 0.04,
+       "basis_floor_bps": 5.0, "funding_shock_rate": 0.0001,
+       "selectable": ("funding_carry", "basis", "related_perps"), "disabled_variants": ()}
 ASOF = 1_760_000_000_000 - 1_760_000_000_000 % 3_600_000 + 1_800_000  # hh:30 UTC
 H = 3_600_000
 DAY = 24 * H

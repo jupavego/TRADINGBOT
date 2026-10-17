@@ -6,9 +6,9 @@ import pytest
 
 from eim.arbitrage import ArbParams, scan_basis
 from eim.core import CostModel
-from tests.arbitrage.helpers import book, history, market, perp, premium, quarterly
+from tests.arbitrage.helpers import T38, book, history, market, perp, premium, quarterly
 
-P = ArbParams(assets=("BTC",))
+P = ArbParams(assets=("BTC",), **T38)
 CM = CostModel()
 
 

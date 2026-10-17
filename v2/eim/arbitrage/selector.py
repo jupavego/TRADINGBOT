@@ -2,8 +2,8 @@
 
 Puntuación = rendimiento neto sobre capital por día de tenencia (mínimo 1 día, para que lo
 instantáneo no sea infinito) × (1 − aversión · penalización de riesgo ponderada).
-Descartes, con motivo: estrategia no seleccionable, pata incompleta, precio caducado, neto
-bajo el margen mínimo, liquidez insuficiente.
+Descartes, con motivo: estrategia o variante no seleccionable, pata incompleta, precio
+caducado, neto bajo el margen mínimo, liquidez insuficiente.
 """
 
 from __future__ import annotations
@@ -41,7 +41,9 @@ def score(o: Opportunity, p: ArbParams) -> float:
 
 def reject_reason(o: Opportunity, p: ArbParams, now: int) -> tuple[RejectCode, str] | None:
     if o.strategy not in p.selectable:
-        return "informative", "informativa: estrategia fuera del alcance seleccionable (T33)"
+        return "informative", "informativa: estrategia no seleccionable (T33; No viable en T43)"
+    if o.variant in p.disabled_variants:
+        return "informative", "informativa: variante desactivada (No viable en el backtest T43)"
     if not o.executable:
         return "incomplete", "pata incompleta: el libro visible no cubre la cantidad"
     if o.valid_until < now:
