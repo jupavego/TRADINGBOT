@@ -20,7 +20,7 @@ SIDE = {"buy": "compra", "sell": "venta"}
 MARKET = {"spot": "spot", "usdm": "USDⓈ-M", "usdcm": "USDC-M"}
 STRATEGY = {"funding_carry": "Carry de funding", "basis": "Base / cash-and-carry",
             "triangular": "Triangular spot", "related_perps": "USDT-M vs USDC-M"}
-REJECT = {"informative": "informativa (fuera de alcance, T33)",
+REJECT = {"informative": "informativa (fuera de alcance T33 o No viable en T43)",
           "incomplete": "pata incompleta en el libro visible", "stale": "precio caducado",
           "below_min": "neto bajo el mínimo", "illiquid": "liquidez insuficiente"}
 
