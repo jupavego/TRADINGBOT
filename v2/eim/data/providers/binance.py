@@ -76,16 +76,19 @@ class BinanceFutures:
         return self._get(path, params or {})
 
     # --- Datos ------------------------------------------------------------
-    def klines(self, symbol: str, timeframe: str, start: int, end: int) -> list[Candle]:
+    def klines(self, symbol: str, timeframe: str, start: int, end: int, *,
+               path: str = "/fapi/v1/klines", limit: int = 1500) -> list[Candle]:
+        """Velas cerradas en [start, end). `path`/`limit` permiten el spot (`/api/v3/klines`,
+        1000) con el mismo formato de fila."""
         step = tf_ms(timeframe)
         now = self._clock()
         out: list[Candle] = []
         cursor = start
         while cursor < end:
             rows = self._get(
-                "/fapi/v1/klines",
+                path,
                 {"symbol": symbol, "interval": timeframe, "startTime": cursor,
-                 "endTime": end - 1, "limit": 1500},
+                 "endTime": end - 1, "limit": limit},
             )
             if not rows:
                 break

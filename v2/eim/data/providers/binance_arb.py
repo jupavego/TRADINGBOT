@@ -10,7 +10,7 @@ from __future__ import annotations
 import time
 from collections.abc import Callable
 
-from eim.core import Book, FuturesContract, PremiumInfo, SpotPair
+from eim.core import Book, Candle, FuturesContract, PremiumInfo, SpotPair
 from eim.data.providers.binance import BinanceFutures
 
 SPOT_URL = "https://api.binance.com"
@@ -98,3 +98,39 @@ class BinanceArbData:
 
     def funding_history(self, symbol: str, start: int, end: int) -> list[tuple[int, float]]:
         return self.futures.funding_rates(symbol, start, end)
+
+    # --- Histórico (T43) ----------------------------------------------------
+    def spot_klines(self, symbol: str, timeframe: str, start: int, end: int) -> list[Candle]:
+        return self.spot.klines(symbol, timeframe, start, end, path="/api/v3/klines",
+                                limit=1000)
+
+    def symbol_filters(self, symbols: set[str]) -> dict[str, dict[str, float | str]]:
+        """Mínimos de orden por símbolo (`exchangeInfo`): paso de cantidad, cantidad mínima y
+        nocional mínimo; `market` = spot/futures. Clave `spot:SÍMBOLO` o `futures:SÍMBOLO`."""
+        out: dict[str, dict[str, float | str]] = {}
+        for market, client, path in (("spot", self.spot, "/api/v3/exchangeInfo"),
+                                     ("futures", self.futures, "/fapi/v1/exchangeInfo")):
+            for s in client.request(path).get("symbols", []):
+                if s.get("symbol") not in symbols:
+                    continue
+                f = {x.get("filterType"): x for x in s.get("filters", [])}
+                lot = f.get("LOT_SIZE", {})
+                notional = f.get("MIN_NOTIONAL") or f.get("NOTIONAL") or {}
+                min_n = notional.get("notional") or notional.get("minNotional") or 0
+                out[f"{market}:{s['symbol']}"] = {
+                    "step": float(lot.get("stepSize") or 0),
+                    "min_qty": float(lot.get("minQty") or 0), "min_notional": float(min_n),
+                    "source": SPOT_SOURCE if market == "spot" else FUTURES_SOURCE}
+        return out
+
+
+class SpotKlines:
+    """Adaptador spot para `sync_candles` (misma interfaz `name`/`klines` que el de futuros)."""
+
+    name = SPOT_SOURCE
+
+    def __init__(self, data: BinanceArbData) -> None:
+        self.data = data
+
+    def klines(self, symbol: str, timeframe: str, start: int, end: int) -> list[Candle]:
+        return self.data.spot_klines(symbol, timeframe, start, end)

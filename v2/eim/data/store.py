@@ -41,12 +41,15 @@ class Store:
 
     # --- velas ------------------------------------------------------------
     def upsert_candles(
-        self, symbol: str, timeframe: str, candles: list[Candle], source: str
+        self, symbol: str, timeframe: str, candles: list[Candle], source: str,
+        kind: str = "candles",
     ) -> int:
-        """Inserta/reemplaza por `t`. Devuelve el total de filas tras la operación."""
+        """Inserta/reemplaza por `t`. Devuelve el total de filas tras la operación.
+
+        `kind` separa mercados con el mismo símbolo (`candles` = futuros, `spot_candles`)."""
         tf_ms(timeframe)
         rows = [(c.t, c.o, c.h, c.l, c.c, c.v, c.taker_buy_v, c.trades) for c in candles]
-        return self._upsert("candles", symbol, timeframe, rows, _CANDLE_SCHEMA, source)
+        return self._upsert(kind, symbol, timeframe, rows, _CANDLE_SCHEMA, source)
 
     def read_candles(
         self,
@@ -55,9 +58,10 @@ class Store:
         start: int | None = None,
         end: int | None = None,
         last: int | None = None,
+        kind: str = "candles",
     ) -> list[Candle]:
         """Velas con `start <= t < end`; `last=n` devuelve solo las n más recientes."""
-        rows = self._read("candles", symbol, timeframe, _CANDLE_COLS, start, end, last)
+        rows = self._read(kind, symbol, timeframe, _CANDLE_COLS, start, end, last)
         return [
             Candle(t=int(t), o=o, h=h, l=lo, c=c, v=v, taker_buy_v=tb,
                    trades=None if n is None else int(n))
@@ -65,16 +69,18 @@ class Store:
         ]
 
     def find_gaps(
-        self, symbol: str, timeframe: str, start: int | None = None, end: int | None = None
+        self, symbol: str, timeframe: str, start: int | None = None, end: int | None = None,
+        kind: str = "candles",
     ) -> list[tuple[int, int]]:
         """Huecos como (t de la primera vela faltante, t de la última faltante)."""
         step = tf_ms(timeframe)
-        ts = [c.t for c in self.read_candles(symbol, timeframe, start, end)]
+        ts = [c.t for c in self.read_candles(symbol, timeframe, start, end, kind=kind)]
         return [(a + step, b - step) for a, b in zip(ts, ts[1:], strict=False) if b - a > step]
 
-    def bounds(self, symbol: str, timeframe: str) -> tuple[int, int] | None:
+    def bounds(self, symbol: str, timeframe: str,
+               kind: str = "candles") -> tuple[int, int] | None:
         """(primer t, último t) almacenados, o None si no hay datos."""
-        f = self._file("candles", symbol, timeframe)
+        f = self._file(kind, symbol, timeframe)
         if not f.exists():
             return None
         row = duckdb.connect().execute(
@@ -155,7 +161,7 @@ class Store:
         w = f"WHERE {' AND '.join(where)}" if where else ""
         con = duckdb.connect()
         src = f"read_parquet({_lit(f)}, hive_partitioning=false)"
-        if kind == "candles":  # archivos previos a T34 no tienen las columnas opcionales
+        if kind.endswith("candles"):  # archivos previos a T34 no tienen las opcionales
             con.execute(f"CREATE TABLE empty ({_CANDLE_SCHEMA})")
             src = f"(SELECT * FROM empty UNION ALL BY NAME SELECT * FROM {src})"
         base = f"SELECT {cols} FROM {src} {w}"

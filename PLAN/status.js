@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-16T18:22:42",
+ "generated": "2026-10-16T19:58:19",
  "tasks": [
   {
    "id": "T01",
@@ -526,8 +526,8 @@ window.EIM_STATUS = {
     "T38",
     "T25"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Simulador puro `eim/arbitrage/sim/`: reproduce el motor T38 sobre el histórico (mismo `scan_*` + `select` en cada decisión, cada 8 h) y simula cada oportunidad vela a vela: funding real, margen y rebalanceo, liquidación (regla T25), deslizamiento con perfiles de libros reales capturados (adelgazados por volumen) y pata incompleta (costo esperado + distribución por latencia). I/O `data/arb_history_sync.py` + `arb_history.py`: spot 1 h, perpetuos USDT/USDC, 34 trimestrales (30 vencidos con precio real de liquidación), funding, pares triangulares 1 min (30 d), mínimos de orden y capturas de libros; `Store(kind=\"spot_candles\")`, `1m` solo de almacén. CLI `python -m eim.arbitrage.sim sync|run`. **`reports/arbitrage_edge.md`** (2023-01 → 2026-10, BTC+ETH, VIP 0): carry a 90 d **Marginal** (+4,1 %/año; últimos 12 m +1,2 %), base spot/trimestral **Marginal** (+3,5 %; 12 m +2,4 %), USDT-M/USDC-M **No viable** (nunca seleccionada), triangular **No viable** (0 de 256 ciclos > 0 con libros reales; el ticker solo da artefactos). `ArbParams` fijados con esa evidencia: `selectable` sin `related_perps`, `disabled_variants` = base perpetuo/trimestral (−12 pb/op; el selector la marca «informativa»), `carry_horizon_h` 2160, `perp_leverage` 3, `daily_move` 0,0514, `basis_floor_bps` 10,1, `funding_shock_rate` 7,1e-5 (`min_net_bps` 2: 0–10 pb indistintos). Tests: 24 nuevos (funding constante = retorno analítico, libro delgado reduce el neto, pata incompleta genera pérdida, rebalanceo/liquidación, convergencia, sin mirar al futuro, estimado = realizado); los de mecánica T38 fijan sus supuestos (`T38`); gate 1007. Pendientes en BACKLOG (T43): **T45 debe rebalancear margen**.",
    "effort": "alto",
    "phase": 8,
    "goal": "Responder con datos si cada estrategia de arbitraje deja dinero neto en Binance y con qué riesgo, antes de ejecutar nada."

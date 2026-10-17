@@ -6,9 +6,9 @@ import pytest
 
 from eim.arbitrage import ArbParams, scan_funding_carry, select
 from eim.core import CostModel
-from tests.arbitrage.helpers import ASOF, H, carry_market, premium
+from tests.arbitrage.helpers import ASOF, T38, H, carry_market, premium
 
-P = ArbParams(assets=("BTC",))
+P = ArbParams(assets=("BTC",), **T38)
 CM = CostModel()
 
 
@@ -68,7 +68,7 @@ def test_negative_funding_direct_loses_and_reverse_needs_borrow():
 
 def test_settlement_schedule_crossing():
     _, o = _direct(carry_market(0.001, realized=0.001),
-                   ArbParams(assets=("BTC",), carry_horizon_h=1.0))
+                   ArbParams(assets=("BTC",), **{**T38, "carry_horizon_h": 1.0}))
     assert o.details["settlements"] == 0 and o.gross_edge == 0
     assert any("no cruza ninguna liquidación" in w for w in o.warnings)
     mkt = carry_market(0.001, realized=0.001)
@@ -115,6 +115,6 @@ def test_missing_realized_history_is_degraded():
 
 def test_partial_assets_degraded():
     scan = scan_funding_carry(carry_market(0.001, realized=0.001), CM,
-                              ArbParams(assets=("BTC", "ETH")))
+                              ArbParams(assets=("BTC", "ETH"), **T38))
     assert scan.status == "degraded" and len(scan.opportunities) == 1
     assert any("ETHUSDT" in m for m in scan.missing)
