@@ -1,0 +1,46 @@
+{
+ "book_id": null,
+ "cards": [
+  {
+   "id": "cruce_size_after_drawdown",
+   "title": "¿Subir o bajar el tamaño tras un retroceso del capital?",
+   "kind": "advertencia",
+   "claim": "Los autores se contradicen. Murphy: no aumentar el tamaño tras una racha ganadora y empezar a aumentarlo tras un retroceso del capital. Seykota y otros entrevistados de Schwager: reducir o parar en las rachas perdedoras y ser más agresivo tras ganar. Steenbarger: recortar el riesgo cuando los resultados caen bajo la propia norma. Es una hipótesis a medir, no una regla.",
+   "conditions": [{"indicator": "política A (Murphy)", "rule": "tamaño base; +x % tras un retroceso de la curva de capital ≥ y %; nunca subir en máximos de la curva"}, {"indicator": "política B (Schwager/Steenbarger)", "rule": "−x % tras N pérdidas seguidas o métricas bajo su banda histórica; recuperar al volver a la norma"}],
+   "author_evidence": "opiniones contrapuestas de los autores, sin datos comparables",
+   "citations": [{"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [446], "terms": ["winning streak", "dip in equity"]}, {"book_id": "schwager_wizards_es", "chapter": "Ed Seykota", "pages": [119, 120], "terms": ["racha perdedora", "mas agresivo"]}, {"book_id": "steenbarger_coach", "chapter": "8 Coaching Your Trading Business (Lesson 74)", "pages": [258], "terms": ["reduce the size of your trades"]}],
+   "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cuenta", "crypto_24_7": "supuesto: se compara en los perfiles del bróker simulado, fuera de muestra (T54)"},
+   "testable": true,
+   "status": "revisada_usuario",
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_size_after_streaks", "relation": "complementa"}, {"id": "schwager_wizards_es_losing_streaks", "relation": "complementa"}, {"id": "steenbarger_coach_risk_follows_performance", "relation": "complementa"}]
+  },
+  {
+   "id": "cruce_trend_vs_reversal",
+   "title": "¿Seguir la tendencia o ir contra el movimiento reciente?",
+   "kind": "advertencia",
+   "claim": "Murphy (Dow), Lefèvre y Nison sostienen que la tendencia vigente tiende a continuar y que hay que operar a su favor. Steenbarger documenta en el S&P 500 lo contrario en horizontes de días a meses: peores retornos tras periodos alcistas y la estrategia obvia fallando. Para BTC hay que medirlo por marco y horizonte antes de dar peso a cualquiera de las dos lecturas.",
+   "conditions": [{"indicator": "retorno previo vs futuro", "rule": "por marco (15 m/1 h/4 h) y horizonte: retorno medio tras periodos alcistas frente a bajistas, fuera de muestra y neto de costos"}],
+   "author_evidence": "Murphy/Lefèvre/Nison: criterio y ejemplos; Steenbarger: estudios propios en el S&P 500",
+   "citations": [{"book_id": "murphy_ta", "chapter": "2 Dow Theory", "pages": [65], "terms": ["existing trend will continue"]}, {"book_id": "lefevre_reminiscences", "chapter": "X", "pages": [102], "terms": ["line of least resistance"]}, {"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [43], "terms": ["major trend"]}, {"book_id": "steenbarger_coach", "chapter": "10 Looking for the Edge (Lesson 91)", "pages": [328], "terms": ["the trend is your friend"]}],
+   "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "días a meses", "crypto_24_7": "supuesto: el resultado puede depender del marco; el agente `literature` (T53) debe mostrar ambas fichas cuando apliquen"},
+   "testable": true,
+   "status": "revisada_usuario",
+   "verification": "verificada_en_texto",
+   "related": [{"id": "steenbarger_coach_trend_not_friend", "relation": "complementa"}, {"id": "murphy_dow_trend_persists", "relation": "complementa"}, {"id": "lefevre_line_of_least_resistance", "relation": "complementa"}]
+  },
+  {
+   "id": "cruce_risk_per_trade",
+   "title": "Riesgo por operación: del 1 % al 5 %",
+   "kind": "advertencia",
+   "claim": "Las cifras de riesgo máximo por operación varían entre autores: Murphy da hasta un 5 % del capital como pauta estándar en futuros, Seykota dice arriesgar por debajo del 5 % y Larry Hite fija el 1 %. Ninguna está pensada para perpetuos cripto apalancados 24/7; el límite lo fija el motor de riesgo del sistema, no estas fichas.",
+   "author_evidence": "pautas declaradas por los autores",
+   "citations": [{"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [443], "terms": ["5% of total equity"]}, {"book_id": "schwager_wizards_es", "chapter": "Ed Seykota", "pages": [120], "terms": ["5 por ciento"]}, {"book_id": "schwager_wizards_es", "chapter": "Larry Hite", "pages": [132], "terms": ["1 por ciento"]}],
+   "applicability": {"original_market": ["futuros"], "timeframe": "cuenta", "crypto_24_7": "supuesto: solo informa; el riesgo vigente (risk_v2) manda y es determinista"},
+   "testable": false,
+   "status": "revisada_usuario",
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_position_limits", "relation": "complementa"}, {"id": "schwager_wizards_es_one_percent_risk", "relation": "complementa"}]
+  }
+ ]
+}

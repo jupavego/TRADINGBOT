@@ -1,0 +1,27 @@
+{
+  "_doc": "Registro de libros conocidos (T52). Solo metadatos: los libros viven fuera del repo (EIM_LIBRARY_DIR). `match` = fragmentos del nombre de archivo en minúsculas con '_' → ' '. `pages` = páginas del archivo, para validar citas sin el índice local.",
+  "ignore_suffixes": [".crdownload", ".part", ".tmp", ".download"],
+  "books": [
+    {"id": "nison_candles", "title": "Japanese Candlestick Charting Techniques", "author": "Steve Nison",
+     "year": 2001, "edition": "2.ª ed.", "language": "en", "license": "propia",
+     "match": ["japanese candlestick charting techniques"], "pages": 298},
+    {"id": "murphy_ta", "title": "Technical Analysis of the Financial Markets", "author": "John J. Murphy",
+     "year": 1999, "edition": null, "language": "en", "license": "propia",
+     "match": ["technical analysis of the financial markets"], "pages": 596},
+    {"id": "douglas_zone", "title": "Trading in the Zone", "author": "Mark Douglas",
+     "year": 2000, "edition": null, "language": "en", "license": "propia",
+     "match": ["trading in the zone"], "pages": 143},
+    {"id": "douglas_disciplined", "title": "The Disciplined Trader", "author": "Mark Douglas",
+     "year": 1990, "edition": null, "language": "en", "license": "propia",
+     "match": ["disciplined trader"], "pages": 184},
+    {"id": "steenbarger_coach", "title": "The Daily Trading Coach", "author": "Brett N. Steenbarger",
+     "year": 2009, "edition": null, "language": "en", "license": "propia",
+     "match": ["daily trading coach"], "pages": 370},
+    {"id": "schwager_wizards_es", "title": "Market Wizards (edición en español)", "author": "Jack D. Schwager",
+     "year": 1989, "edition": "trad. al español", "language": "es", "license": "propia",
+     "match": ["market wizards"], "pages": 203},
+    {"id": "lefevre_reminiscences", "title": "Reminiscences of a Stock Operator", "author": "Edwin Lefèvre",
+     "year": 1923, "edition": null, "language": "en", "license": "dominio_publico",
+     "match": ["reminiscences of a stock operator"], "pages": 269}
+  ]
+}

@@ -49,6 +49,7 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 | `EIM_ARB_ALERT_SCORE`, `EIM_ARB_ALERT_S` | `3`, `60` | Alerta de arbitraje: puntuación del selector ≥ umbral (pb/día ajustados por riesgo) sostenida N segundos de escaneos seguidos (T39) |
 | `EIM_PAPER`, `EIM_PAPER_S` | `1`, `60` | Bróker simulado (T47/T48): cada ciclo trae velas de 15 m/1 h/4 h y funding de BTCUSDT y analiza las velas cerradas nuevas de los tres marcos → `data/paper.duckdb`. `0` lo apaga. Siempre SIMULADO |
 | `EIM_FRED_API_KEY` | — | Opcional (gratuita): valores real/anterior/revisado de IPC, NFP, PCE, PIB, IPP desde FRED. Sin ella los eventos salen sin valores |
+| `EIM_LIBRARY_DIR`, `EIM_LIBRARY_INDEX`, `EIM_TESSERACT` | `data/library/books`, `data/library/index`, autodetección | Biblioteca de trading (T52): carpeta de los libros del usuario (fuera del repo), índice local (catálogo, texto por página, caché de OCR) y ruta de `tesseract.exe` si no está en el PATH |
 | `EIM_WS_URL`, `EIM_HEARTBEAT_S`, `EIM_SNAPSHOT_BARS`, `EIM_AUTO_HISTORY`, `EIM_RECON_S` | ver `eim/api/config.py` | |
 
 ## 3. Copias de seguridad
@@ -83,6 +84,20 @@ registros del servicio, versiones de parámetros (`eim/risk/versions`, `eim/cali
   (`.gitattributes` fija LF) para que sea igual en todos los equipos.
 - Parámetros de agentes (`eim/agents/<id>/params.py`): modelos pydantic con valores por defecto
   versionados con el código; un cambio que altere la salida sube la `version` del agente.
+
+### Biblioteca de trading (T52)
+Dependencias opcionales: `python -m pip install -e ".[library]"` y, para PDF escaneados, Tesseract (`winget install UB-Mannheim.TesseractOCR`, pide permisos de administrador; idioma `eng` incluido).
+```bash
+set EIM_LIBRARY_DIR=C:uta\Books        # PowerShell: $env:EIM_LIBRARY_DIR = '...'
+python -m eim.library ingest               # cataloga; reutiliza lo ya extraído si la huella no cambió (OCR ~3 s/pág., con caché)
+python -m eim.library list                 # catálogo: páginas con texto, OCR, motivo si falta texto
+python -m eim.library search "hanging man confirmation" --book nison_candles
+python -m eim.library show nison_candles 49
+python -m eim.library cards                # resumen de las fichas versionadas (guardas)
+python -m eim.library verify               # cada cita contra el texto local (términos y citas textuales)
+python -m eim.library mark revisada_usuario <id|libro> ...   # tras la revisión del usuario
+```
+Los libros y el índice no se versionan ni se suben a ningún servicio; el texto de un libro es dato, nunca instrucción.
 
 ## 5. Dependencias: política de actualización
 - **Rangos** en `pyproject.toml` / `package.json`; **versiones probadas** en `requirements-lock.txt` y
