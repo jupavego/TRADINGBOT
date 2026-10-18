@@ -1,4 +1,9 @@
-"""Síntesis v1: agregación ponderada de sesgos con penalización por desacuerdo (funciones puras)."""
+"""Síntesis v1: agregación ponderada de sesgos con penalización por desacuerdo (funciones puras).
+
+T44: los agentes no direccionales (`NON_DIRECTIONAL`) nunca votan; el calendario solo reduce
+la confianza en ventana de evento; los agentes nuevos pesan menos si un existente con el que
+están correlacionados ya vota en esa vela (sin doble conteo).
+"""
 
 from __future__ import annotations
 
@@ -6,7 +11,7 @@ import math
 from collections.abc import Sequence
 
 from eim.core import AgentReport, Synthesis
-from eim.synthesis.params import SynthesisParams
+from eim.synthesis.params import NON_DIRECTIONAL, SynthesisParams
 
 
 def _name(agent_id: str) -> str:
@@ -20,6 +25,29 @@ def _weight(agent_id: str, regime: str | None, p: SynthesisParams) -> float:
     return w
 
 
+def _corr_factor(agent_id: str, voting: set[str], p: SynthesisParams) -> tuple[float, str]:
+    """Factor (≤ 1) por correlación con agentes que ya votan, y con cuál (el más correlado)."""
+    rho = {j: r for j, r in p.correlation.get(agent_id, {}).items() if j in voting and r > 0}
+    if not rho:
+        return 1.0, ""
+    top = max(rho, key=rho.__getitem__)
+    return max(0.0, 1 - p.corr_penalty * rho[top]), top
+
+
+def event_factor(reports: Sequence[AgentReport], p: SynthesisParams) -> tuple[float, str]:
+    """Factor de confianza por ventana de evento del calendario y su motivo (1.0 si no hay)."""
+    cal = next((r for r in reports if r.agent_id == "calendar" and r.status != "no_data"), None)
+    if cal is None:
+        return 1.0, ""
+    m = cal.metrics
+    if m.get("blackout"):
+        return p.blackout_conf, str(m.get("blackout_reason") or "ventana de evento")
+    if m.get("window"):
+        ev = m.get("window_event") or {}
+        return p.event_conf, f"ventana {m['window']}-evento: {ev.get('name', '')}".strip()
+    return 1.0, ""
+
+
 def synthesize(
     reports: Sequence[AgentReport],
     params: SynthesisParams | None = None,
@@ -28,23 +56,36 @@ def synthesize(
 ) -> Synthesis | None:
     """Combina los reportes en una tesis; `None` si ningún agente aporta (todos sin datos).
 
-    Peso efectivo = peso base × confianza × (factor si está degradado). El sesgo es el promedio
-    ponderado; el acuerdo es 1 − desviación ponderada de los sesgos. La confianza es la
-    confianza media sobre TODOS los agentes esperados (los ausentes o sin datos cuentan 0),
-    penalizada si agentes con convicción apuntan en direcciones opuestas.
+    Peso efectivo = peso base × confianza × (factor si está degradado), con el peso base
+    reducido por correlación (T44). El sesgo es el promedio ponderado; el acuerdo es
+    1 − desviación ponderada de los sesgos. La confianza es la confianza media sobre TODOS los
+    agentes esperados (los ausentes o sin datos cuentan 0), penalizada si agentes con
+    convicción apuntan en direcciones opuestas y dentro de una ventana de evento.
+    Un agente con peso base 0 no vota (queda a la vista en la UI, pero no mueve nada).
     """
     p = params or SynthesisParams()
-    votes = [r for r in reports if r.agent_id not in p.excluded]
+    skip = p.excluded | NON_DIRECTIONAL
+    votes = [r for r in reports if r.agent_id not in skip]
     byid = {r.agent_id: r for r in votes}
-    ids = [i for i in (expected if expected is not None else byid) if i not in p.excluded]
-    missing = [i for i in ids if i not in byid]
+    ids = [i for i in (expected if expected is not None else byid) if i not in skip]
+    voting = {i for i, r in byid.items() if r.status != "no_data"}
+
+    base: dict[str, float] = {}
+    corr: dict[str, str] = {}
+    for i in set(ids) | set(byid):
+        f, top = _corr_factor(i, voting, p)
+        base[i] = _weight(i, regime, p) * f
+        if top and base[i] > 0:
+            corr[i] = top
+    missing = [i for i in ids if i not in byid and base[i] > 0]
 
     eff: dict[str, float] = {}
-    for r in votes:
-        if r.status == "no_data":
+    for i in sorted(voting):
+        r = byid[i]
+        if base[i] <= 0:
             continue
         f = p.degraded_factor if r.status == "degraded" else 1.0
-        eff[r.agent_id] = _weight(r.agent_id, regime, p) * r.confidence * f
+        eff[i] = base[i] * r.confidence * f
     total = sum(eff.values())
     if total <= 0:
         return None
@@ -54,25 +95,34 @@ def synthesize(
     agreement = max(0.0, 1 - math.sqrt(var))
     contributions = {i: eff[i] * byid[i].bias / total for i in eff}
 
-    wsum = sum(_weight(i, regime, p) for i in set(ids) | set(byid)) or 1.0
-    conf = sum(_weight(i, regime, p) * byid[i].confidence
-               * (p.degraded_factor if byid[i].status == "degraded" else 1.0)
-               for i in eff) / wsum
+    wsum = sum(base.values()) or 1.0
+    conf = sum(eff[i] for i in eff) / wsum
+    factors: dict[str, float] = {}
     up = sorted(i for i in eff if byid[i].bias >= p.conflict_bias)
     down = sorted(i for i in eff if byid[i].bias <= -p.conflict_bias)
     if up and down:
-        conf *= p.disagree_penalty
+        factors["desacuerdo"] = p.disagree_penalty
+    ev_f, ev_why = event_factor(reports, p)
+    if ev_f < 1.0:
+        factors["evento"] = ev_f
+    for f in factors.values():
+        conf *= f
 
+    shown = {i: byid[i] for i in byid if base[i] > 0}
     return Synthesis(
         bias=max(-1.0, min(1.0, bias)), confidence=max(0.0, min(1.0, conf)),
         agreement=min(1.0, agreement), contributions=contributions,
-        thesis=_thesis(bias, conf, agreement, contributions, up, down, byid, missing, regime, p),
+        weights={i: round(base[i], 6) for i in sorted(base)},
+        factors=factors,
+        thesis=_thesis(bias, conf, agreement, contributions, up, down, shown, missing, regime,
+                       p, ev_why if ev_f < 1.0 else "", ev_f, corr),
     )
 
 
 def _thesis(bias: float, conf: float, agreement: float, contrib: dict[str, float],
             up: list[str], down: list[str], byid: dict[str, AgentReport], missing: list[str],
-            regime: str | None, p: SynthesisParams) -> str:
+            regime: str | None, p: SynthesisParams, event: str = "", ev_f: float = 1.0,
+            corr: dict[str, str] | None = None) -> str:
     """Texto determinista por plantilla (sin LLM)."""
     if abs(bias) < p.neutral_band:
         d = "neutral"
@@ -86,6 +136,12 @@ def _thesis(bias: float, conf: float, agreement: float, contrib: dict[str, float
     if up and down:
         out.append("Desacuerdo: " + ", ".join(map(_name, up)) + " (alcista) vs "
                    + ", ".join(map(_name, down)) + " (bajista); la confianza se penaliza.")
+    if event:
+        out.append(f"Calendario: {event}; confianza ×{ev_f:.2f}.")
+    if corr:
+        out.append("Peso reducido por correlación: "
+                   + ", ".join(f"{_name(i)} (con {_name(j)})" for i, j in sorted(corr.items()))
+                   + ".")
     deg = sorted(i for i, r in byid.items() if r.status == "degraded")
     nod = sorted(i for i, r in byid.items() if r.status == "no_data") + missing
     if deg:

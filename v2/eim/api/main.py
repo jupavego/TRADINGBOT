@@ -41,6 +41,7 @@ from eim.operation.cycle import OperationParams
 from eim.operation.supervisor import Operation, Supervisor
 from eim.paper.desk import PaperDesk
 from eim.risk import global_kill_switch, load_config
+from eim.synthesis.params import SynthesisParams, role_of
 
 API_VERSION = "2.0.0"
 
@@ -178,13 +179,18 @@ def create_app(
     def agents(symbol: str = "ETHUSDT", tf: str = "1h") -> list[dict]:
         _check(symbol, tf)
         last = {r.agent_id: r for r in reports.latest(symbol, tf)}
+        sp = SynthesisParams()
         out = []
         for a in reg.latest():
             r = last.get(a.id)
+            role = role_of(a.id, sp)
             out.append({
                 "id": a.id, "version": a.version, "requires": sorted(a.requires),
                 "last_asof": r.asof if r else None, "status": r.status if r else "sin_ejecutar",
                 "bias": r.bias if r else None, "confidence": r.confidence if r else None,
+                # T44: papel en la síntesis y peso base (None si no vota por su papel)
+                "role": role, "weight": sp.weights.get(a.id, 1.0) if role == "direccional"
+                else None,
             })
         return out
 

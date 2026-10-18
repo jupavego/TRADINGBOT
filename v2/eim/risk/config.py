@@ -14,7 +14,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 VERSIONS_DIR = Path(__file__).parent / "versions"
-DEFAULT_VERSION = "risk_v1"
+DEFAULT_VERSION = "risk_v2"   # T44: tamaño reducido en ventana de evento
 
 
 class RiskConfig(BaseModel):
@@ -32,6 +32,9 @@ class RiskConfig(BaseModel):
     min_sl_frac: float = Field(gt=0)                   # SL demasiado cerca = ruido
     max_sl_frac: float = Field(gt=0, lt=0.5)
     min_rr: float = Field(ge=0)
+    # T44: dentro de una ventana de evento SIN blackout (calendario) el riesgo por operación
+    # se multiplica por esto; con blackout se veta (regla `evento`). 1.0 = sin efecto (v1).
+    event_size_factor: float = Field(default=1.0, gt=0, le=1)
     # pérdidas y exposición
     max_daily_loss: float = Field(gt=0, lt=1)          # fracción del capital al inicio del día
     max_weekly_loss: float = Field(gt=0, lt=1)

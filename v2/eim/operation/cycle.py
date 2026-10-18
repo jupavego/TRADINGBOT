@@ -45,7 +45,7 @@ class OperationParams:
     agent_timeout_s: float = 30.0
     max_catchup_ms: int = 7 * DAY_MS      # tras una caída larga no se reproduce más que esto
     disconnect_alert_ms: int = 120_000
-    drawdown_warn: float = 0.05           # aviso; el kill-switch actúa en risk_v1 (15 %)
+    drawdown_warn: float = 0.05           # aviso; el kill-switch actúa en risk_v2 (15 %)
 
 
 @dataclass

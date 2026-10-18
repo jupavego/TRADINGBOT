@@ -64,6 +64,11 @@ def test_agents_listed_before_any_run(client):
     ag = client.get("/v2/agents").json()
     assert {"structure", "vwap"} <= {a["id"] for a in ag}
     assert all(a["status"] == "sin_ejecutar" for a in ag)
+    # T44: papel en la síntesis y peso base; los que no votan no llevan peso
+    role = {a["id"]: (a["role"], a["weight"]) for a in ag}
+    assert role["calendar"] == ("riesgo", None) and role["arbitrage"] == ("carril", None)
+    assert role["plan"] == ("derivado", None) and role["structure"] == ("direccional", 1.0)
+    assert role["technical"][0] == role["smart_money"][0] == "direccional"
 
 
 def test_stream_ticks_then_reports_persisted(client):
@@ -97,6 +102,7 @@ def test_stream_ticks_then_reports_persisted(client):
     syn = rep["synthesis"]
     assert syn is None or (syn["thesis"] and set(syn["contributions"]) <= {
         r["agent_id"] for r in rep["reports"]})
+    assert syn is None or not ({"calendar", "arbitrage", "plan"} & set(syn["contributions"]))
     assert client.get("/v2/synthesis").json()["synthesis"] == syn
 
 

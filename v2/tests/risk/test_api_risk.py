@@ -57,7 +57,7 @@ def test_no_plan(ctx):
     reports.save("ETHUSDT", "1h", [_plan("CUMPLIDO")])
     body = c.get("/v2/risk", params=P).json()
     assert body["decision"] is None and body["mode"] == "SIMULADO"
-    assert body["config"]["version"] == "risk_v1"
+    assert body["config"]["version"] == "risk_v2"
 
 
 def test_approved_plan_with_size_and_logged(ctx):
