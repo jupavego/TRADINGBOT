@@ -6,10 +6,11 @@ from fastapi import APIRouter, Header, HTTPException, Query
 
 from eim.api.execution import confirm
 from eim.data.timeframes import SYMBOLS
-from eim.paper.desk import PaperDesk
+from eim.paper.desk import PaperDesk, View
 from eim.paper.live_feed import live_feed
 
 CATS = ("orden", "llenada", "tp", "be", "sl", "tiempo", "cancelada", "rechazada", "aprendizaje")
+VIEW_WAIT_S = 10.0      # espera máxima por un recálculo; después se entrega la vista anterior
 
 
 def _check(symbol: str) -> None:
@@ -36,6 +37,17 @@ def _tfs(desk: PaperDesk, tf: str | None) -> set[str] | None:
     return sel
 
 
+def _view(desk: PaperDesk, symbol: str) -> View:
+    """Vista sin colgar la petición: la al día si se calcula a tiempo, si no la anterior; 503
+    solo mientras se calcula la primera (la interfaz reintenta sola)."""
+    v = desk.cached_view(symbol, VIEW_WAIT_S)
+    if v is None:
+        err = f" Último error: {desk.view_error}" if desk.view_error else ""
+        raise HTTPException(503, "Calculando la vista del bróker simulado con todo el historial;"
+                                 f" se actualiza sola en unos segundos.{err}")
+    return v
+
+
 def build_paper_router(desk: PaperDesk) -> APIRouter:
     router = APIRouter(prefix="/v2/paper")
 
@@ -43,9 +55,11 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
     def summary(symbol: str = "BTCUSDT") -> dict:
         """Perfiles (cuenta, posiciones, órdenes, curva), estrategias y conclusiones."""
         _check(symbol)
-        out = dict(desk.view(symbol).summary)
+        v = _view(desk, symbol)
+        out = dict(v.summary)
         out["job"] = desk.job.to_json()
         out["live"] = desk.live_status()
+        out["view"] = desk.view_state(v)
         return out
 
     @router.get("/trades")
@@ -54,7 +68,7 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
         """Libro de operaciones cerradas, más recientes primero (`tf`: 15m,1h,4h)."""
         _check(symbol)
         tfs = _tfs(desk, tf)
-        v = desk.view(symbol)
+        v = _view(desk, symbol)
         rows = [{**t, "profile": pid} for pid in _profiles(desk, profile) if pid in v.books
                 for t in v.books[pid].trades
                 if (strategy is None or strategy in (t["strategy"], t["sid"]))
@@ -74,7 +88,7 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
         if bad:
             raise HTTPException(400, f"categoría desconocida: {sorted(bad)} (válidas: {CATS})")
         tfs = _tfs(desk, tf)
-        v = desk.view(symbol)
+        v = _view(desk, symbol)
         evs = [e for pid in _profiles(desk, profile) if pid in v.books
                for e in v.books[pid].events
                if (strategy is None or strategy in (e["strategy"], e["sid"]))
@@ -92,7 +106,7 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
         """Evaluación sombra (igual para todos los perfiles), más recientes primero."""
         _check(symbol)
         tfs = _tfs(desk, tf)
-        os_ = [o.to_json() for o in desk.view(symbol).outcomes
+        os_ = [o.to_json() for o in _view(desk, symbol).outcomes
                if (strategy is None or strategy in (o.idea.strategy, o.idea.sid))
                and (tfs is None or o.idea.timeframe in tfs)]
         os_.sort(key=lambda o: -o["t"])
@@ -103,9 +117,10 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
         """Señales en vivo: cada decisión en tiempo real, su estado en la sombra y qué hizo
         cada perfil con ella y por qué (las reconstruidas por el backtest no aparecen)."""
         _check(symbol)
-        v = desk.view(symbol)
+        v = _view(desk, symbol)
         out = live_feed(v.outcomes, v.books, v.live_ctx, limit)
         out["live"] = desk.live_status()
+        out["view"] = desk.view_state(v)
         return out
 
     @router.get("/status")
