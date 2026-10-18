@@ -11,6 +11,7 @@
    "citations": [{"book_id": "steenbarger_coach", "chapter": "1 Change (Lesson 6)", "pages": [39], "terms": ["report card", "trading process"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "sesión diaria", "crypto_24_7": "supuesto: en 24/7 la «sesión» es un bloque fijo (p. ej. día UTC); útil para el ciclo de mejora T51"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -22,6 +23,7 @@
    "citations": [{"book_id": "steenbarger_coach", "chapter": "4 Steps toward Self-Improvement (Lesson 35)", "pages": [132], "terms": ["60 to 40 edge", "process"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: la retroalimentación del bróker simulado separa causa del resultado (T48) en ese sentido"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "douglas_zone_probabilistic_edge", "relation": "apoya"}]
   },
@@ -35,6 +37,7 @@
    "citations": [{"book_id": "steenbarger_coach", "chapter": "2 Stress and Distress (Lesson 15)", "pages": [65, 66], "terms": ["pressing", "trading too large"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "intradía", "crypto_24_7": "supuesto: medible en la bitácora del bróker simulado (frecuencia y tamaño tras pérdidas)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "douglas_disciplined_revenge", "relation": "apoya"}]
   },
@@ -48,6 +51,7 @@
    "citations": [{"book_id": "steenbarger_coach", "chapter": "4 Steps toward Self-Improvement (Lesson 37)", "pages": [138, 139], "terms": ["rule-governed", "2:1"]}],
    "applicability": {"original_market": ["acciones", "índices"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: la relación debe medirse neta de costos del perpetuo"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_reward_risk", "relation": "apoya"}]
   },
@@ -61,6 +65,7 @@
    "citations": [{"book_id": "steenbarger_coach", "chapter": "8 Coaching Your Trading Business (Lesson 74)", "pages": [256, 257, 258], "terms": ["keep score", "equity curve"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cuenta", "crypto_24_7": "supuesto: encaja con el seguimiento de sugerencias y el ciclo de mejora (T51)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "steenbarger_coach_risk_follows_performance", "relation": "complementa"}]
   },
@@ -74,6 +79,7 @@
    "citations": [{"book_id": "steenbarger_coach", "chapter": "8 Coaching Your Trading Business (Lesson 77)", "pages": [268, 269], "terms": ["small edges over time add up", "drawdowns"]}],
    "applicability": {"original_market": ["futuros (S&P e-mini)"], "timeframe": "diario", "crypto_24_7": "supuesto: el razonamiento es general; las cifras son de su simulación, no de BTC"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -86,6 +92,7 @@
    "citations": [{"book_id": "steenbarger_coach", "chapter": "9 Lessons from Trading Professionals (Lesson 88)", "pages": [313], "terms": ["90 percent threshold", "65 percent"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "cuenta", "crypto_24_7": "supuesto: MFE/MAE ya se registran en el bróker simulado (T47)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_size_after_streaks", "relation": "contradice"}]
   },
@@ -99,6 +106,7 @@
    "citations": [{"book_id": "steenbarger_coach", "chapter": "9 Lessons from Trading Professionals (Lesson 85)", "pages": [302], "terms": ["time of day", "indexing system"]}, {"book_id": "steenbarger_coach", "chapter": "9 Lessons from Trading Professionals (Lesson 90)", "pages": [324], "terms": ["maximum heat"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "intradía", "crypto_24_7": "supuesto: directamente aplicable con los datos de MFE/MAE del bróker simulado"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -110,6 +118,7 @@
    "citations": [{"book_id": "steenbarger_coach", "chapter": "10 Looking for the Edge (Lessons 91–92)", "pages": [328, 329, 330], "terms": ["6,000 technical indicators", "hypotheses"]}],
    "applicability": {"original_market": ["acciones (S&P 500)"], "timeframe": "diario", "crypto_24_7": "supuesto: motivo de que toda ficha pase por la puerta T49 (Holm sobre todos los intentos)"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_optimize_out_of_sample", "relation": "apoya"}]
   },
@@ -124,6 +133,7 @@
    "citations": [{"book_id": "steenbarger_coach", "chapter": "4 Steps toward Self-Improvement (Lesson 37)", "pages": [138, 139], "terms": ["obvious strategy fails"]}, {"book_id": "steenbarger_coach", "chapter": "10 Looking for the Edge (Lesson 91)", "pages": [328], "terms": ["the trend is your friend", "200-day moving average"]}],
    "applicability": {"original_market": ["acciones (S&P 500)"], "timeframe": "diario a mensual", "crypto_24_7": "supuesto: BTC puede comportarse distinto (la literatura académica encuentra momento en cripto); es exactamente lo que hay que medir"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_dow_trend_persists", "relation": "contradice"}, {"id": "lefevre_line_of_least_resistance", "relation": "contradice"}]
   },
@@ -136,6 +146,7 @@
    "citations": [{"book_id": "steenbarger_coach", "chapter": "6 Remapping the Mind (Lesson 53)", "pages": [190, 191], "terms": ["worst trading decisions"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: análogo sistemático: revisar las operaciones de peor causa en la bitácora (T48)"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   }
  ]

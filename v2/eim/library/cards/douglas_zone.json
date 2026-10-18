@@ -10,6 +10,7 @@
    "citations": [{"book_id": "douglas_zone", "chapter": "7 The Trader's Edge: Thinking in Probabilities", "pages": [92], "terms": ["anything can happen", "moment in the market is unique"]}, {"book_id": "douglas_zone", "chapter": "8 Working with Your Beliefs", "pages": [97, 98], "terms": ["probability or numbers game"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplica al diseño de las estrategias (salidas probabilísticas, nunca certezas)"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "douglas_zone_probabilistic_edge", "relation": "complementa"}]
   },
@@ -23,6 +24,7 @@
    "citations": [{"book_id": "douglas_zone", "chapter": "6 The Market's Perspective", "pages": [80], "terms": ["casinos", "large enough sample size"]}, {"book_id": "douglas_zone", "chapter": "7 The Trader's Edge: Thinking in Probabilities", "pages": [93], "terms": ["random distribution"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: coincide con la evaluación por muestras de la puerta T49"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "steenbarger_coach_process_over_outcome", "relation": "apoya"}, {"id": "schwager_wizards_es_one_percent_risk", "relation": "apoya"}]
   },
@@ -36,6 +38,7 @@
    "citations": [{"book_id": "douglas_zone", "chapter": "7 The Trader's Edge: Thinking in Probabilities", "pages": [94], "terms": ["cost of doing business"]}, {"book_id": "douglas_zone", "chapter": "11 Thinking Like a Trader", "pages": [130], "terms": ["predefine the risk of every trade"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: el motor de riesgo ya exige stop en cada plan; la regla vigila que no se mueva en contra"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_protective_stops", "relation": "apoya"}, {"id": "douglas_disciplined_loss_rules", "relation": "apoya"}]
   },
@@ -48,6 +51,7 @@
    "citations": [{"book_id": "douglas_zone", "chapter": "11 Thinking Like a Trader", "pages": [130], "terms": ["seven principles of consistency", "objectively identify my edges"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: en un sistema automático equivalen a ejecutar cada señal validada, con stop y toma de beneficio sistemática"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -60,6 +64,7 @@
    "citations": [{"book_id": "douglas_zone", "chapter": "1 The Road to Success", "pages": [22], "terms": ["four primary trading fears", "too soon"]}, {"book_id": "douglas_zone", "chapter": "11 Thinking Like a Trader", "pages": [131], "terms": ["moving a stop closer to your entry point"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: para el operador humano; en el sistema, la bitácora del bróker simulado puede contar estos desvíos"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "douglas_disciplined_typical_errors", "relation": "apoya"}]
   },
@@ -74,6 +79,7 @@
    "citations": [{"book_id": "douglas_zone", "chapter": "11 Thinking Like a Trader", "pages": [137, 138, 139], "terms": ["sample size of at least 20 trades", "simulated brokerage service"]}],
    "applicability": {"original_market": ["acciones", "futuros (S&P)"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: 20 es un mínimo práctico del autor; la puerta T49 exige más muestra y fuera de muestra"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_optimize_out_of_sample", "relation": "complementa"}]
   },
@@ -86,6 +92,7 @@
    "citations": [{"book_id": "douglas_zone", "chapter": "11 Thinking Like a Trader", "pages": [121], "terms": ["mechanical stage", "intuitive stage"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: el sistema EIM opera siempre en «etapa mecánica» (reglas deterministas)"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -98,6 +105,7 @@
    "citations": [{"book_id": "douglas_zone", "chapter": "7 The Trader's Edge: Thinking in Probabilities", "pages": [92, 93, 94], "terms": ["systematic way of taking profits"]}, {"book_id": "douglas_zone", "chapter": "11 Thinking Like a Trader", "pages": [130], "terms": ["pay myself"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: equivale a TP1/TP2 y break-even de los perfiles del bróker simulado"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_trending_trading_units", "relation": "complementa"}]
   }

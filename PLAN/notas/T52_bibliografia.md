@@ -1,4 +1,4 @@
-# T52 — Bibliografía base para los agentes bibliográficos (actualizada 2026-10-18 tras la ingesta)
+# T52 — Bibliografía base para los agentes bibliográficos (aprobada por el usuario el 2026-10-18)
 
 Estado: **tengo** = en la carpeta `Books` del usuario · **DP** = dominio público en EE. UU. (publicado antes de 1931; confirmar en el país del usuario antes de descargar) · **abierto** = artículo de acceso libre · **conseguir** = comprar o prestar. Nada se descarga sin el visto bueno del usuario para cada archivo, y nunca copias no autorizadas.
 
@@ -15,7 +15,7 @@ Prioridad para codificar (T53/T54): lo que el autor respalda con cifras y lo que
 | `steenbarger_coach` | 370 | 370 (2 OCR) | — |
 | `schwager_wizards_es` | 203 | 203 | **Traducción al español de procedencia no indicada** (cabecera «ProfitMindFX»; títulos de capítulo sin traducir, parece traducción automática). Las citas y paráfrasis se refieren a ese archivo, no a la edición original. |
 | `lefevre_reminiscences` | 269 | 269 | El libro termina hacia la p. 257; **las pp. 258–269 son artículos de revistas añadidos** (TRADERS', Active Trader —M. Covel—, boletín de la MTA), ajenos al libro y con derechos propios: no se citan (BACKLOG T52). Texto con letras separadas («m oney»). |
-`3.0 Japanese candelstick.crdownload` (otra copia de Nison) se omite. Fichas: 138 (`eim/library/cards/`), todas `borrador` y `verificada_en_texto` (`python -m eim.library verify`); 3 de ellas cruzan autores y señalan contradicciones (`cruces.json`).
+`3.0 Japanese candelstick.crdownload` (otra copia de Nison) se omite. Fichas: 138 (`eim/library/cards/`), todas `verificada_en_texto` (`python -m eim.library verify`) y **`revisada_usuario`** (◆ 2026-10-18: Nison y Murphy ficha a ficha; conducta y cruces por delegación expresa del usuario; detalle en `PLAN/notas/T52_fichas_revision.md`); 3 de ellas cruzan autores y señalan contradicciones (`cruces.json`). El usuario aprobó también esta bibliografía como lista de trabajo; las obras «DP» y los artículos «abierto» siguen requiriendo su visto bueno **por archivo** antes de descargarse (T52.md, entregable 5).
 
 ## A. Análisis técnico clásico (reglas codificables)
 | Obra | Por qué sirve | Estado |

@@ -10,6 +10,7 @@
    "citations": [{"book_id": "schwager_wizards_es", "chapter": "Michael Marcus", "pages": [36], "terms": ["cortar a sus perdedores"]}, {"book_id": "schwager_wizards_es", "chapter": "Ed Seykota", "pages": [119, 120], "terms": ["perdidas de corte", "apuestas pequenas"]}],
    "applicability": {"original_market": ["futuros", "divisas"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: principio general; ya incorporado en el stop obligatorio de los planes"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_protective_stops", "relation": "apoya"}, {"id": "lefevre_hope_and_fear", "relation": "apoya"}]
   },
@@ -23,6 +24,7 @@
    "citations": [{"book_id": "schwager_wizards_es", "chapter": "Bruce Kovner", "pages": [65], "terms": ["punto de salida", "menor de contratos"]}],
    "applicability": {"original_market": ["divisas", "futuros"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplicable; el motor de riesgo ya fija el tamaño a partir del stop"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_stop_placement", "relation": "apoya"}]
   },
@@ -36,6 +38,7 @@
    "citations": [{"book_id": "schwager_wizards_es", "chapter": "Larry Hite", "pages": [132], "terms": ["1 por ciento", "ganadoras y perdedoras"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "cuenta", "crypto_24_7": "supuesto: más estricto que el 5 % de Murphy; el motor de riesgo vigente fija su propio límite"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_position_limits", "relation": "contradice"}, {"id": "douglas_zone_probabilistic_edge", "relation": "apoya"}]
   },
@@ -49,6 +52,7 @@
    "citations": [{"book_id": "schwager_wizards_es", "chapter": "Richard Dennis", "pages": [70], "terms": ["recuperar las perdidas"]}, {"book_id": "schwager_wizards_es", "chapter": "Richard Dennis", "pages": [80], "terms": ["racha perdedora"]}, {"book_id": "schwager_wizards_es", "chapter": "Ed Seykota", "pages": [119, 120], "terms": ["ponerse al dia", "mas agresivo"]}, {"book_id": "schwager_wizards_es", "chapter": "William O'Neil", "pages": [165], "terms": ["cinco o seis perdidas consecutivas"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cuenta", "crypto_24_7": "supuesto: comparable con la pausa por expectativa negativa de los perfiles (T48b)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_size_after_streaks", "relation": "contradice"}, {"id": "douglas_disciplined_revenge", "relation": "apoya"}]
   },
@@ -62,6 +66,7 @@
    "citations": [{"book_id": "schwager_wizards_es", "chapter": "Gary Bielfeldt", "pages": [106], "terms": ["costos de transaccion", "mediano a largo plazo"]}, {"book_id": "schwager_wizards_es", "chapter": "Ed Seykota", "pages": [118], "terms": ["ciclos"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "diario", "crypto_24_7": "supuesto: muy relevante: en el bróker simulado los costos explicaron ≥ 84 % de la pérdida (T47)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -75,6 +80,7 @@
    "citations": [{"book_id": "schwager_wizards_es", "chapter": "Ed Seykota", "pages": [118], "terms": ["tendencia a largo plazo", "patron grafico actual"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "diario (sistema computarizado)", "crypto_24_7": "supuesto: aplicable en 4 h/1 h con entrada por ruptura"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_weekly_rule", "relation": "apoya"}, {"id": "lefevre_never_too_high", "relation": "apoya"}]
   },
@@ -89,6 +95,7 @@
    "citations": [{"book_id": "schwager_wizards_es", "chapter": "David Ryan", "pages": [178], "terms": ["consolidarse", "volumen"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario y semanal", "crypto_24_7": "supuesto: trasladable a BTC con el volumen del perpetuo"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_flags_pennants", "relation": "apoya"}]
   },
@@ -102,6 +109,7 @@
    "citations": [{"book_id": "schwager_wizards_es", "chapter": "Bruce Kovner", "pages": [65], "terms": ["impulsivas"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: en el sistema, solo publican sugerencias las estrategias validadas (T50)"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -114,6 +122,7 @@
    "citations": [{"book_id": "schwager_wizards_es", "chapter": "Paul Tudor Jones", "pages": [89], "terms": ["flexibilidad"]}],
    "applicability": {"original_market": ["índices bursátiles"], "timeframe": "corto plazo", "crypto_24_7": "supuesto: equivale a la salida por tiempo de los planes del bróker simulado"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -126,6 +135,7 @@
    "citations": [{"book_id": "schwager_wizards_es", "chapter": "David Ryan", "pages": [180, 181], "terms": ["errores", "diario"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: la bitácora del bróker simulado ya guarda razón y contexto por operación"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "steenbarger_coach_journal_metrics", "relation": "apoya"}]
   }

@@ -13,6 +13,7 @@
    "quote": "It never was my thinking that made the big money for me. It always was my sitting.",
    "applicability": {"original_market": ["acciones"], "timeframe": "movimientos principales (meses)", "crypto_24_7": "supuesto: en BTC la «tendencia principal» de 4 h/diario; la regla choca con salidas por tiempo cortas"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_trending_trading_units", "relation": "apoya"}]
   },
@@ -26,6 +27,7 @@
    "citations": [{"book_id": "lefevre_reminiscences", "chapter": "VII", "pages": [72, 73], "terms": ["unless the first shows you a profit"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "especulación de días a semanas", "crypto_24_7": "supuesto: aplicable con el límite de exposición del motor de riesgo"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_pyramiding", "relation": "apoya"}]
   },
@@ -40,6 +42,7 @@
    "citations": [{"book_id": "lefevre_reminiscences", "chapter": "VII", "pages": [72, 73], "terms": ["never buy stocks cheap", "never too high"]}, {"book_id": "lefevre_reminiscences", "chapter": "X", "pages": [103], "terms": ["never too high to buy"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: se prueba como entrada por ruptura frente a entrada por reversión"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_weekly_rule", "relation": "apoya"}]
   },
@@ -54,6 +57,7 @@
    "citations": [{"book_id": "lefevre_reminiscences", "chapter": "X", "pages": [102, 103], "terms": ["line of least resistance"]}],
    "applicability": {"original_market": ["acciones", "materias primas"], "timeframe": "días a semanas", "crypto_24_7": "supuesto: equivale a una ruptura de rango; aplicable en 1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_rectangle", "relation": "apoya"}, {"id": "steenbarger_coach_trend_not_friend", "relation": "contradice"}]
   },
@@ -68,6 +72,7 @@
    "citations": [{"book_id": "lefevre_reminiscences", "chapter": "VIII", "pages": [74, 75], "terms": ["bullish in a bull market", "big swing"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "movimientos principales", "crypto_24_7": "supuesto: aplicable a BTC con la tendencia de 4 h/diario"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_trade_with_major_trend", "relation": "apoya"}]
   },
@@ -81,6 +86,7 @@
    "citations": [{"book_id": "lefevre_reminiscences", "chapter": "X", "pages": [109], "terms": ["hope and to fear"]}, {"book_id": "lefevre_reminiscences", "chapter": "XXIII", "pages": [246], "terms": ["deadly enemies"]}],
    "applicability": {"original_market": ["acciones", "materias primas"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplica al operador humano; el sistema lo resuelve con stop y objetivos fijados de antemano"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "douglas_zone_trading_errors", "relation": "apoya"}]
   },
@@ -93,6 +99,7 @@
    "citations": [{"book_id": "lefevre_reminiscences", "chapter": "VIII", "pages": [74], "terms": ["argue with the tape"]}, {"book_id": "lefevre_reminiscences", "chapter": "XXIII", "pages": [246], "terms": ["misinformation"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: refuerza que el agente de contexto (LLM) solo informa y nunca abre operaciones"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   }
  ]

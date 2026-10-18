@@ -11,6 +11,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [446], "terms": ["winning streak", "dip in equity"]}, {"book_id": "schwager_wizards_es", "chapter": "Ed Seykota", "pages": [119, 120], "terms": ["racha perdedora", "mas agresivo"]}, {"book_id": "steenbarger_coach", "chapter": "8 Coaching Your Trading Business (Lesson 74)", "pages": [258], "terms": ["reduce the size of your trades"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cuenta", "crypto_24_7": "supuesto: se compara en los perfiles del bróker simulado, fuera de muestra (T54)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_size_after_streaks", "relation": "complementa"}, {"id": "schwager_wizards_es_losing_streaks", "relation": "complementa"}, {"id": "steenbarger_coach_risk_follows_performance", "relation": "complementa"}]
   },
@@ -24,6 +25,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "2 Dow Theory", "pages": [65], "terms": ["existing trend will continue"]}, {"book_id": "lefevre_reminiscences", "chapter": "X", "pages": [102], "terms": ["line of least resistance"]}, {"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [43], "terms": ["major trend"]}, {"book_id": "steenbarger_coach", "chapter": "10 Looking for the Edge (Lesson 91)", "pages": [328], "terms": ["the trend is your friend"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "días a meses", "crypto_24_7": "supuesto: el resultado puede depender del marco; el agente `literature` (T53) debe mostrar ambas fichas cuando apliquen"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "steenbarger_coach_trend_not_friend", "relation": "complementa"}, {"id": "murphy_dow_trend_persists", "relation": "complementa"}, {"id": "lefevre_line_of_least_resistance", "relation": "complementa"}]
   },
@@ -36,6 +38,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [443], "terms": ["5% of total equity"]}, {"book_id": "schwager_wizards_es", "chapter": "Ed Seykota", "pages": [120], "terms": ["5 por ciento"]}, {"book_id": "schwager_wizards_es", "chapter": "Larry Hite", "pages": [132], "terms": ["1 por ciento"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "cuenta", "crypto_24_7": "supuesto: solo informa; el riesgo vigente (risk_v2) manda y es determinista"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_position_limits", "relation": "complementa"}, {"id": "schwager_wizards_es_one_percent_risk", "relation": "complementa"}]
   }

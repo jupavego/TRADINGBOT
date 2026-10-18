@@ -12,6 +12,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "1 Introduction", "pages": [23, 24], "terms": ["surpassed", "waiting for a close"]}],
    "applicability": {"original_market": ["acciones", "futuros", "divisas"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplica al cierre de cada vela de 15 m, 1 h y 4 h (en 24/7 no hay cierre de sesión diario)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -24,6 +25,7 @@
    "quote": "Candle charts provide many useful trading signals. They do not, however, provide price targets.",
    "applicability": {"original_market": ["acciones", "futuros", "divisas"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: igual en BTC; el objetivo de una señal de velas debe salir de otra regla"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_box_breakout_target", "relation": "complementa"}]
   },
@@ -38,6 +40,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [42, 43], "terms": ["misnomer", "trend change patterns"]}],
    "applicability": {"original_market": ["acciones", "futuros", "divisas"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -51,6 +54,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [43], "terms": ["major trend", "liquidation of longs"]}],
    "applicability": {"original_market": ["acciones", "futuros", "divisas"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: tendencia mayor = 4 h para señales de 1 h y 1 h para señales de 15 m (como el filtro de T48b)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_trade_with_longer_trend", "relation": "apoya"}]
   },
@@ -65,6 +69,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "3 Constructing the Candlestick Lines", "pages": [37, 38, 39], "terms": ["spinning top", "momentum"]}],
    "applicability": {"original_market": ["acciones", "índices"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: «pequeño» relativo a los cuerpos recientes (p. ej. < 30 % del cuerpo medio de 20 velas)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -78,6 +83,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [45, 46], "terms": ["twice the height of the real body", "hammer"]}, {"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [48, 49], "terms": ["hammer can also be used to help confirm support"]}],
    "applicability": {"original_market": ["acciones", "futuros", "divisas"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: válido en velas de 15 m, 1 h y 4 h; el color del cuerpo no importa"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_hanging_man", "relation": "complementa"}, {"id": "nison_entry_on_pullback", "relation": "complementa"}]
   },
@@ -92,6 +98,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [45, 49, 50], "terms": ["hanging man", "close beneath the hanging man"]}, {"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [52], "terms": ["bull trend remains entrenched"]}],
    "applicability": {"original_market": ["acciones", "futuros", "divisas"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h; «máximos» = máximo de N velas"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_hammer", "relation": "complementa"}]
   },
@@ -106,6 +113,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [47, 48, 49], "terms": ["risk/reward", "price that says we are wrong"]}, {"book_id": "nison_candles", "chapter": "5 Stars", "pages": [74], "terms": ["attractive risk/reward"]}, {"book_id": "nison_candles", "chapter": "6 More Reversal Patterns", "pages": [109], "terms": ["first or second white candle"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: aplicable; la orden límite puede no llenarse (el bróker simulado mide el llenado)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -119,6 +127,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [53, 54], "terms": ["engulfing pattern", "opposite color"]}],
    "applicability": {"original_market": ["acciones", "futuros", "divisas"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h; en 24/7 la apertura ≈ cierre previo, así que basta con envolver el cuerpo (el autor lo acepta en divisas)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_engulfing_levels", "relation": "complementa"}, {"id": "nison_continuous_markets", "relation": "complementa"}]
   },
@@ -133,6 +142,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [55], "terms": ["lowest low", "resistance"]}, {"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [59, 60], "terms": ["bullish breakout", "close over that resistance"]}],
    "applicability": {"original_market": ["acciones", "divisas"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_engulfing", "relation": "complementa"}]
   },
@@ -147,6 +157,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [60, 61, 62, 63], "terms": ["dark-cloud cover", "penetration"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: en 24/7 casi nunca abre por encima del máximo previo; usar la variante «abre ≥ cierre previo» que el autor admite"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_piercing", "relation": "complementa"}, {"id": "nison_continuous_markets", "relation": "complementa"}]
   },
@@ -161,6 +172,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [66, 67], "terms": ["piercing pattern", "halfway"]}, {"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [70], "terms": ["thrusting pattern", "higher close"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: sin huecos en 24/7, exigir solo cierre > 50 % del cuerpo negro"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_dark_cloud_cover", "relation": "complementa"}]
   },
@@ -175,6 +187,7 @@
    "quote": "Lose your opinion, not your money.",
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplica igual; el motor de riesgo ya exige stop en cada plan"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "douglas_zone_predefine_risk", "relation": "apoya"}]
   },
@@ -189,6 +202,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "5 Stars", "pages": [72, 73], "terms": ["morning star", "intrudes deeply"]}, {"book_id": "nison_candles", "chapter": "5 Stars", "pages": [77], "terms": ["light volume on the first candle"]}],
    "applicability": {"original_market": ["acciones", "índices", "divisas"], "timeframe": "diario e intradía (15 min)", "crypto_24_7": "supuesto: en 24/7 los cuerpos suelen tocarse; el autor acepta esa flexibilidad en intradía"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_evening_star", "relation": "complementa"}, {"id": "nison_continuous_markets", "relation": "complementa"}]
   },
@@ -203,6 +217,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "5 Stars", "pages": [76, 77], "terms": ["evening star", "highs of the evening star become resistance"]}],
    "applicability": {"original_market": ["acciones", "índices", "divisas"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: igual que la estrella de la mañana (sin exigir huecos)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_morning_star", "relation": "complementa"}]
   },
@@ -217,6 +232,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "5 Stars", "pages": [80, 81], "terms": ["abandoned baby", "evening doji star"]}],
    "applicability": {"original_market": ["acciones", "índices"], "timeframe": "diario", "crypto_24_7": "supuesto: los huecos entre sombras casi no existen en BTC 24/7 en 15 m/1 h; el bebé abandonado será rarísimo"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_continuous_markets", "relation": "complementa"}]
   },
@@ -229,6 +245,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "5 Stars", "pages": [74, 75], "terms": ["foreign exchange markets", "intraday charts"]}, {"book_id": "nison_candles", "chapter": "14 Candles with Oscillators", "pages": [231], "terms": ["foreign exchange"]}],
    "applicability": {"original_market": ["divisas", "índices", "intradía"], "timeframe": "intradía", "crypto_24_7": "supuesto central: BTC perpetuo cotiza 24/7 sin sesión; aplicar la versión flexible de todos los patrones con huecos"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -242,6 +259,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "5 Stars", "pages": [84, 85, 86], "terms": ["shooting star", "trouble overhead"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario e intradía (30 min)", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h; el hueco previo no es necesario"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_inverted_hammer", "relation": "complementa"}, {"id": "nison_shadows_rejection", "relation": "apoya"}]
   },
@@ -256,6 +274,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "5 Stars", "pages": [88, 89], "terms": ["inverted hammer", "bullish confirmation"]}],
    "applicability": {"original_market": ["acciones", "índices"], "timeframe": "diario", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -269,6 +288,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "6 More Reversal Patterns", "pages": [91, 92], "terms": ["harami", "harami cross", "losing its breath"]}],
    "applicability": {"original_market": ["acciones", "índices"], "timeframe": "diario", "crypto_24_7": "supuesto: «inusualmente largo» = cuerpo > 1,5 × cuerpo medio de 20 velas"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -282,6 +302,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "6 More Reversal Patterns", "pages": [96, 97], "terms": ["tweezers", "matching highs"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario, semanal, mensual", "crypto_24_7": "supuesto: en 15 m/1 h/4 h solo como refuerzo de otra señal"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -295,6 +316,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "6 More Reversal Patterns", "pages": [102], "terms": ["belt-hold", "shaven bottom"]}],
    "applicability": {"original_market": ["acciones", "divisas"], "timeframe": "diario", "crypto_24_7": "supuesto: en 24/7 la apertura ≈ cierre previo, así que la vela «afeitada» depende solo del recorrido intravela"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -308,6 +330,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "6 More Reversal Patterns", "pages": [106, 107], "terms": ["three black crows", "mature advance"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario", "crypto_24_7": "supuesto: válido en 1 h/4 h; en 15 m puede ser ruido"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_three_white_soldiers", "relation": "complementa"}]
   },
@@ -322,6 +345,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "6 More Reversal Patterns", "pages": [108, 109], "terms": ["advance block", "stalled pattern"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario", "crypto_24_7": "supuesto: válido en 1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_three_black_crows", "relation": "complementa"}, {"id": "nison_entry_on_pullback", "relation": "complementa"}]
   },
@@ -336,6 +360,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "6 More Reversal Patterns", "pages": [112], "terms": ["three mountain top", "triple top"]}],
    "applicability": {"original_market": ["acciones", "divisas"], "timeframe": "diario y semanal (patrón de largo plazo)", "crypto_24_7": "supuesto: en 4 h; tolerancia de igualdad de máximos a definir"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_head_and_shoulders", "relation": "apoya"}]
   },
@@ -351,6 +376,7 @@
    "quote": "corrections stop at the window.",
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario", "crypto_24_7": "supuesto: los huecos reales son raros en BTC perpetuo 24/7 (salvo picos de volatilidad); muestra pequeña"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -364,6 +390,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "7 Continuation Patterns", "pages": [151, 152], "terms": ["rising three methods", "breather"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_flags_pennants", "relation": "apoya"}]
   },
@@ -378,6 +405,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "8 The Magic Doji", "pages": [163, 164, 165, 166], "terms": ["northern doji", "southern doji", "tired"]}],
    "applicability": {"original_market": ["acciones", "bonos"], "timeframe": "diario", "crypto_24_7": "supuesto: «doji» = cuerpo < 10 % del rango de la vela; el propio autor pide comprobar qué funciona en cada mercado"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_doji_new_high_close", "relation": "complementa"}]
   },
@@ -392,6 +420,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "8 The Magic Doji", "pages": [178], "terms": ["new high close", "bearish confirmation"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -405,6 +434,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "8 The Magic Doji", "pages": [170, 171], "terms": ["gravestone doji", "dragonfly doji"]}],
    "applicability": {"original_market": ["acciones", "índices"], "timeframe": "diario", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -418,6 +448,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [56], "terms": ["upper shadows", "rejecting"]}, {"book_id": "nison_candles", "chapter": "5 Stars", "pages": [86], "terms": ["rejecting higher prices"]}],
    "applicability": {"original_market": ["divisas", "acciones"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -431,6 +462,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "Part 2 Convergence", "pages": [188], "terms": ["convergence", "not a system"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplicable; es la idea del puntaje de confluencia de las sugerencias"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_retracement_needs_candle", "relation": "apoya"}]
   },
@@ -445,6 +477,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "11 Candles with Trend Lines", "pages": [203, 204], "terms": ["spring", "upthrust"]}, {"book_id": "nison_candles", "chapter": "5 Stars", "pages": [75], "terms": ["can't maintain these new lows"]}],
    "applicability": {"original_market": ["acciones", "divisas"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: frecuente en BTC (barridas de liquidez); medir en 15 m/1 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -458,6 +491,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "11 Candles with Trend Lines", "pages": [210, 211], "terms": ["change of polarity", "old support becomes new resistance"]}],
    "applicability": {"original_market": ["materias primas", "índices", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_role_reversal", "relation": "apoya"}]
   },
@@ -472,6 +506,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "12 Candles with Retracement Levels", "pages": [216, 217], "terms": ["retracement", "confirmed by a candle pattern"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario", "crypto_24_7": "supuesto: válido en 1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_retracements", "relation": "apoya"}]
   },
@@ -486,6 +521,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "13 Candles with Moving Averages", "pages": [222, 223], "terms": ["golden cross", "dead cross"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario", "crypto_24_7": "supuesto: los periodos diarios no se trasladan 1:1 a 1 h; tratar el periodo como parámetro a validar"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_moving_average_crossovers", "relation": "apoya"}]
   },
@@ -500,6 +536,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "14 Candles with Oscillators", "pages": [230, 231], "terms": ["negative divergence", "overbought"]}],
    "applicability": {"original_market": ["acciones", "divisas"], "timeframe": "diario", "crypto_24_7": "supuesto: válido en 1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_rsi", "relation": "apoya"}, {"id": "nison_oscillator_needs_candle", "relation": "complementa"}]
   },
@@ -514,6 +551,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "14 Candles with Oscillators", "pages": [236], "terms": ["no turning signals", "overbought"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario", "crypto_24_7": "supuesto: válido en 1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -527,6 +565,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "14 Candles with Oscillators", "pages": [237, 238], "terms": ["stochastic", "oversold"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario e intradía (60 min)", "crypto_24_7": "supuesto: válido en 1 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_stochastics", "relation": "apoya"}]
   },
@@ -541,6 +580,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "15 Candles with Volume", "pages": [243, 244, 245], "terms": ["relative volume", "volume confirming price"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: volumen del perpetuo de Binance como proxy; los picos por liquidaciones pueden distorsionarlo"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_volume_rules", "relation": "apoya"}]
   },
@@ -555,6 +595,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "16 Measured Moves", "pages": [252], "terms": ["box range", "vertical height"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario e intradía (5 min)", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_rectangle", "relation": "apoya"}]
   },
@@ -569,6 +610,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "16 Measured Moves", "pages": [258, 259], "terms": ["flagpole"]}],
    "applicability": {"original_market": ["acciones", "índices"], "timeframe": "diario", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_flags_pennants", "relation": "apoya"}]
   },
@@ -581,6 +623,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "1 Introduction", "pages": [22, 23], "terms": ["subjectivity"]}, {"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [69], "terms": ["computer recognition"]}, {"book_id": "nison_candles", "chapter": "8 The Magic Doji", "pages": [166], "terms": ["seeing which work well comes with experience"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: obliga a fijar umbrales antes de probar (puerta T49)"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   }
  ]

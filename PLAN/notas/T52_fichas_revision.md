@@ -1,8 +1,10 @@
-# T52 — Fichas para revisar (◆)
+# T52 — Fichas revisadas (◆)
 
-Generado desde `v2/eim/library/cards/` (138 fichas, todas `borrador` y `verificada_en_texto`: cada cita se comprobó contra el texto local con `python -m eim.library verify`). Las paráfrasis son mías; páginas = del archivo PDF. **Qué revisar:** que cada ficha diga lo que dice el autor (fidelidad), que las condiciones sean razonables para codificar y que el supuesto para BTC 24/7 sea aceptable.
+**Estado:** revisada_usuario 138. Revisión del usuario el 2026-10-18: Nison y Murphy presentadas ficha a ficha y aprobadas; las 47 de conducta y cruces, presentadas y aprobadas por delegación expresa del usuario.
 
-Para aprobar: `python -m eim.library mark revisada_usuario <id|libro> …` (desde `v2/`); para descartar: `mark descartada <id> …`. Marcas: ✔ = comprobable (tiene condiciones operacionalizables), ✎ = cita textual breve, ⇄ = contradice a otra ficha.
+Generado desde `v2/eim/library/cards/` (138 fichas, todas `verificada_en_texto`: cada cita se comprobó contra el texto local con `python -m eim.library verify`). Las paráfrasis son mías; páginas = del archivo PDF. **Criterio de revisión:** que cada ficha diga lo que dice el autor (fidelidad), que las condiciones sean razonables para codificar y que el supuesto para BTC 24/7 sea aceptable.
+
+Cambiar un estado: `python -m eim.library mark <estado> <id|libro> …` (desde `v2/`; `codificada` cuando T53 la implemente, `descartada` si se retira). Marcas: ✔ = comprobable (tiene condiciones operacionalizables), ✎ = cita textual breve, ⇄ = contradice a otra ficha.
 
 ## Steve Nison — *Japanese Candlestick Charting Techniques* (2001) · `nison_candles` · 43 fichas
 

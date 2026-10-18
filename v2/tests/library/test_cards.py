@@ -78,14 +78,17 @@ def test_mark_cards_changes_only_selected(tmp_path):
     d = tmp_path / "cards"
     shutil.copytree(CARDS_DIR, d)
     before = {p.name: p.read_text(encoding="utf-8") for p in d.glob("*.json")}
-    changed = mark_cards(["lefevre_sitting_tight", "douglas_zone"], "revisada_usuario", d)
+    lef_before = {c.id: c.status for c in load_card_files(d)["lefevre_reminiscences"].cards}
+    new = "descartada"                       # ninguna ficha versionada está descartada
+    assert new not in lef_before.values()
+    changed = mark_cards(["lefevre_sitting_tight", "douglas_zone"], new, d)
     files = load_card_files(d)
     assert "lefevre_sitting_tight" in changed
     assert len(changed) == 1 + len(files["douglas_zone"].cards)
-    assert {c.status for c in files["douglas_zone"].cards} == {"revisada_usuario"}
+    assert {c.status for c in files["douglas_zone"].cards} == {new}
     lef = {c.id: c.status for c in files["lefevre_reminiscences"].cards}
-    assert lef["lefevre_sitting_tight"] == "revisada_usuario"
-    assert {s for i, s in lef.items() if i != "lefevre_sitting_tight"} == {"borrador"}
+    assert lef["lefevre_sitting_tight"] == new
+    assert all(lef[i] == s for i, s in lef_before.items() if i != "lefevre_sitting_tight")
     untouched = set(before) - {"lefevre_reminiscences.json", "douglas_zone.json"}
     assert all((d / n).read_text(encoding="utf-8") == before[n] for n in untouched)
-    assert mark_cards(["douglas_zone"], "revisada_usuario", d) == []      # idempotente
+    assert mark_cards(["douglas_zone"], new, d) == []      # idempotente

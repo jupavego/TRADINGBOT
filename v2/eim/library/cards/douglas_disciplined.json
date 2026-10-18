@@ -10,6 +10,7 @@
    "citations": [{"book_id": "douglas_disciplined", "chapter": "5 Prices Are in Perpetual Motion", "pages": [44], "terms": ["no beginning"]}, {"book_id": "douglas_disciplined", "chapter": "6 The Market Is an Unstructured Environment", "pages": [49], "terms": ["establish rules"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: más marcado en BTC 24/7 (ni siquiera hay cierre de sesión)"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -22,6 +23,7 @@
    "citations": [{"book_id": "douglas_disciplined", "chapter": "2 Why a New Thinking Methodology?", "pages": [27], "terms": ["refusing to define a loss", "revenge"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: para el operador humano; parte se puede vigilar en la bitácora del bróker simulado"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "douglas_zone_trading_errors", "relation": "apoya"}]
   },
@@ -35,6 +37,7 @@
    "citations": [{"book_id": "douglas_disciplined", "chapter": "5 Prices Are in Perpetual Motion", "pages": [47, 48], "terms": ["revenge", "lost 20 ticks"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "intradía", "crypto_24_7": "supuesto: regla de conducta aplicable a los perfiles del bróker simulado"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "schwager_wizards_es_losing_streaks", "relation": "apoya"}]
   },
@@ -48,6 +51,7 @@
    "citations": [{"book_id": "douglas_disciplined", "chapter": "16 The Steps to Success", "pages": [170, 171], "terms": ["predefine what a loss is", "execute your losing trades immediately"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: en el sistema, la invalidación del escenario (T17) y el stop del plan cumplen esta función"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "douglas_zone_predefine_risk", "relation": "apoya"}, {"id": "schwager_wizards_es_stop_where_wrong", "relation": "apoya"}]
   },
@@ -60,6 +64,7 @@
    "citations": [{"book_id": "douglas_disciplined", "chapter": "16 The Steps to Success", "pages": [167, 168], "terms": ["follow your rules", "self-trust"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: coherente con versionar las estrategias (T49): cambiar una regla es una versión nueva"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -72,6 +77,7 @@
    "citations": [{"book_id": "douglas_disciplined", "chapter": "16 The Steps to Success", "pages": [172], "terms": ["expert at just one", "simple trading system"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: argumento para que T53/T54 empiecen con pocas fichas codificadas"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -84,6 +90,7 @@
    "citations": [{"book_id": "douglas_disciplined", "chapter": "16 The Steps to Success", "pages": [169], "terms": ["missed opportunities", "perpetual motion"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplicable; en el bróker simulado una orden límite no llenada simplemente caduca"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -96,6 +103,7 @@
    "citations": [{"book_id": "douglas_disciplined", "chapter": "5 Prices Are in Perpetual Motion", "pages": [44], "terms": ["afford to lose"]}, {"book_id": "douglas_disciplined", "chapter": "16 The Steps to Success", "pages": [170], "terms": ["tuition"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cuenta", "crypto_24_7": "supuesto: coherente con «sin dinero real hasta pasar la puerta de edge y el paper trading» (CLAUDE.md)"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   }
  ]

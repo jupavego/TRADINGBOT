@@ -10,6 +10,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "1 Philosophy of Technical Analysis", "pages": [39, 40], "terms": ["market action discounts everything", "prices move in trends"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: premisas generales; su validez en BTC es justo lo que mide la puerta T49"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -23,6 +24,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [86, 87], "terms": ["successively higher peaks and troughs"]}, {"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [93, 94], "terms": ["first warning"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: pivotes detectados con un umbral fijo (p. ej. fractales de N velas o ZigZag en ATR)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_dow_trend_persists", "relation": "complementa"}]
   },
@@ -37,6 +39,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [88, 89], "terms": ["trading range", "stay out of the market"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "diario", "crypto_24_7": "supuesto: el agente `regime` ya clasifica lateral/tendencia; la regla se prueba como filtro"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_ma_is_a_follower", "relation": "apoya"}]
   },
@@ -51,6 +54,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [89, 90, 91], "terms": ["intermediate trend", "timing purposes"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "mayor > 6 meses, intermedia 3 semanas–3 meses (futuros)", "crypto_24_7": "supuesto: equivalencia 4 h (intermedia) / 1 h y 15 m (corto plazo)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_trade_with_longer_trend", "relation": "complementa"}]
   },
@@ -65,6 +69,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "2 Dow Theory", "pages": [65, 66], "terms": ["definite signals", "existing trend will continue"]}],
    "applicability": {"original_market": ["índices bursátiles", "futuros"], "timeframe": "mayor e intermedio", "crypto_24_7": "supuesto: aplicable en 4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -78,6 +83,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [92, 93], "terms": ["reaction lows", "support"]}, {"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [97], "terms": ["how recently the trading took place"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: el perfil de volumen del almacén puede medir la «cantidad negociada» en la zona"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_role_reversal", "relation": "complementa"}]
   },
@@ -92,6 +98,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [96, 98], "terms": ["reverse their roles"]}, {"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [100, 101], "terms": ["3% penetration"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: umbral en múltiplos de ATR en lugar de % fijo, porque la volatilidad de BTC varía"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_change_of_polarity", "relation": "apoya"}]
   },
@@ -106,6 +113,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [101, 102], "terms": ["round numbers", "protective stops"]}],
    "applicability": {"original_market": ["oro", "índices"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: en BTC, múltiplos de 1 000 y 5 000/10 000 USDT"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -119,6 +127,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [102, 103, 104], "terms": ["tentative", "third point"]}, {"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [106], "terms": ["number of times it has been tested"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplicable en 1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_trendline_break", "relation": "complementa"}]
   },
@@ -133,6 +142,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [105], "terms": ["buying area", "early warnings"]}, {"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [108, 109], "terms": ["two day rule", "whipsaws"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "diario", "crypto_24_7": "supuesto: la «regla de 2 días» pasa a 2 velas del marco; filtro de precio en ATR"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_trendline_validity", "relation": "complementa"}]
   },
@@ -147,6 +157,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [111, 112, 113], "terms": ["vertical distance", "fan principle"]}],
    "applicability": {"original_market": ["futuros", "índices"], "timeframe": "diario", "crypto_24_7": "supuesto: aplicable en 1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -160,6 +171,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [117, 119, 120], "terms": ["channel line", "failure"]}, {"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [122], "terms": ["width of the channel"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplicable en 1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -173,6 +185,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "2 Dow Theory", "pages": [63], "terms": ["two-thirds"]}, {"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [122, 123, 124], "terms": ["50% retracement", "two-thirds point"]}, {"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [449], "terms": ["40-60%"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier grado de tendencia", "crypto_24_7": "supuesto: aplicable en 15 m/1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_retracement_needs_candle", "relation": "apoya"}]
   },
@@ -187,6 +200,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [127, 128, 129, 130], "terms": ["reversal day", "selling climax"]}],
    "applicability": {"original_market": ["índices", "futuros"], "timeframe": "diario, semanal, mensual", "crypto_24_7": "supuesto: aplicable a velas de 4 h y diarias; en 15 m es ruido"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -200,6 +214,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "4 Basic Concepts of Trend", "pages": [131, 132, 133, 134], "terms": ["breakaway gap", "measuring gap", "exhaustion gap"]}, {"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [449], "terms": ["protective stop can be placed below the gap"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario", "crypto_24_7": "supuesto: los huecos casi no existen en BTC perpetuo 24/7; muestra mínima en 15 m/1 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_windows", "relation": "apoya"}]
   },
@@ -214,6 +229,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "5 Major Reversal Patterns", "pages": [138, 139, 140], "terms": ["prior trend", "larger the pattern"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario y semanal", "crypto_24_7": "supuesto: aplicable en 4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_reversal_is_trend_change", "relation": "apoya"}]
   },
@@ -228,6 +244,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "5 Major Reversal Patterns", "pages": [140, 141, 143, 144], "terms": ["neckline", "return move"]}, {"book_id": "murphy_ta", "chapter": "5 Major Reversal Patterns", "pages": [145, 146], "terms": ["minimum target"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario y semanal", "crypto_24_7": "supuesto: aplicable en 4 h; detección automática exige reglas de pivotes fijadas antes de probar"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_inverse_hs_volume", "relation": "complementa"}, {"id": "murphy_failed_patterns", "relation": "complementa"}, {"id": "nison_three_mountains", "relation": "apoya"}]
   },
@@ -242,6 +259,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "5 Major Reversal Patterns", "pages": [140, 148, 149], "terms": ["burst of trading volume", "inertia"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario y semanal", "crypto_24_7": "supuesto: volumen del perpetuo como medida; cuidado con picos por liquidaciones"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_volume_rules", "relation": "apoya"}]
   },
@@ -256,6 +274,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "5 Major Reversal Patterns", "pages": [150, 151, 152], "terms": ["failed head and shoulders", "keep trading losses small"]}],
    "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: igual"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -269,6 +288,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "5 Major Reversal Patterns", "pages": [154, 155, 157], "terms": ["double top", "middle trough"]}, {"book_id": "murphy_ta", "chapter": "5 Major Reversal Patterns", "pages": [159, 162], "terms": ["greatly overused", "at least a month"]}],
    "applicability": {"original_market": ["acciones", "índices"], "timeframe": "diario", "crypto_24_7": "supuesto: «un mes» en diario ≈ 30 velas del marco usado; validar"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -280,6 +300,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "5 Major Reversal Patterns", "pages": [162, 164], "terms": ["spikes", "overextended"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario", "crypto_24_7": "supuesto: frecuentes en BTC por cascadas de liquidación; argumento para bandas anchas en los escenarios"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -293,6 +314,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "6 Continuation Patterns", "pages": [169, 170, 171, 172], "terms": ["two-thirds to three-quarters", "apex"]}, {"book_id": "murphy_ta", "chapter": "6 Continuation Patterns", "pages": [173, 176, 177], "terms": ["ascending triangle", "descending triangle"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "intermedio (1–3 meses en diario)", "crypto_24_7": "supuesto: aplicable en 1 h/4 h con duraciones escaladas"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -306,6 +328,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "6 Continuation Patterns", "pages": [178, 179, 180, 181, 182], "terms": ["half-mast", "flagpole"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario (1–3 semanas)", "crypto_24_7": "supuesto: en 15 m/1 h la pausa dura pocas decenas de velas"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_flag_target", "relation": "apoya"}, {"id": "nison_rising_three_methods", "relation": "apoya"}]
   },
@@ -320,6 +343,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "6 Continuation Patterns", "pages": [183, 184, 185], "terms": ["rising wedge is bearish", "falling wedge"]}],
    "applicability": {"original_market": ["acciones", "materias primas"], "timeframe": "intermedio", "crypto_24_7": "supuesto: aplicable en 4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -333,6 +357,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "6 Continuation Patterns", "pages": [184, 187, 188], "terms": ["rectangle", "trading range"]}],
    "applicability": {"original_market": ["acciones", "materias primas"], "timeframe": "1–3 meses en diario", "crypto_24_7": "supuesto: aplicable en 15 m/1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_box_breakout_target", "relation": "apoya"}]
   },
@@ -347,6 +372,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "6 Continuation Patterns", "pages": [188, 189, 190], "terms": ["measured move", "swing measurement"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario", "crypto_24_7": "supuesto: aplicable en 1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -360,6 +386,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "2 Dow Theory", "pages": [64], "terms": ["volume must confirm the trend"]}, {"book_id": "murphy_ta", "chapter": "7 Volume and Open Interest", "pages": [199, 200, 201, 202], "terms": ["direction of the existing price trend", "volume precedes price"]}],
    "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "diario", "crypto_24_7": "supuesto: volumen y compra agresora (taker_buy_v, T34) del perpetuo"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_volume_confirms", "relation": "apoya"}]
   },
@@ -374,6 +401,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "7 Volume and Open Interest", "pages": [198], "terms": ["open interest"]}, {"book_id": "murphy_ta", "chapter": "7 Volume and Open Interest", "pages": [207, 208, 209, 210, 211, 212], "terms": ["short covering", "sideways consolidation"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "diario", "crypto_24_7": "supuesto: el interés abierto del perpetuo (snapshot.open_interest) sustituye al de futuros; el funding no tiene equivalente en el libro"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -386,6 +414,7 @@
    "quote": "It never anticipates; it only reacts.",
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: igual en BTC"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_sideways_stand_aside", "relation": "apoya"}]
   },
@@ -400,6 +429,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "9 Moving Averages", "pages": [238, 239, 240], "terms": ["double crossover method", "whipsaws"]}, {"book_id": "murphy_ta", "chapter": "9 Moving Averages", "pages": [241, 242, 243], "terms": ["4-9-18"]}, {"book_id": "murphy_ta", "chapter": "9 Moving Averages", "pages": [262], "terms": ["moving average combinations"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "diario", "crypto_24_7": "supuesto: periodos en velas del marco, no en días; validar fuera de muestra"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_moving_averages", "relation": "apoya"}]
   },
@@ -414,6 +444,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "9 Moving Averages", "pages": [244], "terms": ["envelopes"]}, {"book_id": "murphy_ta", "chapter": "9 Moving Averages", "pages": [248, 249, 250], "terms": ["two standard deviations", "band width"]}],
    "applicability": {"original_market": ["índices", "futuros"], "timeframe": "diario y semanal", "crypto_24_7": "supuesto: el 3 % fijo no escala a la volatilidad de BTC; usar bandas en desviaciones"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -427,6 +458,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "9 Moving Averages", "pages": [256, 257, 258], "terms": ["4 week rule", "channel breakout"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "diario (semanas naturales)", "crypto_24_7": "supuesto: canal de 20 velas en 4 h o 1 h; los estudios citados no incluyen cripto"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -438,6 +470,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "9 Moving Averages", "pages": [261, 262], "terms": ["out of sample", "holy grail"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: coincide con la puerta T49 (fuera de muestra, versiones y registro de intentos)"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -451,6 +484,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [267], "terms": ["subordinated to basic trend analysis"]}, {"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [272], "terms": ["zero line"]}, {"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [292], "terms": ["importance of trading in the direction of the major trend"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplicable en 15 m/1 h con tendencia de 4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_trade_with_major_trend", "relation": "apoya"}, {"id": "nison_rsi_divergence", "relation": "complementa"}]
   },
@@ -465,6 +499,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [268], "terms": ["three situations"]}, {"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [269, 271], "terms": ["momentum line"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "diario", "crypto_24_7": "supuesto: aplicable en 1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -478,6 +513,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [285, 286], "terms": ["second move"]}, {"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [292, 293], "terms": ["early stages of a new trend"]}],
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplicable"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_oscillator_needs_candle", "relation": "complementa"}]
   },
@@ -492,6 +528,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [281, 282, 283], "terms": ["failure swings", "overbought"]}, {"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [285, 286], "terms": ["the 50 level", "crossing back above the 30 line"]}],
    "applicability": {"original_market": ["índices", "futuros"], "timeframe": "diario, semanal, mensual", "crypto_24_7": "supuesto: aplicable en 1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_rsi_divergence", "relation": "apoya"}]
   },
@@ -506,6 +543,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [287, 288], "terms": ["slow stochastics", "bearish divergence"]}],
    "applicability": {"original_market": ["bonos", "futuros"], "timeframe": "diario, semanal e intradía", "crypto_24_7": "supuesto: aplicable en 15 m/1 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_stochastics", "relation": "apoya"}]
   },
@@ -520,6 +558,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [293, 294, 295, 296], "terms": ["signal line", "histogram"]}],
    "applicability": {"original_market": ["índices"], "timeframe": "diario y semanal", "crypto_24_7": "supuesto: aplicable en 1 h/4 h"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -533,6 +572,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [297], "terms": ["trend filters for daily signals"]}, {"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [452], "terms": ["long range view"]}],
    "applicability": {"original_market": ["índices", "futuros"], "timeframe": "semanal + diario", "crypto_24_7": "supuesto: 4 h filtra 1 h y 1 h filtra 15 m (ya lo aplica T48b)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_trade_with_major_trend", "relation": "apoya"}]
   },
@@ -546,6 +586,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [442, 443], "terms": ["50% of total capital", "5% of total equity"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "cuenta", "crypto_24_7": "supuesto: el 5 % es muy alto para perpetuos apalancados 24/7; el motor de riesgo vigente es más estricto y manda"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "murphy_reward_risk", "relation": "complementa"}]
   },
@@ -559,6 +600,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [444], "terms": ["protective stops", "volatility of the market"]}, {"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [448, 450], "terms": ["nearest support point", "valid support point"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: holgura en múltiplos de ATR del marco"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -571,6 +613,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [444, 445], "terms": ["3 to 1 reward-to-risk ratio", "40%"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: con costos de perpetuos, la relación debe medirse neta de comisiones y funding"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "douglas_zone_probabilistic_edge", "relation": "complementa"}]
   },
@@ -584,6 +627,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [445, 446], "terms": ["trending", "multiple units"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: equivale a TP1/TP2 de los planes (ya existe en el bróker simulado)"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -596,6 +640,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [446], "terms": ["winning streak", "dip in equity"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "cuenta", "crypto_24_7": "supuesto: aplicable a los perfiles del bróker simulado"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "steenbarger_coach_risk_follows_performance", "relation": "contradice"}, {"id": "cruce_size_after_drawdown", "relation": "complementa"}]
   },
@@ -610,6 +655,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [447, 448], "terms": ["anticipation", "pullback"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplicable; el bróker simulado mide el llenado de las órdenes límite"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   },
   {
@@ -622,6 +668,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "16 Money Management and Trading Tactics", "pages": [455], "terms": ["pyramiding", "never add to a losing position"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplicable con apalancamiento controlado por el motor de riesgo"},
    "testable": true,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto",
    "related": [{"id": "lefevre_pyramid_on_profits", "relation": "apoya"}]
   },
@@ -635,6 +682,7 @@
    "quote": "Plan your work and work your plan.",
    "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: «decidir con el mercado cerrado» no existe en 24/7; equivale a decidir fuera de la vela en curso"},
    "testable": false,
+   "status": "revisada_usuario",
    "verification": "verificada_en_texto"
   }
  ]
