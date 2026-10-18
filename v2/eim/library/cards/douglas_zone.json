@@ -1,0 +1,113 @@
+{
+ "book_id": "douglas_zone",
+ "cards": [
+  {
+   "id": "douglas_zone_five_truths",
+   "title": "Las cinco verdades del pensamiento probabilístico",
+   "kind": "psicologia",
+   "claim": "Douglas propone cinco verdades: puede pasar cualquier cosa; no hace falta saber qué pasará para ganar; para un conjunto de variables que definen una ventaja, ganancias y pérdidas se distribuyen al azar; una ventaja es solo una probabilidad mayor de un resultado que de otro; y cada momento del mercado es único.",
+   "author_evidence": "marco conceptual del autor (sin datos)",
+   "citations": [{"book_id": "douglas_zone", "chapter": "7 The Trader's Edge: Thinking in Probabilities", "pages": [92], "terms": ["anything can happen", "moment in the market is unique"]}, {"book_id": "douglas_zone", "chapter": "8 Working with Your Beliefs", "pages": [97, 98], "terms": ["probability or numbers game"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplica al diseño de las estrategias (salidas probabilísticas, nunca certezas)"},
+   "testable": false,
+   "status": "revisada_usuario",
+   "verification": "verificada_en_texto",
+   "related": [{"id": "douglas_zone_probabilistic_edge", "relation": "complementa"}]
+  },
+  {
+   "id": "douglas_zone_probabilistic_edge",
+   "title": "La ventaja se ve en la serie, no en la operación",
+   "kind": "principio",
+   "claim": "Como un casino con su ventaja en el blackjack, el operador debe pensar en dos niveles: cada operación es incierta e independiente de las demás, pero una serie suficientemente grande con ventaja da un resultado relativamente predecible. Juzgar una ventaja por la última operación es un error; cada pérdida acerca a la siguiente ganancia si la ventaja es real.",
+   "conditions": [{"indicator": "evaluación", "rule": "juzgar una estrategia solo sobre una muestra de operaciones, nunca por el resultado de una sola"}],
+   "author_evidence": "analogía del casino (ventaja de ~4,5 % en blackjack); sin datos de mercado",
+   "citations": [{"book_id": "douglas_zone", "chapter": "6 The Market's Perspective", "pages": [80], "terms": ["casinos", "large enough sample size"]}, {"book_id": "douglas_zone", "chapter": "7 The Trader's Edge: Thinking in Probabilities", "pages": [93], "terms": ["random distribution"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: coincide con la evaluación por muestras de la puerta T49"},
+   "testable": false,
+   "status": "revisada_usuario",
+   "verification": "verificada_en_texto",
+   "related": [{"id": "steenbarger_coach_process_over_outcome", "relation": "apoya"}, {"id": "schwager_wizards_es_one_percent_risk", "relation": "apoya"}]
+  },
+  {
+   "id": "douglas_zone_predefine_risk",
+   "title": "Definir el riesgo antes de entrar y salir sin dudar",
+   "kind": "gestion_riesgo",
+   "claim": "Antes de entrar hay que saber cuánto se dejará ir el mercado en contra: existe un punto en que las probabilidades de éxito ya no compensan. Si se alcanza, se sale sin dudar ni conflicto; las pérdidas son el costo del negocio para estar disponible para las ganadoras. Predefinir el riesgo es uno de los siete principios de consistencia.",
+   "conditions": [{"indicator": "plan", "rule": "stop definido antes de la entrada y ejecutado sin modificarlo en contra"}],
+   "author_evidence": "práctica del autor",
+   "citations": [{"book_id": "douglas_zone", "chapter": "7 The Trader's Edge: Thinking in Probabilities", "pages": [94], "terms": ["cost of doing business"]}, {"book_id": "douglas_zone", "chapter": "11 Thinking Like a Trader", "pages": [130], "terms": ["predefine the risk of every trade"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: el motor de riesgo ya exige stop en cada plan; la regla vigila que no se mueva en contra"},
+   "testable": false,
+   "status": "revisada_usuario",
+   "verification": "verificada_en_texto",
+   "related": [{"id": "nison_protective_stops", "relation": "apoya"}, {"id": "douglas_disciplined_loss_rules", "relation": "apoya"}]
+  },
+  {
+   "id": "douglas_zone_seven_principles",
+   "title": "Los siete principios de consistencia",
+   "kind": "principio",
+   "claim": "Ser consistente exige: identificar objetivamente las ventajas, predefinir el riesgo de cada operación, aceptarlo por completo o soltar la operación, actuar sobre la ventaja sin reservas ni dudas, cobrarse cuando el mercado ofrece ganancias, vigilar continuamente la propensión a errores y no violar nunca estos principios.",
+   "author_evidence": "marco del autor",
+   "citations": [{"book_id": "douglas_zone", "chapter": "11 Thinking Like a Trader", "pages": [130], "terms": ["seven principles of consistency", "objectively identify my edges"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: en un sistema automático equivalen a ejecutar cada señal validada, con stop y toma de beneficio sistemática"},
+   "testable": false,
+   "status": "revisada_usuario",
+   "verification": "verificada_en_texto"
+  },
+  {
+   "id": "douglas_zone_trading_errors",
+   "title": "Errores típicos que nacen del miedo",
+   "kind": "psicologia",
+   "claim": "Douglas atribuye casi todos los errores a cuatro miedos (equivocarse, perder, quedarse fuera, dejar dinero en la mesa): entrar antes de la señal o muy tarde, no cortar una pérdida, salir antes de tiempo de una ganadora, no tomar beneficio y dejar que se vuelva perdedora, acercar el stop a la entrada y operar un tamaño excesivo.",
+   "conditions": [{"indicator": "bitácora", "rule": "marcar desvíos observables respecto del plan: entrada antes/después de la señal, stop movido en contra, salida antes del objetivo sin regla, tamaño sobre el límite"}],
+   "author_evidence": "experiencia del autor como formador (afirma que el 95 % de los errores vienen de esas actitudes)",
+   "citations": [{"book_id": "douglas_zone", "chapter": "1 The Road to Success", "pages": [22], "terms": ["four primary trading fears", "too soon"]}, {"book_id": "douglas_zone", "chapter": "11 Thinking Like a Trader", "pages": [131], "terms": ["moving a stop closer to your entry point"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: para el operador humano; en el sistema, la bitácora del bróker simulado puede contar estos desvíos"},
+   "testable": false,
+   "status": "revisada_usuario",
+   "verification": "verificada_en_texto",
+   "related": [{"id": "douglas_disciplined_typical_errors", "relation": "apoya"}]
+  },
+  {
+   "id": "douglas_zone_twenty_trade_sample",
+   "title": "Ejercicio de 20 operaciones sin desviarse",
+   "kind": "regla",
+   "claim": "Para evaluar una ventaja, el autor pide operar al menos las 20 siguientes apariciones exactamente como está definida, sin elegir cuáles tomar ni cambiar variables, con un tamaño tal que perder las 20 sea aceptable (o en un bróker simulado). La muestra debe ser lo bastante grande para probar y lo bastante pequeña para detectar que la ventaja se degrada.",
+   "conditions": [{"indicator": "muestra", "rule": "tomar todas las señales de la estrategia durante ≥ 20 operaciones sin filtrar a mano", "threshold": "≥ 20 operaciones"}, {"indicator": "tamaño", "rule": "riesgo por operación tal que 20 pérdidas seguidas sean asumibles"}],
+   "expected_effect": {"direction": "neutral"},
+   "author_evidence": "criterio del autor («he encontrado que al menos 20 operaciones cumplen ambos requisitos»)",
+   "citations": [{"book_id": "douglas_zone", "chapter": "11 Thinking Like a Trader", "pages": [137, 138, 139], "terms": ["sample size of at least 20 trades", "simulated brokerage service"]}],
+   "applicability": {"original_market": ["acciones", "futuros (S&P)"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: 20 es un mínimo práctico del autor; la puerta T49 exige más muestra y fuera de muestra"},
+   "testable": true,
+   "status": "revisada_usuario",
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_optimize_out_of_sample", "relation": "complementa"}]
+  },
+  {
+   "id": "douglas_zone_mechanical_stage",
+   "title": "Primero la etapa mecánica",
+   "kind": "principio",
+   "claim": "Douglas describe tres etapas: mecánica (ejecutar un sistema sin fallos, pensar en probabilidades y construir confianza en la propia consistencia), subjetiva (usar todo lo aprendido vigilando los propios errores) e intuitiva. Saltarse la mecánica impide pasar a las siguientes.",
+   "author_evidence": "marco del autor",
+   "citations": [{"book_id": "douglas_zone", "chapter": "11 Thinking Like a Trader", "pages": [121], "terms": ["mechanical stage", "intuitive stage"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: el sistema EIM opera siempre en «etapa mecánica» (reglas deterministas)"},
+   "testable": false,
+   "status": "revisada_usuario",
+   "verification": "verificada_en_texto"
+  },
+  {
+   "id": "douglas_zone_pay_yourself",
+   "title": "Tomar beneficios de forma sistemática",
+   "kind": "gestion_riesgo",
+   "claim": "Dejar que una ganadora se convierta en perdedora o no tener una forma sistemática de tomar beneficios delata la creencia de que el mercado seguirá a favor indefinidamente. El autor sabe de antemano, en la mayoría de los casos, dónde tomará beneficios; «cobrarse cuando el mercado da dinero» es uno de sus principios.",
+   "conditions": [{"indicator": "salida", "rule": "toda operación lleva una regla de toma de beneficio definida de antemano (objetivo fijo, parcial o salida por regla)"}],
+   "author_evidence": "práctica del autor",
+   "citations": [{"book_id": "douglas_zone", "chapter": "7 The Trader's Edge: Thinking in Probabilities", "pages": [92, 93, 94], "terms": ["systematic way of taking profits"]}, {"book_id": "douglas_zone", "chapter": "11 Thinking Like a Trader", "pages": [130], "terms": ["pay myself"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: equivale a TP1/TP2 y break-even de los perfiles del bróker simulado"},
+   "testable": true,
+   "status": "revisada_usuario",
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_trending_trading_units", "relation": "complementa"}]
+  }
+ ]
+}

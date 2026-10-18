@@ -51,6 +51,7 @@ packageurl-python==0.17.6
 packaging==26.3
 pandas==3.0.6
 peewee==4.5.3
+pillow==13.0.0
 pip-requirements-parser==32.0.1
 pip_api==0.0.35
 pip_audit==2.10.1
@@ -66,7 +67,9 @@ pydantic==2.14.1
 pydantic_core==2.50.1
 Pygments==2.21.0
 pyparsing==3.3.3
+pypdf==6.21.1
 pyright==1.1.414
+pytesseract==0.3.13
 pytest==9.1.1
 python-dateutil==2.9.0.post0
 python-multipart==0.0.32
