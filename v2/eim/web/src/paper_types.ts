@@ -67,6 +67,8 @@ export interface PaperSummary {
   family_stats: { family: string; n: number; sum_r: number; mean_r: number | null; strategies: number }[]
   insights: Insight[]; job: Job; live: { last_tick: number | null; started: number | null; error: string }
   balance: Record<string, BalanceWindow>
+  /** Frescura de la vista: con un backtest largo se entrega la última calculada mientras se rehace. */
+  view?: { computed: number; stale: boolean; refreshing: boolean; error: string }
 }
 
 export interface PaperTrade {
