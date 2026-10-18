@@ -58,6 +58,9 @@ export interface AgentReport {
   status: AgentStatus
 }
 
+/** Papel en la síntesis (T44): solo los direccionales votan. */
+export type AgentRole = 'direccional' | 'riesgo' | 'carril' | 'derivado'
+
 export interface AgentInfo {
   id: string
   version: string
@@ -65,6 +68,8 @@ export interface AgentInfo {
   status: AgentStatus | 'sin_ejecutar'
   bias: number | null
   confidence: number | null
+  role?: AgentRole
+  weight?: number | null // peso base (null si su papel no vota)
 }
 
 export interface Synthesis {
@@ -73,6 +78,8 @@ export interface Synthesis {
   agreement: number
   contributions: Record<string, number>
   thesis: string
+  weights?: Record<string, number> // peso efectivo (× correlación); 0 = a la vista, sin voto
+  factors?: Record<string, number> // factores aplicados a la confianza: desacuerdo, evento
 }
 
 /** Operación del libro simulado (siempre mode=SIMULADO). Tiempos en ms. */

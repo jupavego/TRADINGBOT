@@ -33,8 +33,8 @@ def test_space_defaults_are_current_params_and_inside_bounds():
         assert d.low <= base[d.name] <= d.high, d.name
     plan, synth, tp = build(base)
     assert plan == PlanParams() and tp == 0
-    assert synth.weights == {"structure": 1.0, "levels": 1.0}
-    assert synth.model_copy(update={"weights": {}}) == SynthesisParams()
+    assert synth.weights == {**SynthesisParams().weights, "structure": 1.0, "levels": 1.0}
+    assert synth.model_copy(update={"weights": SynthesisParams().weights}) == SynthesisParams()
     assert n_changed(base, base) == 0
 
 

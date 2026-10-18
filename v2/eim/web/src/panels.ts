@@ -5,6 +5,7 @@ const LABEL: Record<string, string> = {
   ema: 'EMA / FRM', liquidations: 'Liquidaciones', seasonality: 'Estacionalidad', context: 'Contexto',
   derivatives: 'Derivados', levels: 'Niveles', microstructure: 'Microestructura', plan: 'Plan',
   regime: 'Régimen', technical: 'Técnico', calendar: 'Calendario', arbitrage: 'Arbitraje',
+  smart_money: 'Smart money',
 }
 export const agentName = (id: string): string => LABEL[id] ?? id
 

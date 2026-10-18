@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-17T19:07:12",
+ "generated": "2026-10-17T19:58:38",
  "tasks": [
   {
    "id": "T01",
@@ -543,8 +543,8 @@ window.EIM_STATUS = {
     "T41",
     "T39"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Síntesis (`eim/synthesis/`): papel por agente (`role_of`: direccional / riesgo / carril / derivado); `calendar` y `arbitrage` en `NON_DIRECTIONAL` (nunca votan, ni forzando `excluded`/pesos; test); `technical` y `smart_money` votan como direccionales con peso de `T44_WEIGHTS` y penalización por correlación (peso × (1 − ρ⁺) solo si `ema`/`structure` votan; ρ medida 0,68/0,58); calendario en ventana → confianza ×0,75 (×0,5 con blackout); `Synthesis.weights`/`factors` (aditivos). Riesgo: **`risk_v2` vigente** (= v1 + `event_size_factor` 0,5: tamaño a la mitad en ventana sin blackout), `market_context` evalúa `risk_windows` a la hora real de decidir (cierra BACKLOG T36-1); blackout sigue vetando (regla `evento`). **Prueba marginal** (`eim/analytics/agent_panel.py` panel real de agentes cada 4 velas 1 h 2023-01→2026-10, snapshots = `build_snapshot`; `agents_marginal*.py`, regla fijada antes; **`reports/agents_marginal.md`**): `technical` no aporta (BTC ΔSharpe −0,00, ΔIC24 +0,0004; ETH +0,12 pero 57 % de ventanas y con peso 1 empeora) y `smart_money` no es medible (sin historia) → **peso inicial 0 ambos** (a la vista, sin voto); la síntesis base pierde en la prueba (Sharpe −2,39 BTC / −1,05 ETH). API `/v2/agents` + `role`/`weight`. UI: reloj del próximo evento con cuenta atrás en la barra superior (`event_clock.ts`; ventana/blackout en color), filtros por tipo en el río (`agent_roles.ts`), haz punteado y etiqueta para quien no vota, pesos y factores en el detalle de la síntesis. Tests: tests/synthesis/test_t44_integration.py (19), tests/risk/test_event_window.py (8), tests/analytics (6). Verificado en navegador (API aislada en 8001). Pendientes en BACKLOG (T44).",
    "effort": "medio",
    "phase": 8,
    "goal": "Conectar cada agente nuevo al lugar correcto del sistema, respetando que no todos son direccionales."
