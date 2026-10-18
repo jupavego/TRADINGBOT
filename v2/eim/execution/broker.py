@@ -15,6 +15,7 @@ from typing import Protocol
 from eim.core import Mode
 
 CLIENT_PREFIX = "eim-"
+ARB_PREFIX = "eia-"       # T45: patas de arbitraje (la reconciliación T30 no las toca)
 # tipos de orden
 MARKET, LIMIT, STOP, TAKE_PROFIT = "MARKET", "LIMIT", "STOP", "TAKE_PROFIT"
 CONDITIONAL = (STOP, TAKE_PROFIT)
@@ -51,6 +52,7 @@ class OrderSpec:
     trigger: float | None = None     # STOP / TAKE_PROFIT
     reduce_only: bool = False
     close_position: bool = False
+    tif: str = "GTC"                 # LIMIT: GTC | IOC (T45: patas con tiempo límite)
 
     @property
     def conditional(self) -> bool:
@@ -71,6 +73,8 @@ class OrderState:
     close_position: bool = False
     reduce_only: bool = False
     exchange_id: str = ""
+    fee: float = 0.0                 # comisión cobrada (spot: puede ir en la moneda base)
+    fee_asset: str = ""
 
     @property
     def is_open(self) -> bool:
@@ -115,14 +119,14 @@ class Broker(Protocol):
     def equity(self) -> float: ...
 
 
-def client_id(plan_id: str, symbol: str, role: str) -> str:
+def client_id(plan_id: str, symbol: str, role: str, prefix: str = CLIENT_PREFIX) -> str:
     """Id determinista por (plan, rol): reenviar la misma orden nunca crea otra distinta.
 
     role: e entrada · s SL · t TP · x cierre · s2.. SL de reparación. Patrón Binance
     `^[.A-Z:/a-z0-9_-]{1,36}$`.
     """
     h = hashlib.sha256(f"{symbol}|{plan_id}".encode()).hexdigest()[:20]
-    return f"{CLIENT_PREFIX}{h}-{role}"
+    return f"{prefix}{h}-{role}"
 
 
 def trade_key(cid: str) -> str:

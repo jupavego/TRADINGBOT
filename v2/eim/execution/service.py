@@ -84,6 +84,33 @@ class LiveTrade:
         return None if self.pnl is None or risk <= 0 else self.pnl / risk
 
 
+def ensure_order(broker: Broker, spec: OrderSpec, retries: int = 3, backoff: float = 0.5,
+                 sleep: Callable[[float], None] = time.sleep) -> OrderState:
+    """Envía con reintentos seguros: reenvía solo si el exchange confirma que no existe.
+
+    Único punto que entrega órdenes a un broker (también las patas de arbitraje, T45)."""
+    for attempt in range(retries + 1):
+        try:
+            return broker.post_order(spec)
+        except OrderRejected as e:
+            if not e.duplicate:
+                raise
+        except NetworkError:
+            pass
+        for q in range(retries + 1):              # consulta hasta tener respuesta firme
+            sleep(backoff * 2 ** min(attempt + q, 5))
+            try:
+                found = broker.get_order(spec.symbol, spec.client_id, spec.conditional)
+            except NetworkError:
+                continue
+            if found is not None:
+                return found
+            break                                 # no existe: se puede reenviar
+        else:
+            break                                 # sin respuesta firme: no reenviar
+    raise NetworkError(f"orden {spec.client_id} en estado desconocido tras reintentos")
+
+
 class ExecutionError(BrokerError):
     pass
 
@@ -108,27 +135,7 @@ class ExecutionService:
         return round(sum(t.side * t.filled for t in self.active(symbol)), 10)
 
     def _ensure(self, spec: OrderSpec) -> OrderState:
-        """Envía con reintentos seguros: reenvía solo si el exchange confirma que no existe."""
-        for attempt in range(self._retries + 1):
-            try:
-                return self.broker.post_order(spec)
-            except OrderRejected as e:
-                if not e.duplicate:
-                    raise
-            except NetworkError:
-                pass
-            for q in range(self._retries + 1):        # consulta hasta tener respuesta firme
-                self._sleep(self._backoff * 2 ** min(attempt + q, 5))
-                try:
-                    found = self.broker.get_order(spec.symbol, spec.client_id, spec.conditional)
-                except NetworkError:
-                    continue
-                if found is not None:
-                    return found
-                break                                 # no existe: se puede reenviar
-            else:
-                break                                 # sin respuesta firme: no reenviar
-        raise NetworkError(f"orden {spec.client_id} en estado desconocido tras reintentos")
+        return ensure_order(self.broker, spec, self._retries, self._backoff, self._sleep)
 
     def _cancel_quiet(self, tr: LiveTrade, role: str, conditional: bool) -> None:
         try:
@@ -243,16 +250,18 @@ class ExecutionService:
             self._log(tr, f"SL no reponible ({e}): cierre a mercado")
             self.flatten(tr.symbol, "SL no reponible")
 
-    def flatten(self, symbol: str, reason: str) -> bool:
+    def flatten(self, symbol: str, reason: str, keep: float = 0.0) -> bool:
         """Cierre ordenado: cancela entradas, cierra a mercado (reduce-only) y luego quita SL/TP.
 
         El SL se retira solo cuando la posición ya es 0. Devuelve True si quedó plano.
+        `keep` = parte de la posición que no es del carril direccional (la pata de futuros de
+        un arbitraje abierto, T45): no se cierra aquí (la cierra su ejecutor, con su pata spot).
         """
         b = self.broker
         trades = self.active(symbol)
         for tr in trades:
             self._cancel_quiet(tr, "e", False)
-        qty = b.position(symbol).qty
+        qty = round(b.position(symbol).qty - keep, 10)
         if qty:
             tag = trades[0] if trades else None
             n = (tag.closes + 1) if tag else 1
@@ -264,7 +273,7 @@ class ExecutionService:
             exit_px = done.avg_price
         else:
             exit_px = None
-        flat = b.position(symbol).qty == 0
+        flat = abs(b.position(symbol).qty - keep) < 1e-12
         for tr in trades:
             if flat:
                 self._cancel_protection(tr)

@@ -62,6 +62,8 @@ class Settings:
     arb_alert_hold_s: float = 60.0
     arb_assets: tuple[str, ...] = ("BTC", "ETH")  # from_env: solo BTC (foco 2026-10-15)
     arb_tri_assets: tuple[str, ...] | None = None  # None = los del cargador
+    arb_execution: str = "off"  # T45: "testnet" ejecuta arbitrajes en spot + futuros testnet
+    arb_exec_interval_s: float = 60.0
     paper: bool = False         # T47: bróker simulado en vivo (1 por defecto en from_env)
     paper_poll_s: float = 60.0
     extra: dict[str, str] = field(default_factory=dict)
@@ -102,6 +104,8 @@ class Settings:
             arb_alert_hold_s=float(env.get("EIM_ARB_ALERT_S", d.arb_alert_hold_s)),
             arb_assets=_csv(env.get("EIM_ARB_ASSETS", "BTC")) or d.arb_assets,
             arb_tri_assets=_csv(env.get("EIM_ARB_TRI_ASSETS", "USDT,BTC,BNB,SOL,XRP")) or None,
+            arb_execution=env.get("EIM_ARB_EXECUTION", d.arb_execution).strip().lower(),
+            arb_exec_interval_s=float(env.get("EIM_ARB_EXEC_S", d.arb_exec_interval_s)),
             paper=env.get("EIM_PAPER", "1") != "0",
             paper_poll_s=float(env.get("EIM_PAPER_S", d.paper_poll_s)),
         )

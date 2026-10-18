@@ -17,6 +17,7 @@ Comandos desde `v2/`. `API=http://127.0.0.1:8000`. Todo POST lleva `X-EIM-Confir
 | Copia diaria fallida | `copia_seguridad` | §8 |
 | Tablero de líderes viejo / `smart_money` sin datos | «Tablero viejo» en «Líderes», aviso «Líderes: servicio reiniciado» | §10 |
 | Copia simulada en pausa o con kill-switch | aviso «Copia … en pausa» / «kill-switch» | §11 |
+| Arbitraje «DESCUBIERTA» o kill-switch por pata incompleta | pestaña «Arbitraje» → «Ejecución automática» | §12 |
 
 Dónde mirar: pestaña «Operación» de la UI · `GET $API/v2/operation` · registro
 `data/operation/logs/op-AAAA-MM-DD.jsonl` · tabla `op_alerts`.
@@ -148,3 +149,21 @@ entre la copia y el líder **nunca se «arregle» operando a ciegas**.
    aplica en ≤ 1 min; con la siguiente foto adopta la posición real del líder: cierra lo que el
    líder ya no tiene y **no** abre lo que abrió sin que lo viéramos (lo marca «apertura no vista»).
 
+## 12. Arbitraje en testnet: pata descubierta o kill-switch (T45)
+Solo testnet. Una posición de arbitraje tiene dos patas (spot largo + futuro corto) que deben
+sumar cero; el ejecutor nunca deja una pata huérfana a propósito.
+1. Ver el estado: `GET $API/v2/arbitrage/execution` (posiciones, último ciclo, reconciliación,
+   bitácora) o `data/arb_exec/journal_AAAA-MM-DD.jsonl`; el libro está en `data/arb_exec/state.json`.
+2. **DESCUBIERTA**: una orden quedó sin respuesta (red) o la segunda pata no llenó en un cierre
+   urgente. La reconciliación de cada ciclo consulta las órdenes por su id (`eia-…`), aplica lo
+   llenado y recorta la pata que sobra. Si persiste: comprobar conexión y claves; forzar con
+   `curl -X POST -H "X-EIM-Confirm: arb-cycle" "$API/v2/arbitrage/execution/cycle"`.
+3. **Kill-switch por pata incompleta** (`regla:pata`): al deshacer una pata la pérdida superó el
+   tope de la decisión (50 pb del nocional, `risk_arb_v1`). Con el kill-switch activo cada ciclo
+   cierra todos los arbitrajes (ambas patas). Revisar el libro de la testnet y la bitácora antes
+   de desactivarlo a mano (§1). El kill-switch es el mismo del carril direccional.
+4. Cerrar a mano: `POST $API/v2/arbitrage/execution/close?key=eia-…` (`X-EIM-Confirm: arb-close`)
+   o todo con `/flatten` (`X-EIM-Confirm: arb-flatten`).
+5. Con `EIM_ARB_EXECUTION` apagado y posiciones vivas en `state.json`, la reconciliación T30 sigue
+   respetando sus futuros (no los cierra como «posición desconocida»), pero nadie las gestiona:
+   volver a encenderlo o cerrarlas.

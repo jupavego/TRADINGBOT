@@ -4,6 +4,9 @@ El envío lo hace un ejecutor (`ExecutionService` sobre `SimBroker` o `BinanceTe
 Ningún otro módulo de `eim/` puede abrir posiciones: `.place(` solo se llama aquí y los
 endpoints de órdenes solo existen en `execution/binance_testnet.py` (tests/risk/test_gate.py).
 Entrada, SL y TP salen de la decisión sellada: no se pueden alterar después de aprobarla.
+
+T45: `ArbGateway` es la puerta equivalente del arbitraje: solo una `ArbDecision` sellada y
+aprobada por `ArbRiskEngine` llega a `ArbExecutor.place_arb` (con la cantidad aprobada).
 """
 
 from __future__ import annotations
@@ -12,6 +15,8 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from eim.core import Mode
+from eim.risk.arb_engine import ArbRiskEngine
+from eim.risk.arb_models import ArbDecision
 from eim.risk.engine import RiskEngine
 from eim.risk.models import RiskDecision
 
@@ -52,3 +57,22 @@ class OrderGateway:
             symbol=decision.symbol, side=decision.side, size=decision.size,
             leverage=decision.leverage, mode=decision.mode, plan_id=decision.plan_id,
             entry=decision.entry, sl=decision.sl, tp=decision.tp, entry_kind=entry_kind))
+
+
+class ArbExecutorPort(Protocol):
+    mode: Mode
+
+    def place_arb(self, decision: ArbDecision) -> str: ...
+
+
+class ArbGateway:
+    def __init__(self, engine: ArbRiskEngine, executor: ArbExecutorPort) -> None:
+        self._engine, self._executor = engine, executor
+
+    def submit(self, decision: ArbDecision, now: int) -> str:
+        """Verifica la decisión (lanza `PermissionError` si no autoriza) y abre las dos patas."""
+        self._engine.verify_arb(decision, now)
+        if decision.mode != self._executor.mode:
+            raise PermissionError(f"decisión en modo {decision.mode.value} y ejecutor en "
+                                  f"{self._executor.mode.value}")
+        return self._executor.place_arb(decision)

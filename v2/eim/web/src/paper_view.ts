@@ -1,5 +1,6 @@
 /** Vista «Bróker simulado» (T47/T48): cuentas de papel por perfil en 15 m, 1 h y 4 h. */
 import { fetchSnapshot, openStream, symbolPicker, type StreamHandle } from './api'
+import { PaperArb } from './paper_arb'
 import { balanceView } from './paper_balance'
 import { EquityChart, PaperPriceChart } from './paper_chart'
 import { esc, getPaper, postPaper, px, usd } from './paper_fmt'
@@ -13,7 +14,7 @@ import type { Job, PaperSummary, PaperTrade, ProfileView } from './paper_types'
 import type { StreamMsg } from './types'
 
 const TABS: [string, string][] = [['live', 'Señales en vivo'], ['pos', 'Posiciones'], ['ord', 'Órdenes abiertas'], ['hist', 'Historial'],
-  ['log', 'Bitácora'], ['learn', 'Aprendizaje'], ['prof', 'Perfiles']]
+  ['log', 'Bitácora'], ['learn', 'Aprendizaje'], ['prof', 'Perfiles'], ['arb', 'Arbitraje']]
 const POLL_MS = 60_000
 const LIVE_MS = 15_000            // repinta la franja «en vivo» (hace X s)
 const CHART_TFS = ['15m', '1h', '4h']
@@ -71,6 +72,7 @@ export class PaperView {
   private journal: PaperJournal | null = null
   private learn: PaperLearn | null = null
   private live: PaperLive | null = null
+  private arb: PaperArb | null = null
   private bodies: Record<string, HTMLElement> = {}
 
   constructor(private root: HTMLElement) {
@@ -90,6 +92,7 @@ export class PaperView {
     this.journal = new PaperJournal(this.bodies.log)
     this.learn = new PaperLearn(this.bodies.learn)
     this.live = new PaperLive(this.bodies.live)
+    this.arb = new PaperArb(this.bodies.arb)
     this.chart = new PaperPriceChart(this.q('pc'))
     this.eq = new EquityChart(this.q('eq'), this.q('eqleg'))
     this.pickSymbol()
@@ -232,7 +235,8 @@ export class PaperView {
     const names = Object.fromEntries(v.strategies.map((s) => [s.id, s.name]))
     const n = (id: string, x: number | string): void => { this.root.querySelector(`[data-n="${id}"]`)!.textContent = ` ${x}` }
     n('pos', p?.positions.length ?? 0); n('ord', p?.orders.length ?? 0); n('hist', this.trades.length); n('log', p?.events_n ?? '')
-    n('learn', ''); n('prof', ''); n('live', '')
+    n('learn', ''); n('prof', ''); n('live', ''); n('arb', '')
+    if (this.tab === 'arb') { void this.arb!.show(); return }   // T45: no depende del perfil
     if (!p) return
     if (this.tab === 'live') void this.live!.show({ symbol: this.symbol, names, profiles: v.profiles })
     else if (this.tab === 'pos') this.bodies.pos.innerHTML = positionsTable(p.positions, names, this.symbol, this.price, this.focus)

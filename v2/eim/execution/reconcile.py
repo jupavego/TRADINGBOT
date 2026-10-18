@@ -8,10 +8,16 @@ En cada pasada, por símbolo:
 4. Cancela órdenes `eim-` huérfanas (de operaciones cerradas/fallidas o desconocidas).
 5. Desvío ≥ `kill_max_recon_drift` o sin respuesta del exchange ≥ `kill_max_disconnect_ms`
    → kill-switch; con el kill-switch activo se cierra todo de forma ordenada.
+
+T45: `external(symbol)` = cantidad de futuros que pertenece a arbitrajes abiertos (cubierta por
+su pata spot, sin SL por diseño). Se suma a lo esperado, no exige SL y el cierre por
+kill-switch la deja a su ejecutor (que cierra las dos patas a la vez). Sus órdenes llevan el
+prefijo `eia-`: aquí nunca se cancelan como huérfanas.
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 
 from eim.execution.broker import CLIENT_PREFIX, STOP, BrokerError, NetworkError, trade_key
@@ -47,8 +53,10 @@ def drift_of(internal: float, exchange: float) -> float:
 
 
 class Reconciler:
-    def __init__(self, svc: ExecutionService, cfg: RiskConfig) -> None:
+    def __init__(self, svc: ExecutionService, cfg: RiskConfig,
+                 external: Callable[[str], float] | None = None) -> None:
         self.svc, self.cfg = svc, cfg
+        self.external = external or (lambda _s: 0.0)
         self.last_contact: int | None = None
         self.last: ReconReport | None = None
 
@@ -75,9 +83,10 @@ class Reconciler:
         kill = svc.kill.check_rules(self.cfg, now, recon_drift=worst)
         if svc.kill.close_requested:
             for s in syms:
-                if svc.active(s) or b.position(s).qty:
+                ext = self.external(s)
+                if svc.active(s) or abs(b.position(s).qty - ext) > 1e-12:
                     try:
-                        flat = svc.flatten(s, "kill-switch")
+                        flat = svc.flatten(s, "kill-switch", keep=ext)
                     except BrokerError as e:
                         flat = False
                         issues.append(f"{s}: cierre fallido: {e}")
@@ -93,28 +102,31 @@ class Reconciler:
 
     def _symbol(self, s: str, issues: list[str], actions: list[str]) -> SymbolRecon:
         svc, b = self.svc, self.svc.broker
+        ext = self.external(s)
         pos = b.position(s).qty
-        internal = svc.expected_qty(s)
+        internal = round(svc.expected_qty(s) + ext, 10)
         drift = drift_of(internal, pos)
         if drift > 0:                     # fills o SL entre lecturas: se relee antes de juzgar
             for tr in svc.active(s):
                 svc.sync(tr)
+            ext = self.external(s)
             pos = b.position(s).qty
-            internal = svc.expected_qty(s)
+            internal = round(svc.expected_qty(s) + ext, 10)
             drift = drift_of(internal, pos)
         if drift > 0:
             issues.append(f"{s}: posición interna {internal} ≠ exchange {pos}")
         orders = b.open_orders(s)
-        protected = pos == 0 or any(o.kind == STOP and o.side * pos < 0 and
+        own = round(pos - ext, 10)        # parte direccional (la del arbitraje va cubierta)
+        protected = own == 0 or any(o.kind == STOP and o.side * own < 0 and
                                     (o.close_position or o.reduce_only) for o in orders)
         if not protected:
-            issues.append(f"{s}: posición {pos} sin SL")
-            trades = [t for t in svc.active(s) if t.side * pos > 0]
+            issues.append(f"{s}: posición {own} sin SL")
+            trades = [t for t in svc.active(s) if t.side * own > 0]
             if trades:
                 svc.repair_sl(trades[0])
                 actions.append(f"{s}: SL repuesto en {trades[0].sl}")
             else:
-                flat = svc.flatten(s, "posición desconocida sin SL")
+                flat = svc.flatten(s, "posición desconocida sin SL", keep=ext)
                 actions.append(f"{s}: posición desconocida cerrada → "
                                f"{'plano' if flat else 'pendiente'}")
             protected = any(o.kind == STOP and o.side * pos < 0 for o in b.open_orders(s)) \
