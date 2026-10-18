@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-18T16:10:15",
+ "generated": "2026-10-18T18:20:46",
  "tasks": [
   {
    "id": "T01",
@@ -611,8 +611,8 @@ window.EIM_STATUS = {
     "T27",
     "T48"
    ],
-   "state": "progress",
-   "notes": "En curso: criterios v1 fijados en el commit 18e7283 antes de calcular; código de la puerta listo; falta historia completa e informe con datos reales.",
+   "state": "done",
+   "notes": "**Veredicto (v2/reports/validation/validation_v1_2026-10-18.md + .json): ninguna estrategia validada** — 87 intentos: 54 EN OBSERVACIÓN, 33 RECHAZADA; en 1 h las 26 versiones con ≥ 100 operaciones fuera de muestra tienen R medio neto negativo (25 claramente; la mejor, sugerencia_1@1h@v1, −0,063 R, IC95 % [−0,111, −0,015]); V5 pendiente en todas (vivo solo desde 2026-10-16). Criterios inmutables `eim/validation/versions/validation_v1.json` + `criteria.py` (hash fijado; commit 18e7283, anterior al primer cálculo real). Versión = huella de reglas + mecánica (`paper/versioning.py`, `Idea.version`); intentos, ventanas de ajuste y veredictos en `data/paper.duckdb` (`data/validation_store.py`, `validation/lineage.py` + `lineage.json` con la ventana T48b); puerta pura `validation/gate.py` (+`stats.py`, `evidence.py`); recálculo al cierre de cada vela de 4 h en la API (`validation/service.py`), `GET /v2/validation` (+`/history`), CLI `python -m eim.validation`. Historia: 1 h desde 2023-01-11 (33 038 contextos), 4 h desde 2026-03-19, 15 m sin reconstruir. Tests en v2/tests/validation.",
    "effort": "alto",
    "phase": 10,
    "goal": "Decidir, con criterios fijados antes de calcular, qué `estrategia@marco@versión` del bróker simulado tiene evidencia fuera de muestra suficiente (neta de costos, con drawdown y estabilidad aceptables) para alimentar «Operaciones sugeridas intradía»; ninguna estrategia se declara rentable solo porque ganó en un backtest, y «ninguna validada» es un resultado válido."
