@@ -2,9 +2,10 @@
 
 1. Comportamiento: la única puerta (`OrderGateway`) rechaza decisiones fabricadas, alteradas,
    vetadas, caducadas, de otra configuración o con el kill-switch activo.
-2. Estático: solo `execution/binance_testnet.py` contiene endpoints de órdenes o peticiones
-   firmadas (y solo hacia la testnet); el ejecutor solo se invoca (`.place(`) desde
-   `execution/gateway.py` y el broker solo recibe órdenes (`.post_order(`) desde
+2. Estático: solo los módulos de testnet (`execution/binance_rest.py` firma, `binance_testnet.py`
+   futuros, `binance_spot_testnet.py` spot, T45) contienen endpoints de órdenes o peticiones
+   firmadas (y solo hacia la testnet); el ejecutor solo se invoca (`.place(` / `.place_arb(`)
+   desde `execution/gateway.py` y el broker solo recibe órdenes (`.post_order(`) desde
    `execution/service.py`.
 """
 
@@ -115,6 +116,8 @@ ORDER_PATTERNS = [
 ]
 GATEWAY = EIM / "execution" / "gateway.py"
 TESTNET = EIM / "execution" / "binance_testnet.py"
+SPOT = EIM / "execution" / "binance_spot_testnet.py"
+REST = EIM / "execution" / "binance_rest.py"
 SERVICE = EIM / "execution" / "service.py"
 
 
@@ -125,7 +128,7 @@ def _sources():
 def test_no_order_endpoints_anywhere():
     hits = []
     for p in _sources():
-        if p == TESTNET:
+        if p in (TESTNET, SPOT, REST):
             continue
         text = p.read_text(encoding="utf-8")
         hits += [f"{p.relative_to(EIM)}: {pat}" for pat in ORDER_PATTERNS
@@ -135,7 +138,7 @@ def test_no_order_endpoints_anywhere():
 
 def test_broker_place_only_called_by_gateway():
     callers = [p.relative_to(EIM) for p in _sources()
-               if p != GATEWAY and re.search(r"\.place\(", p.read_text(encoding="utf-8"))]
+               if p != GATEWAY and re.search(r"\.place(_arb)?\(", p.read_text(encoding="utf-8"))]
     assert callers == []
 
 
@@ -153,6 +156,14 @@ def test_testnet_module_only_knows_testnet_hosts():
         "demo-fapi.binance.com", ""))
 
 
+def test_spot_and_rest_modules_only_know_testnet_hosts():
+    spot = SPOT.read_text(encoding="utf-8")
+    assert set(re.findall(r"https?://([\w.-]+)", spot)) == {"testnet.binance.vision"}
+    assert not re.search(r"(?<![\w-])api\.binance\.com", spot.replace("demo-api.binance.com", ""))
+    assert re.findall(r"https?://([\w.-]+)", REST.read_text(encoding="utf-8")) == []
+
+
 def test_gateway_verifies_before_placing():
     text = GATEWAY.read_text(encoding="utf-8")
     assert text.index("self._engine.verify(") < text.index("self._broker.place(")
+    assert text.index("self._engine.verify_arb(") < text.index("self._executor.place_arb(")

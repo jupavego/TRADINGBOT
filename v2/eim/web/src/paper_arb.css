@@ -1,0 +1,28 @@
+/* Bróker simulado → «Arbitraje» (T45). Colores por tokens del tema (claro, oscuro y futurista). */
+.pa-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 0 0 8px; }
+.pa-head label { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; }
+.pa-head .mode { font-size: 11px; }
+.pa-head small { flex-basis: 100%; }
+.pa-verdict { font-weight: 600; margin: 4px 0 8px; }
+.pa-verdict[data-ok="true"] { color: var(--up); }
+.pa-verdict[data-ok="false"] { color: var(--down); }
+.pa-chart { border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 8px; margin-bottom: 12px; }
+.pa-leg { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; font-size: 12px; margin-bottom: 4px; }
+.pa-leg i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.pa-pc { height: 300px; }
+.pa-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.pa-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px; min-width: 0; }
+.pa-card[data-ok="false"] { border-color: var(--down); }
+.pa-card h4 { margin: 0 0 6px; font-size: 13px; display: flex; justify-content: space-between; gap: 8px; }
+.pa-card h4 span { font-weight: 600; color: var(--up); white-space: nowrap; }
+.pa-card[data-ok="false"] h4 span { color: var(--down); }
+.pa-checks { list-style: none; padding: 0; margin: 0 0 6px; font-size: 12px; display: grid; gap: 3px; }
+.pa-checks li[data-ok="true"] { color: var(--text); }
+.pa-checks li[data-ok="false"] { color: var(--down); }
+.pa-checks small { display: block; color: var(--muted); font-size: 11px; padding-left: 16px; }
+.pa-facts { font-size: 12px; margin: 6px 0 4px; }
+.pa-note { font-size: 11px; margin: 0 0 4px; }
+.pa-orders summary, .pa-assume summary { cursor: pointer; font-size: 12px; }
+.pa-orders td[data-st="REJECTED"] { color: var(--down); }
+.pa-assume ul { font-size: 11px; color: var(--muted); padding-left: 18px; }
+@media (max-width: 700px) { .pa-pc { height: 220px; } }

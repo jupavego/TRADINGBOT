@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnec
 from fastapi.middleware.cors import CORSMiddleware
 
 from eim.agents.registry import AgentRegistry, default_registry
+from eim.api.arb_execution import arb_loop, build_arb_execution_router, build_arb_runtime
 from eim.api.arbitrage import ArbDesk, build_arbitrage_router
 from eim.api.backup import build_backup_router
 from eim.api.calibration import build_calibration_router
@@ -22,6 +23,7 @@ from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.more import MoreSources, build_more_router
 from eim.api.operation import build_operation_router
 from eim.api.paper import build_paper_router
+from eim.api.paper_arb import build_paper_arb_router
 from eim.api.reports_db import ReportStore
 from eim.api.risk import RiskDesk, build_risk_router
 from eim.api.security import BodyLimitMiddleware, LocalOnlyMiddleware, ws_token_subprotocol
@@ -96,6 +98,17 @@ def create_app(
     arb_agent = reg.get("arbitrage") if "arbitrage" in reg.ids() else None  # mismo foco
     arb_desk = ArbDesk(ArbStore(cfg.data_dir), agent=arb_agent, alerts=AlertParams(
         min_score=cfg.arb_alert_score, hold_s=cfg.arb_alert_hold_s))
+    # T45: arbitraje en testnet. Comparte kill-switch y cuenta de futuros con el carril
+    # direccional: cada uno respeta la parte del otro (reconciliación, cierre y riesgo).
+    svc = runtime.svc
+    arb_rt = build_arb_runtime(
+        cfg.arb_execution, kill, cfg.data_dir, ArbStore(cfg.data_dir),
+        directional_qty=lambda s: svc.expected_qty(s) if svc is not None else 0.0,
+        directional_symbols=lambda: tuple(t.symbol for t in svc.active()) if svc else (),
+        interval_s=cfg.arb_exec_interval_s)
+    if runtime.recon is not None:
+        runtime.recon.external = arb_rt.futures_qty
+    runtime.extra_open = arb_rt.open_symbols
     # T47: bróker simulado; base propia y servicio en vivo solo con la fuente real.
     paper_store = PaperStore(cfg.data_dir / "paper.duckdb")
     paper = PaperDesk(store, paper_store, reg,
@@ -119,8 +132,10 @@ def create_app(
             if arb_sync is not None else None)
         paper_task = (asyncio.create_task(paper.loop())
                       if source is None and cfg.paper else None)
+        arb_exec_task = (asyncio.create_task(arb_loop(arb_rt))
+                         if arb_rt.pilot is not None else None)
         yield
-        for t in (task, cal_task, arb_task, paper_task):
+        for t in (task, cal_task, arb_task, paper_task, arb_exec_task):
             if t is not None:
                 t.cancel()
         paper.stop_backtest()
@@ -152,11 +167,14 @@ def create_app(
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
     app.include_router(build_arbitrage_router(arb_desk))
     app.state.arb_desk = arb_desk
+    app.include_router(build_arb_execution_router(arb_rt))
+    app.state.arb_exec = arb_rt
     # T41: tablero de líderes (lo escribe el vigilante en data/leaders/; aquí solo se lee).
     sm = reg.get("smart_money") if "smart_money" in reg.ids() else None
     app.state.leader_desk = LeaderDesk(cfg.data_dir, agent=sm)
     app.include_router(build_leaders_router(app.state.leader_desk))
     app.include_router(build_paper_router(paper))
+    app.include_router(build_paper_arb_router(store, cfg.data_dir))  # T45: pruebas en papel
     app.state.paper = paper
 
     @app.get("/v2/health")

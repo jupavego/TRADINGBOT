@@ -13,6 +13,8 @@ import hmac
 import secrets
 from collections.abc import Callable
 
+from pydantic import BaseModel
+
 from eim.risk import rules
 from eim.risk.config import RiskConfig
 from eim.risk.killswitch import KillSwitch, global_kill_switch
@@ -23,7 +25,8 @@ _KEY = secrets.token_bytes(32)          # vive solo en este proceso; no se persi
 DECISION_TTL_MS = 60_000                 # una aprobación caduca en 1 min
 
 
-def _digest(d: RiskDecision) -> str:
+def _digest(d: BaseModel) -> str:
+    """Sello HMAC de proceso de una decisión (también la de arbitraje, T45)."""
     body = d.model_dump_json(exclude={"seal"}).encode()
     return hmac.new(_KEY, body, hashlib.sha256).hexdigest()
 

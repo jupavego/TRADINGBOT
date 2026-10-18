@@ -1,12 +1,15 @@
 import { fetchArbitrage } from './api'
+import { ArbExecPanel } from './arb_exec_ui'
 import type { ArbMetrics, ArbPayload, ArbRow } from './arb_types'
 import { alertsBox, basisTable, countdown, fundingTable, rowsTable, scansList, STRATEGY, utc } from './arb_view'
 import { esc } from './panels'
 
 type Show = 'all' | 'selected' | 'rejected'
 
-/** Pestaña «Arbitraje» (T39): escáner de oportunidades netas de Binance. Siempre modo Análisis. */
+/** Pestaña «Arbitraje» (T39): escáner de oportunidades netas de Binance (modo Análisis) y, arriba,
+ * la ejecución automática en testnet (T45, modo Testnet), que el repintado del escáner conserva. */
 export class ArbPanel {
+  private readonly exec = new ArbExecPanel()
   private data: ArbPayload | null = null
   private err = ''
   private skew = 0 // hora del servidor − hora local (vigencias y edad)
@@ -115,7 +118,11 @@ export class ArbPanel {
   render(): void {
     const d = this.data, m = this.metrics()
     const err = this.err ? `<p class="scen-warn">${esc(this.err)}</p>` : ''
-    if (!d) { this.el.innerHTML = this.header() + err + '<p class="muted">Consultando el escáner…</p>'; return }
+    if (!d) {
+      this.el.innerHTML = '<div id="arb-exec-slot"></div>' + this.header() + err + '<p class="muted">Consultando el escáner…</p>'
+      this.mountExec()
+      return
+    }
     const rep = d.report
     const stale = d.stale && d.scan_asof != null
       ? `<p class="scen-warn">Fotografía vieja (${this.ageText(d.scan_asof)}): las cifras ya no son operables.</p>` : ''
@@ -126,7 +133,7 @@ export class ArbPanel {
     // un mensaje WS nuevo no debe cerrar lo desplegado ni quitar el foco del filtro
     const opened = new Set([...this.el.querySelectorAll<HTMLDetailsElement>('details[open][data-k]')].map((x) => x.dataset.k))
     const focus = (document.activeElement as HTMLElement | null)?.dataset?.f
-    this.el.innerHTML = this.header() + err + stale + warn +
+    this.el.innerHTML = '<div id="arb-exec-slot"></div>' + this.header() + err + stale + warn +
       alertsBox(d.alerts, d.alert_params) +
       (m ? `<p class="arb-ev">${rep.evidence.slice(1).map((e) => esc(e)).join('<br>')}</p>` : '') +
       this.filters() + '<div id="arb-rows"></div>' +
@@ -138,7 +145,13 @@ export class ArbPanel {
       'patas y riesgos. Modo Análisis: no se envía ninguna orden.</p>'
     this.el.querySelectorAll<HTMLDetailsElement>('details[data-k]').forEach((x) => { x.open = opened.has(x.dataset.k) })
     if (focus) this.el.querySelector<HTMLElement>(`[data-f="${focus}"]`)?.focus()
+    this.mountExec()
     this.renderTable()
+  }
+
+  /** La sección de ejecución es un nodo propio: se reinserta, no se repinta con el escáner. */
+  private mountExec(): void {
+    this.el.querySelector('#arb-exec-slot')?.replaceWith(this.exec.root)
   }
 
   private renderTable(): void {

@@ -21,6 +21,10 @@ PUBLISHED = {
         "765aa312533d81eb5de09d82e17e3df2e9de35d1d21e28a5b0a861f9f49e0eda",
     "risk/versions/risk_v2.json":  # T44: tamaño ×0.5 en ventana de evento (vigente)
         "8b2f9b1203bd1a0e8ef205a7fc0b15d601d61bdf1a6285e62a2f63105ff42cf2",
+    "risk/versions/risk_arb_v1.json":  # T45: arbitraje en testnet (dos patas)
+        "25ddd58223056d7b6c23548b56d440ee636a55540ee909200eab014a82a79e7b",
+    "risk/versions/risk_arb_sim_v1.json":  # T45: arbitraje en el bróker simulado
+        "ec1087e59466a25ec91846f840fc41feded0ea17f8ab0dc6339a12f55607ae0e",
 }
 
 

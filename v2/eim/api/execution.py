@@ -44,6 +44,8 @@ class ExecutionRuntime:
     error: str = ""
     lock: threading.Lock = field(default_factory=threading.Lock)
     equity_book: EquityBook | None = None         # T31: historial de capital (día/semana/pico)
+    # T45: futuros abiertos por arbitrajes (cuentan como posición abierta para el riesgo)
+    extra_open: Callable[[], tuple[str, ...]] = tuple
     _equity: tuple[float, float] | None = None   # (monotónico, capital): caché corta
 
     @property
@@ -68,7 +70,8 @@ class ExecutionRuntime:
         return account_state(
             self.equity(), now if now is not None else int(time.time() * 1000),
             self.equity_book, list(self.svc.trades.values()),
-            tuple(t.symbol for t in self.svc.active()), f"{self.mode.value}: {where}")
+            tuple(t.symbol for t in self.svc.active()) + tuple(self.extra_open()),
+            f"{self.mode.value}: {where}")
 
     def reconcile(self, now: int):
         assert self.recon is not None
