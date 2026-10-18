@@ -21,6 +21,7 @@ import { SetupsPanel } from './setups_ui'
 import { ArbPanel } from './arb_ui'
 import { LeadersPanel } from './leaders_ui'
 import { PaperView } from './paper_view'
+import { setCalendarClock } from './event_clock'
 import { applyTheme, initialTheme, nextTheme, THEME_LABEL, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
 
@@ -92,6 +93,11 @@ function paintPrice(c: Candle): void {
   if (!replaying) sim.setLast(c.c)
 }
 
+/** Reloj del próximo evento en la barra superior (T44): siempre con el último dato en vivo. */
+function paintClock(): void {
+  if (!replaying) setCalendarClock($('evclock'), latest.find((r) => r.agent_id === 'calendar'))
+}
+
 function paintAgents(): void {
   renderRiver($('river'), infos, latest, synthesis, tf)
   renderJournal($('journal'), journal)
@@ -108,6 +114,7 @@ async function loadAgents(signal: AbortSignal): Promise<void> {
     if ((e as Error).name === 'AbortError') return
     infos = []; latest = []; journal = []; synthesis = null
   }
+  paintClock()
   paintAgents()
 }
 
@@ -165,6 +172,7 @@ function onMsg(m: StreamMsg): void {
     synthesis = m.synthesis
     chart.layers.replace(m.overlays)
     journal = [...latest, ...journal].slice(0, 200)
+    paintClock()
     paintAgents()
     void loadTrades()
     void risk.reload()

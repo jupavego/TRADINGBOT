@@ -1,0 +1,35 @@
+{
+  "version": "risk_v2",
+  "description": "T44: igual que risk_v1 + event_size_factor 0.5 — dentro de una ventana pre/post-evento del calendario SIN blackout el riesgo por operación baja a la mitad (con blackout se veta, regla `evento`). Cambiar = nuevo archivo versionado.",
+  "risk_per_trade": 0.005,
+  "max_leverage": 3.0,
+  "max_notional_frac": 3.0,
+  "mmr": 0.005,
+  "min_liq_sl_ratio": 2.0,
+  "min_sl_frac": 0.001,
+  "max_sl_frac": 0.08,
+  "min_rr": 1.5,
+  "event_size_factor": 0.5,
+  "max_daily_loss": 0.02,
+  "max_weekly_loss": 0.05,
+  "max_open_trades": 2,
+  "max_open_per_symbol": 1,
+  "max_consecutive_losses": 3,
+  "cooldown_ms": 86400000,
+  "max_data_age_bars": 2.0,
+  "max_plan_age_bars": 2.0,
+  "max_degraded_agents": 1,
+  "critical_agents": [
+    "structure",
+    "levels",
+    "plan"
+  ],
+  "allowed_modes": [
+    "ANALISIS",
+    "SIMULADO",
+    "TESTNET"
+  ],
+  "kill_max_drawdown": 0.15,
+  "kill_max_disconnect_ms": 300000,
+  "kill_max_recon_drift": 0.01
+}

@@ -59,3 +59,7 @@ class Synthesis(Frozen):
     agreement: float = Field(ge=0, le=1)
     contributions: dict[str, float]
     thesis: str
+    # T44 (aditivos): peso base efectivo de cada agente que vota (peso × régimen × correlación;
+    # 0 = a la vista pero sin voto) y factores aplicados a la confianza ("desacuerdo", "evento").
+    weights: dict[str, float] = {}
+    factors: dict[str, float] = {}

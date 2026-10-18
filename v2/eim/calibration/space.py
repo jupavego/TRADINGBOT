@@ -84,7 +84,9 @@ def build(values: dict[str, float]) -> tuple[PlanParams, SynthesisParams, int]:
             plan[key] = int(round(v)) if isinstance(PlanParams.model_fields[key].default,
                                                     int) else float(v)
         elif key == "w_structure":
-            synth["weights"] = {"structure": float(v), "levels": 1.0}
+            # conserva los pesos vigentes de los demás agentes (T44: technical, smart_money)
+            synth["weights"] = {**SynthesisParams().weights, "structure": float(v),
+                                "levels": 1.0}
         elif grp == "synth":
             synth[key] = float(v)
         else:

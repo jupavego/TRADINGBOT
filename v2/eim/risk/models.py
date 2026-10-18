@@ -51,6 +51,8 @@ class MarketContext(BaseModel):
     agent_status: dict[str, str] = {}            # agent_id → ok | degraded | no_data
     blackout: bool = False                       # agente `calendar` (T36/T37)
     blackout_reason: str = ""
+    event_window: bool = False                   # ventana pre/post-evento sin blackout (T44)
+    event_reason: str = ""
     event_pause: bool = False                    # agente `context` (T24): solo añade pausas
     pause_reason: str = ""
 

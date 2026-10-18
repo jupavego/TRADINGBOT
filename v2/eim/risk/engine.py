@@ -69,8 +69,10 @@ class RiskEngine:
         sized: Sizing | str | None = None
         if all(c.ok for c in checks):
             entry = market.last_price or plan.entry    # se ejecutaría al precio actual
+            scale = self.config.event_size_factor if market.event_window else 1.0
             sized = ("capital ≤ 0" if account.equity <= 0 else
-                     size_position(plan.side, entry, plan.sl, account.equity, self.config))
+                     size_position(plan.side, entry, plan.sl, account.equity, self.config,
+                                   scale, market.event_reason))
             checks.append(Check(rule="tamaño", ok=isinstance(sized, Sizing),
                                 detail=sized if isinstance(sized, str) else
                                 f"{sized.size:.6g} a {sized.leverage:.0f}×"))

@@ -47,6 +47,9 @@ export const GLYPH: Record<string, string> = {
     '<rect x="25" y="26" width="5" height="5" class="f"/>',
   // Arbitraje: dos patas opuestas (compra / venta) entre dos mercados
   arbitrage: '<path d="M13 19h20l-4-4M35 29H15l4 4"/><circle cx="24" cy="24" r="1.8" class="f"/>',
+  // Smart money: líderes aprobados (nodo central y seguidores)
+  smart_money: '<circle cx="24" cy="17" r="4" class="f"/><circle cx="14" cy="32" r="3"/>' +
+    '<circle cx="34" cy="32" r="3"/><path d="M21 20l-5 9M27 20l5 9M17 32h14"/>',
   // Plan: retícula de objetivo
   plan: '<circle cx="24" cy="24" r="9"/><circle cx="24" cy="24" r="3" class="f"/>' +
     '<path d="M24 10v6M24 32v6M10 24h6M32 24h6"/>',

@@ -30,8 +30,10 @@ def max_safe_leverage(sl_frac: float, cfg: RiskConfig) -> float:
 
 
 def size_position(side: int, entry: float, sl: float, equity: float,
-                  cfg: RiskConfig) -> Sizing | str:
-    """Tamaño o motivo (str) de veto. Supone `side`, `entry`, `sl` ya validados."""
+                  cfg: RiskConfig, scale: float = 1.0, why: str = "") -> Sizing | str:
+    """Tamaño o motivo (str) de veto. Supone `side`, `entry`, `sl` ya validados.
+
+    `scale` (≤ 1) reduce el riesgo por operación (T44: ventana de evento; `why` = motivo)."""
     sl_dist = abs(entry - sl)
     sl_frac = sl_dist / entry
     lev = max_safe_leverage(sl_frac, cfg)
@@ -39,7 +41,10 @@ def size_position(side: int, entry: float, sl: float, equity: float,
         return f"SL a {sl_frac:.2%}: ningún apalancamiento ≥1× deja la liquidación a ≥" \
                f"{cfg.min_liq_sl_ratio:.1f}× la distancia del SL"
     notes: list[str] = []
-    notional = equity * cfg.risk_per_trade / sl_frac
+    if scale < 1:
+        notes.append(f"tamaño ×{scale:.2f} ({cfg.risk_per_trade * scale:.2%} de riesgo) por "
+                     f"{why or 'ventana de evento'}")
+    notional = equity * cfg.risk_per_trade * scale / sl_frac
     cap = min(equity * cfg.max_notional_frac, equity * lev)   # margen ≤ capital
     if notional > cap:
         notes.append(f"tamaño recortado por tope de nocional/apalancamiento "

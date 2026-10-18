@@ -19,6 +19,8 @@ PUBLISHED = {
         "89b35f701c2371f057b404a0b6f87498d7cdd662197b619b1d165e86c4852684",
     "risk/versions/risk_copy_v1.json":  # T42: carril de copy trading simulado
         "765aa312533d81eb5de09d82e17e3df2e9de35d1d21e28a5b0a861f9f49e0eda",
+    "risk/versions/risk_v2.json":  # T44: tamaño ×0.5 en ventana de evento (vigente)
+        "8b2f9b1203bd1a0e8ef205a7fc0b15d601d61bdf1a6285e62a2f63105ff42cf2",
 }
 
 
@@ -38,7 +40,8 @@ def test_published_version_unchanged(rel):
 
 def test_risk_config_hash_ignores_line_endings(tmp_path):
     from eim.risk import load_config
-    assert load_config().sha256 == PUBLISHED["risk/versions/risk_v1.json"]
-    crlf = tmp_path / "risk_v1.json"
-    crlf.write_bytes(_lf("risk/versions/risk_v1.json").replace(b"\n", b"\r\n"))
-    assert load_config(crlf).sha256 == PUBLISHED["risk/versions/risk_v1.json"]
+    assert load_config().sha256 == PUBLISHED["risk/versions/risk_v2.json"]
+    crlf = tmp_path / "risk_v2.json"
+    crlf.write_bytes(_lf("risk/versions/risk_v2.json").replace(b"\n", b"\r\n"))
+    assert load_config(crlf).sha256 == PUBLISHED["risk/versions/risk_v2.json"]
+    assert load_config(version="risk_v1").event_size_factor == 1.0   # v1 conserva su efecto

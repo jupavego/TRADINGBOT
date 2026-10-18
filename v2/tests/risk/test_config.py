@@ -11,7 +11,8 @@ from eim.risk.config import VERSIONS_DIR
 
 def test_default_config_loads_with_hash():
     cfg = load_config()
-    assert cfg.version == "risk_v1" and len(cfg.sha256) == 64
+    assert cfg.version == "risk_v2" and len(cfg.sha256) == 64
+    assert cfg.event_size_factor == 0.5   # T44: ventana de evento sin blackout
     assert "REAL" not in cfg.allowed_modes
 
 

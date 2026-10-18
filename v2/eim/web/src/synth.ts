@@ -7,9 +7,10 @@ export const PCT_NOTE = 'Proyección estimada: reparto de las contribuciones de 
   'agente en este marco temporal) entre subida y bajada. No es una probabilidad calibrada: el sistema aún no supera ' +
   'la puerta de edge (T27).'
 
-/** Hay desacuerdo si agentes con convicción apuntan en direcciones opuestas. */
-export function disagreeing(reports: AgentReport[]): { up: string[]; down: string[] } | null {
-  const act = reports.filter((r) => r.status !== 'no_data')
+/** Hay desacuerdo si agentes con convicción apuntan en direcciones opuestas. Con `syn`, solo
+ *  cuentan los que votan en la síntesis (los no direccionales o con peso 0 no contradicen). */
+export function disagreeing(reports: AgentReport[], syn?: Synthesis | null): { up: string[]; down: string[] } | null {
+  const act = reports.filter((r) => r.status !== 'no_data' && (!syn || r.agent_id in syn.contributions))
   const up = act.filter((r) => r.bias >= CONFLICT).map((r) => r.agent_id)
   const down = act.filter((r) => r.bias <= -CONFLICT).map((r) => r.agent_id)
   return up.length && down.length ? { up, down } : null

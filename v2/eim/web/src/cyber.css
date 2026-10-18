@@ -147,3 +147,12 @@
   :root[data-theme="cyber"] body::before { animation: none; display: none; }
 }
 
+/* T44: reloj de eventos y filtros del río */
+:root[data-theme="cyber"] .evclock { border-radius: 3px; background: rgba(var(--glow), .05); border-color: rgba(var(--glow), .35);
+  font-family: var(--f-display); font-size: 10.5px; letter-spacing: .08em; }
+:root[data-theme="cyber"] .evclock b { font-family: var(--f-num); font-size: 12px; letter-spacing: 0; }
+:root[data-theme="cyber"] .evclock[data-state="window"] { border-color: var(--warn); box-shadow: 0 0 10px color-mix(in srgb, var(--warn) 40%, transparent); }
+:root[data-theme="cyber"] .evclock[data-state="blackout"] { border-color: var(--down); box-shadow: 0 0 12px rgba(255, 61, 95, .45); }
+:root[data-theme="cyber"] .rfilt button { border-radius: 3px; font-family: var(--f-display); font-size: 9.5px; letter-spacing: .12em;
+  text-transform: uppercase; background: rgba(var(--glow), .04); border-color: rgba(var(--glow), .25); }
+:root[data-theme="cyber"] .rfilt button[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px rgba(var(--glow), .35); }
