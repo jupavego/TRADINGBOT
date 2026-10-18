@@ -6,6 +6,7 @@ from collections.abc import Callable, Sequence
 
 from eim.core import Candle
 from eim.paper.ideas import HOUR_MS, Idea, StrategyInfo, to_idea
+from eim.paper.params import ExecParams
 from eim.paper.strategies import CORE
 from eim.paper.strategies_ind import IND, Ind
 
@@ -15,14 +16,16 @@ CATALOG: dict[str, StrategyInfo] = {s.id: s for s in CORE + IND}
 def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str, bar_ms: int,
                    origin_of: Callable[[dict], str] | None = None,
                    catalog: dict[str, StrategyInfo] | None = None,
-                   timeframe: str = "1h", htf: Callable[[int], int] | None = None
-                   ) -> list[Idea]:
+                   timeframe: str = "1h", htf: Callable[[int], int] | None = None,
+                   exec_params: ExecParams | None = None) -> list[Idea]:
     """Todas las ideas candidatas, en orden de tiempo y de catálogo.
 
     `candles` = serie de decisión (1 h) que cubre los contextos; cada estrategia ve el índice de
-    la última vela cerrada en `ctx["t"]` (abrió en `t − bar_ms`), nunca una posterior.
+    la última vela cerrada en `ctx["t"]` (abrió en `t − bar_ms`), nunca una posterior. Cada idea
+    lleva la versión de su estrategia en ese marco con esa mecánica (`exec_params`, T49).
     """
     cat = catalog or CATALOG
+    vers = {info.id: info.version(timeframe, exec_params) for info in cat.values()}
     ind = Ind(candles)
     out: list[Idea] = []
     for raw in sorted(ctxs, key=lambda c: c["t"]):
@@ -40,7 +43,7 @@ def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str,
                 d = None   # contexto incompleto (versión vieja o agente sin datos)
             if d is None:
                 continue
-            idea = to_idea(info, d, ctx, symbol, origin)
+            idea = to_idea(info, d, ctx, symbol, origin, vers[info.id])
             if idea is not None:
                 out.append(idea)
     return out

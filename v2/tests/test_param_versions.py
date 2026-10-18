@@ -25,6 +25,8 @@ PUBLISHED = {
         "25ddd58223056d7b6c23548b56d440ee636a55540ee909200eab014a82a79e7b",
     "risk/versions/risk_arb_sim_v1.json":  # T45: arbitraje en el bróker simulado
         "ec1087e59466a25ec91846f840fc41feded0ea17f8ab0dc6339a12f55607ae0e",
+    "validation/versions/validation_v1.json":  # T49: criterios de la puerta de validación
+        "0a5b19962ded0d12dfdbccac0359f91c1bebf211ed891f7817c96667e01c30a8",
 }
 
 

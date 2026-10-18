@@ -37,6 +37,7 @@ class View:
     books: dict[str, ProfileState] = field(default_factory=dict)
     summary: dict = field(default_factory=dict)
     live_ctx: list[tuple[str, int]] = field(default_factory=list)   # velas decididas en vivo
+    path: Path | None = None        # camino de 15 m usado en la sombra (T49: réplica contraria)
 
 
 def strategy_infos(tfs: tuple[str, ...]) -> list[dict]:
@@ -60,6 +61,7 @@ class PaperDesk(DeskService):
         self.live_error = ""
         self.last_tick: int | None = None
         self.loop_started: int | None = None    # el servicio arrancó (aunque falte el 1er ciclo)
+        self.after_tick: list = []              # ganchos tras cada ciclo (T49: validación)
         self._cache: dict[str, View] = {}
         self._lock = threading.Lock()
 
@@ -96,11 +98,12 @@ class PaperDesk(DeskService):
             bar = tf_ms(tf)
             candles = self.store.read_candles(symbol, tf, start=ctxs[0]["t"] - WARMUP_BARS * bar)
             ideas += generate_ideas(ctxs, candles, symbol, bar, timeframe=tf,
-                                    htf=self._htf(symbol, tf, ctxs[0]["t"]))
+                                    htf=self._htf(symbol, tf, ctxs[0]["t"]),
+                                    exec_params=self.ep)
         t0 = min(firsts)
         pc = self.store.read_candles(symbol, self.ep.path_tf, start=t0 - tf_ms("4h"))
         funding = self.store.read_series("funding", symbol, start=t0 - FUNDING_MS)
-        path = Path(pc, funding, tf_ms(self.ep.path_tf))
+        path = v.path = Path(pc, funding, tf_ms(self.ep.path_tf))
         v.outcomes = run_shadow(ideas, path, self.ep)
         learner = Learner(v.outcomes)
         mmr = MMR.get(symbol, 0.005)

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-18T00:01:57",
+ "generated": "2026-10-18T09:55:43",
  "tasks": [
   {
    "id": "T01",
@@ -611,8 +611,8 @@ window.EIM_STATUS = {
     "T27",
     "T48"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "En curso: criterios v1 fijados en el commit 18e7283 antes de calcular; código de la puerta listo; falta historia completa e informe con datos reales.",
    "effort": "alto",
    "phase": 10,
    "goal": "Decidir, con criterios fijados antes de calcular, qué `estrategia@marco@versión` del bróker simulado tiene evidencia fuera de muestra suficiente (neta de costos, con drawdown y estabilidad aceptables) para alimentar «Operaciones sugeridas intradía»; ninguna estrategia se declara rentable solo porque ganó en un backtest, y «ninguna validada» es un resultado válido."

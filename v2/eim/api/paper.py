@@ -113,11 +113,12 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
         return {"job": desk.job.to_json(), "live": desk.live_status()}
 
     @router.post("/backtest")
-    def backtest(symbol: str = "BTCUSDT", days: float = Query(30, gt=0, le=365),
+    def backtest(symbol: str = "BTCUSDT", days: float = Query(30, gt=0, le=2000),
                  step: int = Query(1, ge=1, le=24), tf: str | None = None,
                  x_eim_confirm: str | None = Header(None)) -> dict:
         """Reconstruye en segundo plano los contextos de los últimos `days` días en los marcos
-        pedidos (`tf`: 15m,1h,4h; por defecto los tres; ≈1,5 s/vela por proceso)."""
+        pedidos (`tf`: 15m,1h,4h; por defecto los tres; ≈1,5 s/vela por proceso). Hasta 2000
+        días: todo el almacén (T49, historia para la validación); las ya hechas se saltan."""
         confirm(x_eim_confirm, "paper-backtest")
         _check(symbol)
         tfs = _tfs(desk, tf)
