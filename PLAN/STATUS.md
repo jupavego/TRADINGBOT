@@ -55,3 +55,7 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T49 | Puerta de validación por estrategia (criterios v1, versiones, registro de intentos) | T27 T48 | ☐ | |
 | T50 | Publicador de sugerencias validadas (`/v2/setups` + panel) | T49 | ☐ | |
 | T51 | Seguimiento de sugerencias publicadas + ciclo de mejora | T50 | ☐ | |
+| T52 | Biblioteca de trading: ingesta local, catálogo y fichas citadas | T05 | ☐ | |
+| T53 | Agente `literature`: reglas de los libros y apoyo a los escenarios | T52 T17 T34 | ☐ | |
+| T54 | Retroalimentación con evidencia: estrategias «literatura» y ajuste de escenarios | T53 T49 T19 | ☐ | |
+| T55 | Consulta a la biblioteca (LLM, solo informa) + panel | T52 T24 | ☐ | |
