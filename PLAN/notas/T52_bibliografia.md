@@ -1,14 +1,27 @@
-# T52 — Bibliografía base para los agentes bibliográficos (borrador 2026-10-18)
+# T52 — Bibliografía base para los agentes bibliográficos (actualizada 2026-10-18 tras la ingesta)
 
 Estado: **tengo** = en la carpeta `Books` del usuario · **DP** = dominio público en EE. UU. (publicado antes de 1931; confirmar en el país del usuario antes de descargar) · **abierto** = artículo de acceso libre · **conseguir** = comprar o prestar. Nada se descarga sin el visto bueno del usuario para cada archivo, y nunca copias no autorizadas.
 
 Prioridad para codificar (T53/T54): lo que el autor respalda con cifras y lo que tiene evidencia académica. Lo anecdótico informa, pero no se convierte en estrategia.
 
+## Primer lote: resultado de la ingesta (T52, 2026-10-18)
+`python -m eim.library ingest` sobre la carpeta `Books` (índice local en `v2/data/library/index/` del checkout principal; nada de esto se versiona). Páginas = del **archivo** (1 = primera), no las impresas: en Nison el desfase es variable (~14–20), en Murphy +37 en los caps. 4–9 y creciente después.
+| id | Págs. | Con texto | Notas |
+|---|---|---|---|
+| `nison_candles` | 298 | 292 | 6 sin texto (en blanco o figura). |
+| `murphy_ta` | 596 | 572 (OCR) | Escaneo CCITT de 1 bit (no JPEG); OCR con Tesseract 5.4 `eng`, ~3 s/página con caché por página; 24 sin texto (en blanco o solo figura). Calidad buena; algún error suelto (p. ej. «Jeader»). |
+| `douglas_zone` | 143 | 142 | El texto trae espacios dentro de palabras («ta ke»); la verificación de citas lo tolera. |
+| `douglas_disciplined` | 184 | 183 | Igual que el anterior. |
+| `steenbarger_coach` | 370 | 370 (2 OCR) | — |
+| `schwager_wizards_es` | 203 | 203 | **Traducción al español de procedencia no indicada** (cabecera «ProfitMindFX»; títulos de capítulo sin traducir, parece traducción automática). Las citas y paráfrasis se refieren a ese archivo, no a la edición original. |
+| `lefevre_reminiscences` | 269 | 269 | El libro termina hacia la p. 257; **las pp. 258–269 son artículos de revistas añadidos** (TRADERS', Active Trader —M. Covel—, boletín de la MTA), ajenos al libro y con derechos propios: no se citan (BACKLOG T52). Texto con letras separadas («m oney»). |
+`3.0 Japanese candelstick.crdownload` (otra copia de Nison) se omite. Fichas: 138 (`eim/library/cards/`), todas `borrador` y `verificada_en_texto` (`python -m eim.library verify`); 3 de ellas cruzan autores y señalan contradicciones (`cruces.json`).
+
 ## A. Análisis técnico clásico (reglas codificables)
 | Obra | Por qué sirve | Estado |
 |---|---|---|
-| Steve Nison, *Japanese Candlestick Charting Techniques*, 2.ª ed. (2001) | Patrones de velas con reglas de confirmación | tengo |
-| John J. Murphy, *Technical Analysis of the Financial Markets* (1999) | Manual de referencia: tendencia, niveles, osciladores, divergencias, volumen | tengo (escaneo: OCR) |
+| Steve Nison, *Japanese Candlestick Charting Techniques*, 2.ª ed. (2001) | Patrones de velas con reglas de confirmación | tengo · catalogado, 43 fichas |
+| John J. Murphy, *Technical Analysis of the Financial Markets* (1999) | Manual de referencia: tendencia, niveles, osciladores, divergencias, volumen | tengo · catalogado con OCR, 48 fichas |
 | Thomas N. Bulkowski, *Encyclopedia of Chart Patterns* (2.ª ed. 2005; 3.ª ed. 2021) | Estadísticas de acierto y fallo por patrón: lo más comprobable del género | conseguir |
 | Robert D. Edwards y John Magee, *Technical Analysis of Stock Trends* (1948; ediciones posteriores) | Origen de los patrones chartistas clásicos | conseguir |
 | Martin J. Pring, *Technical Analysis Explained* (5.ª ed. 2014) | Momento, ciclos y confirmación entre marcos | conseguir |
@@ -37,11 +50,11 @@ Prioridad para codificar (T53/T54): lo que el autor respalda con cifras y lo que
 ## D. Riesgo, tamaño y conducta del operador
 | Obra | Por qué sirve | Estado |
 |---|---|---|
-| Mark Douglas, *Trading in the Zone* (2000) | Pensamiento probabilístico, aceptación del riesgo | tengo |
-| Mark Douglas, *The Disciplined Trader* (1990) | Disciplina y conducta | tengo |
-| Brett N. Steenbarger, *The Daily Trading Coach* (2009) | Revisión del desempeño; encaja con el ciclo de mejora (T48/T51) | tengo |
-| Jack D. Schwager, *Market Wizards* (1989), en español | Principios de gestión del riesgo de operadores reales | tengo |
-| Edwin Lefèvre, *Reminiscences of a Stock Operator* (1923) | Principios clásicos de especulación | tengo (además DP) |
+| Mark Douglas, *Trading in the Zone* (2000) | Pensamiento probabilístico, aceptación del riesgo | tengo · catalogado, 8 fichas |
+| Mark Douglas, *The Disciplined Trader* (1990) | Disciplina y conducta | tengo · catalogado, 8 fichas |
+| Brett N. Steenbarger, *The Daily Trading Coach* (2009) | Revisión del desempeño; encaja con el ciclo de mejora (T48/T51) | tengo · catalogado, 11 fichas |
+| Jack D. Schwager, *Market Wizards* (1989), en español | Principios de gestión del riesgo de operadores reales | tengo · catalogado, 10 fichas (ver nota) |
+| Edwin Lefèvre, *Reminiscences of a Stock Operator* (1923) | Principios clásicos de especulación | tengo (además DP) · catalogado, 7 fichas (ver nota) |
 | Van K. Tharp, *Trade Your Way to Financial Freedom* (2.ª ed. 2006) | Expectativa y tamaño de posición en R | conseguir |
 | Ralph Vince, *The Mathematics of Money Management* (1992) | Fracción óptima y riesgo de ruina | conseguir |
 

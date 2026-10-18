@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-18T11:08:52",
+ "generated": "2026-10-18T14:21:51",
  "tasks": [
   {
    "id": "T01",
@@ -647,8 +647,8 @@ window.EIM_STATUS = {
    "deps": [
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**Construido; falta la revisión del usuario (◆).** Ingesta local `eim/data/library.py` + `library_extract.py` (pypdf, EPUB con stdlib, OCR Tesseract con caché por página), catálogo con SHA-256 y búsqueda BM25 propia (`eim/library/bm25.py`); CLI `python -m eim.library ingest|list|search|show|cards|verify|mark`; libros vía `EIM_LIBRARY_DIR`, índice local fuera de git. Los 7 libros catalogados (Murphy por OCR: 572/596 págs.). Esquema `KnowledgeCard` (`eim/library/schema.py`) con guardas de derechos de autor e inyección (`guards.py`). **138 fichas** en `eim/library/cards/` (Nison 43, Murphy 48, Douglas 8+8, Steenbarger 11, Schwager 10, Lefèvre 7, cruces 3), todas `borrador` y verificadas contra el texto (`verify`). Revisión: `PLAN/notas/T52_fichas_revision.md`. Tests en `tests/library/` (sintéticos, sin red). Pendientes en BACKLOG (T52).",
    "effort": "alto",
    "phase": 11,
    "goal": "Convertir los libros de trading del usuario (más obras de dominio público y artículos académicos abiertos) en **fichas de conocimiento** estructuradas, parafraseadas y citadas (libro, capítulo, página), que los agentes de T53–T55 puedan usar, sin que el texto de los libros entre al repositorio ni salga de la máquina."
