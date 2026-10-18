@@ -1,0 +1,99 @@
+{
+ "book_id": "lefevre_reminiscences",
+ "cards": [
+  {
+   "id": "lefevre_sitting_tight",
+   "title": "El dinero grande está en quedarse quieto",
+   "kind": "principio",
+   "claim": "El narrador aprende del viejo Partridge que el dinero grande no está en las fluctuaciones individuales sino en los movimientos principales: evaluar todo el mercado y su tendencia. Acertar es fácil; lo raro es acertar y mantenerse en la posición con paciencia, y eso fue lo que le hizo ganar, no su forma de pensar.",
+   "conditions": [{"indicator": "gestión de la posición", "rule": "mantener la posición mientras la tendencia principal siga vigente; no salir por fluctuaciones menores"}],
+   "expected_effect": {"direction": "continuacion"},
+   "author_evidence": "relato autobiográfico novelado (anecdótica)",
+   "citations": [{"book_id": "lefevre_reminiscences", "chapter": "V", "pages": [55], "terms": ["sitting tight", "main movements"]}],
+   "quote": "It never was my thinking that made the big money for me. It always was my sitting.",
+   "applicability": {"original_market": ["acciones"], "timeframe": "movimientos principales (meses)", "crypto_24_7": "supuesto: en BTC la «tendencia principal» de 4 h/diario; la regla choca con salidas por tiempo cortas"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_trending_trading_units", "relation": "apoya"}]
+  },
+  {
+   "id": "lefevre_pyramid_on_profits",
+   "title": "No ampliar hasta que la primera compra gane",
+   "kind": "gestion_riesgo",
+   "claim": "No comprar toda la posición de una vez: tras la primera operación, no hacer una segunda salvo que la primera muestre ganancia; si la primera pierde, uno está equivocado, al menos por ahora, y no tiene sentido comprar más. Tampoco aconseja piramidar sin fin, sino entrar por partes con el mercado confirmando.",
+   "conditions": [{"indicator": "ampliación", "rule": "añadir a la posición solo si la parte ya abierta está en ganancia; nunca promediar a la baja"}],
+   "author_evidence": "relato autobiográfico (anecdótica)",
+   "citations": [{"book_id": "lefevre_reminiscences", "chapter": "VII", "pages": [72, 73], "terms": ["unless the first shows you a profit"]}],
+   "applicability": {"original_market": ["acciones"], "timeframe": "especulación de días a semanas", "crypto_24_7": "supuesto: aplicable con el límite de exposición del motor de riesgo"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_pyramiding", "relation": "apoya"}]
+  },
+  {
+   "id": "lefevre_never_too_high",
+   "title": "Nunca demasiado alto para comprar ni demasiado bajo para vender",
+   "kind": "regla",
+   "claim": "El narrador nunca compra porque algo parezca barato: las acciones nunca están demasiado altas para empezar a comprar ni demasiado bajas para empezar a vender. El precio por sí mismo no dice nada; lo que manda es la dirección de la menor resistencia.",
+   "conditions": [{"indicator": "entrada", "rule": "no usar «barato/caro» como razón de entrada; comprar fortaleza (rupturas) y vender debilidad"}],
+   "expected_effect": {"direction": "continuacion"},
+   "author_evidence": "relato autobiográfico (anecdótica)",
+   "citations": [{"book_id": "lefevre_reminiscences", "chapter": "VII", "pages": [72, 73], "terms": ["never buy stocks cheap", "never too high"]}, {"book_id": "lefevre_reminiscences", "chapter": "X", "pages": [103], "terms": ["never too high to buy"]}],
+   "applicability": {"original_market": ["acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: se prueba como entrada por ruptura frente a entrada por reversión"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_weekly_rule", "relation": "apoya"}]
+  },
+  {
+   "id": "lefevre_line_of_least_resistance",
+   "title": "Operar en la línea de menor resistencia",
+   "kind": "regla",
+   "claim": "El especulador debe esperar a que la línea de menor resistencia se defina, cuando el precio rompe la barrera de un rango porque compras o ventas pasan a dominar, y entonces operar en esa dirección. Quienes quedaron del lado equivocado empujan el precio al cerrar; las noticias suelen confirmar una tendencia que ya existía.",
+   "conditions": [{"indicator": "rango", "rule": "esperar la ruptura del límite del rango (ofertas absorbidas) y operar en su dirección; no anticiparla"}],
+   "expected_effect": {"direction": "continuacion"},
+   "author_evidence": "relato autobiográfico con ejemplos (anecdótica)",
+   "citations": [{"book_id": "lefevre_reminiscences", "chapter": "X", "pages": [102, 103], "terms": ["line of least resistance"]}],
+   "applicability": {"original_market": ["acciones", "materias primas"], "timeframe": "días a semanas", "crypto_24_7": "supuesto: equivale a una ruptura de rango; aplicable en 1 h/4 h"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_rectangle", "relation": "apoya"}, {"id": "steenbarger_coach_trend_not_friend", "relation": "contradice"}]
+  },
+  {
+   "id": "lefevre_bull_in_bull_market",
+   "title": "Alcista en mercado alcista, bajista en bajista",
+   "kind": "principio",
+   "claim": "Lo primero es determinar qué tipo de mercado se opera: todo el conjunto se mueve con la corriente principal, así que hay que ser alcista en mercado alcista y bajista en bajista. El dinero grande está en el gran movimiento, cuya continuidad depende de las condiciones de fondo, no de las manipulaciones.",
+   "conditions": [{"indicator": "régimen", "rule": "sesgo de las operaciones = dirección del mercado general (tendencia mayor)"}],
+   "expected_effect": {"direction": "continuacion"},
+   "author_evidence": "relato autobiográfico (anecdótica)",
+   "citations": [{"book_id": "lefevre_reminiscences", "chapter": "VIII", "pages": [74, 75], "terms": ["bullish in a bull market", "big swing"]}],
+   "applicability": {"original_market": ["acciones"], "timeframe": "movimientos principales", "crypto_24_7": "supuesto: aplicable a BTC con la tendencia de 4 h/diario"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "nison_trade_with_major_trend", "relation": "apoya"}]
+  },
+  {
+   "id": "lefevre_hope_and_fear",
+   "title": "Esperanza y miedo, invertidos",
+   "kind": "psicologia",
+   "claim": "Los enemigos del especulador están dentro: con el mercado en contra, la esperanza le hace perder más de la cuenta; a favor, el miedo le hace salir demasiado pronto. Hay que invertir los impulsos: temer que la pérdida crezca y esperar que la ganancia se haga grande. Más adelante enumera ignorancia, codicia, miedo y esperanza.",
+   "conditions": [{"indicator": "gestión", "rule": "cerrar perdedoras según regla y no recortar ganadoras sin regla"}],
+   "author_evidence": "relato autobiográfico (anecdótica)",
+   "citations": [{"book_id": "lefevre_reminiscences", "chapter": "X", "pages": [109], "terms": ["hope and to fear"]}, {"book_id": "lefevre_reminiscences", "chapter": "XXIII", "pages": [246], "terms": ["deadly enemies"]}],
+   "applicability": {"original_market": ["acciones", "materias primas"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplica al operador humano; el sistema lo resuelve con stop y objetivos fijados de antemano"},
+   "testable": false,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "douglas_zone_trading_errors", "relation": "apoya"}]
+  },
+  {
+   "id": "lefevre_tips_and_tape",
+   "title": "Desconfiar de soplos y opiniones; no discutir con la cinta",
+   "kind": "advertencia",
+   "claim": "El narrador se vuelve independiente de soplos y opiniones ajenas y no discute con la cinta: enfadarse con el mercado porque va en contra es inútil. Avisa de que la desinformación deliberada, como las noticias alcistas difundidas para colocar papel, es más insidiosa que los soplos corrientes.",
+   "author_evidence": "relato autobiográfico (anecdótica)",
+   "citations": [{"book_id": "lefevre_reminiscences", "chapter": "VIII", "pages": [74], "terms": ["argue with the tape"]}, {"book_id": "lefevre_reminiscences", "chapter": "XXIII", "pages": [246], "terms": ["misinformation"]}],
+   "applicability": {"original_market": ["acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: refuerza que el agente de contexto (LLM) solo informa y nunca abre operaciones"},
+   "testable": false,
+   "verification": "verificada_en_texto"
+  }
+ ]
+}

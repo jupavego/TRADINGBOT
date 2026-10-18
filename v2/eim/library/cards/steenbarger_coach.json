@@ -1,0 +1,142 @@
+{
+ "book_id": "steenbarger_coach",
+ "cards": [
+  {
+   "id": "steenbarger_coach_process_goals",
+   "title": "Metas de proceso y boletín diario",
+   "kind": "psicologia",
+   "claim": "Cada sesión debe tener una meta concreta sobre un proceso que uno controla (no un objetivo de ganancias), acciones para lograrla y una autoevaluación al cierre a modo de boletín de notas. Si la nota es mala, mejorar eso pasa a ser la meta del día siguiente; nunca operar sin trabajar en algún aspecto.",
+   "conditions": [{"indicator": "bitácora", "rule": "registrar por sesión una meta de proceso y su calificación al cierre"}],
+   "author_evidence": "práctica de coaching del autor (psicólogo)",
+   "citations": [{"book_id": "steenbarger_coach", "chapter": "1 Change (Lesson 6)", "pages": [39], "terms": ["report card", "trading process"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "sesión diaria", "crypto_24_7": "supuesto: en 24/7 la «sesión» es un bloque fijo (p. ej. día UTC); útil para el ciclo de mejora T51"},
+   "testable": false,
+   "verification": "verificada_en_texto"
+  },
+  {
+   "id": "steenbarger_coach_process_over_outcome",
+   "title": "Juzgar el trading por el proceso, no por el resultado",
+   "kind": "principio",
+   "claim": "Se puede operar bien (tomar setups con ventaja demostrada, dimensionar y gestionar el riesgo) aunque la operación salga mal: incluso una ventaja de 60/40 por operación garantiza rachas de pérdidas. Definir el buen y el mal trading por el proceso, y no solo por la ganancia del día, permite ver las fortalezas en plena racha mala.",
+   "author_evidence": "argumento del autor",
+   "citations": [{"book_id": "steenbarger_coach", "chapter": "4 Steps toward Self-Improvement (Lesson 35)", "pages": [132], "terms": ["60 to 40 edge", "process"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: la retroalimentación del bróker simulado separa causa del resultado (T48) en ese sentido"},
+   "testable": false,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "douglas_zone_probabilistic_edge", "relation": "apoya"}]
+  },
+  {
+   "id": "steenbarger_coach_pressing",
+   "title": "«Presionar»: forzar operaciones tras la frustración",
+   "kind": "psicologia",
+   "claim": "Presionar es forzar operaciones para ganar: operar demasiado grande o demasiado a menudo, intentando que pasen cosas en lugar de esperar a que el mercado ofrezca la oportunidad. Suele aparecer tras pérdidas, oportunidades perdidas o una curva plana; el antídoto son reglas de tamaño, stop, entrada y tendencia convertidas en hábito.",
+   "conditions": [{"indicator": "actividad", "rule": "alerta si tras una pérdida o un periodo plano suben el número de operaciones o el tamaño por encima de lo habitual"}],
+   "author_evidence": "observación clínica del autor",
+   "citations": [{"book_id": "steenbarger_coach", "chapter": "2 Stress and Distress (Lesson 15)", "pages": [65, 66], "terms": ["pressing", "trading too large"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "intradía", "crypto_24_7": "supuesto: medible en la bitácora del bróker simulado (frecuencia y tamaño tras pérdidas)"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "douglas_disciplined_revenge", "relation": "apoya"}]
+  },
+  {
+   "id": "steenbarger_coach_rule_governed",
+   "title": "Consistencia por reglas (y la de 2:1)",
+   "kind": "regla",
+   "claim": "Las reglas son el puente entre conductas nuevas y hábitos; el operador inconsistente suele ser el de reglas más laxas. Ejemplo del autor: no entrar sin medir antes el stop y el objetivo y tener una relación beneficio/riesgo de 2:1 o mejor, lo que frena entrar tarde en un movimiento. Los criterios de setup deben ser reglas firmes.",
+   "conditions": [{"indicator": "plan", "rule": "entrar solo si objetivo / distancia al stop ≥ 2", "threshold": "≥ 2:1"}],
+   "author_evidence": "ejemplos del autor",
+   "citations": [{"book_id": "steenbarger_coach", "chapter": "4 Steps toward Self-Improvement (Lesson 37)", "pages": [138, 139], "terms": ["rule-governed", "2:1"]}],
+   "applicability": {"original_market": ["acciones", "índices"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: la relación debe medirse neta de costos del perpetuo"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_reward_risk", "relation": "apoya"}]
+  },
+  {
+   "id": "steenbarger_coach_track_results",
+   "title": "Llevar el marcador y compararse con la propia norma",
+   "kind": "regla",
+   "claim": "Métricas esenciales: curva de capital, número de ganadoras y perdedoras, tamaño medio de unas y otras, resultado medio por operación y variabilidad de los retornos diarios. Lo útil es compararlas con la propia historia: si los resultados caen claramente por debajo de lo normal, reducir el tamaño y diagnosticar; no reaccionar a cada oscilación, porque mucho es azar.",
+   "conditions": [{"indicator": "métricas móviles", "rule": "acierto, ganancia y pérdida medias, expectativa y volatilidad de la estrategia frente a su banda histórica"}, {"indicator": "acción", "rule": "si la desviación negativa supera la variación habitual → reducir tamaño y revisar; si es positiva → aislar qué funciona"}],
+   "author_evidence": "práctica del autor; menciona simulaciones de curvas de capital",
+   "citations": [{"book_id": "steenbarger_coach", "chapter": "8 Coaching Your Trading Business (Lesson 74)", "pages": [256, 257, 258], "terms": ["keep score", "equity curve"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cuenta", "crypto_24_7": "supuesto: encaja con el seguimiento de sugerencias y el ciclo de mejora (T51)"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "steenbarger_coach_risk_follows_performance", "relation": "complementa"}]
+  },
+  {
+   "id": "steenbarger_coach_small_edge",
+   "title": "Ventajas pequeñas suman; el tamaño decide el drawdown",
+   "kind": "gestion_riesgo",
+   "claim": "En una simulación del autor, 52 % de acierto con ganancias 1,10 veces las pérdidas dio en torno a +3 % en 100 días, y 48 % con 0,90, −3 %: poca distancia separa una ventaja positiva de una negativa. Triplicar el tamaño con esa ventaja eleva el drawdown a ~12 % y multiplicarlo por diez, a más del 40 %.",
+   "conditions": [{"indicator": "tamaño", "rule": "dimensionar para que el drawdown esperable de la ventaja medida sea tolerable; recalcular si la ventaja cambia"}],
+   "author_evidence": "simulación del autor con P/L Forecaster de H. Carstens (10 corridas por escenario, 100 días)",
+   "citations": [{"book_id": "steenbarger_coach", "chapter": "8 Coaching Your Trading Business (Lesson 77)", "pages": [268, 269], "terms": ["small edges over time add up", "drawdowns"]}],
+   "applicability": {"original_market": ["futuros (S&P e-mini)"], "timeframe": "diario", "crypto_24_7": "supuesto: el razonamiento es general; las cifras son de su simulación, no de BTC"},
+   "testable": true,
+   "verification": "verificada_en_texto"
+  },
+  {
+   "id": "steenbarger_coach_risk_follows_performance",
+   "title": "Arriesgar más cuando se fluye y menos cuando se decae",
+   "kind": "gestion_riesgo",
+   "claim": "Un operador entrevistado puntúa su disciplina de entrada y salida y exige el 90 % de los puntos: entre 85 y 90 % busca causas y corrige, bajo 85 % deja de operar; también mide qué parte del movimiento posible captura (~65 %). Cuando su ejecución fluye es más agresivo; cuando decae, recorta el riesgo.",
+   "conditions": [{"indicator": "disciplina", "rule": "puntuación de cumplimiento del plan; < 90 % → revisar, < 85 % → pausa", "threshold": "90 % / 85 %"}, {"indicator": "captura", "rule": "fracción capturada del movimiento máximo (MFE); muy por debajo del ~65 % habitual → señal de decaimiento"}],
+   "author_evidence": "prácticas de un operador profesional entrevistado por el autor (anecdótica)",
+   "citations": [{"book_id": "steenbarger_coach", "chapter": "9 Lessons from Trading Professionals (Lesson 88)", "pages": [313], "terms": ["90 percent threshold", "65 percent"]}],
+   "applicability": {"original_market": ["acciones", "futuros"], "timeframe": "cuenta", "crypto_24_7": "supuesto: MFE/MAE ya se registran en el bróker simulado (T47)"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_size_after_streaks", "relation": "contradice"}]
+  },
+  {
+   "id": "steenbarger_coach_journal_metrics",
+   "title": "Bitácora indexada y «calor» de las operaciones",
+   "kind": "regla",
+   "claim": "Indexar la bitácora por estrategia, mercado, condición, hora del día y tamaño para consultar resultados por situación. Comparar ganadoras y perdedoras por separado: cuánta pérdida flotante («calor») soportan y cuánto tardan en llegar al máximo; con eso se fijan reglas de cuándo y dónde cortar las perdedoras.",
+   "conditions": [{"indicator": "MAE y tiempo a MAE", "rule": "comparar la distribución de MAE y del tiempo hasta MAE en ganadoras vs perdedoras para fijar stop y salida por tiempo"}],
+   "author_evidence": "prácticas de profesionales citadas por el autor",
+   "citations": [{"book_id": "steenbarger_coach", "chapter": "9 Lessons from Trading Professionals (Lesson 85)", "pages": [302], "terms": ["time of day", "indexing system"]}, {"book_id": "steenbarger_coach", "chapter": "9 Lessons from Trading Professionals (Lesson 90)", "pages": [324], "terms": ["maximum heat"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "intradía", "crypto_24_7": "supuesto: directamente aplicable con los datos de MFE/MAE del bróker simulado"},
+   "testable": true,
+   "verification": "verificada_en_texto"
+  },
+  {
+   "id": "steenbarger_coach_patterns_are_hypotheses",
+   "title": "Los patrones históricos son hipótesis, no conclusiones",
+   "kind": "advertencia",
+   "claim": "Una pauta del pasado sirve para formular hipótesis que se comprueban operando, no para operar a ciegas: los patrones dependen del periodo estudiado. Si se generan muchas hipótesis, algunas parecerán buenas por azar; deben tener sentido y ser simples. Cita a Aronson: de más de 6.000 indicadores técnicos probados, ninguno predijo con significancia.",
+   "author_evidence": "investigación propia del autor y estudio de Aronson citado",
+   "citations": [{"book_id": "steenbarger_coach", "chapter": "10 Looking for the Edge (Lessons 91–92)", "pages": [328, 329, 330], "terms": ["6,000 technical indicators", "hypotheses"]}],
+   "applicability": {"original_market": ["acciones (S&P 500)"], "timeframe": "diario", "crypto_24_7": "supuesto: motivo de que toda ficha pase por la puerta T49 (Holm sobre todos los intentos)"},
+   "testable": false,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_optimize_out_of_sample", "relation": "apoya"}]
+  },
+  {
+   "id": "steenbarger_coach_trend_not_friend",
+   "title": "«La tendencia es tu amiga», puesta en duda",
+   "kind": "advertencia",
+   "claim": "Según la investigación del autor en el S&P 500, los retornos tras días, semanas y meses alcistas fueron peores que tras los bajistas, y comprar tras periodos alcistas rindió por debajo del mercado: la estrategia obvia falla por obvia. Desde 1980, estar por encima o por debajo de la media de 200 sesiones apenas cambió el retorno siguiente (8,68 % frente a 7,32 %).",
+   "conditions": [{"indicator": "retorno previo", "rule": "comparar retornos futuros tras periodos alcistas vs bajistas en varios horizontes"}],
+   "expected_effect": {"direction": "giro", "horizon": "días a meses (S&P 500)"},
+   "author_evidence": "estudios del autor en su blog TraderFeed (S&P 500 desde 1980)",
+   "citations": [{"book_id": "steenbarger_coach", "chapter": "4 Steps toward Self-Improvement (Lesson 37)", "pages": [138, 139], "terms": ["obvious strategy fails"]}, {"book_id": "steenbarger_coach", "chapter": "10 Looking for the Edge (Lesson 91)", "pages": [328], "terms": ["the trend is your friend", "200-day moving average"]}],
+   "applicability": {"original_market": ["acciones (S&P 500)"], "timeframe": "diario a mensual", "crypto_24_7": "supuesto: BTC puede comportarse distinto (la literatura académica encuentra momento en cripto); es exactamente lo que hay que medir"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_dow_trend_persists", "relation": "contradice"}, {"id": "lefevre_line_of_least_resistance", "relation": "contradice"}]
+  },
+  {
+   "id": "steenbarger_coach_worst_trades",
+   "title": "Autopsia de las peores decisiones",
+   "kind": "psicologia",
+   "claim": "Las peores decisiones no son necesariamente las mayores pérdidas: se reconocen por la reacción «¿cómo pude hacer eso?». Conviene revisarlas reconstruyendo qué se pensaba y sentía en ese momento para identificar el patrón (por ejemplo, no querer perder ganancias en papel o buscar el golpe de suerte) que tomó el control.",
+   "author_evidence": "método cognitivo del autor",
+   "citations": [{"book_id": "steenbarger_coach", "chapter": "6 Remapping the Mind (Lesson 53)", "pages": [190, 191], "terms": ["worst trading decisions"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: análogo sistemático: revisar las operaciones de peor causa en la bitácora (T48)"},
+   "testable": false,
+   "verification": "verificada_en_texto"
+  }
+ ]
+}

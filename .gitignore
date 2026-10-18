@@ -13,5 +13,10 @@ build/
 v2/reports/calibration/cache/
 v2/data/
 
+# T52: libros del usuario (copias propias, solo uso local); en git solo van las fichas parafraseadas
+v2/**/*.pdf
+v2/**/*.epub
+*.crdownload
+
 # T32: copias de seguridad locales (pueden contener el historial de operación)
 v2/backups/

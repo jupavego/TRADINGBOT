@@ -1,0 +1,102 @@
+{
+ "book_id": "douglas_disciplined",
+ "cards": [
+  {
+   "id": "douglas_disciplined_unstructured_market",
+   "title": "Mercado sin estructura: hacen falta reglas propias",
+   "kind": "principio",
+   "claim": "El mercado es un entorno sin estructura, como un río que fluye sin principio ni fin: la operación empieza cuando uno entra y termina solo cuando uno sale. En un entorno así, ilimitado, es imprescindible establecer reglas que guíen la conducta y asumir toda la responsabilidad por los resultados.",
+   "author_evidence": "marco conceptual del autor",
+   "citations": [{"book_id": "douglas_disciplined", "chapter": "5 Prices Are in Perpetual Motion", "pages": [44], "terms": ["no beginning"]}, {"book_id": "douglas_disciplined", "chapter": "6 The Market Is an Unstructured Environment", "pages": [49], "terms": ["establish rules"]}],
+   "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: más marcado en BTC 24/7 (ni siquiera hay cierre de sesión)"},
+   "testable": false,
+   "verification": "verificada_en_texto"
+  },
+  {
+   "id": "douglas_disciplined_typical_errors",
+   "title": "Diez errores típicos del operador",
+   "kind": "psicologia",
+   "claim": "Lista del autor: negarse a definir una pérdida, no liquidar una perdedora aunque ya se sabe que su potencial cayó, aferrarse a una opinión sobre la dirección, mirar el dinero en lugar del comportamiento del mercado, operar por venganza, no girarse ante un cambio claro, no seguir las reglas del sistema, paralizarse ante la señal y devolver en una o dos operaciones lo ganado en meses.",
+   "conditions": [{"indicator": "bitácora", "rule": "detectar desvíos observables: operación sin stop, posición mantenida tras invalidación, tamaño mayor tras una pérdida, regla del sistema ignorada"}],
+   "author_evidence": "experiencia del autor como operador y formador",
+   "citations": [{"book_id": "douglas_disciplined", "chapter": "2 Why a New Thinking Methodology?", "pages": [27], "terms": ["refusing to define a loss", "revenge"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: para el operador humano; parte se puede vigilar en la bitácora del bróker simulado"},
+   "testable": false,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "douglas_zone_trading_errors", "relation": "apoya"}]
+  },
+  {
+   "id": "douglas_disciplined_revenge",
+   "title": "La venganza tras perder más de lo previsto",
+   "kind": "psicologia",
+   "claim": "Si una operación pierde más de lo que se pensaba arriesgar y no se asume, el operador intenta «recuperarlo»: tras perder 20 ticks, un beneficio de 10 ya no le parece suficiente aunque el mercado indique que es todo lo que queda. Eso lo pone en contra del mercado y de sí mismo y le hace ignorar la información disponible.",
+   "conditions": [{"indicator": "operación previa", "rule": "si la última pérdida superó el riesgo planificado, no ampliar objetivos ni tamaño en la siguiente para «recuperar»"}],
+   "author_evidence": "ejemplo del autor (anecdótica)",
+   "citations": [{"book_id": "douglas_disciplined", "chapter": "5 Prices Are in Perpetual Motion", "pages": [47, 48], "terms": ["revenge", "lost 20 ticks"]}],
+   "applicability": {"original_market": ["futuros"], "timeframe": "intradía", "crypto_24_7": "supuesto: regla de conducta aplicable a los perfiles del bróker simulado"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "schwager_wizards_es_losing_streaks", "relation": "apoya"}]
+  },
+  {
+   "id": "douglas_disciplined_loss_rules",
+   "title": "Reglas 1 y 2: predefinir la pérdida y ejecutarla de inmediato",
+   "kind": "gestion_riesgo",
+   "claim": "Regla 1: predefinir en cada operación qué tiene que hacer el mercado para indicar que ya no es una oportunidad en el marco operado. Regla 2: ejecutar la operación perdedora en cuanto se percibe que lo es. Así no queda nada que sopesar ni con qué tentarse, y uno queda disponible para la siguiente oportunidad, aunque sea en la misma dirección.",
+   "conditions": [{"indicator": "invalidación", "rule": "condición de mercado que invalida la idea, definida antes de entrar (no solo una cantidad de dinero)"}, {"indicator": "ejecución", "rule": "salir en cuanto se cumple la invalidación, sin esperar"}],
+   "author_evidence": "reglas del autor",
+   "citations": [{"book_id": "douglas_disciplined", "chapter": "16 The Steps to Success", "pages": [170, 171], "terms": ["predefine what a loss is", "execute your losing trades immediately"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: en el sistema, la invalidación del escenario (T17) y el stop del plan cumplen esta función"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "douglas_zone_predefine_risk", "relation": "apoya"}, {"id": "schwager_wizards_es_stop_where_wrong", "relation": "apoya"}]
+  },
+  {
+   "id": "douglas_disciplined_rules_over_money",
+   "title": "Seguir las reglas importa más que ganar",
+   "kind": "principio",
+   "claim": "Para el autor es más importante saber que siempre se seguirán las reglas que ganar dinero, porque lo que se gane sin esa disciplina se devolverá al mercado. Las reglas son transitorias: cambian a medida que se aprende, pero mientras rigen se cumplen.",
+   "author_evidence": "criterio del autor",
+   "citations": [{"book_id": "douglas_disciplined", "chapter": "16 The Steps to Success", "pages": [167, 168], "terms": ["follow your rules", "self-trust"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: coherente con versionar las estrategias (T49): cambiar una regla es una versión nueva"},
+   "testable": false,
+   "verification": "verificada_en_texto"
+  },
+  {
+   "id": "douglas_disciplined_one_pattern",
+   "title": "Ser experto en un solo patrón de comportamiento",
+   "kind": "regla",
+   "claim": "Al empezar, más información no es mejor: genera confusión y pérdidas. El autor aconseja elegir un sistema simple, preferiblemente mecánico, que identifique un patrón que se repita con cierta frecuencia, entenderlo por completo y dejar pasar las demás oportunidades hasta dominarlo.",
+   "conditions": [{"indicator": "alcance", "rule": "operar un único patrón bien definido y dejar pasar el resto hasta tener evidencia suficiente sobre él"}],
+   "author_evidence": "criterio del autor",
+   "citations": [{"book_id": "douglas_disciplined", "chapter": "16 The Steps to Success", "pages": [172], "terms": ["expert at just one", "simple trading system"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: argumento para que T53/T54 empiecen con pocas fichas codificadas"},
+   "testable": false,
+   "verification": "verificada_en_texto"
+  },
+  {
+   "id": "douglas_disciplined_missed_opportunities",
+   "title": "No hay oportunidades perdidas",
+   "kind": "psicologia",
+   "claim": "Creer en las oportunidades perdidas causa, según el autor, casi tanto daño como no aceptar una pérdida: empuja a forzar la siguiente operación. Como el precio está en movimiento perpetuo, siempre habrá otra oportunidad; perseguir la que se fue no es necesario.",
+   "conditions": [{"indicator": "entrada tardía", "rule": "si la señal se perdió, no entrar más tarde a peor precio fuera de las reglas; esperar la siguiente"}],
+   "author_evidence": "criterio del autor",
+   "citations": [{"book_id": "douglas_disciplined", "chapter": "16 The Steps to Success", "pages": [169], "terms": ["missed opportunities", "perpetual motion"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplicable; en el bróker simulado una orden límite no llenada simplemente caduca"},
+   "testable": false,
+   "verification": "verificada_en_texto"
+  },
+  {
+   "id": "douglas_disciplined_tuition_capital",
+   "title": "Operar solo dinero que se puede perder",
+   "kind": "gestion_riesgo",
+   "claim": "Solo hay que operar dinero que uno puede permitirse perder: cuanto menos significado tenga ese dinero, menos contaminan la lectura del mercado las propias preguntas de «cuánto es suficiente». El autor sugiere reservar un capital como matrícula de aprendizaje.",
+   "conditions": [{"indicator": "capital", "rule": "capital de operación separado y asumible como pérdida total"}],
+   "author_evidence": "consejo atribuido por el autor a los operadores exitosos",
+   "citations": [{"book_id": "douglas_disciplined", "chapter": "5 Prices Are in Perpetual Motion", "pages": [44], "terms": ["afford to lose"]}, {"book_id": "douglas_disciplined", "chapter": "16 The Steps to Success", "pages": [170], "terms": ["tuition"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cuenta", "crypto_24_7": "supuesto: coherente con «sin dinero real hasta pasar la puerta de edge y el paper trading» (CLAUDE.md)"},
+   "testable": false,
+   "verification": "verificada_en_texto"
+  }
+ ]
+}

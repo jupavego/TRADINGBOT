@@ -1,0 +1,133 @@
+{
+ "book_id": "schwager_wizards_es",
+ "cards": [
+  {
+   "id": "schwager_wizards_es_cut_losses",
+   "title": "Cortar pérdidas y dejar correr las ganancias",
+   "kind": "gestion_riesgo",
+   "claim": "Es la regla más repetida por los entrevistados: Marcus la llama quizá la más importante (mantener las ganadoras y cortar las perdedoras, ambas por igual); Seykota resume los elementos del buen trading como cortar pérdidas tres veces, y sus reglas son cortar pérdidas, dejar correr las ganancias y mantener apuestas pequeñas.",
+   "author_evidence": "testimonios de operadores entrevistados (anecdótica, sin auditar)",
+   "citations": [{"book_id": "schwager_wizards_es", "chapter": "Michael Marcus", "pages": [36], "terms": ["cortar a sus perdedores"]}, {"book_id": "schwager_wizards_es", "chapter": "Ed Seykota", "pages": [119, 120], "terms": ["perdidas de corte", "apuestas pequenas"]}],
+   "applicability": {"original_market": ["futuros", "divisas"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: principio general; ya incorporado en el stop obligatorio de los planes"},
+   "testable": false,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "nison_protective_stops", "relation": "apoya"}, {"id": "lefevre_hope_and_fear", "relation": "apoya"}]
+  },
+  {
+   "id": "schwager_wizards_es_stop_where_wrong",
+   "title": "El stop va donde la idea queda invalidada",
+   "kind": "gestion_riesgo",
+   "claim": "Kovner decide el punto de salida antes de entrar y evalúa el riesgo de toda la cartera, sobre todo con posiciones correlacionadas. Moraleja de Schwager: poner el stop donde, si se alcanza, indique razonablemente que la operación está mal, no donde marque la pérdida máxima por contrato; si eso implica mucha pérdida por contrato, operar menos contratos.",
+   "conditions": [{"indicator": "stop", "rule": "en el nivel técnico que invalida la tesis, no en una distancia monetaria fija"}, {"indicator": "tamaño", "rule": "tamaño = riesgo máximo en dinero / distancia al stop; riesgo medido a nivel de cartera"}],
+   "author_evidence": "práctica de Bruce Kovner y comentario de Schwager",
+   "citations": [{"book_id": "schwager_wizards_es", "chapter": "Bruce Kovner", "pages": [65], "terms": ["punto de salida", "menor de contratos"]}],
+   "applicability": {"original_market": ["divisas", "futuros"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: aplicable; el motor de riesgo ya fija el tamaño a partir del stop"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_stop_placement", "relation": "apoya"}]
+  },
+  {
+   "id": "schwager_wizards_es_one_percent_risk",
+   "title": "No arriesgar más del 1 % por operación",
+   "kind": "gestion_riesgo",
+   "claim": "Larry Hite (Mint): nunca arriesgar más del 1 % del capital total en una operación, para ser indiferente a cada una; mantener el riesgo pequeño y constante y ajustar el tamaño si cambia el capital. Distingue apuestas buenas, malas, ganadoras y perdedoras: una apuesta 50/50 que paga 2 por 1 es buena aunque se pierda.",
+   "conditions": [{"indicator": "riesgo por operación", "rule": "pérdida al stop ≤ 1 % del capital; recalcular el tamaño con cada cambio de capital", "threshold": "1 %"}],
+   "author_evidence": "regla declarada por Larry Hite en la entrevista",
+   "citations": [{"book_id": "schwager_wizards_es", "chapter": "Larry Hite", "pages": [132], "terms": ["1 por ciento", "ganadoras y perdedoras"]}],
+   "applicability": {"original_market": ["futuros"], "timeframe": "cuenta", "crypto_24_7": "supuesto: más estricto que el 5 % de Murphy; el motor de riesgo vigente fija su propio límite"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_position_limits", "relation": "contradice"}, {"id": "douglas_zone_probabilistic_edge", "relation": "apoya"}]
+  },
+  {
+   "id": "schwager_wizards_es_losing_streaks",
+   "title": "Ante una racha perdedora: reducir o parar",
+   "kind": "gestion_riesgo",
+   "claim": "Varios entrevistados coinciden en reducir o parar ante una racha perdedora. Seykota baja la actividad y llama letal a «ponerse al día», y es más agresivo tras ganar y menos tras perder. Dennis reduce o para en las rachas y aprendió a dejar tiempo tras una pérdida que desestabiliza y a no doblar para recuperar; O'Neil revisa todo tras 5 o 6 pérdidas seguidas.",
+   "conditions": [{"indicator": "racha", "rule": "tras N pérdidas consecutivas (5–6 según O'Neil) o una pérdida desestabilizadora → reducir tamaño o pausar", "threshold": "5–6 pérdidas seguidas"}, {"indicator": "recuperación", "rule": "prohibido aumentar el tamaño para recuperar pérdidas"}],
+   "author_evidence": "testimonios de varios operadores (anecdótica)",
+   "citations": [{"book_id": "schwager_wizards_es", "chapter": "Richard Dennis", "pages": [70], "terms": ["recuperar las perdidas"]}, {"book_id": "schwager_wizards_es", "chapter": "Richard Dennis", "pages": [80], "terms": ["racha perdedora"]}, {"book_id": "schwager_wizards_es", "chapter": "Ed Seykota", "pages": [119, 120], "terms": ["ponerse al dia", "mas agresivo"]}, {"book_id": "schwager_wizards_es", "chapter": "William O'Neil", "pages": [165], "terms": ["cinco o seis perdidas consecutivas"]}],
+   "applicability": {"original_market": ["futuros", "acciones"], "timeframe": "cuenta", "crypto_24_7": "supuesto: comparable con la pausa por expectativa negativa de los perfiles (T48b)"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_size_after_streaks", "relation": "contradice"}, {"id": "douglas_disciplined_revenge", "relation": "apoya"}]
+  },
+  {
+   "id": "schwager_wizards_es_overtrading_costs",
+   "title": "Sistemas que operan demasiado: los costos mandan",
+   "kind": "advertencia",
+   "claim": "Bielfeldt revisó sistemas vendidos al público y vio que operaban demasiado: con tanta frecuencia los costos de transacción hunden la probabilidad de que funcionen, y un sistema de tendencia viable debe ser de medio a largo plazo. Seykota añade que la rentabilidad de los sistemas de tendencia va por ciclos: su éxito atrae usuarios y, cuando el mercado se vuelve lateral, dejan de ganar.",
+   "conditions": [{"indicator": "costos", "rule": "rechazar estrategias cuya ganancia bruta por operación no supere con margen el costo total (comisión + deslizamiento + funding)"}],
+   "author_evidence": "opiniones de los entrevistados (anecdótica)",
+   "citations": [{"book_id": "schwager_wizards_es", "chapter": "Gary Bielfeldt", "pages": [106], "terms": ["costos de transaccion", "mediano a largo plazo"]}, {"book_id": "schwager_wizards_es", "chapter": "Ed Seykota", "pages": [118], "terms": ["ciclos"]}],
+   "applicability": {"original_market": ["futuros"], "timeframe": "diario", "crypto_24_7": "supuesto: muy relevante: en el bróker simulado los costos explicaron ≥ 84 % de la pérdida (T47)"},
+   "testable": true,
+   "verification": "verificada_en_texto"
+  },
+  {
+   "id": "schwager_wizards_es_seykota_priorities",
+   "title": "Prioridades de Seykota: tendencia, patrón, punto de entrada",
+   "kind": "regla",
+   "claim": "Seykota ordena su trading así: primero la tendencia de largo plazo, luego el patrón gráfico actual y después un buen punto para comprar o vender; lo fundamental queda muy lejos. Sus compras se activan con un stop por encima del mercado, donde espera impulso a favor; no intenta acertar suelos ni techos.",
+   "conditions": [{"indicator": "tendencia larga", "rule": "solo operar a favor de la tendencia de largo plazo"}, {"indicator": "entrada", "rule": "orden stop por encima (debajo) del mercado para entrar con impulso, no en retrocesos"}],
+   "expected_effect": {"direction": "continuacion"},
+   "author_evidence": "método declarado por Ed Seykota (rendimiento de cuentas citado por Schwager, sin auditar)",
+   "citations": [{"book_id": "schwager_wizards_es", "chapter": "Ed Seykota", "pages": [118], "terms": ["tendencia a largo plazo", "patron grafico actual"]}],
+   "applicability": {"original_market": ["futuros"], "timeframe": "diario (sistema computarizado)", "crypto_24_7": "supuesto: aplicable en 4 h/1 h con entrada por ruptura"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_weekly_rule", "relation": "apoya"}, {"id": "lefevre_never_too_high", "relation": "apoya"}]
+  },
+  {
+   "id": "schwager_wizards_es_volume_in_bases",
+   "title": "Volumen que se seca en la base y crece en la ruptura",
+   "kind": "regla",
+   "claim": "David Ryan: cuando un valor que sube consolida, el volumen debe secarse; cuando vuelve a crecer suele estar listo para arrancar. Un volumen muy alto sostenido en la consolidación hace pensar en techo. Si tras la compra el precio vuelve a caer dentro de la base, vender al menos la mitad: suele ir al extremo inferior.",
+   "conditions": [{"indicator": "volumen en consolidación", "rule": "volumen decreciente durante la base y creciente en la ruptura"}, {"indicator": "fallo", "rule": "precio de vuelta dentro de la base tras la ruptura → reducir la posición"}],
+   "expected_effect": {"direction": "continuacion"},
+   "author_evidence": "práctica de David Ryan (método CANSLIM de O'Neil)",
+   "citations": [{"book_id": "schwager_wizards_es", "chapter": "David Ryan", "pages": [178], "terms": ["consolidarse", "volumen"]}],
+   "applicability": {"original_market": ["acciones"], "timeframe": "diario y semanal", "crypto_24_7": "supuesto: trasladable a BTC con el volumen del perpetuo"},
+   "testable": true,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "murphy_flags_pennants", "relation": "apoya"}]
+  },
+  {
+   "id": "schwager_wizards_es_no_impulsive_trades",
+   "title": "Las operaciones impulsivas son las que más fallan",
+   "kind": "psicologia",
+   "claim": "La peor operación de Kovner nació de una decisión impulsiva; Schwager afirma, por su experiencia, que probablemente no haya clase de operaciones con más fracasos que las impulsivas (no confundir con las intuitivas). Elegida una estrategia, hay que ceñirse al plan.",
+   "conditions": [{"indicator": "origen de la operación", "rule": "toda operación debe salir de una regla del plan; las manuales fuera de plan se registran aparte"}],
+   "author_evidence": "experiencia de Kovner y del autor",
+   "citations": [{"book_id": "schwager_wizards_es", "chapter": "Bruce Kovner", "pages": [65], "terms": ["impulsivas"]}],
+   "applicability": {"original_market": ["todos"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: en el sistema, solo publican sugerencias las estrategias validadas (T50)"},
+   "testable": false,
+   "verification": "verificada_en_texto"
+  },
+  {
+   "id": "schwager_wizards_es_flexibility",
+   "title": "Flexibilidad: cambiar de opinión con la evidencia",
+   "kind": "principio",
+   "claim": "Paul Tudor Jones pasó de muy bajista a alcista en dos semanas porque el mercado no siguió la caída en el precio y el tiempo que esperaba: abandonó su posición y se unió al otro lado. Schwager destaca esa flexibilidad extrema como base de su éxito.",
+   "conditions": [{"indicator": "expectativa de precio y tiempo", "rule": "si el mercado no hace lo esperado en el plazo previsto, cerrar la idea (salida por tiempo)"}],
+   "author_evidence": "observación de Schwager durante la entrevista (anecdótica)",
+   "citations": [{"book_id": "schwager_wizards_es", "chapter": "Paul Tudor Jones", "pages": [89], "terms": ["flexibilidad"]}],
+   "applicability": {"original_market": ["índices bursátiles"], "timeframe": "corto plazo", "crypto_24_7": "supuesto: equivale a la salida por tiempo de los planes del bróker simulado"},
+   "testable": true,
+   "verification": "verificada_en_texto"
+  },
+  {
+   "id": "schwager_wizards_es_journal",
+   "title": "Diario con gráfico y razones de cada operación",
+   "kind": "psicologia",
+   "claim": "David Ryan guarda un diario: en cada compra anota en el gráfico sus razones y, al cerrar o ampliar, añade un gráfico nuevo con comentarios. Su consejo principal para el novato es aprender de los errores; su peor periodo llegó al romper su propia regla de no comprar acciones sobreextendidas.",
+   "conditions": [{"indicator": "bitácora", "rule": "registrar en cada entrada, ampliación y salida el gráfico y la razón"}],
+   "author_evidence": "práctica de David Ryan",
+   "citations": [{"book_id": "schwager_wizards_es", "chapter": "David Ryan", "pages": [180, 181], "terms": ["errores", "diario"]}],
+   "applicability": {"original_market": ["acciones"], "timeframe": "cualquier marco", "crypto_24_7": "supuesto: la bitácora del bróker simulado ya guarda razón y contexto por operación"},
+   "testable": false,
+   "verification": "verificada_en_texto",
+   "related": [{"id": "steenbarger_coach_journal_metrics", "relation": "apoya"}]
+  }
+ ]
+}
