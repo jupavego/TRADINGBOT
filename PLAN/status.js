@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-18T00:01:57",
+ "generated": "2026-10-18T11:08:52",
  "tasks": [
   {
    "id": "T01",
@@ -640,6 +640,59 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 10,
    "goal": "Registrar cada oportunidad que el panel publica, resolver qué habría ocurrido con ella y comparar señal contra resultado, para que el ciclo de mejora (diagnóstico → versión nueva → nueva validación en T49) se alimente de lo que de verdad se mostró y para retirar a tiempo una estrategia que se degrada."
+  },
+  {
+   "id": "T52",
+   "title": "Biblioteca de trading: ingesta local, catálogo y fichas citadas",
+   "deps": [
+    "T05"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 11,
+   "goal": "Convertir los libros de trading del usuario (más obras de dominio público y artículos académicos abiertos) en **fichas de conocimiento** estructuradas, parafraseadas y citadas (libro, capítulo, página), que los agentes de T53–T55 puedan usar, sin que el texto de los libros entre al repositorio ni salga de la máquina."
+  },
+  {
+   "id": "T53",
+   "title": "Agente literature: reglas de los libros y apoyo a los escenarios",
+   "deps": [
+    "T52",
+    "T17",
+    "T34"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 11,
+   "goal": "Un agente puro que evalúa sobre el `MarketSnapshot` las fichas codificables de la biblioteca (T52) y dice qué reglas de la literatura están activas ahora y si **apoyan o contradicen cada uno de los 3 escenarios** de la proyección, siempre con su cita (autor, libro, página). Informa; no cambia probabilidades ni publica sugerencias."
+  },
+  {
+   "id": "T54",
+   "title": "Retroalimentación con evidencia: estrategias «literatura» y ajuste de escenarios",
+   "deps": [
+    "T53",
+    "T49",
+    "T19"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 11,
+   "goal": "Que lo que dicen los libros pase de opinión a evidencia por dos caminos, ambos fuera de muestra y con criterios fijados antes de calcular: (a) cada regla comprobable se vuelve **estrategia candidata** del bróker simulado y la puerta T49 decide; (b) el apoyo bibliográfico de T53 **retroalimenta las probabilidades de los escenarios** solo si mejora su calibración. Si ninguno mejora nada, ese es el resultado y se informa tal cual."
+  },
+  {
+   "id": "T55",
+   "title": "Consulta a la biblioteca (LLM, solo informa) + panel",
+   "deps": [
+    "T52",
+    "T24"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 11,
+   "goal": "Poder preguntar en lenguaje natural «¿qué dice la literatura sobre la situación actual o sobre este escenario?» y recibir una respuesta breve con citas verificables a fichas y páginas de los libros locales. Solo informa: nunca ejecuta, nunca fija tamaño ni cambia probabilidades."
   }
  ]
 };
