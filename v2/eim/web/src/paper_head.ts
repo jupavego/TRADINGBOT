@@ -22,7 +22,18 @@ export function liveStrip(v: PaperSummary, now = Date.now()): string {
       (to === null ? '' : ` · última ${hm(to)} UTC · próxima ${next! + (TF_MS[tf] ?? 0) <= now ? 'atrasada (poniéndose al día)' : next! <= now ? 'en análisis' : `${hm(next!)} UTC`}`) + '</span>'
   }).join('')
   const err = v.live.error ? ` <span class="down">· ${esc(v.live.error)}</span>` : ''
-  return `<span class="pp-live-dot" data-state="${state}"><i></i>${label}${err}</span>${tfs}`
+  return `<span class="pp-live-dot" data-state="${state}"><i></i>${label}${err}</span>${tfs}${viewNote(v, now)}`
+}
+
+/** Antigüedad de la vista: con un backtest en curso las cifras pueden ir unos minutos atrasadas. */
+function viewNote(v: PaperSummary, now: number): string {
+  const s = v.view
+  if (!s) return ''
+  const age = `cifras calculadas hace ${dur(now - s.computed)}`
+  const why = s.refreshing ? 'recalculando con los datos nuevos'
+    : v.job.state === 'corriendo' ? 'con el backtest en curso se rehacen cada 10 min' : 'se rehacen en la próxima carga'
+  const err = s.error ? ` · error al recalcular: ${esc(s.error)}` : ''
+  return s.stale || err ? `<span class="pp-tf"><span class="warn">${age} · ${why}${err}</span></span>` : `<span class="pp-tf">${age}</span>`
 }
 
 export function covText(v: PaperSummary): string {

@@ -27,16 +27,19 @@ from eim.paper.trend import HtfTrend
 
 MMR = {"BTCUSDT": 0.004, "ETHUSDT": 0.005}     # tramo bajo de Binance (supuesto, = simulador)
 FUNDING_MS = 8 * 3_600_000
+BUSY_REFRESH_MS = 10 * 60_000   # con un backtest en curso la vista se rehace como mucho cada 10 min
 
 
 @dataclass
 class View:
     symbol: str
     stamp: tuple
+    computed: int = 0               # cuándo se calculó (la API avisa si está desfasada)
     outcomes: list[Outcome] = field(default_factory=list)
     books: dict[str, ProfileState] = field(default_factory=dict)
     summary: dict = field(default_factory=dict)
     live_ctx: list[tuple[str, int]] = field(default_factory=list)   # velas decididas en vivo
+    path: Path | None = None        # camino de 15 m usado en la sombra (T49: réplica contraria)
 
 
 def strategy_infos(tfs: tuple[str, ...]) -> list[dict]:
@@ -60,18 +63,26 @@ class PaperDesk(DeskService):
         self.live_error = ""
         self.last_tick: int | None = None
         self.loop_started: int | None = None    # el servicio arrancó (aunque falte el 1er ciclo)
+        self.after_tick: list = []              # ganchos tras cada ciclo (T49: validación)
         self._cache: dict[str, View] = {}
         self._lock = threading.Lock()
+        self._busy: dict[str, threading.Event] = {}    # recálculos en segundo plano en curso
+        self._busy_lock = threading.Lock()
+        self.view_error = ""
 
     def live_status(self) -> dict:
         return {"last_tick": self.last_tick, "started": self.loop_started, "error": self.live_error}
 
     # --- cálculo ----------------------------------------------------------------------
-    def view(self, symbol: str) -> View:
+    def _stamp(self, symbol: str) -> tuple:
         b = self.store.bounds(symbol, self.ep.path_tf)
         f = self.store.read_series("funding", symbol, last=1)
-        stamp = (tuple(self.pstore.stamp(symbol, tf) for tf in self.tfs), b,
-                 f[-1][0] if f else None)
+        return (tuple(self.pstore.stamp(symbol, tf) for tf in self.tfs), b,
+                f[-1][0] if f else None)
+
+    def view(self, symbol: str) -> View:
+        """Vista al día; si hay datos nuevos la recalcula y espera (la usa la validación)."""
+        stamp = self._stamp(symbol)
         with self._lock:
             v = self._cache.get(symbol)
             if v is None or v.stamp != stamp:
@@ -79,9 +90,52 @@ class PaperDesk(DeskService):
                 self._cache[symbol] = v
             return v
 
+    def cached_view(self, symbol: str, wait_s: float = 0.0) -> View | None:
+        """Vista para la API sin quedarse colgada: con datos nuevos lanza el recálculo en segundo
+        plano y espera hasta `wait_s`; si no termina, entrega la última calculada (desfasada) o
+        None si aún no hay ninguna. Con un backtest en curso cada contexto nuevo cambia los datos:
+        la vista se rehace como mucho cada `BUSY_REFRESH_MS`."""
+        v = self._cache.get(symbol)
+        if v is not None and (v.stamp == self._stamp(symbol) or self._throttled(v)):
+            return v
+        done = self._refresh(symbol)
+        done.wait(wait_s)
+        return self._cache.get(symbol)
+
+    def view_state(self, v: View) -> dict:
+        """Frescura de la vista entregada: cuándo se calculó, si ya hay datos más nuevos y si se
+        está rehaciendo."""
+        return {"computed": v.computed, "stale": v.stamp != self._stamp(v.symbol),
+                "refreshing": v.symbol in self._busy, "error": self.view_error}
+
+    def _throttled(self, v: View) -> bool:
+        return self.job.state == "corriendo" and now_ms() - v.computed < BUSY_REFRESH_MS
+
+    def _refresh(self, symbol: str) -> threading.Event:
+        """Un solo recálculo en segundo plano por símbolo; devuelve su señal de fin."""
+        with self._busy_lock:
+            ev = self._busy.get(symbol)
+            if ev is not None:
+                return ev
+            ev = self._busy[symbol] = threading.Event()
+
+        def work() -> None:
+            try:
+                self.view(symbol)
+                self.view_error = ""
+            except Exception as exc:  # el hilo nunca tumba la API: la vista lo muestra
+                self.view_error = f"{type(exc).__name__}: {exc}"
+            finally:
+                with self._busy_lock:
+                    self._busy.pop(symbol, None)
+                ev.set()
+
+        threading.Thread(target=work, name=f"eim-paper-view-{symbol}", daemon=True).start()
+        return ev
+
     def _compute(self, symbol: str, stamp: tuple) -> View:
         by_tf = {tf: self.pstore.load(symbol, tf) for tf in self.tfs}
-        v = View(symbol, stamp)
+        v = View(symbol, stamp, computed=now_ms())
         v.live_ctx = [(tf, int(c["t"])) for tf, cs in by_tf.items() for c in cs
                       if c.get("origin") == "vivo"]
         infos = strategy_infos(self.tfs)
@@ -96,11 +150,12 @@ class PaperDesk(DeskService):
             bar = tf_ms(tf)
             candles = self.store.read_candles(symbol, tf, start=ctxs[0]["t"] - WARMUP_BARS * bar)
             ideas += generate_ideas(ctxs, candles, symbol, bar, timeframe=tf,
-                                    htf=self._htf(symbol, tf, ctxs[0]["t"]))
+                                    htf=self._htf(symbol, tf, ctxs[0]["t"]),
+                                    exec_params=self.ep)
         t0 = min(firsts)
         pc = self.store.read_candles(symbol, self.ep.path_tf, start=t0 - tf_ms("4h"))
         funding = self.store.read_series("funding", symbol, start=t0 - FUNDING_MS)
-        path = Path(pc, funding, tf_ms(self.ep.path_tf))
+        path = v.path = Path(pc, funding, tf_ms(self.ep.path_tf))
         v.outcomes = run_shadow(ideas, path, self.ep)
         learner = Learner(v.outcomes)
         mmr = MMR.get(symbol, 0.005)

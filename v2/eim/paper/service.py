@@ -42,7 +42,7 @@ class Job:
 
 class DeskService:
     """Mezcla para `PaperDesk`: espera `store`, `pstore`, `gens`, `tfs`, `ep`, `provider`,
-    `symbols`, `poll_s`, `job`, `last_tick`, `live_error`."""
+    `symbols`, `poll_s`, `job`, `last_tick`, `live_error`, `after_tick`."""
 
     def _origin_for(self, tf: str):
         bar = tf_ms(tf)
@@ -142,4 +142,9 @@ class DeskService:
             except Exception as exc:  # red caída: se reintenta en el siguiente ciclo
                 self.live_error = f"{type(exc).__name__}: {exc}"
                 self._beat(0)
+            for hook in self.after_tick:   # p. ej. la validación al cierre de cada vela de 4 h
+                try:
+                    await asyncio.to_thread(hook)
+                except Exception as exc:  # un gancho nunca detiene el servicio
+                    self.live_error = f"{type(exc).__name__}: {exc}"
             await asyncio.sleep(self.poll_s)

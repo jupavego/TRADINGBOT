@@ -7,6 +7,9 @@ import math
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
+from eim.paper.params import ExecParams
+from eim.paper.versioning import rules_fingerprint, version_of
+
 HOUR_MS = 3_600_000
 
 
@@ -51,11 +54,17 @@ class Idea:
     origin: str = "backtest"     # backtest (reconstruida) | vivo (decidida en tiempo real)
     timeframe: str = "1h"        # marco de decisión (T48)
     htf: int = 0                 # +1 a favor de la tendencia del marco mayor, −1 en contra (T48b)
+    version: str = ""            # huella de reglas + mecánica (T49, `versioning.py`)
 
     @property
     def sid(self) -> str:
         """Estrategia en su marco: la unidad que se evalúa y se pondera (T48)."""
         return f"{self.strategy}@{self.timeframe}"
+
+    @property
+    def vid(self) -> str:
+        """estrategia@marco@huella: la unidad que se valida (T49); la evidencia no se mezcla."""
+        return f"{self.sid}@{self.version}"
 
     @property
     def rr(self) -> float:
@@ -68,7 +77,8 @@ class Idea:
                 "symbol": self.symbol, "t": self.t, "side": self.side, "kind": self.kind,
                 "entry": self.entry, "sl": self.sl, "tp": self.tp, "fill_ms": self.fill_ms,
                 "hold_ms": self.hold_ms, "conf": self.conf, "rr": self.rr, "why": list(self.why),
-                "syn_bias": self.syn_bias, "regime": self.regime, "origin": self.origin}
+                "syn_bias": self.syn_bias, "regime": self.regime, "origin": self.origin,
+                "version": self.version}
 
 
 Fn = Callable[[dict, object, int], "Draft | None"]
@@ -85,6 +95,10 @@ class StrategyInfo:
     def to_json(self) -> dict:
         return {"id": self.id, "name": self.name, "family": self.family,
                 "description": self.description}
+
+    def version(self, timeframe: str = "1h", ep: ExecParams | None = None) -> str:
+        """Huella de reglas y parámetros + mecánica del marco (T49): cambia = versión nueva."""
+        return version_of(self.id, self.family, rules_fingerprint(self.fn), timeframe, ep)
 
 
 def sign(x: float) -> int:
@@ -106,7 +120,8 @@ def atr_draft(side: int, ctx: dict, sl_k: float, tp_k: float, conf: float,
                  key=key)
 
 
-def to_idea(info: StrategyInfo, d: Draft, ctx: dict, symbol: str, origin: str) -> Idea | None:
+def to_idea(info: StrategyInfo, d: Draft, ctx: dict, symbol: str, origin: str,
+            version: str = "") -> Idea | None:
     entry = d.entry if d.entry is not None else ctx.get("close")
     if not finite(entry, d.sl, d.tp) or entry <= 0:
         return None
@@ -121,4 +136,5 @@ def to_idea(info: StrategyInfo, d: Draft, ctx: dict, symbol: str, origin: str) -
         sl=float(d.sl), tp=float(d.tp), fill_ms=int(d.fill_h * HOUR_MS) if d.kind == "limit" else 0,
         hold_ms=int(hold_h * HOUR_MS), conf=max(0.0, min(1.0, float(d.conf))), why=d.why,
         key=d.key, syn_bias=float(syn.get("bias") or 0.0), regime=ctx.get("regime"),
-        origin=origin, timeframe=tf, htf=int(ctx.get("htf_dir") or 0) * d.side)
+        origin=origin, timeframe=tf, htf=int(ctx.get("htf_dir") or 0) * d.side,
+        version=version)

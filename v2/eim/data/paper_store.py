@@ -72,6 +72,17 @@ class PaperStore:
                 "GROUP BY origin", [symbol, timeframe]).fetchall()
         return {str(o): int(n) for o, n in rows}
 
+    def execute(self, sql: str, params: list | tuple = ()) -> list[tuple]:
+        """SQL sobre la misma conexión (otras tablas del laboratorio, p. ej. la validación T49:
+        DuckDB admite un solo proceso escritor, así que se comparte conexión y candado)."""
+        with self._lock:
+            return self._con.execute(sql, list(params)).fetchall()
+
+    def executemany(self, sql: str, rows: list[tuple]) -> None:
+        if rows:
+            with self._lock:
+                self._con.executemany(sql, rows)
+
     def close(self) -> None:
         with self._lock:
             self._con.close()

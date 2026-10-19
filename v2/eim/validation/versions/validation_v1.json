@@ -1,0 +1,47 @@
+{
+  "version": "validation_v1",
+  "description": "Criterios v1 de la puerta de validación por estrategia@marco@versión (T49). Fijados ANTES del primer cálculo con datos reales; cambiar cualquier umbral = archivo nuevo validation_v2.",
+  "scope": "Solo operaciones sombra CERRADAS en exit_t <= asof, FUERA DE MUESTRA (decisión fuera de toda ventana de ajuste de la versión y de sus ancestros) y NETAS de comisiones, deslizamiento y funding.",
+  "v1_data": {
+    "min_trades": 100,
+    "min_regimes": 2,
+    "min_per_regime": 20
+  },
+  "v2_expectancy": {
+    "boot_reps": 5000,
+    "level": 0.95
+  },
+  "v3_random": {
+    "min_reps": 500,
+    "reps_per_attempt": 40,
+    "alpha": 0.05
+  },
+  "v4_drawdown": {
+    "risk_per_trade": 0.01,
+    "max_dd": 0.25
+  },
+  "v5_stability": {
+    "window_days": 30,
+    "window_min_trades": 5,
+    "min_windows": 4,
+    "min_positive_frac": 0.6,
+    "live_min_trades": 20
+  },
+  "v6_costs": {
+    "max_cost_r": 0.3
+  },
+  "clear_negative": {
+    "z": 1.0,
+    "min_trades": 20
+  },
+  "seed": 0,
+  "notes": [
+    "V2: IC del R medio neto por bootstrap de bloques de día UTC de la decisión (percentiles); cumple si el extremo inferior > 0.",
+    "V3: estadístico = R medio neto. Réplica: cada operación con su lado al azar (p = 1/2); el lado contrario refleja entrada, SL y TP alrededor del precio de referencia de la decisión (misma fecha, misma distancia, mismos costos); si no se llenaría aporta 0 R y si sigue abierta en asof, su R latente. Réplicas = max(min_reps, reps_per_attempt x intentos registrados). p unilateral con corrección +1, ajustado por Holm sobre TODOS los intentos registrados (también los retirados), cada uno con su último p bruto (sin p = 1).",
+    "V4: curva compuesta en orden de cierre, capital x (1 + risk_per_trade x R) por operación; DD = máxima caída desde el pico.",
+    "V5: ventanas disjuntas de window_days días ancladas en la primera decisión fuera de muestra; solo cuentan las ventanas con >= window_min_trades operaciones. Tramo en vivo = origin 'vivo'; con menos de live_min_trades queda pendiente (no falla).",
+    "V6: costo por operación = (comisión de entrada + de salida + deslizamiento + funding pagado) / riesgo, en R.",
+    "Claramente negativa: con >= min_trades, R medio + z x error estándar (desviación muestral / raíz de n) < 0 => RECHAZADA en cualquier momento.",
+    "Veredicto: VALIDADA si V1-V6 se cumplen. EN OBSERVACIÓN si falla V1 o el tramo en vivo está pendiente y nada indica pérdida clara. RECHAZADA si es claramente negativa o si, con V1 cumplido, falla cualquier otro criterio."
+  ]
+}

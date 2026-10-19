@@ -3,7 +3,7 @@ import { fetchSnapshot, openStream, symbolPicker, type StreamHandle } from './ap
 import { PaperArb } from './paper_arb'
 import { balanceView } from './paper_balance'
 import { EquityChart, PaperPriceChart } from './paper_chart'
-import { esc, getPaper, postPaper, px, usd } from './paper_fmt'
+import { esc, getPaper, PaperError, postPaper, px, usd } from './paper_fmt'
 import { acctHtml, cardsHtml, covText, jobHtml, liveStrip } from './paper_head'
 import { PaperJournal } from './paper_journal'
 import { PaperLearn } from './paper_learn'
@@ -16,6 +16,7 @@ import type { StreamMsg } from './types'
 const TABS: [string, string][] = [['live', 'Señales en vivo'], ['pos', 'Posiciones'], ['ord', 'Órdenes abiertas'], ['hist', 'Historial'],
   ['log', 'Bitácora'], ['learn', 'Aprendizaje'], ['prof', 'Perfiles'], ['arb', 'Arbitraje']]
 const POLL_MS = 60_000
+const RETRY_MS = 8_000            // vista aún calculándose (503) o rehaciéndose: vuelve a pedirla pronto
 const LIVE_MS = 15_000            // repinta la franja «en vivo» (hace X s)
 const CHART_TFS = ['15m', '1h', '4h']
 const KEY = 'eim.paper.v2'          // v2: la pestaña inicial pasa a «Señales en vivo» (T48c)
@@ -49,6 +50,7 @@ const TEMPLATE = `
     <h4 class="sh">Capital por perfil</h4><div class="pp-eqleg" data-x="eqleg"></div><div class="pp-eq" data-x="eq"></div>
   </aside>
 </div>
+<p class="alert" data-x="msg" role="status" hidden></p>
 <nav class="tabs pp-tabs" role="tablist">${TABS.map(([id, t]) => `<button role="tab" data-t="${id}" aria-selected="${id === 'live'}">${t}<small data-n="${id}"></small></button>`).join('')}</nav>
 <div class="pp-body" data-x="body"></div>`
 
@@ -69,6 +71,7 @@ export class PaperView {
   private eq: EquityChart | null = null
   private stream: StreamHandle | null = null
   private timer: number | undefined
+  private retry: number | undefined
   private journal: PaperJournal | null = null
   private learn: PaperLearn | null = null
   private live: PaperLive | null = null
@@ -105,7 +108,7 @@ export class PaperView {
     this.open = show
     this.root.hidden = !show
     document.getElementById('app')!.dataset.view = show ? 'paper' : 'desk'
-    if (!show) { this.stream?.close(); this.stream = null; clearInterval(this.timer); clearInterval(this.liveTimer); return }
+    if (!show) { this.stream?.close(); this.stream = null; clearInterval(this.timer); clearInterval(this.liveTimer); clearTimeout(this.retry); return }
     if (!this.chart) this.build()
     if (symbol && symbol !== this.symbol && !this.v) this.symbol = symbol
     this.pickSymbol()
@@ -166,6 +169,8 @@ export class PaperView {
 
   async reload(): Promise<void> {
     if (!this.open) return
+    clearTimeout(this.retry)
+    const msg = this.q('msg')
     try {
       const [v, t] = await Promise.all([
         getPaper<PaperSummary>(`?symbol=${this.symbol}`),
@@ -174,11 +179,18 @@ export class PaperView {
       this.v = v; this.trades = t.trades
       if (!v.profiles.some((p) => p.id === this.profile)) this.profile = v.profiles[0]?.id ?? this.profile
     } catch (e) {
-      this.q('body').innerHTML = `<p class="alert bad">No se pudo cargar el bróker simulado: ${esc((e as Error).message)}</p>`
+      // Aviso en su propia franja (reemplazar el cuerpo borraba las pestañas); reintenta pronto
+      const busy = e instanceof PaperError && e.status === 503
+      this.retry = window.setTimeout(() => void this.reload(), RETRY_MS)
+      msg.className = busy ? 'alert' : 'alert bad'
+      msg.textContent = busy ? (e as Error).message : `No se pudo cargar el bróker simulado: ${(e as Error).message}`
+      msg.hidden = false
       return
     }
+    msg.hidden = true
     delete this.q('body').dataset.loading
     this.paintAll()
+    if (this.v?.view?.refreshing) this.retry = window.setTimeout(() => void this.reload(), RETRY_MS)
   }
 
   private paintAll(): void {
