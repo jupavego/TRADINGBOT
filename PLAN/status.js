@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T00:12:17",
+ "generated": "2026-10-19T00:15:44",
  "tasks": [
   {
    "id": "T01",
@@ -771,7 +771,7 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "Especificada (`PLAN/T61.md`, decisión del usuario 2026-10-18: mezcla por exportación a carpeta de nube compartida, con id de máquina). Mientras no se construya, se aplica el protocolo provisional de `v2/docs/OPERACION.md` §3.1.",
    "effort": "alto",
-   "phase": 10,
+   "phase": 13,
    "goal": "Que dos o más computadores (cada colaborador con su propia copia local) acumulen **una sola experiencia**: operaciones simuladas, contextos del bróker, capturas de líderes y registro de intentos de validación. Lo que haga uno debe poder verlo el otro, sin duplicar filas, sin pisar datos y sin inflar la evidencia."
   },
   {
@@ -781,7 +781,7 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "Especificada (`PLAN/T62.md`, insumo `PLAN/notas/T62_universo_motores.md`, 2026-10-19). Equipo de referencia: i5-8250U, 7,9 GB, MX130 2 GB (medido). ◆ qué motores entran + postura frente a YouTube.",
    "effort": "alto",
-   "phase": 13,
+   "phase": 14,
    "goal": "Decidir con evidencia **qué motores de código abierto entran** y que corren de verdad en el equipo de referencia (i5-8250U, 7,9 GB, GPU MX130 de 2 GB): captación, ASR, escenas, OCR, visión-lenguaje, LLM de texto y embeddings. Salen una lista aprobada con licencia (código **y** pesos), versión fijada y una tabla de rendimiento medido; lo que no cabe se descarta con motivo."
   },
   {
@@ -794,7 +794,7 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "",
    "effort": "alto",
-   "phase": 13,
+   "phase": 14,
    "goal": "Construir **una sola capa** (`eim/localai/`) por la que cualquier parte del proyecto use motores de IA de código abierto en local: LLM de texto, ASR, OCR, visión-lenguaje y embeddings. Es el concepto nuevo del plan: el motor es intercambiable, medible y auditable, y nunca decide por sí mismo (los LLM solo informan, `CLAUDE.md`)."
   },
   {
@@ -806,7 +806,7 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "",
    "effort": "medio",
-   "phase": 13,
+   "phase": 14,
    "goal": "Saber **qué videos existen, cuáles importan y en qué orden procesarlos**, sin descargar nada pesado todavía. Descubrir → clasificar → puntuar → encolar; descargar es una decisión posterior y acotada por el presupuesto de T62."
   },
   {
@@ -819,7 +819,7 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "",
    "effort": "alto",
-   "phase": 13,
+   "phase": 14,
    "goal": "Convertir cada video de la cola en **segmentos de texto con tiempo** recuperables (`video_id`, `t_inicio`, `t_fin`, texto, origen y calidad). Vía barata primero (subtítulos); si no existen o son malos, ASR local de T63. Es la base de toda afirmación trazable."
   },
   {
@@ -832,7 +832,7 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "",
    "effort": "alto",
-   "phase": 13,
+   "phase": 14,
    "goal": "Extraer lo que **se ve** y no se dice: cifras en pantalla, titulares, diapositivas, y de los gráficos de precio el activo, el marco temporal, los niveles y los indicadores visibles. Cada observación lleva su fotograma, su caja en la imagen y su marca de tiempo. Se mide contra una muestra revisada a mano antes de confiar en ella."
   },
   {
@@ -846,7 +846,7 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "",
    "effort": "alto",
-   "phase": 13,
+   "phase": 14,
    "goal": "Pasar de texto y observaciones a **afirmaciones** que se pueden comprobar: qué dijo quién, cuándo, con qué evidencia y con qué condiciones. El LLM local solo **propone candidatas**; un verificador determinista acepta o descarta cada una. Sin cita verificable, no existe la afirmación."
   },
   {
@@ -860,7 +860,7 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "",
    "effort": "medio",
-   "phase": 13,
+   "phase": 14,
    "goal": "Contrastar cada afirmación con **fuentes primarias que el proyecto ya tiene** (velas, funding/OI, calendario económico) y marcar su estado. Sin LLM en este paso: la verificación es código determinista; lo que no se puede comprobar se dice «no verificable»."
   },
   {
@@ -874,7 +874,7 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "",
    "effort": "alto",
-   "phase": 13,
+   "phase": 14,
    "goal": "Responder con rigor: **¿algún analista de YouTube anticipa el mercado mejor que el azar?** Mismo estándar que la puerta T49: fuera de muestra, contra el azar, con corrección por múltiples comparaciones y sin premiar la popularidad ni la seguridad al hablar."
   },
   {
@@ -890,7 +890,7 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "",
    "effort": "alto",
-   "phase": 13,
+   "phase": 14,
    "goal": "Poner el módulo a trabajar dentro de EIM **sin decretar su importancia**: un agente puro que resume lo que dicen los analistas vigilados, su verificación y su historial; se ve en el tablero con la evidencia hasta el segundo y el fotograma; y su peso en la síntesis lo decide la prueba marginal (T44), no una opinión."
   },
   {
@@ -904,7 +904,7 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "",
    "effort": "medio",
-   "phase": 13,
+   "phase": 14,
    "goal": "Cumplir la promesa del plan — «potenciar el proyecto en su conjunto» — **solo donde se demuestre**: probar los motores locales de T63 en lo que EIM ya tiene y adoptar un cambio únicamente si iguala o mejora al método actual en una muestra etiquetada. Si no gana, se documenta y no se cambia nada."
   }
  ]
