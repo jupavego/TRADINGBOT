@@ -36,6 +36,23 @@ function Escuchando([int]$p) {
   [bool](Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue)
 }
 
+# LLM local para el agente `context` (Ollama, solo en 127.0.0.1): se arranca si está instalado y no
+# corre ya; el agente lo usa en segundo plano (no bloquea el ciclo) y sin él dice «sin datos».
+$ollama = if ($env:EIM_OLLAMA_EXE) { $env:EIM_OLLAMA_EXE } else { "E:\Ollama\ollama.exe" }
+if (Test-Path $ollama) {
+  if (Escuchando 11434) {
+    Write-Host "Ollama ya corre en 127.0.0.1:11434: no se lanza otro."
+  } else {
+    Start-Process -FilePath $ollama -ArgumentList "serve" -WindowStyle Hidden `
+      -RedirectStandardOutput (Join-Path $logs "ollama.out.log") `
+      -RedirectStandardError (Join-Path $logs "ollama.err.log")
+    Write-Host "Ollama lanzado (LLM local de Contexto; tarda ~1 min en responder la primera vez)."
+  }
+  $env:EIM_CONTEXT_LLM = "local"   # lo heredan el vigilante y la API que lanza este script
+} else {
+  Write-Host "Ollama no está instalado ($ollama): Contexto queda en «sin datos» salvo ANTHROPIC_API_KEY."
+}
+
 if (Escuchando $Puerto) {
   Write-Host "Ya hay un servicio en el puerto ${Puerto}: no se lanza otro."
 } else {
