@@ -1,0 +1,88 @@
+{
+  "id": "krypto-trading-bot",
+  "name": "K (Krypto-trading-bot)",
+  "repo": "ctubio/Krypto-trading-bot",
+  "commit_sha": "f592cc3cf9b3ca01f2cae2efe8eb0a9c18961e3f",
+  "commit_date": "2024-12-15",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "ISC + MIT",
+    "file": "COPYING",
+    "sha256": "b511bcbb70d74a472d0c3f4cc1eb70c6dc96ceb4a11c800d198b377f90e12320",
+    "head": "The MIT License (MIT) Copyright (c) 2017 Carles Tubio Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associ"
+  },
+  "bot_class": "L",
+  "integration_mode": "D",
+  "binance_markets": [],
+  "strategies": [
+    {
+      "name": "Market making de baja latencia",
+      "path": "src/",
+      "note": "C++"
+    }
+  ],
+  "dependencies": [
+    "C++, SQLite"
+  ],
+  "risks": [
+    "Sin actividad desde 2024-12-15",
+    "Doble texto de licencia (ISC en LICENSE y MIT en COPYING)",
+    "Sin Binance"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Abandonado y sin Binance"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 0,
+      "O2": 0,
+      "O3": 0,
+      "O4": 0,
+      "O5": 0,
+      "O6": 5,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 15,
+    "tests_files": 0,
+    "days_since_commit": 673
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": false
+    },
+    "notes": {
+      "S9": "Sin pruebas automáticas"
+    },
+    "red_alerts": [],
+    "total": 95,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "LICENSE ISC",
+      "url": "https://github.com/ctubio/Krypto-trading-bot/blob/f592cc3cf9b3ca01f2cae2efe8eb0a9c18961e3f/LICENSE"
+    },
+    {
+      "what": "COPYING MIT",
+      "url": "https://github.com/ctubio/Krypto-trading-bot/blob/f592cc3cf9b3ca01f2cae2efe8eb0a9c18961e3f/COPYING"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": null
+}

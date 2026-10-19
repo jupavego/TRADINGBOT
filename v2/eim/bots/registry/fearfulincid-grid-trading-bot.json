@@ -1,0 +1,85 @@
+{
+  "id": "fearfulincid-grid-trading-bot",
+  "name": "Grid-Trading-Bot (fearfulincid)",
+  "repo": "fearfulincid/Grid-Trading-Bot",
+  "commit_sha": "72cdf810bb193c686afd68d2d671c81c81f7ea35",
+  "commit_date": "2026-08-28",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "e2e6213a6c29b5f1fa2afe61f354cd08d4233ac49fffa529fed93c05cf119e56",
+    "head": "MIT License Copyright (c) 2026 fearfulincid Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated docum"
+  },
+  "bot_class": "L",
+  "integration_mode": "D",
+  "binance_markets": [],
+  "strategies": [],
+  "dependencies": [],
+  "risks": [
+    "Sin código: solo README, LICENSE y CHANGELOG",
+    "El README enlaza a un «Download» en un dominio externo y declara «5,3 M de descargas»: patrón de señuelo (igual que Hype-W en T33). No se visitó el enlace ni se descargó nada"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Alerta roja R1: señuelo. Un único commit de una cuenta con README promocional y sin fuente"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 0,
+      "O3": 0,
+      "O4": 0,
+      "O5": 0,
+      "O6": 0,
+      "O7": 0,
+      "O8": 0
+    },
+    "total": 20,
+    "tests_files": 0,
+    "days_since_commit": 52
+  },
+  "security": {
+    "checks": {
+      "S1": false,
+      "S2": false,
+      "S3": false,
+      "S4": false,
+      "S5": false,
+      "S6": false,
+      "S7": false,
+      "S8": false,
+      "S9": false
+    },
+    "notes": {
+      "S1": "Sin código fuente: no se puede evaluar",
+      "S2": "Sin código fuente: no se puede evaluar",
+      "S3": "Sin código fuente: no se puede evaluar",
+      "S4": "Sin código fuente: no se puede evaluar",
+      "S5": "Sin código fuente: no se puede evaluar",
+      "S6": "Sin código fuente: no se puede evaluar",
+      "S7": "Sin código fuente: no se puede evaluar",
+      "S8": "Sin código fuente: no se puede evaluar",
+      "S9": "Sin pruebas automáticas"
+    },
+    "red_alerts": [
+      "R1"
+    ],
+    "total": 0,
+    "enabled": false
+  },
+  "evidence": [
+    {
+      "what": "README promocional",
+      "url": "https://github.com/fearfulincid/Grid-Trading-Bot/blob/72cdf810bb193c686afd68d2d671c81c81f7ea35/README.md"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": null
+}

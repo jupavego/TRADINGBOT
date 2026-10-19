@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T08:30:16",
+ "generated": "2026-10-19T08:36:23",
  "tasks": [
   {
    "id": "T01",
@@ -623,8 +623,8 @@ window.EIM_STATUS = {
    "deps": [
     "T49"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Publicador puro `eim/suggestions/publisher.py`: cruza las ideas vivas de la última vela cerrada de 15 m y 1 h (cualquier estrategia, tenencia ≤ 36 h) con los veredictos de T49 y publica ≤ 3 de versiones VALIDADAS (cruce por `estrategia@marco` + huella), ordenadas por el límite inferior del IC95 % fuera de muestra, deduplicadas (mismo lado, entrada < 0,5 ATR) y sin vencidas; si no hay ninguna, lista vacía y motivo `sin_validadas` / `sin_senal` / `datos_viejos`. `GET /v2/setups` (`eim/api/setups.py`, contrato en `CONTRATOS.md`) ya no publica la salida cruda de `suggest()` (queda como generador de candidatas del bróker). Panel (`web/src/setups_ui.ts`): tarjetas con entrada/SL/TP/riesgo, estrategia@marco@versión, evidencia, razón y hora, «Sugerida · no ejecutada» + aviso, y estado vacío «Sin operaciones validadas para sugerir» con motivo (lo esperable hoy: T49 no validó ninguna). Tests en `tests/suggestions`, `tests/api/test_setups_api.py`. Verificado en navegador con respuesta simulada de la API (tarjetas y estado vacío, screenshot); falta mirarlo con datos reales en la máquina del usuario. **Para usarlo: reiniciar la API.**",
    "effort": "medio",
    "phase": 10,
    "goal": "Que el panel «Operaciones sugeridas intradía» muestre solo oportunidades de estrategias VALIDADAS por la puerta de T49, con su evidencia, o el mensaje explícito «Sin operaciones validadas para sugerir»; siempre como oportunidades potenciales, nunca como operaciones ejecutadas ni garantías de rentabilidad."
@@ -698,8 +698,8 @@ window.EIM_STATUS = {
    "id": "T56",
    "title": "Escuadrón de bots: auditoría ampliada y catálogo con ficha común",
    "deps": [],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "47 repos clonados aislados (sin ejecutar nada) → 50 fichas en `v2/eim/bots/registry/` (+`SCHEMA.md` con las reglas operativa/seguridad fijadas antes de puntuar; `tests/bots/test_registry_cards.py`) e informe `PLAN/notas/T56_auditoria.md` (alertas, veredictos, universo fila por fila, licencias GPL/AGPL en modo B). **Aprobado por el usuario (2026-10-19) para T58:** `hummingbot-directional` (A), `freqtrade`+`freqtrade-strategies` (B, GPL aceptada para uso privado, sin distribuir; entorno Python 3.12 aparte), `passivbot` (L, B). Fuera por ahora: NFI, Jesse-ejemplos, TrendRider, IA. Alertas: señuelo `fearfulincid/Grid-Trading-Bot` (R1), Superalgos (R5), 3 repos sin licencia (R2), Hummingbot depende de `pandas-ta` sin licencia. Límite: sin API de GitHub, búsqueda por temas parcial (BACKLOG).",
    "effort": "medio",
    "phase": 12,
    "goal": "Convertir el universo de `PLAN/notas/T56_universo_bots.md` (≥ 45 candidatos, la mitad sin verificar) en un **catálogo verificado** de estrategias empaquetadas (`bot@estrategia`), cada una con licencia real, mantenimiento, riesgos y **modo de integración**, para que el usuario apruebe qué entra al escuadrón. Aquí nace la mitad del «concepto» de cada bot: las dimensiones **operativa** y **seguridad** (rendimiento y evidencia las mide T59)."

@@ -1,0 +1,87 @@
+{
+  "id": "jesse",
+  "name": "Jesse (marco)",
+  "repo": "jesse-ai/jesse",
+  "commit_sha": "4fcbcdd500b9cd14ca9bdb142e4f46a34884a1ae",
+  "commit_date": "2026-10-17",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "8985ca8447e233f34397a52fe77989c02e27b8145d43bd8c715ae9c7a96056d4",
+    "head": "MIT License Copyright (c) 2020 Jesse.Trade Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated docume"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "C",
+  "binance_markets": [
+    "spot",
+    "usdm_futures"
+  ],
+  "strategies": [],
+  "dependencies": [
+    "PostgreSQL/psycopg",
+    "Descarga el plugin jesse_live con LICENSE_API_TOKEN"
+  ],
+  "risks": [
+    "MIT solo el núcleo; la ejecución en vivo es un plugin de pago que se descarga con un token (jesse/services/installer.py)",
+    "Vendoriza SDK de terceros en jesse/modes/import_candles_mode/drivers/Apex/omni_files",
+    "Marco con base de datos propia: peso desproporcionado para leer estrategias"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "Se usa solo como lenguaje de referencia de las estrategias de ejemplo (ficha jesse-example-strategies); su motor no entra"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 15,
+      "O4": 0,
+      "O5": 5,
+      "O6": 10,
+      "O7": 10,
+      "O8": 0
+    },
+    "total": 75,
+    "tests_files": 87,
+    "days_since_commit": 2
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": false,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": false,
+      "S9": true
+    },
+    "notes": {
+      "S8": "Descarga el plugin de pago jesse_live en la instalación (installer.py)",
+      "S3": "Hay exec/pickle sin revisar en el núcleo"
+    },
+    "red_alerts": [],
+    "total": 75,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT",
+      "url": "https://github.com/jesse-ai/jesse/blob/4fcbcdd500b9cd14ca9bdb142e4f46a34884a1ae/LICENSE"
+    },
+    {
+      "what": "Plugin de pago",
+      "url": "https://github.com/jesse-ai/jesse/blob/4fcbcdd500b9cd14ca9bdb142e4f46a34884a1ae/jesse/services/installer.py#L20-L45"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 9
+}

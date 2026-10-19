@@ -1,0 +1,87 @@
+{
+  "id": "haehnchen-crypto-trading-bot",
+  "name": "Crypto Trading Bot (Haehnchen)",
+  "repo": "Haehnchen/crypto-trading-bot",
+  "commit_sha": "cb9563344a20ea7ac89ff214d350f141d1521219",
+  "commit_date": "2026-08-02",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "88d3a73cc27a53ff70a8f3207afc9b34d7cf00191180c2068a0bf78b3fef4390",
+    "head": "Copyright (c) 2018 Daniel Espendiller Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentatio"
+  },
+  "bot_class": "D",
+  "integration_mode": "D",
+  "binance_markets": [
+    "spot"
+  ],
+  "strategies": [
+    {
+      "name": "Estrategias en JS (cci, macd, dip catcher…)",
+      "path": "src/modules/strategy/",
+      "note": ""
+    }
+  ],
+  "dependencies": [
+    "Node.js",
+    "TA-Lib",
+    "ccxt"
+  ],
+  "risks": [
+    "El autor lo declara «no listo para producción»",
+    "Sin soporte de futuros USDⓈ-M propio"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Sin ventaja sobre las reglas ya presentes y pila JS"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 8,
+      "O3": 5,
+      "O4": 8,
+      "O5": 5,
+      "O6": 10,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 66,
+    "tests_files": 19,
+    "days_since_commit": 78
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": false,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S5": "Opera con claves"
+    },
+    "red_alerts": [],
+    "total": 90,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT",
+      "url": "https://github.com/Haehnchen/crypto-trading-bot/blob/cb9563344a20ea7ac89ff214d350f141d1521219/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": null
+}

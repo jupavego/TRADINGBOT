@@ -1,0 +1,92 @@
+{
+  "id": "freqtrade",
+  "name": "Freqtrade (marco)",
+  "repo": "freqtrade/freqtrade",
+  "commit_sha": "3ce38b587d6c7a1ea479fb3e59d724dee5195561",
+  "commit_date": "2026-10-19",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "GPL-3.0",
+    "file": "LICENSE",
+    "sha256": "589ed823e9a84c56feb95ac58e7cf384626b9cbf4fda2a907bc36e103de1bad2",
+    "head": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.or"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "B",
+  "binance_markets": [
+    "spot",
+    "usdm_futures"
+  ],
+  "strategies": [],
+  "dependencies": [
+    "Python >= 3.12 (EIM admite 3.11: entorno propio)",
+    "TA-Lib 0.8.1",
+    "ft-pandas-ta 0.3.16 (fork de Freqtrade; MIT verificada en PyPI el 2026-10-19; no es el pandas-ta descartado en T33)",
+    "torch/lightgbm/xgboost solo en FreqAI"
+  ],
+  "risks": [
+    "GPL-3.0: solo proceso aislado, sin importarlo desde eim/ (ver análisis de licencias)",
+    "El backtesting carga mercados del exchange vía ccxt: T58 debe probar un modo sin red (mercados en caché) antes de dar paridad",
+    "cloudpickle/joblib solo en FreqAI sobre archivos propios (revisado); subprocess solo para git y chown en Docker"
+  ],
+  "verdict": "usar",
+  "squad_proposal": "propuesto",
+  "reasons": [
+    "Ejecutor común de las fichas freqtrade-strategies y nostalgia-for-infinity: no es una estrategia, es el motor que las corre",
+    "Mantenimiento intenso (commit 2026-10-19) y suite de pruebas propia (ver operational.tests_files)",
+    "Soporte documentado de futuros USDⓈ-M (docs/leverage.md)"
+  ],
+  "approval": {
+    "state": "aprobada",
+    "by": "usuario",
+    "at": "2026-10-19"
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 15,
+      "O4": 8,
+      "O5": 10,
+      "O6": 10,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 93,
+    "tests_files": 143,
+    "days_since_commit": 0
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia GPL-3.0",
+      "url": "https://github.com/freqtrade/freqtrade/blob/3ce38b587d6c7a1ea479fb3e59d724dee5195561/LICENSE"
+    },
+    {
+      "what": "Futuros y modo de margen",
+      "url": "https://github.com/freqtrade/freqtrade/blob/3ce38b587d6c7a1ea479fb3e59d724dee5195561/docs/leverage.md"
+    },
+    {
+      "what": "Dependencias",
+      "url": "https://github.com/freqtrade/freqtrade/blob/3ce38b587d6c7a1ea479fb3e59d724dee5195561/requirements.txt"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 1
+}

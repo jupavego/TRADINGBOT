@@ -9,8 +9,6 @@ import numpy as np
 import pytest
 
 from eim.agents.literature import LiteratureAgent
-from eim.api.config import Settings
-from eim.api.main import create_app
 from eim.core import Candle, MarketSnapshot
 from eim.data.paper_store import PaperStore
 from eim.data.store import Store
@@ -21,7 +19,6 @@ from eim.paper.engine import Path, simulate
 from eim.paper.params import ExecParams
 from eim.validation.lineage import Version, Window
 from tests.literature.test_tilt import with_hammer
-from tests.local_client import LocalClient
 from tests.paper.helpers import H1, M15, T0, idea
 from tests.paper.test_strategies import walk
 
@@ -176,41 +173,26 @@ def test_card_stats_reading_is_honest_with_small_samples():
     assert s["verdict"] == "no hay muestra para juzgar" and s["mean_r"] == 1.0
 
 
-# --- /v2/setups ----------------------------------------------------------------------------
-class Idle:
-    name = "idle"
+# --- publicación (T50) --------------------------------------------------------------------
+def test_literature_ideas_reach_the_panel_only_when_validated():
+    """Sin atajos: una idea de la familia solo se publica con veredicto VALIDADA de su versión."""
+    from dataclasses import replace as rep
 
-    async def stream(self, symbol, timeframe):
-        import asyncio
-        yield {"type": "status", "state": "up", "detail": ""}
-        await asyncio.sleep(3600)
+    from eim.suggestions.publisher import OK, SIN_VALIDADAS
+    from tests.suggestions.helpers import idea as sidea
+    from tests.suggestions.helpers import run, verdict
 
-
-def test_setups_endpoint_never_carries_literature_family(tmp_path):
-    """Nada de la familia llega a `/v2/setups`; solo el camino de T50 (VALIDADA) la publicará."""
-    Store(tmp_path).upsert_candles("BTCUSDT", "1h", walk(700), "test")
-    with LocalClient(create_app(Settings(data_dir=tmp_path, heartbeat_s=0.2),
-                                source=Idle())) as c:
-        ps = c.app.state.paper.pstore
-        cs = walk(700)
-        for i in range(450, 480):
-            ps.save("BTCUSDT", "1h", {"v": 2, "t": cs[i].t + H1, "close": cs[i].c,
-                                      "atr": cs[i].c * 0.01,
-                                      "lit": {"v": "0.1.0", "hits": [["nison_hammer", 1, 0.9]],
-                                              "net": {"bull": 0.9, "neutral": -0.9, "bear": 0.0},
-                                              "n": 9}}, "backtest", 0)
-        r = c.get("/v2/setups?symbol=BTCUSDT&tf=1h")
-        assert r.status_code == 200 and r.json()["mode"] == "ANALISIS"
-        text = r.text.lower()
-        assert "lit_" not in text and "literatura" not in text and "nison" not in text
-
-
-def test_setups_router_does_not_depend_on_the_broker_catalog():
-    import inspect
-
-    import eim.api.setups as mod
-    src = inspect.getsource(mod)
-    assert "eim.paper" not in src and "strategies_lit" not in src and "validation" not in src
+    lit = rep(sidea("lit_vela_cola"), family="literatura", key="nison_hammer:1")
+    for v in ("EN OBSERVACIÓN", "RECHAZADA"):
+        pub = run([lit], [verdict("lit_vela_cola", verdict=v)])
+        assert pub.setups == [] and pub.status == SIN_VALIDADAS
+    other = run([lit], [verdict("consenso_sintesis")])                  # otra estrategia validada
+    assert other.setups == []
+    stale_version = run([lit], [verdict("lit_vela_cola", fp="otra")])   # otra versión no hereda
+    assert stale_version.setups == []
+    ok = run([lit], [verdict("lit_vela_cola")])
+    assert ok.status == OK and [s["strategy"] for s in ok.setups] == ["lit_vela_cola"]
+    assert ok.setups[0]["evidence"]["n_oos"] == 240            # con su evidencia fuera de muestra
 
 
 def test_family_verdict_is_never_validated_without_evidence(tmp_path):
