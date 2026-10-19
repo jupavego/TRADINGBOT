@@ -21,7 +21,9 @@ Es el «Escenario A» de la investigación (equipo modesto). El plan se diseña 
 | Escenas y fotogramas | `PySceneDetect` (BSD-3), `OpenCV` (Apache-2.0), `ffmpeg` | — |
 | OCR | `PaddleOCR`, `RapidOCR` (ONNX, ligero), Tesseract | Tesseract ya se usa en la biblioteca (`eim/data/library_extract.py`, `EIM_TESSERACT`) |
 | Visión-lenguaje (gráficos) | Familia Qwen-VL; alternativas pequeñas (SmolVLM, Florence-2, moondream…) | — |
-| LLM de texto | Servidor local `Ollama` / `llama.cpp` con modelo ≤ 4B cuantizado (Qwen, Llama, Gemma, Phi…) | API de Claude en `agents/context` (T24) |
+| Motor de inferencia | `Ollama` (primera opción), `llama.cpp` (más control de memoria, API compatible con OpenAI); evaluados y previsiblemente descartados: `LM Studio` (aplicación no abierta: choca con el concepto del plan), `vLLM` (exige WSL y GPU), `LocalAI` (capa extra sin necesidad con un solo motor); `Open WebUI` solo como panel manual de pruebas, opcional | API de Claude en `agents/context` (T24) |
+| LLM de texto | Modelo ≤ 3B–4B cuantizado con 8 GB: familias Qwen (instruct/coder), Gemma, Mistral, Llama, Phi; DeepSeek de razonamiento probablemente no cabe. **Licencia del modelo concreto, no de la familia** | — |
+| Marcos de agentes (investigación 2) | `LangGraph`, `CrewAI`, `Pydantic AI`, `Microsoft Agent Framework` (AutoGen en mantenimiento: no empezar ahí) | Coordinador propio: `Agent.run`, runner, síntesis y riesgo deterministas (T05, T20, T29) |
 | Embeddings | Modelos multilingües pequeños (familias bge / e5, sin verificar) | Búsqueda BM25 propia (`eim/library/bm25.py`) |
 | Orquestación y memoria | Cola con reintentos; PostgreSQL + pgvector; LlamaIndex / Haystack | **DuckDB** + Parquet (`eim/data/`), sin servidor |
 | Referencias de flujo (no producción) | AI-Video-Transcriber, VidBee, YouTubeTLDR, SummaryYou, video-to-llm, whisper-timestamped, whisper-diarization | — |
@@ -31,7 +33,9 @@ Es el «Escenario A» de la investigación (equipo modesto). El plan se diseña 
 2. **LlamaIndex / Haystack → no.** Sumar un marco para recuperar de una tabla propia agrega dependencias sin necesidad (T04: reciclar solo lo que ahorra trabajo real).
 3. **WhisperX/diarización → opcional, decide T62.** Con 8 GB y CPU, el costo es alto y la identidad del hablante no se prueba con diarización (la propia investigación lo dice); se pide solo si la muestra muestra que entrevistas con varios hablantes son frecuentes.
 4. **Un VLM «grande» como núcleo → no.** En este equipo el camino viable es OCR + visión clásica + un modelo visual pequeño solo en fotogramas elegidos; las cifras se validan contra el mercado, no contra el modelo.
-5. **«Puntuación de credibilidad» única → no** (la investigación ya lo recomienda): dimensiones separadas y el peso en la síntesis lo decide la prueba marginal (T44), no un número decretado.
+5. **Marcos de agentes (LangGraph, CrewAI, MS Agent Framework) → previsiblemente no.** EIM ya tiene coordinador determinista, runner con timeout y síntesis; un marco con agentes que se orquestan por LLM duplicaría esa capa y mezclaría decisión con generación. `Pydantic AI` sí se evalúa, pero solo como pieza de salida estructurada dentro de T63 (frente a escribirla a mano). T62 emite el veredicto con la matriz de la investigación (mantenimiento, licencia, instalación en Windows, pruebas, seguridad, rendimiento).
+6. **Agentes que escriben código y agente auditor basado en LLM → fuera** (BACKLOG): un LLM que genera código choca con «los LLM solo informan». La auditoría de salidas sigue siendo determinista (SHA, citas verificables, tasas de descarte).
+7. **«Puntuación de credibilidad» única → no** (la investigación ya lo recomienda): dimensiones separadas y el peso en la síntesis lo decide la prueba marginal (T44), no un número decretado.
 
 ## 4. Riesgos a decidir con el usuario en T62 (◆)
 - **Condiciones de YouTube.** Bajar audio con `yt-dlp` y usar la API no oficial de subtítulos puede infringir las condiciones del servicio y es frágil (cambios del sitio, bloqueos de IP). Postura propuesta: uso personal, local, sin redistribuir; **subtítulos y API oficial primero**, audio solo como respaldo y **borrado al terminar**; sin cookies ni cuenta del usuario; en git solo paráfrasis cortas con enlace y marca de tiempo (misma política de derechos que la biblioteca T52). El usuario aprueba o ajusta.
