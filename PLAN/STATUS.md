@@ -75,11 +75,8 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T69 | Video: reputación y calibración de analistas (puerta de evidencia) | T68 T49 T64 | ☐ | |
 | T70 | Agente `video_intel`: síntesis, UI y operación | T68 T69 T44 T10 T05 | ☐ | |
 | T71 | Motores locales para el resto del sistema (medido) | T63 T24 T52 | ☐ | |
-| T72 | Observatorio: auditoría de repos y decisión de arquitectura | — | ☐ | Especificada (`PLAN/T72.md`, insumo `PLAN/notas/T72_universo_observabilidad.md`, 2026-10-19). ◆ qué piezas entran (grafo en TS, OpenTelemetry opcional, sin servidores nuevos) y umbrales numéricos antes de construir. |
-| T73 | Observatorio: contrato de eventos, catálogo y emisor | T72 | ☐ | |
-| T74 | Observatorio: indexador, almacén y API de solo lectura | T73 | ☐ | |
-| T75 | Observatorio: instrumentación de la capa existente | T73 | ☐ | |
-| T76 | Observatorio: vista aparte y grafo estructural | T74 T75 T10 | ☐ | |
-| T77 | Observatorio: trazabilidad de una decisión (grafo de ejecución) | T76 T75 T15 | ☐ | |
-| T78 | Observatorio: salud, métricas y alertas | T74 T75 | ☐ | |
-| T79 | Observatorio: acciones de control auditadas (opcional) | T77 T78 T29 T32 | ☐ | ◆ por defecto NO: el observatorio queda de solo lectura salvo decisión del usuario. |
+| T72 | Observatorio: decisión de piezas, contrato de eventos y catálogo | — | ☐ | Especificada (`PLAN/T72.md`, insumo `PLAN/notas/T72_universo_observabilidad.md`, 2026-10-19; recortada el mismo día: 5 tareas, sin auditoría exhaustiva ni control autónomo). Catálogo con textos llanos y etapas para la vista pedagógica. |
+| T73 | Observatorio: indexador, almacén y API de solo lectura | T72 | ☐ | |
+| T74 | Observatorio: instrumentación de la capa existente | T72 | ☐ | |
+| T75 | Observatorio: mapa visual del flujo de trabajo (vista central, pedagógica) | T73 T74 T10 | ☐ | Pieza central de la fase (pedido del usuario 2026-10-19). ◆ prueba de comprensión con el usuario antes de cerrar. |
+| T76 | Observatorio: trazabilidad de una decisión y calidad de la evidencia | T75 T15 | ☐ | |

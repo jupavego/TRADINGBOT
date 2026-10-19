@@ -33,14 +33,15 @@ La investigación asumió «Python/Streamlit/Dash» y «PostgreSQL». El proyect
 ## 3. Lo que ya existe y se reutiliza (no se duplica)
 `data/operation/heartbeat.json` y alertas `op_alerts` + JSONL por día (T31) · `RiskDecision` sellada y `risk_decisions` (T29) · `reports`/`forecasts` y el replay `as-of` (T8, T15, T17) · `Report` de cada agente con `status`/`warnings` (T5) · `sim_trades` (T15) · `val_*` (T49) · copias (T32) · cola y estados de video (T64, cuando exista). El observatorio **lee y enlaza** estas fuentes; no crea un segundo sistema de alertas ni un segundo libro de operaciones.
 
-## 4. Principios de diseño (aplican a T73–T79)
-1. **Observar no es operar.** El módulo es de solo lectura sobre dinero y posiciones. Las acciones de control (T79, opcional) pasan por servicios con permiso, auditoría y límites; nunca son efecto lateral de un clic.
+## 4. Principios de diseño (aplican a T72–T76)
+1. **Observar no es operar.** El módulo es de solo lectura sobre dinero y posiciones. Las acciones de control quedaron fuera de la fase (BACKLOG); si algún día se añaden, pasarán por servicios con permiso, auditoría y límites, nunca como efecto lateral de un clic.
 2. **Nunca romper el sistema que observa.** Emitir un evento no puede lanzar excepción, bloquear ni demorar el ciclo; si falla se descarta y se cuenta. Presupuesto de sobrecosto medido.
 3. **Sin telemetría ≠ sano.** Un componente sin eventos recientes se pinta «sin datos», nunca verde. Cada estado muestra su fuente y su antigüedad (regla del proyecto: ninguna cifra sin `source` y cobertura).
 4. **Tres hechos distintos:** una señal calculada, una decisión aprobada y una orden enviada son eventos separados, con identificadores propios, y así se dibujan.
 5. **Referencias, no copias.** Los eventos llevan hashes e identificadores de entradas/salidas (snapshot, reporte, versión de parámetros), no volcados de mercado. Nunca claves, tokens ni cabeceras.
 6. **Local y sin servicios nuevos** salvo que T72 demuestre lo contrario con medición; sin Docker; sin enviar telemetría a terceros.
-7. **Los módulos futuros se registran al nacer** (Fase 14: `localai`, cadena de video; Fase 12: bots): el catálogo es parte del checklist de «agente/servicio nuevo» (T73 actualiza `docs/NUEVO_AGENTE.md` y la skill `eim-new-agent`).
+7. **Los módulos futuros se registran al nacer** (Fase 14: `localai`, cadena de video; Fase 12: bots): el catálogo es parte del checklist de «agente/servicio nuevo» (T72 actualiza `docs/NUEVO_AGENTE.md` y la skill `eim-new-agent`).
 
 ## 5. Mapa de tareas (Fase 15)
-T72 audita y decide (◆) → T73 contrato de eventos + catálogo + emisor → T74 indexador/almacén/API ‖ T75 instrumentación de lo existente → T76 vista «Observatorio» con grafo estructural → T77 trazabilidad de una decisión (grafo de ejecución) ‖ T78 salud, métricas y alertas → T79 control auditado (opcional, ◆).
+Recortado el 2026-10-19 de 8 a 5 tareas (sin auditoría exhaustiva ni control autónomo): T72 decide la librería de grafo con una medición corta y fija contrato + catálogo + emisor → T73 indexador/almacén/API ‖ T74 instrumentación de lo existente → **T75 mapa visual del flujo de trabajo (vista central, pedagógica)** → T76 relato de una decisión, camino causal y calidad de la evidencia.
+- **Pedagógico:** la vista debe poder leerla quien no programa (pedido del usuario): lenguaje llano, leyenda, recorrido guiado, animación solo con datos reales, módulos planeados en punteado.
