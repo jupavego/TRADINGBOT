@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-18T23:44:52",
+ "generated": "2026-10-18T23:52:04",
  "tasks": [
   {
    "id": "T01",
@@ -757,7 +757,7 @@ window.EIM_STATUS = {
    "notes": "",
    "effort": "medio",
    "phase": 12,
-   "goal": "Mostrar el escuadrón al usuario y dejar que influya en las decisiones **solo en la medida que T59 lo respalde**, sin tocar la autoridad del motor de riesgo ni la puerta de ejecución."
+   "goal": "Mostrar el escuadrón al usuario y dejar que influya en las decisiones **en la medida que T59 mida su aporte al núcleo** (no por su rentabilidad aislada), sin tocar la autoridad del motor de riesgo ni la puerta de ejecución."
   }
  ]
 };
