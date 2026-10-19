@@ -27,13 +27,15 @@ class LocalContextAnalyzer:
     """Callable para inyectar en `ContextAgent`; CPU, un modelo a la vez, timeout generoso."""
 
     def __init__(self, host: str | None = None, model: str | None = None,
-                 client: httpx.Client | None = None, timeout: float = 180.0,
-                 num_predict: int = 700) -> None:
+                 client: httpx.Client | None = None, timeout: float = 900.0,
+                 num_predict: int = 700, max_items: int = 15) -> None:
         self.host = (host or os.environ.get("EIM_LOCAL_LLM_HOST") or DEFAULT_HOST).rstrip("/")
         self.model = model or os.environ.get("EIM_LOCAL_LLM_MODEL") or DEFAULT_MODEL
         self.client, self.timeout, self.num_predict = client, timeout, num_predict
+        self.max_items = max_items  # CPU: menos titulares = prompt corto (los más recientes)
 
     def payload(self, items: list[NewsItem]) -> dict[str, Any]:
+        items = items[: self.max_items]
         data = json.dumps([{"id": n.id, "fuente": n.source, "titular": n.title} for n in items],
                           ensure_ascii=False)
         return {

@@ -57,3 +57,25 @@ def test_presupuesto_se_reinicia_cada_dia_utc():
     t[0] = DAY + 1
     a(_items("a"))
     assert inner.guard.spent == 0.0
+
+
+def test_segundo_plano_no_bloquea_y_entrega_cuando_termina():
+    import threading
+
+    gate = threading.Event()
+
+    class Slow(_Inner):
+        def __call__(self, items):
+            gate.wait(5)
+            return super().__call__(items)
+
+    t = [0.0]
+    inner = Slow({"ok": 1})
+    a = CachedContextAnalyzer(inner, clock=lambda: t[0], background=True)
+    assert a(_items("a")) is None  # no espera al LLM
+    assert a(_items("a")) is None and inner.calls == 0  # una sola llamada en vuelo
+    gate.set()
+    a._thread.join(5)
+    assert a(_items("a")) == {"ok": 1} and inner.calls == 1
+    t[0] = 7 * 3600  # titulares nuevos: sirve el último vigente solo dentro del TTL
+    assert a(_items("b")) is None
