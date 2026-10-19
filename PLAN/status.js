@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T08:05:07",
+ "generated": "2026-10-19T08:06:45",
  "tasks": [
   {
    "id": "T01",
@@ -661,8 +661,8 @@ window.EIM_STATUS = {
     "T17",
     "T34"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "v2/eim/agents/literature/ (9 reglas codificadas, fichas → `codificada`: Nison velas, Murphy RSI y canal 4 sem.; `scenario_support` por escenario, confianza ≤ 0,5, peso 0 en síntesis); `GET /v2/library/cards/{id}` (eim/api/library.py); UI «Lo que dice la literatura» en tarjetas de escenario (literature_ui.ts). Verificado con 1000 velas reales ETHUSDT (fixture) y captura de la UI; el gate pasa salvo 2 tests legacy que requieren el paquete `binance` (no instalado aquí).",
    "effort": "medio",
    "phase": 11,
    "goal": "Un agente puro que evalúa sobre el `MarketSnapshot` las fichas codificables de la biblioteca (T52) y dice qué reglas de la literatura están activas ahora y si **apoyan o contradicen cada uno de los 3 escenarios** de la proyección, siempre con su cita (autor, libro, página). Informa; no cambia probabilidades ni publica sugerencias."

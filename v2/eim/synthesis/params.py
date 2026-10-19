@@ -27,6 +27,8 @@ T44_WEIGHTS: dict[str, float] = {
     "technical": 0.0,
     # Sin historia: tablero desde 2026-10-16 y ningún líder aprobado (100 % `no_data`) → no medible.
     "smart_money": 0.0,
+    # T53: reglas de los libros; sin medición (T54) aporta contexto, no voto.
+    "literature": 0.0,
 }
 # Correlación (Pearson del sesgo, velas en que ambos tienen datos) de cada agente nuevo con los
 # existentes que miden lo mismo, medida en la mitad de descubrimiento (BTCUSDT 1h 2023-01 →

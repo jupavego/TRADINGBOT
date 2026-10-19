@@ -370,3 +370,7 @@ td[data-sign="-1"] { color: var(--down); }
 .rtag { font-size: 10.5px; fill: var(--muted); font-style: italic; }
 /* en móvil la etiqueta ▲/▼ de la esfera sube sobre la cabecera: deja sitio */
 @media (max-width: 600px) { .river-head { margin-bottom: 26px; } }
+.lit { margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--line); }
+.lit h5 { margin: 0 0 4px; font-size: 12px; color: var(--text); }
+.lit-list { margin: 0; padding-left: 16px; font-size: 11px; color: var(--muted); }
+.lit-tag { font-style: italic; }
