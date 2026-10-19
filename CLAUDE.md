@@ -8,7 +8,7 @@ Sistema de inteligencia estructural de mercado → agente multiagente de trading
 1. Tu tarea está en `PLAN/Txx.md`. Lee SOLO ese archivo y los archivos que él lista. No explores el repo en general.
 2. Verifica prerrequisitos en `PLAN/STATUS.md`; si faltan, detente y avisa.
 3. No amplíes el alcance. Lo que quede fuera → una línea en `PLAN/BACKLOG.md`.
-4. Antes de terminar: corre el gate (desde `v2/`: `python -m ruff check eim tests && python -m pytest -q`), cumple los criterios de aceptación y marca la tarea en `PLAN/STATUS.md` con 2–3 líneas (qué quedó y dónde). Al marcar el estado, cambia ☐→◐ al empezar y ◐→☑ al terminar, y luego corre `python PLAN/build_roadmap.py` para refrescar `PLAN/roadmap.html`.
+4. Antes de terminar: corre el gate (desde `v2/`: `python -m ruff check eim tests && python -m pytest -q`), cumple los criterios de aceptación y marca la tarea en `PLAN/STATUS.md` con 2–3 líneas (qué quedó y dónde). Al marcar el estado, cambia ☐→◐ al empezar y ◐→☑ al terminar, y luego corre `python PLAN/build_roadmap.py` para refrescar `PLAN/roadmap.html`. Ese comando también publica la hoja de ruta en la carpeta viva `v2/data/roadmap_live/` del checkout principal, que es la que sirve el icono del escritorio (`http://127.0.0.1:8765/roadmap.html`): se actualiza en vivo desde cualquier worktree, sin servidores nuevos ni esperar a fusionar.
 5. Archivos legados grandes (`legacy/F7/eim_engine.py`, `legacy/F7/web/index.html`): Grep/offset, nunca lectura completa.
 6. Contratos de datos: `PLAN/CONTRATOS.md`. Especificación de interfaz: `PLAN/UI_SPEC.md` (solo tareas de UI).
 

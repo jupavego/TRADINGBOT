@@ -207,10 +207,11 @@ export class PaperView {
     this.paintTab()
   }
 
-  /** Marcas y líneas del marco del gráfico (las demás temporalidades se ven en las tablas). */
+  /** Marcas de cierres del marco del gráfico; las posiciones abiertas se dibujan de TODOS los marcos
+   (rotuladas con el suyo): el precio es el mismo y así ninguna queda fuera de la vista. */
   private paintChart(): void {
     const pv = this.prof()
-    const open = (pv?.positions ?? []).filter((p) => p.timeframe === this.ctf)
+    const open = pv?.positions ?? []
     this.chart!.setTrades(this.trades.filter((t) => t.timeframe === this.ctf), open)
     if (!this.focus || !open.some((p) => p.id === this.focus)) this.focus = open[0]?.id ?? null
     this.chart!.setLines(open, this.focus)
@@ -246,13 +247,13 @@ export class PaperView {
     const v = this.v, p = this.prof()
     const names = Object.fromEntries(v.strategies.map((s) => [s.id, s.name]))
     const n = (id: string, x: number | string): void => { this.root.querySelector(`[data-n="${id}"]`)!.textContent = ` ${x}` }
-    n('pos', p?.positions.length ?? 0); n('ord', p?.orders.length ?? 0); n('hist', this.trades.length); n('log', p?.events_n ?? '')
+    n('pos', p?.positions.length ?? 0); n('ord', p ? p.orders.length + 2 * p.positions.length : 0); n('hist', this.trades.length); n('log', p?.events_n ?? '')
     n('learn', ''); n('prof', ''); n('live', ''); n('arb', '')
     if (this.tab === 'arb') { void this.arb!.show(); return }   // T45: no depende del perfil
     if (!p) return
     if (this.tab === 'live') void this.live!.show({ symbol: this.symbol, names, profiles: v.profiles })
     else if (this.tab === 'pos') this.bodies.pos.innerHTML = positionsTable(p.positions, names, this.symbol, this.price, this.focus)
-    else if (this.tab === 'ord') this.bodies.ord.innerHTML = ordersTable(p.orders, names, this.symbol)
+    else if (this.tab === 'ord') this.bodies.ord.innerHTML = ordersTable(p.orders, names, this.symbol, p.positions, this.price)
     else if (this.tab === 'hist') this.bodies.hist.innerHTML = historyTable(this.trades, names, this.symbol, this.hist)
     else if (this.tab === 'log') void this.journal!.show({ symbol: this.symbol, names, profiles: v.profiles }, this.profile)
     else if (this.tab === 'learn') this.learn!.show(v, this.profile)
@@ -271,7 +272,7 @@ export class PaperView {
     const pos = t.closest<HTMLElement>('tr[data-pos]')
     if (pos) {
       this.focus = pos.dataset.pos!
-      this.chart!.setLines((this.prof()?.positions ?? []).filter((p) => p.timeframe === this.ctf), this.focus)
+      this.chart!.setLines(this.prof()?.positions ?? [], this.focus)
       this.bodies.pos.querySelectorAll<HTMLElement>('tr[data-pos]').forEach((r) => { r.dataset.focus = String(r.dataset.pos === this.focus) })
       return
     }

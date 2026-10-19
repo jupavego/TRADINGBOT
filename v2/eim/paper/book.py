@@ -14,10 +14,13 @@ import math
 from dataclasses import dataclass, field
 
 from eim.paper.engine import Outcome
-from eim.paper.feedback import Learner, context_key
+from eim.paper.feedback import Judgement, Learner, context_key, judge
+from eim.paper.ideas import Idea
 from eim.paper.params import ProfileParams
 
 PRIO = {"close": 0, "cancel": 1, "fill": 2, "signal": 3}
+FLOOR_LABEL = {"observacion": "solo lo probado", "costo": "costo", "confianza": "confianza",
+               "rr": "R:B", "sintesis": "síntesis"}
 EXIT_CAT = {"TP": "tp", "SL": "sl", "BE": "be", "TIEMPO": "tiempo"}
 
 
@@ -32,6 +35,8 @@ class Slot:
     weight: float
     risk_usd: float
     filled: bool = False
+    floor: bool = False          # entró por el mínimo de operaciones abiertas
+    skipped: tuple[str, ...] = ()    # filtros blandos que se saltó (se aprende de su resultado)
 
     @property
     def side(self) -> int:
@@ -49,6 +54,10 @@ class ProfileState:
     curve: list[tuple[int, float]] = field(default_factory=list)
     states: dict[str, str] = field(default_factory=dict)
     ctx_states: dict[str, str] = field(default_factory=dict)
+    # R de lo cerrado por el mínimo de abiertas, por filtro blando saltado: el perfil aprende
+    # cuáles filtros puede seguir saltándose (pausa = saltarlo rinde claramente negativo)
+    floor_r: dict[str, list[float]] = field(default_factory=dict)
+    floor_states: dict[str, str] = field(default_factory=dict)
 
 
 def _ev(st: ProfileState, t: int, cat: str, o: Outcome, text: str, **kw) -> None:
@@ -68,6 +77,62 @@ def liq_price(side: int, entry: float, lev: int, mmr: float) -> float:
     return entry * (1 - side * (1 / lev - mmr))
 
 
+def _open_count(st: ProfileState) -> int:
+    """Operaciones abiertas: posiciones llenadas y órdenes a mercado (se llenan a la apertura)."""
+    return sum(1 for s in st.slots.values() if s.filled or s.o.idea.kind == "market")
+
+
+def _vetoes(st: ProfileState, i: Idea, j: Judgement, jc: Judgement,
+            ck: str) -> list[tuple[str, str | None]]:
+    """Motivos de rechazo en orden de prioridad: (texto, clave del filtro blando o None si es
+    duro). Los blandos pueden saltarse para cumplir el mínimo de operaciones abiertas, mientras
+    saltarlos no rinda con expectativa claramente negativa; los duros, nunca."""
+    p, out = st.p, []
+    cost_r = p.est_cost_frac / ((abs(i.entry - i.sl) / i.entry) or 1e-9)
+    if j.state == "pausa":
+        out.append((f"estrategia en pausa: expectativa {j.m:+.2f} R con {j.n} operaciones", None))
+    if jc.state == "pausa":
+        reg, lado = ck.split("|")[1:]
+        out.append((f"contexto en pausa ({reg}, {lado}): expectativa {jc.m:+.2f} R con {jc.n} "
+                    "operaciones en ese contexto", None))
+    if j.state == "observacion" and p.feedback.observe_w <= 0:
+        out.append((f"en observación: el perfil solo opera lo probado ({j.n}/{p.feedback.n_min}"
+                    " ops)", "observacion"))
+    if cost_r > p.max_cost_r:
+        out.append((f"costo estimado {cost_r:.2f} R > {p.max_cost_r:.2f} R: el SL está "
+                    "demasiado cerca para lo que cuesta operar",
+                    "costo" if cost_r <= p.floor_max_cost_r else None))
+    if p.require_htf and i.htf < 0:
+        out.append(("contra la tendencia del marco mayor", None))
+    if i.conf < p.min_conf:
+        out.append((f"confianza {i.conf:.0%} < {p.min_conf:.0%}", "confianza"))
+    if i.rr < p.min_rr:
+        out.append((f"R:B {i.rr:.2f} < {p.min_rr:.2f}", "rr" if i.rr >= p.floor_min_rr else None))
+    if p.follow_synthesis and (i.syn_bias * i.side <= 0 or abs(i.syn_bias) < p.min_syn_bias):
+        out.append((f"va contra la síntesis ({i.syn_bias:+.2f}) o esta es débil", "sintesis"))
+    if len(st.slots) >= p.max_open:
+        out.append((f"cupo lleno ({p.max_open} abiertas)", None))
+    if not p.allow_hedge and any(s.side != i.side for s in st.slots.values()):
+        out.append(("hay una posición u orden del lado opuesto (sin cobertura)", None))
+    return out
+
+
+def _learned_bad(st: ProfileState, keys: tuple[str | None, ...], t: int, o: Outcome) -> bool:
+    """True si algún filtro blando a saltar ya demostró (con lo cerrado hasta ahora) que saltarlo
+    rinde con expectativa claramente negativa en este perfil. Registra el cambio en la bitácora."""
+    bad = False
+    for k in keys:
+        jk = judge(st.floor_r.get(k, []), st.p.feedback)
+        if st.floor_states.get(k, "observacion") != jk.state and (
+                jk.state == "pausa" or st.floor_states.get(k) == "pausa"):
+            _ev(st, t, "aprendizaje", o, f"saltar «{FLOOR_LABEL[k]}» para el mínimo de abiertas: "
+                f"{'bloqueado' if jk.state == 'pausa' else 'reactivado'} "
+                f"(expectativa {jk.m:+.2f} R con {jk.n} operaciones)", m=jk.m, n=jk.n)
+        st.floor_states[k] = jk.state
+        bad = bad or jk.state == "pausa"
+    return bad
+
+
 def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
             seq: list[int]) -> None:
     i, p = o.idea, st.p
@@ -85,35 +150,20 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
             else "contexto reactivado", weight=jc.weight, m=jc.m, n=jc.n,
             context=ck.split("|", 1)[1])
     st.ctx_states[ck] = jc.state
-    why = ""
-    if j.state == "pausa":
-        why = f"estrategia en pausa: expectativa {j.m:+.2f} R con {j.n} operaciones"
-    elif jc.state == "pausa":
-        reg, lado = ck.split("|")[1:]
-        why = (f"contexto en pausa ({reg}, {lado}): expectativa {jc.m:+.2f} R con {jc.n} "
-               "operaciones en ese contexto")
-    elif j.state == "observacion" and p.feedback.observe_w <= 0:
-        why = f"en observación: el perfil solo opera lo probado ({j.n}/{p.feedback.n_min} ops)"
-    elif p.est_cost_frac / (abs(i.entry - i.sl) / i.entry) > p.max_cost_r:
-        why = (f"costo estimado {p.est_cost_frac / (abs(i.entry - i.sl) / i.entry):.2f} R > "
-               f"{p.max_cost_r:.2f} R: el SL está demasiado cerca para lo que cuesta operar")
-    elif p.require_htf and i.htf < 0:
-        why = "contra la tendencia del marco mayor"
-    elif i.conf < p.min_conf:
-        why = f"confianza {i.conf:.0%} < {p.min_conf:.0%}"
-    elif i.rr < p.min_rr:
-        why = f"R:B {i.rr:.2f} < {p.min_rr:.2f}"
-    elif p.follow_synthesis and (i.syn_bias * i.side <= 0 or abs(i.syn_bias) < p.min_syn_bias):
-        why = f"va contra la síntesis ({i.syn_bias:+.2f}) o esta es débil"
-    elif len(st.slots) >= p.max_open:
-        why = f"cupo lleno ({p.max_open} abiertas)"
-    elif not p.allow_hedge and any(s.side != i.side for s in st.slots.values()):
-        why = "hay una posición u orden del lado opuesto (sin cobertura)"
-    if why:
-        _ev(st, i.t, "rechazada", o, why)
-        return
+    vetoes = _vetoes(st, i, j, jc, ck)
+    floor, skipped = False, ()
+    if vetoes:
+        # el mínimo de abiertas solo salta vetos blandos y solo entra a mercado (sin elegir por
+        # el resultado: una orden límite pudiera no llenarse)
+        keys = tuple(k for _, k in vetoes)
+        if (None in keys or i.kind != "market" or _open_count(st) >= p.min_open
+                or _learned_bad(st, keys, i.t, o)):
+            _ev(st, i.t, "rechazada", o, vetoes[0][0])
+            return
+        floor, skipped = True, keys
+    weight = p.floor_weight if floor else j.weight
     entry = o.fill if i.kind == "market" and o.fill else i.entry
-    risk_usd = st.equity * p.risk_pct * j.weight
+    risk_usd = st.equity * p.risk_pct * weight
     qty = risk_usd / abs(entry - i.sl)
     lev = leverage_for(p, entry, i.sl, mmr)
     margin = qty * entry / lev
@@ -124,11 +174,13 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
             _ev(st, i.t, "rechazada", o, f"margen insuficiente (libre {free:.2f} USDT)")
             return
         qty, margin, risk_usd = qty * scale, margin * scale, risk_usd * scale
-    st.slots[i.id] = Slot(o, qty, lev, margin, j.weight, risk_usd)
+    st.slots[i.id] = Slot(o, qty, lev, margin, weight, risk_usd, floor=floor, skipped=skipped)
     st.used += margin
-    _ev(st, i.t, "orden", o, "límite" if i.kind == "limit" else "a mercado", price=entry,
-        qty=qty, leverage=lev, margin=margin, sl=i.sl, tp=i.tp, weight=j.weight,
-        risk_usd=risk_usd, why=list(i.why))
+    text = "límite" if i.kind == "limit" else "a mercado"
+    if floor:
+        text += f" · mínimo de {p.min_open} abierta(s): se omitió «{vetoes[0][0]}»"
+    _ev(st, i.t, "orden", o, text, price=entry, qty=qty, leverage=lev, margin=margin, sl=i.sl,
+        tp=i.tp, weight=weight, risk_usd=risk_usd, why=list(i.why), floor=floor)
     if o.fill_t is not None:
         heapq.heappush(q, (o.fill_t, PRIO["fill"], _next(seq), "fill", o))
     elif o.status == "CANCELADA":
@@ -165,8 +217,12 @@ def _close(st: ProfileState, o: Outcome) -> None:
           "r": o.r, "roe": pnl / s.margin if s.margin else None,
           "fees": notional * (o.fee_in + o.fee_out), "slip": notional * o.slip,
           "funding": notional * o.funding, "funding_assumed": o.funding_assumed,
-          "weight": s.weight, "origin": i.origin, "regime": i.regime, "why": list(i.why)}
+          "weight": s.weight, "floor": s.floor, "skipped": list(s.skipped),
+          "origin": i.origin, "regime": i.regime, "why": list(i.why)}
     st.trades.append(tr)
+    if s.floor and o.r is not None:
+        for k in s.skipped:
+            st.floor_r.setdefault(k, []).append(o.r)
     _ev(st, o.exit_t, EXIT_CAT[o.reason], o, f"cierre por {o.reason}", price=o.exit, pnl=pnl,
         r=o.r, equity=st.equity, cause=o.cause)
 

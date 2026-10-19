@@ -77,13 +77,40 @@ def test_conservative_filters():
     against = replace(closed(1.0, 0).idea, syn_bias=-0.5)
     o1 = replace(closed(1.0, 0), idea=against)
     o2 = closed(1.0, 2, "contra", "contrarias")
-    open_cons = CONS.model_copy(update={"feedback": CONS.feedback.model_copy(
+    open_cons = CONS.model_copy(update={"min_open": 0, "feedback": CONS.feedback.model_copy(
         update={"observe_w": 0.5})})                         # sin el filtro de «solo probado»
     st = run_profile(open_cons, [o1, o2], Learner([]), mmr=0.004)
     assert [e["cat"] for e in st.events] == ["rechazada"]   # contrarias: fuera del universo
     assert "síntesis" in st.events[0]["text"] and not st.trades
-    st = run_profile(CONS, [closed(1.0, 0)], Learner([]), mmr=0.004)
+    only_proven = CONS.model_copy(update={"min_open": 0})
+    st = run_profile(only_proven, [closed(1.0, 0)], Learner([]), mmr=0.004)
     assert "observación" in st.events[0]["text"]             # Conservador: solo lo probado
+
+
+def test_min_open_floor_takes_soft_vetoes_only():
+    """Con menos de `min_open` abiertas entra la señal a mercado que solo incumple vetos blandos
+    (aquí «solo lo probado»), con riesgo reducido y marcada; los duros siguen vetando."""
+    o = closed(1.0, 0)
+    st = run_profile(CONS, [o], Learner([]), mmr=0.004)
+    assert [e["cat"] for e in st.events] == ["orden", "llenada", "tp"]
+    assert "mínimo" in st.events[0]["text"] and st.events[0]["floor"]
+    tr = st.trades[0]
+    assert tr["floor"] and tr["weight"] == CONS.floor_weight
+    assert tr["pnl"] == pytest.approx(CONS.initial_equity * CONS.risk_pct * CONS.floor_weight)
+    hard = replace(o, idea=replace(o.idea, htf=-1))                  # contra la tendencia mayor
+    assert not run_profile(CONS, [hard], Learner([]), mmr=0.004).trades
+    limit = replace(o, idea=replace(o.idea, kind="limit", fill_ms=H1))
+    assert not run_profile(CONS, [limit], Learner([]), mmr=0.004).trades
+    poor_rr = replace(o, idea=replace(o.idea, tp=100.5))             # R:B 0,25 < floor_min_rr
+    assert not run_profile(CONS, [poor_rr], Learner([]), mmr=0.004).trades
+
+
+def test_min_open_floor_stops_once_reached():
+    a = Outcome(idea(t=T0, iid="a"), "ABIERTA", "", T0, 100.0, mark=101.0, gross=0.01)
+    b = Outcome(idea(t=T0 + H1, iid="b"), "ABIERTA", "", T0 + H1, 100.0, mark=101.0, gross=0.01)
+    st = run_profile(CONS, [a, b], Learner([]), mmr=0.004)
+    assert list(st.slots) == ["a"] and st.slots["a"].floor      # b: ya hay 1 abierta (= mínimo)
+    assert "observación" in st.events[-1]["text"]
 
 
 def test_capacity_and_hedge():
@@ -131,3 +158,16 @@ def test_cost_and_htf_filters():
     st = run_profile(loose, [against], Learner([]), mmr=0.004)
     assert [e["cat"] for e in st.events] == ["orden", "llenada"]
 
+
+
+def test_min_open_learns_which_soft_veto_it_may_skip():
+    """Si lo que entró saltándose un filtro blando pierde de forma consistente, ese filtro deja
+    de poder saltarse (el mínimo de abiertas también aprende de su propio resultado)."""
+    outs = [closed(-1.0, k) for k in range(12)]
+    st = run_profile(CONS, outs, Learner([]), mmr=0.004)
+    assert len(st.trades) == CONS.feedback.n_min and all(t["floor"] for t in st.trades)
+    assert st.trades[0]["skipped"] == ["observacion"]
+    assert "observación" in st.events[-1]["text"] or "probado" in st.events[-1]["text"]
+    assert any("bloqueado" in e["text"] for e in st.events if e["cat"] == "aprendizaje")
+    wins = [closed(1.0, k) for k in range(12)]               # ganando, nunca se bloquea
+    assert len(run_profile(CONS, wins, Learner([]), mmr=0.004).trades) == 12

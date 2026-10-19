@@ -78,12 +78,20 @@ if ($despierto) {
   Write-Host "Modo «equipo despierto» activado: Windows no se suspenderá por inactividad mientras la API corra."
 }
 
-# Hoja de ruta (PLAN/roadmap.html) en http://127.0.0.1:8765 (estática, solo lectura).
+# Hoja de ruta en http://127.0.0.1:8765 (estática, solo lectura). Sirve la carpeta VIVA
+# `data\roadmap_live`, que `python PLAN/build_roadmap.py` actualiza desde cualquier worktree:
+# el icono del escritorio muestra siempre el avance más reciente, sin servidores nuevos por tarea.
+$vivo = Join-Path $v2 "data\roadmap_live"
+$plan = Join-Path (Split-Path -Parent $v2) "PLAN"
+New-Item -ItemType Directory -Force $vivo | Out-Null
+if (-not (Test-Path (Join-Path $vivo "roadmap.html"))) {
+  foreach ($f in "roadmap.html", "status.js") { Copy-Item (Join-Path $plan $f) $vivo -ErrorAction SilentlyContinue }
+}
 if (Escuchando 8765) {
   Write-Host "La hoja de ruta ya está en http://127.0.0.1:8765/roadmap.html"
 } else {
   Start-Process -FilePath $py -ArgumentList @("-m", "http.server", "8765", "--bind", "127.0.0.1",
-    "--directory", "`"$(Join-Path (Split-Path -Parent $v2) 'PLAN')`"") -WorkingDirectory $v2 -WindowStyle Hidden `
+    "--directory", "`"$vivo`"") -WorkingDirectory $v2 -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $logs "roadmap.out.log") `
     -RedirectStandardError (Join-Path $logs "roadmap.err.log")
   Write-Host "Hoja de ruta en http://127.0.0.1:8765/roadmap.html"

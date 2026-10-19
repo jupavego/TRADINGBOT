@@ -14,6 +14,7 @@ FAMILIES: dict[str, str] = {
     "agentes": "Agentes individuales",
     "indicadores": "Indicadores técnicos",
     "contrarias": "Contrarias",
+    "base": "Posición base (mínimo de abiertas)",
     "control": "Control aleatorio",
 }
 
@@ -88,6 +89,15 @@ class ProfileParams(BaseModel):
     max_cost_r: float = 0.2
     require_htf: bool = False        # exige ir a favor de la tendencia del marco mayor
     min_risk_fill: float = 0.25      # si el margen no alcanza para ≥ 25 % del riesgo: rechazo
+    # Mínimo de operaciones abiertas: si hay menos de `min_open` posiciones, la primera señal a
+    # mercado que solo incumpla filtros BLANDOS (confianza, R:B ≥ `floor_min_rr`, síntesis,
+    # «solo lo probado», costo ≤ `floor_max_cost_r`) entra con riesgo × `floor_weight`. Pausas,
+    # tendencia mayor, cupo, cobertura y margen siguen siendo vetos duros. Queda marcada
+    # «mínimo» en el libro. 0 lo desactiva.
+    min_open: int = 0
+    floor_weight: float = 0.5
+    floor_min_rr: float = 1.0
+    floor_max_cost_r: float = 0.3    # costo ida y vuelta máximo (en R) que tolera el mínimo
     feedback: FeedbackParams = FeedbackParams()
 
 
@@ -96,9 +106,11 @@ PROFILES: tuple[ProfileParams, ...] = (
         id="conservador", name="Conservador",
         description="Solo lo ya probado (≥ 10 operaciones con expectativa positiva), a favor "
                     "de la síntesis y de la tendencia mayor, costo ≤ 0,12 R; 0,5 % de riesgo, "
-                    "hasta 3x.",
+                    "hasta 3x. Mantiene al menos 1 posición abierta (riesgo reducido).",
         risk_pct=0.005, max_leverage=3, max_open=3, min_conf=0.3, min_rr=1.5,
-        families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores"}),
+        min_open=1,
+        families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
+                            "base"}),
         allow_hedge=False, follow_synthesis=True, max_cost_r=0.12, require_htf=True,
         # solo lo ya probado: sin peso en observación y pausa ante expectativa negativa
         feedback=FeedbackParams(gain=1.0, w_min=0.25, w_max=1.5, n_min=10, z_pause=0.0,
@@ -106,18 +118,23 @@ PROFILES: tuple[ProfileParams, ...] = (
     ProfileParams(
         id="moderado", name="Moderado",
         description="Todas las familias direccionales salvo las contrarias, a favor de la "
-                    "tendencia mayor, costo ≤ 0,15 R; 1 % de riesgo, hasta 5x.",
+                    "tendencia mayor, costo ≤ 0,15 R; 1 % de riesgo, hasta 5x. Mantiene al menos 2 "
+                    "posiciones abiertas.",
         risk_pct=0.01, max_leverage=5, max_open=6, min_conf=0.15, min_rr=1.3,
-        families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores"}),
+        min_open=2,
+        families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
+                            "base"}),
         allow_hedge=True, follow_synthesis=False, max_cost_r=0.15, require_htf=True,
         feedback=FeedbackParams(z_pause=0.0, observe_w=0.25)),
     ProfileParams(
         id="agresivo", name="Agresivo",
         description="Todo el abanico (incluidas las contrarias) a favor de la tendencia mayor; "
-                    "2 % de riesgo, hasta 10x, explora más y refuerza rápido lo que gana.",
+                    "2 % de riesgo, hasta 10x, explora más y refuerza rápido lo que gana. Mantiene "
+                    "al menos 3 posiciones abiertas.",
         risk_pct=0.02, max_leverage=10, max_open=10, min_conf=0.0, min_rr=1.1,
+        min_open=3,
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
-                            "contrarias"}),
+                            "base", "contrarias"}),
         allow_hedge=True, follow_synthesis=False, max_cost_r=0.2, require_htf=True,
         feedback=FeedbackParams(gain=2.5, w_min=0.25, w_max=3.0, half_life=20, n_min=6,
                                 z_pause=0.0, observe_w=0.5)),

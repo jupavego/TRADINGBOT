@@ -75,3 +75,10 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T69 | Video: reputación y calibración de analistas (puerta de evidencia) | T68 T49 T64 | ☐ | |
 | T70 | Agente `video_intel`: síntesis, UI y operación | T68 T69 T44 T10 T05 | ☐ | |
 | T71 | Motores locales para el resto del sistema (medido) | T63 T24 T52 | ☐ | |
+| T72 | Observatorio: decisión de piezas, contrato de eventos y catálogo | — | ☐ | Especificada (`PLAN/T72.md`, insumo `PLAN/notas/T72_universo_observabilidad.md`, 2026-10-19; recortada el mismo día: 5 tareas, sin auditoría exhaustiva ni control autónomo). Catálogo con textos llanos y etapas para la vista pedagógica. |
+| T73 | Observatorio: indexador, almacén y API de solo lectura | T72 | ☐ | |
+| T74 | Observatorio: instrumentación de la capa existente | T72 | ☐ | |
+| T75 | Observatorio: mapa visual del flujo de trabajo (vista central, pedagógica) | T73 T74 T10 | ☐ | Pieza central de la fase (pedido del usuario 2026-10-19). ◆ prueba de comprensión con el usuario antes de cerrar. |
+| T76 | Observatorio: trazabilidad de una decisión y calidad de la evidencia | T75 T15 | ☐ | |
+
+**Mantenimiento 2026-10-19 · Mínimo de operaciones abiertas del bróker simulado (T47/T48/T49).** Cada perfil tiene `min_open` (Conservador 1, Moderado 2, Agresivo 3; 0 lo desactiva): si hay menos abiertas, la primera señal a mercado que solo incumpla filtros BLANDOS (solo-probado, confianza, R:B ≥ 1, síntesis, costo ≤ 0,3 R) entra con riesgo × 0,5 y marca «mínimo». Pausas, tendencia mayor, cupo, cobertura y margen siguen duros. Nueva estrategia «Posición base» (`base_tendencia`, familia `base`: a favor de la tendencia mayor, SL 2 ATR / TP 3 ATR) da oferta continua; se evalúa en la sombra como cualquier otra. Retroalimentación: cada entrada forzada guarda qué filtro se saltó; si saltarlo rinde con expectativa claramente negativa (mismo `judge` del perfil) ese filtro se bloquea y queda en la bitácora/insights. Código: `eim/paper/book.py`, `params.py`, `strategies.py`, `summary.py`, `insights.py`; tests en `tests/paper/`.

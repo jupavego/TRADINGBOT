@@ -7,9 +7,10 @@ type Names = Record<string, string>
 const sideCell = (s: number, lev: number): string =>
   `<span class="pp-dir" data-side="${s > 0 ? 'long' : 'short'}">${side(s)}</span> <small class="muted">${lev}x · aislado</small>`
 /** Nombre de la estrategia (sin el marco) + insignia del marco + «vivo» si se decidió en tiempo real. */
-const stratCell = (sid: string, names: Names, origin: string, tf: string): string =>
+const stratCell = (sid: string, names: Names, origin: string, tf: string, floor = false): string =>
   `<b>${esc((names[sid] ?? sid).split(' · ')[0])}</b> <span class="pp-tfb">${esc(tf)}</span>` +
-  (origin === 'vivo' ? ' <span class="pp-live">vivo</span>' : '')
+  (origin === 'vivo' ? ' <span class="pp-live">vivo</span>' : '') +
+  (floor ? ' <span class="pp-live" title="Entró para cumplir el mínimo de operaciones abiertas del perfil (riesgo reducido)">mínimo</span>' : '')
 
 /** PnL no realizado con un precio dado (el costo ya devengado se descuenta). */
 export const upnlAt = (p: Position, price: number): number => p.side * p.qty * (price - p.entry) - p.cost_usd
@@ -21,7 +22,7 @@ export function positionsTable(ps: Position[], names: Names, sym: string, price:
     const mark = price ?? p.mark
     const u = upnlAt(p, mark)
     return `<tr data-pos="${esc(p.id)}" data-focus="${p.id === focus}">` +
-      `<td>${stratCell(p.sid, names, p.origin, p.timeframe)}<br>${sideCell(p.side, p.leverage)}</td>` +
+      `<td>${stratCell(p.sid, names, p.origin, p.timeframe, p.floor)}<br>${sideCell(p.side, p.leverage)}</td>` +
       `<td class="num">${qty(p.qty, sym)}<br><small class="muted">${nf(p.qty * mark)} USDT</small></td>` +
       `<td class="num">${px(p.entry)}</td>` +
       `<td class="num" data-mark>${px(mark)}</td>` +
@@ -54,16 +55,35 @@ export function paintMarks(el: HTMLElement, ps: Position[], price: number): numb
   return total
 }
 
-export function ordersTable(os: Order[], names: Names, sym: string): string {
-  if (!os.length) return '<p class="muted">Sin órdenes pendientes.</p>'
-  const rows = os.map((o) => `<tr><td>${stratCell(o.sid, names, o.origin, o.timeframe)}</td>` +
+/** Órdenes de salida (TP límite + SL stop) que protegen cada posición abierta, como en un exchange. */
+function exitOrders(ps: Position[], names: Names, sym: string, price: number | null): string {
+  if (!ps.length) return ''
+  const dist = (target: number, p: Position): string => {
+    const mark = price ?? p.mark
+    return `<small class="muted">${pct((target - mark) / mark)} del precio</small>`
+  }
+  const rows = ps.map((p) => {
+    const who = `<td>${stratCell(p.sid, names, p.origin, p.timeframe, p.floor)}<br>${sideCell(p.side, p.leverage)}</td>`
+    const q = `<td class="num">${qty(p.qty, sym)}</td>`
+    return `<tr data-exit="tp">${who}<td>Take profit · límite (reduce)</td><td class="num up">${px(p.tp)}<br>${dist(p.tp, p)}</td>${q}</tr>` +
+      `<tr data-exit="sl">${who}<td>Stop loss · stop a mercado (reduce)</td><td class="num down">${px(p.sl)}<br>${dist(p.sl, p)}</td>${q}</tr>`
+  }).join('')
+  return `<h4>Órdenes de salida de las posiciones abiertas (${ps.length * 2})</h4><div class="pp-scroll"><table class="pp-t"><thead><tr>` +
+    `<th>Estrategia · lado</th><th>Tipo</th><th>Precio de disparo</th><th>Cantidad</th></tr></thead><tbody>${rows}</tbody></table></div>` +
+    '<p class="muted pp-note">Simuladas: el bróker de papel las evalúa sobre el camino de 15 m (SL antes que TP si caben en la misma vela).</p>'
+}
+
+export function ordersTable(os: Order[], names: Names, sym: string, ps: Position[] = [], price: number | null = null): string {
+  const exits = exitOrders(ps, names, sym, price)
+  if (!os.length) return `<p class="muted">Sin órdenes de entrada pendientes.</p>${exits}`
+  const rows = os.map((o) => `<tr><td>${stratCell(o.sid, names, o.origin, o.timeframe, o.floor)}</td>` +
     `<td>${o.kind === 'limit' ? 'Límite' : 'Mercado'}</td><td>${sideCell(o.side, o.leverage)}</td>` +
     `<td class="num">${o.kind === 'limit' ? px(o.price) : 'a la apertura'}</td><td class="num">${qty(o.qty, sym)}</td>` +
     `<td class="num"><span class="up">${px(o.tp)}</span> / <span class="down">${px(o.sl)}</span></td>` +
     `<td class="num">${nf(o.margin)}</td><td class="num">${utc(o.t)}</td>` +
     `<td class="num">${o.expire_t ? utc(o.expire_t) : '—'}</td></tr>`).join('')
   return `<div class="pp-scroll"><table class="pp-t"><thead><tr><th>Estrategia</th><th>Tipo</th><th>Lado</th><th>Precio</th>` +
-    `<th>Cantidad</th><th>TP / SL</th><th>Margen reservado</th><th>Colocada</th><th>Vence</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    `<th>Cantidad</th><th>TP / SL</th><th>Margen reservado</th><th>Colocada</th><th>Vence</th></tr></thead><tbody>${rows}</tbody></table></div>${exits}`
 }
 
 export interface HistFilter { strategy: string; result: 'all' | 'win' | 'loss'; limit: number }
@@ -84,7 +104,7 @@ export function historyTable(ts: PaperTrade[], names: Names, sym: string, f: His
   if (!sel.length) return head + '<p class="muted">Sin operaciones cerradas con este filtro.</p>'
   const rows = sel.slice(0, f.limit).map((t) => `<tr title="${esc(t.why.join(' · '))}">` +
     `<td class="num">${utc(t.fill_t)}<br><small class="muted">→ ${utc(t.exit_t)}</small></td>` +
-    `<td>${stratCell(t.sid, names, t.origin, t.timeframe)}<br><small class="muted">${t.kind === 'limit' ? 'límite' : 'mercado'}${t.regime ? ` · ${esc(t.regime)}` : ''}</small></td>` +
+    `<td>${stratCell(t.sid, names, t.origin, t.timeframe, t.floor)}<br><small class="muted">${t.kind === 'limit' ? 'límite' : 'mercado'}${t.regime ? ` · ${esc(t.regime)}` : ''}</small></td>` +
     `<td>${sideCell(t.side, t.leverage)}</td>` +
     `<td class="num">${px(t.fill)} → ${px(t.exit)}<br><small class="muted">${qty(t.qty, sym)}</small></td>` +
     `<td><span class="pp-reason" data-r="${t.reason}">${REASON[t.reason] ?? t.reason}</span>` +

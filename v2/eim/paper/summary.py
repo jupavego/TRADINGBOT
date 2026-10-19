@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from eim.paper.book import ProfileState, liq_price
-from eim.paper.feedback import Learner
+from eim.paper.feedback import Learner, judge
 
 CURVE_POINTS = 400
 
@@ -34,7 +34,7 @@ def positions_of(st: ProfileState, mmr: float) -> tuple[list[dict], list[dict], 
                 "family": i.family, "side": i.side,
                 "kind": i.kind, "t": i.t, "qty": s.qty, "sl": i.sl, "tp": i.tp,
                 "leverage": s.leverage, "margin": s.margin, "weight": s.weight,
-                "risk_usd": s.risk_usd, "origin": i.origin, "why": list(i.why)}
+                "risk_usd": s.risk_usd, "floor": s.floor, "origin": i.origin, "why": list(i.why)}
         if not s.filled:
             orders.append({**base, "price": i.entry,
                            "expire_t": i.t + i.fill_ms if i.kind == "limit" else None})
@@ -89,4 +89,8 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         "by_strategy": by,
         "weights": {sid: learner.at(sid, now, p.feedback).to_json() for sid in strategy_ids},
         "events_n": len(st.events),
+        "min_open": {"target": p.min_open, "open": len(pos),
+                     "entries": sum(1 for t in tr if t.get("floor")),
+                     "criteria": {k: judge(rs, p.feedback).to_json()
+                                  for k, rs in st.floor_r.items()}},
     }
