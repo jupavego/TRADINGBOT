@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T12:01:03",
+ "generated": "2026-10-19T12:13:22",
  "tasks": [
   {
    "id": "T01",
@@ -688,8 +688,8 @@ window.EIM_STATUS = {
     "T52",
     "T24"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "`eim/library/qa.py` (puro: BM25 de T52 + fichas → LLM inyectado → `{resumen, puntos[{texto, fuente}], relacion_con_escenarios, advertencias}`; fuente = `card_id` o `libro#página` entregados, si no el punto se descarta; páginas con texto dirigido a un modelo no viajan; fragmentos ≤ 280 car.) y cliente `data/providers/claude_library.py` (apagado salvo `EIM_LIBRARY_LLM=1` + `ANTHROPIC_API_KEY`, caché de prompt, temp. 0,1, ≤ 0,02 USD/consulta). API `GET /v2/library/catalog` y `POST /v2/library/ask` (`X-EIM-Confirm: library-ask`); panel «Biblioteca» (`web/src/library_ui.ts`). Tests `tests/library/test_qa.py` (LLM simulado, inyección, degradación `no_data`). Verificado en el navegador (catálogo real, consulta apagada). Pendiente manual: una consulta con clave real.",
    "effort": "medio",
    "phase": 11,
    "goal": "Poder preguntar en lenguaje natural «¿qué dice la literatura sobre la situación actual o sobre este escenario?» y recibir una respuesta breve con citas verificables a fichas y páginas de los libros locales. Solo informa: nunca ejecuta, nunca fija tamaño ni cambia probabilidades."
