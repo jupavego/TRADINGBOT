@@ -69,6 +69,10 @@ AGENTS: tuple[Component, ...] = (
     _a("smart_money", "0.1.0", "Dinero inteligente",
        "Mira qué posición neta tienen los traders de Hyperliquid mejor evaluados en la moneda del "
        "análisis. Recibe el tablero de líderes; entrega sesgo y confianza.", "T41"),
+    _a("literature", "0.1.0", "Reglas de los libros",
+       "Revisa si ahora se cumplen reglas de Nison y Murphy (velas, RSI, rupturas) y si apoyan o "
+       "contradicen cada escenario, con su cita. Apoyo bibliográfico, no una señal validada.",
+       "T53", consumes=_SNAP + (("library.cards", "library_card"),)),
     _a("plan", "1.0.0", "Plan de operación",
        "Propone una operación completa: precio de entrada, salida de pérdida (SL), objetivos (TP) y "
        "relación ganancia/riesgo, a partir de estructura y niveles. Siempre en modo Análisis.",
