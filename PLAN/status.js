@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T07:15:07",
+ "generated": "2026-10-19T07:16:29",
  "tasks": [
   {
    "id": "T01",
@@ -973,7 +973,7 @@ window.EIM_STATUS = {
    "title": "HFT: viabilidad medida, hipótesis nula y decisión de alcance",
    "deps": [],
    "state": "pending",
-   "notes": "Especificada (`PLAN/T77.md`, insumo `PLAN/notas/T77_universo_hft.md`, 2026-10-19). Mide latencia real, verifica límites/comisiones de Binance en la fuente y fija criterios `hft_v1` antes de construir. ◆ alcance, criterios y presupuesto de latencia.",
+   "notes": "Especificada (`PLAN/T77.md`, insumo `PLAN/notas/T77_universo_hft.md`, 2026-10-19). Mide latencia real, verifica límites/comisiones de Binance en la fuente y fija criterios `hft_v1` antes de construir. ◆ alcance, criterios y presupuesto de latencia. **Plan y alcance propuesto aprobados por el usuario el 2026-10-19** (híbrido, BTCUSDT perpetuo, datos reales + órdenes simuladas, equipo local); sigue pendiente su aprobación de la nota de decisiones (criterios `hft_v1` numéricos y presupuesto de latencia) cuando T77 la produzca.",
    "effort": "medio",
    "phase": 16,
    "goal": "Fijar con mediciones, **antes de construir**, qué clase de HFT es viable aquí y qué se va a probar. Salen el presupuesto de latencia real, los límites y costos de Binance verificados en la fuente, la decisión sobre cada repositorio de la investigación y los criterios de éxito **escritos antes de ver resultados**."

@@ -80,7 +80,7 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T74 | Observatorio: instrumentación de la capa existente | T72 | ☐ | |
 | T75 | Observatorio: mapa visual del flujo de trabajo (vista central, pedagógica) | T73 T74 T10 | ☐ | Pieza central de la fase (pedido del usuario 2026-10-19). ◆ prueba de comprensión con el usuario antes de cerrar. |
 | T76 | Observatorio: trazabilidad de una decisión y calidad de la evidencia | T75 T15 | ☐ | |
-| T77 | HFT: viabilidad medida, hipótesis nula y decisión de alcance | — | ☐ | Especificada (`PLAN/T77.md`, insumo `PLAN/notas/T77_universo_hft.md`, 2026-10-19). Mide latencia real, verifica límites/comisiones de Binance en la fuente y fija criterios `hft_v1` antes de construir. ◆ alcance, criterios y presupuesto de latencia. |
+| T77 | HFT: viabilidad medida, hipótesis nula y decisión de alcance | — | ☐ | Especificada (`PLAN/T77.md`, insumo `PLAN/notas/T77_universo_hft.md`, 2026-10-19). Mide latencia real, verifica límites/comisiones de Binance en la fuente y fija criterios `hft_v1` antes de construir. ◆ alcance, criterios y presupuesto de latencia. **Plan y alcance propuesto aprobados por el usuario el 2026-10-19** (híbrido, BTCUSDT perpetuo, datos reales + órdenes simuladas, equipo local); sigue pendiente su aprobación de la nota de decisiones (criterios `hft_v1` numéricos y presupuesto de latencia) cuando T77 la produzca. |
 | T78 | HFT: captura profunda de mercado y calidad de datos | T23 | ☐ | Puede empezar ya (camino crítico: T80 y T84 necesitan 14–30 días contiguos). |
 | T79 | HFT: simulador de ejecución a nivel de libro (latencia, cola, fills) | T78 T77 | ☐ | |
 | T80 | HFT: features, marco de evaluación y prueba de techo | T78 T23 | ☐ | ◆ ¿el techo supera los costos? Si no, se archiva antes de T81–T85. |
