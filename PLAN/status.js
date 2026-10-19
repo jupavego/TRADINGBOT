@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T09:15:18",
+ "generated": "2026-10-19T09:45:40",
  "tasks": [
   {
    "id": "T01",
@@ -675,8 +675,8 @@ window.EIM_STATUS = {
     "T49",
     "T19"
    ],
-   "state": "progress",
-   "notes": "**Construido y probado sin red; falta la corrida con los datos reales y presentar el informe (◆).** Preregistro `PLAN/notas/T54_preregistro.md` (commits `404e8d9` + `10e2b8f`, anteriores al código; anexo 2 mueve el interruptor a `lit_tilt_state.json`). Contexto: `ctx[\"lit\"]` (`CTX_VERSION` 2) y relleno de contextos viejos sin regenerar agentes (`python -m eim.literature ctx`). Familia `literatura` (`eim/paper/strategies_lit.py`): 5 estrategias / 9 versiones (`lit_canal_4sem` solo 4 h; el resto 1 h y 4 h; `StrategyInfo.timeframes`), declaradas con origen T54 en `lineage.json` (ventana solo ETHUSDT); las 87 huellas existentes no cambiaron; no entran en los perfiles. Ajuste de escenarios apagado: `eim/forecast/lit_tilt.py`, definición inmutable `versions/lit_tilt_v1.json` (k 0,5, criterios T1–T6) y activación `lit_tilt_state.json`; `ForecastSet.adjustments` + marca en la UI. Informe: `python -m eim.literature report` → `reports/literature/lit_v1_<fecha>.md/.json` (probado con datos sintéticos, no es evidencia). Gate: ruff limpio y pytest sin fallos nuevos (quedan 2 preexistentes por el paquete `binance`). **Pendiente (el almacén real no está en este entorno):** con la API detenida, `ctx` → reiniciar la API (recalcula T49 con las 9 versiones nuevas) → `report`; presentar el informe aunque ninguna regla pase.",
+   "state": "done",
+   "notes": "**◆ revisado (2026-10-19): sin evidencia suficiente; nada activado** (v2/reports/literature/lit_v1_2026-10-19.md, BTCUSDT, 1.256 contextos 1 h desde 2026-08-28 y 1.096 de 4 h desde 2026-03-24 reconstruidos con `python -m eim.paper backtest`). Reglas: las 9 versiones de la familia `literatura` EN OBSERVACIÓN (V1 falla en las 9; 36 operaciones fuera de muestra en total; ningún IC95 % excluye 0; RSI −0,50 R con 11 op., envolvente −0,18 R con 19). Ajuste de escenarios (`lit_tilt_v1`, k 0,5): 54 pronósticos, solo 4 con neto ≠ 0; Brier +0,010 y log-loss +0,007 con IC que incluyen 0, ECE empeora (0,018→0,039); SIN EVIDENCIA, queda apagado (`lit_tilt_state.json`). Preregistro `PLAN/notas/T54_preregistro.md` (commits previos al código). Entregado en PR #93; aquí el cierre y la corrección del `+nan` del informe. Las reglas solo se activan en ~7 % de los orígenes: T1 (≥ 100 con neto ≠ 0) exige ~35.000 cierres de 1 h (~4 años); ver BACKLOG T54.",
    "effort": "alto",
    "phase": 11,
    "goal": "Que lo que dicen los libros pase de opinión a evidencia por dos caminos, ambos fuera de muestra y con criterios fijados antes de calcular: (a) cada regla comprobable se vuelve **estrategia candidata** del bróker simulado y la puerta T49 decide; (b) el apoyo bibliográfico de T53 **retroalimenta las probabilidades de los escenarios** solo si mejora su calibración. Si ninguno mejora nada, ese es el resultado y se informa tal cual."
