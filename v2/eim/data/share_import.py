@@ -204,7 +204,6 @@ def import_all(data_dir: Path, shared_dir: Path, machine: str, *, apply: bool = 
                 except BaseException:
                     con.execute("ROLLBACK")
                     raise
-                con.execute("CHECKPOINT")
             finally:
                 con.close()
     if apply:
