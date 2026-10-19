@@ -80,6 +80,16 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T74 | Observatorio: instrumentación de la capa existente | T72 | ☐ | |
 | T75 | Observatorio: mapa visual del flujo de trabajo (vista central, pedagógica) | T73 T74 T10 | ☐ | Pieza central de la fase (pedido del usuario 2026-10-19). ◆ prueba de comprensión con el usuario antes de cerrar. |
 | T76 | Observatorio: trazabilidad de una decisión y calidad de la evidencia | T75 T15 | ☐ | |
+| T77 | HFT: viabilidad medida, hipótesis nula y decisión de alcance | — | ☐ | Especificada (`PLAN/T77.md`, insumo `PLAN/notas/T77_universo_hft.md`, 2026-10-19). Mide latencia real, verifica límites/comisiones de Binance en la fuente y fija criterios `hft_v1` antes de construir. ◆ alcance, criterios y presupuesto de latencia. |
+| T78 | HFT: captura profunda de mercado y calidad de datos | T23 | ☐ | Puede empezar ya (camino crítico: T80 y T84 necesitan 14–30 días contiguos). |
+| T79 | HFT: simulador de ejecución a nivel de libro (latencia, cola, fills) | T78 T77 | ☐ | |
+| T80 | HFT: features, marco de evaluación y prueba de techo | T78 T23 | ☐ | ◆ ¿el techo supera los costos? Si no, se archiva antes de T81–T85. |
+| T81 | HFT: modelos cuantitativos de microestructura | T80 T79 | ☐ | |
+| T82 | HFT: estrategias (direccional, Avellaneda–Stoikov) y selector de estado | T79 T81 | ☐ | |
+| T83 | HFT: riesgo y ejecución de baja latencia (veto determinista) | T77 T30 | ☐ | Paralelizable con T79–T82. |
+| T84 | HFT: torneo de estrategias y puerta de edge (`hft_v1`) | T82 T83 T49 | ☐ | ◆ ¿alguna estrategia supera la validación? |
+| T85 | Agente `hft`, servicio en vivo y paper trading | T84 T83 T31 | ☐ | ◆ ¿pasa a testnet funcional? Nunca dinero real sin T31. |
+| T86 | HFT: integración (síntesis, capital, interfaz, Observatorio) | T85 T44 T10 T72 | ☐ | |
 
 **Mantenimiento 2026-10-19 · Mínimo de operaciones abiertas del bróker simulado (T47/T48/T49).** Cada perfil tiene `min_open` (Conservador 1, Moderado 2, Agresivo 3; 0 lo desactiva): si hay menos abiertas, la primera señal a mercado que solo incumpla filtros BLANDOS (solo-probado, confianza, R:B ≥ 1, síntesis, costo ≤ 0,3 R) entra con riesgo × 0,5 y marca «mínimo». Pausas, tendencia mayor, cupo, cobertura y margen siguen duros. Nueva estrategia «Posición base» (`base_tendencia`, familia `base`: a favor de la tendencia mayor, SL 2 ATR / TP 3 ATR) da oferta continua; se evalúa en la sombra como cualquier otra. Retroalimentación: cada entrada forzada guarda qué filtro se saltó; si saltarlo rinde con expectativa claramente negativa (mismo `judge` del perfil) ese filtro se bloquea y queda en la bitácora/insights. Código: `eim/paper/book.py`, `params.py`, `strategies.py`, `summary.py`, `insights.py`; tests en `tests/paper/`.
 

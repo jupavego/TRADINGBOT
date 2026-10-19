@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T01:51:45",
+ "generated": "2026-10-19T07:15:07",
  "tasks": [
   {
    "id": "T01",
@@ -967,6 +967,136 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 15,
    "goal": "Elegir una vela o decisión y ver lo que realmente ocurrió —datos, señales, síntesis, plan, riesgo, orden—, con el **camino causal** resaltado cuando algo falló o se vetó. Además, marcar qué decisiones se tomaron con datos obsoletos o agentes críticos degradados, para que la evidencia de papel, del bróker (T47–T48) y de la puerta T49 se pueda leer sabiendo cuánta está contaminada. Es lo que más aporta a la eficiencia y a la fiabilidad del aprendizaje."
+  },
+  {
+   "id": "T77",
+   "title": "HFT: viabilidad medida, hipótesis nula y decisión de alcance",
+   "deps": [],
+   "state": "pending",
+   "notes": "Especificada (`PLAN/T77.md`, insumo `PLAN/notas/T77_universo_hft.md`, 2026-10-19). Mide latencia real, verifica límites/comisiones de Binance en la fuente y fija criterios `hft_v1` antes de construir. ◆ alcance, criterios y presupuesto de latencia.",
+   "effort": "medio",
+   "phase": 16,
+   "goal": "Fijar con mediciones, **antes de construir**, qué clase de HFT es viable aquí y qué se va a probar. Salen el presupuesto de latencia real, los límites y costos de Binance verificados en la fuente, la decisión sobre cada repositorio de la investigación y los criterios de éxito **escritos antes de ver resultados**."
+  },
+  {
+   "id": "T78",
+   "title": "HFT: captura profunda de mercado y calidad de datos",
+   "deps": [
+    "T23"
+   ],
+   "state": "pending",
+   "notes": "Puede empezar ya (camino crítico: T80 y T84 necesitan 14–30 días contiguos).",
+   "effort": "medio",
+   "phase": 16,
+   "goal": "Empezar a acumular **cuanto antes** los datos que necesitan el simulador y los modelos: libro L2 completo con doble sello de tiempo, mejores precios, operaciones, precio de referencia y liquidaciones de BTCUSDT, con control de calidad automático. Es el camino crítico real de la fase (T80 y T84 necesitan 14–30 días contiguos), por eso puede empezar sin esperar a T77."
+  },
+  {
+   "id": "T79",
+   "title": "HFT: simulador de ejecución a nivel de libro (latencia, cola, fills)",
+   "deps": [
+    "T78",
+    "T77"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Un simulador que reproduzca el libro evento a evento y diga **qué habría pasado con una orden**: latencia de feed y de envío, posición en cola, fills parciales, rechazos y comisiones. Es el sustituto honesto de testnet para medir ejecución (el libro de testnet no es el real). Debe ser **más pesimista que optimista** y medir su propio sesgo."
+  },
+  {
+   "id": "T80",
+   "title": "HFT: features, marco de evaluación y prueba de techo",
+   "deps": [
+    "T78",
+    "T23"
+   ],
+   "state": "pending",
+   "notes": "◆ ¿el techo supera los costos? Si no, se archiva antes de T81–T85.",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Construir las variables de microestructura y un marco de evaluación sin trampas, y responder **barato y pronto** a la pregunta que decide el resto de la fase: ¿el movimiento predecible del precio supera los costos? Si no, se detiene la inversión antes de modelos y estrategias."
+  },
+  {
+   "id": "T81",
+   "title": "HFT: modelos cuantitativos de microestructura",
+   "deps": [
+    "T80",
+    "T79"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Implementar y medir los modelos econométricos, estocásticos y probabilísticos del catálogo (`PLAN/notas/T77_universo_hft.md` §5) como funciones puras en `eim/hft/models/`. **Un modelo entra solo si mejora su línea base fuera de muestra** (IC 95 % y Holm); si no, queda archivado en el informe con su resultado."
+  },
+  {
+   "id": "T82",
+   "title": "HFT: estrategias (direccional, Avellaneda–Stoikov) y selector de estado",
+   "deps": [
+    "T79",
+    "T81"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Convertir los modelos aprobados en estrategias que compiten bajo las mismas condiciones, y un selector determinista que decide **si conviene proveer liquidez, tomarla, esperar o no operar**. Una señal positiva no basta: la ventaja esperada neta debe superar costos y riesgo de ejecución."
+  },
+  {
+   "id": "T83",
+   "title": "HFT: riesgo y ejecución de baja latencia (veto determinista)",
+   "deps": [
+    "T77",
+    "T30"
+   ],
+   "state": "pending",
+   "notes": "Paralelizable con T79–T82.",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "La capa que **protege el capital e impide errores de operación** del carril HFT, independiente de la IA y de las estrategias. Puede construirse en paralelo con T79–T82: solo necesita la interfaz `Broker` y los límites verificados en T77."
+  },
+  {
+   "id": "T84",
+   "title": "HFT: torneo de estrategias y puerta de edge (hft_v1)",
+   "deps": [
+    "T82",
+    "T83",
+    "T49"
+   ],
+   "state": "pending",
+   "notes": "◆ ¿alguna estrategia supera la validación?",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Medir, con criterios fijados antes de mirar, si alguna estrategia tiene ventaja **neta de costos y latencia** fuera de muestra. Es el equivalente de T27/T49 para HFT y puede terminar en «ninguna pasa»: ese resultado es válido y se documenta."
+  },
+  {
+   "id": "T85",
+   "title": "Agente hft, servicio en vivo y paper trading",
+   "deps": [
+    "T84",
+    "T83",
+    "T31"
+   ],
+   "state": "pending",
+   "notes": "◆ ¿pasa a testnet funcional? Nunca dinero real sin T31.",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Poner el agente en el sistema y comprobarlo **en vivo con datos reales y órdenes simuladas** durante semanas. El agente de ciclo de vela informa el estado microestructural; el servicio rápido, en proceso aparte, ejecuta el ciclo libro → features → modelos → estrategia → riesgo → bróker simulado. Solo corre lo que T84 dejó pasar."
+  },
+  {
+   "id": "T86",
+   "title": "HFT: integración (síntesis, capital, interfaz, Observatorio)",
+   "deps": [
+    "T85",
+    "T44",
+    "T10",
+    "T72"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Que el agente HFT sea un ciudadano completo del sistema: visible, trazable, con su propio cupo de capital y documentado, mostrando siempre el modo (Análisis, Simulado o Testnet) y la evidencia de la puerta T84."
   }
  ]
 };
