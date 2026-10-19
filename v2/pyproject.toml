@@ -19,10 +19,12 @@ dependencies = [
     "openpyxl",
     "yfinance",
     "websockets",
+    "scipy",  # BSD-3; agents/regime/bocpd.py (gammaln)
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "ruff", "pyright", "optuna>=4", "pip-audit"]  # pip-audit: T32
+dev = ["pytest", "ruff", "pyright", "optuna>=4", "pip-audit",  # pip-audit: T32
+       "python-binance"]  # MIT; solo el oráculo legado (legacy/F7 importa binance.client), no producción
 calib = ["optuna>=4"]  # T26: calibración (MIT)
 library = ["pypdf>=6", "pytesseract", "Pillow"]  # T52: biblioteca (BSD-3 / Apache-2.0 / MIT-CMU); OCR exige además el binario Tesseract
 kronos = ["torch>=2", "einops", "huggingface_hub==0.33.1", "safetensors"]

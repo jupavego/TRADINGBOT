@@ -19,6 +19,7 @@ from eim.core import ArbMarket, FuturesContract, SpotPair
 from eim.data.arb_market import load_arb_market
 from eim.data.arb_store import ArbStore
 from eim.data.providers.binance_arb import BinanceArbData
+from eim.observability import hooks_service
 
 log = logging.getLogger(__name__)
 
@@ -85,8 +86,12 @@ class ArbSync:
                 mkt = await asyncio.to_thread(self.run_once)
                 if mkt.errors:
                     log.warning("escaneo de arbitraje con faltantes: %s", list(mkt.errors))
+                hooks_service.beat("data.arb_market", min_interval_s=60,
+                                   status="degraded" if mkt.errors else "ok",
+                                   detail={"errors": len(mkt.errors)})
                 if on_scan is not None:
                     on_scan(mkt)
-            except Exception:  # noqa: BLE001 - el escáner nunca tumba la API
+            except Exception as exc:  # noqa: BLE001 - el escáner nunca tumba la API
                 log.exception("escaneo de arbitraje fallido")
+                hooks_service.service_error("data.arb_market", exc, min_interval_s=60)
             await asyncio.sleep(self.interval_s)

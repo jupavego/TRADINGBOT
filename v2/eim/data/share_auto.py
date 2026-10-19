@@ -33,6 +33,7 @@ from eim.data.share_git import GitTransport
 from eim.data.share_import import Export, _merge_db, discover
 from eim.data.share_report import Report
 from eim.data.share_spec import LOG_DDL, specs_of
+from eim.observability import hooks_service
 
 log = logging.getLogger("eim.share")
 CONFIG = "share_config.json"
@@ -267,4 +268,9 @@ async def share_loop(agent: ShareAgent, poll_s: float = 60.0, first_s: float = 1
     while True:
         if agent.due():
             await asyncio.to_thread(agent.tick)
+            if agent.error:
+                hooks_service.service_error("operation.experience_sync", agent.error,
+                                            detail={"role": agent.role})
+            else:
+                hooks_service.beat("operation.experience_sync", detail={"role": agent.role})
         await asyncio.sleep(poll_s)
