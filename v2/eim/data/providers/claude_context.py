@@ -116,7 +116,7 @@ class CachedContextAnalyzer:
     (el ciclo corre por símbolo y por vela) y reinicia el presupuesto `CostGuard` cada día UTC.
     Solo guarda resultados válidos: un fallo de red o presupuesto agotado se reintenta luego."""
 
-    def __init__(self, inner: ClaudeContextAnalyzer, clock=None, keep: int = 8) -> None:
+    def __init__(self, inner, clock=None, keep: int = 8) -> None:
         import time
 
         self.inner, self.keep = inner, keep
@@ -128,7 +128,8 @@ class CachedContextAnalyzer:
         day = int(self._clock() // 86_400)
         if day != self._day:
             self._day = day
-            self.inner.guard.reset()
+            if hasattr(self.inner, "guard"):  # el local no tiene presupuesto
+                self.inner.guard.reset()
         key = tuple(sorted(n.id for n in items))
         if key in self._cache:
             return self._cache[key]
@@ -141,8 +142,14 @@ class CachedContextAnalyzer:
 
 
 def make_context_analyzer(max_usd_per_day: float = 0.25) -> CachedContextAnalyzer | None:
-    """Analizador de producción solo si hay `ANTHROPIC_API_KEY` (opt-in del usuario); si no,
-    None y el agente `context` dice `no_data` con su motivo. Nunca inventa un análisis."""
+    """Analizador de producción, por opt-in del usuario (nunca inventa un análisis):
+    - `EIM_CONTEXT_LLM=local` → LLM local (Ollama en 127.0.0.1; sin clave ni coste).
+    - `ANTHROPIC_API_KEY` presente → Claude con presupuesto diario.
+    - nada → None y el agente `context` dice `no_data` con su motivo."""
+    if os.environ.get("EIM_CONTEXT_LLM", "").lower() == "local":
+        from eim.data.providers.local_context import LocalContextAnalyzer
+
+        return CachedContextAnalyzer(LocalContextAnalyzer())
     key = os.environ.get("ANTHROPIC_API_KEY")
     if not key:
         return None
