@@ -19,6 +19,7 @@ import duckdb
 from eim.core.leaders import Leader, LeaderFill, LeaderFunding, LeaderPosition, LeaderStatus
 from eim.data.copy_store import COPY_DDL, CopyTables
 from eim.data.leader_score_store import SCORE_DDL, ScoreTables
+from eim.data.machine import add_machine_column, machine_id
 from eim.leaders.book import Gap, Recon
 from eim.leaders.params import POSITIONS_MAX_AGE_MS, SNAPSHOT_KEEP_MS
 
@@ -46,11 +47,12 @@ CREATE TABLE IF NOT EXISTS leader_positions (
 CREATE TABLE IF NOT EXISTS leader_recon (
     leader_id VARCHAR, t BIGINT, observed_at BIGINT, checked INTEGER, skipped INTEGER,
     size_ok BOOLEAN, match BOOLEAN, resynced BOOLEAN, diffs VARCHAR, clock_offset_ms INTEGER,
-    retries INTEGER);
+    retries INTEGER, machine VARCHAR);
 CREATE TABLE IF NOT EXISTS leader_gaps (
     leader_id VARCHAR, symbol VARCHAR, t_from BIGINT, t_to BIGINT, cause VARCHAR,
-    detail VARCHAR, observed_at BIGINT, recovered INTEGER);
+    detail VARCHAR, observed_at BIGINT, recovered INTEGER, machine VARCHAR);
 """
+_MACHINE_TABLES = ("leader_recon", "leader_gaps")     # sin clave natural: T61 les añade `machine`
 _FILL_COLS = ("leader_id, tid, oid, address, symbol, side, action, size, price, start_position, "
               "end_position, fee, fee_token, closed_pnl, crossed, liquidated, leverage, t, "
               "observed_at, channel, source")
@@ -70,6 +72,9 @@ class LeaderStore(ScoreTables, CopyTables):
         self._con = duckdb.connect(self.path)
         self._con.execute(_DDL + SCORE_DDL + COPY_DDL)
         self._lock = threading.Lock()
+        self.machine = "local" if self.path == ":memory:" else machine_id(Path(self.path).parent)
+        for t in _MACHINE_TABLES:       # bases previas a T61: rellena con el id local
+            add_machine_column(self._con, t, self.machine)
 
     @classmethod
     def at_root(cls, root: str | Path) -> LeaderStore:
@@ -213,14 +218,15 @@ class LeaderStore(ScoreTables, CopyTables):
     def add_recon(self, lid: str, recon: Recon, observed_at: int, resynced: bool,
                   clock_offset_ms: int = 0, retries: int = 0) -> None:
         diffs = json.dumps([d.__dict__ for d in recon.diffs]) if recon.diffs else None
-        self._exec("INSERT INTO leader_recon VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        self._exec("INSERT INTO leader_recon VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                    [lid, recon.t, observed_at, len(recon.checked), len(recon.skipped),
-                    recon.size_ok, recon.match, resynced, diffs, clock_offset_ms, retries])
+                    recon.size_ok, recon.match, resynced, diffs, clock_offset_ms, retries,
+                    self.machine])
 
     def add_gap(self, gap: Gap, observed_at: int, recovered: int) -> None:
-        self._exec("INSERT INTO leader_gaps VALUES (?,?,?,?,?,?,?,?)",
+        self._exec("INSERT INTO leader_gaps VALUES (?,?,?,?,?,?,?,?,?)",
                    [gap.leader_id, gap.symbol, gap.start, gap.end, gap.cause, gap.detail,
-                    observed_at, recovered])
+                    observed_at, recovered, self.machine])
 
     def query(self, q: str, params: list | tuple = ()) -> list[tuple]:
         """Lectura libre (informes de `eim.leaders.report`)."""

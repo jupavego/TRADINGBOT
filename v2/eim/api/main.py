@@ -28,6 +28,7 @@ from eim.api.reports_db import ReportStore
 from eim.api.risk import RiskDesk, build_risk_router
 from eim.api.security import BodyLimitMiddleware, LocalOnlyMiddleware, ws_token_subprotocol
 from eim.api.setups import build_setups_router
+from eim.api.share import build_share_router
 from eim.api.sources import BinanceKlineSource, LiveSource
 from eim.api.trades import build_trades_router
 from eim.api.validation import build_validation_router
@@ -167,6 +168,7 @@ def create_app(
     app.include_router(build_execution_router(runtime, now_ms))
     app.include_router(build_backup_router(reports, cfg.data_dir, cfg.backup_dir,
                                            cfg.backup_keep, lambda: op))
+    app.include_router(build_share_router(reports, paper_store, cfg.data_dir))
     app.include_router(build_forecast_router(forecaster))
     app.include_router(build_setups_router(store, reports, lambda: [a.id for a in reg.latest()]))
     app.include_router(build_calibration_router(store, forecaster))

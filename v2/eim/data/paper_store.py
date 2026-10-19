@@ -72,6 +72,11 @@ class PaperStore:
                 "GROUP BY origin", [symbol, timeframe]).fetchall()
         return {str(o): int(n) for o, n in rows}
 
+    @property
+    def connection(self):
+        """(conexión, cerrojo) para la copia en caliente de T61 (`eim.api.share`)."""
+        return self._con, self._lock
+
     def execute(self, sql: str, params: list | tuple = ()) -> list[tuple]:
         """SQL sobre la misma conexión (otras tablas del laboratorio, p. ej. la validación T49:
         DuckDB admite un solo proceso escritor, así que se comparte conexión y candado)."""

@@ -126,6 +126,7 @@ class Validator:
             "criteria": self.crit.to_json(), "attempts": len(allv), "summary": summarize(verdicts),
             "verdicts": verdicts, "versions": [v.to_json() for v in allv],
             "coverage": coverage, "error": self.error,
+            "provenance": self.vstore.provenance(),
         }
 
     def latest(self, symbol: str) -> dict:

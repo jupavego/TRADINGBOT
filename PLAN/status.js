@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T00:02:43",
+ "generated": "2026-10-19T00:51:47",
  "tasks": [
   {
    "id": "T01",
@@ -768,10 +768,10 @@ window.EIM_STATUS = {
     "T40",
     "T32"
    ],
-   "state": "pending",
-   "notes": "Especificada (`PLAN/T61.md`, decisión del usuario 2026-10-18: mezcla por exportación a carpeta de nube compartida, con id de máquina). Mientras no se construya, se aplica el protocolo provisional de `v2/docs/OPERACION.md` §3.1.",
+   "state": "done",
+   "notes": "**Construido y probado sin red (`tests/share/`, 26 tests); ◆ pendiente: el usuario revisa el informe de la primera mezcla real antes de darla por cerrada.** `python -m eim.data.share export|import [--apply]|status` (`v2/eim/data/share*.py`, `machine.py`): identidad de máquina (`data/machine_id`, `EIM_MACHINE`), exportación consistente de `reports.duckdb`, `paper.duckdb` y `leaders.duckdb` a Parquet + `manifest.json` (SHA-256, esquema, commit) en `EIM_SHARED_DIR/<máquina>/<fecha>/` (en frío, o en caliente vía `POST /v2/share/snapshot` y la instantánea del servicio de líderes), importación idempotente y conmutativa con simulacro por defecto e informe por tabla y máquina (nuevas / ya estaban / conflicto / incompatibles), copia previa, una transacción por base, `import_log`/`share_origin`/`share_conflicts`; versiones de validación unidas por huella con `n`/`parent` remapeados y ventanas unidas; derivados recalculados, kill-switch/estado y secretos nunca viajan; procedencia en `GET /v2/validation` e informe. `leader_recon`/`leader_gaps` ganan `machine` (migración idempotente). Protocolo en `v2/docs/OPERACION.md` §3.1.",
    "effort": "alto",
-   "phase": 10,
+   "phase": 13,
    "goal": "Que dos o más computadores (cada colaborador con su propia copia local) acumulen **una sola experiencia**: operaciones simuladas, contextos del bróker, capturas de líderes y registro de intentos de validación. Lo que haga uno debe poder verlo el otro, sin duplicar filas, sin pisar datos y sin inflar la evidencia."
   }
  ]
