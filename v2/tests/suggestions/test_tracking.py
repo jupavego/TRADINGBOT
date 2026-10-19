@@ -157,3 +157,20 @@ def test_history_scorecard_signal_vs_result():
     assert c["against"] == "debajo" and c["expected"]["ci95"] == [0.05, 0.25]
     assert h["totals"]["cum_r"] < 0 and h["totals"]["hit_rate"] == 0
     assert all(p["executed"] is False and p["state"] == STATE for p in h["published"])
+
+
+def test_watch_ideas_are_recorded_apart_and_resolved_without_touching_validated():
+    tr = Tracker(store())
+    ideas = [idea("ema", t=NOW - H)]
+    pub = run(ideas, [verdict("ema", verdict="EN OBSERVACIÓN")])
+    assert pub.setups == [] and len(pub.watch) == 1
+    tr.record("BTCUSDT", pub, NOW, [verdict("ema", verdict="EN OBSERVACIÓN")], NOW - H, "v1")
+    tr.record("BTCUSDT", pub, NOW + 60_000, [verdict("ema", verdict="EN OBSERVACIÓN")], NOW - H,
+              "v1")                                                  # idempotente
+    assert tr.store.published("BTCUSDT") == []
+    assert len(tr.store.published("BTCUSDT", "sug_watch")) == 1
+    path = Path(candles(NOW, 8, lo=99.5, hi=105.0))
+    (r,) = tr.resolve_watch("BTCUSDT", path)
+    assert r["state"] == "observacion_no_validada" and r["resolution"]["state"] == "cerrada"
+    h = tr.history("BTCUSDT", [], [], [], NOW + H, watch_resolved=[r])
+    assert h["totals"]["published"] == 0 and h["watch"]["totals"]["published"] == 1

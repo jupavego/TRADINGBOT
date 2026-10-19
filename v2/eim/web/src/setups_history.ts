@@ -30,6 +30,7 @@ interface History {
   scorecard: Card[]; published: Row[]; gaps: Gap[]
   gap_summary: { window_ms: number; ms_by_status: Record<string, number>; ms_total: number; intervals: number }
   in_review: { vid: string; since: number; mean_r: number; ci_low: number; n: number }[]
+  watch?: { totals: History['totals']; scorecard: Card[]; published: Row[] }
 }
 
 const nf = (x: number, d = 2): string => x.toLocaleString('es-CO', { minimumFractionDigits: d, maximumFractionDigits: d })
@@ -100,6 +101,19 @@ export class SetupsHistory {
       `<td>${res}</td><td class="muted">${r.executed ? 'ejecutada' : 'sugerida · no ejecutada'}</td></tr>`
   }
 
+  /** Ideas en observación registradas y resueltas en simulado: no validadas, solo para seguirlas. */
+  private watch(v: History): string {
+    const w = v.watch
+    if (!w || !w.totals.published) return ''
+    const t = w.totals
+    const rows = w.published.map((r) => this.row(r).replace('sugerida · no ejecutada', 'observación · no validada'))
+    return '<h4 class="sh su-wh">Ideas en observación <span class="muted">· no validadas, resolución simulada</span></h4>' +
+      `<p class="su-stats">Registradas <b>${t.published}</b> · cerradas <b>${t.closed}</b> · acierto <b>${pct0(t.hit_rate)}</b> · ` +
+      `R acumulado <b>${rr(t.cum_r)}</b> · R medio <b>${rr(t.mean_r)}</b></p>` +
+      '<div class="su-tbl"><table><thead><tr><th>Registrada (UTC)</th><th>Versión</th><th>Lado</th>' +
+      `<th>Entrada / SL / TP</th><th>Resolución simulada</th><th>Estado</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`
+  }
+
   private paint(): void {
     const v = this.view
     const head = '<div class="su-head"><h3 class="sh">Historial de sugerencias</h3>' +
@@ -129,7 +143,7 @@ export class SetupsHistory {
       const lastGap = v.gaps.length
         ? `<p class="muted">Último intervalo sin sugerencia: ${utc(v.gaps[v.gaps.length - 1].from)} → ${utc(v.gaps[v.gaps.length - 1].to)} UTC · ${esc(GAP[v.gaps[v.gaps.length - 1].status] ?? v.gaps[v.gaps.length - 1].status)} · ${esc(v.gaps[v.gaps.length - 1].message)}</p>`
         : ''
-      body = kpi + rev + score + list + lastGap
+      body = kpi + rev + score + list + lastGap + this.watch(v)
     }
     this.el.innerHTML = head + body +
       `<p class="muted su-foot">${v ? esc(v.note) : ''} Cada sugerencia se registra la primera vez que se publica y se resuelve con el motor del bróker simulado sobre las velas posteriores, sin anticipación.</p>`

@@ -14,7 +14,7 @@ from collections.abc import Sequence
 from eim.data.suggestion_store import SuggestionStore
 from eim.paper.engine import Path
 from eim.paper.params import ExecParams
-from eim.suggestions.publisher import NOTE, Publication, evidence_of
+from eim.suggestions.publisher import NOTE, WATCH_STATE, Publication, evidence_of
 from eim.suggestions.tracking import (
     degradation,
     gap_summary,
@@ -41,6 +41,20 @@ def sim_fill_of(outcomes: Sequence, resolved: Sequence[dict]) -> dict[str, tuple
     return {k: (a[0], a[1]) for k, a in out.items()}
 
 
+def _row(symbol: str, s: dict, v: dict, now: int, criteria: str,
+         verdicts_asof: int | None) -> dict:
+    return {
+        "id": f"{symbol}:{s['timeframe']}:{s['created_at']}:{s['strategy']}",
+        "symbol": symbol, "published_ms": now, "criteria": criteria,
+        "verdicts_asof": verdicts_asof, "vid": s["id"], "sid": v["sid"],
+        "strategy": s["strategy"], "timeframe": s["timeframe"], "n": v["n"],
+        "fingerprint": v["fingerprint"], "side": 1 if s["side"] == "long" else -1,
+        "kind": s["kind"], "entry": s["entry"], "sl": s["sl"], "tp": s["tp"],
+        "fill_ms": (s["valid_until"] - s["created_at"]) if s["valid_until"] else 0,
+        "hold_ms": int(s["hours"] * 3_600_000), "idea_t": s["created_at"],
+        "price": s["entry"], "reason": s["reason"], "evidence": evidence_of(v)}
+
+
 class Tracker:
     def __init__(self, store: SuggestionStore, ep: ExecParams | None = None) -> None:
         self.store, self.ep = store, ep or ExecParams()
@@ -54,20 +68,20 @@ class Tracker:
         new = 0
         with self._lock:
             for s in pub.setups:
-                v = by_id[s["id"]]
-                new += self.store.publish({
-                    "id": f"{symbol}:{s['timeframe']}:{s['created_at']}:{s['strategy']}",
-                    "symbol": symbol, "published_ms": now, "criteria": criteria,
-                    "verdicts_asof": verdicts_asof, "vid": s["id"], "sid": v["sid"],
-                    "strategy": s["strategy"], "timeframe": s["timeframe"], "n": v["n"],
-                    "fingerprint": v["fingerprint"], "side": 1 if s["side"] == "long" else -1,
-                    "kind": s["kind"], "entry": s["entry"], "sl": s["sl"], "tp": s["tp"],
-                    "fill_ms": (s["valid_until"] - s["created_at"]) if s["valid_until"] else 0,
-                    "hold_ms": int(s["hours"] * 3_600_000), "idea_t": s["created_at"],
-                    "price": s["entry"], "reason": s["reason"], "evidence": evidence_of(v)})
+                new += self.store.publish(_row(symbol, s, by_id[s["id"]], now, criteria,
+                                               verdicts_asof))
+            for s in pub.watch:        # en observación: tabla aparte, nunca como publicada
+                self.store.publish(_row(symbol, s, by_id[s["id"]], now, criteria, verdicts_asof),
+                                   "sug_watch")
             if not pub.setups:
                 self.store.gap(symbol, now, pub.status, pub.message, GAP_JOIN_MS)
         return new
+
+    def resolve_watch(self, symbol: str, path: Path | None) -> list[dict]:
+        """Ideas en observación registradas, resueltas con el mismo motor (solo informativo)."""
+        with self._lock:
+            rows = self.store.published(symbol, "sug_watch")
+        return [{**r, "state": WATCH_STATE} for r in resolve(rows, path, self.ep)]
 
     def in_review(self, symbol: str) -> set[str]:
         with self._lock:
@@ -99,7 +113,8 @@ class Tracker:
 
     # --- vista ------------------------------------------------------------------------
     def history(self, symbol: str, resolved: Sequence[dict], verdicts: Sequence[dict],
-                outcomes: Sequence, now: int, limit: int = 100) -> dict:
+                outcomes: Sequence, now: int, limit: int = 100,
+                watch_resolved: Sequence[dict] = ()) -> dict:
         with self._lock:
             reviews = self.store.reviews(symbol)
             gaps = self.store.gaps(symbol)
@@ -107,7 +122,10 @@ class Tracker:
                    and v.get("retired") is None}
         review = {r["vid"] for r in reviews if r["released"] is None}
         sim = sim_fill_of(outcomes, resolved)
-        return {"mode": "ANALISIS", "symbol": symbol, "now": now, "note": NOTE,
+        watch = {"totals": totals(watch_resolved),
+                 "scorecard": scorecard(watch_resolved, {}, set(), {}),
+                 "published": sorted(watch_resolved, key=lambda r: -r["published_ms"])[:limit]}
+        return {"mode": "ANALISIS", "symbol": symbol, "now": now, "note": NOTE, "watch": watch,
                 "totals": totals(resolved),
                 "scorecard": scorecard(resolved, current, review, sim),
                 "published": sorted(resolved, key=lambda r: -r["published_ms"])[:limit],
