@@ -1,0 +1,84 @@
+{
+  "id": "fingpt",
+  "name": "FinGPT",
+  "repo": "AI4Finance-Foundation/FinGPT",
+  "commit_sha": "fdb04c9a273d1ccc3764b09b8e3ed1e708e57566",
+  "commit_date": "2026-09-23",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "2a3183a35138275582698c16b07e9b33992d822434bb4c7728673c6204bb1848",
+    "head": "MIT License Copyright (c) 2024 AI4Finance Foundation Inc. Permission is hereby granted, free of charge, to any person obtaining a copy of this software and as"
+  },
+  "bot_class": "IA",
+  "integration_mode": "D",
+  "binance_markets": [],
+  "strategies": [
+    {
+      "name": "Modelos LoRA de sentimiento",
+      "path": "",
+      "note": "Cuadernos de entrenamiento"
+    }
+  ],
+  "dependencies": [
+    "torch",
+    "Pesos de HuggingFace"
+  ],
+  "risks": [
+    "Descarga de pesos externos; pickle sin revisar"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Cuadernos, no una estrategia; el contexto ya lo cubre T24 (fila 28)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 0,
+      "O4": 0,
+      "O5": 5,
+      "O6": 5,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 55,
+    "tests_files": 27,
+    "days_since_commit": 26
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": false,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": false,
+      "S9": true
+    },
+    "notes": {
+      "S3": "pickle/eval sin revisar",
+      "S8": "Descarga de modelos externos en el uso normal"
+    },
+    "red_alerts": [],
+    "total": 75,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT",
+      "url": "https://github.com/AI4Finance-Foundation/FinGPT/blob/fdb04c9a273d1ccc3764b09b8e3ed1e708e57566/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 28
+}

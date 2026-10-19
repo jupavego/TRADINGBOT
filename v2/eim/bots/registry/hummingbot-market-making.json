@@ -1,0 +1,102 @@
+{
+  "id": "hummingbot-market-making",
+  "name": "Hummingbot — market making y grid (V2)",
+  "repo": "hummingbot/hummingbot",
+  "commit_sha": "9af100d6822da7d2d0291a906c730ef172284ee2",
+  "commit_date": "2026-09-22",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "Apache-2.0",
+    "file": "LICENSE",
+    "sha256": "f0dd03c14db3dfbce03c166645f88fda96599ad1a5d217fddb49134de8c72a29",
+    "head": "Apache License Version 2.0, January 2004 http://www.apache.org/licenses/"
+  },
+  "bot_class": "L",
+  "integration_mode": "C",
+  "binance_markets": [
+    "spot",
+    "usdm_futures"
+  ],
+  "strategies": [
+    {
+      "name": "pmm_simple / pmm_dynamic / pmm_v1 / pmm_mister",
+      "path": "controllers/market_making, controllers/generic",
+      "note": "Market making de spread fijo/dinámico"
+    },
+    {
+      "name": "dman_maker_v2",
+      "path": "controllers/market_making/dman_maker_v2.py",
+      "note": "Maker con DCA"
+    },
+    {
+      "name": "grid_strike / multi_grid_strike",
+      "path": "controllers/generic/",
+      "note": "Grid por rangos"
+    }
+  ],
+  "dependencies": [
+    "Executors y conectores de Hummingbot (Cython, TA-Lib, numba)"
+  ],
+  "risks": [
+    "Dependen de los executors y del libro de órdenes: no hay «postura por vela»",
+    "Telemetría por defecto (T33)"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "Clase L: va a un carril de simulación, nunca vota; se reimplementa la idea (T58 oleada 3) con costos de T25",
+    "Passivbot cubre el mismo nicho con licencia más libre y sin telemetría"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 15,
+      "O4": 0,
+      "O5": 5,
+      "O6": 10,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 80,
+    "tests_files": 691,
+    "days_since_commit": 27
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": false,
+      "S5": true,
+      "S6": false,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S4": "Métricas anónimas activadas por defecto (T33)",
+      "S6": "pandas-ta beta sin licencia"
+    },
+    "red_alerts": [],
+    "total": 80,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Controladores de market making",
+      "url": "https://github.com/hummingbot/hummingbot/blob/9af100d6822da7d2d0291a906c730ef172284ee2/controllers/market_making"
+    },
+    {
+      "what": "Telemetría",
+      "url": "https://github.com/hummingbot/hummingbot/blob/9af100d6822da7d2d0291a906c730ef172284ee2/hummingbot/connector/connector_metrics_collector.py"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 6
+}

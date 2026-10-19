@@ -1,0 +1,75 @@
+{
+  "id": "tensortrade",
+  "name": "TensorTrade",
+  "repo": "tensortrade-org/tensortrade",
+  "commit_sha": "d58afba23deb1fded39793203b7997c3990bb032",
+  "commit_date": "2026-02-09",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "Apache-2.0",
+    "file": "LICENSE",
+    "sha256": "a0d9035da1549bfb2b74906d1ad74e890400237558492bb2315c594b6739aa43",
+    "head": "Apache License Version 2.0, January 2004 http://www.apache.org/licenses/ TERMS AND CONDITIONS FOR USE, RE"
+  },
+  "bot_class": "IA",
+  "integration_mode": "D",
+  "binance_markets": [],
+  "strategies": [],
+  "dependencies": [
+    "TensorFlow >= 2.15"
+  ],
+  "risks": [
+    "Último commit 2026-02-09 (8 meses)",
+    "Sin estrategia empaquetada"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Marco de RL sin estrategias con ventaja y con TensorFlow como dependencia (fila 25)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 10,
+      "O2": 15,
+      "O3": 0,
+      "O4": 0,
+      "O5": 5,
+      "O6": 5,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 45,
+    "tests_files": 86,
+    "days_since_commit": 252
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia Apache-2.0",
+      "url": "https://github.com/tensortrade-org/tensortrade/blob/d58afba23deb1fded39793203b7997c3990bb032/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 25
+}

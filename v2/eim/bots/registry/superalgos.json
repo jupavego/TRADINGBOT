@@ -1,0 +1,86 @@
+{
+  "id": "superalgos",
+  "name": "Superalgos",
+  "repo": "Superalgos/Superalgos",
+  "commit_sha": "9f0fb59edd4bae7afa08d06c366e0bcb48103aec",
+  "commit_date": "2026-05-07",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "Apache-2.0",
+    "file": "LICENSE",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "head": "Apache License Version 2.0, January 2004 http://www.apache.org/licenses/"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "D",
+  "binance_markets": [],
+  "strategies": [
+    {
+      "name": "Estrategias de la comunidad",
+      "path": "Projects/",
+      "note": "Sin auditar"
+    }
+  ],
+  "dependencies": [
+    "Node.js; 1,5 GB de repo"
+  ],
+  "risks": [
+    "Plataforma que evalúa código de terceros dentro de su propio proceso (204 usos de eval en el código de aplicación)",
+    "Estrategias de la comunidad sin auditar",
+    "Sin soporte de futuros USDⓈ-M verificado"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Alerta roja R5: ejecuta código de terceros en el proceso principal; no cumple la condición de seguridad aunque la licencia (Apache-2.0) sea permisiva"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 10,
+      "O2": 8,
+      "O3": 0,
+      "O4": 0,
+      "O5": 5,
+      "O6": 5,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 38,
+    "tests_files": 10,
+    "days_since_commit": 165
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": false,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S3": "204 usos de eval/Function en la plataforma (no se revisaron uno a uno)"
+    },
+    "red_alerts": [
+      "R5"
+    ],
+    "total": 85,
+    "enabled": false
+  },
+  "evidence": [
+    {
+      "what": "Licencia Apache-2.0",
+      "url": "https://github.com/Superalgos/Superalgos/blob/9f0fb59edd4bae7afa08d06c366e0bcb48103aec/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 11
+}
