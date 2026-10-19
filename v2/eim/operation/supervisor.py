@@ -57,7 +57,7 @@ class Operation:
                  params: OperationParams, data_dir: Path, reports_dir: Path, edge_path: Path,
                  forecaster=None, bots=None, sinks: Iterable[Sink] | None = None,
                  backup_dir: Path | None = None, backup_keep: int = 14,
-                 clock: Callable[[], int] = _now) -> None:
+                 extra_dbs: dict | None = None, clock: Callable[[], int] = _now) -> None:
         con, lock = reports.connection
         rt = desk.rt
         self.mode = desk.mode.value
@@ -66,6 +66,7 @@ class Operation:
         self.root = data_dir / "operation"
         self.data_dir, self.backup_dir, self.backup_keep = data_dir, backup_dir, backup_keep
         self._db = (con, lock)
+        self.extra_dbs = extra_dbs or {}   # otras bases abiertas que entran en la copia (T73)
         self._step_lock = threading.RLock()
         self._backup_retry_at = 0          # tras un fallo, reintento espaciado (BACKUP_RETRY_MS)
         self.book = EquityBook(con, lock, self.mode) if rt.svc is not None else None
@@ -181,7 +182,7 @@ class Operation:
         with self._step_lock:
             return backup.create(self.data_dir, self.backup_dir, con=self._db[0],
                                  lock=self._db[1], with_market=with_market,
-                                 keep=self.backup_keep, clock=clock)
+                                 keep=self.backup_keep, extra_dbs=self.extra_dbs, clock=clock)
 
 
 class Supervisor:

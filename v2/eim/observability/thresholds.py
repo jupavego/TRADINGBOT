@@ -34,3 +34,11 @@ def stale_after_s(cadence_s: int | None) -> int | None:
     if cadence_s is None:
         return None
     return max(STALE_MIN_S, STALE_FACTOR * cadence_s)
+
+# Indexador y consultas (T73, fijados antes de construirlo; ver `PLAN/notas/T72_decisiones.md` §6)
+RUN_RETENTION_DAYS = 180         # `runs` y `decisions` viven más que los eventos crudos (30 d)
+INDEX_INTERVAL_S = 5.0           # pausa entre pasadas del indexador dentro de la API
+INDEX_LAG_S_MAX = STALE_MIN_S    # retraso de indexación aceptable: lo mismo que «sin datos»
+TRUNCATED_LINE_GRACE_S = 60      # línea sin salto final que no crece en este tiempo = corrupta
+QUERY_P95_MS_MAX = 100           # consulta con 100 000 eventos indexados (p95; medido ≤ 32)
+PAGE_MAX = 500                   # filas por página en la API de solo lectura
