@@ -3,6 +3,8 @@
 - `sug_published`: cada oportunidad la primera vez que el panel la publica (id = id de la idea;
   una repetición no la modifica): precios, `estrategia@marco@versión`, veredicto y evidencia de
   ese momento, y la hora. Nunca se actualiza ni se marca como ejecutada.
+- `sug_watch`: lo mismo para ideas de versiones EN OBSERVACIÓN (no validadas): se registran y se
+  resuelven aparte, nunca se mezclan con las publicadas (degradación y tarjeta usan solo esas).
 - `sug_gaps`: intervalos observados sin sugerencia (estado y motivo), para medir cuánto tiempo
   no hubo ninguna.
 - `sug_review`: versiones «en revisión» por degradación (el publicador las excluye).
@@ -22,6 +24,12 @@ _DDL = (
         n INTEGER, fingerprint VARCHAR, side INTEGER, kind VARCHAR, entry DOUBLE, sl DOUBLE,
         tp DOUBLE, fill_ms BIGINT, hold_ms BIGINT, idea_t BIGINT, price DOUBLE, reason VARCHAR,
         evidence VARCHAR)""",
+    """CREATE TABLE IF NOT EXISTS sug_watch (
+        id VARCHAR PRIMARY KEY, symbol VARCHAR, published_ms BIGINT, criteria VARCHAR,
+        verdicts_asof BIGINT, vid VARCHAR, sid VARCHAR, strategy VARCHAR, timeframe VARCHAR,
+        n INTEGER, fingerprint VARCHAR, side INTEGER, kind VARCHAR, entry DOUBLE, sl DOUBLE,
+        tp DOUBLE, fill_ms BIGINT, hold_ms BIGINT, idea_t BIGINT, price DOUBLE, reason VARCHAR,
+        evidence VARCHAR)""",
     """CREATE TABLE IF NOT EXISTS sug_gaps (
         symbol VARCHAR, started_ms BIGINT, last_ms BIGINT, status VARCHAR, message VARCHAR,
         PRIMARY KEY (symbol, started_ms))""",
@@ -29,6 +37,7 @@ _DDL = (
         symbol VARCHAR, vid VARCHAR, since_ms BIGINT, verdict_asof BIGINT, mean_r DOUBLE,
         ci_low DOUBLE, n INTEGER, released_ms BIGINT, PRIMARY KEY (symbol, vid, since_ms))""",
 )
+TABLES = ("sug_published", "sug_watch")
 PUB_COLS = ("id, symbol, published_ms, criteria, verdicts_asof, vid, sid, strategy, timeframe, "
             "n, fingerprint, side, kind, entry, sl, tp, fill_ms, hold_ms, idea_t, price, "
             "reason, evidence")
@@ -41,20 +50,23 @@ class SuggestionStore:
             self.ps.execute(ddl)
 
     # --- publicaciones ----------------------------------------------------------------
-    def publish(self, row: dict) -> bool:
-        """Inserta la publicación si su id no existe (idempotente); True si era nueva."""
-        if self.ps.execute("SELECT 1 FROM sug_published WHERE id = ?", [row["id"]]):
+    def publish(self, row: dict, table: str = "sug_published") -> bool:
+        """Inserta la publicación si su id no existe (idempotente); True si era nueva.
+        `table`: `sug_published` (validadas) o `sug_watch` (en observación)."""
+        assert table in TABLES
+        if self.ps.execute(f"SELECT 1 FROM {table} WHERE id = ?", [row["id"]]):
             return False
         vals = [json.dumps(row[c], ensure_ascii=False) if c == "evidence" else row[c]
                 for c in (x.strip() for x in PUB_COLS.split(","))]
-        self.ps.execute(f"INSERT INTO sug_published ({PUB_COLS}) VALUES ({','.join('?' * 22)})",
+        self.ps.execute(f"INSERT INTO {table} ({PUB_COLS}) VALUES ({','.join('?' * 22)})",
                         vals)
         return True
 
-    def published(self, symbol: str) -> list[dict]:
+    def published(self, symbol: str, table: str = "sug_published") -> list[dict]:
         """Publicaciones del símbolo, de la más antigua a la más reciente."""
+        assert table in TABLES
         cols = [c.strip() for c in PUB_COLS.split(",")]
-        rows = self.ps.execute(f"SELECT {PUB_COLS} FROM sug_published WHERE symbol = ? "
+        rows = self.ps.execute(f"SELECT {PUB_COLS} FROM {table} WHERE symbol = ? "
                                "ORDER BY published_ms, id", [symbol])
         out = [dict(zip(cols, r, strict=True)) for r in rows]
         for d in out:
