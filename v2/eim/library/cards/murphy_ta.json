@@ -458,7 +458,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "9 Moving Averages", "pages": [256, 257, 258], "terms": ["4 week rule", "channel breakout"]}],
    "applicability": {"original_market": ["futuros"], "timeframe": "diario (semanas naturales)", "crypto_24_7": "supuesto: canal de 20 velas en 4 h o 1 h; los estudios citados no incluyen cripto"},
    "testable": true,
-   "status": "revisada_usuario",
+   "status": "codificada",
    "verification": "verificada_en_texto"
   },
   {
@@ -528,7 +528,7 @@
    "citations": [{"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [281, 282, 283], "terms": ["failure swings", "overbought"]}, {"book_id": "murphy_ta", "chapter": "10 Oscillators and Contrary Opinion", "pages": [285, 286], "terms": ["the 50 level", "crossing back above the 30 line"]}],
    "applicability": {"original_market": ["índices", "futuros"], "timeframe": "diario, semanal, mensual", "crypto_24_7": "supuesto: aplicable en 1 h/4 h"},
    "testable": true,
-   "status": "revisada_usuario",
+   "status": "codificada",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_rsi_divergence", "relation": "apoya"}]
   },

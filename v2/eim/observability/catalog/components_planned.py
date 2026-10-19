@@ -23,11 +23,6 @@ PLANNED: tuple[Component, ...] = (
       "Seguimiento de sugerencias", "Seguirá cada sugerencia publicada hasta su resultado y "
       "alimentará la mejora. Aún no existe.",
       consumes=(("validation.setups_publisher", "setup"),), produces=("followup",), **_P),
-    c("agent.literature", "agent", "analisis", "agent", "api", "T53", "Agente de literatura",
-      "Traducirá reglas de los libros a lectura de mercado con cita de página. Aún no existe.",
-      cadence="cada cierre de vela", cadence_s=3600,
-      consumes=(("data.snapshot", "snapshot"), ("library.cards", "library_card")),
-      produces=("agent_report",), **_P),
     c("library.query", "library", "validacion", "service", "api", "T55", "Consulta a la biblioteca",
       "Responderá preguntas con fichas citadas usando un modelo de lenguaje que solo informa. "
       "Aún no existe.", consumes=(("library.cards", "library_card"),), produces=("answer",), **_P),

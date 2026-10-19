@@ -7,7 +7,7 @@ from eim.core import AgentReport
 from eim.synthesis import SynthesisParams, synthesize
 from eim.synthesis.params import NON_DIRECTIONAL, T44_WEIGHTS, role_of
 
-NEW = ("technical", "smart_money")
+NEW = ("technical", "smart_money", "literature")
 
 
 def rep(i: str, bias: float, conf: float = 0.8, status: str = "ok", **metrics) -> AgentReport:
