@@ -1,4 +1,4 @@
-"""El ciclo sincroniza derivados, liquidaciones y titulares a su ritmo, sin que un fallo lo frene."""
+"""El ciclo sincroniza derivados, liquidaciones y titulares a su ritmo; un fallo no lo frena."""
 
 from types import SimpleNamespace
 
