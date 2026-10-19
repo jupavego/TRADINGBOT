@@ -1,0 +1,78 @@
+{
+  "id": "pyalgotrade",
+  "name": "PyAlgoTrade",
+  "repo": "gbeced/pyalgotrade",
+  "commit_sha": "0898a1f29a4a1245531bb2946ca426cd6f3af1fb",
+  "commit_date": "2023-03-05",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "Apache-2.0",
+    "file": "LICENSE",
+    "sha256": "fa8a6fbcf79ba6cb1d58dde84da30c1d92267aa8a4c26658fdb5e7f3b8540488",
+    "head": "PyAlgoTrade Copyright 2011-2018 Gabriel Martin Becedillas Ruiz Licensed under the Apache License, Version 2.0 (the \"License\"); you may not use this file excep"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "D",
+  "binance_markets": [],
+  "strategies": [],
+  "dependencies": [
+    "Cython",
+    "TA-Lib"
+  ],
+  "risks": [
+    "Sin commits desde 2023-03-05",
+    "Marcado obsoleto en su README"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Abandonado (fila 41)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 0,
+      "O2": 15,
+      "O3": 0,
+      "O4": 0,
+      "O5": 5,
+      "O6": 5,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 40,
+    "tests_files": 55,
+    "days_since_commit": 1324
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": false,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S6": "Obsoleto"
+    },
+    "red_alerts": [],
+    "total": 90,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia Apache-2.0",
+      "url": "https://github.com/gbeced/pyalgotrade/blob/0898a1f29a4a1245531bb2946ca426cd6f3af1fb/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 41
+}

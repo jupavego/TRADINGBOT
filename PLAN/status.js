@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T08:07:35",
+ "generated": "2026-10-19T08:15:59",
  "tasks": [
   {
    "id": "T01",
@@ -698,8 +698,8 @@ window.EIM_STATUS = {
    "id": "T56",
    "title": "Escuadrón de bots: auditoría ampliada y catálogo con ficha común",
    "deps": [],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "47 repos clonados aislados (sin ejecutar nada) → 50 fichas en `v2/eim/bots/registry/` (+`SCHEMA.md` con las reglas operativa/seguridad fijadas antes de puntuar; `tests/bots/test_registry_cards.py`) e informe `PLAN/notas/T56_auditoria.md` (alertas, veredictos, universo fila por fila, licencias GPL/AGPL en modo B). **Aprobado por el usuario (2026-10-19) para T58:** `hummingbot-directional` (A), `freqtrade`+`freqtrade-strategies` (B, GPL aceptada para uso privado, sin distribuir; entorno Python 3.12 aparte), `passivbot` (L, B). Fuera por ahora: NFI, Jesse-ejemplos, TrendRider, IA. Alertas: señuelo `fearfulincid/Grid-Trading-Bot` (R1), Superalgos (R5), 3 repos sin licencia (R2), Hummingbot depende de `pandas-ta` sin licencia. Límite: sin API de GitHub, búsqueda por temas parcial (BACKLOG).",
    "effort": "medio",
    "phase": 12,
    "goal": "Convertir el universo de `PLAN/notas/T56_universo_bots.md` (≥ 45 candidatos, la mitad sin verificar) en un **catálogo verificado** de estrategias empaquetadas (`bot@estrategia`), cada una con licencia real, mantenimiento, riesgos y **modo de integración**, para que el usuario apruebe qué entra al escuadrón. Aquí nace la mitad del «concepto» de cada bot: las dimensiones **operativa** y **seguridad** (rendimiento y evidencia las mide T59)."

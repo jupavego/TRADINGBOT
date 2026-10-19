@@ -1,0 +1,89 @@
+{
+  "id": "chrisleekr-binance-trading-bot",
+  "name": "Binance Trading Bot (chrisleekr)",
+  "repo": "chrisleekr/binance-trading-bot",
+  "commit_sha": "3ef0f8c97c13ace005c2c68e557585da32f76758",
+  "commit_date": "2026-10-18",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "Apache-2.0",
+    "file": "LICENSE",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "head": "Apache License Version 2.0, January 2004 http://www.apache.org/licenses/"
+  },
+  "bot_class": "L",
+  "integration_mode": "D",
+  "binance_markets": [
+    "spot"
+  ],
+  "strategies": [
+    {
+      "name": "Grid, trailing, rebalanceo",
+      "path": "packages/",
+      "note": "Perfiles de estrategia"
+    }
+  ],
+  "dependencies": [
+    "Node/TypeScript",
+    "Redis, Docker",
+    "OpenTelemetry"
+  ],
+  "risks": [
+    "Binance spot (no USDⓈ-M); el autor lo declara «no recomendado para fondos reales»",
+    "Necesita claves de Binance para operar"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Sin ventaja sobre Passivbot y sin futuros; pila TypeScript distinta de la de EIM"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 5,
+      "O4": 0,
+      "O5": 5,
+      "O6": 10,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 70,
+    "tests_files": 804,
+    "days_since_commit": 1
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": false,
+      "S4": false,
+      "S5": false,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S5": "El bot opera con claves de Binance",
+      "S4": "OpenTelemetry/observabilidad: no se verificó el destino",
+      "S3": "42 eval/Function sin revisar"
+    },
+    "red_alerts": [],
+    "total": 65,
+    "enabled": false
+  },
+  "evidence": [
+    {
+      "what": "Licencia Apache-2.0",
+      "url": "https://github.com/chrisleekr/binance-trading-bot/blob/3ef0f8c97c13ace005c2c68e557585da32f76758/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 13
+}

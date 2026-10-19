@@ -1,0 +1,77 @@
+{
+  "id": "vectorbt",
+  "name": "vectorbt",
+  "repo": "polakowo/vectorbt",
+  "commit_sha": "686c7d43e6308c008a0ac98db5b8294256e780e2",
+  "commit_date": "2026-10-18",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "Apache-2.0 + Commons Clause",
+    "file": "LICENSE.md",
+    "sha256": "a914859a115b70e80956a3cbd613139ad74c04e5d1bd38da8bcc16725822ec84",
+    "head": "“Commons Clause” License Condition v1.0 The Software is provided to you by the Licensor under the License, as defined below, subject to the following condition"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "C",
+  "binance_markets": [],
+  "strategies": [],
+  "dependencies": [
+    "numba",
+    "TA-Lib",
+    "pandas-ta-classic"
+  ],
+  "risks": [
+    "Apache-2.0 con Commons Clause: no permite vender el software o servicios cuyo valor sea sustancialmente el software",
+    "Versión PRO de pago aparte"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "INFRA: solo oráculo de contraste del motor T25"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 8,
+      "O3": 0,
+      "O4": 0,
+      "O5": 5,
+      "O6": 5,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 53,
+    "tests_files": 16,
+    "days_since_commit": 1
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia con Commons Clause",
+      "url": "https://github.com/polakowo/vectorbt/blob/686c7d43e6308c008a0ac98db5b8294256e780e2/LICENSE.md"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 38
+}

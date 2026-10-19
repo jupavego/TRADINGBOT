@@ -1,0 +1,80 @@
+{
+  "id": "webclinic017-strategies-freqtrade",
+  "name": "strategies-freqtrade- (webclinic017)",
+  "repo": "webclinic017/strategies-freqtrade-",
+  "commit_sha": "d44b3e3454c7e1851ef443496b41e61735148e6c",
+  "commit_date": "2024-03-29",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "NONE",
+    "file": null,
+    "sha256": null,
+    "head": null
+  },
+  "bot_class": "D",
+  "integration_mode": "D",
+  "binance_markets": [],
+  "strategies": [],
+  "dependencies": [
+    "1 GB de repo"
+  ],
+  "risks": [
+    "Sin LICENSE (copia del trabajo de Nateemma)",
+    "pickle (9 usos)"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Alerta roja R2: sin licencia; duplicado de nateemma"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 0,
+      "O2": 8,
+      "O3": 0,
+      "O4": 0,
+      "O5": 10,
+      "O6": 5,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 33,
+    "tests_files": 9,
+    "days_since_commit": 934
+  },
+  "security": {
+    "checks": {
+      "S1": false,
+      "S2": true,
+      "S3": false,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S1": "Sin archivo LICENSE",
+      "S3": "pickle sin revisar"
+    },
+    "red_alerts": [
+      "R2"
+    ],
+    "total": 70,
+    "enabled": false
+  },
+  "evidence": [
+    {
+      "what": "Sin LICENSE",
+      "url": "https://github.com/webclinic017/strategies-freqtrade-/blob/d44b3e3454c7e1851ef443496b41e61735148e6c/README.md"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": null
+}

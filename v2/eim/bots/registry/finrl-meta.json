@@ -1,0 +1,81 @@
+{
+  "id": "finrl-meta",
+  "name": "FinRL-Meta",
+  "repo": "AI4Finance-Foundation/FinRL-Meta",
+  "commit_sha": "286fef6c828a02a2ccf807c05b292d8cb28f8e95",
+  "commit_date": "2026-09-28",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "2a3183a35138275582698c16b07e9b33992d822434bb4c7728673c6204bb1848",
+    "head": "MIT License Copyright (c) 2024 AI4Finance Foundation Inc. Permission is hereby granted, free of charge, to any person obtaining a copy of this software and as"
+  },
+  "bot_class": "IA",
+  "integration_mode": "D",
+  "binance_markets": [
+    "usdm_futures"
+  ],
+  "strategies": [],
+  "dependencies": [
+    "543 MB",
+    "Muchos conectores de datos"
+  ],
+  "risks": [
+    "pickle y eval sin revisar",
+    "Descarga de conjuntos de datos"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Repo de entornos y datos de RL; nada reproducible ni liviano (fila 24)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 8,
+      "O3": 8,
+      "O4": 0,
+      "O5": 5,
+      "O6": 5,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 56,
+    "tests_files": 6,
+    "days_since_commit": 21
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": false,
+      "S4": false,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S3": "pickle/eval sin revisar",
+      "S4": "1 referencia de telemetría sin revisar"
+    },
+    "red_alerts": [],
+    "total": 75,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT",
+      "url": "https://github.com/AI4Finance-Foundation/FinRL-Meta/blob/286fef6c828a02a2ccf807c05b292d8cb28f8e95/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 24
+}

@@ -1,0 +1,82 @@
+{
+  "id": "tradebot-hampson",
+  "name": "Tradebot (ben-hampson)",
+  "repo": "ben-hampson/tradebot",
+  "commit_sha": "29e1e3bc927cf09460c4f4a19b7d085e317cf45f",
+  "commit_date": "2024-03-27",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "NONE",
+    "file": null,
+    "sha256": null,
+    "head": null
+  },
+  "bot_class": "D",
+  "integration_mode": "D",
+  "binance_markets": [
+    "usdm_futures"
+  ],
+  "strategies": [],
+  "dependencies": [
+    "Python"
+  ],
+  "risks": [
+    "Sin LICENSE",
+    "El autor admite «código de baja calidad» y que casi seguro no gana dinero"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Alerta roja R2: sin licencia"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 0,
+      "O2": 8,
+      "O3": 15,
+      "O4": 0,
+      "O5": 10,
+      "O6": 5,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 48,
+    "tests_files": 4,
+    "days_since_commit": 936
+  },
+  "security": {
+    "checks": {
+      "S1": false,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": false,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S1": "Sin archivo LICENSE",
+      "S5": "Opera con claves"
+    },
+    "red_alerts": [
+      "R2"
+    ],
+    "total": 75,
+    "enabled": false
+  },
+  "evidence": [
+    {
+      "what": "Sin LICENSE",
+      "url": "https://github.com/ben-hampson/tradebot/blob/29e1e3bc927cf09460c4f4a19b7d085e317cf45f/README.md"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": null
+}

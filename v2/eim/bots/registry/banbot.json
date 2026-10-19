@@ -1,0 +1,80 @@
+{
+  "id": "banbot",
+  "name": "banbot",
+  "repo": "banbox/banbot",
+  "commit_sha": "b88d313a5b593c1849e41c92ccfd03e82319f5d5",
+  "commit_date": "2026-10-15",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "AGPL-3.0",
+    "file": "LICENSE",
+    "sha256": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b",
+    "head": "GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007 Copyright (C) 2007 Free Software Foundation, Inc. <ht"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "D",
+  "binance_markets": [
+    "usdm_futures"
+  ],
+  "strategies": [],
+  "dependencies": [
+    "Go",
+    "AGPL-3.0"
+  ],
+  "risks": [
+    "AGPL-3.0 (§13 obliga a ofrecer el código si se opera una versión modificada como servicio de red)",
+    "Marco de estrategias propias en Go: no empaqueta estrategias"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Marco sin estrategia con ventaja y con pila Go; AGPL"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 8,
+      "O4": 0,
+      "O5": 5,
+      "O6": 10,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 68,
+    "tests_files": 561,
+    "days_since_commit": 4
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": false,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S4": "6 referencias de telemetría sin revisar"
+    },
+    "red_alerts": [],
+    "total": 90,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia AGPL-3.0",
+      "url": "https://github.com/banbox/banbot/blob/b88d313a5b593c1849e41c92ccfd03e82319f5d5/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": null
+}
