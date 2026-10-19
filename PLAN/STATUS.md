@@ -58,4 +58,9 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T52 | Biblioteca de trading: ingesta local, catálogo y fichas citadas | T05 | ☑ | **◆ revisado (2026-10-18): las 138 fichas `revisada_usuario`** (Nison y Murphy ficha a ficha; conducta y cruces por delegación del usuario) y bibliografía aprobada. Ingesta local `eim/data/library.py` + `library_extract.py` (pypdf, EPUB con stdlib, OCR Tesseract con caché por página), catálogo con SHA-256 y búsqueda BM25 propia (`eim/library/bm25.py`); CLI `python -m eim.library ingest|list|search|show|cards|verify|mark`; libros vía `EIM_LIBRARY_DIR`, índice local fuera de git. Los 7 libros catalogados (Murphy por OCR: 572/596 págs.). Esquema `KnowledgeCard` (`eim/library/schema.py`) con guardas de derechos de autor e inyección (`guards.py`). **138 fichas** en `eim/library/cards/` (Nison 43, Murphy 48, Douglas 8+8, Steenbarger 11, Schwager 10, Lefèvre 7, cruces 3), todas verificadas contra el texto (`verify`). Revisión: `PLAN/notas/T52_fichas_revision.md`; estados con `python -m eim.library mark`. Tests en `tests/library/` (sintéticos, sin red). Pendientes en BACKLOG (T52). |
 | T53 | Agente `literature`: reglas de los libros y apoyo a los escenarios | T52 T17 T34 | ☐ | |
 | T54 | Retroalimentación con evidencia: estrategias «literatura» y ajuste de escenarios | T53 T49 T19 | ☐ | |
-| T55 | Consulta a la biblioteca (LLM, solo informa) + panel | T52 T24 | ☐ | |
+| T55 | Consulta a la biblioteca (LLM, solo informa) + panel | T52 T24 | ☐ | |
+| T56 | Escuadrón de bots: auditoría ampliada y catálogo con ficha común | — | ☐ | |
+| T57 | Escuadrón de bots: contrato `BotSignal`, ejecutor aislado y agente `bots` | T56 T05 | ☐ | |
+| T58 | Escuadrón de bots: adaptadores por oleadas (paridad con el bot nativo) | T57 | ☐ | |
+| T59 | Escuadrón de bots: puntuación, puerta de edge y degradación | T58 T49 T47 T25 | ☐ | |
+| T60 | Escuadrón de bots: síntesis, riesgo, UI y operación | T57 T59 T44 T10 | ☐ | |

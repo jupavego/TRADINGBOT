@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-18T19:36:53",
+ "generated": "2026-10-18T23:44:52",
  "tasks": [
   {
    "id": "T01",
@@ -693,6 +693,71 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 11,
    "goal": "Poder preguntar en lenguaje natural «¿qué dice la literatura sobre la situación actual o sobre este escenario?» y recibir una respuesta breve con citas verificables a fichas y páginas de los libros locales. Solo informa: nunca ejecuta, nunca fija tamaño ni cambia probabilidades."
+  },
+  {
+   "id": "T56",
+   "title": "Escuadrón de bots: auditoría ampliada y catálogo con ficha común",
+   "deps": [],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 12,
+   "goal": "Convertir el universo de `PLAN/notas/T56_universo_bots.md` (≥ 45 candidatos, la mitad sin verificar) en un **catálogo verificado** de estrategias empaquetadas (`bot@estrategia`), cada una con licencia real, mantenimiento, riesgos y **modo de integración**, para que el usuario apruebe qué entra al escuadrón. Aquí nace la mitad del «concepto» de cada bot: las dimensiones **operativa** y **seguridad** (rendimiento y evidencia las mide T59)."
+  },
+  {
+   "id": "T57",
+   "title": "Escuadrón de bots: contrato BotSignal, ejecutor aislado y agente bots",
+   "deps": [
+    "T56",
+    "T05"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 12,
+   "goal": "Construir la cáscara que **encapsula** cualquier bot: un contrato único de salida, un ejecutor que corre el bot sin claves y sin autoridad de operar, y el agente `bots` que consolida las posturas. Se prueba de extremo a extremo con **dos adaptadores de referencia** (uno modo A y uno modo B)."
+  },
+  {
+   "id": "T58",
+   "title": "Escuadrón de bots: adaptadores por oleadas (paridad con el bot nativo)",
+   "deps": [
+    "T57"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 12,
+   "goal": "Encapsular **todos los bots aprobados en T56** detrás del contrato de T57, de modo que cada uno produzca `BotSignal`s reproducibles. Es una sola tarea con oleadas: añadir un bot no crea una tarea nueva, crea un adaptador y una fila en el registro."
+  },
+  {
+   "id": "T59",
+   "title": "Escuadrón de bots: puntuación, puerta de edge y degradación",
+   "deps": [
+    "T58",
+    "T49",
+    "T47",
+    "T25"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 12,
+   "goal": "Asignar a cada bot su **concepto** con evidencia, usando la puerta que ya valida estrategias del bróker simulado (T49) en vez de crear una segunda vara de medir. Responde a la pregunta del usuario: ¿qué bots merecen influir en una decisión, cuáles solo se observan y cuáles se descartan?"
+  },
+  {
+   "id": "T60",
+   "title": "Escuadrón de bots: síntesis, riesgo, UI y operación",
+   "deps": [
+    "T57",
+    "T59",
+    "T44",
+    "T10"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 12,
+   "goal": "Mostrar el escuadrón al usuario y dejar que influya en las decisiones **solo en la medida que T59 lo respalde**, sin tocar la autoridad del motor de riesgo ni la puerta de ejecución."
   }
  ]
 };
