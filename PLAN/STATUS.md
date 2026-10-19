@@ -90,6 +90,23 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T84 | HFT: torneo de estrategias y puerta de edge (`hft_v1`) | T82 T83 T49 | ☐ | ◆ ¿alguna estrategia supera la validación? |
 | T85 | Agente `hft`, servicio en vivo y paper trading | T84 T83 T31 | ☐ | ◆ ¿pasa a testnet funcional? Nunca dinero real sin T31. |
 | T86 | HFT: integración (síntesis, capital, interfaz, Observatorio) | T85 T44 T10 T72 | ☐ | |
+| T87 | Multiactivo: auditoría de acoplamientos, medición y decisión de alcance | — | ☐ | Especificada (`PLAN/T87.md`, insumo `PLAN/notas/T87_universo_multiactivo.md`, 2026-10-19). Auditoría rápida ya hecha en la nota (17 agentes: 10 solo `candles`; acoplamientos a cripto localizados). ◆ alcance, horizontes, datos, orden de clases. |
+| T88 | Multiactivo: auditoría de repositorios y de proveedores de datos | — | ☐ | ◆ qué repos y proveedores entran (licencia y condiciones de uso verificadas en la fuente). |
+| T89 | Registro universal de instrumentos y calendarios | T87 | ☐ | |
+| T90 | Contratos de datos multifuente, almacén y calidad | T89 | ☐ | |
+| T91 | Agentes: capacidades declaradas, elegibilidad y supuestos de tiempo | T87 T89 | ☐ | |
+| T92 | Costos, margen y simulación por clase de activo | T89 | ☐ | |
+| T93 | Escáner global (1/2): universo, embudo, cola y caché | T89 T90 T91 | ☐ | Primer universo: todos los perpetuos USDⓈ-M de Binance (sin licencias nuevas). |
+| T94 | Escáner global (2/2): agentes sobre el universo, oportunidades trazables, API y panel | T93 | ☐ | |
+| T95 | Ranking global y control de multiplicidad (placebo, Holm/FDR) | T94 T49 | ☐ | ◆ ¿el escáner muestra algo que supere el azar? |
+| T96 | Cartera y riesgo transversal multiactivo | T92 T95 | ☐ | |
+| T97 | Clase: renta variable (acciones, ETF e índices) | T90 T91 T92 T93 | ☐ | ◆ ¿la clase sigue? Molde de la lista de aceptación. |
+| T98 | Clase: divisas (FX) | T97 | ☐ | |
+| T99 | Clase: materias primas y futuros tradicionales | T97 | ☐ | |
+| T100 | Renta fija, derivados y opciones: viabilidad y modelos propios | T88 T92 | ☐ | ◆ qué producto merece su propia clase. |
+| T101 | Validación multiactivo: matriz agente × clase | T95 T97 | ☐ | ◆ qué celdas se publican (probable: pocas o ninguna). |
+| T102 | Observabilidad y despliegue gradual multiactivo | T94 T72 | ☐ | |
+| T103 | Ejecución multiactivo: adaptador de papel y decisión de intermediario | T96 T101 T31 | ☐ | ◆ intermediario; solo papel, nunca dinero real. |
 
 **Mantenimiento 2026-10-19 · Mínimo de operaciones abiertas del bróker simulado (T47/T48/T49).** Cada perfil tiene `min_open` (Conservador 1, Moderado 2, Agresivo 3; 0 lo desactiva): si hay menos abiertas, la primera señal a mercado que solo incumpla filtros BLANDOS (solo-probado, confianza, R:B ≥ 1, síntesis, costo ≤ 0,3 R) entra con riesgo × 0,5 y marca «mínimo». Pausas, tendencia mayor, cupo, cobertura y margen siguen duros. Nueva estrategia «Posición base» (`base_tendencia`, familia `base`: a favor de la tendencia mayor, SL 2 ATR / TP 3 ATR) da oferta continua; se evalúa en la sombra como cualquier otra. Retroalimentación: cada entrada forzada guarda qué filtro se saltó; si saltarlo rinde con expectativa claramente negativa (mismo `judge` del perfil) ese filtro se bloquea y queda en la bitácora/insights. Código: `eim/paper/book.py`, `params.py`, `strategies.py`, `summary.py`, `insights.py`; tests en `tests/paper/`.
 

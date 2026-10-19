@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T07:24:34",
+ "generated": "2026-10-19T07:31:56",
  "tasks": [
   {
    "id": "T01",
@@ -1097,6 +1097,219 @@ window.EIM_STATUS = {
    "effort": "alto",
    "phase": 16,
    "goal": "Que el agente HFT sea un ciudadano completo del sistema: visible, trazable, con su propio cupo de capital y documentado, mostrando siempre el modo (Análisis, Simulado o Testnet) y la evidencia de la puerta T84."
+  },
+  {
+   "id": "T87",
+   "title": "Multiactivo: auditoría de acoplamientos, medición y decisión de alcance",
+   "deps": [],
+   "state": "pending",
+   "notes": "Especificada (`PLAN/T87.md`, insumo `PLAN/notas/T87_universo_multiactivo.md`, 2026-10-19). Auditoría rápida ya hecha en la nota (17 agentes: 10 solo `candles`; acoplamientos a cripto localizados). ◆ alcance, horizontes, datos, orden de clases.",
+   "effort": "medio",
+   "phase": 17,
+   "goal": "Convertir la auditoría rápida de `PLAN/notas/T87_universo_multiactivo.md` en una **matriz de reutilización completa** (qué se conserva, qué se adapta, qué es específico de cripto) con el costo real de cada agente, y fijar el alcance con el usuario antes de tocar código. Sin cambios en `eim/`."
+  },
+  {
+   "id": "T88",
+   "title": "Multiactivo: auditoría de repositorios y de proveedores de datos",
+   "deps": [],
+   "state": "pending",
+   "notes": "◆ qué repos y proveedores entran (licencia y condiciones de uso verificadas en la fuente).",
+   "effort": "medio",
+   "phase": 17,
+   "goal": "Verificar en la fuente lo que la investigación del usuario **declara** (licencia, mantenimiento, pruebas, compatibilidad) y decidir qué repositorios y proveedores entran, con qué rol y con qué límites. Los datos son la mitad del riesgo: sin una fuente con licencia clara no hay clase de activos."
+  },
+  {
+   "id": "T89",
+   "title": "Registro universal de instrumentos y calendarios",
+   "deps": [
+    "T87"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Un catálogo único donde cada instrumento tiene identidad estable, clase, estructura de mercado, reglas contractuales y datos disponibles, de modo que ningún módulo nuevo vuelva a codificar «BTCUSDT». Compatible hacia atrás: el símbolo cripto de hoy sigue siendo un identificador válido."
+  },
+  {
+   "id": "T90",
+   "title": "Contratos de datos multifuente, almacén y calidad",
+   "deps": [
+    "T89"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Hacer que el almacén y los proveedores hablen de instrumentos y no de símbolos de Binance, con calidad y procedencia por dato: huecos que entienden calendarios, precios ajustados frente a crudos, marcos diario y semanal, y licencia/uso por fuente. Sin esto no hay clase nueva que pueda validarse."
+  },
+  {
+   "id": "T91",
+   "title": "Agentes: capacidades declaradas, elegibilidad y supuestos de tiempo",
+   "deps": [
+    "T87",
+    "T89"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Que cada agente declare **a qué instrumentos, marcos y datos aplica** y que el sistema decida su elegibilidad con una razón escrita, y que los diez agentes de velas funcionen en mercados con sesiones y sin volumen real **sin cambiar ni un resultado en BTC/ETH**."
+  },
+  {
+   "id": "T92",
+   "title": "Costos, margen y simulación por clase de activo",
+   "deps": [
+    "T89"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Generalizar el modelo de perpetuos (comisión, funding, liquidación aislada, apalancamiento entero) a un **modelo de costos y de márgenes por clase**, de modo que backtest, bróker simulado y riesgo valoren una operación en acciones, FX o futuros con sus reglas reales. Es lo que decide si una «oportunidad» sobrevive a los costos."
+  },
+  {
+   "id": "T93",
+   "title": "Escáner global (1/2): universo, embudo, cola y caché",
+   "deps": [
+    "T89",
+    "T90",
+    "T91"
+   ],
+   "state": "pending",
+   "notes": "Primer universo: todos los perpetuos USDⓈ-M de Binance (sin licencias nuevas).",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "La infraestructura que permite mirar miles de instrumentos con un presupuesto de cómputo medido: descubrir el universo, filtrarlo, calcular una puntuación barata y vectorizada de todo el universo y entregar solo una lista corta a los agentes profundos. **Sin ejecutar órdenes.** Se prueba primero con el universo completo de perpetuos de Binance."
+  },
+  {
+   "id": "T94",
+   "title": "Escáner global (2/2): agentes sobre el universo, oportunidades trazables, API y panel",
+   "deps": [
+    "T93"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Conectar la lista corta de T93 con los agentes **elegibles** de cada instrumento y producir **oportunidades candidatas trazables** (nunca órdenes), visibles en la API y en una pestaña, con el modo siempre a la vista."
+  },
+  {
+   "id": "T95",
+   "title": "Ranking global y control de multiplicidad (placebo, Holm/FDR)",
+   "deps": [
+    "T94",
+    "T49"
+   ],
+   "state": "pending",
+   "notes": "◆ ¿el escáner muestra algo que supere el azar?",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Hacer comparables oportunidades de instrumentos, horizontes y clases distintos **y** medir cuántas serían falsos descubrimientos por azar. Escanear miles de instrumentos con 17 agentes es una máquina de generar hipótesis: sin este control el panel mostraría ruido con buena presentación (T27 y T49 ya dijeron que en BTC/ETH no hay edge validado)."
+  },
+  {
+   "id": "T96",
+   "title": "Cartera y riesgo transversal multiactivo",
+   "deps": [
+    "T92",
+    "T95"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Pasar de oportunidades sueltas a una **cartera simulada** con exposición, correlación, concentración, margen y moneda controlados por un componente determinista con poder de veto, independiente de los agentes. Solo simulación."
+  },
+  {
+   "id": "T97",
+   "title": "Clase: renta variable (acciones, ETF e índices)",
+   "deps": [
+    "T90",
+    "T91",
+    "T92",
+    "T93"
+   ],
+   "state": "pending",
+   "notes": "◆ ¿la clase sigue? Molde de la lista de aceptación.",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Llevar la primera clase fuera de cripto de punta a punta y comprobar **toda** la lista de aceptación por clase (descubrimiento, datos, agentes, backtesting, riesgo, ejecución simulada, observabilidad, validación). Sirve de molde para las demás clases."
+  },
+  {
+   "id": "T98",
+   "title": "Clase: divisas (FX)",
+   "deps": [
+    "T97"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Incorporar pares de divisas respetando que el mercado es OTC, 24/5, sin volumen central y con costos de swap, y completar la lista de aceptación por clase."
+  },
+  {
+   "id": "T99",
+   "title": "Clase: materias primas y futuros tradicionales",
+   "deps": [
+    "T97"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Incorporar futuros con vencimiento (energía, metales, agrícolas, índices, tasas) y sus particularidades — curva, contango/backwardation, roll, estacionalidad natural — y completar la lista de aceptación por clase."
+  },
+  {
+   "id": "T100",
+   "title": "Renta fija, derivados y opciones: viabilidad y modelos propios",
+   "deps": [
+    "T88",
+    "T92"
+   ],
+   "state": "pending",
+   "notes": "◆ qué producto merece su propia clase.",
+   "effort": "medio",
+   "phase": 17,
+   "goal": "Decidir con evidencia si bonos, repos, operaciones de financiación y opciones se pueden cubrir y cómo. **No basta aplicar indicadores técnicos a sus precios**: requieren curvas, duración, convexidad, carry/roll-down, cadenas de opciones, volatilidad implícita y griegas. Esta tarea produce especificación y prototipo mínimo, no una clase completa."
+  },
+  {
+   "id": "T101",
+   "title": "Validación multiactivo: matriz agente × clase",
+   "deps": [
+    "T95",
+    "T97"
+   ],
+   "state": "pending",
+   "notes": "◆ qué celdas se publican (probable: pocas o ninguna).",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Responder con evidencia **dónde funciona cada agente y dónde no**: una puerta de validación a escala de universo que cuenta todas las hipótesis y publica solo los pares (agente, clase, horizonte) que la superan. El resultado más probable, a la vista de T27 y T49, es «pocos o ninguno»; debe decirse tal cual."
+  },
+  {
+   "id": "T102",
+   "title": "Observabilidad y despliegue gradual multiactivo",
+   "deps": [
+    "T94",
+    "T72"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 17,
+   "goal": "Que cada instrumento, dato, agente, oportunidad y decisión sea rastreable de punta a punta y que el paso de «alerta» a «simulación» y a «papel» siga un protocolo escrito. El sistema debe poder decir en cualquier momento qué mercados vigila, con qué datos y qué no puede ver."
+  },
+  {
+   "id": "T103",
+   "title": "Ejecución multiactivo: adaptador de papel y decisión de intermediario",
+   "deps": [
+    "T96",
+    "T101",
+    "T31"
+   ],
+   "state": "pending",
+   "notes": "◆ intermediario; solo papel, nunca dinero real.",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Dar al sistema un camino de ejecución **solo en cuenta de papel/simulada** para las clases que superen la puerta, sin tocar nunca dinero real. Verifica que el contrato de órdenes, la reconciliación y el riesgo funcionan con acciones, FX o futuros reales de un intermediario."
   }
  ]
 };
