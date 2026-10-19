@@ -76,12 +76,30 @@ def _write_db(con, db: str, out: Path, machine: str, tables: dict) -> None:
                            "columns": [[c, t] for c, t in cols]}
 
 
+def prune_own(shared_dir: Path, machine: str, part: str, keep: int) -> list[Path]:
+    """Borra las exportaciones propias más antiguas del mismo tipo (`part`), dejando `keep`
+    (cada exportación es una foto completa: la nube no necesita acumularlas)."""
+    root = shared_dir / machine
+    dirs = [p for p in root.iterdir() if p.is_dir() and not p.name.startswith(".")
+            ] if root.exists() else []
+    mine = sorted(p for p in dirs
+                  if (p.name.endswith(f"-{part}") if part else "-" not in p.name))
+    old = mine[:-keep] if keep > 0 else []
+    for p in old:
+        shutil.rmtree(p, ignore_errors=True)
+    return old
+
+
 def export(data_dir: Path, shared_dir: Path, machine: str, *,
-           snapshotter: Snapshotter | None = None, now: datetime | None = None) -> Path:
+           snapshotter: Snapshotter | None = None, now: datetime | None = None,
+           dbs: tuple[str, ...] = DB_ORDER, part: str = "") -> Path:
     """Escribe la exportación y devuelve su carpeta. Una base ausente se anota y se sigue; una
-    base en uso sin forma de copiarla en caliente es un error (no se exporta a medias)."""
+    base en uso sin forma de copiarla en caliente es un error (no se exporta a medias).
+    `dbs`/`part`: exportación parcial de un proceso que solo tiene algunas bases (la API:
+    reports+paper; el servicio de líderes: leaders); el importador toma la más reciente de cada
+    base."""
     now = now or datetime.now(UTC)
-    stamp = now.strftime("%Y%m%dT%H%M%SZ")
+    stamp = now.strftime("%Y%m%dT%H%M%SZ") + (f"-{part}" if part else "")
     root = shared_dir / machine
     final, tmp = root / stamp, root / f".{stamp}.partial"
     if final.exists():
@@ -91,7 +109,7 @@ def export(data_dir: Path, shared_dir: Path, machine: str, *,
     tables: dict = {}
     absent: dict[str, str] = {}
     try:
-        for db in DB_ORDER:
+        for db in dbs:
             src = data_dir / db
             if not src.exists():
                 absent[db] = "no existe en esta máquina"
@@ -107,8 +125,8 @@ def export(data_dir: Path, shared_dir: Path, machine: str, *,
             finally:
                 con.close()
         manifest = {"format": FORMAT, "schema_version": SCHEMA_VERSION, "machine": machine,
-                    "created_at": stamp, "git_commit": git_commit(), "tables": tables,
-                    "absent": absent}
+                    "created_at": stamp, "dbs": list(dbs), "git_commit": git_commit(),
+                    "tables": tables, "absent": absent}
         (tmp / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
         tmp.replace(final)
     except BaseException:

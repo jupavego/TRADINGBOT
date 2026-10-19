@@ -68,6 +68,7 @@ class LeaderService(LeaderWatch):
         start = time.monotonic()
         self._next = {"score": start + first_score_s, "portfolio": start, "heartbeat": start}
         self.boards_saved = 0
+        self.share = None             # T61: `ShareAgent` (lo asigna la CLI `run` si hay nube)
         self.copy: CopyLive | None = None
         self._copy_logged: dict[str, float] = {}
         if copy_mode != "off":
@@ -184,6 +185,8 @@ class LeaderService(LeaderWatch):
         snap = take_snapshot_request(self.root)  # copia de la base pedida por `copy-sim` (T42)
         if snap is not None:
             await self._safe("instantánea", asyncio.to_thread(self.store.snapshot, snap))
+        if self.share is not None and self.share.due():   # T61: exportar/importar experiencia
+            await self._safe("compartir", asyncio.to_thread(self.share.tick))
         now = time.monotonic()
         if now >= self._next["portfolio"]:
             self._next["portfolio"] = now + self.portfolio_every_s

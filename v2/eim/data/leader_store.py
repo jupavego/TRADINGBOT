@@ -84,6 +84,11 @@ class LeaderStore(ScoreTables, CopyTables):
         with self._lock:
             self._con.close()
 
+    @property
+    def connection(self):
+        """(conexión, cerrojo) para la experiencia compartida (T61, `eim.data.share_auto`)."""
+        return self._con, self._lock
+
     def _exec(self, q: str, params: list | tuple = ()) -> list[tuple]:
         with self._lock:
             return self._con.execute(q, params).fetchall()

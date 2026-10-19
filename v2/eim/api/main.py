@@ -38,6 +38,7 @@ from eim.data.arb_sync import ArbSync
 from eim.data.calendar_sync import CalendarSync
 from eim.data.paper_store import PaperStore
 from eim.data.providers.binance import BinanceFutures
+from eim.data.share_auto import Live, make_agent, share_loop
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
@@ -121,6 +122,15 @@ def create_app(
     # T49: puerta de validación por estrategia; se recalcula al cierre de cada vela de 4 h.
     validator = Validator(paper, ValidationStore(paper_store))
     paper.after_tick.append(validator.maybe_run)
+    # T61: experiencia compartida automática (solo si hay carpeta compartida configurada):
+    # importa lo de las demás máquinas y exporta lo propio, sin comandos.
+    share = None
+    if source is None:
+        share = make_agent(
+            "api", cfg.data_dir, {"reports.duckdb": Live(*reports.connection),
+                                  "paper.duckdb": Live(*paper_store.connection)},
+            backup_dir=cfg.backup_dir,
+            on_imported=lambda: [validator.compute(s) for s in paper.symbols])
 
     def now_ms() -> int:
         return int(time.time() * 1000)
@@ -141,8 +151,9 @@ def create_app(
                       if source is None and cfg.paper else None)
         arb_exec_task = (asyncio.create_task(arb_loop(arb_rt))
                          if arb_rt.pilot is not None else None)
+        share_task = asyncio.create_task(share_loop(share)) if share is not None else None
         yield
-        for t in (task, cal_task, arb_task, paper_task, arb_exec_task):
+        for t in (task, cal_task, arb_task, paper_task, arb_exec_task, share_task):
             if t is not None:
                 t.cancel()
         paper.stop_backtest()
@@ -168,7 +179,7 @@ def create_app(
     app.include_router(build_execution_router(runtime, now_ms))
     app.include_router(build_backup_router(reports, cfg.data_dir, cfg.backup_dir,
                                            cfg.backup_keep, lambda: op))
-    app.include_router(build_share_router(reports, paper_store, cfg.data_dir))
+    app.include_router(build_share_router(reports, paper_store, cfg.data_dir, lambda: share))
     app.include_router(build_forecast_router(forecaster))
     app.include_router(build_setups_router(store, reports, lambda: [a.id for a in reg.latest()]))
     app.include_router(build_calibration_router(store, forecaster))

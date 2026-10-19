@@ -48,7 +48,7 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 | `EIM_SPOT_TESTNET_API_KEY` / `_SECRET` / `_URL` | — (usa las de futuros) | Clave de la testnet spot (`testnet.binance.vision`); en la cuenta demo de Binance la de futuros vale para ambas. Sin permiso de retiro |
 | `EIM_ARB_ALERT_SCORE`, `EIM_ARB_ALERT_S` | `3`, `60` | Alerta de arbitraje: puntuación del selector ≥ umbral (pb/día ajustados por riesgo) sostenida N segundos de escaneos seguidos (T39) |
 | `EIM_PAPER`, `EIM_PAPER_S` | `1`, `60` | Bróker simulado (T47/T48): cada ciclo trae velas de 15 m/1 h/4 h y funding de BTCUSDT y analiza las velas cerradas nuevas de los tres marcos → `data/paper.duckdb`. `0` lo apaga. Siempre SIMULADO |
-| `EIM_SHARED_DIR`, `EIM_MACHINE` | — | Experiencia compartida entre equipos (T61, §3.1): carpeta de nube compartida y alias único de esta máquina |
+| `EIM_SHARED_DIR`, `EIM_MACHINE`, `EIM_SHARE_*` | — | Experiencia compartida entre equipos (T61, §3.1): carpeta de nube compartida, alias único de esta máquina y cadencias del modo automático (también `python -m eim.data.share setup`) |
 | `EIM_FRED_API_KEY` | — | Opcional (gratuita): valores real/anterior/revisado de IPC, NFP, PCE, PIB, IPP desde FRED. Sin ella los eventos salen sin valores |
 | `EIM_LIBRARY_DIR`, `EIM_LIBRARY_INDEX`, `EIM_TESSERACT` | `data/library/books`, `data/library/index`, autodetección | Biblioteca de trading (T52): carpeta de los libros del usuario (fuera del repo), índice local (catálogo, texto por página, caché de OCR) y ruta de `tesseract.exe` si no está en el PATH |
 | `EIM_WS_URL`, `EIM_HEARTBEAT_S`, `EIM_SNAPSHOT_BARS`, `EIM_AUTO_HISTORY`, `EIM_RECON_S` | ver `eim/api/config.py` | |
@@ -83,22 +83,43 @@ bitácora de líderes). T61 los une **por exportación**: cada máquina exporta 
 nube compartida (Drive/OneDrive) y un comando importa lo de las demás **sin duplicar, sin pisar y sin
 inflar la evidencia**. Todo en modo SIMULADO; nunca viajan claves.
 
-**Preparación (una vez por equipo).** Define las variables (PowerShell: `$env:NAME='…'`; para que
-persistan, variables de usuario de Windows):
+**Automático (lo normal).** Configura una vez y el sistema hace el resto:
+
+```bash
+python -m eim.data.share setup --shared-dir "C:\Users\...\Drive\EIM_compartido" --machine juan-portatil
+```
+(`--machine` es un alias **único** de tu equipo; no lo cambies después: es tu carpeta de la nube y la
+procedencia de tus filas. También sirven las variables `EIM_SHARED_DIR` y `EIM_MACHINE`.) Reinicia la API y
+el servicio de líderes (`servicio_continuo.ps1`). Desde entonces, **dentro de esos procesos**:
+- cada hora (`EIM_SHARE_IMPORT_S`) miran la nube: si otra máquina tiene una exportación nueva la **unen
+  en vivo** (bajo el cerrojo de la base, en una transacción, con copia previa en caliente en
+  `EIM_BACKUP_DIR/pre-import_…`; se conservan las 3 últimas), y si llegaron contextos o versiones nuevos
+  recalculan los veredictos de la puerta de validación sobre la **unión** de intentos;
+- cada 6 h (`EIM_SHARE_EXPORT_S`) exportan lo propio **solo si cambió** (la API: `reports`+`paper`; el
+  servicio de líderes: `leaders`; en `EIM_SHARED_DIR/<máquina>/<fecha>-api|-leaders/`), y podan sus
+  exportaciones antiguas (`EIM_SHARE_KEEP`, 3 por tipo);
+- un fallo (nube sin sincronizar, exportación corrupta, esquema más nuevo) se anota y se reintenta en 10 min,
+  sin tocar la operación. Estado y último error: `GET /v2/share/status`; informes de cada importación en
+  `data/share/import_<id>.json`. `EIM_SHARE_AUTO=0` lo apaga.
+Los líderes importados empiezan a capturarse en el siguiente reinicio del servicio de líderes.
+
+**Manual (equipo nuevo, o sin servicios en marcha).** Los comandos de abajo hacen lo mismo a mano.
+Variables (PowerShell: `$env:NAME='…'`; para que persistan, variables de usuario de Windows):
 
 | Variable | Qué es |
 |---|---|
 | `EIM_SHARED_DIR` | Carpeta de la nube compartida (p. ej. `…\EIM_compartido`). Cada máquina escribe **solo** en `EIM_SHARED_DIR/<su_id>/`: la nube no genera conflictos. |
-| `EIM_MACHINE` | Alias legible y **único** de tu equipo (`juan-portatil`). Opcional: sin él se crea un id estable en `data/machine_id`. No lo cambies después: es tu carpeta y la procedencia de tus filas. |
+| `EIM_MACHINE` | Alias legible y **único** de tu equipo (`juan-portatil`). Sin él se crea un id estable en `data/machine_id`. |
+| `EIM_SHARE_AUTO`, `EIM_SHARE_IMPORT_S`, `EIM_SHARE_EXPORT_S`, `EIM_SHARE_KEEP` | Modo automático: `0` lo apaga; cadencias (3600 s, 21600 s) y exportaciones propias que se conservan (3) |
 
-**Rutina diaria.**
-1. **Al empezar la jornada** (con API y servicio de líderes **detenidos**, ver §6):
+**Rutina manual.**
+1. **Importar** (con API y servicio de líderes **detenidos**, ver §6):
    `python -m eim.data.share import` → simulacro: por tabla y por máquina de origen, filas
    *nuevas / ya estaban / en conflicto / incompatibles*. No escribe nada. Si el informe es el
    esperado: `python -m eim.data.share import --apply` (copia previa en `EIM_BACKUP_DIR/pre-import_…`,
    una transacción por base, `import_log`, informe en `data/share/import_<id>.json` y recálculo de los
-   veredictos de la puerta de validación sobre la **unión** de intentos; `--no-recompute` lo omite).
-2. **Al cerrar la jornada:** `python -m eim.data.share export` (puede correr con el servicio en
+   veredictos; `--no-recompute` lo omite).
+2. **Exportar:** `python -m eim.data.share export` (puede correr con el servicio en
    marcha: si una base está en uso pide una copia coherente a la API —`POST /v2/share/snapshot`— y al
    servicio de líderes). `python -m eim.data.share status` lista la última exportación de cada máquina.
 3. Importar es **idempotente** (repetirlo no cambia nada) y la unión es **conmutativa** (A∪B = B∪A).
@@ -131,13 +152,13 @@ Un manifest alterado, un archivo con hash distinto, o un esquema más nuevo que 
 **rechaza** esa exportación entera con un mensaje claro (si es lo último: `git pull`). Una exportación
 que la nube aún está sincronizando se rechaza por «falta archivo»: espera y repite.
 
-**Colaborador nuevo (primera importación completa).** Clona el repo, define `EIM_SHARED_DIR` y
-`EIM_MACHINE`, ejecuta `python -m eim.data.share import` (simulacro) y luego `--apply` con la API
-detenida: crea las bases vacías y trae todo el historial de los demás. Después arranca normalmente
-(las velas se descargan solas).
+**Colaborador nuevo (primera importación completa).** Clona el repo, ejecuta `python -m eim.data.share
+setup …`, luego `python -m eim.data.share import` (simulacro) y `--apply` con la API detenida: crea las
+bases vacías y trae todo el historial de los demás. Después arranca normalmente (las velas se descargan
+solas) y todo sigue automático.
 
-**Límites.** La importación requiere las bases libres (si no, falla con el mensaje «detén la API y el
-servicio de líderes» y no cambia nada); la atomicidad es por base (de ahí la copia previa). No hay
+**Límites.** La importación manual requiere las bases libres (si no, falla con el mensaje «detén la API y
+el servicio de líderes» y no cambia nada; la automática corre dentro de los procesos que las tienen); la atomicidad es por base (de ahí la copia previa). No hay
 sincronización en vivo ni autenticación entre colaboradores. Nunca pongas una base DuckDB viva dentro de
 la carpeta compartida: solo viajan Parquet + `manifest.json` (SHA-256 por tabla, commit, esquema).
 **Pendiente ◆:** el usuario revisa el informe de la primera mezcla real antes de dar T61 por cerrada.

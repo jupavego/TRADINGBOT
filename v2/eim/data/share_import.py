@@ -28,8 +28,9 @@ from eim.data.share_versions import merge_versions
 
 
 class Export:
-    def __init__(self, machine: str, path: Path, manifest: dict) -> None:
+    def __init__(self, machine: str, path: Path, manifest: dict, use: set[str]) -> None:
         self.machine, self.path, self.manifest = machine, path, manifest
+        self.use = use          # bases para las que esta es la exportación más reciente
 
     @property
     def created_at(self) -> str:
@@ -65,20 +66,28 @@ def check(path: Path, machine: str) -> tuple[dict | None, list[str]]:
 
 def discover(shared_dir: Path, own: str, only: set[str] | None = None
              ) -> tuple[list[Export], list[dict]]:
-    """La exportación más reciente de cada OTRA máquina; las inválidas van a `rechazadas`."""
+    """Por cada OTRA máquina, la exportación más reciente de cada base (una exportación completa
+    las cubre todas; las parciales de la API y del servicio de líderes, cada una las suyas).
+    Las inválidas van a `rechazadas` y se sigue con la anterior válida."""
     found, rejected = [], []
     dirs = sorted(p for p in shared_dir.iterdir() if p.is_dir()) if shared_dir.exists() else []
     for mdir in dirs:
         if mdir.name == own or (only and mdir.name not in only):
             continue
-        stamps = sorted(p for p in mdir.iterdir() if p.is_dir() and not p.name.startswith("."))
-        if not stamps:
-            continue
-        m, problems = check(stamps[-1], mdir.name)
-        if problems:
-            rejected.append({"machine": mdir.name, "path": str(stamps[-1]), "problems": problems})
-        else:
-            found.append(Export(mdir.name, stamps[-1], m))
+        covered: set[str] = set()
+        stamps = sorted((p for p in mdir.iterdir() if p.is_dir() and not p.name.startswith(".")),
+                        reverse=True)
+        for p in stamps[:8]:
+            m, problems = check(p, mdir.name)
+            if problems:
+                rejected.append({"machine": mdir.name, "path": str(p), "problems": problems})
+                continue
+            dbs = set(m.get("dbs") or {t["db"] for t in m["tables"].values()})
+            if dbs - covered:
+                found.append(Export(mdir.name, p, m, dbs - covered))
+                covered |= dbs
+            if covered >= set(DB_ORDER):
+                break
     return found, rejected
 
 
@@ -125,6 +134,8 @@ def _merge_db(con, db: str, exports: list[Export], import_id: str, now_ms: int, 
               ) -> list[Result]:
     out: list[Result] = []
     for e in exports:
+        if db not in e.use:
+            continue
         tabs = e.manifest["tables"]
         for sp in specs_of(db):
             if sp.name not in tabs or sp.name == "val_windows":
@@ -141,7 +152,7 @@ def _merge_db(con, db: str, exports: list[Export], import_id: str, now_ms: int, 
             out.append(merge_table(con, sp, e.path / tabs[sp.name]["file"],
                                    tabs[sp.name]["columns"], e.machine, import_id))
     for r in out:
-        e = next(x for x in exports if x.machine == r.src)
+        e = next(x for x in exports if x.machine == r.src and db in x.use)
         con.execute("INSERT INTO import_log VALUES (?,?,?,?,?,?,?,?,?,?)",
                     [import_id, now_ms, r.tbl, r.src, e.created_at, r.new, r.dup, r.conflict,
                      r.incompatible, by])
@@ -177,8 +188,8 @@ def import_all(data_dir: Path, shared_dir: Path, machine: str, *, apply: bool = 
             if mid.exists():
                 shutil.copy2(mid, work / MACHINE_FILE)
         for db in DB_ORDER:
-            mine = [e for e in exports if any(s.name in e.manifest["tables"]
-                                              for s in specs_of(db))]
+            mine = [e for e in exports if db in e.use and any(
+                s.name in e.manifest["tables"] for s in specs_of(db))]
             if not mine:
                 continue
             ensure_schema(db, work / db)
