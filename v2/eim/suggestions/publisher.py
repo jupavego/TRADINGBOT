@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict
 from eim.paper.ideas import HOUR_MS, Idea
 
 STATE = "sugerida_no_ejecutada"
+WATCH_STATE = "observacion_no_validada"
 SIN_VALIDADAS, SIN_SENAL, DATOS_VIEJOS, OK = "sin_validadas", "sin_senal", "datos_viejos", "ok"
 NOTE = ("Oportunidad potencial. Evidencia de un bróker simulado; no garantiza rentabilidad. "
         "Análisis: no es una orden ni una operación ejecutada.")
@@ -28,6 +29,7 @@ class PublishParams(BaseModel):
     timeframes: tuple[str, ...] = ("15m", "1h")    # intradía
     max_hold_h: float = 36.0                       # tenencia máxima de la idea
     max_setups: int = 3
+    max_watch: int = 3                             # ideas en observación (no validadas)
     dedup_atr: float = 0.5                         # mismo lado y entradas a menos de 0,5 ATR
     entry_tol_atr: float = 0.5                     # mercado: el precio ya se alejó de la entrada
     verdicts_max_age_h: float = 8.0                # se recalculan cada 4 h
@@ -41,10 +43,12 @@ class Publication:
     setups: list[dict] = field(default_factory=list)
     validation: dict = field(default_factory=dict)
     discarded: list[dict] = field(default_factory=list)   # ideas validadas que vencieron
+    watch: list[dict] = field(default_factory=list)       # ideas en observación: NO validadas
 
     def to_json(self) -> dict:
         return {"status": self.status, "message": self.message, "setups": self.setups,
-                "validation": self.validation, "discarded": self.discarded}
+                "validation": self.validation, "discarded": self.discarded,
+                "watch": self.watch}
 
 
 def _check(v: dict, cid: str) -> dict:
@@ -83,14 +87,17 @@ def expired(i: Idea, price: float, now: int, atr: float, p: PublishParams) -> st
     return None
 
 
-def _setup(i: Idea, v: dict) -> dict:
-    return {
+def _setup(i: Idea, v: dict, state: str = STATE) -> dict:
+    out = {
         "side": "long" if i.side > 0 else "short", "kind": i.kind, "entry": i.entry, "sl": i.sl,
         "tp": i.tp, "rr": i.rr, "strategy": i.strategy, "timeframe": i.timeframe,
         "version": f"v{v['n']}", "id": v["id"], "reason": "; ".join(i.why),
         "hours": i.hold_ms / HOUR_MS, "created_at": i.t,
         "valid_until": i.t + i.fill_ms if i.kind == "limit" else None,
-        "state": STATE, "evidence": evidence_of(v)}
+        "state": state, "evidence": evidence_of(v)}
+    if state != STATE:       # no validada: se dice qué le falta
+        out |= {"verdict": v["verdict"], "verdict_reason": v.get("reason")}
+    return out
 
 
 def _stale(now: int, verdicts_asof: int | None, heartbeat: int | None, view_stale: bool,
@@ -132,35 +139,67 @@ def publish(ideas: Sequence[Idea], verdicts: Sequence[dict], *, now: int, price:
         why = "sin precio actual del bróker simulado"
     if why:
         return Publication(DATOS_VIEJOS, f"Datos desactualizados: {why}.", validation=info)
-    if not ok:
-        obs, rej = counts.get("EN OBSERVACIÓN", 0), counts.get("RECHAZADA", 0)
-        rev = f"; {len(held)} validada(s) en revisión por degradación" if held else ""
+    obs, rej = counts.get("EN OBSERVACIÓN", 0), counts.get("RECHAZADA", 0)
+    rev = f"; {len(held)} validada(s) en revisión por degradación" if held else ""
+    live, gone = _vigentes(ideas, ok, float(price), now, float(atr), last_t, p)
+    watch = _watch(ideas, verdicts, float(price), now, float(atr), last_t, p, ok)
+    kept = _dedup(live, float(atr), p.max_setups, p)
+    if not kept and not ok:
         return Publication(
             SIN_VALIDADAS, "Ninguna estrategia pasa todavía la puerta de validación "
-            f"({obs} en observación, {rej} rechazadas{rev}).", validation=info)
+            f"({obs} en observación, {rej} rechazadas{rev}).", validation=info, watch=watch)
+    if not kept:
+        return Publication(
+            SIN_SENAL, f"Hay {len(ok)} versión(es) validada(s), pero ninguna propone una "
+            "operación vigente en la última vela cerrada.", validation=info, discarded=gone,
+            watch=watch)
+    return Publication(OK, f"{len(kept)} oportunidad(es) de estrategias validadas.",
+                       [_setup(i, v) for i, v in kept], info, gone, watch)
+
+
+def _vigentes(ideas: Sequence[Idea], ok: Mapping[tuple, dict], price: float, now: int,
+              atr: float, last_t: Mapping[str, int | None], p: PublishParams):
+    """Ideas de la última vela cerrada de versiones en `ok` que siguen vigentes (+ las vencidas)."""
     live, gone = [], []
     for i in ideas:
         v = ok.get((i.sid, i.version))
         if (v is None or i.timeframe not in p.timeframes or i.hold_ms > p.max_hold_h * HOUR_MS
                 or last_t.get(i.timeframe) != i.t):
             continue
-        cause = expired(i, float(price), now, float(atr), p)
+        cause = expired(i, price, now, atr, p)
         if cause:
             gone.append({"id": v["id"], "reason": cause})
         else:
             live.append((i, v))
-    live.sort(key=lambda x: (-_ci_low(x[1]), -x[0].conf, x[0].sid, x[0].id))
+    return live, gone
+
+
+def _dedup(live: list, atr: float, limit: int, p: PublishParams) -> list:
+    live = sorted(live, key=lambda x: (-_ci_low(x[1]), -x[0].conf, x[0].sid, x[0].id))
     kept: list[tuple[Idea, dict]] = []
     for i, v in live:
-        if any(k.side == i.side and abs(k.entry - i.entry) < p.dedup_atr * float(atr)
-               for k, _ in kept):
+        if any(k.side == i.side and abs(k.entry - i.entry) < p.dedup_atr * atr for k, _ in kept):
             continue
         kept.append((i, v))
-        if len(kept) == p.max_setups:
+        if len(kept) == limit:
             break
-    if not kept:
-        return Publication(
-            SIN_SENAL, f"Hay {len(ok)} versión(es) validada(s), pero ninguna propone una "
-            "operación vigente en la última vela cerrada.", validation=info, discarded=gone)
-    return Publication(OK, f"{len(kept)} oportunidad(es) de estrategias validadas.",
-                       [_setup(i, v) for i, v in kept], info, gone)
+    return kept
+
+
+def _watch(ideas: Sequence[Idea], verdicts: Sequence[dict], price: float, now: int, atr: float,
+           last_t: Mapping[str, int | None], p: PublishParams, ok: Mapping[tuple, dict]) -> list:
+    """Ideas vigentes de versiones EN OBSERVACIÓN: no validadas, solo informativas. Ordenadas por
+    la muestra fuera de muestra (más evidencia primero) y la confianza."""
+    obs = {(v["sid"], v["fingerprint"]): v for v in verdicts
+           if v["verdict"] == "EN OBSERVACIÓN" and v.get("retired") is None
+           and v["timeframe"] in p.timeframes and (v["sid"], v["fingerprint"]) not in ok}
+    live, _ = _vigentes(ideas, obs, price, now, atr, last_t, p)
+    live.sort(key=lambda x: (-(x[1].get("n_oos") or 0), -x[0].conf, x[0].sid, x[0].id))
+    kept: list[tuple[Idea, dict]] = []
+    for i, v in live:
+        if any(k.side == i.side and abs(k.entry - i.entry) < p.dedup_atr * atr for k, _ in kept):
+            continue
+        kept.append((i, v))
+        if len(kept) == p.max_watch:
+            break
+    return [_setup(i, v, WATCH_STATE) for i, v in kept]

@@ -20,7 +20,7 @@ EVIDENCE_KEYS = {"n_oos", "mean_r", "ci95", "p_holm", "max_dd", "win_rate", "cos
                  "mean_live", "oos_from", "oos_to"}
 TOP_KEYS = {"mode", "symbol", "asof", "now", "criteria_version", "verdicts_asof", "price",
             "timeframes", "horizon_hours", "source", "status", "message", "validation",
-            "discarded", "setups", "note"}
+            "discarded", "setups", "watch", "note"}
 
 
 def make_client(monkeypatch, ideas, verdicts):
