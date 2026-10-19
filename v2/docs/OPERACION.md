@@ -83,13 +83,24 @@ bitácora de líderes). T61 los une **por exportación**: cada máquina exporta 
 nube compartida (Drive/OneDrive) y un comando importa lo de las demás **sin duplicar, sin pisar y sin
 inflar la evidencia**. Todo en modo SIMULADO; nunca viajan claves.
 
+**Transporte.** Dos opciones; ambas dejan el mismo formato (`<máquina>/<fecha>/` con Parquet + manifest):
+- **Repo git PRIVADO aparte** (si no hay nube compartida): `setup --git-url <repo>`. Cada máquina publica
+  **solo su rama** `machine/<id>` (un único commit raíz sobrescrito con `push --force`: el servidor guarda
+  solo la última foto y la historia no crece) y lee las ramas de las demás con clones superficiales en
+  `data/share_repo/view/`. Nadie escribe en la rama de otro: sin conflictos. Usa las credenciales de git del
+  equipo (gestor de credenciales / `gh auth`); cada colaborador necesita acceso de escritura al repo. Un
+  archivo > 90 MB se rechaza (límite de GitHub). **Nunca** apuntes esto al repo del código.
+- **Carpeta de nube** (Drive/OneDrive): `setup --shared-dir <carpeta>`.
+
 **Automático (lo normal).** Configura una vez y el sistema hace el resto:
 
 ```bash
-python -m eim.data.share setup --shared-dir "C:\Users\...\Drive\EIM_compartido" --machine juan-portatil
+python -m eim.data.share setup --git-url https://github.com/<usuario>/eim-shared-data.git --machine juan-portatil
+python -m eim.data.share setup --shared-dir "C:\Users\...\OneDrive\EIM_compartido" --machine juan-portatil
 ```
-(`--machine` es un alias **único** de tu equipo; no lo cambies después: es tu carpeta de la nube y la
-procedencia de tus filas. También sirven las variables `EIM_SHARED_DIR` y `EIM_MACHINE`.) Reinicia la API y
+(`--machine` es un alias **único** de tu equipo; no lo cambies después: es tu carpeta/rama y la
+procedencia de tus filas. También sirven las variables `EIM_SHARE_GIT_URL`, `EIM_SHARED_DIR` y
+`EIM_MACHINE`.) Reinicia la API y
 el servicio de líderes (`servicio_continuo.ps1`). Desde entonces, **dentro de esos procesos**:
 - cada hora (`EIM_SHARE_IMPORT_S`) miran la nube: si otra máquina tiene una exportación nueva la **unen
   en vivo** (bajo el cerrojo de la base, en una transacción, con copia previa en caliente en
