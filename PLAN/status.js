@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T03:15:18",
+ "generated": "2026-10-19T03:41:56",
  "tasks": [
   {
    "id": "T01",
@@ -623,8 +623,8 @@ window.EIM_STATUS = {
    "deps": [
     "T49"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Publicador puro `eim/suggestions/publisher.py`: cruza las ideas vivas de la última vela cerrada de 15 m y 1 h (cualquier estrategia, tenencia ≤ 36 h) con los veredictos de T49 y publica ≤ 3 de versiones VALIDADAS (cruce por `estrategia@marco` + huella), ordenadas por el límite inferior del IC95 % fuera de muestra, deduplicadas (mismo lado, entrada < 0,5 ATR) y sin vencidas; si no hay ninguna, lista vacía y motivo `sin_validadas` / `sin_senal` / `datos_viejos`. `GET /v2/setups` (`eim/api/setups.py`, contrato en `CONTRATOS.md`) ya no publica la salida cruda de `suggest()` (queda como generador de candidatas del bróker). Panel (`web/src/setups_ui.ts`): tarjetas con entrada/SL/TP/riesgo, estrategia@marco@versión, evidencia, razón y hora, «Sugerida · no ejecutada» + aviso, y estado vacío «Sin operaciones validadas para sugerir» con motivo (lo esperable hoy: T49 no validó ninguna). Tests en `tests/suggestions`, `tests/api/test_setups_api.py`. Verificado en navegador con respuesta simulada de la API (tarjetas y estado vacío, screenshot); falta mirarlo con datos reales en la máquina del usuario. **Para usarlo: reiniciar la API.**",
    "effort": "medio",
    "phase": 10,
    "goal": "Que el panel «Operaciones sugeridas intradía» muestre solo oportunidades de estrategias VALIDADAS por la puerta de T49, con su evidencia, o el mensaje explícito «Sin operaciones validadas para sugerir»; siempre como oportunidades potenciales, nunca como operaciones ejecutadas ni garantías de rentabilidad."

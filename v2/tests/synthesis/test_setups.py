@@ -72,11 +72,11 @@ def test_suggest_without_volatility_is_empty():
 
 
 def test_setups_route(client):  # noqa: F811
-    r = client.get("/v2/setups", params={"symbol": "ETHUSDT", "tf": "1h"})
+    """T50: la ruta ya no publica la salida cruda de `suggest()` (solo validadas, ver T50)."""
+    r = client.get("/v2/setups", params={"symbol": "ETHUSDT"})
     assert r.status_code == 200
     j = r.json()
-    assert j["mode"] == "ANALISIS" and j["horizon_hours"] == [4.0, 36.0]
-    assert j["source"] == "test" and "no están calibradas" in j["note"]
-    assert len(j["setups"]) <= 3
+    assert j["mode"] == "ANALISIS" and j["horizon_hours"] == [0, 36.0]
+    assert j["setups"] == [] and j["status"] in ("sin_validadas", "datos_viejos")
+    assert "no garantiza rentabilidad" in j["note"] and "p_fill" not in j
     assert client.get("/v2/setups", params={"symbol": "XXX"}).status_code == 400
-    assert client.get("/v2/setups", params={"symbol": "BTCUSDT"}).status_code == 404
