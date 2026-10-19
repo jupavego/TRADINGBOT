@@ -36,7 +36,7 @@ export class PaperPriceChart {
       })
     }
     for (const p of open) {
-      ms.push({ time: sec(p.fill_t), position: p.side > 0 ? 'belowBar' : 'aboveBar', shape: p.side > 0 ? 'arrowUp' : 'arrowDown', color: cssVar('--accent'), text: 'abierta' })
+      ms.push({ time: sec(p.fill_t), position: p.side > 0 ? 'belowBar' : 'aboveBar', shape: p.side > 0 ? 'arrowUp' : 'arrowDown', color: cssVar('--accent'), text: `abierta ${p.timeframe}${p.floor ? ' · mín.' : ''}` })
     }
     ms.sort((a, b) => (a.time as number) - (b.time as number))
     this.marks.setMarkers(ms)
@@ -51,7 +51,7 @@ export class PaperPriceChart {
     }
     for (const p of open) {
       const on = p.id === focus
-      add(p.entry, cssVar('--accent'), `${side(p.side)} ${on ? '' : p.strategy}`.trim(), on ? LineStyle.Solid : LineStyle.Dotted)
+      add(p.entry, cssVar('--accent'), `${side(p.side)} ${p.timeframe} ${on ? '' : p.strategy}`.trim(), on ? LineStyle.Solid : LineStyle.Dotted)
       if (!on) continue
       add(p.tp, cssVar('--up'), 'TP sim')
       add(p.sl, cssVar('--down'), 'SL sim')
