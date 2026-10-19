@@ -5,7 +5,7 @@ export interface Judgement { weight: number; state: string; state_label: string;
 interface Slot {
   id: string; strategy: string; sid: string; timeframe: string; family: string; side: number; kind: string; t: number
   qty: number; sl: number; tp: number; leverage: number; margin: number; weight: number
-  risk_usd: number; origin: string; why: string[]
+  risk_usd: number; origin: string; why: string[]; floor?: boolean   // floor: entró por el mínimo de abiertas
 }
 export interface Position extends Slot {
   entry: number; mark: number; fill_t: number; expire_t: number; liq: number
@@ -77,7 +77,7 @@ export interface PaperTrade {
   t: number; fill_t: number; exit_t: number; fill: number; exit: number; sl: number; tp: number
   qty: number; notional: number; leverage: number; margin: number; reason: string
   pnl: number; r: number | null; roe: number | null; fees: number; slip: number; funding: number
-  funding_assumed: boolean; weight: number; origin: string; regime: string | null; why: string[]
+  funding_assumed: boolean; weight: number; floor?: boolean; origin: string; regime: string | null; why: string[]
 }
 
 export interface PaperEvent {
