@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T00:34:56",
+ "generated": "2026-10-19T00:43:05",
  "tasks": [
   {
    "id": "T01",
@@ -906,6 +906,108 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 14,
    "goal": "Cumplir la promesa del plan — «potenciar el proyecto en su conjunto» — **solo donde se demuestre**: probar los motores locales de T63 en lo que EIM ya tiene y adoptar un cambio únicamente si iguala o mejora al método actual en una muestra etiquetada. Si no gana, se documenta y no se cambia nada."
+  },
+  {
+   "id": "T72",
+   "title": "Observatorio: auditoría de repos y decisión de arquitectura",
+   "deps": [],
+   "state": "pending",
+   "notes": "Especificada (`PLAN/T72.md`, insumo `PLAN/notas/T72_universo_observabilidad.md`, 2026-10-19). ◆ qué piezas entran (grafo en TS, OpenTelemetry opcional, sin servidores nuevos) y umbrales numéricos antes de construir.",
+   "effort": "medio",
+   "phase": 15,
+   "goal": "Decidir con evidencia **qué piezas de código abierto entran** al centro de observabilidad y cuáles se escriben en casa, y dejar fijada la arquitectura mínima viable de la Fase 15. Salen una lista aprobada con licencia, versión fijada y motivo, y lo que no entra se descarta con motivo. El resultado esperado (a confirmar con medición, no a decretar): grafo en TypeScript con una librería ligera, eventos propios en DuckDB, OpenTelemetry solo como exportación opcional, sin Langfuse/Phoenix/Grafana/orquestadores como dependencia."
+  },
+  {
+   "id": "T73",
+   "title": "Observatorio: contrato de eventos, catálogo y emisor",
+   "deps": [
+    "T72"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 15,
+   "goal": "Fijar el lenguaje común de la observabilidad antes de instrumentar nada: el **evento normalizado**, el **catálogo de componentes** (qué existe, qué consume y qué produce) y un **emisor** que no puede romper el sistema que observa. Con esto cualquier proceso —agente, servicio, script— queda observable sin reescribirlo."
+  },
+  {
+   "id": "T74",
+   "title": "Observatorio: indexador, almacén y API de solo lectura",
+   "deps": [
+    "T73"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 15,
+   "goal": "Convertir los archivos JSONL de eventos en un **registro consultable** (`obs.duckdb`) con un único indexador, y exponerlo por una API de solo lectura que alimentará la vista. Aquí se guarda lo necesario para reconstruir *qué pasó, con qué datos y por qué*, sin duplicar los libros que ya existen."
+  },
+  {
+   "id": "T75",
+   "title": "Observatorio: instrumentación de la capa existente",
+   "deps": [
+    "T73"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 15,
+   "goal": "Hacer que lo que ya existe emita eventos **sin cambiar su lógica**: el corredor de agentes, los proveedores y la sincronización, el pronóstico, la síntesis, el plan, el motor de riesgo, la puerta de ejecución, el ciclo de operación, el bróker simulado y los servicios en segundo plano. Al terminar, una vela cerrada deja una traza completa de datos → agentes → síntesis → plan → riesgo → (orden) y los servicios dejan latido y errores."
+  },
+  {
+   "id": "T76",
+   "title": "Observatorio: vista aparte y grafo estructural",
+   "deps": [
+    "T74",
+    "T75",
+    "T10"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 15,
+   "goal": "La **vista aparte** pedida por el usuario: una pantalla completa («Observatorio», botón en la barra como «Bróker simulado») que dibuja el sistema como un grafo por capas, con el estado real de cada componente y un panel de detalle. Responde de un vistazo: ¿qué corre, qué está quieto, qué falló, qué datos están viejos y qué depende de qué?"
+  },
+  {
+   "id": "T77",
+   "title": "Observatorio: trazabilidad de una decisión (grafo de ejecución)",
+   "deps": [
+    "T76",
+    "T75",
+    "T15"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 15,
+   "goal": "Poder elegir **una vela o una decisión** y ver lo que realmente ocurrió: qué datos llegaron y con qué antigüedad, qué agente produjo qué señal, cómo se combinaron en la síntesis, qué plan salió, qué reglas de riesgo lo aprobaron o vetaron y qué pasó con la orden. Si algo falló, el camino que llevó al fallo queda resaltado, no solo el último nodo en rojo."
+  },
+  {
+   "id": "T78",
+   "title": "Observatorio: salud, métricas y alertas",
+   "deps": [
+    "T74",
+    "T75"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 15,
+   "goal": "Responder «¿qué proceso consume más tiempo, recursos o llamadas a la API?» y avisar a tiempo cuando algo se detiene, se atrasa o se degrada, **reutilizando el sistema de alertas que ya existe** (T31: `op_alerts`, notificación local de Windows y pestaña «Operación») en vez de crear uno paralelo."
+  },
+  {
+   "id": "T79",
+   "title": "Observatorio: acciones de control auditadas (opcional)",
+   "deps": [
+    "T77",
+    "T78",
+    "T29",
+    "T32"
+   ],
+   "state": "pending",
+   "notes": "◆ por defecto NO: el observatorio queda de solo lectura salvo decisión del usuario.",
+   "effort": "medio",
+   "phase": 15,
+   "goal": "**Solo si el usuario lo decide**, pasar de observar a gobernar un conjunto muy pequeño de procesos desde la vista: pausar/reanudar un servicio de fondo, reintentar una sincronización o un cálculo, habilitar o deshabilitar un agente en la síntesis. Cada acción es explícita, con permiso, límites y registro; **nunca** efecto lateral de un clic en el grafo, y nunca toca posiciones ni órdenes."
   }
  ]
 };
