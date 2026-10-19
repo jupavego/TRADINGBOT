@@ -164,6 +164,10 @@ OPERATION: tuple[Component, ...] = (
       "La API solo escucha en este equipo.", cadence="cada cierre de vela", cadence_s=3600,
       consumes=(("data.live_ticks", "ticks"), ("data.snapshot", "snapshot")),
       produces=("stream",)),
+    c("observability.indexer", "observability", "validacion", "service", "api", "T73",
+      "Indexador del observatorio", "Un solo proceso, dentro de la API, que cada pocos segundos "
+      "carga los eventos de todos los archivos en una base para consultarlos. Solo lectura.",
+      cadence="cada 5 s (su estado: /v2/obs/health)", produces=("obs_index",)),
     c("web.dashboard", "web", "plan", "view", "web", "T10", "Panel de la interfaz",
       "Muestra al usuario el gráfico, los analistas, los escenarios y el plan, siempre con el "
       "modo (Análisis, Simulado o Testnet). Solo muestra; no opera.", cadence="en vivo",

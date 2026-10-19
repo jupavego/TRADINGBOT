@@ -22,6 +22,7 @@ from eim.api.leaders import LeaderDesk, build_leaders_router
 from eim.api.library import build_library_router
 from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.more import MoreSources, build_more_router
+from eim.api.obs import build_obs_router, build_observatory
 from eim.api.operation import build_operation_router
 from eim.api.paper import build_paper_router
 from eim.api.paper_arb import build_paper_arb_router
@@ -78,6 +79,8 @@ def create_app(
     if history is None and source is None and cfg.auto_history:  # en vivo: historia automática
         history = HistoryLoader(store, BinanceFutures())
     hub = Hub(src, store, reports, reg, cfg.snapshot_bars, cfg.agent_timeout_s, forecaster, history)
+    obs_store, obs_indexer, obs_dbs = build_observatory(cfg.data_dir, reports)   # T73
+    rcon, rlock = reports.connection
     kill = global_kill_switch()
     kill.attach(cfg.data_dir / "kill_switch.json")
     runtime = build_runtime(cfg.execution, kill, load_config())
@@ -92,7 +95,8 @@ def create_app(
                                               agent_timeout_s=cfg.agent_timeout_s),
                        data_dir=cfg.data_dir, reports_dir=cfg.operation_reports,
                        edge_path=cfg.edge_results, forecaster=forecaster,
-                       backup_dir=cfg.backup_dir, backup_keep=cfg.backup_keep)
+                       backup_dir=cfg.backup_dir, backup_keep=cfg.backup_keep,
+                       extra_dbs=obs_dbs)
 
     # T36: solo en vivo (con fuente inyectada —tests— no hay red).
     calendar = (CalendarSync(cfg.data_dir, interval_s=cfg.calendar_interval_s)
@@ -153,14 +157,16 @@ def create_app(
         arb_exec_task = (asyncio.create_task(arb_loop(arb_rt))
                          if arb_rt.pilot is not None else None)
         share_task = asyncio.create_task(share_loop(share)) if share is not None else None
+        obs_task = asyncio.create_task(obs_indexer.loop()) if source is None else None
         yield
-        for t in (task, cal_task, arb_task, paper_task, arb_exec_task, share_task):
+        for t in (task, cal_task, arb_task, paper_task, arb_exec_task, share_task, obs_task):
             if t is not None:
                 t.cancel()
         paper.stop_backtest()
         await hub.close()
         reports.close()
         paper_store.close()
+        obs_store.close()
 
     app = FastAPI(title="EIM API", version=API_VERSION, lifespan=lifespan)
     app.add_middleware(
@@ -180,7 +186,9 @@ def create_app(
     app.include_router(build_operation_router(desk, lambda: op, cfg.operation_reports))
     app.include_router(build_execution_router(runtime, now_ms))
     app.include_router(build_backup_router(reports, cfg.data_dir, cfg.backup_dir,
-                                           cfg.backup_keep, lambda: op))
+                                           cfg.backup_keep, lambda: op, extra_dbs=obs_dbs))
+    app.include_router(build_obs_router(obs_store, obs_indexer, (rcon, rlock)))
+    app.state.obs_store, app.state.obs_indexer = obs_store, obs_indexer
     app.include_router(build_share_router(reports, paper_store, cfg.data_dir, lambda: share))
     app.include_router(build_forecast_router(forecaster))
     app.include_router(build_setups_router(store, reports, lambda: [a.id for a in reg.latest()]))
