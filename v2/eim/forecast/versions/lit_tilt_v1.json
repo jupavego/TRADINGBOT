@@ -1,0 +1,21 @@
+{
+  "version": "lit_tilt_v1",
+  "description": "Definición INMUTABLE del ajuste bibliográfico de las probabilidades de escenario (T54): p'_i ∝ p_i · exp(k · neto_i), con neto_i = scenario_support[i].net del agente literature. Fijada en PLAN/notas/T54_preregistro.md ANTES de cualquier cálculo con datos reales. Cambiar k, un criterio o la muestra = lit_tilt_v2. Si está encendido lo dice eim/forecast/lit_tilt_state.json (apagado hasta que `python -m eim.literature report` cumpla TODOS los criterios).",
+  "k": 0.5,
+  "criteria": {
+    "min_forecasts": 300,
+    "min_active": 100,
+    "boot_reps": 5000,
+    "level": 0.95,
+    "seed": 0
+  },
+  "sample": {
+    "symbol": "BTCUSDT",
+    "timeframe": "1h",
+    "horizon": 25,
+    "stride": 25,
+    "n_paths": 200,
+    "context": 1500,
+    "agent_bars": 500
+  }
+}

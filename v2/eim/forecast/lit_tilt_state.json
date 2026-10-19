@@ -1,0 +1,6 @@
+{
+  "version": "lit_tilt_v1",
+  "enabled": false,
+  "note": "Apagado por defecto (T54). Encenderlo = commit que pone enabled=true citando el informe reports/literature/lit_v1_<fecha>.md con T1–T6 cumplidos y la decisión del usuario.",
+  "evidence": null
+}

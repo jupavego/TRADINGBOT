@@ -13,6 +13,7 @@ FAMILIES: dict[str, str] = {
     "escenarios": "Escenarios proyectados",
     "agentes": "Agentes individuales",
     "indicadores": "Indicadores técnicos",
+    "literatura": "Literatura (reglas de los libros, T54)",
     "contrarias": "Contrarias",
     "base": "Posición base (mínimo de abiertas)",
     "control": "Control aleatorio",
