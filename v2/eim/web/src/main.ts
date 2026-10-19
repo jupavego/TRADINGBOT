@@ -17,6 +17,7 @@ import { renderLog, TradeMarks } from './trades_ui'
 import { RiskPanel } from './risk_ui'
 import { OperationPanel } from './operation_ui'
 import { TradeSimulator } from './sim_ui'
+import { SetupsHistory } from './setups_history'
 import { SetupsPanel } from './setups_ui'
 import { ArbPanel } from './arb_ui'
 import { LeadersPanel } from './leaders_ui'
@@ -59,6 +60,7 @@ const risk = new RiskPanel($('t-plan'), () => ({ symbol, tf }))
 const operation = new OperationPanel($('t-op'))
 const sim = new TradeSimulator($('simbar'), chart)
 const setups = new SetupsPanel($('setups'), (x) => sim.apply(x))
+const setupsHistory = new SetupsHistory($('setups-history')) // T51
 // independiente del par/marco (T39); cada escaneo también repinta el satélite del río
 const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('river'), p))
 const leaders = new LeadersPanel($('t-lead'), $('tab-lead'))
@@ -179,6 +181,7 @@ function onMsg(m: StreamMsg): void {
     void loadTrades()
     void risk.reload()
     setups.soon()
+    setupsHistory.soon()
   } else if (m.type === 'tick') {
     if (m.symbol !== symbol || m.timeframe !== tf) return
     state = 'up'; paintLive()
@@ -202,6 +205,7 @@ async function load(): Promise<void> {
   more.setContext(symbol, tf)
   sim.setSymbol(symbol)
   setups.setSymbol(symbol)
+  setupsHistory.setSymbol(symbol)
   void loadAgents(loadAbort.signal)
   void loadTrades(loadAbort.signal)
   void calibration.reload()

@@ -42,12 +42,14 @@ from eim.data.providers.binance import BinanceFutures
 from eim.data.share_auto import Live, make_agent, share_loop
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
+from eim.data.suggestion_store import SuggestionStore
 from eim.data.timeframes import SYMBOLS, TF_MS
 from eim.data.validation_store import ValidationStore
 from eim.operation.cycle import OperationParams
 from eim.operation.supervisor import Operation, Supervisor
 from eim.paper.desk import PaperDesk
 from eim.risk import global_kill_switch, load_config
+from eim.suggestions.tracker import Tracker
 from eim.synthesis.params import SynthesisParams, role_of
 from eim.validation.service import Validator
 
@@ -183,7 +185,11 @@ def create_app(
                                            cfg.backup_keep, lambda: op))
     app.include_router(build_share_router(reports, paper_store, cfg.data_dir, lambda: share))
     app.include_router(build_forecast_router(forecaster))
-    app.include_router(build_setups_router(paper, validator))
+    # T51: registro y resolución de lo publicado; el bróker lo llama tras cada ciclo.
+    setups_router = build_setups_router(
+        paper, validator, tracker=Tracker(SuggestionStore(paper_store), paper.ep))
+    paper.after_tick.append(setups_router.tick)
+    app.include_router(setups_router)
     app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
     app.include_router(build_arbitrage_router(arb_desk))
