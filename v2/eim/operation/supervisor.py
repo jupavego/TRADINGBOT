@@ -55,7 +55,7 @@ class Operation:
 
     def __init__(self, *, store, provider, reports, registry, desk: RiskDesk,
                  params: OperationParams, data_dir: Path, reports_dir: Path, edge_path: Path,
-                 forecaster=None, sinks: Iterable[Sink] | None = None,
+                 forecaster=None, bots=None, sinks: Iterable[Sink] | None = None,
                  backup_dir: Path | None = None, backup_keep: int = 14,
                  clock: Callable[[], int] = _now) -> None:
         con, lock = reports.connection
@@ -77,7 +77,8 @@ class Operation:
         self.state_path = self.root / f"state_{self.mode.lower()}.json"
         self.cursors = state.load(self.state_path, rt.svc, self.mode)
         self.cycle = OperationCycle(store, provider, reports, registry, desk, self.book,
-                                    self.alerts, self.log, params, self.cursors, forecaster)
+                                    self.alerts, self.log, params, self.cursors, forecaster,
+                                    bots)
         self.status: dict = {"state": "iniciando", "mode": self.mode, "pid": os.getpid(),
                              "process_started_at": clock(), "cycles": 0, "failures": 0,
                              "consecutive_failures": 0, "last_heartbeat": None,

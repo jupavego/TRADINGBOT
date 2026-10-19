@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T09:00:51",
+ "generated": "2026-10-19T09:06:07",
  "tasks": [
   {
    "id": "T01",
@@ -711,8 +711,8 @@ window.EIM_STATUS = {
     "T56",
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Contrato `eim/core/bots.py` (`BotSignal`, `extra=forbid`, sin campos de orden/tamaño/claves) + fichas tipadas `eim/bots/card.py`; `snapshot.bot_signals` (aditivo); `bot_signals` en DuckDB solo-añadir/point-in-time (`eim/data/bots/store.py`); servicio `eim/bots/service.py` (Hub y ciclo de operación) y rutas `GET /v2/bots/{signals,catalog}`. Modo A `hummingbot-directional` (`bollinger_v1`, `macd_bb_v1`; paridad con el bot nativo a 1e-9: la prueba destapó que `pandas-ta` usa σ muestral). Modo B `freqtrade-strategies`/`FSupertrendStrategy` en `eim/data/bots/runner.py` (entorno por lista blanca, sin claves ni red, límites, SHA fijado y checkout limpio); paridad con `get_entry_signal`/`get_exit_signal` reales en 234 velas (0 diferencias). Agente `bots` (peso 0, `excluded`, papel `contexto`; solo vota con estado `vota`, ninguno hasta T59) en `eim/agents/bots/`. Docs: `PLAN/CONTRATOS.md`, `docs/SEGURIDAD.md`, `docs/BOTS.md`, `THIRD_PARTY.md`; límites en BACKLOG.",
    "effort": "alto",
    "phase": 12,
    "goal": "Construir la cáscara que **encapsula** cualquier bot: un contrato único de salida, un ejecutor que corre el bot sin claves y sin autoridad de operar, y el agente `bots` que consolida las posturas. Se prueba de extremo a extremo con **dos adaptadores de referencia** (uno modo A y uno modo B)."

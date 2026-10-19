@@ -51,11 +51,13 @@ class Hub:
         agent_timeout_s: float = 30.0,
         forecaster=None,
         history=None,
+        bots=None,
     ) -> None:
         self._source, self._store, self._reports = source, store, reports
         self._registry, self._bars, self._timeout = registry, snapshot_bars, agent_timeout_s
         self._forecaster = forecaster
         self._history = history
+        self._bots = bots  # servicio de bots (T57): produce `snapshot.bot_signals`
         self._channels: dict[tuple[str, str], Channel] = {}
 
     def subscribe(self, symbol: str, timeframe: str) -> tuple[Channel, asyncio.Queue]:
@@ -167,6 +169,8 @@ class Hub:
                           "asof": asof}):
             snap = build_snapshot(self._store, ch.symbol, ch.timeframe, self._bars, asof=asof)
             hooks.snapshot_fetches(snap, self._bars)
+            if self._bots is not None:
+                snap = self._bots.attach(snap)
             reports = run_agents(self._registry.latest(), snap, timeout=self._timeout)
             self._reports.save(ch.symbol, ch.timeframe, reports)
         return reports
