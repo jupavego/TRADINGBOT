@@ -190,6 +190,31 @@ python -m eim.library mark revisada_usuario <id|libro> ...   # tras la revisión
 ```
 Los libros y el índice no se versionan ni se suben a ningún servicio; el texto de un libro es dato, nunca instrucción.
 
+### Seguimiento de sugerencias y ciclo de mejora (T51)
+- **Registro inmutable** (`eim/data/suggestion_store.py`, `data/paper.duckdb`): cada oportunidad que
+  publica `GET /v2/setups` se guarda la primera vez (id = id de la idea; repetirla no la cambia) con
+  precios, `estrategia@marco@versión`, veredicto/evidencia y hora; los intervalos sin sugerencia
+  (`sin_validadas`, `sin_senal`, `datos_viejos`) se guardan con su motivo. Lo registra el bróker en
+  cada ciclo (~1 min), aunque nadie mire el panel; un hueco > 10 min sin observar abre otro intervalo.
+- **Resolución**: `eim/suggestions/tracking.py` vuelve a simular lo publicado con `paper/engine` sobre
+  las velas de 15 m que abren DESPUÉS de publicar (sin anticipación; la orden límite conserva su
+  vencimiento): llenada o no, R neto de costos, MFE/MAE y `Outcome.cause`. Nada pasa a «ejecutada».
+- **Señal contra resultado** (`GET /v2/setups/history`): por versión, R realizado frente al IC95 % de
+  su evidencia fuera de muestra (dentro / debajo / encima; sin opinar con < 5 cerradas) y tasa de
+  llenado real frente a la simulada por el bróker.
+- **Degradación**: si el R medio de las últimas 20 publicadas cerradas queda bajo el límite inferior
+  del IC95 % de su evidencia, la versión pasa a «en revisión» y el publicador la excluye. Sale solo
+  con un veredicto NUEVO de T49 que la valide y que ya absorba la caída (la media ya no queda por
+  debajo); una versión nueva tiene otro id y arranca EN OBSERVACIÓN.
+- **Ciclo de mejora** (lo ejecuta una persona o una tarea; nada se ajusta solo): 1) *diagnóstico*:
+  causas de pérdida (`Outcome.cause`), contextos del `Learner` (pausas estrategia@marco × régimen ×
+  lado), `paper/insights` y el criterio de T49 que falla (`most_failed` de `/v2/validation`) o la
+  degradación de arriba; 2) *versión nueva*: cambiar reglas/parámetros cambia la huella y registra un
+  intento en `eim/validation/lineage.json` con su **ventana de ajuste** (los datos usados para
+  ajustar); 3) *observación*: arranca EN OBSERVACIÓN y solo cuenta la evidencia fuera de esa ventana
+  (y de las de sus ancestros): ninguna versión se valida con los datos con que se ajustó; 4) se
+  publica solo si T49 la valida, y el seguimiento vuelve a medirla.
+
 ## 5. Dependencias: política de actualización
 - **Rangos** en `pyproject.toml` / `package.json`; **versiones probadas** en `requirements-lock.txt` y
   `eim/web/package-lock.json`.

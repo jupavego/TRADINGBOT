@@ -57,3 +57,11 @@
 .su-why span { text-transform: uppercase; letter-spacing: .04em; font-size: 11px; margin-right: 4px; }
 .su-empty { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .su-empty p { margin: 0; font-size: 12px; }
+
+/* Historial de sugerencias (T51) */
+.su-tbl { overflow-x: auto; margin: 8px 0; }
+.su-tbl table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.su-tbl th, .su-tbl td { padding: 4px 8px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.su-tbl th { color: var(--muted); font-weight: 500; }
+.su-tbl td.num { text-align: right; }
+.su-tbl tr[data-against="debajo"] td:nth-child(6), .su-tbl tr[data-review="true"] td:first-child { color: var(--warn); }

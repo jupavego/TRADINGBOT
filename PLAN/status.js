@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T08:15:59",
+ "generated": "2026-10-19T08:39:44",
  "tasks": [
   {
    "id": "T01",
@@ -635,8 +635,8 @@ window.EIM_STATUS = {
    "deps": [
     "T50"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Registro inmutable de publicaciones y de intervalos sin sugerencia (`eim/data/suggestion_store.py`, tablas `sug_*` en `paper.duckdb`), resolución con `paper/engine` sobre velas de 15 m posteriores a la publicación, sin anticipación (`eim/suggestions/tracking.py`), `Tracker` (registro idempotente, señal contra resultado, degradación: media de las últimas 20 < límite inferior del IC95 % ⇒ «en revisión» y el publicador la excluye hasta un veredicto nuevo de T49) enganchado al ciclo del bróker; `GET /v2/setups/history` y sección «Historial de sugerencias» (`web/src/setups_history.ts`); ciclo de mejora en `v2/docs/OPERACION.md`. Tests sin red en `tests/suggestions/test_tracking.py` y `tests/api/test_setups_history.py`. Verificado en navegador solo el estado vacío (sin red a Binance en este entorno ⇒ sin velas ni veredictos reales; screenshot `v2/reports/t51_historial.png`): falta mirarlo con datos reales.",
    "effort": "medio",
    "phase": 10,
    "goal": "Registrar cada oportunidad que el panel publica, resolver qué habría ocurrido con ella y comparar señal contra resultado, para que el ciclo de mejora (diagnóstico → versión nueva → nueva validación en T49) se alimente de lo que de verdad se mostró y para retirar a tiempo una estrategia que se degrada."
