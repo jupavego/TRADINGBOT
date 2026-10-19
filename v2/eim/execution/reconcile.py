@@ -22,6 +22,7 @@ from dataclasses import asdict, dataclass
 
 from eim.execution.broker import CLIENT_PREFIX, STOP, BrokerError, NetworkError, trade_key
 from eim.execution.service import ExecutionService
+from eim.observability import hooks_service
 from eim.risk.config import RiskConfig
 
 
@@ -98,6 +99,10 @@ class Reconciler:
     def _done(self, now: int, ok: bool, rows: list[SymbolRecon], issues: list[str],
               actions: list[str], kill: list[str]) -> ReconReport:
         self.last = ReconReport(now, ok, tuple(rows), tuple(issues), tuple(actions), tuple(kill))
+        hooks_service.beat("execution.reconcile", status="ok" if ok else "degraded",
+                           mode=self.svc.mode, detail={"issues": len(issues),
+                                                       "actions": len(actions),
+                                                       "kill_rules": len(kill)})
         return self.last
 
     def _symbol(self, s: str, issues: list[str], actions: list[str]) -> SymbolRecon:

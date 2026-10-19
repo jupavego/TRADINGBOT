@@ -102,6 +102,30 @@
     "sugerencia_alineada@1h": "57d7c467b165",
     "sugerencia_alineada@4h": "798bbdd34dbd"
    }
+  },
+  {
+   "origin": "T54",
+   "declared": "2026-10-19",
+   "note": "Reglas de los libros (T52/T53), sin mirar datos de BTCUSDT. Lo único mirado: la verificación de T53 sobre tests/fixtures/ethusdt_1h_1000.csv (ETHUSDT 1 h). Preregistro PLAN/notas/T54_preregistro.md.",
+   "windows": [
+    {
+     "from": "2026-05-18T13:00:00Z",
+     "to": "2026-06-29T05:00:00Z",
+     "symbol": "ETHUSDT",
+     "note": "Fixture ETHUSDT 1 h de T53 (verificación visual de las reglas)"
+    }
+   ],
+   "versions": {
+    "lit_canal_4sem@4h": "b9a3cfcbca98",
+    "lit_envolvente@1h": "488a3bf965e6",
+    "lit_envolvente@4h": "f6f972d4938c",
+    "lit_estrella_3v@1h": "d8231c869c59",
+    "lit_estrella_3v@4h": "d11db186b60a",
+    "lit_rsi_recruce@1h": "294a1fba5853",
+    "lit_rsi_recruce@4h": "ba81287244e2",
+    "lit_vela_cola@1h": "513304f7bc30",
+    "lit_vela_cola@4h": "50da7712b62b"
+   }
   }
  ]
 }

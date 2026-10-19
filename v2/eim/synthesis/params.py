@@ -11,10 +11,13 @@ from pydantic import BaseModel, ConfigDict, Field
 # `arbitrage` vive en su carril propio (pestaña y satélite del río).
 NON_DIRECTIONAL: frozenset[str] = frozenset({"calendar", "arbitrage"})
 
-Role = Literal["direccional", "riesgo", "carril", "derivado"]
+Role = Literal["direccional", "riesgo", "carril", "derivado", "contexto"]
 # Papel de cada agente que no vota como uno más (el resto es «direccional").
 ROLES: dict[str, Role] = {"calendar": "riesgo", "regime": "riesgo", "arbitrage": "carril",
                           "plan": "derivado"}
+# Papel mientras el agente siga en `excluded`: al sacarlo (T60, tras la puerta de edge de T59)
+# `role_of` lo devuelve como «direccional» sin tocar nada más.
+EXCLUDED_ROLES: dict[str, Role] = {"bots": "contexto"}
 
 # T44 — agentes nuevos que entran como votos direccionales. Peso candidato «moderado» = 0.5
 # (la mitad de un agente existente); el vigente sale de la prueba de contribución marginal
@@ -27,6 +30,10 @@ T44_WEIGHTS: dict[str, float] = {
     "technical": 0.0,
     # Sin historia: tablero desde 2026-10-16 y ningún líder aprobado (100 % `no_data`) → no medible.
     "smart_money": 0.0,
+    # T53: reglas de los libros; sin medición (T54) aporta contexto, no voto.
+    "literature": 0.0,
+    # T57: escuadrón de bots; ninguno está en estado `vota` hasta T59/T60.
+    "bots": 0.0,
 }
 # Correlación (Pearson del sesgo, velas en que ambos tienen datos) de cada agente nuevo con los
 # existentes que miden lo mismo, medida en la mitad de descubrimiento (BTCUSDT 1h 2023-01 →
@@ -41,7 +48,7 @@ class SynthesisParams(BaseModel):
     weights: dict[str, float] = Field(default_factory=lambda: dict(T44_WEIGHTS))
     # Agentes que no votan: `plan` deriva de structure/levels (doble conteo), `regime` modula
     # pesos y los no direccionales (`NON_DIRECTIONAL`, siempre fuera) emiten bias=0.
-    excluded: frozenset[str] = frozenset({"plan", "calendar", "arbitrage", "regime"})
+    excluded: frozenset[str] = frozenset({"plan", "calendar", "arbitrage", "regime", "bots"})
     # Multiplicadores de peso por régimen y agente (cuando exista el agente de régimen, T22).
     regime_weights: dict[str, dict[str, float]] = Field(default_factory=dict)
     # ρ medida entre agentes (nuevo → {existente: ρ}); peso × (1 − k·máx ρ⁺ de los que votan).
@@ -64,4 +71,6 @@ def role_of(agent_id: str, p: SynthesisParams | None = None) -> Role:
     if agent_id in ROLES:
         return ROLES[agent_id]
     p = p or SynthesisParams()
+    if agent_id in p.excluded and agent_id in EXCLUDED_ROLES:
+        return EXCLUDED_ROLES[agent_id]
     return "riesgo" if agent_id in p.excluded | NON_DIRECTIONAL else "direccional"

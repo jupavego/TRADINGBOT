@@ -203,6 +203,11 @@ _CUR: contextvars.ContextVar[tuple[str, str | None] | None] = contextvars.Contex
     "eim_obs_span", default=None)  # (run_id, trace_id) del tramo en curso
 
 
+def current() -> tuple[str, str | None] | None:
+    """(run_id, trace_id) del tramo en curso en este contexto, o None fuera de un `span`."""
+    return _CUR.get()
+
+
 def emit(kind: EventKind, component_id: str, *, status: Status = "ok",
          run_id: str | None = None, parent_run_id: str | None = None,
          trace_id: str | None = None, duration_ms: float | None = None,

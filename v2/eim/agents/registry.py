@@ -47,6 +47,7 @@ def default_registry(arb_assets: tuple[str, ...] | None = None) -> AgentRegistry
     `arb_assets` limita los activos del agente de arbitraje (foco); None = los del motor."""
     from eim.agents.arbitrage import ArbitrageAgent
     from eim.agents.arbitrage.params import ArbAgentParams
+    from eim.agents.bots import BotsAgent
     from eim.agents.calendar import CalendarAgent
     from eim.agents.context import ContextAgent
     from eim.agents.derivatives import DerivativesAgent
@@ -54,6 +55,7 @@ def default_registry(arb_assets: tuple[str, ...] | None = None) -> AgentRegistry
     from eim.agents.ema import EMAAgent
     from eim.agents.levels import LevelsAgent
     from eim.agents.liquidations import LiquidationsAgent
+    from eim.agents.literature import LiteratureAgent
     from eim.agents.microstructure import MicrostructureAgent
     from eim.agents.plan import PlanAgent
     from eim.agents.price_action import PriceActionAgent
@@ -70,7 +72,7 @@ def default_registry(arb_assets: tuple[str, ...] | None = None) -> AgentRegistry
                   DerivativesAgent(), MicrostructureAgent(), RegimeAgent(), ContextAgent(),
                   TechnicalAgent(), CalendarAgent(), _arb(ArbitrageAgent, ArbAgentParams,
                                                           arb_assets), SmartMoneyAgent(),
-                  PlanAgent()):
+                  LiteratureAgent(), BotsAgent(), PlanAgent()):
         reg.register(agent)
     return reg
 

@@ -13,11 +13,14 @@ import argparse
 import asyncio
 import json
 import time
+from pathlib import Path
 
 import httpx
 
 from eim.data.collectors.book import LocalBook
 from eim.data.collectors.writer import HourlyWriter
+from eim.observability import hooks_service
+from eim.observability.emit import configure
 
 WS_DEPTH = "wss://fstream.binance.com/stream?streams={s}@depth@100ms"
 # aggTrade ya no se sirve por /stream: vive en el endpoint /market
@@ -102,6 +105,8 @@ async def _stream(col: Collector, url: str, stop: asyncio.Event, on_open, after=
                         break
         except Exception as exc:  # corte de red, 429, etc. → registrar hueco y reintentar
             col.gap(int(time.time() * 1000), "ws", f"{type(exc).__name__}: {exc}"[:200])
+            hooks_service.service_error("data.micro_collector", exc,
+                                        detail={"stream": url.rsplit("/", 1)[-1][:60]})
             col.flush()
             await asyncio.sleep(backoff)
             backoff = min(backoff * 2, 60.0)
@@ -139,6 +144,7 @@ def main() -> None:
     ap.add_argument("symbol")
     ap.add_argument("--root", default="data")
     a = ap.parse_args()
+    configure(process="collector", spool_dir=Path(a.root) / "obs" / "spool")
     try:
         asyncio.run(run(a.root, a.symbol))
     except KeyboardInterrupt:

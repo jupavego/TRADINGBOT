@@ -79,7 +79,8 @@ def test_default_registry_has_structure():
 # El CSV fixture (~6 semanas, sin liquidaciones) no alcanza para estos dos: deben dar no_data.
 NO_DATA = {"seasonality", "liquidations", "derivatives", "microstructure", "context", "calendar",
            "arbitrage",  # arbitrage: el CSV no trae fotografía de libros (T39)
-           "smart_money"}  # smart_money: sin tablero de líderes (T41)
+           "smart_money",  # smart_money: sin tablero de líderes (T41)
+           "bots"}  # bots: el snapshot del CSV no trae señales del servicio de bots (T57)
 
 
 def test_new_agents_registered_and_run():

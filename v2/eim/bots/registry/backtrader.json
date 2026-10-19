@@ -1,0 +1,79 @@
+{
+  "id": "backtrader",
+  "name": "Backtrader",
+  "repo": "mementum/backtrader",
+  "commit_sha": "b853d7c90b6721476eb5a5ea3135224e33db1f14",
+  "commit_date": "2023-04-19",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "GPL-3.0",
+    "file": "LICENSE",
+    "sha256": "e1c0ad728983d8a57335e52cf1064f1affd1d454173d8cebd3ed8b4a72b48704",
+    "head": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/> Everyone is per"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "C",
+  "binance_markets": [
+    "spot"
+  ],
+  "strategies": [],
+  "dependencies": [
+    "Python (versiones antiguas)"
+  ],
+  "risks": [
+    "GPL-3.0",
+    "Sin commits desde 2023-04-19; el README declara el proyecto obsoleto"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "INFRA: solo oráculo de contraste del motor T25 (BACKLOG), nunca importado"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 0,
+      "O2": 15,
+      "O3": 5,
+      "O4": 0,
+      "O5": 10,
+      "O6": 5,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 50,
+    "tests_files": 83,
+    "days_since_commit": 1279
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": false,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S3": "132 eval sin revisar"
+    },
+    "red_alerts": [],
+    "total": 85,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia GPL-3.0",
+      "url": "https://github.com/mementum/backtrader/blob/b853d7c90b6721476eb5a5ea3135224e33db1f14/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 37
+}

@@ -79,7 +79,8 @@ def _declarar(a: argparse.Namespace) -> int:
     )
 
     ep = ExecParams()
-    fps = {f"{i.id}@{tf}": i.version(tf, ep) for tf in ep.timeframes for i in CATALOG.values()}
+    fps = {f"{i.id}@{tf}": i.version(tf, ep) for tf in ep.timeframes for i in CATALOG.values()
+           if i.runs_in(tf)}
     unknown = sorted(set(a.sid or ()) - set(fps))
     if unknown:
         print(f"estrategia@marco desconocidas: {unknown}", file=sys.stderr)

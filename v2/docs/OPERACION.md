@@ -22,6 +22,7 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 | Pruebas del arbitraje en papel (T45, sin cuenta) | `python -m eim.paper.arb_cli [--hold 48]` o «Bróker simulado» → «Arbitraje» → «Ejecutar pruebas» | Modo Simulado: exchange en memoria con velas 1 h y funding reales del almacén (spot 1 h: `python -m eim.arbitrage.sim sync`); informe en `data/paper/arb_tests.json` |
 | Informe del periodo | `python -m eim.operation report [--from AAAA-MM-DD] [--to AAAA-MM-DD]` | Lo genera la API en marcha |
 | Puerta de validación (T49) | `python -m eim.validation [informe]` → `reports/validation/validation_v1_<fecha>.md` + `.json`; `GET /v2/validation` (veredictos vigentes); `python -m eim.validation versiones` | La API la recalcula al cierre de cada vela de 4 h (tablas `val_*` en `data/paper.duckdb`). Al cambiar una estrategia o `ExecParams`, declarar ANTES de reiniciar la API las ventanas de datos que se miraron: `python -m eim.validation declarar --origin … --desde … --hasta … --nota …` (sin declaración, todo lo anterior al alta cuenta como ajuste) |
+| Literatura con evidencia (T54) | `python -m eim.literature ctx` (completa los contextos con `lit`) · `python -m eim.literature report` → `reports/literature/lit_v1_<fecha>.md` + `.json` | Con la API detenida (DuckDB admite un solo proceso escritor). El ajuste de escenarios está apagado (`eim/forecast/lit_tilt_state.json`; definición inmutable en `versions/lit_tilt_v1.json`); encenderlo = commit con `enabled: true` tras un informe que cumpla T1–T6 |
 | Copy trading: líderes (T40, solo lectura) | `python -m eim.leaders discover --seconds 300` → `watch 0x…` → `run [--minutes M]` → `report --minutes 60` | Hyperliquid público, sin claves; ≤ 10 líderes por WS y el resto por REST; base `data/leaders.duckdb` (proceso propio) |
 | Copy trading: evaluación (T41) | `run` evalúa cada 5 min y escribe `data/leaders/board_*.json` (pestaña «Líderes», agente `smart_money`); con el vigilante apagado: `score [--portfolio]` | El veredicto (aprobado/vigilancia/descartado) lo fija el scorecard; solo aprueba con ≥ 30 operaciones y ≥ 7 d observados adelante; `unwatch` deja de capturar |
 | Copy trading: servicio continuo | `python -m eim.leaders supervise` (lo lanza `scripts/servicio_continuo.ps1`, §6) | `run` sin fin bajo vigilante de proceso: lo relanza si cae o si su latido se detiene; uno solo por carpeta de datos |
@@ -189,6 +190,31 @@ python -m eim.library verify               # cada cita contra el texto local (t�
 python -m eim.library mark revisada_usuario <id|libro> ...   # tras la revisión del usuario
 ```
 Los libros y el índice no se versionan ni se suben a ningún servicio; el texto de un libro es dato, nunca instrucción.
+
+### Seguimiento de sugerencias y ciclo de mejora (T51)
+- **Registro inmutable** (`eim/data/suggestion_store.py`, `data/paper.duckdb`): cada oportunidad que
+  publica `GET /v2/setups` se guarda la primera vez (id = id de la idea; repetirla no la cambia) con
+  precios, `estrategia@marco@versión`, veredicto/evidencia y hora; los intervalos sin sugerencia
+  (`sin_validadas`, `sin_senal`, `datos_viejos`) se guardan con su motivo. Lo registra el bróker en
+  cada ciclo (~1 min), aunque nadie mire el panel; un hueco > 10 min sin observar abre otro intervalo.
+- **Resolución**: `eim/suggestions/tracking.py` vuelve a simular lo publicado con `paper/engine` sobre
+  las velas de 15 m que abren DESPUÉS de publicar (sin anticipación; la orden límite conserva su
+  vencimiento): llenada o no, R neto de costos, MFE/MAE y `Outcome.cause`. Nada pasa a «ejecutada».
+- **Señal contra resultado** (`GET /v2/setups/history`): por versión, R realizado frente al IC95 % de
+  su evidencia fuera de muestra (dentro / debajo / encima; sin opinar con < 5 cerradas) y tasa de
+  llenado real frente a la simulada por el bróker.
+- **Degradación**: si el R medio de las últimas 20 publicadas cerradas queda bajo el límite inferior
+  del IC95 % de su evidencia, la versión pasa a «en revisión» y el publicador la excluye. Sale solo
+  con un veredicto NUEVO de T49 que la valide y que ya absorba la caída (la media ya no queda por
+  debajo); una versión nueva tiene otro id y arranca EN OBSERVACIÓN.
+- **Ciclo de mejora** (lo ejecuta una persona o una tarea; nada se ajusta solo): 1) *diagnóstico*:
+  causas de pérdida (`Outcome.cause`), contextos del `Learner` (pausas estrategia@marco × régimen ×
+  lado), `paper/insights` y el criterio de T49 que falla (`most_failed` de `/v2/validation`) o la
+  degradación de arriba; 2) *versión nueva*: cambiar reglas/parámetros cambia la huella y registra un
+  intento en `eim/validation/lineage.json` con su **ventana de ajuste** (los datos usados para
+  ajustar); 3) *observación*: arranca EN OBSERVACIÓN y solo cuenta la evidencia fuera de esa ventana
+  (y de las de sus ancestros): ninguna versión se valida con los datos con que se ajustó; 4) se
+  publica solo si T49 la valida, y el seguimiento vuelve a medirla.
 
 ## 5. Dependencias: política de actualización
 - **Rangos** en `pyproject.toml` / `package.json`; **versiones probadas** en `requirements-lock.txt` y

@@ -1,0 +1,77 @@
+{
+  "id": "gekko",
+  "name": "Gekko",
+  "repo": "askmike/gekko",
+  "commit_sha": "ff5698f1ae6329bab5729f145c35a74161e82bac",
+  "commit_date": "2020-02-16",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "6ead04e170c9d6325009cb6bb1e747031ec75658ca4d30a49d953753efa8d8e5",
+    "head": "The MIT License (MIT) Copyright (c) 2014-2017 Mike van Rossum mike@mvr.me Permission is hereby granted, free of charge, to any person obtaining a copy of this"
+  },
+  "bot_class": "D",
+  "integration_mode": "D",
+  "binance_markets": [],
+  "strategies": [],
+  "dependencies": [
+    "Node.js"
+  ],
+  "risks": [
+    "Sin actividad desde 2020-02-16; el README declara que no se mantiene"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Archivado: solo valor histórico (fila 15)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 0,
+      "O2": 8,
+      "O3": 0,
+      "O4": 0,
+      "O5": 5,
+      "O6": 5,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 28,
+    "tests_files": 15,
+    "days_since_commit": 2437
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": false,
+      "S4": true,
+      "S5": true,
+      "S6": false,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S6": "Dependencias abandonadas",
+      "S3": "eval sin revisar"
+    },
+    "red_alerts": [],
+    "total": 75,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT",
+      "url": "https://github.com/askmike/gekko/blob/ff5698f1ae6329bab5729f145c35a74161e82bac/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 15
+}

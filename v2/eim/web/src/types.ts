@@ -59,7 +59,7 @@ export interface AgentReport {
 }
 
 /** Papel en la síntesis (T44): solo los direccionales votan. */
-export type AgentRole = 'direccional' | 'riesgo' | 'carril' | 'derivado'
+export type AgentRole = 'direccional' | 'riesgo' | 'carril' | 'derivado' | 'contexto'
 
 export interface AgentInfo {
   id: string
@@ -156,4 +156,6 @@ export interface ForecastSet {
   engine: string
   baseline_engine: string
   warnings: string[]
+  /** T54: ajustes aplicados a las probabilidades tras el motor (vacío = las del motor). */
+  adjustments?: { id: string; k: number; label: string; net: Record<string, number>; base_probability: Record<string, number> }[]
 }

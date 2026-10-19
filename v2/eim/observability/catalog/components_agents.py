@@ -1,4 +1,4 @@
-"""Catálogo: los 17 agentes de `default_registry` (id = `agent.<id del agente>`).
+"""Catálogo: los agentes de `default_registry` (id = `agent.<id del agente>`).
 
 Versión y requisitos tomados de `eim/agents/<id>/agent.py`; un test los compara con el
 registro, así que subir la versión de un agente obliga a actualizar esta tabla.
@@ -69,6 +69,14 @@ AGENTS: tuple[Component, ...] = (
     _a("smart_money", "0.1.0", "Dinero inteligente",
        "Mira qué posición neta tienen los traders de Hyperliquid mejor evaluados en la moneda del "
        "análisis. Recibe el tablero de líderes; entrega sesgo y confianza.", "T41"),
+    _a("literature", "0.1.0", "Reglas de los libros",
+       "Revisa si ahora se cumplen reglas de Nison y Murphy (velas, RSI, rupturas) y si apoyan o "
+       "contradicen cada escenario, con su cita. Apoyo bibliográfico, no una señal validada.",
+       "T53", consumes=_SNAP + (("library.cards", "library_card"),)),
+    _a("bots", "0.1.0", "Escuadrón de bots",
+       "Resume lo que opinan los bots públicos aprobados (cada uno con su versión y estado). Hasta "
+       "que la puerta de validación los habilite solo informa: no suma al sesgo.", "T57",
+       consumes=(("bots.runner", "bot_signal"),)),
     _a("plan", "1.0.0", "Plan de operación",
        "Propone una operación completa: precio de entrada, salida de pérdida (SL), objetivos (TP) y "
        "relación ganancia/riesgo, a partir de estructura y niveles. Siempre en modo Análisis.",
@@ -76,4 +84,13 @@ AGENTS: tuple[Component, ...] = (
        consumes=(("agent.structure", "agent_report"), ("agent.levels", "agent_report"),
                  ("synthesis.thesis", "synthesis")),
        produces=("agent_report", "plan")),
+)
+
+
+# T57: el servicio que produce las posturas (modo A en proceso; modo B en subproceso aislado).
+BOTS: tuple[Component, ...] = (
+    c("bots.runner", "bots", "analisis", "service", "api", "T57", "Ejecutor de bots",
+      "Corre los bots públicos aprobados aislados, sin claves ni poder de operar, y convierte su "
+      "salida en una postura común que se guarda con su versión. No envía órdenes.",
+      cadence="cada cierre de vela", cadence_s=_H, consumes=_SNAP, produces=("bot_signal",)),
 )

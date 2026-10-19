@@ -9,7 +9,7 @@ import type { AgentInfo, AgentRole, Synthesis } from './types'
 export type Filter = 'todos' | AgentRole
 
 // Respaldo si la API aún no envía el papel (mismo criterio que `eim/synthesis/params.py`).
-const FALLBACK: Record<string, AgentRole> = { calendar: 'riesgo', regime: 'riesgo', arbitrage: 'carril', plan: 'derivado' }
+const FALLBACK: Record<string, AgentRole> = { calendar: 'riesgo', regime: 'riesgo', arbitrage: 'carril', plan: 'derivado', bots: 'contexto' }
 
 export const FILTERS: [Filter, string, string][] = [
   ['todos', 'Todos', 'Todos los agentes'],
@@ -17,6 +17,7 @@ export const FILTERS: [Filter, string, string][] = [
   ['riesgo', 'Riesgo', 'No votan: el calendario reduce confianza y tamaño en ventana de evento; el régimen modula pesos'],
   ['derivado', 'Derivados', 'No votan: el plan deriva de estructura y niveles (evita el doble conteo)'],
   ['carril', 'Carril propio', 'Arbitraje: rendimiento propio, no suma a la dirección del precio'],
+  ['contexto', 'Contexto', 'No votan: se muestran para comparar (bots de terceros) hasta superar la puerta de edge'],
 ]
 
 const KEY = 'eim.river.filter'
@@ -55,6 +56,7 @@ export function roleTag(id: string, infos: AgentInfo[], syn: Synthesis | null): 
   if (role === 'riesgo') return id === 'calendar' ? 'riesgo · modula confianza y tamaño' : 'riesgo · no vota'
   if (role === 'derivado') return 'derivado · no vota'
   if (role === 'carril') return 'carril propio'
+  if (role === 'contexto') return 'contexto · no vota'
   const w = weightOf(id, infos, syn) ?? 1
   if (w <= 0) return 'peso 0 · sin aporte medido'
   return w < 0.999 ? `peso ${w.toFixed(2)}` : ''

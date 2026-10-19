@@ -1,0 +1,103 @@
+{
+  "id": "octobot-tentacles",
+  "name": "OctoBot-Tentacles (evaluadores, grid, DCA)",
+  "repo": "Drakkar-Software/OctoBot-Tentacles",
+  "commit_sha": "f0ebe0c14db0928e50c2e39ea68e2ff9f427f765",
+  "commit_date": "2026-01-18",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "LGPL-3.0",
+    "file": "LICENSE",
+    "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118",
+    "head": "GNU LESSER GENERAL PUBLIC LICENSE Version 3, 29 June 2007 Copyright (C) 2007 Free Software Foundation, Inc. <https:/"
+  },
+  "bot_class": "D",
+  "integration_mode": "C",
+  "binance_markets": [
+    "spot",
+    "usdm_futures"
+  ],
+  "strategies": [
+    {
+      "name": "Evaluadores TA (momentum, tendencia, volatilidad)",
+      "path": "Evaluator/TA",
+      "note": "RSI/MACD/ADX… clásicos"
+    },
+    {
+      "name": "Grid, DCA, staggered orders, market making",
+      "path": "Trading/Mode",
+      "note": "Modos de trading (clase L)"
+    },
+    {
+      "name": "Estrategias mixtas / dip analyser",
+      "path": "Evaluator/Strategies",
+      "note": "Combinación de evaluadores"
+    }
+  ],
+  "dependencies": [
+    "Depende de octobot_commons/octobot_trading (GPL-3.0)"
+  ],
+  "risks": [
+    "LGPL-3.0 pero acopladas a la API de OctoBot (GPL-3.0): no se pueden usar sin el framework",
+    "Último commit 2026-01-18 (9 meses)"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "Reglas clásicas ya cubiertas por eim/indicators (T34); sin ventaja específica frente a los controladores de Hummingbot",
+    "Se conserva como referencia de modos grid/DCA para el carril L"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 10,
+      "O2": 15,
+      "O3": 8,
+      "O4": 0,
+      "O5": 5,
+      "O6": 10,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 58,
+    "tests_files": 134,
+    "days_since_commit": 274
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia LGPL-3.0",
+      "url": "https://github.com/Drakkar-Software/OctoBot-Tentacles/blob/f0ebe0c14db0928e50c2e39ea68e2ff9f427f765/LICENSE"
+    },
+    {
+      "what": "Evaluadores",
+      "url": "https://github.com/Drakkar-Software/OctoBot-Tentacles/blob/f0ebe0c14db0928e50c2e39ea68e2ff9f427f765/Evaluator/TA"
+    },
+    {
+      "what": "Modos",
+      "url": "https://github.com/Drakkar-Software/OctoBot-Tentacles/blob/f0ebe0c14db0928e50c2e39ea68e2ff9f427f765/Trading/Mode"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 7
+}
