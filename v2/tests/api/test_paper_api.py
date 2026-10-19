@@ -130,3 +130,11 @@ def test_live_signals_route(client):
     assert set(f["profiles"]) == {"conservador", "moderado", "agresivo"}
     assert client.get("/v2/paper/live?symbol=XRPUSDT").status_code == 400
     assert client.get("/v2/paper/live?limit=0").status_code == 422
+
+
+def test_setups_endpoint_publishes_only_validated(client):
+    """T50: con el bróker real y sin versiones validadas, lista vacía con su motivo."""
+    j = client.get("/v2/setups?symbol=BTCUSDT").json()
+    assert j["mode"] == "ANALISIS" and j["setups"] == []
+    assert j["status"] in ("sin_validadas", "datos_viejos") and j["message"]
+    assert "p_fill" not in j and "bias" not in j
