@@ -40,6 +40,10 @@ DATA: tuple[Component, ...] = (
       "Proceso aparte que escucha operaciones y libro de órdenes de Binance y los guarda por hora "
       "en el disco. Alimenta al agente de flujo de órdenes.", cadence="continuo", cadence_s=3600,
       produces=("micro_bars",)),
+    c("data.liq_collector", "data", "datos", "service", "collector", "T07", "Recolector de liquidaciones",
+      "Proceso aparte que escucha las liquidaciones forzadas en vivo de Binance, Bybit y OKX y las "
+      "guarda por hora. Reemplaza al archivo histórico de Binance, retirado en 2024.",
+      cadence="continuo", cadence_s=3600, produces=("liq_flow",)),
     c("data.arb_market", "arbitrage", "datos", "service", "api", "T39", "Mercado para arbitraje",
       "Cada ~10 s toma una fotografía de precios spot y futuros de Binance (solo lectura) para "
       "buscar diferencias que dejen ganancia neta.", cadence="cada 10 s", cadence_s=10,
@@ -56,6 +60,7 @@ DATA: tuple[Component, ...] = (
                 ("data.binance_rest", "open_interest"),
                 ("data.liquidations", "liquidations"), ("data.news", "headlines"),
                 ("data.calendar", "econ_events"), ("data.micro_collector", "micro_bars"),
+                ("data.liq_collector", "liq_flow"),
                 ("data.arb_market", "arb_market"), ("leaders.service", "leader_board")),
       produces=("snapshot",)),
 )

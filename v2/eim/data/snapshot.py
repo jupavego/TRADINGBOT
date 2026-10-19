@@ -7,7 +7,9 @@ import time
 from eim.core import MarketSnapshot
 from eim.data.arb_store import ArbStore, arb_sources
 from eim.data.calendar import read_calendar
+from eim.data.extras import read_headlines, read_liquidations
 from eim.data.leader_board import BoardStore, snapshot_inputs
+from eim.data.liq_flow import read_liq_flow
 from eim.data.micro import read_micro
 from eim.data.store import Store
 from eim.data.timeframes import TF_MS, tf_ms
@@ -31,7 +33,7 @@ def build_snapshot(
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}
     funding = oi = ls = basis = candles_tf = None
-    micro = book = None
+    micro = book = liq_flow = None
     if candles:
         lo, hi = candles[0].t, candles[-1].t
         sources["candles"] = store.source("candles", symbol, timeframe) or "desconocida"
@@ -51,6 +53,11 @@ def build_snapshot(
             micro = bars
             sources["micro"] = "binance_ws"
             coverage["micro"] = (bars[0].t, bars[-1].t)
+        flow = read_liq_flow(store.root, symbol, lo, step, (hi - lo) // step + 1)
+        if flow:
+            liq_flow = flow
+            sources["liq_flow"] = "liquidaciones en vivo binance+bybit+okx (Binance: cota inferior)"
+            coverage["liq_flow"] = (flow[0].t, flow[-1].t)
         if book is not None:
             sources["orderbook"] = book.source
         candles_tf = _neighbor_candles(store, symbol, timeframe, n, asof, sources, coverage)
@@ -65,6 +72,14 @@ def build_snapshot(
         arb_src, arb_cov = arb_sources(arb)
         sources |= arb_src
         coverage |= arb_cov
+    liquidations = read_liquidations(store.root, symbol, asof)
+    if liquidations is not None:
+        sources["liquidations"] = liquidations.source
+        coverage["liquidations"] = (liquidations.daily[0].t, liquidations.daily[-1].t)
+    headlines = read_headlines(store.root, asof)
+    if headlines:
+        sources["headlines"] = "rss: " + ", ".join(sorted({n.source for n in headlines}))
+        coverage["headlines"] = (headlines[-1].t, headlines[0].t)
     leaders = weights = None
     board = BoardStore(store.root).at(asof)
     if board is not None:
@@ -80,6 +95,9 @@ def build_snapshot(
         long_short_ratio=ls,
         basis=basis,
         micro=micro,
+        liquidations=liquidations,
+        liq_flow=liq_flow,
+        headlines=headlines,
         orderbook=book,
         candles_tf=candles_tf,
         events=events,

@@ -65,6 +65,20 @@ if ($lideres) {
   }
 }
 
+# Liquidaciones en vivo (Binance/Bybit/OKX): alimentan al agente `liquidations`. Sin puerto: se
+# busca por línea de órdenes para no duplicar. BTCUSDT por defecto (foco actual).
+$liq = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
+  Where-Object { $_.CommandLine -match 'eim\.data\.collectors\.liq_ws' })
+if ($liq) {
+  Write-Host "El recolector de liquidaciones ya corre (PID $($liq.ProcessId -join ', ')): no se lanza otro."
+} else {
+  $argv = @("-m", "eim.data.collectors.liq_ws", "BTCUSDT", "--root", "`"$DataDir`"")
+  Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
+    -RedirectStandardOutput (Join-Path $logs "liq.out.log") `
+    -RedirectStandardError (Join-Path $logs "liq.err.log") | Out-Null
+  Write-Host "Recolector de liquidaciones lanzado (data\micro\liqs; ~24 velas de acumulación antes de opinar)."
+}
+
 # Equipo despierto: proceso aparte que pide a Windows no suspender por inactividad mientras la
 # API esté arriba (no toca el plan de energía; ver mantener_despierto.ps1). No se duplica.
 $despierto = @(Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |

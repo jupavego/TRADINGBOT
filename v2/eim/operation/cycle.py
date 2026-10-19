@@ -20,10 +20,11 @@ from eim.agents.runner import run_agents
 from eim.api.reports_db import ReportStore
 from eim.api.risk import RiskDesk
 from eim.core import Candle
+from eim.data.extras import sync_headlines, sync_liquidations
 from eim.data.providers.base import Provider
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
-from eim.data.sync import sync_candles
+from eim.data.sync import sync_candles, sync_derivatives
 from eim.data.timeframes import FOCUS, tf_ms
 from eim.execution.broker import BrokerError
 from eim.execution.sim_broker import SimBroker
@@ -95,6 +96,7 @@ class OperationCycle:
         self.p, self.cur, self.forecaster = params, cursors, forecaster
         self.bots = bots  # servicio de bots (T57): produce `snapshot.bot_signals`
         self.data_fail_since: dict[str, int] = {}
+        self._extras_at: dict[str, int] = {}  # clave → última sincronización de datos lentos
         self.agent_status: dict[str, dict[str, str]] = {}
         self.traces: dict[str, str] = {}      # símbolo → traza de la última vela analizada
 
@@ -114,7 +116,28 @@ class OperationCycle:
             self.log.write("datos_fallidos", "warn", symbol=sym, error=f"{type(e).__name__}: {e}")
             return False
         self.data_fail_since.pop(sym, None)
+        self._sync_extras(sym, now)
         return True
+
+    def _sync_extras(self, sym: str, now: int) -> None:
+        """Derivados, liquidaciones y titulares: datos lentos, con su propio ritmo (≥ 10 min) y
+        sin frenar el ciclo si fallan; el agente correspondiente dirá `no_data` con motivo."""
+        tf = self.p.timeframe
+        jobs = {
+            f"deriv:{sym}": lambda: sync_derivatives(
+                self.store, self.provider, sym, tf, now - self.p.history_bars * tf_ms(tf), now),
+            f"liq:{sym}": lambda: sync_liquidations(self.store.root, sym),
+            "news": lambda: sync_headlines(self.store.root, now),
+        }
+        for key, job in jobs.items():
+            if now - self._extras_at.get(key, 0) < 600_000:
+                continue
+            self._extras_at[key] = now
+            try:
+                job()
+            except Exception as e:  # noqa: BLE001 - red caída o dataset retirado
+                self.log.write("datos_extra_fallidos", "warn", key=key,
+                               error=f"{type(e).__name__}: {e}")
 
     def _feed(self, sym: str, now: int) -> None:
         broker = self.rt.svc.broker
