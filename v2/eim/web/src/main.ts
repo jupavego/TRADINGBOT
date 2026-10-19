@@ -10,6 +10,7 @@ import { PriceChart } from './chart'
 import { refreshArbitrage, renderRiver } from './river'
 import { latestPerAgent, renderJournal } from './panels'
 import { mountLayerBar, showCard } from './layers_ui'
+import { LibraryPanel } from './library_ui'
 import { ScenarioPanel } from './scenarios_ui'
 import { CalibrationPanel } from './calibration_ui'
 import { MoreView } from './more'
@@ -59,6 +60,7 @@ const calibration = new CalibrationPanel($('t-cal'), () => ({ symbol, tf }))
 const risk = new RiskPanel($('t-plan'), () => ({ symbol, tf }))
 const operation = new OperationPanel($('t-op'))
 const sim = new TradeSimulator($('simbar'), chart)
+const library = new LibraryPanel($('t-lib'), () => $('mode').textContent ?? '')
 const setups = new SetupsPanel($('setups'), (x) => sim.apply(x))
 const setupsHistory = new SetupsHistory($('setups-history')) // T51
 // independiente del par/marco (T39); cada escaneo también repinta el satélite del río
@@ -255,6 +257,7 @@ function build(): void {
       if (b.dataset.tab === 't-op') void operation.reload()
       if (b.dataset.tab === 't-arb') void arb.reload()
       if (b.dataset.tab === 't-lead') void leaders.reload()
+      if (b.dataset.tab === 't-lib') void library.reload()
     }
   })
   const range = $<HTMLInputElement>('replay-range')
