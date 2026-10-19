@@ -81,9 +81,11 @@ export function ordersTable(os: Order[], names: Names, sym: string, ps: Position
     `<td class="num">${o.kind === 'limit' ? px(o.price) : 'a la apertura'}</td><td class="num">${qty(o.qty, sym)}</td>` +
     `<td class="num"><span class="up">${px(o.tp)}</span> / <span class="down">${px(o.sl)}</span></td>` +
     `<td class="num">${nf(o.margin)}</td><td class="num">${utc(o.t)}</td>` +
-    `<td class="num">${o.expire_t ? utc(o.expire_t) : '—'}</td></tr>`).join('')
+    `<td class="num">${o.expire_t ? utc(o.expire_t) : '—'}</td>` +
+    `<td><small>confianza ${pct0(o.conf ?? null)} · R:B ${nf(o.rr ?? 0, 2)} · riesgo ${nf(o.risk_usd)} USDT · peso ${nf(o.weight, 2)}` +
+    `<br class="pp-br">${esc((o.why ?? []).join(' · '))}</small></td></tr>`).join('')
   return `<div class="pp-scroll"><table class="pp-t"><thead><tr><th>Estrategia</th><th>Tipo</th><th>Lado</th><th>Precio</th>` +
-    `<th>Cantidad</th><th>TP / SL</th><th>Margen reservado</th><th>Colocada</th><th>Vence</th></tr></thead><tbody>${rows}</tbody></table></div>${exits}`
+    `<th>Cantidad</th><th>TP / SL</th><th>Margen reservado</th><th>Colocada</th><th>Vence</th><th>Perfil de entrada</th></tr></thead><tbody>${rows}</tbody></table></div>${exits}`
 }
 
 export interface HistFilter { strategy: string; result: 'all' | 'win' | 'loss'; limit: number }
