@@ -211,7 +211,7 @@ export class PaperView {
    (rotuladas con el suyo): el precio es el mismo y así ninguna queda fuera de la vista. */
   private paintChart(): void {
     const pv = this.prof()
-    const open = (pv?.positions ?? []).filter((p) => p.timeframe === this.ctf)
+    const open = pv?.positions ?? []
     this.chart!.setTrades(this.trades.filter((t) => t.timeframe === this.ctf), open)
     if (!this.focus || !open.some((p) => p.id === this.focus)) this.focus = open[0]?.id ?? null
     this.chart!.setLines(open, this.focus)
