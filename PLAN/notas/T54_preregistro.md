@@ -62,3 +62,14 @@ Limitación declarada: el ajuste se mide sobre el motor base (como T19); en vivo
 
 ## D. Lo que NO se hará
 Retocar umbrales, reglas o `k` hasta que pasen; cambiar `validation_v1`; operar dinero real o testnet. Un ciclo de mejora, si el usuario lo pide tras el veredicto, es versión nueva con ventanas de ajuste declaradas.
+
+## Anexo de implementación (2026-10-19, antes de cualquier cálculo con datos reales)
+Detalles que el texto de arriba dejaba a la implementación; no cambian ninguna regla, umbral ni criterio:
+- **Log-loss**: −ln(max(p de la clase ocurrida, 10⁻⁴)); el mismo piso para el base y el ajustado (un ajuste multiplicativo nunca convierte un 0 en positivo).
+- **Orígenes**: `backfill` con `start = 150`, uno cada 25 velas, solo los que tienen el horizonte completo observable; etiqueta realizada y bandas = `calibration.evaluate_forecast` (T19) sin cambios; semilla del motor base = la de T19 (0).
+- **Bootstrap**: `validation.stats.day_block_ci` (percentiles, 5.000 remuestreos, semilla 0 derivada del rótulo) sobre las diferencias pareadas (base − ajustado) por pronóstico; bloque = día UTC del origen.
+- **Mitades (T6)**: orden cronológico, corte en `n // 2`.
+- **ECE**: el de `calibration` (curva de 10 intervalos, 3 clases juntas).
+- **Tabla por ficha** del informe: descriptiva (R neto de la sombra, fuera de muestra, IC95 % por bloques de día); no es un intento adicional de la puerta: el veredicto T49 sigue siendo por `estrategia@marco@versión`. Lectura honesta con n < 30: «no hay muestra para juzgar».
+- **Contextos de 1 h con 500 velas**: la regla de 4 semanas no se evalúa (673 necesarias); el informe lo repite.
+- Las huellas de las 9 versiones se declararon en `lineage.json` junto con el código; cambiar `strategies_lit.py` (o `Ind`, `Draft`, `atr_draft`) crea versión nueva, no se mezcla evidencia.
