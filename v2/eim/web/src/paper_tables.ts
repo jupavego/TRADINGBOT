@@ -55,8 +55,27 @@ export function paintMarks(el: HTMLElement, ps: Position[], price: number): numb
   return total
 }
 
-export function ordersTable(os: Order[], names: Names, sym: string): string {
-  if (!os.length) return '<p class="muted">Sin órdenes pendientes.</p>'
+/** Órdenes de salida (TP límite + SL stop) que protegen cada posición abierta, como en un exchange. */
+function exitOrders(ps: Position[], names: Names, sym: string, price: number | null): string {
+  if (!ps.length) return ''
+  const dist = (target: number, p: Position): string => {
+    const mark = price ?? p.mark
+    return `<small class="muted">${pct((target - mark) / mark)} del precio</small>`
+  }
+  const rows = ps.map((p) => {
+    const who = `<td>${stratCell(p.sid, names, p.origin, p.timeframe, p.floor)}<br>${sideCell(p.side, p.leverage)}</td>`
+    const q = `<td class="num">${qty(p.qty, sym)}</td>`
+    return `<tr data-exit="tp">${who}<td>Take profit · límite (reduce)</td><td class="num up">${px(p.tp)}<br>${dist(p.tp, p)}</td>${q}</tr>` +
+      `<tr data-exit="sl">${who}<td>Stop loss · stop a mercado (reduce)</td><td class="num down">${px(p.sl)}<br>${dist(p.sl, p)}</td>${q}</tr>`
+  }).join('')
+  return `<h4>Órdenes de salida de las posiciones abiertas (${ps.length * 2})</h4><div class="pp-scroll"><table class="pp-t"><thead><tr>` +
+    `<th>Estrategia · lado</th><th>Tipo</th><th>Precio de disparo</th><th>Cantidad</th></tr></thead><tbody>${rows}</tbody></table></div>` +
+    '<p class="muted pp-note">Simuladas: el bróker de papel las evalúa sobre el camino de 15 m (SL antes que TP si caben en la misma vela).</p>'
+}
+
+export function ordersTable(os: Order[], names: Names, sym: string, ps: Position[] = [], price: number | null = null): string {
+  const exits = exitOrders(ps, names, sym, price)
+  if (!os.length) return `<p class="muted">Sin órdenes de entrada pendientes.</p>${exits}`
   const rows = os.map((o) => `<tr><td>${stratCell(o.sid, names, o.origin, o.timeframe, o.floor)}</td>` +
     `<td>${o.kind === 'limit' ? 'Límite' : 'Mercado'}</td><td>${sideCell(o.side, o.leverage)}</td>` +
     `<td class="num">${o.kind === 'limit' ? px(o.price) : 'a la apertura'}</td><td class="num">${qty(o.qty, sym)}</td>` +
@@ -64,7 +83,7 @@ export function ordersTable(os: Order[], names: Names, sym: string): string {
     `<td class="num">${nf(o.margin)}</td><td class="num">${utc(o.t)}</td>` +
     `<td class="num">${o.expire_t ? utc(o.expire_t) : '—'}</td></tr>`).join('')
   return `<div class="pp-scroll"><table class="pp-t"><thead><tr><th>Estrategia</th><th>Tipo</th><th>Lado</th><th>Precio</th>` +
-    `<th>Cantidad</th><th>TP / SL</th><th>Margen reservado</th><th>Colocada</th><th>Vence</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    `<th>Cantidad</th><th>TP / SL</th><th>Margen reservado</th><th>Colocada</th><th>Vence</th></tr></thead><tbody>${rows}</tbody></table></div>${exits}`
 }
 
 export interface HistFilter { strategy: string; result: 'all' | 'win' | 'loss'; limit: number }
