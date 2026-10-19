@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T01:05:13",
+ "generated": "2026-10-19T01:06:32",
  "tasks": [
   {
    "id": "T01",
@@ -906,6 +906,67 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 14,
    "goal": "Cumplir la promesa del plan — «potenciar el proyecto en su conjunto» — **solo donde se demuestre**: probar los motores locales de T63 en lo que EIM ya tiene y adoptar un cambio únicamente si iguala o mejora al método actual en una muestra etiquetada. Si no gana, se documenta y no se cambia nada."
+  },
+  {
+   "id": "T72",
+   "title": "Observatorio: decisión de piezas, contrato de eventos y catálogo",
+   "deps": [],
+   "state": "pending",
+   "notes": "Especificada (`PLAN/T72.md`, insumo `PLAN/notas/T72_universo_observabilidad.md`, 2026-10-19; recortada el mismo día: 5 tareas, sin auditoría exhaustiva ni control autónomo). Catálogo con textos llanos y etapas para la vista pedagógica.",
+   "effort": "medio",
+   "phase": 15,
+   "goal": "Fijar el lenguaje común de la observabilidad **antes de instrumentar nada**, gastando en investigación solo lo que cambia la decisión: qué librería dibuja el grafo, que el diseño «los procesos escriben archivos, uno indexa» aguanta la carga, y qué componentes existen. Sale el evento normalizado, el catálogo de componentes y un emisor que no puede romper el sistema que observa."
+  },
+  {
+   "id": "T73",
+   "title": "Observatorio: indexador, almacén y API de solo lectura",
+   "deps": [
+    "T72"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 15,
+   "goal": "Convertir los archivos JSONL de eventos en un **registro consultable** (`obs.duckdb`) con un único indexador y exponerlo por una API de solo lectura. Guarda solo lo necesario para reconstruir *qué pasó, con qué datos y por qué*, sin duplicar los libros que ya existen."
+  },
+  {
+   "id": "T74",
+   "title": "Observatorio: instrumentación de la capa existente",
+   "deps": [
+    "T72"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 15,
+   "goal": "Hacer que lo que ya existe emita eventos **sin cambiar su lógica**. Al terminar, una vela cerrada deja una traza completa de datos → agentes → síntesis → plan → riesgo → (orden) y los servicios dejan latido y errores. Puede hacerse en paralelo con T73: sin el indexador, los eventos simplemente quedan en el JSONL."
+  },
+  {
+   "id": "T75",
+   "title": "Observatorio: mapa visual del flujo de trabajo (vista central, pedagógica)",
+   "deps": [
+    "T73",
+    "T74",
+    "T10"
+   ],
+   "state": "pending",
+   "notes": "Pieza central de la fase (pedido del usuario 2026-10-19). ◆ prueba de comprensión con el usuario antes de cerrar.",
+   "effort": "alto",
+   "phase": 15,
+   "goal": "**Es la pieza central de la Fase 15**: una vista aparte, pedagógica e ilustrada, que muestra **todo el flujo de trabajo del proyecto** —de los datos a la decisión y de ahí a la validación y el aprendizaje— y deja entender a simple vista, sin leer logs ni código, qué está pasando ahora: qué corre, qué está quieto, qué falló, qué dato está viejo y qué depende de qué. Todo lo demás de la fase (T72–T74, T76) existe para alimentarla. Debe poder leerla alguien que no programa."
+  },
+  {
+   "id": "T76",
+   "title": "Observatorio: trazabilidad de una decisión y calidad de la evidencia",
+   "deps": [
+    "T75",
+    "T15"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 15,
+   "goal": "Elegir una vela o decisión y ver lo que realmente ocurrió —datos, señales, síntesis, plan, riesgo, orden—, con el **camino causal** resaltado cuando algo falló o se vetó. Además, marcar qué decisiones se tomaron con datos obsoletos o agentes críticos degradados, para que la evidencia de papel, del bróker (T47–T48) y de la puerta T49 se pueda leer sabiendo cuánta está contaminada. Es lo que más aporta a la eficiencia y a la fiabilidad del aprendizaje."
   }
  ]
 };
