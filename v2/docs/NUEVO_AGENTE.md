@@ -22,8 +22,15 @@ plantilla. Esta guía es el mismo procedimiento para hacerlo a mano y lo que vie
 5. Tests en `tests/agents/<id>/` con fixtures en `tests/fixtures/` (sin red): caso normal, sin
    datos, datos parciales, determinismo (dos corridas iguales), sesgo en rango. Si migra lógica del
    legado: regresión contra `tests/fixtures/golden/` (ver `legacy/README.md`).
-6. Gate: `python -m ruff check eim tests && python -m pytest -q`.
-7. UI (opcional): overlays con `id` estable; panel en `eim/web/src/` según `PLAN/UI_SPEC.md`.
+6. **Catálogo del observatorio (T72):** añadir el agente (o servicio) a `eim/observability/catalog/`
+   (`components_agents.py` para agentes; `components_flow.py` para servicios) con `id`
+   `agent.<id>`, `version` igual a la del agente, `stage`, `cadence`, **qué consume y qué produce**
+   (`consumes=((origen, artefacto), …)`, `produces=(…)`) y los textos `title_es` y `explain_es`
+   (1–2 frases llanas, ≤ 280 caracteres: qué hace, qué recibe, qué entrega). Si ya figuraba como
+   `planeado`, pasarlo a `construido`. `tests/observability/test_catalog.py` falla si falta o si
+   la versión no coincide. El agente **no emite eventos**: es puro; el corredor lo instrumenta (T74).
+7. Gate: `python -m ruff check eim tests && python -m pytest -q`.
+8. UI (opcional): overlays con `id` estable; panel en `eim/web/src/` según `PLAN/UI_SPEC.md`.
    Verificar inspeccionando los datos renderizados o con captura, no solo «sin errores».
 
 ## 3. Después: ¿vota en la síntesis o en el plan?

@@ -19,7 +19,13 @@ Contrato: `Agent.run(MarketSnapshot) -> AgentReport` (ver `PLAN/CONTRATOS.md`). 
 4. Overlays con `id` estable, `agent_id`, `confidence` y `evidence`.
 5. Tests en `tests/agents/<nombre>/` con fixtures en `tests/fixtures/` (sin red): caso normal, sin datos, determinismo (dos corridas iguales), sesgo en [-1,1].
 6. Registro: añadir al registro de agentes (T05) indicando la versión.
-7. Gate (desde `v2/`): `python -m ruff check eim tests && python -m pytest -q`.
+7. **Catálogo del observatorio (T72):** registrar el componente en `eim/observability/catalog/`
+   (`components_agents.py`): `id` `agent.<nombre>`, misma `version`, `stage`, `cadence`,
+   `consumes`/`produces` (qué recibe y qué entrega, con el id del componente de origen),
+   `title_es` y `explain_es` (1–2 frases llanas, ≤ 280 caracteres). Si estaba `planeado`, pasarlo a
+   `construido`. El test `tests/observability/test_catalog.py` lo exige. El agente sigue puro: no
+   emite eventos (los emite el corredor).
+8. Gate (desde `v2/`): `python -m ruff check eim tests && python -m pytest -q`.
 
 ## Plantilla
 ```python
