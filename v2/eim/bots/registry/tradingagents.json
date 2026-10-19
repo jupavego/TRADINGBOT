@@ -1,0 +1,85 @@
+{
+  "id": "tradingagents",
+  "name": "TradingAgents",
+  "repo": "TauricResearch/TradingAgents",
+  "commit_sha": "e8f5503e9b86d5c2710b0c76b1f686703968c9df",
+  "commit_date": "2026-10-16",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "Apache-2.0",
+    "file": "LICENSE",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "head": "Apache License Version 2.0, January 2004 http://www.apache.org/licenses/"
+  },
+  "bot_class": "IA",
+  "integration_mode": "C",
+  "binance_markets": [],
+  "strategies": [
+    {
+      "name": "Debate alcista/bajista → gestor → riesgo",
+      "path": "tradingagents/",
+      "note": "Patrón de agentes LLM, orientado a acciones"
+    }
+  ],
+  "dependencies": [
+    "langchain, langgraph, openai, anthropic"
+  ],
+  "risks": [
+    "TYPESAFE_API_KEY activa el envío de publicaciones a un tercero (opt-in; sigue presente en agents/post_screen.py el 2026-10-16)",
+    "Costos de LLM y alucinación; sin evidencia de ventaja"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "Re-verificado: Apache-2.0, con pruebas propias. Solo informaría, sin voto; EIM ya tiene el agente de contexto (T24)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 0,
+      "O4": 0,
+      "O5": 10,
+      "O6": 5,
+      "O7": 10,
+      "O8": 0
+    },
+    "total": 60,
+    "tests_files": 89,
+    "days_since_commit": 3
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia Apache-2.0",
+      "url": "https://github.com/TauricResearch/TradingAgents/blob/e8f5503e9b86d5c2710b0c76b1f686703968c9df/LICENSE"
+    },
+    {
+      "what": "Envío opcional a tercero",
+      "url": "https://github.com/TauricResearch/TradingAgents/blob/e8f5503e9b86d5c2710b0c76b1f686703968c9df/tradingagents/agents/post_screen.py#L1"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 21
+}

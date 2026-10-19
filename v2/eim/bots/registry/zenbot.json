@@ -1,0 +1,80 @@
+{
+  "id": "zenbot",
+  "name": "Zenbot",
+  "repo": "DeviaVir/zenbot",
+  "commit_sha": "52872fb4b5f9d10e2f891d95daec05da0b721ceb",
+  "commit_date": "2022-02-14",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "5ce93a9ec5b7c9d5d1418d7c994d56a572152c0ee4d32401a7c3fb08a3003515",
+    "head": "MIT License Copyright (c) 2018 Carlos Rodriguez Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated d"
+  },
+  "bot_class": "D",
+  "integration_mode": "D",
+  "binance_markets": [],
+  "strategies": [],
+  "dependencies": [
+    "Node.js",
+    "MongoDB",
+    "TA-Lib"
+  ],
+  "risks": [
+    "Sin actividad desde 2022-02-14",
+    "Sin futuros"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Abandono (fila 15)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 0,
+      "O2": 15,
+      "O3": 0,
+      "O4": 0,
+      "O5": 5,
+      "O6": 5,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 35,
+    "tests_files": 22,
+    "days_since_commit": 1708
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": false,
+      "S6": false,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S6": "Dependencias abandonadas",
+      "S5": "Opera con claves"
+    },
+    "red_alerts": [],
+    "total": 80,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT",
+      "url": "https://github.com/DeviaVir/zenbot/blob/52872fb4b5f9d10e2f891d95daec05da0b721ceb/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 15
+}

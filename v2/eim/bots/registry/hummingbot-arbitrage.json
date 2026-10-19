@@ -1,0 +1,84 @@
+{
+  "id": "hummingbot-arbitrage",
+  "name": "Hummingbot — arbitraje",
+  "repo": "hummingbot/hummingbot",
+  "commit_sha": "9af100d6822da7d2d0291a906c730ef172284ee2",
+  "commit_date": "2026-09-22",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "Apache-2.0",
+    "file": "LICENSE",
+    "sha256": "f0dd03c14db3dfbce03c166645f88fda96599ad1a5d217fddb49134de8c72a29",
+    "head": "Apache License Version 2.0, January 2004 http://www.apache.org/licenses/"
+  },
+  "bot_class": "L",
+  "integration_mode": "D",
+  "binance_markets": [
+    "spot",
+    "usdm_futures"
+  ],
+  "strategies": [
+    {
+      "name": "arbitrage_controller / xemm / funding arb",
+      "path": "controllers/generic/, scripts/v2_funding_rate_arb.py",
+      "note": "Cubiertos por T38–T45"
+    }
+  ],
+  "dependencies": [],
+  "risks": [
+    "Duplicaría el carril de arbitraje propio"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Ya cubierto: T33 lo dejó en «Referencia» y EIM construyó su arbitraje (T38–T45); no se reintegra"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 15,
+      "O4": 0,
+      "O5": 5,
+      "O6": 10,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 80,
+    "tests_files": 691,
+    "days_since_commit": 27
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": false,
+      "S5": true,
+      "S6": false,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S4": "Métricas por defecto (T33)",
+      "S6": "pandas-ta beta"
+    },
+    "red_alerts": [],
+    "total": 80,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Controlador de arbitraje",
+      "url": "https://github.com/hummingbot/hummingbot/blob/9af100d6822da7d2d0291a906c730ef172284ee2/controllers/generic/arbitrage_controller.py"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 6
+}

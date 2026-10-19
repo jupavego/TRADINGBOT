@@ -1,0 +1,81 @@
+{
+  "id": "octobot-market-making",
+  "name": "OctoBot Market Making",
+  "repo": "Drakkar-Software/OctoBot-Market-Making",
+  "commit_sha": "688fc21c152f1a5a16e52a85a676d9bc8e83ca3a",
+  "commit_date": "2026-03-30",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "GPL-3.0",
+    "file": "LICENSE",
+    "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "head": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.o"
+  },
+  "bot_class": "L",
+  "integration_mode": "D",
+  "binance_markets": [],
+  "strategies": [
+    {
+      "name": "Market making de OctoBot",
+      "path": "",
+      "note": "7 archivos de código"
+    }
+  ],
+  "dependencies": [
+    "Depende de OctoBot (GPL-3.0)"
+  ],
+  "risks": [
+    "GPL-3.0",
+    "Repo pequeño y poco probado (2 archivos de prueba); 2026-03"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Sin soporte de Binance USDⓈ-M verificado y sin valor sobre Passivbot/Hummingbot"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 10,
+      "O2": 8,
+      "O3": 0,
+      "O4": 0,
+      "O5": 5,
+      "O6": 10,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 43,
+    "tests_files": 2,
+    "days_since_commit": 203
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia GPL-3.0",
+      "url": "https://github.com/Drakkar-Software/OctoBot-Market-Making/blob/688fc21c152f1a5a16e52a85a676d9bc8e83ca3a/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 8
+}

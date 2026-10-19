@@ -1,0 +1,81 @@
+{
+  "id": "ai-hedge-fund",
+  "name": "AI Hedge Fund",
+  "repo": "virattt/ai-hedge-fund",
+  "commit_sha": "78b779c1389e2d1452dc29606d2c4126d859b964",
+  "commit_date": "2026-10-02",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "6cb192c4a37c69c84459d2e1b3da7af51b06d91e35be521c898107bdae18e2a4",
+    "head": "MIT License Copyright (c) 2024 Virat Singh Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated docume"
+  },
+  "bot_class": "IA",
+  "integration_mode": "C",
+  "binance_markets": [],
+  "strategies": [
+    {
+      "name": "Agentes inversores simulados",
+      "path": "src/",
+      "note": "Educativo: no opera"
+    }
+  ],
+  "dependencies": [
+    "langchain, openai, anthropic",
+    "Datos de pago (Financial Datasets)"
+  ],
+  "risks": [
+    "Educativo, orientado a acciones, no opera"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "Sin mercado cripto ni futuros; nada que portar (fila 22)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 0,
+      "O4": 0,
+      "O5": 10,
+      "O6": 5,
+      "O7": 5,
+      "O8": 0
+    },
+    "total": 55,
+    "tests_files": 27,
+    "days_since_commit": 17
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT",
+      "url": "https://github.com/virattt/ai-hedge-fund/blob/78b779c1389e2d1452dc29606d2c4126d859b964/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 22
+}

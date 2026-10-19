@@ -1,0 +1,89 @@
+{
+  "id": "trendrider-strategy",
+  "name": "TrendRider Strategy",
+  "repo": "darkvolg/trendrider-strategy",
+  "commit_sha": "621b0c866d531e5ad6f7e8541f0cf2648f755e30",
+  "commit_date": "2026-04-21",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "8cfccc3b1c590a91154a9e12c06db2a699eb23b55da459ca35af9044de543279",
+    "head": "MIT License Copyright (c) 2026 TrendRider Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documen"
+  },
+  "bot_class": "D",
+  "integration_mode": "A",
+  "binance_markets": [
+    "spot"
+  ],
+  "strategies": [
+    {
+      "name": "TrendRiderStrategy",
+      "path": "TrendRiderStrategy.py",
+      "note": "745 líneas; 1h con informativos 4h/1d; largo solamente (can_short=False); TA-Lib"
+    }
+  ],
+  "dependencies": [
+    "Freqtrade (IStrategy), TA-Lib: se reescribe la regla"
+  ],
+  "risks": [
+    "Un solo archivo, sin pruebas, un autor; el README pide estrellas y enlaza a un sitio con «estadísticas en vivo» (marketing, cifra no aceptada)",
+    "Largo solamente: no cubre cortos en perpetuos"
+  ],
+  "verdict": "usar",
+  "squad_proposal": "opcional",
+  "reasons": [
+    "MIT clara y lógica contenida en un archivo sin red ni archivos (verificado por búsqueda de patrones). Opcional por su origen promocional y por no tener respaldo medible"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 10,
+      "O2": 0,
+      "O3": 0,
+      "O4": 8,
+      "O5": 10,
+      "O6": 10,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 48,
+    "tests_files": 0,
+    "days_since_commit": 181
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": false
+    },
+    "notes": {
+      "S9": "Sin pruebas automáticas"
+    },
+    "red_alerts": [],
+    "total": 95,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT",
+      "url": "https://github.com/darkvolg/trendrider-strategy/blob/621b0c866d531e5ad6f7e8541f0cf2648f755e30/LICENSE"
+    },
+    {
+      "what": "Estrategia",
+      "url": "https://github.com/darkvolg/trendrider-strategy/blob/621b0c866d531e5ad6f7e8541f0cf2648f755e30/TrendRiderStrategy.py"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": null
+}

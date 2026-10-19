@@ -1,0 +1,115 @@
+{
+  "id": "nostalgia-for-infinity",
+  "name": "NostalgiaForInfinity (NFI)",
+  "repo": "iterativv/NostalgiaForInfinity",
+  "commit_sha": "d14d4de5a362f8aee4dc1d8ef20d5bf472636f08",
+  "commit_date": "2026-10-19",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "GPL-3.0",
+    "file": "LICENSE",
+    "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "head": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.o"
+  },
+  "bot_class": "D",
+  "integration_mode": "B",
+  "binance_markets": [
+    "spot",
+    "usdm_futures"
+  ],
+  "strategies": [
+    {
+      "name": "NostalgiaForInfinityX7",
+      "path": "NostalgiaForInfinityX7.py",
+      "note": "79 771 líneas; marco 5m con informativos 15m/1h/4h/1d, can_short y position_adjustment"
+    },
+    {
+      "name": "NostalgiaForInfinityX8",
+      "path": "NostalgiaForInfinityX8.py",
+      "note": "62 043 líneas; misma familia"
+    },
+    {
+      "name": "NostalgiaForInfinityX6",
+      "path": "NostalgiaForInfinityX6.py",
+      "note": "Generación anterior, mantenida"
+    },
+    {
+      "name": "NostalgiaForInfinityX…",
+      "path": "NostalgiaForInfinityX.py … X5.py",
+      "note": "Versiones históricas"
+    }
+  ],
+  "dependencies": [
+    "Freqtrade (ficha freqtrade)",
+    "Marco base 5m: el almacén de EIM no sirve 5m por la API"
+  ],
+  "risks": [
+    "GPL-3.0: solo proceso aislado",
+    "Monolito (≈416 000 líneas entre versiones): auditoría por patrones, no línea a línea",
+    "Entradas acopladas a reajustes de posición (rebuy/grind = promediado a la baja): una «postura por vela» pierde esa parte del comportamiento",
+    "Evidencia de rendimiento solo en comentarios de commits; la cifra no se acepta (regla de T56)"
+  ],
+  "verdict": "usar",
+  "squad_proposal": "opcional",
+  "reasons": [
+    "Es la estrategia comunitaria más usada de Freqtrade y mantiene actividad diaria (commit 2026-10-19) con suite de pruebas propia",
+    "Opcional: costo alto de adaptar (datos 5m, entorno Freqtrade) frente a una expectativa realista de «ninguno validado» en T59"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 15,
+      "O4": 8,
+      "O5": 10,
+      "O6": 10,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 88,
+    "tests_files": 25,
+    "days_since_commit": 0
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia GPL-3.0",
+      "url": "https://github.com/iterativv/NostalgiaForInfinity/blob/d14d4de5a362f8aee4dc1d8ef20d5bf472636f08/LICENSE"
+    },
+    {
+      "what": "Marco 5m y informativos",
+      "url": "https://github.com/iterativv/NostalgiaForInfinity/blob/d14d4de5a362f8aee4dc1d8ef20d5bf472636f08/NostalgiaForInfinityX7.py#L88-L94"
+    },
+    {
+      "what": "Modo futuros",
+      "url": "https://github.com/iterativv/NostalgiaForInfinity/blob/d14d4de5a362f8aee4dc1d8ef20d5bf472636f08/NostalgiaForInfinityX7.py#L249-L260"
+    },
+    {
+      "what": "Ajuste de posición",
+      "url": "https://github.com/iterativv/NostalgiaForInfinity/blob/d14d4de5a362f8aee4dc1d8ef20d5bf472636f08/NostalgiaForInfinityX7.py#L278"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 3
+}

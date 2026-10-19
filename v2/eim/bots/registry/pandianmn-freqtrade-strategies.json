@@ -1,0 +1,74 @@
+{
+  "id": "pandianmn-freqtrade-strategies",
+  "name": "freqtrade-strategies (copia de pandianmn)",
+  "repo": "pandianmn/freqtrade-strategies",
+  "commit_sha": "d207422bdf3116427c45f724005f1fad96e21491",
+  "commit_date": "2023-07-16",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "GPL-3.0",
+    "file": "LICENSE",
+    "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+    "head": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.or"
+  },
+  "bot_class": "D",
+  "integration_mode": "D",
+  "binance_markets": [],
+  "strategies": [],
+  "dependencies": [],
+  "risks": [
+    "Copia del repo oficial, sin actividad desde 2023-07-16"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Duplicado desactualizado: se usa el oficial"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 0,
+      "O2": 0,
+      "O3": 0,
+      "O4": 0,
+      "O5": 10,
+      "O6": 10,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 30,
+    "tests_files": 0,
+    "days_since_commit": 1191
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": false
+    },
+    "notes": {
+      "S9": "Sin pruebas automáticas"
+    },
+    "red_alerts": [],
+    "total": 95,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia GPL-3.0",
+      "url": "https://github.com/pandianmn/freqtrade-strategies/blob/d207422bdf3116427c45f724005f1fad96e21491/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": null
+}
