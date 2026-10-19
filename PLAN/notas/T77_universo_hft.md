@@ -68,3 +68,40 @@ Fuera de la fase (BACKLOG): aprendizaje profundo sobre el libro (DeepLOB/Transfo
 3. **Datos primero y desde ya**: T78 acumula días de libro profundo en segundo plano; T80/T84 necesitan 14–30 días contiguos. Es el camino crítico real.
 4. **Parada barata (T80 ◆)**: si ni la cota con previsión perfecta ni el IC supera los costos con margen, se archiva con el resultado honesto (como T28), o se redirige (otro horizonte, rebate/VIP, otros símbolos).
 5. **Sin dinero real**: el carril termina en simulación con datos reales y, si el usuario lo decide, prueba funcional en testnet; dinero real exige T31 y la puerta de edge, igual que el resto.
+
+## 7. Segunda investigación (auditoría comparativa y cobertura de métodos) — contraste
+Insumo del usuario, 2026-10-19. **No la verifiqué en la fuente** (no clono ni leo esos repos en esta etapa): lo que afirma de mmb, MOSAIC, HFT Lab Core y quant-research queda como *declarado* hasta que T77 lo audite con el formato de T04 (clones aislados, sin ejecutar ni instalar).
+
+### 7.1 Repositorios nuevos y decisión provisional
+| Repo (según la investigación) | Lo declarado | Decisión en este plan |
+|---|---|---|
+| **mmb** (Rust, GPL-3.0) | Binance Spot y USDⓈ-M, `core_tests`, commits de 2022 | **Referencia, modo B/C** (GPL contagia; el proyecto ya lo trata así en T56). T77 mira el último commit efectivo de la rama principal; si no hay mantenimiento, se descarta. |
+| **MOSAIC** (sin licencia detectada) | OFI, FIFO, ML, simulación de ejecución; pocas operaciones por estrategia en su tabla | **Solo estudio, no se copia código** mientras no haya licencia. Sus métricas no cuentan como evidencia. T77 confirma la ausencia de `LICENSE`. |
+| **HFT Lab Core** (MIT declarado, módulos propietarios) | HMM, Hurst, Rough Heston, señales geométricas; sin `tests/` visibles | **Estudio selectivo**: las ideas (Hurst, HMM) se reimplementan con pruebas propias; nada de lo «propietario». |
+| **quant-research** (MIT) | Módulos de validación y pruebas, datos de EE. UU. | **Referencia** de validación (purga/embargo, pruebas de hipótesis); T77 comprueba licencia y si algo se porta como lógica pura con aviso en `THIRD_PARTY.md`. |
+| HftBacktest · NautilusTrader · Hummingbot | ya decididos en §3 | Sin cambio (ver 7.2). |
+
+### 7.2 Dónde mantengo una posición distinta (con razón)
+1. **«NautilusTrader = candidato principal de motor operativo»**: no lo adopto ahora. T25 ya midió su integración (550 MB, núcleo Rust/Cython, LGPL) y el `Broker`/`gateway`/reconciliación propios (T30) ya hacen el ciclo de órdenes con kill-switch y sello de riesgo. Se reevalúa solo si T83 demuestra que el `Broker` no alcanza (parciales, libro). Su aviso sobre versiones de Python **sí aplica**: `pyproject.toml` exige ≥ 3.11, T25 lo instaló en 3.12 y este entorno de trabajo usa 3.13; T77 fija versión publicada y entorno aparte antes de cualquier prueba.
+2. **«Libro L3 y prioridad FIFO (B–A)»**: **Binance no publica libro por orden**; solo L2 + operaciones. La posición en cola **no se reconstruye, se estima** (modelos de cola de T79/T81) y por eso el simulador debe ser pesimista y medir su sesgo. L3 queda fuera de la fase.
+3. **«Arbitraje de funding / spot–futuros: D o C»**: ya existe y está medido (`arbitrage` T38–T45, `reports/arbitrage_edge.md`: carry a 90 d **Marginal**; pares triangulares de 1 min en T43). No se rehace; el agente HFT solo reutiliza sus datos de funding y base.
+4. **«Árbitro determinista de decisiones»** y **«observabilidad»**: ya son síntesis + `RiskDecision` (T20/T29/T44) y el Observatorio (T72–T76); T83 y T86 los extienden, no se construyen otros.
+5. **«Biblioteca cuantitativa común»**: de acuerdo, y ya es la forma del plan: funciones puras versionadas en `eim/hft/{features,models}/` que cualquier agente consulta; no se crea un paquete paralelo.
+6. **«PBO y Deflated Sharpe: D»**: parcialmente cubierto. El DSR ya está en `copytrading/stats.deflated` y lo usa `validation/stats.py` (T49); **la PBO (CSCV) no existe** y entra en T84.
+
+### 7.3 Bibliotecas de apoyo (decisión)
+Dependencias actuales (`pyproject.toml`): numpy, pandas, duckdb; `scipy` **ya se importa** (`agents/regime/bocpd.py`) pero **no está declarada** → se declara en T81. El resto, como extra opcional `hft` (nada entra al núcleo ni a la operación sin necesidad medida), con licencia y versión comprobadas en T77.
+| Biblioteca | Decisión |
+|---|---|
+| NumPy, SciPy | Núcleo (declarar SciPy). |
+| statsmodels | Extra `hft`: regresión, ADF, Engle–Granger/Johansen, diagnóstico de residuos. |
+| arch | Extra `hft`: GARCH/volatilidad condicional intradía (T81, prioridad media). |
+| scikit-learn | Extra `hft`: ridge/logit/GBM con calibración (línea base de T81). |
+| hmmlearn | Extra `hft`, solo si un HMM propio en NumPy/SciPy no basta (convergencia medida). |
+| ruptures | **No**: BOCPD (T22) ya cubre cambios de régimen; BACKLOG. |
+| River (aprendizaje incremental) | **No ahora**: BACKLOG; interesa solo si hay deriva demostrada en T85. |
+| MLFinPy | **Referencia** de purga/embargo y PBO; se implementa propio con pruebas (T80/T84). |
+| QuantStats | **No**: ya hay métricas y reportes propios (T25/T49). |
+
+### 7.4 Matriz de aceptación por algoritmo (propuesta final de la investigación — se adopta)
+Una fila por modelo/estrategia con columnas: **fuente de la implementación · prueba unitaria · prueba con datos de Binance · costo y latencia modelados · validación fuera de muestra (IC, Holm) · criterio de desactivación**. Se crea en T81 (`v2/reports/hft_acceptance_matrix.md`), la completa cada tarea que añade un método y T84 la consume: **un método sin todas las casillas no entra al torneo**. Cobertura de métodos: los niveles A–D de la investigación sirven de guía de «qué hay que desarrollar propio» (casi todo en este plan es C: propio sobre SciPy/statsmodels).
