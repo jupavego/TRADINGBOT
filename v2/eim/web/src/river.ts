@@ -1,3 +1,4 @@
+import { noDataLabel } from './no_data_label'
 import { orb } from './agent_orbs'
 import { filterBar, type Filter, loadFilter, matches, roleTag, saveFilter, votes } from './agent_roles'
 import type { ArbPayload } from './arb_types'
@@ -19,7 +20,7 @@ let keyBound = false
 let tip = ''
 let sat = { x: 0, y: 0 } // posición del satélite de arbitraje en el último render
 
-type Row = { id: string; bias: number; conf: number; live: boolean; votes: boolean }
+type Row = { id: string; bias: number; conf: number; live: boolean; votes: boolean; why: string }
 
 /** Pulsos de luz (cabeza brillante + estela) que recorren un haz hasta la esfera. */
 function pulses(pathId: string, n: number, dur: number, r: number, col: string): string {
@@ -82,7 +83,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   const rows: Row[] = ids.map((id) => {
     const r = byId.get(id)
     const live = !!r && r.status !== 'no_data'
-    return { id, bias: live ? r!.bias : 0, conf: live ? r!.confidence : 0, live, votes: votes(id, infos, synthesis) }
+    return { id, bias: live ? r!.bias : 0, conf: live ? r!.confidence : 0, live, votes: votes(id, infos, synthesis), why: live ? '' : noDataLabel(r?.warnings) }
   }).sort((a, b) => b.bias - a.bias)
   const n = rows.length
   const showSat = filter === 'todos' || filter === 'carril'
@@ -136,7 +137,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     }
     const lx = nx + s * (NR + 11), anchor = isLeft ? 'start' : 'end'
     const bw = 92, bx = isLeft ? lx : lx - bw
-    const pct = r.live ? `${Math.round(r.conf * 100)}%` : 'sin datos'
+    const pct = r.live ? `${Math.round(r.conf * 100)}%` : r.why
     const flow = r.live && r.votes // solo los que votan alimentan la esfera (T44)
     const tag = roleTag(r.id, infos, synthesis)
     return `<g class="trib${r.id === selected ? ' sel' : ''}" data-id="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(agentName(r.id))}: ver detalles">` +

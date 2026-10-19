@@ -65,6 +65,20 @@ if ($lideres) {
   }
 }
 
+# Microestructura (T23/T104): trades y libro de Binance → agente `microstructure`. Sin esto la
+# esfera queda en «sin datos». Sin puerto: se busca por línea de órdenes para no duplicar.
+$micro = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
+  Where-Object { $_.CommandLine -match 'eim\.data\.collectors\.binance_ws' })
+if ($micro) {
+  Write-Host "El recolector de microestructura ya corre (PID $($micro.ProcessId -join ', ')): no se lanza otro."
+} else {
+  $argv = @("-m", "eim.data.collectors.binance_ws", "BTCUSDT", "--root", "`"$DataDir`"")
+  Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
+    -RedirectStandardOutput (Join-Path $logs "micro.out.log") `
+    -RedirectStandardError (Join-Path $logs "micro.err.log") | Out-Null
+  Write-Host "Recolector de microestructura lanzado (data\micro; 24 velas de acumulación antes de opinar)."
+}
+
 # Liquidaciones en vivo (Binance/Bybit/OKX): alimentan al agente `liquidations`. Sin puerto: se
 # busca por línea de órdenes para no duplicar. BTCUSDT por defecto (foco actual).
 $liq = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
