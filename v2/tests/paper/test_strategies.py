@@ -112,3 +112,15 @@ def test_base_follows_higher_timeframe_trend_every_bar():
     assert [i.side for i in down if i.strategy == "base_tendencia"] == [-1]
     none = generate_ideas([ctx_for(cs[510])], cs, "X", H1)
     assert not [i for i in none if i.strategy == "base_tendencia"]
+
+
+def test_base_limit_waits_for_a_pullback_with_the_trend():
+    cs = walk(600)
+    ideas = generate_ideas([ctx_for(cs[510])], cs, "X", H1, htf=lambda _t: 1)
+    lim = next(i for i in ideas if i.strategy == "base_retroceso")
+    c = ctx_for(cs[510])["close"]
+    assert lim.kind == "limit" and lim.side == 1 and lim.entry < c and lim.family == "base"
+    assert lim.fill_ms == 3 * H1 and lim.sl < lim.entry < lim.tp
+    short = next(i for i in generate_ideas([ctx_for(cs[510])], cs, "X", H1, htf=lambda _t: -1)
+                 if i.strategy == "base_retroceso")
+    assert short.side == -1 and short.entry > c

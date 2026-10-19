@@ -159,6 +159,20 @@ def base_tendencia(ctx: dict, _x: object, _i: int) -> Draft | None:
                      ("A favor de la tendencia del marco mayor (posición base)",))
 
 
+def base_retroceso(ctx: dict, _x: object, _i: int) -> Draft | None:
+    """Posición base límite: espera un retroceso de 0,5 ATR a favor de la tendencia del marco
+    mayor (SL 2 ATR, TP 3 ATR desde la entrada; vigencia de 3 velas). Da oferta continua de
+    órdenes pendientes para el mínimo de pendientes del perfil."""
+    side, c, a = int(ctx.get("htf_dir") or 0), ctx.get("close"), ctx.get("atr")
+    if side == 0 or not finite(c, a) or a <= 0:
+        return None
+    entry = c - side * 0.5 * a
+    return Draft(side=side, sl=entry - side * 2.0 * a, tp=entry + side * 3.0 * a,
+                 conf=BASE_CONF, kind="limit", entry=entry, fill_h=3 * _bar_h(ctx),
+                 hold_h=24, why=("Retroceso de 0,5 ATR a favor de la tendencia del marco mayor "
+                                 "(posición base límite)", "SL 2 ATR · TP 3 ATR desde la entrada"))
+
+
 def control_aleatorio(ctx: dict, _x: object, _i: int) -> Draft | None:
     """Lado al azar (determinista por vela) con las mismas salidas que «Síntesis a favor»."""
     h = int(hashlib.sha256(f"{ctx.get('symbol', '')}:{ctx['t']}".encode()).hexdigest()[:8], 16)
@@ -206,6 +220,10 @@ CORE: tuple[StrategyInfo, ...] = (
                  "En cada vela, a favor de la tendencia del marco mayor, a mercado, SL 2 ATR, "
                  "TP 3 ATR. Mantiene oferta de operaciones para el mínimo de abiertas del perfil.",
                  base_tendencia),
+    StrategyInfo("base_retroceso", "Posición base límite", "base",
+                 "Orden límite en un retroceso de 0,5 ATR a favor de la tendencia del marco mayor "
+                 "(vigencia 3 velas, SL 2 ATR, TP 3 ATR): mantiene órdenes pendientes.",
+                 base_retroceso),
     StrategyInfo("control_aleatorio", "Control aleatorio", "control",
                  f"Lado al azar en ~{RANDOM_RATE:.0%} de las velas con las mismas salidas: la "
                  "vara para saber si algo supera a la suerte.", control_aleatorio),

@@ -33,6 +33,7 @@ def positions_of(st: ProfileState, mmr: float) -> tuple[list[dict], list[dict], 
         base = {"id": i.id, "strategy": i.strategy, "sid": i.sid, "timeframe": i.timeframe,
                 "family": i.family, "side": i.side,
                 "kind": i.kind, "t": i.t, "qty": s.qty, "sl": i.sl, "tp": i.tp,
+                "conf": i.conf, "rr": i.rr,
                 "leverage": s.leverage, "margin": s.margin, "weight": s.weight,
                 "risk_usd": s.risk_usd, "floor": s.floor, "origin": i.origin, "why": list(i.why)}
         if not s.filled:
@@ -90,6 +91,7 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         "weights": {sid: learner.at(sid, now, p.feedback).to_json() for sid in strategy_ids},
         "events_n": len(st.events),
         "min_open": {"target": p.min_open, "open": len(pos),
+                     "pending_target": p.min_pending, "pending": len(orders),
                      "entries": sum(1 for t in tr if t.get("floor")),
                      "criteria": {k: judge(rs, p.feedback).to_json()
                                   for k, rs in st.floor_r.items()}},

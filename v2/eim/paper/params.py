@@ -95,6 +95,9 @@ class ProfileParams(BaseModel):
     # tendencia mayor, cupo, cobertura y margen siguen siendo vetos duros. Queda marcada
     # «mínimo» en el libro. 0 lo desactiva.
     min_open: int = 0
+    # Lo mismo para las órdenes de entrada pendientes (límites sin llenar): con menos de
+    # `min_pending`, la primera idea LÍMITE que solo incumpla filtros blandos se coloca.
+    min_pending: int = 0
     floor_weight: float = 0.5
     floor_min_rr: float = 1.0
     floor_max_cost_r: float = 0.3    # costo ida y vuelta máximo (en R) que tolera el mínimo
@@ -106,9 +109,10 @@ PROFILES: tuple[ProfileParams, ...] = (
         id="conservador", name="Conservador",
         description="Solo lo ya probado (≥ 10 operaciones con expectativa positiva), a favor "
                     "de la síntesis y de la tendencia mayor, costo ≤ 0,12 R; 0,5 % de riesgo, "
-                    "hasta 3x. Mantiene al menos 1 posición abierta (riesgo reducido).",
+                    "hasta 3x. Mantiene al menos 1 posición abierta y 1 orden pendiente (riesgo "
+                    "reducido).",
         risk_pct=0.005, max_leverage=3, max_open=3, min_conf=0.3, min_rr=1.5,
-        min_open=1,
+        min_open=1, min_pending=1,
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
                             "base"}),
         allow_hedge=False, follow_synthesis=True, max_cost_r=0.12, require_htf=True,
@@ -119,9 +123,9 @@ PROFILES: tuple[ProfileParams, ...] = (
         id="moderado", name="Moderado",
         description="Todas las familias direccionales salvo las contrarias, a favor de la "
                     "tendencia mayor, costo ≤ 0,15 R; 1 % de riesgo, hasta 5x. Mantiene al menos 2 "
-                    "posiciones abiertas.",
+                    "posiciones abiertas y 1 orden pendiente.",
         risk_pct=0.01, max_leverage=5, max_open=6, min_conf=0.15, min_rr=1.3,
-        min_open=2,
+        min_open=2, min_pending=1,
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
                             "base"}),
         allow_hedge=True, follow_synthesis=False, max_cost_r=0.15, require_htf=True,
@@ -130,9 +134,9 @@ PROFILES: tuple[ProfileParams, ...] = (
         id="agresivo", name="Agresivo",
         description="Todo el abanico (incluidas las contrarias) a favor de la tendencia mayor; "
                     "2 % de riesgo, hasta 10x, explora más y refuerza rápido lo que gana. Mantiene "
-                    "al menos 3 posiciones abiertas.",
+                    "al menos 3 posiciones abiertas y 2 órdenes pendientes.",
         risk_pct=0.02, max_leverage=10, max_open=10, min_conf=0.0, min_rr=1.1,
-        min_open=3,
+        min_open=3, min_pending=2,
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
                             "base", "contrarias"}),
         allow_hedge=True, follow_synthesis=False, max_cost_r=0.2, require_htf=True,

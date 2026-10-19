@@ -5,7 +5,7 @@ export interface Judgement { weight: number; state: string; state_label: string;
 interface Slot {
   id: string; strategy: string; sid: string; timeframe: string; family: string; side: number; kind: string; t: number
   qty: number; sl: number; tp: number; leverage: number; margin: number; weight: number
-  risk_usd: number; origin: string; why: string[]; floor?: boolean   // floor: entró por el mínimo de abiertas
+  risk_usd: number; origin: string; why: string[]; floor?: boolean; conf?: number; rr?: number   // floor: entró por el mínimo de abiertas
 }
 export interface Position extends Slot {
   entry: number; mark: number; fill_t: number; expire_t: number; liq: number

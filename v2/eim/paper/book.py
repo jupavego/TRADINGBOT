@@ -82,6 +82,11 @@ def _open_count(st: ProfileState) -> int:
     return sum(1 for s in st.slots.values() if s.filled or s.o.idea.kind == "market")
 
 
+def _pending_count(st: ProfileState) -> int:
+    """Órdenes de entrada pendientes: límites colocados y aún sin llenar."""
+    return sum(1 for s in st.slots.values() if not s.filled and s.o.idea.kind == "limit")
+
+
 def _vetoes(st: ProfileState, i: Idea, j: Judgement, jc: Judgement,
             ck: str) -> list[tuple[str, str | None]]:
     """Motivos de rechazo en orden de prioridad: (texto, clave del filtro blando o None si es
@@ -153,11 +158,12 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
     vetoes = _vetoes(st, i, j, jc, ck)
     floor, skipped = False, ()
     if vetoes:
-        # el mínimo de abiertas solo salta vetos blandos y solo entra a mercado (sin elegir por
-        # el resultado: una orden límite pudiera no llenarse)
+        # los mínimos solo saltan vetos blandos: a mercado cubren las posiciones abiertas y a
+        # límite las órdenes pendientes (sin elegir por el resultado de la idea)
         keys = tuple(k for _, k in vetoes)
-        if (None in keys or i.kind != "market" or _open_count(st) >= p.min_open
-                or _learned_bad(st, keys, i.t, o)):
+        short = (_open_count(st) < p.min_open if i.kind == "market"
+                 else _pending_count(st) < p.min_pending)
+        if None in keys or not short or _learned_bad(st, keys, i.t, o):
             _ev(st, i.t, "rechazada", o, vetoes[0][0])
             return
         floor, skipped = True, keys
@@ -178,7 +184,8 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
     st.used += margin
     text = "límite" if i.kind == "limit" else "a mercado"
     if floor:
-        text += f" · mínimo de {p.min_open} abierta(s): se omitió «{vetoes[0][0]}»"
+        what = f"{p.min_open} abierta(s)" if i.kind == "market" else f"{p.min_pending} pendiente(s)"
+        text += f" · mínimo de {what}: se omitió «{vetoes[0][0]}»"
     _ev(st, i.t, "orden", o, text, price=entry, qty=qty, leverage=lev, margin=margin, sl=i.sl,
         tp=i.tp, weight=weight, risk_usd=risk_usd, why=list(i.why), floor=floor)
     if o.fill_t is not None:
