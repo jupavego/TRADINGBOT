@@ -39,6 +39,7 @@ from eim.data.leader_watch import LeaderWatch
 from eim.data.providers.leaders import HyperliquidInfo, HyperliquidStream
 from eim.leaders import params as P
 from eim.leaders.parse import is_perp
+from eim.observability import hooks_service
 from eim.operation.alerts import Alert
 from eim.operation.notify import JsonLog, WindowsToast
 
@@ -211,6 +212,9 @@ class LeaderService(LeaderWatch):
                "state": "capturando" if ready == len(self.books) else "arrancando",
                "leaders": len(self.books), "ready": ready, "boards_saved": self.boards_saved,
                "errors": len(self.errors)}
+        hooks_service.beat("leaders.service", status="ok" if not self.errors else "degraded",
+                           detail={"state": row["state"], "ready": ready,
+                                   "leaders": row["leaders"], "errors": row["errors"]})
         try:
             self.boards.dir.mkdir(parents=True, exist_ok=True)
             tmp = self.boards.dir / (HEARTBEAT + ".tmp")

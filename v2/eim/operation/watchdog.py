@@ -16,6 +16,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import IO
 
+from eim.observability import hooks_service
 from eim.operation.alerts import CRITICAL, SERVICE, Alert
 from eim.operation.notify import JsonLog, WindowsToast
 
@@ -100,6 +101,10 @@ class Watchdog:
             self.restarts += 1
             self.log.write("proceso_reiniciado", "error", reason=why, retry_s=wait,
                            restarts=self.restarts)
+            hooks_service.service_event("operation.watchdog", "proceso reiniciado",
+                                        status="error", detail={
+                                            "reason": why, "retry_s": wait,
+                                            "restarts": self.restarts, "service": self.title})
             try:
                 self._notify(Alert(int(self._clock() * 1000), SERVICE, CRITICAL,
                                    self.title, f"{why}; se relanza en {wait:.0f} s",

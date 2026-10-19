@@ -15,6 +15,7 @@ from collections.abc import Callable
 
 from pydantic import BaseModel
 
+from eim.observability import hooks
 from eim.risk import rules
 from eim.risk.config import RiskConfig
 from eim.risk.killswitch import KillSwitch, global_kill_switch
@@ -97,6 +98,7 @@ class RiskEngine:
             account_source=account.source, **fields)
         d = d.model_copy(update={"seal": _digest(d)})
         self._sink(d)
+        hooks.risk_decided(d)
         return d
 
     def verify(self, d: RiskDecision, now: int) -> None:

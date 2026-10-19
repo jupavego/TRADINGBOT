@@ -14,6 +14,7 @@ from eim.data.timeframes import SYMBOLS, TF_MS
 from eim.forecast.base_engine import BaseEngine
 from eim.forecast.engine import MAX_HORIZON, MIN_HORIZON
 from eim.forecast.scenarios import build_forecast
+from eim.observability import hooks
 from eim.synthesis import drift_of, synthesize
 
 DEFAULT_HORIZON = 25
@@ -51,8 +52,12 @@ class Forecaster:
             raise LookupError(f"sin velas almacenadas para {symbol} {tf}")
         if drift is None:  # T20: la síntesis inclina la proyección
             drift = self._synthesis_drift(symbol, tf, snap, asof)
-        fs = build_forecast(snap, horizon, self._n, drift=drift, stops=self._stops(symbol, tf))
-        self.db.save(fs)
+        with hooks.traced_span("forecast.engine",
+                               detail={"symbol": symbol, "tf": tf, "horizon": horizon}):
+            fs = build_forecast(snap, horizon, self._n, drift=drift,
+                                stops=self._stops(symbol, tf))
+            self.db.save(fs)
+            hooks.forecast_done(fs)
         return fs
 
 

@@ -15,6 +15,9 @@ from eim.core import AgentReport, Candle
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import tf_ms
+from eim.observability import hooks, hooks_service
+from eim.observability.emit import span
+from eim.observability.events import trace_for
 from eim.synthesis import synthesize
 
 
@@ -135,16 +138,20 @@ class Hub:
             "reports": [r.model_dump() for r in reports], "overlays": overlays_of(reports),
             "synthesis": synthesis_of(reports, [a.id for a in self._registry.latest()]),
         })
-        await self._emit_forecast(ch)
+        await self._emit_forecast(ch, candle.t + tf_ms(ch.timeframe))
+        hooks_service.beat("api.hub", detail={"symbol": ch.symbol, "tf": ch.timeframe})
 
-    async def _emit_forecast(self, ch: Channel) -> None:
+    async def _emit_forecast(self, ch: Channel, asof: int | None = None) -> None:
         """Pronóstico al cierre de vela; si faltan datos o falla, no interrumpe el flujo."""
         if self._forecaster is None:
             return
+        trace = trace_for(ch.symbol, ch.timeframe, asof) if asof else None
         try:
-            fs = await asyncio.to_thread(self._forecaster.run, ch.symbol, ch.timeframe)
+            with span("api.hub", trace_id=trace, detail={"phase": "forecast"}):
+                fs = await asyncio.to_thread(self._forecaster.run, ch.symbol, ch.timeframe)
         except Exception as exc:
             detail = f"{type(exc).__name__}: {exc}"
+            hooks_service.service_error("forecast.engine", exc)
             self._broadcast(ch, {"type": "forecast_error", "detail": detail})
             return
         self._broadcast(ch, {"type": "forecast", "forecast": fs.model_dump()})
@@ -155,7 +162,11 @@ class Hub:
         if persist_candle:
             self._store.upsert_candles(ch.symbol, ch.timeframe, [candle], self._source.name)
         asof = candle.t + tf_ms(ch.timeframe)
-        snap = build_snapshot(self._store, ch.symbol, ch.timeframe, self._bars, asof=asof)
-        reports = run_agents(self._registry.latest(), snap, timeout=self._timeout)
-        self._reports.save(ch.symbol, ch.timeframe, reports)
+        with span("api.hub", trace_id=trace_for(ch.symbol, ch.timeframe, asof),
+                  detail={"phase": "analyze", "symbol": ch.symbol, "tf": ch.timeframe,
+                          "asof": asof}):
+            snap = build_snapshot(self._store, ch.symbol, ch.timeframe, self._bars, asof=asof)
+            hooks.snapshot_fetches(snap, self._bars)
+            reports = run_agents(self._registry.latest(), snap, timeout=self._timeout)
+            self._reports.save(ch.symbol, ch.timeframe, reports)
         return reports

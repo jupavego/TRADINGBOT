@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T08:06:45",
+ "generated": "2026-10-19T08:42:58",
  "tasks": [
   {
    "id": "T01",
@@ -935,8 +935,8 @@ window.EIM_STATUS = {
    "deps": [
     "T72"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "**Una vela cerrada deja la traza completa** (`trace_for(símbolo, marco, cierre)`): `data_fetch` (fuente, cobertura, antigüedad) → `signal` ×17 (sesgo, confianza, estado, hash de entrada y de reporte) → `synthesis` → `forecast` → `plan` → `risk_decision` (id y sello recortado, reglas falladas) → `order_intent` → `order_sent` → `fill`, con `parent_run_id` donde hay causalidad; un agente que lanza o excede el tiempo deja su `signal` en `error` y el ciclo sigue. Ganchos en `eim/observability/hooks.py` (cadena; solo emiten dentro de una traza abierta, así backtests y consultas de la UI no producen nada) y `hooks_service.py` (latido con cadencia real, errores, descargas). Instrumentado: `agents/runner.py`, `operation/{cycle,supervisor,watchdog}.py`, `api/{live,forecast,main}.py`, `data/sync.py`, `risk/engine.py`, `execution/{gateway,service,reconcile}.py`, calendario, bróker simulado, líderes y recolector (cada proceso fija su nombre con `configure`). **Los paquetes `agents/<nombre>/` no se tocaron.** Medido: 59 eventos por ciclo (límite 100), sobrecosto dentro del ruido (<1 % de ≈1,4 s); salidas de los 17 agentes idénticas con y sin observar; ciclo idéntico con el emisor roto. `tests/conftest.py` apaga el observatorio en la suite (`EIM_OBS=off`). Tests en `tests/observability/test_instrument.py` (12). Pendiente: comprobar con la API real y Binance que la traza sale en `/v2/obs/traces` (necesita T73 y red).",
    "effort": "alto",
    "phase": 15,
    "goal": "Hacer que lo que ya existe emita eventos **sin cambiar su lógica**. Al terminar, una vela cerrada deja una traza completa de datos → agentes → síntesis → plan → riesgo → (orden) y los servicios dejan latido y errores. Puede hacerse en paralelo con T73: sin el indexador, los eventos simplemente quedan en el JSONL."

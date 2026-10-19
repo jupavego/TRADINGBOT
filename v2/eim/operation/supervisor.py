@@ -23,6 +23,7 @@ from eim.api.forecast_db import ForecastStore
 from eim.api.risk import RiskDesk
 from eim.data import backup
 from eim.execution.sim_broker import SimBroker
+from eim.observability import hooks_service
 from eim.operation import report as report_io
 from eim.operation import state, weekly
 from eim.operation.alerts import (
@@ -101,6 +102,10 @@ class Operation:
 
     def heartbeat(self) -> None:
         self.status["last_heartbeat"] = self.clock()
+        hooks_service.beat("operation.supervisor", mode=self.desk.mode,
+                           status="ok" if not self.status["consecutive_failures"] else "degraded",
+                           detail={"state": self.status["state"], "cycles": self.status["cycles"],
+                                   "failures": self.status["consecutive_failures"]})
         self.root.mkdir(parents=True, exist_ok=True)
         tmp = self.root / "heartbeat.tmp"
         tmp.write_text(json.dumps({k: self.status[k] for k in (
@@ -146,6 +151,7 @@ class Operation:
         self.cursors.last_report_week = prev
         state.save(self.state_path, self.desk.rt.svc, self.cursors, self.mode)
         self.alerts.emit(Alert(now, REPORT, INFO, "Informe semanal listo", out["md"]))
+        hooks_service.service_event("operation.report", "informe semanal escrito")
 
     def backup_if_due(self, now: int) -> None:
         """Copia de seguridad diaria (UTC). Un fallo alerta (una vez) y se reintenta cada
@@ -158,10 +164,12 @@ class Operation:
         try:
             out = self.backup_now(clock=lambda: now / 1000)
             self.log.write("copia_seguridad", path=str(out))
+            hooks_service.service_event("operation.backup", "copia diaria hecha")
         except Exception as e:  # noqa: BLE001 - se alerta y se sigue operando
             err = f"{type(e).__name__}: {e}"
             self._backup_retry_at = now + BACKUP_RETRY_MS
             self.log.write("copia_seguridad", "warn", error=err)
+            hooks_service.service_error("operation.backup", e)
         self.alerts.update(now, [Condition("copia_seguridad", BACKUP, bool(err), WARN,
                                            "Copia de seguridad fallida", err)])
 
@@ -199,6 +207,7 @@ class Supervisor:
                 st["state"] = "reintentando"
                 st["last_error"] = f"{type(e).__name__}: {e}"
                 wait = min(self.max_backoff_s, op.params.poll_s * 2 ** st["consecutive_failures"])
+                hooks_service.service_error("operation.supervisor", e, mode=op.desk.mode)
                 op.log.write("ciclo_fallido", "error", error=st["last_error"],
                              consecutive=st["consecutive_failures"], retry_s=wait)
                 if st["consecutive_failures"] == FAILS_BEFORE_ALERT:

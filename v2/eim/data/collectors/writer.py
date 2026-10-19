@@ -7,6 +7,8 @@ from pathlib import Path
 
 import duckdb
 
+from eim.observability import hooks_service
+
 SCHEMAS = {
     "trades": "t BIGINT, id BIGINT, p DOUBLE, q DOUBLE, maker BOOLEAN",  # maker = vendedor agresor
     "top": "t BIGINT, bid_p DOUBLE, bid_q DOUBLE, ask_p DOUBLE, ask_q DOUBLE, "
@@ -45,7 +47,7 @@ class HourlyWriter:
         by_hour: dict[int, list[tuple]] = {}
         for row in self.buf:
             by_hour.setdefault(row[0] // 3_600_000, []).append(row)
-        self.buf = []
+        n_rows, self.buf = len(self.buf), []
         for hour, rows in by_hour.items():
             tm = time.gmtime(hour * 3600)
             d = self.base / time.strftime("date=%Y-%m-%d", tm) / f"hour={tm.tm_hour:02d}"
@@ -59,3 +61,5 @@ class HourlyWriter:
             con.execute(f"COPY x TO {_lit(tmp)} (FORMAT PARQUET)")
             tmp.replace(f)
             con.close()
+        hooks_service.beat("data.micro_collector", min_interval_s=60,
+                           detail={"kind": self.base.parent.name, "rows": n_rows})

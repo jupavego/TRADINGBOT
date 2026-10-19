@@ -44,6 +44,7 @@ from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
 from eim.data.validation_store import ValidationStore
+from eim.observability.emit import configure
 from eim.operation.cycle import OperationParams
 from eim.operation.supervisor import Operation, Supervisor
 from eim.paper.desk import PaperDesk
@@ -81,6 +82,7 @@ def create_app(
     kill = global_kill_switch()
     kill.attach(cfg.data_dir / "kill_switch.json")
     runtime = build_runtime(cfg.execution, kill, load_config())
+    configure(process="api", mode=runtime.mode, spool_dir=cfg.data_dir / "obs" / "spool")
     desk = RiskDesk(store, reports, kill=kill, runtime=runtime)
     op = None
     if cfg.operate:   # T31: el ciclo continuo reconcilia; no hace falta el bucle aparte

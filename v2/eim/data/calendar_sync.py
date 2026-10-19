@@ -11,6 +11,7 @@ from pathlib import Path
 from eim.data.calendar import DAY_MS, CalendarStore
 from eim.data.providers.calendar import PARSERS, OfficialCalendar
 from eim.data.providers.fred import SERIES, FredValues
+from eim.observability import hooks_service
 
 log = logging.getLogger(__name__)
 VALUES_LOOKBACK_MS = 3 * DAY_MS   # se buscan valores de publicaciones de los últimos 3 días
@@ -56,6 +57,12 @@ class CalendarSync:
             try:
                 res = await asyncio.to_thread(self.run_once)
                 log.info("calendario sincronizado: %s", res)
-            except Exception:  # noqa: BLE001 - el calendario nunca tumba la API
+                bad = [s for s in res["sources"] if not s.get("ok", True)] \
+                    if isinstance(res.get("sources"), list) else []
+                hooks_service.beat("data.calendar", status="degraded" if bad else "ok",
+                                   detail={"sources": len(res.get("sources", [])),
+                                           "values": res.get("values", 0)})
+            except Exception as exc:  # noqa: BLE001 - el calendario nunca tumba la API
                 log.exception("sincronización del calendario fallida")
+                hooks_service.service_error("data.calendar", exc)
             await asyncio.sleep(self.interval_s)
