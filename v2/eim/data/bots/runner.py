@@ -86,10 +86,14 @@ def clean_env(workdir: Path, extra: Mapping[str, str] | None = None) -> dict[str
 
 def checkout_state(bot_dir: Path) -> tuple[str | None, bool]:
     """(SHA de HEAD, ¿hay cambios locales o archivos nuevos sin versionar?) del checkout."""
-    git = shutil.which("git")
-    if git is None or not (Path(bot_dir) / ".git").exists():
+    git, bot_dir = shutil.which("git"), Path(bot_dir).resolve()   # absoluta: HOME apunta aquí
+    if git is None or not (bot_dir / ".git").exists():
         return None, False
-    base = [git, "-C", str(bot_dir)]
+    # `safe.directory` por línea de comandos: el git aislado no lee la config global y en discos
+    # sin propietarios (FAT32/exFAT) marcaría el checkout propio como «propiedad dudosa».
+    # `autocrlf=input`: un checkout con saltos CRLF (Git para Windows) no cuenta como «sucio».
+    base = [git, "-c", f"safe.directory={bot_dir.as_posix()}", "-c", "core.autocrlf=input",
+            "-C", str(bot_dir)]
     env = {"PATH": os.environ.get("PATH", ""), "GIT_CONFIG_NOSYSTEM": "1", "HOME": str(bot_dir)}
     try:
         head = subprocess.run([*base, "rev-parse", "HEAD"], capture_output=True, text=True,

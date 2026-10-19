@@ -18,8 +18,9 @@ from pathlib import Path
 
 from eim.bots.adapter import empty_signal, quality_of, version_of
 from eim.bots.card import BotCard, card_of
-from eim.core import BotSignal, MarketSnapshot
+from eim.core import BotQuality, BotSignal, MarketSnapshot
 from eim.data.bots.runner import Limits, RunResult, RunSpec, run_isolated
+from eim.data.timeframes import tf_ms
 
 BOT_ID = "freqtrade-strategies"
 SCRIPT = Path(__file__).resolve().parents[1] / "data" / "bots" / "scripts" / "freqtrade_signal.py"
@@ -69,7 +70,7 @@ class FreqtradeAdapter:
                  limits: Limits | None = None, card: BotCard | None = None,
                  runner: Callable[[RunSpec], RunResult] = run_isolated,
                  script: Path = SCRIPT) -> None:
-        self.python, self.checkout = Path(python), Path(checkout)
+        self.python, self.checkout = Path(python), Path(checkout).resolve()
         self.engine_version = engine_version
         self.strategies, self.limits, self.runner = strategies, limits or Limits(), runner
         self.script = Path(script)
@@ -82,8 +83,8 @@ class FreqtradeAdapter:
     def signals(self, snapshot: MarketSnapshot) -> list[BotSignal]:
         return [self._one(snapshot, s) for s in self.strategies]
 
-    def _spec(self, snap: MarketSnapshot, strategy: str) -> RunSpec:
-        rows = [[c.t, c.o, c.h, c.l, c.c, c.v] for c in snap.candles[-MAX_BARS:]]
+    def _spec(self, snap: MarketSnapshot, strategy: str, max_bars: int = MAX_BARS) -> RunSpec:
+        rows = [[c.t, c.o, c.h, c.l, c.c, c.v] for c in snap.candles[-max_bars:]]
         return RunSpec(
             python=self.python, script=self.script, limits=self.limits,
             request={"strategy": strategy, "strategy_dir": str(self.checkout / FUTURES_DIR),
@@ -134,3 +135,46 @@ class FreqtradeAdapter:
                  "startup_candle_count": startup, "can_short": bool(out["can_short"]),
                  "run_s": round(res.duration_s, 3), "isolation": net},
             data_quality=quality_of(snap, startup + 1, NOTE_EXITS), status="ok")
+
+    def history(self, snap: MarketSnapshot, strategy: str, from_asof: int) -> list[BotSignal]:
+        """Relleno histórico: UNA corrida del bot sobre todas las velas del snapshot y una señal
+        por cierre de vela con `asof` ≥ `from_asof` (en vez de una corrida por vela).
+
+        Es equivalente a correr vela a vela solo si el indicador de la estrategia no mira hacia
+        adelante: eso lo comprueba `tests/bots/test_ft_adapter.py` (truncar no cambia posturas
+        pasadas) y la verificación con el bot real. Falla ⇒ lista vacía (no lanza)."""
+        ver = self.version(strategy)
+        res = self.runner(self._spec(snap, strategy, max_bars=len(snap.candles)))
+        if res.status != "ok" or res.output is None:
+            return []
+        try:
+            out = res.output
+            if out["engine"] != self.engine_version:
+                return []
+            flags = {k: [int(x) for x in v] for k, v in out["flags"].items()}
+            cs, step = snap.candles, tf_ms(snap.timeframe)
+            if [int(t) for t in out["times"]] != [c.t for c in cs]:
+                return []
+            startup = int(out["startup_candle_count"])
+            pos = positions(flags, bool(out["can_short"]), startup)
+            sigs = []
+            for i in range(startup, len(cs)):
+                asof = cs[i].t + step
+                if asof < from_asof:
+                    continue
+                last = {k: v[i] for k, v in flags.items()}
+                sigs.append(BotSignal(
+                    bot_id=self.card.id, strategy=strategy, version=ver, asof=asof,
+                    timeframe=snap.timeframe, symbol=snap.symbol, stance=float(pos[i]),
+                    confidence=None,
+                    evidence=[f"{strategy}: postura {pos[i]:g} (banderas {last}); relleno "
+                              f"histórico de una sola corrida; {NOTE_EXITS}"],
+                    raw={"flags_last": last, "engine": out["engine"], "backfill": True},
+                    data_quality=BotQuality(
+                        bars=i + 1, last_candle_t=cs[i].t,
+                        source=snap.sources.get("candles", "desconocida"), coverage=1.0,
+                        notes=[NOTE_EXITS]),
+                    status="ok"))
+            return sigs
+        except (KeyError, TypeError, ValueError, IndexError):
+            return []

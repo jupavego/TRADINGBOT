@@ -11,6 +11,7 @@ from eim.core.bots import (
     BotSignal,
     BotStatus,
 )
+from eim.core.botsim import SIM_LABEL, SimEquityPoint, SimFill, SimRun
 from eim.core.events import EconEvent
 from eim.core.forecast import ForecastSet, Scenario, Synthesis
 from eim.core.leaders import (
@@ -39,6 +40,10 @@ MarketSnapshot.model_rebuild()
 
 __all__ = [
     "NOT_SAVED",
+    "SIM_LABEL",
+    "SimEquityPoint",
+    "SimFill",
+    "SimRun",
     "VERSION_CHANGED",
     "Agent",
     "AgentReport",

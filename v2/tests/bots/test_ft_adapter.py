@@ -238,3 +238,31 @@ def test_real_freqtrade_runs_isolated_and_agrees_with_the_fixture():
         assert s.status == "ok", s.evidence
         assert s.stance == pos[n - 1]
         assert "aislada" in s.raw["isolation"] or os.name == "nt"
+
+
+# --- relleno histórico (T58): una corrida = lo mismo que vela a vela --------------------------
+def test_history_matches_candle_by_candle_and_never_looks_ahead():
+    full = snapshot(200)
+
+    def out_fn(spec):
+        n = len(json.loads(spec.files["candles.json"]))
+        out = fake_output(snapshot(n), [i for i in (100, 150) if i < n])
+        return RunResult("ok", out, (), 0.1, True)
+
+    ad, _ = adapter(out_fn)
+    hist = {s.asof: s for s in ad.history(full, "FSupertrendStrategy", 0)}
+    assert min(hist) == full.candles[18].t + 3_600_000 and len(hist) == 200 - 18
+    for n in (60, 101, 151, 200):
+        (one,) = ad.signals(snapshot(n))
+        assert hist[one.asof].stance == one.stance and one.status == "ok"
+        assert hist[one.asof].data_quality.last_candle_t <= hist[one.asof].asof - 3_600_000
+    late = full.asof - 7_200_000
+    assert min(s.asof for s in ad.history(full, "FSupertrendStrategy", late)) >= late
+
+
+def test_history_failure_returns_nothing_instead_of_raising():
+    snap = snapshot(200)
+    ad, _ = adapter(lambda sp: RunResult("degraded", None, ("caída",), 1.0))
+    assert ad.history(snap, "FSupertrendStrategy", 0) == []
+    ad, _ = adapter(lambda sp: RunResult("ok", fake_output(snap, engine="1.0"), (), 1.0))
+    assert ad.history(snap, "FSupertrendStrategy", 0) == []
