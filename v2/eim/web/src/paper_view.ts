@@ -207,7 +207,8 @@ export class PaperView {
     this.paintTab()
   }
 
-  /** Marcas y líneas del marco del gráfico (las demás temporalidades se ven en las tablas). */
+  /** Marcas de cierres del marco del gráfico; las posiciones abiertas se dibujan de TODOS los marcos
+   (rotuladas con el suyo): el precio es el mismo y así ninguna queda fuera de la vista. */
   private paintChart(): void {
     const pv = this.prof()
     const open = (pv?.positions ?? []).filter((p) => p.timeframe === this.ctf)
@@ -271,7 +272,7 @@ export class PaperView {
     const pos = t.closest<HTMLElement>('tr[data-pos]')
     if (pos) {
       this.focus = pos.dataset.pos!
-      this.chart!.setLines((this.prof()?.positions ?? []).filter((p) => p.timeframe === this.ctf), this.focus)
+      this.chart!.setLines(this.prof()?.positions ?? [], this.focus)
       this.bodies.pos.querySelectorAll<HTMLElement>('tr[data-pos]').forEach((r) => { r.dataset.focus = String(r.dataset.pos === this.focus) })
       return
     }
