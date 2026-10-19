@@ -6,6 +6,7 @@
     python -m eim.library show ID PÁGINA
     python -m eim.library cards
     python -m eim.library verify
+    python -m eim.library ask "pregunta" [--scenario bull|neutral|bear]   (EIM_LIBRARY_LLM=1)
     python -m eim.library mark ESTADO ID|LIBRO ...   (p. ej. tras la revisión del usuario)
 
 Carpeta de libros: `EIM_LIBRARY_DIR` (o `--books`); índice: `EIM_LIBRARY_INDEX` (o `--index`).
@@ -32,6 +33,7 @@ from eim.data.library import (
     search,
     verify_cards,
 )
+from eim.library import qa
 from eim.library.schema import Status
 
 
@@ -69,9 +71,36 @@ def _cards() -> int:
     return 0
 
 
+def _ask(paths: LibraryPaths, question: str, scenario: str | None) -> int:
+    """Consulta manual (T55): imprime la respuesta y comprueba que cada cita exista."""
+    from eim.data.providers.claude_library import ClaudeLibraryLlm, enabled
+    if not question:
+        print("ask necesita una pregunta")
+        return 2
+
+    def find(q: str) -> list[qa.Passage]:
+        return [qa.Passage(h.book_id, h.page, h.snippet, h.flagged) for h in search(paths, q, 12)]
+
+    cards = load_cards()
+    ans = qa.ask(question, search=find, cards=qa.related_cards(cards, find(question), question),
+                 llm=ClaudeLibraryLlm() if enabled() else None, scenario=scenario)
+    print(f"[{ans.status}] {ans.reason or ''}\n{ans.resumen}")
+    known, catalog = {c.id for c in cards}, load_catalog(paths)
+    bad = 0
+    for p in ans.puntos:
+        ok = p["fuente"] in known or p["fuente"].split("#")[0] in catalog
+        bad += not ok
+        print(f"- {p['texto']}  [{p['fuente']}] {'OK' if ok else 'NO EXISTE'}")
+    for w in ans.advertencias:
+        print(f"! {w}")
+    print(qa.LABEL)
+    return 1 if ans.status == "no_data" or bad else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="eim.library")
-    ap.add_argument("cmd", choices=["ingest", "list", "search", "show", "cards", "verify", "mark"])
+    ap.add_argument("cmd", choices=["ingest", "list", "search", "show", "cards", "verify", "mark",
+                                       "ask"])
     ap.add_argument("args", nargs="*")
     ap.add_argument("--books", help="carpeta de libros (por defecto EIM_LIBRARY_DIR)")
     ap.add_argument("--index", help="carpeta del índice (por defecto EIM_LIBRARY_INDEX)")
@@ -80,6 +109,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--workers", type=int)
     ap.add_argument("-k", type=int, default=10)
     ap.add_argument("--book")
+    ap.add_argument("--scenario", choices=qa.SCENARIOS)
     a = ap.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -108,6 +138,8 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         print(f"--- dato: {a.args[0]} p. {p.page} [{p.source}] ---\n{p.text}\n--- fin ---")
         return 0
+    if a.cmd == "ask":
+        return _ask(paths, " ".join(a.args), a.scenario)
     if a.cmd == "cards":
         return _cards()
     if a.cmd == "mark":

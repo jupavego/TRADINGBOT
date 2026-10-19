@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T17:14:01",
+ "generated": "2026-10-19T17:23:47",
  "tasks": [
   {
    "id": "T01",
@@ -688,8 +688,8 @@ window.EIM_STATUS = {
     "T52",
     "T24"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "`eim/library/qa.py` (puro: BM25 de T52 + fichas → LLM inyectado → `{resumen, puntos[{texto, fuente}], relacion_con_escenarios, advertencias}`; fuente = `card_id` o `libro#página` entregados, si no el punto se descarta; páginas con texto dirigido a un modelo no viajan; fragmentos ≤ 280 car.) y cliente `data/providers/claude_library.py` (apagado salvo `EIM_LIBRARY_LLM=1` + `ANTHROPIC_API_KEY`, caché de prompt, temp. 0,1, ≤ 0,02 USD/consulta). API `GET /v2/library/catalog` y `POST /v2/library/ask` (`X-EIM-Confirm: library-ask`); panel «Biblioteca» (`web/src/library_ui.ts`). Tests `tests/library/test_qa.py` (LLM simulado, inyección, degradación `no_data`). Verificado en el navegador (catálogo real, consulta apagada). Pendiente manual: una consulta con clave real.",
    "effort": "medio",
    "phase": 11,
    "goal": "Poder preguntar en lenguaje natural «¿qué dice la literatura sobre la situación actual o sobre este escenario?» y recibir una respuesta breve con citas verificables a fichas y páginas de los libros locales. Solo informa: nunca ejecuta, nunca fija tamaño ni cambia probabilidades."
@@ -723,8 +723,8 @@ window.EIM_STATUS = {
    "deps": [
     "T57"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Los 3 bots aprobados quedan **adaptados**. `hummingbot-directional` (A) y `freqtrade-strategies` (B) ya venían de T57; T58 les añadió el relleno histórico (`eim/bots/backfill.py`, `FreqtradeAdapter.history`): 8 818 + 4 409 posturas 1 h BTCUSDT 2026-04-19→10-19 en `bot_signals` (corrida única = vela a vela, 0 diferencias). `passivbot` (L, B): carril de simulación sin voto (`eim/core/botsim.py` `SimRun`, `eim/bots/pb_adapter.py`, `bot_sim_runs`, CLI `eim.bots.sim_lane`), paridad exacta con el bot nativo, sin anticipación, tiempo acotado; 7,6 meses reales de 1 min (868 fills `trailing_martingale`, 50 `ema_anchor`), solo largos. Arreglos del ejecutor (ruta relativa, FAT32, CRLF). Gate 1683 ok. Entornos en `D:/eim-bots` y `D:/eim-toolchain`; datos en el `data/` del worktree; límites en BACKLOG y `docs/BOTS.md`.",
    "effort": "medio",
    "phase": 12,
    "goal": "Encapsular **todos los bots aprobados en T56** detrás del contrato de T57, de modo que cada uno produzca `BotSignal`s reproducibles. Es una sola tarea con oleadas: añadir un bot no crea una tarea nueva, crea un adaptador y una fila en el registro."
