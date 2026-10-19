@@ -85,10 +85,11 @@ class OperationCycle:
     def __init__(self, store: Store, provider: Provider, reports: ReportStore,
                  registry: AgentRegistry, desk: RiskDesk, book: EquityBook | None,
                  alerts: AlertCenter, log: JsonLog, params: OperationParams,
-                 cursors: Cursors, forecaster=None) -> None:
+                 cursors: Cursors, forecaster=None, bots=None) -> None:
         self.store, self.provider, self.reports, self.registry = store, provider, reports, registry
         self.desk, self.book, self.alerts, self.log = desk, book, alerts, log
         self.p, self.cur, self.forecaster = params, cursors, forecaster
+        self.bots = bots  # servicio de bots (T57): produce `snapshot.bot_signals`
         self.data_fail_since: dict[str, int] = {}
         self.agent_status: dict[str, dict[str, str]] = {}
 
@@ -136,6 +137,8 @@ class OperationCycle:
         done = {r.asof for r in self.reports.latest(sym, tf)}
         if asof not in done:        # la API pudo analizarla ya (canal abierto en la UI)
             snap = build_snapshot(self.store, sym, tf, self.p.snapshot_bars, asof=asof)
+            if self.bots is not None:
+                snap = self.bots.attach(snap)
             reps = run_agents(self.registry.latest(), snap, timeout=self.p.agent_timeout_s)
             self.reports.save(sym, tf, reps)
             if self.forecaster is not None:

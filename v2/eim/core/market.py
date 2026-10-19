@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 if TYPE_CHECKING:
     from eim.core.arb_market import ArbMarket
+    from eim.core.bots import BotSignal
     from eim.core.events import EconEvent
     from eim.core.leaders import LeaderPosition, LeaderWeight
 
@@ -137,6 +138,9 @@ class MarketSnapshot(Frozen):
     # (todas las monedas) y su peso de calidad; None si no hay tablero de líderes vigente.
     leaders: list[LeaderPosition] | None = None
     leader_weights: list[LeaderWeight] | None = None
+    # Escuadrón de bots (T57): posturas ya calculadas por el servicio (los agentes no lanzan
+    # procesos); None si no hay servicio de bots o no produjo nada a `asof`.
+    bot_signals: list[BotSignal] | None = None
     asof: int
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}
