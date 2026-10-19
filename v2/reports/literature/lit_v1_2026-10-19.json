@@ -1,0 +1,1352 @@
+{
+ "meta": {
+  "date": "2026-10-19",
+  "symbol": "BTCUSDT",
+  "asof": 1792402200000,
+  "prereg_commit": "ffcfbba",
+  "notes": [
+   "Contextos 1h: 1256, con aciertos de `literature` (`lit`): 1256.",
+   "Contextos 4h: 1096, con aciertos de `literature` (`lit`): 1096.",
+   "En 1 h el agente evalúa 500 velas y la regla de 4 semanas necesita 673: solo corre en 4 h (preregistro).",
+   "Los agentes no entran en la huella de versión (BACKLOG T49 (4)): `lit` se declara con `CTX_VERSION` 2; las estrategias de la familia se versionan por su código.",
+   "Las 9 versiones nuevas elevan los intentos de Holm de la puerta (costo declarado en el preregistro).",
+   "Los pares espejo (martillo/estrella fugaz, estrellas de la mañana/vespertina) comparten versión: la tabla por ficha es descriptiva, no un intento adicional de la puerta.",
+   "El ajuste se mide sobre el motor base (como T19), sin la deriva de la síntesis que lleva el pronóstico en vivo."
+  ]
+ },
+ "claims": {
+  "murphy_weekly_rule": {
+   "cite": "Murphy (1999), cap. 9, pp. 256–258",
+   "claim": "(continuacion) Comprar cuando el precio supera los máximos de las cuatro semanas previas completas y vender cuando perfora sus mínimos; versión no continua: salir con una ruptura contraria de 1–2 semanas. El autor cita estudios en que las rupturas de canal y los cruces de…",
+   "evidence": "estudios citados: Dunn & Hargitt (1970) y Lukac et al. (1975–84: 4 de 12 sistemas rentables, 2 de canal); Lukac y Brorsen (1990, 23 sistemas)"
+  },
+  "murphy_rsi": {
+   "cite": "Murphy (1999), cap. 10, pp. 281–283, 285–286",
+   "claim": "(giro) RSI de 14 (también 9): sobre 70 sobrecompra y bajo 30 sobreventa; en mercados alcistas el techo pasa a 80 y en bajistas el suelo a 20. Lo más valioso son las oscilaciones fallidas y divergencias por encima de 70 o por debajo de 30; volver a cruzar 30 al alz…",
+   "evidence": "Wilder (1978) citado; experiencia del autor"
+  },
+  "nison_engulfing": {
+   "cite": "Nison (2001), cap. 4, pp. 53–54",
+   "claim": "(giro) Con una tendencia definida (aunque sea corta), un cuerpo real que envuelve por completo el cuerpo anterior de color opuesto (las sombras no cuentan) es una señal importante de giro. Más fuerza si el primer cuerpo es una peonza y el segundo muy largo, si lle…",
+   "evidence": "ejemplos de gráficos (anecdótica)"
+  },
+  "nison_hammer": {
+   "cite": "Nison (2001), cap. 4, pp. 45–46",
+   "claim": "(alcista) Tras una caída (aunque sea corta), una vela con cuerpo real en la parte alta del rango, sombra inferior de al menos el doble del cuerpo y sin sombra superior (o muy corta) sugiere suelo. El martillo no necesita confirmación; cuanto más larga la sombra infer…",
+   "evidence": "ejemplos de gráficos (anecdótica)"
+  },
+  "nison_shooting_star": {
+   "cite": "Nison (2001), cap. 5, pp. 84–86",
+   "claim": "(bajista) Tras una subida, una vela de cuerpo pequeño en la parte baja del rango con sombra superior larga muestra que el alza no se sostuvo. Al ser de una sola sesión no es un giro mayor ni una resistencia clave; varias estrellas fugaces en el mismo nivel refuerzan …",
+   "evidence": "ejemplos de gráficos (anecdótica)"
+  },
+  "nison_morning_star": {
+   "cite": "Nison (2001), cap. 5, pp. 72–73",
+   "claim": "(alcista) Suelo de tres velas: una negra larga, una de cuerpo pequeño que no toca el cuerpo anterior y una blanca que penetra profundamente en la primera vela negra. El hueco entre la 2.ª y la 3.ª no es necesario; lo decisivo es la peonza y la penetración de la 3.ª. …",
+   "evidence": "ejemplos de gráficos (anecdótica)"
+  },
+  "nison_evening_star": {
+   "cite": "Nison (2001), cap. 5, pp. 76–77",
+   "claim": "(bajista) Techo de tres velas tras una subida: blanca larga, estrella (cuerpo pequeño) y negra que cierra muy dentro del cuerpo blanco. El segundo hueco rara vez aparece y no es necesario; importa cuánto penetra la 3.ª. Más fiable si los cuerpos no se solapan y con v…",
+   "evidence": "ejemplos de gráficos (anecdótica)"
+  }
+ },
+ "versions": [
+  {
+   "id": "lit_canal_4sem@4h@v1",
+   "sid": "lit_canal_4sem@4h",
+   "n": 1,
+   "strategy": "lit_canal_4sem",
+   "timeframe": "4h",
+   "fingerprint": "b9a3cfcbca98",
+   "origin": "T54",
+   "retired": null,
+   "verdict": "EN OBSERVACIÓN",
+   "reason": "V1: 1 operaciones fuera de muestra; regímenes: range 1",
+   "criteria": "validation_v1",
+   "asof": 1792402200000,
+   "n_oos": 1,
+   "n_live": 0,
+   "p_raw": 0.494977,
+   "p_holm": 1.0,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 1,
+      "regimes": {
+       "range": 1
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "1 operaciones fuera de muestra; regímenes: range 1"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": 0.0594,
+      "ci": [
+       null,
+       null
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": null,
+     "reason": "muestra insuficiente"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.495,
+      "p_holm": 1.0,
+      "reps": 4080
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.4950 → Holm 1.0000 (4080 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.0
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": true,
+     "reason": "DD máximo 0.0%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 0,
+      "positive": 0,
+      "frac": null,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": null,
+     "reason": "0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.0198
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": true,
+     "reason": "costo medio 0.020 R"
+    }
+   ],
+   "oos": {
+    "from": 1778068800000,
+    "to": 1791102600000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": [
+     {
+      "from": 1779109200000,
+      "to": 1782709200000,
+      "symbol": "ETHUSDT",
+      "note": "Fixture ETHUSDT 1 h de T53 (verificación visual de las reglas)"
+     }
+    ]
+   },
+   "mean_r": 0.0594,
+   "extras": {
+    "win_rate": 1.0,
+    "pf": null,
+    "mfe_r": 0.079,
+    "mae_r": 0.094,
+    "dsr": null,
+    "ret_1pct": 0.0006,
+    "buy_hold": 0.0028
+   }
+  },
+  {
+   "id": "lit_envolvente@1h@v1",
+   "sid": "lit_envolvente@1h",
+   "n": 1,
+   "strategy": "lit_envolvente",
+   "timeframe": "1h",
+   "fingerprint": "488a3bf965e6",
+   "origin": "T54",
+   "retired": null,
+   "verdict": "EN OBSERVACIÓN",
+   "reason": "V1: 17 operaciones fuera de muestra; regímenes: range 16, volatile 1",
+   "criteria": "validation_v1",
+   "asof": 1792402200000,
+   "n_oos": 17,
+   "n_live": 0,
+   "p_raw": 0.389855,
+   "p_holm": 1.0,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 17,
+      "regimes": {
+       "volatile": 1,
+       "range": 16
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "17 operaciones fuera de muestra; regímenes: range 16, volatile 1"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": -0.2225,
+      "ci": [
+       -0.8392,
+       0.32
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": false,
+     "reason": "R medio -0.222, IC [-0.839, +0.320]"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.3899,
+      "p_holm": 1.0,
+      "reps": 4080
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.3899 → Holm 1.0000 (4080 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.0409
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": true,
+     "reason": "DD máximo 4.1%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 1,
+      "positive": 0,
+      "frac": 0.0,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": null,
+     "reason": "0/1 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.2209
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": true,
+     "reason": "costo medio 0.221 R"
+    }
+   ],
+   "oos": {
+    "from": 1790013600000,
+    "to": 1792355400000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": [
+     {
+      "from": 1779109200000,
+      "to": 1782709200000,
+      "symbol": "ETHUSDT",
+      "note": "Fixture ETHUSDT 1 h de T53 (verificación visual de las reglas)"
+     }
+    ]
+   },
+   "mean_r": -0.2225,
+   "extras": {
+    "win_rate": 0.4118,
+    "pf": 0.661,
+    "mfe_r": 0.713,
+    "mae_r": 0.719,
+    "dsr": 0.0009,
+    "ret_1pct": -0.0383,
+    "buy_hold": -0.0469
+   }
+  },
+  {
+   "id": "lit_envolvente@4h@v1",
+   "sid": "lit_envolvente@4h",
+   "n": 1,
+   "strategy": "lit_envolvente",
+   "timeframe": "4h",
+   "fingerprint": "f6f972d4938c",
+   "origin": "T54",
+   "retired": null,
+   "verdict": "EN OBSERVACIÓN",
+   "reason": "V1: 2 operaciones fuera de muestra; regímenes: range 2",
+   "criteria": "validation_v1",
+   "asof": 1792402200000,
+   "n_oos": 2,
+   "n_live": 0,
+   "p_raw": 0.505023,
+   "p_holm": 1.0,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 2,
+      "regimes": {
+       "range": 2
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "2 operaciones fuera de muestra; regímenes: range 2"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": 0.1397,
+      "ci": [
+       0.1397,
+       0.1397
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": true,
+     "reason": "R medio +0.140, IC [+0.140, +0.140]"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.505,
+      "p_holm": 1.0,
+      "reps": 4080
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.5050 → Holm 1.0000 (4080 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.0121
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": true,
+     "reason": "DD máximo 1.2%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 0,
+      "positive": 0,
+      "frac": null,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": null,
+     "reason": "0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.158
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": true,
+     "reason": "costo medio 0.158 R"
+    }
+   ],
+   "oos": {
+    "from": 1791777600000,
+    "to": 1791846000000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": [
+     {
+      "from": 1779109200000,
+      "to": 1782709200000,
+      "symbol": "ETHUSDT",
+      "note": "Fixture ETHUSDT 1 h de T53 (verificación visual de las reglas)"
+     }
+    ]
+   },
+   "mean_r": 0.1397,
+   "extras": {
+    "win_rate": 0.5,
+    "pf": 1.231,
+    "mfe_r": 0.878,
+    "mae_r": 0.518,
+    "dsr": null,
+    "ret_1pct": 0.0026,
+    "buy_hold": -0.0179
+   }
+  },
+  {
+   "id": "lit_estrella_3v@1h@v1",
+   "sid": "lit_estrella_3v@1h",
+   "n": 1,
+   "strategy": "lit_estrella_3v",
+   "timeframe": "1h",
+   "fingerprint": "d8231c869c59",
+   "origin": "T54",
+   "retired": null,
+   "verdict": "EN OBSERVACIÓN",
+   "reason": "V1: 1 operaciones fuera de muestra; regímenes: range 1",
+   "criteria": "validation_v1",
+   "asof": 1792402200000,
+   "n_oos": 1,
+   "n_live": 0,
+   "p_raw": 0.509189,
+   "p_holm": 1.0,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 1,
+      "regimes": {
+       "range": 1
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "1 operaciones fuera de muestra; regímenes: range 1"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": 0.8594,
+      "ci": [
+       null,
+       null
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": null,
+     "reason": "muestra insuficiente"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.5092,
+      "p_holm": 1.0,
+      "reps": 4080
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.5092 → Holm 1.0000 (4080 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.0
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": true,
+     "reason": "DD máximo 0.0%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 0,
+      "positive": 0,
+      "frac": null,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": null,
+     "reason": "0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.0524
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": true,
+     "reason": "costo medio 0.052 R"
+    }
+   ],
+   "oos": {
+    "from": 1790186400000,
+    "to": 1791152100000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": [
+     {
+      "from": 1779109200000,
+      "to": 1782709200000,
+      "symbol": "ETHUSDT",
+      "note": "Fixture ETHUSDT 1 h de T53 (verificación visual de las reglas)"
+     }
+    ]
+   },
+   "mean_r": 0.8594,
+   "extras": {
+    "win_rate": 1.0,
+    "pf": null,
+    "mfe_r": 0.912,
+    "mae_r": 0.238,
+    "dsr": null,
+    "ret_1pct": 0.0086,
+    "buy_hold": 0.0168
+   }
+  },
+  {
+   "id": "lit_estrella_3v@4h@v1",
+   "sid": "lit_estrella_3v@4h",
+   "n": 1,
+   "strategy": "lit_estrella_3v",
+   "timeframe": "4h",
+   "fingerprint": "d11db186b60a",
+   "origin": "T54",
+   "retired": null,
+   "verdict": "EN OBSERVACIÓN",
+   "reason": "V1: 0 operaciones fuera de muestra; regímenes: ninguno",
+   "criteria": "validation_v1",
+   "asof": 1792402200000,
+   "n_oos": 0,
+   "n_live": 0,
+   "p_raw": null,
+   "p_holm": null,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 0,
+      "regimes": {}
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "0 operaciones fuera de muestra; regímenes: ninguno"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": null,
+      "ci": [
+       null,
+       null
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": null,
+     "reason": "muestra insuficiente"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": null,
+      "p_holm": null,
+      "reps": 4080
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": null,
+     "reason": "sin operaciones"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.0
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": null,
+     "reason": "sin operaciones"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 0,
+      "positive": 0,
+      "frac": null,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": null,
+     "reason": "0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": null
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": null,
+     "reason": "sin operaciones"
+    }
+   ],
+   "oos": {
+    "from": null,
+    "to": null,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": [
+     {
+      "from": 1779109200000,
+      "to": 1782709200000,
+      "symbol": "ETHUSDT",
+      "note": "Fixture ETHUSDT 1 h de T53 (verificación visual de las reglas)"
+     }
+    ]
+   },
+   "mean_r": null,
+   "extras": {
+    "win_rate": null,
+    "pf": null,
+    "mfe_r": null,
+    "mae_r": null,
+    "dsr": null,
+    "ret_1pct": 0.0,
+    "buy_hold": null
+   }
+  },
+  {
+   "id": "lit_rsi_recruce@1h@v1",
+   "sid": "lit_rsi_recruce@1h",
+   "n": 1,
+   "strategy": "lit_rsi_recruce",
+   "timeframe": "1h",
+   "fingerprint": "294a1fba5853",
+   "origin": "T54",
+   "retired": null,
+   "verdict": "EN OBSERVACIÓN",
+   "reason": "V1: 11 operaciones fuera de muestra; regímenes: range 10, volatile 1",
+   "criteria": "validation_v1",
+   "asof": 1792402200000,
+   "n_oos": 11,
+   "n_live": 0,
+   "p_raw": 0.783631,
+   "p_holm": 1.0,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 11,
+      "regimes": {
+       "volatile": 1,
+       "range": 10
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "11 operaciones fuera de muestra; regímenes: range 10, volatile 1"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": -0.498,
+      "ci": [
+       -0.9929,
+       0.0997
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": false,
+     "reason": "R medio -0.498, IC [-0.993, +0.100]"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.7836,
+      "p_holm": 1.0,
+      "reps": 4080
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.7836 → Holm 1.0000 (4080 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.0584
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": true,
+     "reason": "DD máximo 5.8%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 1,
+      "positive": 0,
+      "frac": 0.0,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": null,
+     "reason": "0/1 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.2171
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": true,
+     "reason": "costo medio 0.217 R"
+    }
+   ],
+   "oos": {
+    "from": 1790038800000,
+    "to": 1792044000000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": [
+     {
+      "from": 1779109200000,
+      "to": 1782709200000,
+      "symbol": "ETHUSDT",
+      "note": "Fixture ETHUSDT 1 h de T53 (verificación visual de las reglas)"
+     }
+    ]
+   },
+   "mean_r": -0.498,
+   "extras": {
+    "win_rate": 0.3636,
+    "pf": 0.366,
+    "mfe_r": 0.593,
+    "mae_r": 0.686,
+    "dsr": 0.0006,
+    "ret_1pct": -0.054,
+    "buy_hold": -0.0478
+   }
+  },
+  {
+   "id": "lit_rsi_recruce@4h@v1",
+   "sid": "lit_rsi_recruce@4h",
+   "n": 1,
+   "strategy": "lit_rsi_recruce",
+   "timeframe": "4h",
+   "fingerprint": "ba81287244e2",
+   "origin": "T54",
+   "retired": null,
+   "verdict": "EN OBSERVACIÓN",
+   "reason": "V1: 0 operaciones fuera de muestra; regímenes: ninguno",
+   "criteria": "validation_v1",
+   "asof": 1792402200000,
+   "n_oos": 0,
+   "n_live": 0,
+   "p_raw": null,
+   "p_holm": null,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 0,
+      "regimes": {}
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "0 operaciones fuera de muestra; regímenes: ninguno"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": null,
+      "ci": [
+       null,
+       null
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": null,
+     "reason": "muestra insuficiente"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": null,
+      "p_holm": null,
+      "reps": 4080
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": null,
+     "reason": "sin operaciones"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.0
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": null,
+     "reason": "sin operaciones"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 0,
+      "positive": 0,
+      "frac": null,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": null,
+     "reason": "0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": null
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": null,
+     "reason": "sin operaciones"
+    }
+   ],
+   "oos": {
+    "from": null,
+    "to": null,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": [
+     {
+      "from": 1779109200000,
+      "to": 1782709200000,
+      "symbol": "ETHUSDT",
+      "note": "Fixture ETHUSDT 1 h de T53 (verificación visual de las reglas)"
+     }
+    ]
+   },
+   "mean_r": null,
+   "extras": {
+    "win_rate": null,
+    "pf": null,
+    "mfe_r": null,
+    "mae_r": null,
+    "dsr": null,
+    "ret_1pct": 0.0,
+    "buy_hold": null
+   }
+  },
+  {
+   "id": "lit_vela_cola@1h@v1",
+   "sid": "lit_vela_cola@1h",
+   "n": 1,
+   "strategy": "lit_vela_cola",
+   "timeframe": "1h",
+   "fingerprint": "513304f7bc30",
+   "origin": "T54",
+   "retired": null,
+   "verdict": "EN OBSERVACIÓN",
+   "reason": "V1: 4 operaciones fuera de muestra; regímenes: range 3, volatile 1",
+   "criteria": "validation_v1",
+   "asof": 1792402200000,
+   "n_oos": 4,
+   "n_live": 0,
+   "p_raw": 0.80446,
+   "p_holm": 1.0,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 4,
+      "regimes": {
+       "volatile": 1,
+       "range": 3
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "4 operaciones fuera de muestra; regímenes: range 3, volatile 1"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": -0.667,
+      "ci": [
+       -1.4496,
+       0.1155
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": false,
+     "reason": "R medio -0.667, IC [-1.450, +0.115]"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.8045,
+      "p_holm": 1.0,
+      "reps": 4080
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.8045 → Holm 1.0000 (4080 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.0277
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": true,
+     "reason": "DD máximo 2.8%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 0,
+      "positive": 0,
+      "frac": null,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": null,
+     "reason": "0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.3
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": true,
+     "reason": "costo medio 0.300 R"
+    }
+   ],
+   "oos": {
+    "from": 1790006400000,
+    "to": 1791536400000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": [
+     {
+      "from": 1779109200000,
+      "to": 1782709200000,
+      "symbol": "ETHUSDT",
+      "note": "Fixture ETHUSDT 1 h de T53 (verificación visual de las reglas)"
+     }
+    ]
+   },
+   "mean_r": -0.667,
+   "extras": {
+    "win_rate": 0.5,
+    "pf": 0.08,
+    "mfe_r": 0.629,
+    "mae_r": 0.583,
+    "dsr": 0.0001,
+    "ret_1pct": -0.0265,
+    "buy_hold": -0.0267
+   }
+  },
+  {
+   "id": "lit_vela_cola@4h@v1",
+   "sid": "lit_vela_cola@4h",
+   "n": 1,
+   "strategy": "lit_vela_cola",
+   "timeframe": "4h",
+   "fingerprint": "50da7712b62b",
+   "origin": "T54",
+   "retired": null,
+   "verdict": "EN OBSERVACIÓN",
+   "reason": "V1: 0 operaciones fuera de muestra; regímenes: ninguno",
+   "criteria": "validation_v1",
+   "asof": 1792402200000,
+   "n_oos": 0,
+   "n_live": 0,
+   "p_raw": null,
+   "p_holm": null,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 0,
+      "regimes": {}
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "0 operaciones fuera de muestra; regímenes: ninguno"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": null,
+      "ci": [
+       null,
+       null
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": null,
+     "reason": "muestra insuficiente"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": null,
+      "p_holm": null,
+      "reps": 4080
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": null,
+     "reason": "sin operaciones"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.0
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": null,
+     "reason": "sin operaciones"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 0,
+      "positive": 0,
+      "frac": null,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": null,
+     "reason": "0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": null
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": null,
+     "reason": "sin operaciones"
+    }
+   ],
+   "oos": {
+    "from": null,
+    "to": null,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": [
+     {
+      "from": 1779109200000,
+      "to": 1782709200000,
+      "symbol": "ETHUSDT",
+      "note": "Fixture ETHUSDT 1 h de T53 (verificación visual de las reglas)"
+     }
+    ]
+   },
+   "mean_r": null,
+   "extras": {
+    "win_rate": null,
+    "pf": null,
+    "mfe_r": null,
+    "mae_r": null,
+    "dsr": null,
+    "ret_1pct": 0.0,
+    "buy_hold": null
+   }
+  }
+ ],
+ "by_card": {
+  "murphy_weekly_rule": {
+   "n": 1,
+   "mean_r": 0.059449953368375524,
+   "ci": [
+    NaN,
+    NaN
+   ],
+   "win": 1.0,
+   "verdict": "no hay muestra para juzgar"
+  },
+  "nison_shooting_star": {
+   "n": 3,
+   "mean_r": -0.9268163754671024,
+   "ci": [
+    -1.5769240323088614,
+    0.11865840254944238
+   ],
+   "win": 0.3333333333333333,
+   "verdict": "no hay muestra para juzgar"
+  },
+  "nison_engulfing": {
+   "n": 19,
+   "mean_r": -0.18436925314672087,
+   "ci": [
+    -0.6859178550051852,
+    0.3256678194185663
+   ],
+   "win": 0.42105263157894735,
+   "verdict": "no hay muestra para juzgar"
+  },
+  "murphy_rsi": {
+   "n": 11,
+   "mean_r": -0.4979880848255394,
+   "ci": [
+    -0.9874157059864264,
+    0.10474948839885902
+   ],
+   "win": 0.36363636363636365,
+   "verdict": "no hay muestra para juzgar"
+  },
+  "nison_morning_star": {
+   "n": 1,
+   "mean_r": 0.8594072546408327,
+   "ci": [
+    NaN,
+    NaN
+   ],
+   "win": 1.0,
+   "verdict": "no hay muestra para juzgar"
+  },
+  "nison_hammer": {
+   "n": 1,
+   "mean_r": 0.11225750841708147,
+   "ci": [
+    NaN,
+    NaN
+   ],
+   "win": 1.0,
+   "verdict": "no hay muestra para juzgar"
+  }
+ },
+ "tilt": {
+  "version": "lit_tilt_v1",
+  "k": 0.5,
+  "n": 54,
+  "n_active": 4,
+  "enabled_in_config": false,
+  "log_floor": 0.0001,
+  "span": [
+   1787522400000,
+   1792292400000
+  ],
+  "brier": {
+   "base": 0.6525620370370371,
+   "tilt": 0.642351207998289,
+   "gain": 0.010210829038748133,
+   "ci": [
+    -0.01065605437592517,
+    0.037880403359387076
+   ]
+  },
+  "logloss": {
+   "base": 1.088144787064479,
+   "tilt": 1.0813557643078733,
+   "gain": 0.006789022756605813,
+   "ci": [
+    -0.030056142265890765,
+    0.04960514925057771
+   ]
+  },
+  "ece": {
+   "base": 0.018148148148148135,
+   "tilt": 0.038471678436630546
+  },
+  "coverage": {
+   "base": {
+    "50": 0.5740740740740741,
+    "80": 0.7777777777777778,
+    "90": 0.8703703703703703
+   },
+   "tilt": {
+    "50": 0.5740740740740741,
+    "80": 0.7777777777777778,
+    "90": 0.8703703703703703
+   }
+  },
+  "curve": {
+   "base": [
+    {
+     "p_pred": 0.09,
+     "p_obs": 1.0,
+     "n": 1
+    },
+    {
+     "p_pred": 0.1759090909090909,
+     "p_obs": 0.18181818181818182,
+     "n": 11
+    },
+    {
+     "p_pred": 0.2530833333333333,
+     "p_obs": 0.25,
+     "n": 60
+    },
+    {
+     "p_pred": 0.34054347826086956,
+     "p_obs": 0.34782608695652173,
+     "n": 46
+    },
+    {
+     "p_pred": 0.4385185185185186,
+     "p_obs": 0.4444444444444444,
+     "n": 27
+    },
+    {
+     "p_pred": 0.5421875,
+     "p_obs": 0.5,
+     "n": 16
+    },
+    {
+     "p_pred": 0.61,
+     "p_obs": 0.0,
+     "n": 1
+    }
+   ],
+   "tilt": [
+    {
+     "p_pred": 0.08300880827948892,
+     "p_obs": 1.0,
+     "n": 2
+    },
+    {
+     "p_pred": 0.17515401308025422,
+     "p_obs": 0.16666666666666666,
+     "n": 12
+    },
+    {
+     "p_pred": 0.2532142857142857,
+     "p_obs": 0.21428571428571427,
+     "n": 56
+    },
+    {
+     "p_pred": 0.3386849216084668,
+     "p_obs": 0.3404255319148936,
+     "n": 47
+    },
+    {
+     "p_pred": 0.4370216709065189,
+     "p_obs": 0.48148148148148145,
+     "n": 27
+    },
+    {
+     "p_pred": 0.5420262281881715,
+     "p_obs": 0.5294117647058824,
+     "n": 17
+    },
+    {
+     "p_pred": 0.6199119172051107,
+     "p_obs": 0.0,
+     "n": 1
+    }
+   ]
+  },
+  "halves": {
+   "first": 0.004344944102797933,
+   "second": 0.016076713974698332
+  },
+  "mean_net": {
+   "bull": -0.07407407407407407,
+   "neutral": -0.07407407407407407,
+   "bear": 0.07407407407407407
+  },
+  "checks": [
+   {
+    "id": "T1",
+    "name": "Muestra",
+    "value": "54 pronósticos (4 con neto ≠ 0)",
+    "threshold": "≥ 300 y ≥ 100 con neto ≠ 0",
+    "ok": false
+   },
+   {
+    "id": "T2",
+    "name": "Brier",
+    "value": "ganancia +0.01021, IC [-0.01066, +0.03788]",
+    "threshold": "ganancia > 0 y extremo inferior del IC > 0",
+    "ok": false
+   },
+   {
+    "id": "T3",
+    "name": "Log-loss",
+    "value": "ganancia +0.00679, IC [-0.03006, +0.04961]",
+    "threshold": "ganancia > 0 y extremo inferior del IC > 0",
+    "ok": false
+   },
+   {
+    "id": "T4",
+    "name": "Calibración",
+    "value": "ECE base 0.0181 → ajustado 0.0385",
+    "threshold": "ECE ajustado ≤ base",
+    "ok": false
+   },
+   {
+    "id": "T5",
+    "name": "Cobertura de bandas",
+    "value": "idéntica",
+    "threshold": "sin empeorar (el ajuste no toca las bandas)",
+    "ok": true
+   },
+   {
+    "id": "T6",
+    "name": "Consistencia",
+    "value": "1.ª mitad +0.00434 · 2.ª mitad +0.01608",
+    "threshold": "ganancia de Brier > 0 en las dos mitades",
+    "ok": true
+   }
+  ],
+  "verdict": "SIN EVIDENCIA",
+  "reason": "muestra insuficiente (T1): sigue apagado"
+ },
+ "conclusion": [
+  "**0 de 9** versiones de la familia `literatura` VALIDADAS: ninguna regla de libro tiene hoy evidencia fuera de muestra suficiente en BTCUSDT.",
+  "Qué falla más a menudo: V1 Suficiencia de datos (9); V3 Contra el azar (6); V2 Expectativa neta (3).",
+  "Ajuste de escenarios: **SIN EVIDENCIA** — queda APAGADO (`enabled: false`)."
+ ],
+ "attempts": 102,
+ "criteria": "validation_v1"
+}
