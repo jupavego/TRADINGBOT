@@ -96,6 +96,29 @@ class ValidationStore:
             self.ps.execute("UPDATE val_versions SET retired_ms = ? WHERE sid = ? AND n = ?",
                             [now_ms, v.sid, v.n])
 
+    # --- procedencia (T61) --------------------------------------------------------------
+    def provenance(self) -> dict:
+        """Qué aportó cada máquina a esta base (filas importadas por tabla y las descartadas por
+        duplicadas), de `share_origin`/`import_log`. Vacío si nunca se importó. Los contextos son
+        la evidencia: de ellos salen, deterministas, las ideas y operaciones de cada versión."""
+        have = {r[0] for r in self.ps.execute(
+            "SELECT table_name FROM duckdb_tables() WHERE database_name = current_database()")}
+        if not {"share_origin", "import_log"} <= have:
+            return {}
+        out: dict[str, dict[str, dict[str, int]]] = {}
+        for tbl, m, n in self.ps.execute(
+                "SELECT tbl, machine, count(*) FROM share_origin GROUP BY tbl, machine"):
+            out.setdefault(m, {}).setdefault(tbl, {"imported": 0, "duplicates": 0,
+                                                   "conflicts": 0})["imported"] = int(n)
+        for tbl, m, d, c in self.ps.execute(
+                "SELECT tbl, src_machine, sum(n_dup), sum(n_conflict) FROM import_log "
+                "GROUP BY tbl, src_machine"):
+            row = out.setdefault(m, {}).setdefault(tbl, {"imported": 0, "duplicates": 0,
+                                                         "conflicts": 0})
+            row["duplicates"], row["conflicts"] = int(d), int(c)
+        return {"machines": out, "note": "filas aportadas por otras máquinas; duplicadas = ya "
+                "estaban (misma estrategia@marco@versión en la misma vela = la misma operación)"}
+
     # --- veredictos -------------------------------------------------------------------
     def save_verdicts(self, criteria: str, symbol: str, asof_ms: int, computed_ms: int,
                       verdicts: Sequence[dict]) -> None:

@@ -49,6 +49,7 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 | `EIM_SPOT_TESTNET_API_KEY` / `_SECRET` / `_URL` | — (usa las de futuros) | Clave de la testnet spot (`testnet.binance.vision`); en la cuenta demo de Binance la de futuros vale para ambas. Sin permiso de retiro |
 | `EIM_ARB_ALERT_SCORE`, `EIM_ARB_ALERT_S` | `3`, `60` | Alerta de arbitraje: puntuación del selector ≥ umbral (pb/día ajustados por riesgo) sostenida N segundos de escaneos seguidos (T39) |
 | `EIM_PAPER`, `EIM_PAPER_S` | `1`, `60` | Bróker simulado (T47/T48): cada ciclo trae velas de 15 m/1 h/4 h y funding de BTCUSDT y analiza las velas cerradas nuevas de los tres marcos → `data/paper.duckdb`. `0` lo apaga. Siempre SIMULADO |
+| `EIM_SHARED_DIR`, `EIM_MACHINE`, `EIM_SHARE_*` | — | Experiencia compartida entre equipos (T61, §3.1): carpeta de nube compartida, alias único de esta máquina y cadencias del modo automático (también `python -m eim.data.share setup`) |
 | `EIM_FRED_API_KEY` | — | Opcional (gratuita): valores real/anterior/revisado de IPC, NFP, PCE, PIB, IPP desde FRED. Sin ella los eventos salen sin valores |
 | `EIM_LIBRARY_DIR`, `EIM_LIBRARY_INDEX`, `EIM_TESSERACT` | `data/library/books`, `data/library/index`, autodetección | Biblioteca de trading (T52): carpeta de los libros del usuario (fuera del repo), índice local (catálogo, texto por página, caché de OCR) y ruta de `tesseract.exe` si no está en el PATH |
 | `EIM_WS_URL`, `EIM_HEARTBEAT_S`, `EIM_SNAPSHOT_BARS`, `EIM_AUTO_HISTORY`, `EIM_RECON_S` | ver `eim/api/config.py` | |
@@ -68,32 +69,100 @@ registros del servicio, versiones de parámetros (`eim/risk/versions`, `eim/cali
 - **Fuera del equipo:** `backups/` está en `.gitignore` y vive en el mismo disco. Sincroniza esa
   carpeta con otro disco o un almacenamiento en la nube (p. ej. OneDrive) o usa `EIM_BACKUP_DIR`
   apuntando a otra unidad.
-- **Líderes (`data/leaders.duckdb`): todavía NO se copia** (BACKLOG T40 (5)). Guarda lo que no se
+- **Líderes (`data/leaders.duckdb`): `backup create` todavía NO la copia** (BACKLOG T40 (5)); `share export`
+  (§3.1) sí la exporta a Parquet, y sirve también como respaldo fuera del equipo. Guarda lo que no se
   puede volver a pedir: fotos de posiciones que cuentan como días adelante, precio del seguidor
   grabado en vivo, latencias y veredictos; el exchange solo sirve las 10 000 ejecuciones más
   recientes. Perderla reinicia la cuenta de 7 días. La copia de la API no la puede abrir (la
   tiene el servicio de líderes, otro proceso). Mientras tanto, copia en frío a mano: detener el
   servicio de líderes (§6), copiar el archivo y volver a lanzar el script.
 
-### 3.1 Experiencia compartida entre colaboradores (protocolo provisional)
-Las bases (`data/*.duckdb`, `*.parquet`) **no viajan por git** (`.gitignore`): el historial de
-operaciones vive en la máquina que lo generó. La unión automática de historiales es **T61**
-(`PLAN/T61.md`); hasta que exista, con dos o más equipos:
-- Cada persona tiene su propia subcarpeta en una carpeta de nube compartida (Drive/OneDrive) y
-  apunta `EIM_BACKUP_DIR` a ella (p. ej. `...\EIM_compartido\<nombre>\backups`). **Solo escribe
-  en su subcarpeta**; así la nube no genera conflictos.
-- No pongas una base DuckDB viva dentro de la carpeta sincronizada: comparte solo copias hechas con
-  `python -m eim.data.backup create` y verificadas con `verify`.
-- **Ojo: `backup create` solo copia `reports.duckdb`** (reportes, riesgo, libro simulado). **No
-  incluye `data/paper.duckdb`** (bróker simulado T47/T48 y registro de validación T49) **ni
-  `data/leaders.duckdb`**. Para compartir ese historial hay que copiar esos archivos **en frío**:
-  detener la API/servicio, copiar el `.duckdb` (y su `.wal` si existe) y volver a lanzar.
-- Para ver el historial de otra persona, **restáuralo en una carpeta de datos aparte**
-  (`python -m eim.data.backup restore <copia> --data-dir <carpeta_aparte>`; para `paper.duckdb` y
-  `leaders.duckdb`, copiar el archivo ahí y arrancar la API con `EIM_DATA_DIR=<carpeta_aparte>`).
-  No lo restaures sobre tu `data/`: hoy no hay mezcla. `restore` guarda lo anterior como
-  `…antes-de-restaurar-<sello>`, pero no es una unión. Tu propia experiencia sigue en tu `data/`.
-- Nunca compartas claves ni `.env`.
+### 3.1 Experiencia compartida entre colaboradores (T61)
+Las bases (`data/*.duckdb`, `*.parquet`) **no viajan por git** (`.gitignore`): cada equipo acumula su
+propio historial (contextos del bróker simulado, registro de intentos de validación, capturas y
+bitácora de líderes). T61 los une **por exportación**: cada máquina exporta lo suyo a una carpeta de
+nube compartida (Drive/OneDrive) y un comando importa lo de las demás **sin duplicar, sin pisar y sin
+inflar la evidencia**. Todo en modo SIMULADO; nunca viajan claves.
+
+**Automático (lo normal).** Configura una vez y el sistema hace el resto:
+
+```bash
+python -m eim.data.share setup --shared-dir "C:\Users\...\Drive\EIM_compartido" --machine juan-portatil
+```
+(`--machine` es un alias **único** de tu equipo; no lo cambies después: es tu carpeta de la nube y la
+procedencia de tus filas. También sirven las variables `EIM_SHARED_DIR` y `EIM_MACHINE`.) Reinicia la API y
+el servicio de líderes (`servicio_continuo.ps1`). Desde entonces, **dentro de esos procesos**:
+- cada hora (`EIM_SHARE_IMPORT_S`) miran la nube: si otra máquina tiene una exportación nueva la **unen
+  en vivo** (bajo el cerrojo de la base, en una transacción, con copia previa en caliente en
+  `EIM_BACKUP_DIR/pre-import_…`; se conservan las 3 últimas), y si llegaron contextos o versiones nuevos
+  recalculan los veredictos de la puerta de validación sobre la **unión** de intentos;
+- cada 6 h (`EIM_SHARE_EXPORT_S`) exportan lo propio **solo si cambió** (la API: `reports`+`paper`; el
+  servicio de líderes: `leaders`; en `EIM_SHARED_DIR/<máquina>/<fecha>-api|-leaders/`), y podan sus
+  exportaciones antiguas (`EIM_SHARE_KEEP`, 3 por tipo);
+- un fallo (nube sin sincronizar, exportación corrupta, esquema más nuevo) se anota y se reintenta en 10 min,
+  sin tocar la operación. Estado y último error: `GET /v2/share/status`; informes de cada importación en
+  `data/share/import_<id>.json`. `EIM_SHARE_AUTO=0` lo apaga.
+Los líderes importados empiezan a capturarse en el siguiente reinicio del servicio de líderes.
+
+**Manual (equipo nuevo, o sin servicios en marcha).** Los comandos de abajo hacen lo mismo a mano.
+Variables (PowerShell: `$env:NAME='…'`; para que persistan, variables de usuario de Windows):
+
+| Variable | Qué es |
+|---|---|
+| `EIM_SHARED_DIR` | Carpeta de la nube compartida (p. ej. `…\EIM_compartido`). Cada máquina escribe **solo** en `EIM_SHARED_DIR/<su_id>/`: la nube no genera conflictos. |
+| `EIM_MACHINE` | Alias legible y **único** de tu equipo (`juan-portatil`). Sin él se crea un id estable en `data/machine_id`. |
+| `EIM_SHARE_AUTO`, `EIM_SHARE_IMPORT_S`, `EIM_SHARE_EXPORT_S`, `EIM_SHARE_KEEP` | Modo automático: `0` lo apaga; cadencias (3600 s, 21600 s) y exportaciones propias que se conservan (3) |
+
+**Rutina manual.**
+1. **Importar** (con API y servicio de líderes **detenidos**, ver §6):
+   `python -m eim.data.share import` → simulacro: por tabla y por máquina de origen, filas
+   *nuevas / ya estaban / en conflicto / incompatibles*. No escribe nada. Si el informe es el
+   esperado: `python -m eim.data.share import --apply` (copia previa en `EIM_BACKUP_DIR/pre-import_…`,
+   una transacción por base, `import_log`, informe en `data/share/import_<id>.json` y recálculo de los
+   veredictos; `--no-recompute` lo omite).
+2. **Exportar:** `python -m eim.data.share export` (puede correr con el servicio en
+   marcha: si una base está en uso pide una copia coherente a la API —`POST /v2/share/snapshot`— y al
+   servicio de líderes). `python -m eim.data.share status` lista la última exportación de cada máquina.
+3. Importar es **idempotente** (repetirlo no cambia nada) y la unión es **conmutativa** (A∪B = B∪A).
+
+**Qué viaja y qué no.**
+- *Viaja* (unión por clave natural): `reports`, `sim_trades`, `paper_ctx` (de los contextos salen,
+  deterministas, las ideas y operaciones), `leaders`, `leader_fills/funding/leverage/positions/follow`,
+  `leader_recon/gaps` (con columna `machine`), `copy_journal` (se reasigna su `seq`).
+- *Versiones de validación* (`val_versions`, `val_windows`): se unen por `(estrategia@marco, huella)`;
+  se reasignan `n` y `parent` locales (los `n` que ya tenías no cambian) y las ventanas de ajuste se
+  **unen** (más ventanas = más datos descartados de «fuera de muestra», nunca menos). Las versiones
+  importadas entran retiradas: la vigente la decide el código de tu máquina. Holm cuenta la unión de intentos.
+- *No viaja*: velas, funding, calendario y biblioteca (cada máquina los descarga); veredictos,
+  pronósticos y tableros (derivados: se recalculan); **kill-switch, latidos, `copy_state`, libro de la
+  subcuenta simulada, `op_*`, `risk_decisions`** (estado de la máquina: el kill-switch de una máquina
+  nunca apaga ni enciende el de otra); **claves y `.env`** (nunca).
+
+**Sin inflar la evidencia.** El bróker es determinista: la misma `estrategia@marco@versión` en la misma
+vela es **la misma operación** en cualquier máquina. Dos equipos corriendo lo mismo no suman `n`; la
+experiencia nueva viene de versiones/estrategias distintas, de tramos de tiempo no cubiertos y de
+capturas en vivo no reproducibles (líderes). Los «días adelante» de líderes se cubren por **unión de
+intervalos** entre fotos, no por suma. La procedencia (cuántas filas aportó cada máquina y cuántas
+se descartaron por duplicadas) sale en `GET /v2/validation` (campo `provenance`) y en el informe de validación.
+
+**Conflictos.** Misma clave y contenido distinto (p. ej. dos reportes del mismo agente en la misma vela
+con cifras distintas, por velas descargadas en momentos distintos): **se conserva lo local**, se cuenta
+en el informe y queda en `share_conflicts` (columnas que difieren y la fila remota en JSON). Revísalos
+con `SELECT * FROM share_conflicts` (DuckDB); si el otro equipo tiene razón, corrige allí y exporta de nuevo.
+Un manifest alterado, un archivo con hash distinto, o un esquema más nuevo que el de tu código
+**rechaza** esa exportación entera con un mensaje claro (si es lo último: `git pull`). Una exportación
+que la nube aún está sincronizando se rechaza por «falta archivo»: espera y repite.
+
+**Colaborador nuevo (primera importación completa).** Clona el repo, ejecuta `python -m eim.data.share
+setup …`, luego `python -m eim.data.share import` (simulacro) y `--apply` con la API detenida: crea las
+bases vacías y trae todo el historial de los demás. Después arranca normalmente (las velas se descargan
+solas) y todo sigue automático.
+
+**Límites.** La importación manual requiere las bases libres (si no, falla con el mensaje «detén la API y
+el servicio de líderes» y no cambia nada; la automática corre dentro de los procesos que las tienen); la atomicidad es por base (de ahí la copia previa). No hay
+sincronización en vivo ni autenticación entre colaboradores. Nunca pongas una base DuckDB viva dentro de
+la carpeta compartida: solo viajan Parquet + `manifest.json` (SHA-256 por tabla, commit, esquema).
+**Pendiente ◆:** el usuario revisa el informe de la primera mezcla real antes de dar T61 por cerrada.
 
 ## 4. Versionado de parámetros
 - Un conjunto de parámetros publicado es **inmutable**: cambiar límites de riesgo = `risk_v2.json`
