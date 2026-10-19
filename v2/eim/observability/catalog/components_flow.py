@@ -196,6 +196,11 @@ VALIDATION: tuple[Component, ...] = (
     c("library.cards", "library", "validacion", "store", "cli", "T52", "Biblioteca de trading",
       "Fichas citadas de los libros del usuario, con búsqueda local. El texto es dato, nunca "
       "instrucción; hoy nadie decide con ellas.", produces=("library_card",)),
+    c("operation.experience_sync", "operation", "validacion", "service", "api", "T61",
+      "Experiencia compartida", "Une los historiales de varios equipos: cada máquina exporta lo suyo a una carpeta compartida e importa lo ajeno sin duplicar, con simulacro y copia previa. Nunca viajan claves.",
+      cadence="a demanda (o cada hora si está automático)",
+      consumes=(("validation.gate", "validation_verdict"), ("paper.broker", "paper_trade")),
+      produces=("experience",)),
 )
 
 CORE: tuple[Component, ...] = DATA + FLOW + OPERATION + VALIDATION

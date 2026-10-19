@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T01:46:43",
+ "generated": "2026-10-19T01:48:25",
  "tasks": [
   {
    "id": "T01",
@@ -912,7 +912,7 @@ window.EIM_STATUS = {
    "title": "Observatorio: decisión de piezas, contrato de eventos y catálogo",
    "deps": [],
    "state": "done",
-   "notes": "**Decisión en `PLAN/notas/T72_decisiones.md` (pendiente de revisión del usuario antes de T73–T75):** Cytoscape.js (MIT, +138 KB gzip, 60 nodos medidos); el diseño «JSONL por proceso, un indexador» aguanta 2×1 000 ev/s sin líneas corruptas (indexa 20 000 en 0,35 s; dos escritores directos en DuckDB fallan); umbrales fijados en `eim/observability/thresholds.py`. Código en `v2/eim/observability/`: `events.py` (`ObsEvent`, `trace_for`), `emit.py` (`emit`/`span` sin lanzar ni bloquear, cola acotada, `EIM_OBS=off`), `redact.py`, `catalog/` (76 componentes: 17 agentes + 40 servicios + 19 planeados, con `title_es`/`explain_es`, etapas y glosario). Tests en `tests/observability/` (38); medición reproducible `v2/scripts/obs_bench.py`. Regla de proceso en `docs/NUEVO_AGENTE.md` y la skill `eim-new-agent`. Nada instrumentado todavía (T74).",
+   "notes": "**Decisión en `PLAN/notas/T72_decisiones.md` (pendiente de revisión del usuario antes de T73–T75):** Cytoscape.js (MIT, +138 KB gzip, 60 nodos medidos); el diseño «JSONL por proceso, un indexador» aguanta 2×1 000 ev/s sin líneas corruptas (indexa 20 000 en 0,35 s; dos escritores directos en DuckDB fallan); umbrales fijados en `eim/observability/thresholds.py`. Código en `v2/eim/observability/`: `events.py` (`ObsEvent`, `trace_for`), `emit.py` (`emit`/`span` sin lanzar ni bloquear, cola acotada, `EIM_OBS=off`), `redact.py`, `catalog/` (76 componentes: 17 agentes + 41 servicios + 18 planeados, con `title_es`/`explain_es`, etapas y glosario). Tests en `tests/observability/` (38); medición reproducible `v2/scripts/obs_bench.py`. Regla de proceso en `docs/NUEVO_AGENTE.md` y la skill `eim-new-agent`. Nada instrumentado todavía (T74).",
    "effort": "medio",
    "phase": 15,
    "goal": "Fijar el lenguaje común de la observabilidad **antes de instrumentar nada**, gastando en investigación solo lo que cambia la decisión: qué librería dibuja el grafo, que el diseño «los procesos escriben archivos, uno indexa» aguanta la carga, y qué componentes existen. Sale el evento normalizado, el catálogo de componentes y un emisor que no puede romper el sistema que observa."

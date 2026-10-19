@@ -29,7 +29,7 @@ Langfuse, Phoenix (ELv2), Grafana (AGPL-3.0), Prefect, Dagster, Airflow, Tempora
 | Mapa (T75) | ≤ **50 ms** redibujado, ≤ **200 KB gzip** añadidos, ≥ **80** nodos | 60 nodos: 24–35 ms · +138 KB |
 
 ## 5. Lo que salió y desviaciones
-- `eim/observability/`: `events.py` (evento, `trace_for`), `emit.py`, `redact.py`, `thresholds.py`, `catalog/` (76 componentes: 17 agentes + 40 servicios/motores + 19 planeados; todos con etapa, `title_es`, `explain_es`; aristas validadas por origen y artefacto) y glosario. Tests en `tests/observability/`.
+- `eim/observability/`: `events.py` (evento, `trace_for`), `emit.py`, `redact.py`, `thresholds.py`, `catalog/` (76 componentes: 17 agentes + 41 servicios/motores + 18 planeados; todos con etapa, `title_es`, `explain_es`; aristas validadas por origen y artefacto) y glosario. Tests en `tests/observability/`.
 - **Desviación:** la spec pedía `catalog.py` **y** `catalog/components.py`; Python no admite módulo y paquete con el mismo nombre, así que `catalog/` es un paquete (`__init__.py` = acceso y `problems()`, `components*.py` = datos).
 - **Desviación:** `emit` no se reexporta desde `eim.observability` (taparía al módulo `emit.py`); se importa como `from eim.observability.emit import emit, span`.
 - `rejected` se añade a `status` para veto/rechazo (no es un fallo). `mode` acepta `REAL` porque `Mode` lo define, pero nada lo emite.

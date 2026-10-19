@@ -43,9 +43,6 @@ PLANNED: tuple[Component, ...] = (
       "Medirá a cada bot con la misma vara que a las estrategias propias y lo degradará si "
       "falla. Aún no existe.", consumes=(("bots.runner", "bot_signal"),),
       produces=("bot_score",), **_P),
-    c("operation.experience_sync", "operation", "validacion", "service", "cli", "T61",
-      "Experiencia compartida", "Unirá historiales de varios equipos exportando a una carpeta "
-      "compartida. Aún no existe.", produces=("experience",), **_P),
     c("localai.engines", "localai", "analisis", "engine", "localai", "T63", "Motores de IA locales",
       "Capa que decidirá qué modelos locales caben en este equipo y dejará traza de cada uso. "
       "Aún no existe.", produces=("local_inference",), **_P),
