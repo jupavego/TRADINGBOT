@@ -158,7 +158,7 @@ def after_agents(ctx: AgentRunCtx, reports: list[AgentReport], expected: list[st
          parent_run_id=plan_run, trace_id=ctx.trace_id, inputs=[report_ref(plan_rep)],
          outputs=[Ref(type="plan", id=pid)] if plan else [],
          detail=({k: plan.get(k) for k in ("side", "entry", "sl", "rr", "status")}
-                 if plan else {"reason": (plan_rep.warnings or ["sin plan vigente"])[0]}))
+                 if plan else {"reason": (plan_rep.evidence or ["sin plan vigente"])[0]}))
     if plan:
         remember(f"plan:{pid}", rid)
 
