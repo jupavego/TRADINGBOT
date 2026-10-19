@@ -128,3 +128,16 @@ def test_watch_ordered_by_sample_and_deduplicated():
     ideas = [idea("s0", side=1), idea("s1", side=-1), idea("s2", side=1)]
     pub = run(ideas, vs)
     assert [w["strategy"] for w in pub.watch] == ["s2", "s1"]   # s0: mismo lado y entrada que s2
+
+
+def test_watch_accepts_recent_ideas_but_validated_need_last_candle():
+    old = NOW - 3 * H
+    pub = run([idea("ema", t=old), idea("rsi", t=old)],
+              [verdict("ema"), verdict("rsi", verdict="EN OBSERVACIÓN")])
+    assert pub.status == SIN_SENAL and pub.setups == []
+    assert [w["strategy"] for w in pub.watch] == ["rsi"]
+
+
+def test_watch_ignores_ideas_older_than_lookback():
+    pub = run([idea("rsi", t=NOW - 7 * H)], [verdict("rsi", verdict="EN OBSERVACIÓN")])
+    assert pub.watch == []

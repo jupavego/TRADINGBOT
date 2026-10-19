@@ -30,6 +30,7 @@ class PublishParams(BaseModel):
     max_hold_h: float = 36.0                       # tenencia máxima de la idea
     max_setups: int = 3
     max_watch: int = 3                             # ideas en observación (no validadas)
+    watch_lookback_h: float = 6.0                  # observación: ideas decididas hasta hace 6 h
     dedup_atr: float = 0.5                         # mismo lado y entradas a menos de 0,5 ATR
     entry_tol_atr: float = 0.5                     # mercado: el precio ya se alejó de la entrada
     verdicts_max_age_h: float = 8.0                # se recalculan cada 4 h
@@ -157,14 +158,22 @@ def publish(ideas: Sequence[Idea], verdicts: Sequence[dict], *, now: int, price:
                        [_setup(i, v) for i, v in kept], info, gone, watch)
 
 
+def _recent(i: Idea, now: int, last_t: Mapping[str, int | None], lookback_h: float | None) -> bool:
+    if lookback_h is None:
+        return last_t.get(i.timeframe) == i.t
+    return 0 <= now - i.t <= lookback_h * HOUR_MS
+
+
 def _vigentes(ideas: Sequence[Idea], ok: Mapping[tuple, dict], price: float, now: int,
-              atr: float, last_t: Mapping[str, int | None], p: PublishParams):
-    """Ideas de la última vela cerrada de versiones en `ok` que siguen vigentes (+ las vencidas)."""
+              atr: float, last_t: Mapping[str, int | None], p: PublishParams,
+              lookback_h: float | None = None):
+    """Ideas de versiones en `ok` que siguen vigentes (+ las vencidas): las de la última vela
+    cerrada o, con `lookback_h`, las decididas en esa ventana."""
     live, gone = [], []
     for i in ideas:
         v = ok.get((i.sid, i.version))
         if (v is None or i.timeframe not in p.timeframes or i.hold_ms > p.max_hold_h * HOUR_MS
-                or last_t.get(i.timeframe) != i.t):
+                or not _recent(i, now, last_t, lookback_h)):
             continue
         cause = expired(i, price, now, atr, p)
         if cause:
@@ -188,13 +197,13 @@ def _dedup(live: list, atr: float, limit: int, p: PublishParams) -> list:
 
 def _watch(ideas: Sequence[Idea], verdicts: Sequence[dict], price: float, now: int, atr: float,
            last_t: Mapping[str, int | None], p: PublishParams, ok: Mapping[tuple, dict]) -> list:
-    """Ideas vigentes de versiones EN OBSERVACIÓN: no validadas, solo informativas. Ordenadas por
-    la muestra fuera de muestra (más evidencia primero) y la confianza."""
+    """Ideas vigentes (hasta `watch_lookback_h` h) de versiones EN OBSERVACIÓN: no validadas, solo
+    informativas. Ordenadas por muestra fuera de muestra, recencia y confianza."""
     obs = {(v["sid"], v["fingerprint"]): v for v in verdicts
            if v["verdict"] == "EN OBSERVACIÓN" and v.get("retired") is None
            and v["timeframe"] in p.timeframes and (v["sid"], v["fingerprint"]) not in ok}
-    live, _ = _vigentes(ideas, obs, price, now, atr, last_t, p)
-    live.sort(key=lambda x: (-(x[1].get("n_oos") or 0), -x[0].conf, x[0].sid, x[0].id))
+    live, _ = _vigentes(ideas, obs, price, now, atr, last_t, p, p.watch_lookback_h)
+    live.sort(key=lambda x: (-(x[1].get("n_oos") or 0), -x[0].t, -x[0].conf, x[0].sid, x[0].id))
     kept: list[tuple[Idea, dict]] = []
     for i, v in live:
         if any(k.side == i.side and abs(k.entry - i.entry) < p.dedup_atr * atr for k, _ in kept):
