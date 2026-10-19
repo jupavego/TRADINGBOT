@@ -8,3 +8,4 @@ from __future__ import annotations
 import os
 
 os.environ.setdefault("EIM_OBS", "off")
+os.environ.pop("ANTHROPIC_API_KEY", None)  # la suite nunca llama al LLM real

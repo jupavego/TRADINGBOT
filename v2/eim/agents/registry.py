@@ -65,11 +65,13 @@ def default_registry(arb_assets: tuple[str, ...] | None = None) -> AgentRegistry
     from eim.agents.structure import StructureAgent
     from eim.agents.technical import TechnicalAgent
     from eim.agents.vwap import VWAPAgent
+    from eim.data.providers.claude_context import make_context_analyzer
 
     reg = AgentRegistry()
     for agent in (StructureAgent(), EMAAgent(), VWAPAgent(), PriceActionAgent(),
                   ElliottAgent(), SeasonalityAgent(), LiquidationsAgent(), LevelsAgent(),
-                  DerivativesAgent(), MicrostructureAgent(), RegimeAgent(), ContextAgent(),
+                  DerivativesAgent(), MicrostructureAgent(), RegimeAgent(),
+                  ContextAgent(analyzer=make_context_analyzer()),
                   TechnicalAgent(), CalendarAgent(), _arb(ArbitrageAgent, ArbAgentParams,
                                                           arb_assets), SmartMoneyAgent(),
                   LiteratureAgent(), BotsAgent(), PlanAgent()):

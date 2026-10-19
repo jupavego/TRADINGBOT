@@ -109,3 +109,42 @@ class ClaudeContextAnalyzer:
             if block.get("type") == "tool_use" and block.get("name") == "report_context":
                 return block.get("input")
         return None
+
+
+class CachedContextAnalyzer:
+    """Envuelve al analizador para uso continuo: no repite la llamada con los mismos titulares
+    (el ciclo corre por símbolo y por vela) y reinicia el presupuesto `CostGuard` cada día UTC.
+    Solo guarda resultados válidos: un fallo de red o presupuesto agotado se reintenta luego."""
+
+    def __init__(self, inner: ClaudeContextAnalyzer, clock=None, keep: int = 8) -> None:
+        import time
+
+        self.inner, self.keep = inner, keep
+        self._clock = clock or time.time
+        self._day = int(self._clock() // 86_400)
+        self._cache: dict[tuple[str, ...], dict[str, Any]] = {}
+
+    def __call__(self, items: list[NewsItem]) -> dict[str, Any] | None:
+        day = int(self._clock() // 86_400)
+        if day != self._day:
+            self._day = day
+            self.inner.guard.reset()
+        key = tuple(sorted(n.id for n in items))
+        if key in self._cache:
+            return self._cache[key]
+        out = self.inner(items)
+        if out is not None:
+            if len(self._cache) >= self.keep:
+                self._cache.pop(next(iter(self._cache)))
+            self._cache[key] = out
+        return out
+
+
+def make_context_analyzer(max_usd_per_day: float = 0.25) -> CachedContextAnalyzer | None:
+    """Analizador de producción solo si hay `ANTHROPIC_API_KEY` (opt-in del usuario); si no,
+    None y el agente `context` dice `no_data` con su motivo. Nunca inventa un análisis."""
+    key = os.environ.get("ANTHROPIC_API_KEY")
+    if not key:
+        return None
+    inner = ClaudeContextAnalyzer(api_key=key, guard=CostGuard(max_usd_per_day))
+    return CachedContextAnalyzer(inner)
