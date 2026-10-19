@@ -2,7 +2,8 @@
 .SYNOPSIS
   Deja corriendo sin parar el servicio del EIM (T48): vigilante -> API + operación en papel +
   bróker simulado (15 m, 1 h y 4 h), y el servicio de líderes de copy trading (T41). Con -ConWeb
-  también la interfaz en http://127.0.0.1:5173.
+  también la interfaz en http://127.0.0.1:5173. Además mantiene el equipo despierto
+  (`mantener_despierto.ps1`) y sirve la hoja de ruta en http://127.0.0.1:8765/roadmap.html.
 
 .DESCRIPTION
   El vigilante (`python -m eim.operation run --execution paper`) relanza la API si se cae o si su
@@ -62,6 +63,30 @@ if ($lideres) {
   } else {
     Write-Host "Servicio de líderes lanzado (captura de Hyperliquid, tablero cada 5 min en data\leaders)."
   }
+}
+
+# Equipo despierto: proceso aparte que pide a Windows no suspender por inactividad mientras la
+# API esté arriba (no toca el plan de energía; ver mantener_despierto.ps1). No se duplica.
+$despierto = @(Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |
+  Where-Object { $_.CommandLine -match 'mantener_despierto\.ps1' })
+if ($despierto) {
+  Write-Host "El modo «equipo despierto» ya está activo (PID $($despierto.ProcessId -join ', '))."
+} else {
+  $guion = Join-Path $PSScriptRoot "mantener_despierto.ps1"
+  Start-Process -FilePath "powershell.exe" -WindowStyle Hidden -ArgumentList @(
+    "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", "`"$guion`"", "-Puerto", "$Puerto")
+  Write-Host "Modo «equipo despierto» activado: Windows no se suspenderá por inactividad mientras la API corra."
+}
+
+# Hoja de ruta (PLAN/roadmap.html) en http://127.0.0.1:8765 (estática, solo lectura).
+if (Escuchando 8765) {
+  Write-Host "La hoja de ruta ya está en http://127.0.0.1:8765/roadmap.html"
+} else {
+  Start-Process -FilePath $py -ArgumentList @("-m", "http.server", "8765", "--bind", "127.0.0.1",
+    "--directory", "`"$(Join-Path (Split-Path -Parent $v2) 'PLAN')`"") -WorkingDirectory $v2 -WindowStyle Hidden `
+    -RedirectStandardOutput (Join-Path $logs "roadmap.out.log") `
+    -RedirectStandardError (Join-Path $logs "roadmap.err.log")
+  Write-Host "Hoja de ruta en http://127.0.0.1:8765/roadmap.html"
 }
 
 if ($ConWeb) {
