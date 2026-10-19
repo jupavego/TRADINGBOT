@@ -12,6 +12,7 @@ OW = {"O1": 20, "O2": 15, "O3": 15, "O4": 15, "O5": 10, "O6": 10, "O7": 10, "O8"
 SW = {"S1": 15, "S2": 15, "S3": 15, "S4": 10, "S5": 10, "S6": 10, "S7": 10, "S8": 10, "S9": 5}
 RED = {"R1", "R2", "R3", "R4", "R5", "R6", "R7"}
 THRESHOLD = 70
+APPROVED = {"hummingbot-directional", "freqtrade", "freqtrade-strategies", "passivbot"}
 REQUIRED = {
     "id", "name", "repo", "commit_sha", "commit_date", "audited_at", "license", "bot_class",
     "integration_mode", "binance_markets", "strategies", "dependencies", "risks", "verdict",
@@ -78,5 +79,9 @@ def test_integration_rules(path):
         assert c["verdict"] == "descartar" and c["squad_proposal"] == "no"
     if spdx == "NONE":
         assert c["license"]["file"] is None and "R2" in c["security"]["red_alerts"]
-    # Aprobación: solo el usuario la cambia; T56 deja todo pendiente.
-    assert c["approval"] == {"state": "pendiente", "by": None, "at": None}
+    # Aprobación: solo el usuario la cambia (decisión escrita del 2026-10-19).
+    if c["id"] in APPROVED:
+        assert c["approval"] == {"state": "aprobada", "by": "usuario", "at": "2026-10-19"}
+        assert c["squad_proposal"] == "propuesto"
+    else:
+        assert c["approval"] == {"state": "pendiente", "by": None, "at": None}

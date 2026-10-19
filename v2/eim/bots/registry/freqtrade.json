@@ -37,9 +37,9 @@
     "Soporte documentado de futuros USDⓈ-M (docs/leverage.md)"
   ],
   "approval": {
-    "state": "pendiente",
-    "by": null,
-    "at": null
+    "state": "aprobada",
+    "by": "usuario",
+    "at": "2026-10-19"
   },
   "operational": {
     "checks": {

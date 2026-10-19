@@ -55,9 +55,9 @@
     "Binance USDⓈ-M como mercado principal (291 coincidencias en producción)"
   ],
   "approval": {
-    "state": "pendiente",
-    "by": null,
-    "at": null
+    "state": "aprobada",
+    "by": "usuario",
+    "at": "2026-10-19"
   },
   "operational": {
     "checks": {

@@ -2,7 +2,7 @@
 Fecha: 2026-10-19 · Método: clones superficiales aislados (`--depth 1`, sin submódulos ni hooks, fuera del proyecto) de 47 repositorios y lectura de metadatos de PyPI; **no se ejecutó ni instaló nada de terceros**, solo `git clone`, `grep`, lectura y un escáner propio de solo lectura (patrones `pickle`/`eval`/`exec`/`subprocess`/retiros/telemetría/Binance USDⓈ-M, conteo de pruebas, hash de licencias). Formato y criterios como T04/T33; **lo ya dictaminado allí no se repite** (se enlaza).
 Fichas: [`v2/eim/bots/registry/`](../../v2/eim/bots/registry/) (50 archivos + [`SCHEMA.md`](../../v2/eim/bots/registry/SCHEMA.md), con las reglas de puntuación escritas **antes** de puntuar). Cada ficha fija el SHA del commit auditado y enlaza la evidencia a ese commit.
 
-**Estado: auditoría completa; falta la aprobación del usuario (◆, sección 6).** T58 no empieza sin ella.
+**Estado: auditoría completa y lista aprobada por el usuario el 2026-10-19 (sección 8).**
 
 ## Limitaciones (leer)
 1. **La API de GitHub no estuvo disponible** en esta sesión (403 fuera del repo del proyecto). No hay estrellas, forks, archivado oficial ni fecha de creación de cuenta. «Última actividad» = fecha del último commit del clon; «archivado/abandonado» se infiere de esa fecha y de lo que declara el README. T56 **no asevera popularidad**.
@@ -228,3 +228,11 @@ T56 recomienda esta lista; **nada de esto está aprobado** (`approval.state = pe
 - Escáner de solo lectura (Python `-I`): cuenta archivos de código, pruebas, patrones de `pickle`/`eval`/`exec`/`subprocess`/retiros/telemetría/Binance USDⓈ-M, dominios citados, hash de licencias. Las cifras de patrones son **aproximadas** y las coincidencias relevantes se leyeron a mano (retiros: campos de datos y SDK ajenos, no flujos de fondos; `pickle` de Passivbot/Freqtrade: archivos propios).
 - Fichas: se regeneran de los escaneos; `tests/bots/test_registry_cards.py` valida el esquema, recalcula las sumas con las reglas de `SCHEMA.md`, exige modo B para GPL/AGPL propuestos y que ninguna ficha propuesta esté deshabilitada por seguridad, y que **ninguna aprobación esté marcada** hasta que el usuario decida.
 - Para repetir un SHA: `git clone <repo> && git checkout <commit_sha>` y `git diff` contra el estado actual antes de adaptar nada (T57/T58 fijan esa versión).
+
+## 8. Decisión del usuario (◆), 2026-10-19
+Respuesta escrita: «Sí a 1, 2 y 3; en la 4 acepto la más recomendada».
+1. **Lista aprobada para T58:** `hummingbot-directional` (A, oleada 1), `freqtrade` + `freqtrade-strategies` (B, oleada 2) y `passivbot` (L, B, oleada 3). Oleada 4 (IA): ninguna.
+2. **Riesgo de licencia GPL-3.0 en modo B aceptado** (uso personal/privado; bots instalados desde su origen con el SHA de la ficha; no se distribuyen con EIM). Se reabre si EIM se distribuye o se ofrece como servicio.
+3. **Segundo entorno de Python 3.12 aceptado** para el modo B (y toolchain de Rust para Passivbot en Windows).
+4. **NFI:** se sigue la recomendación (opcional) → **no entra ahora**. Tampoco `jesse-example-strategies` ni `trendrider-strategy` (opcionales). Quedan en `pendiente`: se pueden aprobar más adelante sin repetir la auditoría.
+Las 4 fichas aprobadas llevan `approval = {aprobada, usuario, 2026-10-19}`; el resto sigue `pendiente`.
