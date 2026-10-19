@@ -74,6 +74,26 @@ registros del servicio, versiones de parámetros (`eim/risk/versions`, `eim/cali
   tiene el servicio de líderes, otro proceso). Mientras tanto, copia en frío a mano: detener el
   servicio de líderes (§6), copiar el archivo y volver a lanzar el script.
 
+### 3.1 Experiencia compartida entre colaboradores (protocolo provisional)
+Las bases (`data/*.duckdb`, `*.parquet`) **no viajan por git** (`.gitignore`): el historial de
+operaciones vive en la máquina que lo generó. La unión automática de historiales es **T61**
+(`PLAN/T61.md`); hasta que exista, con dos o más equipos:
+- Cada persona tiene su propia subcarpeta en una carpeta de nube compartida (Drive/OneDrive) y
+  apunta `EIM_BACKUP_DIR` a ella (p. ej. `...\EIM_compartido\<nombre>\backups`). **Solo escribe
+  en su subcarpeta**; así la nube no genera conflictos.
+- No pongas una base DuckDB viva dentro de la carpeta sincronizada: comparte solo copias hechas con
+  `python -m eim.data.backup create` y verificadas con `verify`.
+- **Ojo: `backup create` solo copia `reports.duckdb`** (reportes, riesgo, libro simulado). **No
+  incluye `data/paper.duckdb`** (bróker simulado T47/T48 y registro de validación T49) **ni
+  `data/leaders.duckdb`**. Para compartir ese historial hay que copiar esos archivos **en frío**:
+  detener la API/servicio, copiar el `.duckdb` (y su `.wal` si existe) y volver a lanzar.
+- Para ver el historial de otra persona, **restáuralo en una carpeta de datos aparte**
+  (`python -m eim.data.backup restore <copia> --data-dir <carpeta_aparte>`; para `paper.duckdb` y
+  `leaders.duckdb`, copiar el archivo ahí y arrancar la API con `EIM_DATA_DIR=<carpeta_aparte>`).
+  No lo restaures sobre tu `data/`: hoy no hay mezcla. `restore` guarda lo anterior como
+  `…antes-de-restaurar-<sello>`, pero no es una unión. Tu propia experiencia sigue en tu `data/`.
+- Nunca compartas claves ni `.env`.
+
 ## 4. Versionado de parámetros
 - Un conjunto de parámetros publicado es **inmutable**: cambiar límites de riesgo = `risk_v2.json`
   nuevo en `eim/risk/versions/` (el campo `version` debe coincidir con el nombre); calibraciones en

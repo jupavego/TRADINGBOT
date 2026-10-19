@@ -64,3 +64,4 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T58 | Escuadrón de bots: adaptadores por oleadas (paridad con el bot nativo) | T57 | ☐ | |
 | T59 | Escuadrón de bots: puntuación, puerta de edge y degradación | T58 T49 T47 T25 | ☐ | |
 | T60 | Escuadrón de bots: síntesis, riesgo, UI y operación | T57 T59 T44 T10 | ☐ | |
+| T61 | Experiencia compartida entre equipos: exportar, importar y unir historiales | T49 T47 T40 T32 | ☐ | Especificada (`PLAN/T61.md`, decisión del usuario 2026-10-18: mezcla por exportación a carpeta de nube compartida, con id de máquina). Mientras no se construya, se aplica el protocolo provisional de `v2/docs/OPERACION.md` §3.1. |
