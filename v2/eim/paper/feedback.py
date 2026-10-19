@@ -45,13 +45,31 @@ class Judgement:
 def judge(rs: Sequence[float], p: FeedbackParams) -> Judgement:
     n = len(rs)
     if n == 0:
-        return Judgement(p.observe_w, "observacion", 0.0, float("nan"), 0)
+        return _verdict(0, 0.0, 0.0, 0.0, p)
     r = np.asarray(rs, dtype=float)
     w = 0.5 ** (np.arange(n)[::-1] / p.half_life)          # 1 = la más reciente
-    sw = float(w.sum())
-    m = float((w * r).sum()) / (sw + p.prior_n)
-    mean_w = float((w * r).sum()) / sw
-    sd = max(STD_FLOOR, math.sqrt(float((w * (r - mean_w) ** 2).sum()) / sw))
+    return _verdict(n, float(w.sum()), float((w * r).sum()), float((w * r * r).sum()), p)
+
+
+def _decayed_sums(rs: Sequence[float], half_life: float) -> list[tuple[float, float, float]]:
+    """(Σw, Σw·r, Σw·r²) de cada prefijo, w = 0,5^(antigüedad/half_life): lo mismo que `judge`
+    calcula sobre `rs[:n]`, pero en O(1) por consulta (S_n = d·S_{n−1} + término nuevo)."""
+    d = 0.5 ** (1 / half_life)
+    s0 = s1 = s2 = 0.0
+    out = [(0.0, 0.0, 0.0)]
+    for r in rs:
+        s0, s1, s2 = d * s0 + 1.0, d * s1 + r, d * s2 + r * r
+        out.append((s0, s1, s2))
+    return out
+
+
+def _verdict(n: int, sw: float, s1: float, s2: float, p: FeedbackParams) -> Judgement:
+    """Juicio a partir de las sumas ponderadas de los últimos `n` resultados en R."""
+    if n == 0:
+        return Judgement(p.observe_w, "observacion", 0.0, float("nan"), 0)
+    m = s1 / (sw + p.prior_n)
+    mean_w = s1 / sw
+    sd = max(STD_FLOOR, math.sqrt(max(0.0, s2 / sw - mean_w * mean_w)))
     se = sd / math.sqrt(sw + p.prior_n)
     if n < p.n_min:
         return Judgement(p.observe_w, "observacion", m, se, n)
@@ -78,7 +96,11 @@ def _index(pairs: dict[str, list[tuple[int, float]]]):
 
 
 class Learner:
-    """Resultados sombra cerrados por estrategia@marco y por contexto, ordenados por cierre."""
+    """Resultados sombra cerrados por estrategia@marco y por contexto, ordenados por cierre.
+
+    Las sumas ponderadas de cada prefijo se calculan una vez por clave y vida media: cada juicio
+    sale en O(1) (recalcularlo sobre todo lo cerrado hacía cuadrática la vista del bróker con la
+    historia completa de T49)."""
 
     def __init__(self, outcomes: Iterable[Outcome]) -> None:
         by: dict[str, list[tuple[int, float]]] = {}
@@ -88,16 +110,25 @@ class Learner:
             ctx.setdefault(context_key(o), []).append((o.exit_t, o.r))
         self._t, self._r = _index(by)
         self._ct, self._cr = _index(ctx)
+        self._sums: dict[tuple, list[tuple[float, float, float]]] = {}
+
+    def _judge(self, ts: dict[str, list[int]], rs: dict[str, list[float]], key: str, t: int,
+               p: FeedbackParams) -> Judgement:
+        n = bisect_right(ts.get(key, []), t)
+        if n == 0:
+            return _verdict(0, 0.0, 0.0, 0.0, p)
+        sk = (id(rs), key, p.half_life)
+        sums = self._sums.get(sk)
+        if sums is None:
+            sums = self._sums[sk] = _decayed_sums(rs[key], p.half_life)
+        return _verdict(n, *sums[n], p)
 
     def at(self, sid: str, t: int, p: FeedbackParams) -> Judgement:
-        ts = self._t.get(sid, [])
-        return judge(self._r.get(sid, [])[:bisect_right(ts, t)], p)
+        return self._judge(self._t, self._r, sid, t, p)
 
     def context_at(self, idea, t: int, p: FeedbackParams) -> Judgement:
         """Juicio del contexto de la idea con lo cerrado hasta `t` (sin mirar el futuro)."""
-        k = context_key(idea)
-        ts = self._ct.get(k, [])
-        return judge(self._cr.get(k, [])[:bisect_right(ts, t)], p)
+        return self._judge(self._ct, self._cr, context_key(idea), t, p)
 
 
 def _p_one_sided(r: np.ndarray) -> float | None:

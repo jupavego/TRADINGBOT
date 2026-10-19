@@ -30,6 +30,7 @@ from eim.api.security import BodyLimitMiddleware, LocalOnlyMiddleware, ws_token_
 from eim.api.setups import build_setups_router
 from eim.api.sources import BinanceKlineSource, LiveSource
 from eim.api.trades import build_trades_router
+from eim.api.validation import build_validation_router
 from eim.arbitrage.alerts import AlertParams
 from eim.data.arb_store import ArbStore
 from eim.data.arb_sync import ArbSync
@@ -39,11 +40,13 @@ from eim.data.providers.binance import BinanceFutures
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
+from eim.data.validation_store import ValidationStore
 from eim.operation.cycle import OperationParams
 from eim.operation.supervisor import Operation, Supervisor
 from eim.paper.desk import PaperDesk
 from eim.risk import global_kill_switch, load_config
 from eim.synthesis.params import SynthesisParams, role_of
+from eim.validation.service import Validator
 
 API_VERSION = "2.0.0"
 
@@ -114,6 +117,9 @@ def create_app(
     paper = PaperDesk(store, paper_store, reg,
                       provider=BinanceFutures() if source is None else None,
                       poll_s=cfg.paper_poll_s)
+    # T49: puerta de validación por estrategia; se recalcula al cierre de cada vela de 4 h.
+    validator = Validator(paper, ValidationStore(paper_store))
+    paper.after_tick.append(validator.maybe_run)
 
     def now_ms() -> int:
         return int(time.time() * 1000)
@@ -176,6 +182,8 @@ def create_app(
     app.include_router(build_paper_router(paper))
     app.include_router(build_paper_arb_router(store, cfg.data_dir))  # T45: pruebas en papel
     app.state.paper = paper
+    app.include_router(build_validation_router(validator))
+    app.state.validator = validator
 
     @app.get("/v2/health")
     def health() -> dict:

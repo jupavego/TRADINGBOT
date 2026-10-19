@@ -28,10 +28,15 @@ export function dur(ms: number): string {
 export const px = (x: number): string => nf(x, x >= 1000 ? 1 : 2)
 export const qty = (x: number, sym: string): string => `${nf(x, sym.startsWith('BTC') ? 4 : 3)} ${sym.replace(/USDT$/, '')}`
 
+/** Error HTTP del bróker simulado; 503 = la vista aún se está calculando (se reintenta sola). */
+export class PaperError extends Error {
+  constructor(message: string, readonly status: number) { super(message) }
+}
+
 export async function getPaper<T>(path: string, signal?: AbortSignal): Promise<T> {
   const r = await fetch(`${base()}/v2/paper${path}`, { signal })
   const body = await r.json().catch(() => ({ detail: r.statusText }))
-  if (!r.ok) throw new Error(String((body as { detail?: string }).detail ?? r.statusText))
+  if (!r.ok) throw new PaperError(String((body as { detail?: string }).detail ?? r.statusText), r.status)
   return body as T
 }
 

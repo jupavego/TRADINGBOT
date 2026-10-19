@@ -39,6 +39,7 @@ Binance (REST/WS)  ──► data/ (proveedores + almacén parquet/DuckDB)
 | `synthesis` | Agrega reportes en una tesis con desacuerdo | |
 | `backtest` | VRM (migrado del legado) + simulador de perpetuos con costos, `edge.py` (puerta T27) | |
 | `calibration` | optuna walk-forward anidado; versiones en `calibration/versions/` | Versiones inmutables |
+| `validation` | Puerta de validación por `estrategia@marco@versión` del bróker simulado (T49): criterios inmutables en `validation/versions/`, huella de versión (`paper/versioning.py`), linaje y ventanas de ajuste (`lineage.json`), puerta pura `gate.py`, servicio que recalcula al cierre de cada vela de 4 h, informe `python -m eim.validation` | Solo operaciones sombra cerradas, fuera de muestra y netas; Holm sobre todos los intentos; «ninguna validada» es válido |
 | `risk` | Reglas de veto, tamaño, kill-switch global, sello HMAC; config en `risk/versions/` | Determinista, poder de veto; REAL prohibido |
 | `execution` | `Broker` (contrato), `SimBroker`, `BinanceTestnetBroker` (solo hosts testnet), `service.py` (SL/TP antes de la entrada), `reconcile.py`, `gateway.py` | Solo se entra por `OrderGateway` con decisión verificada |
 | `operation` | Ciclo continuo, supervisor + vigilante, alertas, capital, informe semanal, copia diaria | Corre dentro del proceso de la API |
@@ -65,7 +66,7 @@ de decisión versionados), `legacy/F7/` (código anterior, solo oráculo de regr
 ## API (prefijo `/v2`)
 Lectura: `health`, `snapshot`, `agents`, `reports`, `synthesis`, `overlays`, `forecast`,
 `calibration`, `trades`/`journal`/`replay`, `risk` (+`decisions`, `kill-switch`), `execution`,
-`operation` (+`report`), `backup`, `more/*`. WebSocket: `stream`.
+`operation` (+`report`), `backup`, `more/*`, `paper/*`, `validation` (+`history`). WebSocket: `stream`.
 
 Escritura (todas exigen la cabecera `X-EIM-Confirm: <acción>`; test `test_every_mutating_post_requires_confirm_header`):
 | Ruta | Valor de la cabecera |
