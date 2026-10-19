@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T15:13:27",
+ "generated": "2026-10-19T12:01:03",
  "tasks": [
   {
    "id": "T01",
@@ -723,8 +723,8 @@ window.EIM_STATUS = {
    "deps": [
     "T57"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Los 3 bots aprobados quedan **adaptados**. `hummingbot-directional` (A) y `freqtrade-strategies` (B) ya venían de T57; T58 les añadió el relleno histórico (`eim/bots/backfill.py`, `FreqtradeAdapter.history`): 8 818 + 4 409 posturas 1 h BTCUSDT 2026-04-19→10-19 en `bot_signals` (corrida única = vela a vela, 0 diferencias). `passivbot` (L, B): carril de simulación sin voto (`eim/core/botsim.py` `SimRun`, `eim/bots/pb_adapter.py`, `bot_sim_runs`, CLI `eim.bots.sim_lane`), paridad exacta con el bot nativo, sin anticipación, tiempo acotado; 7,6 meses reales de 1 min (868 fills `trailing_martingale`, 50 `ema_anchor`), solo largos. Arreglos del ejecutor (ruta relativa, FAT32, CRLF). Gate 1683 ok. Entornos en `D:/eim-bots` y `D:/eim-toolchain`; datos en el `data/` del worktree; límites en BACKLOG y `docs/BOTS.md`.",
    "effort": "medio",
    "phase": 12,
    "goal": "Encapsular **todos los bots aprobados en T56** detrás del contrato de T57, de modo que cada uno produzca `BotSignal`s reproducibles. Es una sola tarea con oleadas: añadir un bot no crea una tarea nueva, crea un adaptador y una fila en el registro."
