@@ -25,6 +25,11 @@ from tests.paper.test_strategies import ctx_for, walk
 SID = "consenso_sintesis@1h"
 
 
+def n_versions(*tfs: str) -> int:
+    """Versiones vigentes: cada estrategia en los marcos donde corre (T54: algunas solo en 4 h)."""
+    return sum(i.runs_in(tf) for tf in tfs for i in CATALOG.values())
+
+
 def _path(n: int = 4000, seed: int = 1) -> Path:
     rng = np.random.default_rng(seed)
     p, cs = 100.0, []
@@ -86,7 +91,7 @@ def test_only_current_version_counts_and_new_version_inherits_nothing(vstore, tm
     closed = sum(o.status == "CERRADA" for o in outs if o.idea.version == cur)
     assert v["id"] == f"{SID}@v1" and v["n_oos"] == closed > 0
     assert v["fingerprint"] == cur and v["verdict"] in (OBSERVACION, RECHAZADA)
-    assert p["attempts"] == len(CATALOG) and len(p["verdicts"]) == len(CATALOG)
+    assert p["attempts"] == len(p["verdicts"]) == n_versions("1h")
     # cambia la mecánica → versión nueva: alta automática, no hereda la evidencia anterior
     ep2 = ExecParams(cooldown_bars=2)
     cur2 = CATALOG["consenso_sintesis"].version("1h", ep2)
@@ -99,7 +104,7 @@ def test_only_current_version_counts_and_new_version_inherits_nothing(vstore, tm
     assert v2["id"] == f"{SID}@v2" and v2["origin"] == "auto"
     assert v2["n_oos"] == 0 and v2["oos"]["excluded_in_windows"] == closed
     # Holm cuenta también las versiones retiradas (v1 de cada estrategia)
-    assert p2["attempts"] == 2 * len(CATALOG)
+    assert p2["attempts"] == 2 * n_versions("1h")
     old = next(x for x in p2["versions"] if x["id"] == f"{SID}@v1")
     assert old["retired"] == later
 
@@ -145,7 +150,7 @@ def test_get_validation_returns_current_verdicts(client):
     v = r.json()
     assert v["mode"] == "SIMULADO" and v["criteria"]["version"] == "validation_v1"
     assert v["criteria"]["sha256"] and v["asof"] and v["computed"]
-    assert len(v["verdicts"]) == 3 * len(CATALOG) == v["attempts"]
+    assert len(v["verdicts"]) == n_versions("15m", "1h", "4h") == v["attempts"]
     assert {x["verdict"] for x in v["verdicts"]} <= {VALIDADA, OBSERVACION, RECHAZADA}
     assert all(len(x["checks"]) == 6 for x in v["verdicts"])
     again = client.get("/v2/validation?symbol=BTCUSDT").json()      # vigentes guardados
