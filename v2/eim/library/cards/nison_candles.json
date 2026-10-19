@@ -83,7 +83,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [45, 46], "terms": ["twice the height of the real body", "hammer"]}, {"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [48, 49], "terms": ["hammer can also be used to help confirm support"]}],
    "applicability": {"original_market": ["acciones", "futuros", "divisas"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: válido en velas de 15 m, 1 h y 4 h; el color del cuerpo no importa"},
    "testable": true,
-   "status": "revisada_usuario",
+   "status": "codificada",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_hanging_man", "relation": "complementa"}, {"id": "nison_entry_on_pullback", "relation": "complementa"}]
   },
@@ -127,7 +127,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "4 Reversal Patterns", "pages": [53, 54], "terms": ["engulfing pattern", "opposite color"]}],
    "applicability": {"original_market": ["acciones", "futuros", "divisas"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h; en 24/7 la apertura ≈ cierre previo, así que basta con envolver el cuerpo (el autor lo acepta en divisas)"},
    "testable": true,
-   "status": "revisada_usuario",
+   "status": "codificada",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_engulfing_levels", "relation": "complementa"}, {"id": "nison_continuous_markets", "relation": "complementa"}]
   },
@@ -202,7 +202,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "5 Stars", "pages": [72, 73], "terms": ["morning star", "intrudes deeply"]}, {"book_id": "nison_candles", "chapter": "5 Stars", "pages": [77], "terms": ["light volume on the first candle"]}],
    "applicability": {"original_market": ["acciones", "índices", "divisas"], "timeframe": "diario e intradía (15 min)", "crypto_24_7": "supuesto: en 24/7 los cuerpos suelen tocarse; el autor acepta esa flexibilidad en intradía"},
    "testable": true,
-   "status": "revisada_usuario",
+   "status": "codificada",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_evening_star", "relation": "complementa"}, {"id": "nison_continuous_markets", "relation": "complementa"}]
   },
@@ -217,7 +217,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "5 Stars", "pages": [76, 77], "terms": ["evening star", "highs of the evening star become resistance"]}],
    "applicability": {"original_market": ["acciones", "índices", "divisas"], "timeframe": "diario e intradía", "crypto_24_7": "supuesto: igual que la estrella de la mañana (sin exigir huecos)"},
    "testable": true,
-   "status": "revisada_usuario",
+   "status": "codificada",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_morning_star", "relation": "complementa"}]
   },
@@ -259,7 +259,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "5 Stars", "pages": [84, 85, 86], "terms": ["shooting star", "trouble overhead"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario e intradía (30 min)", "crypto_24_7": "supuesto: válido en 15 m/1 h/4 h; el hueco previo no es necesario"},
    "testable": true,
-   "status": "revisada_usuario",
+   "status": "codificada",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_inverted_hammer", "relation": "complementa"}, {"id": "nison_shadows_rejection", "relation": "apoya"}]
   },
@@ -330,7 +330,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "6 More Reversal Patterns", "pages": [106, 107], "terms": ["three black crows", "mature advance"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario", "crypto_24_7": "supuesto: válido en 1 h/4 h; en 15 m puede ser ruido"},
    "testable": true,
-   "status": "revisada_usuario",
+   "status": "codificada",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_three_white_soldiers", "relation": "complementa"}]
   },
@@ -345,7 +345,7 @@
    "citations": [{"book_id": "nison_candles", "chapter": "6 More Reversal Patterns", "pages": [108, 109], "terms": ["advance block", "stalled pattern"]}],
    "applicability": {"original_market": ["acciones"], "timeframe": "diario", "crypto_24_7": "supuesto: válido en 1 h/4 h"},
    "testable": true,
-   "status": "revisada_usuario",
+   "status": "codificada",
    "verification": "verificada_en_texto",
    "related": [{"id": "nison_three_black_crows", "relation": "complementa"}, {"id": "nison_entry_on_pullback", "relation": "complementa"}]
   },

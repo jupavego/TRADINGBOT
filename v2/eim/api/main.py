@@ -19,6 +19,7 @@ from eim.api.execution import build_execution_router, build_runtime, recon_loop
 from eim.api.forecast import Forecaster, build_forecast_router
 from eim.api.history import HistoryLoader
 from eim.api.leaders import LeaderDesk, build_leaders_router
+from eim.api.library import build_library_router
 from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.more import MoreSources, build_more_router
 from eim.api.operation import build_operation_router
@@ -173,6 +174,7 @@ def create_app(
     app.state.hub, app.state.reports, app.state.store = hub, reports, store
     app.state.forecaster = forecaster
     app.include_router(build_trades_router(store, reports))
+    app.include_router(build_library_router())
     app.state.operation = op
     app.include_router(build_risk_router(store, reports, desk=desk))
     app.include_router(build_operation_router(desk, lambda: op, cfg.operation_reports))
