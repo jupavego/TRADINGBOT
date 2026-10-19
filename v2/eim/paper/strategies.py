@@ -17,6 +17,7 @@ SCEN_EDGE = 0.1       # ventaja mínima sobre el escenario opuesto
 RANDOM_RATE = 0.2     # fracción de velas en que el control aleatorio opera
 SETUP_FILL_H = 12.0   # = SetupParams.fill_hours
 SETUP_HOLD_H = 36.0   # = SetupParams.max_hours
+BASE_CONF = 0.3       # confianza fija de la posición base (no opina: solo sigue la tendencia)
 
 
 def _bar_h(ctx: dict) -> float:
@@ -151,6 +152,13 @@ def escenario_rango(ctx: dict, _x: object, _i: int) -> Draft | None:
                       "su banda hacia la mediana",))
 
 
+def base_tendencia(ctx: dict, _x: object, _i: int) -> Draft | None:
+    """Posición base: en cada vela, a favor de la tendencia del marco mayor y con salidas anchas
+    (el costo pesa poco en R). Da oferta continua para el mínimo de operaciones abiertas."""
+    return atr_draft(int(ctx.get("htf_dir") or 0), ctx, 2.0, 3.0, BASE_CONF,
+                     ("A favor de la tendencia del marco mayor (posición base)",))
+
+
 def control_aleatorio(ctx: dict, _x: object, _i: int) -> Draft | None:
     """Lado al azar (determinista por vela) con las mismas salidas que «Síntesis a favor»."""
     h = int(hashlib.sha256(f"{ctx.get('symbol', '')}:{ctx['t']}".encode()).hexdigest()[:8], 16)
@@ -194,6 +202,10 @@ CORE: tuple[StrategyInfo, ...] = (
     StrategyInfo("contra_sintesis", "Contra la síntesis", "contrarias",
                  "Lo opuesto a «Síntesis a favor»: si gana, el consenso está mal calibrado.",
                  contra_sintesis),
+    StrategyInfo("base_tendencia", "Posición base", "base",
+                 "En cada vela, a favor de la tendencia del marco mayor, a mercado, SL 2 ATR, "
+                 "TP 3 ATR. Mantiene oferta de operaciones para el mínimo de abiertas del perfil.",
+                 base_tendencia),
     StrategyInfo("control_aleatorio", "Control aleatorio", "control",
                  f"Lado al azar en ~{RANDOM_RATE:.0%} de las velas con las mismas salidas: la "
                  "vara para saber si algo supera a la suerte.", control_aleatorio),

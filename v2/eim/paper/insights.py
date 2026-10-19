@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from eim.paper.book import FLOOR_LABEL
 from eim.paper.feedback import MIN_N_TEST
 from eim.paper.params import FAMILIES, FeedbackParams
 
@@ -139,6 +140,16 @@ def insights(rows: Sequence[dict], fams: Sequence[dict], profiles: Sequence[dict
             out.append({"tone": "warn", "text": f"Costos en {pr['name']}: comisiones, deslizamiento"
                         f" y funding suman {usdt} USDT ({share}); antes de costos el resultado"
                         f" sería {gross} USDT."})
+    for pr in profiles:
+        mo = pr.get("min_open") or {}
+        if not mo.get("entries"):
+            continue
+        crit = "; ".join(f"saltar «{FLOOR_LABEL.get(k, k)}» {_fmt(v['m'])} R/op (n={v['n']})"
+                         f"{' → bloqueado' if v['state'] == 'pausa' else ''}"
+                         for k, v in sorted(mo["criteria"].items()))
+        out.append({"tone": "info", "text": f"Mínimo de abiertas en {pr['name']} (objetivo "
+                    f"{mo['target']}): {mo['entries']} entradas forzadas con riesgo reducido; "
+                    f"{crit or 'aún sin cierres'}. Lo que pierde endurece el criterio."})
     if profiles:
         best = max(profiles, key=lambda x: x["return_pct"])
         calm = max(profiles, key=lambda x: x["return_pct"] / max(x["max_dd_pct"], 0.01))

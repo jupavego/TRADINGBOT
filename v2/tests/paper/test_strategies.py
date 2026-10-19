@@ -98,3 +98,17 @@ def test_bad_geometry_dropped():
     info = CATALOG["consenso_sintesis"]
     d = Draft(side=1, sl=101, tp=105, conf=0.5, why=("x",), entry=100)
     assert to_idea(info, d, {"t": T0, "close": 100}, "X", "backtest") is None
+
+
+def test_base_follows_higher_timeframe_trend_every_bar():
+    """«Posición base»: una idea por vela, a favor de la tendencia mayor, con salidas anchas;
+    sin tendencia conocida no opera."""
+    cs = walk(600)
+    up = generate_ideas([ctx_for(cs[i]) for i in range(500, 520)], cs, "X", H1, htf=lambda _t: 1)
+    base = [i for i in up if i.strategy == "base_tendencia"]
+    assert len(base) == 20 and all(i.side == 1 and i.htf == 1 and i.family == "base" for i in base)
+    assert all(abs(abs(i.tp - i.entry) / abs(i.entry - i.sl) - 1.5) < 1e-9 for i in base)
+    down = generate_ideas([ctx_for(cs[510])], cs, "X", H1, htf=lambda _t: -1)
+    assert [i.side for i in down if i.strategy == "base_tendencia"] == [-1]
+    none = generate_ideas([ctx_for(cs[510])], cs, "X", H1)
+    assert not [i for i in none if i.strategy == "base_tendencia"]

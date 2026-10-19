@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T00:02:43",
+ "generated": "2026-10-19T00:46:15",
  "tasks": [
   {
    "id": "T01",
@@ -771,7 +771,7 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "Especificada (`PLAN/T61.md`, decisión del usuario 2026-10-18: mezcla por exportación a carpeta de nube compartida, con id de máquina). Mientras no se construya, se aplica el protocolo provisional de `v2/docs/OPERACION.md` §3.1.",
    "effort": "alto",
-   "phase": 10,
+   "phase": 13,
    "goal": "Que dos o más computadores (cada colaborador con su propia copia local) acumulen **una sola experiencia**: operaciones simuladas, contextos del bróker, capturas de líderes y registro de intentos de validación. Lo que haga uno debe poder verlo el otro, sin duplicar filas, sin pisar datos y sin inflar la evidencia."
   }
  ]
