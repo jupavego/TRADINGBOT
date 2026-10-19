@@ -46,7 +46,7 @@ Binance (REST/WS)  ──► data/ (proveedores + almacén parquet/DuckDB)
 | `analytics` | Bitácora de trading (exports de Binance) | |
 | `api` | FastAPI: `main.py` (fábrica `create_app`), routers por dominio, **`security.py`** | Solo local; POST con `X-EIM-Confirm` |
 | `web` | UI (Vite 6 + TypeScript + Lightweight Charts) | Muestra modo Análisis/Simulado/Testnet |
-| `observability` | Observatorio (T72): evento normalizado, `trace_for`, emisor a prueba de fallos (JSONL por proceso, sin escribir en la base), catálogo de componentes con textos llanos y umbrales | Observar no es operar; los agentes siguen puros (los instrumenta el corredor, T74) |
+| `observability` | Observatorio (T72): evento normalizado, `trace_for`, emisor a prueba de fallos (JSONL por proceso, sin escribir en la base), catálogo de componentes con textos llanos y umbrales; T73: `store`/`indexer`/`derive` (indexador único JSONL → `obs.duckdb`: eventos, runs, refs, decisiones; idempotente y con reanudación por offset), `bridge` (latidos, alertas y riesgo existentes como eventos, solo lectura) y API `/v2/obs/*` (`api/obs.py`, sin POST) | Observar no es operar; los agentes siguen puros (los instrumenta el corredor, T74) |
 
 Fuera del paquete: `v2/lab/` (experimentos archivados, p. ej. ESN de T28), `v2/reports/` (informes
 de decisión versionados), `legacy/F7/` (código anterior, solo oráculo de regresión).

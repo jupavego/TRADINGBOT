@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T01:51:45",
+ "generated": "2026-10-19T08:05:46",
  "tasks": [
   {
    "id": "T01",
@@ -923,8 +923,8 @@ window.EIM_STATUS = {
    "deps": [
     "T72"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "`v2/eim/observability/`: `store.py` (`obs.duckdb`: components/edges versionados, events, refs, runs, decisions, spool_files), `indexer.py` (JSONL → base por *offset* en la misma transacción que los datos, idempotente por `event_id`, líneas corruptas/truncadas contadas, retención 7 d spool / 30 d eventos / 180 d runs y decisiones), `derive.py`, `bridge.py` (latidos, `op_alerts`, `risk_decisions` como eventos, solo lectura). API `eim/api/obs.py`: 7 GET `/v2/obs/*` con `source`, `asof` y retraso del propio observatorio, sin POST; arranca en `create_app` y entra en la copia diaria (`backup.py`, `extra_dbs`); T61: derivado, no viaja. Medido: 100 000 eventos se indexan en 5,7 s y toda consulta queda en p95 ≤ 32 ms (umbral 100); base de 15 MB. Umbrales nuevos en `thresholds.py` y `notas/T72_decisiones.md` §6. El catálogo marca `observability.indexer` como construido. Tests: `tests/observability/test_{indexer,bridge,obs_backup}.py`, `tests/api/test_obs_api.py`. Nada instrumentado todavía (T74). |",
    "effort": "medio",
    "phase": 15,
    "goal": "Convertir los archivos JSONL de eventos en un **registro consultable** (`obs.duckdb`) con un único indexador y exponerlo por una API de solo lectura. Guarda solo lo necesario para reconstruir *qué pasó, con qué datos y por qué*, sin duplicar los libros que ya existen."

@@ -34,3 +34,6 @@ Langfuse, Phoenix (ELv2), Grafana (AGPL-3.0), Prefect, Dagster, Airflow, Tempora
 - **Desviación:** `emit` no se reexporta desde `eim.observability` (taparía al módulo `emit.py`); se importa como `from eim.observability.emit import emit, span`.
 - `rejected` se añade a `status` para veto/rechazo (no es un fallo). `mode` acepta `REAL` porque `Mode` lo define, pero nada lo emite.
 - Pendiente del usuario: revisar esta página antes de T73–T75 (no bloquea otras tareas).
+
+## 6. Umbrales añadidos en T73 (indexador y API)
+`RUN_RETENTION_DAYS` 180 (runs y decisiones) · `INDEX_INTERVAL_S` 5 · `INDEX_LAG_S_MAX` 120 (= «sin datos») · `TRUNCATED_LINE_GRACE_S` 60 · `QUERY_P95_MS_MAX` 100 con 100 000 eventos (medido: p95 ≤ 32 ms; indexar 100 000 = 5,7 s; base de 15 MB) · `PAGE_MAX` 500. Medidos en `tests/observability/test_obs_scale.py` y `v2/scripts/obs_bench.py`.

@@ -4,6 +4,7 @@ Una copia es una carpeta `eim_AAAAMMDD-HHMMSS/` con:
 - `reports.duckdb`: copia consistente de la base (reportes, decisiones de riesgo, libro simulado,
   alertas, capital, pronósticos). En caliente se hace dentro del proceso de la API, bajo el mismo
   cerrojo que usan los escritores (`COPY FROM DATABASE`); en frío, adjuntando la base en lectura.
+- `obs.duckdb` (T73): observatorio, DERIVADO de los JSONL (entra en la copia; no viaja, T61).
 - `state/`: kill-switch, estado del servicio de operación y registros JSONL.
 - `config/`: versiones de parámetros (`eim/risk/versions`, `eim/calibration/versions`).
 - `market/` (opcional, `--with-market`): velas/funding en parquet; se pueden volver a descargar.
@@ -36,6 +37,7 @@ from eim.data.local_api import DEFAULT_API, post_local
 PKG = Path(__file__).resolve().parents[1]                  # v2/eim
 CONFIG_DIRS = {"risk": PKG / "risk" / "versions", "calibration": PKG / "calibration" / "versions"}
 DB_NAME = "reports.duckdb"
+OBS_NAME = "obs.duckdb"                                    # T73; vive en `<data>/obs/`
 PREFIX = "eim_"
 
 
@@ -111,9 +113,10 @@ def _copy_tree(src: Path, dst: Path, pattern: str = "*") -> None:
 
 
 def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | None = None,
-           with_market: bool = False, keep: int = 14,
+           with_market: bool = False, keep: int = 14, extra_dbs: dict | None = None,
            clock: Callable[[], float] = time.time) -> Path:
-    """Crea una copia y poda las más antiguas (se conservan `keep`). Devuelve su carpeta."""
+    """Crea una copia y poda las más antiguas (se conservan `keep`). Devuelve su carpeta.
+    `extra_dbs` = {nombre: (conexión, cerrojo)} de otras bases abiertas (el observatorio)."""
     stamp = datetime.fromtimestamp(clock(), UTC).strftime("%Y%m%d-%H%M%S")
     out, n = dest_root / f"{PREFIX}{stamp}", 1
     while out.exists():                          # dos copias en el mismo segundo
@@ -130,6 +133,9 @@ def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | 
             tables = copy_db_cold(data_dir / DB_NAME, db)
         else:
             tables = {}
+        extra = {n: copy_db_hot(c, lk, tmp / n) for n, (c, lk) in (extra_dbs or {}).items()}
+        if not extra_dbs and (data_dir / "obs" / OBS_NAME).exists():
+            extra[OBS_NAME] = copy_db_cold(data_dir / "obs" / OBS_NAME, tmp / OBS_NAME)
         if (data_dir / "kill_switch.json").exists():
             (tmp / "state").mkdir(exist_ok=True)
             shutil.copy2(data_dir / "kill_switch.json", tmp / "state" / "kill_switch.json")
@@ -142,7 +148,8 @@ def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | 
         files = {p.relative_to(tmp).as_posix(): {"sha256": _sha256(p), "bytes": p.stat().st_size}
                  for p in sorted(tmp.rglob("*")) if p.is_file()}
         manifest = {"created_at": stamp, "git_commit": _git_commit(), "data_dir": str(data_dir),
-                    "with_market": with_market, "tables": tables, "files": files}
+                    "with_market": with_market, "tables": tables, "extra_tables": extra,
+                    "files": files}
         (tmp / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
         tmp.replace(out)
     except BaseException:
@@ -185,6 +192,12 @@ def verify(backup: Path) -> list[str]:
             con.close()
         if got != m["tables"]:
             problems.append(f"filas por tabla distintas: {got} ≠ {m['tables']}")
+    for name, want in m.get("extra_tables", {}).items():
+        if (backup / name).exists() and not problems:
+            con = duckdb.connect(str(backup / name), read_only=True)
+            if _tables(con) != want:
+                problems.append(f"filas por tabla distintas en {name}")
+            con.close()
     return problems
 
 
@@ -211,6 +224,14 @@ def restore(backup: Path, data_dir: Path,
         db.with_name(DB_NAME + ".wal").unlink(missing_ok=True)
         shutil.copy2(backup / DB_NAME, db)
         restored.append(DB_NAME)
+    if (backup / OBS_NAME).exists():             # derivado: se restaura, no se mezcla
+        obs = data_dir / "obs" / OBS_NAME
+        obs.parent.mkdir(parents=True, exist_ok=True)
+        if obs.exists():
+            os.replace(obs, obs.with_name(OBS_NAME + suffix))
+        obs.with_name(OBS_NAME + ".wal").unlink(missing_ok=True)
+        shutil.copy2(backup / OBS_NAME, obs)
+        restored.append(OBS_NAME)
     state = backup / "state"
     if (state / "kill_switch.json").exists():
         shutil.copy2(state / "kill_switch.json", data_dir / "kill_switch.json")

@@ -17,7 +17,8 @@ from eim.data import backup
 
 
 def build_backup_router(reports: ReportStore, data_dir: Path, dest: Path, keep: int,
-                        op_ref: Callable[[], object | None] = lambda: None) -> APIRouter:
+                        op_ref: Callable[[], object | None] = lambda: None,
+                        extra_dbs: dict | None = None) -> APIRouter:
     r = APIRouter(prefix="/v2/backup", tags=["backup"])
 
     @r.get("")
@@ -35,7 +36,7 @@ def build_backup_router(reports: ReportStore, data_dir: Path, dest: Path, keep: 
         else:
             con, lock = reports.connection
             out = backup.create(data_dir, dest, con=con, lock=lock, with_market=with_market,
-                                keep=keep)
+                                keep=keep, extra_dbs=extra_dbs)
         m = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
         return {"path": str(out), "name": out.name, "files": len(m["files"]),
                 "tables": m["tables"]}
