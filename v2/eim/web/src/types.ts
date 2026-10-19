@@ -59,7 +59,7 @@ export interface AgentReport {
 }
 
 /** Papel en la síntesis (T44): solo los direccionales votan. */
-export type AgentRole = 'direccional' | 'riesgo' | 'carril' | 'derivado'
+export type AgentRole = 'direccional' | 'riesgo' | 'carril' | 'derivado' | 'contexto'
 
 export interface AgentInfo {
   id: string

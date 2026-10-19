@@ -26,14 +26,6 @@ PLANNED: tuple[Component, ...] = (
     c("library.query", "library", "validacion", "service", "api", "T55", "Consulta a la biblioteca",
       "Responderá preguntas con fichas citadas usando un modelo de lenguaje que solo informa. "
       "Aún no existe.", consumes=(("library.cards", "library_card"),), produces=("answer",), **_P),
-    c("bots.runner", "bots", "analisis", "service", "bots", "T57", "Ejecutor de bots",
-      "Correrá bots públicos aislados, sin claves, y convertirá su salida en una señal común. "
-      "Aún no existe.", cadence="cada cierre de vela", cadence_s=3600,
-      consumes=(("data.snapshot", "snapshot"),), produces=("bot_signal",), **_P),
-    c("agent.bots", "agent", "analisis", "agent", "api", "T57", "Agente de bots",
-      "Resumirá lo que opinan los bots como un analista más, puntuado por la puerta de "
-      "validación. Aún no existe.", cadence="cada cierre de vela", cadence_s=3600,
-      consumes=(("bots.runner", "bot_signal"),), produces=("agent_report",), **_P),
     c("bots.scoring", "bots", "validacion", "engine", "bots", "T59", "Puntuación de bots",
       "Medirá a cada bot con la misma vara que a las estrategias propias y lo degradará si "
       "falla. Aún no existe.", consumes=(("bots.runner", "bot_signal"),),
