@@ -41,6 +41,7 @@ from eim.data.providers.leaders import HyperliquidInfo, now_ms
 from eim.leaders import copy_cli
 from eim.leaders.board_text import render_board
 from eim.leaders.parse import vault_leader
+from eim.observability.emit import configure
 from eim.operation.notify import JsonLog
 from eim.operation.watchdog import Watchdog, instance_lock
 
@@ -87,6 +88,7 @@ def _list(store: LeaderStore, status: str | None) -> str:
 def _supervise(a: argparse.Namespace, make_watchdog=Watchdog) -> str:
     """Un solo vigilante por carpeta de datos (cerrojo `leaders/supervisor.lock`); su hijo
     `run` es el único proceso que abre `leaders.duckdb`."""
+    configure(process="watchdog", spool_dir=Path(a.root) / "obs" / "spool")
     root = Path(a.root) / BOARD_DIR
     lock = instance_lock(root / "supervisor.lock")
     if lock is None:
@@ -186,6 +188,7 @@ def _dispatch(store: LeaderStore, a: argparse.Namespace) -> str:
         return "\n".join(_toggle_watch(store, _hl_id(x), a.cmd == "watch", now)
                          for x in a.addresses)
     if a.cmd == "run":
+        configure(process="leaders", spool_dir=Path(a.root) / "obs" / "spool")
         watch = LeaderService(store, HyperliquidInfo(), store.leaders(), root=a.root,
                               ws_max=max(0, min(a.ws_max, 10)),
                               copy_mode=os.environ.get("EIM_COPY_SIM", "tracked"))

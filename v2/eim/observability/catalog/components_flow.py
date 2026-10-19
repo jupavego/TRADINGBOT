@@ -204,6 +204,12 @@ VALIDATION: tuple[Component, ...] = (
       "ejecutadas.", cadence="a demanda",
       consumes=(("validation.gate", "validation_verdict"), ("paper.broker", "paper_trade")),
       produces=("setup",)),
+    c("validation.setups_followup", "validation", "validacion", "service", "api", "T51",
+      "Seguimiento de sugerencias", "Registra cada sugerencia la primera vez que se publica y la "
+      "resuelve con el motor del bróker simulado sobre las velas posteriores; compara la señal "
+      "con el resultado y pone en revisión la versión que se degrada. Nunca ejecuta nada.",
+      cadence="cada ciclo del bróker", cadence_s=60,
+      consumes=(("validation.setups_publisher", "setup"),), produces=("followup",)),
     c("library.cards", "library", "validacion", "store", "cli", "T52", "Biblioteca de trading",
       "Fichas citadas de los libros del usuario, con búsqueda local. El texto es dato, nunca "
       "instrucción; hoy nadie decide con ellas.", produces=("library_card",)),

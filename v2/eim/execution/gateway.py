@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from eim.core import Mode
+from eim.observability import hooks
 from eim.risk.arb_engine import ArbRiskEngine
 from eim.risk.arb_models import ArbDecision
 from eim.risk.engine import RiskEngine
@@ -47,16 +48,34 @@ class OrderGateway:
 
     def submit(self, decision: RiskDecision, now: int, entry_kind: str = "MARKET") -> str:
         """Verifica la decisión con el motor (lanza `PermissionError` si no autoriza) y envía."""
-        self._engine.verify(decision, now)
-        if decision.mode != self._broker.mode:
-            raise PermissionError(f"decisión en modo {decision.mode.value} y broker en "
-                                  f"{self._broker.mode.value}")
-        if entry_kind not in ("MARKET", "LIMIT"):
-            raise ValueError(f"tipo de entrada no soportado: {entry_kind}")
-        return self._broker.place(OrderIntent(
-            symbol=decision.symbol, side=decision.side, size=decision.size,
-            leverage=decision.leverage, mode=decision.mode, plan_id=decision.plan_id,
-            entry=decision.entry, sl=decision.sl, tp=decision.tp, entry_kind=entry_kind))
+        pid, mode = decision.plan_id, decision.mode
+        try:
+            self._engine.verify(decision, now)
+            if decision.mode != self._broker.mode:
+                raise PermissionError(f"decisión en modo {decision.mode.value} y broker en "
+                                      f"{self._broker.mode.value}")
+            if entry_kind not in ("MARKET", "LIMIT"):
+                raise ValueError(f"tipo de entrada no soportado: {entry_kind}")
+        except (PermissionError, ValueError) as e:
+            hooks.order_event("order_intent", "execution.gateway", pid, mode=mode,
+                              status="rejected", detail={"reason": str(e)})
+            raise
+        hooks.order_event("order_intent", "execution.gateway", pid, mode=mode,
+                          detail={"side": decision.side, "size": decision.size,
+                                  "leverage": decision.leverage, "entry_kind": entry_kind})
+        hooks.order_event("order_sent", "execution.service", pid, mode=mode,
+                          detail={"entry_kind": entry_kind})
+        try:
+            key = self._broker.place(OrderIntent(
+                symbol=decision.symbol, side=decision.side, size=decision.size,
+                leverage=decision.leverage, mode=decision.mode, plan_id=decision.plan_id,
+                entry=decision.entry, sl=decision.sl, tp=decision.tp, entry_kind=entry_kind))
+        except Exception as e:
+            hooks.order_event("alert", "execution.service", pid, mode=mode,
+                              status="rejected" if isinstance(e, PermissionError) else "error",
+                              detail={"error": f"{type(e).__name__}: {e}"[:200]})
+            raise
+        return key
 
 
 class ArbExecutorPort(Protocol):

@@ -36,6 +36,7 @@ from eim.execution.broker import (
     trade_key,
 )
 from eim.execution.gateway import OrderIntent
+from eim.observability import hooks
 from eim.risk.killswitch import KillSwitch
 
 PENDING, OPEN, CLOSED, FAILED = "PENDIENTE", "ABIERTA", "CERRADA", "FALLIDA"
@@ -204,6 +205,8 @@ class ExecutionService:
     def _apply_entry(self, tr: LiveTrade, st: OrderState) -> None:
         if st.filled > tr.filled:
             self._log(tr, f"entrada llenada {st.filled}/{tr.qty} a {st.avg_price}")
+            hooks.fill_event(tr.plan_id, self.mode, tr.key, "entrada", st.filled - tr.filled,
+                             st.avg_price)
         tr.filled, tr.avg_entry = st.filled, st.avg_price or tr.avg_entry
         if tr.filled > 0 and tr.status == PENDING:
             tr.status, tr.opened_at = OPEN, self._clock()
@@ -237,6 +240,8 @@ class ExecutionService:
             tr.exit_reason = ("TP" if hit == ["t"] else "SL") if hit else "posición cerrada fuera"
             tr.exit_price = fired[0][1].avg_price if fired else None
             self._log(tr, f"cerrada: {tr.exit_reason}")
+            hooks.fill_event(tr.plan_id, self.mode, tr.key, tr.exit_reason, tr.filled,
+                             tr.exit_price)
 
     def repair_sl(self, tr: LiveTrade) -> None:
         """Repone el SL de una posición desprotegida; si ya se cruzó, cierra a mercado."""
@@ -281,4 +286,6 @@ class ExecutionService:
                 tr.closed_at = self._clock()
                 tr.exit_price = exit_px if tr.filled else None
                 self._log(tr, tr.exit_reason)
+                hooks.fill_event(tr.plan_id, self.mode, tr.key, tr.exit_reason, tr.filled,
+                                 tr.exit_price)
         return flat

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T03:41:56",
+ "generated": "2026-10-19T04:28:22",
  "tasks": [
   {
    "id": "T01",
@@ -635,8 +635,8 @@ window.EIM_STATUS = {
    "deps": [
     "T50"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Registro inmutable de publicaciones y de intervalos sin sugerencia (`eim/data/suggestion_store.py`, tablas `sug_*` en `paper.duckdb`), resolución con `paper/engine` sobre velas de 15 m posteriores a la publicación, sin anticipación (`eim/suggestions/tracking.py`), `Tracker` (registro idempotente, señal contra resultado, degradación: media de las últimas 20 < límite inferior del IC95 % ⇒ «en revisión» y el publicador la excluye hasta un veredicto nuevo de T49) enganchado al ciclo del bróker; `GET /v2/setups/history` y sección «Historial de sugerencias» (`web/src/setups_history.ts`); ciclo de mejora en `v2/docs/OPERACION.md`. Tests sin red en `tests/suggestions/test_tracking.py` y `tests/api/test_setups_history.py`. Verificado en navegador solo el estado vacío (sin red a Binance en este entorno ⇒ sin velas ni veredictos reales; screenshot `v2/reports/t51_historial.png`): falta mirarlo con datos reales.",
    "effort": "medio",
    "phase": 10,
    "goal": "Registrar cada oportunidad que el panel publica, resolver qué habría ocurrido con ella y comparar señal contra resultado, para que el ciclo de mejora (diagnóstico → versión nueva → nueva validación en T49) se alimente de lo que de verdad se mostró y para retirar a tiempo una estrategia que se degrada."
@@ -675,8 +675,8 @@ window.EIM_STATUS = {
     "T49",
     "T19"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**Construido y probado sin red; falta la corrida con los datos reales y presentar el informe (◆).** Preregistro `PLAN/notas/T54_preregistro.md` (commits `404e8d9` + `10e2b8f`, anteriores al código; anexo 2 mueve el interruptor a `lit_tilt_state.json`). Contexto: `ctx[\"lit\"]` (`CTX_VERSION` 2) y relleno de contextos viejos sin regenerar agentes (`python -m eim.literature ctx`). Familia `literatura` (`eim/paper/strategies_lit.py`): 5 estrategias / 9 versiones (`lit_canal_4sem` solo 4 h; el resto 1 h y 4 h; `StrategyInfo.timeframes`), declaradas con origen T54 en `lineage.json` (ventana solo ETHUSDT); las 87 huellas existentes no cambiaron; no entran en los perfiles. Ajuste de escenarios apagado: `eim/forecast/lit_tilt.py`, definición inmutable `versions/lit_tilt_v1.json` (k 0,5, criterios T1–T6) y activación `lit_tilt_state.json`; `ForecastSet.adjustments` + marca en la UI. Informe: `python -m eim.literature report` → `reports/literature/lit_v1_<fecha>.md/.json` (probado con datos sintéticos, no es evidencia). Gate: ruff limpio y pytest sin fallos nuevos (quedan 2 preexistentes por el paquete `binance`). **Pendiente (el almacén real no está en este entorno):** con la API detenida, `ctx` → reiniciar la API (recalcula T49 con las 9 versiones nuevas) → `report`; presentar el informe aunque ninguna regla pase.",
    "effort": "alto",
    "phase": 11,
    "goal": "Que lo que dicen los libros pase de opinión a evidencia por dos caminos, ambos fuera de muestra y con criterios fijados antes de calcular: (a) cada regla comprobable se vuelve **estrategia candidata** del bróker simulado y la puerta T49 decide; (b) el apoyo bibliográfico de T53 **retroalimenta las probabilidades de los escenarios** solo si mejora su calibración. Si ninguno mejora nada, ese es el resultado y se informa tal cual."
@@ -711,8 +711,8 @@ window.EIM_STATUS = {
     "T56",
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Contrato `eim/core/bots.py` (`BotSignal`, `extra=forbid`, sin campos de orden/tamaño/claves) + fichas tipadas `eim/bots/card.py`; `snapshot.bot_signals` (aditivo); `bot_signals` en DuckDB solo-añadir/point-in-time (`eim/data/bots/store.py`); servicio `eim/bots/service.py` (Hub y ciclo de operación) y rutas `GET /v2/bots/{signals,catalog}`. Modo A `hummingbot-directional` (`bollinger_v1`, `macd_bb_v1`; paridad con el bot nativo a 1e-9: la prueba destapó que `pandas-ta` usa σ muestral). Modo B `freqtrade-strategies`/`FSupertrendStrategy` en `eim/data/bots/runner.py` (entorno por lista blanca, sin claves ni red, límites, SHA fijado y checkout limpio); paridad con `get_entry_signal`/`get_exit_signal` reales en 234 velas (0 diferencias). Agente `bots` (peso 0, `excluded`, papel `contexto`; solo vota con estado `vota`, ninguno hasta T59) en `eim/agents/bots/`. Docs: `PLAN/CONTRATOS.md`, `docs/SEGURIDAD.md`, `docs/BOTS.md`, `THIRD_PARTY.md`; límites en BACKLOG.",
    "effort": "alto",
    "phase": 12,
    "goal": "Construir la cáscara que **encapsula** cualquier bot: un contrato único de salida, un ejecutor que corre el bot sin claves y sin autoridad de operar, y el agente `bots` que consolida las posturas. Se prueba de extremo a extremo con **dos adaptadores de referencia** (uno modo A y uno modo B)."
@@ -935,8 +935,8 @@ window.EIM_STATUS = {
    "deps": [
     "T72"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "**Una vela cerrada deja la traza completa** (`trace_for(símbolo, marco, cierre)`): `data_fetch` (fuente, cobertura, antigüedad) → `signal` ×17 (sesgo, confianza, estado, hash de entrada y de reporte) → `synthesis` → `forecast` → `plan` → `risk_decision` (id y sello recortado, reglas falladas) → `order_intent` → `order_sent` → `fill`, con `parent_run_id` donde hay causalidad; un agente que lanza o excede el tiempo deja su `signal` en `error` y el ciclo sigue. Ganchos en `eim/observability/hooks.py` (cadena; solo emiten dentro de una traza abierta, así backtests y consultas de la UI no producen nada) y `hooks_service.py` (latido con cadencia real, errores, descargas). Instrumentado: `agents/runner.py`, `operation/{cycle,supervisor,watchdog}.py`, `api/{live,forecast,main}.py`, `data/sync.py`, `risk/engine.py`, `execution/{gateway,service,reconcile}.py`, calendario, bróker simulado, líderes y recolector (cada proceso fija su nombre con `configure`). **Los paquetes `agents/<nombre>/` no se tocaron.** Medido: 59 eventos por ciclo (límite 100), sobrecosto dentro del ruido (<1 % de ≈1,4 s); salidas de los 17 agentes idénticas con y sin observar; ciclo idéntico con el emisor roto. `tests/conftest.py` apaga el observatorio en la suite (`EIM_OBS=off`). Tests en `tests/observability/test_instrument.py` (12). Pendiente: comprobar con la API real y Binance que la traza sale en `/v2/obs/traces` (necesita T73 y red).",
    "effort": "alto",
    "phase": 15,
    "goal": "Hacer que lo que ya existe emita eventos **sin cambiar su lógica**. Al terminar, una vela cerrada deja una traza completa de datos → agentes → síntesis → plan → riesgo → (orden) y los servicios dejan latido y errores. Puede hacerse en paralelo con T73: sin el indexador, los eventos simplemente quedan en el JSONL."
