@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T00:02:43",
+ "generated": "2026-10-19T00:34:56",
  "tasks": [
   {
    "id": "T01",
@@ -771,8 +771,141 @@ window.EIM_STATUS = {
    "state": "pending",
    "notes": "Especificada (`PLAN/T61.md`, decisión del usuario 2026-10-18: mezcla por exportación a carpeta de nube compartida, con id de máquina). Mientras no se construya, se aplica el protocolo provisional de `v2/docs/OPERACION.md` §3.1.",
    "effort": "alto",
-   "phase": 10,
+   "phase": 13,
    "goal": "Que dos o más computadores (cada colaborador con su propia copia local) acumulen **una sola experiencia**: operaciones simuladas, contextos del bróker, capturas de líderes y registro de intentos de validación. Lo que haga uno debe poder verlo el otro, sin duplicar filas, sin pisar datos y sin inflar la evidencia."
+  },
+  {
+   "id": "T62",
+   "title": "Motores de IA locales: auditoría y banco de pruebas en este equipo",
+   "deps": [],
+   "state": "pending",
+   "notes": "Especificada (`PLAN/T62.md`, insumo `PLAN/notas/T62_universo_motores.md`, 2026-10-19). Equipo de referencia: i5-8250U, 7,9 GB, MX130 2 GB (medido). ◆ qué motores entran + postura frente a YouTube.",
+   "effort": "alto",
+   "phase": 14,
+   "goal": "Decidir con evidencia **qué motores de código abierto entran** y que corren de verdad en el equipo de referencia (i5-8250U, 7,9 GB, GPU MX130 de 2 GB): captación, ASR, escenas, OCR, visión-lenguaje, LLM de texto y embeddings. Salen una lista aprobada con licencia (código **y** pesos), versión fijada y una tabla de rendimiento medido; lo que no cabe se descarta con motivo."
+  },
+  {
+   "id": "T63",
+   "title": "Capa de motores locales: interfaces, recursos y trazabilidad",
+   "deps": [
+    "T62",
+    "T05"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 14,
+   "goal": "Construir **una sola capa** (`eim/localai/`) por la que cualquier parte del proyecto use motores de IA de código abierto en local: LLM de texto, ASR, OCR, visión-lenguaje y embeddings. Es el concepto nuevo del plan: el motor es intercambiable, medible y auditable, y nunca decide por sí mismo (los LLM solo informan, `CLAUDE.md`)."
+  },
+  {
+   "id": "T64",
+   "title": "Video: vigilancia de canales, catálogo y cola de relevancia",
+   "deps": [
+    "T62"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 14,
+   "goal": "Saber **qué videos existen, cuáles importan y en qué orden procesarlos**, sin descargar nada pesado todavía. Descubrir → clasificar → puntuar → encolar; descargar es una decisión posterior y acotada por el presupuesto de T62."
+  },
+  {
+   "id": "T65",
+   "title": "Video: transcripción con marcas de tiempo (subtítulos primero, ASR local)",
+   "deps": [
+    "T63",
+    "T64"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 14,
+   "goal": "Convertir cada video de la cola en **segmentos de texto con tiempo** recuperables (`video_id`, `t_inicio`, `t_fin`, texto, origen y calidad). Vía barata primero (subtítulos); si no existen o son malos, ASR local de T63. Es la base de toda afirmación trazable."
+  },
+  {
+   "id": "T66",
+   "title": "Video: escenas, fotogramas, OCR y lectura de gráficos",
+   "deps": [
+    "T63",
+    "T64"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 14,
+   "goal": "Extraer lo que **se ve** y no se dice: cifras en pantalla, titulares, diapositivas, y de los gráficos de precio el activo, el marco temporal, los niveles y los indicadores visibles. Cada observación lleva su fotograma, su caja en la imagen y su marca de tiempo. Se mide contra una muestra revisada a mano antes de confiar en ella."
+  },
+  {
+   "id": "T67",
+   "title": "Video: afirmaciones estructuradas y trazables",
+   "deps": [
+    "T63",
+    "T65",
+    "T66"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 14,
+   "goal": "Pasar de texto y observaciones a **afirmaciones** que se pueden comprobar: qué dijo quién, cuándo, con qué evidencia y con qué condiciones. El LLM local solo **propone candidatas**; un verificador determinista acepta o descarta cada una. Sin cita verificable, no existe la afirmación."
+  },
+  {
+   "id": "T68",
+   "title": "Video: verificación contra datos reales y contradicciones",
+   "deps": [
+    "T67",
+    "T03",
+    "T36"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 14,
+   "goal": "Contrastar cada afirmación con **fuentes primarias que el proyecto ya tiene** (velas, funding/OI, calendario económico) y marcar su estado. Sin LLM en este paso: la verificación es código determinista; lo que no se puede comprobar se dice «no verificable»."
+  },
+  {
+   "id": "T69",
+   "title": "Video: reputación y calibración de analistas (puerta de evidencia)",
+   "deps": [
+    "T68",
+    "T49",
+    "T64"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 14,
+   "goal": "Responder con rigor: **¿algún analista de YouTube anticipa el mercado mejor que el azar?** Mismo estándar que la puerta T49: fuera de muestra, contra el azar, con corrección por múltiples comparaciones y sin premiar la popularidad ni la seguridad al hablar."
+  },
+  {
+   "id": "T70",
+   "title": "Agente video_intel: síntesis, UI y operación",
+   "deps": [
+    "T68",
+    "T69",
+    "T44",
+    "T10",
+    "T05"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 14,
+   "goal": "Poner el módulo a trabajar dentro de EIM **sin decretar su importancia**: un agente puro que resume lo que dicen los analistas vigilados, su verificación y su historial; se ve en el tablero con la evidencia hasta el segundo y el fotograma; y su peso en la síntesis lo decide la prueba marginal (T44), no una opinión."
+  },
+  {
+   "id": "T71",
+   "title": "Motores locales para el resto del sistema (medido)",
+   "deps": [
+    "T63",
+    "T24",
+    "T52"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 14,
+   "goal": "Cumplir la promesa del plan — «potenciar el proyecto en su conjunto» — **solo donde se demuestre**: probar los motores locales de T63 en lo que EIM ya tiene y adoptar un cambio únicamente si iguala o mejora al método actual en una muestra etiquetada. Si no gana, se documenta y no se cambia nada."
   }
  ]
 };
