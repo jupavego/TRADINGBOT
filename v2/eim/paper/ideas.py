@@ -91,6 +91,11 @@ class StrategyInfo:
     family: str
     description: str
     fn: Fn = field(repr=False, compare=False)
+    timeframes: tuple[str, ...] | None = None    # None = todos los marcos de la mesa (T54)
+
+    def runs_in(self, timeframe: str) -> bool:
+        """¿Se evalúa (y se versiona) en este marco? Las de `literatura` solo en 1 h y 4 h."""
+        return self.timeframes is None or timeframe in self.timeframes
 
     def to_json(self) -> dict:
         return {"id": self.id, "name": self.name, "family": self.family,

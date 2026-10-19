@@ -107,17 +107,20 @@ export class ScenarioPanel {
     const fs = this.fs
     const warn = this.notices(fs).map((w) => `<p class="scen-warn" role="alert">⚠ ${esc(w)}</p>`).join('')
     const total = fs.scenarios.reduce((a, s) => a + s.probability, 0)
+    const adj = fs.adjustments?.[0]
     const cards = fs.scenarios.map((s) => {
       const on = this.sel === s.id
       return `<button class="scen" data-id="${s.id}" aria-pressed="${on}" data-dim="${this.sel != null && !on}" ` +
         `style="--c:${scenColor(s.id)}"><h4><span>${SCEN_LABEL[s.id]}</span>` +
-        `<span class="num">${(s.probability * 100).toFixed(0)}%</span></h4>` +
+        `<span class="num">${(s.probability * 100).toFixed(0)}%${adj ? '*' : ''}</span></h4>` +
         `<p>${esc(s.narrative)}</p><p><b>Invalidación:</b> ${esc(s.invalidation.condition)}</p>` +
         (s.levels ?? []).map((l) => `<p class="meta"><b>${l.role === 'techo' ? 'Techo' : 'Piso'} ${l.price.toFixed(2)}</b> — ${esc(l.note)}</p>`).join('') +
         literatureSection(s.id, this.literature(), () => this.render()) +
         `<p class="meta">motor ${esc(s.engine)} · n_paths ${s.n_paths} · simulado</p></button>`
     }).join('')
-    this.el.innerHTML = bar + warn + `<div class="scen-cards">${cards}</div>` +
+    const adjNote = adj ? `<p class="meta lit-tag">* ${esc(adj.label)} · ${esc(adj.id)} (k ${adj.k}); ` +
+      `del motor: ${fs.scenarios.map((s) => `${SCEN_LABEL[s.id]} ${((adj.base_probability[s.id] ?? 0) * 100).toFixed(0)}%`).join(' · ')}</p>` : ''
+    this.el.innerHTML = bar + warn + `<div class="scen-cards">${cards}</div>` + adjNote +
       `<p class="muted meta">Suma de probabilidades: ${(total * 100).toFixed(0)}% · ` +
       `hecho ${new Date(fs.made_at).toISOString().slice(0, 16).replace('T', ' ')} UTC · ` +
       `${fs.horizon_bars} velas · proyección estadística simulada, no una predicción.</p>`

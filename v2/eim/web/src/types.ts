@@ -156,4 +156,6 @@ export interface ForecastSet {
   engine: string
   baseline_engine: string
   warnings: string[]
+  /** T54: ajustes aplicados a las probabilidades tras el motor (vacío = las del motor). */
+  adjustments?: { id: string; k: number; label: string; net: Record<string, number>; base_probability: Record<string, number> }[]
 }

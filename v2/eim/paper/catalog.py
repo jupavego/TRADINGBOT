@@ -9,8 +9,9 @@ from eim.paper.ideas import HOUR_MS, Idea, StrategyInfo, to_idea
 from eim.paper.params import ExecParams
 from eim.paper.strategies import CORE
 from eim.paper.strategies_ind import IND, Ind
+from eim.paper.strategies_lit import LIT
 
-CATALOG: dict[str, StrategyInfo] = {s.id: s for s in CORE + IND}
+CATALOG: dict[str, StrategyInfo] = {s.id: s for s in CORE + IND + LIT}
 
 
 def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str, bar_ms: int,
@@ -25,6 +26,7 @@ def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str,
     lleva la versión de su estrategia en ese marco con esa mecánica (`exec_params`, T49).
     """
     cat = catalog or CATALOG
+    cat = {k: v for k, v in cat.items() if v.runs_in(timeframe)}
     vers = {info.id: info.version(timeframe, exec_params) for info in cat.values()}
     ind = Ind(candles)
     out: list[Idea] = []
@@ -34,7 +36,7 @@ def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str,
         i = ind.index(int(ctx["t"]) - bar_ms)
         origin = origin_of(raw) if origin_of else raw.get("origin", "backtest")
         for info in cat.values():
-            needs_ind = info.family == "indicadores"
+            needs_ind = info.family in ("indicadores", "literatura")
             if needs_ind and i < 0:
                 continue
             try:
