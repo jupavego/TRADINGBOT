@@ -176,26 +176,30 @@ def test_cycle_survives_broken_emitter(tmp_path, monkeypatch):
 
 
 def test_cycle_overhead_within_budget(tmp_path):
-    """(e) El sobrecosto medido de observar un ciclo real cumple el umbral de T72. Se mide el
-    mejor de varios ciclos con cada configuración (descarta el ruido del equipo)."""
-    def timed(name: str, on: bool) -> float:
-        r = Rig(tmp_path / name, Market())
-        r.build()
-        E.configure(process="t", spool_dir=tmp_path / f"s_{name}", enabled=on)
-        t = time.perf_counter()
-        r.op.step()
-        dt = time.perf_counter() - t
-        E.flush()
-        r.close()
-        return dt
-
-    t_off = t_on = 1e9
-    for i in range(4):
-        t_off = min(t_off, timed(f"off{i}", False))
-        t_on = min(t_on, timed(f"on{i}", True))
+    """(e) Sobrecosto de observar un ciclo real dentro del umbral de T72. Determinista: eventos
+    reales del ciclo × coste p95 medido por evento (el reloj de pared de un ciclo corto varía
+    más que el propio sobrecosto, sobre todo con la suite completa en marcha)."""
+    r = Rig(tmp_path / "rig", Market())
+    r.build()
+    E.configure(process="t", spool_dir=tmp_path / "s", enabled=True)
+    t = time.perf_counter()
+    r.op.step()
+    cycle_s = time.perf_counter() - t
+    E.flush()
+    n_events = E.stats()["emitted"]
+    r.close()
+    lat = []
+    for i in range(2000):
+        t0 = time.perf_counter()
+        E.emit("heartbeat", "operation.supervisor", detail={"i": i})
+        lat.append(time.perf_counter() - t0)
     E.close()
-    allowed = max(T.MAX_CYCLE_OVERHEAD_MS / 1000, T.MAX_CYCLE_OVERHEAD_FRACTION * t_off)
-    assert t_on - t_off <= allowed + 0.03, (t_on, t_off)
+    p95 = sorted(lat)[int(len(lat) * 0.95)]
+    assert 0 < n_events <= T.MAX_EVENTS_PER_CYCLE, n_events
+    assert p95 * 1e6 <= T.EMIT_P95_US_MAX
+    overhead = n_events * p95
+    assert overhead <= max(T.MAX_CYCLE_OVERHEAD_MS / 1000,
+                           T.MAX_CYCLE_OVERHEAD_FRACTION * cycle_s), (overhead, cycle_s)
 
 
 def test_sync_emits_data_fetch_with_source_and_coverage(rig, spool):
@@ -271,3 +275,17 @@ def test_gateway_rejection_is_an_event(rig, spool):
     assert rej and rej[0]["detail"]["reason"]
     assert not [e for e in _events(spool) if e["kind"] == "order_sent"
                 and e["inputs"][0]["id"] == d.plan_id and e["ts_utc"] > rej[0]["ts_utc"]]
+
+
+def test_plan_event_without_plan_carries_the_real_reason(spool):
+    from eim.core import AgentReport
+    from eim.observability import hooks
+
+    rep = AgentReport(agent_id="plan", version="1", asof=1, bias=0, confidence=0, horizon_bars=1,
+                      evidence=["sin plan: R:B 0.8 < 1.5"],
+                      warnings=["Propuesta analítica, no es una orden"], metrics={"plan": None})
+    with E.span("operation.cycle", trace_id="tr_x"):
+        hooks.after_agents(hooks.AgentRunCtx(hooks.Ref(type="snapshot", id="s"), "tr_x"),
+                           [rep], ["plan"])
+    plan = next(e for e in _events(spool) if e["kind"] == "plan")
+    assert plan["status"] == "no_data" and "R:B" in plan["detail"]["reason"]
