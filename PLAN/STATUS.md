@@ -80,15 +80,16 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T74 | Observatorio: instrumentación de la capa existente | T72 | ☐ | |
 | T75 | Observatorio: mapa visual del flujo de trabajo (vista central, pedagógica) | T73 T74 T10 | ☐ | Pieza central de la fase (pedido del usuario 2026-10-19). ◆ prueba de comprensión con el usuario antes de cerrar. |
 | T76 | Observatorio: trazabilidad de una decisión y calidad de la evidencia | T75 T15 | ☐ | |
+| T104 | Microestructura: diagnóstico y puesta en marcha en vivo de lo ya construido (T23) | T23 | ☐ | Pedido del usuario 2026-10-19: la esfera «Microestructura» de la interfaz dice «sin datos» aunque el agente y el recolector existen. Causa probable: el recolector no está en el arranque continuo (ver `PLAN/T104.md`). **Es el primer paso útil de la Fase 16 y no depende de T77.** |
 | T77 | HFT: viabilidad medida, hipótesis nula y decisión de alcance | — | ☐ | Especificada (`PLAN/T77.md`, insumo `PLAN/notas/T77_universo_hft.md`, 2026-10-19). Mide latencia real, verifica límites/comisiones de Binance en la fuente y fija criterios `hft_v1` antes de construir. ◆ alcance, criterios y presupuesto de latencia. **Plan y alcance propuesto aprobados por el usuario el 2026-10-19** (híbrido, BTCUSDT perpetuo, datos reales + órdenes simuladas, equipo local); sigue pendiente su aprobación de la nota de decisiones (criterios `hft_v1` numéricos y presupuesto de latencia) cuando T77 la produzca. |
-| T78 | HFT: captura profunda de mercado y calidad de datos | T23 | ☐ | Puede empezar ya (camino crítico: T80 y T84 necesitan 14–30 días contiguos). |
+| T78 | HFT: captura profunda de mercado y calidad de datos (amplía el recolector de T23/T104) | T104 | ☐ | Tras T104 (camino crítico: T80 y T84 necesitan 14–30 días contiguos). |
 | T79 | HFT: simulador de ejecución a nivel de libro (latencia, cola, fills) | T78 T77 | ☐ | |
 | T80 | HFT: features, marco de evaluación y prueba de techo | T78 T23 | ☐ | ◆ ¿el techo supera los costos? Si no, se archiva antes de T81–T85. |
 | T81 | HFT: modelos cuantitativos de microestructura | T80 T79 | ☐ | |
 | T82 | HFT: estrategias (direccional, Avellaneda–Stoikov) y selector de estado | T79 T81 | ☐ | |
 | T83 | HFT: riesgo y ejecución de baja latencia (veto determinista) | T77 T30 | ☐ | Paralelizable con T79–T82. |
 | T84 | HFT: torneo de estrategias y puerta de edge (`hft_v1`) | T82 T83 T49 | ☐ | ◆ ¿alguna estrategia supera la validación? |
-| T85 | Agente `hft`, servicio en vivo y paper trading | T84 T83 T31 | ☐ | ◆ ¿pasa a testnet funcional? Nunca dinero real sin T31. |
+| T85 | Microestructura v2 (la misma esfera), servicio en vivo y paper trading | T84 T83 T31 T104 | ☐ | ◆ ¿pasa a testnet funcional? Nunca dinero real sin T31. |
 | T86 | HFT: integración (síntesis, capital, interfaz, Observatorio) | T85 T44 T10 T72 | ☐ | |
 | T87 | Multiactivo: auditoría de acoplamientos, medición y decisión de alcance | — | ☐ | Especificada (`PLAN/T87.md`, insumo `PLAN/notas/T87_universo_multiactivo.md`, 2026-10-19). Auditoría rápida ya hecha en la nota (17 agentes: 10 solo `candles`; acoplamientos a cripto localizados). ◆ alcance, horizontes, datos, orden de clases. |
 | T88 | Multiactivo: auditoría de repositorios y de proveedores de datos | — | ☐ | ◆ qué repos y proveedores entran (licencia y condiciones de uso verificadas en la fuente). |

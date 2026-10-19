@@ -105,3 +105,9 @@ Dependencias actuales (`pyproject.toml`): numpy, pandas, duckdb; `scipy` **ya se
 
 ### 7.4 Matriz de aceptación por algoritmo (propuesta final de la investigación — se adopta)
 Una fila por modelo/estrategia con columnas: **fuente de la implementación · prueba unitaria · prueba con datos de Binance · costo y latencia modelados · validación fuera de muestra (IC, Holm) · criterio de desactivación**. Se crea en T81 (`v2/reports/hft_acceptance_matrix.md`), la completa cada tarea que añade un método y T84 la consume: **un método sin todas las casillas no entra al torneo**. Cobertura de métodos: los niveles A–D de la investigación sirven de guía de «qué hay que desarrollar propio» (casi todo en este plan es C: propio sobre SciPy/statsmodels).
+
+## 8. Lo ya avanzado que no estaba funcionando (observación del usuario, 2026-10-19)
+La captura de pantalla de la interfaz muestra la esfera **«Microestructura — sin datos»**. Lectura del código:
+- El agente `microstructure` v1 (T23) está registrado, con tests y una corrida real de 32 min; devuelve `no_data` con el motivo «sin recolección de microestructura (colector no corre)» o «recolección insuficiente (n/24 velas)».
+- El recolector (`python -m eim.data.collectors.binance_ws SYMBOL --root data`) **no lo lanza `servicio_continuo.ps1` ni el vigilante de operación, no tiene supervisor ni latido y no figura en `docs/`**; en el informe marginal de T44 el agente aparece con 100 % de `no_data` (nunca tuvo historia).
+- Consecuencia para el plan: **T104** pone en marcha y supervisa lo existente (primer paso de la fase, sin depender de T77); el agente actual y su aporte medido son la **línea base a superar** (T80, T81); **T78 amplía el recolector** en vez de reescribirlo; **T85 evoluciona el mismo agente a la v2** (misma esfera) y deja la v1 para regresión. Las causas concretas en el equipo del usuario las confirma T104 (no se pueden ver desde la sesión en la nube).

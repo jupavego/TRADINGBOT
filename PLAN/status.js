@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T07:31:56",
+ "generated": "2026-10-19T07:33:58",
  "tasks": [
   {
    "id": "T01",
@@ -969,6 +969,18 @@ window.EIM_STATUS = {
    "goal": "Elegir una vela o decisión y ver lo que realmente ocurrió —datos, señales, síntesis, plan, riesgo, orden—, con el **camino causal** resaltado cuando algo falló o se vetó. Además, marcar qué decisiones se tomaron con datos obsoletos o agentes críticos degradados, para que la evidencia de papel, del bróker (T47–T48) y de la puerta T49 se pueda leer sabiendo cuánta está contaminada. Es lo que más aporta a la eficiencia y a la fiabilidad del aprendizaje."
   },
   {
+   "id": "T104",
+   "title": "Microestructura: diagnóstico y puesta en marcha en vivo de lo ya construido (T23)",
+   "deps": [
+    "T23"
+   ],
+   "state": "pending",
+   "notes": "Pedido del usuario 2026-10-19: la esfera «Microestructura» de la interfaz dice «sin datos» aunque el agente y el recolector existen. Causa probable: el recolector no está en el arranque continuo (ver `PLAN/T104.md`). **Es el primer paso útil de la Fase 16 y no depende de T77.**",
+   "effort": "medio",
+   "phase": 16,
+   "goal": "El agente `microstructure` (T23, con su recolector, la lectura por vela y los tests) **ya existe y está registrado, pero en la interfaz su esfera dice «sin datos»** (`no_data`: «sin recolección de microestructura (colector no corre)») y el informe marginal de T44 lo muestra con 100 % de `no_data` (sin historia). Antes de construir nada nuevo hay que **hacerlo funcionar de verdad en vivo**, entender por qué no lo hacía y dejarlo como la base —y la línea base a superar— de toda la Fase 16."
+  },
+  {
    "id": "T77",
    "title": "HFT: viabilidad medida, hipótesis nula y decisión de alcance",
    "deps": [],
@@ -980,15 +992,15 @@ window.EIM_STATUS = {
   },
   {
    "id": "T78",
-   "title": "HFT: captura profunda de mercado y calidad de datos",
+   "title": "HFT: captura profunda de mercado y calidad de datos (amplía el recolector de T23/T104)",
    "deps": [
-    "T23"
+    "T104"
    ],
    "state": "pending",
-   "notes": "Puede empezar ya (camino crítico: T80 y T84 necesitan 14–30 días contiguos).",
+   "notes": "Tras T104 (camino crítico: T80 y T84 necesitan 14–30 días contiguos).",
    "effort": "medio",
    "phase": 16,
-   "goal": "Empezar a acumular **cuanto antes** los datos que necesitan el simulador y los modelos: libro L2 completo con doble sello de tiempo, mejores precios, operaciones, precio de referencia y liquidaciones de BTCUSDT, con control de calidad automático. Es el camino crítico real de la fase (T80 y T84 necesitan 14–30 días contiguos), por eso puede empezar sin esperar a T77."
+   "goal": "**Amplía, no reemplaza, lo ya construido** (recolector T23 puesto en marcha por T104): empezar a acumular **cuanto antes** los datos que necesitan el simulador y los modelos: libro L2 completo con doble sello de tiempo, mejores precios, operaciones, precio de referencia y liquidaciones de BTCUSDT, con control de calidad automático. Es el camino crítico real de la fase (T80 y T84 necesitan 14–30 días contiguos); no espera a T77, solo a que T104 deje el servicio vivo."
   },
   {
    "id": "T79",
@@ -1071,17 +1083,18 @@ window.EIM_STATUS = {
   },
   {
    "id": "T85",
-   "title": "Agente hft, servicio en vivo y paper trading",
+   "title": "Microestructura v2 (la misma esfera), servicio en vivo y paper trading",
    "deps": [
     "T84",
     "T83",
-    "T31"
+    "T31",
+    "T104"
    ],
    "state": "pending",
    "notes": "◆ ¿pasa a testnet funcional? Nunca dinero real sin T31.",
    "effort": "alto",
    "phase": 16,
-   "goal": "Poner el agente en el sistema y comprobarlo **en vivo con datos reales y órdenes simuladas** durante semanas. El agente de ciclo de vela informa el estado microestructural; el servicio rápido, en proceso aparte, ejecuta el ciclo libro → features → modelos → estrategia → riesgo → bróker simulado. Solo corre lo que T84 dejó pasar."
+   "goal": "**No se crea una esfera nueva:** el agente existente `microstructure` (la esfera que hoy muestra T104) evoluciona a la versión 2 con lo aprobado en T81–T84. Poner el agente en el sistema y comprobarlo **en vivo con datos reales y órdenes simuladas** durante semanas. El agente de ciclo de vela informa el estado microestructural; el servicio rápido, en proceso aparte, ejecuta el ciclo libro → features → modelos → estrategia → riesgo → bróker simulado. Solo corre lo que T84 dejó pasar."
   },
   {
    "id": "T86",
@@ -1096,7 +1109,7 @@ window.EIM_STATUS = {
    "notes": "",
    "effort": "alto",
    "phase": 16,
-   "goal": "Que el agente HFT sea un ciudadano completo del sistema: visible, trazable, con su propio cupo de capital y documentado, mostrando siempre el modo (Análisis, Simulado o Testnet) y la evidencia de la puerta T84."
+   "goal": "Que el agente de microestructura (v2 de la esfera existente) y su servicio HFT sean ciudadanos completos del sistema: visible, trazable, con su propio cupo de capital y documentado, mostrando siempre el modo (Análisis, Simulado o Testnet) y la evidencia de la puerta T84."
   },
   {
    "id": "T87",
