@@ -50,6 +50,9 @@ export const GLYPH: Record<string, string> = {
   // Smart money: líderes aprobados (nodo central y seguidores)
   smart_money: '<circle cx="24" cy="17" r="4" class="f"/><circle cx="14" cy="32" r="3"/>' +
     '<circle cx="34" cy="32" r="3"/><path d="M21 20l-5 9M27 20l5 9M17 32h14"/>',
+  // Literatura: libro abierto con una marca de cita
+  literature: '<path d="M24 17c-3-2-8-2-11-1v17c3-1 8-1 11 1 3-2 8-2 11-1V16c-3-1-8-1-11 1z"/>' +
+    '<path d="M24 17v17" opacity=".5"/><circle cx="30" cy="22" r="1.8" class="f"/>',
   // Plan: retícula de objetivo
   plan: '<circle cx="24" cy="24" r="9"/><circle cx="24" cy="24" r="3" class="f"/>' +
     '<path d="M24 10v6M24 32v6M10 24h6M32 24h6"/>',

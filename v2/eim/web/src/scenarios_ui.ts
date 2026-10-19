@@ -2,7 +2,8 @@ import { fetchForecast } from './api'
 import type { PriceChart } from './chart'
 import { SCEN_LABEL, scenColor } from './scenarios'
 import { esc } from './panels'
-import type { Candle, ForecastSet, ScenarioId } from './types'
+import { literatureSection } from './literature_ui'
+import type { AgentReport, Candle, ForecastSet, ScenarioId } from './types'
 
 const HORIZONS = [20, 25, 30]
 const WEEK_MS = 7 * 86_400_000
@@ -21,7 +22,8 @@ export class ScenarioPanel {
   private roomFor = ''
 
   constructor(private readonly el: HTMLElement, private readonly chart: PriceChart,
-    private readonly ctx: () => { symbol: string; tf: string }) {
+    private readonly ctx: () => { symbol: string; tf: string },
+    private readonly literature: () => AgentReport | undefined = () => undefined) {
     el.onclick = (e) => {
       const t = e.target as HTMLElement
       const card = t.closest<HTMLElement>('.scen')
@@ -39,6 +41,9 @@ export class ScenarioPanel {
   }
 
   setLast(c: Candle | null): void { this.last = c }
+
+  /** Llegó un reporte nuevo (p. ej. del agente `literature`): repinta las tarjetas. */
+  refresh(): void { if (this.fs) this.render() }
 
   /** Cambio de símbolo/marco u horizonte: vuelve a pedir el pronóstico. */
   async reload(): Promise<void> {
@@ -109,6 +114,7 @@ export class ScenarioPanel {
         `<span class="num">${(s.probability * 100).toFixed(0)}%</span></h4>` +
         `<p>${esc(s.narrative)}</p><p><b>Invalidación:</b> ${esc(s.invalidation.condition)}</p>` +
         (s.levels ?? []).map((l) => `<p class="meta"><b>${l.role === 'techo' ? 'Techo' : 'Piso'} ${l.price.toFixed(2)}</b> — ${esc(l.note)}</p>`).join('') +
+        literatureSection(s.id, this.literature(), () => this.render()) +
         `<p class="meta">motor ${esc(s.engine)} · n_paths ${s.n_paths} · simulado</p></button>`
     }).join('')
     this.el.innerHTML = bar + warn + `<div class="scen-cards">${cards}</div>` +
