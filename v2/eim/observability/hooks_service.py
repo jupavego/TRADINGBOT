@@ -18,6 +18,8 @@ from eim.observability.events import new_run_id
 from eim.observability.hooks import safe
 
 _last_beat: dict[str, float] = {}
+_skipped: dict[str, int] = {}           # vueltas que el muestreo no emitió desde el último latido
+_last_err: dict[str, float] = {}
 _lock = threading.Lock()
 
 
@@ -25,24 +27,37 @@ _lock = threading.Lock()
 def beat(component_id: str, *, status: str = "ok", detail: dict[str, Any] | None = None,
          duration_ms: float | None = None, mode: Mode | None = None,
          min_interval_s: float = 0.0) -> None:
-    """`min_interval_s` > 0 muestrea los servicios de alta frecuencia (como máximo un latido
-    cada tanto)."""
+    """Latido de un servicio. `min_interval_s` > 0 muestrea los de alta frecuencia (como
+    máximo un evento cada tanto); `detail.runs` cuenta las vueltas reales desde el evento
+    anterior, así la cadencia real es `interval_s / runs` aunque se muestree."""
     now = time.monotonic()
     with _lock:
         prev = _last_beat.get(component_id)
         if prev is not None and now - prev < min_interval_s:
+            _skipped[component_id] = _skipped.get(component_id, 0) + 1
             return
         _last_beat[component_id] = now
+        runs = _skipped.pop(component_id, 0) + 1
     d = dict(detail or {})
     if prev is not None:
         d["interval_s"] = round(now - prev, 1)
+        d["runs"] = runs
     emit("heartbeat", component_id, status=status, run_id=new_run_id(),  # type: ignore[arg-type]
          duration_ms=duration_ms, detail=d, mode=mode)
 
 
 @safe
 def service_error(component_id: str, error: BaseException | str, *,
-                  detail: dict[str, Any] | None = None, mode: Mode | None = None) -> None:
+                  detail: dict[str, Any] | None = None, mode: Mode | None = None,
+                  min_interval_s: float = 0.0) -> None:
+    """Error de un servicio. `min_interval_s` evita inundar si falla en cada vuelta."""
+    if min_interval_s > 0:
+        now = time.monotonic()
+        with _lock:
+            prev = _last_err.get(component_id)
+            if prev is not None and now - prev < min_interval_s:
+                return
+            _last_err[component_id] = now
     msg = f"{type(error).__name__}: {error}" if isinstance(error, BaseException) else str(error)
     emit("alert", component_id, status="error", run_id=new_run_id(),
          detail={**(detail or {}), "error": msg[:200]}, mode=mode)

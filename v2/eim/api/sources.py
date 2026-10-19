@@ -8,6 +8,7 @@ from collections.abc import AsyncIterator
 from typing import Protocol
 
 from eim.core import Candle
+from eim.observability import hooks_service
 
 
 class LiveEvent(dict):
@@ -56,15 +57,22 @@ class BinanceKlineSource:
                 async with websockets.connect(url, ping_interval=20, open_timeout=10) as ws:
                     backoff = 1.0
                     yield LiveEvent(type="status", state="up", detail="conectado")
+                    if was_down:
+                        hooks_service.service_event("data.live_ticks", "conexión restablecida",
+                                                    detail={"symbol": symbol, "tf": timeframe})
                     was_down = False
                     async for raw in ws:
                         parsed = parse_kline(json.loads(raw))
                         if parsed:
+                            hooks_service.beat("data.live_ticks", min_interval_s=60,
+                                               detail={"symbol": symbol, "tf": timeframe})
                             yield LiveEvent(type="tick", candle=parsed[0], closed=parsed[1])
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 if not was_down:
+                    hooks_service.service_error("data.live_ticks", exc,
+                                                detail={"symbol": symbol, "tf": timeframe})
                     yield LiveEvent(type="status", state="down",
                                     detail=f"{type(exc).__name__}: {exc}")
                     was_down = True

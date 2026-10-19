@@ -20,6 +20,7 @@ from typing import Any
 from fastapi import APIRouter, Header, HTTPException, Query
 
 from eim.api.execution import confirm
+from eim.core import Mode
 from eim.data.arb_exec_store import ArbExecStore
 from eim.data.arb_store import ArbStore
 from eim.execution.arb_book import ACTIVE, position_row
@@ -30,6 +31,7 @@ from eim.execution.arb_runner import ArbAutopilot, decision_row
 from eim.execution.binance_spot_testnet import BinanceSpotTestnetBroker
 from eim.execution.binance_testnet import BinanceTestnetBroker
 from eim.execution.broker import BrokerError
+from eim.observability import hooks_service
 from eim.risk import KillSwitch
 from eim.risk.arb_config import ArbRiskConfig, load_arb_config
 from eim.risk.arb_engine import ArbRiskEngine
@@ -114,11 +116,16 @@ async def arb_loop(rt: ArbExecRuntime) -> None:
     """Ciclo automático en un hilo (las llamadas al exchange son bloqueantes)."""
     while True:
         try:
-            await asyncio.to_thread(rt.cycle)
+            rep = await asyncio.to_thread(rt.cycle)
             rt.error = ""
+            hooks_service.beat("arbitrage.executor", mode=Mode.TESTNET, detail={
+                "opened": bool(rep.get("opened")), "actions": len(rep.get("actions") or ()),
+                "decisions": len(rep.get("decisions") or ()),
+                "skipped": str(rep.get("skipped") or "")[:80]})
         except Exception as e:  # noqa: BLE001 - el bucle no muere; el fallo queda en `error`
             log.exception("ciclo de arbitraje fallido")
             rt.error = f"ciclo fallido: {type(e).__name__}: {e}"
+            hooks_service.service_error("arbitrage.executor", e, mode=Mode.TESTNET)
         await asyncio.sleep(rt.interval_s)
 
 
