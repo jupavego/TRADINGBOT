@@ -1,6 +1,7 @@
 """Genera PLAN/status.js a partir de PLAN/STATUS.md y de la cabecera de cada Txx.md.
 
 Uso:  python PLAN/build_roadmap.py [--no-publish]
+Si el plan no cambió, no reescribe status.js (así `git pull` no se bloquea por la marca de hora).
 Además publica roadmap.html y status.js en la carpeta viva que sirve el acceso directo del escritorio.
 El archivo roadmap.html lo relee solo cada pocos segundos (funciona abierto con doble clic).
 """
@@ -68,6 +69,15 @@ def publish(tasks: list) -> None:
     print(f"roadmap vivo publicado en {dest}")
 
 
+def previous_tasks(path: Path) -> list | None:
+    """Tareas del status.js actual (None si no existe o no se puede leer)."""
+    try:
+        text = path.read_text(encoding="utf-8")
+        return json.loads(text.split("=", 1)[1].rstrip().removesuffix(";"))["tasks"]
+    except (OSError, ValueError, KeyError, IndexError):
+        return None
+
+
 def main() -> int:
     status = PLAN / "STATUS.md"
     tasks = []
@@ -85,11 +95,16 @@ def main() -> int:
         }
         t.update(head_info(tid))
         tasks.append(t)
-    payload = {"generated": datetime.now().isoformat(timespec="seconds"), "tasks": tasks}
     out = PLAN / "status.js"
-    out.write_text("window.EIM_STATUS = " + json.dumps(payload, ensure_ascii=False, indent=1) + ";\n", encoding="utf-8")
     done = sum(t["state"] == "done" for t in tasks)
-    print(f"status.js: {len(tasks)} tareas, {done} hechas")
+    if previous_tasks(out) == tasks:
+        # Sin cambios en el plan: no se reescribe. La marca de hora cambiaría en cada ejecución,
+        # dejaría el archivo versionado siempre «modificado» y bloquearía `git pull`.
+        print(f"status.js sin cambios: {len(tasks)} tareas, {done} hechas")
+    else:
+        payload = {"generated": datetime.now().isoformat(timespec="seconds"), "tasks": tasks}
+        out.write_text("window.EIM_STATUS = " + json.dumps(payload, ensure_ascii=False, indent=1) + ";\n", encoding="utf-8")
+        print(f"status.js: {len(tasks)} tareas, {done} hechas")
     if "--no-publish" not in sys.argv:
         publish(tasks)
     return 0
