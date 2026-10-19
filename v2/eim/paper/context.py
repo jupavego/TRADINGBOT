@@ -16,7 +16,7 @@ from eim.synthesis import synthesize
 from eim.synthesis.setups import SetupParams, levels_of, suggest
 from eim.synthesis.synth import drift_of
 
-CTX_VERSION = 1
+CTX_VERSION = 2       # 2: añade `lit` (aciertos compactos del agente `literature`, T54)
 HOUR_MS = 3_600_000
 VOL_BARS = 200        # mismas velas que `/v2/setups` para la volatilidad
 ATR_PERIOD = 14
@@ -65,6 +65,19 @@ def _plan(rep: AgentReport | None) -> dict | None:
             "conf": _r(rep.confidence)}
 
 
+def lit_summary(rep: AgentReport | None) -> dict | None:
+    """Aciertos compactos de `literature` en la vela (T54): `[ficha, dirección, fuerza]`, neto por
+    escenario y la versión del agente. None si el agente no corrió o no tenía reglas/velas."""
+    if rep is None or rep.status == "no_data":
+        return None
+    sup = rep.metrics.get("scenario_support") or {}
+    return {"v": rep.version,
+            "hits": [[h["card_id"], int(h["direction"]), _r(h["strength"])]
+                     for h in rep.metrics.get("hits") or []],
+            "net": {k: _r(v["net"]) for k, v in sup.items()},
+            "n": rep.metrics.get("rules_evaluated")}
+
+
 def make_ctx(snap: MarketSnapshot, reports: list[AgentReport], expected: list[str],
              forecast: ForecastSet | None, bar_ms: int,
              setup_params: SetupParams | None = None) -> dict:
@@ -82,6 +95,7 @@ def make_ctx(snap: MarketSnapshot, reports: list[AgentReport], expected: list[st
         "syn": None if syn is None else {"bias": _r(syn.bias), "conf": _r(syn.confidence),
                                          "agree": _r(syn.agreement)},
         "plan": _plan(byid.get("plan")),
+        "lit": lit_summary(byid.get("literature")),
         "setups": [{"side": s.side, "entry": _r(s.entry), "sl": _r(s.sl), "tp": _r(s.tp),
                     "rr": _r(s.rr), "p_fill": _r(s.p_fill), "p_tp": _r(s.p_tp), "ev_r": _r(s.ev_r),
                     "hours": _r(s.hours), "aligned": s.aligned, "conf_n": s.confluence,

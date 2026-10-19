@@ -45,7 +45,8 @@ class View:
 def strategy_infos(tfs: tuple[str, ...]) -> list[dict]:
     """Ficha de cada estrategia en cada marco (`id` = estrategia@marco)."""
     return [{**s.to_json(), "id": f"{s.id}@{tf}", "base": s.id, "timeframe": tf,
-             "name": f"{s.name} · {tf}"} for tf in tfs for s in CATALOG.values()]
+             "name": f"{s.name} · {tf}"} for tf in tfs for s in CATALOG.values()
+            if s.runs_in(tf)]
 
 
 class PaperDesk(DeskService):
