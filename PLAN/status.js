@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T17:23:47",
+ "generated": "2026-10-19T17:31:45",
  "tasks": [
   {
    "id": "T01",
@@ -967,6 +967,362 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 15,
    "goal": "Elegir una vela o decisión y ver lo que realmente ocurrió —datos, señales, síntesis, plan, riesgo, orden—, con el **camino causal** resaltado cuando algo falló o se vetó. Además, marcar qué decisiones se tomaron con datos obsoletos o agentes críticos degradados, para que la evidencia de papel, del bróker (T47–T48) y de la puerta T49 se pueda leer sabiendo cuánta está contaminada. Es lo que más aporta a la eficiencia y a la fiabilidad del aprendizaje."
+  },
+  {
+   "id": "T104",
+   "title": "Microestructura: diagnóstico y puesta en marcha en vivo de lo ya construido (T23)",
+   "deps": [
+    "T23"
+   ],
+   "state": "pending",
+   "notes": "Pedido del usuario 2026-10-19: la esfera «Microestructura» de la interfaz dice «sin datos» aunque el agente y el recolector existen. Causa probable: el recolector no está en el arranque continuo (ver `PLAN/T104.md`). **Es el primer paso útil de la Fase 16 y no depende de T77.**",
+   "effort": "medio",
+   "phase": 16,
+   "goal": "El agente `microstructure` (T23, con su recolector, la lectura por vela y los tests) **ya existe y está registrado, pero en la interfaz su esfera dice «sin datos»** (`no_data`: «sin recolección de microestructura (colector no corre)») y el informe marginal de T44 lo muestra con 100 % de `no_data` (sin historia). Antes de construir nada nuevo hay que **hacerlo funcionar de verdad en vivo**, entender por qué no lo hacía y dejarlo como la base —y la línea base a superar— de toda la Fase 16."
+  },
+  {
+   "id": "T77",
+   "title": "HFT: viabilidad medida, hipótesis nula y decisión de alcance",
+   "deps": [],
+   "state": "pending",
+   "notes": "Especificada (`PLAN/T77.md`, insumo `PLAN/notas/T77_universo_hft.md`, 2026-10-19). Mide latencia real, verifica límites/comisiones de Binance en la fuente y fija criterios `hft_v1` antes de construir. ◆ alcance, criterios y presupuesto de latencia. **Plan y alcance propuesto aprobados por el usuario el 2026-10-19** (híbrido, BTCUSDT perpetuo, datos reales + órdenes simuladas, equipo local); sigue pendiente su aprobación de la nota de decisiones (criterios `hft_v1` numéricos y presupuesto de latencia) cuando T77 la produzca.",
+   "effort": "medio",
+   "phase": 16,
+   "goal": "Fijar con mediciones, **antes de construir**, qué clase de HFT es viable aquí y qué se va a probar. Salen el presupuesto de latencia real, los límites y costos de Binance verificados en la fuente, la decisión sobre cada repositorio de la investigación y los criterios de éxito **escritos antes de ver resultados**."
+  },
+  {
+   "id": "T78",
+   "title": "HFT: captura profunda de mercado y calidad de datos (amplía el recolector de T23/T104)",
+   "deps": [
+    "T104"
+   ],
+   "state": "pending",
+   "notes": "Tras T104 (camino crítico: T80 y T84 necesitan 14–30 días contiguos).",
+   "effort": "medio",
+   "phase": 16,
+   "goal": "**Amplía, no reemplaza, lo ya construido** (recolector T23 puesto en marcha por T104): empezar a acumular **cuanto antes** los datos que necesitan el simulador y los modelos: libro L2 completo con doble sello de tiempo, mejores precios, operaciones, precio de referencia y liquidaciones de BTCUSDT, con control de calidad automático. Es el camino crítico real de la fase (T80 y T84 necesitan 14–30 días contiguos); no espera a T77, solo a que T104 deje el servicio vivo."
+  },
+  {
+   "id": "T79",
+   "title": "HFT: simulador de ejecución a nivel de libro (latencia, cola, fills)",
+   "deps": [
+    "T78",
+    "T77"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Un simulador que reproduzca el libro evento a evento y diga **qué habría pasado con una orden**: latencia de feed y de envío, posición en cola, fills parciales, rechazos y comisiones. Es el sustituto honesto de testnet para medir ejecución (el libro de testnet no es el real). Debe ser **más pesimista que optimista** y medir su propio sesgo."
+  },
+  {
+   "id": "T80",
+   "title": "HFT: features, marco de evaluación y prueba de techo",
+   "deps": [
+    "T78",
+    "T23"
+   ],
+   "state": "pending",
+   "notes": "◆ ¿el techo supera los costos? Si no, se archiva antes de T81–T85.",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Construir las variables de microestructura y un marco de evaluación sin trampas, y responder **barato y pronto** a la pregunta que decide el resto de la fase: ¿el movimiento predecible del precio supera los costos? Si no, se detiene la inversión antes de modelos y estrategias."
+  },
+  {
+   "id": "T81",
+   "title": "HFT: modelos cuantitativos de microestructura",
+   "deps": [
+    "T80",
+    "T79"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Implementar y medir los modelos econométricos, estocásticos y probabilísticos del catálogo (`PLAN/notas/T77_universo_hft.md` §5) como funciones puras en `eim/hft/models/`. **Un modelo entra solo si mejora su línea base fuera de muestra** (IC 95 % y Holm); si no, queda archivado en el informe con su resultado."
+  },
+  {
+   "id": "T82",
+   "title": "HFT: estrategias (direccional, Avellaneda–Stoikov) y selector de estado",
+   "deps": [
+    "T79",
+    "T81"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Convertir los modelos aprobados en estrategias que compiten bajo las mismas condiciones, y un selector determinista que decide **si conviene proveer liquidez, tomarla, esperar o no operar**. Una señal positiva no basta: la ventaja esperada neta debe superar costos y riesgo de ejecución."
+  },
+  {
+   "id": "T83",
+   "title": "HFT: riesgo y ejecución de baja latencia (veto determinista)",
+   "deps": [
+    "T77",
+    "T30"
+   ],
+   "state": "pending",
+   "notes": "Paralelizable con T79–T82.",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "La capa que **protege el capital e impide errores de operación** del carril HFT, independiente de la IA y de las estrategias. Puede construirse en paralelo con T79–T82: solo necesita la interfaz `Broker` y los límites verificados en T77."
+  },
+  {
+   "id": "T84",
+   "title": "HFT: torneo de estrategias y puerta de edge (hft_v1)",
+   "deps": [
+    "T82",
+    "T83",
+    "T49"
+   ],
+   "state": "pending",
+   "notes": "◆ ¿alguna estrategia supera la validación?",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Medir, con criterios fijados antes de mirar, si alguna estrategia tiene ventaja **neta de costos y latencia** fuera de muestra. Es el equivalente de T27/T49 para HFT y puede terminar en «ninguna pasa»: ese resultado es válido y se documenta."
+  },
+  {
+   "id": "T85",
+   "title": "Microestructura v2 (la misma esfera), servicio en vivo y paper trading",
+   "deps": [
+    "T84",
+    "T83",
+    "T31",
+    "T104"
+   ],
+   "state": "pending",
+   "notes": "◆ ¿pasa a testnet funcional? Nunca dinero real sin T31.",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "**No se crea una esfera nueva:** el agente existente `microstructure` (la esfera que hoy muestra T104) evoluciona a la versión 2 con lo aprobado en T81–T84. Poner el agente en el sistema y comprobarlo **en vivo con datos reales y órdenes simuladas** durante semanas. El agente de ciclo de vela informa el estado microestructural; el servicio rápido, en proceso aparte, ejecuta el ciclo libro → features → modelos → estrategia → riesgo → bróker simulado. Solo corre lo que T84 dejó pasar."
+  },
+  {
+   "id": "T86",
+   "title": "HFT: integración (síntesis, capital, interfaz, Observatorio)",
+   "deps": [
+    "T85",
+    "T44",
+    "T10",
+    "T72"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Que el agente de microestructura (v2 de la esfera existente) y su servicio HFT sean ciudadanos completos del sistema: visible, trazable, con su propio cupo de capital y documentado, mostrando siempre el modo (Análisis, Simulado o Testnet) y la evidencia de la puerta T84."
+  },
+  {
+   "id": "T87",
+   "title": "Multiactivo: auditoría de acoplamientos, medición y decisión de alcance",
+   "deps": [],
+   "state": "pending",
+   "notes": "Especificada (`PLAN/T87.md`, insumo `PLAN/notas/T87_universo_multiactivo.md`, 2026-10-19). Auditoría rápida ya hecha en la nota (17 agentes: 10 solo `candles`; acoplamientos a cripto localizados). ◆ alcance, horizontes, datos, orden de clases.",
+   "effort": "medio",
+   "phase": 17,
+   "goal": "Convertir la auditoría rápida de `PLAN/notas/T87_universo_multiactivo.md` en una **matriz de reutilización completa** (qué se conserva, qué se adapta, qué es específico de cripto) con el costo real de cada agente, y fijar el alcance con el usuario antes de tocar código. Sin cambios en `eim/`."
+  },
+  {
+   "id": "T88",
+   "title": "Multiactivo: auditoría de repositorios y de proveedores de datos",
+   "deps": [],
+   "state": "pending",
+   "notes": "◆ qué repos y proveedores entran (licencia y condiciones de uso verificadas en la fuente).",
+   "effort": "medio",
+   "phase": 17,
+   "goal": "Verificar en la fuente lo que la investigación del usuario **declara** (licencia, mantenimiento, pruebas, compatibilidad) y decidir qué repositorios y proveedores entran, con qué rol y con qué límites. Los datos son la mitad del riesgo: sin una fuente con licencia clara no hay clase de activos."
+  },
+  {
+   "id": "T89",
+   "title": "Registro universal de instrumentos y calendarios",
+   "deps": [
+    "T87"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Un catálogo único donde cada instrumento tiene identidad estable, clase, estructura de mercado, reglas contractuales y datos disponibles, de modo que ningún módulo nuevo vuelva a codificar «BTCUSDT». Compatible hacia atrás: el símbolo cripto de hoy sigue siendo un identificador válido."
+  },
+  {
+   "id": "T90",
+   "title": "Contratos de datos multifuente, almacén y calidad",
+   "deps": [
+    "T89"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Hacer que el almacén y los proveedores hablen de instrumentos y no de símbolos de Binance, con calidad y procedencia por dato: huecos que entienden calendarios, precios ajustados frente a crudos, marcos diario y semanal, y licencia/uso por fuente. Sin esto no hay clase nueva que pueda validarse."
+  },
+  {
+   "id": "T91",
+   "title": "Agentes: capacidades declaradas, elegibilidad y supuestos de tiempo",
+   "deps": [
+    "T87",
+    "T89"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Que cada agente declare **a qué instrumentos, marcos y datos aplica** y que el sistema decida su elegibilidad con una razón escrita, y que los diez agentes de velas funcionen en mercados con sesiones y sin volumen real **sin cambiar ni un resultado en BTC/ETH**."
+  },
+  {
+   "id": "T92",
+   "title": "Costos, margen y simulación por clase de activo",
+   "deps": [
+    "T89"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Generalizar el modelo de perpetuos (comisión, funding, liquidación aislada, apalancamiento entero) a un **modelo de costos y de márgenes por clase**, de modo que backtest, bróker simulado y riesgo valoren una operación en acciones, FX o futuros con sus reglas reales. Es lo que decide si una «oportunidad» sobrevive a los costos."
+  },
+  {
+   "id": "T93",
+   "title": "Escáner global (1/2): universo, embudo, cola y caché",
+   "deps": [
+    "T89",
+    "T90",
+    "T91"
+   ],
+   "state": "pending",
+   "notes": "Primer universo: todos los perpetuos USDⓈ-M de Binance (sin licencias nuevas).",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "La infraestructura que permite mirar miles de instrumentos con un presupuesto de cómputo medido: descubrir el universo, filtrarlo, calcular una puntuación barata y vectorizada de todo el universo y entregar solo una lista corta a los agentes profundos. **Sin ejecutar órdenes.** Se prueba primero con el universo completo de perpetuos de Binance."
+  },
+  {
+   "id": "T94",
+   "title": "Escáner global (2/2): agentes sobre el universo, oportunidades trazables, API y panel",
+   "deps": [
+    "T93"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Conectar la lista corta de T93 con los agentes **elegibles** de cada instrumento y producir **oportunidades candidatas trazables** (nunca órdenes), visibles en la API y en una pestaña, con el modo siempre a la vista."
+  },
+  {
+   "id": "T95",
+   "title": "Ranking global y control de multiplicidad (placebo, Holm/FDR)",
+   "deps": [
+    "T94",
+    "T49"
+   ],
+   "state": "pending",
+   "notes": "◆ ¿el escáner muestra algo que supere el azar?",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Hacer comparables oportunidades de instrumentos, horizontes y clases distintos **y** medir cuántas serían falsos descubrimientos por azar. Escanear miles de instrumentos con 17 agentes es una máquina de generar hipótesis: sin este control el panel mostraría ruido con buena presentación (T27 y T49 ya dijeron que en BTC/ETH no hay edge validado)."
+  },
+  {
+   "id": "T96",
+   "title": "Cartera y riesgo transversal multiactivo",
+   "deps": [
+    "T92",
+    "T95"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Pasar de oportunidades sueltas a una **cartera simulada** con exposición, correlación, concentración, margen y moneda controlados por un componente determinista con poder de veto, independiente de los agentes. Solo simulación."
+  },
+  {
+   "id": "T97",
+   "title": "Clase: renta variable (acciones, ETF e índices)",
+   "deps": [
+    "T90",
+    "T91",
+    "T92",
+    "T93"
+   ],
+   "state": "pending",
+   "notes": "◆ ¿la clase sigue? Molde de la lista de aceptación.",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Llevar la primera clase fuera de cripto de punta a punta y comprobar **toda** la lista de aceptación por clase (descubrimiento, datos, agentes, backtesting, riesgo, ejecución simulada, observabilidad, validación). Sirve de molde para las demás clases."
+  },
+  {
+   "id": "T98",
+   "title": "Clase: divisas (FX)",
+   "deps": [
+    "T97"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Incorporar pares de divisas respetando que el mercado es OTC, 24/5, sin volumen central y con costos de swap, y completar la lista de aceptación por clase."
+  },
+  {
+   "id": "T99",
+   "title": "Clase: materias primas y futuros tradicionales",
+   "deps": [
+    "T97"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Incorporar futuros con vencimiento (energía, metales, agrícolas, índices, tasas) y sus particularidades — curva, contango/backwardation, roll, estacionalidad natural — y completar la lista de aceptación por clase."
+  },
+  {
+   "id": "T100",
+   "title": "Renta fija, derivados y opciones: viabilidad y modelos propios",
+   "deps": [
+    "T88",
+    "T92"
+   ],
+   "state": "pending",
+   "notes": "◆ qué producto merece su propia clase.",
+   "effort": "medio",
+   "phase": 17,
+   "goal": "Decidir con evidencia si bonos, repos, operaciones de financiación y opciones se pueden cubrir y cómo. **No basta aplicar indicadores técnicos a sus precios**: requieren curvas, duración, convexidad, carry/roll-down, cadenas de opciones, volatilidad implícita y griegas. Esta tarea produce especificación y prototipo mínimo, no una clase completa."
+  },
+  {
+   "id": "T101",
+   "title": "Validación multiactivo: matriz agente × clase",
+   "deps": [
+    "T95",
+    "T97"
+   ],
+   "state": "pending",
+   "notes": "◆ qué celdas se publican (probable: pocas o ninguna).",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Responder con evidencia **dónde funciona cada agente y dónde no**: una puerta de validación a escala de universo que cuenta todas las hipótesis y publica solo los pares (agente, clase, horizonte) que la superan. El resultado más probable, a la vista de T27 y T49, es «pocos o ninguno»; debe decirse tal cual."
+  },
+  {
+   "id": "T102",
+   "title": "Observabilidad y despliegue gradual multiactivo",
+   "deps": [
+    "T94",
+    "T72"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 17,
+   "goal": "Que cada instrumento, dato, agente, oportunidad y decisión sea rastreable de punta a punta y que el paso de «alerta» a «simulación» y a «papel» siga un protocolo escrito. El sistema debe poder decir en cualquier momento qué mercados vigila, con qué datos y qué no puede ver."
+  },
+  {
+   "id": "T103",
+   "title": "Ejecución multiactivo: adaptador de papel y decisión de intermediario",
+   "deps": [
+    "T96",
+    "T101",
+    "T31"
+   ],
+   "state": "pending",
+   "notes": "◆ intermediario; solo papel, nunca dinero real.",
+   "effort": "alto",
+   "phase": 17,
+   "goal": "Dar al sistema un camino de ejecución **solo en cuenta de papel/simulada** para las clases que superen la puerta, sin tocar nunca dinero real. Verifica que el contrato de órdenes, la reconciliación y el riesgo funcionan con acciones, FX o futuros reales de un intermediario."
   }
  ]
 };
