@@ -13,6 +13,7 @@ from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
 from eim.forecast.base_engine import BaseEngine
 from eim.forecast.engine import MAX_HORIZON, MIN_HORIZON
+from eim.forecast.lit_tilt import TiltConfig, apply_tilt, load_config
 from eim.forecast.scenarios import build_forecast
 from eim.synthesis import drift_of, synthesize
 
@@ -23,8 +24,9 @@ class Forecaster:
     """Genera y persiste el `ForecastSet` de un (símbolo, marco) desde el almacén."""
 
     def __init__(self, store: Store, reports: ReportStore, bars: int = 1500,
-                 n_paths: int = 500) -> None:
+                 n_paths: int = 500, tilt: TiltConfig | None = None) -> None:
         self._store, self._reports, self._bars, self._n = store, reports, bars, n_paths
+        self._tilt = tilt or load_config()      # T54: apagado salvo commit que lo encienda
         self.db = ForecastStore(*reports.connection)
         self.engine = BaseEngine()
 
@@ -44,6 +46,15 @@ class Forecaster:
             return None
         return drift_of(syn, float(np.std(np.diff(np.log(closes)))))
 
+    def _literature_net(self, symbol: str, tf: str, asof: int | None) -> dict[str, float]:
+        """Neto por escenario del agente `literature` (reporte vigente en `asof`), si hay."""
+        rs = self._reports.at(symbol, tf, asof) if asof else self._reports.latest(symbol, tf)
+        for r in rs:
+            if r.agent_id == "literature" and r.status != "no_data":
+                sup = r.metrics.get("scenario_support") or {}
+                return {k: float(v.get("net") or 0.0) for k, v in sup.items()}
+        return {}
+
     def run(self, symbol: str, tf: str, horizon: int = DEFAULT_HORIZON,
             asof: int | None = None, drift: float | None = None) -> ForecastSet:
         snap = build_snapshot(self._store, symbol, tf, self._bars, asof=asof)
@@ -52,6 +63,8 @@ class Forecaster:
         if drift is None:  # T20: la síntesis inclina la proyección
             drift = self._synthesis_drift(symbol, tf, snap, asof)
         fs = build_forecast(snap, horizon, self._n, drift=drift, stops=self._stops(symbol, tf))
+        if self._tilt.enabled:
+            fs = apply_tilt(fs, self._literature_net(symbol, tf, asof), self._tilt)
         self.db.save(fs)
         return fs
 

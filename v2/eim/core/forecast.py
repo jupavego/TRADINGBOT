@@ -41,6 +41,9 @@ class ForecastSet(Frozen):
     warnings: list[str] = []
     # Cuantiles del cierre simulado por instante sobre TODAS las trayectorias ('5'..'95'); T19.
     quantiles: dict[str, list[tuple[int, float]]] = {}
+    # Ajustes aplicados a las probabilidades tras el motor (T54): [{id, k, label, net,
+    # base_probability}]. Vacío = las probabilidades son las del motor.
+    adjustments: list[dict] = []
 
     @model_validator(mode="after")
     def _check_scenarios(self) -> ForecastSet:
