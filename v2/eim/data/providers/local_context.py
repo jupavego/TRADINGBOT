@@ -23,6 +23,11 @@ DEFAULT_HOST = "http://127.0.0.1:11434"
 DEFAULT_MODEL = "qwen3:4b"  # ajustable con EIM_LOCAL_LLM_MODEL; verificar licencia al instalarlo
 
 
+TASK = ("Tarea: `tema` = el tema dominante en pocas palabras (no copies un titular). "
+        "Devuelve de 2 a 4 `catalizadores`, cada uno con `texto` (tu resumen) y `fuente` "
+        "(el `id` exacto de un titular de arriba). Un catalizador sin `fuente` válida se descarta.")
+
+
 class LocalContextAnalyzer:
     """Callable para inyectar en `ContextAgent`; CPU, un modelo a la vez, timeout generoso."""
 
@@ -44,10 +49,19 @@ class LocalContextAnalyzer:
             "options": {"temperature": 0.1, "num_predict": self.num_predict},
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"<headlines_data>\n{data}\n</headlines_data>"}],
+                {"role": "user",
+                 "content": f"<headlines_data>\n{data}\n</headlines_data>\n{TASK}"}],
         }
 
     def __call__(self, items: list[NewsItem]) -> dict[str, Any] | None:
+        """Un modelo pequeño a veces omite los catalizadores: se reintenta una vez (corre en
+        segundo plano, el coste es tiempo de CPU, no del ciclo)."""
+        out = self._once(items)
+        if out is not None and not out.get("catalizadores"):
+            out = self._once(items) or out
+        return out
+
+    def _once(self, items: list[NewsItem]) -> dict[str, Any] | None:
         http = self.client or httpx.Client(timeout=self.timeout)
         try:
             r = http.post(f"{self.host}/api/chat", json=self.payload(items))

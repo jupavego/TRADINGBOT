@@ -53,3 +53,14 @@ def test_registro_con_opt_in_local(monkeypatch):
     monkeypatch.setenv("EIM_CONTEXT_LLM", "local")
     an = default_registry().get("context").analyzer
     assert isinstance(an, CachedContextAnalyzer) and isinstance(an.inner, LocalContextAnalyzer)
+
+
+def test_reintenta_una_vez_si_faltan_catalizadores():
+    calls = []
+
+    def h(req):
+        calls.append(1)
+        body = {"tema": "x", "sentimiento": 0, "riesgo_evento": "bajo"} if len(calls) == 1 else GOOD
+        return httpx.Response(200, json={"message": {"content": json.dumps(body)}})
+
+    assert LocalContextAnalyzer(client=_client(h))(ITEMS) == GOOD and len(calls) == 2
