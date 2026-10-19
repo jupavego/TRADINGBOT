@@ -19,6 +19,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from eim.library.bm25 import tokenize
 from eim.library.schema import KnowledgeCard
 
 LABEL = "Contexto bibliográfico · no es una recomendación"
@@ -167,3 +168,20 @@ def ask(question: str, *, search: Searcher, cards: list[KnowledgeCard], llm: Llm
                       passages_sent=len(passages))
     return Answer("ok", None, out.resumen, points, out.relacion_con_escenarios,
                   [*warnings, *[a for a in out.advertencias if a]], dropped, len(passages))
+
+
+def related_cards(cards: list[KnowledgeCard], passages: list[Passage],
+                  question: str) -> list[KnowledgeCard]:
+    """Fichas útiles: las que citan páginas de los pasajes hallados o comparten palabras con la
+    pregunta (sin estado `descartada`)."""
+    pages = {(p.book_id, p.page) for p in passages}
+    q = set(tokenize(question))
+    scored = []
+    for c in cards:
+        if c.status == "descartada":
+            continue
+        hit = sum(1 for x in c.citations for pg in x.pages if (x.book_id, pg) in pages)
+        overlap = len(q & set(tokenize(f"{c.title} {c.claim}")))
+        if hit or overlap >= 2:
+            scored.append((-(hit * 3 + overlap), c.id, c))
+    return [c for _, _, c in sorted(scored)[:MAX_CARDS]]

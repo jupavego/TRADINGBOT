@@ -91,7 +91,7 @@ def build_library_router(loader: Callable[[], tuple[dict, dict]] = _load,
             return [qa.Passage(h.book_id, h.page, h.snippet, h.flagged)
                     for h in search(lp, q, k=qa.MAX_PASSAGES * 2)]
 
-        related = _related_cards(cards, [p for p in find(body.question)], body.question)
+        related = qa.related_cards(list(cards.values()), find(body.question), body.question)
         ans = qa.ask(body.question, search=find, cards=related, llm=make_llm(),
                      scenario=body.scenario, state=body.state)
         d = ans.as_dict()
@@ -108,20 +108,3 @@ def build_library_router(loader: Callable[[], tuple[dict, dict]] = _load,
 
     return router
 
-
-def _related_cards(cards: dict[str, KnowledgeCard], passages: list[qa.Passage],
-                   question: str) -> list[KnowledgeCard]:
-    """Fichas útiles: las que citan páginas de los pasajes hallados o comparten palabras con la
-    pregunta (sin estado `descartada`)."""
-    from eim.library.bm25 import tokenize
-    pages = {(p.book_id, p.page) for p in passages}
-    q = set(tokenize(question))
-    scored = []
-    for c in cards.values():
-        if c.status == "descartada":
-            continue
-        hit = sum(1 for x in c.citations for pg in x.pages if (x.book_id, pg) in pages)
-        overlap = len(q & set(tokenize(f"{c.title} {c.claim}")))
-        if hit or overlap >= 2:
-            scored.append((-(hit * 3 + overlap), c.id, c))
-    return [c for _, _, c in sorted(scored)[:qa.MAX_CARDS]]

@@ -89,7 +89,9 @@ def checkout_state(bot_dir: Path) -> tuple[str | None, bool]:
     git = shutil.which("git")
     if git is None or not (Path(bot_dir) / ".git").exists():
         return None, False
-    base = [git, "-C", str(bot_dir)]
+    # autocrlf=input: con HOME aislado no se lee la config del usuario; en Windows un checkout con
+    # CRLF (autocrlf=true al clonar) se vería «modificado» sin que nadie lo tocara.
+    base = [git, "-c", "core.autocrlf=input", "-C", str(bot_dir)]
     env = {"PATH": os.environ.get("PATH", ""), "GIT_CONFIG_NOSYSTEM": "1", "HOME": str(bot_dir)}
     try:
         head = subprocess.run([*base, "rev-parse", "HEAD"], capture_output=True, text=True,
