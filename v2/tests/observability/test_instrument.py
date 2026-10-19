@@ -23,7 +23,7 @@ def _events(spool) -> list[dict]:
     E.flush()
     return sorted((json.loads(x) for f in spool.glob("*.jsonl")
                    for x in f.read_text(encoding="utf-8").splitlines()),
-                  key=lambda r: (r["ts_utc"], r["event_id"]))
+                  key=lambda r: r["ts_utc"])
 
 
 @pytest.fixture

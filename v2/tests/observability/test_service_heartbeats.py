@@ -23,7 +23,7 @@ def _events(spool, component=None) -> list[dict]:
     E.flush()
     ev = sorted((json.loads(x) for f in spool.glob("*.jsonl")
                  for x in f.read_text(encoding="utf-8").splitlines()),
-                key=lambda r: (r["ts_utc"], r["event_id"]))
+                key=lambda r: r["ts_utc"])
     return [e for e in ev if component is None or e["component_id"] == component]
 
 
@@ -43,7 +43,11 @@ def test_sampled_beat_counts_real_runs_and_sampled_errors(spool):
     hooks_service._last_beat["data.arb_market"] -= 7200      # pasó el intervalo
     hooks_service.beat("data.arb_market", min_interval_s=3600)
     ev = _events(spool, "data.arb_market")
-    assert len(ev) == 2 and ev[1]["detail"]["runs"] == 5 and ev[1]["detail"]["interval_s"] > 3600
+    # el orden entre eventos del mismo milisegundo no está definido: se distinguen por contenido
+    assert len(ev) == 2
+    (second,) = [e for e in ev if "runs" in e["detail"]]
+    assert second["detail"]["runs"] == 5 and second["detail"]["interval_s"] > 3600
+    assert len([e for e in ev if "runs" not in e["detail"]]) == 1
     for _ in range(4):
         hooks_service.service_error("data.arb_market", RuntimeError("x"), min_interval_s=3600)
     assert len([e for e in _events(spool, "data.arb_market") if e["kind"] == "alert"]) == 1
