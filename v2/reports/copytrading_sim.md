@@ -1,86 +1,86 @@
 # Copy trading — replicación simulada (T42)
 
-Generado 2026-10-16 20:43 UTC · modo **SIMULADO** (saldo virtual de 10 000 USDC por líder; ninguna orden real ni de testnet) · *El rendimiento pasado no garantiza resultados futuros.*
+Generado 2026-10-19 00:34 UTC · modo **SIMULADO** (saldo virtual de 10 000 USDC por líder; ninguna orden real ni de testnet) · *El rendimiento pasado no garantiza resultados futuros.*
 
 ## Veredicto
 
 - Líderes simulados: 7; aprobados por el scorecard (T41): 0. **7 se simulan solo para medir** (ninguno debería copiarse hoy).
-- Rendimiento **aparente** (el del líder × proporción, viajes cerrados): +783,65 USD. **Copiable** (subcuentas, mismos viajes): -55,49 USD.
-- Por unidad de nocional, en los viajes copiados: líder 7,6, 19,0, 19,4, 19,9, -7,8 pb · seguidor -5,8, -22,3, 6,1, 49,8, -30,5 pb (por líder, mismo orden que la tabla).
-- La brecha viene sobre todo de: tamaño (topes, redondeo, tope de riesgo) -579,97 USD; comisiones (tomador propio vs las del líder) -139,54 USD; viajes no copiados -71,05 USD.
+- Rendimiento **aparente** (el del líder × proporción, viajes cerrados): -1 780,17 USD. **Copiable** (subcuentas, mismos viajes): -199,77 USD.
+- Por unidad de nocional, en los viajes copiados: líder 3,4, 19,0, 10,3, -14,8, -7,8 pb · seguidor -8,6, -22,3, -3,8, 3,7, -30,5 pb (por líder, mismo orden que la tabla).
+- La brecha viene sobre todo de: comisiones (tomador propio vs las del líder) -232,15 USD; diferencial (cruzar el libro: ask/bid vs medio) -27,79 USD; latencia (el precio se movió antes de nuestra orden) -15,63 USD.
 - Muestra corta (horas, decenas de viajes): las cifras describen lo ocurrido, no estiman un edge; ninguna prueba de significancia aplica con este n.
 
 ## Resultado por líder (reproducción del historial capturado)
 
 | Líder | Estado T41 | Ventana | Viajes líder (cerrados) | Copiados | No copiados | Aparente (USD) | Copiable (USD) | pb líder | pb seguidor | Capital final | Caída máx. |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 0x7b7f…dee2 | rejected | 23,1 h | 157 | 100 | 57 | +167,06 | -51,36 | 7,6 | -5,8 | 9 955,30 (-0,45 %) | +1,2 % |
-| 0xf5d8…ad53 | rejected | 23,1 h | 1228 | 0 | 1228 | +73,19 | +0,00 | — | — | 9 944,46 (-0,56 %) | +0,7 % |
-| 0x0fac…7a0a | rejected | 23,0 h | 0 | 0 | 0 | +0,00 | +0,00 | — | — | 10 000,00 (+0,00 %) | +0,0 % |
-| 0x2cb2…3f19 | rejected | 23,0 h | 2 | 2 | 0 | +249,54 | -17,84 | 19,0 | -22,3 | 9 982,16 (-0,18 %) | +1,1 % |
-| 0x7ca1…9235 | rejected | 23,0 h | 9 | 9 | 0 | +29,37 | +8,76 | 19,4 | 6,1 | 10 006,79 (+0,07 %) | +0,3 % |
-| 0x696d…8e28 | rejected | 23,0 h | 3 | 3 | 0 | +371,55 | +56,95 | 19,9 | 49,8 | 10 052,30 (+0,52 %) | +1,3 % |
-| 0xcf3f…f95f | rejected | 23,0 h | 28 | 6 | 22 | -107,07 | -52,00 | -7,8 | -30,5 | 9 969,18 (-0,31 %) | +0,8 % |
+| 0x7b7f…dee2 | rejected | 74,7 h | 531 | 175 | 356 | +99,20 | -128,34 | 3,4 | -8,6 | 9 862,92 (-1,37 %) | +1,5 % |
+| 0xf5d8…ad53 | rejected | 74,7 h | 1719 | 0 | 1719 | -99,56 | +0,00 | — | — | 9 859,04 (-1,41 %) | +1,4 % |
+| 0x0fac…7a0a | rejected | 74,6 h | 0 | 0 | 0 | +0,00 | +0,00 | — | — | 10 000,00 (+0,00 %) | +0,0 % |
+| 0x2cb2…3f19 | rejected | 74,6 h | 2 | 2 | 0 | +249,54 | -17,84 | 19,0 | -22,3 | 9 982,16 (-0,18 %) | +1,1 % |
+| 0x7ca1…9235 | rejected | 74,6 h | 21 | 17 | 4 | +47,37 | -14,00 | 10,3 | -3,8 | 9 978,25 (-0,22 %) | +0,7 % |
+| 0x696d…8e28 | rejected | 74,6 h | 9 | 9 | 0 | -1 969,71 | +12,44 | -14,8 | 3,7 | 10 012,44 (+0,12 %) | +1,4 % |
+| 0xcf3f…f95f | rejected | 74,6 h | 28 | 6 | 22 | -107,00 | -52,03 | -7,8 | -30,5 | 9 974,62 (-0,25 %) | +0,8 % |
 
 ## Copiable vs aparente: causas de la diferencia
 
-Aparente total **+783,65 USD** → copiable **-55,49 USD** (diferencia -839,13 USD = suma de causas):
+Aparente total **-1 780,17 USD** → copiable **-199,77 USD** (diferencia +1 580,40 USD = suma de causas):
 
 | Causa | Aporte (USD) | 0x7b7f…dee2 | 0xf5d8…ad53 | 0x0fac…7a0a | 0x2cb2…3f19 | 0x7ca1…9235 | 0x696d…8e28 | 0xcf3f…f95f |
 |---|---|---|---|---|---|---|---|---|
-| latencia (el precio se movió antes de nuestra orden) | -13,12 | +2,57 | +0,00 | +0,00 | -15,79 | +3,35 | +0,72 | -3,97 |
-| diferencial (cruzar el libro: ask/bid vs medio) | -21,01 | -12,16 | +0,00 | +0,00 | -3,05 | -1,95 | -3,04 | -0,82 |
-| comisiones (tomador propio vs las del líder) | -139,54 | -101,76 | +0,00 | +0,00 | -0,47 | -19,21 | +0,03 | -18,12 |
-| funding (propio vs el del líder a nuestro tamaño) | +0,52 | -0,26 | +0,00 | +0,00 | +0,82 | +0,00 | -0,00 | -0,03 |
-| viajes no copiados | -71,05 | -77,78 | -73,19 | +0,00 | +0,00 | +0,00 | +0,00 | +79,92 |
-| tamaño (topes, redondeo, tope de riesgo) | -579,97 | -10,89 | +0,00 | +0,00 | -241,84 | -3,61 | -337,58 | +13,95 |
-| resto (aumentos omitidos, stops, redondeo a mitad) | -14,97 | -18,14 | +0,00 | +0,00 | -7,05 | +0,81 | +25,27 | -15,86 |
+| latencia (el precio se movió antes de nuestra orden) | -15,63 | +2,07 | +0,00 | +0,00 | -15,79 | -0,15 | +2,22 | -3,98 |
+| diferencial (cruzar el libro: ask/bid vs medio) | -27,79 | -16,61 | +0,00 | +0,00 | -3,05 | -4,12 | -3,20 | -0,82 |
+| comisiones (tomador propio vs las del líder) | -232,15 | -161,05 | +0,00 | +0,00 | -0,47 | -52,28 | -0,18 | -18,17 |
+| funding (propio vs el del líder a nuestro tamaño) | +0,93 | -0,34 | +0,00 | +0,00 | +0,82 | +0,36 | +0,13 | -0,03 |
+| viajes no copiados | +146,69 | -35,79 | +99,56 | +0,00 | +0,00 | +3,00 | +0,00 | +79,92 |
+| tamaño (topes, redondeo, tope de riesgo) | +1 723,73 | -3,31 | +0,00 | +0,00 | -241,84 | -9,38 | +1 964,39 | +13,87 |
+| resto (aumentos omitidos, stops, redondeo a mitad) | -15,39 | -12,52 | +0,00 | +0,00 | -7,05 | +1,21 | +18,80 | -15,83 |
 
 Viajes no copiados por motivo (n · aporte):
 
-- `bajo_minimo`: 910 viajes · -5,35 USD
-- `riesgo`: 230 viajes · -1,44 USD
-- `redondeo`: 160 viajes · +4,63 USD
-- `deslizamiento`: 6 viajes · -70,56 USD
-- `flujo_caido`: 1 viajes · +1,67 USD
+- `bajo_minimo`: 1414 viajes · +76,44 USD
+- `riesgo`: 442 viajes · +144,20 USD
+- `redondeo`: 227 viajes · +4,26 USD
+- `deslizamiento`: 14 viajes · -73,67 USD
+- `flujo_caido`: 4 viajes · -4,54 USD
 
 ## Reconciliación de la reproducción
 
-- Reconciliaciones con la foto real del líder: 2074; con alguna diferencia explicada (topes, mínimos, vetos, señales en camino): 1296; con diferencia **no explicada**: 3 (aisladas: ninguna se repitió en la foto siguiente) → pausas: **0**.
-- Resincronizaciones por hueco de captura conocido (> 5 min sin confirmar el flujo: equipo apagado, reinicios del servicio): 14. Ejecuciones llegadas tarde y anteriores a lo ya procesado (reenvío del WS antes que el relleno REST): 374, tratadas como historial.
+- Reconciliaciones con la foto real del líder: 9602; con alguna diferencia explicada (topes, mínimos, vetos, señales en camino): 7117; con diferencia **no explicada**: 3 (aisladas: ninguna se repitió en la foto siguiente) → pausas: **0**.
+- Resincronizaciones por hueco de captura conocido (> 5 min sin confirmar el flujo: equipo apagado, reinicios del servicio): 77. Ejecuciones llegadas tarde y anteriores a lo ya procesado (reenvío del WS antes que el relleno REST): 1029, tratadas como historial.
 
 ## Ejecución simulada
 
 Precio del seguidor por señal:
 
-- bid/ask grabado (WS `bbo`): 50578 (94%)
-- cierre de vela 1 min + deslizamiento T25 (supuesto): 3005 (6%)
+- bid/ask grabado (WS `bbo`): 189567 (97%)
+- cierre de vela 1 min + deslizamiento T25 (supuesto): 5575 (3%)
+- precio medio `allMids` + medio diferencial supuesto: 120 (0%)
 - precio del líder + deslizamiento base (supuesto): 10 (0%)
-- precio medio `allMids` + medio diferencial supuesto: 9 (0%)
 
 | Líder | Señales | Órdenes | Latencia señal p50 / p90 (ms) | Rechazos por motivo | Funding (USD) | Comisiones (USD) | Horas sin tasa |
 |---|---|---|---|---|---|---|---|
-| 0x7b7f…dee2 | 2939 | 1283 | 205 / 487 | bajo_minimo 923, excluido 130, riesgo 93, redondeo 44, deslizamiento 26, tope 18, flujo_caido 5 | -0,23 | -109,11 | 0 |
-| 0xf5d8…ad53 | 48855 | 972 | 196 / 444 | riesgo 17103, bajo_minimo 6640, excluido 2373, redondeo 513, deslizamiento 216, tope 56 | -0,05 | -27,23 | 0 |
-| 0x0fac…7a0a | 0 | 0 | — / — | — | +0,00 | -0,00 | 0 |
+| 0x7b7f…dee2 | 9125 | 2191 | 192 / 573 | riesgo 1854, bajo_minimo 1495, excluido 391, redondeo 103, deslizamiento 46, tope 20, flujo_caido 12 | -0,16 | -176,09 | 0 |
+| 0xf5d8…ad53 | 181555 | 4921 | 183 / 499 | riesgo 61304, bajo_minimo 29616, excluido 4793, redondeo 2148, deslizamiento 697, tope 348, flujo_caido 32 | +0,01 | -147,79 | 0 |
+| 0x0fac…7a0a | 4 | 0 | 387 / 810 | excluido 4 | +0,00 | -0,00 | 0 |
 | 0x2cb2…3f19 | 30 | 8 | 203 / 285 | tope 12, bajo_minimo 5 | +0,83 | -7,20 | 0 |
-| 0x7ca1…9235 | 298 | 151 | 228 / 556 | excluido 135, bajo_minimo 13, redondeo 2 | -0,03 | -21,14 | 0 |
-| 0x696d…8e28 | 52 | 10 | 160 / 469 | tope 33, bajo_minimo 6, deslizamiento 3 | +0,28 | -12,11 | 0 |
-| 0xcf3f…f95f | 1054 | 250 | 228 / 546 | tope 233, bajo_minimo 179, excluido 22, riesgo 22, redondeo 7 | -0,25 | -28,39 | 0 |
+| 0x7ca1…9235 | 861 | 487 | 223 / 657 | excluido 135, tope 102, bajo_minimo 69, redondeo 13, riesgo 10, flujo_caido 1, deslizamiento 1 | +1,15 | -58,16 | 0 |
+| 0x696d…8e28 | 172 | 27 | 155 / 431 | tope 102, bajo_minimo 35, deslizamiento 3, flujo_caido 1 | +1,57 | -31,38 | 0 |
+| 0xcf3f…f95f | 2496 | 339 | 219 / 557 | tope 611, bajo_minimo 332, riesgo 24, excluido 22, redondeo 14 | -1,86 | -37,85 | 0 |
 
 ## Simulación en vivo (servicio de líderes)
 
-Modo **SIMULADO** (Simulación: saldo virtual, sin órdenes reales ni de testnet); resumen de 2026-10-16 20:43 UTC (hace 10 s). Subcuentas: 7; seguimiento desde 2026-10-16 19:16 UTC (**1,4 h**). Reconciliaciones: 1078; con diferencia no explicada: 34 (acumulado); sin diferencias no explicadas desde 2026-10-16 20:25 UTC (**0,3 h**); en pausa ahora: 0.
+Modo **SIMULADO** (Simulación: saldo virtual, sin órdenes reales ni de testnet); resumen de 2026-10-19 00:34 UTC (hace 7 s). Subcuentas: 7; seguimiento desde 2026-10-16 19:16 UTC (**53,3 h**). Reconciliaciones: 23667; con diferencia no explicada: 34 (acumulado); sin diferencias no explicadas desde 2026-10-16 20:25 UTC (**52,2 h**); en pausa ahora: 0.
 
 | Líder | Capital | Resultado | Órdenes | Rechazos | Posiciones | Pausa |
 |---|---|---|---|---|---|---|
-| 0x7ca165f3 | 10 002,14 | +2,14 | 17 | 16 | 1 | — |
-| 0x0facac3b | 10 000,00 | +0,00 | 0 | 0 | 0 | — |
+| 0x0facac3b | 10 000,00 | +0,00 | 0 | 4 | 0 | — |
 | 0x2cb21297 | 10 000,00 | +0,00 | 0 | 0 | 0 | — |
-| 0xcf3f419d | 10 000,00 | +0,00 | 0 | 148 | 0 | — |
-| 0xf5d81a13 | 9 999,79 | -0,21 | 15 | 4827 | 0 | — |
-| 0x696d1265 | 9 996,18 | -3,82 | 2 | 26 | 1 | — |
-| 0x7b7f72a2 | 9 995,65 | -4,35 | 72 | 261 | 3 | — |
+| 0xcf3f419d | 10 000,00 | +0,00 | 0 | 1634 | 0 | — |
+| 0x7ca165f3 | 9 965,80 | -34,20 | 357 | 210 | 1 | — |
+| 0x7b7f72a2 | 9 960,88 | -39,12 | 592 | 3005 | 2 | — |
+| 0x696d1265 | 9 954,62 | -45,38 | 14 | 128 | 0 | — |
+| 0xf5d81a13 | 9 858,87 | -141,13 | 3902 | 79819 | 0 | — |
 
 ## Método y supuestos
 
