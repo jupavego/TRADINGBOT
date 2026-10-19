@@ -1,0 +1,92 @@
+{
+  "id": "octobot",
+  "name": "OctoBot (aplicación)",
+  "repo": "Drakkar-Software/OctoBot",
+  "commit_sha": "c45fdc2c95c5bd3d649251fa90c327e2e8f86b00",
+  "commit_date": "2026-10-07",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "GPL-3.0",
+    "file": "LICENSE",
+    "sha256": "8b1ba204bb69a0ade2bfcf65ef294a920f6bb361b317dba43c7ef29d96332b9b",
+    "head": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.o"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "D",
+  "binance_markets": [
+    "spot",
+    "usdm_futures"
+  ],
+  "strategies": [
+    {
+      "name": "Modos de trading (grid, DCA, evaluadores)",
+      "path": "octobot/",
+      "note": "Se distribuyen como «tentacles» aparte"
+    }
+  ],
+  "dependencies": [
+    "Python 3.11–3.13",
+    "Sentry (ERROR_TRACKER_DSN), redis, red de «comunidad» octobot.cloud"
+  ],
+  "risks": [
+    "GPL-3.0",
+    "Beta en «node mode» por defecto con red de comunidad; métricas y tracker de errores presentes en el código",
+    "4 067 archivos de código y 124 MB: superficie de revisión desproporcionada para lo que aporta"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Sus estrategias útiles viven en OctoBot-Tentacles (LGPL-3.0); la aplicación no aporta señal adicional y trae telemetría de comunidad"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 8,
+      "O4": 0,
+      "O5": 5,
+      "O6": 5,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 68,
+    "tests_files": 1406,
+    "days_since_commit": 12
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": false,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S4": "Tracker de errores y métricas de comunidad en octobot/constants.py; no se verificó que estén apagados por defecto"
+    },
+    "red_alerts": [],
+    "total": 90,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia GPL-3.0",
+      "url": "https://github.com/Drakkar-Software/OctoBot/blob/c45fdc2c95c5bd3d649251fa90c327e2e8f86b00/LICENSE"
+    },
+    {
+      "what": "Tracker de errores y métricas",
+      "url": "https://github.com/Drakkar-Software/OctoBot/blob/c45fdc2c95c5bd3d649251fa90c327e2e8f86b00/octobot/constants.py#L107-L240"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 7
+}

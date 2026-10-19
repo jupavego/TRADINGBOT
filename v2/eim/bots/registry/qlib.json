@@ -1,0 +1,76 @@
+{
+  "id": "qlib",
+  "name": "Qlib",
+  "repo": "microsoft/qlib",
+  "commit_sha": "54355232463878d2eebb91fe0ee5fa7fa1f5976c",
+  "commit_date": "2026-10-08",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+    "head": "MIT License Copyright (c) Microsoft Corporation. Permission is hereby granted, free of charge, to any person obtaining a copy of this software"
+  },
+  "bot_class": "IA",
+  "integration_mode": "D",
+  "binance_markets": [],
+  "strategies": [],
+  "dependencies": [
+    "torch, lightgbm, pyarrow, Mongo/Redis"
+  ],
+  "risks": [
+    "Plataforma de factores para acciones; pickle de modelos (18 usos)"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "Sin cripto ni futuros; foco en acciones (fila 26)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 0,
+      "O4": 0,
+      "O5": 5,
+      "O6": 5,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 60,
+    "tests_files": 55,
+    "days_since_commit": 11
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": false,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S3": "pickle de modelos (18 usos) sin revisar"
+    },
+    "red_alerts": [],
+    "total": 85,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT",
+      "url": "https://github.com/microsoft/qlib/blob/54355232463878d2eebb91fe0ee5fa7fa1f5976c/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 26
+}

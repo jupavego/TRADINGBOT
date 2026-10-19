@@ -1,0 +1,74 @@
+{
+  "id": "bt",
+  "name": "bt",
+  "repo": "pmorissette/bt",
+  "commit_sha": "4b76bad2dbf3a49e99feb49db3eee1dde2ef8e12",
+  "commit_date": "2026-10-17",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "8711471566d722d55eca3f09196f342b2ee2960616e68127ec2a17b39ff99949",
+    "head": "The MIT License (MIT) Copyright (c) 2015 Philippe Morissette Permission is hereby granted, free of charge, to any person obtaining a copy of this software and"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "C",
+  "binance_markets": [],
+  "strategies": [],
+  "dependencies": [
+    "Cython"
+  ],
+  "risks": [
+    "Backtesting de asignación de portafolios, no de señales"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "INFRA; MIT; sin aporte para perpetuos (fila 40)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 8,
+      "O3": 0,
+      "O4": 0,
+      "O5": 5,
+      "O6": 10,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 58,
+    "tests_files": 6,
+    "days_since_commit": 2
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT",
+      "url": "https://github.com/pmorissette/bt/blob/4b76bad2dbf3a49e99feb49db3eee1dde2ef8e12/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 40
+}

@@ -1,0 +1,121 @@
+{
+  "id": "alpha-rptr",
+  "name": "alpha-rptr",
+  "repo": "TheFourGreatErrors/alpha-rptr",
+  "commit_sha": "31a7ae00744ee58689a1b5baa1ab525ff4b3981d",
+  "commit_date": "2026-06-19",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "be094c7f8893bf86db01cc3d9a797d7603c4230cfccad5db893903b08e7fde4b",
+    "head": "MIT License Copyright (c) 2020 thefourgreaterrors@gmail.com Copyright (c) 2018 noda.sin@gmail.com Permission is hereby granted, free of charge, to any person"
+  },
+  "bot_class": "D",
+  "integration_mode": "C",
+  "binance_markets": [
+    "usdm_futures"
+  ],
+  "strategies": [
+    {
+      "name": "SAR",
+      "path": "src/strategies/SAR.py",
+      "note": "Parabolic SAR; ETHUSDT 12h"
+    },
+    {
+      "name": "Supertrend",
+      "path": "src/strategies/SupertrendStrat.py",
+      "note": ""
+    },
+    {
+      "name": "Doten (Donchian)",
+      "path": "src/strategies/Doten.py",
+      "note": ""
+    },
+    {
+      "name": "OCC",
+      "path": "src/strategies/OCC.py",
+      "note": "Cruce apertura-cierre"
+    },
+    {
+      "name": "Rci",
+      "path": "src/strategies/Rci.py",
+      "note": ""
+    },
+    {
+      "name": "SMA / MACDLongOnly / TV / Sample",
+      "path": "src/strategies/",
+      "note": ""
+    }
+  ],
+  "dependencies": [
+    "PyQt6, oauth2client, google-api-python-client, pyti, bravado (BitMEX), influxdb-client",
+    "TA-Lib"
+  ],
+  "risks": [
+    "La lógica de señal está dentro de la clase Bot acoplada al exchange, al correo (GmailSub) y a Discord",
+    "Dependencias deprecadas (oauth2client, pyti)",
+    "Claves en src/config.py (variables de entorno)"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "MIT, 161 coincidencias de Binance Futures y actividad en 2026-06, pero la lógica no es separable sin reescribirla: se reimplementan las reglas simples con pruebas propias si T59 lo pidiera"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 10,
+      "O2": 8,
+      "O3": 15,
+      "O4": 0,
+      "O5": 10,
+      "O6": 5,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 58,
+    "tests_files": 4,
+    "days_since_commit": 122
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": false,
+      "S6": false,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S5": "Bot exige el objeto exchange con claves",
+      "S6": "oauth2client y pyti deprecados"
+    },
+    "red_alerts": [],
+    "total": 80,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT",
+      "url": "https://github.com/TheFourGreatErrors/alpha-rptr/blob/31a7ae00744ee58689a1b5baa1ab525ff4b3981d/LICENSE"
+    },
+    {
+      "what": "Acoplamiento al exchange",
+      "url": "https://github.com/TheFourGreatErrors/alpha-rptr/blob/31a7ae00744ee58689a1b5baa1ab525ff4b3981d/src/strategies/SAR.py#L1-L60"
+    },
+    {
+      "what": "Claves",
+      "url": "https://github.com/TheFourGreatErrors/alpha-rptr/blob/31a7ae00744ee58689a1b5baa1ab525ff4b3981d/src/config.py#L5-L14"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": null
+}

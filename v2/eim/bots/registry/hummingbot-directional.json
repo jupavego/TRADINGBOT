@@ -1,0 +1,127 @@
+{
+  "id": "hummingbot-directional",
+  "name": "Hummingbot — controladores direccionales (V2)",
+  "repo": "hummingbot/hummingbot",
+  "commit_sha": "9af100d6822da7d2d0291a906c730ef172284ee2",
+  "commit_date": "2026-09-22",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "Apache-2.0",
+    "file": "LICENSE",
+    "sha256": "f0dd03c14db3dfbce03c166645f88fda96599ad1a5d217fddb49134de8c72a29",
+    "head": "Apache License Version 2.0, January 2004 http://www.apache.org/licenses/"
+  },
+  "bot_class": "D",
+  "integration_mode": "A",
+  "binance_markets": [
+    "spot",
+    "usdm_futures"
+  ],
+  "strategies": [
+    {
+      "name": "bollinger_v1",
+      "path": "controllers/directional_trading/bollinger_v1.py",
+      "note": "Largo si %B < umbral inferior, corto si > superior"
+    },
+    {
+      "name": "bollinger_v2",
+      "path": "controllers/directional_trading/bollinger_v2.py",
+      "note": "Variante con TA-Lib y rango no nulo"
+    },
+    {
+      "name": "macd_bb_v1",
+      "path": "controllers/directional_trading/macd_bb_v1.py",
+      "note": "%B + histograma y línea MACD"
+    },
+    {
+      "name": "supertrend_v1",
+      "path": "controllers/directional_trading/supertrend_v1.py",
+      "note": "Supertrend con distancia porcentual máxima"
+    },
+    {
+      "name": "dman_v3",
+      "path": "controllers/directional_trading/dman_v3.py",
+      "note": "Señal %B; la parte DCA es ejecución y no se porta"
+    },
+    {
+      "name": "bollingrid / ai_livestream",
+      "path": "controllers/directional_trading/",
+      "note": "NO se portan: grid (ejecución) y señal externa por MQTT"
+    }
+  ],
+  "dependencies": [
+    "Referencia de código: pandas-ta >= 0.4.71b (sin licencia, T33 alerta 7): NO se hereda, se reimplementa con eim.indicators",
+    "Hummingbot completo: Cython, TA-Lib, numba"
+  ],
+  "risks": [
+    "Apache-2.0: se porta la regla (≈10 líneas por controlador), no el framework",
+    "Reglas de manual (Bollinger, MACD, Supertrend): ya existen en eim/indicators (T34); T59 medirá si aportan algo distinto",
+    "Hummingbot completo envía métricas por defecto a coinalpha.com (T33 alerta 4): no se ejecuta"
+  ],
+  "verdict": "usar",
+  "squad_proposal": "propuesto",
+  "reasons": [
+    "Única fuente permisiva y mantenida de reglas direccionales para Binance perpetuos con lógica separable en funciones sobre un DataFrame",
+    "Licencia Apache-2.0 verificada (T33 y de nuevo en el LICENSE del commit fijado)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 15,
+      "O4": 15,
+      "O5": 10,
+      "O6": 10,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 95,
+    "tests_files": 691,
+    "days_since_commit": 27
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": false,
+      "S5": true,
+      "S6": false,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S4": "Hummingbot completo emite métricas por defecto (T33); no aplica al código portado",
+      "S6": "pandas-ta beta sin licencia en setup.py; no se hereda"
+    },
+    "red_alerts": [],
+    "total": 80,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Regla MACD+BB",
+      "url": "https://github.com/hummingbot/hummingbot/blob/9af100d6822da7d2d0291a906c730ef172284ee2/controllers/directional_trading/macd_bb_v1.py#L58-L75"
+    },
+    {
+      "what": "Regla Supertrend",
+      "url": "https://github.com/hummingbot/hummingbot/blob/9af100d6822da7d2d0291a906c730ef172284ee2/controllers/directional_trading/supertrend_v1.py"
+    },
+    {
+      "what": "Dependencia pandas-ta",
+      "url": "https://github.com/hummingbot/hummingbot/blob/9af100d6822da7d2d0291a906c730ef172284ee2/setup.py"
+    },
+    {
+      "what": "Telemetría",
+      "url": "https://github.com/hummingbot/hummingbot/blob/9af100d6822da7d2d0291a906c730ef172284ee2/hummingbot/client/config/client_config_map.py#L437-L456"
+    }
+  ],
+  "audit_scope": "controllers/directional_trading",
+  "universe_ref": 5
+}

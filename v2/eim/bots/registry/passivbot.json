@@ -1,0 +1,114 @@
+{
+  "id": "passivbot",
+  "name": "Passivbot",
+  "repo": "enarjord/passivbot",
+  "commit_sha": "772abadc10a5bbf258a84aa8209a9084699fa1bd",
+  "commit_date": "2026-10-18",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "Unlicense",
+    "file": "LICENSE",
+    "sha256": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e",
+    "head": "This is free and unencumbered software released into the public domain. Anyone is free to copy, modify, publish, use, compile, sell, or distribute this softwar"
+  },
+  "bot_class": "L",
+  "integration_mode": "B",
+  "binance_markets": [
+    "spot",
+    "usdm_futures"
+  ],
+  "strategies": [
+    {
+      "name": "trailing_martingale",
+      "path": "src/",
+      "note": "Estrategia por defecto: entradas pequeñas y reentradas con trailing, límites de exposición"
+    },
+    {
+      "name": "ema_anchor",
+      "path": "src/",
+      "note": "Órdenes ancladas a una EMA"
+    },
+    {
+      "name": "trailing_grid_v7",
+      "path": "src/",
+      "note": "Obsoleta (solo compatibilidad v7)"
+    }
+  ],
+  "dependencies": [
+    "Python 3.12 o 3.14 (no 3.13) + Rust (passivbot-rust) con orquestador compartido live/backtest",
+    "torch opcional (optimizador GPU)",
+    "requirements-full.txt"
+  ],
+  "risks": [
+    "Clase L: gestiona órdenes e inventario, promedia a la baja (martingala con límites): nunca vota, va al carril de simulación",
+    "Envía códigos de bróker con las órdenes (broker_codes.hjson, comisión al autor): en modo señal no hay órdenes",
+    "api-keys.json con claves en archivo: en modo B no se crea ni se entrega",
+    "El README dice «uso bajo tu propio riesgo»; v8 cambió la configuración de forma incompatible con v7",
+    "Los pickle del optimizador (checkpoints propios) se revisaron: son archivos del propio bot",
+    "El backtester descarga velas de archivos públicos de los exchanges (src/binance_ohlcv_archive.py): T58 lo alimenta con velas locales o limita la red a esa descarga pública de solo lectura"
+  ],
+  "verdict": "usar",
+  "squad_proposal": "propuesto",
+  "reasons": [
+    "Dominio público (Unlicense verificado en el archivo): sin obligación de licencia, pero el orquestador en Rust y el entorno 3.12/3.14 justifican el proceso aislado",
+    "Mantenimiento muy activo (commit 2026-10-18) y una suite de pruebas amplia (operational.tests_files)",
+    "Binance USDⓈ-M como mercado principal (291 coincidencias en producción)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 15,
+      "O4": 8,
+      "O5": 5,
+      "O6": 10,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 88,
+    "tests_files": 338,
+    "days_since_commit": 1
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia (dominio público)",
+      "url": "https://github.com/enarjord/passivbot/blob/772abadc10a5bbf258a84aa8209a9084699fa1bd/LICENSE"
+    },
+    {
+      "what": "Estrategias",
+      "url": "https://github.com/enarjord/passivbot/blob/772abadc10a5bbf258a84aa8209a9084699fa1bd/README.md#strategy"
+    },
+    {
+      "what": "Códigos de bróker",
+      "url": "https://github.com/enarjord/passivbot/blob/772abadc10a5bbf258a84aa8209a9084699fa1bd/broker_codes.hjson"
+    },
+    {
+      "what": "Checkpoints del optimizador",
+      "url": "https://github.com/enarjord/passivbot/blob/772abadc10a5bbf258a84aa8209a9084699fa1bd/src/optimize.py#L1027"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 10
+}

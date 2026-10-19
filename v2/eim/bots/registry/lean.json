@@ -1,0 +1,85 @@
+{
+  "id": "lean",
+  "name": "Lean (QuantConnect)",
+  "repo": "QuantConnect/Lean",
+  "commit_sha": "d4cac37514427c84d40064cecbf3f0e6be4b0137",
+  "commit_date": "2026-10-16",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "Apache-2.0",
+    "file": "LICENSE",
+    "sha256": "522cf0a716ce03f67d46f8fceb5bf78c5b84400ec5cd8d14bf9f02cddc1cb6ba",
+    "head": "Apache License Version 2.0, January 2004 http://www.apache.org/licenses/ TERMS AND CONDITIONS FOR USE, RE"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "C",
+  "binance_markets": [
+    "spot",
+    "usdm_futures"
+  ],
+  "strategies": [
+    {
+      "name": "Algoritmos de ejemplo/regresión",
+      "path": "Algorithm.Python/",
+      "note": "453 archivos; son pruebas de regresión del motor, no estrategias"
+    }
+  ],
+  "dependencies": [
+    ".NET",
+    "Docker para Python"
+  ],
+  "risks": [
+    "Motor C# de gran tamaño: 504 MB y 5 079 archivos",
+    "Los algoritmos del repo son pruebas del propio motor"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "Apache-2.0; solo oráculo de contraste del motor T25 (BACKLOG): sus «algoritmos» no son estrategias con ventaja"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 15,
+      "O4": 0,
+      "O5": 5,
+      "O6": 10,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 80,
+    "tests_files": 846,
+    "days_since_commit": 3
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia Apache-2.0",
+      "url": "https://github.com/QuantConnect/Lean/blob/d4cac37514427c84d40064cecbf3f0e6be4b0137/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 16
+}

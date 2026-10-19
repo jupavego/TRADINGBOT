@@ -1,0 +1,87 @@
+{
+  "id": "solie",
+  "name": "Solie",
+  "repo": "cunarist/solie",
+  "commit_sha": "09af98101f50e6b630e77561977db3f5c15683bd",
+  "commit_date": "2026-08-14",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "GPL-3.0",
+    "file": "LICENSE",
+    "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "head": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.o"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "D",
+  "binance_markets": [
+    "usdm_futures"
+  ],
+  "strategies": [
+    {
+      "name": "Estrategias de usuario (carpeta example/)",
+      "path": "example/",
+      "note": ""
+    }
+  ],
+  "dependencies": [
+    "PySide, pickle"
+  ],
+  "risks": [
+    "GPL-3.0",
+    "Aplicación de escritorio (GUI) sin pruebas",
+    "Guarda estado con pickle propio"
+  ],
+  "verdict": "descartar",
+  "squad_proposal": "no",
+  "reasons": [
+    "GUI sin pruebas y GPL; ningún valor sobre los candidatos B/A (hallazgo)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 0,
+      "O3": 15,
+      "O4": 0,
+      "O5": 5,
+      "O6": 5,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 55,
+    "tests_files": 0,
+    "days_since_commit": 66
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": false,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": false
+    },
+    "notes": {
+      "S5": "La GUI opera con claves de Binance",
+      "S9": "Sin pruebas automáticas"
+    },
+    "red_alerts": [],
+    "total": 85,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia GPL-3.0",
+      "url": "https://github.com/cunarist/solie/blob/09af98101f50e6b630e77561977db3f5c15683bd/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": null
+}
