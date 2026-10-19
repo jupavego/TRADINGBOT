@@ -167,6 +167,14 @@ def test_report_says_plainly_when_nothing_passes_and_lists_failures(tmp_path):
     assert res["by_card"]["nison_hammer"]["n"] == 80
 
 
+def test_card_stats_with_one_trade_has_no_interval_instead_of_nan():
+    s = report.card_stats([(T0, 0.5, "1h")], "x")
+    assert s["n"] == 1 and s["mean_r"] == 0.5 and s["ci"] == [None, None]
+    assert s["verdict"] == "no hay muestra para juzgar"
+    assert json.loads(json.dumps(s)) == s and "nan" not in json.dumps(s).lower()
+    assert report._f(s["ci"][0]) == "—"
+
+
 def test_card_stats_reading_is_honest_with_small_samples():
     assert report.card_stats([], "x")["verdict"] == "sin operaciones"
     s = report.card_stats([(T0 + k * H1, 1.0, "1h") for k in range(10)], "x")

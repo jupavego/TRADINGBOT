@@ -8,6 +8,7 @@ falla.
 from __future__ import annotations
 
 import json
+import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import UTC, datetime
@@ -66,6 +67,9 @@ def card_stats(trades: Sequence[tuple[int, float, str]], label: str) -> dict:
     r = np.array([x[1] for x in trades], dtype=float)
     lo, hi = day_block_ci(r, t, BOOT, LEVEL, rng_for(0, f"lit_card|{label}"))
     mean = float(r.mean())
+    if not (math.isfinite(lo) and math.isfinite(hi)):     # n = 1: sin intervalo, no «nan»
+        return {"n": n, "mean_r": mean, "ci": [None, None], "win": float((r > 0).mean()),
+                "verdict": "no hay muestra para juzgar"}
     word = ("no hay muestra para juzgar" if n < 30 else "positivo (IC95 % sobre 0)" if lo > 0
             else "negativo (IC95 % bajo 0)" if hi < 0 else "no distinguible de 0")
     return {"n": n, "mean_r": mean, "ci": [lo, hi], "win": float((r > 0).mean()), "verdict": word}
