@@ -65,3 +65,7 @@
 .su-tbl th { color: var(--muted); font-weight: 500; }
 .su-tbl td.num { text-align: right; }
 .su-tbl tr[data-against="debajo"] td:nth-child(6), .su-tbl tr[data-review="true"] td:first-child { color: var(--warn); }
+
+.su-watchbox { margin-top: 14px; }
+.su-watchbox h4 { margin: 0 0 8px; }
+.su-watch { opacity: .85; border-style: dashed; }

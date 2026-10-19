@@ -103,3 +103,28 @@ def test_at_most_three():
     vs = [verdict(f"s{k}", ci_lo=0.01 * k) for k in range(6)]
     pub = run(ideas, vs)
     assert [s["strategy"] for s in pub.setups] == ["s5", "s4", "s3"]
+
+
+def test_observation_idea_goes_to_watch_never_to_setups():
+    pub = run([idea()], [verdict(verdict="EN OBSERVACIÓN")])
+    assert pub.status == SIN_VALIDADAS and pub.setups == []
+    (w,) = pub.watch
+    assert w["state"] == "observacion_no_validada" and w["verdict"] == "EN OBSERVACIÓN"
+    assert w["strategy"] == "ema"
+
+
+def test_rejected_never_in_watch():
+    assert run([idea()], [verdict(verdict="RECHAZADA")]).watch == []
+
+
+def test_watch_excludes_validated_and_expired_ideas():
+    pub = run([idea("ema"), idea("rsi", entry=150.0)],
+              [verdict("ema"), verdict("rsi", verdict="EN OBSERVACIÓN")])
+    assert [s["strategy"] for s in pub.setups] == ["ema"] and pub.watch == []
+
+
+def test_watch_ordered_by_sample_and_deduplicated():
+    vs = [verdict(f"s{k}", verdict="EN OBSERVACIÓN") | {"n_oos": k} for k in range(3)]
+    ideas = [idea("s0", side=1), idea("s1", side=-1), idea("s2", side=1)]
+    pub = run(ideas, vs)
+    assert [w["strategy"] for w in pub.watch] == ["s2", "s1"]   # s0: mismo lado y entrada que s2

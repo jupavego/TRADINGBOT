@@ -19,13 +19,14 @@ interface Setup {
   side: Side; kind: 'market' | 'limit'; entry: number; sl: number; tp: number; rr: number
   strategy: string; timeframe: string; version: string; id: string; reason: string; hours: number
   created_at: number; valid_until: number | null; state: string; evidence: Evidence
+  verdict?: string; verdict_reason?: string | null
 }
 type Status = 'ok' | 'sin_validadas' | 'sin_senal' | 'datos_viejos'
 interface SetupsView {
   mode: string; symbol: string; asof: number | null; criteria_version: string
   verdicts_asof: number | null; price: number | null; status: Status; message: string
   validation: { counts: Record<string, number>; validated: string[]; attempts: number }
-  setups: Setup[]; note: string; source: string
+  setups: Setup[]; watch?: Setup[]; note: string; source: string
 }
 export interface ApplySetup { side: Side; entry: number; tp: number; sl: number; amount: number; leverage: number }
 
@@ -163,6 +164,28 @@ export class SetupsPanel {
       '<button type="button" class="btn" data-open-paper>Ver validación en «Bróker simulado»</button></div>'
   }
 
+  /** Ideas de versiones EN OBSERVACIÓN: sin validar, sin monto ni «cargar»; solo para seguirlas. */
+  private watchCard(s: Setup): string {
+    const mv = (x: number): string => pc((x - s.entry) / s.entry)
+    return `<article class="su-card su-watch" data-side="${s.side}"><header>` +
+      `<span class="su-side">${s.side === 'long' ? 'LONG' : 'SHORT'}</span>` +
+      '<span class="su-tag" data-ok="false">En observación · NO validada</span>' +
+      `<span class="muted su-h">${esc(s.strategy)} · ${esc(s.timeframe)} · ${esc(s.version)}</span></header>` +
+      '<div class="su-lv">' +
+      `<div><span>Entrada (${s.kind === 'limit' ? 'límite' : 'mercado'})</span><b class="num">${nf(s.entry)}</b></div>` +
+      `<div><span>Take profit</span><b class="num up">${nf(s.tp)}</b><small>${mv(s.tp)}</small></div>` +
+      `<div><span>Stop loss</span><b class="num down">${nf(s.sl)}</b><small>${mv(s.sl)}</small></div></div>` +
+      `<p class="su-stats">R:B <b>1 : ${nf(s.rr)}</b> · fuera de muestra n <b>${s.evidence.n_oos}</b> · R medio <b>${rr(s.evidence.mean_r)}</b> · decidida <b>${utc(s.created_at)}</b></p>` +
+      `<p class="muted">Falta: ${esc(s.verdict_reason ?? 'evidencia suficiente')}</p>` +
+      `<p class="su-why"><span>Por qué</span> ${esc(s.reason)}</p></article>`
+  }
+
+  private watch(v: SetupsView): string {
+    if (!v.watch?.length) return ''
+    return '<div class="su-watchbox"><h4 class="sh">Ideas en observación <span class="muted">· aún sin evidencia suficiente · no son sugerencias</span></h4>' +
+      `<div class="su-grid">${v.watch.map((s) => this.watchCard(s)).join('')}</div></div>`
+  }
+
   private paint(): void {
     const v = this.view
     const head = '<div class="su-head"><h3 class="sh">Operaciones sugeridas intradía</h3>' +
@@ -173,8 +196,8 @@ export class SetupsPanel {
     let body: string
     if (this.error) body = `<p class="muted">No se pudieron cargar las sugerencias: ${esc(this.error)}</p>`
     else if (!v) body = '<p class="muted">Cargando sugerencias validadas…</p>'
-    else if (!v.setups.length) body = this.empty(v)
-    else body = `<div class="su-grid">${v.setups.map((s, i) => this.card(s, i)).join('')}</div>`
+    else if (!v.setups.length) body = this.empty(v) + this.watch(v)
+    else body = `<div class="su-grid">${v.setups.map((s, i) => this.card(s, i)).join('')}</div>` + this.watch(v)
     const foot = v
       ? `<p class="muted su-foot">${NO_GUARANTEE} ` +
         (v.price !== null ? `Precio ${nf(v.price)} · ` : '') +
