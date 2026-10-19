@@ -40,8 +40,9 @@ class LocalContextAnalyzer:
             "model": self.model, "stream": False, "think": False,
             "format": ContextOutput.model_json_schema(),
             "options": {"temperature": 0.1, "num_predict": self.num_predict},
-            "messages": [{"role": "system", "content": SYSTEM_PROMPT},
-                         {"role": "user", "content": f"<headlines_data>\n{data}\n</headlines_data>"}],
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": f"<headlines_data>\n{data}\n</headlines_data>"}],
         }
 
     def __call__(self, items: list[NewsItem]) -> dict[str, Any] | None:
