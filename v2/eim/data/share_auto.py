@@ -29,6 +29,7 @@ from pathlib import Path
 from eim.data.backup import copy_db_hot
 from eim.data.machine import machine_id
 from eim.data.share_export import export, prune_own
+from eim.data.share_git import GitTransport
 from eim.data.share_import import Export, _merge_db, discover
 from eim.data.share_report import Report
 from eim.data.share_spec import LOG_DDL, specs_of
@@ -47,13 +48,17 @@ def load_config(data_dir: Path, env: dict | None = None) -> dict:
         cfg = {}
     if env.get("EIM_SHARED_DIR"):
         cfg["shared_dir"] = env["EIM_SHARED_DIR"]
+    if env.get("EIM_SHARE_GIT_URL"):
+        cfg["git_url"] = env["EIM_SHARE_GIT_URL"]
     return cfg
 
 
-def save_config(data_dir: Path, shared_dir: str, machine: str | None = None) -> Path:
+def save_config(data_dir: Path, shared_dir: str | None, machine: str | None = None,
+                git_url: str | None = None) -> Path:
     p = data_dir / CONFIG
     p.parent.mkdir(parents=True, exist_ok=True)
-    cfg = {"shared_dir": str(shared_dir)} | ({"machine": machine} if machine else {})
+    cfg = {k: v for k, v in (("shared_dir", shared_dir and str(shared_dir)),
+                             ("git_url", git_url), ("machine", machine)) if v}
     p.write_text(json.dumps(cfg, indent=1), encoding="utf-8")
     return p
 
@@ -71,7 +76,9 @@ class ShareAgent:
                  live: dict[str, Live], *, backup_dir: Path | None = None,
                  import_every_s: float = 3600.0, export_every_s: float = 6 * 3600.0,
                  keep: int = 3, clock: Callable[[], float] = time.time,
-                 on_imported: Callable[[], object] | None = None) -> None:
+                 on_imported: Callable[[], object] | None = None,
+                 transport: GitTransport | None = None) -> None:
+        self.transport = transport      # None = carpeta de nube; GitTransport = repo privado
         self.role, self.data_dir = role, data_dir
         self.shared_dir, self.machine = shared_dir, machine
         self.live, self.backup_dir = live, backup_dir
@@ -103,6 +110,9 @@ class ShareAgent:
         now = self.clock()
         self.error = ""
         try:
+            if self.transport is not None and (now >= self.next_import
+                                               or now >= self.next_export):
+                self.transport.pull()           # prepara view/ y trae lo nuevo de las demás
             if not self.shared_dir.exists():
                 raise RuntimeError(f"la carpeta compartida no existe: {self.shared_dir} "
                                    "(¿la nube aún no está sincronizada?)")
@@ -221,6 +231,8 @@ class ShareAgent:
         finally:
             shutil.rmtree(stage, ignore_errors=True)
         prune_own(self.shared_dir, self.machine, self.role, self.keep)
+        if self.transport is not None:
+            self.transport.push()               # si falla, no se anota la firma: se reintenta
         self.state["export_sig"] = sig
         self.state["last_export"] = int(self.clock())
         self.state["last_export_dir"] = out.name
@@ -235,11 +247,15 @@ def make_agent(role: str, data_dir: Path, live: dict[str, Live], *, backup_dir: 
     `EIM_SHARE_KEEP` (3 exportaciones propias por tipo)."""
     e = os.environ if env is None else env
     cfg = load_config(data_dir, e)
-    if not cfg.get("shared_dir") or e.get("EIM_SHARE_AUTO", "1") == "0":
+    if not (cfg.get("shared_dir") or cfg.get("git_url")) or e.get("EIM_SHARE_AUTO", "1") == "0":
         return None
     machine = machine_id(data_dir, {"EIM_MACHINE": e.get("EIM_MACHINE") or cfg.get("machine", "")})
-    return ShareAgent(role, data_dir, Path(cfg["shared_dir"]), machine, live,
-                      backup_dir=backup_dir, on_imported=on_imported,
+    transport = shared = None
+    if cfg.get("git_url"):
+        transport = GitTransport(cfg["git_url"], data_dir / "share_repo", machine)
+        shared = transport.view
+    return ShareAgent(role, data_dir, shared or Path(cfg["shared_dir"]), machine, live,
+                      backup_dir=backup_dir, on_imported=on_imported, transport=transport,
                       import_every_s=float(e.get("EIM_SHARE_IMPORT_S", 3600)),
                       export_every_s=float(e.get("EIM_SHARE_EXPORT_S", 6 * 3600)),
                       keep=int(e.get("EIM_SHARE_KEEP", 3)))
