@@ -9,7 +9,7 @@ vacía con su motivo. Sin I/O, sin red; `suggest()` de síntesis no interviene.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass, field
 
 from pydantic import BaseModel, ConfigDict
@@ -111,9 +111,11 @@ def _stale(now: int, verdicts_asof: int | None, heartbeat: int | None, view_stal
 def publish(ideas: Sequence[Idea], verdicts: Sequence[dict], *, now: int, price: float | None,
             atr: float | None, last_t: Mapping[str, int | None], verdicts_asof: int | None,
             heartbeat: int | None, view_stale: bool = False,
-            params: PublishParams | None = None) -> Publication:
+            params: PublishParams | None = None, review: Collection[str] = ()) -> Publication:
     """`ideas`: propuestas del bróker (cualquiera; aquí se filtra a la última vela cerrada de
-    cada marco `last_t`); `verdicts`: veredictos vigentes de T49 (`Verdict.to_json()`)."""
+    cada marco `last_t`); `verdicts`: veredictos vigentes de T49 (`Verdict.to_json()`);
+    `review`: ids de versión «en revisión» por degradación (T51), excluidas hasta un veredicto
+    nuevo."""
     p = params or PublishParams()
     counts: dict[str, int] = {}
     for v in verdicts:
@@ -121,8 +123,10 @@ def publish(ideas: Sequence[Idea], verdicts: Sequence[dict], *, now: int, price:
     ok = {(v["sid"], v["fingerprint"]): v for v in verdicts
           if v["verdict"] == "VALIDADA" and v.get("retired") is None
           and v["timeframe"] in p.timeframes}
+    held = sorted(v["id"] for v in ok.values() if v["id"] in review)
+    ok = {k: v for k, v in ok.items() if v["id"] not in review}
     info = {"counts": counts, "validated": sorted(v["id"] for v in ok.values()),
-            "attempts": len(verdicts)}
+            "attempts": len(verdicts), "in_review": held}
     why = _stale(now, verdicts_asof, heartbeat, view_stale, p)
     if why is None and (price is None or not atr or atr <= 0):
         why = "sin precio actual del bróker simulado"
@@ -130,9 +134,10 @@ def publish(ideas: Sequence[Idea], verdicts: Sequence[dict], *, now: int, price:
         return Publication(DATOS_VIEJOS, f"Datos desactualizados: {why}.", validation=info)
     if not ok:
         obs, rej = counts.get("EN OBSERVACIÓN", 0), counts.get("RECHAZADA", 0)
+        rev = f"; {len(held)} validada(s) en revisión por degradación" if held else ""
         return Publication(
             SIN_VALIDADAS, "Ninguna estrategia pasa todavía la puerta de validación "
-            f"({obs} en observación, {rej} rechazadas).", validation=info)
+            f"({obs} en observación, {rej} rechazadas{rev}).", validation=info)
     live, gone = [], []
     for i in ideas:
         v = ok.get((i.sid, i.version))
