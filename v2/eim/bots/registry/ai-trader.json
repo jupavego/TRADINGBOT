@@ -1,0 +1,84 @@
+{
+  "id": "ai-trader",
+  "name": "AI-Trader (HKUDS)",
+  "repo": "HKUDS/AI-Trader",
+  "commit_sha": "d03ff6c056b32ced735adf7c19ed8175adb1c8df",
+  "commit_date": "2026-06-11",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "NONE",
+    "file": null,
+    "sha256": null,
+    "head": null
+  },
+  "bot_class": "IA",
+  "integration_mode": "C",
+  "binance_markets": [],
+  "strategies": [
+    {
+      "name": "Agente nativo de trading",
+      "path": "service/",
+      "note": "Investigación"
+    }
+  ],
+  "dependencies": [
+    "Node/TypeScript"
+  ],
+  "risks": [
+    "El README muestra una insignia MIT pero no hay archivo LICENSE: se trata como sin licencia, no se copia (mismo criterio que T04)"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "Alerta roja R2: sin licencia real; solo se leen ideas (fila 23)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 10,
+      "O2": 15,
+      "O3": 0,
+      "O4": 0,
+      "O5": 10,
+      "O6": 5,
+      "O7": 5,
+      "O8": 5
+    },
+    "total": 50,
+    "tests_files": 21,
+    "days_since_commit": 130
+  },
+  "security": {
+    "checks": {
+      "S1": false,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S1": "Sin archivo LICENSE"
+    },
+    "red_alerts": [
+      "R2"
+    ],
+    "total": 85,
+    "enabled": false
+  },
+  "evidence": [
+    {
+      "what": "Sin LICENSE en la raíz",
+      "url": "https://github.com/HKUDS/AI-Trader/blob/d03ff6c056b32ced735adf7c19ed8175adb1c8df/README.md"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 23
+}

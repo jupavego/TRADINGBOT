@@ -7,7 +7,7 @@ from eim.core import AgentReport
 from eim.synthesis import SynthesisParams, synthesize
 from eim.synthesis.params import NON_DIRECTIONAL, T44_WEIGHTS, role_of
 
-NEW = ("technical", "smart_money")
+NEW = ("technical", "smart_money", "literature")
 
 
 def rep(i: str, bias: float, conf: float = 0.8, status: str = "ok", **metrics) -> AgentReport:
@@ -63,7 +63,8 @@ def test_weight_zero_agent_is_silent():
 
 def test_default_weights_come_from_t44():
     p = SynthesisParams()
-    assert {k: p.weights[k] for k in NEW} == T44_WEIGHTS
+    assert {k: p.weights[k] for k in T44_WEIGHTS} == T44_WEIGHTS
+    assert set(NEW) | {"bots"} == set(T44_WEIGHTS)   # bots (T57): peso 0 y `excluded`
     assert not ({"technical", "smart_money"} & p.excluded)
 
 

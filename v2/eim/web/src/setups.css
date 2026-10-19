@@ -50,3 +50,18 @@
 :root[data-theme="cyber"] .su-card[data-side="short"] .su-side { text-shadow: 0 0 8px rgba(255, 61, 95, .6); }
 :root[data-theme="cyber"] .setups input { background: rgba(4, 10, 19, .7); border-color: rgba(var(--glow), .25); border-radius: 3px; font-family: var(--f-num); }
 :root[data-theme="cyber"] .su-lv b, :root[data-theme="cyber"] .su-res b { font-family: var(--f-num); }
+.su-ev { display: grid; grid-template-columns: max-content 1fr; gap: 2px 10px; margin: 0; font-size: 12px; }
+.su-ev dt { color: var(--muted); }
+.su-ev dd { margin: 0; min-width: 0; }
+.su-why { margin: 0; font-size: 12px; color: var(--muted); }
+.su-why span { text-transform: uppercase; letter-spacing: .04em; font-size: 11px; margin-right: 4px; }
+.su-empty { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.su-empty p { margin: 0; font-size: 12px; }
+
+/* Historial de sugerencias (T51) */
+.su-tbl { overflow-x: auto; margin: 8px 0; }
+.su-tbl table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.su-tbl th, .su-tbl td { padding: 4px 8px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.su-tbl th { color: var(--muted); font-weight: 500; }
+.su-tbl td.num { text-align: right; }
+.su-tbl tr[data-against="debajo"] td:nth-child(6), .su-tbl tr[data-review="true"] td:first-child { color: var(--warn); }

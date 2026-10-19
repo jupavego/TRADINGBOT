@@ -71,7 +71,7 @@ class Validator:
         decls = load_declarations(self.lineage)
         out = {}
         for tf in self.desk.tfs:
-            for info in CATALOG.values():
+            for info in (i for i in CATALOG.values() if i.runs_in(tf)):
                 sid = f"{info.id}@{tf}"
                 out[sid] = self.vstore.ensure(sid, info.id, tf, info.version(tf, self.desk.ep),
                                               now, decls)

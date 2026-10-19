@@ -1,5 +1,6 @@
 # Universo de bots para el escuadrón (insumo de T56, NO es una auditoría)
 Fecha: 2026-10-18 · Fuente: investigación del usuario (24 proyectos) + búsqueda web de contraste + auditorías ya hechas (T04, T33).
+**Resuelto por T56 (2026-10-19): ver `T56_auditoria.md` y `v2/eim/bots/registry/` — cada fila tiene veredicto, licencia real y modo de integración.**
 **Todo lo marcado «sin verificar» viene de memoria o de listados de terceros; T56 lo comprueba con el `LICENSE` real y clones aislados, sin ejecutar nada.** Ninguna cifra de rentabilidad se acepta de README o de listados.
 
 ## 1. Qué es «un bot» en este plan

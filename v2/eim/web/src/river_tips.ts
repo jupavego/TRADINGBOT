@@ -54,6 +54,7 @@ export function whyNotVoting(id: string, infos: AgentInfo[], syn: Synthesis | nu
   if (role === 'riesgo') return 'No vota: modula los pesos según el régimen.'
   if (role === 'carril') return 'Carril propio: su rendimiento no suma a la dirección del precio.'
   if (role === 'derivado') return 'No vota: deriva de estructura y niveles (evita el doble conteo).'
+  if (role === 'contexto') return 'No vota: bots de terceros solo informan hasta superar la puerta de validación (T59).'
   if ((weightOf(id, infos, syn) ?? 1) <= 0) {
     return 'Peso 0: no aportó fuera de muestra (reports/agents_marginal.md); se muestra pero no mueve la síntesis.'
   }

@@ -100,7 +100,8 @@ def test_min_open_floor_takes_soft_vetoes_only():
     hard = replace(o, idea=replace(o.idea, htf=-1))                  # contra la tendencia mayor
     assert not run_profile(CONS, [hard], Learner([]), mmr=0.004).trades
     limit = replace(o, idea=replace(o.idea, kind="limit", fill_ms=H1))
-    assert not run_profile(CONS, [limit], Learner([]), mmr=0.004).trades
+    no_pend = CONS.model_copy(update={"min_pending": 0})
+    assert not run_profile(no_pend, [limit], Learner([]), mmr=0.004).trades   # sin mín. pendientes
     poor_rr = replace(o, idea=replace(o.idea, tp=100.5))             # R:B 0,25 < floor_min_rr
     assert not run_profile(CONS, [poor_rr], Learner([]), mmr=0.004).trades
 
@@ -171,3 +172,16 @@ def test_min_open_learns_which_soft_veto_it_may_skip():
     assert any("bloqueado" in e["text"] for e in st.events if e["cat"] == "aprendizaje")
     wins = [closed(1.0, k) for k in range(12)]               # ganando, nunca se bloquea
     assert len(run_profile(CONS, wins, Learner([]), mmr=0.004).trades) == 12
+
+
+def test_min_pending_places_limit_orders_up_to_the_minimum():
+    """Con menos de `min_pending` órdenes límite sin llenar, la primera idea límite que solo
+    incumple vetos blandos se coloca (marcada «mínimo»); alcanzado el mínimo, las demás no."""
+    lim = idea(t=T0, kind="limit", entry=99.0, fill_h=6.0, iid="a")
+    a = Outcome(lim, "PENDIENTE")                               # espera su precio, sin llenarse
+    b = Outcome(replace(lim, id="b", t=T0 + H1), "PENDIENTE")
+    st = run_profile(CONS.model_copy(update={"min_open": 0, "min_pending": 1}), [a, b],
+                     Learner([]), mmr=0.004)
+    orders = [e for e in st.events if e["cat"] == "orden"]
+    assert len(orders) == 1 and orders[0]["floor"] and "pendiente" in orders[0]["text"]
+    assert any(e["cat"] == "rechazada" for e in st.events)

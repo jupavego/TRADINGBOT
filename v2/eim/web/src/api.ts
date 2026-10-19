@@ -163,3 +163,10 @@ export async function fetchMode(): Promise<string | null> {
     return null
   }
 }
+
+/** Ficha de la biblioteca (T53), solo lectura: título, paráfrasis y cita ya resueltos. */
+export interface LibraryCard {
+  id: string; title: string; claim: string; status: string; label: string
+  citations: { author: string; year: number | null; chapter: string; pages: number[]; printed: string | null }[]
+}
+export const fetchCard = (id: string): Promise<LibraryCard> => getJson(`/v2/library/cards/${id}`)

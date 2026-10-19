@@ -1,0 +1,74 @@
+{
+  "id": "stable-baselines3",
+  "name": "Stable-Baselines3",
+  "repo": "DLR-RM/stable-baselines3",
+  "commit_sha": "b2878f4b83e21f16a53c54a62def628e05fd2e96",
+  "commit_date": "2026-10-13",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "2d8fbeee75e0acd13e75b30470b3521b12fb55c26c90c2060c6bd525345870a9",
+    "head": "The MIT License Copyright (c) 2019 Antonin Raffin Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "C",
+  "binance_markets": [],
+  "strategies": [],
+  "dependencies": [
+    "torch"
+  ],
+  "risks": [
+    "Solo si algún candidato de RL lo exigiera"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "INFRA; ningún candidato de RL aprobado → no se instala (fila 27)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 0,
+      "O4": 0,
+      "O5": 10,
+      "O6": 5,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 65,
+    "tests_files": 31,
+    "days_since_commit": 6
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT",
+      "url": "https://github.com/DLR-RM/stable-baselines3/blob/b2878f4b83e21f16a53c54a62def628e05fd2e96/LICENSE"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 27
+}

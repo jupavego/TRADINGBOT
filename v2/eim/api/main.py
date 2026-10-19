@@ -13,12 +13,14 @@ from eim.agents.registry import AgentRegistry, default_registry
 from eim.api.arb_execution import arb_loop, build_arb_execution_router, build_arb_runtime
 from eim.api.arbitrage import ArbDesk, build_arbitrage_router
 from eim.api.backup import build_backup_router
+from eim.api.bots import build_bots_router
 from eim.api.calibration import build_calibration_router
 from eim.api.config import Settings
 from eim.api.execution import build_execution_router, build_runtime, recon_loop
 from eim.api.forecast import Forecaster, build_forecast_router
 from eim.api.history import HistoryLoader
 from eim.api.leaders import LeaderDesk, build_leaders_router
+from eim.api.library import build_library_router
 from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.more import MoreSources, build_more_router
 from eim.api.operation import build_operation_router
@@ -33,20 +35,24 @@ from eim.api.sources import BinanceKlineSource, LiveSource
 from eim.api.trades import build_trades_router
 from eim.api.validation import build_validation_router
 from eim.arbitrage.alerts import AlertParams
+from eim.bots.service import default_service
 from eim.data.arb_store import ArbStore
 from eim.data.arb_sync import ArbSync
+from eim.data.bots.store import BotSignalStore
 from eim.data.calendar_sync import CalendarSync
 from eim.data.paper_store import PaperStore
 from eim.data.providers.binance import BinanceFutures
 from eim.data.share_auto import Live, make_agent, share_loop
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
+from eim.data.suggestion_store import SuggestionStore
 from eim.data.timeframes import SYMBOLS, TF_MS
 from eim.data.validation_store import ValidationStore
 from eim.operation.cycle import OperationParams
 from eim.operation.supervisor import Operation, Supervisor
 from eim.paper.desk import PaperDesk
 from eim.risk import global_kill_switch, load_config
+from eim.suggestions.tracker import Tracker
 from eim.synthesis.params import SynthesisParams, role_of
 from eim.validation.service import Validator
 
@@ -76,7 +82,11 @@ def create_app(
     forecaster = Forecaster(store, reports)
     if history is None and source is None and cfg.auto_history:  # en vivo: historia automática
         history = HistoryLoader(store, BinanceFutures())
-    hub = Hub(src, store, reports, reg, cfg.snapshot_bars, cfg.agent_timeout_s, forecaster, history)
+    # T57: modo A siempre; modo B solo si el entorno aparte de Freqtrade está configurado.
+    bot_store = BotSignalStore(*reports.connection)
+    bots = default_service(cfg.data_dir, bot_store)
+    hub = Hub(src, store, reports, reg, cfg.snapshot_bars, cfg.agent_timeout_s, forecaster, history,
+              bots)
     kill = global_kill_switch()
     kill.attach(cfg.data_dir / "kill_switch.json")
     runtime = build_runtime(cfg.execution, kill, load_config())
@@ -90,7 +100,7 @@ def create_app(
                                               snapshot_bars=cfg.snapshot_bars,
                                               agent_timeout_s=cfg.agent_timeout_s),
                        data_dir=cfg.data_dir, reports_dir=cfg.operation_reports,
-                       edge_path=cfg.edge_results, forecaster=forecaster,
+                       edge_path=cfg.edge_results, forecaster=forecaster, bots=bots,
                        backup_dir=cfg.backup_dir, backup_keep=cfg.backup_keep)
 
     # T36: solo en vivo (con fuente inyectada —tests— no hay red).
@@ -173,6 +183,7 @@ def create_app(
     app.state.hub, app.state.reports, app.state.store = hub, reports, store
     app.state.forecaster = forecaster
     app.include_router(build_trades_router(store, reports))
+    app.include_router(build_library_router())
     app.state.operation = op
     app.include_router(build_risk_router(store, reports, desk=desk))
     app.include_router(build_operation_router(desk, lambda: op, cfg.operation_reports))
@@ -181,7 +192,12 @@ def create_app(
                                            cfg.backup_keep, lambda: op))
     app.include_router(build_share_router(reports, paper_store, cfg.data_dir, lambda: share))
     app.include_router(build_forecast_router(forecaster))
-    app.include_router(build_setups_router(store, reports, lambda: [a.id for a in reg.latest()]))
+    app.include_router(build_bots_router(bot_store, bots))
+    # T51: registro y resolución de lo publicado; el bróker lo llama tras cada ciclo.
+    setups_router = build_setups_router(
+        paper, validator, tracker=Tracker(SuggestionStore(paper_store), paper.ep))
+    paper.after_tick.append(setups_router.tick)
+    app.include_router(setups_router)
     app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
     app.include_router(build_arbitrage_router(arb_desk))

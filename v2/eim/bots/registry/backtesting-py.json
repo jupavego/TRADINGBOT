@@ -1,0 +1,74 @@
+{
+  "id": "backtesting-py",
+  "name": "backtesting.py",
+  "repo": "kernc/backtesting.py",
+  "commit_sha": "ca2e2611621e472542ba90f7243a1fa06a7d7108",
+  "commit_date": "2026-08-05",
+  "audited_at": "2026-10-19",
+  "license": {
+    "spdx": "AGPL-3.0",
+    "file": "LICENSE.md",
+    "sha256": "ad858d53cae05eed9531ecd4c467440803acffe34c69de7b88e03affc5b6a1bd",
+    "head": "### GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007 Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/> Everyone is permitted"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "C",
+  "binance_markets": [],
+  "strategies": [],
+  "dependencies": [
+    "scikit-learn"
+  ],
+  "risks": [
+    "AGPL-3.0: solo proceso aislado; nunca importado"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "INFRA: oráculo de contraste únicamente"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 8,
+      "O3": 0,
+      "O4": 0,
+      "O5": 10,
+      "O6": 10,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 63,
+    "tests_files": 3,
+    "days_since_commit": 75
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {},
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia AGPL-3.0",
+      "url": "https://github.com/kernc/backtesting.py/blob/ca2e2611621e472542ba90f7243a1fa06a7d7108/LICENSE.md"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": 39
+}
