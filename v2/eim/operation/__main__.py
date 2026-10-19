@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from eim.data.local_api import DEFAULT_API, post_local
+from eim.observability.emit import configure
 from eim.operation.notify import JsonLog
 from eim.operation.watchdog import Watchdog
 
@@ -47,6 +48,7 @@ def main(argv: list[str] | None = None) -> int:
         cmd = [sys.executable, "-m", "uvicorn", "eim.api.main:app", "--host", "127.0.0.1",
                "--port", str(a.port)]
         root = Path(a.data_dir) / "operation"
+        configure(process="watchdog", spool_dir=Path(a.data_dir) / "obs" / "spool")
         Watchdog(cmd, env, root / "heartbeat.json", JsonLog(root / "logs", echo=True)).run()
         return 0
 

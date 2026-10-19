@@ -10,6 +10,7 @@ alertas. Cada paso falla de forma aislada y queda en el resultado del ciclo.
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 
 from fastapi import HTTPException
@@ -26,6 +27,9 @@ from eim.data.sync import sync_candles
 from eim.data.timeframes import FOCUS, tf_ms
 from eim.execution.broker import BrokerError
 from eim.execution.sim_broker import SimBroker
+from eim.observability import hooks, hooks_service
+from eim.observability.emit import span
+from eim.observability.events import trace_for
 from eim.operation.alerts import AlertCenter, conditions
 from eim.operation.equity import EquityBook, drawdown
 from eim.operation.notify import JsonLog
@@ -92,6 +96,7 @@ class OperationCycle:
         self.bots = bots  # servicio de bots (T57): produce `snapshot.bot_signals`
         self.data_fail_since: dict[str, int] = {}
         self.agent_status: dict[str, dict[str, str]] = {}
+        self.traces: dict[str, str] = {}      # símbolo → traza de la última vela analizada
 
     @property
     def rt(self):
@@ -134,9 +139,19 @@ class OperationCycle:
         if not last or last[-1].t <= self.cur.analyzed.get(sym, -1):
             return False
         asof = last[-1].t + tf_ms(tf)
+        trace = self.traces[sym] = trace_for(sym, tf, asof)
+        with span("operation.cycle", trace_id=trace, mode=self.desk.mode,
+                  detail={"phase": "analyze", "symbol": sym, "tf": tf, "asof": asof}):
+            self._run_agents(sym, tf, asof)
+        self.agent_status[sym] = {r.agent_id: r.status for r in self.reports.latest(sym, tf)}
+        self.cur.analyzed[sym] = last[-1].t
+        return True
+
+    def _run_agents(self, sym: str, tf: str, asof: int) -> None:
         done = {r.asof for r in self.reports.latest(sym, tf)}
         if asof not in done:        # la API pudo analizarla ya (canal abierto en la UI)
             snap = build_snapshot(self.store, sym, tf, self.p.snapshot_bars, asof=asof)
+            hooks.snapshot_fetches(snap, self.p.snapshot_bars)
             if self.bots is not None:
                 snap = self.bots.attach(snap)
             reps = run_agents(self.registry.latest(), snap, timeout=self.p.agent_timeout_s)
@@ -146,20 +161,23 @@ class OperationCycle:
                     self.forecaster.run(sym, tf)
                 except Exception as e:  # noqa: BLE001 - el pronóstico no frena la operación
                     self.log.write("pronostico_fallido", "warn", symbol=sym, error=str(e))
-        self.agent_status[sym] = {r.agent_id: r.status for r in self.reports.latest(sym, tf)}
-        self.cur.analyzed[sym] = last[-1].t
-        return True
+                    hooks_service.service_error("forecast.engine", e, mode=self.desk.mode)
 
     def _decide(self, sym: str, res: CycleResult) -> None:
         tf = self.p.timeframe
-        try:
-            view = (self.desk.execute(sym, tf) if self.rt.svc is not None
-                    else self.desk.evaluate(sym, tf)[0])
-        except HTTPException as e:
-            res.errors.append(f"{sym}: decisión/envío: {e.detail}")
-            self.log.write("envio_fallido", "error", symbol=sym, error=str(e.detail))
-            return
-        d = view.get("decision")
+        with span("operation.cycle", trace_id=self.traces.get(sym), mode=self.desk.mode,
+                  detail={"phase": "decide", "symbol": sym, "tf": tf}) as sp:
+            try:
+                view = (self.desk.execute(sym, tf) if self.rt.svc is not None
+                        else self.desk.evaluate(sym, tf)[0])
+            except HTTPException as e:
+                sp.set(status="error", detail={"error": str(e.detail)})
+                res.errors.append(f"{sym}: decisión/envío: {e.detail}")
+                self.log.write("envio_fallido", "error", symbol=sym, error=str(e.detail))
+                return
+            d = view.get("decision")
+            if d and not d["approved"]:
+                sp.set(status="rejected")
         row = {"symbol": sym, "plan": (view.get("plan") or {}).get("plan_id"),
                "approved": d["approved"] if d else None,
                "reasons": list(d["reasons"]) if d else [view.get("detail", "")],
@@ -170,6 +188,17 @@ class OperationCycle:
 
     # --- ciclo completo ----------------------------------------------------
     def run(self, now: int) -> CycleResult:
+        t0 = time.perf_counter()
+        with span("operation.cycle", mode=self.desk.mode) as sp:
+            res = self._run(now)
+            sp.set(status="ok" if res.ok else "degraded",
+                   detail={"analyzed": ",".join(res.analyzed), "errors": len(res.errors)})
+        hooks_service.beat("operation.cycle", status="ok" if res.ok else "degraded",
+                           duration_ms=(time.perf_counter() - t0) * 1000, mode=self.desk.mode,
+                           detail={"analyzed": len(res.analyzed), "errors": len(res.errors)})
+        return res
+
+    def _run(self, now: int) -> CycleResult:
         res = CycleResult(t=now)
         rt, kill, cfg = self.rt, self.desk.kill, self.desk.cfg
         if self.cur.started_at is None:

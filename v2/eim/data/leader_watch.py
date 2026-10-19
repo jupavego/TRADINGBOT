@@ -28,6 +28,7 @@ from eim.data.providers.leaders import HyperliquidInfo, HyperliquidStream, now_m
 from eim.leaders import params as P
 from eim.leaders.book import Gap, LeaderBook, Recon
 from eim.leaders.parse import order_fills, parse_funding, parse_positions
+from eim.observability import hooks_service
 
 log = logging.getLogger(__name__)
 
@@ -250,6 +251,7 @@ class LeaderWatch:
             await coro
         except Exception as exc:  # un líder o una consulta fallida no detiene al resto
             self.errors.append(f"{what}: {type(exc).__name__}: {exc}"[:300])
+            hooks_service.service_error("leaders.service", exc, detail={"what": what[:60]})
             log.error("%s: %s", what, exc)
 
     async def _periodic(self, stop: asyncio.Event) -> None:

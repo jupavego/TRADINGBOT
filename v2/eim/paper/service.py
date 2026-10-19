@@ -13,8 +13,10 @@ import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from eim.core import Mode
 from eim.data.sync import sync_candles
 from eim.data.timeframes import tf_ms
+from eim.observability import hooks_service
 from eim.paper.generate import closed_asofs, default_workers, now_ms
 
 WARMUP_BARS = 400                               # velas previas para los indicadores
@@ -131,6 +133,9 @@ class DeskService:
             p.write_text(json.dumps({"last_tick": self.last_tick, "saved": saved,
                                      "error": self.live_error, "last_context": last}),
                          encoding="utf-8")
+            hooks_service.beat("paper.broker", mode=Mode.SIMULADO,
+                               status="degraded" if self.live_error else "ok",
+                               detail={"saved": saved, "error": self.live_error[:120]})
         except OSError:
             pass   # el latido nunca tumba el ciclo
 
@@ -141,6 +146,7 @@ class DeskService:
                 await asyncio.to_thread(self.tick)
             except Exception as exc:  # red caída: se reintenta en el siguiente ciclo
                 self.live_error = f"{type(exc).__name__}: {exc}"
+                hooks_service.service_error("paper.broker", exc, mode=Mode.SIMULADO)
                 self._beat(0)
             for hook in self.after_tick:   # p. ej. la validación al cierre de cada vela de 4 h
                 try:

@@ -29,6 +29,9 @@ plantilla. Esta guía es el mismo procedimiento para hacerlo a mano y lo que vie
    (1–2 frases llanas, ≤ 280 caracteres: qué hace, qué recibe, qué entrega). Si ya figuraba como
    `planeado`, pasarlo a `construido`. `tests/observability/test_catalog.py` falla si falta o si
    la versión no coincide. El agente **no emite eventos**: es puro; el corredor lo instrumenta (T74).
+   Un servicio nuevo en segundo plano llama `hooks_service.beat("<id>")` en cada vuelta y
+   `hooks_service.service_error` al fallar (`eim/observability/hooks_service.py`) y fija su nombre
+   de proceso con `configure(process=…)` al arrancar.
 7. Gate: `python -m ruff check eim tests && python -m pytest -q`.
 8. UI (opcional): overlays con `id` estable; panel en `eim/web/src/` según `PLAN/UI_SPEC.md`.
    Verificar inspeccionando los datos renderizados o con captura, no solo «sin errores».
