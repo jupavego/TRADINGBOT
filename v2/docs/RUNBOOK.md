@@ -69,6 +69,8 @@ Causas (ver `reason` en `GET $API/v2/risk/kill-switch` y eventos): drawdown ≥ 
 15 % en papel es motivo para **revisar la estrategia**, no para reactivar: anótalo en el informe.
 
 ## 5. Restaurar desde copia de seguridad
+> Para traer el historial de **otro equipo** (no restaurar el propio): `python -m eim.data.share import` (OPERACION.md §3.1).
+
 ```bash
 # 1) detener la API / servicio (Ctrl+C en eim.operation run)
 python -m eim.data.backup list

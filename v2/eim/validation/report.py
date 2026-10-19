@@ -71,6 +71,21 @@ def _windows(p: dict) -> list[str]:
     return out
 
 
+def _provenance(p: dict) -> list[str]:
+    """T61: qué aportó cada máquina (vacío si nunca se importó experiencia de otro equipo)."""
+    machines = (p.get("provenance") or {}).get("machines") or {}
+    if not machines:
+        return []
+    out = ["Procedencia (experiencia importada de otras máquinas; duplicadas = ya estaban, no "
+           "suman evidencia):", ""]
+    for m, tabs in sorted(machines.items()):
+        out += [f"- **{m}**: " + "; ".join(
+            f"{t}: {v['imported']} nuevas, {v['duplicates']} duplicadas descartadas"
+            + (f", {v['conflicts']} en conflicto" if v["conflicts"] else "")
+            for t, v in sorted(tabs.items()))]
+    return [*out, ""]
+
+
 def _coverage(p: dict) -> list[str]:
     cov = p.get("coverage") or {}
     out = ["| Marco | Contextos | Desde | Hasta | Orígenes |", "|---|---|---|---|---|"]
@@ -145,7 +160,8 @@ def render(p: dict, notes: list[str] | None = None, commit: str = "") -> str:
         head.append("")
     body = ["## 2. Criterios (fijados antes de calcular)", "", *_criteria(crit), "",
             "## 3. Datos y muestra fuera de muestra", "", "Contextos del bróker simulado:", "",
-            *_coverage(p), "", "Ventanas de ajuste registradas (se excluyen de la evidencia de "
+            *_coverage(p), "", *_provenance(p),
+            "Ventanas de ajuste registradas (se excluyen de la evidencia de "
             "la versión y de sus descendientes):", "", *_windows(p), "",
             "Historial fuera de muestra disponible por marco:", "", *_oos_by_tf(vs), "",
             "## 4. Resultados por estrategia@marco@versión", "",

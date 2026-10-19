@@ -49,8 +49,8 @@ def _store(path) -> LeaderStore:
                          50_000.0 if c == "BTC" else 2_500.0, T0 + dt) for c, v in pos.items()]
         store.save_positions(LID, T0 + dt, T0 + dt + 100, ps, keep_ms=0)
     for dt in range(30 * S, 3_600 * S, 30 * S):
-        store.query("INSERT INTO leader_recon VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                    [LID, T0 + dt, T0 + dt, 1, 0, True, True, False, None, 0, 0])
+        store.query("INSERT INTO leader_recon VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                    [LID, T0 + dt, T0 + dt, 1, 0, True, True, False, None, 0, 0, "test"])
     h = T0 - T0 % 3_600_000 + 3_600_000
     store.add_funding([LeaderFunding(leader_id=LID, address=LID.split(":")[1], symbol="BTC",
                                      usdc=-2.0, rate=0.0001, size=0.4, t=h, observed_at=h + 60,

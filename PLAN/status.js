@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T01:50:03",
+ "generated": "2026-10-19T01:51:45",
  "tasks": [
   {
    "id": "T01",
@@ -768,8 +768,8 @@ window.EIM_STATUS = {
     "T40",
     "T32"
    ],
-   "state": "pending",
-   "notes": "Especificada (`PLAN/T61.md`, decisión del usuario 2026-10-18: mezcla por exportación a carpeta de nube compartida, con id de máquina). Mientras no se construya, se aplica el protocolo provisional de `v2/docs/OPERACION.md` §3.1.",
+   "state": "done",
+   "notes": "**Construido y probado sin red (`tests/share/`, 33 tests); ◆ pendiente: el usuario revisa el informe de la primera mezcla real antes de darla por cerrada.** `python -m eim.data.share export|import [--apply]|status` (`v2/eim/data/share*.py`, `machine.py`): identidad de máquina (`data/machine_id`, `EIM_MACHINE`), exportación consistente de `reports.duckdb`, `paper.duckdb` y `leaders.duckdb` a Parquet + `manifest.json` (SHA-256, esquema, commit) en `EIM_SHARED_DIR/<máquina>/<fecha>/` (en frío, o en caliente vía `POST /v2/share/snapshot` y la instantánea del servicio de líderes), importación idempotente y conmutativa con simulacro por defecto e informe por tabla y máquina (nuevas / ya estaban / conflicto / incompatibles), copia previa, una transacción por base, `import_log`/`share_origin`/`share_conflicts`; versiones de validación unidas por huella con `n`/`parent` remapeados y ventanas unidas; derivados recalculados, kill-switch/estado y secretos nunca viajan; procedencia en `GET /v2/validation` e informe. `leader_recon`/`leader_gaps` ganan `machine` (migración idempotente). **Automático** (`share_auto.py`): tras `python -m eim.data.share setup` (una vez), la API (`reports`+`paper`) y el servicio de líderes (`leaders`) importan en vivo lo de las demás máquinas (cada hora, con copia previa y recálculo de veredictos) y exportan lo propio si cambió (cada 6 h, exportaciones parciales `-api`/`-leaders`, poda de las propias), con estado en `GET /v2/share/status`. Protocolo en `v2/docs/OPERACION.md` §3.1.",
    "effort": "alto",
    "phase": 13,
    "goal": "Que dos o más computadores (cada colaborador con su propia copia local) acumulen **una sola experiencia**: operaciones simuladas, contextos del bróker, capturas de líderes y registro de intentos de validación. Lo que haga uno debe poder verlo el otro, sin duplicar filas, sin pisar datos y sin inflar la evidencia."
@@ -911,8 +911,8 @@ window.EIM_STATUS = {
    "id": "T72",
    "title": "Observatorio: decisión de piezas, contrato de eventos y catálogo",
    "deps": [],
-   "state": "pending",
-   "notes": "Especificada (`PLAN/T72.md`, insumo `PLAN/notas/T72_universo_observabilidad.md`, 2026-10-19; recortada el mismo día: 5 tareas, sin auditoría exhaustiva ni control autónomo). Catálogo con textos llanos y etapas para la vista pedagógica.",
+   "state": "done",
+   "notes": "**Decisión en `PLAN/notas/T72_decisiones.md` (pendiente de revisión del usuario antes de T73–T75):** Cytoscape.js (MIT, +138 KB gzip, 60 nodos medidos); el diseño «JSONL por proceso, un indexador» aguanta 2×1 000 ev/s sin líneas corruptas (indexa 20 000 en 0,35 s; dos escritores directos en DuckDB fallan); umbrales fijados en `eim/observability/thresholds.py`. Código en `v2/eim/observability/`: `events.py` (`ObsEvent`, `trace_for`), `emit.py` (`emit`/`span` sin lanzar ni bloquear, cola acotada, `EIM_OBS=off`), `redact.py`, `catalog/` (76 componentes: 17 agentes + 41 servicios + 18 planeados, con `title_es`/`explain_es`, etapas y glosario). Tests en `tests/observability/` (38); medición reproducible `v2/scripts/obs_bench.py`. Regla de proceso en `docs/NUEVO_AGENTE.md` y la skill `eim-new-agent`. Nada instrumentado todavía (T74).",
    "effort": "medio",
    "phase": 15,
    "goal": "Fijar el lenguaje común de la observabilidad **antes de instrumentar nada**, gastando en investigación solo lo que cambia la decisión: qué librería dibuja el grafo, que el diseño «los procesos escriben archivos, uno indexa» aguanta la carga, y qué componentes existen. Sale el evento normalizado, el catálogo de componentes y un emisor que no puede romper el sistema que observa."

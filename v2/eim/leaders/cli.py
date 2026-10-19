@@ -191,6 +191,10 @@ def _dispatch(store: LeaderStore, a: argparse.Namespace) -> str:
                               copy_mode=os.environ.get("EIM_COPY_SIM", "tracked"))
         if not watch.books:
             return "No hay líderes en seguimiento: usa `watch 0x…` primero."
+        from eim.data.share_auto import Live, make_agent  # T61: experiencia compartida
+        watch.share = make_agent(
+            "leaders", Path(a.root), {"leaders.duckdb": Live(*store.connection, store.snapshot)},
+            backup_dir=Path(os.environ.get("EIM_BACKUP_DIR", "backups")))
         if watch.manual_only:
             print(f"Solo manual (sin captura): {', '.join(watch.manual_only)}", file=sys.stderr)
         start = now_ms()
