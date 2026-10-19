@@ -15,10 +15,6 @@ PLANNED: tuple[Component, ...] = (
       "Copia en testnet", "Replicará a los líderes aprobados en la testnet con un asignador de "
       "capital y la puerta de riesgo. Aún no existe.", consumes=(("leaders.copy_sim", "copy_trade"),),
       produces=("fill",), **_P),
-    c("validation.setups_publisher", "validation", "validacion", "service", "api", "T50",
-      "Publicador de sugerencias", "Publicará solo las sugerencias de estrategias que pasaron la "
-      "puerta de validación, con su evidencia. Aún no existe.",
-      consumes=(("validation.gate", "validation_verdict"),), produces=("setup",), **_P),
     c("validation.setups_followup", "validation", "validacion", "service", "api", "T51",
       "Seguimiento de sugerencias", "Seguirá cada sugerencia publicada hasta su resultado y "
       "alimentará la mejora. Aún no existe.",

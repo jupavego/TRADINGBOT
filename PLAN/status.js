@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T08:41:17",
+ "generated": "2026-10-19T08:53:41",
  "tasks": [
   {
    "id": "T01",
@@ -623,8 +623,8 @@ window.EIM_STATUS = {
    "deps": [
     "T49"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Publicador puro `eim/suggestions/publisher.py`: cruza las ideas vivas de la última vela cerrada de 15 m y 1 h (cualquier estrategia, tenencia ≤ 36 h) con los veredictos de T49 y publica ≤ 3 de versiones VALIDADAS (cruce por `estrategia@marco` + huella), ordenadas por el límite inferior del IC95 % fuera de muestra, deduplicadas (mismo lado, entrada < 0,5 ATR) y sin vencidas; si no hay ninguna, lista vacía y motivo `sin_validadas` / `sin_senal` / `datos_viejos`. `GET /v2/setups` (`eim/api/setups.py`, contrato en `CONTRATOS.md`) ya no publica la salida cruda de `suggest()` (queda como generador de candidatas del bróker). Panel (`web/src/setups_ui.ts`): tarjetas con entrada/SL/TP/riesgo, estrategia@marco@versión, evidencia, razón y hora, «Sugerida · no ejecutada» + aviso, y estado vacío «Sin operaciones validadas para sugerir» con motivo (lo esperable hoy: T49 no validó ninguna). Tests en `tests/suggestions`, `tests/api/test_setups_api.py`. Verificado en navegador con respuesta simulada de la API (tarjetas y estado vacío, screenshot); falta mirarlo con datos reales en la máquina del usuario. **Para usarlo: reiniciar la API.**",
    "effort": "medio",
    "phase": 10,
    "goal": "Que el panel «Operaciones sugeridas intradía» muestre solo oportunidades de estrategias VALIDADAS por la puerta de T49, con su evidencia, o el mensaje explícito «Sin operaciones validadas para sugerir»; siempre como oportunidades potenciales, nunca como operaciones ejecutadas ni garantías de rentabilidad."
@@ -675,8 +675,8 @@ window.EIM_STATUS = {
     "T49",
     "T19"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**Construido y probado sin red; falta la corrida con los datos reales y presentar el informe (◆).** Preregistro `PLAN/notas/T54_preregistro.md` (commits `404e8d9` + `10e2b8f`, anteriores al código; anexo 2 mueve el interruptor a `lit_tilt_state.json`). Contexto: `ctx[\"lit\"]` (`CTX_VERSION` 2) y relleno de contextos viejos sin regenerar agentes (`python -m eim.literature ctx`). Familia `literatura` (`eim/paper/strategies_lit.py`): 5 estrategias / 9 versiones (`lit_canal_4sem` solo 4 h; el resto 1 h y 4 h; `StrategyInfo.timeframes`), declaradas con origen T54 en `lineage.json` (ventana solo ETHUSDT); las 87 huellas existentes no cambiaron; no entran en los perfiles. Ajuste de escenarios apagado: `eim/forecast/lit_tilt.py`, definición inmutable `versions/lit_tilt_v1.json` (k 0,5, criterios T1–T6) y activación `lit_tilt_state.json`; `ForecastSet.adjustments` + marca en la UI. Informe: `python -m eim.literature report` → `reports/literature/lit_v1_<fecha>.md/.json` (probado con datos sintéticos, no es evidencia). Gate: ruff limpio y pytest sin fallos nuevos (quedan 2 preexistentes por el paquete `binance`). **Pendiente (el almacén real no está en este entorno):** con la API detenida, `ctx` → reiniciar la API (recalcula T49 con las 9 versiones nuevas) → `report`; presentar el informe aunque ninguna regla pase.",
    "effort": "alto",
    "phase": 11,
    "goal": "Que lo que dicen los libros pase de opinión a evidencia por dos caminos, ambos fuera de muestra y con criterios fijados antes de calcular: (a) cada regla comprobable se vuelve **estrategia candidata** del bróker simulado y la puerta T49 decide; (b) el apoyo bibliográfico de T53 **retroalimenta las probabilidades de los escenarios** solo si mejora su calibración. Si ninguno mejora nada, ese es el resultado y se informa tal cual."

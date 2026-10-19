@@ -191,7 +191,7 @@ def create_app(
     app.include_router(build_share_router(reports, paper_store, cfg.data_dir, lambda: share))
     app.include_router(build_forecast_router(forecaster))
     app.include_router(build_bots_router(bot_store, bots))
-    app.include_router(build_setups_router(store, reports, lambda: [a.id for a in reg.latest()]))
+    app.include_router(build_setups_router(paper, validator))
     app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
     app.include_router(build_arbitrage_router(arb_desk))
