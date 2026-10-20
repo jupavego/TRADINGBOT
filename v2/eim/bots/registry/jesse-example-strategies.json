@@ -81,15 +81,15 @@
     "Reglas de manual; sin pruebas; último commit 2024-03-21 (19 meses)"
   ],
   "verdict": "usar",
-  "squad_proposal": "opcional",
+  "squad_proposal": "propuesto",
   "reasons": [
     "Licencia MIT clara y lógica corta por estrategia; útil para contrastar con las reglas ya presentes en EIM",
     "Opcional: baja expectativa de aporte y sin mantenimiento"
   ],
   "approval": {
-    "state": "pendiente",
-    "by": null,
-    "at": null
+    "state": "aprobada",
+    "by": "usuario",
+    "at": "2026-10-20"
   },
   "operational": {
     "checks": {

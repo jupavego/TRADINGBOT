@@ -50,15 +50,15 @@
     "Evidencia de rendimiento solo en comentarios de commits; la cifra no se acepta (regla de T56)"
   ],
   "verdict": "usar",
-  "squad_proposal": "opcional",
+  "squad_proposal": "propuesto",
   "reasons": [
     "Es la estrategia comunitaria más usada de Freqtrade y mantiene actividad diaria (commit 2026-10-19) con suite de pruebas propia",
     "Opcional: costo alto de adaptar (datos 5m, entorno Freqtrade) frente a una expectativa realista de «ninguno validado» en T59"
   ],
   "approval": {
-    "state": "pendiente",
-    "by": null,
-    "at": null
+    "state": "aprobada",
+    "by": "usuario",
+    "at": "2026-10-20"
   },
   "operational": {
     "checks": {

@@ -236,3 +236,6 @@ Respuesta escrita: «Sí a 1, 2 y 3; en la 4 acepto la más recomendada».
 3. **Segundo entorno de Python 3.12 aceptado** para el modo B (y toolchain de Rust para Passivbot en Windows).
 4. **NFI:** se sigue la recomendación (opcional) → **no entra ahora**. Tampoco `jesse-example-strategies` ni `trendrider-strategy` (opcionales). Quedan en `pendiente`: se pueden aprobar más adelante sin repetir la auditoría.
 Las 4 fichas aprobadas llevan `approval = {aprobada, usuario, 2026-10-19}`; el resto sigue `pendiente`.
+
+### Decisión del usuario (◆), 2026-10-20 — ampliación del escuadrón
+Aprobación escrita de los tres opcionales que la decisión del 2026-10-19 dejó fuera: `nostalgia-for-infinity` (B, GPL-3.0, velas de 5 min, promedia a la baja; mismo riesgo de licencia aceptado en el punto 2: uso privado, sin distribuir, entorno Python 3.12 aparte), `jesse-example-strategies` (A, MIT) y `trendrider-strategy` (A, MIT). Sus fichas pasan a `approval = {aprobada, usuario, 2026-10-20}` y `squad_proposal = propuesto`. Siguen sujetos a la misma puerta de T49 (T59): aprobar no es validar. El punto 4 de arriba queda reemplazado para estos tres.
