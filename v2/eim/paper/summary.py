@@ -6,6 +6,7 @@ import numpy as np
 
 from eim.paper.book import ProfileState, liq_price
 from eim.paper.feedback import Learner, judge
+from eim.paper.ladder_stats import ladder_stats
 
 CURVE_POINTS = 400
 
@@ -44,9 +45,11 @@ def positions_of(st: ProfileState, mmr: float) -> tuple[list[dict], list[dict], 
         mark = o.mark if o.mark is not None else o.fill
         u = i.side * s.qty * (mark - o.fill) - cost
         upnl += u
+        if o.ladder:       # PPP: sin TP ni vencimiento; el SL es el vigente y sube por escalones
+            base = {**base, "tp": None, "sl": o.ladder["stop"], "ladder": o.ladder}
         pos.append({**base, "entry": o.fill, "mark": mark, "fill_t": o.fill_t,
-                    "expire_t": o.fill_t + i.hold_ms, "liq": liq_price(i.side, o.fill,
-                                                                       s.leverage, mmr),
+                    "expire_t": None if o.ladder else o.fill_t + i.hold_ms,
+                    "liq": liq_price(i.side, o.fill, s.leverage, mmr),
                     "cost_usd": cost, "upnl": u, "roe": u / s.margin if s.margin else None,
                     "funding_assumed": o.funding_assumed})
     return pos, orders, upnl
@@ -68,7 +71,13 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         b["n"] += 1
         b["pnl"] += t["pnl"]
         b["wins"] += int(t["pnl"] > 0)
+    lad = ({"ladder": ladder_stats(
+        tr, [{"elapsed_h": (x["ladder"]["elapsed_ms"] / 3_600_000)} for x in pos
+             if x.get("ladder")], len(st.violations),
+        sum(1 for x in pos if x.get("ladder", {}).get("incident")),
+        p.ladder.first_usdt, p.ladder.step_usdt)} if p.exit_mode == "ladder" and p.ladder else {})
     return {
+        **lad,
         "id": p.id, "name": p.name, "description": p.description,
         "params": p.model_dump(mode="json"),
         "initial": p.initial_equity, "balance": st.equity, "equity": equity, "upnl": upnl,

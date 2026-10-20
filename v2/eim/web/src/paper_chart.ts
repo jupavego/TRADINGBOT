@@ -11,7 +11,7 @@ import type { PaperTrade, Position, ProfileView } from './paper_types'
 const sec = (t: number): UTCTimestamp => Math.floor(t / 1000) as UTCTimestamp
 const MAX_MARKS = 400
 /** Color de cada perfil: sigue a la entidad (orden fijo), nunca al ranking. */
-export const PROFILE_VAR: Record<string, string> = { conservador: '--p1', moderado: '--p2', agresivo: '--p3' }
+export const PROFILE_VAR: Record<string, string> = { conservador: '--p1', moderado: '--p2', agresivo: '--p3', ppp_btcusdt: '--p4' }
 
 /** Velas de 1 h con entradas/salidas del perfil elegido y líneas de las posiciones abiertas. */
 export class PaperPriceChart {
@@ -53,8 +53,8 @@ export class PaperPriceChart {
       const on = p.id === focus
       add(p.entry, cssVar('--accent'), `${side(p.side)} ${p.timeframe} ${on ? '' : p.strategy}`.trim(), on ? LineStyle.Solid : LineStyle.Dotted)
       if (!on) continue
-      add(p.tp, cssVar('--up'), 'TP sim')
-      add(p.sl, cssVar('--down'), 'SL sim')
+      if (p.tp !== null) add(p.tp, cssVar('--up'), 'TP sim')
+      add(p.sl, cssVar('--down'), p.ladder ? `SL dinámico (esc. ${p.ladder.level})` : 'SL sim')
       add(p.liq, cssVar('--warn'), 'Liq. sim', LineStyle.Dotted)
     }
   }

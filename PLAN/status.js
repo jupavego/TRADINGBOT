@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-20T01:36:35",
+ "generated": "2026-10-20T17:39:14",
  "tasks": [
   {
    "id": "T01",
@@ -1323,6 +1323,20 @@ window.EIM_STATUS = {
    "effort": "alto",
    "phase": 17,
    "goal": "Dar al sistema un camino de ejecución **solo en cuenta de papel/simulada** para las clases que superen la puerta, sin tocar nunca dinero real. Verifica que el contrato de órdenes, la reconciliación y el riesgo funcionan con acciones, FX o futuros reales de un intermediario."
+  },
+  {
+   "id": "T105",
+   "title": "Cuarto perfil: Progressive Profit Protection — BTCUSDT (SL dinámico por escalones)",
+   "deps": [
+    "T47",
+    "T48",
+    "T49"
+   ],
+   "state": "done",
+   "notes": "Perfil `ppp_btcusdt` (2026-10-20): SL inicial por riesgo, protección desde +10 USDT netos y escalones de +5, sin TP ni cierre por tiempo, solo BTCUSDT y simulado. Código `eim/paper/{ladder,ladder_book,ladder_audit,ladder_stats}.py` + `params.py`; UI `web/src/paper_*.ts` (compila con tsc, **sin captura visual**); doc `v2/docs/PPP.md`; tests `tests/paper/test_ladder*.py` (gate completo verde, los 18 escenarios). **Backtest 40 días (`reports/ppp_backtest.md`): NO rentable** (−500 USDT, PF 0,55, 84 ops, 0 violaciones; fuera de muestra peor y ninguna variante de la rejilla positiva; los otros 3 perfiles también pierden en ese periodo). Limitaciones: funding parcialmente supuesto, la escalera no aprende de sí misma, sin freno por drawdown.",
+   "effort": "alto",
+   "phase": 6,
+   "goal": "Un perfil simulado más, **independiente de Conservador/Moderado/Agresivo y integrado en el mismo flujo** (ideas de las estrategias → libro → resumen → API → pestañas de la mesa). Su diferencia: **sin TP final ni cierre por tiempo**. SL inicial por riesgo; al llegar a +10 USDT netos se activa la protección y cada +5 USDT de beneficio máximo sube un escalón (10, 15, 20, …). Solo cierra el SL vigente; la protección nunca retrocede ni vuelve a la entrada. Solo BTCUSDT, solo simulado (el modelo rechaza `real_money`, `time_exit` y `fixed_take_profit`)."
   }
  ]
 };

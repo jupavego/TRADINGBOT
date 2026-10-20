@@ -29,9 +29,9 @@ export function positionsTable(ps: Position[], names: Names, sym: string, price:
       `<td class="num warn">${px(p.liq)}</td>` +
       `<td class="num">${nf(p.margin)}<br><small class="muted">riesgo ${nf(p.risk_usd)} · peso ${nf(p.weight, 2)}</small></td>` +
       `<td class="num ${tone(u)}" data-upnl>${usd(u)} USDT<br><small>${pct(p.margin ? u / p.margin : null)}</small></td>` +
-      `<td class="num"><span class="up">${px(p.tp)}</span> / <span class="down">${px(p.sl)}</span></td>` +
+      `<td class="num">${tpSl(p)}</td>` +
       `<td class="num">${utc(p.fill_t)}<br><small class="muted">hace ${dur(now - p.fill_t)}</small></td>` +
-      `<td class="num">${utc(p.expire_t)}</td></tr>`
+      `<td class="num">${p.expire_t ? utc(p.expire_t) : 'sin vencimiento'}</td></tr>`
   }).join('')
   return `<div class="pp-scroll"><table class="pp-t"><thead><tr><th>Estrategia · lado</th><th>Tamaño</th><th>Entrada</th>` +
     `<th>Precio de marca</th><th>Liq. (aprox.)</th><th>Margen</th><th>PnL no realizado (ROE)</th><th>TP / SL</th>` +
@@ -65,8 +65,9 @@ function exitOrders(ps: Position[], names: Names, sym: string, price: number | n
   const rows = ps.map((p) => {
     const who = `<td>${stratCell(p.sid, names, p.origin, p.timeframe, p.floor)}<br>${sideCell(p.side, p.leverage)}</td>`
     const q = `<td class="num">${qty(p.qty, sym)}</td>`
-    return `<tr data-exit="tp">${who}<td>Take profit · límite (reduce)</td><td class="num up">${px(p.tp)}<br>${dist(p.tp, p)}</td>${q}</tr>` +
-      `<tr data-exit="sl">${who}<td>Stop loss · stop a mercado (reduce)</td><td class="num down">${px(p.sl)}<br>${dist(p.sl, p)}</td>${q}</tr>`
+    const tpRow = p.tp === null ? '' : `<tr data-exit="tp">${who}<td>Take profit · límite (reduce)</td><td class="num up">${px(p.tp)}<br>${dist(p.tp, p)}</td>${q}</tr>`
+    return tpRow +
+      `<tr data-exit="sl">${who}<td>${p.ladder ? `Stop loss dinámico · escalón ${p.ladder.level}` : 'Stop loss'} · stop a mercado (reduce)</td><td class="num down">${px(p.sl)}<br>${dist(p.sl, p)}</td>${q}</tr>`
   }).join('')
   return `<h4>Órdenes de salida de las posiciones abiertas (${ps.length * 2})</h4><div class="pp-scroll"><table class="pp-t"><thead><tr>` +
     `<th>Estrategia · lado</th><th>Tipo</th><th>Precio de disparo</th><th>Cantidad</th></tr></thead><tbody>${rows}</tbody></table></div>` +
@@ -79,7 +80,7 @@ export function ordersTable(os: Order[], names: Names, sym: string, ps: Position
   const rows = os.map((o) => `<tr><td>${stratCell(o.sid, names, o.origin, o.timeframe, o.floor)}</td>` +
     `<td>${o.kind === 'limit' ? 'Límite' : 'Mercado'}</td><td>${sideCell(o.side, o.leverage)}</td>` +
     `<td class="num">${o.kind === 'limit' ? px(o.price) : 'a la apertura'}</td><td class="num">${qty(o.qty, sym)}</td>` +
-    `<td class="num"><span class="up">${px(o.tp)}</span> / <span class="down">${px(o.sl)}</span></td>` +
+    `<td class="num">${tpSl(o)}</td>` +
     `<td class="num">${nf(o.margin)}</td><td class="num">${utc(o.t)}</td>` +
     `<td class="num">${o.expire_t ? utc(o.expire_t) : '—'}</td>` +
     `<td><small>confianza ${pct0(o.conf ?? null)} · R:B ${nf(o.rr ?? 0, 2)} · riesgo ${nf(o.risk_usd)} USDT · peso ${nf(o.weight, 2)}` +
@@ -118,4 +119,12 @@ export function historyTable(ts: PaperTrade[], names: Names, sym: string, f: His
   return head + `<div class="pp-scroll"><table class="pp-t"><thead><tr><th>Entrada → salida (UTC)</th><th>Estrategia</th><th>Lado</th>` +
     `<th>Precio</th><th>Motivo</th><th>PnL neto (USDT)</th><th>Costos</th><th>Duración</th></tr></thead><tbody>${rows}</tbody></table></div>` +
     more + '<p class="muted pp-note">PnL neto de comisiones, deslizamiento y funding. * funding supuesto donde faltaba el dato real. Pasa el cursor por una fila para ver por qué se abrió.</p>'
+}
+
+/** TP / SL de una posición u orden; sin TP (perfil PPP) muestra el SL vigente y su escalón. */
+function tpSl(x: { tp: number | null; sl: number; ladder?: { level: number; nominal_usd: number } }): string {
+  const sl = `<span class="down">${px(x.sl)}</span>`
+  if (x.tp !== null) return `<span class="up">${px(x.tp)}</span> / ${sl}`
+  const lv = x.ladder?.level ? `<br><small class="muted">escalón ${x.ladder.level} · +${nf(x.ladder.nominal_usd, 0)} USDT protegidos</small>` : '<br><small class="muted">SL inicial · sin TP</small>'
+  return `<span class="muted">sin TP</span> / ${sl}${lv}`
 }

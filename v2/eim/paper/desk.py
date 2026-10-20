@@ -20,6 +20,7 @@ from eim.paper.engine import CAUSES, Outcome, Path, run_shadow
 from eim.paper.feedback import Learner, family_stats, strategy_stats, timeframe_stats
 from eim.paper.generate import CtxGenerator, now_ms
 from eim.paper.insights import insights
+from eim.paper.ladder_book import LadderSim
 from eim.paper.params import FAMILIES, PROFILES, ExecParams, ProfileParams
 from eim.paper.service import WARMUP_BARS, DeskService, Job
 from eim.paper.summary import profile_summary
@@ -160,7 +161,8 @@ class PaperDesk(DeskService):
         v.outcomes = run_shadow(ideas, path, self.ep)
         learner = Learner(v.outcomes)
         mmr = MMR.get(symbol, 0.005)
-        v.books = {p.id: run_profile(p, v.outcomes, learner, mmr) for p in self.profiles}
+        sim = LadderSim(path, self.ep)
+        v.books = {p.id: run_profile(p, v.outcomes, learner, mmr, sim) for p in self.profiles}
         v.summary = self._payload(v, by_tf, infos, learner, path.end or None,
                                   pc[-1].c if pc else None, n_ideas=len(ideas))
         return v

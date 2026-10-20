@@ -1,6 +1,6 @@
 /** Pestaña «Perfiles»: reglas de cada perfil y qué estrategias le dan o le quitan dinero. */
 import { esc, nf, pct, pct0, usd } from './paper_fmt'
-import type { PaperSummary, ProfileView } from './paper_types'
+import type { LadderStats, PaperSummary, ProfileView } from './paper_types'
 
 const num = (p: ProfileView, k: string): number => Number(p.params[k])
 const fb = (p: ProfileView, k: string): number => Number((p.params.feedback as Record<string, number>)[k])
@@ -21,6 +21,7 @@ export function profilesTab(v: PaperSummary): string {
     row('R:B mínimo', (p) => nf(num(p, 'min_rr'))) +
     row('A favor de la síntesis', (p) => (p.params.follow_synthesis ? 'obligatorio' : 'no')) +
     row('Cobertura (largo y corto)', (p) => (p.params.allow_hedge ? 'sí' : 'no')) +
+    row('Salida', (p) => (p.params.exit_mode === 'ladder' ? 'SL por escalones, sin TP ni tiempo' : 'SL / TP / BE+ / tiempo')) +
     row('Familias', fams) +
     row('Muestra para decidir', (p) => `${fb(p, 'n_min')} operaciones`) +
     row('Peso (mín.–máx.)', (p) => `${nf(fb(p, 'w_min'))}–${nf(fb(p, 'w_max'))} · ganancia ${nf(fb(p, 'gain'), 1)}`) +
@@ -39,7 +40,8 @@ export function profilesTab(v: PaperSummary): string {
     '</tbody></table>'
   return `<div class="pp-two"><section class="pp-scroll"><h4 class="sh">Reglas</h4>${rules}</section>` +
     `<section class="pp-scroll"><h4 class="sh">Resultado</h4>${res}</section></div>` +
-    `<p class="muted pp-note">Los tres perfiles reciben las mismas ideas; cambian el filtro, el tamaño y cuánto confían en lo aprendido. ` +
+    ladderPanel(ps) +
+    `<p class="muted pp-note">Los perfiles reciben las mismas ideas; cambian el filtro, el tamaño y cuánto confían en lo aprendido. ` +
     `${esc(v.sources.costs)}. Funding: ${esc(v.sources.funding)}. El tamaño usa el capital realizado en el momento de la señal.</p>`
 }
 
@@ -53,4 +55,26 @@ function top(p: ProfileView, names: Record<string, string>, dir: 1 | -1): string
   const xs = Object.entries(p.by_strategy).filter(([, b]) => b.pnl * dir > 0)
     .sort((a, b) => (b[1].pnl - a[1].pnl) * dir).slice(0, 3)
   return xs.length ? xs.map(([id, b]) => `${esc(names[id] ?? id)} <small>${usd(b.pnl, 0)}</small>`).join('<br>') : '—'
+}
+
+/** Protección progresiva (perfil PPP): escalones alcanzados, retrocesos y ganancia capturada. */
+function ladderPanel(ps: ProfileView[]): string {
+  return ps.filter((p) => p.ladder).map((p) => {
+    const l = p.ladder as LadderStats
+    const lp = p.params.ladder as { first_usdt: number; step_usdt: number }
+    const reached = l.reached.map((r) => `<span class="chip">+${nf(r.nominal, 0)}: ${r.reached}</span>`).join(' ') || '—'
+    const lv = Object.entries(l.by_max_level).sort((a, b) => Number(a[0]) - Number(b[0]))
+      .map(([k, b]) => `<tr><td>${Number(k) ? `escalón ${k}` : 'sin protección'}</td><td class="num">${b.n}</td><td class="num">${b.pullbacks}</td><td class="num">${usd(b.pnl, 2)}</td></tr>`).join('')
+    const m = (x: number | null): string => (x === null ? '—' : `${usd(x, 2)} USDT`)
+    return `<h4 class="sh">Protección progresiva · ${esc(p.name)}</h4>` +
+      `<p class="muted">SL inicial por riesgo; al llegar a +${nf(lp.first_usdt, 0)} USDT netos se activa la protección y sube un escalón por cada +${nf(lp.step_usdt, 0)}. ` +
+      `Sin TP final ni cierre por tiempo: solo cierra el SL vigente. Los tiempos son analíticos.</p>` +
+      `<p>Operaciones que alcanzaron cada nivel: ${reached}</p>` +
+      `<p>Cierres: SL inicial <b>${l.closed_initial_sl}</b> · SL dinámico <b>${l.closed_dynamic_sl}</b> · pérdidas seguidas máx. ${l.max_consecutive_losses} · ` +
+      `abiertas hace ≥ 24 h: ${l.long_open_positions} · violaciones de reglas: <b class="${l.violations ? 'down' : ''}">${l.violations}</b> · incidencias: ${l.incidents}</p>` +
+      `<p>Máximo flotante medio ${m(l.avg_max_float_usd)} · realizado medio ${m(l.avg_realized_usd)} · diferencia (lo que se devolvió) ${m(l.avg_gap_max_vs_realized_usd)} · ` +
+      `realizado − protegido estimado ${m(l.avg_realized_vs_protected_usd)}</p>` +
+      `<table class="pp-t"><thead><tr><th>Máximo escalón</th><th>Ops</th><th>Retrocesos al SL</th><th>Neto</th></tr></thead><tbody>${lv}</tbody></table>` +
+      `<p class="muted pp-note">${esc(l.note)} Simulado: sin dinero real.</p>`
+  }).join('')
 }
