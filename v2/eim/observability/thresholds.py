@@ -42,3 +42,7 @@ INDEX_LAG_S_MAX = STALE_MIN_S    # retraso de indexación aceptable: lo mismo qu
 TRUNCATED_LINE_GRACE_S = 60      # línea sin salto final que no crece en este tiempo = corrupta
 QUERY_P95_MS_MAX = 100           # consulta con 100 000 eventos indexados (p95; medido ≤ 32)
 PAGE_MAX = 500                   # filas por página en la API de solo lectura
+
+# Calidad de la evidencia (T76): un dato es «obsoleto» si su antigüedad supera este múltiplo del
+# marco de la vela (una vela de 1 h con un dato de más de 2 h). Solo informa; no excluye nada.
+EVIDENCE_STALE_TF_FACTOR = 2

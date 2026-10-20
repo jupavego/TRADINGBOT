@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-20T03:22:12",
+ "generated": "2026-10-20T12:15:30",
  "tasks": [
   {
    "id": "T01",
@@ -949,8 +949,8 @@ window.EIM_STATUS = {
     "T74",
     "T10"
    ],
-   "state": "pending",
-   "notes": "Pieza central de la fase (pedido del usuario 2026-10-19). ◆ prueba de comprensión con el usuario antes de cerrar.",
+   "state": "done",
+   "notes": "**Validada por el usuario (2026-10-20).** Botón «Mapa del sistema» en `main.ts`; `web/src/obs_{view,graph,detail,story,legend,types}.ts` + `obs.css` (≤ 210 líneas c/u): nivel 1 «Ruta» (7 tarjetas con frase armada con conteos reales), nivel 2 «Etapa» (SVG propio, formas por tipo, planeado punteado, desvíos vistos/no declarados), nivel 3 panel con «En palabras simples» por plantillas sobre el último evento, glosario emergente, leyenda fija, recorrido de 5 pasos, «Ver la última vela» (solo trazas reales), pulsos en vivo, sondeo 10 s con pausa si la pestaña no se ve, «Abrir al iniciar». Estados `ok/degradado/error/obsoleto/pausado/sin datos/planeado` con icono+borde (no solo color); si el observatorio cae, todo pasa a «sin datos». API `/v2/obs/graph` ampliada (glosario, texto de etapas, modo, aristas de DATOS observadas por referencias entrada/salida y desvíos). Alertas: `observability/alert_rules/obs_alerts_v1.json` + `obs_alerts.py` (sin latido, dato obsoleto, indexador atrasado) por transición vía `op_alerts` + notificación local, llamadas desde `Supervisor.step`. **Desvío frente a T72:** el grafo es SVG propio, sin Cytoscape (0 KB añadidos; la nota T72 seguía pendiente de revisión). Verificado en el navegador: estados renderizados = respuesta de la API (0 diferencias), escritorio y tablet, claro; build OK. Hallazgo real: 5 agentes (arbitrage, bots, calendar, context, literature) alimentan la síntesis sin estar declarados en el catálogo.",
    "effort": "alto",
    "phase": 15,
    "goal": "**Es la pieza central de la Fase 15**: una vista aparte, pedagógica e ilustrada, que muestra **todo el flujo de trabajo del proyecto** —de los datos a la decisión y de ahí a la validación y el aprendizaje— y deja entender a simple vista, sin leer logs ni código, qué está pasando ahora: qué corre, qué está quieto, qué falló, qué dato está viejo y qué depende de qué. Todo lo demás de la fase (T72–T74, T76) existe para alimentarla. Debe poder leerla alguien que no programa."
@@ -962,8 +962,8 @@ window.EIM_STATUS = {
     "T75",
     "T15"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Pestaña «Trazas y calidad» en el Mapa del sistema: selector (símbolo, marco, resultado, modo), grafo de ejecución en orden temporal con camino causal resaltado (⚑), relato por plantillas con Anterior/Siguiente, tres hechos (señal, decisión, orden), agentes frente a la síntesis y reglas de riesgo (RiskDecision real si existe). Backend: `observability/{trace_view,trace_text}.py`, `api/obs_trace.py`: `/v2/obs/traces/{id}/explain`, `/v2/obs/quality`, filtro `mode` y marca por traza (limpia / datos obsoletos / agente crítico degradado / error; el veto no contamina). Solo informa. `derive.py`: nuevo resultado «sin_plan». Verificado en navegador con trazas sintéticas de cada fallo (informe 3 de 7 = recuento manual); **falta una traza real de vela cerrada y capturas con la API real**. Enlace a la mesa vía evento `eim:replay` (T15). Tests: `tests/api/test_obs_trace_api.py` (9).",
    "effort": "medio",
    "phase": 15,
    "goal": "Elegir una vela o decisión y ver lo que realmente ocurrió —datos, señales, síntesis, plan, riesgo, orden—, con el **camino causal** resaltado cuando algo falló o se vetó. Además, marcar qué decisiones se tomaron con datos obsoletos o agentes críticos degradados, para que la evidencia de papel, del bróker (T47–T48) y de la puerta T49 se pueda leer sabiendo cuánta está contaminada. Es lo que más aporta a la eficiencia y a la fiabilidad del aprendizaje."

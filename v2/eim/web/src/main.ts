@@ -5,6 +5,8 @@ import './setups.css'
 import './arb.css'
 import './leaders.css'
 import './paper.css'
+import './obs.css'
+import './obs_trace.css'
 import { fetchAgents, fetchAsofs, fetchJournal, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, symbolPicker, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { refreshArbitrage, renderRiver } from './river'
@@ -23,6 +25,7 @@ import { SetupsPanel } from './setups_ui'
 import { ArbPanel } from './arb_ui'
 import { LeadersPanel } from './leaders_ui'
 import { PaperView } from './paper_view'
+import { ObsView, obsIsHome } from './obs_view'
 import { setCalendarClock } from './event_clock'
 import { applyTheme, initialTheme, nextTheme, THEME_LABEL, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
@@ -66,6 +69,7 @@ const setupsHistory = new SetupsHistory($('setups-history')) // T51
 // independiente del par/marco (T39); cada escaneo también repinta el satélite del río
 const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('river'), p))
 const leaders = new LeadersPanel($('t-lead'), $('tab-lead'))
+const obs = new ObsView($('obs')) // Mapa del sistema (T75): vista pedagógica del flujo
 const paper = new PaperView($('paper')) // bróker simulado (T47): vista propia, modo Simulado
 chart.layers.modeLabel = MODE_LABEL[mode]
 mountLayerBar($('layerbar'), chart.layers)
@@ -280,11 +284,14 @@ function build(): void {
   paintTheme()
   themeBtn.onclick = () => {
     theme = nextTheme(theme)
-    applyTheme(theme); paintTheme(); chart.restyle(); more.restyle(); paper.restyle()
+    applyTheme(theme); paintTheme(); chart.restyle(); more.restyle(); paper.restyle(); obs.restyle()
   }
-  const mb = $<HTMLButtonElement>('more-btn'), pb = $<HTMLButtonElement>('paper-btn')
+  const mb = $<HTMLButtonElement>('more-btn'), pb = $<HTMLButtonElement>('paper-btn'), ob = $<HTMLButtonElement>('obs-btn')
   // Vistas de pantalla completa: Más análisis y Bróker simulado (una a la vez)
-  const show = (view: 'desk' | 'more' | 'paper'): void => {
+  const show = (view: 'desk' | 'more' | 'paper' | 'obs'): void => {
+    if (view !== 'obs' && ob.getAttribute('aria-pressed') === 'true') obs.toggle(false)
+    ob.setAttribute('aria-pressed', String(view === 'obs'))
+    ob.textContent = view === 'obs' ? 'Volver a la mesa' : 'Mapa del sistema'
     if (view !== 'more' && mb.getAttribute('aria-pressed') === 'true') more.toggle(false)
     if (view !== 'paper' && pb.getAttribute('aria-pressed') === 'true') paper.toggle(false)
     mb.setAttribute('aria-pressed', String(view === 'more'))
@@ -294,10 +301,27 @@ function build(): void {
     modeEl.textContent = `Modo: ${MODE_LABEL[view === 'paper' ? 'SIMULADO' : mode]}`
     if (view === 'more') more.toggle(true)
     if (view === 'paper') paper.toggle(true, symbol)
+    if (view === 'obs') obs.toggle(true)
     if (view === 'desk') document.getElementById('app')!.dataset.view = 'desk'
   }
   mb.onclick = () => show(mb.getAttribute('aria-pressed') === 'true' ? 'desk' : 'more')
   pb.onclick = () => show(pb.getAttribute('aria-pressed') === 'true' ? 'desk' : 'paper')
+  ob.onclick = () => show(ob.getAttribute('aria-pressed') === 'true' ? 'desk' : 'obs')
+  if (obsIsHome()) show('obs')
+  // T76: «Abrir en la mesa en ese instante» desde una traza → deslizador de reproducción (T15)
+  window.addEventListener('eim:replay', (e) => {
+    const d = (e as CustomEvent<{ symbol: string; timeframe: string; ts: number }>).detail
+    if (SYMBOLS.includes(d.symbol as never)) { symbol = d.symbol; if (sel) sel.value = symbol }
+    if ((TIMEFRAMES as readonly string[]).includes(d.timeframe)) tf = d.timeframe
+    mark(); show('desk')
+    void load().then(async () => {
+      asofs = await fetchAsofs(symbol, tf)
+      const i = asofs.reduce((k, t, j) => (t <= d.ts ? j : k), -1)
+      if (i < 0) { $('banner').hidden = false; $('banner').textContent = 'Esa vela es anterior a los reportes guardados: no hay reproducción para ese instante.'; return }
+      $<HTMLInputElement>('replay-range').value = String(i)
+      await showReplay(i)
+    })
+  })
 }
 
 build()

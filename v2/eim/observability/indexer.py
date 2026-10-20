@@ -184,6 +184,12 @@ class Indexer:
             log.exception("observatorio: pasada fallida")
         self.last_pass_ms = self.now_ms()
         self.passes += 1
+        try:   # lo lee la regla de alerta «indexador atrasado» (otro proceso, T75)
+            with self.store.lock:
+                self.store.con.execute("INSERT OR REPLACE INTO meta VALUES ('last_pass_ms', ?)",
+                                       [str(self.last_pass_ms)])
+        except Exception:  # noqa: BLE001
+            pass
         if self.last_pass_ms - self._last_purge_ms > 3_600_000:
             try:
                 self.purge()

@@ -144,7 +144,7 @@ def test_no_mutating_methods_and_same_guards_as_the_rest(parts):
 def test_full_app_exposes_only_gets_and_serves_the_observatory(tmp_path):
     app = create_app(Settings(data_dir=tmp_path))
     paths = {p: m for p, m in app.openapi()["paths"].items() if p.startswith("/v2/obs")}
-    assert len(paths) == 7 and all(set(m) == {"get"} for m in paths.values())
+    assert len(paths) == 9 and all(set(m) == {"get"} for m in paths.values())
     write(tmp_path / "obs" / "spool" / "api.20251001.1.jsonl", candle_trace())
     app.state.obs_indexer.run_once()
     with LocalClient(app) as c:
@@ -189,3 +189,11 @@ def test_queries_over_100k_events_stay_within_the_threshold(tmp_path):
             assert p95 <= T.QUERY_P95_MS_MAX, f"{path} {params}: p95 {p95:.0f} ms"
     assert index_s < 60, f"indexar 100 000 eventos tardó {index_s:.0f} s"
     store.close()
+
+
+def test_graph_carries_glossary_mode_and_deviation_keys(parts):
+    c, *_ = parts
+    j = c.get("/v2/obs/graph").json()
+    assert "veto" in j["glossary"] and set(j["stage_explain_es"]) == set(j["stages"])
+    assert set(j["deviations"]) == {"undeclared", "unseen"}
+    assert isinstance(j["observed"], list) and "mode" in j

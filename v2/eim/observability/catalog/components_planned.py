@@ -49,7 +49,12 @@ PLANNED: tuple[Component, ...] = (
       consumes=(("video.verify", "verified_claims"), ("video.reputation", "reputation")),
       produces=("agent_report",), **_P),
     c("observability.map", "observability", "validacion", "view", "web", "T75",
-      "Mapa del flujo de trabajo", "Vista que dibujará este mismo catálogo y marcará en vivo qué "
-      "corre, qué falla y qué no tiene datos. Aún no existe.",
-      consumes=(("observability.indexer", "obs_index"),), **_P),
+      "Mapa del flujo de trabajo", "Vista que dibuja este mismo catálogo y marca en vivo qué "
+      "corre, qué falla y qué no tiene datos.",
+      cadence="a demanda", consumes=(("observability.indexer", "obs_index"),)),
+    c("observability.traces", "observability", "validacion", "view", "web", "T76",
+      "Trazas y calidad de la evidencia", "Reconstruye paso a paso qué ocurrió con una vela o "
+      "decisión y marca cuáles se tomaron con datos viejos, agentes críticos degradados o "
+      "errores. Solo informa.",
+      cadence="a demanda", consumes=(("observability.indexer", "obs_index"),)),
 )

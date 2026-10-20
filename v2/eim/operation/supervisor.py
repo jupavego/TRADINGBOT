@@ -94,6 +94,7 @@ class Operation:
         with self._step_lock:       # una copia a demanda nunca ve un ciclo a medias
             now = self.clock()
             res = self.cycle.run(now)
+            self._obs_alerts(now)
             state.save(self.state_path, self.desk.rt.svc, self.cursors, self.mode)
             self.weekly_if_due(now)
             self.backup_if_due(now)
@@ -101,6 +102,17 @@ class Operation:
         row["cycle_t"] = row.pop("t")
         self.log.write("ciclo", "info" if res.ok else "warn", **row)
         return res
+
+    def _obs_alerts(self, now: int) -> None:
+        """Salud mínima del observatorio (T75): por transición, vía `op_alerts` + aviso local."""
+        db = self.extra_dbs.get("obs.duckdb")
+        if db is None:
+            return
+        try:
+            from eim.observability.obs_alerts import obs_conditions
+            self.alerts.update(now, obs_conditions(db[0], db[1], now))
+        except Exception as e:  # noqa: BLE001 - el observatorio nunca tumba la operación
+            self.log.write("obs_alertas_error", "warn", error=f"{type(e).__name__}: {e}")
 
     def heartbeat(self) -> None:
         self.status["last_heartbeat"] = self.clock()
