@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-20T17:39:14",
+ "generated": "2026-10-20T17:43:04",
  "tasks": [
   {
    "id": "T01",
@@ -738,8 +738,8 @@ window.EIM_STATUS = {
     "T47",
     "T25"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Código y tests listos (`eim/bots/{shadow,scorecard,concept,marginal,health,scorer,scorecard_cli}.py`, `bot_scorecard`, `GET /v2/bots/scorecard`, `docs/BOTS.md`). Informe real `v2/reports/bots_scorecard.md` (BTCUSDT, 6 meses, copia de datos de T58; V5 en vivo pendiente): **ningún bot vota ni es publicable**; FSupertrend y Bollinger RECHAZADOS por la puerta, MACD+BB solo informa (5 operaciones). Regla marginal con guardia ≥ 2 ventanas añadida tras ver la 1.ª corrida (declarado). Gate completo ok. Pendiente ◆ del usuario.",
    "effort": "alto",
    "phase": 12,
    "goal": "Asignar a cada bot su **concepto** con evidencia, usando la puerta que ya valida estrategias del bróker simulado (T49) en vez de crear una segunda vara de medir. Responde a la pregunta del usuario: ¿qué bots merecen influir en una decisión, cuáles solo se observan y cuáles se descartan?"
