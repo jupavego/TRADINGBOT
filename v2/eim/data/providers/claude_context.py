@@ -109,3 +109,86 @@ class ClaudeContextAnalyzer:
             if block.get("type") == "tool_use" and block.get("name") == "report_context":
                 return block.get("input")
         return None
+
+
+class CachedContextAnalyzer:
+    """Envuelve al analizador para uso continuo: no repite la llamada con los mismos titulares
+    (el ciclo corre por símbolo y por vela) y reinicia el presupuesto `CostGuard` cada día UTC.
+    Solo guarda resultados válidos: un fallo de red o presupuesto agotado se reintenta luego.
+
+    `background=True` (LLM local en CPU: minutos por llamada, más que el timeout del agente):
+    un miss lanza UN cálculo en un hilo y devuelve al instante el último resultado vigente
+    (≤ `ttl_s`) o None; el ciclo siguiente ya lo encuentra en caché. Nunca bloquea el ciclo."""
+
+    def __init__(self, inner, clock=None, keep: int = 8, background: bool = False,
+                 ttl_s: float = 6 * 3600) -> None:
+        import threading
+        import time
+
+        self.inner, self.keep, self.background, self.ttl_s = inner, keep, background, ttl_s
+        self._clock = clock or time.time
+        self._day = int(self._clock() // 86_400)
+        self._cache: dict[tuple[str, ...], dict[str, Any]] = {}
+        self._last: tuple[float, dict[str, Any]] | None = None
+        self._lock = threading.Lock()
+        self._busy: tuple[str, ...] | None = None
+        self._thread: threading.Thread | None = None
+
+    def _compute(self, key: tuple[str, ...], items: list[NewsItem]) -> dict[str, Any] | None:
+        out = self.inner(items)
+        if out is not None:
+            with self._lock:
+                if len(self._cache) >= self.keep:
+                    self._cache.pop(next(iter(self._cache)))
+                self._cache[key] = out
+                self._last = (self._clock(), out)
+        return out
+
+    def _bg(self, key: tuple[str, ...], items: list[NewsItem]) -> None:
+        try:
+            self._compute(key, items)
+        finally:
+            with self._lock:
+                self._busy = None
+
+    def __call__(self, items: list[NewsItem]) -> dict[str, Any] | None:
+        import threading
+
+        day = int(self._clock() // 86_400)
+        if day != self._day:
+            self._day = day
+            if hasattr(self.inner, "guard"):  # el local no tiene presupuesto
+                self.inner.guard.reset()
+        key = tuple(sorted(n.id for n in items))
+        with self._lock:
+            if key in self._cache:
+                return self._cache[key]
+            if not self.background:
+                pass
+            elif self._busy is None:
+                self._busy = key
+                self._thread = threading.Thread(target=self._bg, args=(key, list(items)),
+                                                daemon=True, name="context-llm")
+                self._thread.start()
+            last = self._last
+        if not self.background:
+            return self._compute(key, items)
+        if last and self._clock() - last[0] <= self.ttl_s:
+            return last[1]
+        return None
+
+
+def make_context_analyzer(max_usd_per_day: float = 0.25) -> CachedContextAnalyzer | None:
+    """Analizador de producción, por opt-in del usuario (nunca inventa un análisis):
+    - `EIM_CONTEXT_LLM=local` → LLM local (Ollama en 127.0.0.1; sin clave ni coste).
+    - `ANTHROPIC_API_KEY` presente → Claude con presupuesto diario.
+    - nada → None y el agente `context` dice `no_data` con su motivo."""
+    if os.environ.get("EIM_CONTEXT_LLM", "").lower() == "local":
+        from eim.data.providers.local_context import LocalContextAnalyzer
+
+        return CachedContextAnalyzer(LocalContextAnalyzer(), background=True)
+    key = os.environ.get("ANTHROPIC_API_KEY")
+    if not key:
+        return None
+    inner = ClaudeContextAnalyzer(api_key=key, guard=CostGuard(max_usd_per_day))
+    return CachedContextAnalyzer(inner)

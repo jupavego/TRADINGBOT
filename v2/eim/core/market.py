@@ -68,6 +68,23 @@ class MicroBar(Frozen):
     complete: bool
 
 
+class LiqBar(Frozen):
+    """Liquidaciones forzadas EN VIVO de una vela (recolector multi-bolsa; `t` = inicio de vela).
+
+    `long_usd`/`short_usd` = notional de posiciones LARGAS/CORTAS liquidadas (suma de bolsas);
+    `by_venue` = ese notional total por bolsa. Binance solo publica la última liquidación de cada
+    segundo, así que el notional es una cota INFERIOR: úsese en relativo, no como cifra absoluta.
+    `complete` = sin huecos de conexión en ninguna bolsa durante la vela.
+    """
+
+    t: int
+    long_usd: float
+    short_usd: float
+    count: int
+    by_venue: dict[str, float]
+    complete: bool
+
+
 class LiquidationDay(Frozen):
     """Liquidaciones forzadas de un día (UTC): notional USD por lado de la POSICIÓN liquidada."""
 
@@ -125,7 +142,8 @@ class MarketSnapshot(Frozen):
     basis: list[tuple[int, float]] | None = None  # (futuro−índice)/índice del perpetuo
     orderbook: Book | None = None
     micro: list[MicroBar] | None = None  # agregados por vela del recolector (T23)
-    liquidations: Liquidations | None = None
+    liquidations: Liquidations | None = None  # histórico diario (dataset retirado en 2024)
+    liq_flow: list[LiqBar] | None = None  # liquidaciones en vivo por vela (recolector)
     headlines: list[NewsItem] | None = None
     # Velas cerradas de marcos vecinos (T35, aditivo): {"15m": [...], "4h": [...]}.
     candles_tf: dict[str, list[Candle]] | None = None

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-19T17:58:37",
+ "generated": "2026-10-19T15:48:38",
  "tasks": [
   {
    "id": "T01",
@@ -974,8 +974,8 @@ window.EIM_STATUS = {
    "deps": [
     "T23"
    ],
-   "state": "pending",
-   "notes": "Pedido del usuario 2026-10-19: la esfera «Microestructura» de la interfaz dice «sin datos» aunque el agente y el recolector existen. Causa probable: el recolector no está en el arranque continuo (ver `PLAN/T104.md`). **Es el primer paso útil de la Fase 16 y no depende de T77.**",
+   "state": "progress",
+   "notes": "Pedido del usuario 2026-10-19: la esfera «Microestructura» de la interfaz dice «sin datos» aunque el agente y el recolector existen. Causa probable: el recolector no está en el arranque continuo (ver `PLAN/T104.md`). **Es el primer paso útil de la Fase 16 y no depende de T77.** **Avance 2026-10-19:** `servicio_continuo.ps1` lanza el recolector de microestructura (BTCUSDT, sin duplicar) y el de liquidaciones en vivo (`liq_ws`); verificado 2,5 min contra Binance real (526 trades, libro top-10, agente «1/24 velas»). La esfera dice «recolector apagado» / «acumulando n/24» / «sin datos» (`web/src/no_data_label.ts`, motivo que ya devuelve el agente). Pendiente: diagnóstico escrito, supervisor con latido/reinicio, disco, ≥ 24 h y línea base.",
    "effort": "medio",
    "phase": 16,
    "goal": "El agente `microstructure` (T23, con su recolector, la lectura por vela y los tests) **ya existe y está registrado, pero en la interfaz su esfera dice «sin datos»** (`no_data`: «sin recolección de microestructura (colector no corre)») y el informe marginal de T44 lo muestra con 100 % de `no_data` (sin historia). Antes de construir nada nuevo hay que **hacerlo funcionar de verdad en vivo**, entender por qué no lo hacía y dejarlo como la base —y la línea base a superar— de toda la Fase 16."

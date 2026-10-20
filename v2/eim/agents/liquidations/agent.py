@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from eim.agents.base import no_data_report
+from eim.agents.liquidations.flow import flow_report
 from eim.agents.liquidations.params import LiquidationsParams
 from eim.core import AgentReport, MarketSnapshot, Overlay
 
@@ -17,14 +18,16 @@ _DAY_MS = 86_400_000
 
 class LiquidationsAgent:
     id = "liquidations"
-    version = "1.0.0"
-    requires = {"liquidations"}
+    version = "2.0.0"
+    requires = {"liq_flow", "liquidations"}
 
     def __init__(self, params: LiquidationsParams | None = None) -> None:
         self.params = params or LiquidationsParams()
 
     def run(self, snapshot: MarketSnapshot) -> AgentReport:
         p = self.params
+        if snapshot.liq_flow:  # flujo en vivo: fuente vigente (el histórico está retirado)
+            return flow_report(self.id, self.version, snapshot, p)
         liq = snapshot.liquidations
         if liq is None or not liq.daily:
             return no_data_report(self.id, self.version, snapshot.asof,

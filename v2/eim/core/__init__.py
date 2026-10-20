@@ -26,6 +26,7 @@ from eim.core.leaders import (
 from eim.core.market import (
     Book,
     Candle,
+    LiqBar,
     LiquidationDay,
     LiquidationLevel,
     Liquidations,
@@ -72,6 +73,7 @@ __all__ = [
     "LiquidationLevel",
     "Liquidations",
     "MarketSnapshot",
+    "LiqBar",
     "MicroBar",
     "Mode",
     "NewsItem",

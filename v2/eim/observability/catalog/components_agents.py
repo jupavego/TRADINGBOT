@@ -38,9 +38,9 @@ AGENTS: tuple[Component, ...] = (
     _a("seasonality", "1.0.0", "Estacionalidad",
        "Mira cómo suele comportarse el mes en curso según el promedio histórico real de ese mes. "
        "Recibe velas; entrega un sesgo suave.", "T07"),
-    _a("liquidations", "1.0.0", "Liquidaciones forzadas",
-       "Observa dónde se cerraron posiciones a la fuerza. Recibe las liquidaciones del snapshot; "
-       "entrega un sesgo y las zonas donde hubo más.", "T07"),
+    _a("liquidations", "2.0.0", "Liquidaciones forzadas",
+       "Mide las liquidaciones forzadas en vivo (Binance, Bybit, OKX): detecta cascadas y si ya se "
+       "agotaron. Recibe el flujo por vela del snapshot; entrega sesgo y confianza.", "T07"),
     _a("levels", "1.0.0", "Niveles y canales",
        "Marca zonas donde el precio rebotó antes y el canal o rango actual. Recibe velas; entrega "
        "soportes, resistencias y la posición del precio.", "T12"),

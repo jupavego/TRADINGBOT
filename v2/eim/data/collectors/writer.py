@@ -15,6 +15,7 @@ SCHEMAS = {
            "bids VARCHAR, asks VARCHAR",
     "depth": "t BIGINT, first_id BIGINT, last_id BIGINT, prev_id BIGINT, side VARCHAR, "
              "p DOUBLE, q DOUBLE",
+    "liqs": "t BIGINT, venue VARCHAR, long_pos BOOLEAN, p DOUBLE, q DOUBLE, usd DOUBLE",
     "gaps": "t BIGINT, stream VARCHAR, detail VARCHAR",
 }
 
