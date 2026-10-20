@@ -47,6 +47,9 @@ class BotService:
         for ad in self.adapters:
             if not ad.card.usable:
                 continue
+            tfs = getattr(ad, "timeframes", None)   # marcos para los que el bot está definido
+            if tfs and snapshot.timeframe not in tfs:
+                continue
             try:
                 sigs = ad.signals(snapshot)
             except Exception as exc:  # noqa: BLE001 - un bot roto no tumba el ciclo
