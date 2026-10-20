@@ -85,3 +85,25 @@ def test_empty_store_returns_message_not_error(tmp_path):
                    PaperStore(":memory:"), None, {})
     out = sc.compute(SYMBOL, 10**13)
     assert out["bots"] == [] and "sin posturas" in out["error"]
+
+
+def test_scoring_accepts_per_timeframe_candles_and_paths():
+    """Mapeo {marco: velas/camino}: las posturas de 5 m se resuelven con velas de 5 m."""
+    from eim.bots.scorecard import attempts_of
+    from eim.core import Candle
+    from eim.paper.engine import Path
+
+    m = Market(days=30)
+    rows = oracle_rows(m)
+    _, plain = attempts_of(rows, m.c1h, m.path, SYMBOL, None, None)
+    _, mapped = attempts_of(rows, {"1h": m.c1h}, {"1h": m.path}, SYMBOL, None, None)
+    assert [len(a.trades) for a in plain] == [len(a.trades) for a in mapped] and plain[0].trades
+    # 5 m: cada vela de 15 m en tres de 5 m; postura de 5 m en cada cierre de hora
+    c5 = []
+    for c in m.c15:
+        for j in range(3):
+            o = c.o + (c.c - c.o) * j / 3
+            c5.append(Candle(t=c.t + j * 300_000, o=o, h=c.h, l=c.l, c=o + (c.c - c.o) / 3, v=3.0))
+    rows5 = [(s.model_copy(update={"timeframe": "5m", "bot_id": "x"}), cr) for s, cr in rows]
+    _, got = attempts_of(rows5, {"5m": c5}, {"5m": Path(c5, (), 300_000)}, SYMBOL, None, None)
+    assert got[0].ident.timeframe == "5m" and got[0].trades

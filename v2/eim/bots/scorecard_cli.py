@@ -31,7 +31,7 @@ from eim.data.timeframes import tf_ms
 
 def build_panel(scorer: BotScorer, data: Path, symbol: str, workers: int, log=print):
     """Reportes de los agentes del núcleo en cada cierre de 4 h del periodo de los bots."""
-    rows = scorer.signals.query_all(symbol, TF)
+    rows = scorer.rows(symbol)
     first = min(s.asof for s, _ in rows)
     step = tf_ms(TF)
     asofs = [c.t + step for c in scorer.store.read_candles(symbol, TF)
@@ -42,7 +42,7 @@ def build_panel(scorer: BotScorer, data: Path, symbol: str, workers: int, log=pr
 
 def measure_marginals(scorer: BotScorer, panel, symbol: str, log=print) -> dict[str, Marginal]:
     """Aporte marginal de la versión vigente de cada bot utilizable."""
-    rows = scorer.signals.query_all(symbol, TF)
+    rows = scorer.rows(symbol)
     candles = scorer.store.read_candles(symbol, TF)
     funding = scorer.store.read_series("funding", symbol)
     latest = {(i.bot_id, i.strategy, i.timeframe): i for i in identities(rows)}

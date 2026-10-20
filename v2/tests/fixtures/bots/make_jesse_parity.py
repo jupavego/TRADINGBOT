@@ -26,13 +26,13 @@ def crossed(s, level, above):
     return (a > level and b <= level) if above else (a < level and b >= level)
 
 
-def rules(name, o, h, l, c):
+def rules(name, o, h, lw, c):
     """(largo, corto, salir_de_largo, salir_de_corto) con los datos hasta la vela actual."""
     f = False
     if len(c) < WARMUP:
         return f, f, f, f
     if name == "Donchian":
-        up, lo = np.max(h[-21:-1]), np.min(l[-21:-1])        # donchian(candles[:-1], 20)
+        up, lo = np.max(h[-21:-1]), np.min(lw[-21:-1])        # donchian(candles[:-1], 20)
         return (c[-1] > up and c[-1] > talib.SMA(c, 200)[-1]), f, c[-1] < lo, f
     if name == "RSI2":
         slow, fast, r = talib.SMA(c, 200)[-1], talib.SMA(c, 5)[-1], talib.RSI(c, 2)[-1]
@@ -48,19 +48,20 @@ def rules(name, o, h, l, c):
         r = talib.RSI(c, 5)
         return crossed(r, 35, True), f, (crossed(r, 75, False) or crossed(r, 10, False)), f
     if name == "TurtleRules":
-        ue, le = np.max(h[-20:]), np.min(l[-20:])
-        ux, lx = np.max(h[-10:]), np.min(l[-10:])
-        entry = "L" if h[-1] >= ue else ("S" if l[-1] <= le else None)
-        exit_ = "xS" if h[-1] >= ux else ("xL" if l[-1] <= lx else None)
-        return entry == "L", entry == "S", (entry == "S" or exit_ == "xL"), (entry == "L" or exit_ == "xS")
+        ue, le = np.max(h[-20:]), np.min(lw[-20:])
+        ux, lx = np.max(h[-10:]), np.min(lw[-10:])
+        entry = "L" if h[-1] >= ue else ("S" if lw[-1] <= le else None)
+        exit_ = "xS" if h[-1] >= ux else ("xL" if lw[-1] <= lx else None)
+        return (entry == "L", entry == "S", entry == "S" or exit_ == "xL",
+                entry == "L" or exit_ == "xS")
     raise KeyError(name)
 
 
 def stance(name, win):
-    o, h, l, c = (np.array([r[k] for r in win], float) for k in (1, 2, 3, 4))
+    o, h, lw, c = (np.array([r[k] for r in win], float) for k in (1, 2, 3, 4))
     state = 0
     for j in range(len(win)):
-        el, es, xl, xs = rules(name, o[:j + 1], h[:j + 1], l[:j + 1], c[:j + 1])
+        el, es, xl, xs = rules(name, o[:j + 1], h[:j + 1], lw[:j + 1], c[:j + 1])
         if state == 0:
             state = 1 if el else (-1 if es else 0)
         elif (state > 0 and xl) or (state < 0 and xs):

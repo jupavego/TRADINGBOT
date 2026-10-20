@@ -84,8 +84,12 @@ class BotService:
 def default_service(data_dir: Path, store: BotSignalStore | None) -> BotService:
     """Modo A siempre; modo B (Freqtrade) solo si el entorno aparte está configurado y fijado."""
     from eim.bots.hb_directional import HummingbotDirectionalAdapter
+    from eim.bots.jesse_examples import JesseExamplesAdapter
+    from eim.bots.trendrider import TrendRiderAdapter
 
-    adapters: list[SignalAdapter] = [HummingbotDirectionalAdapter()]
+    # Jesse y TrendRider piden 1000 y 5400 velas de 1 h: con menos en el snapshot dan `no_data`
+    adapters: list[SignalAdapter] = [HummingbotDirectionalAdapter(), JesseExamplesAdapter(),
+                                     TrendRiderAdapter()]
     py, engine = os.environ.get(FT_PY_ENV), os.environ.get(FT_ENGINE_ENV)
     checkout = Path(data_dir) / "bots" / "freqtrade-strategies"
     if py and engine and checkout.exists():

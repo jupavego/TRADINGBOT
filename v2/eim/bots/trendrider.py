@@ -23,7 +23,7 @@ from eim.bots.card import BotCard, card_of
 from eim.bots.ft_adapter import positions
 from eim.bots.trendrider_ind import adx_di, bbands, informative, macd, obv
 from eim.core import BotSignal, MarketSnapshot
-from eim.indicators._core import ema, shift, sma
+from eim.indicators._core import ema, shift
 from eim.indicators.momentum import rsi
 
 BOT_ID = "trendrider-strategy"
@@ -88,8 +88,9 @@ def entries(d: dict[str, np.ndarray]) -> np.ndarray:
     long2 = (bull & e50 & _gt(rsi_, 30) & _lt(rsi_, 50) & _gt(d["adx"], 20)
              & _gt(d["volume_ratio"], 1.0) & _gt(d["macdhist"], d["macdhist_prev"]) & ok & btc
              & _lt(rsi_, 70))
-    long3 = (_gt(c, d["ema_200"]) & _lt(shift(rsi_, 1), p["rsi_bounce"]) & _gt(rsi_, p["rsi_bounce"])
-             & _gt(c, d["bb_lower"]) & bounce_up & _gt(d["volume_ratio"], 0.8)
+    long3 = (_gt(c, d["ema_200"]) & _lt(shift(rsi_, 1), p["rsi_bounce"])
+             & _gt(rsi_, p["rsi_bounce"]) & _gt(c, d["bb_lower"]) & bounce_up
+             & _gt(d["volume_ratio"], 0.8)
              & _gt(d["obv"], d["obv_ema"]) & ok & btc)
     cross = _gt(d["ema_fast"], d["ema_slow"]) & (shift(d["ema_fast"], 1) <= shift(d["ema_slow"], 1))
     long4 = (cross & _gt(rsi_, 40) & _lt(rsi_, 75) & _gt(c, d["ema_200"])

@@ -4,8 +4,8 @@ Corre la estrategia real (MIT, SHA 621b0c86…, ver `THIRD_PARTY.md`) con Freqtr
 ventanas de 5400 velas de 1 h, con un `DataProvider` de mentira que entrega los marcos 4 h y 1 d
 agregados de esas mismas velas (solo barras completas) y las de BTC (= las propias). Después aplica
 el filtro de confianza de `confirm_trade_entry` (llamando a sus `_calc_confidence` y
-`_get_market_regime` reales) y la regla de posición de Freqtrade. Solo se corre a mano, en el entorno
-aparte de Python 3.12 (D:/eim-bots/ft-env):
+`_get_market_regime` reales) y la regla de posición de Freqtrade. Solo se corre a mano, en el
+entorno aparte de Python 3.12 (D:/eim-bots/ft-env):
 
     python make_trendrider_parity.py candles.json <checkout trendrider> trendrider_parity.json
 """
@@ -81,8 +81,8 @@ def main(src, checkout, dst):
         d = strat.populate_indicators(df.copy(), {"pair": BTC})
         d = strat.populate_entry_trend(d, {"pair": BTC})
         d = strat.populate_exit_trend(d, {"pair": BTC})
-        enter = d["enter_long"].fillna(0).astype(int).tolist() if "enter_long" in d else [0] * len(d)
-        exit_ = d["exit_long"].fillna(0).astype(int).tolist() if "exit_long" in d else [0] * len(d)
+        enter = d.get("enter_long", pd.Series(0, index=d.index)).fillna(0).astype(int).tolist()
+        exit_ = d.get("exit_long", pd.Series(0, index=d.index)).fillna(0).astype(int).tolist()
         conf = []
         for k in range(len(d)):
             if enter[k]:

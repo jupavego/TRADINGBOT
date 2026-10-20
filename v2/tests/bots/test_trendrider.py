@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 from eim.bots.service import BotService
 from eim.bots.trendrider import STRATEGY, WINDOW, TrendRiderAdapter, stance_of
@@ -74,7 +73,7 @@ def test_adx_matches_wilder_reference_shape():
 
 
 def test_informative_only_complete_bars_and_closed_before_use():
-    t = np.arange(9, dtype=np.int64) * STEP + 2 * STEP      # 02:00–10:00: 1.º y último grupo parciales
+    t = np.arange(9, dtype=np.int64) * STEP + 2 * STEP      # 02:00–10:00: grupos parciales
     x = np.arange(9, dtype=float)
     inf = informative(t, x, x, x, x, 4 * STEP)
     assert list(inf.t // STEP) == [4]                          # solo la barra 04:00–08:00 completa
