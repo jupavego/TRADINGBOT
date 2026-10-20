@@ -81,7 +81,8 @@ def build_setups_router(desk: PaperDesk, validator: Validator,
                 "verdicts_asof": v_asof, "price": price, "timeframes": list(p.timeframes),
                 "horizon_hours": [0, p.max_hold_h], "source": "bróker simulado (T47) + puerta T49",
                 "status": pub.status, "message": pub.message, "validation": pub.validation,
-                "discarded": pub.discarded, "setups": pub.setups, "note": NOTE}
+                "discarded": pub.discarded, "setups": pub.setups, "watch": pub.watch,
+                "note": NOTE}
 
     if tracker is not None:
         @router.get("/v2/setups/history")
@@ -92,7 +93,7 @@ def build_setups_router(desk: PaperDesk, validator: Validator,
             path = view.path if view else None
             resolved = tracker.refresh(symbol, path, verdicts, v_asof, now)
             out = tracker.history(symbol, resolved, verdicts, view.outcomes if view else [], now,
-                                  limit)
+                                  limit, tracker.resolve_watch(symbol, path))
             return {**out, "asof": path.end if path is not None and len(path.t) else None,
                     "criteria_version": validator.crit.version, "verdicts_asof": v_asof}
 
