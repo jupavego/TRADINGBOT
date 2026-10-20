@@ -15,10 +15,10 @@ PLANNED: tuple[Component, ...] = (
       "Copia en testnet", "Replicará a los líderes aprobados en la testnet con un asignador de "
       "capital y la puerta de riesgo. Aún no existe.", consumes=(("leaders.copy_sim", "copy_trade"),),
       produces=("fill",), **_P),
-    c("bots.scoring", "bots", "validacion", "engine", "bots", "T59", "Puntuación de bots",
-      "Medirá a cada bot con la misma vara que a las estrategias propias y lo degradará si "
-      "falla. Aún no existe.", consumes=(("bots.runner", "bot_signal"),),
-      produces=("bot_score",), **_P),
+    c("bots.vote", "bots", "analisis", "engine", "bots", "T60", "Voto de bots",
+      "Dará a los bots en estado «vota» su peso medido en la síntesis y pasará sus propuestas "
+      "por el riesgo con poder de veto. Aún no existe.",
+      consumes=(("bots.scoring", "bot_score"),), produces=("bot_vote",), **_P),
     c("localai.engines", "localai", "analisis", "engine", "localai", "T63", "Motores de IA locales",
       "Capa que decidirá qué modelos locales caben en este equipo y dejará traza de cada uso. "
       "Aún no existe.", produces=("local_inference",), **_P),
@@ -48,8 +48,13 @@ PLANNED: tuple[Component, ...] = (
       cadence="cada cierre de vela", cadence_s=3600,
       consumes=(("video.verify", "verified_claims"), ("video.reputation", "reputation")),
       produces=("agent_report",), **_P),
-    c("observability.trace", "observability", "validacion", "view", "web", "T76",
-      "Trazabilidad de una decisión", "Seguirá una decisión hasta la evidencia que la sostuvo "
-      "y medirá su calidad. Aún no existe.",
-      consumes=(("observability.indexer", "obs_index"),), **_P),
+    c("observability.map", "observability", "validacion", "view", "web", "T75",
+      "Mapa del flujo de trabajo", "Vista que dibuja este mismo catálogo y marca en vivo qué "
+      "corre, qué falla y qué no tiene datos.",
+      cadence="a demanda", consumes=(("observability.indexer", "obs_index"),)),
+    c("observability.traces", "observability", "validacion", "view", "web", "T76",
+      "Trazas y calidad de la evidencia", "Reconstruye paso a paso qué ocurrió con una vela o "
+      "decisión y marca cuáles se tomaron con datos viejos, agentes críticos degradados o "
+      "errores. Solo informa.",
+      cadence="a demanda", consumes=(("observability.indexer", "obs_index"),)),
 )

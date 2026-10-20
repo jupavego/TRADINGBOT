@@ -3,6 +3,7 @@
 import base64
 import json
 import threading
+import time
 
 import duckdb
 import pytest
@@ -218,3 +219,25 @@ def test_sim_broker_dump_load_roundtrip():
     assert c.open_orders("BTCUSDT") == b.open_orders("BTCUSDT")
     c.set_price("BTCUSDT", 89.0)
     assert c.position("BTCUSDT").qty == 0
+
+
+def test_watchdog_logs_stderr_tail_of_crashed_process(tmp_path):
+    import json
+    import sys
+
+    from eim.operation.watchdog import spawn_with_tail
+
+    code = "import sys; sys.stderr.write('boom: puerto ocupado\n'); sys.exit(1)"
+    proc = spawn_with_tail([sys.executable, "-c", code], {})
+    proc.wait(timeout=30)
+    for _ in range(100):                      # el hilo copiador drena al cerrarse el pipe
+        if proc.tail:
+            break
+        time.sleep(0.05)
+    log = JsonLog(tmp_path / "logs", lambda: 1)
+    wd = Watchdog(["x"], {}, tmp_path / "hb.json", log, check_s=0, spawn=lambda c, e: proc,
+                  notify=lambda a: None, sleep=lambda s: None)
+    wd.run(max_starts=1)
+    rec = [json.loads(line) for f in (tmp_path / "logs").glob("*.jsonl")
+           for line in f.read_text(encoding="utf-8").splitlines()]
+    assert any("puerto ocupado" in r.get("stderr_tail", "") for r in rec)

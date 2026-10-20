@@ -1,0 +1,1439 @@
+{
+ "task": "T59",
+ "mode": "SIMULADO",
+ "symbol": "BTCUSDT",
+ "asof": 1792425600000,
+ "criteria": {
+  "version": "validation_v1",
+  "sha256": "0a5b19962ded0d12dfdbccac0359f91c1bebf211ed891f7817c96667e01c30a8"
+ },
+ "attempts_total": 6,
+ "windows_note": "Parámetros de terceros fijados por SHA: EIM no los ajustó con ningún dato, así que no hay ventanas de ajuste; toda la historia posterior al alta del bot es fuera de muestra.",
+ "bots": [
+  {
+   "id": "freqtrade-strategies:FSupertrendStrategy@1h@v1",
+   "bot": "freqtrade-strategies",
+   "strategy": "FSupertrendStrategy",
+   "timeframe": "1h",
+   "version": "f3340ce11f5bdf62f598522e64d1f5638eaa13f5+9172fbb01f69",
+   "state": "rechazado",
+   "publicable": false,
+   "initial_weight": 0.0,
+   "modulates_confidence": false,
+   "dimensions": {
+    "rendimiento": {
+     "estado": "no cumple",
+     "criterios": {
+      "V2": {
+       "ok": false,
+       "detalle": "R medio -0.192, IC [-0.507, +0.125]"
+      },
+      "V4": {
+       "ok": true,
+       "detalle": "DD máximo 11.7%"
+      },
+      "V6": {
+       "ok": true,
+       "detalle": "costo medio 0.283 R"
+      }
+     }
+    },
+    "evidencia": {
+     "estado": "no cumple",
+     "criterios": {
+      "V1": {
+       "ok": false,
+       "detalle": "48 operaciones fuera de muestra; regímenes: range 46, volatile 2"
+      },
+      "V3": {
+       "ok": false,
+       "detalle": "p bruto 0.1158 → Holm 0.6587 (500 réplicas de lado al azar)"
+      },
+      "V5": {
+       "ok": false,
+       "detalle": "2/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
+      }
+     }
+    },
+    "seguridad": {
+     "estado": "cumple",
+     "habilitado": true,
+     "aprobado_por_usuario": true,
+     "puntaje": 95,
+     "alertas_rojas": [],
+     "fuente": "ficha T56"
+    },
+    "operativa": {
+     "estado": "cumple",
+     "puntaje_ficha": 73,
+     "dias_desde_commit": 41,
+     "vivo": {
+      "degraded": false,
+      "reasons": [],
+      "live_n": 0,
+      "live_mean_r": null,
+      "fail_rate": 0.0,
+      "drift_agree": null
+     },
+     "fuente": "ficha T56 + señales guardadas"
+    }
+   },
+   "reasons": [
+    "puerta T49: RECHAZADA — claramente negativa: R medio -0.192 + 1·EE 0.165 < 0 → ciclo de mejora",
+    "aporte marginal: no medible: solo 1 ventana(s) de prueba (< 2); regla T44 sola: ΔSharpe +0.21, ΔE[R] +0.022, ΔIC24 0.0162, gana 100% de ventanas"
+   ],
+   "marginal": {
+    "contributes": false,
+    "weight": 0.0,
+    "reason": "no medible: solo 1 ventana(s) de prueba (< 2); regla T44 sola: ΔSharpe +0.21, ΔE[R] +0.022, ΔIC24 0.0162, gana 100% de ventanas",
+    "rho_max": 0.6903399345250262,
+    "deltas": {
+     "sharpe": 0.21321054578642062,
+     "expectancy_r": 0.021695282685959605,
+     "ic24": 0.01622869883739449
+    },
+    "moderator": {
+     "h": 24,
+     "n_agree": 35,
+     "n_disagree": 5,
+     "hit_agree": 0.5714285714285714,
+     "hit_disagree": 0.4,
+     "diff": null,
+     "ci95": null,
+     "modulates": false,
+     "note": "muestra insuficiente (< 30 por grupo)"
+    },
+    "modulates": false,
+    "rule": "aporta ⇔ en la mitad de prueba de CADA activo, con el agente a peso moderado: Sharpe agregado, expectativa por operación (R) e IC a 24 velas mejoran a la vez frente a la síntesis sin él, y el Sharpe mejora en ≥ 60 % de las ventanas de 90 días"
+   },
+   "verdict": {
+    "verdict": "RECHAZADA",
+    "reason": "claramente negativa: R medio -0.192 + 1·EE 0.165 < 0 → ciclo de mejora",
+    "n_oos": 48,
+    "n_live": 0,
+    "mean_r": -0.1917,
+    "p_raw": 0.115768,
+    "p_holm": 0.658683,
+    "checks": [
+     {
+      "id": "V1",
+      "name": "Suficiencia de datos",
+      "value": {
+       "n": 48,
+       "regimes": {
+        "range": 46,
+        "volatile": 2
+       }
+      },
+      "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+      "ok": false,
+      "reason": "48 operaciones fuera de muestra; regímenes: range 46, volatile 2"
+     },
+     {
+      "id": "V2",
+      "name": "Expectativa neta",
+      "value": {
+       "mean_r": -0.1917,
+       "ci": [
+        -0.5071,
+        0.1255
+       ]
+      },
+      "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+      "ok": false,
+      "reason": "R medio -0.192, IC [-0.507, +0.125]"
+     },
+     {
+      "id": "V3",
+      "name": "Contra el azar",
+      "value": {
+       "p": 0.1158,
+       "p_holm": 0.6587,
+       "reps": 500
+      },
+      "threshold": "p (Holm sobre todos los intentos) < 0.05",
+      "ok": false,
+      "reason": "p bruto 0.1158 → Holm 0.6587 (500 réplicas de lado al azar)"
+     },
+     {
+      "id": "V4",
+      "name": "Drawdown",
+      "value": {
+       "max_dd": 0.117
+      },
+      "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+      "ok": true,
+      "reason": "DD máximo 11.7%"
+     },
+     {
+      "id": "V5",
+      "name": "Estabilidad",
+      "value": {
+       "windows": 6,
+       "positive": 2,
+       "frac": 0.3333,
+       "n_live": 0,
+       "mean_live": null
+      },
+      "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+      "ok": false,
+      "reason": "2/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
+     },
+     {
+      "id": "V6",
+      "name": "Costos",
+      "value": {
+       "cost_r": 0.2831
+      },
+      "threshold": "costo medio ≤ 0.3 R",
+      "ok": true,
+      "reason": "costo medio 0.283 R"
+     }
+    ],
+    "extras": {
+     "win_rate": 0.4792,
+     "pf": 0.654,
+     "mfe_r": 1.002,
+     "mae_r": 0.717,
+     "dsr": 0.0093,
+     "ret_1pct": -0.0908,
+     "buy_hold": 0.0838
+    }
+   },
+   "control": {
+    "id": "freqtrade-strategies:FSupertrendStrategy@1h#control@v1",
+    "verdict": "RECHAZADA",
+    "n_oos": 48,
+    "mean_r": -0.1982410957348445,
+    "p_holm": 0.6586826347305389
+   },
+   "retired_versions": []
+  },
+  {
+   "id": "hummingbot-directional:bollinger_v1@1h@v1",
+   "bot": "hummingbot-directional",
+   "strategy": "bollinger_v1",
+   "timeframe": "1h",
+   "version": "9af100d6822da7d2d0291a906c730ef172284ee2+02075b5c802b",
+   "state": "rechazado",
+   "publicable": false,
+   "initial_weight": 0.0,
+   "modulates_confidence": false,
+   "dimensions": {
+    "rendimiento": {
+     "estado": "no cumple",
+     "criterios": {
+      "V2": {
+       "ok": false,
+       "detalle": "R medio -0.325, IC [-0.559, -0.063]"
+      },
+      "V4": {
+       "ok": false,
+       "detalle": "DD máximo 25.3%"
+      },
+      "V6": {
+       "ok": true,
+       "detalle": "costo medio 0.233 R"
+      }
+     }
+    },
+    "evidencia": {
+     "estado": "no cumple",
+     "criterios": {
+      "V1": {
+       "ok": false,
+       "detalle": "81 operaciones fuera de muestra; regímenes: range 73, volatile 6, trend_up 1, trend_down 1"
+      },
+      "V3": {
+       "ok": false,
+       "detalle": "p bruto 0.6228 → Holm 1.0000 (500 réplicas de lado al azar)"
+      },
+      "V5": {
+       "ok": false,
+       "detalle": "1/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
+      }
+     }
+    },
+    "seguridad": {
+     "estado": "cumple",
+     "habilitado": true,
+     "aprobado_por_usuario": true,
+     "puntaje": 80,
+     "alertas_rojas": [],
+     "fuente": "ficha T56"
+    },
+    "operativa": {
+     "estado": "cumple",
+     "puntaje_ficha": 95,
+     "dias_desde_commit": 27,
+     "vivo": {
+      "degraded": false,
+      "reasons": [],
+      "live_n": 0,
+      "live_mean_r": null,
+      "fail_rate": 0.0,
+      "drift_agree": null
+     },
+     "fuente": "ficha T56 + señales guardadas"
+    }
+   },
+   "reasons": [
+    "puerta T49: RECHAZADA — claramente negativa: R medio -0.325 + 1·EE 0.126 < 0 → ciclo de mejora",
+    "aporte marginal: no aporta: ΔSharpe -2.81, ΔE[R] -0.188, ΔIC24 -0.0035, gana 0% de ventanas"
+   ],
+   "marginal": {
+    "contributes": false,
+    "weight": 0.0,
+    "reason": "no aporta: ΔSharpe -2.81, ΔE[R] -0.188, ΔIC24 -0.0035, gana 0% de ventanas",
+    "rho_max": 0.5631996022526501,
+    "deltas": {
+     "sharpe": -2.8063617042725646,
+     "expectancy_r": -0.1875067594180077,
+     "ic24": -0.003535594839942667
+    },
+    "moderator": {
+     "h": 24,
+     "n_agree": 0,
+     "n_disagree": 18,
+     "hit_agree": null,
+     "hit_disagree": 0.5,
+     "diff": null,
+     "ci95": null,
+     "modulates": false,
+     "note": "muestra insuficiente (< 30 por grupo)"
+    },
+    "modulates": false,
+    "rule": "aporta ⇔ en la mitad de prueba de CADA activo, con el agente a peso moderado: Sharpe agregado, expectativa por operación (R) e IC a 24 velas mejoran a la vez frente a la síntesis sin él, y el Sharpe mejora en ≥ 60 % de las ventanas de 90 días"
+   },
+   "verdict": {
+    "verdict": "RECHAZADA",
+    "reason": "claramente negativa: R medio -0.325 + 1·EE 0.126 < 0 → ciclo de mejora",
+    "n_oos": 81,
+    "n_live": 0,
+    "mean_r": -0.3251,
+    "p_raw": 0.622754,
+    "p_holm": 1.0,
+    "checks": [
+     {
+      "id": "V1",
+      "name": "Suficiencia de datos",
+      "value": {
+       "n": 81,
+       "regimes": {
+        "range": 73,
+        "trend_up": 1,
+        "volatile": 6,
+        "trend_down": 1
+       }
+      },
+      "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+      "ok": false,
+      "reason": "81 operaciones fuera de muestra; regímenes: range 73, volatile 6, trend_up 1, trend_down 1"
+     },
+     {
+      "id": "V2",
+      "name": "Expectativa neta",
+      "value": {
+       "mean_r": -0.3251,
+       "ci": [
+        -0.5589,
+        -0.0626
+       ]
+      },
+      "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+      "ok": false,
+      "reason": "R medio -0.325, IC [-0.559, -0.063]"
+     },
+     {
+      "id": "V3",
+      "name": "Contra el azar",
+      "value": {
+       "p": 0.6228,
+       "p_holm": 1.0,
+       "reps": 500
+      },
+      "threshold": "p (Holm sobre todos los intentos) < 0.05",
+      "ok": false,
+      "reason": "p bruto 0.6228 → Holm 1.0000 (500 réplicas de lado al azar)"
+     },
+     {
+      "id": "V4",
+      "name": "Drawdown",
+      "value": {
+       "max_dd": 0.2527
+      },
+      "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+      "ok": false,
+      "reason": "DD máximo 25.3%"
+     },
+     {
+      "id": "V5",
+      "name": "Estabilidad",
+      "value": {
+       "windows": 6,
+       "positive": 1,
+       "frac": 0.1667,
+       "n_live": 0,
+       "mean_live": null
+      },
+      "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+      "ok": false,
+      "reason": "1/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
+     },
+     {
+      "id": "V6",
+      "name": "Costos",
+      "value": {
+       "cost_r": 0.2331
+      },
+      "threshold": "costo medio ≤ 0.3 R",
+      "ok": true,
+      "reason": "costo medio 0.233 R"
+     }
+    ],
+    "extras": {
+     "win_rate": 0.4444,
+     "pf": 0.513,
+     "mfe_r": 0.898,
+     "mae_r": 0.748,
+     "dsr": 0.0003,
+     "ret_1pct": -0.2358,
+     "buy_hold": 0.0596
+    }
+   },
+   "control": {
+    "id": "hummingbot-directional:bollinger_v1@1h#control@v1",
+    "verdict": "RECHAZADA",
+    "n_oos": 81,
+    "mean_r": -0.450950279977838,
+    "p_holm": 1.0
+   },
+   "retired_versions": []
+  },
+  {
+   "id": "hummingbot-directional:macd_bb_v1@1h@v1",
+   "bot": "hummingbot-directional",
+   "strategy": "macd_bb_v1",
+   "timeframe": "1h",
+   "version": "9af100d6822da7d2d0291a906c730ef172284ee2+cba93c621b2a",
+   "state": "informa",
+   "publicable": false,
+   "initial_weight": 0.0,
+   "modulates_confidence": false,
+   "dimensions": {
+    "rendimiento": {
+     "estado": "no cumple",
+     "criterios": {
+      "V2": {
+       "ok": false,
+       "detalle": "R medio -1.101, IC [-1.411, -0.578]"
+      },
+      "V4": {
+       "ok": true,
+       "detalle": "DD máximo 5.4%"
+      },
+      "V6": {
+       "ok": false,
+       "detalle": "costo medio 0.356 R"
+      }
+     }
+    },
+    "evidencia": {
+     "estado": "no cumple",
+     "criterios": {
+      "V1": {
+       "ok": false,
+       "detalle": "5 operaciones fuera de muestra; regímenes: range 4, volatile 1"
+      },
+      "V3": {
+       "ok": false,
+       "detalle": "p bruto 0.9880 → Holm 1.0000 (500 réplicas de lado al azar)"
+      },
+      "V5": {
+       "ok": null,
+       "detalle": "0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+      }
+     }
+    },
+    "seguridad": {
+     "estado": "cumple",
+     "habilitado": true,
+     "aprobado_por_usuario": true,
+     "puntaje": 80,
+     "alertas_rojas": [],
+     "fuente": "ficha T56"
+    },
+    "operativa": {
+     "estado": "cumple",
+     "puntaje_ficha": 95,
+     "dias_desde_commit": 27,
+     "vivo": {
+      "degraded": false,
+      "reasons": [],
+      "live_n": 0,
+      "live_mean_r": null,
+      "fail_rate": 0.0,
+      "drift_agree": null
+     },
+     "fuente": "ficha T56 + señales guardadas"
+    }
+   },
+   "reasons": [
+    "puerta T49: EN OBSERVACIÓN — V1: 5 operaciones fuera de muestra; regímenes: range 4, volatile 1",
+    "aporte marginal: no aporta: ΔSharpe +0.00, ΔE[R] +0.000, ΔIC24 -0.005, gana 0% de ventanas"
+   ],
+   "marginal": {
+    "contributes": false,
+    "weight": 0.0,
+    "reason": "no aporta: ΔSharpe +0.00, ΔE[R] +0.000, ΔIC24 -0.005, gana 0% de ventanas",
+    "rho_max": null,
+    "deltas": {
+     "sharpe": 0.0,
+     "expectancy_r": 0.0,
+     "ic24": -0.0050167224080267525
+    },
+    "moderator": {
+     "h": 24,
+     "n_agree": 0,
+     "n_disagree": 1,
+     "hit_agree": null,
+     "hit_disagree": 1.0,
+     "diff": null,
+     "ci95": null,
+     "modulates": false,
+     "note": "muestra insuficiente (< 30 por grupo)"
+    },
+    "modulates": false,
+    "rule": "aporta ⇔ en la mitad de prueba de CADA activo, con el agente a peso moderado: Sharpe agregado, expectativa por operación (R) e IC a 24 velas mejoran a la vez frente a la síntesis sin él, y el Sharpe mejora en ≥ 60 % de las ventanas de 90 días"
+   },
+   "verdict": {
+    "verdict": "EN OBSERVACIÓN",
+    "reason": "V1: 5 operaciones fuera de muestra; regímenes: range 4, volatile 1",
+    "n_oos": 5,
+    "n_live": 0,
+    "mean_r": -1.1009,
+    "p_raw": 0.988024,
+    "p_holm": 1.0,
+    "checks": [
+     {
+      "id": "V1",
+      "name": "Suficiencia de datos",
+      "value": {
+       "n": 5,
+       "regimes": {
+        "range": 4,
+        "volatile": 1
+       }
+      },
+      "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+      "ok": false,
+      "reason": "5 operaciones fuera de muestra; regímenes: range 4, volatile 1"
+     },
+     {
+      "id": "V2",
+      "name": "Expectativa neta",
+      "value": {
+       "mean_r": -1.1009,
+       "ci": [
+        -1.4109,
+        -0.578
+       ]
+      },
+      "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+      "ok": false,
+      "reason": "R medio -1.101, IC [-1.411, -0.578]"
+     },
+     {
+      "id": "V3",
+      "name": "Contra el azar",
+      "value": {
+       "p": 0.988,
+       "p_holm": 1.0,
+       "reps": 500
+      },
+      "threshold": "p (Holm sobre todos los intentos) < 0.05",
+      "ok": false,
+      "reason": "p bruto 0.9880 → Holm 1.0000 (500 réplicas de lado al azar)"
+     },
+     {
+      "id": "V4",
+      "name": "Drawdown",
+      "value": {
+       "max_dd": 0.0539
+      },
+      "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+      "ok": true,
+      "reason": "DD máximo 5.4%"
+     },
+     {
+      "id": "V5",
+      "name": "Estabilidad",
+      "value": {
+       "windows": 0,
+       "positive": 0,
+       "frac": null,
+       "n_live": 0,
+       "mean_live": null
+      },
+      "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+      "ok": null,
+      "reason": "0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+     },
+     {
+      "id": "V6",
+      "name": "Costos",
+      "value": {
+       "cost_r": 0.3562
+      },
+      "threshold": "costo medio ≤ 0.3 R",
+      "ok": false,
+      "reason": "costo medio 0.356 R"
+     }
+    ],
+    "extras": {
+     "win_rate": 0.0,
+     "pf": 0.0,
+     "mfe_r": 0.739,
+     "mae_r": 0.858,
+     "dsr": 0.0163,
+     "ret_1pct": -0.0539,
+     "buy_hold": 0.2538
+    }
+   },
+   "control": {
+    "id": "hummingbot-directional:macd_bb_v1@1h#control@v1",
+    "verdict": "EN OBSERVACIÓN",
+    "n_oos": 5,
+    "mean_r": -1.0728965926013152,
+    "p_holm": 1.0
+   },
+   "retired_versions": []
+  }
+ ],
+ "attempts": [
+  {
+   "id": "freqtrade-strategies:FSupertrendStrategy@1h@v1",
+   "sid": "freqtrade-strategies:FSupertrendStrategy@1h",
+   "n": 1,
+   "strategy": "freqtrade-strategies:FSupertrendStrategy",
+   "timeframe": "1h",
+   "fingerprint": "f3340ce11f5bdf62f598522e64d1f5638eaa13f5+9172fbb01f69",
+   "origin": "tercero",
+   "retired": false,
+   "verdict": "RECHAZADA",
+   "reason": "claramente negativa: R medio -0.192 + 1·EE 0.165 < 0 → ciclo de mejora",
+   "criteria": "validation_v1",
+   "asof": 1792425600000,
+   "n_oos": 48,
+   "n_live": 0,
+   "p_raw": 0.115768,
+   "p_holm": 0.658683,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 48,
+      "regimes": {
+       "range": 46,
+       "volatile": 2
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "48 operaciones fuera de muestra; regímenes: range 46, volatile 2"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": -0.1917,
+      "ci": [
+       -0.5071,
+       0.1255
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": false,
+     "reason": "R medio -0.192, IC [-0.507, +0.125]"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.1158,
+      "p_holm": 0.6587,
+      "reps": 500
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.1158 → Holm 0.6587 (500 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.117
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": true,
+     "reason": "DD máximo 11.7%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 6,
+      "positive": 2,
+      "frac": 0.3333,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": false,
+     "reason": "2/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.2831
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": true,
+     "reason": "costo medio 0.283 R"
+    }
+   ],
+   "oos": {
+    "from": 1776711600000,
+    "to": 1792395900000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": []
+   },
+   "mean_r": -0.1917,
+   "extras": {
+    "win_rate": 0.4792,
+    "pf": 0.654,
+    "mfe_r": 1.002,
+    "mae_r": 0.717,
+    "dsr": 0.0093,
+    "ret_1pct": -0.0908,
+    "buy_hold": 0.0838
+   },
+   "control": false
+  },
+  {
+   "id": "freqtrade-strategies:FSupertrendStrategy@1h#control@v1",
+   "sid": "freqtrade-strategies:FSupertrendStrategy@1h#control",
+   "n": 1,
+   "strategy": "freqtrade-strategies:FSupertrendStrategy#control",
+   "timeframe": "1h",
+   "fingerprint": "f3340ce11f5bdf62f598522e64d1f5638eaa13f5+9172fbb01f69",
+   "origin": "tercero",
+   "retired": false,
+   "verdict": "RECHAZADA",
+   "reason": "claramente negativa: R medio -0.198 + 1·EE 0.164 < 0 → ciclo de mejora",
+   "criteria": "validation_v1",
+   "asof": 1792425600000,
+   "n_oos": 48,
+   "n_live": 0,
+   "p_raw": 0.10978,
+   "p_holm": 0.658683,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 48,
+      "regimes": {
+       "range": 46,
+       "volatile": 2
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "48 operaciones fuera de muestra; regímenes: range 46, volatile 2"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": -0.1982,
+      "ci": [
+       -0.5122,
+       0.1415
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": false,
+     "reason": "R medio -0.198, IC [-0.512, +0.142]"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.1098,
+      "p_holm": 0.6587,
+      "reps": 500
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.1098 → Holm 0.6587 (500 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.1325
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": true,
+     "reason": "DD máximo 13.3%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 6,
+      "positive": 3,
+      "frac": 0.5,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": false,
+     "reason": "3/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.2775
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": true,
+     "reason": "costo medio 0.278 R"
+    }
+   ],
+   "oos": {
+    "from": 1776711600000,
+    "to": 1792378800000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": []
+   },
+   "mean_r": -0.1982,
+   "extras": {
+    "win_rate": 0.5,
+    "pf": 0.648,
+    "mfe_r": 0.971,
+    "mae_r": 0.733,
+    "dsr": 0.0084,
+    "ret_1pct": -0.0936,
+    "buy_hold": 0.0825
+   },
+   "control": true
+  },
+  {
+   "id": "hummingbot-directional:bollinger_v1@1h@v1",
+   "sid": "hummingbot-directional:bollinger_v1@1h",
+   "n": 1,
+   "strategy": "hummingbot-directional:bollinger_v1",
+   "timeframe": "1h",
+   "fingerprint": "9af100d6822da7d2d0291a906c730ef172284ee2+02075b5c802b",
+   "origin": "tercero",
+   "retired": false,
+   "verdict": "RECHAZADA",
+   "reason": "claramente negativa: R medio -0.325 + 1·EE 0.126 < 0 → ciclo de mejora",
+   "criteria": "validation_v1",
+   "asof": 1792425600000,
+   "n_oos": 81,
+   "n_live": 0,
+   "p_raw": 0.622754,
+   "p_holm": 1.0,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 81,
+      "regimes": {
+       "range": 73,
+       "trend_up": 1,
+       "volatile": 6,
+       "trend_down": 1
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "81 operaciones fuera de muestra; regímenes: range 73, volatile 6, trend_up 1, trend_down 1"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": -0.3251,
+      "ci": [
+       -0.5589,
+       -0.0626
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": false,
+     "reason": "R medio -0.325, IC [-0.559, -0.063]"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.6228,
+      "p_holm": 1.0,
+      "reps": 500
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.6228 → Holm 1.0000 (500 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.2527
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": false,
+     "reason": "DD máximo 25.3%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 6,
+      "positive": 1,
+      "frac": 0.1667,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": false,
+     "reason": "1/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.2331
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": true,
+     "reason": "costo medio 0.233 R"
+    }
+   ],
+   "oos": {
+    "from": 1776826800000,
+    "to": 1792422000000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": []
+   },
+   "mean_r": -0.3251,
+   "extras": {
+    "win_rate": 0.4444,
+    "pf": 0.513,
+    "mfe_r": 0.898,
+    "mae_r": 0.748,
+    "dsr": 0.0003,
+    "ret_1pct": -0.2358,
+    "buy_hold": 0.0596
+   },
+   "control": false
+  },
+  {
+   "id": "hummingbot-directional:bollinger_v1@1h#control@v1",
+   "sid": "hummingbot-directional:bollinger_v1@1h#control",
+   "n": 1,
+   "strategy": "hummingbot-directional:bollinger_v1#control",
+   "timeframe": "1h",
+   "fingerprint": "9af100d6822da7d2d0291a906c730ef172284ee2+02075b5c802b",
+   "origin": "tercero",
+   "retired": false,
+   "verdict": "RECHAZADA",
+   "reason": "claramente negativa: R medio -0.451 + 1·EE 0.118 < 0 → ciclo de mejora",
+   "criteria": "validation_v1",
+   "asof": 1792425600000,
+   "n_oos": 81,
+   "n_live": 0,
+   "p_raw": 0.952096,
+   "p_holm": 1.0,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 81,
+      "regimes": {
+       "range": 74,
+       "volatile": 6,
+       "trend_down": 1
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "81 operaciones fuera de muestra; regímenes: range 74, volatile 6, trend_down 1"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": -0.451,
+      "ci": [
+       -0.6813,
+       -0.2027
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": false,
+     "reason": "R medio -0.451, IC [-0.681, -0.203]"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.9521,
+      "p_holm": 1.0,
+      "reps": 500
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.9521 → Holm 1.0000 (500 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.3223
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": false,
+     "reason": "DD máximo 32.2%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 6,
+      "positive": 0,
+      "frac": 0.0,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": false,
+     "reason": "0/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.2261
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": true,
+     "reason": "costo medio 0.226 R"
+    }
+   ],
+   "oos": {
+    "from": 1776826800000,
+    "to": 1792422000000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": []
+   },
+   "mean_r": -0.451,
+   "extras": {
+    "win_rate": 0.3951,
+    "pf": 0.379,
+    "mfe_r": 0.847,
+    "mae_r": 0.765,
+    "dsr": 0.0,
+    "ret_1pct": -0.3097,
+    "buy_hold": 0.0596
+   },
+   "control": true
+  },
+  {
+   "id": "hummingbot-directional:macd_bb_v1@1h@v1",
+   "sid": "hummingbot-directional:macd_bb_v1@1h",
+   "n": 1,
+   "strategy": "hummingbot-directional:macd_bb_v1",
+   "timeframe": "1h",
+   "fingerprint": "9af100d6822da7d2d0291a906c730ef172284ee2+cba93c621b2a",
+   "origin": "tercero",
+   "retired": false,
+   "verdict": "EN OBSERVACIÓN",
+   "reason": "V1: 5 operaciones fuera de muestra; regímenes: range 4, volatile 1",
+   "criteria": "validation_v1",
+   "asof": 1792425600000,
+   "n_oos": 5,
+   "n_live": 0,
+   "p_raw": 0.988024,
+   "p_holm": 1.0,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 5,
+      "regimes": {
+       "range": 4,
+       "volatile": 1
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "5 operaciones fuera de muestra; regímenes: range 4, volatile 1"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": -1.1009,
+      "ci": [
+       -1.4109,
+       -0.578
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": false,
+     "reason": "R medio -1.101, IC [-1.411, -0.578]"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.988,
+      "p_holm": 1.0,
+      "reps": 500
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.9880 → Holm 1.0000 (500 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.0539
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": true,
+     "reason": "DD máximo 5.4%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 0,
+      "positive": 0,
+      "frac": null,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": null,
+     "reason": "0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.3562
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": false,
+     "reason": "costo medio 0.356 R"
+    }
+   ],
+   "oos": {
+    "from": 1781474400000,
+    "to": 1789832700000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": []
+   },
+   "mean_r": -1.1009,
+   "extras": {
+    "win_rate": 0.0,
+    "pf": 0.0,
+    "mfe_r": 0.739,
+    "mae_r": 0.858,
+    "dsr": 0.0163,
+    "ret_1pct": -0.0539,
+    "buy_hold": 0.2538
+   },
+   "control": false
+  },
+  {
+   "id": "hummingbot-directional:macd_bb_v1@1h#control@v1",
+   "sid": "hummingbot-directional:macd_bb_v1@1h#control",
+   "n": 1,
+   "strategy": "hummingbot-directional:macd_bb_v1#control",
+   "timeframe": "1h",
+   "fingerprint": "9af100d6822da7d2d0291a906c730ef172284ee2+cba93c621b2a",
+   "origin": "tercero",
+   "retired": false,
+   "verdict": "EN OBSERVACIÓN",
+   "reason": "V1: 5 operaciones fuera de muestra; regímenes: range 4, volatile 1",
+   "criteria": "validation_v1",
+   "asof": 1792425600000,
+   "n_oos": 5,
+   "n_live": 0,
+   "p_raw": 0.954092,
+   "p_holm": 1.0,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 5,
+      "regimes": {
+       "range": 4,
+       "volatile": 1
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "5 operaciones fuera de muestra; regímenes: range 4, volatile 1"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": -1.0729,
+      "ci": [
+       -1.4103,
+       -0.529
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": false,
+     "reason": "R medio -1.073, IC [-1.410, -0.529]"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.9541,
+      "p_holm": 1.0,
+      "reps": 500
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.9541 → Holm 1.0000 (500 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.0526
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": true,
+     "reason": "DD máximo 5.3%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 0,
+      "positive": 0,
+      "frac": null,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": null,
+     "reason": "0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.3288
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": false,
+     "reason": "costo medio 0.329 R"
+    }
+   ],
+   "oos": {
+    "from": 1781474400000,
+    "to": 1789832700000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": []
+   },
+   "mean_r": -1.0729,
+   "extras": {
+    "win_rate": 0.0,
+    "pf": 0.0,
+    "mfe_r": 0.514,
+    "mae_r": 0.949,
+    "dsr": 0.0159,
+    "ret_1pct": -0.0526,
+    "buy_hold": 0.2538
+   },
+   "control": true
+  }
+ ],
+ "regimes": {
+  "rows": [
+   {
+    "id": "freqtrade-strategies:FSupertrendStrategy@1h@v1",
+    "regime": "range",
+    "n_oos": 46,
+    "evaluated": false,
+    "passes": false,
+    "mean_r": null,
+    "p_holm": null
+   },
+   {
+    "id": "freqtrade-strategies:FSupertrendStrategy@1h@v1",
+    "regime": "volatile",
+    "n_oos": 2,
+    "evaluated": false,
+    "passes": false,
+    "mean_r": null,
+    "p_holm": null
+   },
+   {
+    "id": "hummingbot-directional:bollinger_v1@1h@v1",
+    "regime": "range",
+    "n_oos": 73,
+    "evaluated": false,
+    "passes": false,
+    "mean_r": null,
+    "p_holm": null
+   },
+   {
+    "id": "hummingbot-directional:bollinger_v1@1h@v1",
+    "regime": "trend_down",
+    "n_oos": 1,
+    "evaluated": false,
+    "passes": false,
+    "mean_r": null,
+    "p_holm": null
+   },
+   {
+    "id": "hummingbot-directional:bollinger_v1@1h@v1",
+    "regime": "trend_up",
+    "n_oos": 1,
+    "evaluated": false,
+    "passes": false,
+    "mean_r": null,
+    "p_holm": null
+   },
+   {
+    "id": "hummingbot-directional:bollinger_v1@1h@v1",
+    "regime": "volatile",
+    "n_oos": 6,
+    "evaluated": false,
+    "passes": false,
+    "mean_r": null,
+    "p_holm": null
+   },
+   {
+    "id": "hummingbot-directional:macd_bb_v1@1h@v1",
+    "regime": "range",
+    "n_oos": 4,
+    "evaluated": false,
+    "passes": false,
+    "mean_r": null,
+    "p_holm": null
+   },
+   {
+    "id": "hummingbot-directional:macd_bb_v1@1h@v1",
+    "regime": "volatile",
+    "n_oos": 1,
+    "evaluated": false,
+    "passes": false,
+    "mean_r": null,
+    "p_holm": null
+   }
+  ],
+  "passing": [],
+  "attempts": 0,
+  "selection_by_regime": false,
+  "note": "ningún bot supera la puerta dentro de un régimen: no se activa selección por régimen (BACKLOG)"
+ },
+ "lane_l": [
+  {
+   "id": "passivbot:ema_anchor@1m",
+   "version": "772abadc10a5bbf258a84aa8209a9084699fa1bd+334ca40c3628",
+   "label": "simulado",
+   "status": "ok",
+   "start": 1772323200000,
+   "end": 1792425840000,
+   "fills": 50,
+   "pnl_inventory": 197.67682265999974,
+   "pnl_realized": 212.32470000000083,
+   "costs_paid": 14.64787734,
+   "max_drawdown": 0.005220937761431954,
+   "inventory_risk": {
+    "max_wallet_exposure": 0.31616703189584394,
+    "max_position": 0.054
+   },
+   "costs_model": {
+    "maker_fee": 0.0002,
+    "taker_fee": 0.0005
+   },
+   "evidence": [
+    "ema_anchor: 50 fills simulados sobre 335044 velas de 1 min; solo largos; comisión fijada por EIM (T25), no la del README del bot; simulación, no operaciones",
+    "el bot empezó a operar en 1773049020000 (calentamiento propio de sus EMA)"
+   ],
+   "note": "fuera de la puerta direccional; sin deslizamiento modelado; no vota"
+  },
+  {
+   "id": "passivbot:trailing_martingale@1m",
+   "version": "772abadc10a5bbf258a84aa8209a9084699fa1bd+b8e0c5f39cee",
+   "label": "simulado",
+   "status": "ok",
+   "start": 1772323200000,
+   "end": 1792425840000,
+   "fills": 868,
+   "pnl_inventory": -1762.5927961539874,
+   "pnl_realized": -2749.7435000000028,
+   "costs_paid": 77.41337982,
+   "max_drawdown": 0.6852733577854029,
+   "inventory_risk": {
+    "max_wallet_exposure": 4.444189611109403,
+    "max_position": 0.593
+   },
+   "costs_model": {
+    "maker_fee": 0.0002,
+    "taker_fee": 0.0005
+   },
+   "evidence": [
+    "trailing_martingale: 868 fills simulados sobre 335044 velas de 1 min; solo largos; comisión fijada por EIM (T25), no la del README del bot; simulación, no operaciones",
+    "el bot empezó a operar en 1773774780000 (calentamiento propio de sus EMA)"
+   ],
+   "note": "fuera de la puerta direccional; sin deslizamiento modelado; no vota"
+  }
+ ],
+ "summary": {
+  "states": {
+   "vota": 0,
+   "informa": 1,
+   "rechazado": 2,
+   "deshabilitado_seguridad": 0
+  },
+  "votan": [],
+  "informan": [
+   "hummingbot-directional:macd_bb_v1@1h@v1"
+  ],
+  "publicables": [],
+  "modulan_confianza": []
+ },
+ "computed": 1792481856213
+}

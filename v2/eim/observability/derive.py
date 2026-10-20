@@ -73,6 +73,8 @@ def _outcome(d: dict[str, Any]) -> str:
         return "aprobado"
     if d["plan_event"]:
         return "plan"
+    if "sin_plan" in json.loads(d["links"] or "{}"):      # T76: el plan dijo «no hay operación»
+        return "sin_plan"
     if d["synthesis_event"] or d["forecast_event"]:
         return "sintesis"
     return "senales" if d["n_signals"] else "datos"
@@ -96,11 +98,14 @@ def fold_decision(row: dict[str, Any] | None, ev: ObsEvent) -> dict[str, Any] | 
     if ev.kind == "signal":
         d["n_signals"] += 1
     field = _STAGE_FIELD.get(ev.kind)
+    links = json.loads(d["links"] or "{}")
+    if ev.kind == "plan" and ev.status == "no_data":     # T76: no es un plan, se anota aparte
+        links.setdefault("sin_plan", [ev.event_id])
+        field = None
     if field and not d[field]:
         d[field] = ev.event_id
     if ev.kind == "risk_decision" and d["risk_status"] != "rejected":  # un veto no se revierte
         d["risk_status"] = ev.status
-    links = json.loads(d["links"] or "{}")
     for ref in (*ev.inputs, *ev.outputs):
         if ref.type in LINK_TYPES:
             lst = links.setdefault(ref.type, [])

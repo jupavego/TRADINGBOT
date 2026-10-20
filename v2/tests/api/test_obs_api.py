@@ -144,7 +144,7 @@ def test_no_mutating_methods_and_same_guards_as_the_rest(parts):
 def test_full_app_exposes_only_gets_and_serves_the_observatory(tmp_path):
     app = create_app(Settings(data_dir=tmp_path))
     paths = {p: m for p, m in app.openapi()["paths"].items() if p.startswith("/v2/obs")}
-    assert len(paths) == 7 and all(set(m) == {"get"} for m in paths.values())
+    assert len(paths) == 9 and all(set(m) == {"get"} for m in paths.values())
     write(tmp_path / "obs" / "spool" / "api.20251001.1.jsonl", candle_trace())
     app.state.obs_indexer.run_once()
     with LocalClient(app) as c:

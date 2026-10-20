@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-20T02:32:17",
+ "generated": "2026-10-20T15:33:27",
  "tasks": [
   {
    "id": "T01",
@@ -738,8 +738,8 @@ window.EIM_STATUS = {
     "T47",
     "T25"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Código y tests listos (`eim/bots/{shadow,scorecard,concept,marginal,health,scorer,scorecard_cli}.py`, `bot_scorecard`, `GET /v2/bots/scorecard`, `docs/BOTS.md`). Informe real `v2/reports/bots_scorecard.md` (BTCUSDT, 6 meses, copia de datos de T58; V5 en vivo pendiente): **ningún bot vota ni es publicable**; FSupertrend y Bollinger RECHAZADOS por la puerta, MACD+BB solo informa (5 operaciones). Regla marginal con guardia ≥ 2 ventanas añadida tras ver la 1.ª corrida (declarado). Gate completo ok. Pendiente ◆ del usuario.",
    "effort": "alto",
    "phase": 12,
    "goal": "Asignar a cada bot su **concepto** con evidencia, usando la puerta que ya valida estrategias del bróker simulado (T49) en vez de crear una segunda vara de medir. Responde a la pregunta del usuario: ¿qué bots merecen influir en una decisión, cuáles solo se observan y cuáles se descartan?"
@@ -962,8 +962,8 @@ window.EIM_STATUS = {
     "T75",
     "T15"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Pestaña «Trazas y calidad» en el Mapa del sistema: selector (símbolo, marco, resultado, modo), grafo de ejecución en orden temporal con camino causal resaltado (⚑), relato por plantillas con Anterior/Siguiente, tres hechos (señal, decisión, orden), agentes frente a la síntesis y reglas de riesgo (RiskDecision real si existe). Backend: `observability/{trace_view,trace_text}.py`, `api/obs_trace.py`: `/v2/obs/traces/{id}/explain`, `/v2/obs/quality`, filtro `mode` y marca por traza (limpia / datos obsoletos / agente crítico degradado / error; el veto no contamina). Solo informa. `derive.py`: nuevo resultado «sin_plan». Verificado en navegador con trazas sintéticas de cada fallo (informe 3 de 7 = recuento manual); **falta una traza real de vela cerrada y capturas con la API real**. Enlace a la mesa vía evento `eim:replay` (T15). Tests: `tests/api/test_obs_trace_api.py` (9).",
    "effort": "medio",
    "phase": 15,
    "goal": "Elegir una vela o decisión y ver lo que realmente ocurrió —datos, señales, síntesis, plan, riesgo, orden—, con el **camino causal** resaltado cuando algo falló o se vetó. Además, marcar qué decisiones se tomaron con datos obsoletos o agentes críticos degradados, para que la evidencia de papel, del bróker (T47–T48) y de la puerta T49 se pueda leer sabiendo cuánta está contaminada. Es lo que más aporta a la eficiencia y a la fiabilidad del aprendizaje."

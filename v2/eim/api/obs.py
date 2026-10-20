@@ -17,6 +17,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
+from eim.api import obs_trace
 from eim.api.reports_db import ReportStore
 from eim.observability import catalog
 from eim.observability import thresholds as T
@@ -155,14 +156,18 @@ def build_obs_router(store: ObsStore, indexer: Indexer,
     @r.get("/traces")
     def traces(symbol: str | None = None, timeframe: str | None = None,
                outcome: str | None = None, has_error: bool | None = None,
+               mode: str | None = None,
                since: int | None = None, until: int | None = None,
                limit: int = Page, offset: int = Query(0, ge=0)) -> dict:
         rows, total = page("decisions", "*", [
             ("symbol = ?", symbol), ("timeframe = ?", timeframe), ("outcome = ?", outcome),
+            ("mode = ?", mode),
             ("has_error = ?", has_error), ("last_ms >= ?", since), ("last_ms < ?", until)],
             "last_ms DESC, trace_id", limit, offset)
+        marks = {m["trace_id"]: m for m in obs_trace.classify(store, rows)}
         for x in rows:
             x["links"] = json.loads(x["links"] or "{}")
+            x["evidence"] = marks[x["trace_id"]]["mark"]       # T76: None = eventos purgados
         return envelope(items=rows, total=total, limit=limit, offset=offset)
 
     @r.get("/traces/{trace_id}")
@@ -183,6 +188,8 @@ def build_obs_router(store: ObsStore, indexer: Indexer,
                              [trace_id]),
             resolved=_resolve(reports_conn, links),
             partial=bool(dec) and not evs)   # eventos crudos ya purgados: queda el resumen
+
+    obs_trace.register(r, store, envelope, with_refs, reports_conn)
 
     @r.get("/health")
     def health() -> dict:

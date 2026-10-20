@@ -174,10 +174,6 @@ OPERATION: tuple[Component, ...] = (
       "Indexador del observatorio", "Un solo proceso, dentro de la API, que cada pocos segundos "
       "carga los eventos de todos los archivos en una base para consultarlos. Solo lectura.",
       cadence="cada 5 s (su estado: /v2/obs/health)", produces=("obs_index",)),
-    c("observability.map", "observability", "validacion", "view", "web", "T75",
-      "Mapa del flujo de trabajo", "Vista que dibuja este mismo catálogo y marca en vivo qué "
-      "corre, qué falla y qué no tiene datos.",
-      consumes=(("observability.indexer", "obs_index"),)),
     c("web.dashboard", "web", "plan", "view", "web", "T10", "Panel de la interfaz",
       "Muestra al usuario el gráfico, los analistas, los escenarios y el plan, siempre con el "
       "modo (Análisis, Simulado o Testnet). Solo muestra; no opera.", cadence="en vivo",
