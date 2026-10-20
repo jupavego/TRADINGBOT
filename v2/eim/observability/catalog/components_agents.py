@@ -93,4 +93,10 @@ BOTS: tuple[Component, ...] = (
       "Corre los bots públicos aprobados aislados, sin claves ni poder de operar, y convierte su "
       "salida en una postura común que se guarda con su versión. No envía órdenes.",
       cadence="cada cierre de vela", cadence_s=_H, consumes=_SNAP, produces=("bot_signal",)),
+    c("bots.scoring", "bots", "validacion", "engine", "api", "T59", "Puntuación de bots",
+      "Mide a cada bot con la misma puerta que a las estrategias propias (neto de costos, fuera "
+      "de muestra, contra el azar) y su aporte al núcleo; le da un estado (vota, informa, "
+      "rechazado, deshabilitado) y lo degrada si falla. Siempre simulado.",
+      cadence="cada cierre de vela de 4 h", cadence_s=4 * _H,
+      consumes=(("bots.runner", "bot_signal"),), produces=("bot_score",)),
 )

@@ -47,3 +47,22 @@ Límites conocidos: solo largos y un símbolo; la comisión es la de EIM pero el
 
 ## Relleno histórico y ventanas de 6 meses
 `python -m eim.bots.backfill --symbol BTCUSDT --timeframe 1h --since 2026-04-19` rellena `bot_signals` con una postura por cierre de vela (Hummingbot vela a vela por el servicio; Freqtrade con una sola corrida, ver `FreqtradeAdapter.history`). Necesita 1000 velas previas en el almacén. En Windows, el checkout de las estrategias de Freqtrade se prepara con `git config core.autocrlf false` (el ejecutor igualmente trata CRLF como limpio) y, si está en un disco FAT32/exFAT, funciona porque el ejecutor pasa `safe.directory` a su git aislado.
+
+## Puntuación y puerta de edge (T59)
+
+Cada `bot@estrategia@marco@vN` (la versión = SHA del bot + hash de parámetros, numerada por su primera aparición en `bot_signals`) pasa por **la misma puerta de T49** (`eim/validation/gate.py`), no por otra vara. Código en `eim/bots/`:
+
+- `shadow.py`: postura → idea del bróker simulado (regla fija: abre al cambiar de lado, SL 1,5 ATR, TP 2 R, salida por tiempo al horizonte del bot o 24 velas). Costos de perpetuos de T25 (`ExecParams`); los `costs_assumed` del bot se ignoran. **Control aleatorio** de la misma familia (mismos instantes y geometría, lado sorteado con semilla fija): es un intento más de Holm y nunca vota.
+- `scorecard.py`: veredicto por versión (V1–V6), familia de Holm con TODAS las versiones de TODOS los bots (también retiradas) + un control por cada una; condiciones por régimen (solo informe) e informe aparte de la clase L (`bot_sim_runs`).
+- `concept.py`: cuatro dimensiones sin nota global (rendimiento V2/V4/V6, evidencia V1/V3/V5, seguridad de la ficha T56, operativa) y estado `vota | informa | rechazado | deshabilitado_seguridad`. Sin seguridad habilitada el bot no entra aunque rinda. `publicable` (VALIDADA) es una marca aparte: solo alimenta «Operaciones sugeridas» (T50).
+- `marginal.py`: aporte al núcleo con el método de T44 (`agents_marginal`, el bot como un agente más): ΔSharpe, ΔE[R], ΔIC24 fuera de muestra, correlación con `ema/structure/technical` y efecto moderador. Peso inicial **medido** = `MODERATE_WEIGHT·(1 − ρ⁺ máx)` si aporta, 0 si no o si repite al núcleo (|ρ| ≥ 0,9).
+- `health.py`: degradación (rendimiento vivo bajo el IC fuera de muestra, deriva entre versiones, fallos del ejecutor, latencia) → baja a `informa` con alerta (`Condition` del `AlertCenter` de T31).
+- Persistencia `bot_scorecard` (solo añadir) y `GET /v2/bots/scorecard` (solo lectura). El bróker recalcula al cierre de cada vela de 4 h (`BotScorer.maybe_run`), reutilizando la última medición marginal mientras la versión no cambie.
+
+Medición completa a mano (lenta; abre `reports.duckdb`, así que con la API parada o sobre una copia de `data/`):
+
+```bash
+python -m eim.bots.scorecard_cli --data-dir data --symbol BTCUSDT --marginal
+```
+
+Escribe `reports/bots_scorecard.{md,json}`. No hay ventanas de ajuste: los parámetros son de terceros fijados por SHA y EIM no los ajusta; cambiarlos es una versión nueva (ciclo T49/T51).

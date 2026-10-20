@@ -82,24 +82,25 @@ def correlations(df: pd.DataFrame, agents: tuple[str, ...], peers: tuple[str, ..
     return out
 
 
-def variants(corr: dict) -> dict[str, SynthesisParams]:
+def variants(corr: dict, new: tuple[str, ...] = NEW,
+             peers: tuple[str, ...] = PEERS) -> dict[str, SynthesisParams]:
     """Síntesis base (sin agentes nuevos) y con cada uno; ρ de descubrimiento para penalizar."""
-    rho: dict[str, dict[str, float]] = {a: {} for a in NEW}
-    for a in NEW:
-        for p in PEERS:
+    rho: dict[str, dict[str, float]] = {a: {} for a in new}
+    for a in new:
+        for p in peers:
             r = corr.get(f"{a}~{p}", {}).get("pearson")
             if r is not None:
                 rho[a][p] = round(float(r), 3)
-    zero = {a: 0.0 for a in NEW}
+    zero = {a: 0.0 for a in new}
 
     def sp(w: dict[str, float], penal: bool = True) -> SynthesisParams:
         return SynthesisParams(weights={**zero, **w},
                                correlation={a: rho[a] for a in w if penal and rho[a]})
     out = {"base": sp({})}
-    for a in NEW:
+    for a in new:
         out[f"+{a}"] = sp({a: MODERATE_WEIGHT})
         out[f"+{a} (peso 1, sin penalización)"] = sp({a: 1.0}, penal=False)
-    out["+ambos"] = sp({a: MODERATE_WEIGHT for a in NEW})
+    out["+ambos"] = sp({a: MODERATE_WEIGHT for a in new})
     return out
 
 
@@ -185,18 +186,19 @@ def _returns(res: BacktestResult) -> np.ndarray:
 
 
 def evaluate(df: pd.DataFrame, candles: list[Candle], funding, symbol: str,
-             log: Callable[[str], None] = print) -> dict:
+             log: Callable[[str], None] = print, new: tuple[str, ...] = NEW,
+             peers: tuple[str, ...] = PEERS) -> dict:
     """Estudio completo de un activo: correlaciones, IC y backtest por variante."""
     asofs = sorted(df["asof"].unique().tolist())
     cut = split_at(asofs)
     disc, test = df[df["asof"] < cut], df[df["asof"] >= cut]
-    corr_disc = correlations(disc, NEW, PEERS + ("vwap", "price_action", "levels"))
-    corr_test = correlations(test, NEW, PEERS)
+    corr_disc = correlations(disc, new, peers + ("vwap", "price_action", "levels"))
+    corr_test = correlations(test, new, peers)
     agents = sorted(set(df.agent) - NON_DIRECTIONAL - {"regime"})
     cover = {a: df[df.agent == a].status.value_counts(normalize=True).round(4).to_dict()
              for a in sorted(set(df.agent))}
     by = reports_by_asof(df)
-    vs = variants(corr_disc)
+    vs = variants(corr_disc, new, peers)
     sigs = {k: synth_series(by, p, agents) for k, p in vs.items()}
     out: dict = {"symbol": symbol, "asofs": len(asofs), "from": asofs[0], "to": asofs[-1],
                  "cut": cut, "coverage": cover, "corr_disc": corr_disc, "corr_test": corr_test,
