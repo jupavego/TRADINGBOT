@@ -6,6 +6,7 @@ import './arb.css'
 import './leaders.css'
 import './paper.css'
 import './obs.css'
+import './obs_trace.css'
 import { fetchAgents, fetchAsofs, fetchJournal, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, symbolPicker, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { refreshArbitrage, renderRiver } from './river'
@@ -307,6 +308,20 @@ function build(): void {
   pb.onclick = () => show(pb.getAttribute('aria-pressed') === 'true' ? 'desk' : 'paper')
   ob.onclick = () => show(ob.getAttribute('aria-pressed') === 'true' ? 'desk' : 'obs')
   if (obsIsHome()) show('obs')
+  // T76: «Abrir en la mesa en ese instante» desde una traza → deslizador de reproducción (T15)
+  window.addEventListener('eim:replay', (e) => {
+    const d = (e as CustomEvent<{ symbol: string; timeframe: string; ts: number }>).detail
+    if (SYMBOLS.includes(d.symbol as never)) { symbol = d.symbol; if (sel) sel.value = symbol }
+    if ((TIMEFRAMES as readonly string[]).includes(d.timeframe)) tf = d.timeframe
+    mark(); show('desk')
+    void load().then(async () => {
+      asofs = await fetchAsofs(symbol, tf)
+      const i = asofs.reduce((k, t, j) => (t <= d.ts ? j : k), -1)
+      if (i < 0) { $('banner').hidden = false; $('banner').textContent = 'Esa vela es anterior a los reportes guardados: no hay reproducción para ese instante.'; return }
+      $<HTMLInputElement>('replay-range').value = String(i)
+      await showReplay(i)
+    })
+  })
 }
 
 build()

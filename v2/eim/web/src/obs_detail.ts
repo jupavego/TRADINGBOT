@@ -59,6 +59,6 @@ export async function detailHtml(d: ObsData, id: string, signal?: AbortSignal): 
     <h4>A quién afecta</h4><ul class="obs-ul">${nb.to.map((x) => li(x.c, x.artifact, d)).join('') || '<li class="muted">A nadie más (es un destino).</li>'}</ul>
     ${refs.length ? `<h4>Últimas entradas y salidas <small class="muted">(referencias)</small></h4><ul class="obs-ul">${refs.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
     ${errs.length ? `<h4>Últimos errores</h4><ul class="obs-ul">${errs.map((r) => `<li>${ago(r.started_ms)} · ${esc(r.error ?? 'sin mensaje')}</li>`).join('')}</ul>` : ''}
-    <p class="obs-links">${trace ? `<span title="Se verá completa con T76">Traza: <code>${esc(trace)}</code></span>` : ''}
+    <p class="obs-links">${trace ? `<button class="obs-link" data-open-trace="${esc(trace)}" title="Ver qué ocurrió con esa vela, paso a paso">Ver su traza completa</button>` : ''}
       ${c.kind === 'agent' ? '<small class="muted">Su tarjeta está en la mesa, pestaña «Escenarios».</small>' : ''}</p>`
 }
