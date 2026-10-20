@@ -3,6 +3,7 @@ import { detailHtml } from './obs_detail'
 import { compState, routeHtml, stageSentence, stageSvg } from './obs_graph'
 import { glossarize, legendHtml, markTour, tourHtml, TOUR, tourSeen } from './obs_legend'
 import { pulseNew, Story } from './obs_story'
+import { TraceView } from './obs_trace_view'
 import { ago, esc, loadObs, STATE_ICON, STATE_LABEL, type ObsData } from './obs_types'
 
 const POLL_MS = 10_000
@@ -15,6 +16,9 @@ const TEMPLATE = `
   <span class="mode" data-x="mode">Modo: —</span>
   <span class="obs-age muted" data-x="age" aria-live="polite"></span>
   <span class="spacer"></span>
+  <span class="obs-panes" role="group" aria-label="Qué ver">
+    <button class="btn" data-act="pane-map" aria-pressed="true">Mapa</button>
+    <button class="btn" data-act="pane-trace" aria-pressed="false" title="Elegir una decisión y ver qué ocurrió, paso a paso">Trazas y calidad</button></span>
   <button class="btn obs-replay-btn" data-act="replay" title="Reproduce despacio lo que pasó con la última vela">▶ Ver la última vela</button>
   <label class="obs-home"><input type="checkbox" data-act="home"> Abrir al iniciar</label>
   <button class="btn" data-act="tour" aria-label="Recorrido guiado" title="Recorrido guiado">?</button>
@@ -32,6 +36,7 @@ const TEMPLATE = `
     <div class="obs-detail" data-x="detail" aria-live="polite"><p class="muted">Pulsa una etapa o una pieza del mapa para ver su detalle.</p></div>
   </aside>
 </div>
+<section class="obs-traces" data-x="traces" aria-label="Trazas y calidad de la evidencia" hidden></section>
 <div data-x="tour"></div>`
 
 export class ObsView {
@@ -44,6 +49,7 @@ export class ObsView {
   private story!: Story
   private tourStep = -1
   private built = false
+  private traces!: TraceView
 
   constructor(private root: HTMLElement) {}
 
@@ -72,6 +78,7 @@ export class ObsView {
     this.root.innerHTML = TEMPLATE
     this.q('legend').innerHTML = legendHtml()
     this.story = new Story(this.q('story'), this.root, () => this.data)
+    this.traces = new TraceView(this.q('traces'), (id) => { this.pane('map'); void this.story.start(id) })
     const home = this.root.querySelector<HTMLInputElement>('[data-act="home"]')!
     try { home.checked = localStorage.getItem(HOME_KEY) === '1' } catch { /* sin almacenamiento */ }
     this.root.addEventListener('click', (e) => this.onClick(e))
@@ -84,13 +91,17 @@ export class ObsView {
   private onClick(e: Event): void {
     const t = e.target as HTMLElement
     const act = t.closest<HTMLElement>('[data-act]')?.dataset.act
-    if (act === 'replay') { void this.story.start(); return }
+    if (act === 'replay') { this.pane('map'); void this.story.start(); return }
+    if (act === 'pane-map') { this.pane('map'); return }
+    if (act === 'pane-trace') { this.pane('trace'); return }
     if (act === 'tour') { this.startTour(); return }
     if (t.closest('[data-story="stop"]')) { this.story.stop(); return }
     const tour = t.closest<HTMLElement>('[data-tour]')?.dataset.tour
     if (tour) { this.stepTour(tour); return }
     if (t.closest('[data-close]')) { this.sel = null; this.paintDetail(); this.paintMap(); return }
     if (t.closest('[data-home]')) { this.stage = null; this.sel = null; this.paint(); return }
+    const tr = t.closest<HTMLElement>('[data-open-trace]')?.dataset.openTrace
+    if (tr) { this.pane('trace'); void this.traces.open(tr); return }
     const go = t.closest<HTMLElement>('[data-goto]')?.dataset.goto
     const node = t.closest<HTMLElement>('.obs-n')
     const id = go ?? node?.dataset.id
@@ -100,6 +111,15 @@ export class ObsView {
     } else if (node?.dataset.stage) {
       this.stage = node.dataset.stage; this.sel = null; this.paint()
     }
+  }
+
+  /** Alterna entre el mapa (T75) y las trazas con su calidad de evidencia (T76). */
+  private pane(which: 'map' | 'trace'): void {
+    this.root.dataset.pane = which
+    this.root.querySelectorAll<HTMLElement>('[data-act^="pane-"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.act === `pane-${which}`)))
+    this.q('traces').hidden = which !== 'trace'
+    this.root.querySelector<HTMLElement>('.obs-body')!.hidden = which === 'trace'
+    if (which === 'trace') { this.story.stop(); this.traces.show() }
   }
 
   async reload(): Promise<void> {

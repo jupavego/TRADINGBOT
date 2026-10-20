@@ -89,7 +89,7 @@ def test_built_vs_planned_matches_status_md():
 
 def test_planned_modules_cover_the_future_phases():
     planned_layers = {x.layer for x in C.COMPONENTS if x.built == "planeado"}
-    assert {"bots", "localai", "video", "observability"} <= planned_layers
+    assert {"bots", "localai", "video"} <= planned_layers   # la Fase 15 ya se construyó
 
 
 def test_glossary_has_the_terms_the_view_needs():

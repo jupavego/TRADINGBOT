@@ -30,7 +30,7 @@ export class Story {
 
   stop(): void { this.run = 0; clearTimeout(this.timer); this.box.hidden = true; this.root.querySelectorAll('.playing').forEach((e) => e.classList.remove('playing')) }
 
-  async start(): Promise<void> {
+  async start(traceId?: string): Promise<void> {
     this.stop()
     const id = ++this.run + 1000 * Date.now()
     this.run = id
@@ -38,9 +38,13 @@ export class Story {
     this.box.innerHTML = '<p>Buscando la última traza registrada…</p>'
     let events: ObsEvent[] = []
     try {
-      const t = await getObs<{ items: { trace_id: string; symbol: string | null; timeframe: string | null }[] }>('traces?limit=1')
-      if (!t.items.length) { this.empty(); return }
-      const full = await getObs<{ events: ObsEvent[] }>(`traces/${encodeURIComponent(t.items[0].trace_id)}`)
+      let tid = traceId           // T76: una traza elegida en «Trazas y calidad»
+      if (!tid) {
+        const t = await getObs<{ items: { trace_id: string }[] }>('traces?limit=1')
+        if (!t.items.length) { this.empty(); return }
+        tid = t.items[0].trace_id
+      }
+      const full = await getObs<{ events: ObsEvent[] }>(`traces/${encodeURIComponent(tid)}`)
       events = full.events.filter((e) => e.kind !== 'run_start' && e.kind !== 'run_end')
     } catch { this.box.innerHTML = '<p>No se pudo leer la traza (el observatorio no responde). No se muestra nada inventado.</p>'; return }
     if (!events.length) { this.empty(); return }
