@@ -2,7 +2,7 @@
 
   add 0xDIR [--label X] [--vault] [--watch]   alta manual (vault: datos de `vaultDetails`)
   add-binance ID --label X                     solo registro manual (T33: sin automatizar)
-  discover [--seconds 300] [--coins BTC,ETH]   muestra el WS `trades` y registra candidatos
+  discover [--seconds 300] [--coins BTC,ETH] [--source ws|ranking]  candidatos (ws oficial/ranking)
   list [--status S]                            líderes registrados
   watch|unwatch 0xDIR...                       empezar/dejar de capturar sus datos
   run [--minutes M] [--ws-max N]               vigilante + evaluación (T41): tablero cada 5 min
@@ -34,6 +34,7 @@ from eim.core.leaders import Leader, leader_id
 from eim.data.leader_board import BOARD_DIR, BoardStore
 from eim.data.leader_discover import discover
 from eim.data.leader_eval import evaluate, refresh_portfolios
+from eim.data.leader_ranking import RankingUnavailable, discover_ranking
 from eim.data.leader_report import render, summary
 from eim.data.leader_service import HEARTBEAT, LeaderService
 from eim.data.leader_store import LeaderStore
@@ -130,6 +131,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--seconds", type=float, default=300.0)
     p.add_argument("--coins", default="BTC,ETH")
     p.add_argument("--top", type=int, default=20)
+    p.add_argument("--source", choices=["ws", "ranking"], default="ws",
+                   help="ws = muestra del WS oficial (defecto); ranking = leaderboard público "
+                        "NO oficial (stats-data), solo para proponer candidatos")
     p = sub.add_parser("list")
     p.add_argument("--status", choices=["candidate", "watch", "approved", "rejected"])
     for name in ("watch", "unwatch"):
@@ -180,7 +184,13 @@ def _dispatch(store: LeaderStore, a: argparse.Namespace) -> str:
         return f"registrado (solo manual, sin datos automáticos): {ld.id}"
     if a.cmd == "discover":
         coins = tuple(c.strip().upper() for c in a.coins.split(",") if c.strip())
-        found = asyncio.run(discover(store, a.seconds, coins, a.top))
+        if a.source == "ranking":
+            try:
+                found = discover_ranking(store, a.root, a.top)
+            except RankingUnavailable as exc:
+                return str(exc)
+        else:
+            found = asyncio.run(discover(store, a.seconds, coins, a.top))
         return f"{len(found)} candidatos nuevos\n" + _list(store, "candidate")
     if a.cmd == "list":
         return _list(store, a.status)

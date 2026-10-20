@@ -18,7 +18,7 @@ from eim.core.market import Frozen
 
 Venue = Literal["hyperliquid", "binance"]
 LeaderStatus = Literal["candidate", "watch", "approved", "rejected"]
-Origin = Literal["manual", "trades_ws", "vault"]
+Origin = Literal["manual", "trades_ws", "vault", "ranking"]
 Side = Literal["long", "short"]
 FillAction = Literal["open", "increase", "reduce", "close", "flip"]
 # ws = evento en vivo; ws_snapshot = historial que el WS reenvía al suscribirse;

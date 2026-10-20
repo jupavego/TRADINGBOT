@@ -38,3 +38,13 @@ DISCOVERY_MIN_NOTIONAL = 50_000.0  # USD vistos en la muestra
 DISCOVERY_MIN_TAKER_SHARE = 0.10  # descarta creadores de mercado puros (no se copian)
 DISCOVERY_TOP = 20
 EXCLUDED = frozenset({"0x" + "0" * 40, HLP_VAULT})
+
+# --- Fuente de candidatos «ranking» (NO oficial: stats-data.hyperliquid.xyz, T33 §1) ----------
+RANKING_URL = "https://stats-data.hyperliquid.xyz/Mainnet/leaderboard"
+RANKING_CACHE_S = 6 * 3600  # una descarga (~40 MB) cada 6 h como mucho
+RANKING_MAX_BYTES = 120_000_000  # corta si el archivo crece de forma anómala
+RANKING_MIN_ACCOUNT_USD = 50_000.0
+RANKING_MIN_ALLTIME_PNL = 50_000.0
+RANKING_MAX_VOLUME_TO_EQUITY = 200.0  # volumen del mes / cuenta: más = bot de alta frecuencia
+RANKING_ROI_CAP = 0.5  # ROI mensual topado: un +900 % suele ser suerte, no habilidad
+RANKING_MIN_MONTH_PNL_PCT = 0.01  # ganancia del mes ≥ 1 % de la cuenta (descarta bases ínfimas)
