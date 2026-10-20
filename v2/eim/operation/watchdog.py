@@ -11,7 +11,9 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import threading
 import time
+from collections import deque
 from collections.abc import Callable
 from pathlib import Path
 from typing import IO
@@ -49,6 +51,24 @@ def instance_lock(path: Path) -> IO[bytes] | None:
     return f
 
 
+def spawn_with_tail(cmd: list[str], env: dict[str, str], keep: int = 30) -> subprocess.Popen:
+    """Lanza `cmd` copiando su stderr a la del vigilante (sin cambiar lo que ya se ve) y guarda
+    las últimas `keep` líneas en `proc.tail`: si el proceso cae a los segundos, el motivo queda en
+    el registro (antes se perdía y el bucle de reinicios del 20-oct no dejó rastro)."""
+    proc = subprocess.Popen(cmd, env=env, stderr=subprocess.PIPE,  # noqa: S603
+                            text=True, encoding="utf-8", errors="replace")
+    proc.tail = deque(maxlen=keep)  # type: ignore[attr-defined]
+
+    def pump() -> None:
+        for line in proc.stderr:  # type: ignore[union-attr]
+            proc.tail.append(line.rstrip())  # type: ignore[attr-defined]
+            sys.stderr.write(line)
+            sys.stderr.flush()
+
+    threading.Thread(target=pump, daemon=True).start()
+    return proc
+
+
 class Watchdog:
     def __init__(self, cmd: list[str], env: dict[str, str], heartbeat: Path, log: JsonLog,
                  stale_s: float = 900.0, check_s: float = 15.0, max_backoff_s: float = 300.0,
@@ -60,7 +80,7 @@ class Watchdog:
         self.cmd, self.env, self.hb, self.log, self.title = cmd, env, heartbeat, log, title
         self.stale_s, self.check_s = stale_s, check_s
         self.max_backoff_s, self.healthy_s = max_backoff_s, healthy_s
-        self._spawn = spawn or (lambda cmd, env: subprocess.Popen(cmd, env=env))  # noqa: S603
+        self._spawn = spawn or spawn_with_tail
         self._clock, self._sleep = clock, sleep
         self._notify = notify if notify is not None else WindowsToast()
         self.restarts = 0
@@ -99,8 +119,9 @@ class Watchdog:
             fails = 0 if self._clock() - t0 >= self.healthy_s else fails + 1
             wait = min(self.max_backoff_s, 5.0 * 2 ** fails)
             self.restarts += 1
+            tail = list(getattr(proc, "tail", ()))[-8:]
             self.log.write("proceso_reiniciado", "error", reason=why, retry_s=wait,
-                           restarts=self.restarts)
+                           restarts=self.restarts, stderr_tail=" | ".join(tail)[-1500:])
             hooks_service.service_event("operation.watchdog", "proceso reiniciado",
                                         status="error", detail={
                                             "reason": why, "retry_s": wait,

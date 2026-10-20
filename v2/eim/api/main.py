@@ -101,6 +101,7 @@ def create_app(
         op = Operation(store=store, provider=operation_provider or BinanceFutures(),
                        reports=reports, registry=reg, desk=desk,
                        params=OperationParams(timeframe=cfg.operate_tf,
+                                              extra_timeframes=cfg.operate_extra_tfs,
                                               poll_s=cfg.operate_poll_s,
                                               snapshot_bars=cfg.snapshot_bars,
                                               agent_timeout_s=cfg.agent_timeout_s),
