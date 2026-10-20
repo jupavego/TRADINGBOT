@@ -38,7 +38,8 @@ DATA: tuple[Component, ...] = (
       produces=("econ_events",)),
     c("data.micro_collector", "data", "datos", "service", "collector", "T23", "Recolector de órdenes",
       "Proceso aparte que escucha operaciones y libro de órdenes de Binance y los guarda por hora "
-      "en el disco. Alimenta al agente de flujo de órdenes.", cadence="continuo", cadence_s=3600,
+      "en el disco, con latido cada 30 s; un vigilante lo relanza si cae y avisa si el disco o el flujo "
+      "fallan. Alimenta al agente de flujo de órdenes.", cadence="continuo", cadence_s=60,
       produces=("micro_bars",)),
     c("data.liq_collector", "data", "datos", "service", "collector", "T07", "Recolector de liquidaciones",
       "Proceso aparte que escucha las liquidaciones forzadas en vivo de Binance, Bybit y OKX y las "
@@ -173,6 +174,10 @@ OPERATION: tuple[Component, ...] = (
       "Indexador del observatorio", "Un solo proceso, dentro de la API, que cada pocos segundos "
       "carga los eventos de todos los archivos en una base para consultarlos. Solo lectura.",
       cadence="cada 5 s (su estado: /v2/obs/health)", produces=("obs_index",)),
+    c("observability.map", "observability", "validacion", "view", "web", "T75",
+      "Mapa del flujo de trabajo", "Vista que dibuja este mismo catálogo y marca en vivo qué "
+      "corre, qué falla y qué no tiene datos.",
+      consumes=(("observability.indexer", "obs_index"),)),
     c("web.dashboard", "web", "plan", "view", "web", "T10", "Panel de la interfaz",
       "Muestra al usuario el gráfico, los analistas, los escenarios y el plan, siempre con el "
       "modo (Análisis, Simulado o Testnet). Solo muestra; no opera.", cadence="en vivo",

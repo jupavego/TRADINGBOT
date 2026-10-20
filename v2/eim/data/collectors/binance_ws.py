@@ -12,15 +12,18 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import time
 from pathlib import Path
 
 import httpx
 
 from eim.data.collectors.book import LocalBook
+from eim.data.collectors.health import HEARTBEAT_EVERY_S, micro_dir, write_heartbeat
 from eim.data.collectors.writer import HourlyWriter
 from eim.observability import hooks_service
 from eim.observability.emit import configure
+from eim.operation.watchdog import instance_lock
 
 WS_DEPTH = "wss://fstream.binance.com/stream?streams={s}@depth@100ms"
 # aggTrade ya no se sirve por /stream: vive en el endpoint /market
@@ -40,6 +43,17 @@ class Collector:
         self._last_top = 0
         self.need_snapshot = True
         self.gaps = 0
+        self.root, self.started_at = root, int(time.time() * 1000)
+        self.n_trades = self.n_depth = 0
+        self.last_msg_ms: int | None = None   # último mensaje de mercado recibido (reloj local)
+
+    def heartbeat(self) -> None:
+        """Latido para el supervisor y la interfaz (`data/micro/heartbeat.json`)."""
+        now = int(time.time() * 1000)
+        write_heartbeat(self.root, {
+            "last_heartbeat": now, "pid": os.getpid(), "symbol": self.symbol,
+            "started_at": self.started_at, "last_msg_ms": self.last_msg_ms,
+            "trades": self.n_trades, "depth_msgs": self.n_depth, "gaps": self.gaps})
 
     def gap(self, t: int, stream: str, detail: str) -> None:
         self.gaps += 1
@@ -74,8 +88,12 @@ class Collector:
     def on_message(self, msg: dict) -> None:
         d = msg.get("data", msg)
         if d.get("e") == "aggTrade":
+            self.n_trades += 1
+            self.last_msg_ms = int(time.time() * 1000)
             self.on_trade(d)
         elif d.get("e") == "depthUpdate":
+            self.n_depth += 1
+            self.last_msg_ms = int(time.time() * 1000)
             self.on_depth(d)
 
     def load_snapshot(self, snap: dict) -> None:
@@ -132,7 +150,14 @@ async def run(root, symbol: str, stop: asyncio.Event | None = None) -> None:
                 r.raise_for_status()
                 col.load_snapshot(r.json())
 
+        async def beat() -> None:
+            while not stop.is_set():
+                col.heartbeat()
+                await asyncio.sleep(HEARTBEAT_EVERY_S)
+
+        micro_dir(root).mkdir(parents=True, exist_ok=True)
         await asyncio.gather(
+            beat(),
             _stream(col, WS_DEPTH.format(s=s), stop, depth_open, snapshot),
             _stream(col, WS_TRADES.format(s=s), stop, trades_open),
         )
@@ -145,6 +170,10 @@ def main() -> None:
     ap.add_argument("--root", default="data")
     a = ap.parse_args()
     configure(process="collector", spool_dir=Path(a.root) / "obs" / "spool")
+    lock = instance_lock(micro_dir(a.root) / "collector.lock")   # nunca dos escritores a la vez
+    if lock is None:
+        print("Ya hay un recolector de microestructura en esta carpeta de datos.", flush=True)
+        raise SystemExit(3)
     try:
         asyncio.run(run(a.root, a.symbol))
     except KeyboardInterrupt:

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-20T00:24:57",
+ "generated": "2026-10-20T02:32:17",
  "tasks": [
   {
    "id": "T01",
@@ -975,7 +975,7 @@ window.EIM_STATUS = {
     "T23"
    ],
    "state": "progress",
-   "notes": "Pedido del usuario 2026-10-19: la esfera «Microestructura» de la interfaz dice «sin datos» aunque el agente y el recolector existen. Causa probable: el recolector no está en el arranque continuo (ver `PLAN/T104.md`). **Es el primer paso útil de la Fase 16 y no depende de T77.** **Avance 2026-10-19:** `servicio_continuo.ps1` lanza el recolector de microestructura (BTCUSDT, sin duplicar) y el de liquidaciones en vivo (`liq_ws`); verificado 2,5 min contra Binance real (526 trades, libro top-10, agente «1/24 velas»). La esfera dice «recolector apagado» / «acumulando n/24» / «sin datos» (`web/src/no_data_label.ts`, motivo que ya devuelve el agente). Pendiente: diagnóstico escrito, supervisor con latido/reinicio, disco, ≥ 24 h y línea base.",
+   "notes": "Pedido del usuario 2026-10-19: la esfera «Microestructura» de la interfaz dice «sin datos» aunque el agente y el recolector existen. Causa probable: el recolector no está en el arranque continuo (ver `PLAN/T104.md`). **Es el primer paso útil de la Fase 16 y no depende de T77.** **Avance 2026-10-19:** `servicio_continuo.ps1` lanza el recolector de microestructura (BTCUSDT, sin duplicar) y el de liquidaciones en vivo (`liq_ws`); verificado 2,5 min contra Binance real (526 trades, libro top-10, agente «1/24 velas»). La esfera dice «recolector apagado» / «acumulando n/24» / «sin datos» (`web/src/no_data_label.ts`, motivo que ya devuelve el agente). **Avance 2026-10-20:** diagnóstico escrito (`PLAN/notas/T104_diagnostico.md`); vigilante `eim.data.collectors.supervise` (cerrojo, latido `data/micro/heartbeat.json`, reinicio probado en vivo matando el proceso, poda de profundidad a 30 d, avisos de disco/flujo) integrado en `servicio_continuo.ps1`; Parquet ZSTD (~493 MB/día medidos); `GET /v2/micro/status`; esfera «degradado por huecos»; tests en `tests/data/test_micro_health.py`. Pendiente (calendario): ≥ 24 h en marcha con captura de pantalla, corte de red provocado, y con ≥ 7 d la línea base `agents_marginal_report`; para supervisar el recolector ya en marcha, detenerlo y relanzar `servicio_continuo.ps1`. Sigue ◐.",
    "effort": "medio",
    "phase": 16,
    "goal": "El agente `microstructure` (T23, con su recolector, la lectura por vela y los tests) **ya existe y está registrado, pero en la interfaz su esfera dice «sin datos»** (`no_data`: «sin recolección de microestructura (colector no corre)») y el informe marginal de T44 lo muestra con 100 % de `no_data` (sin historia). Antes de construir nada nuevo hay que **hacerlo funcionar de verdad en vivo**, entender por qué no lo hacía y dejarlo como la base —y la línea base a superar— de toda la Fase 16."

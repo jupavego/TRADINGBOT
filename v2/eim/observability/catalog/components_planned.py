@@ -48,8 +48,8 @@ PLANNED: tuple[Component, ...] = (
       cadence="cada cierre de vela", cadence_s=3600,
       consumes=(("video.verify", "verified_claims"), ("video.reputation", "reputation")),
       produces=("agent_report",), **_P),
-    c("observability.map", "observability", "validacion", "view", "web", "T75",
-      "Mapa del flujo de trabajo", "Vista que dibujará este mismo catálogo y marcará en vivo qué "
-      "corre, qué falla y qué no tiene datos. Aún no existe.",
+    c("observability.trace", "observability", "validacion", "view", "web", "T76",
+      "Trazabilidad de una decisión", "Seguirá una decisión hasta la evidencia que la sostuvo "
+      "y medirá su calidad. Aún no existe.",
       consumes=(("observability.indexer", "obs_index"),), **_P),
 )
