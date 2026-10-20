@@ -83,6 +83,17 @@ class LadderParams(BaseModel):
     tick: float = 0.1                # precisión del precio (BTCUSDT perpetuo)
     qty_step: float = 0.001          # precisión de la cantidad (BTC)
     min_target_vs_first: float = 1.0  # el objetivo de la idea (solo estimación) debe cubrir ≥ ×
+    # Reservas del SL para que el neto realizado se parezca al nominal: deslizamiento de salida =
+    # el MAYOR de las últimas `slip_lookback` velas (ya conocidas) y funding de `funding_reserve`
+    # liquidaciones futuras a la tasa supuesta. Un hueco real puede seguir superándolas.
+    slip_lookback: int = 4
+    funding_reserve: int = 1
+    # Freno de riesgo (solo frena ENTRADAS NUEVAS, jamás cierra posiciones): tras
+    # `max_consec_losses` pérdidas seguidas, o si el capital cae `max_drawdown` desde su máximo,
+    # no abre durante `pause_hours`; luego reanuda (el máximo se reinicia al capital actual).
+    max_consec_losses: int = 4
+    max_drawdown: float = 0.08
+    pause_hours: float = 24.0
     fixed_take_profit: bool = False
     time_exit: bool = False
     real_money: bool = False
@@ -93,6 +104,10 @@ class LadderParams(BaseModel):
             raise ValueError("PPP no admite TP fijo, cierre por tiempo ni dinero real")
         if self.first_usdt <= 0 or self.step_usdt <= 0 or self.tick <= 0 or self.qty_step <= 0:
             raise ValueError("first_usdt, step_usdt, tick y qty_step deben ser positivos")
+        if self.slip_lookback < 1 or self.funding_reserve < 0 or self.pause_hours < 0:
+            raise ValueError("slip_lookback ≥ 1, funding_reserve ≥ 0 y pause_hours ≥ 0")
+        if self.max_consec_losses < 1 or not 0 < self.max_drawdown < 1:
+            raise ValueError("max_consec_losses ≥ 1 y 0 < max_drawdown < 1")
         return self
 
 
@@ -193,7 +208,9 @@ PROFILES = PROFILES + (
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores"}),
         allow_hedge=False, follow_synthesis=True, max_cost_r=0.15, require_htf=True,
         exit_mode="ladder", ladder=LadderParams(), symbols=("BTCUSDT",),
-        # sin recompensa por «lo que gana en TP» (otra mecánica): peso fijo 1, nunca pausa y
-        # jamás sube el tamaño tras una pérdida
-        feedback=FeedbackParams(gain=0.0, w_min=1.0, w_max=1.0, z_pause=1000.0, observe_w=1.0)),
+        # aprende de SUS PROPIOS cierres (`ladder_book.LadderRisk`), no de la sombra con TP:
+        # peso fijo 1 (jamás sube el tamaño tras una pérdida) y pausa si una estrategia o
+        # contexto rinde con expectativa claramente negativa en la escalera
+        feedback=FeedbackParams(gain=0.0, w_min=1.0, w_max=1.0, n_min=8, z_pause=0.0,
+                                observe_w=1.0)),
 )

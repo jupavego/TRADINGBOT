@@ -173,8 +173,8 @@ def test_11_costs_and_slippage_realized_close_to_nominal():
     assert o.reason == "SLD" and o.ladder["level"] >= 1
     nom = o.ladder["nominal_usd"]
     paid = usd(o)                                    # neto en USDT, tras todos los costos
-    assert nom - 0.5 < paid <= nom + 0.1             # realizado ≈ nominal (tick y funding)
-    assert o.ladder["protected_est_usd"] == pytest.approx(nom, abs=0.05)
+    assert nom - 0.5 < paid <= nom + 2.0     # la reserva deja el realizado ≥ nominal
+    assert o.ladder["protected_est_usd"] >= nom - 0.05
     assert o.exit > o.fill + 100          # la salida (bruta) queda por encima de la entrada
 
 
@@ -273,3 +273,25 @@ def test_params_forbid_fixed_tp_time_exit_and_real_money():
     for k in ("fixed_take_profit", "time_exit", "real_money"):
         with pytest.raises(ValueError):
             LadderParams(**{k: True})
+
+
+def test_slippage_reserve_uses_widest_recent_bar():
+    """La reserva toma el mayor deslizamiento de las últimas velas: el SL queda más alto (largo)."""
+    bars = [(E, E + 50, E - 500, E + 20), (E + 20, E + 400, E + 10, E + 390)]
+    ep = ExecParams()
+    i = idea(entry=E, sl=E - 900, tp=E + 1500)
+    wide = simulate_ladder(i, path_of(bars), ep, LP, QTY)
+    short = simulate_ladder(i, path_of(bars), ep, LadderParams(slip_lookback=1), QTY)
+    assert wide.ladder["level"] >= 1 and short.ladder["level"] >= 1
+    assert (wide.ladder["stop"] > short.ladder["stop"]
+            or wide.ladder["level"] < short.ladder["level"])
+
+
+def test_funding_reserve_puts_the_stop_above_the_nominal_level():
+    bars = [(E, E + 300, E - 10, E + 290), (E + 290, E + 295, E + 280, E + 285)]
+    ep = ExecParams(costs=ZERO_COSTS, funding_8h_assumed=0.0005)
+    i = idea(entry=E, sl=E - 500, tp=E + 1500)
+    a = simulate_ladder(i, path_of(bars), ep, LP, QTY)
+    b = simulate_ladder(i, path_of(bars), ep, LadderParams(funding_reserve=0), QTY)
+    assert (a.ladder["stop"] - E) * QTY > a.ladder["nominal_usd"] + 0.5   # colchón de funding
+    assert (b.ladder["stop"] - E) * QTY == pytest.approx(b.ladder["nominal_usd"], abs=0.1)

@@ -1,5 +1,5 @@
 /** Pestaña «Perfiles»: reglas de cada perfil y qué estrategias le dan o le quitan dinero. */
-import { esc, nf, pct, pct0, usd } from './paper_fmt'
+import { esc, nf, pct, pct0, usd, utc } from './paper_fmt'
 import type { LadderStats, PaperSummary, ProfileView } from './paper_types'
 
 const num = (p: ProfileView, k: string): number => Number(p.params[k])
@@ -74,6 +74,8 @@ function ladderPanel(ps: ProfileView[]): string {
       `abiertas hace ≥ 24 h: ${l.long_open_positions} · violaciones de reglas: <b class="${l.violations ? 'down' : ''}">${l.violations}</b> · incidencias: ${l.incidents}</p>` +
       `<p>Máximo flotante medio ${m(l.avg_max_float_usd)} · realizado medio ${m(l.avg_realized_usd)} · diferencia (lo que se devolvió) ${m(l.avg_gap_max_vs_realized_usd)} · ` +
       `realizado − protegido estimado ${m(l.avg_realized_vs_protected_usd)}</p>` +
+      `<p>Freno de entradas: ${l.brake.halted ? `<b class="down">en pausa hasta ${utc(l.brake.until ?? 0)} UTC · ${esc(l.brake.reason)}</b>` : 'inactivo'} · ` +
+      `pérdidas seguidas ahora ${l.brake.consecutive_losses} · activaciones ${l.brake.activations.length} (solo frena entradas nuevas; nunca cierra posiciones)</p>` +
       `<table class="pp-t"><thead><tr><th>Máximo escalón</th><th>Ops</th><th>Retrocesos al SL</th><th>Neto</th></tr></thead><tbody>${lv}</tbody></table>` +
       `<p class="muted pp-note">${esc(l.note)} Simulado: sin dinero real.</p>`
   }).join('')

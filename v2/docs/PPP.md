@@ -87,33 +87,47 @@ muestra; la mesa muestra el SL vigente y su escalón en lugar de TP.
 (morado) aparece junto a los otros tres; bitácora con «Violación de reglas» para auditoría.
 Backtest: `python scripts/ppp_backtest.py --data <carpeta de datos>` (informe en `reports/`).
 
-## 8. Limitaciones conocidas
+## 8. Reservas, aprendizaje propio y freno (corrige las limitaciones iniciales)
 
-- **Estimado ≠ realizado**: el SL usa el deslizamiento esperado de la vela que lo fija; el real
-  depende de la vela de salida; huecos y funding posterior pueden dejar el neto bajo el nominal
-  (se mide como «realizado − protegido estimado»).
-- Camino de 15 m: sin datos de tick el orden intra-vela es desconocido, de ahí la regla conservadora
-  (es posible que se devuelva más de lo real en alzas rápidas).
+- **Realizado vs nominal.** El SL se fija con reservas (`slip_lookback=4`: mayor deslizamiento de
+  las últimas 4 velas; `funding_reserve=1`: una liquidación de funding futura a la tasa supuesta).
+  El realizado queda en general ≥ nominal (test: +0,7 USDT de colchón en el caso medido). Un hueco
+  real de precio sigue pudiendo dejarlo por debajo: es inherente a un stop y se mide como
+  «realizado − protegido estimado».
+- **Aprendizaje propio.** La escalera ya no usa la sombra con TP: aprende de SUS cierres
+  (`LadderRisk`: R por estrategia@marco y por contexto, solo con lo cerrado antes de la señal). Con
+  ≥ 8 cierres y expectativa claramente negativa esa estrategia/contexto se pausa. El tamaño nunca
+  sube (peso fijo 1).
+- **Freno de entradas.** `max_consec_losses=4` pérdidas seguidas o drawdown ≥ `max_drawdown=8 %`
+  desde el máximo → no abre durante `pause_hours=24`, luego reanuda partiendo del capital actual.
+  Solo frena entradas nuevas: jamás cierra posiciones abiertas. Visible en el resumen
+  (`ladder.brake`), en la pestaña Perfiles y en la bitácora.
+
+## 9. Limitaciones que siguen
+
+- Camino de 15 m: sin ticks el orden intra-vela es desconocido; la regla conservadora puede
+  devolver más de lo real en alzas rápidas.
 - Las ideas vienen de las estrategias existentes (su TP solo estima si el primer escalón es
-  alcanzable; no es una salida). La escalera no aprende de sus propios resultados todavía.
-- Posiciones correlacionadas: máx. 2 y vetada la segunda en la misma vela y lado; no hay límite de
-  drawdown diario ni freno por pérdidas seguidas (solo se miden).
-- El historial local disponible es corto; con pocas operaciones el backtest no demuestra
-  rentabilidad (ver `reports/ppp_backtest.md`).
+  alcanzable); el perfil no tiene entradas propias.
+- Posiciones correlacionadas: máx. 2, y se veta la segunda en la misma vela y lado.
+- El historial local es corto: el backtest no demuestra rentabilidad.
 
-## 9. Resultado del backtest (2026-10-20) — NO es rentable en esta muestra
+## 10. Resultado del backtest (2026-10-20) — NO es rentable en esta muestra
 
 `python scripts/ppp_backtest.py --data <carpeta>` → `v2/reports/ppp_backtest.md` (rejilla de
 umbrales/escalones en desarrollo y fuera de muestra, y sensibilidad a costos). Datos: 40 días de
 BTCUSDT (2026-09-10 → 2026-10-20), 5 992 ideas, velas públicas de Binance en una copia aparte;
 funding real solo en parte del periodo (el resto, tasa supuesta y marcada).
 
-- Referencia (+10/+5): 84 operaciones, **−500 USDT (−5,0 %)**, PF 0,55, esperanza −5,95 USDT/op,
-  DD máx. 5,2 %, 0 violaciones de reglas, 0 incidencias.
-- Acierto 68 % pero con pérdidas grandes: 19 cierres por SL inicial suman −1 062 USDT; 65 cierres
-  por SL dinámico suman ≈ +560. El escalón +10 se alcanza en 65 de 84 (77 %); el máximo llegó a +85.
-- Fuera de muestra peor que en desarrollo (PF 0,33 vs 0,82) y ninguna variante de la rejilla sale
-  positiva: no hay configuración que seleccionar. Con costos ×0,5 sigue negativo (−366).
+- Referencia (+10/+5): 82 operaciones, **−564 USDT (−5,6 %)**, PF 0,51, esperanza −6,88 USDT/op,
+  DD máx. 5,8 %, 0 violaciones de reglas, 0 incidencias. El freno de entradas no llegó a activarse
+  (máx. 3 pérdidas seguidas, drawdown < 8 %).
+- Acierto 67 % pero con pérdidas grandes: 20 cierres por SL inicial pesan más que los 62 por SL
+  dinámico. El escalón +10 se alcanza en 62 de 82 (76 %); el máximo llegó a +85.
+- Fuera de muestra peor que en desarrollo (PF 0,30 vs 0,72) y ninguna variante de la rejilla sale
+  positiva: no hay configuración que seleccionar. Con costos ×0,5 sigue negativo (−354).
+- Las reservas de deslizamiento/funding costaron algo de resultado (−500 → −564 respecto a la
+  primera versión) a cambio de que el neto realizado se parezca más al nominal.
 - Los otros tres perfiles, en el mismo periodo: Conservador −438, Moderado −1 356, Agresivo −4 934
   USDT: el periodo es adverso para las ideas existentes, no solo para este perfil.
 

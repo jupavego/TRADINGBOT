@@ -17,8 +17,9 @@ Reglas (deterministas; ningún agente las toca una vez abierta la posición):
   AL ABRIR la vela (un hueco más allá se ejecuta a la apertura); el avance de esa vela solo sube
   el SL desde la vela SIGUIENTE (no se sabe si el extremo llegó antes o después del retroceso).
   Si una vela cruza varios escalones se aplica el último confirmado por su extremo.
-- Estimado vs realizado: el SL se calcula con el deslizamiento esperado de la vela que lo fija
-  (base + k·rango, dato ya conocido); al salir se cobra el de la vela real y el funding hasta ese
+- Estimado vs realizado: el SL se calcula con una RESERVA: el mayor deslizamiento de las últimas
+  `slip_lookback` velas (datos ya conocidos) y `funding_reserve` liquidaciones futuras de funding;
+  al salir se cobra el de la vela real y el funding hasta ese
   momento, así que el neto realizado puede diferir del nominal (hueco, vela más ancha).
 - Datos no finitos en una vela = incidencia técnica: la posición queda ABIERTA marcada
   «incidencia», sin cierre inventado.
@@ -145,7 +146,10 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams,
             fav = h if s > 0 else lo
             end = int(path.t[j]) + path.step
             fund = _funding(path, s, fill_t, end, ep)[0]
-            cj = replace(c, slip_out=_slip(path, j, ep))      # deslizamiento de salida esperado
+            fund += max(0.0, s * ep.funding_8h_assumed) * lp.funding_reserve   # reserva de funding
+            slip = max(_slip(path, x, ep) for x in range(max(start, j - lp.slip_lookback + 1),
+                                                         j + 1))
+            cj = replace(c, slip_out=slip)                    # deslizamiento esperado (reserva)
             max_float = max(max_float, net_usd(s, qty, fill, fav, fund, cj))
             new = level_of(max_float, lp)
             if new > level:

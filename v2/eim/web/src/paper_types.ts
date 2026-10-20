@@ -28,6 +28,7 @@ export interface LadderStats {
   by_side: Record<string, { n: number; pnl: number; wins: number }>
   avg_hours: number | null; duration: Record<string, number>; long_open_positions: number
   max_consecutive_losses: number; violations: number; incidents: number; note: string
+  brake: { halted: boolean; until: number | null; reason: string; consecutive_losses: number; activations: { t: number; until: number; reason: string }[] }
 }
 
 export interface ProfileView {

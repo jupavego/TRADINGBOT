@@ -17,7 +17,7 @@ from eim.paper.engine import Outcome
 from eim.paper.feedback import Judgement, Learner, context_key, judge
 from eim.paper.ideas import Idea
 from eim.paper.ladder_audit import audit_outcome
-from eim.paper.ladder_book import LadderSim, open_ladder, viability
+from eim.paper.ladder_book import LadderRisk, LadderSim, open_ladder, viability
 from eim.paper.params import ProfileParams
 
 PRIO = {"close": 0, "cancel": 1, "fill": 2, "signal": 3}
@@ -61,6 +61,7 @@ class ProfileState:
     floor_r: dict[str, list[float]] = field(default_factory=dict)
     floor_states: dict[str, str] = field(default_factory=dict)
     violations: list[dict] = field(default_factory=list)   # PPP: cierres que rompen las reglas
+    lrisk: LadderRisk = field(default_factory=LadderRisk)  # PPP: memoria propia y freno
 
 
 def _ev(st: ProfileState, t: int, cat: str, o: Outcome, text: str, **kw) -> None:
@@ -118,7 +119,7 @@ def _vetoes(st: ProfileState, i: Idea, j: Judgement, jc: Judgement,
         out.append((f"R:B {i.rr:.2f} < {p.min_rr:.2f}", "rr" if i.rr >= p.floor_min_rr else None))
     if p.follow_synthesis and (i.syn_bias * i.side <= 0 or abs(i.syn_bias) < p.min_syn_bias):
         out.append((f"va contra la síntesis ({i.syn_bias:+.2f}) o esta es débil", "sintesis"))
-    if p.exit_mode == "ladder" and (why := viability(p, i, st.equity)):
+    if p.exit_mode == "ladder" and (why := viability(p, i, st.equity) or st.lrisk.veto(i.t)):
         out.append((why, None))
     if p.exit_mode == "ladder" and any(
             x.o.idea.t == i.t and x.side == i.side for x in st.slots.values()):
@@ -153,12 +154,15 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
         return
     if p.symbols and i.symbol not in p.symbols:
         return
-    j = learner.at(i.sid, i.t, p.feedback)
+    if p.exit_mode == "ladder":      # la escalera aprende de SUS cierres, no de la sombra con TP
+        j, jc = st.lrisk.own(i.sid, context_key(i), p)
+    else:
+        j = learner.at(i.sid, i.t, p.feedback)
+        jc = learner.context_at(i, i.t, p.feedback)
     if st.states.get(i.sid, "observacion") != j.state:
         _ev(st, i.t, "aprendizaje", o, f"{st.states.get(i.sid, 'observacion')} → {j.state}",
             weight=j.weight, m=j.m, n=j.n)
         st.states[i.sid] = j.state
-    jc = learner.context_at(i, i.t, p.feedback)
     ck = context_key(i)
     if (st.ctx_states.get(ck) == "pausa") != (jc.state == "pausa"):
         _ev(st, i.t, "aprendizaje", o, "contexto en pausa" if jc.state == "pausa"
@@ -238,6 +242,10 @@ def _close(st: ProfileState, o: Outcome) -> None:
     st.equity += pnl
     st.curve.append((o.exit_t, st.equity))
     i = o.idea
+    if o.ladder and st.p.ladder and (why := st.lrisk.closed(
+            i, o.r, pnl, st.equity, o.exit_t, st.p.ladder, st.p.initial_equity)):
+        _ev(st, o.exit_t, "aprendizaje", o, f"freno de entradas {st.p.ladder.pause_hours:g} h: "
+            f"{why} (no cierra posiciones)")
     tr = {"id": i.id, "strategy": i.strategy, "sid": i.sid, "timeframe": i.timeframe,
           "family": i.family, "side": i.side, "cause": o.cause,
           "kind": i.kind, "t": i.t, "fill_t": o.fill_t, "exit_t": o.exit_t, "fill": o.fill,

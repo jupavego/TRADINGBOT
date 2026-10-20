@@ -10,9 +10,9 @@ from eim.backtest.params import ZERO_COSTS
 from eim.paper.book import ProfileState, Slot, _close, run_profile
 from eim.paper.engine import Outcome, Path, simulate
 from eim.paper.feedback import Learner
-from eim.paper.ladder_book import LadderSim, viability
+from eim.paper.ladder_book import LadderRisk, LadderSim, viability
 from eim.paper.ladder_stats import ladder_stats
-from eim.paper.params import PPP_ID, PROFILES, ExecParams
+from eim.paper.params import PPP_ID, PROFILES, ExecParams, LadderParams
 from eim.paper.summary import profile_summary
 from tests.paper.helpers import H1, M15, T0, bar, idea
 
@@ -149,3 +149,45 @@ def test_ladder_stats_counts_levels_and_streaks():
     assert s["by_max_level"]["3"]["pullbacks"] == 1 and s["by_side"]["SHORT"]["n"] == 1
     assert s["avg_hours"] == pytest.approx(2.0) and s["duration"] == {"< 4 h": 4}
     assert isinstance(Outcome(idea(), "PENDIENTE").ladder, type(None))
+
+
+def _losing_run(n_ideas: int):
+    """Una idea por hora; cada una pierde en su propia vela (SL a 2 %), luego el precio vuelve."""
+    bars, shadows = [], []
+    for _ in range(n_ideas):
+        bars += [(E, E + 20, E - 1500, E - 1450), (E, E + 10, E - 10, E), (E, E + 10, E - 10, E),
+                 (E, E + 10, E - 10, E)]
+    path = path_of(bars)
+    for k in range(n_ideas):
+        i = replace(btc_idea(), id=f"L{k}", strategy=f"s{k}", t=T0 + k * H1)
+        shadows.append(simulate(i, path, EP))
+    return run_profile(PPP, shadows, Learner(shadows), 0.004, LadderSim(path, EP))
+
+
+def test_brake_after_consecutive_losses_blocks_new_entries_only():
+    st = _losing_run(5)
+    assert [t["reason"] for t in st.trades] == ["SL"] * 4          # la 5.ª no entra
+    assert st.lrisk.activations and "4 pérdidas seguidas" in st.lrisk.activations[0]["reason"]
+    assert any("entradas en pausa" in e["text"] for e in st.events if e["cat"] == "rechazada")
+    assert any("freno de entradas" in e["text"] for e in st.events if e["cat"] == "aprendizaje")
+    assert st.violations == [] and st.slots == {}                    # no cerró nada por el freno
+
+
+def test_drawdown_brake_and_resume():
+    lp, risk = LadderParams(max_consec_losses=99, max_drawdown=0.05, pause_hours=2), LadderRisk()
+    i = btc_idea()
+    assert risk.closed(i, -1.0, -300, 9_700, T0, lp, 10_000) is None
+    why = risk.closed(i, -1.0, -250, 9_450, T0 + H1, lp, 10_000)
+    assert why and "drawdown" in why and risk.veto(T0 + 2 * H1)
+    assert risk.veto(T0 + 4 * H1) is None                           # reanuda tras la pausa
+    assert risk.peak == 9_450 and risk.consec == 0                  # y parte del capital actual
+
+
+def test_ladder_learns_from_its_own_closes():
+    r = LadderRisk()
+    for k in range(10):
+        r.closed(replace(btc_idea(), strategy="mala"), -1.0, -10, 9_990, T0 + k, LadderParams(
+            max_consec_losses=99, max_drawdown=0.9), 10_000)
+    j, jc = r.own("mala@1h", "mala@1h|sin dato|largo", PPP)
+    assert j.state == "pausa" and j.weight == 0 and jc.state == "pausa"
+    assert r.own("otra@1h", "x", PPP)[0].state == "observacion"     # lo demás sigue con peso 1
