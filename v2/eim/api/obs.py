@@ -119,8 +119,12 @@ def build_obs_router(store: ObsStore, indexer: Indexer,
                   "title_es": c.title_es, "last_event_ms": (stats.get(c.id) or {}).get("last_ms"),
                   "n_events": (stats.get(c.id) or {}).get("n", 0)} for c in catalog.COMPONENTS]
         edges = [{"source": s, "target": t, "artifact": a} for s, t, a in catalog.edges()]
+        observed, dev = _observed(store, edges)
+        mode = store.scalar("SELECT arg_max(mode, ts_utc) FROM events")
         return envelope(nodes=nodes, edges=edges, stages=list(catalog.STAGES),
-                        stage_titles_es=catalog.STAGE_TITLES_ES)
+                        stage_titles_es=catalog.STAGE_TITLES_ES,
+                        stage_explain_es=catalog.STAGE_EXPLAIN_ES, glossary=catalog.GLOSSARY,
+                        observed=observed, deviations=dev, mode=mode)
 
     @r.get("/runs")
     def runs(component_id: str | None = None, status: str | None = None,
@@ -190,6 +194,29 @@ def build_obs_router(store: ObsStore, indexer: Indexer,
                                     "run_retention_days": T.RUN_RETENTION_DAYS})
 
     return r
+
+
+def _observed(store: ObsStore, edges: list[dict]) -> tuple[list[dict], dict]:
+    """Aristas de DATOS vistas en las trazas: un componente entrega una referencia (salida) y otro
+    la recibe (entrada) con el mismo tipo e id. Frente a las declaradas: `undeclared` = vista y no
+    declarada; `unseen` = declarada hacia un componente que sí recibe datos observados, pero
+    nunca desde ese origen (solo donde hay datos que comparar)."""
+    since = int(time.time() * 1000) - T.EVENT_RETENTION_DAYS * 86_400_000
+    rows = store.query(
+        "SELECT o.component_id AS source, i.component_id AS target, count(*) AS n, "
+        "max(i.ts_utc) AS last_ms FROM refs ro "
+        "JOIN events o ON o.event_id = ro.event_id "
+        "JOIN refs ri ON ri.type = ro.type AND ri.id = ro.id AND ri.direction = 'in' "
+        "JOIN events i ON i.event_id = ri.event_id "
+        "WHERE ro.direction = 'out' AND i.ts_utc >= ? AND o.component_id <> i.component_id "
+        "GROUP BY 1, 2", [since])
+    declared = {(e["source"], e["target"]) for e in edges}
+    seen = {(x["source"], x["target"]) for x in rows}
+    targets = {t for _, t in seen}
+    return rows, {
+        "undeclared": [{"source": s, "target": t} for s, t in sorted(seen - declared)],
+        "unseen": [{"source": s, "target": t} for s, t in sorted(declared - seen)
+                   if t in targets]}
 
 
 def _resolve(conn: tuple[Any, threading.Lock] | None, links: dict) -> dict[str, list[dict]]:

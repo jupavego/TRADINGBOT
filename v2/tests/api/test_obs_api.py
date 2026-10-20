@@ -189,3 +189,11 @@ def test_queries_over_100k_events_stay_within_the_threshold(tmp_path):
             assert p95 <= T.QUERY_P95_MS_MAX, f"{path} {params}: p95 {p95:.0f} ms"
     assert index_s < 60, f"indexar 100 000 eventos tardó {index_s:.0f} s"
     store.close()
+
+
+def test_graph_carries_glossary_mode_and_deviation_keys(parts):
+    c, *_ = parts
+    j = c.get("/v2/obs/graph").json()
+    assert "veto" in j["glossary"] and set(j["stage_explain_es"]) == set(j["stages"])
+    assert set(j["deviations"]) == {"undeclared", "unseen"}
+    assert isinstance(j["observed"], list) and "mode" in j

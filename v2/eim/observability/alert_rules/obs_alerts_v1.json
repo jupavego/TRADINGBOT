@@ -1,0 +1,15 @@
+{
+  "version": "obs_alerts_v1",
+  "descripcion": "Reglas de salud mínima del observatorio (T75). Disparan por transición vía op_alerts.",
+  "rules": {
+    "sin_latido": {"kind": "obs_sin_latido", "level": "warn", "cadences": 3, "min_s": 120,
+                   "titulo": "Componente sin latido",
+                   "texto": "No emite eventos hace más de {n} cadencias esperadas."},
+    "dato_obsoleto": {"kind": "obs_dato_obsoleto", "level": "warn", "max_age_s": 900,
+                      "titulo": "Dato obsoleto",
+                      "texto": "La última descarga de datos tiene más de {n} s de antigüedad."},
+    "indexador_atrasado": {"kind": "obs_indexador", "level": "warn",
+                           "titulo": "Indexador del observatorio atrasado",
+                           "texto": "El indexador no avanza: el mapa muestra «sin datos»."}
+  }
+}
