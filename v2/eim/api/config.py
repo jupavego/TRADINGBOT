@@ -49,6 +49,7 @@ class Settings:
     recon_interval_s: float = 30.0
     operate: bool = False       # T31: ciclo continuo datos→…→ejecución dentro del proceso
     operate_tf: str = "1h"
+    operate_extra_tfs: tuple[str, ...] = ("4h",)   # EIM_OPERATE_EXTRA_TFS="" los desactiva
     operate_poll_s: float = 60.0
     operation_reports: Path = Path("reports/operation")
     edge_results: Path = Path("reports/edge/edge_results.json")
@@ -91,6 +92,8 @@ class Settings:
             recon_interval_s=float(env.get("EIM_RECON_S", d.recon_interval_s)),
             operate=env.get("EIM_OPERATE", "0") == "1",
             operate_tf=env.get("EIM_OPERATE_TF", d.operate_tf),
+            operate_extra_tfs=tuple(x for x in env.get(
+                "EIM_OPERATE_EXTRA_TFS", ",".join(d.operate_extra_tfs)).split(",") if x),
             operate_poll_s=float(env.get("EIM_OPERATE_POLL_S", d.operate_poll_s)),
             operation_reports=Path(env.get("EIM_OPERATION_REPORTS", str(d.operation_reports))),
             edge_results=Path(env.get("EIM_EDGE_RESULTS", str(d.edge_results))),
