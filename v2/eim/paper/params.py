@@ -8,6 +8,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from eim.backtest.params import CostParams
+from eim.paper.caps import CapParams
 
 FAMILIES: dict[str, str] = {
     "consenso": "Consenso de agentes",
@@ -155,6 +156,7 @@ class ProfileParams(BaseModel):
     ladder: LadderParams | None = None
     symbols: tuple[str, ...] | None = None   # None = todos los símbolos de la mesa
     feedback: FeedbackParams = FeedbackParams()
+    caps: CapParams = CapParams()    # topes de riesgo (apagados por defecto)
 
 
 PROFILES: tuple[ProfileParams, ...] = (
