@@ -59,7 +59,8 @@ def test_catalog_cards_load_validated():
     cards = default_cards()
     assert len(cards) >= 45 and all(isinstance(c, BotCard) for c in cards.values())
     assert {k for k, c in cards.items() if c.usable} == {
-        "hummingbot-directional", "freqtrade", "freqtrade-strategies", "passivbot"}
+        "hummingbot-directional", "freqtrade", "freqtrade-strategies", "passivbot",
+        "nostalgia-for-infinity", "jesse-example-strategies", "trendrider-strategy"}
     assert card_of("hummingbot-directional").integration_mode == "A"
     assert card_of("freqtrade-strategies").integration_mode == "B"
     with pytest.raises(KeyError):

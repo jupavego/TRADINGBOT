@@ -134,12 +134,13 @@ def test_service_never_raises_when_the_store_fails():
 def test_default_service_has_mode_a_and_adds_b_only_when_configured(tmp_path, monkeypatch):
     monkeypatch.delenv("EIM_BOT_FREQTRADE_PY", raising=False)
     assert [a.bot_id for a in default_service(tmp_path, None).adapters] == [
-        "hummingbot-directional"]
+        "hummingbot-directional", "jesse-example-strategies", "trendrider-strategy"]
     (tmp_path / "bots" / "freqtrade-strategies").mkdir(parents=True)
     monkeypatch.setenv("EIM_BOT_FREQTRADE_PY", "/py")
     monkeypatch.setenv("EIM_BOT_FREQTRADE_ENGINE", "2026.9")
     assert [a.bot_id for a in default_service(tmp_path, None).adapters] == [
-        "hummingbot-directional", "freqtrade-strategies"]
+        "hummingbot-directional", "jesse-example-strategies", "trendrider-strategy",
+        "freqtrade-strategies"]
 
 
 def test_empty_signal_helper_and_version_of():

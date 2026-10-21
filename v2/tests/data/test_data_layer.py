@@ -94,7 +94,7 @@ def test_store_upsert_read_gaps(tmp_path):
     assert store.read_candles("ETHUSDT", "1h") == [] and store.source(
         "candles", "BTCUSDT", "1h") == "test"
     with pytest.raises(ValueError):
-        store.upsert_candles("BTCUSDT", "5m", [], "x")
+        store.upsert_candles("BTCUSDT", "7m", [], "x")
 
 
 def test_sync_fills_incrementally_and_gaps(tmp_path):

@@ -58,16 +58,23 @@ def _verdict_row(v: Verdict, retired: bool, control: bool) -> dict:
     return {**v.to_json(), "retired": retired, "control": control}
 
 
-def attempts_of(rows: Sequence[tuple[BotSignal, int]], candles: Sequence[Candle], path: Path,
-                symbol: str, regime_at: RegimeAt | None, ep: ExecParams | None
-                ) -> tuple[list[BotId], list[Attempt]]:
+def _pick(x, tf: str):
+    """Velas o camino del marco `tf`: un mapeo {marco: …} o un único valor para todos."""
+    return x[tf] if isinstance(x, Mapping) else x
+
+
+def attempts_of(rows: Sequence[tuple[BotSignal, int]],
+                candles: Sequence[Candle] | Mapping[str, Sequence[Candle]],
+                path: Path | Mapping[str, Path], symbol: str, regime_at: RegimeAt | None,
+                ep: ExecParams | None) -> tuple[list[BotId], list[Attempt]]:
     idents = identities(rows)
     out: list[Attempt] = []
     for i in idents:
         mine = [r for r in rows if (r[0].bot_id, r[0].strategy, r[0].timeframe)
                 == (i.bot_id, i.strategy, i.timeframe)]
         for control in (False, True):
-            out.append(Attempt(i, control, shadow_trades(i, mine, candles, path, symbol,
+            out.append(Attempt(i, control, shadow_trades(i, mine, _pick(candles, i.timeframe),
+                                                         _pick(path, i.timeframe), symbol,
                                                          regime_at, ep, control)))
     return idents, out
 
@@ -123,13 +130,17 @@ def lane_l(runs: Sequence) -> list[dict]:
     return out
 
 
-def score(rows: Sequence[tuple[BotSignal, int]], candles: Sequence[Candle], path: Path,
-          symbol: str, crit: Criteria, cards: Mapping[str, BotCard], asof: int,
+def score(rows: Sequence[tuple[BotSignal, int]],
+          candles: Sequence[Candle] | Mapping[str, Sequence[Candle]],
+          path: Path | Mapping[str, Path], symbol: str, crit: Criteria,
+          cards: Mapping[str, BotCard], asof: int,
           regime_at: RegimeAt | None = None, marginals: Mapping[str, Marginal] | None = None,
           ep: ExecParams | None = None, sim_runs: Sequence = ()) -> dict:
     idents, att = attempts_of(rows, candles, path, symbol, regime_at, ep)
     n_att = len(att)
-    prices = (path.t, path.c)
+    # precios de «comprar y mantener»: el camino de 15 m si existe (1h), si no el primero
+    ref = (path.get("1h") or next(iter(path.values()))) if isinstance(path, Mapping) else path
+    prices = (ref.t, ref.c)
     items = [(a.version, measure(a.label, a.trades, (), symbol, asof, crit, n_att, prices), ())
              for a in att]
     done = validate_all(items, {}, crit)
