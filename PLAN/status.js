@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-20T17:47:28",
+ "generated": "2026-10-20T19:53:34",
  "tasks": [
   {
    "id": "T01",
@@ -1333,7 +1333,7 @@ window.EIM_STATUS = {
     "T49"
    ],
    "state": "done",
-   "notes": "Perfil `ppp_btcusdt` (2026-10-20): SL inicial por riesgo, protección desde +10 USDT netos y escalones de +5, sin TP ni cierre por tiempo, solo BTCUSDT y simulado. Código `eim/paper/{ladder,ladder_book,ladder_audit,ladder_stats}.py` + `params.py`; UI `web/src/paper_*.ts` (compila con tsc, **sin captura visual**); doc `v2/docs/PPP.md`; tests `tests/paper/test_ladder*.py` (gate completo verde, los 18 escenarios). **Backtest 40 días (`reports/ppp_backtest.md`): NO rentable** (−564 USDT, PF 0,51, 82 ops, 0 violaciones; fuera de muestra peor y ninguna variante de la rejilla positiva; los otros 3 perfiles también pierden en ese periodo). Incluye reservas de deslizamiento/funding en el SL, aprendizaje propio de la escalera y freno de entradas (4 pérdidas seguidas / DD 8 %, 24 h; no cierra posiciones). Pendiente: funding parcialmente supuesto en el backtest; entradas propias del perfil.",
+   "notes": "Perfil `ppp_btcusdt` (2026-10-20): SL inicial por riesgo, protección desde +10 USDT netos y escalones de +5, sin TP ni cierre por tiempo, solo BTCUSDT y simulado. Código `eim/paper/{ladder,ladder_book,ladder_audit,ladder_stats,strategies_ppp}.py` + `params.py`; UI `web/src/paper_*.ts` (compila con tsc, **sin captura visual**); doc `v2/docs/PPP.md`; tests `tests/paper/test_ladder*.py`, `test_strategies_ppp.py` (18 escenarios). Incluye reservas de deslizamiento/funding en el SL, aprendizaje propio, freno de entradas, **velas de 1 min para las velas ambiguas de 15 m** (el servicio sincroniza 1 m), **entrada propia `ppp_tendencia`** (familia `ppp`) y **funding real** en el backtest. **Backtest 40 días (`reports/ppp_backtest.md`): NO rentable** (−537 USDT, PF 0,54, 86 ops, 0 violaciones, 0 funding supuesto; fuera de muestra peor y ninguna variante de la rejilla positiva). Entradas propias: solo 9 operaciones (+31 USDT), muestra insuficiente. Pendiente: acumular meses y pasar `ppp_tendencia` por T49; captura visual de la UI.",
    "effort": "alto",
    "phase": 6,
    "goal": "Un perfil simulado más, **independiente de Conservador/Moderado/Agresivo y integrado en el mismo flujo** (ideas de las estrategias → libro → resumen → API → pestañas de la mesa). Su diferencia: **sin TP final ni cierre por tiempo**. SL inicial por riesgo; al llegar a +10 USDT netos se activa la protección y cada +5 USDT de beneficio máximo sube un escalón (10, 15, 20, …). Solo cierra el SL vigente; la protección nunca retrocede ni vuelve a la entrada. Solo BTCUSDT, solo simulado (el modelo rechaza `real_money`, `time_exit` y `fixed_take_profit`)."

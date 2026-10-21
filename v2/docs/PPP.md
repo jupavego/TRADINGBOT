@@ -103,35 +103,59 @@ Backtest: `python scripts/ppp_backtest.py --data <carpeta de datos>` (informe en
   Solo frena entradas nuevas: jamás cierra posiciones abiertas. Visible en el resumen
   (`ladder.brake`), en la pestaña Perfiles y en la bitácora.
 
-## 9. Limitaciones que siguen
+## 9. Orden intra-vela, entradas propias y funding real (T105, segunda ronda)
 
-- Camino de 15 m: sin ticks el orden intra-vela es desconocido; la regla conservadora puede
-  devolver más de lo real en alzas rápidas.
-- Las ideas vienen de las estrategias existentes (su TP solo estima si el primer escalón es
-  alcanzable); el perfil no tiene entradas propias.
+- **Orden de los precios dentro de la vela de 15 m.** Las velas *ambiguas* (las que pueden subir
+  el SL y volver a tocarlo, dentro de la misma vela) se resuelven con las velas de **1 min** en su
+  orden real (`ladder._sub_bars`), con la misma regla dentro de cada minuto (manda el SL vigente
+  al abrir el minuto; el avance sube el SL desde el minuto siguiente). Si faltan velas finas o
+  alguna no es válida, esa vela vuelve a la regla conservadora. El servicio en vivo sincroniza
+  las velas de 1 min (7 días de retroceso al arrancar) y la mesa las carga sola
+  (`LadderParams.fine_tf`). En el backtest: 67 velas ambiguas; la regla conservadora sola
+  subestimaba el resultado en ≈ 67 USDT (−605 frente a −537).
+- **Entradas propias.** Estrategia `ppp_tendencia` (familia `ppp`, solo 1 h y 4 h, solo la opera
+  este perfil): marco mayor + síntesis de agentes + fuerza (ADX/DI) + RSI sin agotamiento, SL
+  2,2 ATR. Son confirmaciones distintas; no se apilan SuperTrend/EMA/MACD porque miden lo mismo
+  que +DI/−DI. Umbrales fijados a priori, con una sola corrección documentada (la primera versión
+  apilaba esos indicadores y producía 5 ideas en 40 días). La puerta T49 la evalúa como a las demás.
+- **Funding real.** El backtest descargó el funding completo del periodo (138 liquidaciones,
+  3 por día): 0 de 86 operaciones con funding supuesto. En vivo el servicio ya lo sincroniza
+  cada ciclo (30 días de retroceso); la tasa supuesta solo aparece si falta algún tramo y queda
+  marcada.
+
+## 10. Limitaciones que siguen
+
+- Dentro de cada vela de **1 min** el orden sigue siendo desconocido (regla conservadora allí); es
+  la mejor resolución disponible sin ticks.
+- Las entradas propias son pocas: **9 operaciones en 40 días** (8 en desarrollo, 1 fuera de
+  muestra), con +31 USDT y 5 aciertos de 6 cerradas por SL dinámico/inicial. Es una muestra que
+  no permite concluir nada; hay que acumular meses de datos y pasarla por T49 antes de confiar.
 - Posiciones correlacionadas: máx. 2, y se veta la segunda en la misma vela y lado.
 - El historial local es corto: el backtest no demuestra rentabilidad.
 
-## 10. Resultado del backtest (2026-10-20) — NO es rentable en esta muestra
+## 11. Resultado del backtest (2026-10-20) — NO es rentable en esta muestra
 
-`python scripts/ppp_backtest.py --data <carpeta>` → `v2/reports/ppp_backtest.md` (rejilla de
-umbrales/escalones en desarrollo y fuera de muestra, y sensibilidad a costos). Datos: 40 días de
-BTCUSDT (2026-09-10 → 2026-10-20), 5 992 ideas, velas públicas de Binance en una copia aparte;
-funding real solo en parte del periodo (el resto, tasa supuesta y marcada).
+`python scripts/ppp_backtest.py --data <carpeta>` → `v2/reports/ppp_backtest.md` (velas de 1 min en
+las ambiguas, funding real, entradas propias frente al resto, rejilla de umbrales/escalones en
+desarrollo y fuera de muestra, y sensibilidad a costos). Datos: 40 días de BTCUSDT
+(2026-09-10 → 2026-10-20), 5 997 ideas, velas y funding públicos de Binance en una copia aparte.
 
-- Referencia (+10/+5): 82 operaciones, **−564 USDT (−5,6 %)**, PF 0,51, esperanza −6,88 USDT/op,
-  DD máx. 5,8 %, 0 violaciones de reglas, 0 incidencias. El freno de entradas no llegó a activarse
-  (máx. 3 pérdidas seguidas, drawdown < 8 %).
-- Acierto 67 % pero con pérdidas grandes: 20 cierres por SL inicial pesan más que los 62 por SL
-  dinámico. El escalón +10 se alcanza en 62 de 82 (76 %); el máximo llegó a +85.
-- Fuera de muestra peor que en desarrollo (PF 0,30 vs 0,72) y ninguna variante de la rejilla sale
-  positiva: no hay configuración que seleccionar. Con costos ×0,5 sigue negativo (−354).
-- Las reservas de deslizamiento/funding costaron algo de resultado (−500 → −564 respecto a la
-  primera versión) a cambio de que el neto realizado se parezca más al nominal.
+- Referencia (+10/+5): 86 operaciones, **−537 USDT (−5,4 %)**, PF 0,54, esperanza −6,25 USDT/op,
+  DD máx. 5,6 %, 0 violaciones de reglas, 0 incidencias, 0 operaciones con funding supuesto. El
+  freno de entradas no llegó a activarse (máx. 3 pérdidas seguidas, drawdown < 8 %).
+- Acierto 73 %, pero 21 cierres por SL inicial pesan más que los 65 por SL dinámico. El escalón
+  +10 se alcanza en 65 de 86 (76 %); pocos llegan más lejos (+15: 9, +20: 3, +30: 1).
+- Con la regla conservadora sola (sin velas de 1 min) el resultado era −605 USDT: resolver el
+  orden real de las velas ambiguas lo corrige en ≈ +67 USDT.
+- Fuera de muestra peor que en desarrollo (PF ≈ 0,36 frente a 0,71) y ninguna variante de la
+  rejilla sale positiva: no hay configuración que seleccionar. Con costos ×0,5 sigue negativo
+  (−324).
+- Entradas propias (`ppp_tendencia`): 9 operaciones en total, +31 USDT; sin entradas propias el
+  perfil pierde −155 (desarrollo) y −348 (fuera de muestra). Con tan pocas operaciones no se puede
+  decir si tienen ventaja.
 - Los otros tres perfiles, en el mismo periodo: Conservador −438, Moderado −1 356, Agresivo −4 934
   USDT: el periodo es adverso para las ideas existentes, no solo para este perfil.
 
 Lectura: el mecanismo funciona según lo especificado (verificado por tests y auditoría), pero
-**las entradas actuales no tienen ventaja** frente a un SL inicial a ~2 % y costos de ≈0,16 %.
-No se declara rentable. Siguiente paso razonable (fuera de este alcance): entradas propias del
-perfil con filtro de calidad más estricto y SL inicial más corto, validado con la puerta T49.
+**las entradas generales no tienen ventaja** frente a un SL inicial a ~2 % y costos de ≈0,16 %; las
+entradas propias son demasiado pocas para evaluarlas. No se declara rentable el perfil.

@@ -295,3 +295,82 @@ def test_funding_reserve_puts_the_stop_above_the_nominal_level():
     b = simulate_ladder(i, path_of(bars), ep, LadderParams(funding_reserve=0), QTY)
     assert (a.ladder["stop"] - E) * QTY > a.ladder["nominal_usd"] + 0.5   # colchón de funding
     assert (b.ladder["stop"] - E) * QTY == pytest.approx(b.ladder["nominal_usd"], abs=0.1)
+
+
+# --- velas de 1 min en las velas ambiguas -------------------------------------------------
+M1 = 60_000
+
+
+def walk(points: list[float], t0: int) -> list:
+    """15 velas de 1 min que recorren `points` en línea recta (reparto equitativo de minutos)."""
+    segs = len(points) - 1
+    out, px = [], points[0]
+    for m in range(15):
+        target = points[1 + min(segs - 1, m * segs // 15)]
+        nxt = px + (target - px) / max(1, (m * segs // 15 + 1) * 15 // segs - m)
+        out.append(bar(t0 + m * M1, px, max(px, nxt), min(px, nxt), nxt))
+        px = nxt
+    return out
+
+
+def fine_of(walks: list[list[float]]) -> Path:
+    cs = []
+    for k, pts in enumerate(walks):
+        cs += walk(pts, T0 + k * M15)
+    return Path(cs, (), M1)
+
+
+AMB_BARS = [(E, E + 125, E - 10, E + 125), (E + 125, E + 160, E + 90, E + 90)]
+AMB_BARS_UP = [(E, E + 125, E - 10, E + 125), (E + 125, E + 160, E + 90, E + 160)]
+
+
+def run_fine(bars, walks, fine=True):
+    i = idea(entry=E, sl=E - 500, tp=E + 1500)
+    return simulate_ladder(i, path_of(bars), ZERO, LP, QTY, fine_of(walks) if fine else None)
+
+
+def test_fine_resolves_rise_then_fall_better_than_conservative():
+    walks = [[E, E - 10, E + 125, E + 125], [E + 125, E + 160, E + 90]]
+    cons = run_fine(AMB_BARS, walks, fine=False)
+    fine = run_fine(AMB_BARS, walks)
+    assert cons.reason == "SLD" and usd(cons) == pytest.approx(10.0)       # regla conservadora
+    assert fine.reason == "SLD" and fine.ladder["level"] == 2              # sube a +15 y cierra ahí
+    assert fine.exit == pytest.approx(E + 150) and usd(fine) == pytest.approx(15.0)
+    assert fine.ladder["fine_resolved_bars"] >= 1 and audit_outcome(fine) == []
+
+
+def test_fine_resolves_fall_then_rise_same_as_conservative():
+    walks = [[E, E - 10, E + 125, E + 125], [E + 125, E + 90, E + 160]]
+    cons = run_fine(AMB_BARS_UP, walks, fine=False)
+    fine = run_fine(AMB_BARS_UP, walks)
+    assert fine.reason == "SLD" and fine.ladder["level"] == 1 and usd(fine) == pytest.approx(10.0)
+    assert fine.exit == cons.exit            # cae primero: toca el SL antes de subirlo
+
+
+def test_fine_missing_or_incomplete_falls_back_to_conservative():
+    walks = [[E, E - 10, E + 125, E + 125], [E + 125, E + 160, E + 90]]
+    incomplete = fine_of(walks[:1])                      # sin velas finas para la 2.ª vela
+    i = idea(entry=E, sl=E - 500, tp=E + 1500)
+    got = simulate_ladder(i, path_of(AMB_BARS), ZERO, LP, QTY, incomplete)
+    assert usd(got) == pytest.approx(10.0) and got.ladder["fine_resolved_bars"] == 1
+
+
+def test_fine_never_breaks_the_rules_fuzz():
+    rng = random.Random(11)
+    for case in range(60):
+        side = 1 if case % 2 == 0 else -1
+        px, bars, walks = E, [], []
+        for _ in range(rng.randint(4, 40)):
+            pts = [px] + [px + rng.gauss(0, 120) for _ in range(rng.randint(2, 5))]
+            w = walk(pts, 0)
+            bars.append((pts[0], max(c.h for c in w), min(c.l for c in w), w[-1].c))
+            walks.append(pts)
+            px = w[-1].c
+        i = idea(side=side, entry=E, sl=E - side * 500, tp=E + side * 1500)
+        p = path_of(bars, mirror=side < 0)
+        fine = Path([bar(T0 + k * M15 + m * M1, *(
+            (2 * E - c.o, 2 * E - c.l, 2 * E - c.h, 2 * E - c.c) if side < 0
+            else (c.o, c.h, c.l, c.c))) for k, pts in enumerate(walks)
+            for m, c in enumerate(walk(pts, 0))], (), M1)
+        o = simulate_ladder(i, p, ExecParams(), LP, QTY, fine)
+        assert audit_outcome(o) == [], (case, o.ladder)

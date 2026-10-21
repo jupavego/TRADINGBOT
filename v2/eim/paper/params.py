@@ -18,6 +18,7 @@ FAMILIES: dict[str, str] = {
     "literatura": "Literatura (reglas de los libros, T54)",
     "contrarias": "Contrarias",
     "base": "Posición base (mínimo de abiertas)",
+    "ppp": "Entradas propias de la escalera (PPP)",
     "control": "Control aleatorio",
 }
 
@@ -87,6 +88,7 @@ class LadderParams(BaseModel):
     # el MAYOR de las últimas `slip_lookback` velas (ya conocidas) y funding de `funding_reserve`
     # liquidaciones futuras a la tasa supuesta. Un hueco real puede seguir superándolas.
     slip_lookback: int = 4
+    fine_tf: str = "1m"     # velas que resuelven el orden dentro de una vela ambigua de 15 m
     funding_reserve: int = 1
     # Freno de riesgo (solo frena ENTRADAS NUEVAS, jamás cierra posiciones): tras
     # `max_consec_losses` pérdidas seguidas, o si el capital cae `max_drawdown` desde su máximo,
@@ -205,7 +207,8 @@ PROFILES = PROFILES + (
                     "Sin TP final ni cierre por tiempo: cierra solo al tocar el SL vigente. "
                     "A favor de la síntesis y de la tendencia mayor; hasta 2 posiciones, 5x.",
         risk_pct=0.005, max_leverage=5, max_open=2, min_conf=0.3, min_rr=1.3,
-        families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores"}),
+        families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
+                            "ppp"}),
         allow_hedge=False, follow_synthesis=True, max_cost_r=0.15, require_htf=True,
         exit_mode="ladder", ladder=LadderParams(), symbols=("BTCUSDT",),
         # aprende de SUS PROPIOS cierres (`ladder_book.LadderRisk`), no de la sombra con TP:

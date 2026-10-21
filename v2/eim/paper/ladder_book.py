@@ -22,6 +22,7 @@ class LadderSim:
 
     path: Path
     ep: ExecParams
+    fine: Path | None = None     # velas de 1 min para las velas de 15 m ambiguas
 
 
 def viability(p: ProfileParams, i: Idea, equity: float) -> str | None:
@@ -45,7 +46,7 @@ def open_ladder(p: ProfileParams, sim: LadderSim, i: Idea, qty: float) -> tuple[
     """Cantidad al paso del instrumento y resultado simulado de la escalera con esa cantidad."""
     assert p.ladder is not None
     q = floor_qty(qty, p.ladder)
-    return q, (simulate_ladder(i, sim.path, sim.ep, p.ladder, q) if q > 0 else Outcome(
+    return q, (simulate_ladder(i, sim.path, sim.ep, p.ladder, q, sim.fine) if q > 0 else Outcome(
         i, "RECHAZADA", "CANTIDAD"))
 
 

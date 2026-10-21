@@ -64,9 +64,8 @@ def _row(label: str, st, mmr: float, now: int) -> Row:
                lad["avg_gap_max_vs_realized_usd"])
 
 
-def _run(p, outs, path, ep, mmr):
-    sim = LadderSim(path, ep)
-    return run_profile(p, outs, Learner(outs), mmr, sim)
+def _run(p, outs, path, ep, mmr, fine=None):
+    return run_profile(p, outs, Learner(outs), mmr, LadderSim(path, ep, fine))
 
 
 def _fmt(x, d=2):
@@ -82,6 +81,10 @@ def _table(rows: list[Row]) -> str:
                    f"{_fmt(None if r.win is None else r.win * 100, 0)} % | {r.dd * 100:.2f} % | "
                    f"{r.sl0} / {r.sld} | {r.open} | {_fmt(r.gap)} |")
     return "\n".join(out)
+
+
+def full_lad(st) -> dict:
+    return profile_summary(st, Learner([]), [], 0, 0.004).get("ladder", {})
 
 
 def main() -> int:
@@ -100,25 +103,39 @@ def main() -> int:
         return 1
     ep, mmr, now = desk.ep, MMR.get(a.symbol, 0.005), path.end
     ts = sorted(o.idea.t for o in outs)
+    fine = desk._fine(a.symbol, ts[0])
     cut = ts[int(len(ts) * a.is_frac)]
     train, test = [o for o in outs if o.idea.t < cut], [o for o in outs if o.idea.t >= cut]
 
-    full = _run(PPP, outs, path, ep, mmr)
+    full = _run(PPP, outs, path, ep, mmr, fine)
     detail = profile_summary(full, Learner([]), [], now, mmr)
     grid_is, grid_oos = [], []
     for first, step in GRID:
         p = _with(PPP, first, step)
         tag = f"+{first:g} / +{step:g}" + (" (referencia)" if (first, step) == (10.0, 5.0) else "")
-        grid_is.append(_row(tag, _run(p, train, path, ep, mmr), mmr, now))
-        grid_oos.append(_row(tag, _run(p, test, path, ep, mmr), mmr, now))
+        grid_is.append(_row(tag, _run(p, train, path, ep, mmr, fine), mmr, now))
+        grid_oos.append(_row(tag, _run(p, test, path, ep, mmr, fine), mmr, now))
     cost_rows = []
     for k in COST_X:
         cp = ep.costs.model_copy(update={"taker_fee": ep.costs.taker_fee * k,
                                          "maker_fee": ep.costs.maker_fee * k,
                                          "slip_base_bps": ep.costs.slip_base_bps * k})
         e2 = ExecParams.model_validate({**ep.model_dump(), "costs": cp.model_dump()})
-        cost_rows.append(_row(f"costos ×{k:g}", _run(PPP, outs, path, e2, mmr), mmr, now))
+        cost_rows.append(_row(f"costos ×{k:g}", _run(PPP, outs, path, e2, mmr, fine), mmr, now))
 
+    cons = _run(PPP, outs, path, ep, mmr, None)           # solo regla conservadora (sin 1 min)
+    fams = {
+        "solo entradas propias (ppp)": PPP.model_copy(update={"families": frozenset({"ppp"})}),
+        "sin entradas propias": PPP.model_copy(update={
+            "families": PPP.families - {"ppp"}}),
+        "todas (perfil)": PPP}
+    fam_is = [_row(k, _run(v_, train, path, ep, mmr, fine), mmr, now) for k, v_ in fams.items()]
+    fam_oos = [_row(k, _run(v_, test, path, ep, mmr, fine), mmr, now) for k, v_ in fams.items()]
+    own = {k: b for k, b in full_lad(full).get("by_strategy", {}).items()
+           if k.startswith("ppp_tendencia")}
+    all_tr = full.trades
+    assumed = sum(1 for t in all_tr if t["funding_assumed"])
+    fine_bars = sum(t["ladder"].get("fine_resolved_bars", 0) for t in all_tr)
     first_t, last_t = ts[0], ts[-1]
     def iso(t: int) -> str:
         return datetime.fromtimestamp(t / 1000, UTC).strftime("%Y-%m-%d %H:%M")
@@ -138,7 +155,19 @@ def main() -> int:
           f"pérdidas seguidas máx.: {lad['max_consecutive_losses']}",
           f"- Máximo flotante medio {_fmt(lad['avg_max_float_usd'])} USDT · realizado medio "
           f"{_fmt(lad['avg_realized_usd'])} USDT · duración media {_fmt(lad['avg_hours'], 1)} h",
-          "", "## Rejilla — desarrollo", "", _table(grid_is), "",
+          "", "## Orden de los precios dentro de la vela de 15 m", "",
+          f"Velas ambiguas resueltas con velas de 1 min: {fine_bars}. Referencia con 1 min y "
+          "con solo la regla conservadora (mismo periodo):", "",
+          _table([_row("con velas de 1 min", full, mmr, now),
+                  _row("solo regla conservadora", cons, mmr, now)]), "",
+          "## Cobertura del funding", "",
+          f"Operaciones con funding supuesto (no real): {assumed} de {len(all_tr)}.", "",
+          "## Entradas propias frente al resto (desarrollo y fuera de muestra)", "",
+          "Desarrollo:", "", _table(fam_is), "", "Fuera de muestra:", "", _table(fam_oos), "",
+          "Estrategia propia en la configuración completa: "
+          + (", ".join(f"{k}: {b['n']} ops, {b['pnl']:+.2f} USDT" for k, b in own.items())
+             or "sin operaciones"), "",
+          "## Rejilla — desarrollo", "", _table(grid_is), "",
           "## Rejilla — fuera de muestra", "", _table(grid_oos), "",
           "## Sensibilidad a comisiones y deslizamiento (configuración de referencia)", "",
           _table(cost_rows), "",
@@ -153,10 +182,12 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.with_suffix(".md").write_text("\n".join(md), encoding="utf-8")
     out.with_suffix(".json").write_text(json.dumps(
-        {"detail": detail["ladder"], "is": [r.__dict__ for r in grid_is],
+        {"detail": detail["ladder"], "families_is": [r.__dict__ for r in fam_is],
+         "families_oos": [r.__dict__ for r in fam_oos], "fine_bars": fine_bars,
+         "funding_assumed": assumed, "trades": len(all_tr), "is": [r.__dict__ for r in grid_is],
          "oos": [r.__dict__ for r in grid_oos], "costs": [r.__dict__ for r in cost_rows]},
         ensure_ascii=False, indent=1), encoding="utf-8")
-    print("\n".join(md))
+    print(f"informe en {out.with_suffix('.md')} ({len(md)} bloques)")
     return 0
 
 

@@ -161,11 +161,23 @@ class PaperDesk(DeskService):
         v.outcomes = run_shadow(ideas, path, self.ep)
         learner = Learner(v.outcomes)
         mmr = MMR.get(symbol, 0.005)
-        sim = LadderSim(path, self.ep)
+        sim = LadderSim(path, self.ep, self._fine(symbol, t0))
         v.books = {p.id: run_profile(p, v.outcomes, learner, mmr, sim) for p in self.profiles}
         v.summary = self._payload(v, by_tf, infos, learner, path.end or None,
                                   pc[-1].c if pc else None, n_ideas=len(ideas))
         return v
+
+    def _fine(self, symbol: str, t0: int) -> Path | None:
+        """Velas finas (1 min) para resolver el orden dentro de las velas de 15 m ambiguas del
+        perfil de escalera; None si ningún perfil las usa o el almacén no las tiene."""
+        tfs = {p.ladder.fine_tf for p in self.profiles if p.ladder and symbol in (p.symbols or (
+            symbol,))}
+        if not tfs:
+            return None
+        tf = sorted(tfs)[0]
+        if self.store.bounds(symbol, tf) is None:
+            return None
+        return Path(self.store.read_candles(symbol, tf, start=t0 - tf_ms("4h")), (), tf_ms(tf))
 
     def _htf(self, symbol: str, tf: str, t0: int):
         """Tendencia del marco mayor para las ideas de `tf` (None si no está configurada)."""
