@@ -22,25 +22,38 @@ DEPTH_KEEP_DAYS = 30     # los diffs crudos de profundidad son lo más pesado; e
 KINDS = ("trades", "top", "depth", "gaps", "liqs")
 
 
+DEFAULT_SYMBOL = "BTCUSDT"   # sus archivos conservan el nombre sin sufijo
+
+
 def micro_dir(root: str | Path) -> Path:
     return Path(root) / "micro"
 
 
-def write_heartbeat(root: str | Path, row: dict) -> None:
+def sfx(symbol: str = DEFAULT_SYMBOL) -> str:
+    """Sufijo de los archivos de control: vacío para BTCUSDT, `_SIMBOLO` para el resto."""
+    sym = symbol.upper()
+    return "" if sym == DEFAULT_SYMBOL else f"_{sym}"
+
+
+def hb_name(symbol: str = DEFAULT_SYMBOL) -> str:
+    return f"heartbeat{sfx(symbol)}.json"
+
+
+def write_heartbeat(root: str | Path, row: dict, symbol: str = DEFAULT_SYMBOL) -> None:
     """Escritura atómica; un fallo de disco no detiene la captura (el supervisor lo notará)."""
     d = micro_dir(root)
     try:
         d.mkdir(parents=True, exist_ok=True)
-        tmp = d / (HEARTBEAT + ".tmp")
+        tmp = d / (hb_name(symbol) + ".tmp")
         tmp.write_text(json.dumps(row), encoding="utf-8")
-        tmp.replace(d / HEARTBEAT)
+        tmp.replace(d / hb_name(symbol))
     except OSError:
         pass
 
 
-def read_heartbeat(root: str | Path) -> dict | None:
+def read_heartbeat(root: str | Path, symbol: str = DEFAULT_SYMBOL) -> dict | None:
     try:
-        return json.loads((micro_dir(root) / HEARTBEAT).read_text(encoding="utf-8"))
+        return json.loads((micro_dir(root) / hb_name(symbol)).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
 
@@ -95,14 +108,15 @@ def prune_depth(root: str | Path, keep_days: int = DEPTH_KEEP_DAYS,
     return n
 
 
-def problems(root: str | Path, now_ms: int, free_gb_min: float = FREE_GB_MIN) -> list[str]:
+def problems(root: str | Path, now_ms: int, free_gb_min: float = FREE_GB_MIN,
+             symbol: str = DEFAULT_SYMBOL) -> list[str]:
     """Condiciones que merecen aviso local: recolector apagado/sin flujo o disco justo."""
     out = []
-    hb = read_heartbeat(root)
+    hb = read_heartbeat(root, symbol)
     state, why = classify(hb, now_ms)
     young = hb and now_ms - int(hb.get("started_at", 0)) < GRACE_S * 1000
     if state != "capturando" and not (state == "sin_flujo" and young):
-        out.append(f"Microestructura {state}: {why}")
+        out.append(f"Microestructura {symbol.upper()} {state}: {why}")
     free = disk_report(root)["free_gb"]
     if free is not None and free < free_gb_min:
         out.append(f"Disco con {free:.1f} GB libres (mínimo {free_gb_min:.0f} GB) en {root}")

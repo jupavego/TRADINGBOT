@@ -127,3 +127,16 @@ def test_status_endpoint(tmp_path):
                                       "started_at": NOW - 5000})
     body = cli.get("/v2/micro/status").json()
     assert body["state"] == "capturando" and body["started_at"] == NOW - 5000
+
+
+def test_files_are_per_symbol(tmp_path):
+    health.write_heartbeat(tmp_path, {"last_heartbeat": NOW}, "BTCUSDT")
+    health.write_heartbeat(tmp_path, {"last_heartbeat": NOW - 1}, "ETHUSDT")
+    assert (tmp_path / "micro" / "heartbeat.json").exists()
+    assert (tmp_path / "micro" / "heartbeat_ETHUSDT.json").exists()
+    assert health.read_heartbeat(tmp_path, "ethusdt")["last_heartbeat"] == NOW - 1
+    a = instance_lock(tmp_path / "micro" / f"supervisor{health.sfx('BTCUSDT')}.lock")
+    b = instance_lock(tmp_path / "micro" / f"supervisor{health.sfx('ETHUSDT')}.lock")
+    assert a and b            # dos vigilantes a la vez: uno por símbolo
+    a.close()
+    b.close()

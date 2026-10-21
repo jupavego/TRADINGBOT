@@ -1,4 +1,4 @@
-/** Balance superior del bróker simulado: ganadas frente a perdidas (ponderado de los 3 perfiles). */
+/** Balance superior del bróker simulado: ganadas frente a perdidas (ponderado de todos los perfiles). */
 import { PROFILE_VAR } from './paper_chart'
 import { CAUSE, esc, nf, pct0, REASON, rr, usd } from './paper_fmt'
 import type { BalanceSummary, BalanceWindow, PaperSummary } from './paper_types'
@@ -38,7 +38,7 @@ function causes(a: BalanceSummary): string {
     `<span>${esc(CAUSE[k] ?? k)} <b class="num">${pct0(n / tot)}</b></span>`).join('')}</p>`
 }
 
-/** Acierto por temporalidad del periodo (ponderado de los 3 perfiles). */
+/** Acierto por temporalidad del periodo (ponderado de todos los perfiles). */
 function byTf(w: BalanceWindow): string {
   const xs = Object.entries(w.timeframes ?? {}).filter(([, s]) => s.n)
   if (!xs.length) return ''
@@ -58,7 +58,7 @@ function middle(w: BalanceWindow): string {
     `<dt>Ganancia media / pérdida media</dt><dd class="num">${a.payoff === null ? '—' : `${nf(a.payoff)} R`}</dd>` +
     `<dt>Esperanza por operación</dt><dd class="num">${rr(a.expectancy_r)}</dd>` +
     `<dt>Factor de beneficio</dt><dd class="num">${a.pf === null ? '—' : nf(a.pf)}</dd>` +
-    `<dt>Neto (3 perfiles)</dt><dd class="num ${a.net > 0 ? 'up' : a.net < 0 ? 'down' : ''}">${usd(a.net, 0)} USDT</dd>` +
+    `<dt>Neto (todos los perfiles)</dt><dd class="num ${a.net > 0 ? 'up' : a.net < 0 ? 'down' : ''}">${usd(a.net, 0)} USDT</dd>` +
     `<dt>Costos pagados</dt><dd class="num">${nf(a.costs, 0)} USDT</dd></dl></div>`
 }
 
@@ -70,7 +70,7 @@ export function balanceView(v: PaperSummary, period: string): string {
   const chips = Object.entries(b).map(([k, x]) =>
     `<button type="button" class="pp-chip" data-bal="${k}" aria-pressed="${k === period}">${esc(x.label)} <small class="num">${x.all.n}</small></button>`).join('')
   const fb = w.feedback.map((f) => `<li data-k="${f.kind}"><b>${FB[f.kind][0]} ${FB[f.kind][1]}:</b> ${esc(f.text)}</li>`).join('')
-  return '<div class="pp-bal-head"><h4 class="sh">Balance de operaciones · ponderado de los 3 perfiles</h4>' +
+  return `<div class="pp-bal-head"><h4 class="sh">Balance de operaciones · ponderado de los ${v.profiles.length} perfiles</h4>` +
     `<div class="pp-chips">${chips}</div>` +
     '<small class="muted">Cada operación cerrada pesa igual · ganada = PnL neto &gt; 0 después de comisiones, deslizamiento y funding</small></div>' +
     `<div class="pp-bal-grid">${card('win', w, v)}${middle(w)}${card('loss', w, v)}</div>` +

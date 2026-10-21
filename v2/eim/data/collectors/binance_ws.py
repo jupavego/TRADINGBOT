@@ -19,7 +19,7 @@ from pathlib import Path
 import httpx
 
 from eim.data.collectors.book import LocalBook
-from eim.data.collectors.health import HEARTBEAT_EVERY_S, micro_dir, write_heartbeat
+from eim.data.collectors.health import HEARTBEAT_EVERY_S, micro_dir, sfx, write_heartbeat
 from eim.data.collectors.writer import HourlyWriter
 from eim.observability import hooks_service
 from eim.observability.emit import configure
@@ -53,7 +53,7 @@ class Collector:
         write_heartbeat(self.root, {
             "last_heartbeat": now, "pid": os.getpid(), "symbol": self.symbol,
             "started_at": self.started_at, "last_msg_ms": self.last_msg_ms,
-            "trades": self.n_trades, "depth_msgs": self.n_depth, "gaps": self.gaps})
+            "trades": self.n_trades, "depth_msgs": self.n_depth, "gaps": self.gaps}, self.symbol)
 
     def gap(self, t: int, stream: str, detail: str) -> None:
         self.gaps += 1
@@ -170,7 +170,8 @@ def main() -> None:
     ap.add_argument("--root", default="data")
     a = ap.parse_args()
     configure(process="collector", spool_dir=Path(a.root) / "obs" / "spool")
-    lock = instance_lock(micro_dir(a.root) / "collector.lock")   # nunca dos escritores a la vez
+    # nunca dos escritores del mismo símbolo a la vez
+    lock = instance_lock(micro_dir(a.root) / f"collector{sfx(a.symbol)}.lock")
     if lock is None:
         print("Ya hay un recolector de microestructura en esta carpeta de datos.", flush=True)
         raise SystemExit(3)

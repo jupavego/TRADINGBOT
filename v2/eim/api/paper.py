@@ -9,7 +9,8 @@ from eim.data.timeframes import SYMBOLS
 from eim.paper.desk import PaperDesk, View
 from eim.paper.live_feed import live_feed
 
-CATS = ("orden", "llenada", "tp", "be", "sl", "tiempo", "cancelada", "rechazada", "aprendizaje")
+CATS = ("orden", "llenada", "tp", "be", "sl", "tiempo", "cancelada", "rechazada", "aprendizaje",
+        "violacion")
 VIEW_WAIT_S = 10.0      # espera máxima por un recálculo; después se entrega la vista anterior
 
 

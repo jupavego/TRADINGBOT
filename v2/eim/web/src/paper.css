@@ -1,7 +1,7 @@
 /* Bróker simulado (T47). Colores por tokens del tema; perfiles con 3 tonos categóricos validados
    (validate_palette: claro sobre #fffdf9, oscuro y futurista sobre sus paneles). */
-:root, :root[data-theme="light"] { --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; }
-:root[data-theme="dark"], :root[data-theme="cyber"] { --p1: #3987e5; --p2: #d95926; --p3: #199e70; }
+:root, :root[data-theme="light"] { --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #8a5cd6; }
+:root[data-theme="dark"], :root[data-theme="cyber"] { --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #9b72e0; }
 
 #app[data-view="paper"] > :not(.topbar):not(#paper) { display: none; }
 .paper { margin: 12px 20px 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }

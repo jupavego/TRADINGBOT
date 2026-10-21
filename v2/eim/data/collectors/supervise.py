@@ -33,7 +33,9 @@ class Maintenance:
     """Avisos de salud/disco y poda, llamados desde el bucle de espera del vigilante."""
 
     def __init__(self, root: Path, log: JsonLog, keep_days: int, notify: Callable[[Alert], None],
-                 clock: Callable[[], float] = time.time) -> None:
+                 clock: Callable[[], float] = time.time,
+                 symbol: str = health.DEFAULT_SYMBOL) -> None:
+        self.symbol = symbol
         self.root, self.log, self.keep_days = root, log, keep_days
         self.notify, self.clock = notify, clock
         self._next_check = self._next_prune = clock() + health.GRACE_S   # el hijo aún arranca
@@ -52,7 +54,7 @@ class Maintenance:
             self.log.write("disco", **health.disk_report(self.root))
 
     def check(self, now: float) -> list[str]:
-        msgs = health.problems(self.root, int(now * 1000))
+        msgs = health.problems(self.root, int(now * 1000), symbol=self.symbol)
         for m in msgs:
             if now - self._alerted.get(m[:40], 0.0) < REALERT_S:
                 continue
@@ -71,12 +73,12 @@ def supervise(root: str | Path, symbol: str, keep_days: int = health.DEPTH_KEEP_
               make_watchdog=Watchdog, notify: Callable[[Alert], None] | None = None) -> str:
     root = Path(root)
     mdir = health.micro_dir(root)
-    lock = instance_lock(mdir / "supervisor.lock")
+    lock = instance_lock(mdir / f"supervisor{health.sfx(symbol)}.lock")
     if lock is None:
         return "Ya hay un vigilante de microestructura en marcha: no se lanza otro."
     try:
         log = JsonLog(mdir / "logs", echo=True)
-        maint = Maintenance(mdir.parent, log, keep_days, notify or WindowsToast())
+        maint = Maintenance(mdir.parent, log, keep_days, notify or WindowsToast(), symbol=symbol)
 
         def sleep(s: float) -> None:
             time.sleep(s)
@@ -85,7 +87,7 @@ def supervise(root: str | Path, symbol: str, keep_days: int = health.DEPTH_KEEP_
         cmd = [sys.executable, "-m", "eim.data.collectors.binance_ws", symbol.upper(),
                "--root", str(root)]
         log.write("vigilante_iniciado", symbol=symbol.upper(), arranque_ms=int(time.time() * 1000))
-        make_watchdog(cmd, dict(os.environ), mdir / health.HEARTBEAT, log,
+        make_watchdog(cmd, dict(os.environ), mdir / health.hb_name(symbol), log,
                       stale_s=health.STALE_S, check_s=15.0, sleep=sleep,
                       title="Microestructura: recolector reiniciado").run()
         return "vigilante de microestructura detenido"

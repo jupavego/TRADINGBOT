@@ -16,6 +16,11 @@ class CostParams(BaseModel):
     slip_vol_k: float = 0.10         # × rango relativo de la vela de ejecución (h−l)/o
     slip_impact_k: float = 5.0       # × (notional / notional negociado en la vela)
     slip_cap_bps: float = 100.0      # tope de seguridad
+    # Entradas a mercado del bróker simulado (calibración con el libro real, 2026-10-20: llenar
+    # 1,5–150 k USDT en BTCUSDT cuesta ≈ 0,01 pb): deslizamiento propio, sin el término de
+    # volatilidad que se conserva en las salidas por SL/BE/tiempo (reports/slippage_calibracion.md)
+    slip_entry_base_bps: float = 0.1
+    slip_entry_vol_k: float = 0.0
     funding_interval_ms: int = 8 * 3_600_000
     mmr: float = 0.005               # tasa de margen de mantenimiento (tramo bajo)
 
@@ -34,4 +39,4 @@ class BacktestParams(BaseModel):
 
 
 ZERO_COSTS = CostParams(taker_fee=0.0, maker_fee=0.0, slip_base_bps=0.0, slip_vol_k=0.0,
-                        slip_impact_k=0.0)
+                        slip_impact_k=0.0, slip_entry_base_bps=0.0, slip_entry_vol_k=0.0)
