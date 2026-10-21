@@ -82,22 +82,28 @@ if ($lideres) {
   }
 }
 
-# Microestructura (T23/T104): trades y libro de Binance → agente `microstructure`. Sin esto la
-# esfera queda en «sin datos». Sin puerto: se busca por línea de órdenes para no duplicar.
-# Un recolector por activo en foco (BTCUSDT y ETHUSDT). Logs: micro.* (BTC) y micro_ETHUSDT.* (resto).
+# Microestructura (T23/T104): trades y libro de Binance → agente `microstructure`. Un vigilante por
+# activo en foco (BTCUSDT y ETHUSDT; `eim.data.collectors.supervise`, cerrojo
+# data\micro\supervisor[_SIMBOLO].lock) que relanza el recolector si cae o si su latido
+# (data\micro\heartbeat[_SIMBOLO].json) se detiene, avisa si el disco o el flujo fallan y poda la
+# profundidad vieja. Sin esto la esfera queda en «recolector apagado». Logs: micro.* (BTC) y
+# micro_ETHUSDT.* (resto).
 $activos = @("BTCUSDT", "ETHUSDT")
+$procs = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue)
 foreach ($a in $activos) {
   $sufijo = if ($a -eq "BTCUSDT") { "" } else { "_$a" }
-  $micro = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
-    Where-Object { $_.CommandLine -match "eim\.data\.collectors\.binance_ws\s+$a" })
-  if ($micro) {
-    Write-Host "El recolector de microestructura de $a ya corre (PID $($micro.ProcessId -join ', ')): no se lanza otro."
+  $vigMicro = @($procs | Where-Object { $_.CommandLine -match "eim\.data\.collectors\.supervise\s+$a" })
+  $recMicro = @($procs | Where-Object { $_.CommandLine -match "eim\.data\.collectors\.binance_ws\s+$a" })
+  if ($vigMicro) {
+    Write-Host "El vigilante de microestructura de $a ya corre (PID $($vigMicro.ProcessId -join ', ')): no se lanza otro."
+  } elseif ($recMicro) {
+    Write-Host "Hay un recolector de microestructura de $a SIN vigilante (PID $($recMicro.ProcessId -join ', ')): detenlo para que el vigilante lo relance con latido."
   } else {
-    $argv = @("-m", "eim.data.collectors.binance_ws", $a, "--root", "`"$DataDir`"")
+    $argv = @("-m", "eim.data.collectors.supervise", $a, "--root", "`"$DataDir`"")
     Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
       -RedirectStandardOutput (Join-Path $logs "micro$sufijo.out.log") `
       -RedirectStandardError (Join-Path $logs "micro$sufijo.err.log") | Out-Null
-    Write-Host "Recolector de microestructura de $a lanzado (data\micro; 24 velas de acumulación antes de opinar)."
+    Write-Host "Vigilante de microestructura de $a lanzado (data\micro; 24 velas de acumulación antes de opinar)."
   }
 }
 

@@ -59,7 +59,7 @@ class HourlyWriter:
             con.execute(f"CREATE TABLE x ({self.schema})")
             con.executemany(f"INSERT INTO x VALUES ({', '.join('?' * len(rows[0]))})", rows)
             tmp = f.with_suffix(".tmp")
-            con.execute(f"COPY x TO {_lit(tmp)} (FORMAT PARQUET)")
+            con.execute(f"COPY x TO {_lit(tmp)} (FORMAT PARQUET, COMPRESSION ZSTD)")
             tmp.replace(f)
             con.close()
         hooks_service.beat("data.micro_collector", min_interval_s=60,
