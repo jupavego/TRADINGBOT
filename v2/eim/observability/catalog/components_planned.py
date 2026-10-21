@@ -15,10 +15,6 @@ PLANNED: tuple[Component, ...] = (
       "Copia en testnet", "Replicará a los líderes aprobados en la testnet con un asignador de "
       "capital y la puerta de riesgo. Aún no existe.", consumes=(("leaders.copy_sim", "copy_trade"),),
       produces=("fill",), **_P),
-    c("bots.vote", "bots", "analisis", "engine", "bots", "T60", "Voto de bots",
-      "Dará a los bots en estado «vota» su peso medido en la síntesis y pasará sus propuestas "
-      "por el riesgo con poder de veto. Aún no existe.",
-      consumes=(("bots.scoring", "bot_score"),), produces=("bot_vote",), **_P),
     c("localai.engines", "localai", "analisis", "engine", "localai", "T63", "Motores de IA locales",
       "Capa que decidirá qué modelos locales caben en este equipo y dejará traza de cada uso. "
       "Aún no existe.", produces=("local_inference",), **_P),

@@ -11,6 +11,9 @@ from pydantic import BaseModel, ConfigDict, Field
 # `arbitrage` vive en su carril propio (pestaña y satélite del río).
 NON_DIRECTIONAL: frozenset[str] = frozenset({"calendar", "arbitrage"})
 
+# Núcleo con el que se mide la correlación de un agente nuevo (T44) o de un bot (T59/T60).
+PEERS: tuple[str, ...] = ("ema", "structure", "technical")
+
 Role = Literal["direccional", "riesgo", "carril", "derivado", "contexto"]
 # Papel de cada agente que no vota como uno más (el resto es «direccional").
 ROLES: dict[str, Role] = {"calendar": "riesgo", "regime": "riesgo", "arbitrage": "carril",
@@ -62,6 +65,11 @@ class SynthesisParams(BaseModel):
     # ventana abre `blackout` (el motor de riesgo además veta entradas nuevas, T29).
     event_conf: float = 0.75
     blackout_conf: float = 0.5
+    # Escuadrón (T60), canal (a): desacuerdo entre los bots que T59 midió útiles → confianza ×
+    # `squad_conf` (solo baja, nunca sube). Apagado salvo que la política lo active.
+    squad_confidence: bool = False
+    squad_split: float = 0.8          # desviación (pstdev) de posturas ±1 que cuenta como «extremo»
+    squad_conf: float = 0.85
     neutral_band: float = 0.1         # |sesgo| bajo esta banda se describe como neutral
     drift_scale: float = 0.1          # deriva = sesgo·confianza·scale·σ (σ = desv. del log-retorno)
 

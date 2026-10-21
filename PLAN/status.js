@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-21T02:11:45",
+ "generated": "2026-10-21T09:48:23",
  "tasks": [
   {
    "id": "T01",
@@ -753,8 +753,8 @@ window.EIM_STATUS = {
     "T44",
     "T10"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Política del escuadrón `eim/synthesis/squad.py` (vota solo clase D en estado `vota`, peso medido por T59 con penalización de correlación; L/IA nunca; sin votantes el agente se omite → sesgo idéntico al previo, probado); canales (a) `factors['escuadron']` y (b) «N de M bots apoyan» (solo informan, apagados si T59 no midió ayuda); cuarentena de bots degradados (`eim/bots/quarantine.py`) + latido/alerta en `BotService`. API `GET /v2/bots`, `/v2/agents` con peso vigente; UI pestaña «Escuadrón» (cuatro dimensiones, discrepancia, carril L aparte) verificada en navegador, oscuro y claro. Docs BOTS/NUEVO_AGENTE/SEGURIDAD/RUNBOOK §13. Tests: `tests/synthesis/test_t60_squad.py`, `tests/bots/test_squad_service.py`, `tests/api/test_bots_api.py`. Pendiente BACKLOG (T60).",
    "effort": "medio",
    "phase": 12,
    "goal": "Mostrar el escuadrón al usuario y dejar que influya en las decisiones **en la medida que T59 mida su aporte al núcleo** (no por su rentabilidad aislada), sin tocar la autoridad del motor de riesgo ni la puerta de ejecución."

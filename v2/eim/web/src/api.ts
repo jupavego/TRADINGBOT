@@ -1,3 +1,4 @@
+import type { SquadPayload } from './squad_types'
 import type { CopyPayload } from './copy_view'
 import type { AgentInfo, Overlay, AgentReport, Snapshot, StreamMsg, Decision, Trade, Replay, ForecastSet, Synthesis } from './types'
 import type { ArbPayload } from './arb_types'
@@ -170,3 +171,6 @@ export interface LibraryCard {
   citations: { author: string; year: number | null; chapter: string; pages: number[]; printed: string | null }[]
 }
 export const fetchCard = (id: string): Promise<LibraryCard> => getJson(`/v2/library/cards/${id}`)
+
+export const fetchSquad = (symbol: string, tf: string, signal?: AbortSignal): Promise<SquadPayload> =>
+  getJson(`/v2/bots?symbol=${symbol}&tf=${tf}`, signal)

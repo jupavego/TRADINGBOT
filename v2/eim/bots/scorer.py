@@ -56,6 +56,7 @@ class BotScorer:
         self.symbols = symbols
         self.last_run: int | None = None
         self.error = ""
+        self.on_scored: list[Callable[[dict], None]] = []   # T60: política del escuadrón
         self._lock = threading.Lock()
 
     def compute(self, symbol: str, now: int | None = None,
@@ -81,6 +82,8 @@ class BotScorer:
         out = score(rows, candles, path, symbol, self.crit, self.cards, asof,
                     regime_lookup(self.pstore, symbol), marginals, sim_runs=sims)
         self.scores.save(out, now)
+        for fn in self.on_scored:
+            fn(out)
         return {**out, "computed": now}
 
     def _previous_marginals(self, symbol: str) -> dict[str, Marginal]:
