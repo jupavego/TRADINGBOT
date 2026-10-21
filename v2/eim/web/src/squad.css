@@ -1,0 +1,22 @@
+.sq-tag { padding: 2px 8px; border: 1px dashed var(--line); border-radius: 10px; font-size: 12px; color: var(--muted); }
+.sq-table { min-width: 880px; }
+.sq-table td { vertical-align: top; padding: 5px 6px; }
+.sq-table small { display: block; color: var(--muted); font-size: 11px; line-height: 1.35; max-width: 280px; }
+.sq-stance[data-s="1"] { color: var(--up); font-weight: 600; }
+.sq-stance[data-s="-1"] { color: var(--down); font-weight: 600; }
+.sq-state { padding: 1px 8px; border-radius: 9px; border: 1px solid var(--line); font-size: 12px; }
+.sq-state[data-state="vota"] { border-color: var(--up); color: var(--up); }
+.sq-state[data-state="rechazado"], .sq-state[data-state="cuarentena"] { border-color: var(--down); color: var(--down); }
+.sq-state[data-state="informa"] { border-color: var(--neutral); color: var(--neutral); }
+.sq-pub { font-size: 11px; color: var(--up); }
+.sq-dims { display: flex; flex-wrap: wrap; gap: 4px; max-width: 330px; }
+.sq-dim { font-size: 11px; padding: 1px 6px; border-radius: 8px; border: 1px solid var(--line); white-space: nowrap; }
+.sq-dim[data-t="up"] { border-color: var(--up); color: var(--up); }
+.sq-dim[data-t="down"] { border-color: var(--down); color: var(--down); }
+.sq-dim[data-t="warn"] { border-color: var(--warn); color: var(--warn); }
+.sq-spread { margin: 8px 0 12px; max-width: 560px; }
+.sq-axis { position: relative; height: 26px; border-bottom: 2px solid var(--line); display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+.sq-dot { position: absolute; bottom: -7px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--neutral); border: 2px solid var(--panel); }
+.sq-dot[data-s="1"] { background: var(--up); }
+.sq-dot[data-s="-1"] { background: var(--down); }
+.scen .sq-support { font-size: 11px; color: var(--muted); }

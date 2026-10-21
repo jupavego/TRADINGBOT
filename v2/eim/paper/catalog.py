@@ -10,8 +10,9 @@ from eim.paper.params import ExecParams
 from eim.paper.strategies import CORE
 from eim.paper.strategies_ind import IND, Ind
 from eim.paper.strategies_lit import LIT
+from eim.paper.strategies_ppp import PPP
 
-CATALOG: dict[str, StrategyInfo] = {s.id: s for s in CORE + IND + LIT}
+CATALOG: dict[str, StrategyInfo] = {s.id: s for s in CORE + IND + LIT + PPP}
 
 
 def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str, bar_ms: int,
@@ -36,7 +37,7 @@ def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str,
         i = ind.index(int(ctx["t"]) - bar_ms)
         origin = origin_of(raw) if origin_of else raw.get("origin", "backtest")
         for info in cat.values():
-            needs_ind = info.family in ("indicadores", "literatura")
+            needs_ind = info.family in ("indicadores", "literatura", "ppp")
             if needs_ind and i < 0:
                 continue
             try:

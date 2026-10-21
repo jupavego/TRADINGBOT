@@ -62,6 +62,7 @@ class Outcome:
     mfe_r: float = 0.0
     mae_r: float = 0.0
     mark: float | None = None    # último precio conocido (abiertas)
+    ladder: dict | None = None   # estado de la protección progresiva (perfil PPP, `ladder.py`)
 
     @property
     def net(self) -> float:
@@ -80,6 +81,10 @@ class Outcome:
             return "costos"
         if self.reason == "TIEMPO":
             return "tiempo"
+        if self.ladder is not None:                 # sin TP: «casi TP» no existe en la escalera
+            quick = (self.exit_t or 0) - (self.fill_t or 0) <= QUICK_BARS * tf_ms(
+                self.idea.timeframe)
+            return "sl_rapido" if quick and self.mfe_r < QUICK_MFE else "direccion"
         risk = abs(self.fill - self.idea.sl)
         tp_r = abs(self.idea.tp - self.fill) / risk if risk else 0.0
         if tp_r and self.mfe_r >= NEAR_TP * tp_r:
@@ -97,7 +102,8 @@ class Outcome:
                 "exit": self.exit, "fees": self.fee_in + self.fee_out, "slip": self.slip,
                 "funding": self.funding, "funding_assumed": self.funding_assumed,
                 "gross": self.gross, "net": self.net, "r": self.r, "mfe_r": self.mfe_r,
-                "mae_r": self.mae_r, "mark": self.mark, "cause": self.cause}
+                "mae_r": self.mae_r, "mark": self.mark, "cause": self.cause,
+                **({"ladder": self.ladder} if self.ladder is not None else {})}
 
 
 class Path:

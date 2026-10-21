@@ -47,3 +47,43 @@ Límites conocidos: solo largos y un símbolo; la comisión es la de EIM pero el
 
 ## Relleno histórico y ventanas de 6 meses
 `python -m eim.bots.backfill --symbol BTCUSDT --timeframe 1h --since 2026-04-19` rellena `bot_signals` con una postura por cierre de vela (Hummingbot vela a vela por el servicio; Freqtrade con una sola corrida, ver `FreqtradeAdapter.history`). Necesita 1000 velas previas en el almacén. En Windows, el checkout de las estrategias de Freqtrade se prepara con `git config core.autocrlf false` (el ejecutor igualmente trata CRLF como limpio) y, si está en un disco FAT32/exFAT, funciona porque el ejecutor pasa `safe.directory` a su git aislado.
+
+## Puntuación y puerta de edge (T59)
+
+Cada `bot@estrategia@marco@vN` (la versión = SHA del bot + hash de parámetros, numerada por su primera aparición en `bot_signals`) pasa por **la misma puerta de T49** (`eim/validation/gate.py`), no por otra vara. Código en `eim/bots/`:
+
+- `shadow.py`: postura → idea del bróker simulado (regla fija: abre al cambiar de lado, SL 1,5 ATR, TP 2 R, salida por tiempo al horizonte del bot o 24 velas). Costos de perpetuos de T25 (`ExecParams`); los `costs_assumed` del bot se ignoran. **Control aleatorio** de la misma familia (mismos instantes y geometría, lado sorteado con semilla fija): es un intento más de Holm y nunca vota.
+- `scorecard.py`: veredicto por versión (V1–V6), familia de Holm con TODAS las versiones de TODOS los bots (también retiradas) + un control por cada una; condiciones por régimen (solo informe) e informe aparte de la clase L (`bot_sim_runs`).
+- `concept.py`: cuatro dimensiones sin nota global (rendimiento V2/V4/V6, evidencia V1/V3/V5, seguridad de la ficha T56, operativa) y estado `vota | informa | rechazado | deshabilitado_seguridad`. Sin seguridad habilitada el bot no entra aunque rinda. `publicable` (VALIDADA) es una marca aparte: solo alimenta «Operaciones sugeridas» (T50).
+- `marginal.py`: aporte al núcleo con el método de T44 (`agents_marginal`, el bot como un agente más): ΔSharpe, ΔE[R], ΔIC24 fuera de muestra, correlación con `ema/structure/technical` y efecto moderador. Peso inicial **medido** = `MODERATE_WEIGHT·(1 − ρ⁺ máx)` si aporta, 0 si no o si repite al núcleo (|ρ| ≥ 0,9).
+- `health.py`: degradación (rendimiento vivo bajo el IC fuera de muestra, deriva entre versiones, fallos del ejecutor, latencia) → baja a `informa` con alerta (`Condition` del `AlertCenter` de T31).
+- Persistencia `bot_scorecard` (solo añadir) y `GET /v2/bots/scorecard` (solo lectura). El bróker recalcula al cierre de cada vela de 4 h (`BotScorer.maybe_run`), reutilizando la última medición marginal mientras la versión no cambie.
+
+Medición completa a mano (lenta; abre `reports.duckdb`, así que con la API parada o sobre una copia de `data/`):
+
+```bash
+python -m eim.bots.scorecard_cli --data-dir data --symbol BTCUSDT --marginal
+```
+
+Escribe `reports/bots_scorecard.{md,json}`. No hay ventanas de ajuste: los parámetros son de terceros fijados por SHA y EIM no los ajusta; cambiarlos es una versión nueva (ciclo T49/T51).
+
+
+## Integración en la síntesis, el riesgo y la UI (T60)
+**Cómo añadir un bot** (ficha → adaptador → paridad → puerta → integración):
+1. *Ficha* (T56): `eim/bots/registry/<id>.json` con clase (`D` direccional, `L` carril, `IA` informa), licencia, seguridad y aprobación del usuario ◆. Sin seguridad habilitada y aprobada no entra.
+2. *Adaptador* (T57/T58): modo A (regla portada) o B (proceso aislado sin claves); devuelve `BotSignal` (postura −1/0/+1, sin órdenes).
+3. *Paridad* con el bot nativo (test que compara a 1e-9 o sobre velas reales).
+4. *Puerta* (T59): `python -m eim.bots.scorecard_cli` mide rendimiento, evidencia, seguridad y operativa (cuatro dimensiones, sin nota global), estado `vota/informa/rechazado/deshabilitado` y aporte marginal al núcleo.
+5. *Integración* (T60): no hay nada que tocar. `eim/synthesis/squad.py` lee la última puntuación y decide solo.
+
+**Reglas de la síntesis** (`eim/synthesis/squad.py`, probadas en `tests/synthesis/test_t60_squad.py`):
+- Vota solo un bot de clase `D` en estado `vota`, fuera de cuarentena y en el símbolo donde T59 midió su aporte; los de clase `L` (carril) e `IA` nunca votan.
+- Su peso es el medido por la prueba marginal (`MODERATE_WEIGHT·(1−ρ⁺)`), no su rentabilidad; el agente `bots` pesa la media de los pesos medidos de sus votantes y se penaliza por correlación con `ema`/`structure`/`technical` como en T44 (con la ρ máxima medida, de forma conservadora).
+- Sin votantes (hoy, ninguno) el agente se omite de la síntesis: el sesgo y la confianza son idénticos a los de antes de T60.
+- Canal (a), **confianza**: si T59 midió que el acuerdo de un bot con el núcleo predice el acierto del núcleo (`modulates_confidence`), un desacuerdo extremo entre esos bots (desviación de posturas ≥ 0,8) multiplica la confianza por 0,85 (`factors['escuadron']`). Solo baja la confianza, nunca la sube ni mueve el sesgo.
+- Canal (b), **segunda opinión**: bajo cada escenario, «N de M bots apoyan este escenario» (`GET /v2/bots` → `support`); no cambia las probabilidades calibradas.
+- Riesgo: ninguna regla nueva relaja el motor de T29. Un bot no puede pedir tamaño ni apalancamiento (el contrato lo prohíbe). La regla de «desacuerdo extremo → reducir confianza» es el canal (a) y actúa antes del motor, nunca dentro.
+
+**Cuarentena (kill-switch del escuadrón)**: si un bot que *vota* sale `degraded` (el adaptador falla, deriva, versión distinta), `BotService` lo pone en `data/bots/quarantine.json` y pierde el voto al instante; lo reactiva solo una persona. Cada cambio queda en `data/bots/quarantine.jsonl`. Cada ciclo emite latido `bots.service` y una alerta `bots.<bot>` si algún ejecutor falla (infraestructura de T31).
+
+**API**: `GET /v2/bots` (postura vigente, estado, cuatro dimensiones, versión, motivo, discrepancia, apoyo por dirección, cuarentena), `GET /v2/bots/scorecard` (T59), `GET /v2/agents` con `role` y `weight`. Todos de solo lectura. **UI**: pestaña «Escuadrón» con la etiqueta fija «Señal de un bot externo · no es una operación» y el modo siempre visible.

@@ -3,6 +3,8 @@ import type { PriceChart } from './chart'
 import { SCEN_LABEL, scenColor } from './scenarios'
 import { esc } from './panels'
 import { literatureSection } from './literature_ui'
+import { supportText } from './squad_ui'
+import type { SquadSupport } from './squad_types'
 import type { AgentReport, Candle, ForecastSet, ScenarioId } from './types'
 
 const HORIZONS = [20, 25, 30]
@@ -23,7 +25,8 @@ export class ScenarioPanel {
 
   constructor(private readonly el: HTMLElement, private readonly chart: PriceChart,
     private readonly ctx: () => { symbol: string; tf: string },
-    private readonly literature: () => AgentReport | undefined = () => undefined) {
+    private readonly literature: () => AgentReport | undefined = () => undefined,
+    private readonly squad: () => SquadSupport | null = () => null) {
     el.onclick = (e) => {
       const t = e.target as HTMLElement
       const card = t.closest<HTMLElement>('.scen')
@@ -115,6 +118,7 @@ export class ScenarioPanel {
         `<span class="num">${(s.probability * 100).toFixed(0)}%${adj ? '*' : ''}</span></h4>` +
         `<p>${esc(s.narrative)}</p><p><b>Invalidación:</b> ${esc(s.invalidation.condition)}</p>` +
         (s.levels ?? []).map((l) => `<p class="meta"><b>${l.role === 'techo' ? 'Techo' : 'Piso'} ${l.price.toFixed(2)}</b> — ${esc(l.note)}</p>`).join('') +
+        `<p class="meta sq-support">${esc(supportText(this.squad(), s.id === 'bull' ? 'up' : s.id === 'bear' ? 'down' : 'flat'))}</p>` +
         literatureSection(s.id, this.literature(), () => this.render()) +
         `<p class="meta">motor ${esc(s.engine)} · n_paths ${s.n_paths} · simulado</p></button>`
     }).join('')

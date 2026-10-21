@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import math
 import statistics
+from collections.abc import Callable
 
 from eim.agents.base import no_data_report
 from eim.agents.bots.params import BotsParams
@@ -24,8 +25,15 @@ class BotsAgent:
     version = "0.1.0"
     requires = {"bot_signals"}
 
-    def __init__(self, params: BotsParams | None = None) -> None:
-        self.params = params or BotsParams()
+    def __init__(self, params: BotsParams | None = None,
+                 provider: Callable[[], BotsParams] | None = None) -> None:
+        """`provider`: parámetros vigentes (estados y pesos medidos por T59); sin él, `params`."""
+        self._params = params or BotsParams()
+        self._provider = provider
+
+    @property
+    def params(self) -> BotsParams:
+        return self._provider() if self._provider is not None else self._params
 
     def run(self, snapshot: MarketSnapshot) -> AgentReport:
         p = self.params
@@ -39,8 +47,12 @@ class BotsAgent:
         rows, warnings = [], []
         for s in sigs:
             state = p.states.get(key_of(s), "observa")
-            votes = state == p.voting_state and s.status == "ok"
-            rows.append({
+            k = key_of(s)
+            votes = (state == p.voting_state and s.status == "ok"
+                     and p.classes.get(k, "D") == "D"
+                     and (p.vote_symbol is None or p.vote_symbol == snapshot.symbol))
+            rows.append({"class": p.classes.get(k), "weight": p.weights.get(k),
+                         "modulates": k in p.modulating,
                 "bot_id": s.bot_id, "strategy": s.strategy, "stance": s.stance,
                 "confidence": s.confidence, "version": s.version, "status": s.status,
                 "state": state, "votes": votes, "asof": s.asof, "evidence": s.evidence,
@@ -54,8 +66,8 @@ class BotsAgent:
         voters = [(s, r) for s, r in zip(sigs, rows, strict=True) if r["votes"]]
         bias, conf, horizon = 0.0, 0.0, 0
         if voters:
-            w = [s.confidence if s.confidence is not None else p.neutral_weight
-                 for s, _ in voters]
+            w = [(s.confidence if s.confidence is not None else p.neutral_weight)
+                 * p.weights.get(key_of(s), 1.0) for s, _ in voters]
             total = sum(w)
             bias = sum(wi * s.stance for wi, (s, _) in zip(w, voters, strict=True)) / total \
                 if total > 0 else 0.0
@@ -70,6 +82,8 @@ class BotsAgent:
 
         ok = [s.stance for s in sigs if s.status == "ok"]
         disagreement = float(statistics.pstdev(ok)) if len(ok) >= 2 else None
+        mod = [s.stance for s in sigs if s.status == "ok" and key_of(s) in p.modulating]
+        mod_dis = float(statistics.pstdev(mod)) if len(mod) >= 2 else None
         evidence = [f"{r['bot_id']}@{r['strategy']}: postura {r['stance']:+.0f}, "
                     f"estado {r['state']}, {r['status']}" for r in rows]
         if not voters:
@@ -78,6 +92,7 @@ class BotsAgent:
             agent_id=self.id, version=self.version, asof=snapshot.asof,
             bias=max(-1.0, min(1.0, 0.0 if math.isnan(bias) else bias)), confidence=conf,
             horizon_bars=horizon, evidence=evidence, warnings=warnings,
-            metrics={"bots": rows, "disagreement": disagreement, "voters": len(voters),
+            metrics={"bots": rows, "disagreement": disagreement, "mod_disagreement": mod_dis,
+                     "voters": len(voters),
                      "signals": len(sigs), "source": "bot_signals"},
             status="degraded" if any(s.status == "degraded" for s in sigs) else "ok")

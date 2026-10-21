@@ -22,6 +22,7 @@ from eim.api.history import HistoryLoader
 from eim.api.leaders import LeaderDesk, build_leaders_router
 from eim.api.library import build_library_router
 from eim.api.live import Hub, overlays_of, synthesis_of
+from eim.api.micro import build_micro_router
 from eim.api.more import MoreSources, build_more_router
 from eim.api.obs import build_obs_router, build_observatory
 from eim.api.operation import build_operation_router
@@ -36,9 +37,13 @@ from eim.api.sources import BinanceKlineSource, LiveSource
 from eim.api.trades import build_trades_router
 from eim.api.validation import build_validation_router
 from eim.arbitrage.alerts import AlertParams
+from eim.bots.scorer import BotScorer
 from eim.bots.service import default_service
+from eim.bots.squad_runtime import SquadRuntime
 from eim.data.arb_store import ArbStore
 from eim.data.arb_sync import ArbSync
+from eim.data.bots.scorestore import ScoreStore
+from eim.data.bots.simstore import SimRunStore
 from eim.data.bots.store import BotSignalStore
 from eim.data.calendar_sync import CalendarSync
 from eim.data.paper_store import PaperStore
@@ -55,7 +60,8 @@ from eim.operation.supervisor import Operation, Supervisor
 from eim.paper.desk import PaperDesk
 from eim.risk import global_kill_switch, load_config
 from eim.suggestions.tracker import Tracker
-from eim.synthesis.params import SynthesisParams, role_of
+from eim.synthesis.params import role_of
+from eim.synthesis.squad import default_params
 from eim.validation.service import Validator
 
 API_VERSION = "2.0.0"
@@ -204,7 +210,12 @@ def create_app(
     app.state.obs_store, app.state.obs_indexer = obs_store, obs_indexer
     app.include_router(build_share_router(reports, paper_store, cfg.data_dir, lambda: share))
     app.include_router(build_forecast_router(forecaster))
-    app.include_router(build_bots_router(bot_store, bots))
+    # T59: puntuación del escuadrón; se recalcula al cierre de cada vela de 4 h.
+    bot_scorer = BotScorer(bot_store, ScoreStore(rcon, rlock), store, paper_store,
+                           SimRunStore(rcon, rlock))
+    paper.after_tick.append(bot_scorer.maybe_run)
+    SquadRuntime(bot_scorer, bots.quarantine).refresh()   # T60: política vigente desde T59
+    app.include_router(build_bots_router(bot_store, bots, bot_scorer))
     # T51: registro y resolución de lo publicado; el bróker lo llama tras cada ciclo.
     setups_router = build_setups_router(
         paper, validator, tracker=Tracker(SuggestionStore(paper_store), paper.ep))
@@ -220,6 +231,7 @@ def create_app(
     sm = reg.get("smart_money") if "smart_money" in reg.ids() else None
     app.state.leader_desk = LeaderDesk(cfg.data_dir, agent=sm)
     app.include_router(build_leaders_router(app.state.leader_desk))
+    app.include_router(build_micro_router(cfg.data_dir))
     app.include_router(build_paper_router(paper))
     app.include_router(build_paper_arb_router(store, cfg.data_dir))  # T45: pruebas en papel
     app.state.paper = paper
@@ -246,7 +258,7 @@ def create_app(
     def agents(symbol: str = "ETHUSDT", tf: str = "1h") -> list[dict]:
         _check(symbol, tf)
         last = {r.agent_id: r for r in reports.latest(symbol, tf)}
-        sp = SynthesisParams()
+        sp = default_params()
         out = []
         for a in reg.latest():
             r = last.get(a.id)

@@ -38,7 +38,8 @@ DATA: tuple[Component, ...] = (
       produces=("econ_events",)),
     c("data.micro_collector", "data", "datos", "service", "collector", "T23", "Recolector de órdenes",
       "Proceso aparte que escucha operaciones y libro de órdenes de Binance y los guarda por hora "
-      "en el disco. Alimenta al agente de flujo de órdenes.", cadence="continuo", cadence_s=3600,
+      "en el disco, con latido cada 30 s; un vigilante lo relanza si cae y avisa si el disco o el flujo "
+      "fallan. Alimenta al agente de flujo de órdenes.", cadence="continuo", cadence_s=60,
       produces=("micro_bars",)),
     c("data.liq_collector", "data", "datos", "service", "collector", "T07", "Recolector de liquidaciones",
       "Proceso aparte que escucha las liquidaciones forzadas en vivo de Binance, Bybit y OKX y las "

@@ -73,3 +73,15 @@ class BotSignalStore:
                 "symbol = ? AND timeframe = ? AND asof_ms < ? ORDER BY asof_ms DESC LIMIT 1",
                 [bot_id, strategy, symbol, timeframe, before]).fetchone()
         return row[0] if row else None
+
+    def query_all(self, symbol: str, timeframe: str, end: int | None = None
+                  ) -> list[tuple[BotSignal, int]]:
+        """Todas las señales (hasta `end`) con el momento en que se guardaron (T59): distingue lo
+        decidido en vivo de lo rellenado después. Por `asof` ascendente."""
+        q, args = ("SELECT signal, created_ms FROM bot_signals WHERE symbol = ? AND "
+                   "timeframe = ?"), [symbol, timeframe]
+        if end is not None:
+            q, args = q + " AND asof_ms <= ?", [*args, end]
+        with self._lock:
+            rows = self._con.execute(q + " ORDER BY asof_ms, bot_id, strategy", args).fetchall()
+        return [(BotSignal.model_validate_json(r[0]), int(r[1])) for r in rows]
