@@ -6,6 +6,7 @@ import type { Candle } from './types'
 import { cssVar } from './theme'
 import { LayerEngine } from './layers'
 import { ScenarioLayer } from './scenarios'
+import { chartTimeLocale } from './tz'
 
 const toBar = (c: Candle): CandlestickData<UTCTimestamp> => ({
   time: Math.floor(c.t / 1000) as UTCTimestamp, open: c.o, high: c.h, low: c.l, close: c.c,
@@ -24,7 +25,8 @@ export class PriceChart {
     this.chart = createChart(el, {
       autoSize: true,
       crosshair: { mode: CrosshairMode.Normal },
-      timeScale: { timeVisible: true, secondsVisible: false, rightOffset: 6 },
+      localization: chartTimeLocale.localization,
+      timeScale: { timeVisible: true, secondsVisible: false, rightOffset: 6, ...chartTimeLocale.timeScale },
       layout: { background: { type: ColorType.Solid, color: 'transparent' }, fontFamily: 'inherit' },
     })
     this.series = this.chart.addSeries(CandlestickSeries, {})

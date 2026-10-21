@@ -152,7 +152,7 @@ export class PaperLearn {
         `últimas 10: ${rr(s.last10_r)} · decididas en vivo: ${s.origin_live}</p>` +
         `<p class="muted">Por qué perdió: ${causes || '—'}</p>` +
         (ctx ? `<p class="pp-ctxs"><b>Contextos (régimen · lado):</b> ${ctx}</p>` : '') +
-        `<table class="pp-t pp-mini"><thead><tr><th>Señal (UTC)</th><th>Lado</th><th>Entrada / SL / TP</th><th>Estado</th><th>R</th><th>Por qué</th></tr></thead><tbody>` +
+        `<table class="pp-t pp-mini"><thead><tr><th>Señal (COT)</th><th>Lado</th><th>Entrada / SL / TP</th><th>Estado</th><th>R</th><th>Por qué</th></tr></thead><tbody>` +
         r.ideas.map((o) => `<tr><td class="num">${utc(o.t)}</td><td>${side(o.side)} · ${o.kind === 'limit' ? 'límite' : 'mercado'}</td>` +
           `<td class="num">${px(o.fill ?? o.entry)} / ${px(o.sl)} / ${px(o.tp)}</td>` +
           `<td>${STATUS[o.status] ?? o.status}${o.reason ? ` · ${REASON[o.reason] ?? o.reason}` : ''}</td>` +

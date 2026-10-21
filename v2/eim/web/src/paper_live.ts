@@ -74,7 +74,7 @@ export class PaperLive {
         `<td>${shadowCell(d)}</td>${profs}</tr>`
     }).join('')
     return sum + `<div class="pp-lcs">${candles}</div>` +
-      `<div class="pp-scroll"><table class="pp-t pp-live-t"><thead><tr><th>Decisión (UTC)</th><th>Estrategia</th><th>Lado</th>` +
+      `<div class="pp-scroll"><table class="pp-t pp-live-t"><thead><tr><th>Decisión (COT)</th><th>Estrategia</th><th>Lado</th>` +
       `<th>Entrada / SL / TP</th><th>Evaluación sombra</th>${heads}</tr></thead><tbody>${rows}</tbody></table></div>` +
       '<p class="muted pp-note">La <b>evaluación sombra</b> simula TODAS las señales con precios reales y costos, sin capital: así se mide cada estrategia ' +
       'aunque ningún perfil la tome. Cada <b>perfil</b> solo abre las que pasan sus filtros (costo, tendencia del marco mayor, estrategia no pausada…); ' +

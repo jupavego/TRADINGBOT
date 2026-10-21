@@ -1,5 +1,6 @@
 import type { ArbAlert, ArbBasis, ArbFunding, ArbRow, ArbScanInfo, ArbStrategy } from './arb_types'
 import { esc } from './panels'
+import { bogIso } from './tz'
 
 export const STRATEGY: Record<ArbStrategy, string> = {
   funding_carry: 'Carry de funding', basis: 'Base / cash-and-carry',
@@ -17,7 +18,7 @@ export const usd = (x: number, d = 2): string => `${x > 0 ? '+' : ''}${num(x, d)
 export const pct = (x: number | null | undefined, d = 2): string =>
   x == null ? '—' : `${x > 0 ? '+' : ''}${num(x * 100, d)} %`
 const dir = (x: number): string => (x > 0 ? 'up' : x < 0 ? 'down' : 'flat')
-export const utc = (t: number): string => new Date(t).toISOString().slice(11, 19) + ' UTC'
+export const utc = (t: number): string => bogIso(t).slice(11, 19) + ' COT'
 
 export function horizon(h: number): string {
   if (h <= 0) return 'instantáneo'
@@ -93,7 +94,7 @@ function spark(h: [number, number][]): string {
   const bars = h.map(([t, r], i) => {
     const y = (Math.abs(r) / m) * (ht / 2 - 1)
     return `<rect x="${(i * bw + 0.5).toFixed(1)}" y="${(r >= 0 ? ht / 2 - y : ht / 2).toFixed(1)}" width="${Math.max(1, bw - 1).toFixed(1)}" ` +
-      `height="${Math.max(0.5, y).toFixed(1)}" fill="var(--${r >= 0 ? 'up' : 'down'})"><title>${new Date(t).toISOString().slice(0, 16).replace('T', ' ')} UTC · ${(r * 100).toFixed(4)} %</title></rect>`
+      `height="${Math.max(0.5, y).toFixed(1)}" fill="var(--${r >= 0 ? 'up' : 'down'})"><title>${bogIso(t).slice(0, 16).replace('T', ' ')} COT · ${(r * 100).toFixed(4)} %</title></rect>`
   }).join('')
   return `<svg class="arb-spark" width="${w}" height="${ht}" role="img" aria-label="Funding realizado">` +
     `<line x1="0" x2="${w}" y1="${ht / 2}" y2="${ht / 2}" stroke="var(--line)"/>${bars}</svg>`

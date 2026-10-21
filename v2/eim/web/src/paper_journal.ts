@@ -114,6 +114,6 @@ export class PaperJournal {
     const more = this.events.length < this.total ? `<button class="btn" data-more="1">Cargar ${Math.min(PAGE, this.total - this.events.length)} más (de ${this.total})</button>` : ''
     this.el.innerHTML = `<div class="pp-filters">${profs}${tfs}${strats}</div><div class="pp-chips">${chips}</div>` +
       (body || '<p class="muted">Sin eventos con estos filtros.</p>') + more +
-      '<p class="muted pp-note">Horas en UTC. «Rechazada» = la idea existió pero el perfil no la tomó (filtros, cupo, margen o pausa por retroalimentación).</p>'
+      '<p class="muted pp-note">Horas en COT. «Rechazada» = la idea existió pero el perfil no la tomó (filtros, cupo, margen o pausa por retroalimentación).</p>'
   }
 }

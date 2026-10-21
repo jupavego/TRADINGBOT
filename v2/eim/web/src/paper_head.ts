@@ -19,7 +19,7 @@ export function liveStrip(v: PaperSummary, now = Date.now()): string {
     const to = c?.to ?? null
     const next = to === null ? null : to + (TF_MS[tf] ?? 0)
     return `<span class="pp-tf"><b>${tf}</b> ${c?.contexts ?? 0} velas · ${c?.origins?.vivo ?? 0} en vivo` +
-      (to === null ? '' : ` · última ${hm(to)} UTC · próxima ${next! + (TF_MS[tf] ?? 0) <= now ? 'atrasada (poniéndose al día)' : next! <= now ? 'en análisis' : `${hm(next!)} UTC`}`) + '</span>'
+      (to === null ? '' : ` · última ${hm(to)} COT · próxima ${next! + (TF_MS[tf] ?? 0) <= now ? 'atrasada (poniéndose al día)' : next! <= now ? 'en análisis' : `${hm(next!)} COT`}`) + '</span>'
   }).join('')
   const err = v.live.error ? ` <span class="down">· ${esc(v.live.error)}</span>` : ''
   return `<span class="pp-live-dot" data-state="${state}"><i></i>${label}${err}</span>${tfs}${viewNote(v, now)}`
@@ -39,7 +39,7 @@ function viewNote(v: PaperSummary, now: number): string {
 export function covText(v: PaperSummary): string {
   const c = v.coverage
   return c.contexts
-    ? `${c.contexts} velas analizadas (${c.origins.vivo ?? 0} en vivo · ${c.origins.backtest ?? 0} reconstruidas) · ${utc(c.from!)} → ${utc(c.to!)} UTC`
+    ? `${c.contexts} velas analizadas (${c.origins.vivo ?? 0} en vivo · ${c.origins.backtest ?? 0} reconstruidas) · ${utc(c.from!)} → ${utc(c.to!)} COT`
     : 'sin velas analizadas: ejecuta un backtest'
 }
 

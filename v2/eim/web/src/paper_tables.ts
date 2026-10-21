@@ -116,7 +116,7 @@ export function historyTable(ts: PaperTrade[], names: Names, sym: string, f: His
     `<td class="num"><small>com. ${nf(t.fees)} · desl. ${nf(t.slip)}<br>funding ${usd(t.funding)}${t.funding_assumed ? '*' : ''}</small></td>` +
     `<td class="num">${dur(t.exit_t - t.fill_t)}</td></tr>`).join('')
   const more = sel.length > f.limit ? `<button class="btn" data-more="hist">Ver ${Math.min(200, sel.length - f.limit)} más</button>` : ''
-  return head + `<div class="pp-scroll"><table class="pp-t"><thead><tr><th>Entrada → salida (UTC)</th><th>Estrategia</th><th>Lado</th>` +
+  return head + `<div class="pp-scroll"><table class="pp-t"><thead><tr><th>Entrada → salida (COT)</th><th>Estrategia</th><th>Lado</th>` +
     `<th>Precio</th><th>Motivo</th><th>PnL neto (USDT)</th><th>Costos</th><th>Duración</th></tr></thead><tbody>${rows}</tbody></table></div>` +
     more + '<p class="muted pp-note">PnL neto de comisiones, deslizamiento y funding. * funding supuesto donde faltaba el dato real. Pasa el cursor por una fila para ver por qué se abrió.</p>'
 }

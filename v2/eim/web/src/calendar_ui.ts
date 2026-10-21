@@ -1,3 +1,4 @@
+import { bogIso } from './tz'
 /** Detalle del agente `calendar` (T36): riesgo de evento, no direccional. Lista los próximos
  *  eventos (impacto medio/alto), la ventana activa, la sorpresa y el estado de cada fuente. */
 
@@ -12,7 +13,7 @@ interface Metrics {
 }
 
 const esc = (s: unknown): string => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
-const utc = (t: number): string => new Date(t).toISOString().slice(5, 16).replace('T', ' ')
+const utc = (t: number): string => bogIso(t).slice(5, 16).replace('T', ' ')
 const IMP: Record<string, string> = { alto: 'Alto', medio: 'Medio', bajo: 'Bajo' }
 const SRC: Record<string, string> = { fed_fomc: 'Fed (FOMC)', bls: 'BLS', bea: 'BEA' }
 
@@ -37,9 +38,9 @@ export function calendarDetail(m: Metrics): string {
   const sur = s ? `<p class="muted">Sorpresa ${esc(s.event)}: ${s.z === null ? 'n/d' : `z ${num(s.z)}`} — ${esc(s.note)}</p>` : ''
   const srcs = Object.entries(m.sources ?? {}).map(([k, v]) => {
     const st = !v.present ? 'sin datos' : v.fresh ? `hace ${v.age_h} h` : `obsoleta (${v.age_h} h)`
-    return `<span class="tf" data-ok="${v.present && v.fresh ? 1 : 0}" title="${v.known_until ? `conocido hasta ${utc(v.known_until)} UTC` : ''}">${esc(SRC[k] ?? k)} · ${esc(st)}</span>`
+    return `<span class="tf" data-ok="${v.present && v.fresh ? 1 : 0}" title="${v.known_until ? `conocido hasta ${utc(v.known_until)} COT` : ''}">${esc(SRC[k] ?? k)} · ${esc(st)}</span>`
   }).join('')
-  return `<div class="cal">${win}<h4>Próximos eventos (UTC)</h4>` +
+  return `<div class="cal">${win}<h4>Próximos eventos (COT)</h4>` +
     (up ? `<table class="metrics evt-t">${up}</table>` : '<p class="muted">Sin eventos de impacto medio/alto en los próximos 7 días.</p>') +
     (rec ? `<h4>Últimas 24 h</h4><table class="metrics evt-t">${rec}</table>` : '') + sur +
     `<p class="tfs">${srcs}</p><p class="muted">Consenso no disponible (fuentes oficiales gratuitas). Sin sesgo direccional.</p></div>`
