@@ -153,10 +153,14 @@ def _first(mask: np.ndarray) -> int | None:
     return i if len(mask) and mask[i] else None
 
 
-def _slip(path: Path, j: int, p: ExecParams) -> float:
+def _slip(path: Path, j: int, p: ExecParams, entry: bool = False) -> float:
+    """Deslizamiento relativo de un llenado a mercado. La entrada usa parámetros propios
+    (libro real: ≈ 0,01 pb); las salidas por SL/BE/tiempo conservan el término de volatilidad."""
     cp = p.costs
     rng = float((path.h[j] - path.l[j]) / path.o[j]) if path.o[j] > 0 else 0.0
-    return min(max(cp.slip_base_bps / 1e4 + cp.slip_vol_k * rng, 0.0), cp.slip_cap_bps / 1e4)
+    base, k = ((cp.slip_entry_base_bps, cp.slip_entry_vol_k) if entry
+               else (cp.slip_base_bps, cp.slip_vol_k))
+    return min(max(base / 1e4 + k * rng, 0.0), cp.slip_cap_bps / 1e4)
 
 
 def _funding(path: Path, side: int, t0: int, t1: int, p: ExecParams) -> tuple[float, bool]:
@@ -188,7 +192,7 @@ def simulate(idea: Idea, path: Path, p: ExecParams) -> Outcome:
     if j0 >= len(path.t):
         return Outcome(idea, "PENDIENTE")
     if idea.kind == "market":
-        slip_in = _slip(path, j0, p)
+        slip_in = _slip(path, j0, p, entry=True)
         fill = float(path.o[j0]) * (1 + s * slip_in)
         fee_in, k, start = cp.taker_fee, j0, j0
     else:

@@ -22,6 +22,7 @@ from eim.api.forecast import DEFAULT_HORIZON
 from eim.api.forecast_db import ForecastStore
 from eim.api.risk import RiskDesk
 from eim.data import backup
+from eim.data.collectors.compact import compact_closed
 from eim.execution.sim_broker import SimBroker
 from eim.observability import hooks_service
 from eim.operation import report as report_io
@@ -68,6 +69,7 @@ class Operation:
         self._db = (con, lock)
         self.extra_dbs = extra_dbs or {}   # otras bases abiertas que entran en la copia (T73)
         self._step_lock = threading.RLock()
+        self._compact_at = 0
         self._backup_retry_at = 0          # tras un fallo, reintento espaciado (BACKUP_RETRY_MS)
         self.book = EquityBook(con, lock, self.mode) if rt.svc is not None else None
         rt.equity_book = self.book
@@ -98,6 +100,7 @@ class Operation:
             state.save(self.state_path, self.desk.rt.svc, self.cursors, self.mode)
             self.weekly_if_due(now)
             self.backup_if_due(now)
+            self.compact_micro_if_due(now)
         row = res.to_json()
         row["cycle_t"] = row.pop("t")
         self.log.write("ciclo", "info" if res.ok else "warn", **row)
@@ -166,6 +169,20 @@ class Operation:
         state.save(self.state_path, self.desk.rt.svc, self.cursors, self.mode)
         self.alerts.emit(Alert(now, REPORT, INFO, "Informe semanal listo", out["md"]))
         hooks_service.service_event("operation.report", "informe semanal escrito")
+
+    def compact_micro_if_due(self, now: int) -> None:
+        """Une cada hora los archivos de microestructura de las horas ya cerradas (acota el
+        coste de leer ventanas largas). Cada pasada limita el trabajo; nunca frena la operación."""
+        if now < self._compact_at:
+            return
+        self._compact_at = now + 3_600_000
+        try:
+            done = compact_closed(self.data_dir, now, max_dirs=12)
+            if done:
+                self.log.write("micro_compactada", horas=len(done),
+                               archivos=sum(x[1] for x in done))
+        except Exception as e:  # noqa: BLE001 - mantenimiento: se avisa en el registro y se sigue
+            self.log.write("micro_compactada", "warn", error=f"{type(e).__name__}: {e}")
 
     def backup_if_due(self, now: int) -> None:
         """Copia de seguridad diaria (UTC). Un fallo alerta (una vez) y se reintenta cada
