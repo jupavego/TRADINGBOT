@@ -46,7 +46,7 @@ def test_after_a_run_the_agent_has_evidence_and_signals_are_persisted(client):
     rep = _analyze(client)
     bots = next(r for r in rep["reports"] if r["agent_id"] == "bots")
     assert bots["status"] == "ok" and bots["bias"] == 0 and bots["confidence"] == 0
-    assert {b["strategy"] for b in bots["metrics"]["bots"]} == {"bollinger_v1", "macd_bb_v1"}
+    assert {b["strategy"] for b in bots["metrics"]["bots"]} >= {"bollinger_v1", "macd_bb_v1"}
     assert bots["evidence"] and all(b["votes"] is False for b in bots["metrics"]["bots"])
     ag = {a["id"]: a for a in client.get("/v2/agents").json()}
     assert ag["bots"]["last_asof"] == rep["asof"] and ag["bots"]["status"] == "ok"
@@ -54,7 +54,8 @@ def test_after_a_run_the_agent_has_evidence_and_signals_are_persisted(client):
     assert saved["signals"], "bot_signals vacío"
     assert {s["asof"] for s in saved["signals"]} >= {rep["asof"]}
     last = [s for s in saved["signals"] if s["asof"] == rep["asof"]]
-    assert {s["strategy"] for s in last} == {"bollinger_v1", "macd_bb_v1"}
+    got = {s["strategy"] for s in last}      # y los de Jesse/TrendRider (no_data)
+    assert got >= {"bollinger_v1", "macd_bb_v1"}
     assert all(s["data_quality"]["last_candle_t"] <= s["asof"] and len(s["version"]) == 53
                for s in last)
     # el agente no entra en la síntesis
@@ -66,9 +67,11 @@ def test_signals_route_validates_and_catalog_lists_only_usable(client):
     assert client.get("/v2/bots/signals", params={"symbol": "XXX"}).status_code == 400
     cat = client.get("/v2/bots/catalog").json()
     assert {b["id"] for b in cat["bots"]} == {
-        "hummingbot-directional", "freqtrade", "freqtrade-strategies", "passivbot"}
+        "hummingbot-directional", "freqtrade", "freqtrade-strategies", "passivbot",
+        "nostalgia-for-infinity", "jesse-example-strategies", "trendrider-strategy"}
     active = {b["id"] for b in cat["bots"] if b["adapter_active"]}
-    assert active == {"hummingbot-directional"}            # B solo si hay entorno configurado
+    assert active == {"hummingbot-directional", "jesse-example-strategies",
+                      "trendrider-strategy"}       # B solo si hay entorno configurado
     assert "no tienen voto" in cat["mode"]
 
 
@@ -86,9 +89,9 @@ def test_squad_endpoint_lists_real_bots_with_label_and_no_orders(client):
     r = client.get("/v2/bots", params={"symbol": "ETHUSDT", "tf": "1h"}).json()
     assert r["label"] == "Señal de un bot externo · no es una operación"
     assert r["mode"].startswith("ANALISIS") and r["channels"]["second_opinion"] is True
-    assert {b["strategy"] for b in r["bots"]} == {"bollinger_v1", "macd_bb_v1"}
+    assert {b["strategy"] for b in r["bots"]} >= {"bollinger_v1", "macd_bb_v1"}
     assert all(b["votes"] is False and b["asof"] == rep["asof"] for b in r["bots"])
     assert all(not {"size", "qty", "leverage", "order"} & set(b) for b in r["bots"])
-    assert r["support"]["total"] == len(r["bots"])
+    assert r["support"]["total"] == sum(b["signal_status"] == "ok" for b in r["bots"])
     assert client.get("/v2/bots", params={"symbol": "XXX"}).status_code == 400
     assert client.post("/v2/bots", headers={"X-EIM-Confirm": "1"}).status_code in (404, 405)

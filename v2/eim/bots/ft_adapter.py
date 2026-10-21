@@ -64,6 +64,10 @@ class FreqtradeAdapter:
     """Modo B: una ejecución aislada por estrategia; un fallo de una no afecta a las otras."""
 
     bot_id = BOT_ID
+    strategy_subdir = FUTURES_DIR    # subcarpeta del checkout con las estrategias
+    max_bars = MAX_BARS
+    min_startup = 0                  # arranque mínimo propio (informativos largos), en velas
+    note_exits = NOTE_EXITS
 
     def __init__(self, python: Path, checkout: Path, engine_version: str,
                  strategies: tuple[str, ...] = ("FSupertrendStrategy",),
@@ -77,17 +81,20 @@ class FreqtradeAdapter:
         self.card = card or card_of(BOT_ID)
 
     def version(self, strategy: str) -> str:
-        params = {"strategy": strategy, "engine": self.engine_version}
+        # `hyperopt`: desde 2026-10-21 se aplican buy_params/sell_params de la estrategia (antes
+        # corría con los valores por defecto de los parámetros): es otra versión del bot
+        params = {"strategy": strategy, "engine": self.engine_version, "hyperopt": "aplicado"}
         return version_of(self.card.commit_sha, params)
 
     def signals(self, snapshot: MarketSnapshot) -> list[BotSignal]:
         return [self._one(snapshot, s) for s in self.strategies]
 
-    def _spec(self, snap: MarketSnapshot, strategy: str, max_bars: int = MAX_BARS) -> RunSpec:
-        rows = [[c.t, c.o, c.h, c.l, c.c, c.v] for c in snap.candles[-max_bars:]]
+    def _spec(self, snap: MarketSnapshot, strategy: str, max_bars: int | None = None) -> RunSpec:
+        rows = [[c.t, c.o, c.h, c.l, c.c, c.v] for c in snap.candles[-(max_bars or self.max_bars):]]
         return RunSpec(
             python=self.python, script=self.script, limits=self.limits,
-            request={"strategy": strategy, "strategy_dir": str(self.checkout / FUTURES_DIR),
+            request={"strategy": strategy,
+                     "strategy_dir": str(self.checkout / self.strategy_subdir),
                      "timeframe": snap.timeframe, "pair": ft_pair(snap.symbol)},
             files={"candles.json": json.dumps(rows)},
             bot_dir=self.checkout, expected_sha=self.card.commit_sha)
@@ -113,10 +120,10 @@ class FreqtradeAdapter:
             return empty_signal(self.card, strategy, ver, snap, "degraded",
                                 f"motor Freqtrade {engine} ≠ el fijado {self.engine_version}")
         flags = {k: [int(x) for x in v] for k, v in out["flags"].items()}
-        sent = snap.candles[-MAX_BARS:]
+        sent = snap.candles[-self.max_bars:]
         if [int(t) for t in out["times"]] != [c.t for c in sent]:
             raise ValueError("las velas devueltas no coinciden con las enviadas")
-        startup = int(out["startup_candle_count"])
+        startup = max(int(out["startup_candle_count"]), self.min_startup)
         if len(sent) <= startup:
             return empty_signal(self.card, strategy, ver, snap, "no_data",
                                 f"velas insuficientes: {len(sent)} ≤ arranque {startup}",
@@ -130,11 +137,16 @@ class FreqtradeAdapter:
             bot_id=self.card.id, strategy=strategy, version=ver, asof=snap.asof,
             timeframe=snap.timeframe, symbol=snap.symbol, stance=stance, confidence=None,
             evidence=[f"{strategy}: postura {stance:g} (banderas de la última vela {last}; "
-                      f"mantenida {held} velas); {NOTE_EXITS}"],
+                      f"mantenida {held} velas); {self.note_exits}"],
             raw={"flags_last": last, "held_bars": held, "engine": engine,
                  "startup_candle_count": startup, "can_short": bool(out["can_short"]),
                  "run_s": round(res.duration_s, 3), "isolation": net},
-            data_quality=quality_of(snap, startup + 1, NOTE_EXITS), status="ok")
+            data_quality=quality_of(snap, startup + 1, self.note_exits), status="ok")
+
+    def _run_all(self, snap: MarketSnapshot, strategy: str) -> dict | None:
+        """Salida del bot sobre TODAS las velas del snapshot (una corrida); None si falla."""
+        res = self.runner(self._spec(snap, strategy, max_bars=len(snap.candles)))
+        return res.output if res.status == "ok" else None
 
     def history(self, snap: MarketSnapshot, strategy: str, from_asof: int) -> list[BotSignal]:
         """Relleno histórico: UNA corrida del bot sobre todas las velas del snapshot y una señal
@@ -144,18 +156,17 @@ class FreqtradeAdapter:
         adelante: eso lo comprueba `tests/bots/test_ft_adapter.py` (truncar no cambia posturas
         pasadas) y la verificación con el bot real. Falla ⇒ lista vacía (no lanza)."""
         ver = self.version(strategy)
-        res = self.runner(self._spec(snap, strategy, max_bars=len(snap.candles)))
-        if res.status != "ok" or res.output is None:
+        out = self._run_all(snap, strategy)
+        if out is None:
             return []
         try:
-            out = res.output
             if out["engine"] != self.engine_version:
                 return []
             flags = {k: [int(x) for x in v] for k, v in out["flags"].items()}
             cs, step = snap.candles, tf_ms(snap.timeframe)
             if [int(t) for t in out["times"]] != [c.t for c in cs]:
                 return []
-            startup = int(out["startup_candle_count"])
+            startup = max(int(out["startup_candle_count"]), self.min_startup)
             pos = positions(flags, bool(out["can_short"]), startup)
             sigs = []
             for i in range(startup, len(cs)):
@@ -168,12 +179,12 @@ class FreqtradeAdapter:
                     timeframe=snap.timeframe, symbol=snap.symbol, stance=float(pos[i]),
                     confidence=None,
                     evidence=[f"{strategy}: postura {pos[i]:g} (banderas {last}); relleno "
-                              f"histórico de una sola corrida; {NOTE_EXITS}"],
+                              f"histórico de una sola corrida; {self.note_exits}"],
                     raw={"flags_last": last, "engine": out["engine"], "backfill": True},
                     data_quality=BotQuality(
                         bars=i + 1, last_candle_t=cs[i].t,
                         source=snap.sources.get("candles", "desconocida"), coverage=1.0,
-                        notes=[NOTE_EXITS]),
+                        notes=[self.note_exits]),
                     status="ok"))
             return sigs
         except (KeyError, TypeError, ValueError, IndexError):

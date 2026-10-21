@@ -30,6 +30,7 @@ def load_strategy(strategy_dir: str, name: str, timeframe: str):
     config = {"stake_currency": "USDT", "dry_run": True, "runmode": RunMode.OTHER,
               "trading_mode": "futures", "margin_mode": "isolated", "timeframe": timeframe}
     strat = getattr(module, name)(config)
+    strat.ft_load_hyper_params()   # lo que hace el resolvedor: aplica buy_params/sell_params
     if getattr(strat, "INTERFACE_VERSION", 2) != 3:
         raise SystemExit(f"{name}: solo se admite INTERFACE_VERSION 3")
     return strat

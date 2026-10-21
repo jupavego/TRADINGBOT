@@ -13,6 +13,7 @@ SW = {"S1": 15, "S2": 15, "S3": 15, "S4": 10, "S5": 10, "S6": 10, "S7": 10, "S8"
 RED = {"R1", "R2", "R3", "R4", "R5", "R6", "R7"}
 THRESHOLD = 70
 APPROVED = {"hummingbot-directional", "freqtrade", "freqtrade-strategies", "passivbot"}
+APPROVED_2 = {"nostalgia-for-infinity", "jesse-example-strategies", "trendrider-strategy"}
 REQUIRED = {
     "id", "name", "repo", "commit_sha", "commit_date", "audited_at", "license", "bot_class",
     "integration_mode", "binance_markets", "strategies", "dependencies", "risks", "verdict",
@@ -79,9 +80,10 @@ def test_integration_rules(path):
         assert c["verdict"] == "descartar" and c["squad_proposal"] == "no"
     if spdx == "NONE":
         assert c["license"]["file"] is None and "R2" in c["security"]["red_alerts"]
-    # Aprobación: solo el usuario la cambia (decisión escrita del 2026-10-19).
-    if c["id"] in APPROVED:
-        assert c["approval"] == {"state": "aprobada", "by": "usuario", "at": "2026-10-19"}
+    # Aprobación: solo el usuario la cambia (decisiones escritas del 2026-10-19 y 2026-10-20).
+    if c["id"] in APPROVED | APPROVED_2:
+        day = "2026-10-19" if c["id"] in APPROVED else "2026-10-20"
+        assert c["approval"] == {"state": "aprobada", "by": "usuario", "at": day}
         assert c["squad_proposal"] == "propuesto"
     else:
         assert c["approval"] == {"state": "pendiente", "by": None, "at": None}

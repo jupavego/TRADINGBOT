@@ -8,8 +8,9 @@ TF_MS: dict[str, int] = {
     "4h": 4 * 60 * 60_000,
 }
 
-# Marcos solo de almacén/histórico: no se exponen en la API ni en la UI (T43: triangular 1 min).
-STORE_ONLY_TF_MS: dict[str, int] = {"1m": 60_000}
+# Marcos solo de almacén/histórico: no se exponen en la API ni en la UI
+# (T43: triangular 1 min; 5m: velas de NFI, agregadas de 1m).
+STORE_ONLY_TF_MS: dict[str, int] = {"1m": 60_000, "5m": 300_000}
 
 SYMBOLS: tuple[str, ...] = ("BTCUSDT", "ETHUSDT")
 # Foco actual: lo que los servicios analizan en vivo y lo que muestra la UI. 2026-10-15: solo

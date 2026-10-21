@@ -31,14 +31,14 @@
     "Largo solamente: no cubre cortos en perpetuos"
   ],
   "verdict": "usar",
-  "squad_proposal": "opcional",
+  "squad_proposal": "propuesto",
   "reasons": [
     "MIT clara y lógica contenida en un archivo sin red ni archivos (verificado por búsqueda de patrones). Opcional por su origen promocional y por no tener respaldo medible"
   ],
   "approval": {
-    "state": "pendiente",
-    "by": null,
-    "at": null
+    "state": "aprobada",
+    "by": "usuario",
+    "at": "2026-10-20"
   },
   "operational": {
     "checks": {
