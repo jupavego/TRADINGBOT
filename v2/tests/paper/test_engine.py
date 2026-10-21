@@ -144,3 +144,14 @@ def test_breakeven_only_in_configured_timeframes():
     o = simulate(replace(idea(), timeframe="15m"), Path(cs), ZERO)
     assert o.reason == "SL"                                     # 15 m: sin break-even
 
+
+
+def test_market_entry_uses_entry_slippage_not_the_exit_one():
+    from eim.backtest.params import CostParams
+    cp = CostParams(taker_fee=0.0, maker_fee=0.0, slip_base_bps=5.0, slip_vol_k=0.0,
+                    slip_entry_base_bps=0.1, slip_entry_vol_k=0.0, slip_impact_k=0.0)
+    ep = ExecParams(costs=cp, funding_8h_assumed=0.0)
+    o = simulate(idea(), Path(flat(8)), ep)          # sin SL/TP: la posición sigue abierta
+    assert o.status == "ABIERTA" and o.fill == pytest.approx(100.0 * (1 + 0.1e-4))
+    t = simulate(idea(hold_h=1), Path(flat(20)), ep)  # salida por tiempo: deslizamiento de salida
+    assert t.reason == "TIEMPO" and t.slip == pytest.approx(0.1e-4 + 5e-4)
