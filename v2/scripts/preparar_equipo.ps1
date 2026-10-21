@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Prepara un equipo nuevo tras clonar el repositorio: comprueba herramientas, crea el entorno
   virtual con las versiones probadas (`requirements-lock.txt`), instala la web (`npm ci`) y corre
