@@ -159,6 +159,10 @@ class ProfileParams(BaseModel):
     caps: CapParams = CapParams()    # topes de riesgo (apagados por defecto)
 
 
+# Evidencia en sombra (BTC y ETH, 3–21 oct 2026, reports/profile_caps.md): con tope 3 % + freno 5 %
+# el Agresivo en BTC pasa de −52 % a −14 % (ETH +12 % → +9 %); el Moderado de −11 % a −10 %.
+PROFILE_CAPS = CapParams(max_dir_risk=0.03, dd_brake=0.05)
+
 PROFILES: tuple[ProfileParams, ...] = (
     ProfileParams(
         id="conservador", name="Conservador",
@@ -178,25 +182,27 @@ PROFILES: tuple[ProfileParams, ...] = (
         id="moderado", name="Moderado",
         description="Todas las familias direccionales salvo las contrarias, a favor de la "
                     "tendencia mayor, costo ≤ 0,15 R; 1 % de riesgo, hasta 5x. Mantiene al menos 2 "
-                    "posiciones abiertas y 1 orden pendiente.",
+                    "posiciones abiertas y 1 orden pendiente. Tope de riesgo abierto del 3 % por "
+                    "dirección y freno de entradas si cae 5 % desde el máximo.",
         risk_pct=0.01, max_leverage=5, max_open=6, min_conf=0.15, min_rr=1.3,
         min_open=2, min_pending=1,
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
                             "base"}),
         allow_hedge=True, follow_synthesis=False, max_cost_r=0.15, require_htf=True,
-        feedback=FeedbackParams(z_pause=0.0, observe_w=0.25)),
+        feedback=FeedbackParams(z_pause=0.0, observe_w=0.25), caps=PROFILE_CAPS),
     ProfileParams(
         id="agresivo", name="Agresivo",
         description="Todo el abanico (incluidas las contrarias) a favor de la tendencia mayor; "
                     "2 % de riesgo, hasta 10x, explora más y refuerza rápido lo que gana. Mantiene "
-                    "al menos 3 posiciones abiertas y 2 órdenes pendientes.",
+                    "al menos 3 posiciones abiertas y 2 órdenes pendientes. Tope de riesgo abierto "
+                    "del 3 % por dirección y freno de entradas si cae 5 % desde el máximo.",
         risk_pct=0.02, max_leverage=10, max_open=10, min_conf=0.0, min_rr=1.1,
         min_open=3, min_pending=2,
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
                             "base", "contrarias"}),
         allow_hedge=True, follow_synthesis=False, max_cost_r=0.2, require_htf=True,
         feedback=FeedbackParams(gain=2.5, w_min=0.25, w_max=3.0, half_life=20, n_min=6,
-                                z_pause=0.0, observe_w=0.5)),
+                                z_pause=0.0, observe_w=0.5), caps=PROFILE_CAPS),
 )
 
 
