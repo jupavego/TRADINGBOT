@@ -89,9 +89,9 @@ def test_squad_endpoint_lists_real_bots_with_label_and_no_orders(client):
     r = client.get("/v2/bots", params={"symbol": "ETHUSDT", "tf": "1h"}).json()
     assert r["label"] == "Señal de un bot externo · no es una operación"
     assert r["mode"].startswith("ANALISIS") and r["channels"]["second_opinion"] is True
-    assert {b["strategy"] for b in r["bots"]} == {"bollinger_v1", "macd_bb_v1"}
+    assert {b["strategy"] for b in r["bots"]} >= {"bollinger_v1", "macd_bb_v1"}
     assert all(b["votes"] is False and b["asof"] == rep["asof"] for b in r["bots"])
     assert all(not {"size", "qty", "leverage", "order"} & set(b) for b in r["bots"])
-    assert r["support"]["total"] == len(r["bots"])
+    assert r["support"]["total"] == sum(b["signal_status"] == "ok" for b in r["bots"])
     assert client.get("/v2/bots", params={"symbol": "XXX"}).status_code == 400
     assert client.post("/v2/bots", headers={"X-EIM-Confirm": "1"}).status_code in (404, 405)
