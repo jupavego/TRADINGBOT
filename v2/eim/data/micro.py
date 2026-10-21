@@ -92,7 +92,7 @@ def combine(
                 imb_sum[i] += (bq - aq) / (bq + aq)
                 imb_n[i] += 1
             if prev is not None and (bisect_right(gaps_sorted, t)
-                                     == bisect_right(gaps_sorted, prev[0])):  # sin hueco entre ambas
+                                     == bisect_right(gaps_sorted, prev[0])):  # sin hueco
                 ofi[i] += _ofi_step(prev[1], cur)
         prev = (t, cur)
     return [
