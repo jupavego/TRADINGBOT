@@ -36,7 +36,7 @@ foreach ($vuelta in 1..3) {
     ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
   Start-Sleep -Seconds 3
 }
-& (Join-Path $PSScriptRoot "instalar_inicio_automatico.ps1") -Quitar | Out-Null
+try { & (Join-Path $PSScriptRoot "instalar_inicio_automatico.ps1") -Quitar | Out-Null } catch {}  # ya quitado: repetir no falla
 $vivos = @(Get-CimInstance Win32_Process | Where-Object {
   $_.Name -match '^python\.exe$' -and $_.CommandLine -match $patron })
 if ($vivos.Count) { throw "Siguen procesos EIM vivos (PID $($vivos.ProcessId -join ', ')). Ciérralos y repite." }
