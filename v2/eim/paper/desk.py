@@ -13,6 +13,7 @@ from eim.data.paper_store import PaperStore
 from eim.data.providers.base import Provider
 from eim.data.store import Store
 from eim.data.timeframes import FOCUS, tf_ms
+from eim.paper import ledger
 from eim.paper.balance import balance
 from eim.paper.book import ProfileState, run_profile
 from eim.paper.catalog import CATALOG, generate_ideas
@@ -28,6 +29,7 @@ from eim.paper.trend import HtfTrend
 MMR = {"BTCUSDT": 0.004, "ETHUSDT": 0.005}     # tramo bajo de Binance (supuesto, = simulador)
 FUNDING_MS = 8 * 3_600_000
 BUSY_REFRESH_MS = 10 * 60_000   # con un backtest en curso la vista se rehace como mucho cada 10 min
+LEDGER_EVERY_MS = 3_600_000     # el libro fijo se pone al día cada hora aunque nadie mire
 
 
 @dataclass
@@ -70,6 +72,9 @@ class PaperDesk(DeskService):
         self._busy: dict[str, threading.Event] = {}    # recálculos en segundo plano en curso
         self._busy_lock = threading.Lock()
         self.view_error = ""
+        self.ledger_error = ""
+        self._ledger_at = 0
+        ledger.ensure(pstore)
 
     def live_status(self) -> dict:
         return {"last_tick": self.last_tick, "started": self.loop_started, "error": self.live_error}
@@ -161,9 +166,30 @@ class PaperDesk(DeskService):
         learner = Learner(v.outcomes)
         mmr = MMR.get(symbol, 0.005)
         v.books = {p.id: run_profile(p, v.outcomes, learner, mmr) for p in self.profiles}
+        self._record_ledger(v)
         v.summary = self._payload(v, by_tf, infos, learner, path.end or None,
                                   pc[-1].c if pc else None, n_ideas=len(ideas))
         return v
+
+    def _record_ledger(self, v: View) -> None:
+        """Escribe en el libro fijo lo que se cerró en vivo (solo añade; nunca falla la vista)."""
+        try:
+            n = ledger.record(self.pstore, ledger.rows_from_view(
+                v.symbol, v.outcomes, v.books, self.ep, now_ms()))
+            self.ledger_error = ""
+            if n:
+                self.ledger_added = getattr(self, "ledger_added", 0) + n
+        except Exception as exc:  # noqa: BLE001 - el registro nunca tumba el cálculo de la vista
+            self.ledger_error = f"{type(exc).__name__}: {exc}"
+
+    def ledger_tick(self) -> None:
+        """Gancho tras cada ciclo: pone al día el libro fijo una vez por hora (calcula la vista
+        solo si hay contextos nuevos; si alguien la consultó antes, ya está calculada)."""
+        if now_ms() - self._ledger_at < LEDGER_EVERY_MS:
+            return
+        self._ledger_at = now_ms()
+        for sym in self.symbols:
+            self.view(sym)
 
     def _htf(self, symbol: str, tf: str, t0: int):
         """Tendencia del marco mayor para las ideas de `tf` (None si no está configurada)."""

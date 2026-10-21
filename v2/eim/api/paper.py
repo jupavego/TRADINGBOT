@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Header, HTTPException, Query
+import csv
+import io
+
+from fastapi import APIRouter, Header, HTTPException, Query, Response
 
 from eim.api.execution import confirm
 from eim.data.timeframes import SYMBOLS
+from eim.paper import ledger
 from eim.paper.desk import PaperDesk, View
 from eim.paper.live_feed import live_feed
 
@@ -75,6 +79,33 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
                 and (tfs is None or t["timeframe"] in tfs)]
         rows.sort(key=lambda t: -t["exit_t"])
         return {"mode": "SIMULADO", "total": len(rows), "trades": rows[:limit]}
+
+    @router.get("/ledger")
+    def ledger_rows(symbol: str | None = None,
+                    scope: str | None = Query(None, pattern="^(perfil|sombra)$"),
+                    profile: str | None = None, limit: int = Query(500, ge=1, le=20000)) -> dict:
+        """Libro de registro fijo (solo adición): operaciones cerradas en vivo, tal como ocurrieron.
+        A diferencia de `/trades`, no se recalcula al cambiar reglas o costos."""
+        if symbol is not None:
+            _check(symbol)
+        return {"mode": "SIMULADO", "counts": ledger.counts(desk.pstore),
+                "error": desk.ledger_error,
+                "rows": ledger.query(desk.pstore, symbol, scope, profile, limit)}
+
+    @router.get("/ledger.csv")
+    def ledger_csv(symbol: str | None = None,
+                   scope: str | None = Query(None, pattern="^(perfil|sombra)$"),
+                   profile: str | None = None) -> Response:
+        """Exportación del libro fijo para entrenamiento/análisis externo."""
+        if symbol is not None:
+            _check(symbol)
+        rows = ledger.query(desk.pstore, symbol, scope, profile, 1_000_000)
+        buf = io.StringIO()
+        w = csv.DictWriter(buf, fieldnames=[c for c in ledger.COLS if c != "payload"])
+        w.writeheader()
+        w.writerows(rows)
+        return Response(buf.getvalue(), media_type="text/csv; charset=utf-8",
+                        headers={"Content-Disposition": "attachment; filename=paper_ledger.csv"})
 
     @router.get("/journal")
     def journal(symbol: str = "BTCUSDT", profile: str | None = None, cat: str | None = None,

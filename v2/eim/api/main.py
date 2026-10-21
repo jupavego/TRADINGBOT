@@ -139,6 +139,7 @@ def create_app(
     # T49: puerta de validación por estrategia; se recalcula al cierre de cada vela de 4 h.
     validator = Validator(paper, ValidationStore(paper_store))
     paper.after_tick.append(validator.maybe_run)
+    paper.after_tick.append(paper.ledger_tick)    # libro de registro fijo (solo adición)
     # T61: experiencia compartida automática (solo si hay carpeta compartida configurada):
     # importa lo de las demás máquinas y exporta lo propio, sin comandos.
     share = None
