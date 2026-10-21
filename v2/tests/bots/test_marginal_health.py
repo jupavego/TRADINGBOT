@@ -115,8 +115,12 @@ def test_degraded_voter_drops_to_informs():
     good = Marginal(True, 0.25, "aporta", 0.2)
     out = score(rows, m.c1h, m.path, SYMBOL, CRIT, {"hummingbot-directional": card()}, m.end,
                 m.regime_at, {"hummingbot-directional:s1@1h@v1": good})
-    assert out["bots"][0]["state"] == VOTA
     v = out["bots"][0]["verdict"]
+    # El oráculo sintético tiene R casi constante (IC ≈ un punto): su rendimiento vivo puede quedar
+    # una milésima bajo el límite y degradar solo; el estado sano se fija con una salud sin motivos.
+    ok = assign("l", ("hummingbot-directional", "s1", "1h", version()), card(), v, good,
+                assess([], None, []))
+    assert ok.state == VOTA and ok.weight == 0.25
     h = assess([-1.0] * 30, 0.0, [], )
     c = assign("l", ("hummingbot-directional", "s1", "1h", version()), card(), v, good, h)
     assert c.state == INFORMA and c.weight == 0.0 and any("degradación" in r for r in c.reasons)
