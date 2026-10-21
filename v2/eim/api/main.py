@@ -38,6 +38,7 @@ from eim.api.validation import build_validation_router
 from eim.arbitrage.alerts import AlertParams
 from eim.bots.scorer import BotScorer
 from eim.bots.service import default_service
+from eim.bots.squad_runtime import SquadRuntime
 from eim.data.arb_store import ArbStore
 from eim.data.arb_sync import ArbSync
 from eim.data.bots.scorestore import ScoreStore
@@ -58,7 +59,8 @@ from eim.operation.supervisor import Operation, Supervisor
 from eim.paper.desk import PaperDesk
 from eim.risk import global_kill_switch, load_config
 from eim.suggestions.tracker import Tracker
-from eim.synthesis.params import SynthesisParams, role_of
+from eim.synthesis.params import role_of
+from eim.synthesis.squad import default_params
 from eim.validation.service import Validator
 
 API_VERSION = "2.0.0"
@@ -210,6 +212,7 @@ def create_app(
     bot_scorer = BotScorer(bot_store, ScoreStore(rcon, rlock), store, paper_store,
                            SimRunStore(rcon, rlock))
     paper.after_tick.append(bot_scorer.maybe_run)
+    SquadRuntime(bot_scorer, bots.quarantine).refresh()   # T60: política vigente desde T59
     app.include_router(build_bots_router(bot_store, bots, bot_scorer))
     # T51: registro y resolución de lo publicado; el bróker lo llama tras cada ciclo.
     setups_router = build_setups_router(
@@ -252,7 +255,7 @@ def create_app(
     def agents(symbol: str = "ETHUSDT", tf: str = "1h") -> list[dict]:
         _check(symbol, tf)
         last = {r.agent_id: r for r in reports.latest(symbol, tf)}
-        sp = SynthesisParams()
+        sp = default_params()
         out = []
         for a in reg.latest():
             r = last.get(a.id)

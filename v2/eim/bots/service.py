@@ -20,8 +20,11 @@ from eim.bots.adapter import (
     params_hash,
     split_version,
 )
+from eim.bots.quarantine import Quarantine
 from eim.core import NOT_SAVED, VERSION_CHANGED, BotSignal, MarketSnapshot
 from eim.data.bots.store import BotSignalStore
+from eim.observability import hooks_service
+from eim.synthesis.squad import current_policy
 
 log = logging.getLogger("eim.bots")
 FT_PY_ENV = "EIM_BOT_FREQTRADE_PY"          # intérprete del entorno aparte de Freqtrade
@@ -35,8 +38,10 @@ def _note(sig: BotSignal, note: str) -> BotSignal:
 
 class BotService:
     def __init__(self, adapters: Sequence[SignalAdapter], store: BotSignalStore | None = None,
-                 clock: Callable[[], int] = lambda: int(time.time() * 1000)) -> None:
+                 clock: Callable[[], int] = lambda: int(time.time() * 1000),
+                 quarantine: Quarantine | None = None) -> None:
         self.adapters, self.store, self.clock = list(adapters), store, clock
+        self.quarantine = quarantine   # T60: un bot que vota y se degrada pierde el voto
 
     def produce(self, snapshot: MarketSnapshot) -> list[BotSignal]:
         if not closed_candles_only(snapshot):   # point-in-time: nunca con una vela sin cerrar
@@ -54,7 +59,23 @@ class BotService:
                 sigs = [empty_signal(ad.card, "*", ver, snapshot, "degraded",
                                      f"error del adaptador: {type(exc).__name__}: {exc}")]
             out.extend(self._seal(s) for s in sigs)
+        self._watch(out)
         return out
+
+    def _watch(self, sigs: Sequence[BotSignal]) -> None:
+        """Latido y alerta (T31); cuarentena de los bots que votan y salen degradados (T60)."""
+        bad = [s for s in sigs if s.status == "degraded"]
+        for s in bad:
+            hooks_service.service_error(f"bots.{s.bot_id}", "; ".join(s.evidence) or "degradado")
+        hooks_service.beat("bots.service", status="degraded" if bad else "ok",
+                           detail={"signals": len(sigs), "degraded": len(bad)})
+        pol = current_policy()
+        if self.quarantine is None or pol is None:
+            return
+        for s in bad:
+            for b in pol.voters:
+                if b.bot_id == s.bot_id and s.strategy in ("*", b.strategy):
+                    self.quarantine.trip(b.key, "; ".join(s.evidence) or "degradado", self.clock())
 
     def _seal(self, sig: BotSignal) -> BotSignal:
         """Marca el cambio de versión y guarda (solo añadir). Nunca lanza."""
@@ -89,4 +110,4 @@ def default_service(data_dir: Path, store: BotSignalStore | None) -> BotService:
         from eim.bots.ft_adapter import FreqtradeAdapter
 
         adapters.append(FreqtradeAdapter(Path(py), checkout, engine))
-    return BotService(adapters, store)
+    return BotService(adapters, store, quarantine=Quarantine(Path(data_dir) / "bots"))

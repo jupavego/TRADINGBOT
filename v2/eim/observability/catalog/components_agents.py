@@ -99,4 +99,10 @@ BOTS: tuple[Component, ...] = (
       "rechazado, deshabilitado) y lo degrada si falla. Siempre simulado.",
       cadence="cada cierre de vela de 4 h", cadence_s=4 * _H,
       consumes=(("bots.runner", "bot_signal"),), produces=("bot_score",)),
+    c("bots.vote", "bots", "analisis", "engine", "api", "T60", "Voto de bots",
+      "Da a los bots en estado «vota» su peso medido en la síntesis (clase D, fuera de cuarentena) "
+      "y deja que el desacuerdo entre los que miden útil baje la confianza; los demás solo se ven. "
+      "Ningún bot pide tamaño ni órdenes: el riesgo conserva su veto.",
+      cadence="cada cierre de vela", cadence_s=_H,
+      consumes=(("bots.scoring", "bot_score"),), produces=("bot_vote",)),
 )
