@@ -104,3 +104,12 @@ El usuario aprobó por escrito los tres opcionales que T56 dejó fuera (nota `PL
 **Cuarentena (kill-switch del escuadrón)**: si un bot que *vota* sale `degraded` (el adaptador falla, deriva, versión distinta), `BotService` lo pone en `data/bots/quarantine.json` y pierde el voto al instante; lo reactiva solo una persona. Cada cambio queda en `data/bots/quarantine.jsonl`. Cada ciclo emite latido `bots.service` y una alerta `bots.<bot>` si algún ejecutor falla (infraestructura de T31).
 
 **API**: `GET /v2/bots` (postura vigente, estado, cuatro dimensiones, versión, motivo, discrepancia, apoyo por dirección, cuarentena), `GET /v2/bots/scorecard` (T59), `GET /v2/agents` con `role` y `weight`. Todos de solo lectura. **UI**: pestaña «Escuadrón» con la etiqueta fija «Señal de un bot externo · no es una operación» y el modo siempre visible.
+
+## Llevar un relleno a los datos vivos (2026-10-21)
+La API vive bloqueando `data/reports.duckdb`, así que los rellenos se hacen sobre una copia de `data/`. Para pasarlos a la carpeta viva, **con la operación parada** (`Get-CimInstance Win32_Process -Filter "Name='python.exe'" | ? CommandLine -match 'eim\.operation run|uvicorn eim\.api\.main' | % { Stop-Process -Id $_.ProcessId -Force }`; los colectores y el servicio de líderes no usan esa base y pueden seguir):
+```bash
+cp data/reports.duckdb* <respaldo>/                                   # antes de tocar nada
+python -m eim.bots.merge_signals --from <copia>/data --into data --dry-run   # qué faltaría
+python -m eim.bots.merge_signals --from <copia>/data --into data            # solo añade, idempotente
+```
+Conserva el `created_ms` original (lo rellenado sigue siendo «backtest», no «vivo»). La puntuación necesita velas de la ventana: `sync_candles` de 1h (≥ 225 días para TrendRider), 15m y 1m, y `python -c "from eim.bots.backfill import aggregate; …"` para el 5m de NFI (se agrega del 1m, no se pide a la API). Después `powershell -File v2\scripts\servicio_continuo.ps1 -ConWeb` relanza lo que falte. El 5m no se mantiene solo: hay que volver a agregarlo para puntuar posturas nuevas de NFI (BACKLOG).
