@@ -23,6 +23,8 @@ Notas para Windows:
 - Si el proyecto queda en una ruta con espacios o en otra unidad y Git dice `dubious ownership`, ejecuta una vez: `git config --global --add safe.directory "*"`.
 - Si `python` abre la Microsoft Store, desactiva los alias en *Configuración → Aplicaciones → Alias de ejecución de aplicaciones*.
 
+> ¿Cambias de equipo (no es un colaborador nuevo)? Sigue `v2/docs/MIGRACION_EQUIPO.md` y usa `v2/scripts/preparar_equipo.ps1`, que automatiza la sección 3.
+
 ## 2. Acceso a GitHub
 
 1. Crea (o usa) tu cuenta de GitHub y pásale tu usuario al dueño del repositorio.
