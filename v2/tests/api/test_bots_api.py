@@ -54,7 +54,8 @@ def test_after_a_run_the_agent_has_evidence_and_signals_are_persisted(client):
     assert saved["signals"], "bot_signals vacío"
     assert {s["asof"] for s in saved["signals"]} >= {rep["asof"]}
     last = [s for s in saved["signals"] if s["asof"] == rep["asof"]]
-    assert {s["strategy"] for s in last} >= {"bollinger_v1", "macd_bb_v1"}   # + Jesse/TrendRider (no_data: pocas velas)
+    got = {s["strategy"] for s in last}      # y los de Jesse/TrendRider (no_data)
+    assert got >= {"bollinger_v1", "macd_bb_v1"}
     assert all(s["data_quality"]["last_candle_t"] <= s["asof"] and len(s["version"]) == 53
                for s in last)
     # el agente no entra en la síntesis

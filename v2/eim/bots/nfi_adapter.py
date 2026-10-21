@@ -38,7 +38,7 @@ STRATEGY = "NostalgiaForInfinityX7"
 SCRIPT = Path(__file__).resolve().parents[1] / "data" / "bots" / "scripts" / "nfi_signal.py"
 NFI_DIR_ENV = "EIM_BOT_NFI_DIR"      # checkout de NFI en el SHA de la ficha
 WARM = 800                           # `startup_candle_count` de NFI, en velas de 5 min
-CHUNK = 6_000                        # velas de 5 min por corrida del relleno
+CHUNK = 3_000                        # velas de 5 min por corrida del relleno
 INFO_DAYS = 56                       # historia de los informativos antes de la primera vela
 NOTE_EXITS = ("posturas de las banderas de NFI; sus reajustes de posición (rebuy/grind), ROI, "
               "stoploss y «derisk» no caben en una postura por vela y no se simulan")
