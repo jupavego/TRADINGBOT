@@ -63,7 +63,7 @@ export class PaperPriceChart {
   destroy(): void { this.pc.destroy() }
 }
 
-/** Curvas de capital de los 3 perfiles: un solo eje (USDT), leyenda con valor y etiqueta directa. */
+/** Curvas de capital de todos los perfiles: un solo eje (USDT), leyenda con valor y etiqueta directa. */
 export class EquityChart {
   private chart: IChartApi
   private series = new Map<string, ISeriesApi<'Line'>>()
