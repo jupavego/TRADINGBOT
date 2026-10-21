@@ -1,6 +1,6 @@
 # Escuadrón de bots — puntuación y puerta de edge (T59)
 
-Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · criterios `validation_v1` (sha 0a5b19962ded) · intentos en la familia de Holm: 22 (cada versión de cada bot, también las retiradas, más un control aleatorio por cada una).
+Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · criterios `validation_v1` (sha 0a5b19962ded) · intentos en la familia de Holm: 24 (cada versión de cada bot, también las retiradas, más un control aleatorio por cada una).
 
 ## Respuesta corta
 
@@ -16,7 +16,7 @@ Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · c
 
 | Bot@estrategia@marco@versión | Estado | Rendimiento | Evidencia | Seguridad | Operativa | R medio | n OOS | p Holm | Control (R medio) | Peso inicial |
 |---|---|---|---|---|---|---|---|---|---|---|
-| freqtrade-strategies:FSupertrendStrategy@1h@v1 | **rechazado** | no cumple | no cumple | cumple | cumple | -0.193 | 48 | +1.0000 | -0.199 | 0.0 |
+| freqtrade-strategies:FSupertrendStrategy@1h@v2 | **rechazado** | no cumple | no cumple | cumple | cumple | -0.401 | 38 | +1.0000 | -0.339 | 0.0 |
 | hummingbot-directional:bollinger_v1@1h@v1 | **rechazado** | no cumple | no cumple | cumple | cumple | -0.326 | 81 | +1.0000 | -0.463 | 0.0 |
 | hummingbot-directional:macd_bb_v1@1h@v1 | **informa** | no cumple | no cumple | cumple | cumple | -1.101 | 5 | +1.0000 | -1.073 | 0.0 |
 | jesse-example-strategies:Donchian@1h@v1 | **rechazado** | no cumple | no cumple | cumple | cumple | -0.367 | 38 | +1.0000 | -0.295 | 0.0 |
@@ -24,23 +24,23 @@ Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · c
 | jesse-example-strategies:RSI2@1h@v1 | **rechazado** | no cumple | no cumple | cumple | cumple | -0.223 | 149 | +1.0000 | -0.319 | 0.0 |
 | jesse-example-strategies:SMACrossover@1h@v1 | **rechazado** | no cumple | no cumple | cumple | cumple | -0.502 | 24 | +1.0000 | -0.251 | 0.0 |
 | jesse-example-strategies:TradingView_RSI@1h@v1 | **rechazado** | no cumple | no cumple | cumple | cumple | -0.437 | 110 | +1.0000 | -0.231 | 0.0 |
-| jesse-example-strategies:TurtleRules@1h@v1 | **rechazado** | no cumple | no cumple | cumple | cumple | -0.204 | 174 | +0.4994 | -0.445 | 0.0 |
+| jesse-example-strategies:TurtleRules@1h@v1 | **rechazado** | no cumple | no cumple | cumple | cumple | -0.204 | 174 | +0.5494 | -0.445 | 0.0 |
 | nostalgia-for-infinity:NostalgiaForInfinityX7@5m@v1 | **informa** | no cumple | no cumple | cumple | cumple | -2.130 | 1 | +1.0000 | -2.132 | 0.0 |
 | trendrider-strategy:TrendRiderStrategy@1h@v1 | **informa** | no cumple | no cumple | cumple | cumple | -0.821 | 12 | +1.0000 | -0.445 | 0.0 |
 
-### freqtrade-strategies:FSupertrendStrategy@1h@v1
+### freqtrade-strategies:FSupertrendStrategy@1h@v2
 
-- puerta T49: RECHAZADA — claramente negativa: R medio -0.193 + 1·EE 0.165 < 0 → ciclo de mejora
-- aporte marginal: no medible: solo 1 ventana(s) de prueba (< 2); regla T44 sola: ΔSharpe +0.48, ΔE[R] +0.037, ΔIC24 0.0007, gana 100% de ventanas
-- Puerta: **RECHAZADA** — claramente negativa: R medio -0.193 + 1·EE 0.165 < 0 → ciclo de mejora
-  - V1 Suficiencia de datos ✘: 48 operaciones fuera de muestra; regímenes: sin dato 48
-  - V2 Expectativa neta ✘: R medio -0.193, IC [-0.508, +0.125]
-  - V3 Contra el azar ✘: p bruto 0.1033 → Holm 1.0000 (880 réplicas de lado al azar)
-  - V4 Drawdown ✔: DD máximo 11.7%
-  - V5 Estabilidad ✘: 2/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)
-  - V6 Costos ✔: costo medio 0.284 R
-- Comparación homogénea: buy&hold del mismo tramo +0.084 · control aleatorio R medio -0.199 · retorno con 1 % de riesgo -0.091.
-- Aporte marginal: no medible: solo 1 ventana(s) de prueba (< 2); regla T44 sola: ΔSharpe +0.48, ΔE[R] +0.037, ΔIC24 0.0007, gana 100% de ventanas · deltas {'sharpe': 0.4823740605294713, 'expectancy_r': 0.036779414263805044, 'ic24': 0.0007243808085323211} · moderador {'h': 24, 'n_agree': 30, 'n_disagree': 4, 'hit_agree': 0.36666666666666664, 'hit_disagree': 0.5, 'diff': None, 'ci95': None, 'modulates': False, 'note': 'muestra insuficiente (< 30 por grupo)'}
+- puerta T49: RECHAZADA — claramente negativa: R medio -0.401 + 1·EE 0.171 < 0 → ciclo de mejora
+- aporte marginal: no aporta: ΔSharpe -0.07, ΔE[R] -0.024, ΔIC24 0.011, gana 0% de ventanas
+- Puerta: **RECHAZADA** — claramente negativa: R medio -0.401 + 1·EE 0.171 < 0 → ciclo de mejora
+  - V1 Suficiencia de datos ✘: 38 operaciones fuera de muestra; regímenes: sin dato 38
+  - V2 Expectativa neta ✘: R medio -0.401, IC [-0.721, -0.064]
+  - V3 Contra el azar ✘: p bruto 0.5713 → Holm 1.0000 (960 réplicas de lado al azar)
+  - V4 Drawdown ✔: DD máximo 14.3%
+  - V5 Estabilidad ✘: 1/5 ventanas positivas; en vivo 0 op. (pendiente: < 20)
+  - V6 Costos ✔: costo medio 0.278 R
+- Comparación homogénea: buy&hold del mismo tramo +0.063 · control aleatorio R medio -0.339 · retorno con 1 % de riesgo -0.143.
+- Aporte marginal: no aporta: ΔSharpe -0.07, ΔE[R] -0.024, ΔIC24 0.011, gana 0% de ventanas · deltas {'sharpe': -0.07316126307693338, 'expectancy_r': -0.024257754198858228, 'ic24': 0.011019835704267705} · moderador {'h': 24, 'n_agree': 23, 'n_disagree': 1, 'hit_agree': 0.43478260869565216, 'hit_disagree': 0.0, 'diff': None, 'ci95': None, 'modulates': False, 'note': 'muestra insuficiente (< 30 por grupo)'}
 
 ### hummingbot-directional:bollinger_v1@1h@v1
 
@@ -49,7 +49,7 @@ Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · c
 - Puerta: **RECHAZADA** — claramente negativa: R medio -0.326 + 1·EE 0.126 < 0 → ciclo de mejora
   - V1 Suficiencia de datos ✘: 81 operaciones fuera de muestra; regímenes: sin dato 81
   - V2 Expectativa neta ✘: R medio -0.326, IC [-0.560, -0.063]
-  - V3 Contra el azar ✘: p bruto 0.6413 → Holm 1.0000 (880 réplicas de lado al azar)
+  - V3 Contra el azar ✘: p bruto 0.6379 → Holm 1.0000 (960 réplicas de lado al azar)
   - V4 Drawdown ✘: DD máximo 25.3%
   - V5 Estabilidad ✘: 1/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)
   - V6 Costos ✔: costo medio 0.234 R
@@ -63,7 +63,7 @@ Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · c
 - Puerta: **EN OBSERVACIÓN** — V1: 5 operaciones fuera de muestra; regímenes: sin dato 5
   - V1 Suficiencia de datos ✘: 5 operaciones fuera de muestra; regímenes: sin dato 5
   - V2 Expectativa neta ✘: R medio -1.101, IC [-1.411, -0.578]
-  - V3 Contra el azar ✘: p bruto 0.9773 → Holm 1.0000 (880 réplicas de lado al azar)
+  - V3 Contra el azar ✘: p bruto 0.9792 → Holm 1.0000 (960 réplicas de lado al azar)
   - V4 Drawdown ✔: DD máximo 5.4%
   - V5 Estabilidad …: 0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)
   - V6 Costos ✘: costo medio 0.356 R
@@ -77,7 +77,7 @@ Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · c
 - Puerta: **RECHAZADA** — claramente negativa: R medio -0.367 + 1·EE 0.182 < 0 → ciclo de mejora
   - V1 Suficiencia de datos ✘: 38 operaciones fuera de muestra; regímenes: sin dato 38
   - V2 Expectativa neta ✘: R medio -0.367, IC [-0.701, -0.016]
-  - V3 Contra el azar ✘: p bruto 0.4631 → Holm 1.0000 (880 réplicas de lado al azar)
+  - V3 Contra el azar ✘: p bruto 0.4568 → Holm 1.0000 (960 réplicas de lado al azar)
   - V4 Drawdown ✔: DD máximo 13.4%
   - V5 Estabilidad ✘: 1/5 ventanas positivas; en vivo 0 op. (pendiente: < 20)
   - V6 Costos ✔: costo medio 0.293 R
@@ -91,7 +91,7 @@ Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · c
 - Puerta: **RECHAZADA** — claramente negativa: R medio -0.190 + 1·EE 0.135 < 0 → ciclo de mejora
   - V1 Suficiencia de datos ✘: 64 operaciones fuera de muestra; regímenes: sin dato 64
   - V2 Expectativa neta ✘: R medio -0.190, IC [-0.436, +0.072]
-  - V3 Contra el azar ✘: p bruto 0.1260 → Holm 1.0000 (880 réplicas de lado al azar)
+  - V3 Contra el azar ✘: p bruto 0.1259 → Holm 1.0000 (960 réplicas de lado al azar)
   - V4 Drawdown ✔: DD máximo 16.9%
   - V5 Estabilidad ✘: 2/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)
   - V6 Costos ✔: costo medio 0.258 R
@@ -105,7 +105,7 @@ Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · c
 - Puerta: **RECHAZADA** — claramente negativa: R medio -0.223 + 1·EE 0.093 < 0 → ciclo de mejora
   - V1 Suficiencia de datos ✘: 149 operaciones fuera de muestra; regímenes: sin dato 149
   - V2 Expectativa neta ✘: R medio -0.223, IC [-0.408, -0.028]
-  - V3 Contra el azar ✘: p bruto 0.2054 → Holm 1.0000 (880 réplicas de lado al azar)
+  - V3 Contra el azar ✘: p bruto 0.2040 → Holm 1.0000 (960 réplicas de lado al azar)
   - V4 Drawdown ✘: DD máximo 29.2%
   - V5 Estabilidad ✘: 1/7 ventanas positivas; en vivo 0 op. (pendiente: < 20)
   - V6 Costos ✔: costo medio 0.254 R
@@ -119,7 +119,7 @@ Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · c
 - Puerta: **RECHAZADA** — claramente negativa: R medio -0.503 + 1·EE 0.237 < 0 → ciclo de mejora
   - V1 Suficiencia de datos ✘: 24 operaciones fuera de muestra; regímenes: sin dato 24
   - V2 Expectativa neta ✘: R medio -0.503, IC [-0.922, -0.035]
-  - V3 Contra el azar ✘: p bruto 0.8831 → Holm 1.0000 (880 réplicas de lado al azar)
+  - V3 Contra el azar ✘: p bruto 0.8803 → Holm 1.0000 (960 réplicas de lado al azar)
   - V4 Drawdown ✔: DD máximo 11.5%
   - V5 Estabilidad …: 0/1 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)
   - V6 Costos ✔: costo medio 0.250 R
@@ -133,7 +133,7 @@ Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · c
 - Puerta: **RECHAZADA** — claramente negativa: R medio -0.437 + 1·EE 0.108 < 0 → ciclo de mejora
   - V1 Suficiencia de datos ✘: 110 operaciones fuera de muestra; regímenes: sin dato 110
   - V2 Expectativa neta ✘: R medio -0.437, IC [-0.645, -0.221]
-  - V3 Contra el azar ✘: p bruto 0.9659 → Holm 1.0000 (880 réplicas de lado al azar)
+  - V3 Contra el azar ✘: p bruto 0.9636 → Holm 1.0000 (960 réplicas de lado al azar)
   - V4 Drawdown ✘: DD máximo 39.1%
   - V5 Estabilidad ✘: 0/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)
   - V6 Costos ✔: costo medio 0.252 R
@@ -147,7 +147,7 @@ Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · c
 - Puerta: **RECHAZADA** — claramente negativa: R medio -0.204 + 1·EE 0.086 < 0 → ciclo de mejora
   - V1 Suficiencia de datos ✘: 174 operaciones fuera de muestra; regímenes: sin dato 174
   - V2 Expectativa neta ✘: R medio -0.204, IC [-0.366, -0.038]
-  - V3 Contra el azar ✘: p bruto 0.0227 → Holm 0.4994 (880 réplicas de lado al azar)
+  - V3 Contra el azar ✘: p bruto 0.0229 → Holm 0.5494 (960 réplicas de lado al azar)
   - V4 Drawdown ✘: DD máximo 31.5%
   - V5 Estabilidad ✘: 0/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)
   - V6 Costos ✔: costo medio 0.266 R
@@ -161,7 +161,7 @@ Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · c
 - Puerta: **EN OBSERVACIÓN** — V1: 1 operaciones fuera de muestra; regímenes: sin dato 1
   - V1 Suficiencia de datos ✘: 1 operaciones fuera de muestra; regímenes: sin dato 1
   - V2 Expectativa neta …: muestra insuficiente
-  - V3 Contra el azar ✘: p bruto 0.5119 → Holm 1.0000 (880 réplicas de lado al azar)
+  - V3 Contra el azar ✘: p bruto 0.5068 → Holm 1.0000 (960 réplicas de lado al azar)
   - V4 Drawdown ✔: DD máximo 2.1%
   - V5 Estabilidad …: 0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)
   - V6 Costos ✘: costo medio 1.130 R
@@ -175,7 +175,7 @@ Modo: **SIMULADO** · símbolo BTCUSDT · corte (asof) 2026-10-20 18:15 UTC · c
 - Puerta: **EN OBSERVACIÓN** — V1: 12 operaciones fuera de muestra; regímenes: sin dato 12
   - V1 Suficiencia de datos ✘: 12 operaciones fuera de muestra; regímenes: sin dato 12
   - V2 Expectativa neta ✘: R medio -0.821, IC [-1.314, -0.212]
-  - V3 Contra el azar ✘: p bruto 0.7049 → Holm 1.0000 (880 réplicas de lado al azar)
+  - V3 Contra el azar ✘: p bruto 0.7045 → Holm 1.0000 (960 réplicas de lado al azar)
   - V4 Drawdown ✔: DD máximo 9.5%
   - V5 Estabilidad …: 0/0 ventanas positivas (pendiente: < 4 ventanas); en vivo 0 op. (pendiente: < 20)
   - V6 Costos ✘: costo medio 0.316 R
@@ -189,6 +189,7 @@ ningún bot supera la puerta dentro de un régimen: no se activa selección por 
 | Bot | Régimen | n OOS | Evaluada | Supera | R medio | p Holm |
 |---|---|---|---|---|---|---|
 | freqtrade-strategies:FSupertrendStrategy@1h@v1 | sin dato | 48 | False | False | — | — |
+| freqtrade-strategies:FSupertrendStrategy@1h@v2 | sin dato | 38 | False | False | — | — |
 | hummingbot-directional:bollinger_v1@1h@v1 | sin dato | 81 | False | False | — | — |
 | hummingbot-directional:macd_bb_v1@1h@v1 | sin dato | 5 | False | False | — | — |
 | jesse-example-strategies:Donchian@1h@v1 | sin dato | 38 | False | False | — | — |
@@ -209,25 +210,27 @@ ningún bot supera la puerta dentro de un régimen: no se activa selección por 
 
 | Intento | Veredicto | n OOS | p bruto | p Holm | Retirado | Control |
 |---|---|---|---|---|---|---|
-| freqtrade-strategies:FSupertrendStrategy@1h@v1 | RECHAZADA | 48 | +0.1033 | +1.0000 | False | False |
-| freqtrade-strategies:FSupertrendStrategy@1h#control@v1 | RECHAZADA | 48 | +0.1192 | +1.0000 | False | True |
-| hummingbot-directional:bollinger_v1@1h@v1 | RECHAZADA | 81 | +0.6413 | +1.0000 | False | False |
-| hummingbot-directional:bollinger_v1@1h#control@v1 | RECHAZADA | 82 | +0.9467 | +1.0000 | False | True |
-| hummingbot-directional:macd_bb_v1@1h@v1 | EN OBSERVACIÓN | 5 | +0.9773 | +1.0000 | False | False |
-| hummingbot-directional:macd_bb_v1@1h#control@v1 | EN OBSERVACIÓN | 5 | +0.9444 | +1.0000 | False | True |
-| jesse-example-strategies:Donchian@1h@v1 | RECHAZADA | 38 | +0.4631 | +1.0000 | False | False |
-| jesse-example-strategies:Donchian@1h#control@v1 | RECHAZADA | 38 | +0.3019 | +1.0000 | False | True |
-| jesse-example-strategies:MACD_EMA@1h@v1 | RECHAZADA | 64 | +0.1260 | +1.0000 | False | False |
-| jesse-example-strategies:MACD_EMA@1h#control@v1 | RECHAZADA | 63 | +0.7514 | +1.0000 | False | True |
-| jesse-example-strategies:RSI2@1h@v1 | RECHAZADA | 149 | +0.2054 | +1.0000 | False | False |
-| jesse-example-strategies:RSI2@1h#control@v1 | RECHAZADA | 148 | +0.5800 | +1.0000 | False | True |
-| jesse-example-strategies:SMACrossover@1h@v1 | RECHAZADA | 24 | +0.8831 | +1.0000 | False | False |
-| jesse-example-strategies:SMACrossover@1h#control@v1 | EN OBSERVACIÓN | 24 | +0.5199 | +1.0000 | False | True |
-| jesse-example-strategies:TradingView_RSI@1h@v1 | RECHAZADA | 110 | +0.9659 | +1.0000 | False | False |
-| jesse-example-strategies:TradingView_RSI@1h#control@v1 | RECHAZADA | 109 | +0.4677 | +1.0000 | False | True |
-| jesse-example-strategies:TurtleRules@1h@v1 | RECHAZADA | 174 | +0.0227 | +0.4994 | False | False |
-| jesse-example-strategies:TurtleRules@1h#control@v1 | RECHAZADA | 169 | +0.8388 | +1.0000 | False | True |
-| nostalgia-for-infinity:NostalgiaForInfinityX7@5m@v1 | EN OBSERVACIÓN | 1 | +0.5119 | +1.0000 | False | False |
+| freqtrade-strategies:FSupertrendStrategy@1h@v1 | RECHAZADA | 48 | +0.1051 | +1.0000 | True | False |
+| freqtrade-strategies:FSupertrendStrategy@1h#control@v1 | RECHAZADA | 48 | +0.1207 | +1.0000 | True | True |
+| freqtrade-strategies:FSupertrendStrategy@1h@v2 | RECHAZADA | 38 | +0.5713 | +1.0000 | False | False |
+| freqtrade-strategies:FSupertrendStrategy@1h#control@v2 | RECHAZADA | 38 | +0.4100 | +1.0000 | False | True |
+| hummingbot-directional:bollinger_v1@1h@v1 | RECHAZADA | 81 | +0.6379 | +1.0000 | False | False |
+| hummingbot-directional:bollinger_v1@1h#control@v1 | RECHAZADA | 82 | +0.9448 | +1.0000 | False | True |
+| hummingbot-directional:macd_bb_v1@1h@v1 | EN OBSERVACIÓN | 5 | +0.9792 | +1.0000 | False | False |
+| hummingbot-directional:macd_bb_v1@1h#control@v1 | EN OBSERVACIÓN | 5 | +0.9438 | +1.0000 | False | True |
+| jesse-example-strategies:Donchian@1h@v1 | RECHAZADA | 38 | +0.4568 | +1.0000 | False | False |
+| jesse-example-strategies:Donchian@1h#control@v1 | RECHAZADA | 38 | +0.3091 | +1.0000 | False | True |
+| jesse-example-strategies:MACD_EMA@1h@v1 | RECHAZADA | 64 | +0.1259 | +1.0000 | False | False |
+| jesse-example-strategies:MACD_EMA@1h#control@v1 | RECHAZADA | 63 | +0.7503 | +1.0000 | False | True |
+| jesse-example-strategies:RSI2@1h@v1 | RECHAZADA | 149 | +0.2040 | +1.0000 | False | False |
+| jesse-example-strategies:RSI2@1h#control@v1 | RECHAZADA | 148 | +0.5827 | +1.0000 | False | True |
+| jesse-example-strategies:SMACrossover@1h@v1 | RECHAZADA | 24 | +0.8803 | +1.0000 | False | False |
+| jesse-example-strategies:SMACrossover@1h#control@v1 | EN OBSERVACIÓN | 24 | +0.5203 | +1.0000 | False | True |
+| jesse-example-strategies:TradingView_RSI@1h@v1 | RECHAZADA | 110 | +0.9636 | +1.0000 | False | False |
+| jesse-example-strategies:TradingView_RSI@1h#control@v1 | RECHAZADA | 109 | +0.4724 | +1.0000 | False | True |
+| jesse-example-strategies:TurtleRules@1h@v1 | RECHAZADA | 174 | +0.0229 | +0.5494 | False | False |
+| jesse-example-strategies:TurtleRules@1h#control@v1 | RECHAZADA | 169 | +0.8460 | +1.0000 | False | True |
+| nostalgia-for-infinity:NostalgiaForInfinityX7@5m@v1 | EN OBSERVACIÓN | 1 | +0.5068 | +1.0000 | False | False |
 | nostalgia-for-infinity:NostalgiaForInfinityX7@5m#control@v1 | EN OBSERVACIÓN | 1 | +1.0000 | +1.0000 | False | True |
-| trendrider-strategy:TrendRiderStrategy@1h@v1 | EN OBSERVACIÓN | 12 | +0.7049 | +1.0000 | False | False |
-| trendrider-strategy:TrendRiderStrategy@1h#control@v1 | EN OBSERVACIÓN | 12 | +0.1873 | +1.0000 | False | True |
+| trendrider-strategy:TrendRiderStrategy@1h@v1 | EN OBSERVACIÓN | 12 | +0.7045 | +1.0000 | False | False |
+| trendrider-strategy:TrendRiderStrategy@1h#control@v1 | EN OBSERVACIÓN | 12 | +0.1821 | +1.0000 | False | True |

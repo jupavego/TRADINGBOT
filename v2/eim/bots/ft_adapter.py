@@ -81,7 +81,9 @@ class FreqtradeAdapter:
         self.card = card or card_of(BOT_ID)
 
     def version(self, strategy: str) -> str:
-        params = {"strategy": strategy, "engine": self.engine_version}
+        # `hyperopt`: desde 2026-10-21 se aplican buy_params/sell_params de la estrategia (antes
+        # corría con los valores por defecto de los parámetros): es otra versión del bot
+        params = {"strategy": strategy, "engine": self.engine_version, "hyperopt": "aplicado"}
         return version_of(self.card.commit_sha, params)
 
     def signals(self, snapshot: MarketSnapshot) -> list[BotSignal]:

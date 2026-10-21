@@ -11,10 +11,13 @@ from eim.bots.shadow import ideas_of, identities, shadow_trades
 from tests.bots.score_helpers import (
     CRIT,
     SYMBOL,
+    T0,
+    H,
     Market,
     card,
     noise_rows,
     oracle_rows,
+    signal,
     version,
 )
 
@@ -145,3 +148,11 @@ def test_regime_report_is_info_only(oracle):
     r = oracle[1]["regimes"]
     assert set(r) >= {"rows", "passing", "selection_by_regime", "note"}
     assert r["selection_by_regime"] == bool(r["passing"])
+
+
+def test_version_numbering_uses_save_time_when_backfills_start_at_the_same_asof():
+    """Una versión nueva rellenada después arranca en el mismo `asof`: sigue siendo la v2."""
+    old = [(signal(T0 + k * H, 1.0, "a" * 40 + "+" + "f" * 12), T0 + 99 * H) for k in range(3)]
+    new = [(signal(T0 + k * H, 1.0, "a" * 40 + "+" + "0" * 12), T0 + 200 * H) for k in range(3)]
+    ids = identities(new + old)
+    assert [(i.n, i.version[-12:]) for i in ids] == [(1, "f" * 12), (2, "0" * 12)]

@@ -7,15 +7,15 @@
   "version": "validation_v1",
   "sha256": "0a5b19962ded0d12dfdbccac0359f91c1bebf211ed891f7817c96667e01c30a8"
  },
- "attempts_total": 22,
+ "attempts_total": 24,
  "windows_note": "Parámetros de terceros fijados por SHA: EIM no los ajustó con ningún dato, así que no hay ventanas de ajuste; toda la historia posterior al alta del bot es fuera de muestra.",
  "bots": [
   {
-   "id": "freqtrade-strategies:FSupertrendStrategy@1h@v1",
+   "id": "freqtrade-strategies:FSupertrendStrategy@1h@v2",
    "bot": "freqtrade-strategies",
    "strategy": "FSupertrendStrategy",
    "timeframe": "1h",
-   "version": "f3340ce11f5bdf62f598522e64d1f5638eaa13f5+9172fbb01f69",
+   "version": "f3340ce11f5bdf62f598522e64d1f5638eaa13f5+7b30fa4197c1",
    "state": "rechazado",
    "publicable": false,
    "initial_weight": 0.0,
@@ -26,15 +26,15 @@
      "criterios": {
       "V2": {
        "ok": false,
-       "detalle": "R medio -0.193, IC [-0.508, +0.125]"
+       "detalle": "R medio -0.401, IC [-0.721, -0.064]"
       },
       "V4": {
        "ok": true,
-       "detalle": "DD máximo 11.7%"
+       "detalle": "DD máximo 14.3%"
       },
       "V6": {
        "ok": true,
-       "detalle": "costo medio 0.284 R"
+       "detalle": "costo medio 0.278 R"
       }
      }
     },
@@ -43,15 +43,15 @@
      "criterios": {
       "V1": {
        "ok": false,
-       "detalle": "48 operaciones fuera de muestra; regímenes: sin dato 48"
+       "detalle": "38 operaciones fuera de muestra; regímenes: sin dato 38"
       },
       "V3": {
        "ok": false,
-       "detalle": "p bruto 0.1033 → Holm 1.0000 (880 réplicas de lado al azar)"
+       "detalle": "p bruto 0.5713 → Holm 1.0000 (960 réplicas de lado al azar)"
       },
       "V5": {
        "ok": false,
-       "detalle": "2/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
+       "detalle": "1/5 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
       }
      }
     },
@@ -73,31 +73,31 @@
       "live_n": 0,
       "live_mean_r": null,
       "fail_rate": 0.0,
-      "drift_agree": null
+      "drift_agree": 0.8881832615105466
      },
      "fuente": "ficha T56 + señales guardadas"
     }
    },
    "reasons": [
-    "puerta T49: RECHAZADA — claramente negativa: R medio -0.193 + 1·EE 0.165 < 0 → ciclo de mejora",
-    "aporte marginal: no medible: solo 1 ventana(s) de prueba (< 2); regla T44 sola: ΔSharpe +0.48, ΔE[R] +0.037, ΔIC24 0.0007, gana 100% de ventanas"
+    "puerta T49: RECHAZADA — claramente negativa: R medio -0.401 + 1·EE 0.171 < 0 → ciclo de mejora",
+    "aporte marginal: no aporta: ΔSharpe -0.07, ΔE[R] -0.024, ΔIC24 0.011, gana 0% de ventanas"
    ],
    "marginal": {
     "contributes": false,
     "weight": 0.0,
-    "reason": "no medible: solo 1 ventana(s) de prueba (< 2); regla T44 sola: ΔSharpe +0.48, ΔE[R] +0.037, ΔIC24 0.0007, gana 100% de ventanas",
-    "rho_max": 0.6920801616952397,
+    "reason": "no aporta: ΔSharpe -0.07, ΔE[R] -0.024, ΔIC24 0.011, gana 0% de ventanas",
+    "rho_max": 0.6012591198854548,
     "deltas": {
-     "sharpe": 0.4823740605294713,
-     "expectancy_r": 0.036779414263805044,
-     "ic24": 0.0007243808085323211
+     "sharpe": -0.07316126307693338,
+     "expectancy_r": -0.024257754198858228,
+     "ic24": 0.011019835704267705
     },
     "moderator": {
      "h": 24,
-     "n_agree": 30,
-     "n_disagree": 4,
-     "hit_agree": 0.36666666666666664,
-     "hit_disagree": 0.5,
+     "n_agree": 23,
+     "n_disagree": 1,
+     "hit_agree": 0.43478260869565216,
+     "hit_disagree": 0.0,
      "diff": null,
      "ci95": null,
      "modulates": false,
@@ -108,105 +108,107 @@
    },
    "verdict": {
     "verdict": "RECHAZADA",
-    "reason": "claramente negativa: R medio -0.193 + 1·EE 0.165 < 0 → ciclo de mejora",
-    "n_oos": 48,
+    "reason": "claramente negativa: R medio -0.401 + 1·EE 0.171 < 0 → ciclo de mejora",
+    "n_oos": 38,
     "n_live": 0,
-    "mean_r": -0.1926,
-    "p_raw": 0.103292,
+    "mean_r": -0.4013,
+    "p_raw": 0.57128,
     "p_holm": 1.0,
     "checks": [
      {
       "id": "V1",
       "name": "Suficiencia de datos",
       "value": {
-       "n": 48,
+       "n": 38,
        "regimes": {
-        "sin dato": 48
+        "sin dato": 38
        }
       },
       "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
       "ok": false,
-      "reason": "48 operaciones fuera de muestra; regímenes: sin dato 48"
+      "reason": "38 operaciones fuera de muestra; regímenes: sin dato 38"
      },
      {
       "id": "V2",
       "name": "Expectativa neta",
       "value": {
-       "mean_r": -0.1926,
+       "mean_r": -0.4013,
        "ci": [
-        -0.508,
-        0.1248
+        -0.7207,
+        -0.0643
        ]
       },
       "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
       "ok": false,
-      "reason": "R medio -0.193, IC [-0.508, +0.125]"
+      "reason": "R medio -0.401, IC [-0.721, -0.064]"
      },
      {
       "id": "V3",
       "name": "Contra el azar",
       "value": {
-       "p": 0.1033,
+       "p": 0.5713,
        "p_holm": 1.0,
-       "reps": 880
+       "reps": 960
       },
       "threshold": "p (Holm sobre todos los intentos) < 0.05",
       "ok": false,
-      "reason": "p bruto 0.1033 → Holm 1.0000 (880 réplicas de lado al azar)"
+      "reason": "p bruto 0.5713 → Holm 1.0000 (960 réplicas de lado al azar)"
      },
      {
       "id": "V4",
       "name": "Drawdown",
       "value": {
-       "max_dd": 0.1174
+       "max_dd": 0.1435
       },
       "threshold": "DD ≤ 25% con 1% de riesgo por operación",
       "ok": true,
-      "reason": "DD máximo 11.7%"
+      "reason": "DD máximo 14.3%"
      },
      {
       "id": "V5",
       "name": "Estabilidad",
       "value": {
-       "windows": 6,
-       "positive": 2,
-       "frac": 0.3333,
+       "windows": 5,
+       "positive": 1,
+       "frac": 0.2,
        "n_live": 0,
        "mean_live": null
       },
       "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
       "ok": false,
-      "reason": "2/6 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
+      "reason": "1/5 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
      },
      {
       "id": "V6",
       "name": "Costos",
       "value": {
-       "cost_r": 0.284
+       "cost_r": 0.2781
       },
       "threshold": "costo medio ≤ 0.3 R",
       "ok": true,
-      "reason": "costo medio 0.284 R"
+      "reason": "costo medio 0.278 R"
      }
     ],
     "extras": {
-     "win_rate": 0.4792,
-     "pf": 0.653,
-     "mfe_r": 1.002,
-     "mae_r": 0.717,
-     "dsr": 0.0015,
-     "ret_1pct": -0.0912,
-     "buy_hold": 0.0838
+     "win_rate": 0.4211,
+     "pf": 0.397,
+     "mfe_r": 0.88,
+     "mae_r": 0.768,
+     "dsr": 0.0001,
+     "ret_1pct": -0.1435,
+     "buy_hold": 0.0628
     }
    },
    "control": {
-    "id": "freqtrade-strategies:FSupertrendStrategy@1h#control@v1",
+    "id": "freqtrade-strategies:FSupertrendStrategy@1h#control@v2",
     "verdict": "RECHAZADA",
-    "n_oos": 48,
-    "mean_r": -0.19884549620724815,
+    "n_oos": 38,
+    "mean_r": -0.33878789031052464,
     "p_holm": 1.0
    },
-   "retired_versions": []
+   "retired_versions": [
+    "freqtrade-strategies:FSupertrendStrategy@1h@v1"
+   ]
   },
   {
    "id": "hummingbot-directional:bollinger_v1@1h@v1",
@@ -245,7 +247,7 @@
       },
       "V3": {
        "ok": false,
-       "detalle": "p bruto 0.6413 → Holm 1.0000 (880 réplicas de lado al azar)"
+       "detalle": "p bruto 0.6379 → Holm 1.0000 (960 réplicas de lado al azar)"
       },
       "V5": {
        "ok": false,
@@ -310,7 +312,7 @@
     "n_oos": 81,
     "n_live": 0,
     "mean_r": -0.3257,
-    "p_raw": 0.641317,
+    "p_raw": 0.637877,
     "p_holm": 1.0,
     "checks": [
      {
@@ -344,13 +346,13 @@
       "id": "V3",
       "name": "Contra el azar",
       "value": {
-       "p": 0.6413,
+       "p": 0.6379,
        "p_holm": 1.0,
-       "reps": 880
+       "reps": 960
       },
       "threshold": "p (Holm sobre todos los intentos) < 0.05",
       "ok": false,
-      "reason": "p bruto 0.6413 → Holm 1.0000 (880 réplicas de lado al azar)"
+      "reason": "p bruto 0.6379 → Holm 1.0000 (960 réplicas de lado al azar)"
      },
      {
       "id": "V4",
@@ -443,7 +445,7 @@
       },
       "V3": {
        "ok": false,
-       "detalle": "p bruto 0.9773 → Holm 1.0000 (880 réplicas de lado al azar)"
+       "detalle": "p bruto 0.9792 → Holm 1.0000 (960 réplicas de lado al azar)"
       },
       "V5": {
        "ok": null,
@@ -508,7 +510,7 @@
     "n_oos": 5,
     "n_live": 0,
     "mean_r": -1.1009,
-    "p_raw": 0.977299,
+    "p_raw": 0.979188,
     "p_holm": 1.0,
     "checks": [
      {
@@ -542,13 +544,13 @@
       "id": "V3",
       "name": "Contra el azar",
       "value": {
-       "p": 0.9773,
+       "p": 0.9792,
        "p_holm": 1.0,
-       "reps": 880
+       "reps": 960
       },
       "threshold": "p (Holm sobre todos los intentos) < 0.05",
       "ok": false,
-      "reason": "p bruto 0.9773 → Holm 1.0000 (880 réplicas de lado al azar)"
+      "reason": "p bruto 0.9792 → Holm 1.0000 (960 réplicas de lado al azar)"
      },
      {
       "id": "V4",
@@ -590,7 +592,7 @@
      "pf": 0.0,
      "mfe_r": 0.739,
      "mae_r": 0.858,
-     "dsr": 0.008,
+     "dsr": 0.0077,
      "ret_1pct": -0.0539,
      "buy_hold": 0.2538
     }
@@ -641,7 +643,7 @@
       },
       "V3": {
        "ok": false,
-       "detalle": "p bruto 0.4631 → Holm 1.0000 (880 réplicas de lado al azar)"
+       "detalle": "p bruto 0.4568 → Holm 1.0000 (960 réplicas de lado al azar)"
       },
       "V5": {
        "ok": false,
@@ -706,7 +708,7 @@
     "n_oos": 38,
     "n_live": 0,
     "mean_r": -0.3671,
-    "p_raw": 0.46311,
+    "p_raw": 0.456816,
     "p_holm": 1.0,
     "checks": [
      {
@@ -740,13 +742,13 @@
       "id": "V3",
       "name": "Contra el azar",
       "value": {
-       "p": 0.4631,
+       "p": 0.4568,
        "p_holm": 1.0,
-       "reps": 880
+       "reps": 960
       },
       "threshold": "p (Holm sobre todos los intentos) < 0.05",
       "ok": false,
-      "reason": "p bruto 0.4631 → Holm 1.0000 (880 réplicas de lado al azar)"
+      "reason": "p bruto 0.4568 → Holm 1.0000 (960 réplicas de lado al azar)"
      },
      {
       "id": "V4",
@@ -839,7 +841,7 @@
       },
       "V3": {
        "ok": false,
-       "detalle": "p bruto 0.1260 → Holm 1.0000 (880 réplicas de lado al azar)"
+       "detalle": "p bruto 0.1259 → Holm 1.0000 (960 réplicas de lado al azar)"
       },
       "V5": {
        "ok": false,
@@ -904,7 +906,7 @@
     "n_oos": 64,
     "n_live": 0,
     "mean_r": -0.1902,
-    "p_raw": 0.125993,
+    "p_raw": 0.125911,
     "p_holm": 1.0,
     "checks": [
      {
@@ -938,13 +940,13 @@
       "id": "V3",
       "name": "Contra el azar",
       "value": {
-       "p": 0.126,
+       "p": 0.1259,
        "p_holm": 1.0,
-       "reps": 880
+       "reps": 960
       },
       "threshold": "p (Holm sobre todos los intentos) < 0.05",
       "ok": false,
-      "reason": "p bruto 0.1260 → Holm 1.0000 (880 réplicas de lado al azar)"
+      "reason": "p bruto 0.1259 → Holm 1.0000 (960 réplicas de lado al azar)"
      },
      {
       "id": "V4",
@@ -986,7 +988,7 @@
      "pf": 0.649,
      "mfe_r": 0.978,
      "mae_r": 0.692,
-     "dsr": 0.0007,
+     "dsr": 0.0006,
      "ret_1pct": -0.118,
      "buy_hold": 0.0971
     }
@@ -1037,7 +1039,7 @@
       },
       "V3": {
        "ok": false,
-       "detalle": "p bruto 0.2054 → Holm 1.0000 (880 réplicas de lado al azar)"
+       "detalle": "p bruto 0.2040 → Holm 1.0000 (960 réplicas de lado al azar)"
       },
       "V5": {
        "ok": false,
@@ -1102,7 +1104,7 @@
     "n_oos": 149,
     "n_live": 0,
     "mean_r": -0.2233,
-    "p_raw": 0.205448,
+    "p_raw": 0.203954,
     "p_holm": 1.0,
     "checks": [
      {
@@ -1136,13 +1138,13 @@
       "id": "V3",
       "name": "Contra el azar",
       "value": {
-       "p": 0.2054,
+       "p": 0.204,
        "p_holm": 1.0,
-       "reps": 880
+       "reps": 960
       },
       "threshold": "p (Holm sobre todos los intentos) < 0.05",
       "ok": false,
-      "reason": "p bruto 0.2054 → Holm 1.0000 (880 réplicas de lado al azar)"
+      "reason": "p bruto 0.2040 → Holm 1.0000 (960 réplicas de lado al azar)"
      },
      {
       "id": "V4",
@@ -1235,7 +1237,7 @@
       },
       "V3": {
        "ok": false,
-       "detalle": "p bruto 0.8831 → Holm 1.0000 (880 réplicas de lado al azar)"
+       "detalle": "p bruto 0.8803 → Holm 1.0000 (960 réplicas de lado al azar)"
       },
       "V5": {
        "ok": null,
@@ -1302,7 +1304,7 @@
     "n_oos": 24,
     "n_live": 0,
     "mean_r": -0.5025,
-    "p_raw": 0.883087,
+    "p_raw": 0.880333,
     "p_holm": 1.0,
     "checks": [
      {
@@ -1336,13 +1338,13 @@
       "id": "V3",
       "name": "Contra el azar",
       "value": {
-       "p": 0.8831,
+       "p": 0.8803,
        "p_holm": 1.0,
-       "reps": 880
+       "reps": 960
       },
       "threshold": "p (Holm sobre todos los intentos) < 0.05",
       "ok": false,
-      "reason": "p bruto 0.8831 → Holm 1.0000 (880 réplicas de lado al azar)"
+      "reason": "p bruto 0.8803 → Holm 1.0000 (960 réplicas de lado al azar)"
      },
      {
       "id": "V4",
@@ -1384,7 +1386,7 @@
      "pf": 0.374,
      "mfe_r": 0.761,
      "mae_r": 0.799,
-     "dsr": 0.0007,
+     "dsr": 0.0006,
      "ret_1pct": -0.1153,
      "buy_hold": 0.0908
     }
@@ -1435,7 +1437,7 @@
       },
       "V3": {
        "ok": false,
-       "detalle": "p bruto 0.9659 → Holm 1.0000 (880 réplicas de lado al azar)"
+       "detalle": "p bruto 0.9636 → Holm 1.0000 (960 réplicas de lado al azar)"
       },
       "V5": {
        "ok": false,
@@ -1500,7 +1502,7 @@
     "n_oos": 110,
     "n_live": 0,
     "mean_r": -0.4374,
-    "p_raw": 0.965948,
+    "p_raw": 0.96358,
     "p_holm": 1.0,
     "checks": [
      {
@@ -1534,13 +1536,13 @@
       "id": "V3",
       "name": "Contra el azar",
       "value": {
-       "p": 0.9659,
+       "p": 0.9636,
        "p_holm": 1.0,
-       "reps": 880
+       "reps": 960
       },
       "threshold": "p (Holm sobre todos los intentos) < 0.05",
       "ok": false,
-      "reason": "p bruto 0.9659 → Holm 1.0000 (880 réplicas de lado al azar)"
+      "reason": "p bruto 0.9636 → Holm 1.0000 (960 réplicas de lado al azar)"
      },
      {
       "id": "V4",
@@ -1633,7 +1635,7 @@
       },
       "V3": {
        "ok": false,
-       "detalle": "p bruto 0.0227 → Holm 0.4994 (880 réplicas de lado al azar)"
+       "detalle": "p bruto 0.0229 → Holm 0.5494 (960 réplicas de lado al azar)"
       },
       "V5": {
        "ok": false,
@@ -1698,8 +1700,8 @@
     "n_oos": 174,
     "n_live": 0,
     "mean_r": -0.2038,
-    "p_raw": 0.022701,
-    "p_holm": 0.499432,
+    "p_raw": 0.022893,
+    "p_holm": 0.549428,
     "checks": [
      {
       "id": "V1",
@@ -1732,13 +1734,13 @@
       "id": "V3",
       "name": "Contra el azar",
       "value": {
-       "p": 0.0227,
-       "p_holm": 0.4994,
-       "reps": 880
+       "p": 0.0229,
+       "p_holm": 0.5494,
+       "reps": 960
       },
       "threshold": "p (Holm sobre todos los intentos) < 0.05",
       "ok": false,
-      "reason": "p bruto 0.0227 → Holm 0.4994 (880 réplicas de lado al azar)"
+      "reason": "p bruto 0.0229 → Holm 0.5494 (960 réplicas de lado al azar)"
      },
      {
       "id": "V4",
@@ -1831,7 +1833,7 @@
       },
       "V3": {
        "ok": false,
-       "detalle": "p bruto 0.5119 → Holm 1.0000 (880 réplicas de lado al azar)"
+       "detalle": "p bruto 0.5068 → Holm 1.0000 (960 réplicas de lado al azar)"
       },
       "V5": {
        "ok": null,
@@ -1896,7 +1898,7 @@
     "n_oos": 1,
     "n_live": 0,
     "mean_r": -2.1302,
-    "p_raw": 0.511918,
+    "p_raw": 0.506764,
     "p_holm": 1.0,
     "checks": [
      {
@@ -1930,13 +1932,13 @@
       "id": "V3",
       "name": "Contra el azar",
       "value": {
-       "p": 0.5119,
+       "p": 0.5068,
        "p_holm": 1.0,
-       "reps": 880
+       "reps": 960
       },
       "threshold": "p (Holm sobre todos los intentos) < 0.05",
       "ok": false,
-      "reason": "p bruto 0.5119 → Holm 1.0000 (880 réplicas de lado al azar)"
+      "reason": "p bruto 0.5068 → Holm 1.0000 (960 réplicas de lado al azar)"
      },
      {
       "id": "V4",
@@ -2029,7 +2031,7 @@
       },
       "V3": {
        "ok": false,
-       "detalle": "p bruto 0.7049 → Holm 1.0000 (880 réplicas de lado al azar)"
+       "detalle": "p bruto 0.7045 → Holm 1.0000 (960 réplicas de lado al azar)"
       },
       "V5": {
        "ok": null,
@@ -2096,7 +2098,7 @@
     "n_oos": 12,
     "n_live": 0,
     "mean_r": -0.821,
-    "p_raw": 0.704881,
+    "p_raw": 0.704475,
     "p_holm": 1.0,
     "checks": [
      {
@@ -2130,13 +2132,13 @@
       "id": "V3",
       "name": "Contra el azar",
       "value": {
-       "p": 0.7049,
+       "p": 0.7045,
        "p_holm": 1.0,
-       "reps": 880
+       "reps": 960
       },
       "threshold": "p (Holm sobre todos los intentos) < 0.05",
       "ok": false,
-      "reason": "p bruto 0.7049 → Holm 1.0000 (880 réplicas de lado al azar)"
+      "reason": "p bruto 0.7045 → Holm 1.0000 (960 réplicas de lado al azar)"
      },
      {
       "id": "V4",
@@ -2178,7 +2180,7 @@
      "pf": 0.188,
      "mfe_r": 0.742,
      "mae_r": 0.891,
-     "dsr": 0.0025,
+     "dsr": 0.0023,
      "ret_1pct": -0.0947,
      "buy_hold": 0.1302
     }
@@ -2202,14 +2204,14 @@
    "timeframe": "1h",
    "fingerprint": "f3340ce11f5bdf62f598522e64d1f5638eaa13f5+9172fbb01f69",
    "origin": "tercero",
-   "retired": false,
+   "retired": true,
    "verdict": "RECHAZADA",
    "reason": "claramente negativa: R medio -0.193 + 1·EE 0.165 < 0 → ciclo de mejora",
    "criteria": "validation_v1",
    "asof": 1792520100000,
    "n_oos": 48,
    "n_live": 0,
-   "p_raw": 0.103292,
+   "p_raw": 0.105099,
    "p_holm": 1.0,
    "checks": [
     {
@@ -2243,13 +2245,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.1033,
+      "p": 0.1051,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.1033 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.1051 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -2299,7 +2301,7 @@
     "pf": 0.653,
     "mfe_r": 1.002,
     "mae_r": 0.717,
-    "dsr": 0.0015,
+    "dsr": 0.0013,
     "ret_1pct": -0.0912,
     "buy_hold": 0.0838
    },
@@ -2313,14 +2315,14 @@
    "timeframe": "1h",
    "fingerprint": "f3340ce11f5bdf62f598522e64d1f5638eaa13f5+9172fbb01f69",
    "origin": "tercero",
-   "retired": false,
+   "retired": true,
    "verdict": "RECHAZADA",
    "reason": "claramente negativa: R medio -0.199 + 1·EE 0.164 < 0 → ciclo de mejora",
    "criteria": "validation_v1",
    "asof": 1792520100000,
    "n_oos": 48,
    "n_live": 0,
-   "p_raw": 0.119183,
+   "p_raw": 0.120708,
    "p_holm": 1.0,
    "checks": [
     {
@@ -2354,13 +2356,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.1192,
+      "p": 0.1207,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.1192 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.1207 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -2410,9 +2412,231 @@
     "pf": 0.647,
     "mfe_r": 0.971,
     "mae_r": 0.733,
-    "dsr": 0.0013,
+    "dsr": 0.0012,
     "ret_1pct": -0.0939,
     "buy_hold": 0.0825
+   },
+   "control": true
+  },
+  {
+   "id": "freqtrade-strategies:FSupertrendStrategy@1h@v2",
+   "sid": "freqtrade-strategies:FSupertrendStrategy@1h",
+   "n": 2,
+   "strategy": "freqtrade-strategies:FSupertrendStrategy",
+   "timeframe": "1h",
+   "fingerprint": "f3340ce11f5bdf62f598522e64d1f5638eaa13f5+7b30fa4197c1",
+   "origin": "tercero",
+   "retired": false,
+   "verdict": "RECHAZADA",
+   "reason": "claramente negativa: R medio -0.401 + 1·EE 0.171 < 0 → ciclo de mejora",
+   "criteria": "validation_v1",
+   "asof": 1792520100000,
+   "n_oos": 38,
+   "n_live": 0,
+   "p_raw": 0.57128,
+   "p_holm": 1.0,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 38,
+      "regimes": {
+       "sin dato": 38
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "38 operaciones fuera de muestra; regímenes: sin dato 38"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": -0.4013,
+      "ci": [
+       -0.7207,
+       -0.0643
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": false,
+     "reason": "R medio -0.401, IC [-0.721, -0.064]"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.5713,
+      "p_holm": 1.0,
+      "reps": 960
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.5713 → Holm 1.0000 (960 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.1435
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": true,
+     "reason": "DD máximo 14.3%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 5,
+      "positive": 1,
+      "frac": 0.2,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": false,
+     "reason": "1/5 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.2781
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": true,
+     "reason": "costo medio 0.278 R"
+    }
+   ],
+   "oos": {
+    "from": 1776826800000,
+    "to": 1792509300000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": []
+   },
+   "mean_r": -0.4013,
+   "extras": {
+    "win_rate": 0.4211,
+    "pf": 0.397,
+    "mfe_r": 0.88,
+    "mae_r": 0.768,
+    "dsr": 0.0001,
+    "ret_1pct": -0.1435,
+    "buy_hold": 0.0628
+   },
+   "control": false
+  },
+  {
+   "id": "freqtrade-strategies:FSupertrendStrategy@1h#control@v2",
+   "sid": "freqtrade-strategies:FSupertrendStrategy@1h#control",
+   "n": 2,
+   "strategy": "freqtrade-strategies:FSupertrendStrategy#control",
+   "timeframe": "1h",
+   "fingerprint": "f3340ce11f5bdf62f598522e64d1f5638eaa13f5+7b30fa4197c1",
+   "origin": "tercero",
+   "retired": false,
+   "verdict": "RECHAZADA",
+   "reason": "claramente negativa: R medio -0.339 + 1·EE 0.184 < 0 → ciclo de mejora",
+   "criteria": "validation_v1",
+   "asof": 1792520100000,
+   "n_oos": 38,
+   "n_live": 0,
+   "p_raw": 0.40999,
+   "p_holm": 1.0,
+   "checks": [
+    {
+     "id": "V1",
+     "name": "Suficiencia de datos",
+     "value": {
+      "n": 38,
+      "regimes": {
+       "sin dato": 38
+      }
+     },
+     "threshold": "≥ 100 op. y ≥ 2 regímenes con ≥ 20",
+     "ok": false,
+     "reason": "38 operaciones fuera de muestra; regímenes: sin dato 38"
+    },
+    {
+     "id": "V2",
+     "name": "Expectativa neta",
+     "value": {
+      "mean_r": -0.3388,
+      "ci": [
+       -0.6779,
+       0.0263
+      ]
+     },
+     "threshold": "R medio > 0 e IC95% (bloques de día, 5000 remuestreos) sin el 0",
+     "ok": false,
+     "reason": "R medio -0.339, IC [-0.678, +0.026]"
+    },
+    {
+     "id": "V3",
+     "name": "Contra el azar",
+     "value": {
+      "p": 0.41,
+      "p_holm": 1.0,
+      "reps": 960
+     },
+     "threshold": "p (Holm sobre todos los intentos) < 0.05",
+     "ok": false,
+     "reason": "p bruto 0.4100 → Holm 1.0000 (960 réplicas de lado al azar)"
+    },
+    {
+     "id": "V4",
+     "name": "Drawdown",
+     "value": {
+      "max_dd": 0.1231
+     },
+     "threshold": "DD ≤ 25% con 1% de riesgo por operación",
+     "ok": true,
+     "reason": "DD máximo 12.3%"
+    },
+    {
+     "id": "V5",
+     "name": "Estabilidad",
+     "value": {
+      "windows": 5,
+      "positive": 1,
+      "frac": 0.2,
+      "n_live": 0,
+      "mean_live": null
+     },
+     "threshold": "≥ 60% de ventanas de 30 d con R > 0 (≥ 4) y en vivo ≥ 20 op. con R > 0",
+     "ok": false,
+     "reason": "1/5 ventanas positivas; en vivo 0 op. (pendiente: < 20)"
+    },
+    {
+     "id": "V6",
+     "name": "Costos",
+     "value": {
+      "cost_r": 0.2751
+     },
+     "threshold": "costo medio ≤ 0.3 R",
+     "ok": true,
+     "reason": "costo medio 0.275 R"
+    }
+   ],
+   "oos": {
+    "from": 1776826800000,
+    "to": 1792509300000,
+    "excluded_in_windows": 0,
+    "after_asof": 0,
+    "windows": []
+   },
+   "mean_r": -0.3388,
+   "extras": {
+    "win_rate": 0.4737,
+    "pf": 0.482,
+    "mfe_r": 0.884,
+    "mae_r": 0.811,
+    "dsr": 0.0003,
+    "ret_1pct": -0.1231,
+    "buy_hold": 0.0628
    },
    "control": true
   },
@@ -2431,7 +2655,7 @@
    "asof": 1792520100000,
    "n_oos": 81,
    "n_live": 0,
-   "p_raw": 0.641317,
+   "p_raw": 0.637877,
    "p_holm": 1.0,
    "checks": [
     {
@@ -2465,13 +2689,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.6413,
+      "p": 0.6379,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.6413 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.6379 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -2542,7 +2766,7 @@
    "asof": 1792520100000,
    "n_oos": 82,
    "n_live": 0,
-   "p_raw": 0.946652,
+   "p_raw": 0.944849,
    "p_holm": 1.0,
    "checks": [
     {
@@ -2576,13 +2800,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.9467,
+      "p": 0.9448,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.9467 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.9448 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -2653,7 +2877,7 @@
    "asof": 1792520100000,
    "n_oos": 5,
    "n_live": 0,
-   "p_raw": 0.977299,
+   "p_raw": 0.979188,
    "p_holm": 1.0,
    "checks": [
     {
@@ -2687,13 +2911,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.9773,
+      "p": 0.9792,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.9773 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.9792 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -2743,7 +2967,7 @@
     "pf": 0.0,
     "mfe_r": 0.739,
     "mae_r": 0.858,
-    "dsr": 0.008,
+    "dsr": 0.0077,
     "ret_1pct": -0.0539,
     "buy_hold": 0.2538
    },
@@ -2764,7 +2988,7 @@
    "asof": 1792520100000,
    "n_oos": 5,
    "n_live": 0,
-   "p_raw": 0.944381,
+   "p_raw": 0.943809,
    "p_holm": 1.0,
    "checks": [
     {
@@ -2798,13 +3022,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.9444,
+      "p": 0.9438,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.9444 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.9438 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -2854,7 +3078,7 @@
     "pf": 0.0,
     "mfe_r": 0.514,
     "mae_r": 0.949,
-    "dsr": 0.0075,
+    "dsr": 0.0072,
     "ret_1pct": -0.0526,
     "buy_hold": 0.2538
    },
@@ -2875,7 +3099,7 @@
    "asof": 1792520100000,
    "n_oos": 38,
    "n_live": 0,
-   "p_raw": 0.46311,
+   "p_raw": 0.456816,
    "p_holm": 1.0,
    "checks": [
     {
@@ -2909,13 +3133,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.4631,
+      "p": 0.4568,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.4631 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.4568 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -2986,7 +3210,7 @@
    "asof": 1792520100000,
    "n_oos": 38,
    "n_live": 0,
-   "p_raw": 0.30193,
+   "p_raw": 0.309053,
    "p_holm": 1.0,
    "checks": [
     {
@@ -3020,13 +3244,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.3019,
+      "p": 0.3091,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.3019 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.3091 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -3076,7 +3300,7 @@
     "pf": 0.538,
     "mfe_r": 0.991,
     "mae_r": 0.71,
-    "dsr": 0.0006,
+    "dsr": 0.0005,
     "ret_1pct": -0.1084,
     "buy_hold": 0.0814
    },
@@ -3097,7 +3321,7 @@
    "asof": 1792520100000,
    "n_oos": 64,
    "n_live": 0,
-   "p_raw": 0.125993,
+   "p_raw": 0.125911,
    "p_holm": 1.0,
    "checks": [
     {
@@ -3131,13 +3355,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.126,
+      "p": 0.1259,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.1260 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.1259 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -3187,7 +3411,7 @@
     "pf": 0.649,
     "mfe_r": 0.978,
     "mae_r": 0.692,
-    "dsr": 0.0007,
+    "dsr": 0.0006,
     "ret_1pct": -0.118,
     "buy_hold": 0.0971
    },
@@ -3208,7 +3432,7 @@
    "asof": 1792520100000,
    "n_oos": 63,
    "n_live": 0,
-   "p_raw": 0.751419,
+   "p_raw": 0.75026,
    "p_holm": 1.0,
    "checks": [
     {
@@ -3242,13 +3466,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.7514,
+      "p": 0.7503,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.7514 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.7503 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -3319,7 +3543,7 @@
    "asof": 1792520100000,
    "n_oos": 149,
    "n_live": 0,
-   "p_raw": 0.205448,
+   "p_raw": 0.203954,
    "p_holm": 1.0,
    "checks": [
     {
@@ -3353,13 +3577,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.2054,
+      "p": 0.204,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.2054 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.2040 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -3430,7 +3654,7 @@
    "asof": 1792520100000,
    "n_oos": 148,
    "n_live": 0,
-   "p_raw": 0.580023,
+   "p_raw": 0.582726,
    "p_holm": 1.0,
    "checks": [
     {
@@ -3464,13 +3688,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.58,
+      "p": 0.5827,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.5800 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.5827 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -3541,7 +3765,7 @@
    "asof": 1792520100000,
    "n_oos": 24,
    "n_live": 0,
-   "p_raw": 0.883087,
+   "p_raw": 0.880333,
    "p_holm": 1.0,
    "checks": [
     {
@@ -3575,13 +3799,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.8831,
+      "p": 0.8803,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.8831 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.8803 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -3631,7 +3855,7 @@
     "pf": 0.374,
     "mfe_r": 0.761,
     "mae_r": 0.799,
-    "dsr": 0.0007,
+    "dsr": 0.0006,
     "ret_1pct": -0.1153,
     "buy_hold": 0.0908
    },
@@ -3652,7 +3876,7 @@
    "asof": 1792520100000,
    "n_oos": 24,
    "n_live": 0,
-   "p_raw": 0.519864,
+   "p_raw": 0.520291,
    "p_holm": 1.0,
    "checks": [
     {
@@ -3686,13 +3910,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.5199,
+      "p": 0.5203,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.5199 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.5203 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -3742,7 +3966,7 @@
     "pf": 0.667,
     "mfe_r": 0.831,
     "mae_r": 0.8,
-    "dsr": 0.0039,
+    "dsr": 0.0035,
     "ret_1pct": -0.0605,
     "buy_hold": 0.0892
    },
@@ -3763,7 +3987,7 @@
    "asof": 1792520100000,
    "n_oos": 110,
    "n_live": 0,
-   "p_raw": 0.965948,
+   "p_raw": 0.96358,
    "p_holm": 1.0,
    "checks": [
     {
@@ -3797,13 +4021,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.9659,
+      "p": 0.9636,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.9659 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.9636 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -3874,7 +4098,7 @@
    "asof": 1792520100000,
    "n_oos": 109,
    "n_live": 0,
-   "p_raw": 0.46765,
+   "p_raw": 0.472425,
    "p_holm": 1.0,
    "checks": [
     {
@@ -3908,13 +4132,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.4677,
+      "p": 0.4724,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.4677 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.4724 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -3985,8 +4209,8 @@
    "asof": 1792520100000,
    "n_oos": 174,
    "n_live": 0,
-   "p_raw": 0.022701,
-   "p_holm": 0.499432,
+   "p_raw": 0.022893,
+   "p_holm": 0.549428,
    "checks": [
     {
      "id": "V1",
@@ -4019,13 +4243,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.0227,
-      "p_holm": 0.4994,
-      "reps": 880
+      "p": 0.0229,
+      "p_holm": 0.5494,
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.0227 → Holm 0.4994 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.0229 → Holm 0.5494 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -4096,7 +4320,7 @@
    "asof": 1792520100000,
    "n_oos": 169,
    "n_live": 0,
-   "p_raw": 0.83882,
+   "p_raw": 0.845994,
    "p_holm": 1.0,
    "checks": [
     {
@@ -4130,13 +4354,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.8388,
+      "p": 0.846,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.8388 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.8460 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -4207,7 +4431,7 @@
    "asof": 1792520100000,
    "n_oos": 1,
    "n_live": 0,
-   "p_raw": 0.511918,
+   "p_raw": 0.506764,
    "p_holm": 1.0,
    "checks": [
     {
@@ -4241,13 +4465,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.5119,
+      "p": 0.5068,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.5119 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.5068 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -4354,11 +4578,11 @@
      "value": {
       "p": 1.0,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 1.0000 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 1.0000 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -4429,7 +4653,7 @@
    "asof": 1792520100000,
    "n_oos": 12,
    "n_live": 0,
-   "p_raw": 0.704881,
+   "p_raw": 0.704475,
    "p_holm": 1.0,
    "checks": [
     {
@@ -4463,13 +4687,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.7049,
+      "p": 0.7045,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.7049 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.7045 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -4519,7 +4743,7 @@
     "pf": 0.188,
     "mfe_r": 0.742,
     "mae_r": 0.891,
-    "dsr": 0.0025,
+    "dsr": 0.0023,
     "ret_1pct": -0.0947,
     "buy_hold": 0.1302
    },
@@ -4540,7 +4764,7 @@
    "asof": 1792520100000,
    "n_oos": 12,
    "n_live": 0,
-   "p_raw": 0.187287,
+   "p_raw": 0.182102,
    "p_holm": 1.0,
    "checks": [
     {
@@ -4574,13 +4798,13 @@
      "id": "V3",
      "name": "Contra el azar",
      "value": {
-      "p": 0.1873,
+      "p": 0.1821,
       "p_holm": 1.0,
-      "reps": 880
+      "reps": 960
      },
      "threshold": "p (Holm sobre todos los intentos) < 0.05",
      "ok": false,
-     "reason": "p bruto 0.1873 → Holm 1.0000 (880 réplicas de lado al azar)"
+     "reason": "p bruto 0.1821 → Holm 1.0000 (960 réplicas de lado al azar)"
     },
     {
      "id": "V4",
@@ -4630,7 +4854,7 @@
     "pf": 0.439,
     "mfe_r": 0.969,
     "mae_r": 0.784,
-    "dsr": 0.0033,
+    "dsr": 0.0029,
     "ret_1pct": -0.0529,
     "buy_hold": 0.1302
    },
@@ -4643,6 +4867,15 @@
     "id": "freqtrade-strategies:FSupertrendStrategy@1h@v1",
     "regime": "sin dato",
     "n_oos": 48,
+    "evaluated": false,
+    "passes": false,
+    "mean_r": null,
+    "p_holm": null
+   },
+   {
+    "id": "freqtrade-strategies:FSupertrendStrategy@1h@v2",
+    "regime": "sin dato",
+    "n_oos": 38,
     "evaluated": false,
     "passes": false,
     "mean_r": null,
@@ -4814,5 +5047,5 @@
   "publicables": [],
   "modulan_confianza": []
  },
- "computed": 1792565755840
+ "computed": 1792603726469
 }

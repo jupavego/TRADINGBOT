@@ -61,12 +61,14 @@ class BotId:
 
 def identities(rows: Sequence[tuple[BotSignal, int]]) -> list[BotId]:
     """Versiones distintas de cada bot/estrategia/marco, numeradas por su primera aparición."""
-    first: dict[tuple[str, str, str, str], int] = {}
-    for s, _ in rows:
+    first: dict[tuple[str, str, str, str], tuple[int, int]] = {}
+    for s, created in rows:
         k = (s.bot_id, s.strategy, s.timeframe, s.version)
-        first[k] = min(first.get(k, s.asof), s.asof)
+        first[k] = min(first.get(k, (s.asof, created)), (s.asof, created))
     seen: dict[tuple[str, str, str], int] = {}
     out = []
+    # orden: primer `asof`, luego el momento en que se guardó (un relleno histórico de
+    # una versión nueva arranca en el mismo `asof` pero se guarda después), luego la versión
     for (b, st, tf, v), _t in sorted(first.items(), key=lambda kv: (kv[0][:3], kv[1], kv[0][3])):
         seen[(b, st, tf)] = n = seen.get((b, st, tf), 0) + 1
         out.append(BotId(b, st, tf, v, n))
