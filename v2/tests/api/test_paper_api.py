@@ -142,3 +142,12 @@ def test_setups_endpoint_publishes_only_validated(client):
     assert j["mode"] == "ANALISIS" and j["setups"] == []
     assert j["status"] in ("sin_validadas", "datos_viejos") and j["message"]
     assert "p_fill" not in j and "bias" not in j
+
+
+def test_ledger_routes_expose_the_fixed_log_and_csv(client):
+    j = client.get("/v2/paper/ledger?symbol=BTCUSDT&limit=5").json()
+    assert j["mode"] == "SIMULADO" and "counts" in j and isinstance(j["rows"], list)
+    assert client.get("/v2/paper/ledger?scope=otra").status_code == 422
+    r = client.get("/v2/paper/ledger.csv?symbol=BTCUSDT")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv")
+    assert r.text.splitlines()[0].startswith("ledger_id,scope,profile,symbol")
