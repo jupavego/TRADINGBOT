@@ -22,6 +22,7 @@ from eim.api.history import HistoryLoader
 from eim.api.leaders import LeaderDesk, build_leaders_router
 from eim.api.library import build_library_router
 from eim.api.live import Hub, overlays_of, synthesis_of
+from eim.api.micro import build_micro_router
 from eim.api.more import MoreSources, build_more_router
 from eim.api.obs import build_obs_router, build_observatory
 from eim.api.operation import build_operation_router
@@ -226,6 +227,7 @@ def create_app(
     sm = reg.get("smart_money") if "smart_money" in reg.ids() else None
     app.state.leader_desk = LeaderDesk(cfg.data_dir, agent=sm)
     app.include_router(build_leaders_router(app.state.leader_desk))
+    app.include_router(build_micro_router(cfg.data_dir))
     app.include_router(build_paper_router(paper))
     app.include_router(build_paper_arb_router(store, cfg.data_dir))  # T45: pruebas en papel
     app.state.paper = paper
