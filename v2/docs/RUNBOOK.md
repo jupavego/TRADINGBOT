@@ -18,6 +18,7 @@ Comandos desde `v2/`. `API=http://127.0.0.1:8000`. Todo POST lleva `X-EIM-Confir
 | Tablero de líderes viejo / `smart_money` sin datos | «Tablero viejo» en «Líderes», aviso «Líderes: servicio reiniciado» | §10 |
 | Copia simulada en pausa o con kill-switch | aviso «Copia … en pausa» / «kill-switch» | §11 |
 | Arbitraje «DESCUBIERTA» o kill-switch por pata incompleta | pestaña «Arbitraje» → «Ejecución automática» | §12 |
+| Bot del escuadrón en cuarentena, colgado o con versión nueva | «Escuadrón», alerta `bots.<bot>` | §13 |
 
 Dónde mirar: pestaña «Operación» de la UI · `GET $API/v2/operation` · registro
 `data/operation/logs/op-AAAA-MM-DD.jsonl` · tabla `op_alerts`.
@@ -169,3 +170,14 @@ sumar cero; el ejecutor nunca deja una pata huérfana a propósito.
 5. Con `EIM_ARB_EXECUTION` apagado y posiciones vivas en `state.json`, la reconciliación T30 sigue
    respetando sus futuros (no los cierra como «posición desconocida»), pero nadie las gestiona:
    volver a encenderlo o cerrarlas.
+
+## 13. Un bot del escuadrón se cuelga, falla o cambia de versión (T60)
+Síntoma: en «Escuadrón» el bot sale `cuarentena`, con señal `degraded` o con el aviso «versión cambió»; alerta `bots.<bot>` o latido `bots.service` en `degraded` en la pestaña «Operación».
+1. Mirar el motivo: `GET $API/v2/bots` (`reasons`, `evidence`) y `data/bots/quarantine.jsonl`. Un bot que se cuelga (modo B) lo mata el tiempo límite del ejecutor y solo deja una señal `degraded`: el resto del ciclo sigue.
+2. Un bot en cuarentena no vota (la síntesis queda como si estuviera en `informa`). No hay que hacer nada urgente: el riesgo y la ejecución no dependen de él.
+3. Versión cambiada (SHA de la ficha o parámetros): su puntuación anterior ya no vale. Volver a puntuar (`python -m eim.bots.scorecard_cli`, `docs/BOTS.md` §Cambiar de versión); mientras tanto vota solo si la nueva medición lo permite.
+4. Reactivar a mano, solo tras entender la causa:
+   ```bash
+   python -c "from pathlib import Path; from eim.bots.quarantine import Quarantine; import time; q = Quarantine(Path('data/bots')); print(q.release('<bot_id>@<estrategia>', int(time.time()*1000)))"
+   ```
+   Reiniciar la API (o esperar al próximo recálculo de 4 h) para que la política lo recoja.

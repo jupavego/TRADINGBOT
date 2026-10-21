@@ -43,6 +43,7 @@ DAY_MS = 86_400_000
 class OperationParams:
     symbols: tuple[str, ...] = FOCUS      # foco actual: solo BTCUSDT
     timeframe: str = "1h"                 # marco operado (el del backtest de T25/T27)
+    extra_timeframes: tuple[str, ...] = ("4h",)   # marcos que también generan planes (mismo riesgo)
     path_tf: str = "15m"                  # marco que mueve el precio del simulador
     poll_s: float = 60.0
     history_bars: int = 1000              # historia mínima que se mantiene sincronizada
@@ -105,6 +106,21 @@ class OperationCycle:
         return self.desk.rt
 
     # --- pasos -------------------------------------------------------------
+    def _key(self, sym: str, tf: str) -> str:
+        """Clave de los cursores/trazas: el marco principal conserva la clave `sym` (compatible
+        con el estado ya guardado); los marcos adicionales usan `sym:tf`."""
+        return sym if tf == self.p.timeframe else f"{sym}:{tf}"
+
+    def _sync_extra_tf(self, sym: str, tf: str, now: int) -> bool:
+        try:
+            sync_candles(self.store, self.provider, sym, tf,
+                         now - self.p.history_bars * tf_ms(tf), now)
+        except Exception as e:  # noqa: BLE001 - un marco adicional caído no frena el principal
+            self.log.write("datos_fallidos", "warn", symbol=sym, tf=tf,
+                           error=f"{type(e).__name__}: {e}")
+            return False
+        return True
+
     def _sync(self, sym: str, now: int) -> bool:
         tf, ptf = self.p.timeframe, self.p.path_tf
         try:
@@ -156,18 +172,19 @@ class OperationCycle:
                 walk(broker, sym, c)
                 self.cur.fed[sym] = c.t
 
-    def _analyze(self, sym: str) -> bool:
-        tf = self.p.timeframe
+    def _analyze(self, sym: str, tf: str) -> bool:
+        key = self._key(sym, tf)
         last = self.store.read_candles(sym, tf, last=1)
-        if not last or last[-1].t <= self.cur.analyzed.get(sym, -1):
+        if not last or last[-1].t <= self.cur.analyzed.get(key, -1):
             return False
         asof = last[-1].t + tf_ms(tf)
-        trace = self.traces[sym] = trace_for(sym, tf, asof)
+        trace = self.traces[key] = trace_for(sym, tf, asof)
         with span("operation.cycle", trace_id=trace, mode=self.desk.mode,
                   detail={"phase": "analyze", "symbol": sym, "tf": tf, "asof": asof}):
             self._run_agents(sym, tf, asof)
-        self.agent_status[sym] = {r.agent_id: r.status for r in self.reports.latest(sym, tf)}
-        self.cur.analyzed[sym] = last[-1].t
+        if tf == self.p.timeframe:      # las alertas de agentes miran solo el marco principal
+            self.agent_status[sym] = {r.agent_id: r.status for r in self.reports.latest(sym, tf)}
+        self.cur.analyzed[key] = last[-1].t
         return True
 
     def _run_agents(self, sym: str, tf: str, asof: int) -> None:
@@ -186,10 +203,9 @@ class OperationCycle:
                     self.log.write("pronostico_fallido", "warn", symbol=sym, error=str(e))
                     hooks_service.service_error("forecast.engine", e, mode=self.desk.mode)
 
-    def _decide(self, sym: str, res: CycleResult) -> None:
-        tf = self.p.timeframe
-        with span("operation.cycle", trace_id=self.traces.get(sym), mode=self.desk.mode,
-                  detail={"phase": "decide", "symbol": sym, "tf": tf}) as sp:
+    def _decide(self, sym: str, tf: str, res: CycleResult) -> None:
+        with span("operation.cycle", trace_id=self.traces.get(self._key(sym, tf)),
+                  mode=self.desk.mode, detail={"phase": "decide", "symbol": sym, "tf": tf}) as sp:
             try:
                 view = (self.desk.execute(sym, tf) if self.rt.svc is not None
                         else self.desk.evaluate(sym, tf)[0])
@@ -201,7 +217,7 @@ class OperationCycle:
             d = view.get("decision")
             if d and not d["approved"]:
                 sp.set(status="rejected")
-        row = {"symbol": sym, "plan": (view.get("plan") or {}).get("plan_id"),
+        row = {"symbol": sym, "tf": tf, "plan": (view.get("plan") or {}).get("plan_id"),
                "approved": d["approved"] if d else None,
                "reasons": list(d["reasons"]) if d else [view.get("detail", "")],
                "executed": bool(view.get("executed")),
@@ -232,9 +248,15 @@ class OperationCycle:
                 res.errors.append(f"{sym}: sin datos del proveedor")
             if rt.paper:
                 self._feed(sym, now)
-            if ok and self._analyze(sym):
+            if ok and self._analyze(sym, self.p.timeframe):
                 res.analyzed.append(sym)
-                self._decide(sym, res)
+                self._decide(sym, self.p.timeframe, res)
+            for tf in self.p.extra_timeframes:
+                if tf == self.p.timeframe or not self._sync_extra_tf(sym, tf, now):
+                    continue
+                if self._analyze(sym, tf):
+                    res.analyzed.append(f"{sym}:{tf}")
+                    self._decide(sym, tf, res)
         if rt.svc is not None:
             try:
                 res.equity = rt.equity(fresh=True)

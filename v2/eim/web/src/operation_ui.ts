@@ -31,7 +31,7 @@ const RISK_LABEL: Record<string, string> = {
 const usd = (x: number | null | undefined): string =>
   x === null || x === undefined ? '—' : x.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const pct = (x: number | null | undefined): string => (x === null || x === undefined ? '—' : `${(x * 100).toFixed(2)} %`)
-const hhmm = (t: number | null): string => (t === null ? '—' : new Date(t).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' }))
+const hhmm = (t: number | null): string => (t === null ? '—' : new Date(t).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Bogota' }))
 const ago = (now: number, t: number | null): string => (t === null ? 'nunca' : `hace ${Math.max(0, Math.round((now - t) / 1000))} s`)
 
 function service(o: Op): string {
@@ -123,7 +123,7 @@ function vetoed(o: Op): string {
 function reports(o: Op): string {
   const list = o.reports.slice().reverse().map((n) => `<li><button class="link" data-report="${esc(n)}">${esc(n)}</button></li>`).join('')
   return `<p>${o.service ? '<button class="btn" data-mkreport="1">Generar informe de la semana en curso</button>' : ''}</p>` +
-    (list ? `<ul class="op-reports">${list}</ul>` : '<p class="muted">Aún no hay informes (el semanal sale cada lunes 00:00 UTC).</p>') +
+    (list ? `<ul class="op-reports">${list}</ul>` : '<p class="muted">Aún no hay informes (el semanal sale cada domingo 7:00 p. m., hora de Bogotá).</p>') +
     '<pre class="op-report" hidden></pre>'
 }
 

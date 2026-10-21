@@ -4,6 +4,8 @@ import './sim.css'
 import './setups.css'
 import './arb.css'
 import './leaders.css'
+import './squad.css'
+import { SquadPanel } from './squad_ui'
 import './paper.css'
 import './obs.css'
 import './obs_trace.css'
@@ -29,6 +31,7 @@ import { ObsView, obsIsHome } from './obs_view'
 import { setCalendarClock } from './event_clock'
 import { applyTheme, initialTheme, nextTheme, THEME_LABEL, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
+import { bogIso } from './tz'
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T
 
@@ -57,8 +60,9 @@ applyTheme(theme)
 const chart = new PriceChart($('chart'))
 const more = new MoreView($('more'))
 const marks = new TradeMarks(chart)
+let squadSupport: SquadPanel | null = null
 const scenarios = new ScenarioPanel($('t-esc'), chart, () => ({ symbol, tf }),
-  () => latest.find((r) => r.agent_id === 'literature'))
+  () => latest.find((r) => r.agent_id === 'literature'), () => squadSupport?.support ?? null)
 const calibration = new CalibrationPanel($('t-cal'), () => ({ symbol, tf }))
 const risk = new RiskPanel($('t-plan'), () => ({ symbol, tf }))
 const operation = new OperationPanel($('t-op'))
@@ -69,6 +73,8 @@ const setupsHistory = new SetupsHistory($('setups-history')) // T51
 // independiente del par/marco (T39); cada escaneo también repinta el satélite del río
 const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('river'), p))
 const leaders = new LeadersPanel($('t-lead'), $('tab-lead'))
+const squad = new SquadPanel($('t-squad'), () => ({ symbol, tf }), () => scenarios.refresh()) // T60
+squadSupport = squad
 const obs = new ObsView($('obs')) // Mapa del sistema (T75): vista pedagógica del flujo
 const paper = new PaperView($('paper')) // bróker simulado (T47): vista propia, modo Simulado
 chart.layers.modeLabel = MODE_LABEL[mode]
@@ -149,7 +155,7 @@ function paintReplayBar(): void {
   bar.dataset.replaying = String(replaying)
   $('replay-live').hidden = !replaying
   $('replay-label').textContent = replaying
-    ? `Reproducción · ${new Date(asofs[Number(range.value)]).toISOString().slice(0, 16).replace('T', ' ')} UTC (Simulado)`
+    ? `Reproducción · ${bogIso(asofs[Number(range.value)]).slice(0, 16).replace('T', ' ')} COT (Simulado)`
     : 'En vivo'
 }
 
@@ -225,10 +231,11 @@ async function load(): Promise<void> {
     if (last) paintPrice(last)
     scenarios.setLast(snap.candles[snap.candles.length - 1] ?? null)
     void scenarios.reload()
+    void squad.reload()
     const src = Object.entries(snap.sources).map(([k, v]) => `${k}: ${v}`).join(' · ')
     const cov = snap.candles.length
-      ? `${new Date(snap.candles[0].t).toISOString().slice(0, 10)} → ` +
-        `${new Date(snap.candles[snap.candles.length - 1].t).toISOString().slice(0, 10)}`
+      ? `${bogIso(snap.candles[0].t).slice(0, 10)} → ` +
+        `${bogIso(snap.candles[snap.candles.length - 1].t).slice(0, 10)}`
       : 'sin datos'
     $('source').textContent = `Fuente — ${src || 'almacén local'} · cobertura ${cov} · ${snap.candles.length} velas`
   } catch (e) {
@@ -261,6 +268,7 @@ function build(): void {
       if (b.dataset.tab === 't-op') void operation.reload()
       if (b.dataset.tab === 't-arb') void arb.reload()
       if (b.dataset.tab === 't-lead') void leaders.reload()
+      if (b.dataset.tab === 't-squad') void squad.reload()
       if (b.dataset.tab === 't-lib') void library.reload()
     }
   })

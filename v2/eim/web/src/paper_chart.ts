@@ -7,11 +7,12 @@ import { PriceChart } from './chart'
 import { cssVar } from './theme'
 import { esc, nf, rr, side } from './paper_fmt'
 import type { PaperTrade, Position, ProfileView } from './paper_types'
+import { bogIso, chartTimeLocale } from './tz'
 
 const sec = (t: number): UTCTimestamp => Math.floor(t / 1000) as UTCTimestamp
 const MAX_MARKS = 400
 /** Color de cada perfil: sigue a la entidad (orden fijo), nunca al ranking. */
-export const PROFILE_VAR: Record<string, string> = { conservador: '--p1', moderado: '--p2', agresivo: '--p3' }
+export const PROFILE_VAR: Record<string, string> = { conservador: '--p1', moderado: '--p2', agresivo: '--p3', ppp_btcusdt: '--p4' }
 
 /** Velas de 1 h con entradas/salidas del perfil elegido y líneas de las posiciones abiertas. */
 export class PaperPriceChart {
@@ -53,8 +54,8 @@ export class PaperPriceChart {
       const on = p.id === focus
       add(p.entry, cssVar('--accent'), `${side(p.side)} ${p.timeframe} ${on ? '' : p.strategy}`.trim(), on ? LineStyle.Solid : LineStyle.Dotted)
       if (!on) continue
-      add(p.tp, cssVar('--up'), 'TP sim')
-      add(p.sl, cssVar('--down'), 'SL sim')
+      if (p.tp !== null) add(p.tp, cssVar('--up'), 'TP sim')
+      add(p.sl, cssVar('--down'), p.ladder ? `SL dinámico (esc. ${p.ladder.level})` : 'SL sim')
       add(p.liq, cssVar('--warn'), 'Liq. sim', LineStyle.Dotted)
     }
   }
@@ -63,7 +64,7 @@ export class PaperPriceChart {
   destroy(): void { this.pc.destroy() }
 }
 
-/** Curvas de capital de los 3 perfiles: un solo eje (USDT), leyenda con valor y etiqueta directa. */
+/** Curvas de capital de todos los perfiles: un solo eje (USDT), leyenda con valor y etiqueta directa. */
 export class EquityChart {
   private chart: IChartApi
   private series = new Map<string, ISeriesApi<'Line'>>()
@@ -73,7 +74,8 @@ export class EquityChart {
   constructor(el: HTMLElement, private legend: HTMLElement) {
     this.chart = createChart(el, {
       autoSize: true, handleScale: false, handleScroll: false,
-      timeScale: { timeVisible: true, secondsVisible: false, borderVisible: false },
+      localization: chartTimeLocale.localization,
+      timeScale: { timeVisible: true, secondsVisible: false, borderVisible: false, ...chartTimeLocale.timeScale },
       rightPriceScale: { borderVisible: false },
       layout: { background: { type: ColorType.Solid, color: 'transparent' }, fontFamily: 'inherit', fontSize: 11 },
       crosshair: { horzLine: { visible: false, labelVisible: false } },
@@ -109,7 +111,7 @@ export class EquityChart {
   private paintLegend(vals: Map<string, number>, t: number | null): void {
     this.legend.innerHTML = [...this.names].map(([id, name]) =>
       `<span><i style="background:var(${PROFILE_VAR[id] ?? '--accent'})"></i>${esc(name)} <b class="num">${Number.isFinite(vals.get(id)) ? nf(vals.get(id)!) : '—'}</b></span>`).join('') +
-      `<small class="muted">${t ? new Date(t).toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : 'capital realizado + no realizado (USDT)'}</small>`
+      `<small class="muted">${t ? bogIso(t).slice(0, 16).replace('T', ' ') + ' COT' : 'capital realizado + no realizado (USDT)'}</small>`
   }
 
   restyle(): void {

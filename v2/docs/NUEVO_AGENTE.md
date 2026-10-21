@@ -49,3 +49,5 @@ Para darle voto:
 ## 4. Cambiar un agente existente
 Si cambia la salida → sube `version`. El registro admite varias versiones; `get(id)` usa la más
 reciente y los reportes guardados conservan la versión que los produjo.
+
+**Bots de terceros**: no se añaden como agente propio; pasan por el escuadrón (`docs/BOTS.md`: ficha → adaptador → paridad → puerta). El agente `bots` los consolida y la política de `eim/synthesis/squad.py` decide, con el aporte marginal medido en T59, quién vota y con qué peso.

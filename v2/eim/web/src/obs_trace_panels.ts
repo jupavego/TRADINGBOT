@@ -1,6 +1,7 @@
 /** Paneles de la traza (T76): hechos, «¿por qué (no) hubo operación?», agentes, reglas de riesgo y calidad. */
 import { ago, esc } from './obs_types'
 import { CAUSE_ES, MARK_ES, MARK_HINT, MARK_ICON, pct, type Explain, type Mark, type Quality, type Step } from './obs_trace_types'
+import { bogIso } from './tz'
 
 const num = (x: number | null | undefined, d = 2): string => (x == null ? '—' : x.toLocaleString('es-CO', { maximumFractionDigits: d }))
 const STATE_ES: Record<string, string> = { aprobada: 'Aprobada', vetada: 'Vetada', sin_decision: 'Sin decisión de riesgo' }
@@ -62,7 +63,7 @@ export function qualityHtml(q: Quality | null): string {
   if (!q.n_decisions) return `<p class="muted">No hay decisiones con eventos en este periodo${q.n_without_events ? ` (${q.n_without_events} con eventos ya purgados)` : ''}.</p>`
   const bar = (n: number, tot: number, cls: string): string => `<span class="obs-bar ${cls}" style="width:${Math.max(2, (100 * n) / (tot || 1))}%"></span>`
   const marks = (Object.keys(MARK_ES) as Mark[]).map((m) => `<li>${markBadge(m)} ${q.by_mark[m]} <small class="muted">(${pct(q.by_mark[m] / q.n_decisions)})</small>${bar(q.by_mark[m], q.n_decisions, `m-${m}`)}</li>`).join('')
-  const rows = q.by_period.map((p) => `<tr><td>${new Date(p.start_ms).toISOString().slice(0, 13).replace('T', ' ')} h</td><td>${p.dirty} de ${p.n}</td><td>${pct(p.dirty_share)}${bar(p.dirty, p.n, 'm-con_error')}</td></tr>`).join('')
+  const rows = q.by_period.map((p) => `<tr><td>${bogIso(p.start_ms).slice(0, 13).replace('T', ' ')} h</td><td>${p.dirty} de ${p.n}</td><td>${pct(p.dirty_share)}${bar(p.dirty, p.n, 'm-con_error')}</td></tr>`).join('')
   return `<p class="obs-q-head"><b>${q.n_dirty} de ${q.n_decisions}</b> decisiones (${pct(q.dirty_share)}) tienen evidencia contaminada.</p>
     <ul class="obs-q-marks">${marks}</ul>
     <div class="obs-q-cols"><div><h5>Por causa</h5><ul class="obs-ul">${q.by_cause.map((c) => `<li>${esc(CAUSE_ES[c.cause] ?? c.cause)}: ${c.n} (${pct(c.share)})</li>`).join('') || '<li class="muted">Ninguna</li>'}</ul></div>

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from eim.paper.book import FLOOR_LABEL
+from eim.paper.book_events import FLOOR_LABEL
 from eim.paper.feedback import MIN_N_TEST
 from eim.paper.params import FAMILIES, FeedbackParams
 

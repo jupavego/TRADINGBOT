@@ -83,3 +83,24 @@ El usuario aprobó por escrito los tres opcionales que T56 dejó fuera (nota `PL
 - **Entorno:** el mismo Python 3.12 de Freqtrade (`EIM_BOT_FREQTRADE_PY`/`_ENGINE`) y el checkout en el SHA de la ficha (`EIM_BOT_NFI_DIR` o `data/bots/nostalgia-for-infinity`). Relleno: `python -m eim.bots.backfill --timeframe 5m --since 2026-04-19`.
 - **Parámetros de Freqtrade:** `freqtrade_signal.py` llama a `ft_load_hyper_params()` (aplica `buy_params`/`sell_params`, como el resolvedor de Freqtrade). Antes no lo hacía y FSupertrend corría con los valores por defecto; la versión del bot incluye ahora `hyperopt: aplicado`, así que las posturas viejas quedan como v1 y las nuevas como v2.
 - **Puntuación:** `BotScorer` lee los marcos `1h` y `5m`; cada operación sombra se resuelve con velas del mismo marco (1 h → camino de 15 m; 5 m → camino de 5 m).
+
+
+## Integración en la síntesis, el riesgo y la UI (T60)
+**Cómo añadir un bot** (ficha → adaptador → paridad → puerta → integración):
+1. *Ficha* (T56): `eim/bots/registry/<id>.json` con clase (`D` direccional, `L` carril, `IA` informa), licencia, seguridad y aprobación del usuario ◆. Sin seguridad habilitada y aprobada no entra.
+2. *Adaptador* (T57/T58): modo A (regla portada) o B (proceso aislado sin claves); devuelve `BotSignal` (postura −1/0/+1, sin órdenes).
+3. *Paridad* con el bot nativo (test que compara a 1e-9 o sobre velas reales).
+4. *Puerta* (T59): `python -m eim.bots.scorecard_cli` mide rendimiento, evidencia, seguridad y operativa (cuatro dimensiones, sin nota global), estado `vota/informa/rechazado/deshabilitado` y aporte marginal al núcleo.
+5. *Integración* (T60): no hay nada que tocar. `eim/synthesis/squad.py` lee la última puntuación y decide solo.
+
+**Reglas de la síntesis** (`eim/synthesis/squad.py`, probadas en `tests/synthesis/test_t60_squad.py`):
+- Vota solo un bot de clase `D` en estado `vota`, fuera de cuarentena y en el símbolo donde T59 midió su aporte; los de clase `L` (carril) e `IA` nunca votan.
+- Su peso es el medido por la prueba marginal (`MODERATE_WEIGHT·(1−ρ⁺)`), no su rentabilidad; el agente `bots` pesa la media de los pesos medidos de sus votantes y se penaliza por correlación con `ema`/`structure`/`technical` como en T44 (con la ρ máxima medida, de forma conservadora).
+- Sin votantes (hoy, ninguno) el agente se omite de la síntesis: el sesgo y la confianza son idénticos a los de antes de T60.
+- Canal (a), **confianza**: si T59 midió que el acuerdo de un bot con el núcleo predice el acierto del núcleo (`modulates_confidence`), un desacuerdo extremo entre esos bots (desviación de posturas ≥ 0,8) multiplica la confianza por 0,85 (`factors['escuadron']`). Solo baja la confianza, nunca la sube ni mueve el sesgo.
+- Canal (b), **segunda opinión**: bajo cada escenario, «N de M bots apoyan este escenario» (`GET /v2/bots` → `support`); no cambia las probabilidades calibradas.
+- Riesgo: ninguna regla nueva relaja el motor de T29. Un bot no puede pedir tamaño ni apalancamiento (el contrato lo prohíbe). La regla de «desacuerdo extremo → reducir confianza» es el canal (a) y actúa antes del motor, nunca dentro.
+
+**Cuarentena (kill-switch del escuadrón)**: si un bot que *vota* sale `degraded` (el adaptador falla, deriva, versión distinta), `BotService` lo pone en `data/bots/quarantine.json` y pierde el voto al instante; lo reactiva solo una persona. Cada cambio queda en `data/bots/quarantine.jsonl`. Cada ciclo emite latido `bots.service` y una alerta `bots.<bot>` si algún ejecutor falla (infraestructura de T31).
+
+**API**: `GET /v2/bots` (postura vigente, estado, cuatro dimensiones, versión, motivo, discrepancia, apoyo por dirección, cuarentena), `GET /v2/bots/scorecard` (T59), `GET /v2/agents` con `role` y `weight`. Todos de solo lectura. **UI**: pestaña «Escuadrón» con la etiqueta fija «Señal de un bot externo · no es una operación» y el modo siempre visible.

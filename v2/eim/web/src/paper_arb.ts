@@ -8,6 +8,7 @@ import { base } from './api'
 import { esc, nf, px, usd, utc } from './paper_fmt'
 import { cssVar } from './theme'
 import './paper_arb.css'
+import { chartTimeLocale } from './tz'
 
 interface Check { label: string; ok: boolean; detail: string }
 interface Order { t: number; market: string; side: number; role: string; qty: number; filled: number; avg: number | null; status: string; price: number | null }
@@ -73,8 +74,8 @@ export class PaperArb {
       `<span class="mode" data-mode="SIMULADO">Modo: Simulado · sin cuenta de Binance</span>` +
       `<label>Carry abierto <select data-pa="hold">${[24, 48, 72, 120].map(opt).join('')}</select></label>` +
       `<button class="btn" data-pa="run"${this.busy ? ' disabled' : ''}>${this.busy ? 'Ejecutando…' : 'Ejecutar pruebas'}</button>` +
-      (r ? `<small class="muted">${r.generated_at ? `corrida ${utc(r.generated_at)} UTC · ` : ''}${esc(r.symbol)} · velas 1 h ` +
-        `${utc(r.window[0])} → ${utc(r.window[1])} UTC · ${esc(r.config)} · ${nf(r.notional, 0)} USD por arbitraje</small>` : '') +
+      (r ? `<small class="muted">${r.generated_at ? `corrida ${utc(r.generated_at)} COT · ` : ''}${esc(r.symbol)} · velas 1 h ` +
+        `${utc(r.window[0])} → ${utc(r.window[1])} COT · ${esc(r.config)} · ${nf(r.notional, 0)} USD por arbitraje</small>` : '') +
       '</div>'
   }
 
@@ -92,7 +93,7 @@ export class PaperArb {
     return `<article class="pa-card" data-ok="${s.ok}"><h4>${i + 1}. ${esc(s.title)} <span>${s.ok ? '✔ superada' : '✖ fallida'}</span></h4>` +
       `<ul class="pa-checks">${s.checks.map((c) => `<li data-ok="${c.ok}">${c.ok ? '✔' : '✖'} ${esc(c.label)}${c.detail ? `<small>${esc(c.detail)}</small>` : ''}</li>`).join('')}</ul>` +
       facts + (rows ? `<details class="pa-orders"><summary>${s.orders.length} órdenes</summary><div class="pp-scroll"><table class="tbl">` +
-      `<thead><tr><th>Hora UTC</th><th>Mercado</th><th>Lado</th><th>Rol</th><th>Llenado / pedido</th><th>Precio medio</th><th>Estado</th></tr></thead>` +
+      `<thead><tr><th>Hora COT</th><th>Mercado</th><th>Lado</th><th>Rol</th><th>Llenado / pedido</th><th>Precio medio</th><th>Estado</th></tr></thead>` +
       `<tbody>${rows}</tbody></table></div></details>` : '') + '</article>'
   }
 
@@ -120,7 +121,8 @@ export class PaperArb {
     this.chart?.remove()
     const el = this.el.querySelector<HTMLElement>('[data-pa="pc"]')!
     this.chart = createChart(el, {
-      autoSize: true, timeScale: { timeVisible: true, secondsVisible: false, borderColor: cssVar('--line') },
+      autoSize: true, localization: chartTimeLocale.localization,
+      timeScale: { timeVisible: true, secondsVisible: false, borderColor: cssVar('--line'), ...chartTimeLocale.timeScale },
       rightPriceScale: { borderColor: cssVar('--line') },
       layout: { background: { type: ColorType.Solid, color: 'transparent' }, fontFamily: 'inherit', fontSize: 11, textColor: cssVar('--muted') },
       grid: { vertLines: { visible: false }, horzLines: { color: cssVar('--grid') } },

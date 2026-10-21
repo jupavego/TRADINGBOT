@@ -63,8 +63,15 @@ def synthesize(
     convicción apuntan en direcciones opuestas y dentro de una ventana de evento.
     Un agente con peso base 0 no vota (queda a la vista en la UI, pero no mueve nada).
     """
-    p = params or SynthesisParams()
+    if params is None:
+        from eim.synthesis.squad import default_params  # evita el ciclo params ← squad
+        params = default_params()
+    p = params
     skip = p.excluded | NON_DIRECTIONAL
+    # T60: el escuadrón sin votantes (en esta vela o este símbolo) no pesa ni baja la confianza.
+    squad = next((r for r in reports if r.agent_id == "bots"), None)
+    if squad is not None and not squad.metrics.get("voters"):
+        skip = skip | {"bots"}
     votes = [r for r in reports if r.agent_id not in skip]
     byid = {r.agent_id: r for r in votes}
     ids = [i for i in (expected if expected is not None else byid) if i not in skip]
@@ -102,6 +109,10 @@ def synthesize(
     down = sorted(i for i in eff if byid[i].bias <= -p.conflict_bias)
     if up and down:
         factors["desacuerdo"] = p.disagree_penalty
+    if p.squad_confidence and squad is not None and squad.status != "no_data":
+        split = squad.metrics.get("mod_disagreement")
+        if split is not None and split >= p.squad_split:
+            factors["escuadron"] = p.squad_conf
     ev_f, ev_why = event_factor(reports, p)
     if ev_f < 1.0:
         factors["evento"] = ev_f

@@ -2,7 +2,7 @@
 import { CAT_LABEL, CAUSE, day, esc, getPaper, hm, nf, px, rr, side, tone, usd } from './paper_fmt'
 import type { PaperEvent } from './paper_types'
 
-const CATS = ['orden', 'llenada', 'tp', 'be', 'sl', 'tiempo', 'cancelada', 'rechazada', 'aprendizaje']
+const CATS = ['orden', 'llenada', 'tp', 'be', 'sl', 'tiempo', 'cancelada', 'rechazada', 'aprendizaje', 'violacion']
 const DEFAULT = new Set(CATS.filter((c) => c !== 'rechazada'))
 const PAGE = 150
 const STATE: Record<string, string> = {
@@ -73,7 +73,7 @@ export class PaperJournal {
     let detail = esc(e.text)
     if (e.cat === 'orden') {
       detail = `${e.kind === 'limit' ? 'Orden límite' : 'Orden a mercado'} <b>${side(e.side)}</b> ${nf(e.qty ?? 0, 4)} @ ${px(e.price ?? 0)} · ` +
-        `TP ${px(e.tp ?? 0)} · SL ${px(e.sl ?? 0)} · ${e.leverage}x · riesgo ${nf(e.risk_usd ?? 0)} USDT (peso ${nf(e.weight ?? 1)})`
+        `${e.tp ? `TP ${px(e.tp)}` : 'sin TP'} · SL ${px(e.sl ?? 0)} · ${e.leverage}x · riesgo ${nf(e.risk_usd ?? 0)} USDT (peso ${nf(e.weight ?? 1)})`
     } else if (e.cat === 'llenada') {
       detail = `Llenada a ${px(e.price ?? 0)} · liquidación aprox. ${px(e.liq ?? 0)}`
     } else if (['tp', 'be', 'sl', 'tiempo'].includes(e.cat)) {
@@ -114,6 +114,6 @@ export class PaperJournal {
     const more = this.events.length < this.total ? `<button class="btn" data-more="1">Cargar ${Math.min(PAGE, this.total - this.events.length)} más (de ${this.total})</button>` : ''
     this.el.innerHTML = `<div class="pp-filters">${profs}${tfs}${strats}</div><div class="pp-chips">${chips}</div>` +
       (body || '<p class="muted">Sin eventos con estos filtros.</p>') + more +
-      '<p class="muted pp-note">Horas en UTC. «Rechazada» = la idea existió pero el perfil no la tomó (filtros, cupo, margen o pausa por retroalimentación).</p>'
+      '<p class="muted pp-note">Horas en COT. «Rechazada» = la idea existió pero el perfil no la tomó (filtros, cupo, margen o pausa por retroalimentación).</p>'
   }
 }

@@ -1,5 +1,6 @@
 /** Cliente de los endpoints `/v2/more/*` ("Más análisis") y utilidades de formato. */
 import { HIDDEN_ASSETS, SYMBOLS } from './api'
+import { bogIso } from './tz'
 
 const base = (): string =>
   (import.meta.env.VITE_API_URL as string | undefined) ?? `http://${location.hostname}:8000`
@@ -31,7 +32,7 @@ export const fmt = (n: number | null | undefined, d = 2): string =>
     : n.toLocaleString('es-CO', { minimumFractionDigits: d, maximumFractionDigits: d })
 
 export const usd = (n: number): string => fmt(n, 0)
-export const day = (ms: number): string => new Date(ms).toISOString().slice(0, 10)
+export const day = (ms: number): string => bogIso(ms).slice(0, 10)
 
 export const sourceLine = (source: string, cov?: { start: string; end: string } | null): string =>
   `Fuente — ${esc(source)}${cov ? ` · cobertura ${esc(cov.start.slice(0, 10))} → ${esc(cov.end.slice(0, 10))}` : ''}`

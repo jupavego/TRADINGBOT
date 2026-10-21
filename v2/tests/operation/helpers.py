@@ -91,6 +91,7 @@ class Rig:
     sent: list = field(default_factory=list)
     reports: ReportStore | None = None
     op: Operation | None = None
+    extra_tfs: tuple[str, ...] = ()     # marcos adicionales del ciclo
 
     def now(self) -> int:
         return self.market.now
@@ -103,7 +104,8 @@ class Rig:
         self.reports = ReportStore(self.root / "reports.duckdb")
         rt = build_runtime("paper", self.kill, CFG, clock=self.now)
         desk = RiskDesk(store, self.reports, self.now, self.kill, rt)
-        params = OperationParams(symbols=(SYM,), poll_s=1.0, history_bars=700)
+        params = OperationParams(symbols=(SYM,), poll_s=1.0, history_bars=700,
+                                 extra_timeframes=self.extra_tfs)
         self.op = Operation(store=store, provider=self.market, reports=self.reports,
                             registry=registry(), desk=desk, params=params, data_dir=self.root,
                             reports_dir=self.root / "out", edge_path=self.root / "edge.json",

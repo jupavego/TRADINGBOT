@@ -5,6 +5,7 @@ import { agentName, esc } from './panels'
 import { disagreeing, PCT_NOTE, shares, upDown } from './synth'
 import { technicalDetail } from './technical_ui'
 import type { AgentInfo, AgentReport, Synthesis } from './types'
+import { bogIso } from './tz'
 
 /**
  * Contenido de los tooltips del río. La síntesis ya no tiene apartado propio: su información
@@ -89,7 +90,7 @@ export function agentTip(r: AgentReport | undefined, id: string, syn: Synthesis 
     (ev ? `<ul class="ev">${ev}</ul>` : '') + (wn ? `<ul class="warn">${wn}</ul>` : '') +
     (r.agent_id === 'technical' ? technicalDetail(r.metrics) : r.agent_id === 'calendar' ? calendarDetail(r.metrics)
       : r.agent_id === 'arbitrage' ? arbDetail(r.metrics) : mt ? `<table class="metrics">${mt}</table>` : '') +
-    `<p class="muted">v${esc(r.version)} · ${new Date(r.asof).toISOString().slice(0, 16).replace('T', ' ')} UTC</p>`
+    `<p class="muted">v${esc(r.version)} · ${bogIso(r.asof).slice(0, 16).replace('T', ' ')} COT</p>`
 }
 
 /** Tooltip de la esfera central: el resumen que antes ocupaba el apartado «Síntesis». */

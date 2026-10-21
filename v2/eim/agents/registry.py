@@ -48,6 +48,7 @@ def default_registry(arb_assets: tuple[str, ...] | None = None) -> AgentRegistry
     from eim.agents.arbitrage import ArbitrageAgent
     from eim.agents.arbitrage.params import ArbAgentParams
     from eim.agents.bots import BotsAgent
+    from eim.agents.bots.params import params_of
     from eim.agents.calendar import CalendarAgent
     from eim.agents.context import ContextAgent
     from eim.agents.derivatives import DerivativesAgent
@@ -66,6 +67,7 @@ def default_registry(arb_assets: tuple[str, ...] | None = None) -> AgentRegistry
     from eim.agents.technical import TechnicalAgent
     from eim.agents.vwap import VWAPAgent
     from eim.data.providers.claude_context import make_context_analyzer
+    from eim.synthesis.squad import current_policy
 
     reg = AgentRegistry()
     for agent in (StructureAgent(), EMAAgent(), VWAPAgent(), PriceActionAgent(),
@@ -74,7 +76,8 @@ def default_registry(arb_assets: tuple[str, ...] | None = None) -> AgentRegistry
                   ContextAgent(analyzer=make_context_analyzer()),
                   TechnicalAgent(), CalendarAgent(), _arb(ArbitrageAgent, ArbAgentParams,
                                                           arb_assets), SmartMoneyAgent(),
-                  LiteratureAgent(), BotsAgent(), PlanAgent()):
+                  LiteratureAgent(), BotsAgent(provider=lambda: params_of(current_policy())),
+                  PlanAgent()):
         reg.register(agent)
     return reg
 

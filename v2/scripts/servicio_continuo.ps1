@@ -82,32 +82,46 @@ if ($lideres) {
   }
 }
 
-# Microestructura (T23/T104): trades y libro de Binance → agente `microstructure`. Sin esto la
-# esfera queda en «sin datos». Sin puerto: se busca por línea de órdenes para no duplicar.
-$micro = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
-  Where-Object { $_.CommandLine -match 'eim\.data\.collectors\.binance_ws' })
-if ($micro) {
-  Write-Host "El recolector de microestructura ya corre (PID $($micro.ProcessId -join ', ')): no se lanza otro."
-} else {
-  $argv = @("-m", "eim.data.collectors.binance_ws", "BTCUSDT", "--root", "`"$DataDir`"")
-  Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
-    -RedirectStandardOutput (Join-Path $logs "micro.out.log") `
-    -RedirectStandardError (Join-Path $logs "micro.err.log") | Out-Null
-  Write-Host "Recolector de microestructura lanzado (data\micro; 24 velas de acumulación antes de opinar)."
+# Microestructura (T23/T104): trades y libro de Binance → agente `microstructure`. Un vigilante por
+# activo en foco (BTCUSDT y ETHUSDT; `eim.data.collectors.supervise`, cerrojo
+# data\micro\supervisor[_SIMBOLO].lock) que relanza el recolector si cae o si su latido
+# (data\micro\heartbeat[_SIMBOLO].json) se detiene, avisa si el disco o el flujo fallan y poda la
+# profundidad vieja. Sin esto la esfera queda en «recolector apagado». Logs: micro.* (BTC) y
+# micro_ETHUSDT.* (resto).
+$activos = @("BTCUSDT", "ETHUSDT")
+$procs = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue)
+foreach ($a in $activos) {
+  $sufijo = if ($a -eq "BTCUSDT") { "" } else { "_$a" }
+  $vigMicro = @($procs | Where-Object { $_.CommandLine -match "eim\.data\.collectors\.supervise\s+$a" })
+  $recMicro = @($procs | Where-Object { $_.CommandLine -match "eim\.data\.collectors\.binance_ws\s+$a" })
+  if ($vigMicro) {
+    Write-Host "El vigilante de microestructura de $a ya corre (PID $($vigMicro.ProcessId -join ', ')): no se lanza otro."
+  } elseif ($recMicro) {
+    Write-Host "Hay un recolector de microestructura de $a SIN vigilante (PID $($recMicro.ProcessId -join ', ')): detenlo para que el vigilante lo relance con latido."
+  } else {
+    $argv = @("-m", "eim.data.collectors.supervise", $a, "--root", "`"$DataDir`"")
+    Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
+      -RedirectStandardOutput (Join-Path $logs "micro$sufijo.out.log") `
+      -RedirectStandardError (Join-Path $logs "micro$sufijo.err.log") | Out-Null
+    Write-Host "Vigilante de microestructura de $a lanzado (data\micro; 24 velas de acumulación antes de opinar)."
+  }
 }
 
 # Liquidaciones en vivo (Binance/Bybit/OKX): alimentan al agente `liquidations`. Sin puerto: se
-# busca por línea de órdenes para no duplicar. BTCUSDT por defecto (foco actual).
-$liq = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
-  Where-Object { $_.CommandLine -match 'eim\.data\.collectors\.liq_ws' })
-if ($liq) {
-  Write-Host "El recolector de liquidaciones ya corre (PID $($liq.ProcessId -join ', ')): no se lanza otro."
-} else {
-  $argv = @("-m", "eim.data.collectors.liq_ws", "BTCUSDT", "--root", "`"$DataDir`"")
-  Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
-    -RedirectStandardOutput (Join-Path $logs "liq.out.log") `
-    -RedirectStandardError (Join-Path $logs "liq.err.log") | Out-Null
-  Write-Host "Recolector de liquidaciones lanzado (data\micro\liqs; ~24 velas de acumulación antes de opinar)."
+# busca por línea de órdenes para no duplicar. Uno por activo en foco.
+foreach ($a in $activos) {
+  $sufijo = if ($a -eq "BTCUSDT") { "" } else { "_$a" }
+  $liq = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.CommandLine -match "eim\.data\.collectors\.liq_ws\s+$a" })
+  if ($liq) {
+    Write-Host "El recolector de liquidaciones de $a ya corre (PID $($liq.ProcessId -join ', ')): no se lanza otro."
+  } else {
+    $argv = @("-m", "eim.data.collectors.liq_ws", $a, "--root", "`"$DataDir`"")
+    Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
+      -RedirectStandardOutput (Join-Path $logs "liq$sufijo.out.log") `
+      -RedirectStandardError (Join-Path $logs "liq$sufijo.err.log") | Out-Null
+    Write-Host "Recolector de liquidaciones de $a lanzado (data\micro\liqs; ~24 velas de acumulación antes de opinar)."
+  }
 }
 
 # Equipo despierto: proceso aparte que pide a Windows no suspender por inactividad mientras la

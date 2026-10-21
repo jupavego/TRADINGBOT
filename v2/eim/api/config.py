@@ -49,6 +49,7 @@ class Settings:
     recon_interval_s: float = 30.0
     operate: bool = False       # T31: ciclo continuo datos→…→ejecución dentro del proceso
     operate_tf: str = "1h"
+    operate_extra_tfs: tuple[str, ...] = ("4h",)   # EIM_OPERATE_EXTRA_TFS="" los desactiva
     operate_poll_s: float = 60.0
     operation_reports: Path = Path("reports/operation")
     edge_results: Path = Path("reports/edge/edge_results.json")
@@ -60,7 +61,7 @@ class Settings:
     arbitrage_interval_s: float = 10.0  # pausa entre escaneos (cada uno tarda ~1-2 s)
     arb_alert_score: float = 3.0
     arb_alert_hold_s: float = 60.0
-    arb_assets: tuple[str, ...] = ("BTC", "ETH")  # from_env: solo BTC (foco 2026-10-15)
+    arb_assets: tuple[str, ...] = ("BTC", "ETH")  # from_env: BTC y ETH (foco 2026-10-21)
     arb_tri_assets: tuple[str, ...] | None = None  # None = los del cargador
     arb_execution: str = "off"  # T45: "testnet" ejecuta arbitrajes en spot + futuros testnet
     arb_exec_interval_s: float = 60.0
@@ -91,6 +92,8 @@ class Settings:
             recon_interval_s=float(env.get("EIM_RECON_S", d.recon_interval_s)),
             operate=env.get("EIM_OPERATE", "0") == "1",
             operate_tf=env.get("EIM_OPERATE_TF", d.operate_tf),
+            operate_extra_tfs=tuple(x for x in env.get(
+                "EIM_OPERATE_EXTRA_TFS", ",".join(d.operate_extra_tfs)).split(",") if x),
             operate_poll_s=float(env.get("EIM_OPERATE_POLL_S", d.operate_poll_s)),
             operation_reports=Path(env.get("EIM_OPERATION_REPORTS", str(d.operation_reports))),
             edge_results=Path(env.get("EIM_EDGE_RESULTS", str(d.edge_results))),
@@ -102,7 +105,7 @@ class Settings:
             arbitrage_interval_s=float(env.get("EIM_ARBITRAGE_S", d.arbitrage_interval_s)),
             arb_alert_score=float(env.get("EIM_ARB_ALERT_SCORE", d.arb_alert_score)),
             arb_alert_hold_s=float(env.get("EIM_ARB_ALERT_S", d.arb_alert_hold_s)),
-            arb_assets=_csv(env.get("EIM_ARB_ASSETS", "BTC")) or d.arb_assets,
+            arb_assets=_csv(env.get("EIM_ARB_ASSETS", "BTC,ETH")) or d.arb_assets,
             arb_tri_assets=_csv(env.get("EIM_ARB_TRI_ASSETS", "USDT,BTC,BNB,SOL,XRP")) or None,
             arb_execution=env.get("EIM_ARB_EXECUTION", d.arb_execution).strip().lower(),
             arb_exec_interval_s=float(env.get("EIM_ARB_EXEC_S", d.arb_exec_interval_s)),

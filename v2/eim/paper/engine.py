@@ -62,6 +62,7 @@ class Outcome:
     mfe_r: float = 0.0
     mae_r: float = 0.0
     mark: float | None = None    # último precio conocido (abiertas)
+    ladder: dict | None = None   # estado de la protección progresiva (perfil PPP, `ladder.py`)
 
     @property
     def net(self) -> float:
@@ -80,6 +81,10 @@ class Outcome:
             return "costos"
         if self.reason == "TIEMPO":
             return "tiempo"
+        if self.ladder is not None:                 # sin TP: «casi TP» no existe en la escalera
+            quick = (self.exit_t or 0) - (self.fill_t or 0) <= QUICK_BARS * tf_ms(
+                self.idea.timeframe)
+            return "sl_rapido" if quick and self.mfe_r < QUICK_MFE else "direccion"
         risk = abs(self.fill - self.idea.sl)
         tp_r = abs(self.idea.tp - self.fill) / risk if risk else 0.0
         if tp_r and self.mfe_r >= NEAR_TP * tp_r:
@@ -97,7 +102,8 @@ class Outcome:
                 "exit": self.exit, "fees": self.fee_in + self.fee_out, "slip": self.slip,
                 "funding": self.funding, "funding_assumed": self.funding_assumed,
                 "gross": self.gross, "net": self.net, "r": self.r, "mfe_r": self.mfe_r,
-                "mae_r": self.mae_r, "mark": self.mark, "cause": self.cause}
+                "mae_r": self.mae_r, "mark": self.mark, "cause": self.cause,
+                **({"ladder": self.ladder} if self.ladder is not None else {})}
 
 
 class Path:
@@ -147,10 +153,14 @@ def _first(mask: np.ndarray) -> int | None:
     return i if len(mask) and mask[i] else None
 
 
-def _slip(path: Path, j: int, p: ExecParams) -> float:
+def _slip(path: Path, j: int, p: ExecParams, entry: bool = False) -> float:
+    """Deslizamiento relativo de un llenado a mercado. La entrada usa parámetros propios
+    (libro real: ≈ 0,01 pb); las salidas por SL/BE/tiempo conservan el término de volatilidad."""
     cp = p.costs
     rng = float((path.h[j] - path.l[j]) / path.o[j]) if path.o[j] > 0 else 0.0
-    return min(max(cp.slip_base_bps / 1e4 + cp.slip_vol_k * rng, 0.0), cp.slip_cap_bps / 1e4)
+    base, k = ((cp.slip_entry_base_bps, cp.slip_entry_vol_k) if entry
+               else (cp.slip_base_bps, cp.slip_vol_k))
+    return min(max(base / 1e4 + k * rng, 0.0), cp.slip_cap_bps / 1e4)
 
 
 def _funding(path: Path, side: int, t0: int, t1: int, p: ExecParams) -> tuple[float, bool]:
@@ -182,7 +192,7 @@ def simulate(idea: Idea, path: Path, p: ExecParams) -> Outcome:
     if j0 >= len(path.t):
         return Outcome(idea, "PENDIENTE")
     if idea.kind == "market":
-        slip_in = _slip(path, j0, p)
+        slip_in = _slip(path, j0, p, entry=True)
         fill = float(path.o[j0]) * (1 + s * slip_in)
         fee_in, k, start = cp.taker_fee, j0, j0
     else:

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-20T12:15:30",
+ "generated": "2026-10-21T09:48:23",
  "tasks": [
   {
    "id": "T01",
@@ -753,8 +753,8 @@ window.EIM_STATUS = {
     "T44",
     "T10"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Política del escuadrón `eim/synthesis/squad.py` (vota solo clase D en estado `vota`, peso medido por T59 con penalización de correlación; L/IA nunca; sin votantes el agente se omite → sesgo idéntico al previo, probado); canales (a) `factors['escuadron']` y (b) «N de M bots apoyan» (solo informan, apagados si T59 no midió ayuda); cuarentena de bots degradados (`eim/bots/quarantine.py`) + latido/alerta en `BotService`. API `GET /v2/bots`, `/v2/agents` con peso vigente; UI pestaña «Escuadrón» (cuatro dimensiones, discrepancia, carril L aparte) verificada en navegador, oscuro y claro. Docs BOTS/NUEVO_AGENTE/SEGURIDAD/RUNBOOK §13. Tests: `tests/synthesis/test_t60_squad.py`, `tests/bots/test_squad_service.py`, `tests/api/test_bots_api.py`. Pendiente BACKLOG (T60).",
    "effort": "medio",
    "phase": 12,
    "goal": "Mostrar el escuadrón al usuario y dejar que influya en las decisiones **en la medida que T59 mida su aporte al núcleo** (no por su rentabilidad aislada), sin tocar la autoridad del motor de riesgo ni la puerta de ejecución."
@@ -975,7 +975,7 @@ window.EIM_STATUS = {
     "T23"
    ],
    "state": "progress",
-   "notes": "Pedido del usuario 2026-10-19: la esfera «Microestructura» de la interfaz dice «sin datos» aunque el agente y el recolector existen. Causa probable: el recolector no está en el arranque continuo (ver `PLAN/T104.md`). **Es el primer paso útil de la Fase 16 y no depende de T77.** **Avance 2026-10-19:** `servicio_continuo.ps1` lanza el recolector de microestructura (BTCUSDT, sin duplicar) y el de liquidaciones en vivo (`liq_ws`); verificado 2,5 min contra Binance real (526 trades, libro top-10, agente «1/24 velas»). La esfera dice «recolector apagado» / «acumulando n/24» / «sin datos» (`web/src/no_data_label.ts`, motivo que ya devuelve el agente). Pendiente: diagnóstico escrito, supervisor con latido/reinicio, disco, ≥ 24 h y línea base.",
+   "notes": "Pedido del usuario 2026-10-19: la esfera «Microestructura» de la interfaz dice «sin datos» aunque el agente y el recolector existen. Causa probable: el recolector no está en el arranque continuo (ver `PLAN/T104.md`). **Es el primer paso útil de la Fase 16 y no depende de T77.** **Avance 2026-10-19:** `servicio_continuo.ps1` lanza el recolector de microestructura (BTCUSDT, sin duplicar) y el de liquidaciones en vivo (`liq_ws`); verificado 2,5 min contra Binance real (526 trades, libro top-10, agente «1/24 velas»). La esfera dice «recolector apagado» / «acumulando n/24» / «sin datos» (`web/src/no_data_label.ts`, motivo que ya devuelve el agente). **Avance 2026-10-20:** diagnóstico escrito (`PLAN/notas/T104_diagnostico.md`); vigilante `eim.data.collectors.supervise` (cerrojo, latido `data/micro/heartbeat.json`, reinicio probado en vivo matando el proceso, poda de profundidad a 30 d, avisos de disco/flujo) integrado en `servicio_continuo.ps1`; Parquet ZSTD (~493 MB/día medidos); `GET /v2/micro/status`; esfera «degradado por huecos»; tests en `tests/data/test_micro_health.py`. Pendiente (calendario): ≥ 24 h en marcha con captura de pantalla, corte de red provocado, y con ≥ 7 d la línea base `agents_marginal_report`; para supervisar el recolector ya en marcha, detenerlo y relanzar `servicio_continuo.ps1`. Sigue ◐.",
    "effort": "medio",
    "phase": 16,
    "goal": "El agente `microstructure` (T23, con su recolector, la lectura por vela y los tests) **ya existe y está registrado, pero en la interfaz su esfera dice «sin datos»** (`no_data`: «sin recolección de microestructura (colector no corre)») y el informe marginal de T44 lo muestra con 100 % de `no_data` (sin historia). Antes de construir nada nuevo hay que **hacerlo funcionar de verdad en vivo**, entender por qué no lo hacía y dejarlo como la base —y la línea base a superar— de toda la Fase 16."
@@ -1323,6 +1323,20 @@ window.EIM_STATUS = {
    "effort": "alto",
    "phase": 17,
    "goal": "Dar al sistema un camino de ejecución **solo en cuenta de papel/simulada** para las clases que superen la puerta, sin tocar nunca dinero real. Verifica que el contrato de órdenes, la reconciliación y el riesgo funcionan con acciones, FX o futuros reales de un intermediario."
+  },
+  {
+   "id": "T105",
+   "title": "Cuarto perfil: Progressive Profit Protection — BTCUSDT (SL dinámico por escalones)",
+   "deps": [
+    "T47",
+    "T48",
+    "T49"
+   ],
+   "state": "done",
+   "notes": "Perfil `ppp_btcusdt` (2026-10-20): SL inicial por riesgo, protección desde +10 USDT netos y escalones de +5, sin TP ni cierre por tiempo, solo BTCUSDT y simulado. Código `eim/paper/{ladder,ladder_book,ladder_audit,ladder_stats,strategies_ppp}.py` + `params.py`; UI `web/src/paper_*.ts` (compila con tsc, **sin captura visual**); doc `v2/docs/PPP.md`; tests `tests/paper/test_ladder*.py`, `test_strategies_ppp.py` (18 escenarios). Incluye reservas de deslizamiento/funding en el SL, aprendizaje propio, freno de entradas, **velas de 1 min para las velas ambiguas de 15 m** (el servicio sincroniza 1 m), **entrada propia `ppp_tendencia`** (familia `ppp`) y **funding real** en el backtest. **Backtest 40 días (`reports/ppp_backtest.md`): NO rentable** (−537 USDT, PF 0,54, 86 ops, 0 violaciones, 0 funding supuesto; fuera de muestra peor y ninguna variante de la rejilla positiva). Entradas propias: solo 9 operaciones (+31 USDT), muestra insuficiente. Pendiente: acumular meses y pasar `ppp_tendencia` por T49; captura visual de la UI.",
+   "effort": "alto",
+   "phase": 6,
+   "goal": "Un perfil simulado más, **independiente de Conservador/Moderado/Agresivo y integrado en el mismo flujo** (ideas de las estrategias → libro → resumen → API → pestañas de la mesa). Su diferencia: **sin TP final ni cierre por tiempo**. SL inicial por riesgo; al llegar a +10 USDT netos se activa la protección y cada +5 USDT de beneficio máximo sube un escalón (10, 15, 20, …). Solo cierra el SL vigente; la protección nunca retrocede ni vuelve a la entrada. Solo BTCUSDT, solo simulado (el modelo rechaza `real_money`, `time_exit` y `fixed_take_profit`)."
   }
  ]
 };

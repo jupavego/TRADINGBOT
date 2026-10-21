@@ -193,3 +193,20 @@ def test_supervisor_retries_and_alerts(rig, monkeypatch):
     logs = list((rig.root / "operation" / "logs").glob("op-*.jsonl"))
     events = [json.loads(x)["event"] for x in logs[0].read_text(encoding="utf-8").splitlines()]
     assert events.count("ciclo_fallido") == 3 and "ciclo" in events
+
+
+def test_extra_timeframe_is_analyzed_with_own_cursor_and_shares_symbol_cap(tmp_path):
+    r = Rig(tmp_path, Market(), extra_tfs=("4h",))
+    r.build()
+    try:
+        res = r.op.step()
+        assert res.analyzed == [SYM, f"{SYM}:4h"]
+        assert [d["tf"] for d in res.decisions] == ["1h", "4h"]
+        first, second = res.decisions
+        assert first["executed"] and not second["executed"]
+        assert len(r.op.desk.rt.svc.trades) == 1
+        assert set(r.op.cursors.analyzed) == {SYM, f"{SYM}:4h"}
+        r.advance(60_000)
+        assert r.op.step().analyzed == []                        # misma vela: no se reanaliza
+    finally:
+        r.close()

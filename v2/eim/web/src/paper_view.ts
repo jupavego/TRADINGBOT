@@ -7,6 +7,7 @@ import { esc, getPaper, PaperError, postPaper, px, usd } from './paper_fmt'
 import { acctHtml, cardsHtml, covText, jobHtml, liveStrip } from './paper_head'
 import { PaperJournal } from './paper_journal'
 import { PaperLearn } from './paper_learn'
+import { PaperLedger } from './paper_ledger'
 import { PaperLive } from './paper_live'
 import { profilesTab } from './paper_profiles'
 import { historyTable, ordersTable, paintMarks, positionsTable, type HistFilter } from './paper_tables'
@@ -14,7 +15,7 @@ import type { Job, PaperSummary, PaperTrade, ProfileView } from './paper_types'
 import type { StreamMsg } from './types'
 
 const TABS: [string, string][] = [['live', 'Señales en vivo'], ['pos', 'Posiciones'], ['ord', 'Órdenes abiertas'], ['hist', 'Historial'],
-  ['log', 'Bitácora'], ['learn', 'Aprendizaje'], ['prof', 'Perfiles'], ['arb', 'Arbitraje']]
+  ['log', 'Bitácora'], ['reg', 'Registro fijo'], ['learn', 'Aprendizaje'], ['prof', 'Perfiles'], ['arb', 'Arbitraje']]
 const POLL_MS = 60_000
 const RETRY_MS = 8_000            // vista aún calculándose (503) o rehaciéndose: vuelve a pedirla pronto
 const LIVE_MS = 15_000            // repinta la franja «en vivo» (hace X s)
@@ -74,6 +75,7 @@ export class PaperView {
   private retry: number | undefined
   private journal: PaperJournal | null = null
   private learn: PaperLearn | null = null
+  private ledger: PaperLedger | null = null
   private live: PaperLive | null = null
   private arb: PaperArb | null = null
   private bodies: Record<string, HTMLElement> = {}
@@ -94,6 +96,7 @@ export class PaperView {
     }
     this.journal = new PaperJournal(this.bodies.log)
     this.learn = new PaperLearn(this.bodies.learn)
+    this.ledger = new PaperLedger(this.bodies.reg)
     this.live = new PaperLive(this.bodies.live)
     this.arb = new PaperArb(this.bodies.arb)
     this.chart = new PaperPriceChart(this.q('pc'))
@@ -248,8 +251,9 @@ export class PaperView {
     const names = Object.fromEntries(v.strategies.map((s) => [s.id, s.name]))
     const n = (id: string, x: number | string): void => { this.root.querySelector(`[data-n="${id}"]`)!.textContent = ` ${x}` }
     n('pos', p?.positions.length ?? 0); n('ord', p ? p.orders.length + 2 * p.positions.length : 0); n('hist', this.trades.length); n('log', p?.events_n ?? '')
-    n('learn', ''); n('prof', ''); n('live', ''); n('arb', '')
+    n('learn', ''); n('prof', ''); n('live', ''); n('arb', ''); n('reg', '')
     if (this.tab === 'arb') { void this.arb!.show(); return }   // T45: no depende del perfil
+    if (this.tab === 'reg') { void this.ledger!.show({ symbol: this.symbol }); return }   // registro fijo: no depende de la vista
     if (!p) return
     if (this.tab === 'live') void this.live!.show({ symbol: this.symbol, names, profiles: v.profiles })
     else if (this.tab === 'pos') this.bodies.pos.innerHTML = positionsTable(p.positions, names, this.symbol, this.price, this.focus)

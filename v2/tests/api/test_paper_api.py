@@ -59,7 +59,11 @@ def client(tmp_path_factory):
 def test_summary_profiles_and_strategies(client):
     v = client.get("/v2/paper?symbol=BTCUSDT").json()
     assert v["mode"] == "SIMULADO" and v["coverage"]["contexts"] == 200
-    assert [p["id"] for p in v["profiles"]] == ["conservador", "moderado", "agresivo"]
+    assert [p["id"] for p in v["profiles"]] == ["conservador", "moderado", "agresivo",
+                                                "ppp_btcusdt"]
+    ppp = v["profiles"][-1]
+    assert ppp["params"]["exit_mode"] == "ladder" and ppp["ladder"]["violations"] == 0
+    assert all("ladder" not in p for p in v["profiles"][:-1])
     for p in v["profiles"]:
         assert p["equity"] > 0 and set(p["weights"]) == {s["id"] for s in v["strategies"]}
     assert sum(p["n_closed"] for p in v["profiles"]) > 0     # el Conservador solo opera lo probado
@@ -68,7 +72,7 @@ def test_summary_profiles_and_strategies(client):
     assert list(b) == ["todo", "30d", "7d", "24h"]
     a = b["todo"]["all"]
     assert a["wins"]["n"] + a["losses"]["n"] == sum(p["n_closed"] for p in v["profiles"])
-    assert set(b["todo"]["profiles"]) == {"conservador", "moderado", "agresivo"}
+    assert set(b["todo"]["profiles"]) == {"conservador", "moderado", "agresivo", "ppp_btcusdt"}
     assert client.get("/v2/paper?symbol=XRPUSDT").status_code == 400
 
 
@@ -126,8 +130,8 @@ def test_live_signals_route(client):
     ts = [d["t"] for d in f["decisions"]]
     assert ts == sorted(ts, reverse=True) and all(d["origin"] == "vivo" for d in f["decisions"])
     for d in f["decisions"]:
-        assert set(d["profiles"]) == {"conservador", "moderado", "agresivo"}
-    assert set(f["profiles"]) == {"conservador", "moderado", "agresivo"}
+        assert set(d["profiles"]) == {"conservador", "moderado", "agresivo", "ppp_btcusdt"}
+    assert set(f["profiles"]) == {"conservador", "moderado", "agresivo", "ppp_btcusdt"}
     assert client.get("/v2/paper/live?symbol=XRPUSDT").status_code == 400
     assert client.get("/v2/paper/live?limit=0").status_code == 422
 
@@ -138,3 +142,12 @@ def test_setups_endpoint_publishes_only_validated(client):
     assert j["mode"] == "ANALISIS" and j["setups"] == []
     assert j["status"] in ("sin_validadas", "datos_viejos") and j["message"]
     assert "p_fill" not in j and "bias" not in j
+
+
+def test_ledger_routes_expose_the_fixed_log_and_csv(client):
+    j = client.get("/v2/paper/ledger?symbol=BTCUSDT&limit=5").json()
+    assert j["mode"] == "SIMULADO" and "counts" in j and isinstance(j["rows"], list)
+    assert client.get("/v2/paper/ledger?scope=otra").status_code == 422
+    r = client.get("/v2/paper/ledger.csv?symbol=BTCUSDT")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv")
+    assert r.text.splitlines()[0].startswith("ledger_id,scope,profile,symbol")

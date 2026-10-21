@@ -22,6 +22,7 @@ from eim.api.history import HistoryLoader
 from eim.api.leaders import LeaderDesk, build_leaders_router
 from eim.api.library import build_library_router
 from eim.api.live import Hub, overlays_of, synthesis_of
+from eim.api.micro import build_micro_router
 from eim.api.more import MoreSources, build_more_router
 from eim.api.obs import build_obs_router, build_observatory
 from eim.api.operation import build_operation_router
@@ -38,6 +39,7 @@ from eim.api.validation import build_validation_router
 from eim.arbitrage.alerts import AlertParams
 from eim.bots.scorer import BotScorer
 from eim.bots.service import default_service
+from eim.bots.squad_runtime import SquadRuntime
 from eim.data.arb_store import ArbStore
 from eim.data.arb_sync import ArbSync
 from eim.data.bots.scorestore import ScoreStore
@@ -58,7 +60,8 @@ from eim.operation.supervisor import Operation, Supervisor
 from eim.paper.desk import PaperDesk
 from eim.risk import global_kill_switch, load_config
 from eim.suggestions.tracker import Tracker
-from eim.synthesis.params import SynthesisParams, role_of
+from eim.synthesis.params import role_of
+from eim.synthesis.squad import default_params
 from eim.validation.service import Validator
 
 API_VERSION = "2.0.0"
@@ -104,6 +107,7 @@ def create_app(
         op = Operation(store=store, provider=operation_provider or BinanceFutures(),
                        reports=reports, registry=reg, desk=desk,
                        params=OperationParams(timeframe=cfg.operate_tf,
+                                              extra_timeframes=cfg.operate_extra_tfs,
                                               poll_s=cfg.operate_poll_s,
                                               snapshot_bars=cfg.snapshot_bars,
                                               agent_timeout_s=cfg.agent_timeout_s),
@@ -141,6 +145,7 @@ def create_app(
     # T49: puerta de validación por estrategia; se recalcula al cierre de cada vela de 4 h.
     validator = Validator(paper, ValidationStore(paper_store))
     paper.after_tick.append(validator.maybe_run)
+    paper.after_tick.append(paper.ledger_tick)    # libro de registro fijo (solo adición)
     # T61: experiencia compartida automática (solo si hay carpeta compartida configurada):
     # importa lo de las demás máquinas y exporta lo propio, sin comandos.
     share = None
@@ -209,6 +214,7 @@ def create_app(
     bot_scorer = BotScorer(bot_store, ScoreStore(rcon, rlock), store, paper_store,
                            SimRunStore(rcon, rlock))
     paper.after_tick.append(bot_scorer.maybe_run)
+    SquadRuntime(bot_scorer, bots.quarantine).refresh()   # T60: política vigente desde T59
     app.include_router(build_bots_router(bot_store, bots, bot_scorer))
     # T51: registro y resolución de lo publicado; el bróker lo llama tras cada ciclo.
     setups_router = build_setups_router(
@@ -225,6 +231,7 @@ def create_app(
     sm = reg.get("smart_money") if "smart_money" in reg.ids() else None
     app.state.leader_desk = LeaderDesk(cfg.data_dir, agent=sm)
     app.include_router(build_leaders_router(app.state.leader_desk))
+    app.include_router(build_micro_router(cfg.data_dir))
     app.include_router(build_paper_router(paper))
     app.include_router(build_paper_arb_router(store, cfg.data_dir))  # T45: pruebas en papel
     app.state.paper = paper
@@ -251,7 +258,7 @@ def create_app(
     def agents(symbol: str = "ETHUSDT", tf: str = "1h") -> list[dict]:
         _check(symbol, tf)
         last = {r.agent_id: r for r in reports.latest(symbol, tf)}
-        sp = SynthesisParams()
+        sp = default_params()
         out = []
         for a in reg.latest():
             r = last.get(a.id)

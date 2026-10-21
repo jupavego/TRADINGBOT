@@ -1,5 +1,6 @@
 import { base } from './api'
 import { esc } from './panels'
+import { bogIso } from './tz'
 
 /**
  * Historial de sugerencias (T51): lo que el panel publicó, qué habría pasado con cada una en el
@@ -37,7 +38,7 @@ const nf = (x: number, d = 2): string => x.toLocaleString('es-CO', { minimumFrac
 const sg = (x: number): string => (x > 0 ? '+' : x < 0 ? '−' : '')
 const rr = (x: number | null | undefined): string => (x === null || x === undefined ? '—' : `${sg(x)}${nf(Math.abs(x), 2)} R`)
 const pct0 = (x: number | null): string => (x === null ? '—' : `${Math.round(x * 100)} %`)
-const utc = (t: number): string => new Date(t).toISOString().slice(5, 16).replace('T', ' ')
+const utc = (t: number): string => bogIso(t).slice(5, 16).replace('T', ' ')
 const hrs = (ms: number): string => `${nf(ms / 3_600_000, 1)} h`
 const AGAINST: Record<string, string> = {
   dentro: 'dentro del IC95 % esperado', debajo: 'por debajo del IC95 % esperado',
@@ -110,7 +111,7 @@ export class SetupsHistory {
     return '<h4 class="sh su-wh">Ideas en observación <span class="muted">· no validadas, resolución simulada</span></h4>' +
       `<p class="su-stats">Registradas <b>${t.published}</b> · cerradas <b>${t.closed}</b> · acierto <b>${pct0(t.hit_rate)}</b> · ` +
       `R acumulado <b>${rr(t.cum_r)}</b> · R medio <b>${rr(t.mean_r)}</b></p>` +
-      '<div class="su-tbl"><table><thead><tr><th>Registrada (UTC)</th><th>Versión</th><th>Lado</th>' +
+      '<div class="su-tbl"><table><thead><tr><th>Registrada (COT)</th><th>Versión</th><th>Lado</th>' +
       `<th>Entrada / SL / TP</th><th>Resolución simulada</th><th>Estado</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`
   }
 
@@ -137,11 +138,11 @@ export class SetupsHistory {
           `<th>Llenado real / simulado</th></tr></thead><tbody>${v.scorecard.map((c) => this.card(c)).join('')}</tbody></table></div>`
         : '<p class="muted">Aún no se publicó ninguna sugerencia: el panel dijo «Sin operaciones validadas» (o sin señal) y esos intervalos quedan registrados.</p>'
       const list = v.published.length
-        ? '<div class="su-tbl"><table><thead><tr><th>Publicada (UTC)</th><th>Versión</th><th>Lado</th>' +
+        ? '<div class="su-tbl"><table><thead><tr><th>Publicada (COT)</th><th>Versión</th><th>Lado</th>' +
           `<th>Entrada / SL / TP</th><th>Resolución simulada</th><th>Estado</th></tr></thead><tbody>${v.published.map((r) => this.row(r)).join('')}</tbody></table></div>`
         : ''
       const lastGap = v.gaps.length
-        ? `<p class="muted">Último intervalo sin sugerencia: ${utc(v.gaps[v.gaps.length - 1].from)} → ${utc(v.gaps[v.gaps.length - 1].to)} UTC · ${esc(GAP[v.gaps[v.gaps.length - 1].status] ?? v.gaps[v.gaps.length - 1].status)} · ${esc(v.gaps[v.gaps.length - 1].message)}</p>`
+        ? `<p class="muted">Último intervalo sin sugerencia: ${utc(v.gaps[v.gaps.length - 1].from)} → ${utc(v.gaps[v.gaps.length - 1].to)} COT · ${esc(GAP[v.gaps[v.gaps.length - 1].status] ?? v.gaps[v.gaps.length - 1].status)} · ${esc(v.gaps[v.gaps.length - 1].message)}</p>`
         : ''
       body = kpi + rev + score + list + lastGap + this.watch(v)
     }
