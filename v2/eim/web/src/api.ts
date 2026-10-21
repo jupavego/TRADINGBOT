@@ -7,10 +7,10 @@ import type { LeadersPayload } from './leaders_types'
 export const base = (): string =>
   (import.meta.env.VITE_API_URL as string | undefined) ?? `http://${location.hostname}:8000`
 
-/** Foco actual (2026-10-15): solo BTCUSDT. La API sigue admitiendo ETHUSDT, pero la UI no lo muestra. */
-export const SYMBOLS = ['BTCUSDT'] as const
+/** Foco actual (2026-10-21): BTCUSDT y ETHUSDT (el 2026-10-15 era solo BTCUSDT). */
+export const SYMBOLS = ['BTCUSDT', 'ETHUSDT'] as const
 /** Activos fuera de foco que se ocultan también en las vistas de contexto (multi-activo, estacionalidad). */
-export const HIDDEN_ASSETS: ReadonlySet<string> = new Set(['ETHUSDT'])
+export const HIDDEN_ASSETS: ReadonlySet<string> = new Set<string>()
 
 /** Selector de activo, o una etiqueta fija si solo hay uno en foco. */
 export const symbolPicker = (attrs: string): string => SYMBOLS.length > 1

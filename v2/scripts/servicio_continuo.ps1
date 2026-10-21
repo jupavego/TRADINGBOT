@@ -84,30 +84,38 @@ if ($lideres) {
 
 # Microestructura (T23/T104): trades y libro de Binance → agente `microstructure`. Sin esto la
 # esfera queda en «sin datos». Sin puerto: se busca por línea de órdenes para no duplicar.
-$micro = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
-  Where-Object { $_.CommandLine -match 'eim\.data\.collectors\.binance_ws' })
-if ($micro) {
-  Write-Host "El recolector de microestructura ya corre (PID $($micro.ProcessId -join ', ')): no se lanza otro."
-} else {
-  $argv = @("-m", "eim.data.collectors.binance_ws", "BTCUSDT", "--root", "`"$DataDir`"")
-  Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
-    -RedirectStandardOutput (Join-Path $logs "micro.out.log") `
-    -RedirectStandardError (Join-Path $logs "micro.err.log") | Out-Null
-  Write-Host "Recolector de microestructura lanzado (data\micro; 24 velas de acumulación antes de opinar)."
+# Un recolector por activo en foco (BTCUSDT y ETHUSDT). Logs: micro.* (BTC) y micro_ETHUSDT.* (resto).
+$activos = @("BTCUSDT", "ETHUSDT")
+foreach ($a in $activos) {
+  $sufijo = if ($a -eq "BTCUSDT") { "" } else { "_$a" }
+  $micro = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.CommandLine -match "eim\.data\.collectors\.binance_ws\s+$a" })
+  if ($micro) {
+    Write-Host "El recolector de microestructura de $a ya corre (PID $($micro.ProcessId -join ', ')): no se lanza otro."
+  } else {
+    $argv = @("-m", "eim.data.collectors.binance_ws", $a, "--root", "`"$DataDir`"")
+    Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
+      -RedirectStandardOutput (Join-Path $logs "micro$sufijo.out.log") `
+      -RedirectStandardError (Join-Path $logs "micro$sufijo.err.log") | Out-Null
+    Write-Host "Recolector de microestructura de $a lanzado (data\micro; 24 velas de acumulación antes de opinar)."
+  }
 }
 
 # Liquidaciones en vivo (Binance/Bybit/OKX): alimentan al agente `liquidations`. Sin puerto: se
-# busca por línea de órdenes para no duplicar. BTCUSDT por defecto (foco actual).
-$liq = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
-  Where-Object { $_.CommandLine -match 'eim\.data\.collectors\.liq_ws' })
-if ($liq) {
-  Write-Host "El recolector de liquidaciones ya corre (PID $($liq.ProcessId -join ', ')): no se lanza otro."
-} else {
-  $argv = @("-m", "eim.data.collectors.liq_ws", "BTCUSDT", "--root", "`"$DataDir`"")
-  Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
-    -RedirectStandardOutput (Join-Path $logs "liq.out.log") `
-    -RedirectStandardError (Join-Path $logs "liq.err.log") | Out-Null
-  Write-Host "Recolector de liquidaciones lanzado (data\micro\liqs; ~24 velas de acumulación antes de opinar)."
+# busca por línea de órdenes para no duplicar. Uno por activo en foco.
+foreach ($a in $activos) {
+  $sufijo = if ($a -eq "BTCUSDT") { "" } else { "_$a" }
+  $liq = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.CommandLine -match "eim\.data\.collectors\.liq_ws\s+$a" })
+  if ($liq) {
+    Write-Host "El recolector de liquidaciones de $a ya corre (PID $($liq.ProcessId -join ', ')): no se lanza otro."
+  } else {
+    $argv = @("-m", "eim.data.collectors.liq_ws", $a, "--root", "`"$DataDir`"")
+    Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
+      -RedirectStandardOutput (Join-Path $logs "liq$sufijo.out.log") `
+      -RedirectStandardError (Join-Path $logs "liq$sufijo.err.log") | Out-Null
+    Write-Host "Recolector de liquidaciones de $a lanzado (data\micro\liqs; ~24 velas de acumulación antes de opinar)."
+  }
 }
 
 # Equipo despierto: proceso aparte que pide a Windows no suspender por inactividad mientras la
