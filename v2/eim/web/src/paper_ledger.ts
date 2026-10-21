@@ -66,7 +66,7 @@ export class PaperLedger {
         `<td class="num"><small>com. ${nf(r.fees ?? 0, 4)} · desl. ${nf(r.slip ?? 0, 4)}</small></td></tr>`
     }).join('')
     const more = j.rows.length >= this.limit ? `<button class="btn" data-more="1">Ver más</button>` : ''
-    this.el.innerHTML = head + `<div class="pp-scroll"><table class="pp-t"><thead><tr><th>Entrada → salida (UTC)</th><th>Estrategia</th><th>Lado</th>` +
+    this.el.innerHTML = head + `<div class="pp-scroll"><table class="pp-t"><thead><tr><th>Entrada → salida (COT)</th><th>Estrategia</th><th>Lado</th>` +
       `<th>Precio</th><th>Motivo</th><th>Resultado</th><th>Costos</th></tr></thead><tbody>${rows}</tbody></table></div>${more}`
   }
 }

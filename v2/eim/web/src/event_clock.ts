@@ -7,6 +7,7 @@
 import { esc } from './panels'
 import { openAgent } from './river'
 import type { AgentReport } from './types'
+import { bogIso } from './tz'
 
 interface Ev { name: string; t_utc: number; impact: string; country: string; source?: string }
 interface CalMetrics {
@@ -18,7 +19,7 @@ let rep: AgentReport | null = null
 let timer: number | undefined
 
 const pad = (n: number): string => String(n).padStart(2, '0')
-const utc = (t: number): string => new Date(t).toISOString().slice(5, 16).replace('T', ' ')
+const utc = (t: number): string => bogIso(t).slice(5, 16).replace('T', ' ')
 
 /** Cuenta atrás legible: «2 d 03 h 10 min» lejos, «hh:mm:ss» en las últimas 24 h. */
 export function countdown(ms: number): string {
@@ -53,7 +54,7 @@ function paint(el: HTMLElement): void {
     el.dataset.state = nx.t_utc - now < 3600_000 ? 'soon' : 'ok'
     el.innerHTML = `<i>📅</i><span>Próximo: ${esc(nx.name)} <small>${esc(nx.country)} · ${esc(nx.impact)}</small></span>` +
       `<b class="cd">${countdown(nx.t_utc - now)}</b>`
-    el.title = `${nx.name} — ${utc(nx.t_utc)} UTC${nx.source ? ` · fuente ${nx.source}` : ''}. Clic: ver el calendario.`
+    el.title = `${nx.name} — ${utc(nx.t_utc)} COT${nx.source ? ` · fuente ${nx.source}` : ''}. Clic: ver el calendario.`
   } else {
     el.dataset.state = 'ok'
     el.innerHTML = '<i>📅</i><span>Sin eventos de alto impacto en 7 días</span>'

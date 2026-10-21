@@ -1,6 +1,7 @@
 import { base } from './api'
 import { esc } from './panels'
 import { simulate, type Side } from './sim_calc'
+import { bogIso } from './tz'
 
 /**
  * Operaciones sugeridas intradía (T50): solo oportunidades de estrategias VALIDADAS por la puerta
@@ -38,7 +39,7 @@ const usd = (x: number): string => `${sg(x)}${nf(Math.abs(x))} USDT`
 const pc = (x: number): string => `${sg(x)}${nf(Math.abs(x * 100))} %`
 const pct0 = (x: number): string => `${Math.round(x * 100)} %`
 const rr = (x: number | null): string => (x === null ? '—' : `${sg(x)}${nf(Math.abs(x), 3)} R`)
-const utc = (t: number): string => new Date(t).toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
+const utc = (t: number): string => bogIso(t).slice(0, 16).replace('T', ' ') + ' COT'
 const FEE = 0.0007 // comisión ida y vuelta supuesta (taker 0,05 % + maker 0,02 %)
 const NO_GUARANTEE = 'Oportunidad potencial. Evidencia de un bróker simulado; no garantiza rentabilidad.'
 

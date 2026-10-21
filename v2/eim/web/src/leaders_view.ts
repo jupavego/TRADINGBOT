@@ -1,5 +1,6 @@
 import { esc } from './panels'
 import type { Board, Ci, Cohort, CopyStats, LeaderPosition, PositionChange, Scorecard, TradeStats, Verdict } from './leaders_types'
+import { bogIso } from './tz'
 
 /** Piezas de la pestaña «Líderes» (T41): ranking, detalle por líder y cohortes. */
 export const VERDICT: Record<Verdict, string> = { approved: 'Aprobado', watch: 'Vigilancia', rejected: 'Descartado' }
@@ -13,7 +14,7 @@ const spct = (x: number | null | undefined, d = 1): string => (x == null ? '—'
 const dir = (x: number | null | undefined): string => (x == null || x === 0 ? 'flat' : x > 0 ? 'up' : 'down')
 const ci = (c: Ci, d = 2): string => (c ? `[${nf(c[0], d)} ; ${nf(c[1], d)}]` : '')
 const short = (a: string): string => `${a.slice(0, 6)}…${a.slice(-4)}`
-export const utc = (t: number): string => new Date(t).toISOString().replace('T', ' ').slice(0, 16) + ' UTC'
+export const utc = (t: number): string => bogIso(t).replace('T', ' ').slice(0, 16) + ' COT'
 
 function hold(ms: number | null): string {
   if (ms == null) return '—'

@@ -2,11 +2,12 @@ import { createSeriesMarkers, type ISeriesMarkersPluginApi, type SeriesMarker, t
 import type { PriceChart } from './chart'
 import { cssVar } from './theme'
 import type { Decision, Trade } from './types'
+import { bogIso } from './tz'
 
 const sec = (t: number): UTCTimestamp => Math.floor(t / 1000) as UTCTimestamp
 const fmtR = (r: number): string => `${r >= 0 ? '+' : ''}${r.toFixed(2)}R`
 const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
-const hhmm = (t: number): string => new Date(t).toISOString().slice(0, 16).replace('T', ' ')
+const hhmm = (t: number): string => bogIso(t).slice(0, 16).replace('T', ' ')
 const EXIT: Record<string, string> = { SL: 'SL', TP1: 'TP1', TP2: 'TP2', INVALIDADO: 'Inval.', EXPIRADO: 'Exp.' }
 
 /** Marcadores de operaciones simuladas sobre el gráfico: entrada, salida y resultado en R. */
@@ -46,7 +47,7 @@ export function renderLog(el: HTMLElement, trades: Trade[], decisions: Decision[
     `${closed.length} operaciones cerradas · neto ${fmtR(net)} · comisiones y funding supuestos ` +
     `(${esc(trades[0]?.funding_source ?? 'constante')}).</p>`
   const tr = trades.length
-    ? '<table class="log"><thead><tr><th>Entrada (UTC)</th><th>Lado</th><th>Entrada</th><th>SL</th>' +
+    ? '<table class="log"><thead><tr><th>Entrada (COT)</th><th>Lado</th><th>Entrada</th><th>SL</th>' +
       '<th>TP1</th><th>Estado</th><th>Salida</th><th>Resultado</th><th>Evidencia</th></tr></thead><tbody>' +
       trades.map((t) => `<tr><td>${hhmm(t.entry_t)}</td><td>${t.side > 0 ? 'Largo' : 'Corto'}</td>` +
         `<td class="num">${t.entry.toFixed(2)}</td><td class="num">${t.sl0.toFixed(2)}</td>` +
@@ -56,7 +57,7 @@ export function renderLog(el: HTMLElement, trades: Trade[], decisions: Decision[
         `<td class="muted">${esc(t.evidence[0] ?? '')}</td></tr>`).join('') + '</tbody></table>'
     : '<p class="muted">Sin operaciones simuladas todavía.</p>'
   const dec = decisions.length
-    ? '<h4>Decisiones del agente de plan</h4><table class="log"><thead><tr><th>Hora (UTC)</th>' +
+    ? '<h4>Decisiones del agente de plan</h4><table class="log"><thead><tr><th>Hora (COT)</th>' +
       '<th>Decisión</th><th>Conf.</th><th>Evidencia</th></tr></thead><tbody>' +
       decisions.slice(0, 60).map((d) => `<tr><td>${hhmm(d.asof)}</td><td>${esc(d.action)}</td>` +
         `<td class="num">${Math.round(d.confidence * 100)}%</td>` +

@@ -6,6 +6,7 @@ import { literatureSection } from './literature_ui'
 import { supportText } from './squad_ui'
 import type { SquadSupport } from './squad_types'
 import type { AgentReport, Candle, ForecastSet, ScenarioId } from './types'
+import { bogIso } from './tz'
 
 const HORIZONS = [20, 25, 30]
 const WEEK_MS = 7 * 86_400_000
@@ -126,7 +127,7 @@ export class ScenarioPanel {
       `del motor: ${fs.scenarios.map((s) => `${SCEN_LABEL[s.id]} ${((adj.base_probability[s.id] ?? 0) * 100).toFixed(0)}%`).join(' · ')}</p>` : ''
     this.el.innerHTML = bar + warn + `<div class="scen-cards">${cards}</div>` + adjNote +
       `<p class="muted meta">Suma de probabilidades: ${(total * 100).toFixed(0)}% · ` +
-      `hecho ${new Date(fs.made_at).toISOString().slice(0, 16).replace('T', ' ')} UTC · ` +
+      `hecho ${bogIso(fs.made_at).slice(0, 16).replace('T', ' ')} COT · ` +
       `${fs.horizon_bars} velas · proyección estadística simulada, no una predicción.</p>`
   }
 }

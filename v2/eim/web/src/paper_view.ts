@@ -75,6 +75,7 @@ export class PaperView {
   private retry: number | undefined
   private journal: PaperJournal | null = null
   private learn: PaperLearn | null = null
+  private ledger: PaperLedger | null = null
   private live: PaperLive | null = null
   private arb: PaperArb | null = null
   private bodies: Record<string, HTMLElement> = {}

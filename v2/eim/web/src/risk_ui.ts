@@ -40,7 +40,7 @@ function execBox(x: Exec | null): string {
   if (!x.enabled) return x.error ? `<p class="muted">Ejecución: ${esc(x.error)}</p>` : ''
   const rec = x.reconciliation
   const recon = rec === null ? '<p class="muted">Reconciliación: aún no corre.</p>'
-    : `<p class="${rec.ok ? 'muted' : 'alert bad'}">Reconciliación ${new Date(rec.t).toLocaleTimeString('es-CO')}: ` +
+    : `<p class="${rec.ok ? 'muted' : 'alert bad'}">Reconciliación ${new Date(rec.t).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' })}: ` +
       (rec.ok ? 'libro interno = exchange' : esc([...rec.issues, ...rec.actions].join(' · '))) + '</p>'
   const rows = x.trades.slice(-5).reverse().map((t) =>
     `<tr><td>${esc(t.status)}</td><td>${t.side > 0 ? 'Largo' : 'Corto'} ${esc(t.symbol)}</td>` +

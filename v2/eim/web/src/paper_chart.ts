@@ -7,6 +7,7 @@ import { PriceChart } from './chart'
 import { cssVar } from './theme'
 import { esc, nf, rr, side } from './paper_fmt'
 import type { PaperTrade, Position, ProfileView } from './paper_types'
+import { bogIso, chartTimeLocale } from './tz'
 
 const sec = (t: number): UTCTimestamp => Math.floor(t / 1000) as UTCTimestamp
 const MAX_MARKS = 400
@@ -73,7 +74,8 @@ export class EquityChart {
   constructor(el: HTMLElement, private legend: HTMLElement) {
     this.chart = createChart(el, {
       autoSize: true, handleScale: false, handleScroll: false,
-      timeScale: { timeVisible: true, secondsVisible: false, borderVisible: false },
+      localization: chartTimeLocale.localization,
+      timeScale: { timeVisible: true, secondsVisible: false, borderVisible: false, ...chartTimeLocale.timeScale },
       rightPriceScale: { borderVisible: false },
       layout: { background: { type: ColorType.Solid, color: 'transparent' }, fontFamily: 'inherit', fontSize: 11 },
       crosshair: { horzLine: { visible: false, labelVisible: false } },
@@ -109,7 +111,7 @@ export class EquityChart {
   private paintLegend(vals: Map<string, number>, t: number | null): void {
     this.legend.innerHTML = [...this.names].map(([id, name]) =>
       `<span><i style="background:var(${PROFILE_VAR[id] ?? '--accent'})"></i>${esc(name)} <b class="num">${Number.isFinite(vals.get(id)) ? nf(vals.get(id)!) : '—'}</b></span>`).join('') +
-      `<small class="muted">${t ? new Date(t).toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : 'capital realizado + no realizado (USDT)'}</small>`
+      `<small class="muted">${t ? bogIso(t).slice(0, 16).replace('T', ' ') + ' COT' : 'capital realizado + no realizado (USDT)'}</small>`
   }
 
   restyle(): void {

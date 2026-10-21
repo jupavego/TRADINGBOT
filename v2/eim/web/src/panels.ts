@@ -1,4 +1,5 @@
 import type { AgentReport } from './types'
+import { bogIso } from './tz'
 
 const LABEL: Record<string, string> = {
   structure: 'Estructura', vwap: 'VWAP', price_action: 'Price action', elliott: 'Elliott',
@@ -31,9 +32,9 @@ export function latestPerAgent(reports: AgentReport[]): AgentReport[] {
 
 export function renderJournal(el: HTMLElement, reports: AgentReport[]): void {
   if (!reports.length) { el.innerHTML = '<p class="muted">Sin reportes registrados todavía.</p>'; return }
-  el.innerHTML = '<table class="log"><thead><tr><th>Hora (UTC)</th><th>Agente</th><th>Sesgo</th>' +
+  el.innerHTML = '<table class="log"><thead><tr><th>Hora (COT)</th><th>Agente</th><th>Sesgo</th>' +
     '<th>Conf.</th><th>Estado</th><th>Evidencia</th></tr></thead><tbody>' +
-    reports.map((r) => `<tr><td>${new Date(r.asof).toISOString().slice(0, 16).replace('T', ' ')}</td>` +
+    reports.map((r) => `<tr><td>${bogIso(r.asof).slice(0, 16).replace('T', ' ')}</td>` +
       `<td>${esc(agentName(r.agent_id))}</td><td class="num">${sgn(r.bias)}</td>` +
       `<td class="num">${Math.round(r.confidence * 100)}%</td>` +
       `<td><span class="chip" data-s="${esc(r.status)}">${esc(STATUS[r.status] ?? r.status)}</span></td>` +
