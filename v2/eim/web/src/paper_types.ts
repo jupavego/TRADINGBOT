@@ -2,16 +2,34 @@
 
 export interface Judgement { weight: number; state: string; state_label: string; m: number; se: number | null; n: number }
 
+/** Estado de la protección progresiva (perfil PPP) de una posición abierta. */
+export interface LadderPos {
+  level: number; nominal_usd: number; max_float_usd: number | null; float_usd: number; stop: number
+  initial_sl: number; state: string; incident: string; elapsed_ms: number
+  stop_history: { t: number; level: number; nominal: number; stop: number; max_float: number }[]
+}
 interface Slot {
   id: string; strategy: string; sid: string; timeframe: string; family: string; side: number; kind: string; t: number
-  qty: number; sl: number; tp: number; leverage: number; margin: number; weight: number
+  qty: number; sl: number; tp: number | null; leverage: number; margin: number; weight: number
   risk_usd: number; origin: string; why: string[]; floor?: boolean; conf?: number; rr?: number   // floor: entró por el mínimo de abiertas
 }
 export interface Position extends Slot {
-  entry: number; mark: number; fill_t: number; expire_t: number; liq: number
+  entry: number; mark: number; fill_t: number; expire_t: number | null; liq: number; ladder?: LadderPos
   cost_usd: number; upnl: number; roe: number | null; funding_assumed: boolean
 }
 export interface Order extends Slot { price: number; expire_t: number | null }
+
+export interface LadderStats {
+  n: number; reached: { level: number; nominal: number; reached: number }[]
+  closed_initial_sl: number; closed_dynamic_sl: number
+  avg_max_float_usd: number | null; avg_realized_usd: number | null
+  avg_gap_max_vs_realized_usd: number | null; avg_realized_vs_protected_usd: number | null
+  by_max_level: Record<string, { n: number; pnl: number; pullbacks: number }>
+  by_side: Record<string, { n: number; pnl: number; wins: number }>
+  avg_hours: number | null; duration: Record<string, number>; long_open_positions: number
+  max_consecutive_losses: number; violations: number; incidents: number; note: string
+  brake: { halted: boolean; until: number | null; reason: string; consecutive_losses: number; activations: { t: number; until: number; reason: string }[] }
+}
 
 export interface ProfileView {
   id: string; name: string; description: string; params: Record<string, unknown>
@@ -21,7 +39,7 @@ export interface ProfileView {
   best: number | null; worst: number | null; fees: number; funding: number; slip: number
   max_dd_pct: number; positions: Position[]; orders: Order[]; curve: [number, number][]
   by_strategy: Record<string, { n: number; pnl: number; wins: number }>
-  weights: Record<string, Judgement>; events_n: number
+  weights: Record<string, Judgement>; events_n: number; ladder?: LadderStats
 }
 
 export interface StrategyRow {

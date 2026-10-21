@@ -3,7 +3,9 @@ mágicos en la lógica)."""
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from eim.backtest.params import CostParams
 
@@ -16,6 +18,7 @@ FAMILIES: dict[str, str] = {
     "literatura": "Literatura (reglas de los libros, T54)",
     "contrarias": "Contrarias",
     "base": "Posición base (mínimo de abiertas)",
+    "ppp": "Entradas propias de la escalera (PPP)",
     "control": "Control aleatorio",
 }
 
@@ -66,6 +69,50 @@ class FeedbackParams(BaseModel):
     observe_w: float = 0.5
 
 
+class LadderParams(BaseModel):
+    """Protección progresiva de ganancias (perfil `ppp_btcusdt`): SL dinámico por escalones.
+
+    Los escalones se miden en beneficio NETO estimado (tras comisiones, deslizamiento y funding),
+    no en precio. Los tres «prohibidos» son configuración visible pero no se pueden activar: la
+    estrategia no tiene TP final, ni cierre por tiempo, ni dinero real (`ladder.py` los respeta).
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    first_usdt: float = 10.0         # beneficio neto que activa la protección (primer escalón)
+    step_usdt: float = 5.0           # cada +5 USDT de beneficio máximo eleva un escalón
+    tick: float = 0.1                # precisión del precio (BTCUSDT perpetuo)
+    qty_step: float = 0.001          # precisión de la cantidad (BTC)
+    min_target_vs_first: float = 1.0  # el objetivo de la idea (solo estimación) debe cubrir ≥ ×
+    # Reservas del SL para que el neto realizado se parezca al nominal: deslizamiento de salida =
+    # el MAYOR de las últimas `slip_lookback` velas (ya conocidas) y funding de `funding_reserve`
+    # liquidaciones futuras a la tasa supuesta. Un hueco real puede seguir superándolas.
+    slip_lookback: int = 4
+    fine_tf: str = "1m"     # velas que resuelven el orden dentro de una vela ambigua de 15 m
+    funding_reserve: int = 1
+    # Freno de riesgo (solo frena ENTRADAS NUEVAS, jamás cierra posiciones): tras
+    # `max_consec_losses` pérdidas seguidas, o si el capital cae `max_drawdown` desde su máximo,
+    # no abre durante `pause_hours`; luego reanuda (el máximo se reinicia al capital actual).
+    max_consec_losses: int = 4
+    max_drawdown: float = 0.08
+    pause_hours: float = 24.0
+    fixed_take_profit: bool = False
+    time_exit: bool = False
+    real_money: bool = False
+
+    @model_validator(mode="after")
+    def _forbidden(self) -> LadderParams:
+        if self.fixed_take_profit or self.time_exit or self.real_money:
+            raise ValueError("PPP no admite TP fijo, cierre por tiempo ni dinero real")
+        if self.first_usdt <= 0 or self.step_usdt <= 0 or self.tick <= 0 or self.qty_step <= 0:
+            raise ValueError("first_usdt, step_usdt, tick y qty_step deben ser positivos")
+        if self.slip_lookback < 1 or self.funding_reserve < 0 or self.pause_hours < 0:
+            raise ValueError("slip_lookback ≥ 1, funding_reserve ≥ 0 y pause_hours ≥ 0")
+        if self.max_consec_losses < 1 or not 0 < self.max_drawdown < 1:
+            raise ValueError("max_consec_losses ≥ 1 y 0 < max_drawdown < 1")
+        return self
+
+
 class ProfileParams(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -102,6 +149,11 @@ class ProfileParams(BaseModel):
     floor_weight: float = 0.5
     floor_min_rr: float = 1.0
     floor_max_cost_r: float = 0.3    # costo ida y vuelta máximo (en R) que tolera el mínimo
+    # Salida: "tp" (SL/TP/BE/tiempo de la sombra) o "ladder" (SL dinámico por escalones, sin TP
+    # ni tiempo; se simula en el libro porque los escalones dependen de la cantidad en USDT).
+    exit_mode: Literal["tp", "ladder"] = "tp"
+    ladder: LadderParams | None = None
+    symbols: tuple[str, ...] | None = None   # None = todos los símbolos de la mesa
     feedback: FeedbackParams = FeedbackParams()
 
 
@@ -143,4 +195,25 @@ PROFILES: tuple[ProfileParams, ...] = (
         allow_hedge=True, follow_synthesis=False, max_cost_r=0.2, require_htf=True,
         feedback=FeedbackParams(gain=2.5, w_min=0.25, w_max=3.0, half_life=20, n_min=6,
                                 z_pause=0.0, observe_w=0.5)),
+)
+
+
+PPP_ID = "ppp_btcusdt"
+PROFILES = PROFILES + (
+    ProfileParams(
+        id=PPP_ID, name="Progressive Profit Protection — BTCUSDT",
+        description="BTCUSDT, simulado. SL inicial por riesgo (0,5 % del capital) y, al llegar a "
+                    "+10 USDT netos, SL dinámico por escalones de +5 USDT que nunca retrocede. "
+                    "Sin TP final ni cierre por tiempo: cierra solo al tocar el SL vigente. "
+                    "A favor de la síntesis y de la tendencia mayor; hasta 2 posiciones, 5x.",
+        risk_pct=0.005, max_leverage=5, max_open=2, min_conf=0.3, min_rr=1.3,
+        families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
+                            "ppp"}),
+        allow_hedge=False, follow_synthesis=True, max_cost_r=0.15, require_htf=True,
+        exit_mode="ladder", ladder=LadderParams(), symbols=("BTCUSDT",),
+        # aprende de SUS PROPIOS cierres (`ladder_book.LadderRisk`), no de la sombra con TP:
+        # peso fijo 1 (jamás sube el tamaño tras una pérdida) y pausa si una estrategia o
+        # contexto rinde con expectativa claramente negativa en la escalera
+        feedback=FeedbackParams(gain=0.0, w_min=1.0, w_max=1.0, n_min=8, z_pause=0.0,
+                                observe_w=1.0)),
 )

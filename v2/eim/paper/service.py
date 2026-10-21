@@ -22,6 +22,7 @@ from eim.paper.generate import closed_asofs, default_workers, now_ms
 WARMUP_BARS = 400                               # velas previas para los indicadores
 LIVE_BARS = 48                                  # el ciclo rellena como mucho 48 velas por marco
 FUNDING_LOOKBACK_MS = 30 * 86_400_000
+FINE_BACKFILL_MS = 7 * 86_400_000                 # velas de 1 min del perfil de escalera
 
 
 @dataclass
@@ -112,9 +113,12 @@ class DeskService:
 
     def _sync(self, sym: str) -> None:
         now = now_ms()
-        for tf in dict.fromkeys((*self.tfs, self.ep.path_tf)):
+        fine = tuple(dict.fromkeys(p.ladder.fine_tf for p in self.profiles
+                                   if p.ladder and sym in (p.symbols or (sym,))))
+        for tf in dict.fromkeys((*self.tfs, self.ep.path_tf, *fine)):
             b = self.store.bounds(sym, tf)
-            start = b[1] if b else now - (WARMUP_BARS + LIVE_BARS) * tf_ms(tf)
+            back = FINE_BACKFILL_MS if tf in fine else (WARMUP_BARS + LIVE_BARS) * tf_ms(tf)
+            start = b[1] if b else now - back
             sync_candles(self.store, self.provider, sym, tf, start, now)
         f = self.store.read_series("funding", sym, last=1)
         rates = self.provider.funding_rates(sym, f[-1][0] + 1 if f else now - FUNDING_LOOKBACK_MS,
