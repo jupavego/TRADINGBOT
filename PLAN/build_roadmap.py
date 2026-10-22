@@ -40,7 +40,10 @@ def head_info(task_id: str) -> dict:
 
 def orphans(tasks: list) -> list[str]:
     """Tareas que `PHASES` de roadmap.html no dibuja (la lista de fases es manual)."""
-    html = (PLAN / "roadmap.html").read_text(encoding="utf-8")
+    page = PLAN / "roadmap.html"
+    if not page.exists():            # un PLAN sin tablero (p. ej. los tests) no tiene huérfanas
+        return []
+    html = page.read_text(encoding="utf-8")
     drawn = set(re.findall(r'"(T\d+)"', html[html.find("var PHASES="):html.find("var GATES=")]))
     return [t["id"] for t in tasks if t["id"] not in drawn]
 

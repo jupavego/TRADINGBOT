@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-21T20:45:07",
+ "generated": "2026-10-21T22:02:27",
  "tasks": [
   {
    "id": "T01",
@@ -1344,8 +1344,8 @@ window.EIM_STATUS = {
    "deps": [
     "T105"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Informe `PLAN/notas/T106_auditoria_salidas.md` (2026-10-21, solo lectura). Toda vía de cierre inventariada con archivo y línea (SL, SL en la vela del llenado, TP, BE+, TIEMPO, GEOMETRIA, NO_LLENADA, OBJETIVO_SIN_LLENAR, SL/SLD de la escalera) y **probado que nadie más cierra**: los topes y frenos (`caps`, `LadderRisk`) solo vetan entradas, no hay POST de cierre y el capital se muta en un único sitio (`book.py:226`). Cifras del panel: las filas del Moderado y del Agresivo son **imposibles** en un mismo render (mezclan `balance` con `return_pct`, que usa `equity`); el DD de 1204 % exige capital ≈ −110.400 USDT porque no hay liquidación ni suelo (reproducido: 299,70 % de DD con 3 operaciones); las 19.132 operaciones **no caben** en este almacén (techo 4.856 cierres) y la vista no guarda instantánea, así que no es auditable. Confirmado: los costos ya están dentro del PnL y no existe ninguna recarga de capital. Tests que fijan el defecto: `tests/paper/test_accounting_audit.py` (6). Seis ◆ respondidas por el usuario el 2026-10-21: **◆1 cambia el alcance** (la salida la elegiría el orquestador de forma dinámica → T113/T114), ◆2 BTC y ETH (exige 1 m de ETH y tick/paso por símbolo), ◆3 conservar BE+ y escalones, ◆4 sí, ◆5 conservar `ppp_btcusdt` como control, ◆6 umbral en R.",
    "effort": "medio",
    "phase": 18,
    "goal": "Antes de llevar la protección progresiva (ya construida en T105 para el 4.º perfil `ppp_btcusdt`) a **Conservador, Moderado y Agresivo**, dejar escrito qué cierra hoy una operación, quién puede cerrarla y **si las cifras del panel son correctas** (el Agresivo muestra un drawdown de 1204 %, imposible salvo con capital negativo). Sin esta auditoría la comparación «antes/después» de T111 no significaría nada: podría atribuirse a la escalera una mejora que en realidad arregla la contabilidad."
