@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-21T09:48:23",
+ "generated": "2026-10-21T20:45:07",
  "tasks": [
   {
    "id": "T01",
@@ -1335,8 +1335,118 @@ window.EIM_STATUS = {
    "state": "done",
    "notes": "Perfil `ppp_btcusdt` (2026-10-20): SL inicial por riesgo, protección desde +10 USDT netos y escalones de +5, sin TP ni cierre por tiempo, solo BTCUSDT y simulado. Código `eim/paper/{ladder,ladder_book,ladder_audit,ladder_stats,strategies_ppp}.py` + `params.py`; UI `web/src/paper_*.ts` (compila con tsc, **sin captura visual**); doc `v2/docs/PPP.md`; tests `tests/paper/test_ladder*.py`, `test_strategies_ppp.py` (18 escenarios). Incluye reservas de deslizamiento/funding en el SL, aprendizaje propio, freno de entradas, **velas de 1 min para las velas ambiguas de 15 m** (el servicio sincroniza 1 m), **entrada propia `ppp_tendencia`** (familia `ppp`) y **funding real** en el backtest. **Backtest 40 días (`reports/ppp_backtest.md`): NO rentable** (−537 USDT, PF 0,54, 86 ops, 0 violaciones, 0 funding supuesto; fuera de muestra peor y ninguna variante de la rejilla positiva). Entradas propias: solo 9 operaciones (+31 USDT), muestra insuficiente. Pendiente: acumular meses y pasar `ppp_tendencia` por T49; captura visual de la UI.",
    "effort": "alto",
-   "phase": 6,
+   "phase": 18,
    "goal": "Un perfil simulado más, **independiente de Conservador/Moderado/Agresivo y integrado en el mismo flujo** (ideas de las estrategias → libro → resumen → API → pestañas de la mesa). Su diferencia: **sin TP final ni cierre por tiempo**. SL inicial por riesgo; al llegar a +10 USDT netos se activa la protección y cada +5 USDT de beneficio máximo sube un escalón (10, 15, 20, …). Solo cierra el SL vigente; la protección nunca retrocede ni vuelve a la entrada. Solo BTCUSDT, solo simulado (el modelo rechaza `real_money`, `time_exit` y `fixed_take_profit`)."
+  },
+  {
+   "id": "T106",
+   "title": "Auditoría de salidas, contabilidad y métricas de los tres perfiles",
+   "deps": [
+    "T105"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 18,
+   "goal": "Antes de llevar la protección progresiva (ya construida en T105 para el 4.º perfil `ppp_btcusdt`) a **Conservador, Moderado y Agresivo**, dejar escrito qué cierra hoy una operación, quién puede cerrarla y **si las cifras del panel son correctas** (el Agresivo muestra un drawdown de 1204 %, imposible salvo con capital negativo). Sin esta auditoría la comparación «antes/después» de T111 no significaría nada: podría atribuirse a la escalera una mejora que en realidad arregla la contabilidad."
+  },
+  {
+   "id": "T107",
+   "title": "Contabilidad honesta del capital: liquidación simulada, equity y drawdown",
+   "deps": [
+    "T106"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 18,
+   "goal": "Que las cifras de los tres perfiles sean creíbles antes de comparar reglas de salida. Hoy el libro resta el PnL del capital sin suelo: si un perfil pierde más de lo que tiene, la curva se vuelve negativa y el drawdown pasa del 100 % (el Agresivo muestra 1204 %). Un perfil simulado debe **liquidarse como una cuenta real**, no seguir operando con capital imposible."
+  },
+  {
+   "id": "T108",
+   "title": "Protección progresiva por perfil: parámetros centralizados y validados",
+   "deps": [
+    "T106"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 18,
+   "goal": "Dar a Conservador, Moderado y Agresivo **su propia** configuración de protección progresiva, en un solo módulo, validada al arrancar, y con las especificaciones del instrumento (tick y paso de cantidad) tomadas del símbolo en vez de las constantes de BTCUSDT que hoy trae `LadderParams`."
+  },
+  {
+   "id": "T109",
+   "title": "Motor: en los tres perfiles solo cierra el stop (inicial o dinámico)",
+   "deps": [
+    "T108",
+    "T107"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 18,
+   "goal": "Llevar los tres perfiles al mismo camino de salida que ya usa el 4.º: **sin take profit fijo y sin cierre por tiempo**. Antes del primer umbral manda el stop inicial; a partir de ahí manda el stop dinámico, que sube de escalón y **nunca retrocede**. Ninguna otra cosa cierra una operación de la estrategia."
+  },
+  {
+   "id": "T110",
+   "title": "Persistencia y recuperación del estado de protección",
+   "deps": [
+    "T109"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 18,
+   "goal": "Que una posición abierta con protección activa **no pierda su escalón** si se reinicia la API o el servicio de papel. Hoy el libro se recalcula en cada consulta y solo los cierres en vivo se guardan (`ledger.py`): el estado de lo abierto (escalón, máximo alcanzado, stop vigente, historial de cambios) no se persiste en ninguna parte."
+  },
+  {
+   "id": "T111",
+   "title": "Métricas, comparación antes/después y decisión de adopción",
+   "deps": [
+    "T107",
+    "T109",
+    "T110",
+    "T49"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 18,
+   "goal": "Medir si la protección progresiva mejora de verdad los tres perfiles, aislando su efecto de todo lo demás, y **decidir con el usuario** si se adopta, se adopta solo donde mejora, o se archiva. La hipótesis de partida es la misma que en T27: **no mejora** hasta que los datos lo demuestren."
+  },
+  {
+   "id": "T112",
+   "title": "Panel: estado de la protección por perfil (con captura)",
+   "deps": [
+    "T109"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 18,
+   "goal": "Que la mesa muestre, para cada perfil, en qué estado está la protección de cada operación, sin presentar nunca el beneficio protegido como si ya estuviera ganado. T105 dejó la interfaz del 4.º perfil compilando pero **sin captura visual**: aquí se cierra esa deuda y se extiende a los tres perfiles."
+  },
+  {
+   "id": "T113",
+   "title": "Auditoría de orquestadores multiagente de inversión",
+   "deps": [],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 19,
+   "goal": "Cerrar la pregunta de fondo de las investigaciones del usuario sobre «agentes orquestadores de otros agentes»: **¿hay algo en esos proyectos que el coordinador propio (síntesis T20/T44 + riesgo T29 + trazabilidad T72–T76) no cubra ya?** El proyecto no necesita más bots que repiten indicadores; necesita saber si falta un patrón de coordinación, de estado o de evaluación. Hipótesis de partida: **no falta nada esencial**; la auditoría debe demostrar lo contrario con evidencia."
+  },
+  {
+   "id": "T114",
+   "title": "Propuesta única y autoridad determinista: nadie salta el riesgo",
+   "deps": [
+    "T113"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 19,
+   "goal": "Una sola puerta de entrada a la ejecución, con un contrato único: **toda** fuente de señal (agentes, estrategias del bróker, bots de T57, copy trading de T41, arbitraje de T39, HFT de T85, video de T70) propone en el mismo formato, y solo el motor determinista de riesgo autoriza. El consenso de diez agentes no puede anular un límite, y ninguna regla de salida vigente puede ser anulada por una señal contraria. Hoy esto es cierto por construcción en varios caminos, pero **no está demostrado en un solo lugar**."
   }
  ]
 };

@@ -38,6 +38,13 @@ def head_info(task_id: str) -> dict:
     return info
 
 
+def orphans(tasks: list) -> list[str]:
+    """Tareas que `PHASES` de roadmap.html no dibuja (la lista de fases es manual)."""
+    html = (PLAN / "roadmap.html").read_text(encoding="utf-8")
+    drawn = set(re.findall(r'"(T\d+)"', html[html.find("var PHASES="):html.find("var GATES=")]))
+    return [t["id"] for t in tasks if t["id"] not in drawn]
+
+
 def live_dir() -> Path | None:
     """Carpeta viva `v2/data/roadmap_live/` del checkout principal (ignorada por git).
 
@@ -105,6 +112,9 @@ def main() -> int:
         payload = {"generated": datetime.now().isoformat(timespec="seconds"), "tasks": tasks}
         out.write_text("window.EIM_STATUS = " + json.dumps(payload, ensure_ascii=False, indent=1) + ";\n", encoding="utf-8")
         print(f"status.js: {len(tasks)} tareas, {done} hechas")
+    if lost := orphans(tasks):
+        print("AVISO: ninguna fase de roadmap.html dibuja " + ", ".join(lost)
+              + " (añádelas a var PHASES o no se verán)")
     if "--no-publish" not in sys.argv:
         publish(tasks)
     return 0
