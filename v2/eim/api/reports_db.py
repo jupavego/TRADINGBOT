@@ -8,6 +8,7 @@ from pathlib import Path
 import duckdb
 
 from eim.core import AgentReport
+from eim.data.duck import tune
 
 _DDL = """
 CREATE TABLE IF NOT EXISTS reports (
@@ -26,6 +27,7 @@ class ReportStore:
         if self._path != ":memory:":
             Path(self._path).parent.mkdir(parents=True, exist_ok=True)
         self._con = duckdb.connect(self._path)
+        tune(self._con)
         self._con.execute(_DDL)
         self._lock = threading.Lock()
 

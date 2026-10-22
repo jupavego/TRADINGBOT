@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from eim.core import Mode
+from eim.data.aggregate import aggregate_new
 from eim.data.sync import sync_candles
 from eim.data.timeframes import tf_ms
 from eim.observability import hooks_service
@@ -120,11 +122,23 @@ class DeskService:
             back = FINE_BACKFILL_MS if tf in fine else (WARMUP_BARS + LIVE_BARS) * tf_ms(tf)
             start = b[1] if b else now - back
             sync_candles(self.store, self.provider, sym, tf, start, now)
+        self._keep_5m(sym)
         f = self.store.read_series("funding", sym, last=1)
         rates = self.provider.funding_rates(sym, f[-1][0] + 1 if f else now - FUNDING_LOOKBACK_MS,
                                             now)
         if rates:
             self.store.upsert_series("funding", sym, "-", rates, self.provider.name)
+
+    def _keep_5m(self, sym: str) -> None:
+        """Mantiene al día el marco 5m (solo de almacén; lo usa NFI) agregándolo del 1m recién
+        sincronizado. Solo si el 5m ya existe (se crea con `eim.bots.backfill`); nunca frena el
+        ciclo."""
+        if self.store.bounds(sym, "5m") is None or self.store.bounds(sym, "1m") is None:
+            return
+        try:
+            aggregate_new(self.store, sym)
+        except Exception as e:  # noqa: BLE001
+            logging.getLogger("eim.paper").warning("5m %s: %s: %s", sym, type(e).__name__, e)
 
     def heartbeat_path(self) -> Path:
         return Path(self.store.root) / "paper" / "heartbeat.json"

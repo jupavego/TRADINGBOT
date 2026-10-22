@@ -13,6 +13,8 @@ from pathlib import Path
 
 import duckdb
 
+from eim.data.duck import tune
+
 _DDL = """
 CREATE TABLE IF NOT EXISTS paper_ctx (
     symbol VARCHAR, timeframe VARCHAR, asof_ms BIGINT, origin VARCHAR, version INTEGER,
@@ -27,6 +29,7 @@ class PaperStore:
         if self._path != ":memory:":
             Path(self._path).parent.mkdir(parents=True, exist_ok=True)
         self._con = duckdb.connect(self._path)
+        tune(self._con)
         self._con.execute(_DDL)
         self._lock = threading.Lock()
 

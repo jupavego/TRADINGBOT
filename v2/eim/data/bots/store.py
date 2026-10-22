@@ -8,8 +8,10 @@ calculó), la versión (SHA + parámetros) y el estado; `created_ms` es cuándo 
 
 from __future__ import annotations
 
+import sys
 import threading
 from collections.abc import Iterable
+from dataclasses import dataclass
 
 from eim.core import BotSignal
 
@@ -21,6 +23,24 @@ CREATE TABLE IF NOT EXISTS bot_signals (
     PRIMARY KEY (bot_id, strategy, version, symbol, timeframe, asof_ms)
 )
 """
+BATCH = 500
+
+
+@dataclass(frozen=True, slots=True)
+class LeanSignal:
+    """Lo que la puntuación lee de una postura (sin `raw`/`evidence`/`data_quality`)."""
+
+    bot_id: str
+    strategy: str
+    version: str
+    symbol: str
+    timeframe: str
+    asof: int
+    stance: float
+    confidence: float | None
+    status: str
+    horizon_bars: int | None
+
 _COLS = "bot_id, strategy, version, symbol, timeframe, asof_ms, stance, confidence, status, " \
         "created_ms, signal"
 
@@ -47,7 +67,35 @@ class BotSignalStore:
         return bool(inserted)
 
     def append_many(self, sigs: Iterable[BotSignal], created_ms: int) -> int:
-        return sum(self.append(s, created_ms) for s in sigs)
+        """Guarda por lotes (una transacción por lote); devuelve las filas nuevas.
+
+        Mismo contrato que `append`: la primera escritura manda y una `asof` posterior a
+        `created_ms` se rechaza, aquí antes de insertar nada."""
+        rows = []
+        for sig in sigs:
+            if sig.asof > created_ms:
+                raise ValueError(f"asof {sig.asof} posterior al momento de guardar {created_ms}")
+            rows.append([sig.bot_id, sig.strategy, sig.version, sig.symbol, sig.timeframe,
+                         sig.asof, sig.stance, sig.confidence, sig.status, created_ms,
+                         sig.model_dump_json()])
+        added = 0
+        with self._lock:
+            for i in range(0, len(rows), BATCH):
+                before = self._con.execute("SELECT count(*) FROM bot_signals").fetchone()[0]
+                self._con.execute("BEGIN")
+                try:
+                    chunk = rows[i:i + BATCH]
+                    self._con.execute(
+                        f"INSERT INTO bot_signals ({_COLS}) VALUES "
+                        + ",".join(["(?,?,?,?,?,?,?,?,?,?,?)"] * len(chunk))
+                        + " ON CONFLICT DO NOTHING", [x for r in chunk for x in r])
+                    self._con.execute("COMMIT")
+                except Exception:
+                    self._con.execute("ROLLBACK")
+                    raise
+                after = self._con.execute("SELECT count(*) FROM bot_signals").fetchone()[0]
+                added += after - before
+        return added
 
     def query(self, symbol: str, timeframe: str, start: int | None = None,
               end: int | None = None, bot_id: str | None = None,
@@ -85,3 +133,24 @@ class BotSignalStore:
         with self._lock:
             rows = self._con.execute(q + " ORDER BY asof_ms, bot_id, strategy", args).fetchall()
         return [(BotSignal.model_validate_json(r[0]), int(r[1])) for r in rows]
+
+    def query_lean(self, symbol: str, timeframe: str, end: int | None = None
+                   ) -> list[tuple[LeanSignal, int]]:
+        """Como `query_all`, pero solo con lo que usa la puntuación (identidad, `asof`, postura,
+        confianza, horizonte, estado). Sin `raw`/`evidence`/`data_quality`: ~10× menos memoria.
+        Devuelve `LeanSignal` (mismos campos, sin pydantic): no sirve para mostrar ni guardar."""
+        q, args = ("SELECT bot_id, strategy, version, symbol, timeframe, asof_ms, stance, "
+                   "confidence, status, created_ms, "
+                   "try_cast(json_extract_string(signal, '$.horizon_bars') AS INTEGER) "
+                   "FROM bot_signals WHERE symbol = ? AND timeframe = ?"), [symbol, timeframe]
+        if end is not None:
+            q, args = q + " AND asof_ms <= ?", [*args, end]
+        with self._lock:
+            cur = self._con.execute(q + " ORDER BY asof_ms, bot_id, strategy", args)
+            rows = cur.fetchall()
+        out = []
+        for r in rows:
+            sig = LeanSignal(*(sys.intern(x) if isinstance(x, str) else x for x in r[:9]),
+                             None if r[10] is None else int(r[10]))
+            out.append((sig, int(r[9])))
+        return out

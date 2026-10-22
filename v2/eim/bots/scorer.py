@@ -92,7 +92,7 @@ class BotScorer:
 
     def rows(self, symbol: str, end: int | None = None) -> list:
         """Posturas guardadas de todos los marcos con bots, por `asof`."""
-        out = [r for tf in TFS for r in self.signals.query_all(symbol, tf, end)]
+        out = [r for tf in TFS for r in self.signals.query_lean(symbol, tf, end)]
         return sorted(out, key=lambda r: r[0].asof)
 
     def _previous_marginals(self, symbol: str) -> dict[str, Marginal]:

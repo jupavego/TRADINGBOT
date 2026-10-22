@@ -145,6 +145,7 @@ class JesseExamplesAdapter:
 
     bot_id = BOT_ID
     timeframes = ("1h",)
+    history_bars = WINDOW
 
     def __init__(self, card: BotCard | None = None, strategies: tuple[str, ...] | None = None
                  ) -> None:

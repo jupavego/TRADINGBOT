@@ -21,12 +21,14 @@ from eim.bots.adapter import (
     split_version,
 )
 from eim.bots.quarantine import Quarantine
-from eim.core import NOT_SAVED, VERSION_CHANGED, BotSignal, MarketSnapshot
+from eim.core import NOT_SAVED, VERSION_CHANGED, BotSignal, Candle, MarketSnapshot
 from eim.data.bots.store import BotSignalStore
 from eim.observability import hooks_service
 from eim.synthesis.squad import current_policy
 
 log = logging.getLogger("eim.bots")
+# (símbolo, marco, apertura de la última vela, n) → las n velas que terminan en ella
+CandleHistory = Callable[[str, str, int, int], list[Candle]]
 FT_PY_ENV = "EIM_BOT_FREQTRADE_PY"          # intérprete del entorno aparte de Freqtrade
 FT_ENGINE_ENV = "EIM_BOT_FREQTRADE_ENGINE"  # versión del motor fijada (p. ej. «2026.9»)
 
@@ -39,8 +41,10 @@ def _note(sig: BotSignal, note: str) -> BotSignal:
 class BotService:
     def __init__(self, adapters: Sequence[SignalAdapter], store: BotSignalStore | None = None,
                  clock: Callable[[], int] = lambda: int(time.time() * 1000),
-                 quarantine: Quarantine | None = None) -> None:
+                 quarantine: Quarantine | None = None,
+                 history: CandleHistory | None = None) -> None:
         self.adapters, self.store, self.clock = list(adapters), store, clock
+        self.history = history   # lectura propia de velas para los adaptadores que piden más
         self.quarantine = quarantine   # T60: un bot que vota y se degrada pierde el voto
 
     def produce(self, snapshot: MarketSnapshot) -> list[BotSignal]:
@@ -56,7 +60,7 @@ class BotService:
             if tfs and snapshot.timeframe not in tfs:
                 continue
             try:
-                sigs = ad.signals(snapshot)
+                sigs = ad.signals(self._with_history(ad, snapshot))
             except Exception as exc:  # noqa: BLE001 - un bot roto no tumba el ciclo
                 ver = f"{ad.card.commit_sha}+{params_hash({})}"
                 sigs = [empty_signal(ad.card, "*", ver, snapshot, "degraded",
@@ -64,6 +68,19 @@ class BotService:
             out.extend(self._seal(s) for s in sigs)
         self._watch(out)
         return out
+
+    def _with_history(self, ad: SignalAdapter, snap: MarketSnapshot) -> MarketSnapshot:
+        """Snapshot con las velas que el adaptador declara en `history_bars` (p. ej. 5400 de 1 h
+        para TrendRider) cuando el del ciclo trae menos (`snapshot_bars`=500). Solo para ese
+        adaptador: el resto de agentes sigue viendo el snapshot original. Sin anticipación: las
+        velas terminan en la misma vela que el snapshot; si no coinciden, no se toca."""
+        need = int(getattr(ad, "history_bars", 0) or 0)
+        if self.history is None or need <= len(snap.candles) or not snap.candles:
+            return snap
+        candles = self.history(snap.symbol, snap.timeframe, snap.candles[-1].t, need)
+        if not candles or candles[-1].t != snap.candles[-1].t or len(candles) <= len(snap.candles):
+            return snap
+        return snap.model_copy(update={"candles": candles})
 
     def _watch(self, sigs: Sequence[BotSignal]) -> None:
         """Latido y alerta (T31); cuarentena de los bots que votan y salen degradados (T60)."""
@@ -102,13 +119,15 @@ class BotService:
         return snapshot.model_copy(update={"bot_signals": sigs or None})
 
 
-def default_service(data_dir: Path, store: BotSignalStore | None) -> BotService:
+def default_service(data_dir: Path, store: BotSignalStore | None,
+                    history: CandleHistory | None = None) -> BotService:
     """Modo A siempre; modo B (Freqtrade) solo si el entorno aparte está configurado y fijado."""
     from eim.bots.hb_directional import HummingbotDirectionalAdapter
     from eim.bots.jesse_examples import JesseExamplesAdapter
     from eim.bots.trendrider import TrendRiderAdapter
 
-    # Jesse y TrendRider piden 1000 y 5400 velas de 1 h: con menos en el snapshot dan `no_data`
+    # Jesse y TrendRider piden 1000 y 5400 velas de 1 h (`history_bars`): `history` las lee del
+    # almacén, porque el snapshot del ciclo trae solo `snapshot_bars` (500)
     adapters: list[SignalAdapter] = [HummingbotDirectionalAdapter(), JesseExamplesAdapter(),
                                      TrendRiderAdapter()]
     py, engine = os.environ.get(FT_PY_ENV), os.environ.get(FT_ENGINE_ENV)
@@ -117,4 +136,5 @@ def default_service(data_dir: Path, store: BotSignalStore | None) -> BotService:
         from eim.bots.ft_adapter import FreqtradeAdapter
 
         adapters.append(FreqtradeAdapter(Path(py), checkout, engine))
-    return BotService(adapters, store, quarantine=Quarantine(Path(data_dir) / "bots"))
+    return BotService(adapters, store, quarantine=Quarantine(Path(data_dir) / "bots"),
+                      history=history)

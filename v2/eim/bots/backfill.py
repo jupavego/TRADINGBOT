@@ -27,6 +27,7 @@ from eim.bots.nfi_adapter import INFO_DAYS, NFI_DIR_ENV
 from eim.bots.service import FT_ENGINE_ENV, FT_PY_ENV, BotService
 from eim.bots.trendrider import TrendRiderAdapter
 from eim.core import BotSignal, Candle, MarketSnapshot
+from eim.data.aggregate import aggregate
 from eim.data.bots.store import BotSignalStore
 from eim.data.store import Store
 from eim.data.timeframes import tf_ms
@@ -66,27 +67,6 @@ def backfill_ft(store: BotSignalStore, adapter, candles: list[Candle], symbol: s
         sigs: list[BotSignal] = adapter.history(snap, strategy, from_asof)
         out[strategy] = store.append_many(sigs, created_ms)
     return out
-
-
-def aggregate(store: Store, symbol: str, src: str = "1m", dst: str = "5m") -> int:
-    """Agrega velas del almacén (`src`→`dst`) con DuckDB, solo grupos completos, y las guarda.
-
-    Devuelve las velas de `dst` escritas. No descarga nada: el marco 5m es solo de almacén."""
-    import duckdb
-
-    from eim.core import Candle
-
-    f, k = store._file("candles", symbol, src), tf_ms(dst)   # noqa: SLF001
-    need = k // tf_ms(src)
-    rows = duckdb.connect().execute(
-        "SELECT t // ? * ? AS g, arg_min(o, t), max(h), min(l), arg_max(c, t), sum(v), "
-        "sum(taker_buy_v), sum(trades) FROM read_parquet(?, hive_partitioning=false) "
-        "GROUP BY 1 HAVING count(*) = ? ORDER BY 1", [k, k, f.as_posix(), need]).fetchall()
-    store.upsert_candles(symbol, dst, [Candle(t=int(g), o=o, h=h, l=lo, c=c, v=v, taker_buy_v=tb,
-                                              trades=None if n is None else int(n))
-                                       for g, o, h, lo, c, v, tb, n in rows],
-                         f"agregado de {src}")
-    return len(rows)
 
 
 def _ms(day: str) -> int:
