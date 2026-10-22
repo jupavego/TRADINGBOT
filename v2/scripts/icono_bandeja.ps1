@@ -103,6 +103,45 @@ public static class Lnk {
 }
 try { AseguraAccesoInicio } catch { }
 
+# El nombre y el icono que Windows enseña en el aviso. El acceso del menú Inicio sirve, pero
+# tarda en indexarse; esta clave de usuario surte efecto de inmediato.
+try {
+  $k = "HKCU:\Software\Classes\AppUserModelId\$AppId"
+  if (-not (Test-Path $k)) { New-Item -Path $k -Force | Out-Null }
+  New-ItemProperty -Path $k -Name DisplayName -Value "EIM" -PropertyType String -Force | Out-Null
+  New-ItemProperty -Path $k -Name IconUri -Value (Join-Path $scripts "esfera.ico") -PropertyType String -Force | Out-Null
+} catch { Write-Warning "No se pudo registrar el nombre del aviso: $_" }
+
+# Los globos de NotifyIcon los firma Windows con el ejecutable anfitrión (powershell.exe) pase
+# lo que pase. Para que el aviso salga como EIM hay que emitir un toast de verdad con nuestro
+# AppID. Si la API no está (Windows antiguo), se cae al globo de siempre.
+$hayToast = $false
+try {
+  [void][Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]
+  [void][Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime]
+  $hayToast = $true
+} catch { }
+
+function Aviso([string]$titulo, [string]$texto, [string]$tipo = "Warning") {
+  if ($hayToast) {
+    try {
+      $esc = { param($x) [System.Security.SecurityElement]::Escape(("" + $x)) }
+      $xml = "<toast><visual><binding template=""ToastGeneric"">" +
+             "<text>" + (& $esc $titulo) + "</text>" +
+             "<text>" + (& $esc $texto) + "</text></binding></visual></toast>"
+      $doc = New-Object Windows.Data.Xml.Dom.XmlDocument
+      $doc.LoadXml($xml)
+      $t = New-Object Windows.UI.Notifications.ToastNotification $doc
+      [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($AppId).Show($t)
+      return
+    } catch { }
+  }
+  $icono.BalloonTipTitle = $titulo
+  $icono.BalloonTipText = $texto
+  $icono.BalloonTipIcon = $tipo
+  $icono.ShowBalloonTip(5000)
+}
+
 $icoVivo = New-Object System.Drawing.Icon (Join-Path $scripts "esfera.ico")
 function Apagado([System.Drawing.Icon]$ico) {
   $bmp = $ico.ToBitmap()
@@ -229,10 +268,10 @@ function Revisar {
 
   $cambio = ($null -ne $script:anterior -and $script:anterior -ne $vivo)
   if ($cambio) {
-    $icono.BalloonTipTitle = if ($vivo) { "EIM activo" } else { "EIM sin respuesta" }
-    $icono.BalloonTipText = $detalle
-    $icono.BalloonTipIcon = if ($vivo) { "Info" } else { "Warning" }
-    $icono.ShowBalloonTip(4000)
+    # Ojo: en PowerShell 5.1 `(if ...)` se interpreta como llamar a un comando «if»; va con $( ).
+    $tit = if ($vivo) { "EIM activo" } else { "EIM sin respuesta" }
+    $ic = if ($vivo) { "Info" } else { "Warning" }
+    Aviso $tit $detalle $ic
   }
   $script:anterior = $vivo
 
@@ -241,12 +280,8 @@ function Revisar {
   if ($avisos.Count -gt 0 -and -not $cambio) {
     $a = $avisos[-1]
     $mas = if ($avisos.Count -gt 1) { " (+" + ($avisos.Count - 1) + " mas)" } else { "" }
-    $t2 = "EIM - " + $a.title
-    if ($t2.Length -gt 63) { $t2 = $t2.Substring(0, 60) + "..." }
-    $icono.BalloonTipTitle = $t2
-    $icono.BalloonTipText = (("" + $a.detail) + $mas).Trim()
-    $icono.BalloonTipIcon = if ($a.resolved) { "Info" } elseif ($a.level -eq "critical") { "Error" } else { "Warning" }
-    $icono.ShowBalloonTip(6000)
+    $tipo = if ($a.resolved) { "Info" } elseif ($a.level -eq "critical") { "Error" } else { "Warning" }
+    Aviso ("" + $a.title) ((("" + $a.detail) + $mas).Trim()) $tipo
   }
 }
 
