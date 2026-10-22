@@ -59,7 +59,8 @@ export function cardsHtml(v: PaperSummary, profile: string): string {
       `<b class="num">${nf(p.equity)} <small>USDT</small></b>` +
       `<span class="num ${ret > 0 ? 'up' : ret < 0 ? 'down' : ''}">${pct(ret)}</span>` +
       `<small class="muted">${p.n_closed} ops · acierto ${pct0(p.win_rate)} · PF ${p.pf === null ? '—' : nf(p.pf)} · DD máx. ${pct0(p.max_dd_pct)}</small>` +
-      `<small class="muted">${p.positions.length} abiertas · ${p.orders.length} órdenes · riesgo ${nf(Number(p.params.risk_pct) * 100, 1)} % · hasta ${p.params.max_leverage}x</small></button>`
+      `<small class="muted">${p.positions.length} abiertas · ${p.orders.length} órdenes · riesgo ${nf(Number(p.params.risk_pct) * 100, 1)} % · hasta ${p.params.max_leverage}x</small>` +
+      (p.refills ? `<small class="warn">${p.refills} recarga${p.refills > 1 ? 's' : ''} · +${nf(p.injected, 0)} USDT inyectados</small>` : '') + '</button>'
   }).join('')
 }
 
@@ -72,6 +73,7 @@ export function acctHtml(p: ProfileView): string {
     row('PnL realizado', `${usd(p.realized)} USDT`, t(p.realized)) +
     row('Margen en uso', `${nf(p.margin_used)} USDT`) + row('Margen reservado (órdenes)', `${nf(p.reserved)} USDT`) +
     row('Disponible', `${nf(p.available)} USDT`) + row('Capital inicial', `${nf(p.initial)} USDT`) +
+    (p.refills ? row(`Recargas (${p.refills})`, `+${nf(p.injected)} USDT`, 'warn') + row('Capital aportado total', `${nf(p.contributed)} USDT`) : '') +
     row('Comisiones · desliz.', `${nf(p.fees)} · ${nf(p.slip)}`) + row('Funding pagado (− cobrado)', `${usd(p.funding)} USDT`) +
     row('Mejor / peor', `${p.best === null ? '—' : usd(p.best)} / ${p.worst === null ? '—' : usd(p.worst)}`) +
     `</div><p class="muted pp-note">${esc(p.description)}</p>`

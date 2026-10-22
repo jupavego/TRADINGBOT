@@ -139,6 +139,12 @@ def insights(rows: Sequence[dict], fams: Sequence[dict], profiles: Sequence[dict
             out.append({"tone": "warn", "text": f"Costos en {pr['name']}: comisiones, deslizamiento"
                         f" y funding suman {usdt} USDT ({share}); antes de costos el resultado"
                         f" sería {gross} USDT."})
+        if pr.get("refills"):
+            inj = f"{pr['injected']:,.0f}".replace(",", ".")
+            tot = f"{pr['contributed']:,.0f}".replace(",", ".")
+            out.append({"tone": "warn", "text": f"{pr['name']} necesitó {pr['refills']} recarga(s) "
+                        f"de capital (+{inj} USDT): sin ellas se habría quedado sin dinero. Su "
+                        f"rentabilidad se mide sobre los {tot} USDT aportados."})
     if profiles:
         best = max(profiles, key=lambda x: x["return_pct"])
         calm = max(profiles, key=lambda x: x["return_pct"] / max(x["max_dd_pct"], 0.01))

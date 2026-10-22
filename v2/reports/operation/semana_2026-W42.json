@@ -1,0 +1,187 @@
+{
+ "period": {
+  "from": 1791763200000,
+  "to": 1792368000000,
+  "label": "2026-W42",
+  "weeks_operated": 0.61
+ },
+ "mode": "SIMULADO",
+ "generated_at": 1792368022593,
+ "trades": {
+  "BTCUSDT": {
+   "n": 0,
+   "n_with_result": 0,
+   "by_exit": {}
+  }
+ },
+ "all_trades": {
+  "n": 0,
+  "n_with_result": 0,
+  "by_exit": {}
+ },
+ "equity": {
+  "n": 2372,
+  "start": 10000.0,
+  "end": 10002.18478696,
+  "return": 0.0002184786960000018,
+  "max_drawdown": 0.0068439741517414485
+ },
+ "backtest": {
+  "BTCUSDT": {
+   "n_trades": 242,
+   "weeks": 182.45833333333334,
+   "expectancy_r": -0.48782412937980585,
+   "trades_per_week": 1.326330212377255,
+   "max_drawdown": 0.23276433558389578,
+   "source": "reports/edge/edge_results.json (T27, ventanas fuera de muestra)"
+  }
+ },
+ "deviations": [
+  "BTCUSDT: 0.0 operaciones/semana vs 1.3 en backtest (0%).",
+  "BTCUSDT: sin operaciones cerradas: no hay R que comparar."
+ ],
+ "calibration": {
+  "BTCUSDT": {
+   "n_evaluated": 445,
+   "n_pending": 56,
+   "horizon": 25,
+   "n_effective": 17.8,
+   "coverage": {
+    "50": {
+     "nominal": 0.5,
+     "terminal": 0.7685393258426966,
+     "pooled": 0.6896179775280898
+    },
+    "80": {
+     "nominal": 0.8,
+     "terminal": 0.9056179775280899,
+     "pooled": 0.8727191011235955
+    },
+    "90": {
+     "nominal": 0.9,
+     "terminal": 0.9707865168539326,
+     "pooled": 0.9637752808988764
+    }
+   },
+   "n_with_bands": 445,
+   "brier": 0.4957141123595506,
+   "brier_rw": 0.4967429487468883,
+   "brier_skill": 0.0020711645528801448,
+   "pinball": 0.0035158228222670193,
+   "pinball_rw": 0.003411617468567079,
+   "pinball_skill": -0.030544266659447095,
+   "ece": 0.17792808988764056,
+   "directional": {
+    "n": 444,
+    "accuracy": 0.5247747747747747
+   },
+   "top_hit": 0.7617977528089888,
+   "realized_freq": {
+    "bull": 0.017977528089887642,
+    "neutral": 0.7707865168539326,
+    "bear": 0.21123595505617979
+   },
+   "mean_prob": {
+    "bull": 0.2493011235955056,
+    "neutral": 0.4654179775280899,
+    "bear": 0.2852808988764045
+   },
+   "verdict": [
+    "445 pronósticos evaluados; por solape entre horizontes la muestra efectiva es ≈18 independientes: las diferencias pequeñas no son concluyentes.",
+    "Bandas fuera de la cobertura nominal (±5 pp) en 50 %: 77% observado; 80 %: 91% observado; 90 %: 97% observado.",
+    "Las probabilidades de escenario NO superan a la caminata aleatoria (Brier skill +0.2%).",
+    "La distribución terminal NO supera a la caminata aleatoria (pinball skill -3.1%).",
+    "Acierto direccional 52.5% (n=444): no distinguible del azar.",
+    "Calibración imperfecta (error esperado 17.8%).",
+    "Conclusión: no supera la línea base; usar la proyección solo como rango de incertidumbre, no como señal."
+   ]
+  }
+ },
+ "incidents": {
+  "n": 6,
+  "by_kind": {
+   "agentes_degradados": 4,
+   "desconexion": 2
+  },
+  "recon_unresolved": [],
+  "list": [
+   {
+    "t": 1792119669527,
+    "kind": "agentes_degradados",
+    "level": "warn",
+    "title": "Agentes degradados en BTCUSDT",
+    "detail": "plan=degraded",
+    "key": "agentes_degradados:BTCUSDT",
+    "resolved": false
+   },
+   {
+    "t": 1792189014532,
+    "kind": "agentes_degradados",
+    "level": "warn",
+    "title": "Agentes degradados en BTCUSDT",
+    "detail": "arbitrage=degraded",
+    "key": "agentes_degradados:BTCUSDT",
+    "resolved": false
+   },
+   {
+    "t": 1792202371642,
+    "kind": "agentes_degradados",
+    "level": "warn",
+    "title": "Agentes degradados en BTCUSDT",
+    "detail": "plan=degraded",
+    "key": "agentes_degradados:BTCUSDT",
+    "resolved": false
+   },
+   {
+    "t": 1792335791674,
+    "kind": "desconexion",
+    "level": "critical",
+    "title": "Sin datos de BTCUSDT",
+    "detail": "152 s sin respuesta del proveedor de velas",
+    "key": "desconexion:BTCUSDT",
+    "resolved": false
+   },
+   {
+    "t": 1792337845065,
+    "kind": "desconexion",
+    "level": "critical",
+    "title": "Sin datos de BTCUSDT",
+    "detail": "152 s sin respuesta del proveedor de velas",
+    "key": "desconexion:BTCUSDT",
+    "resolved": false
+   },
+   {
+    "t": 1792353669359,
+    "kind": "agentes_degradados",
+    "level": "warn",
+    "title": "Agentes degradados en BTCUSDT",
+    "detail": "plan=degraded",
+    "key": "agentes_degradados:BTCUSDT",
+    "resolved": false
+   }
+  ]
+ },
+ "risk": {
+  "n_decisions": 28,
+  "n_vetoed": 25,
+  "top_reasons": [
+   [
+    "operaciones abiertas",
+    22
+   ],
+   [
+    "vigencia",
+    11
+   ],
+   [
+    "datos",
+    1
+   ]
+  ]
+ },
+ "acceptance": {
+  "recon_unresolved": 0,
+  "weeks_operated": 0.61,
+  "note": "T31 exige ≥ 4 semanas continuas sin incidentes de reconciliación sin resolver. La decisión de capital real la toma el usuario por escrito; este informe no la habilita."
+ }
+}

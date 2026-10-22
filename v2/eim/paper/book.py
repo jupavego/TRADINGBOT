@@ -4,7 +4,9 @@ Orden de eventos por tiempo: cierres → cancelaciones → llenados → señales
 capital REALIZADO en el instante de la señal y el peso de la retroalimentación con lo cerrado
 hasta entonces (por estrategia@marco y, desde T48, por contexto: un contexto que pierde de forma
 consistente se pausa). Margen aislado; apalancamiento entero tal que la liquidación quede a ≥
-`liq_buffer` veces la distancia del SL. Siempre SIMULADO.
+`liq_buffer` veces la distancia del SL. Si un cierre deja el saldo bajo `refill_below` × el
+capital inicial, se recarga hasta el inicial (`injected`, evento «recarga»). Un perfil con
+`trade_paused` opera también lo que está en pausa, con el peso mínimo. Siempre SIMULADO.
 """
 
 from __future__ import annotations
@@ -49,6 +51,8 @@ class ProfileState:
     curve: list[tuple[int, float]] = field(default_factory=list)
     states: dict[str, str] = field(default_factory=dict)
     ctx_states: dict[str, str] = field(default_factory=dict)
+    injected: float = 0.0                                          # capital inyectado (recargas)
+    refills: list[tuple[int, float]] = field(default_factory=list)  # (t, monto) de cada recarga
 
 
 def _ev(st: ProfileState, t: int, cat: str, o: Outcome, text: str, **kw) -> None:
@@ -85,10 +89,12 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
             else "contexto reactivado", weight=jc.weight, m=jc.m, n=jc.n,
             context=ck.split("|", 1)[1])
     st.ctx_states[ck] = jc.state
+    paused = j.state == "pausa" or jc.state == "pausa"
+    weight = p.feedback.w_min if paused and p.trade_paused else j.weight
     why = ""
-    if j.state == "pausa":
+    if j.state == "pausa" and not p.trade_paused:
         why = f"estrategia en pausa: expectativa {j.m:+.2f} R con {j.n} operaciones"
-    elif jc.state == "pausa":
+    elif jc.state == "pausa" and not p.trade_paused:
         reg, lado = ck.split("|")[1:]
         why = (f"contexto en pausa ({reg}, {lado}): expectativa {jc.m:+.2f} R con {jc.n} "
                "operaciones en ese contexto")
@@ -113,7 +119,7 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
         _ev(st, i.t, "rechazada", o, why)
         return
     entry = o.fill if i.kind == "market" and o.fill else i.entry
-    risk_usd = st.equity * p.risk_pct * j.weight
+    risk_usd = st.equity * p.risk_pct * weight
     qty = risk_usd / abs(entry - i.sl)
     lev = leverage_for(p, entry, i.sl, mmr)
     margin = qty * entry / lev
@@ -124,11 +130,11 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
             _ev(st, i.t, "rechazada", o, f"margen insuficiente (libre {free:.2f} USDT)")
             return
         qty, margin, risk_usd = qty * scale, margin * scale, risk_usd * scale
-    st.slots[i.id] = Slot(o, qty, lev, margin, j.weight, risk_usd)
+    st.slots[i.id] = Slot(o, qty, lev, margin, weight, risk_usd)
     st.used += margin
     _ev(st, i.t, "orden", o, "límite" if i.kind == "limit" else "a mercado", price=entry,
-        qty=qty, leverage=lev, margin=margin, sl=i.sl, tp=i.tp, weight=j.weight,
-        risk_usd=risk_usd, why=list(i.why))
+        qty=qty, leverage=lev, margin=margin, sl=i.sl, tp=i.tp, weight=weight,
+        risk_usd=risk_usd, why=list(i.why), paused=paused)
     if o.fill_t is not None:
         heapq.heappush(q, (o.fill_t, PRIO["fill"], _next(seq), "fill", o))
     elif o.status == "CANCELADA":
@@ -169,6 +175,22 @@ def _close(st: ProfileState, o: Outcome) -> None:
     st.trades.append(tr)
     _ev(st, o.exit_t, EXIT_CAT[o.reason], o, f"cierre por {o.reason}", price=o.exit, pnl=pnl,
         r=o.r, equity=st.equity, cause=o.cause)
+    _refill(st, o)
+
+
+def _refill(st: ProfileState, o: Outcome) -> None:
+    """Si el cierre deja el saldo bajo `refill_below` × inicial, se repone hasta el inicial: el
+    perfil nunca se queda sin dinero y sigue operando (la inyección se registra aparte)."""
+    p = st.p
+    if p.refill_below <= 0 or st.equity >= p.refill_below * p.initial_equity:
+        return
+    amount = p.initial_equity - st.equity
+    st.equity += amount
+    st.injected += amount
+    st.refills.append((o.exit_t, amount))
+    st.curve.append((o.exit_t, st.equity))
+    _ev(st, o.exit_t, "recarga", o, f"saldo bajo el {p.refill_below:.0%} del capital inicial: "
+        f"se inyectan {amount:.2f} USDT", amount=amount, equity=st.equity, injected=st.injected)
 
 
 def _cancel(st: ProfileState, o: Outcome) -> None:

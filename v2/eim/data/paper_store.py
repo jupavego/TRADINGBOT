@@ -57,6 +57,15 @@ class PaperStore:
             out.append(d)
         return out
 
+    def index(self, symbol: str, timeframe: str) -> list[tuple[int, str, int]]:
+        """(asof, origen, huella del JSON) ascendentes, sin decodificar los contextos: la vista
+        del bróker detecta así los nuevos, borrados o reemplazados (cálculo incremental, T49)."""
+        with self._lock:
+            rows = self._con.execute(
+                "SELECT asof_ms, origin, hash(ctx) FROM paper_ctx WHERE symbol = ? AND "
+                "timeframe = ? ORDER BY asof_ms", [symbol, timeframe]).fetchall()
+        return [(int(a), str(o), int(h)) for a, o, h in rows]
+
     def stamp(self, symbol: str, timeframe: str) -> tuple[int, int | None]:
         """(cantidad, último asof): cambia cuando hay contextos nuevos."""
         with self._lock:

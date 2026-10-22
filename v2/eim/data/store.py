@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import duckdb
+import numpy as np
 
 from eim.core import Candle
 from eim.data.timeframes import tf_ms
@@ -67,6 +68,22 @@ class Store:
                    trades=None if n is None else int(n))
             for t, o, h, lo, c, v, tb, n in rows
         ]
+
+    def read_candle_columns(
+        self, symbol: str, timeframe: str, start: int | None = None, kind: str = "candles",
+    ) -> dict[str, np.ndarray]:
+        """Como `read_candles`, en columnas numpy (`t` entero; el resto float, NULL → NaN) y sin
+        crear un `Candle` por fila: la vista del bróker relee decenas de miles de velas en cada
+        recálculo y validarlas una a una costaba ~0,5 s."""
+        q = self._query(kind, symbol, timeframe, _CANDLE_COLS, start, None, None)
+        if q is None:
+            raw: dict = {k.strip(): np.array([]) for k in _CANDLE_COLS.split(",")}
+        else:
+            con, sql, params = q
+            raw = con.execute(sql, params).fetchnumpy()
+        out = {k: np.ma.filled(np.ma.asarray(v, dtype=float), np.nan) for k, v in raw.items()}
+        out["t"] = np.asarray(raw["t"], dtype=np.int64)
+        return out
 
     def find_gaps(
         self, symbol: str, timeframe: str, start: int | None = None, end: int | None = None,
@@ -147,9 +164,19 @@ class Store:
         end: int | None,
         last: int | None,
     ) -> list[tuple]:
+        q = self._query(kind, symbol, timeframe, cols, start, end, last)
+        if q is None:
+            return []
+        con, sql, params = q
+        return con.execute(sql, params).fetchall()
+
+    def _query(
+        self, kind: str, symbol: str, timeframe: str, cols: str, start: int | None,
+        end: int | None, last: int | None,
+    ) -> tuple[duckdb.DuckDBPyConnection, str, list[int]] | None:
         f = self._file(kind, symbol, timeframe)
         if not f.exists():
-            return []
+            return None
         where: list[str] = []
         params: list[int] = []
         if start is not None:
@@ -169,4 +196,4 @@ class Store:
             q = f"SELECT * FROM ({base} ORDER BY t DESC LIMIT {int(last)}) ORDER BY t"
         else:
             q = f"{base} ORDER BY t"
-        return con.execute(q, params).fetchall()
+        return con, q, params

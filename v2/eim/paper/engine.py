@@ -251,28 +251,40 @@ def _with_r(o: Outcome) -> Outcome:
     return replace(o, r=o.net / o.risk if o.risk > 0 else None)
 
 
-def run_shadow(ideas: Sequence[Idea], path: Path, p: ExecParams | None = None) -> list[Outcome]:
+def run_shadow(ideas: Sequence[Idea], path: Path, p: ExecParams | None = None,
+               prior: Sequence[Outcome] = ()) -> list[Outcome]:
     """Evaluación «sombra»: cada estrategia con UNA idea viva a la vez (como una cuenta propia).
 
     Una idea entra si su estrategia —en su marco, `idea.sid`— está libre en `idea.t` (la
     anterior ya cerró o se canceló, más `cooldown_bars` de ese marco) y su `key` no se operó
     antes. Igual para todos los perfiles.
+
+    `prior` = resultados ya evaluados de ideas anteriores a todas las de `ideas` (vista
+    incremental, `incremental.py`): fijan el estado de cada estrategia y no se repiten.
     """
     p = p or ExecParams()
     busy: dict[str, int] = {}
     seen: dict[str, set[str]] = {}
+    for o in prior:
+        _take(o, busy, seen, p)
     out: list[Outcome] = []
     for idea in sorted(ideas, key=lambda x: (x.t, x.sid)):
         if idea.t < busy.get(idea.sid, -1):
             continue
-        cool = p.cooldown_bars * tf_ms(idea.timeframe)
-        keys = seen.setdefault(idea.sid, set())
-        if idea.key and idea.key in keys:
+        if idea.key and idea.key in seen.get(idea.sid, ()):
             continue
         o = simulate(idea, path, p)
-        if idea.key:
-            keys.add(idea.key)
-        if o.status != "RECHAZADA":
-            busy[idea.sid] = o.busy_until + cool if o.busy_until < NEVER else NEVER
+        _take(o, busy, seen, p)
         out.append(o)
     return out
+
+
+def _take(o: Outcome, busy: dict[str, int], seen: dict[str, set[str]], p: ExecParams) -> None:
+    """La sombra tomó la idea de `o`: su `key` queda usada y, salvo rechazo, la estrategia queda
+    ocupada hasta la salida más `cooldown_bars` velas de su marco."""
+    i = o.idea
+    if i.key:
+        seen.setdefault(i.sid, set()).add(i.key)
+    if o.status != "RECHAZADA":
+        cool = p.cooldown_bars * tf_ms(i.timeframe)
+        busy[i.sid] = o.busy_until + cool if o.busy_until < NEVER else NEVER

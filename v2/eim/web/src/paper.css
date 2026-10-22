@@ -1,7 +1,6 @@
 /* Bróker simulado (T47). Colores por tokens del tema; perfiles con 3 tonos categóricos validados
-   (validate_palette: claro sobre #fffdf9, oscuro y futurista sobre sus paneles). */
-:root, :root[data-theme="light"] { --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; }
-:root[data-theme="dark"], :root[data-theme="cyber"] { --p1: #3987e5; --p2: #d95926; --p3: #199e70; }
+   (validate_palette sobre los paneles del tema futurista, el único activo). */
+:root { --p1: #3987e5; --p2: #d95926; --p3: #199e70; }
 
 #app[data-view="paper"] > :not(.topbar):not(#paper) { display: none; }
 .paper { margin: 12px 20px 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
@@ -177,7 +176,7 @@ button.pp-chip[aria-pressed="false"] { opacity: .45; }
 .pp-rules tbody th { color: var(--muted); font-weight: 500; border-top: 1px solid var(--grid); }
 
 :root[data-theme="cyber"] :is(.paper > header, .pp-balance, .pp-grid > *, .pp-body, .pp-tabs, .pp-card) {
-  background: var(--glass); border-color: rgba(var(--glow), .22); backdrop-filter: blur(10px);
+  background: var(--glass); border-color: rgba(var(--glow), .22);
   box-shadow: 0 0 28px rgba(var(--glow), .06), inset 0 0 40px rgba(var(--glow), .03);
 }
 :root[data-theme="cyber"] .pp-card { border-left: 4px solid var(--pc); }

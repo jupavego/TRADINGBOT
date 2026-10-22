@@ -17,12 +17,14 @@ def _downsample(curve: list[tuple[int, float]], n: int = CURVE_POINTS) -> list[t
     return [curve[i] for i in idx]
 
 
-def _max_dd_pct(curve: list[tuple[int, float]]) -> float:
-    if not curve:
+def _max_dd_pct(eq: list[float]) -> float:
+    """Drawdown máximo de la curva neta (capital inicial + PnL acumulado, sin recargas): puede
+    pasar del 100 % si el perfil perdió más que su capital inicial y siguió con recargas."""
+    if not eq:
         return 0.0
-    eq = np.array([x for _, x in curve])
-    peak = np.maximum.accumulate(eq)
-    return float(((peak - eq) / peak).max())
+    x = np.array(eq, dtype=float)
+    peak = np.maximum.accumulate(x)
+    return float(((peak - x) / peak).max())
 
 
 def positions_of(st: ProfileState, mmr: float) -> tuple[list[dict], list[dict], float]:
@@ -61,6 +63,8 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
     gains, losses = float(pnl[pnl > 0].sum()), float(-pnl[pnl < 0].sum())
     equity = st.equity + upnl
     curve = list(st.curve) + ([(now, equity)] if st.curve else [])
+    contributed = p.initial_equity + st.injected          # inicial + recargas
+    net = [p.initial_equity, *(p.initial_equity + np.cumsum(pnl)), equity - st.injected]
     by: dict[str, dict] = {}
     for t in tr:
         b = by.setdefault(t["sid"], {"n": 0, "pnl": 0.0, "wins": 0})
@@ -71,8 +75,10 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         "id": p.id, "name": p.name, "description": p.description,
         "params": p.model_dump(mode="json"),
         "initial": p.initial_equity, "balance": st.equity, "equity": equity, "upnl": upnl,
-        "realized": st.equity - p.initial_equity,
-        "return_pct": equity / p.initial_equity - 1,
+        "realized": st.equity - contributed,               # = Σ PnL de las operaciones cerradas
+        "return_pct": equity / contributed - 1,            # sobre todo el capital aportado
+        "injected": st.injected, "refills": len(st.refills), "contributed": contributed,
+        "last_refill": st.refills[-1][0] if st.refills else None,
         "margin_used": sum(x["margin"] for x in pos), "reserved": sum(x["margin"] for x in orders),
         "available": st.equity - st.used,
         "n_closed": len(tr), "win_rate": float((pnl > 0).mean()) if len(pnl) else None,
@@ -82,7 +88,7 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         "worst": float(pnl.min()) if len(pnl) else None,
         "fees": float(sum(t["fees"] for t in tr)), "funding": float(sum(t["funding"] for t in tr)),
         "slip": float(sum(t["slip"] for t in tr)),
-        "max_dd_pct": _max_dd_pct(curve),
+        "max_dd_pct": _max_dd_pct(net),
         "positions": sorted(pos, key=lambda x: -x["fill_t"]),
         "orders": sorted(orders, key=lambda x: -x["t"]),
         "curve": _downsample(curve),

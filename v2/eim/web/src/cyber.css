@@ -12,7 +12,7 @@
   color-scheme: dark;
 }
 
-/* Fondo: resplandores, retícula y líneas de barrido */
+/* Fondo: resplandores y retícula. Sin barrido, sin textura de líneas ni fondo fijo (rendimiento). */
 :root[data-theme="cyber"] body {
   font-family: var(--f-body); font-size: 14px; letter-spacing: .01em;
   background:
@@ -21,18 +21,8 @@
     linear-gradient(rgba(var(--glow), .045) 1px, transparent 1px) 0 0 / 44px 44px,
     linear-gradient(90deg, rgba(var(--glow), .045) 1px, transparent 1px) 0 0 / 44px 44px,
     var(--bg);
-  background-attachment: fixed;
+  background-repeat: no-repeat, no-repeat, repeat, repeat;
 }
-:root[data-theme="cyber"] body::after {
-  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
-  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 3px);
-}
-:root[data-theme="cyber"] body::before {
-  content: ""; position: fixed; left: 0; right: 0; height: 140px; top: -140px; pointer-events: none; z-index: 49;
-  background: linear-gradient(transparent, rgba(var(--glow), .05), transparent);
-  animation: cy-sweep 9s linear infinite;
-}
-@keyframes cy-sweep { to { transform: translateY(calc(100vh + 140px)); } }
 
 /* Paneles de vidrio con esquinas de HUD */
 :root[data-theme="cyber"] :is(.chart-wrap, .bottom, .more) {
@@ -48,7 +38,6 @@
     linear-gradient(var(--hud), var(--hud)) bottom right / 2px 18px no-repeat,
     var(--glass);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 0 28px rgba(var(--glow), .07), inset 0 0 40px rgba(var(--glow), .035);
-  backdrop-filter: blur(10px);
 }
 :root[data-theme="cyber"] .river {
   border: 1px solid rgba(var(--glow), .22); border-radius: var(--radius);
@@ -58,7 +47,7 @@
 
 /* Barra superior */
 :root[data-theme="cyber"] .topbar {
-  z-index: 20; background: rgba(4, 10, 19, .82); backdrop-filter: blur(12px);
+  z-index: 20; background: rgba(4, 10, 19, .96);
   border-bottom: 1px solid transparent;
   border-image: linear-gradient(90deg, transparent, rgba(var(--glow), .8), transparent) 1;
   box-shadow: 0 6px 24px rgba(var(--glow), .06);
@@ -132,7 +121,7 @@
 :root[data-theme="cyber"] .alert.bad, :root[data-theme="cyber"] .banner { background: rgba(255, 61, 95, .08); box-shadow: 0 0 14px rgba(255, 61, 95, .25); }
 :root[data-theme="cyber"] :is(.tip, .evcard) {
   background: rgba(6, 15, 26, .92); border: 1px solid rgba(var(--glow), .4); border-radius: 4px;
-  box-shadow: 0 0 24px rgba(var(--glow), .2); backdrop-filter: blur(8px);
+  box-shadow: 0 0 24px rgba(var(--glow), .2);
 }
 :root[data-theme="cyber"] .replay { background: rgba(4, 10, 19, .8); border-color: rgba(var(--glow), .3); }
 :root[data-theme="cyber"] .replay input { accent-color: var(--accent); }
@@ -143,9 +132,6 @@
 /* Barras de desplazamiento */
 :root[data-theme="cyber"] * { scrollbar-color: rgba(var(--glow), .35) transparent; scrollbar-width: thin; }
 
-@media (prefers-reduced-motion: reduce) {
-  :root[data-theme="cyber"] body::before { animation: none; display: none; }
-}
 
 /* T44: reloj de eventos y filtros del río */
 :root[data-theme="cyber"] .evclock { border-radius: 3px; background: rgba(var(--glow), .05); border-color: rgba(var(--glow), .35);

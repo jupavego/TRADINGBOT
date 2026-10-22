@@ -2,7 +2,7 @@
 import { CAT_LABEL, CAUSE, day, esc, getPaper, hm, nf, px, rr, side, tone, usd } from './paper_fmt'
 import type { PaperEvent } from './paper_types'
 
-const CATS = ['orden', 'llenada', 'tp', 'be', 'sl', 'tiempo', 'cancelada', 'rechazada', 'aprendizaje']
+const CATS = ['orden', 'llenada', 'tp', 'be', 'sl', 'tiempo', 'cancelada', 'rechazada', 'aprendizaje', 'recarga']
 const DEFAULT = new Set(CATS.filter((c) => c !== 'rechazada'))
 const PAGE = 150
 const STATE: Record<string, string> = {
@@ -73,7 +73,8 @@ export class PaperJournal {
     let detail = esc(e.text)
     if (e.cat === 'orden') {
       detail = `${e.kind === 'limit' ? 'Orden límite' : 'Orden a mercado'} <b>${side(e.side)}</b> ${nf(e.qty ?? 0, 4)} @ ${px(e.price ?? 0)} · ` +
-        `TP ${px(e.tp ?? 0)} · SL ${px(e.sl ?? 0)} · ${e.leverage}x · riesgo ${nf(e.risk_usd ?? 0)} USDT (peso ${nf(e.weight ?? 1)})`
+        `TP ${px(e.tp ?? 0)} · SL ${px(e.sl ?? 0)} · ${e.leverage}x · riesgo ${nf(e.risk_usd ?? 0)} USDT (peso ${nf(e.weight ?? 1)})` +
+        (e.paused ? ' · <span class="warn">en pausa: se opera con el peso mínimo</span>' : '')
     } else if (e.cat === 'llenada') {
       detail = `Llenada a ${px(e.price ?? 0)} · liquidación aprox. ${px(e.liq ?? 0)}`
     } else if (['tp', 'be', 'sl', 'tiempo'].includes(e.cat)) {
@@ -86,6 +87,7 @@ export class PaperJournal {
       const [a, b] = e.text.split(' → ')
       detail = `Retroalimentación: pasa de <i>${STATE[a] ?? a}</i> a <b>${STATE[b] ?? b}</b> · expectativa ${rr(e.m ?? 0)} con ${e.n} operaciones · peso ${nf(e.weight ?? 0)}`
     } else if (e.cat === 'rechazada') detail = `No se opera: ${esc(e.text)}`
+    else if (e.cat === 'recarga') detail = `Recarga tras este cierre: <b>+${nf(e.amount ?? 0)} USDT</b> · capital ${nf(e.equity ?? 0)} · inyectado en total ${nf(e.injected ?? 0)} USDT`
     else if (e.cat === 'cancelada') detail = `Orden cancelada: ${esc(e.text)}`
     const why = e.why?.length ? `<small class="muted">${esc(e.why.join(' · '))}</small>` : ''
     return `<li data-cat="${e.cat}"><time class="num">${hm(e.t)}</time><span class="pp-chip" data-cat="${e.cat}">${CAT_LABEL[e.cat]}</span>` +

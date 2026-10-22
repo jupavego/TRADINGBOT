@@ -1,11 +1,8 @@
-:root, :root[data-theme="light"] {
+/* Variables base (solo respaldo): el tema activo es siempre el futurista de cyber.css */
+:root {
   --bg: #faf7f2; --panel: #fffdf9; --text: #2b2823; --muted: #8a8378; --line: #e6dfd3;
   --grid: #f0ebe1; --accent: #b4561f; --up: #2f8f5b; --down: #c64a3b; --warn: #b9831c; --neutral: #3b7dc4;
   --radius: 10px;
-}
-:root[data-theme="dark"] {
-  --bg: #16181b; --panel: #1d2024; --text: #e8e4dc; --muted: #8d9097; --line: #2c3036;
-  --grid: #24272c; --accent: #e08a52; --up: #3fb27a; --down: #e0604f; --warn: #d9a441; --neutral: #5aa0e6;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }

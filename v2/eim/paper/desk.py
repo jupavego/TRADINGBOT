@@ -12,21 +12,20 @@ from eim.core import Mode
 from eim.data.paper_store import PaperStore
 from eim.data.providers.base import Provider
 from eim.data.store import Store
-from eim.data.timeframes import FOCUS, tf_ms
+from eim.data.timeframes import FOCUS
 from eim.paper.balance import balance
 from eim.paper.book import ProfileState, run_profile
-from eim.paper.catalog import CATALOG, generate_ideas
-from eim.paper.engine import CAUSES, Outcome, Path, run_shadow
+from eim.paper.catalog import CATALOG
+from eim.paper.engine import CAUSES, Outcome, Path
 from eim.paper.feedback import Learner, family_stats, strategy_stats, timeframe_stats
 from eim.paper.generate import CtxGenerator, now_ms
+from eim.paper.incremental import IncrementalShadow
 from eim.paper.insights import insights
 from eim.paper.params import FAMILIES, PROFILES, ExecParams, ProfileParams
-from eim.paper.service import WARMUP_BARS, DeskService, Job
+from eim.paper.service import DeskService, Job
 from eim.paper.summary import profile_summary
-from eim.paper.trend import HtfTrend
 
 MMR = {"BTCUSDT": 0.004, "ETHUSDT": 0.005}     # tramo bajo de Binance (supuesto, = simulador)
-FUNDING_MS = 8 * 3_600_000
 BUSY_REFRESH_MS = 10 * 60_000   # con un backtest en curso la vista se rehace como mucho cada 10 min
 
 
@@ -65,6 +64,7 @@ class PaperDesk(DeskService):
         self.loop_started: int | None = None    # el servicio arrancó (aunque falte el 1er ciclo)
         self.after_tick: list = []              # ganchos tras cada ciclo (T49: validación)
         self._cache: dict[str, View] = {}
+        self.shadow = IncrementalShadow(store, pstore, self.ep)   # ideas y sombra ya evaluadas
         self._lock = threading.Lock()
         self._busy: dict[str, threading.Event] = {}    # recálculos en segundo plano en curso
         self._busy_lock = threading.Lock()
@@ -134,52 +134,31 @@ class PaperDesk(DeskService):
         return ev
 
     def _compute(self, symbol: str, stamp: tuple) -> View:
-        by_tf = {tf: self.pstore.load(symbol, tf) for tf in self.tfs}
-        v = View(symbol, stamp, computed=now_ms())
-        v.live_ctx = [(tf, int(c["t"])) for tf, cs in by_tf.items() for c in cs
-                      if c.get("origin") == "vivo"]
+        """Ideas y sombra incrementales (solo lo que pudo cambiar, `incremental.py`); el
+        aprendizaje, los libros de perfil y el resumen se recalculan enteros."""
+        sh = self.shadow.refresh(symbol)
+        v = View(symbol, stamp, computed=now_ms(), outcomes=sh.outcomes, path=sh.path)
+        v.live_ctx = [(tf, a) for tf, rows in sh.index.items() for a, origin, _h in rows
+                      if origin == "vivo"]
         infos = strategy_infos(self.tfs)
-        firsts = [c[0]["t"] for c in by_tf.values() if c]
-        if not firsts:
-            v.summary = self._payload(v, by_tf, infos, Learner([]), None, None)
-            return v
-        ideas = []
-        for tf, ctxs in by_tf.items():
-            if not ctxs:
-                continue
-            bar = tf_ms(tf)
-            candles = self.store.read_candles(symbol, tf, start=ctxs[0]["t"] - WARMUP_BARS * bar)
-            ideas += generate_ideas(ctxs, candles, symbol, bar, timeframe=tf,
-                                    htf=self._htf(symbol, tf, ctxs[0]["t"]),
-                                    exec_params=self.ep)
-        t0 = min(firsts)
-        pc = self.store.read_candles(symbol, self.ep.path_tf, start=t0 - tf_ms("4h"))
-        funding = self.store.read_series("funding", symbol, start=t0 - FUNDING_MS)
-        path = v.path = Path(pc, funding, tf_ms(self.ep.path_tf))
-        v.outcomes = run_shadow(ideas, path, self.ep)
-        learner = Learner(v.outcomes)
-        mmr = MMR.get(symbol, 0.005)
-        v.books = {p.id: run_profile(p, v.outcomes, learner, mmr) for p in self.profiles}
-        v.summary = self._payload(v, by_tf, infos, learner, path.end or None,
-                                  pc[-1].c if pc else None, n_ideas=len(ideas))
+        if sh.path is None:
+            v.summary = self._payload(v, sh.index, infos, Learner([]), None, None)
+        else:
+            learner = Learner(v.outcomes)
+            mmr = MMR.get(symbol, 0.005)
+            v.books = {p.id: run_profile(p, v.outcomes, learner, mmr) for p in self.profiles}
+            mark = float(sh.path.c[-1]) if len(sh.path.c) else None
+            v.summary = self._payload(v, sh.index, infos, learner, sh.path.end or None, mark,
+                                      n_ideas=sh.n_ideas)
+        self.shadow.commit(symbol, sh)
         return v
 
-    def _htf(self, symbol: str, tf: str, t0: int):
-        """Tendencia del marco mayor para las ideas de `tf` (None si no está configurada)."""
-        spec = self.ep.htf.get(tf)
-        if not spec:
-            return None
-        htf, fast, slow = spec
-        bar = tf_ms(htf)
-        cs = self.store.read_candles(symbol, htf, start=t0 - 4 * slow * bar)
-        return HtfTrend(cs, bar, fast, slow).at
-
-    def _coverage(self, symbol: str, by_tf: dict[str, list[dict]], n_ideas: int,
+    def _coverage(self, symbol: str, index: dict[str, list[tuple[int, str, int]]], n_ideas: int,
                   n_sim: int) -> dict:
         tfs = {}
-        for tf, ctxs in by_tf.items():
-            tfs[tf] = {"contexts": len(ctxs), "from": ctxs[0]["t"] if ctxs else None,
-                       "to": ctxs[-1]["t"] if ctxs else None,
+        for tf, rows in index.items():
+            tfs[tf] = {"contexts": len(rows), "from": rows[0][0] if rows else None,
+                       "to": rows[-1][0] if rows else None,
                        "origins": self.pstore.counts(symbol, tf)}
         froms = [x["from"] for x in tfs.values() if x["from"]]
         tos = [x["to"] for x in tfs.values() if x["to"]]
@@ -191,7 +170,7 @@ class PaperDesk(DeskService):
                 "contexts": sum(x["contexts"] for x in tfs.values()), "origins": origins,
                 "ideas": n_ideas, "simulated": n_sim, "timeframes": tfs}
 
-    def _payload(self, v: View, by_tf: dict[str, list[dict]], infos: list[dict],
+    def _payload(self, v: View, index: dict[str, list[tuple[int, str, int]]], infos: list[dict],
                  learner: Learner, now: int | None, mark: float | None, n_ideas: int = 0) -> dict:
         mmr = MMR.get(v.symbol, 0.005)
         now = now or now_ms()
@@ -200,7 +179,7 @@ class PaperDesk(DeskService):
                     for p in self.profiles if p.id in v.books]
         rows = strategy_stats(v.outcomes, infos)
         fams = family_stats(rows)
-        cov = self._coverage(v.symbol, by_tf, n_ideas, len(v.outcomes))
+        cov = self._coverage(v.symbol, index, n_ideas, len(v.outcomes))
         fund = self.store.read_series("funding", v.symbol, last=1)
         return {
             "mode": Mode.SIMULADO.value, "symbol": v.symbol, "timeframes": list(self.tfs),

@@ -88,6 +88,14 @@ class ProfileParams(BaseModel):
     max_cost_r: float = 0.2
     require_htf: bool = False        # exige ir a favor de la tendencia del marco mayor
     min_risk_fill: float = 0.25      # si el margen no alcanza para ≥ 25 % del riesgo: rechazo
+    # Recarga (decisión del usuario, 2026-10-18: ningún perfil se queda sin dinero y el simulador
+    # sigue operando): si el saldo cae bajo `refill_below` × capital inicial se inyecta lo que
+    # falta hasta el inicial. Queda en la bitácora («recarga») y la rentabilidad se mide sobre
+    # todo el capital aportado. 0 = sin recarga.
+    refill_below: float = 0.5
+    # Opera también las estrategias y contextos en pausa (decisión del usuario, 2026-10-18: que
+    # el Agresivo tome todas las operaciones) con el peso mínimo `feedback.w_min`.
+    trade_paused: bool = False
     feedback: FeedbackParams = FeedbackParams()
 
 
@@ -114,11 +122,13 @@ PROFILES: tuple[ProfileParams, ...] = (
     ProfileParams(
         id="agresivo", name="Agresivo",
         description="Todo el abanico (incluidas las contrarias) a favor de la tendencia mayor; "
-                    "2 % de riesgo, hasta 10x, explora más y refuerza rápido lo que gana.",
+                    "2 % de riesgo, hasta 10x, explora más y refuerza rápido lo que gana; opera "
+                    "también lo que está en pausa, con el peso mínimo.",
         risk_pct=0.02, max_leverage=10, max_open=10, min_conf=0.0, min_rr=1.1,
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
                             "contrarias"}),
         allow_hedge=True, follow_synthesis=False, max_cost_r=0.2, require_htf=True,
+        trade_paused=True,
         feedback=FeedbackParams(gain=2.5, w_min=0.25, w_max=3.0, half_life=20, n_min=6,
                                 z_pause=0.0, observe_w=0.5)),
 )

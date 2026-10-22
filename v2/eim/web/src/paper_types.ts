@@ -16,6 +16,8 @@ export interface Order extends Slot { price: number; expire_t: number | null }
 export interface ProfileView {
   id: string; name: string; description: string; params: Record<string, unknown>
   initial: number; balance: number; equity: number; upnl: number; realized: number; return_pct: number
+  /** Recargas: capital inyectado cuando el saldo cae bajo el umbral; la rentabilidad va sobre `contributed`. */
+  injected: number; refills: number; contributed: number; last_refill: number | null
   margin_used: number; reserved: number; available: number
   n_closed: number; win_rate: number | null; pf: number | null; avg_r: number | null
   best: number | null; worst: number | null; fees: number; funding: number; slip: number
@@ -86,7 +88,7 @@ export interface PaperEvent {
   side: number; kind: string; text: string; origin: string
   price?: number; qty?: number; leverage?: number; margin?: number; sl?: number; tp?: number
   weight?: number; risk_usd?: number; pnl?: number; r?: number | null; equity?: number; liq?: number
-  m?: number; n?: number; why?: string[]
+  m?: number; n?: number; why?: string[]; amount?: number; injected?: number; paused?: boolean
 }
 
 export interface ShadowIdea {

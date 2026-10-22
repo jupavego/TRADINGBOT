@@ -107,6 +107,18 @@ def test_paused_strategy_rejected_and_logged():
     assert "pausa" in st.events[-1]["text"]
 
 
+def test_trade_paused_profile_takes_paused_strategy_at_min_weight():
+    hist = [closed(-1.0, k) for k in range(12)]
+    late = closed(1.0, 40)
+    bold = MOD.model_copy(update={"trade_paused": True})
+    st = run_profile(bold, hist + [late], Learner(hist + [late]), mmr=0.004)
+    order = next(e for e in st.events if e["cat"] == "orden" and e["idea"] == late.idea.id)
+    assert order["paused"] and order["weight"] == bold.feedback.w_min
+    assert st.trades[-1]["id"] == late.idea.id and st.trades[-1]["weight"] == bold.feedback.w_min
+    assert next(p for p in PROFILES if p.id == "agresivo").trade_paused
+    assert not any(p.trade_paused for p in PROFILES if p.id != "agresivo")
+
+
 def test_cancel_releases_margin():
     o = Outcome(idea(kind="limit", entry=99, sl=97, fill_h=2, iid="L"), "CANCELADA", "NO_LLENADA",
                 exit_t=T0 + 2 * H1)

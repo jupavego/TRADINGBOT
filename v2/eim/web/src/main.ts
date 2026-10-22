@@ -22,7 +22,6 @@ import { ArbPanel } from './arb_ui'
 import { LeadersPanel } from './leaders_ui'
 import { PaperView } from './paper_view'
 import { setCalendarClock } from './event_clock'
-import { applyTheme, initialTheme, nextTheme, THEME_LABEL, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T
@@ -47,8 +46,6 @@ let replaying = false
 let asofs: number[] = []
 let replayTimer: number | undefined
 
-let theme: Theme = initialTheme()
-applyTheme(theme)
 const chart = new PriceChart($('chart'))
 const more = new MoreView($('more'))
 const marks = new TradeMarks(chart)
@@ -266,13 +263,6 @@ function build(): void {
   void fetchMode().then((m) => {
     if (m === 'TESTNET') { modeEl.textContent = `Modo: ${MODE_LABEL.TESTNET}`; modeEl.dataset.mode = m }
   })
-  const themeBtn = $('theme')
-  const paintTheme = (): void => { themeBtn.textContent = `Tema: ${THEME_LABEL[theme]}` }
-  paintTheme()
-  themeBtn.onclick = () => {
-    theme = nextTheme(theme)
-    applyTheme(theme); paintTheme(); chart.restyle(); more.restyle(); paper.restyle()
-  }
   const mb = $<HTMLButtonElement>('more-btn'), pb = $<HTMLButtonElement>('paper-btn')
   // Vistas de pantalla completa: Más análisis y Bróker simulado (una a la vez)
   const show = (view: 'desk' | 'more' | 'paper'): void => {
