@@ -108,6 +108,7 @@ Antes de dar por mala la actualización, descarta las causas conocidas:
 |---|---|---|
 | `ModuleNotFoundError: scipy` (o `eim`) | Entorno virtual sin reinstalar | Repetir el paso 5 del script con el entorno activo |
 | `test_queries_over_100k_events_stay_within_the_threshold` falla por milisegundos (p95 ~100 ms) | Prueba de rendimiento con umbral absoluto: depende del equipo y de lo que esté corriendo | Repetir con el equipo descargado. Es una fragilidad conocida del gate (ver la fase de estabilización en `PLAN/STATUS.md`) |
+| `test_legacy_db_without_machine_column_is_migrated` falla comparando dos alias de máquina | El test no aísla `EIM_MACHINE`, que `machine_id()` antepone al archivo `data/machine_id` | Conocido y con tarea (T116). Falla si tienes `EIM_MACHINE` definida; no indica nada roto en tu copia |
 | Pruebas de bots/validación lentas o con `Out of Memory` | El almacén real es grande y DuckDB toma memoria | `EIM_DUCKDB_MEMORY` / `EIM_DUCKDB_THREADS` acotan el uso; cierra la API antes |
 | Falla al leer `PLAN/roadmap.html` | Falta regenerarlo | `python PLAN\build_roadmap.py` |
 

@@ -34,10 +34,28 @@ falló con `/v2/obs/traces {'limit': 100}: p95 103 ms` contra `QUERY_P95_MS_MAX 
 `statistics.quantiles(lat, n=20)[-1]` sobre **20 muestras sin calentamiento**: una sola llamada
 lenta decide el resultado.
 
+La corrida completa posterior (misma máquina, 1 h 15 min) **sí pasó** esa prueba: es intermitente,
+dos corridas dan dos resultados.
+
+**Y un segundo fallo que depende del equipo, no del código:**
+`tests/share/test_leaders.py::test_legacy_db_without_machine_column_is_migrated` falla con
+`assert [('juanpablo-cpu',)] == [('viejo-1',)]`. El test escribe un `data/machine_id` propio y espera
+que la migración selle las filas con él, pero no aísla `EIM_MACHINE`, y `machine_id()` le da
+prioridad **por diseño** (`v2/eim/data/machine.py`, documentado en su cabecera). El código hace lo
+correcto; el test hereda el entorno. Falla siempre en el equipo del usuario (tiene
+`EIM_MACHINE=juanpablo-cpu`) y pasa donde esa variable no esté definida —y al revés en cuanto el
+otro colaborador configure su alias para T61—. Arreglo: una línea
+(`monkeypatch.delenv("EIM_MACHINE", raising=False)`); se deja para T116 por decisión del usuario
+(2026-10-22) en vez de parchearlo suelto.
+
 **Consecuencia:** el colaborador que vuelve corre `pytest` y ve rojo por algo que no tiene que ver
 con su cambio; y la tentación es subir el umbral, que es un requisito de T72. Además la suite
 completa tarda **> 25 min** con Ollama y los recolectores activos
 (`PLAN/notas/auditoria_modulos_2026-10-19.md`), lo que empuja a no correrla. → **T116**.
+
+> Estado del gate al abrir la Fase 20 (equipo de referencia, 2026-10-22): `ruff` limpio; suite
+> completa con **un fallo**, el de `test_leaders.py` de arriba; la prueba de rendimiento, verde en
+> esa corrida y roja en la anterior.
 
 ### C. Las cifras del bróker simulado no son auditables
 **Comprobado:** `PLAN/notas/T106_auditoria_salidas.md` (alerta A4) y
