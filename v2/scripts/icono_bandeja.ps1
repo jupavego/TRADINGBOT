@@ -32,6 +32,77 @@ $cerrojo = New-Object System.Threading.Mutex($true, "Local\EIM_icono_bandeja", [
 if (-not $nuevo) { return }
 
 # --- iconos: el de la esfera y una copia apagada (gris y translucida) para "sin respuesta" ---
+# --- identidad ante Windows ---------------------------------------------------------------
+# Windows firma cada globo con el AppUserModelID del proceso que lo emite. Sin esto, los avisos
+# salen rotulados "Windows PowerShell" (el host real), por mucho que el NotifyIcon lleve la
+# esfera. Hay que (1) declarar un AppID propio y (2) dejar en el menu Inicio un acceso que lo
+# lleve: de ahi saca Windows el nombre y el icono que muestra en el aviso.
+$AppId = "EIM.MesaDeTrading"
+
+Add-Type -Namespace EIM -Name Shell -MemberDefinition @"
+[DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+public static extern int SetCurrentProcessExplicitAppUserModelID(string AppID);
+"@
+try { [void][EIM.Shell]::SetCurrentProcessExplicitAppUserModelID($AppId) } catch { }
+
+function AseguraAccesoInicio {
+  $dir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
+  $lnk = Join-Path $dir "EIM.lnk"
+  if (Test-Path $lnk) { return }
+  New-Item -ItemType Directory -Force -Path $dir | Out-Null
+  $a = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
+  $a.TargetPath = Join-Path $env:SystemRoot "System32\wscript.exe"
+  $a.Arguments = "`"$(Join-Path $scripts 'eim_oculto.vbs')`" `"$(Join-Path $scripts 'abrir_interfaz.ps1')`""
+  $a.IconLocation = "$(Join-Path $scripts 'esfera.ico'),0"
+  $a.Description = "EIM"
+  $a.Save()
+  # El AppUserModelID es una propiedad del shell (PKEY_AppUserModel_ID): WScript.Shell no la
+  # escribe, hace falta IPropertyStore sobre el propio .lnk.
+  $cs = @"
+using System;using System.Runtime.InteropServices;
+public static class Lnk {
+  [ComImport, Guid("00021401-0000-0000-C000-000000000046")] class ShellLink { }
+  [ComImport, Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+  interface IPropertyStore {
+    int GetCount(out uint c); int GetAt(uint i, out PropertyKey k);
+    int GetValue(ref PropertyKey k, out PropVariant v);
+    int SetValue(ref PropertyKey k, ref PropVariant v); int Commit();
+  }
+  [ComImport, Guid("0000010b-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+  interface IPersistFile { void GetClassID(out Guid c); int IsDirty();
+    void Load([MarshalAs(UnmanagedType.LPWStr)] string f, int m);
+    void Save([MarshalAs(UnmanagedType.LPWStr)] string f, [MarshalAs(UnmanagedType.Bool)] bool r);
+    void SaveCompleted([MarshalAs(UnmanagedType.LPWStr)] string f);
+    void GetCurFile([MarshalAs(UnmanagedType.LPWStr)] out string f); }
+  [StructLayout(LayoutKind.Sequential, Pack = 4)] struct PropertyKey { public Guid fmtid; public uint pid;
+    public PropertyKey(Guid g, uint p) { fmtid = g; pid = p; } }
+  // PROPVARIANT entero: 8 bytes de cabecera + union. Son 24 en x64; declararlo mas corto
+  // hace que SetValue escriba de menos y la propiedad se guarde vacia (vt=0 al releerla).
+  [StructLayout(LayoutKind.Sequential)] struct PropVariant {
+    public ushort vt; public ushort r1, r2, r3; public IntPtr p; public IntPtr p2;
+    public void SetString(string s) { vt = 31; p = Marshal.StringToCoTaskMemUni(s); }
+    public void Clear() { if (p != IntPtr.Zero) Marshal.FreeCoTaskMem(p); p = IntPtr.Zero; vt = 0; } }
+  public static void SetAppId(string lnk, string appId) {
+    var o = new ShellLink(); ((IPersistFile)o).Load(lnk, 2);
+    var ps = (IPropertyStore)o;
+    var key = new PropertyKey(new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), 5);
+    var v = new PropVariant(); v.SetString(appId);
+    ps.SetValue(ref key, ref v); ps.Commit();
+    ((IPersistFile)o).Save(lnk, true); v.Clear();
+    Marshal.ReleaseComObject(o);
+  }
+}
+"@
+  try {
+    Add-Type -TypeDefinition $cs -ErrorAction Stop
+    [Lnk]::SetAppId($lnk, $AppId)
+  } catch {
+    # Sin AppID el icono funciona igual; solo que Windows rotula el aviso "Windows PowerShell".
+    Write-Warning "No se pudo fijar el AppUserModelID del acceso: $_"
+  }
+}
+try { AseguraAccesoInicio } catch { }
+
 $icoVivo = New-Object System.Drawing.Icon (Join-Path $scripts "esfera.ico")
 function Apagado([System.Drawing.Icon]$ico) {
   $bmp = $ico.ToBitmap()
