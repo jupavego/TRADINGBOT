@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-22T02:03:58",
+ "generated": "2026-10-22T03:19:43",
  "tasks": [
   {
    "id": "T01",
@@ -1368,8 +1368,8 @@ window.EIM_STATUS = {
    "deps": [
     "T106"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Escalera por perfil en un solo sitio (2026-10-22): `LADDER_BY_PROFILE` en `params.py` da a Conservador, Moderado y Agresivo sus umbrales **en R** (◆6 de T106: 0,100/0,050 · 0,100/0,050 · 0,075/0,0375 R), que con el capital inicial son exactamente los +5/2,5 · +10/5 · +15/7,5 USDT del encargo; `LadderParams.steps(riesgo)` los resuelve por operación y `basis` distingue R de USDT fijos, así que el control `ppp_btcusdt` (◆5) no cambia ni un número (sus 40 tests dan lo mismo). Ficha de instrumento por símbolo (A6): `SymbolSpec`/`SYMBOL_SPECS` con tick, paso y mínimo reales de `fapi/v1/exchangeInfo` (BTCUSDT 0,1/0,001/0,001 · ETHUSDT 0,01/0,001/0,001); `simulate_ladder` exige la ficha por nombre y `open_ladder` rechaza por debajo del mínimo negociable. Validación ruidosa al arrancar: `check_profiles` en `PaperDesk.__init__` (API y servicio) + validadores de `LadderParams`/`ProfileParams`/`SymbolSpec`: umbral o incremento no positivo, escalera sin parámetros, símbolo sin ficha o identificador repetido impiden arrancar con el motivo exacto. Efecto colateral buscado (◆2): el servicio ya sincroniza 1 min también de ETHUSDT. **Lo que NO hace**: los tres perfiles siguen con `exit_mode=\"tp\"` (salen por TP/BE/tiempo) y `be_with_ladder=True` solo **declara** la convivencia BE+/escalones de ◆3; encender la escalera y la precedencia de stops es T109, por eso ningún trade ni evento de los tres perfiles cambia hoy. Código `eim/paper/{params,ladder,ladder_book,ladder_stats,summary,desk}.py`; doc `v2/docs/PPP.md` §2.1–2.2; tests `tests/paper/test_ladder_profiles.py` (28: casos L y M, fichas por símbolo, 1 min de ETH) + `test_ladder.py` adaptado. Gate verde (ruff limpio, suite completa exit 0).",
    "effort": "medio",
    "phase": 18,
    "goal": "Dar a Conservador, Moderado y Agresivo **su propia** configuración de protección progresiva, en un solo módulo, validada al arrancar, y con las especificaciones del instrumento (tick y paso de cantidad) tomadas del símbolo en vez de las constantes de BTCUSDT que hoy trae `LadderParams`."

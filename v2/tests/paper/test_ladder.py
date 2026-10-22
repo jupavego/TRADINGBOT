@@ -23,13 +23,15 @@ from eim.paper.ladder import (
     simulate_ladder,
 )
 from eim.paper.ladder_audit import audit_outcome, check_close_request
-from eim.paper.params import ExecParams, LadderParams
+from eim.paper.params import ExecParams, LadderParams, spec_for
 from tests.paper.helpers import M15, T0, bar, idea
 
 E = 70_000.0
 QTY = 0.1
 ZERO = ExecParams(costs=ZERO_COSTS, funding_8h_assumed=0.0)
 LP = LadderParams()
+SPEC = spec_for("BTCUSDT")   # tick y paso de BTCUSDT (T108)
+STEPS = LP.steps(0.0)        # basis "usdt": 10 y 5, sin depender del riesgo
 
 
 def path_of(bars: list[tuple[float, float, float, float]], mirror: bool = False) -> Path:
@@ -42,7 +44,7 @@ def path_of(bars: list[tuple[float, float, float, float]], mirror: bool = False)
 def run(bars, side: int = 1, ep: ExecParams = ZERO, qty: float = QTY, **kw) -> Outcome:
     sl = E - 500 if side > 0 else E + 500
     i = idea(side=side, entry=E, sl=sl, tp=E + side * 1500, **kw)
-    return simulate_ladder(i, path_of(bars, mirror=side < 0), ep, LP, qty)
+    return simulate_ladder(i, path_of(bars, mirror=side < 0), ep, LP, qty, spec=SPEC)
 
 
 def usd(o: Outcome, qty: float = QTY) -> float:
@@ -56,9 +58,9 @@ RISE = [(E, E + 100, E - 10, E + 90), (E + 120, E + 160, E + 110, E + 150),
 
 # --- fórmulas -------------------------------------------------------------------------------
 def test_levels_and_nominal():
-    assert [level_of(x, LP) for x in (0, 9.99, 10, 14.99, 15, 20.5, 49.99, 50)] == [
+    assert [level_of(x, *STEPS) for x in (0, 9.99, 10, 14.99, 15, 20.5, 49.99, 50)] == [
         0, 0, 1, 1, 2, 3, 8, 9]
-    assert [nominal(n, LP) for n in range(0, 4)] == [0.0, 10.0, 15.0, 20.0]
+    assert [nominal(n, *STEPS) for n in range(0, 4)] == [0.0, 10.0, 15.0, 20.0]
 
 
 def test_protect_price_zero_costs_exact():
@@ -264,7 +266,7 @@ def test_agent_view_cannot_change_the_outcome():
 def test_limit_entry_and_no_lookahead_on_fill_bar():
     i = idea(kind="limit", entry=E - 50, sl=E - 550, tp=E + 1500, fill_h=2)
     bars = [(E, E + 500, E - 60, E - 40), (E - 40, E - 30, E - 45, E - 35)]   # llena en vela 0
-    o = simulate_ladder(i, path_of(bars), ZERO, LP, QTY)
+    o = simulate_ladder(i, path_of(bars), ZERO, LP, QTY, spec=SPEC)
     assert o.fill == E - 50 and o.fill_t == T0 and o.status == "ABIERTA"
     assert o.ladder["level"] == 0                       # el avance de la vela de llenado no cuenta
 
@@ -280,8 +282,8 @@ def test_slippage_reserve_uses_widest_recent_bar():
     bars = [(E, E + 50, E - 500, E + 20), (E + 20, E + 400, E + 10, E + 390)]
     ep = ExecParams()
     i = idea(entry=E, sl=E - 900, tp=E + 1500)
-    wide = simulate_ladder(i, path_of(bars), ep, LP, QTY)
-    short = simulate_ladder(i, path_of(bars), ep, LadderParams(slip_lookback=1), QTY)
+    wide = simulate_ladder(i, path_of(bars), ep, LP, QTY, spec=SPEC)
+    short = simulate_ladder(i, path_of(bars), ep, LadderParams(slip_lookback=1), QTY, spec=SPEC)
     assert wide.ladder["level"] >= 1 and short.ladder["level"] >= 1
     assert (wide.ladder["stop"] > short.ladder["stop"]
             or wide.ladder["level"] < short.ladder["level"])
@@ -291,8 +293,8 @@ def test_funding_reserve_puts_the_stop_above_the_nominal_level():
     bars = [(E, E + 300, E - 10, E + 290), (E + 290, E + 295, E + 280, E + 285)]
     ep = ExecParams(costs=ZERO_COSTS, funding_8h_assumed=0.0005)
     i = idea(entry=E, sl=E - 500, tp=E + 1500)
-    a = simulate_ladder(i, path_of(bars), ep, LP, QTY)
-    b = simulate_ladder(i, path_of(bars), ep, LadderParams(funding_reserve=0), QTY)
+    a = simulate_ladder(i, path_of(bars), ep, LP, QTY, spec=SPEC)
+    b = simulate_ladder(i, path_of(bars), ep, LadderParams(funding_reserve=0), QTY, spec=SPEC)
     assert (a.ladder["stop"] - E) * QTY > a.ladder["nominal_usd"] + 0.5   # colchón de funding
     assert (b.ladder["stop"] - E) * QTY == pytest.approx(b.ladder["nominal_usd"], abs=0.1)
 
@@ -326,7 +328,8 @@ AMB_BARS_UP = [(E, E + 125, E - 10, E + 125), (E + 125, E + 160, E + 90, E + 160
 
 def run_fine(bars, walks, fine=True):
     i = idea(entry=E, sl=E - 500, tp=E + 1500)
-    return simulate_ladder(i, path_of(bars), ZERO, LP, QTY, fine_of(walks) if fine else None)
+    return simulate_ladder(i, path_of(bars), ZERO, LP, QTY,
+                           fine_of(walks) if fine else None, spec=SPEC)
 
 
 def test_fine_resolves_rise_then_fall_better_than_conservative():
@@ -351,7 +354,7 @@ def test_fine_missing_or_incomplete_falls_back_to_conservative():
     walks = [[E, E - 10, E + 125, E + 125], [E + 125, E + 160, E + 90]]
     incomplete = fine_of(walks[:1])                      # sin velas finas para la 2.ª vela
     i = idea(entry=E, sl=E - 500, tp=E + 1500)
-    got = simulate_ladder(i, path_of(AMB_BARS), ZERO, LP, QTY, incomplete)
+    got = simulate_ladder(i, path_of(AMB_BARS), ZERO, LP, QTY, incomplete, spec=SPEC)
     assert usd(got) == pytest.approx(10.0) and got.ladder["fine_resolved_bars"] == 1
 
 
@@ -372,5 +375,5 @@ def test_fine_never_breaks_the_rules_fuzz():
             (2 * E - c.o, 2 * E - c.l, 2 * E - c.h, 2 * E - c.c) if side < 0
             else (c.o, c.h, c.l, c.c))) for k, pts in enumerate(walks)
             for m, c in enumerate(walk(pts, 0))], (), M1)
-        o = simulate_ladder(i, p, ExecParams(), LP, QTY, fine)
+        o = simulate_ladder(i, p, ExecParams(), LP, QTY, fine, spec=SPEC)
         assert audit_outcome(o) == [], (case, o.ladder)

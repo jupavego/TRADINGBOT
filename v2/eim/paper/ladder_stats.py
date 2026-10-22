@@ -63,7 +63,9 @@ def ladder_stats(trades: list[dict], open_pos: list[dict], violations: int,
         best = max(best, streak)
     long_run = sum(1 for p in open_pos if p.get("elapsed_h", 0) >= DUR_EDGES_H[-2])
     return {
-        "n": len(tr), "reached": levels,
+        # `first`/`step` son los escalones de REFERENCIA del perfil (con basis "r" cada operación
+        # tiene los suyos, guardados en su propio `ladder.first_usd`/`step_usd`).
+        "n": len(tr), "reached": levels, "first_usd": first, "step_usd": step,
         "closed_initial_sl": sum(1 for t in tr if t["reason"] == "SL"),
         "closed_dynamic_sl": sum(1 for t in tr if t["reason"] == "SLD"),
         "avg_max_float_usd": _mean(maxf), "avg_realized_usd": _mean([t["pnl"] for t in tr]),

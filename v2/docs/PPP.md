@@ -1,7 +1,15 @@
-# Perfil PPP — Progressive Profit Protection · BTCUSDT (T105)
+# Protección progresiva de ganancias — PPP (T105, T108)
 
-Cuarto perfil del bróker simulado (`ppp_btcusdt`). **Solo simulación**: `LadderParams` rechaza
-`real_money`, `time_exit` y `fixed_take_profit` (error de validación si se intentan activar).
+Escalera de protección del bróker simulado: SL dinámico por escalones de beneficio **neto**.
+Vive en el perfil de control `ppp_btcusdt` (T105) y, desde T108, los tres perfiles
+(Conservador, Moderado, Agresivo) traen sus propios parámetros de escalera.
+**Solo simulación**: `LadderParams` rechaza `real_money`, `time_exit` y `fixed_take_profit`
+(error de validación si se intentan activar).
+
+> **Estado (T108).** Los tres perfiles tienen parámetros de escalera, ficha de instrumento por
+> símbolo y validación al arrancar, pero **siguen saliendo por TP/BE/tiempo**: su `exit_mode`
+> pasa a `"ladder"` en **T109**, que es quien cambia el motor (precedencia entre BE+ y escalones,
+> memoria de aprendizaje y veto de posición duplicada). Hoy solo opera con escalera el control.
 
 ## 1. Arquitectura identificada y qué se reutilizó
 
@@ -24,8 +32,35 @@ en USDT y dependen de la cantidad, que el libro fija después de dimensionar.
 ## 2. Parámetros (todos en `paper/params.py`)
 
 `ProfileParams(id="ppp_btcusdt", …, exit_mode="ladder", symbols=("BTCUSDT",))` y
-`LadderParams`: `first_usdt=10`, `step_usdt=5`, `tick=0.1`, `qty_step=0.001`,
-`min_target_vs_first=1.0`, `fixed_take_profit/time_exit/real_money=False` (inmutables).
+`LadderParams`: `basis="usdt"`, `first_usdt=10`, `step_usdt=5`, `min_target_vs_first=1.0`,
+`fixed_take_profit/time_exit/real_money=False` (inmutables).
+
+### 2.1 Escalones por perfil (T108, ◆6 de T106)
+
+Los escalones se expresan de dos maneras. `LadderParams.steps(riesgo_usdt)` resuelve el par
+(primer escalón, incremento) **en USDT para cada operación**:
+
+| Perfil | `basis` | Primer escalón | Incremento | Equivalente con el capital inicial |
+|---|---|---|---|---|
+| Conservador | `r` | 0,100 R | 0,050 R | +5,00 / +2,50 USDT (riesgo 0,5 % = 50 USDT) |
+| Moderado | `r` | 0,100 R | 0,050 R | +10,00 / +5,00 USDT (riesgo 1 % = 100 USDT) |
+| Agresivo | `r` | 0,075 R | 0,0375 R | +15,00 / +7,50 USDT (riesgo 2 % = 200 USDT) |
+| `ppp_btcusdt` (control) | `usdt` | +10 USDT | +5 USDT | fijos: no dependen del riesgo |
+
+Son la traducción exacta a R de los 5/2,5 · 10/5 · 15/7,5 USDT del encargo con el capital
+inicial. En USDT los tres perfiles no son comparables (el Agresivo protegería **antes**, a
+0,075 R, que el Conservador, a 0,100 R) ni resisten un cambio de capital; en R sí. **Son el punto
+de partida del experimento, no un óptimo**: T111 mide la sensibilidad (0,1 · 0,25 · 0,5 · 1,0 R)
+y decide. `be_with_ladder=True` en los tres (◆3): BE+ y escalones conviven y el stop vigente será
+el mejor de los dos, nunca el peor — lo honra **T109**.
+
+### 2.2 Ficha del instrumento (A6 de T106)
+
+`SYMBOL_SPECS` (en `paper/params.py`) guarda `tick`, `qty_step` y `min_qty` de cada símbolo,
+consultados en `fapi/v1/exchangeInfo` el 2026-10-22: BTCUSDT 0,1 / 0,001 / 0,001 y ETHUSDT
+0,01 / 0,001 / 0,001. Antes eran constantes de BTC dentro de `LadderParams`, así que ETHUSDT
+habría redondeado el SL con el tick de BTC (10 veces más grueso). Un símbolo sin ficha **no se
+opera**: `spec_for` falla con el motivo y `check_profiles` impide arrancar la mesa.
 Perfil: capital 10 000 USDT, riesgo 0,5 % por operación, apalancamiento ≤ 5x, máx. 2 posiciones,
 confianza ≥ 0,30, R:B estimado ≥ 1,3, a favor de síntesis y de tendencia mayor, costo ≤ 0,15 R,
 sin cobertura (largo y corto a la vez). Costos: los de `ExecParams.costs` (taker 0,05 %,
@@ -49,8 +84,10 @@ corto : p = (f·(1−K) − L/qty) / (1 + fee_sal)
 ```
 
 Se redondea al tick **en contra del operador** (largo arriba, corto abajo) y se comprueba
-`neto(p) ≥ L`; si no, se sube un tick. Escalón: `nivel = 1 + ⌊(máx_neto − 10) / 5⌋` si
-`máx_neto ≥ 10`, con protección nominal `10 + 5·(nivel−1)`.
+`neto(p) ≥ L`; si no, se sube un tick. Escalón, con `(primero, paso) = lp.steps(qty·|llenado − SL|)`:
+`nivel = 1 + ⌊(máx_neto − primero) / paso⌋` si `máx_neto ≥ primero`, con protección nominal
+`primero + paso·(nivel−1)`. Con `basis="usdt"` el par es fijo (10 y 5, el control); con
+`basis="r"` sale del riesgo realmente abierto en esa operación.
 
 ## 4. Máquina de estados de una posición
 
