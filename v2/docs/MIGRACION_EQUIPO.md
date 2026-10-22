@@ -9,30 +9,19 @@ Fijadas en `v2/requirements-lock.txt` (Python) y `v2/eim/web/package-lock.json` 
 
 ## A. En el equipo ANTIGUO (antes de apagarlo)
 
-1. **Código al día en GitHub.** Todo lo útil debe estar en `origin`. Comprueba:
-   `git fetch && git status` y, por rama, `git log origin/<rama>..<rama>`. Ramas con trabajo sin
-   fusionar a `main` se suben (`git push`) o se descartan a propósito. Las carpetas
-   `.claude/worktrees/*` **no viajan**: solo cuentan sus ramas en `origin`.
-2. **Parar la operación** (icono EIM / servicio continuo, líderes incluidos) para que las bases
-   DuckDB queden cerradas y sin `.wal` pendientes.
-3. **Copia en frío de los datos no versionados** (todo en `.gitignore`):
-   - `v2/data/` completo → es el estado real: `paper.duckdb` (libro simulado), `reports.duckdb`,
-     `leaders.duckdb` (historial que **no se puede volver a pedir**), `operation/`, `kill_switch.json`,
-     `machine_id`, `share_config.json`. Se pueden omitir por ser regenerables: `candles/`, `funding/`,
-     `open_interest/`, `long_short_ratio/`, `liquidations/`, `micro/`, `arbitrage/`, `obs/`,
-     `roadmap_live/`, `*.wal.bak`, `obs_corrupto/`.
-   - `v2/backups/` (opcional; basta la última copia).
-   - Libros de la biblioteca (T52) si `EIM_LIBRARY_DIR` apunta fuera del repo.
-   Llévalas a un disco externo o a la nube. Alternativa más limpia: `python -m eim.data.backup create`
-   + `python -m eim.data.backup verify`, y exportar líderes con `python -m eim.data.share export`.
-4. **Variables de entorno / claves**: anota las `EIM_*` definidas a nivel de usuario
-   (`[Environment]::GetEnvironmentVariable(...)` o *Variables de entorno* de Windows): sobre todo
-   `EIM_TESTNET_API_KEY/_SECRET`, `EIM_FRED_API_KEY`, `EIM_SHARED_DIR`, `EIM_MACHINE`. Las claves se
-   reescriben a mano en el equipo nuevo; **nunca** se suben a Git ni se pegan en chats.
-5. **Configuración de Claude Code** (no está en el repo): `.claude/settings.local.json` y la carpeta
-   de memoria `C:\Users\<usuario>\.claude\projects\<ruta-del-proyecto>\memory\`. Cópialas.
-6. Otros ficheros fuera de Git: `repos/` (referencias; se vuelve a bajar si hace falta) y los `.docx/.xlsx`
-   de la raíz sí están versionados.
+1. **Código al día en GitHub.** Todo lo útil debe estar en `origin` (`git fetch && git status`; por
+   rama, `git log origin/<rama>..<rama>`). Las carpetas `.claude/worktrees/*` **no viajan**: solo
+   cuentan sus ramas en `origin`.
+2. **Un solo comando** empaqueta todo lo que no está en Git:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File v2\scripts\exportar_equipo.ps1 -Destino D:\EIM_migracion
+   ```
+   Detiene el vigilante, la API, los líderes y el inicio automático; copia `v2\data` en frío y la
+   verifica (nº de archivos y bytes); guarda las variables `EIM_*` del usuario, `.claude\settings.local.json`
+   y la memoria de Claude. Por defecto omite lo regenerable (velas, funding, OI, obs…); `-Todo` lo
+   incluye. `-ConservarMiIdentidad` no copia `machine_id`/`EIM_MACHINE` (ver §C).
+3. **El paquete contiene las claves en claro.** Disco externo propio; bórralo al terminar. Nunca a
+   Git ni a carpetas compartidas.
 
 ## B. En el equipo NUEVO
 
@@ -42,19 +31,16 @@ gh auth login
 git clone https://github.com/jupavego/TRADINGBOT.git
 cd TRADINGBOT
 powershell -ExecutionPolicy Bypass -File v2\scripts\preparar_equipo.ps1
+powershell -ExecutionPolicy Bypass -File v2\scripts\importar_equipo.ps1 -Origen D:\EIM_migracion -InicioAutomatico
 ```
 
-`preparar_equipo.ps1` comprueba versiones, crea `v2/.venv` desde `requirements-lock.txt`, hace
-`npm ci` y corre el gate (`-SinGate` para saltarlo). Después:
-
-1. Copia `v2/data/` (y `v2/backups/`) al mismo lugar del clon, **con todo detenido**. Verifica con
-   `python -m eim.data.backup verify` si usaste copia de seguridad.
-2. Define las variables `EIM_*` anotadas y la configuración de Claude (paso A.5). La memoria de
-   Claude está ligada a la ruta de la carpeta: colócala en el `…\projects\<nueva-ruta>\memory\`.
-3. `powershell -ExecutionPolicy Bypass -File v2\scripts\crear_acceso_escritorio.ps1` (el acceso
-   apunta a la ruta del clon) y, si quieres arranque automático, `instalar_inicio_automatico.ps1`.
-4. Abre el icono EIM → `http://127.0.0.1:5173`; las velas faltantes se descargan solas.
-5. `.claude/launch.json` usa `v2/.venv/Scripts/python.exe`: ya existe tras el paso 1.
+- `preparar_equipo.ps1`: comprueba versiones, crea `v2/.venv` desde `requirements-lock.txt`, `npm ci` y
+  gate (`-SinGate` lo salta).
+- `importar_equipo.ps1`: restaura `v2\data` (verificada), las `EIM_*` de usuario, `settings.local.json`
+  y la memoria de Claude en la ruta correspondiente a ESTE clon, y crea el acceso del escritorio
+  (`-InicioAutomatico` registra además el arranque con Windows; `-Forzar` sobrescribe un `data` existente).
+- Abre una terminal nueva (para ver las variables) y el icono EIM → `http://127.0.0.1:5173`; las
+  velas omitidas se descargan solas.
 
 ## C. Regla para no duplicar el estado
 
