@@ -1,0 +1,298 @@
+﻿<#
+.SYNOPSIS
+  Icono del EIM junto al reloj (bandeja del sistema). Sustituye a la consola de PowerShell que
+  dejaba abierta `abrir_interfaz.ps1`: el color del icono dice si el servicio responde, el globo
+  avisa cuando cambia de estado y el menu derecho abre la interfaz, la hoja de ruta y los
+  registros. Cerrar el icono NO para el servicio (para eso esta su opcion en el menu).
+
+.DESCRIPTION
+  Consulta `GET /v2/health` cada `-CadaS` segundos. Icono a color = la API responde; icono
+  apagado = no responde (arrancando, caida o detenida). No abre ninguna ventana: se lanza con
+  `eim_oculto.vbs` para que no parpadee ni una consola.
+
+.EXAMPLE
+  powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File v2\scripts\icono_bandeja.ps1
+  wscript.exe v2\scripts\eim_oculto.vbs v2\scripts\icono_bandeja.ps1
+#>
+param([int]$Puerto = 8000, [int]$CadaS = 15)
+$ErrorActionPreference = "Stop"
+Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+
+$scripts = $PSScriptRoot
+$v2 = Split-Path -Parent $scripts
+$logs = Join-Path $v2 "data\operation\logs"
+$api = "http://127.0.0.1:$Puerto/v2/health"
+$web = "http://127.0.0.1:5173"
+$ruta = "http://127.0.0.1:8765/roadmap.html"
+
+# Un solo icono a la vez: si ya hay otro corriendo, este se va sin molestar.
+# "Local\" basta (uno por sesion de usuario) y no pide privilegios como "Global\".
+$nuevo = $false
+$cerrojo = New-Object System.Threading.Mutex($true, "Local\EIM_icono_bandeja", [ref]$nuevo)
+if (-not $nuevo) { return }
+
+# --- iconos: el de la esfera y una copia apagada (gris y translucida) para "sin respuesta" ---
+# --- identidad ante Windows ---------------------------------------------------------------
+# Windows firma cada globo con el AppUserModelID del proceso que lo emite. Sin esto, los avisos
+# salen rotulados "Windows PowerShell" (el host real), por mucho que el NotifyIcon lleve la
+# esfera. Hay que (1) declarar un AppID propio y (2) dejar en el menu Inicio un acceso que lo
+# lleve: de ahi saca Windows el nombre y el icono que muestra en el aviso.
+$AppId = "EIM.MesaDeTrading"
+
+Add-Type -Namespace EIM -Name Shell -MemberDefinition @"
+[DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+public static extern int SetCurrentProcessExplicitAppUserModelID(string AppID);
+"@
+try { [void][EIM.Shell]::SetCurrentProcessExplicitAppUserModelID($AppId) } catch { }
+
+function AseguraAccesoInicio {
+  $dir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
+  $lnk = Join-Path $dir "EIM.lnk"
+  if (Test-Path $lnk) { return }
+  New-Item -ItemType Directory -Force -Path $dir | Out-Null
+  $a = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
+  $a.TargetPath = Join-Path $env:SystemRoot "System32\wscript.exe"
+  $a.Arguments = "`"$(Join-Path $scripts 'eim_oculto.vbs')`" `"$(Join-Path $scripts 'abrir_interfaz.ps1')`""
+  $a.IconLocation = "$(Join-Path $scripts 'esfera.ico'),0"
+  $a.Description = "EIM"
+  $a.Save()
+  # El AppUserModelID es una propiedad del shell (PKEY_AppUserModel_ID): WScript.Shell no la
+  # escribe, hace falta IPropertyStore sobre el propio .lnk.
+  $cs = @"
+using System;using System.Runtime.InteropServices;
+public static class Lnk {
+  [ComImport, Guid("00021401-0000-0000-C000-000000000046")] class ShellLink { }
+  [ComImport, Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+  interface IPropertyStore {
+    int GetCount(out uint c); int GetAt(uint i, out PropertyKey k);
+    int GetValue(ref PropertyKey k, out PropVariant v);
+    int SetValue(ref PropertyKey k, ref PropVariant v); int Commit();
+  }
+  [ComImport, Guid("0000010b-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+  interface IPersistFile { void GetClassID(out Guid c); int IsDirty();
+    void Load([MarshalAs(UnmanagedType.LPWStr)] string f, int m);
+    void Save([MarshalAs(UnmanagedType.LPWStr)] string f, [MarshalAs(UnmanagedType.Bool)] bool r);
+    void SaveCompleted([MarshalAs(UnmanagedType.LPWStr)] string f);
+    void GetCurFile([MarshalAs(UnmanagedType.LPWStr)] out string f); }
+  [StructLayout(LayoutKind.Sequential, Pack = 4)] struct PropertyKey { public Guid fmtid; public uint pid;
+    public PropertyKey(Guid g, uint p) { fmtid = g; pid = p; } }
+  // PROPVARIANT entero: 8 bytes de cabecera + union. Son 24 en x64; declararlo mas corto
+  // hace que SetValue escriba de menos y la propiedad se guarde vacia (vt=0 al releerla).
+  [StructLayout(LayoutKind.Sequential)] struct PropVariant {
+    public ushort vt; public ushort r1, r2, r3; public IntPtr p; public IntPtr p2;
+    public void SetString(string s) { vt = 31; p = Marshal.StringToCoTaskMemUni(s); }
+    public void Clear() { if (p != IntPtr.Zero) Marshal.FreeCoTaskMem(p); p = IntPtr.Zero; vt = 0; } }
+  public static void SetAppId(string lnk, string appId) {
+    var o = new ShellLink(); ((IPersistFile)o).Load(lnk, 2);
+    var ps = (IPropertyStore)o;
+    var key = new PropertyKey(new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), 5);
+    var v = new PropVariant(); v.SetString(appId);
+    ps.SetValue(ref key, ref v); ps.Commit();
+    ((IPersistFile)o).Save(lnk, true); v.Clear();
+    Marshal.ReleaseComObject(o);
+  }
+}
+"@
+  try {
+    Add-Type -TypeDefinition $cs -ErrorAction Stop
+    [Lnk]::SetAppId($lnk, $AppId)
+  } catch {
+    # Sin AppID el icono funciona igual; solo que Windows rotula el aviso "Windows PowerShell".
+    Write-Warning "No se pudo fijar el AppUserModelID del acceso: $_"
+  }
+}
+try { AseguraAccesoInicio } catch { }
+
+# El nombre y el icono que Windows enseña en el aviso. El acceso del menú Inicio sirve, pero
+# tarda en indexarse; esta clave de usuario surte efecto de inmediato.
+try {
+  $k = "HKCU:\Software\Classes\AppUserModelId\$AppId"
+  if (-not (Test-Path $k)) { New-Item -Path $k -Force | Out-Null }
+  New-ItemProperty -Path $k -Name DisplayName -Value "EIM" -PropertyType String -Force | Out-Null
+  New-ItemProperty -Path $k -Name IconUri -Value (Join-Path $scripts "esfera.ico") -PropertyType String -Force | Out-Null
+} catch { Write-Warning "No se pudo registrar el nombre del aviso: $_" }
+
+# Los globos de NotifyIcon los firma Windows con el ejecutable anfitrión (powershell.exe) pase
+# lo que pase. Para que el aviso salga como EIM hay que emitir un toast de verdad con nuestro
+# AppID. Si la API no está (Windows antiguo), se cae al globo de siempre.
+$hayToast = $false
+try {
+  [void][Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]
+  [void][Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime]
+  $hayToast = $true
+} catch { }
+
+function Aviso([string]$titulo, [string]$texto, [string]$tipo = "Warning") {
+  if ($hayToast) {
+    try {
+      $esc = { param($x) [System.Security.SecurityElement]::Escape(("" + $x)) }
+      $xml = "<toast><visual><binding template=""ToastGeneric"">" +
+             "<text>" + (& $esc $titulo) + "</text>" +
+             "<text>" + (& $esc $texto) + "</text></binding></visual></toast>"
+      $doc = New-Object Windows.Data.Xml.Dom.XmlDocument
+      $doc.LoadXml($xml)
+      $t = New-Object Windows.UI.Notifications.ToastNotification $doc
+      [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($AppId).Show($t)
+      return
+    } catch { }
+  }
+  $icono.BalloonTipTitle = $titulo
+  $icono.BalloonTipText = $texto
+  $icono.BalloonTipIcon = $tipo
+  $icono.ShowBalloonTip(5000)
+}
+
+$icoVivo = New-Object System.Drawing.Icon (Join-Path $scripts "esfera.ico")
+function Apagado([System.Drawing.Icon]$ico) {
+  $bmp = $ico.ToBitmap()
+  $out = New-Object System.Drawing.Bitmap $bmp.Width, $bmp.Height
+  $g = [System.Drawing.Graphics]::FromImage($out)
+  $m = New-Object 'System.Single[][]' 5
+  for ($i = 0; $i -lt 5; $i++) { $m[$i] = New-Object 'System.Single[]' 5 }
+  $m[0][0] = 0.299; $m[0][1] = 0.299; $m[0][2] = 0.299
+  $m[1][0] = 0.587; $m[1][1] = 0.587; $m[1][2] = 0.587
+  $m[2][0] = 0.114; $m[2][1] = 0.114; $m[2][2] = 0.114
+  $m[3][3] = 0.45
+  $m[4][4] = 1
+  $ia = New-Object System.Drawing.Imaging.ImageAttributes
+  # La coma unaria evita que PowerShell desempaquete el array escalonado en 5 argumentos.
+  $ia.SetColorMatrix((New-Object System.Drawing.Imaging.ColorMatrix -ArgumentList (, $m)))
+  $r = New-Object System.Drawing.Rectangle 0, 0, $bmp.Width, $bmp.Height
+  $g.DrawImage($bmp, $r, 0, 0, $bmp.Width, $bmp.Height, [System.Drawing.GraphicsUnit]::Pixel, $ia)
+  $g.Dispose(); $bmp.Dispose()
+  [System.Drawing.Icon]::FromHandle($out.GetHicon())
+}
+$icoMuerto = Apagado $icoVivo
+
+# --- avisos: se leen de los registros JSONL que ya escribe `JsonLog` y salen por ESTE icono,
+# en vez de que `eim/operation/notify.py` lance un PowerShell por aviso (de ahi el rotulo
+# "Windows PowerShell" de los globos antiguos). `servicio_continuo.ps1` pone EIM_NOTIFY=0.
+$raices = @((Join-Path $v2 "data\operation\logs"), (Join-Path $v2 "data\leaders\logs"))
+$micro = Join-Path $v2 "data\micro"
+if (Test-Path $micro) {
+  $raices += (Get-ChildItem $micro -Directory -ErrorAction SilentlyContinue |
+              ForEach-Object { Join-Path $_.FullName "logs" })
+}
+$posicion = @{}   # fichero -> bytes ya leidos; en el primer vistazo no se repite la historia
+
+function AvisosNuevos {
+  $out = @()
+  $desde = (Get-Date).ToUniversalTime().AddDays(-2)
+  foreach ($r in $raices) {
+    if (-not (Test-Path $r)) { continue }
+    foreach ($f in Get-ChildItem $r -Filter "op-*.jsonl" -ErrorAction SilentlyContinue |
+                   Where-Object { $_.LastWriteTimeUtc -gt $desde }) {
+      $len = $f.Length
+      $pos = if ($posicion.ContainsKey($f.FullName)) { $posicion[$f.FullName] } else { $len }
+      $posicion[$f.FullName] = $len
+      if ($len -le $pos) { continue }
+      $txt = ""
+      try {
+        # ReadWrite: el proceso que escribe lo tiene abierto.
+        $fs = [System.IO.File]::Open($f.FullName, "Open", "Read", "ReadWrite")
+        try {
+          [void]$fs.Seek($pos, "Begin")
+          $txt = (New-Object System.IO.StreamReader($fs, [System.Text.Encoding]::UTF8)).ReadToEnd()
+        } finally { $fs.Dispose() }
+      } catch { continue }
+      foreach ($l in ($txt -split "`n")) {
+        $l = $l.Trim()
+        if (-not $l) { continue }
+        try { $o = $l | ConvertFrom-Json } catch { continue }
+        if ($o.event -ne "alerta") { continue }
+        if ($o.level -eq "warn" -or $o.level -eq "critical" -or $o.resolved) { $out += $o }
+      }
+    }
+  }
+  $out
+}
+
+# --- menu ---
+$menu = New-Object System.Windows.Forms.ContextMenuStrip
+function Opcion([string]$texto, [scriptblock]$hacer) {
+  $i = $menu.Items.Add($texto); $i.add_Click($hacer); $i
+}
+$mEstado = Opcion "Comprobando..." { }
+$mEstado.Enabled = $false
+$menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator)) | Out-Null
+Opcion "Abrir interfaz" { Start-Process $web } | Out-Null
+Opcion "Hoja de ruta" { Start-Process $ruta } | Out-Null
+Opcion "Ver registros" { if (Test-Path $logs) { Start-Process explorer.exe $logs } } | Out-Null
+$menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator)) | Out-Null
+$mArrancar = Opcion "Arrancar servicio" {
+  Start-Process wscript.exe -ArgumentList @(
+    ('"' + (Join-Path $scripts "eim_oculto.vbs") + '"'),
+    ('"' + (Join-Path $scripts "servicio_continuo.ps1") + '"'), "-ConWeb")
+}
+$mParar = Opcion "Parar servicio" {
+  $r = [System.Windows.Forms.MessageBox]::Show(
+    "Se detendra la operacion en papel, los lideres y la interfaz. El icono sigue aqui.",
+    "EIM - parar el servicio", "YesNo", "Warning")
+  if ($r -ne "Yes") { return }
+  $patron = 'eim\.operation|eim\.leaders|eim\.api|eim\.data\.micro|uvicorn.*eim|mantener_despierto|eim\.web'
+  Get-CimInstance Win32_Process |
+    Where-Object { $_.Name -match '^(python|node|powershell)\.exe$' -and $_.CommandLine -match $patron } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+}
+$menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator)) | Out-Null
+Opcion "Quitar el icono (el servicio sigue)" {
+  $icono.Visible = $false; [System.Windows.Forms.Application]::Exit()
+} | Out-Null
+
+# --- icono ---
+$icono = New-Object System.Windows.Forms.NotifyIcon
+$icono.Icon = $icoMuerto
+$icono.Text = "EIM - comprobando..."
+$icono.ContextMenuStrip = $menu
+$icono.Visible = $true
+$icono.add_MouseDoubleClick({ Start-Process $web })
+
+$anterior = $null
+function Revisar {
+  $vivo = $false; $detalle = "sin respuesta"
+  try {
+    $h = Invoke-RestMethod $api -TimeoutSec 4
+    $vivo = $true
+    $op = if ($h.operation -eq "apagado") { "operacion apagada" } else { "operando" }
+    $detalle = "$($h.mode) - $op - $($h.agents) agentes"
+  } catch { }
+
+  $icono.Icon = if ($vivo) { $icoVivo } else { $icoMuerto }
+  # NotifyIcon.Text no admite mas de 63 caracteres.
+  $t = if ($vivo) { "EIM activo - $detalle" } else { "EIM detenido - la API no responde" }
+  if ($t.Length -gt 63) { $t = $t.Substring(0, 60) + "..." }
+  $icono.Text = $t
+  $mEstado.Text = $t
+  $mArrancar.Enabled = -not $vivo
+  $mParar.Enabled = $vivo
+
+  $cambio = ($null -ne $script:anterior -and $script:anterior -ne $vivo)
+  if ($cambio) {
+    # Ojo: en PowerShell 5.1 `(if ...)` se interpreta como llamar a un comando «if»; va con $( ).
+    $tit = if ($vivo) { "EIM activo" } else { "EIM sin respuesta" }
+    $ic = if ($vivo) { "Info" } else { "Warning" }
+    Aviso $tit $detalle $ic
+  }
+  $script:anterior = $vivo
+
+  # Un globo por vuelta como mucho: el ultimo aviso, diciendo cuantos van si hay varios.
+  $avisos = @(AvisosNuevos)
+  if ($avisos.Count -gt 0 -and -not $cambio) {
+    $a = $avisos[-1]
+    $mas = if ($avisos.Count -gt 1) { " (+" + ($avisos.Count - 1) + " mas)" } else { "" }
+    $tipo = if ($a.resolved) { "Info" } elseif ($a.level -eq "critical") { "Error" } else { "Warning" }
+    Aviso ("" + $a.title) ((("" + $a.detail) + $mas).Trim()) $tipo
+  }
+}
+
+$reloj = New-Object System.Windows.Forms.Timer
+$reloj.Interval = [Math]::Max(5, $CadaS) * 1000
+$reloj.add_Tick({ Revisar })
+$reloj.Start()
+Revisar
+
+try { [System.Windows.Forms.Application]::Run() }
+finally {
+  $reloj.Stop(); $icono.Visible = $false; $icono.Dispose()
+  $cerrojo.ReleaseMutex(); $cerrojo.Dispose()
+}

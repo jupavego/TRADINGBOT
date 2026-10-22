@@ -2,7 +2,8 @@
 .SYNOPSIS
   Crea (o quita con -Quitar) el acceso directo «EIM» en el escritorio del usuario actual, con el
   icono de la esfera (`esfera.ico`, captura de la esfera del río de decisión). Un doble clic
-  ejecuta `abrir_interfaz.ps1`: arranca la API y la web si hace falta y abre la interfaz.
+  ejecuta `abrir_interfaz.ps1` a través de `eim_oculto.vbs`: arranca la API y la web si hace
+  falta, abre la interfaz y deja el icono del EIM junto al reloj, sin ninguna consola abierta.
   Apunta a este repositorio por su ruta: si se mueve la carpeta, volver a ejecutarlo.
 
 .EXAMPLE
@@ -20,10 +21,11 @@ if ($Quitar) {
 }
 
 $acceso = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
-$acceso.TargetPath = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
-$acceso.Arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$(Join-Path $PSScriptRoot 'abrir_interfaz.ps1')`""
+# wscript + eim_oculto.vbs: ni consola fija ni parpadeo negro al abrir.
+$acceso.TargetPath = Join-Path $env:SystemRoot "System32\wscript.exe"
+$acceso.Arguments = "`"$(Join-Path $PSScriptRoot 'eim_oculto.vbs')`" `"$(Join-Path $PSScriptRoot 'abrir_interfaz.ps1')`""
 $acceso.WorkingDirectory = Split-Path -Parent $PSScriptRoot
 $acceso.IconLocation = "$(Join-Path $PSScriptRoot 'esfera.ico'),0"
-$acceso.Description = "Abre la interfaz del EIM (arranca la API y la web si hace falta)"
+$acceso.Description = "Abre la interfaz del EIM (arranca la API y la web si hace falta; icono junto al reloj)"
 $acceso.Save()
 Write-Host "Acceso directo creado: $lnk"

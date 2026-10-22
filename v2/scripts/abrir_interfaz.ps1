@@ -23,15 +23,21 @@ function Responde([string]$url) {
 
 function Falla([string]$motivo) {
   $logs = Join-Path (Split-Path -Parent $PSScriptRoot) "data\operation\logs"
-  Write-Host ""
-  Write-Host $motivo -ForegroundColor Red
-  Write-Host "Registros: $logs (vigilante.*.log, web.*.log). Incidentes: v2\docs\RUNBOOK.md"
-  Read-Host "Pulsa Enter para cerrar"
+  $txt = "$motivo`n`nRegistros: $logs (vigilante.*.log, web.*.log).`nIncidentes: v2\docs\RUNBOOK.md"
+  Write-Host $txt -ForegroundColor Red
+  # Se lanza sin consola (eim_oculto.vbs), asi que el aviso tiene que ser una ventana.
+  Add-Type -AssemblyName System.Windows.Forms
+  [System.Windows.Forms.MessageBox]::Show($txt, "EIM - no se pudo abrir", "OK", "Error") | Out-Null
   exit 1
 }
 
 Write-Host "Asegurando el servicio del EIM (vigilante + API en papel + bróker + líderes + interfaz + equipo despierto)..."
 try { & (Join-Path $PSScriptRoot "servicio_continuo.ps1") -ConWeb } catch { Falla "No se pudo lanzar el servicio: $_" }
+# El icono junto al reloj sustituye a la consola: aparece apagado y se enciende al responder.
+Start-Process wscript.exe -ArgumentList @(
+  ("`"" + (Join-Path $PSScriptRoot "eim_oculto.vbs") + "`""),
+  ("`"" + (Join-Path $PSScriptRoot "icono_bandeja.ps1") + "`""))
+
 Write-Host "Esperando a que respondan la API y la interfaz (hasta $Espera s)..."
 $limite = (Get-Date).AddSeconds($Espera)
 while (-not ((Responde $api) -and (Responde $web))) {

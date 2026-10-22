@@ -53,6 +53,11 @@ if (Test-Path $ollama) {
   Write-Host "Ollama no está instalado ($ollama): Contexto queda en «sin datos» salvo ANTHROPIC_API_KEY."
 }
 
+# Los avisos salen por el icono de la bandeja (`icono_bandeja.ps1`), que lee los registros
+# JSONL. Sin esto, `eim/operation/notify.py` lanza un PowerShell por aviso y el globo sale
+# rotulado "Windows PowerShell", que es de donde cuelga su NotifyIcon de usar y tirar.
+if (-not $env:EIM_NOTIFY) { $env:EIM_NOTIFY = "0" }
+
 if (Escuchando $Puerto) {
   Write-Host "Ya hay un servicio en el puerto ${Puerto}: no se lanza otro."
 } else {
