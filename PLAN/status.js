@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-22T03:19:43",
+ "generated": "2026-10-22T15:53:38",
  "tasks": [
   {
    "id": "T01",
@@ -1447,6 +1447,94 @@ window.EIM_STATUS = {
    "effort": "alto",
    "phase": 19,
    "goal": "Una sola puerta de entrada a la ejecución, con un contrato único: **toda** fuente de señal (agentes, estrategias del bróker, bots de T57, copy trading de T41, arbitraje de T39, HFT de T85, video de T70) propone en el mismo formato, y solo el motor determinista de riesgo autoriza. El consenso de diez agentes no puede anular un límite, y ninguna regla de salida vigente puede ser anulada por una señal contraria. Hoy esto es cierto por construcción en varios caminos, pero **no está demostrado en un solo lugar**."
+  },
+  {
+   "id": "T115",
+   "title": "Copia de seguridad completa: las tres bases y restauración probada",
+   "deps": [
+    "T32",
+    "T61"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 20,
+   "goal": "Que una copia de seguridad contenga **todo el historial**, no solo los reportes. Hoy `backup create` copia `reports.duckdb` (y `obs.duckdb`, derivado) y deja fuera `paper.duckdb` (contextos del bróker simulado, operaciones y el registro inmutable de sugerencias de T51) y `leaders.duckdb` (capturas en vivo irrepetibles). Restaurar desde `backups/` recupera los reportes y pierde lo demás: ver `PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §A."
+  },
+  {
+   "id": "T116",
+   "title": "Gate estable y reproducible en cualquier equipo",
+   "deps": [
+    "T72",
+    "T73"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 20,
+   "goal": "Que `python -m ruff check eim tests && python -m pytest -q` dé el mismo resultado en el equipo del usuario, en el del colaborador y con el equipo cargado. Hoy no: la prueba de rendimiento del observatorio falla por milisegundos y la suite completa puede tardar más de 25 minutos con Ollama y los recolectores activos (`PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §B). Un gate que falla por el equipo enseña a ignorarlo."
+  },
+  {
+   "id": "T117",
+   "title": "Primera mezcla real de la experiencia compartida (cierra ◆ T61)",
+   "deps": [
+    "T61",
+    "T115"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 20,
+   "goal": "Estrenar T61 con **dos equipos de verdad** (el del usuario y el del segundo colaborador) y dejar el informe que el usuario tiene pendiente de revisar (◆ de T61). Hasta ahora todo se probó sin red, con fixtures. Mientras no se haga, cada equipo acumula historial en paralelo sin que el otro lo vea."
+  },
+  {
+   "id": "T118",
+   "title": "Cifras auditables del bróker simulado (instantánea y motivos reales)",
+   "deps": [
+    "T107",
+    "T106"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 20,
+   "goal": "Que una cifra que se vio ayer se pueda volver a ver hoy. Hoy el panel se recalcula desde **todo** el almacén en cada consulta y el capital se re-simula desde 10 000 USDT, así que una captura pasada no es auditable (alerta A4 de `T106_auditoria_salidas.md`, pendiente (1) de `T107_contabilidad.md`), y con capital ≤ 0 el motivo de rechazo que se registra no es el real (`v2/eim/paper/book.py:168-169`). Con dos colaboradores mirando el mismo panel desde equipos distintos, esto deja de ser un detalle."
+  },
+  {
+   "id": "T119",
+   "title": "Puntuación del escuadrón de bots verificada en la base real",
+   "deps": [
+    "T59",
+    "T60"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 20,
+   "goal": "Que lo que dice la interfaz sobre los bots sea lo mismo que dice el informe. El recálculo dentro de la API cayó por memoria y se arregló (`query_lean`, topes de DuckDB) **midiendo con 105 000 posturas sintéticas**, porque la API viva tiene `reports.duckdb` bloqueada; `GET /v2/bots/scorecard` puede seguir mostrando la medición anterior mientras la buena vive en `v2/reports/bots_scorecard.md` (`PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §D). Hasta comprobarlo, el escuadrón vota (o calla) según cifras no verificadas."
+  },
+  {
+   "id": "T120",
+   "title": "Recolectores y esferas: cerrar «sin datos» de una vez (cierra T104)",
+   "deps": [
+    "T104",
+    "T23"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 20,
+   "goal": "Que el estado que pinta cada esfera sea el estado real del sistema, en cualquier equipo, y que arrancar sea una sola cosa. Queda abierto el último tramo de T104 (≥ 24 h con captura y ≥ 7 días para la línea base marginal) y los pendientes de la auditoría de módulos: los servicios se habían lanzado desde un worktree en vez del checkout principal, el disco externo se desconecta y el contexto sale a veces `degraded` (`PLAN/notas/auditoria_modulos_2026-10-19.md`, `PLAN/notas/T104_diagnostico.md`)."
+  },
+  {
+   "id": "T121",
+   "title": "Documentación, variables y tablero al día",
+   "deps": [],
+   "state": "pending",
+   "notes": "",
+   "effort": "bajo",
+   "phase": 20,
+   "goal": "Que quien vuelva (o quien llegue) no descubra el sistema a golpes: variables documentadas, dependencias nuevas dichas, tablero que dibuja todas las tareas y ningún paquete con claves suelto en el repositorio. Detalle en `PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §G."
   }
  ]
 };

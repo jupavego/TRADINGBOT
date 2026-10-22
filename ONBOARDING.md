@@ -24,6 +24,12 @@ Notas para Windows:
 - Si `python` abre la Microsoft Store, desactiva los alias en *Configuración → Aplicaciones → Alias de ejecución de aplicaciones*.
 
 > ¿Cambias de equipo (no es un colaborador nuevo)? Sigue `v2/docs/MIGRACION_EQUIPO.md` y usa `v2/scripts/preparar_equipo.ps1`, que automatiza la sección 3.
+>
+> ¿Vuelves tras una pausa de días o semanas, con el repo ya instalado? No sigas esta guía: usa
+> `v2/docs/RETOMAR_COLABORADOR.md` y `v2/scripts/actualizar_colaborador.ps1`, que **respalda primero**
+> tus datos de operación, tu trabajo sin confirmar y tu configuración, y después actualiza, reinstala
+> dependencias y corre el gate. Qué cambió mientras no estabas:
+> `PLAN/notas/CAMBIOS_2026-10-15_a_2026-10-22.md`.
 
 ## 2. Acceso a GitHub
 
