@@ -58,6 +58,9 @@ def squad_view(rows: list[BotSignal], cards: dict, sc: dict | None, policy: Squa
         "quarantine": quarantined}
 
 
+BOT_STORE_TFS = ("5m",)   # marcos con posturas guardadas que no son de la UI
+
+
 def build_bots_router(store: BotSignalStore, service: BotService,
                       scorer: BotScorer | None = None) -> APIRouter:
     router = APIRouter()
@@ -78,7 +81,9 @@ def build_bots_router(store: BotSignalStore, service: BotService,
     def signals(symbol: str = "ETHUSDT", tf: str = "1h", bot: str | None = None,
                 start: int | None = None, end: int | None = None,
                 limit: int = Query(200, ge=1, le=2000)) -> dict:
-        if symbol not in SYMBOLS or tf not in TF_MS:
+        """Posturas guardadas. Admite también `5m` (marco de NFI, solo de almacén): se sirven
+        las filas de `bot_signals`, no se calcula nada."""
+        if symbol not in SYMBOLS or (tf not in TF_MS and tf not in BOT_STORE_TFS):
             raise HTTPException(400, f"símbolo o marco no soportado: {symbol} {tf}")
         rows = store.query(symbol, tf, start, end, bot, limit)
         return {"mode": MODE_NOTE, "signals": [s.model_dump() for s in rows]}

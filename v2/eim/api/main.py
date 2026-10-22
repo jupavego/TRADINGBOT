@@ -92,7 +92,8 @@ def create_app(
         history = HistoryLoader(store, BinanceFutures())
     # T57: modo A siempre; modo B solo si el entorno aparte de Freqtrade está configurado.
     bot_store = BotSignalStore(*reports.connection)
-    bots = default_service(cfg.data_dir, bot_store)
+    bots = default_service(cfg.data_dir, bot_store, lambda sym, tf, last_t, n: store.read_candles(
+        sym, tf, end=last_t + 1, last=n))   # Jesse/TrendRider piden más velas que el snapshot
     hub = Hub(src, store, reports, reg, cfg.snapshot_bars, cfg.agent_timeout_s, forecaster, history,
               bots)
     obs_store, obs_indexer, obs_dbs = build_observatory(cfg.data_dir, reports)   # T73

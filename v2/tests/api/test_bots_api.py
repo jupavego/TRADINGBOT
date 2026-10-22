@@ -65,6 +65,10 @@ def test_after_a_run_the_agent_has_evidence_and_signals_are_persisted(client):
 
 def test_signals_route_validates_and_catalog_lists_only_usable(client):
     assert client.get("/v2/bots/signals", params={"symbol": "XXX"}).status_code == 400
+    q = {"symbol": "BTCUSDT"}
+    ok5 = client.get("/v2/bots/signals", params={**q, "tf": "5m"})   # 5m: lee lo guardado
+    assert ok5.status_code == 200 and ok5.json()["signals"] == []
+    assert client.get("/v2/bots/signals", params={**q, "tf": "1m"}).status_code == 400
     cat = client.get("/v2/bots/catalog").json()
     assert {b["id"] for b in cat["bots"]} == {
         "hummingbot-directional", "freqtrade", "freqtrade-strategies", "passivbot",

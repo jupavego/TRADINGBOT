@@ -173,3 +173,70 @@ def test_snapshot_with_an_unclosed_candle_produces_no_signals():
 def test_split_version():
     from eim.bots.adapter import split_version
     assert split_version("a" * 40 + "+0123456789ab") == ("a" * 40, "0123456789ab")
+
+
+def test_append_many_batches_with_the_same_contract(store):
+    base = one_signal()
+    sigs = [base.model_copy(update={"asof": base.asof + i * 3_600_000}) for i in range(1200)]
+    assert store.append_many(sigs, NOW) == 1200
+    changed = [s.model_copy(update={"stance": -1.0}) for s in sigs[:10]]
+    new = base.model_copy(update={"asof": sigs[-1].asof + 1})
+    assert store.append_many([*changed, new], NOW + 5) == 1   # solo la nueva; nada se reescribe
+    assert store.query("ETHUSDT", "1h", limit=5000)[0].stance == sigs[0].stance
+    created = {r[0] for r in store._con.execute("SELECT created_ms FROM bot_signals").fetchall()}
+    assert created == {NOW, NOW + 5}                         # created_ms original de cada fila
+    with pytest.raises(ValueError, match="posterior"):
+        store.append_many([sigs[0].model_copy(update={"asof": NOW + 1})], NOW)
+    assert store._con.execute("SELECT count(*) FROM bot_signals").fetchone()[0] == 1201
+
+
+def test_query_lean_keeps_what_scoring_uses(store):
+    sigs = HummingbotDirectionalAdapter().signals(snapshot(300))
+    store.append_many(sigs, NOW)
+    full = {(s.strategy): (s, c) for s, c in store.query_all("ETHUSDT", "1h")}
+    for lean, c in store.query_lean("ETHUSDT", "1h"):
+        ref, c0 = full[lean.strategy]
+        assert (lean.bot_id, lean.version, lean.asof, lean.stance, lean.confidence,
+                lean.horizon_bars, lean.status, lean.timeframe, c) == \
+               (ref.bot_id, ref.version, ref.asof, ref.stance, ref.confidence,
+                ref.horizon_bars, ref.status, ref.timeframe, c0)
+        assert not hasattr(lean, "raw")
+
+
+def test_service_gives_history_only_to_adapters_that_ask_for_it():
+    from eim.core import MarketSnapshot
+
+    big = candles()
+    seen: dict[str, int] = {}
+
+    class Greedy:
+        card = card_of("hummingbot-directional")
+        history_bars = 900
+        timeframes = ("1h",)
+
+        def signals(self, snap):
+            seen["greedy"] = len(snap.candles)
+            return []
+
+    class Modest(Greedy):
+        history_bars = 0
+
+        def signals(self, snap):
+            seen["modest"] = len(snap.candles)
+            return []
+
+    calls = []
+
+    def loader(sym, tf, last_t, n):
+        calls.append((sym, tf, last_t, n))
+        return [c for c in big if c.t <= last_t][-n:]
+
+    base = snapshot(cs=candles()[400:])
+    svc = BotService([Greedy(), Modest()], None, history=loader)
+    svc.produce(base)
+    assert seen == {"greedy": 900, "modest": 600} and len(calls) == 1
+    # si las velas del almacén no terminan en la del snapshot, no se toca
+    seen.clear()
+    BotService([Greedy()], None, history=lambda *a: big[:30]).produce(base)
+    assert seen == {"greedy": 600}
+    assert isinstance(base, MarketSnapshot) and len(base.candles) == 600
