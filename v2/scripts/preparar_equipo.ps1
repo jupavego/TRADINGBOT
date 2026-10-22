@@ -15,6 +15,12 @@ $v2 = Split-Path -Parent $PSScriptRoot
 function Requiere([string]$cmd, [string]$ayuda) {
   if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { throw "Falta '$cmd'. $ayuda" }
 }
+
+# Los ejecutables (pip, npm, ruff, pytest) no disparan $ErrorActionPreference: hay que mirar su
+# código de salida o el script sigue adelante como si nada.
+function Comprueba([string]$paso) {
+  if ($LASTEXITCODE -ne 0) { throw "$paso falló (código $LASTEXITCODE). Revisa la salida anterior." }
+}
 Requiere git "winget install Git.Git"
 Requiere python "winget install Python.Python.3.12 (marca Add to PATH)"
 Requiere node "winget install OpenJS.NodeJS.LTS"
@@ -27,15 +33,15 @@ if ([int](node -p "process.versions.node.split('.')[0]") -lt 20) { throw "Se nec
 Push-Location $v2
 try {
   git config --global --add safe.directory "*"
-  if (-not (Test-Path .venv)) { python -m venv .venv }
+  if (-not (Test-Path .venv)) { python -m venv .venv; Comprueba "python -m venv" }
   $venvPy = Join-Path $v2 ".venv\Scripts\python.exe"
-  & $venvPy -m pip install -U pip
-  & $venvPy -m pip install -r requirements-lock.txt
-  & $venvPy -m pip install -e . --no-deps
-  Push-Location eim\web; npm ci; Pop-Location
+  & $venvPy -m pip install -U pip; Comprueba "pip install -U pip"
+  & $venvPy -m pip install -r requirements-lock.txt; Comprueba "pip install -r requirements-lock.txt"
+  & $venvPy -m pip install -e . --no-deps; Comprueba "pip install -e ."
+  Push-Location eim\web; npm ci; Comprueba "npm ci"; Pop-Location
   if (-not $SinGate) {
-    & $venvPy -m ruff check eim tests
-    & $venvPy -m pytest -q
+    & $venvPy -m ruff check eim tests; Comprueba "ruff check"
+    & $venvPy -m pytest -q; Comprueba "pytest"
   }
   Write-Host "`nEquipo listo. Siguiente: restaurar datos (docs/MIGRACION_EQUIPO.md) y crear_acceso_escritorio.ps1."
 } finally { Pop-Location }
