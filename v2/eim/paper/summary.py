@@ -81,7 +81,8 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         tr, [{"elapsed_h": (x["ladder"]["elapsed_ms"] / 3_600_000)} for x in pos
              if x.get("ladder")], len(st.violations),
         sum(1 for x in pos if x.get("ladder", {}).get("incident")),
-        p.ladder.first_usdt, p.ladder.step_usdt) | {"brake": st.lrisk.to_json(now)}}
+        *p.ladder.steps(st.equity * p.risk_pct)) | {"brake": st.lrisk.to_json(now),
+            "basis": p.ladder.basis, "first_r": p.ladder.first_r, "step_r": p.ladder.step_r}}
            if p.exit_mode == "ladder" and p.ladder else {})
     return {
         **lad,

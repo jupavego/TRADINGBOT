@@ -22,7 +22,13 @@ from eim.paper.feedback import Learner, family_stats, strategy_stats, timeframe_
 from eim.paper.generate import CtxGenerator, now_ms
 from eim.paper.insights import insights
 from eim.paper.ladder_book import LadderSim
-from eim.paper.params import FAMILIES, PROFILES, ExecParams, ProfileParams
+from eim.paper.params import (
+    FAMILIES,
+    PROFILES,
+    ExecParams,
+    ProfileParams,
+    check_profiles,
+)
 from eim.paper.service import WARMUP_BARS, DeskService, Job
 from eim.paper.summary import profile_summary
 from eim.paper.trend import HtfTrend
@@ -62,6 +68,7 @@ class PaperDesk(DeskService):
         self.tfs = self.ep.timeframes
         self.profiles, self.provider = profiles, provider
         self.symbols, self.poll_s = symbols, poll_s
+        check_profiles(self.profiles, self.symbols)   # T108: configuración inválida = no arranca
         self.gens = {tf: CtxGenerator(store, registry, tf) for tf in self.tfs}
         self.job = Job()
         self.live_error = ""

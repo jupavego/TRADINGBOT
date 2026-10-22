@@ -1,11 +1,13 @@
-"""Protección progresiva de ganancias (perfil PPP): SL dinámico por escalones de beneficio neto.
+"""Protección progresiva de ganancias (PPP): SL dinámico por escalones de beneficio neto.
 
 Reglas (deterministas; ningún agente las toca una vez abierta la posición):
 - Fase A: manda el SL inicial (el de la idea, dimensionado por riesgo).
-- Fase B: cuando el beneficio NETO estimado máximo llega a `first_usdt` (10) se activa la
-  protección y el SL pasa al precio cuyo neto es ese nivel; cada `step_usdt` (5) más de beneficio
-  máximo sube un escalón (10, 15, 20, …). Sin TP final y sin cierre por tiempo: solo cierra el
-  SL vigente. La protección nunca baja, ni vuelve a la entrada.
+- Fase B: cuando el beneficio NETO estimado máximo llega al primer escalón se activa la
+  protección y el SL pasa al precio cuyo neto es ese nivel; cada incremento más de beneficio
+  máximo sube un escalón. El par (primer escalón, incremento) lo resuelve `LadderParams.steps`
+  con el riesgo de ESA operación: fijo en USDT (control) o como fracción del riesgo (◆6 de T106).
+  Sin TP final y sin cierre por tiempo: solo cierra el SL vigente. La protección nunca baja, ni
+  vuelve a la entrada.
 - Beneficio neto estimado de salir a un precio `p` (misma contabilidad que `engine.Outcome.net`,
   en USDT con `qty` BTC y entrada `f`):
       neto(p) = qty·(lado·(p − f) − fee_sal·p) − qty·f·(fee_ent + desl_ent + desl_sal + funding)
@@ -37,7 +39,7 @@ import numpy as np
 
 from eim.paper.engine import Outcome, Path, _funding, _limit_fill, _slip, _stop_exit, _with_r
 from eim.paper.ideas import Idea
-from eim.paper.params import ExecParams, LadderParams
+from eim.paper.params import ExecParams, LadderParams, SymbolSpec
 
 EPS = 1e-9
 
@@ -77,20 +79,20 @@ def protect_price(side: int, qty: float, fill: float, level: float, funding: flo
     return round(n * tick, 8)
 
 
-def level_of(max_float: float, lp: LadderParams) -> int:
+def level_of(max_float: float, first: float, step: float) -> int:
     """Escalón confirmado por el beneficio neto máximo (0 = aún sin protección)."""
-    if max_float + EPS < lp.first_usdt:
+    if max_float + EPS < first:
         return 0
-    return 1 + int(math.floor((max_float - lp.first_usdt) / lp.step_usdt + EPS))
+    return 1 + int(math.floor((max_float - first) / step + EPS))
 
 
-def nominal(level: int, lp: LadderParams) -> float:
+def nominal(level: int, first: float, step: float) -> float:
     """Beneficio neto nominal protegido por un escalón (10, 15, 20, …)."""
-    return lp.first_usdt + (level - 1) * lp.step_usdt if level > 0 else 0.0
+    return first + (level - 1) * step if level > 0 else 0.0
 
 
-def floor_qty(qty: float, lp: LadderParams) -> float:
-    return math.floor(qty / lp.qty_step + EPS) * lp.qty_step
+def floor_qty(qty: float, qty_step: float) -> float:
+    return math.floor(qty / qty_step + EPS) * qty_step
 
 
 def costs_for(fee_in: float, slip_in: float, ep: ExecParams) -> LadderCosts:
@@ -118,18 +120,19 @@ class _Run:
     """Estado vivo de la escalera: SL vigente, escalón, máximo flotante e historial."""
 
     def __init__(self, s: int, qty: float, fill: float, c: LadderCosts, stop: float,
-                 lp: LadderParams) -> None:
-        self.s, self.qty, self.fill, self.c0, self.lp = s, qty, fill, c, lp
+                 first: float, step: float, tick: float) -> None:
+        self.s, self.qty, self.fill, self.c0 = s, qty, fill, c
+        self.first, self.step_usd, self.tick = first, step, tick
         self.stop, self.level, self.max_float, self.hist, self.c_stop = stop, 0, -math.inf, [], c
 
     def peek(self, fav: float, fund: float, cj: LadderCosts) -> tuple[float, int, float | None]:
         """(máx. flotante, escalón, nuevo SL o None) si el precio llegara a `fav`; no muta."""
         mf = max(self.max_float, net_usd(self.s, self.qty, self.fill, fav, fund, cj))
-        new = level_of(mf, self.lp)
+        new = level_of(mf, self.first, self.step_usd)
         if new <= self.level:
             return mf, self.level, None
-        p = protect_price(self.s, self.qty, self.fill, nominal(new, self.lp), fund, cj,
-                          self.lp.tick)
+        p = protect_price(self.s, self.qty, self.fill, nominal(new, self.first, self.step_usd),
+                          fund, cj, self.tick)
         ok = (p - self.stop) * self.s > 0 and (fav - p) * self.s >= 0   # solo sube, demostrado
         return mf, new, p if ok else None
 
@@ -137,7 +140,8 @@ class _Run:
         self.max_float, new, p = got
         if p is not None:
             self.stop, self.level, self.c_stop = p, new, cj
-            self.hist.append({"t": end, "level": new, "nominal": nominal(new, self.lp),
+            self.hist.append({"t": end, "level": new,
+                              "nominal": nominal(new, self.first, self.step_usd),
                               "stop": p, "max_float": self.max_float})
 
 
@@ -170,9 +174,12 @@ def _fine_covers(fine: Path | None, t0: int, step: int) -> bool:
 
 
 def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qty: float,
-                    fine: Path | None = None) -> Outcome:
+                    fine: Path | None = None, *, spec: SymbolSpec) -> Outcome:
     """Simula la operación con SL inicial y escalera de protección (sin TP ni tiempo).
 
+    `spec` es la ficha del instrumento (tick del símbolo, T108): el SL se redondea con el tick de
+    SU símbolo, nunca con el de otro. Los escalones se resuelven para ESTA operación con
+    `lp.steps(riesgo en USDT)`, así que con `basis="r"` dependen del riesgo realmente abierto.
     `fine` (velas de 1 min) resuelve el orden real de los precios SOLO en las velas de 15 m
     ambiguas (las que pueden subir el SL y volver a tocarlo); sin datos finos se usa la regla
     conservadora descrita arriba.
@@ -190,7 +197,8 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
     if (fill - idea.sl) * s <= ep.min_risk_frac * fill:
         return Outcome(idea, "RECHAZADA", "GEOMETRIA", exit_t=fill_t, fill=fill)
     risk = abs(fill - idea.sl)
-    run = _Run(s, qty, fill, costs_for(fee_in, slip_in, ep), idea.sl, lp)
+    first, step_usd = lp.steps(qty * risk)        # escalones de ESTA operación (◆6: en R o fijos)
+    run = _Run(s, qty, fill, costs_for(fee_in, slip_in, ep), idea.sl, first, step_usd, spec.tick)
     reserve = max(0.0, s * ep.funding_8h_assumed) * lp.funding_reserve   # reserva de funding
     incident, fine_bars = "", 0
     reason, ex, jx, ex_t, last_ok = "", None, None, None, k
@@ -229,7 +237,9 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
     hi, lo = float(path.h[k:end_i + 1].max()), float(path.l[k:end_i + 1].min())
     mfe = max(0.0, ((hi if s > 0 else lo) - fill) * s) / risk
     mae = max(0.0, (fill - (lo if s > 0 else hi)) * s) / risk
-    info = {"qty": qty, "level": run.level, "nominal_usd": nominal(run.level, lp),
+    info = {"qty": qty, "level": run.level,
+            "nominal_usd": nominal(run.level, first, step_usd),
+            "first_usd": first, "step_usd": step_usd,
             "max_float_usd": None if run.max_float == -math.inf else run.max_float,
             "stop": run.stop, "initial_sl": idea.sl, "stop_history": run.hist,
             "incident": incident, "levels": [h_["nominal"] for h_ in run.hist],

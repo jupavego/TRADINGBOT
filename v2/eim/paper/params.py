@@ -70,20 +70,66 @@ class FeedbackParams(BaseModel):
     observe_w: float = 0.5
 
 
-class LadderParams(BaseModel):
-    """Protección progresiva de ganancias (perfil `ppp_btcusdt`): SL dinámico por escalones.
+class SymbolSpec(BaseModel):
+    """Precisión del instrumento: filtros reales del perpetuo USDⓈ-M (T108, A6 de T106).
 
-    Los escalones se miden en beneficio NETO estimado (tras comisiones, deslizamiento y funding),
-    no en precio. Los tres «prohibidos» son configuración visible pero no se pueden activar: la
-    estrategia no tiene TP final, ni cierre por tiempo, ni dinero real (`ladder.py` los respeta).
+    Antes vivían como constantes de BTCUSDT dentro de `LadderParams`; con ETHUSDT en la mesa
+    (◆2) el redondeo del SL y de la cantidad tiene que ser el del símbolo, no el de BTC.
     """
 
     model_config = ConfigDict(frozen=True)
 
-    first_usdt: float = 10.0         # beneficio neto que activa la protección (primer escalón)
-    step_usdt: float = 5.0           # cada +5 USDT de beneficio máximo eleva un escalón
-    tick: float = 0.1                # precisión del precio (BTCUSDT perpetuo)
-    qty_step: float = 0.001          # precisión de la cantidad (BTC)
+    tick: float          # PRICE_FILTER.tickSize
+    qty_step: float      # LOT_SIZE.stepSize
+    min_qty: float       # LOT_SIZE.minQty
+
+    @model_validator(mode="after")
+    def _positive(self) -> SymbolSpec:
+        if self.tick <= 0 or self.qty_step <= 0 or self.min_qty <= 0:
+            raise ValueError("tick, qty_step y min_qty deben ser positivos")
+        return self
+
+
+# Consultados en `fapi/v1/exchangeInfo` el 2026-10-22 (PERPETUAL). Un símbolo sin ficha no puede
+# operar con escalera: `spec_for` falla con el motivo en vez de redondear con el paso de otro.
+SYMBOL_SPECS: dict[str, SymbolSpec] = {
+    "BTCUSDT": SymbolSpec(tick=0.1, qty_step=0.001, min_qty=0.001),
+    "ETHUSDT": SymbolSpec(tick=0.01, qty_step=0.001, min_qty=0.001),
+}
+
+
+def spec_for(symbol: str) -> SymbolSpec:
+    """Ficha del instrumento; falla con el motivo si el símbolo no la declara."""
+    spec = SYMBOL_SPECS.get(symbol)
+    if spec is None:
+        raise ValueError(f"{symbol} no declara tick ni paso de cantidad en SYMBOL_SPECS: "
+                         "un perfil con protección progresiva no puede operarlo")
+    return spec
+
+
+class LadderParams(BaseModel):
+    """Protección progresiva de ganancias: SL dinámico por escalones de beneficio neto.
+
+    Los escalones se miden en beneficio NETO estimado (tras comisiones, deslizamiento y funding),
+    no en precio, y su tamaño se expresa de dos maneras (◆6 de T106):
+    - `basis="r"`: fracción del RIESGO de cada operación (lo único comparable entre perfiles con
+      riesgo distinto y lo único que no se desajusta cuando cambia el capital);
+    - `basis="usdt"`: cantidad fija, como el perfil de control `ppp_btcusdt`, que no cambia.
+    `steps()` resuelve el par (primer escalón, incremento) en USDT para una operación concreta.
+    Los tres «prohibidos» son configuración visible pero no se pueden activar: la estrategia no
+    tiene TP final, ni cierre por tiempo, ni dinero real (`ladder.py` los respeta).
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    basis: Literal["usdt", "r"] = "usdt"
+    first_usdt: float = 10.0         # basis "usdt": beneficio neto que activa la protección
+    step_usdt: float = 5.0           # basis "usdt": cada +5 USDT de máximo eleva un escalón
+    first_r: float = 0.0             # basis "r": primer escalón en fracciones del riesgo
+    step_r: float = 0.0              # basis "r": incremento en fracciones del riesgo
+    # ◆3 de T106: BE+ y los escalones conviven; el stop vigente es el MEJOR de los dos y nunca
+    # retrocede. Aquí se DECLARA; el motor lo honra en T109 (hoy `ladder.py` solo usa escalones).
+    be_with_ladder: bool = False
     min_target_vs_first: float = 1.0  # el objetivo de la idea (solo estimación) debe cubrir ≥ ×
     # Reservas del SL para que el neto realizado se parezca al nominal: deslizamiento de salida =
     # el MAYOR de las últimas `slip_lookback` velas (ya conocidas) y funding de `funding_reserve`
@@ -105,13 +151,21 @@ class LadderParams(BaseModel):
     def _forbidden(self) -> LadderParams:
         if self.fixed_take_profit or self.time_exit or self.real_money:
             raise ValueError("PPP no admite TP fijo, cierre por tiempo ni dinero real")
-        if self.first_usdt <= 0 or self.step_usdt <= 0 or self.tick <= 0 or self.qty_step <= 0:
-            raise ValueError("first_usdt, step_usdt, tick y qty_step deben ser positivos")
+        if self.basis == "usdt" and not (self.first_usdt > 0 and self.step_usdt > 0):
+            raise ValueError("con basis 'usdt', first_usdt y step_usdt deben ser positivos")
+        if self.basis == "r" and not (self.first_r > 0 and self.step_r > 0):
+            raise ValueError("con basis 'r', first_r y step_r deben ser positivos")
         if self.slip_lookback < 1 or self.funding_reserve < 0 or self.pause_hours < 0:
             raise ValueError("slip_lookback ≥ 1, funding_reserve ≥ 0 y pause_hours ≥ 0")
         if self.max_consec_losses < 1 or not 0 < self.max_drawdown < 1:
             raise ValueError("max_consec_losses ≥ 1 y 0 < max_drawdown < 1")
         return self
+
+    def steps(self, risk_usd: float) -> tuple[float, float]:
+        """(primer escalón, incremento) en USDT para una operación que arriesga `risk_usd`."""
+        if self.basis == "r":
+            return self.first_r * risk_usd, self.step_r * risk_usd
+        return self.first_usdt, self.step_usdt
 
 
 class ProfileParams(BaseModel):
@@ -162,6 +216,29 @@ class ProfileParams(BaseModel):
     feedback: FeedbackParams = FeedbackParams()
     caps: CapParams = CapParams()    # topes de riesgo (apagados por defecto)
 
+    @model_validator(mode="after")
+    def _coherent(self) -> ProfileParams:
+        if self.exit_mode == "ladder" and self.ladder is None:
+            raise ValueError(f"{self.id}: exit_mode 'ladder' exige parámetros de escalera")
+        if self.ladder is not None:
+            for s in self.symbols or ():
+                spec_for(s)          # falla aquí, al construir el perfil, no al operar
+        return self
+
+
+# Escalera por perfil (T108). Los umbrales van en R (◆6 de T106) porque en USDT los tres perfiles
+# no son comparables: con 10.000 USDT de capital, +5 USDT son 0,100 R en el Conservador (riesgo
+# 0,5 %) pero +15 USDT son solo 0,075 R en el Agresivo (riesgo 2 %), así que el Agresivo
+# protegería ANTES que el Conservador. Estos valores son la traducción exacta a R de los
+# 5/2,5 · 10/5 · 15/7,5 USDT del encargo, con el capital inicial: son el punto de partida del
+# experimento, no un óptimo. T111 mide la sensibilidad (0,1 · 0,25 · 0,5 · 1,0 R) y decide.
+# `be_with_ladder=True` por ◆3: BE+ y escalones conviven (el motor lo honra en T109).
+LADDER_BY_PROFILE: dict[str, LadderParams] = {
+    "conservador": LadderParams(basis="r", first_r=0.100, step_r=0.050, be_with_ladder=True),
+    "moderado": LadderParams(basis="r", first_r=0.100, step_r=0.050, be_with_ladder=True),
+    "agresivo": LadderParams(basis="r", first_r=0.075, step_r=0.0375, be_with_ladder=True),
+}
+
 
 # Evidencia en sombra (BTC y ETH, 3–21 oct 2026, reports/profile_caps.md): con tope 3 % + freno 5 %
 # el Agresivo en BTC pasa de −52 % a −14 % (ETH +12 % → +9 %); el Moderado de −11 % a −10 %.
@@ -180,6 +257,7 @@ PROFILES: tuple[ProfileParams, ...] = (
                             "base"}),
         allow_hedge=False, follow_synthesis=True, max_cost_r=0.12, require_htf=True,
         # solo lo ya probado: sin peso en observación y pausa ante expectativa negativa
+        ladder=LADDER_BY_PROFILE["conservador"],
         feedback=FeedbackParams(gain=1.0, w_min=0.25, w_max=1.5, n_min=10, z_pause=0.0,
                                 observe_w=0.0)),
     ProfileParams(
@@ -193,6 +271,7 @@ PROFILES: tuple[ProfileParams, ...] = (
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
                             "base"}),
         allow_hedge=True, follow_synthesis=False, max_cost_r=0.15, require_htf=True,
+        ladder=LADDER_BY_PROFILE["moderado"],
         feedback=FeedbackParams(z_pause=0.0, observe_w=0.25), caps=PROFILE_CAPS),
     ProfileParams(
         id="agresivo", name="Agresivo",
@@ -205,6 +284,7 @@ PROFILES: tuple[ProfileParams, ...] = (
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
                             "base", "contrarias"}),
         allow_hedge=True, follow_synthesis=False, max_cost_r=0.2, require_htf=True,
+        ladder=LADDER_BY_PROFILE["agresivo"],
         feedback=FeedbackParams(gain=2.5, w_min=0.25, w_max=3.0, half_life=20, n_min=6,
                                 z_pause=0.0, observe_w=0.5), caps=PROFILE_CAPS),
 )
@@ -229,3 +309,25 @@ PROFILES = PROFILES + (
         feedback=FeedbackParams(gain=0.0, w_min=1.0, w_max=1.0, n_min=8, z_pause=0.0,
                                 observe_w=1.0)),
 )
+
+
+def check_profiles(profiles: tuple[ProfileParams, ...], symbols: tuple[str, ...]) -> None:
+    """Comprobación de arranque (T108): falla fuerte y con el motivo exacto.
+
+    La llama la mesa al construirse, así que una configuración insegura impide arrancar la API y
+    el servicio en vez de degradarlos: identificadores repetidos, perfil en modo escalera sin
+    parámetros y símbolo de la mesa sin ficha de instrumento para un perfil con escalera.
+    """
+    ids = [p.id for p in profiles]
+    if len(set(ids)) != len(ids):
+        raise ValueError(f"perfiles con identificador repetido: {sorted(ids)}")
+    for p in profiles:
+        if p.exit_mode == "ladder" and p.ladder is None:
+            raise ValueError(f"{p.id}: exit_mode 'ladder' exige parámetros de escalera")
+        if p.ladder is None:
+            continue
+        for s in p.symbols or symbols:
+            try:
+                spec_for(s)
+            except ValueError as e:
+                raise ValueError(f"{p.id}: {e}") from None
