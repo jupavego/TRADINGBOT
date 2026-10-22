@@ -20,3 +20,8 @@ v2/**/*.epub
 
 # T32: copias de seguridad locales (pueden contener el historial de operación)
 v2/backups/
+
+# Paquetes de traslado y respaldos locales (contienen variables EIM_* en claro)
+v2/EIM_migracion/
+EIM_migracion/
+EIM_respaldos/
