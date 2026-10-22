@@ -54,6 +54,49 @@ function Apagado([System.Drawing.Icon]$ico) {
 }
 $icoMuerto = Apagado $icoVivo
 
+# --- avisos: se leen de los registros JSONL que ya escribe `JsonLog` y salen por ESTE icono,
+# en vez de que `eim/operation/notify.py` lance un PowerShell por aviso (de ahi el rotulo
+# "Windows PowerShell" de los globos antiguos). `servicio_continuo.ps1` pone EIM_NOTIFY=0.
+$raices = @((Join-Path $v2 "data\operation\logs"), (Join-Path $v2 "data\leaders\logs"))
+$micro = Join-Path $v2 "data\micro"
+if (Test-Path $micro) {
+  $raices += (Get-ChildItem $micro -Directory -ErrorAction SilentlyContinue |
+              ForEach-Object { Join-Path $_.FullName "logs" })
+}
+$posicion = @{}   # fichero -> bytes ya leidos; en el primer vistazo no se repite la historia
+
+function AvisosNuevos {
+  $out = @()
+  $desde = (Get-Date).ToUniversalTime().AddDays(-2)
+  foreach ($r in $raices) {
+    if (-not (Test-Path $r)) { continue }
+    foreach ($f in Get-ChildItem $r -Filter "op-*.jsonl" -ErrorAction SilentlyContinue |
+                   Where-Object { $_.LastWriteTimeUtc -gt $desde }) {
+      $len = $f.Length
+      $pos = if ($posicion.ContainsKey($f.FullName)) { $posicion[$f.FullName] } else { $len }
+      $posicion[$f.FullName] = $len
+      if ($len -le $pos) { continue }
+      $txt = ""
+      try {
+        # ReadWrite: el proceso que escribe lo tiene abierto.
+        $fs = [System.IO.File]::Open($f.FullName, "Open", "Read", "ReadWrite")
+        try {
+          [void]$fs.Seek($pos, "Begin")
+          $txt = (New-Object System.IO.StreamReader($fs, [System.Text.Encoding]::UTF8)).ReadToEnd()
+        } finally { $fs.Dispose() }
+      } catch { continue }
+      foreach ($l in ($txt -split "`n")) {
+        $l = $l.Trim()
+        if (-not $l) { continue }
+        try { $o = $l | ConvertFrom-Json } catch { continue }
+        if ($o.event -ne "alerta") { continue }
+        if ($o.level -eq "warn" -or $o.level -eq "critical" -or $o.resolved) { $out += $o }
+      }
+    }
+  }
+  $out
+}
+
 # --- menu ---
 $menu = New-Object System.Windows.Forms.ContextMenuStrip
 function Opcion([string]$texto, [scriptblock]$hacer) {
@@ -113,12 +156,27 @@ function Revisar {
   $mArrancar.Enabled = -not $vivo
   $mParar.Enabled = $vivo
 
-  if ($null -ne $script:anterior -and $script:anterior -ne $vivo) {
+  $cambio = ($null -ne $script:anterior -and $script:anterior -ne $vivo)
+  if ($cambio) {
     $icono.BalloonTipTitle = if ($vivo) { "EIM activo" } else { "EIM sin respuesta" }
     $icono.BalloonTipText = $detalle
+    $icono.BalloonTipIcon = if ($vivo) { "Info" } else { "Warning" }
     $icono.ShowBalloonTip(4000)
   }
   $script:anterior = $vivo
+
+  # Un globo por vuelta como mucho: el ultimo aviso, diciendo cuantos van si hay varios.
+  $avisos = @(AvisosNuevos)
+  if ($avisos.Count -gt 0 -and -not $cambio) {
+    $a = $avisos[-1]
+    $mas = if ($avisos.Count -gt 1) { " (+" + ($avisos.Count - 1) + " mas)" } else { "" }
+    $t2 = "EIM - " + $a.title
+    if ($t2.Length -gt 63) { $t2 = $t2.Substring(0, 60) + "..." }
+    $icono.BalloonTipTitle = $t2
+    $icono.BalloonTipText = (("" + $a.detail) + $mas).Trim()
+    $icono.BalloonTipIcon = if ($a.resolved) { "Info" } elseif ($a.level -eq "critical") { "Error" } else { "Warning" }
+    $icono.ShowBalloonTip(6000)
+  }
 }
 
 $reloj = New-Object System.Windows.Forms.Timer
