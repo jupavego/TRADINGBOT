@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from eim.backtest.params import CostParams
 from eim.paper.caps import CapParams
@@ -121,6 +121,10 @@ class ProfileParams(BaseModel):
     name: str
     description: str
     initial_equity: float = 10_000.0
+    # Suelo de la cuenta (T107): con el capital REALIZADO en esta fracción del inicial o por
+    # debajo, el perfil queda AGOTADO: deja de abrir y mantiene lo abierto hasta su cierre. Por
+    # debajo de ese suelo el riesgo por operación no alcanza para nada negociable. Sin recargas.
+    min_equity_frac: float = Field(0.01, ge=0.0, lt=1.0)
     risk_pct: float                  # fracción del capital arriesgada hasta el SL (× peso)
     max_leverage: int
     max_open: int                    # posiciones + órdenes abiertas a la vez

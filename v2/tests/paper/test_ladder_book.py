@@ -103,7 +103,9 @@ def test_restart_recomputation_is_identical():
     assert slot.o.ladder == again.o.ladder and slot.o.ladder["level"] >= 2   # no pierde escalones
 
 
-def test_forged_time_or_tp_close_is_a_violation_not_a_result():
+def test_forged_time_or_tp_close_is_a_violation_but_the_money_is_accounted():
+    """Un cierre que viola las reglas de la escalera se audita como violación, pero su PnL SÍ
+    entra en la cuenta: descartarlo (lo que hacía hasta T107) hacía desaparecer el dinero."""
     st = build(UP)
     t = st.trades[0]
     o = simulate(btc_idea(), path_of(UP), EP)
@@ -115,9 +117,12 @@ def test_forged_time_or_tp_close_is_a_violation_not_a_result():
                             50.0, filled=True)
     fresh.used = 800.0
     _close(fresh, replace(ladder_o, idea=replace(o.idea, id="x")))
-    assert fresh.trades == [] and fresh.equity == 10_000.0 and fresh.used == 0.0
+    (bad,) = fresh.trades
+    assert bad["reason"] == "TIEMPO" and bad["violation"] and fresh.used == 0.0
+    assert bad["pnl"] == pytest.approx(bad["notional"] * ladder_o.net) != 0
+    assert fresh.equity == pytest.approx(10_000.0 + bad["pnl"])    # el dinero no desaparece
     assert fresh.violations and "tiempo" in fresh.violations[0]["reasons"][0]
-    assert fresh.events[-1]["cat"] == "violacion" and t["reason"] == "SLD"
+    assert [e["cat"] for e in fresh.events] == ["violacion", "tiempo"] and t["reason"] == "SLD"
 
 
 def test_summary_and_metrics():

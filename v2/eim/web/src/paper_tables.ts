@@ -12,8 +12,10 @@ const stratCell = (sid: string, names: Names, origin: string, tf: string, floor 
   (origin === 'vivo' ? ' <span class="pp-live">vivo</span>' : '') +
   (floor ? ' <span class="pp-live" title="Entró para cumplir el mínimo de operaciones abiertas del perfil (riesgo reducido)">mínimo</span>' : '')
 
-/** PnL no realizado con un precio dado (el costo ya devengado se descuenta). */
-export const upnlAt = (p: Position, price: number): number => p.side * p.qty * (price - p.entry) - p.cost_usd
+/** PnL no realizado con un precio dado (el costo ya devengado se descuenta). Margen aislado: la
+ * pérdida flotante no puede pasar del margen, igual que en la contabilidad del servidor. */
+export const upnlAt = (p: Position, price: number): number =>
+  Math.max(p.side * p.qty * (price - p.entry) - p.cost_usd, -p.margin)
 
 export function positionsTable(ps: Position[], names: Names, sym: string, price: number | null, focus: string | null): string {
   if (!ps.length) return '<p class="muted">Sin posiciones abiertas en este perfil.</p>'
@@ -26,7 +28,7 @@ export function positionsTable(ps: Position[], names: Names, sym: string, price:
       `<td class="num">${qty(p.qty, sym)}<br><small class="muted">${nf(p.qty * mark)} USDT</small></td>` +
       `<td class="num">${px(p.entry)}</td>` +
       `<td class="num" data-mark>${px(mark)}</td>` +
-      `<td class="num warn">${px(p.liq)}</td>` +
+      `<td class="num warn">${px(p.liq)}${p.liq_why ? ` <span class="down" title="${esc(p.liq_why)}">⚠</span>` : ''}</td>` +
       `<td class="num">${nf(p.margin)}<br><small class="muted">riesgo ${nf(p.risk_usd)} · peso ${nf(p.weight, 2)}</small></td>` +
       `<td class="num ${tone(u)}" data-upnl>${usd(u)} USDT<br><small>${pct(p.margin ? u / p.margin : null)}</small></td>` +
       `<td class="num">${tpSl(p)}</td>` +
@@ -36,7 +38,7 @@ export function positionsTable(ps: Position[], names: Names, sym: string, price:
   return `<div class="pp-scroll"><table class="pp-t"><thead><tr><th>Estrategia · lado</th><th>Tamaño</th><th>Entrada</th>` +
     `<th>Precio de marca</th><th>Liq. (aprox.)</th><th>Margen</th><th>PnL no realizado (ROE)</th><th>TP / SL</th>` +
     `<th>Abierta</th><th>Vence (por tiempo)</th></tr></thead><tbody>${rows}</tbody></table></div>` +
-    '<p class="muted pp-note">Clic en una fila para ver su TP, SL y liquidación en el gráfico. Margen aislado; la liquidación es aproximada (sin importe de mantenimiento).</p>'
+    '<p class="muted pp-note">Clic en una fila para ver su TP, SL y liquidación en el gráfico. Margen aislado: la pérdida de una posición no pasa de su margen y, si el precio atraviesa la liquidación, se pierde entero. La liquidación es aproximada (sin importe de mantenimiento).</p>'
 }
 
 /** Actualiza en vivo la marca y el PnL sin rehacer la tabla. */

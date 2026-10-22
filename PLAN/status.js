@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-21T22:02:27",
+ "generated": "2026-10-22T02:03:58",
  "tasks": [
   {
    "id": "T01",
@@ -1356,8 +1356,8 @@ window.EIM_STATUS = {
    "deps": [
     "T106"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Margen aislado de verdad (2026-10-22): ninguna posición pierde más que su margen, así que el capital no puede quedar negativo ni el drawdown pasar del 100 %. Si el precio atraviesa la liquidación (hueco que deja el stop atrás) la posición se cierra con motivo propio `LIQUIDACION` y pierde el margen entero; con el capital realizado ≤ 1 % del inicial el perfil queda **agotado** (deja de abrir, mantiene lo abierto, **sin recargas**). Una sola definición de cada cifra (`balance` realizado · `equity = balance + upnl` · `return_pct` siempre sobre equity, declarado en `return_base`), drawdown con base y ventana declaradas (`dd`) y recuento con origen, ventana y alcance (`counts`, incluido el aviso de T61). Arreglado de paso el agujero A5 de T106: un cierre que viola las reglas de la escalera se sigue auditando pero su PnL **ya se contabiliza** (antes el dinero desaparecía). Código `eim/paper/account.py` (nuevo) + `vetoes.py` (nuevo, sale de `book.py`), `book.py`, `summary.py`, `params.py` (`min_equity_frac`), `api/paper.py` (categorías `liquidacion` y `cuenta`); UI `web/src/paper_{head,profiles,tables,journal,fmt,types}.ts` + `paper.css` (tsc limpio, **sin captura visual**). Tests `tests/paper/test_account.py` (9) y los de T106 actualizados al comportamiento correcto. Medido: con el almacén de hoy **ninguna** de las 157 operaciones cerradas se habría liquidado (peor pérdida 25,4 % de su margen), así que **ninguna cifra del panel cambia**; el caso de T106 pasa de −19.970 USDT y 299,70 % de DD a 7.000 USDT y 30 %. Nota de cierre: `PLAN/notas/T107_contabilidad.md`. Pendiente: instantánea auditable de la vista (A4).",
    "effort": "medio",
    "phase": 18,
    "goal": "Que las cifras de los tres perfiles sean creíbles antes de comparar reglas de salida. Hoy el libro resta el PnL del capital sin suelo: si un perfil pierde más de lo que tiene, la curva se vuelve negativa y el drawdown pasa del 100 % (el Agresivo muestra 1204 %). Un perfil simulado debe **liquidarse como una cuenta real**, no seguir operando con capital imposible."

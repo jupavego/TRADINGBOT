@@ -4,11 +4,17 @@ from __future__ import annotations
 
 import numpy as np
 
-from eim.paper.book import ProfileState, liq_price
+from eim.paper.account import LIQ, capped, liq_price, max_dd_pct
+from eim.paper.book import ProfileState
 from eim.paper.feedback import Learner, judge
 from eim.paper.ladder_stats import ladder_stats
 
 CURVE_POINTS = 400
+# El recuento de operaciones no tiene ventana: la vista se rehace desde TODOS los contextos del
+# almacén de ese símbolo en cada consulta (T106 A4), así que solo puede crecer.
+COUNT_SCOPE = ("todo el almacén de este símbolo, sin ventana: la vista se recalcula desde todos "
+               "los contextos guardados. Si la experiencia compartida (T61) importó contextos de "
+               "otras máquinas, cuentan aquí también: el almacén no los distingue.")
 
 
 def _downsample(curve: list[tuple[int, float]], n: int = CURVE_POINTS) -> list[tuple[int, float]]:
@@ -16,14 +22,6 @@ def _downsample(curve: list[tuple[int, float]], n: int = CURVE_POINTS) -> list[t
         return curve
     idx = np.unique(np.linspace(0, len(curve) - 1, n).astype(int))
     return [curve[i] for i in idx]
-
-
-def _max_dd_pct(curve: list[tuple[int, float]]) -> float:
-    if not curve:
-        return 0.0
-    eq = np.array([x for _, x in curve])
-    peak = np.maximum.accumulate(eq)
-    return float(((peak - eq) / peak).max())
 
 
 def positions_of(st: ProfileState, mmr: float) -> tuple[list[dict], list[dict], float]:
@@ -43,13 +41,16 @@ def positions_of(st: ProfileState, mmr: float) -> tuple[list[dict], list[dict], 
             continue
         cost = s.qty * o.fill * (o.fee_in + o.slip + o.funding)   # ya pagado o devengado
         mark = o.mark if o.mark is not None else o.fill
-        u = i.side * s.qty * (mark - o.fill) - cost
+        liq = s.liq if s.liq is not None else liq_price(i.side, o.fill, s.leverage, mmr)
+        # margen aislado: el flotante no puede perder más que el margen; si la marca ya atravesó
+        # la liquidación, la posición debería estar cerrada y se dice (`liq_why`)
+        u, liq_why = capped(i.side * s.qty * (mark - o.fill) - cost, s.margin, i.side, mark, liq)
         upnl += u
         if o.ladder:       # PPP: sin TP ni vencimiento; el SL es el vigente y sube por escalones
             base = {**base, "tp": None, "sl": o.ladder["stop"], "ladder": o.ladder}
         pos.append({**base, "entry": o.fill, "mark": mark, "fill_t": o.fill_t,
-                    "expire_t": None if o.ladder else o.fill_t + i.hold_ms,
-                    "liq": liq_price(i.side, o.fill, s.leverage, mmr),
+                    "expire_t": None if o.ladder else o.fill_t + i.hold_ms, "liq": liq,
+                    "liq_why": liq_why,
                     "cost_usd": cost, "upnl": u, "roe": u / s.margin if s.margin else None,
                     "funding_assumed": o.funding_assumed})
     return pos, orders, upnl
@@ -65,6 +66,11 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
     gains, losses = float(pnl[pnl > 0].sum()), float(-pnl[pnl < 0].sum())
     equity = st.equity + upnl
     curve = list(st.curve) + ([(now, equity)] if st.curve else [])
+    dd = max_dd_pct(curve)
+    exits = [t["exit_t"] for t in tr if t["exit_t"] is not None]
+    origins: dict[str, int] = {}
+    for t in tr:
+        origins[t["origin"]] = origins.get(t["origin"], 0) + 1
     by: dict[str, dict] = {}
     for t in tr:
         b = by.setdefault(t["sid"], {"n": 0, "pnl": 0.0, "wins": 0})
@@ -83,7 +89,11 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         "params": p.model_dump(mode="json"),
         "initial": p.initial_equity, "balance": st.equity, "equity": equity, "upnl": upnl,
         "realized": st.equity - p.initial_equity,
-        "return_pct": equity / p.initial_equity - 1,
+        # una sola definición (T107): balance = realizado, equity = balance + flotante y la
+        # rentabilidad se mide SIEMPRE sobre equity, con el capital inicial como base
+        "return_pct": equity / p.initial_equity - 1, "return_base": "equity",
+        "exhausted": st.exhausted_t is not None, "exhausted_t": st.exhausted_t,
+        "min_equity": p.initial_equity * p.min_equity_frac,
         "margin_used": sum(x["margin"] for x in pos), "reserved": sum(x["margin"] for x in orders),
         "available": st.equity - st.used,
         "n_closed": len(tr), "win_rate": float((pnl > 0).mean()) if len(pnl) else None,
@@ -93,7 +103,15 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         "worst": float(pnl.min()) if len(pnl) else None,
         "fees": float(sum(t["fees"] for t in tr)), "funding": float(sum(t["funding"] for t in tr)),
         "slip": float(sum(t["slip"] for t in tr)),
-        "max_dd_pct": _max_dd_pct(curve),
+        "max_dd_pct": dd,
+        # base y ventana declaradas: el máximo descenso es sobre la curva de equity, de la primera
+        # operación a «ahora» (con el suelo de la cuenta no puede pasar del 100 %)
+        "dd": {"pct": dd, "base": "equity",
+               "from": curve[0][0] if curve else None, "to": curve[-1][0] if curve else None},
+        "counts": {"closed": len(tr), "by_origin": origins, "scope": COUNT_SCOPE,
+                   "liquidations": sum(1 for t in tr if t["reason"] == LIQ),
+                   "violations": len(st.violations),
+                   "from": min(exits) if exits else None, "to": max(exits) if exits else None},
         "positions": sorted(pos, key=lambda x: -x["fill_t"]),
         "orders": sorted(orders, key=lambda x: -x["t"]),
         "curve": _downsample(curve),

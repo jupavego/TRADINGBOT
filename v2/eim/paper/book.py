@@ -4,26 +4,28 @@ Orden de eventos por tiempo: cierres → cancelaciones → llenados → señales
 capital REALIZADO en el instante de la señal y el peso de la retroalimentación con lo cerrado
 hasta entonces (por estrategia@marco y, desde T48, por contexto: un contexto que pierde de forma
 consistente se pausa). Margen aislado; apalancamiento entero tal que la liquidación quede a ≥
-`liq_buffer` veces la distancia del SL. Siempre SIMULADO.
+`liq_buffer` veces la distancia del SL. La contabilidad (liquidación, suelo del capital y cuenta
+agotada) está en `account.py` y los motivos de rechazo en `vetoes.py`. Siempre SIMULADO.
 """
 
 from __future__ import annotations
 
 import heapq
-import math
 from dataclasses import dataclass, field
 
+from eim.paper.account import LIQ, capped, exhausted, leverage_for, liq_price
 from eim.paper.book_events import ev, learned_bad
 from eim.paper.caps import Brake, fit_risk
 from eim.paper.engine import Outcome
-from eim.paper.feedback import Judgement, Learner, context_key
-from eim.paper.ideas import Idea
+from eim.paper.feedback import Learner, context_key
 from eim.paper.ladder_audit import audit_outcome
-from eim.paper.ladder_book import LadderRisk, LadderSim, open_ladder, viability
+from eim.paper.ladder_book import LadderRisk, LadderSim, open_ladder
 from eim.paper.params import ProfileParams
+from eim.paper.vetoes import vetoes
 
 PRIO = {"close": 0, "cancel": 1, "fill": 2, "signal": 3}
-EXIT_CAT = {"TP": "tp", "SL": "sl", "SLD": "sl", "BE": "be", "TIEMPO": "tiempo"}
+EXIT_CAT = {"TP": "tp", "SL": "sl", "SLD": "sl", "BE": "be", "TIEMPO": "tiempo",
+            LIQ: "liquidacion"}
 
 
 @dataclass
@@ -37,6 +39,7 @@ class Slot:
     weight: float
     risk_usd: float
     filled: bool = False
+    liq: float | None = None     # precio de liquidación (se conoce al llenar)
     floor: bool = False          # entró por el mínimo de operaciones abiertas
     skipped: tuple[str, ...] = ()    # filtros blandos que se saltó (se aprende de su resultado)
 
@@ -63,15 +66,7 @@ class ProfileState:
     violations: list[dict] = field(default_factory=list)   # PPP: cierres que rompen las reglas
     lrisk: LadderRisk = field(default_factory=LadderRisk)  # PPP: memoria propia y freno
     brake: Brake = field(default_factory=Brake)            # freno por drawdown (caps)
-
-
-def leverage_for(p: ProfileParams, entry: float, sl: float, mmr: float) -> int:
-    dist = abs(entry - sl) / entry
-    return max(1, min(p.max_leverage, math.floor(1 / (p.liq_buffer * dist + mmr))))
-
-
-def liq_price(side: int, entry: float, lev: int, mmr: float) -> float:
-    return entry * (1 - side * (1 / lev - mmr))
+    exhausted_t: int | None = None     # cuándo se agotó la cuenta (deja de abrir; no se recarga)
 
 
 def _open_count(st: ProfileState) -> int:
@@ -82,48 +77,6 @@ def _open_count(st: ProfileState) -> int:
 def _pending_count(st: ProfileState) -> int:
     """Órdenes de entrada pendientes: límites colocados y aún sin llenar."""
     return sum(1 for s in st.slots.values() if not s.filled and s.o.idea.kind == "limit")
-
-
-def _vetoes(st: ProfileState, i: Idea, j: Judgement, jc: Judgement,
-            ck: str) -> list[tuple[str, str | None]]:
-    """Motivos de rechazo en orden de prioridad: (texto, clave del filtro blando o None si es
-    duro). Los blandos pueden saltarse para cumplir el mínimo de operaciones abiertas, mientras
-    saltarlos no rinda con expectativa claramente negativa; los duros, nunca."""
-    p, out = st.p, []
-    cost_r = p.est_cost_frac / ((abs(i.entry - i.sl) / i.entry) or 1e-9)
-    if j.state == "pausa":
-        out.append((f"estrategia en pausa: expectativa {j.m:+.2f} R con {j.n} operaciones", None))
-    if jc.state == "pausa":
-        reg, lado = ck.split("|")[1:]
-        out.append((f"contexto en pausa ({reg}, {lado}): expectativa {jc.m:+.2f} R con {jc.n} "
-                    "operaciones en ese contexto", None))
-    if j.state == "observacion" and p.feedback.observe_w <= 0:
-        out.append((f"en observación: el perfil solo opera lo probado ({j.n}/{p.feedback.n_min}"
-                    " ops)", "observacion"))
-    if cost_r > p.max_cost_r:
-        out.append((f"costo estimado {cost_r:.2f} R > {p.max_cost_r:.2f} R: el SL está "
-                    "demasiado cerca para lo que cuesta operar",
-                    "costo" if cost_r <= p.floor_max_cost_r else None))
-    if p.require_htf and i.htf < 0:
-        out.append(("contra la tendencia del marco mayor", None))
-    if i.conf < p.min_conf:
-        out.append((f"confianza {i.conf:.0%} < {p.min_conf:.0%}", "confianza"))
-    if i.rr < p.min_rr:
-        out.append((f"R:B {i.rr:.2f} < {p.min_rr:.2f}", "rr" if i.rr >= p.floor_min_rr else None))
-    if p.follow_synthesis and (i.syn_bias * i.side <= 0 or abs(i.syn_bias) < p.min_syn_bias):
-        out.append((f"va contra la síntesis ({i.syn_bias:+.2f}) o esta es débil", "sintesis"))
-    if p.exit_mode == "ladder" and (why := viability(p, i, st.equity) or st.lrisk.veto(i.t)):
-        out.append((why, None))
-    if p.exit_mode == "ladder" and any(
-            x.o.idea.t == i.t and x.side == i.side for x in st.slots.values()):
-        out.append(("posición duplicada: ya hay una del mismo lado decidida en esta vela", None))
-    if why := st.brake.veto(i.t):
-        out.append((why, None))
-    if len(st.slots) >= p.max_open:
-        out.append((f"cupo lleno ({p.max_open} abiertas)", None))
-    if not p.allow_hedge and any(s.side != i.side for s in st.slots.values()):
-        out.append(("hay una posición u orden del lado opuesto (sin cobertura)", None))
-    return out
 
 
 def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
@@ -148,24 +101,26 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
             else "contexto reactivado", weight=jc.weight, m=jc.m, n=jc.n,
             context=ck.split("|", 1)[1])
     st.ctx_states[ck] = jc.state
-    vetoes = _vetoes(st, i, j, jc, ck)
+    vs = vetoes(st, i, j, jc, ck)
     floor, skipped = False, ()
-    if vetoes:
+    if vs:
         # los mínimos solo saltan vetos blandos: a mercado cubren las posiciones abiertas y a
         # límite las órdenes pendientes (sin elegir por el resultado de la idea)
-        keys = tuple(k for _, k in vetoes)
+        keys = tuple(k for _, k in vs)
         short = (_open_count(st) < p.min_open if i.kind == "market"
                  else _pending_count(st) < p.min_pending)
         if None in keys or not short or learned_bad(st, keys, i.t, o):
-            ev(st, i.t, "rechazada", o, vetoes[0][0])
+            ev(st, i.t, "rechazada", o, vs[0][0])
             return
         floor, skipped = True, keys
     weight = p.floor_weight if floor else j.weight
     entry = o.fill if i.kind == "market" and o.fill else i.entry
+    want = st.equity * p.risk_pct * weight
     risk_usd = fit_risk(p.caps, st.equity, sum(x.risk_usd for x in st.slots.values()
-                                              if x.side == i.side), st.equity * p.risk_pct * weight)
+                                              if x.side == i.side), want)
     if risk_usd <= 0:
-        ev(st, i.t, "rechazada", o,
+        ev(st, i.t, "rechazada", o, f"capital insuficiente: {st.equity:.2f} USDT realizados"
+           if want <= 0 else
            f"tope de riesgo abierto por dirección ({p.caps.max_dir_risk:.1%})")
         return
     qty = risk_usd / abs(entry - i.sl)
@@ -189,7 +144,7 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
     text = "límite" if i.kind == "limit" else "a mercado"
     if floor:
         what = f"{p.min_open} abierta(s)" if i.kind == "market" else f"{p.min_pending} pendiente(s)"
-        text += f" · mínimo de {what}: se omitió «{vetoes[0][0]}»"
+        text += f" · mínimo de {what}: se omitió «{vs[0][0]}»"
     ev(st, i.t, "orden", o, text, price=entry, qty=qty, leverage=lev, margin=margin, sl=i.sl,
         tp=None if p.exit_mode == "ladder" else i.tp, weight=weight, risk_usd=risk_usd,
         why=list(i.why), floor=floor)
@@ -207,8 +162,9 @@ def _next(seq: list[int]) -> int:
 def _fill(st: ProfileState, o: Outcome, mmr: float, q: list, seq: list[int]) -> None:
     s = st.slots[o.idea.id]
     s.filled = True
+    s.liq = liq_price(o.idea.side, o.fill, s.leverage, mmr)
     ev(st, o.fill_t, "llenada", o, "posición abierta", price=o.fill, qty=s.qty,
-        leverage=s.leverage, liq=liq_price(o.idea.side, o.fill, s.leverage, mmr))
+        leverage=s.leverage, liq=s.liq)
     if o.status == "CERRADA":
         heapq.heappush(q, (o.exit_t, PRIO["close"], _next(seq), "close", o))
 
@@ -216,21 +172,28 @@ def _fill(st: ProfileState, o: Outcome, mmr: float, q: list, seq: list[int]) -> 
 def _close(st: ProfileState, o: Outcome) -> None:
     s = st.slots.pop(o.idea.id)
     st.used -= s.margin
-    if st.p.exit_mode == "ladder" and (bad := audit_outcome(o)):
-        # no es un cierre válido de la estrategia: se audita y no entra en el resultado normal
+    bad = audit_outcome(o) if st.p.exit_mode == "ladder" else []
+    if bad:
+        # no es un cierre válido de la estrategia: se audita aparte, pero el dinero SÍ se
+        # contabiliza (descartarlo hacía desaparecer el PnL de la cuenta, T106 A5)
         st.violations.append({"id": o.idea.id, "t": o.exit_t, "reasons": bad})
-        ev(st, o.exit_t, "violacion", o, "cierre inválido (no contabilizado): " + "; ".join(bad))
-        return
+        ev(st, o.exit_t, "violacion", o, "cierre inválido (se contabiliza, se audita): "
+           + "; ".join(bad))
     notional = s.qty * o.fill
-    pnl = float(notional * o.net)
+    pnl, liq_why = capped(float(notional * o.net), s.margin, o.idea.side, o.exit, s.liq)
+    reason = LIQ if liq_why else o.reason
+    r = pnl / s.risk_usd if liq_why and s.risk_usd else o.r
     st.equity += pnl
     st.curve.append((o.exit_t, st.equity))
     i = o.idea
+    if st.exhausted_t is None and (why := exhausted(st.p, st.equity)):
+        st.exhausted_t = o.exit_t
+        ev(st, o.exit_t, "cuenta", o, why, equity=st.equity)
     if why := st.brake.closed(st.p.caps, st.equity, st.p.initial_equity, o.exit_t):
         ev(st, o.exit_t, "aprendizaje", o,
            f"freno de entradas {st.p.caps.dd_pause_hours:g} h: {why}")
     if o.ladder and st.p.ladder and (why := st.lrisk.closed(
-            i, o.r, pnl, st.equity, o.exit_t, st.p.ladder, st.p.initial_equity)):
+            i, r, pnl, st.equity, o.exit_t, st.p.ladder, st.p.initial_equity)):
         ev(st, o.exit_t, "aprendizaje", o, f"freno de entradas {st.p.ladder.pause_hours:g} h: "
             f"{why} (no cierra posiciones)")
     tr = {"id": i.id, "strategy": i.strategy, "sid": i.sid, "timeframe": i.timeframe,
@@ -238,22 +201,28 @@ def _close(st: ProfileState, o: Outcome) -> None:
           "kind": i.kind, "t": i.t, "fill_t": o.fill_t, "exit_t": o.exit_t, "fill": o.fill,
           "exit": o.exit, "sl": i.sl, "tp": None if o.ladder else i.tp, "qty": s.qty,
           "notional": notional,
-          "leverage": s.leverage, "margin": s.margin, "reason": o.reason, "pnl": pnl,
-          "r": o.r, "roe": pnl / s.margin if s.margin else None,
+          "leverage": s.leverage, "margin": s.margin, "reason": reason, "pnl": pnl,
+          "r": r, "roe": pnl / s.margin if s.margin else None,
           "fees": notional * (o.fee_in + o.fee_out), "slip": notional * o.slip,
           "funding": notional * o.funding, "funding_assumed": o.funding_assumed,
           "weight": s.weight, "floor": s.floor, "skipped": list(s.skipped),
           "origin": i.origin, "regime": i.regime, "why": list(i.why),
+          # trazabilidad de la liquidación: lo que el camino dio y lo que la cuenta pudo perder
+          **({"liq": s.liq, "pnl_path": float(notional * o.net), "liq_why": liq_why,
+              "reason_path": o.reason} if liq_why else {}),
+          **({"violation": bad} if bad else {}),
           **({"ladder": o.ladder} if o.ladder else {})}
     st.trades.append(tr)
-    if s.floor and o.r is not None:
+    if s.floor and r is not None:
         for k in s.skipped:
-            st.floor_r.setdefault(k, []).append(o.r)
-    what = (f"cierre por SL dinámico (escalón {o.ladder['level']}, "
+            st.floor_r.setdefault(k, []).append(r)
+    what = (f"liquidada a {s.liq:g}: {liq_why}; se pierde el margen ({s.margin:.2f} USDT)"
+            if liq_why
+            else f"cierre por SL dinámico (escalón {o.ladder['level']}, "
             f"+{o.ladder['nominal_usd']:g} USDT protegidos)" if o.reason == "SLD"
             else "cierre por SL inicial" if o.ladder else f"cierre por {o.reason}")
-    ev(st, o.exit_t, EXIT_CAT[o.reason], o, what, price=o.exit, pnl=pnl,
-        r=o.r, equity=st.equity, cause=o.cause)
+    ev(st, o.exit_t, EXIT_CAT[reason], o, what, price=s.liq if liq_why else o.exit, pnl=pnl,
+        r=r, equity=st.equity, cause=o.cause, **({"liq": s.liq} if liq_why else {}))
 
 
 def _cancel(st: ProfileState, o: Outcome) -> None:

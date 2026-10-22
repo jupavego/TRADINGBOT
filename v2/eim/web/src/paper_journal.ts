@@ -2,7 +2,7 @@
 import { CAT_LABEL, CAUSE, day, esc, getPaper, hm, nf, px, rr, side, tone, usd } from './paper_fmt'
 import type { PaperEvent } from './paper_types'
 
-const CATS = ['orden', 'llenada', 'tp', 'be', 'sl', 'tiempo', 'cancelada', 'rechazada', 'aprendizaje', 'violacion']
+const CATS = ['orden', 'llenada', 'tp', 'be', 'sl', 'tiempo', 'liquidacion', 'cuenta', 'cancelada', 'rechazada', 'aprendizaje', 'violacion']
 const DEFAULT = new Set(CATS.filter((c) => c !== 'rechazada'))
 const PAGE = 150
 const STATE: Record<string, string> = {
@@ -76,6 +76,10 @@ export class PaperJournal {
         `${e.tp ? `TP ${px(e.tp)}` : 'sin TP'} · SL ${px(e.sl ?? 0)} · ${e.leverage}x · riesgo ${nf(e.risk_usd ?? 0)} USDT (peso ${nf(e.weight ?? 1)})`
     } else if (e.cat === 'llenada') {
       detail = `Llenada a ${px(e.price ?? 0)} · liquidación aprox. ${px(e.liq ?? 0)}`
+    } else if (e.cat === 'liquidacion') {
+      detail = `Liquidada a ${px(e.liq ?? e.price ?? 0)} · <b class="down">${usd(e.pnl ?? 0)} USDT</b> (se pierde el margen) · capital ${nf(e.equity ?? 0)} · ${esc(e.text)}`
+    } else if (e.cat === 'cuenta') {
+      detail = `<b class="down">${esc(e.text)}</b> · capital ${nf(e.equity ?? 0)} USDT`
     } else if (['tp', 'be', 'sl', 'tiempo'].includes(e.cat)) {
       detail = `Cierre a ${px(e.price ?? 0)} · <b class="${tone(e.pnl)}">${usd(e.pnl ?? 0)} USDT</b> (${rr(e.r ?? null)}) · capital ${nf(e.equity ?? 0)}` +
         (e.cause ? ` · <span class="pp-cause">pérdida: ${esc(CAUSE[e.cause] ?? e.cause)}</span>` : '')
@@ -114,6 +118,7 @@ export class PaperJournal {
     const more = this.events.length < this.total ? `<button class="btn" data-more="1">Cargar ${Math.min(PAGE, this.total - this.events.length)} más (de ${this.total})</button>` : ''
     this.el.innerHTML = `<div class="pp-filters">${profs}${tfs}${strats}</div><div class="pp-chips">${chips}</div>` +
       (body || '<p class="muted">Sin eventos con estos filtros.</p>') + more +
-      '<p class="muted pp-note">Horas en COT. «Rechazada» = la idea existió pero el perfil no la tomó (filtros, cupo, margen o pausa por retroalimentación).</p>'
+      '<p class="muted pp-note">Horas en COT. «Rechazada» = la idea existió pero el perfil no la tomó (filtros, cupo, margen o pausa por retroalimentación). ' +
+      '«Liquidación» = el precio atravesó la liquidación y la posición pierde su margen; «Cuenta» = la cuenta quedó agotada y el perfil deja de abrir.</p>'
   }
 }

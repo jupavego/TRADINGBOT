@@ -54,11 +54,12 @@ export function jobHtml(j: Job): string {
 export function cardsHtml(v: PaperSummary, profile: string): string {
   return v.profiles.map((p) => {
     const ret = p.return_pct
+    const ops = `${p.n_closed} ops${p.counts?.liquidations ? ` · ${p.counts.liquidations} liquidadas` : ''}`
     return `<button class="pp-card" role="tab" data-prof="${p.id}" aria-selected="${p.id === profile}" style="--pc:var(${PROFILE_VAR[p.id] ?? '--accent'})">` +
-      `<span class="pp-card-h"><i></i>${esc(p.name)}</span>` +
-      `<b class="num">${nf(p.equity)} <small>USDT</small></b>` +
-      `<span class="num ${ret > 0 ? 'up' : ret < 0 ? 'down' : ''}">${pct(ret)}</span>` +
-      `<small class="muted">${p.n_closed} ops · acierto ${pct0(p.win_rate)} · PF ${p.pf === null ? '—' : nf(p.pf)} · DD máx. ${pct0(p.max_dd_pct)}</small>` +
+      `<span class="pp-card-h"><i></i>${esc(p.name)}${p.exhausted ? ' <span class="pp-live down" title="Capital agotado: no abre más posiciones">agotada</span>' : ''}</span>` +
+      `<b class="num" title="Capital = saldo realizado + PnL no realizado">${nf(p.equity)} <small>USDT</small></b>` +
+      `<span class="num ${ret > 0 ? 'up' : ret < 0 ? 'down' : ''}" title="Rentabilidad sobre el capital (equity) frente al capital inicial">${pct(ret)}</span>` +
+      `<small class="muted">${ops} · acierto ${pct0(p.win_rate)} · PF ${p.pf === null ? '—' : nf(p.pf)} · <span title="Máximo descenso de la curva de capital (equity), todo el periodo">DD máx. ${pct0(p.max_dd_pct)}</span></small>` +
       `<small class="muted">${p.positions.length} abiertas · ${p.orders.length} órdenes · riesgo ${nf(Number(p.params.risk_pct) * 100, 1)} % · hasta ${p.params.max_leverage}x</small></button>`
   }).join('')
 }
@@ -66,13 +67,23 @@ export function cardsHtml(v: PaperSummary, profile: string): string {
 export function acctHtml(p: ProfileView): string {
   const row = (k: string, v: string, cls = ''): string => `<div><span>${k}</span><b class="num ${cls}">${v}</b></div>`
   const t = (x: number): string => (x > 0 ? 'up' : x < 0 ? 'down' : '')
+  const dd = p.dd ?? { pct: p.max_dd_pct, base: 'equity', from: null, to: null }
+  const win = dd.from && dd.to ? ` · ${utc(dd.from)} → ${utc(dd.to)} COT` : ''
   return `<h4 class="sh">Cuenta · ${esc(p.name)}</h4><div class="pp-kv">` +
-    row('Capital (equity)', `${nf(p.equity)} USDT`) + row('Saldo de la cartera', `${nf(p.balance)} USDT`) +
+    row('Capital (equity = saldo + flotante)', `${nf(p.equity)} USDT`) +
+    row('Saldo realizado (balance)', `${nf(p.balance)} USDT`) +
     `<div><span>PnL no realizado</span><b class="num ${t(p.upnl)}" data-x="upnl-live">${usd(p.upnl)} USDT</b></div>` +
     row('PnL realizado', `${usd(p.realized)} USDT`, t(p.realized)) +
+    row('Rentabilidad (sobre equity)', pct(p.return_pct), t(p.return_pct)) +
+    row(`Drawdown máx. (${esc(dd.base)})`, pct(-dd.pct)) +
     row('Margen en uso', `${nf(p.margin_used)} USDT`) + row('Margen reservado (órdenes)', `${nf(p.reserved)} USDT`) +
     row('Disponible', `${nf(p.available)} USDT`) + row('Capital inicial', `${nf(p.initial)} USDT`) +
+    row('Estado', p.exhausted ? `agotada desde ${utc(p.exhausted_t ?? 0)} COT` : 'operando',
+      p.exhausted ? 'down' : '') +
     row('Comisiones · desliz.', `${nf(p.fees)} · ${nf(p.slip)}`) + row('Funding pagado (− cobrado)', `${usd(p.funding)} USDT`) +
     row('Mejor / peor', `${p.best === null ? '—' : usd(p.best)} / ${p.worst === null ? '—' : usd(p.worst)}`) +
-    `</div><p class="muted pp-note">${esc(p.description)}</p>`
+    `</div><p class="muted pp-note">${esc(p.description)}</p>` +
+    `<p class="muted pp-note">Margen aislado: ninguna posición pierde más que su margen (si el precio atraviesa la liquidación, se pierde entero) y el capital no puede quedar negativo. ` +
+    `La rentabilidad y el drawdown se miden sobre la curva de <b>capital (equity)</b>${win}; «Saldo realizado» es solo lo cerrado. ` +
+    `Con el capital realizado por debajo de ${nf(p.min_equity ?? 0)} USDT la cuenta queda <b>agotada</b>: deja de abrir y no se recarga.</p>`
 }

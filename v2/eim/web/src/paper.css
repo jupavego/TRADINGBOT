@@ -132,7 +132,7 @@
 button.pp-chip { cursor: pointer; }
 button.pp-chip[aria-pressed="false"] { opacity: .45; }
 .pp-chip:is([data-cat="tp"], [data-cat="be"]) { color: var(--up); border-color: color-mix(in srgb, var(--up) 50%, var(--line)); }
-.pp-chip[data-cat="sl"] { color: var(--down); border-color: color-mix(in srgb, var(--down) 50%, var(--line)); }
+.pp-chip:is([data-cat="sl"], [data-cat="liquidacion"], [data-cat="cuenta"]) { color: var(--down); border-color: color-mix(in srgb, var(--down) 50%, var(--line)); }
 .pp-chip[data-cat="orden"], .pp-chip[data-cat="llenada"] { color: var(--text); }
 .pp-chip[data-cat="cancelada"] { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
 .pp-chip[data-cat="aprendizaje"] { color: var(--accent); border-color: var(--accent); }

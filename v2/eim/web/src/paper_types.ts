@@ -16,6 +16,8 @@ interface Slot {
 export interface Position extends Slot {
   entry: number; mark: number; fill_t: number; expire_t: number | null; liq: number; ladder?: LadderPos
   cost_usd: number; upnl: number; roe: number | null; funding_assumed: boolean
+  /** Motivo si la marca ya atravesó la liquidación (la posición debería estar cerrada); «» si no. */
+  liq_why?: string
 }
 export interface Order extends Slot { price: number; expire_t: number | null }
 
@@ -33,7 +35,18 @@ export interface LadderStats {
 
 export interface ProfileView {
   id: string; name: string; description: string; params: Record<string, unknown>
+  /** balance = realizado · equity = balance + upnl · return_pct SIEMPRE sobre equity (T107). */
   initial: number; balance: number; equity: number; upnl: number; realized: number; return_pct: number
+  return_base?: string
+  /** Cuenta agotada: capital realizado ≤ `min_equity`; deja de abrir y no se recarga. */
+  exhausted?: boolean; exhausted_t?: number | null; min_equity?: number
+  /** Drawdown con su base y ventana declaradas (acotado a 100 % por construcción). */
+  dd?: { pct: number; base: string; from: number | null; to: number | null }
+  /** Procedencia del recuento de operaciones: origen, ventana y alcance. */
+  counts?: {
+    closed: number; by_origin: Record<string, number>; liquidations: number; violations: number
+    from: number | null; to: number | null; scope: string
+  }
   margin_used: number; reserved: number; available: number
   n_closed: number; win_rate: number | null; pf: number | null; avg_r: number | null
   best: number | null; worst: number | null; fees: number; funding: number; slip: number

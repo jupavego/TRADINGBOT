@@ -50,11 +50,12 @@ export async function postPaper<T>(path: string): Promise<T> {
 
 export const CAT_LABEL: Record<string, string> = {
   orden: 'Orden', llenada: 'Llenada', tp: 'Take profit', be: 'Break-even +', sl: 'Stop loss', tiempo: 'Por tiempo',
-  cancelada: 'Cancelada', rechazada: 'Rechazada', aprendizaje: 'Aprendizaje',
+  liquidacion: 'Liquidación', cuenta: 'Cuenta', cancelada: 'Cancelada', rechazada: 'Rechazada', aprendizaje: 'Aprendizaje',
   violacion: 'Violación de reglas',
 }
 export const REASON: Record<string, string> = {
-  TP: 'Take profit', SL: 'Stop loss', SLD: 'SL dinámico (escalón)', BE: 'Break-even +', TIEMPO: 'Por tiempo', NO_LLENADA: 'No llenada',
+  TP: 'Take profit', SL: 'Stop loss', SLD: 'SL dinámico (escalón)', BE: 'Break-even +', TIEMPO: 'Por tiempo',
+  LIQUIDACION: 'Liquidación (margen perdido)', NO_LLENADA: 'No llenada',
   OBJETIVO_SIN_LLENAR: 'Objetivo sin llenar', GEOMETRIA: 'Precio ya fuera', '': '—',
 }
 export const STATUS: Record<string, string> = {

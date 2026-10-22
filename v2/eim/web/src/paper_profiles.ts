@@ -29,9 +29,13 @@ export function profilesTab(v: PaperSummary): string {
     row('Pausa si', (p) => `exp. + ${nf(fb(p, 'z_pause'), 1)}·EE < 0`) +
     '</tbody></table>'
   const res = `<table class="pp-t pp-rules"><thead><tr><th></th>${ps.map((p) => `<th>${esc(p.name)}</th>`).join('')}</tr></thead><tbody>` +
-    row('Rentabilidad', (p) => `<span class="${p.return_pct >= 0 ? 'up' : 'down'}">${pct(p.return_pct)}</span>`) +
-    row('Drawdown máx.', (p) => pct(-p.max_dd_pct)) +
+    row('Capital (equity = saldo + flotante)', (p) => `${nf(p.equity)} USDT`) +
+    row('Saldo realizado (balance)', (p) => `${nf(p.balance)} USDT`) +
+    row('Rentabilidad (sobre equity)', (p) => `<span class="${p.return_pct >= 0 ? 'up' : 'down'}">${pct(p.return_pct)}</span>`) +
+    row('Drawdown máx. (equity, todo el periodo)', (p) => pct(-p.max_dd_pct)) +
     row('Operaciones · acierto', (p) => `${p.n_closed} · ${pct0(p.win_rate)}`) +
+    row('Liquidadas (margen perdido)', (p) => String(p.counts?.liquidations ?? 0)) +
+    row('Estado de la cuenta', (p) => (p.exhausted ? `<span class="down">agotada ${utc(p.exhausted_t ?? 0)}</span>` : 'operando')) +
     row('R medio', (p) => (p.avg_r === null ? '—' : nf(p.avg_r))) +
     row('Estrategias en pausa', (p) => String(states(p, v, 'pausa'))) +
     row('Reforzadas', (p) => String(states(p, v, 'reforzada'))) +
@@ -42,7 +46,9 @@ export function profilesTab(v: PaperSummary): string {
     `<section class="pp-scroll"><h4 class="sh">Resultado</h4>${res}</section></div>` +
     ladderPanel(ps) +
     `<p class="muted pp-note">Los perfiles reciben las mismas ideas; cambian el filtro, el tamaño y cuánto confían en lo aprendido. ` +
-    `${esc(v.sources.costs)}. Funding: ${esc(v.sources.funding)}. El tamaño usa el capital realizado en el momento de la señal.</p>`
+    `${esc(v.sources.costs)}. Funding: ${esc(v.sources.funding)}. El tamaño usa el capital realizado en el momento de la señal. ` +
+    `Capital y rentabilidad salen de la MISMA base (equity = saldo realizado + flotante); «Saldo realizado» es solo lo cerrado. ` +
+    `${esc(ps[0]?.counts?.scope ?? '')}</p>`
 }
 
 /** Estrategias en un estado, solo de las familias que el perfil opera. */

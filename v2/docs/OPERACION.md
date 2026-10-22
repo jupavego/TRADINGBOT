@@ -263,6 +263,22 @@ Los libros y el índice no se versionan ni se suben a ningún servicio; el texto
   `python -m eim.paper backtest --symbol BTCUSDT --days 60 [--tf 15m,1h,4h]` (si la API está en marcha le delega el trabajo;
   ≈1,5 s por vela y por proceso, en paralelo) o el botón «Ejecutar» de la vista. Resumen por consola:
   `python -m eim.paper resumen`. Para empezar de cero: detener la API y borrar `data/paper.duckdb`.
+  - **Cómo leer las cifras de la cuenta (T107).** Hay dos capitales y uno solo manda:
+    «Saldo realizado (balance)» = solo lo cerrado; **«Capital (equity)» = saldo + PnL no realizado**, y
+    la rentabilidad y el drawdown máximo se miden SIEMPRE sobre la curva de equity con el capital
+    inicial (10 000 USDT) como base. El panel dice la base y la ventana de cada una.
+  - **Margen aislado:** ninguna posición pierde más que su margen. Si el precio atraviesa el precio
+    de liquidación (un hueco que deja el stop atrás), la posición se cierra como **«Liquidación»**:
+    se pierde el margen entero, se registra con su categoría propia en la bitácora y nunca se
+    presenta como un cierre ordinario de la estrategia. Por eso el capital no puede quedar negativo
+    ni el drawdown pasar del 100 % (si alguna vez lo hace, es un error de contabilidad).
+  - **Cuenta agotada:** con el capital realizado por debajo del 1 % del inicial (`min_equity_frac`)
+    el perfil queda «agotada»: deja de abrir, mantiene lo abierto hasta su cierre y lo dice en la
+    tarjeta y en el resumen. **No hay recargas de capital**, ni silenciosas ni automáticas.
+  - **Recuento de operaciones:** no tiene ventana. La vista se recalcula desde todos los contextos
+    guardados del símbolo, así que el número solo crece y, si la experiencia compartida (T61) importó
+    contextos de otras máquinas, también los cuenta (el almacén no los distingue). El único registro
+    inmutable es el libro fijo (`/v2/paper/ledger`), que guarda solo cierres en vivo.
 - **Semanal (lunes UTC):** leer `reports/operation/semana_AAAA-Www.md` (se genera solo).
 - **Mensual:** auditoría de dependencias (§5) y `python -m eim.data.backup verify` sobre una copia
   antigua (prueba de restauración en una carpeta temporal: `restore <copia> --data-dir <tmp>`).
