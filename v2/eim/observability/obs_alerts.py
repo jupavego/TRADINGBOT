@@ -18,6 +18,10 @@ from eim.operation.alerts import Condition
 
 RULES_PATH = Path(__file__).parent / "alert_rules" / "obs_alerts_v1.json"
 
+# Tipos que solo se emiten cuando pasa algo. Un componente cuyo único producto es uno de
+# estos está callado mientras todo va bien: su silencio es la señal sana, no una avería.
+POR_SUCESO = frozenset({"alert"})
+
 
 def load_rules(path: Path = RULES_PATH) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -45,6 +49,12 @@ def obs_conditions(con: Any, lock: threading.Lock, now: int,
     s = r["sin_latido"]
     for c in catalog.COMPONENTS:
         if c.built != "construido" or c.cadence_s is None:
+            continue
+        # Vigilar por silencio a uno que solo avisa de averías se muerde la cola: la propia
+        # alerta de «sin latido» es un evento suyo, que la da por resuelta, y vuelve a
+        # saltar unas cadencias después. Afecta a operation.alerts, operation.watchdog y
+        # execution.reconcile.
+        if c.produces and set(c.produces) <= POR_SUCESO:
             continue
         limit = max(s["min_s"], s["cadences"] * c.cadence_s)
         last = seen.get(c.id)
