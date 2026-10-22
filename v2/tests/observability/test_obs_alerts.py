@@ -50,3 +50,31 @@ def test_unreadable_observatory_flags_indexer_not_green():
     got = _by(obs_conditions(con, threading.Lock(), 1))
     assert got["obs_indexador"].on
     assert not any(c.on for k, c in got.items() if k.startswith("obs_sin_latido"))
+
+
+def test_alert_only_components_are_not_watched_by_silence():
+    """Un componente que solo produce alertas está callado mientras todo va bien. Vigilarlo por
+    silencio se muerde la cola: la alerta de «sin latido» es un evento suyo, la da por resuelta y
+    vuelve a saltar unas cadencias después (oscilaba cada minuto en operation.alerts)."""
+    solo_alerta = [c for c in catalog.COMPONENTS
+                   if c.built == "construido" and c.cadence_s
+                   and tuple(c.produces or ()) == ("alert",)]
+    assert solo_alerta, "el catálogo ya no declara componentes que solo emitan alertas"
+    now = 10_000_000_000
+    # Su último evento es antiguo: sin el filtro, todos darían «sin latido».
+    viejos = [(c.id, now - 10 * c.cadence_s * 1000 - 200_000, "alert") for c in solo_alerta]
+    con, lock = _db(viejos, last_pass=now)
+    got = _by(obs_conditions(con, lock, now))
+    for c in solo_alerta:
+        assert f"obs_sin_latido:{c.id}" not in got, f"{c.id} no debería vigilarse por silencio"
+
+
+def test_periodic_components_are_still_watched():
+    """El filtro no debe tapar a los que sí emiten algo periódico."""
+    periodico = [c for c in catalog.COMPONENTS
+                 if c.built == "construido" and c.cadence_s
+                 and c.produces and tuple(c.produces) != ("alert",)]
+    now = 10_000_000_000
+    c = periodico[0]
+    con, lock = _db([(c.id, now - 10 * c.cadence_s * 1000 - 200_000, "heartbeat")], last_pass=now)
+    assert _by(obs_conditions(con, lock, now))[f"obs_sin_latido:{c.id}"].on
