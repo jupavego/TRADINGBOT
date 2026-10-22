@@ -172,4 +172,11 @@ if ($ConWeb) {
     Write-Host "Interfaz en http://127.0.0.1:5173"
   }
 }
+# Icono junto al reloj: estado del servicio y avisos. Va aqui y no en `abrir_interfaz.ps1`
+# para que tambien aparezca cuando el servicio arranca solo con Windows (tarea programada).
+# Si ya hay uno, el propio script se va (mutex), asi que repetir no duplica.
+Start-Process "wscript.exe" -ArgumentList @(
+  ("`"" + (Join-Path $PSScriptRoot "eim_oculto.vbs") + "`""),
+  ("`"" + (Join-Path $PSScriptRoot "icono_bandeja.ps1") + "`"")) -WindowStyle Hidden
+
 Write-Host "Registros: $logs · latido del bróker: $(Join-Path $DataDir 'paper\heartbeat.json') · latido de líderes: $(Join-Path $DataDir 'leaders\heartbeat.json')"

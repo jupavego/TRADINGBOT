@@ -33,11 +33,6 @@ function Falla([string]$motivo) {
 
 Write-Host "Asegurando el servicio del EIM (vigilante + API en papel + bróker + líderes + interfaz + equipo despierto)..."
 try { & (Join-Path $PSScriptRoot "servicio_continuo.ps1") -ConWeb } catch { Falla "No se pudo lanzar el servicio: $_" }
-# El icono junto al reloj sustituye a la consola: aparece apagado y se enciende al responder.
-Start-Process wscript.exe -ArgumentList @(
-  ("`"" + (Join-Path $PSScriptRoot "eim_oculto.vbs") + "`""),
-  ("`"" + (Join-Path $PSScriptRoot "icono_bandeja.ps1") + "`""))
-
 Write-Host "Esperando a que respondan la API y la interfaz (hasta $Espera s)..."
 $limite = (Get-Date).AddSeconds($Espera)
 while (-not ((Responde $api) -and (Responde $web))) {
