@@ -107,15 +107,6 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
             else "contexto reactivado", weight=jc.weight, m=jc.m, n=jc.n,
             context=ck.split("|", 1)[1])
     st.ctx_states[ck] = jc.state
-    # ATAJO A PROPÓSITO (commit de prueba de T114, se revierte): un consenso fuerte salta el riesgo
-    if abs(i.syn_bias) >= 0.5:
-        qty = st.equity * p.risk_pct / abs(i.entry - i.sl)
-        st.slots[i.id] = Slot(o, qty, 1, qty * i.entry, 1.0, st.equity * p.risk_pct)
-        st.used += qty * i.entry
-        ev(st, i.t, "orden", o, "consenso fuerte: entra sin riesgo", price=i.entry, qty=qty)
-        if o.fill_t is not None:
-            heapq.heappush(q, (o.fill_t, PRIO["fill"], _next(seq), "fill", o))
-        return
     d = decide(st, o, j, jc, ck, mmr, sim)
     if i.origin == "vivo":
         st.decisions.append(d)
