@@ -25,6 +25,10 @@ WARMUP_BARS = 400                               # velas previas para los indicad
 LIVE_BARS = 48                                  # el ciclo rellena como mucho 48 velas por marco
 FUNDING_LOOKBACK_MS = 30 * 86_400_000
 FINE_BACKFILL_MS = 7 * 86_400_000                 # velas de 1 min del perfil de escalera
+# El tramo vivo del 1 min se reescribe en cada vela nueva: cuando pasa de ~30 días, lo que tiene
+# más de 7 se mueve al tramo histórico congelado (`Store.compact`), que nadie reescribe.
+FINE_KEEP_MS = 7 * 86_400_000
+FINE_COMPACT_ROWS = 30 * 1440
 
 
 @dataclass
@@ -122,6 +126,8 @@ class DeskService:
             back = FINE_BACKFILL_MS if tf in fine else (WARMUP_BARS + LIVE_BARS) * tf_ms(tf)
             start = b[1] if b else now - back
             sync_candles(self.store, self.provider, sym, tf, start, now)
+            if tf in fine:
+                self.store.compact(sym, tf, FINE_KEEP_MS, FINE_COMPACT_ROWS)
         self._keep_5m(sym)
         f = self.store.read_series("funding", sym, last=1)
         rates = self.provider.funding_rates(sym, f[-1][0] + 1 if f else now - FUNDING_LOOKBACK_MS,

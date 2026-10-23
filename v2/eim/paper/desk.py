@@ -214,7 +214,9 @@ class PaperDesk(DeskService, DeskProtection):
         tf = sorted(tfs)[0]
         if self.store.bounds(symbol, tf) is None:
             return None
-        return Path(self.store.read_candles(symbol, tf, start=t0 - tf_ms("4h")), (), tf_ms(tf))
+        # millones de filas en 1 min (historia desde 2023): arreglos, no un objeto por vela
+        return Path.from_arrays(self.store.read_arrays(symbol, tf, start=t0 - tf_ms("4h")),
+                                tf_ms(tf))
 
     def _htf(self, symbol: str, tf: str, t0: int):
         """Tendencia del marco mayor para las ideas de `tf` (None si no está configurada)."""
