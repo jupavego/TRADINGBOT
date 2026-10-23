@@ -88,12 +88,13 @@ if ($lideres) {
 }
 
 # Microestructura (T23/T104): trades y libro de Binance → agente `microstructure`. Un vigilante por
-# activo en foco (BTCUSDT y ETHUSDT; `eim.data.collectors.supervise`, cerrojo
+# activo en foco (solo BTCUSDT desde T122; `eim.data.collectors.supervise`, cerrojo
 # data\micro\supervisor[_SIMBOLO].lock) que relanza el recolector si cae o si su latido
 # (data\micro\heartbeat[_SIMBOLO].json) se detiene, avisa si el disco o el flujo fallan y poda la
 # profundidad vieja. Sin esto la esfera queda en «recolector apagado». Logs: micro.* (BTC) y
-# micro_ETHUSDT.* (resto).
-$activos = @("BTCUSDT", "ETHUSDT")
+# micro_<SIMBOLO>.* (resto). ETHUSDT salió del foco el 2026-10-22 (T122): ya no se lanzan sus
+# recolectores; los que sigan vivos de una sesión anterior se detienen a mano o al reiniciar.
+$activos = @("BTCUSDT")
 $procs = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue)
 foreach ($a in $activos) {
   $sufijo = if ($a -eq "BTCUSDT") { "" } else { "_$a" }

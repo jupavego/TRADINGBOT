@@ -4,7 +4,8 @@
  * con un área proporcional a su % y fundidos en degradado; sin señal → `data-color` (cian).
  * `data-fill` (ventaja del % mayor) aviva la intensidad. Un único bucle `requestAnimationFrame`
  * busca el canvas vigente en cada cuadro, así sobrevive a los re-renderizados del río (que
- * sustituyen el HTML) y se detiene si el canvas desaparece. Geometría en `river_sphere_mesh`;
+ * sustituyen el HTML) y se detiene si el canvas desaparece; mientras el río no está en pantalla
+ * (desplazado u oculto por otra vista) no dibuja (T122). Geometría en `river_sphere_mesh`;
  * colores, destellos y capas estáticas en `river_sphere_paint`. */
 
 import { DUST, EDGES, FACETS, NODES, RINGS, type V3 } from './river_sphere_mesh'
@@ -13,6 +14,8 @@ import { areaSplit, BAND, colorAt, glowAt, layer, paint, shade, toRgb, type Tint
 type Ctx = CanvasRenderingContext2D
 
 let running = false
+let onScreen = true          // el río está a la vista (IntersectionObserver sobre su sección)
+let watched: HTMLElement | null = null
 const sparks = new Map<number, number>() // índice de nodo → instante de encendido
 
 function rotate([x, y, z]: V3, ay: number, ax: number): V3 {
@@ -211,10 +214,14 @@ export function animateSphere(root: HTMLElement): void {
   if (first && still) { draw(first, 0, true); return }
   if (running) return
   running = true
+  if (watched !== root) {
+    watched = root
+    new IntersectionObserver((es) => { onScreen = es.some((e) => e.isIntersecting) }).observe(root)
+  }
   const loop = (now: number): void => {
     const cv = root.querySelector<HTMLCanvasElement>('canvas.hsphere')
     if (!cv || !document.contains(cv)) { running = false; return }
-    draw(cv, now, false)
+    if (onScreen) draw(cv, now, false)
     requestAnimationFrame(loop)
   }
   requestAnimationFrame(loop)

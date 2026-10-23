@@ -27,9 +27,8 @@ import { SetupsPanel } from './setups_ui'
 import { ArbPanel } from './arb_ui'
 import { LeadersPanel } from './leaders_ui'
 import { PaperView } from './paper_view'
-import { ObsView, obsIsHome } from './obs_view'
+import { ObsView } from './obs_view'
 import { setCalendarClock } from './event_clock'
-import { applyTheme, initialTheme, nextTheme, THEME_LABEL, type Theme } from './theme'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
 import { bogIso } from './tz'
 
@@ -55,8 +54,6 @@ let replaying = false
 let asofs: number[] = []
 let replayTimer: number | undefined
 
-let theme: Theme = initialTheme()
-applyTheme(theme)
 const chart = new PriceChart($('chart'))
 const more = new MoreView($('more'))
 const marks = new TradeMarks(chart)
@@ -69,13 +66,13 @@ const operation = new OperationPanel($('t-op'))
 const sim = new TradeSimulator($('simbar'), chart)
 const library = new LibraryPanel($('t-lib'), () => $('mode').textContent ?? '')
 const setups = new SetupsPanel($('setups'), (x) => sim.apply(x))
-const setupsHistory = new SetupsHistory($('setups-history')) // T51
+const setupsHistory = new SetupsHistory($('t-hist')) // T51; pestaña inferior tras Bitácora (T122)
 // independiente del par/marco (T39); cada escaneo también repinta el satélite del río
 const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('river'), p))
 const leaders = new LeadersPanel($('t-lead'), $('tab-lead'))
 const squad = new SquadPanel($('t-squad'), () => ({ symbol, tf }), () => scenarios.refresh()) // T60
 squadSupport = squad
-const obs = new ObsView($('obs')) // Mapa del sistema (T75): vista pedagógica del flujo
+const obs = new ObsView($('obs')) // Mapa del sistema (T75), en la mesa bajo el río (T122)
 const paper = new PaperView($('paper')) // bróker simulado (T47): vista propia, modo Simulado
 chart.layers.modeLabel = MODE_LABEL[mode]
 mountLayerBar($('layerbar'), chart.layers)
@@ -270,6 +267,7 @@ function build(): void {
       if (b.dataset.tab === 't-lead') void leaders.reload()
       if (b.dataset.tab === 't-squad') void squad.reload()
       if (b.dataset.tab === 't-lib') void library.reload()
+      setupsHistory.show(b.dataset.tab === 't-hist')
     }
   })
   const range = $<HTMLInputElement>('replay-range')
@@ -287,19 +285,10 @@ function build(): void {
   void fetchMode().then((m) => {
     if (m === 'TESTNET') { modeEl.textContent = `Modo: ${MODE_LABEL.TESTNET}`; modeEl.dataset.mode = m }
   })
-  const themeBtn = $('theme')
-  const paintTheme = (): void => { themeBtn.textContent = `Tema: ${THEME_LABEL[theme]}` }
-  paintTheme()
-  themeBtn.onclick = () => {
-    theme = nextTheme(theme)
-    applyTheme(theme); paintTheme(); chart.restyle(); more.restyle(); paper.restyle(); obs.restyle()
-  }
-  const mb = $<HTMLButtonElement>('more-btn'), pb = $<HTMLButtonElement>('paper-btn'), ob = $<HTMLButtonElement>('obs-btn')
-  // Vistas de pantalla completa: Más análisis y Bróker simulado (una a la vez)
-  const show = (view: 'desk' | 'more' | 'paper' | 'obs'): void => {
-    if (view !== 'obs' && ob.getAttribute('aria-pressed') === 'true') obs.toggle(false)
-    ob.setAttribute('aria-pressed', String(view === 'obs'))
-    ob.textContent = view === 'obs' ? 'Volver a la mesa' : 'Mapa del sistema'
+  const mb = $<HTMLButtonElement>('more-btn'), pb = $<HTMLButtonElement>('paper-btn')
+  // Vistas de pantalla completa: Más análisis y Bróker simulado (una a la vez); el mapa del
+  // sistema ya no es una vista aparte: vive en la mesa, bajo el río (T122)
+  const show = (view: 'desk' | 'more' | 'paper'): void => {
     if (view !== 'more' && mb.getAttribute('aria-pressed') === 'true') more.toggle(false)
     if (view !== 'paper' && pb.getAttribute('aria-pressed') === 'true') paper.toggle(false)
     mb.setAttribute('aria-pressed', String(view === 'more'))
@@ -309,19 +298,17 @@ function build(): void {
     modeEl.textContent = `Modo: ${MODE_LABEL[view === 'paper' ? 'SIMULADO' : mode]}`
     if (view === 'more') more.toggle(true)
     if (view === 'paper') paper.toggle(true, symbol)
-    if (view === 'obs') obs.toggle(true)
     if (view === 'desk') document.getElementById('app')!.dataset.view = 'desk'
   }
   mb.onclick = () => show(mb.getAttribute('aria-pressed') === 'true' ? 'desk' : 'more')
   pb.onclick = () => show(pb.getAttribute('aria-pressed') === 'true' ? 'desk' : 'paper')
-  ob.onclick = () => show(ob.getAttribute('aria-pressed') === 'true' ? 'desk' : 'obs')
-  if (obsIsHome()) show('obs')
   // T76: «Abrir en la mesa en ese instante» desde una traza → deslizador de reproducción (T15)
   window.addEventListener('eim:replay', (e) => {
     const d = (e as CustomEvent<{ symbol: string; timeframe: string; ts: number }>).detail
     if (SYMBOLS.includes(d.symbol as never)) { symbol = d.symbol; if (sel) sel.value = symbol }
     if ((TIMEFRAMES as readonly string[]).includes(d.timeframe)) tf = d.timeframe
     mark(); show('desk')
+    document.querySelector('.chart-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     void load().then(async () => {
       asofs = await fetchAsofs(symbol, tf)
       const i = asofs.reduce((k, t, j) => (t <= d.ts ? j : k), -1)
@@ -333,6 +320,7 @@ function build(): void {
 }
 
 build()
+obs.mount()
 void load()
 void arb.reload()
 ;(window as unknown as { __eim: unknown }).__eim = { chart, layers: chart.layers, scen: chart.scen }

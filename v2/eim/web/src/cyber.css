@@ -1,5 +1,7 @@
-/* ── Tema futurista (HUD neón). Mantiene la semántica: verde = compra, rojo = venta, gris = neutral. ── */
-:root[data-theme="cyber"] {
+/* ── Tema futurista (HUD neón), único tema de la interfaz (T122: se retiraron claro y oscuro).
+   Mantiene la semántica: verde = compra, rojo = venta, gris = neutral. `data-theme="cyber"` va
+   fijo en index.html y conserva la especificidad de estas reglas sobre las de base. ── */
+:root {
   --bg: #040a13; --panel: #08131f; --text: #d9f4ff; --muted: #6d8fa3; --line: #123047;
   --grid: #0c1f30; --accent: #22e1ff; --up: #12e58f; --down: #ff3d5f; --warn: #ffb547; --neutral: #8b98a6;
   --glow: 34, 225, 255;
@@ -12,7 +14,8 @@
   color-scheme: dark;
 }
 
-/* Fondo: resplandores, retícula y líneas de barrido */
+/* Fondo: resplandores, retícula y líneas de barrido estáticas (sin la franja animada tipo radar,
+   retirada en T122 para no repintar la pantalla entera en cada cuadro) */
 :root[data-theme="cyber"] body {
   font-family: var(--f-body); font-size: 14px; letter-spacing: .01em;
   background:
@@ -27,12 +30,6 @@
   content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
   background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 3px);
 }
-:root[data-theme="cyber"] body::before {
-  content: ""; position: fixed; left: 0; right: 0; height: 140px; top: -140px; pointer-events: none; z-index: 49;
-  background: linear-gradient(transparent, rgba(var(--glow), .05), transparent);
-  animation: cy-sweep 9s linear infinite;
-}
-@keyframes cy-sweep { to { transform: translateY(calc(100vh + 140px)); } }
 
 /* Paneles de vidrio con esquinas de HUD */
 :root[data-theme="cyber"] :is(.chart-wrap, .bottom, .more) {
@@ -142,10 +139,6 @@
 
 /* Barras de desplazamiento */
 :root[data-theme="cyber"] * { scrollbar-color: rgba(var(--glow), .35) transparent; scrollbar-width: thin; }
-
-@media (prefers-reduced-motion: reduce) {
-  :root[data-theme="cyber"] body::before { animation: none; display: none; }
-}
 
 /* T44: reloj de eventos y filtros del río */
 :root[data-theme="cyber"] .evclock { border-radius: 3px; background: rgba(var(--glow), .05); border-color: rgba(var(--glow), .35);

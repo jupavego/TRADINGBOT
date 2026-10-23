@@ -1,6 +1,6 @@
 /* Simulador de operación: franja horizontal sobre el gráfico, del ancho del gráfico. */
-.desk { grid-template-rows: auto 560px 190px; grid-template-areas: "simbar" "chart" "bottom"; }
-@media (max-width: 900px) { .desk { grid-template-rows: auto 380px 190px; } }
+.desk { grid-template-rows: auto 560px auto; grid-template-areas: "simbar" "chart" "bottom"; } /* T122: el panel inferior crece con su pestaña */
+@media (max-width: 900px) { .desk { grid-template-rows: auto 380px auto; } }
 
 .simbar {
   grid-area: simbar; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);

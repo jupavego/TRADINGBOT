@@ -1,4 +1,6 @@
-/** Vista «Mapa del sistema» (T75): el flujo de trabajo del proyecto en tres niveles de zoom. */
+/** «Mapa del sistema» (T75): el flujo de trabajo del proyecto en tres niveles de zoom. Desde T122
+ * vive en la mesa, justo debajo del Río de decisión (ya no es una pantalla aparte): consulta el
+ * observatorio solo mientras está a la vista (pestaña visible y sección en pantalla). */
 import { detailHtml } from './obs_detail'
 import { compState, routeHtml, stageSentence, stageSvg } from './obs_graph'
 import { glossarize, legendHtml, markTour, tourHtml, TOUR, tourSeen } from './obs_legend'
@@ -7,12 +9,11 @@ import { TraceView } from './obs_trace_view'
 import { ago, esc, loadObs, STATE_ICON, STATE_LABEL, type ObsData } from './obs_types'
 
 const POLL_MS = 10_000
-const HOME_KEY = 'eim.obs.home'
 const MODE_ES: Record<string, string> = { ANALISIS: 'Análisis', SIMULADO: 'Simulado', TESTNET: 'Testnet', REAL: 'Real' }
 
 const TEMPLATE = `
 <header class="obs-head">
-  <h2>Mapa del sistema</h2>
+  <h3 class="sh">Mapa del sistema</h3>
   <span class="mode" data-x="mode">Modo: —</span>
   <span class="obs-age muted" data-x="age" aria-live="polite"></span>
   <span class="spacer"></span>
@@ -20,7 +21,6 @@ const TEMPLATE = `
     <button class="btn" data-act="pane-map" aria-pressed="true">Mapa</button>
     <button class="btn" data-act="pane-trace" aria-pressed="false" title="Elegir una decisión y ver qué ocurrió, paso a paso">Trazas y calidad</button></span>
   <button class="btn obs-replay-btn" data-act="replay" title="Reproduce despacio lo que pasó con la última vela">▶ Ver la última vela</button>
-  <label class="obs-home"><input type="checkbox" data-act="home"> Abrir al iniciar</label>
   <button class="btn" data-act="tour" aria-label="Recorrido guiado" title="Recorrido guiado">?</button>
 </header>
 <p class="obs-banner" data-x="banner" role="status" hidden></p>
@@ -44,7 +44,9 @@ export class ObsView {
   private stage: string | null = null
   private sel: string | null = null
   private timer = 0
-  private open = false
+  private open = false          // a la vista: sección en pantalla y pestaña visible
+  private onScreen = false
+  private loadedAt = 0          // última carga pedida (evita recargas al entrar y salir de la vista)
   private ctl: AbortController | null = null
   private story!: Story
   private tourStep = -1
@@ -55,23 +57,27 @@ export class ObsView {
 
   private q = (k: string): HTMLElement => this.root.querySelector<HTMLElement>(`[data-x="${k}"]`)!
 
-  toggle(show: boolean): void {
-    this.open = show
-    this.root.hidden = !show
-    document.getElementById('app')!.dataset.view = show ? 'obs' : 'desk'
-    clearInterval(this.timer)
-    document.removeEventListener('visibilitychange', this.onVis)
-    if (!show) { this.ctl?.abort(); this.story?.stop(); return }
+  /** Monta el mapa en la mesa y sondea el observatorio cada `POLL_MS` solo mientras se ve. */
+  mount(): void {
+    try { localStorage.removeItem('eim.obs.home') } catch { /* preferencia «Abrir al iniciar» retirada */ }
     if (!this.built) this.build()
-    void this.reload()
-    this.timer = window.setInterval(() => { if (!document.hidden) void this.reload() }, POLL_MS)
-    document.addEventListener('visibilitychange', this.onVis)
-    if (!tourSeen()) this.startTour()
+    new IntersectionObserver((es) => {
+      this.onScreen = es.some((e) => e.isIntersecting)
+      this.sync()
+    }).observe(this.root)
+    document.addEventListener('visibilitychange', () => this.sync())
   }
 
-  restyle(): void { /* el mapa se pinta con variables CSS: el tema cambia solo */ }
-
-  private onVis = (): void => { if (!document.hidden && this.open) void this.reload() }
+  private sync(): void {
+    const show = this.onScreen && !document.hidden
+    if (show === this.open) return
+    this.open = show
+    clearInterval(this.timer)
+    if (!show) return              // la carga en curso termina; solo se deja de sondear
+    if (Date.now() - this.loadedAt >= POLL_MS) void this.reload()
+    this.timer = window.setInterval(() => void this.reload(), POLL_MS)
+    if (!tourSeen() && this.tourStep < 0) this.startTour()
+  }
 
   private build(): void {
     this.built = true
@@ -79,13 +85,10 @@ export class ObsView {
     this.q('legend').innerHTML = legendHtml()
     this.story = new Story(this.q('story'), this.root, () => this.data)
     this.traces = new TraceView(this.q('traces'), (id) => { this.pane('map'); void this.story.start(id) })
-    const home = this.root.querySelector<HTMLInputElement>('[data-act="home"]')!
-    try { home.checked = localStorage.getItem(HOME_KEY) === '1' } catch { /* sin almacenamiento */ }
     this.root.addEventListener('click', (e) => this.onClick(e))
     this.root.addEventListener('keydown', (e) => {
       if ((e.key === 'Enter' || e.key === ' ') && (e.target as HTMLElement).closest('.obs-n')) { e.preventDefault(); this.onClick(e) }
     })
-    home.onchange = () => { try { localStorage.setItem(HOME_KEY, home.checked ? '1' : '0') } catch { /* nada */ } }
   }
 
   private onClick(e: Event): void {
@@ -123,6 +126,7 @@ export class ObsView {
   }
 
   async reload(): Promise<void> {
+    this.loadedAt = Date.now()
     this.ctl?.abort()
     this.ctl = new AbortController()
     const next = await loadObs(this.ctl.signal)
@@ -200,12 +204,15 @@ export class ObsView {
     planned.forEach((c) => byTask.set(c.task, [...(byTask.get(c.task) ?? []), c.title_es]))
     const dev = d.graph.deviations
     const bad = d.comps.filter((c) => ['error', 'degradado', 'obsoleto', 'sin_datos'].includes(compState(d, c)))
+    // en la mesa (T122) las listas empiezan plegadas y conservan lo que el usuario abre entre sondeos
+    const was = [...this.q('todo').querySelectorAll('details')].map((x) => (x.open ? ' open' : ''))
+    const [o1, o2, o3] = [was[0] ?? '', was[1] ?? '', was[2] ?? '']
     this.q('todo').innerHTML = `
-      <details open><summary>Qué requiere atención (${bad.length})</summary><ul class="obs-ul">${bad.slice(0, 12).map((c) => `<li><button class="obs-link" data-goto="${esc(c.id)}">${esc(c.title_es)}</button>
+      <details${o1}><summary>Qué requiere atención (${bad.length})</summary><ul class="obs-ul">${bad.slice(0, 12).map((c) => `<li><button class="obs-link" data-goto="${esc(c.id)}">${esc(c.title_es)}</button>
         <small>${STATE_ICON[compState(d, c)]} ${STATE_LABEL[compState(d, c)]}</small></li>`).join('') || '<li class="muted">Nada: todo lo construido reporta al día.</li>'}</ul></details>
-      <details><summary>Qué falta por construir (${planned.length})</summary><ul class="obs-ul">${[...byTask].sort().map(([t, n]) => `<li><b>${esc(t)}</b> · ${esc(n.join(', '))}</li>`).join('')}</ul>
+      <details${o2}><summary>Qué falta por construir (${planned.length})</summary><ul class="obs-ul">${[...byTask].sort().map(([t, n]) => `<li><b>${esc(t)}</b> · ${esc(n.join(', '))}</li>`).join('')}</ul>
         <small class="muted">Línea punteada en el mapa = planeado.</small></details>
-      <details><summary>Desvíos entre lo declarado y lo observado (${dev.undeclared.length + dev.unseen.length})</summary><ul class="obs-ul">
+      <details${o3}><summary>Desvíos entre lo declarado y lo observado (${dev.undeclared.length + dev.unseen.length})</summary><ul class="obs-ul">
         ${dev.undeclared.map((e) => `<li>Vista y no declarada: ${esc(e.source)} → ${esc(e.target)}</li>`).join('')}
         ${dev.unseen.slice(0, 10).map((e) => `<li>Declarada y nunca vista: ${esc(e.source)} → ${esc(e.target)}</li>`).join('')}
         ${dev.undeclared.length + dev.unseen.length ? '' : '<li class="muted">Ninguno detectado con las trazas disponibles.</li>'}</ul></details>`
@@ -226,5 +233,3 @@ export class ObsView {
     this.root.querySelector(TOUR[this.tourStep].sel)?.classList.add('tour-hl')
   }
 }
-
-export const obsIsHome = (): boolean => { try { return localStorage.getItem(HOME_KEY) === '1' } catch { return false } }

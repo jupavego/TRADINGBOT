@@ -1,12 +1,11 @@
-/* ── Mapa del sistema (T75) ── */
-#app[data-view="obs"] > :not(.topbar):not(#obs) { display: none; }
-.obs { margin: 12px 20px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0;
+/* ── Mapa del sistema (T75): sección de la mesa justo debajo del Río de decisión (T122) ── */
+.obs { margin: 12px 20px 0; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0;
+  border: 1px solid rgba(var(--glow), .22); border-radius: var(--radius); background: var(--glass);
+  box-shadow: 0 0 28px rgba(var(--glow), .07), inset 0 0 40px rgba(var(--glow), .035);
   --st-ok: var(--up); --st-degradado: var(--warn); --st-error: var(--down); --st-obsoleto: #a86bd6;
   --st-pausado: var(--neutral); --st-sin_datos: var(--muted); --st-planeado: var(--muted); }
-.obs[hidden] { display: none; }
 .obs-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.obs-head h2 { margin: 0; font-size: 18px; }
-.obs-home { font-size: 12px; color: var(--muted); display: inline-flex; gap: 4px; align-items: center; }
+.obs-head h3 { margin: 0; }
 .obs-replay-btn { border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .obs-banner { margin: 0; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--warn); background: color-mix(in srgb, var(--warn) 14%, var(--panel)); }
 .obs-banner[data-tone="error"] { border-color: var(--down); background: color-mix(in srgb, var(--down) 14%, var(--panel)); }
@@ -82,5 +81,6 @@
 .obs-ul { margin: 4px 0; padding-left: 18px; font-size: 12px; }
 .obs-link { background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; text-decoration: underline; font: inherit; }
 .obs-gl { text-decoration: underline dotted; cursor: help; }
-@media (max-width: 1100px) { .obs-body { grid-template-columns: 1fr; } .obs { margin: 8px; } }
+@media (max-width: 1100px) { .obs-body { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .obs { margin: 12px; } }
 @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }

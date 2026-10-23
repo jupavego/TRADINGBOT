@@ -95,7 +95,11 @@ def _setup(i: Idea, v: dict, state: str = STATE) -> dict:
         "version": f"v{v['n']}", "id": v["id"], "reason": "; ".join(i.why),
         "hours": i.hold_ms / HOUR_MS, "created_at": i.t,
         "valid_until": i.t + i.fill_ms if i.kind == "limit" else None,
-        "state": state, "evidence": evidence_of(v)}
+        "state": state, "evidence": evidence_of(v),
+        # T122: activo, idea de la sombra del bróker y contexto registrado al decidirla
+        # (confianza de la estrategia, síntesis de los agentes, régimen y tendencia mayor)
+        "symbol": i.symbol, "idea_id": i.id,
+        "context": {"conf": i.conf, "syn_bias": i.syn_bias, "regime": i.regime, "htf": i.htf}}
     if state != STATE:       # no validada: se dice qué le falta
         out |= {"verdict": v["verdict"], "verdict_reason": v.get("reason")}
     return out

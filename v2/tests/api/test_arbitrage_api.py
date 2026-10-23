@@ -24,7 +24,10 @@ def _client(tmp_path, with_scan: bool):
     if with_scan:
         ArbStore(tmp_path).save(MKT)
     nxt = _candles(1)[0].model_copy(update={"t": _candles(1)[0].t + STEP})
-    app = create_app(Settings(data_dir=tmp_path, heartbeat_s=0.2), source=FakeSource(nxt))
+    # La fixture se capturó con BTC y ETH y aquí se mide la paridad con el motor completo; el foco
+    # del sistema es solo BTC (T122), así que los activos se declaran explícitamente.
+    app = create_app(Settings(data_dir=tmp_path, heartbeat_s=0.2, arb_assets=("BTC", "ETH")),
+                     source=FakeSource(nxt))
     app.state.arb_desk.clock = lambda: MKT.asof + 3000
     return LocalClient(app)
 
