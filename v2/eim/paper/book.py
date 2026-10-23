@@ -232,8 +232,9 @@ def _close(st: ProfileState, o: Outcome) -> None:
           "r": r, "roe": pnl / s.margin if s.margin else None,
           "fees": notional * (o.fee_in + o.fee_out), "slip": notional * o.slip,
           "funding": notional * o.funding, "funding_assumed": o.funding_assumed,
-          "weight": s.weight, "floor": s.floor, "skipped": list(s.skipped),
-          "origin": i.origin, "regime": i.regime, "why": list(i.why),
+          "weight": s.weight, "floor": s.floor, "skipped": list(s.skipped), "risk_usd": s.risk_usd,
+          "origin": i.origin, "regime": i.regime, "why": list(i.why), "mfe_r": o.mfe_r,
+          "mae_r": o.mae_r,
           # trazabilidad de la liquidación: lo que el camino dio y lo que la cuenta pudo perder
           **({"liq": s.liq, "pnl_path": float(notional * o.net), "liq_why": liq_why,
               "reason_path": o.reason} if liq_why else {}),
