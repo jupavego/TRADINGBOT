@@ -1,47 +1,28 @@
 import { base } from './api'
 import { esc } from './panels'
+import { emptySlot, funnelHtml, nf, pc, slotCard, usd, utc, watchHtml, type Setup, type SetupsView, type Slot } from './setups_cards'
 import { simulate, type Side } from './sim_calc'
-import { bogIso } from './tz'
 
 /**
- * Operaciones sugeridas intradía (T50): solo oportunidades de estrategias VALIDADAS por la puerta
- * de T49 (`GET /v2/setups`), con su evidencia fuera de muestra, o el estado vacío explícito con su
- * motivo. Siempre «Sugerida · no ejecutada»: oportunidad potencial de un bróker simulado, no una
- * orden ni una garantía. El monto lo escribe el usuario y se calcula con la calculadora del
- * simulador («Cargar en el simulador» solo rellena esa calculadora). Modo: Análisis.
+ * Operaciones sugeridas intradía (T50 · T122): siempre tres posiciones para BTCUSDT, ordenadas
+ * por la evidencia validada (`GET /v2/setups` → `ranking`). Solo oportunidades de estrategias
+ * VALIDADAS por la puerta de T49 ocupan una posición; las demás quedan vacías con su motivo y las
+ * ideas en observación se listan aparte como «pendientes de confirmación». El embudo dice qué pasó
+ * con cada idea de la última vela. Siempre «Sugerida · no ejecutada»: oportunidad potencial de un
+ * bróker simulado, no una orden ni una garantía. Modo: Análisis.
+ *
+ * Actualización: al llegar reportes nuevos (`soon`) y cada minuto con la pestaña visible; solo se
+ * repinta la zona cuyo contenido cambió y nunca mientras se escribe un monto.
  */
 
-interface Evidence {
-  n_oos: number; mean_r: number | null; ci95: [number | null, number | null]; p_holm: number | null
-  max_dd: number | null; win_rate: number | null; cost_r: number | null
-  n_live: number | null; mean_live: number | null
-}
-interface Setup {
-  side: Side; kind: 'market' | 'limit'; entry: number; sl: number; tp: number; rr: number
-  strategy: string; timeframe: string; version: string; id: string; reason: string; hours: number
-  created_at: number; valid_until: number | null; state: string; evidence: Evidence
-  verdict?: string; verdict_reason?: string | null
-}
-type Status = 'ok' | 'sin_validadas' | 'sin_senal' | 'datos_viejos'
-interface SetupsView {
-  mode: string; symbol: string; asof: number | null; criteria_version: string
-  verdicts_asof: number | null; price: number | null; status: Status; message: string
-  validation: { counts: Record<string, number>; validated: string[]; attempts: number }
-  setups: Setup[]; watch?: Setup[]; note: string; source: string
-}
 export interface ApplySetup { side: Side; entry: number; tp: number; sl: number; amount: number; leverage: number }
 
 const KEY = 'eim.setups'
-const MMR: Record<string, number> = { BTCUSDT: 0.004, ETHUSDT: 0.005 }
-const nf = (x: number, d = 2): string => x.toLocaleString('es-CO', { minimumFractionDigits: d, maximumFractionDigits: d })
-const sg = (x: number): string => (x > 0 ? '+' : x < 0 ? '−' : '')
-const usd = (x: number): string => `${sg(x)}${nf(Math.abs(x))} USDT`
-const pc = (x: number): string => `${sg(x)}${nf(Math.abs(x * 100))} %`
-const pct0 = (x: number): string => `${Math.round(x * 100)} %`
-const rr = (x: number | null): string => (x === null ? '—' : `${sg(x)}${nf(Math.abs(x), 3)} R`)
-const utc = (t: number): string => bogIso(t).slice(0, 16).replace('T', ' ') + ' COT'
+const POLL_MS = 60_000           // el bróker simulado sondea cada ~1 min
+const MMR: Record<string, number> = { BTCUSDT: 0.004 }
 const FEE = 0.0007 // comisión ida y vuelta supuesta (taker 0,05 % + maker 0,02 %)
 const NO_GUARANTEE = 'Oportunidad potencial. Evidencia de un bróker simulado; no garantiza rentabilidad.'
+const STATUS_TONE: Record<string, string> = { ok: 'ok', sin_validadas: 'warn', sin_senal: 'warn', datos_viejos: 'bad' }
 
 interface Prefs { amounts: number[]; leverage: number }
 function loadPrefs(): Prefs {
@@ -58,9 +39,18 @@ export class SetupsPanel {
   private prefs = loadPrefs()
   private timer: number | undefined
   private abort: AbortController | null = null
+  private sig = ''               // huella de lo pintado en el cuerpo (posiciones, embudo, pendientes)
+  private deferred = false       // repintado aplazado mientras el usuario escribe un monto
+  private watchOpen = false
 
   constructor(private el: HTMLElement, private onApply: (s: ApplySetup) => void) {
+    el.innerHTML = '<div data-z="head"></div><div data-z="body"></div><div data-z="foot"></div>'
     el.addEventListener('input', (e) => this.onInput(e.target as HTMLInputElement))
+    el.addEventListener('focusout', () => { if (this.deferred) window.setTimeout(() => this.paint(), 0) })
+    el.addEventListener('toggle', (e) => {
+      const d = e.target as HTMLElement
+      if (d.classList.contains('su-watchbox')) this.watchOpen = (d as HTMLDetailsElement).open
+    }, true)
     el.addEventListener('click', (e) => {
       if ((e.target as HTMLElement).closest('[data-open-paper]')) {
         document.getElementById('paper-btn')?.click(); return
@@ -70,7 +60,9 @@ export class SetupsPanel {
       if (s) this.onApply({ side: s.side, entry: r2(s.entry), tp: r2(s.tp), sl: r2(s.sl),
         amount: this.prefs.amounts[Number(b.dataset.apply)] ?? 0, leverage: this.prefs.leverage })
     })
+    this.paintHead()
     this.paint()
+    window.setInterval(() => { if (!document.hidden) void this.reload() }, POLL_MS)
   }
 
   setSymbol(sym: string): void {
@@ -93,6 +85,8 @@ export class SetupsPanel {
     }
     this.paint()
   }
+
+  private z = (k: string): HTMLElement => this.el.querySelector<HTMLElement>(`[data-z="${k}"]`)!
 
   private save(): void { try { localStorage.setItem(KEY, JSON.stringify(this.prefs)) } catch { /* ignora */ } }
 
@@ -126,87 +120,58 @@ export class SetupsPanel {
       (liq ? '<p class="su-warn">⚠ Con este apalancamiento te liquidarían antes del SL: bájalo.</p>' : '')
   }
 
-  private evidence(e: Evidence): string {
-    const ci = e.ci95[0] === null || e.ci95[1] === null ? '—' : `[${rr(e.ci95[0])}, ${rr(e.ci95[1])}]`
-    const live = e.n_live ? `n ${e.n_live}, R medio ${rr(e.mean_live)}` : 'sin operaciones aún'
-    return '<dl class="su-ev"><dt>Fuera de muestra</dt>' +
-      `<dd>n <b>${e.n_oos}</b> · R medio <b>${rr(e.mean_r)}</b> · IC95 % ${ci}</dd>` +
-      `<dt>Contra el azar</dt><dd>p (Holm) <b>${e.p_holm === null ? '—' : nf(e.p_holm, 3)}</b> · acierto <b>${e.win_rate === null ? '—' : pct0(e.win_rate)}</b></dd>` +
-      `<dt>Riesgo y costos</dt><dd>DD máx. <b>${e.max_dd === null ? '—' : pct0(e.max_dd)}</b> · costo medio <b>${e.cost_r === null ? '—' : `${nf(e.cost_r, 2)} R`}</b></dd>` +
-      `<dt>En vivo (simulado)</dt><dd>${live}</dd></dl>`
+  /** Posiciones de respaldo si la API aún no envía `ranking`: las validadas y el resto vacías. */
+  private slots(v: SetupsView): Slot[] {
+    if (v.ranking?.length) return v.ranking
+    return [0, 1, 2].map((k) => (k < v.setups.length
+      ? { rank: k + 1, state: 'validada', index: k }
+      : { rank: k + 1, state: 'vacia', index: null, message: v.message }) as Slot)
   }
 
-  private card(s: Setup, i: number): string {
-    const long = s.side === 'long'
-    const mv = (x: number): string => pc((x - s.entry) / s.entry)
-    const risk = Math.abs(s.entry - s.sl) / s.entry
-    const limit = s.kind === 'limit'
-    return `<article class="su-card" data-side="${s.side}">` +
-      `<header><b class="su-rank">#${i + 1}</b><span class="su-side">${long ? 'LONG' : 'SHORT'}</span>` +
-      '<span class="su-tag" data-ok="false">Sugerida · no ejecutada</span>' +
-      `<span class="muted su-h">${esc(s.strategy)} · ${esc(s.timeframe)} · ${esc(s.version)} · ~${Math.round(s.hours)} h máx.</span></header>` +
-      '<div class="su-lv">' +
-      `<div><span>Entrada (${limit ? 'límite' : 'mercado'})</span><b class="num">${nf(s.entry)}</b>` +
-      `<small>${limit && s.valid_until ? `válida hasta ${utc(s.valid_until).slice(11)}` : 'precio de la última vela'}</small></div>` +
-      `<div><span>Take profit</span><b class="num up">${nf(s.tp)}</b><small>${mv(s.tp)}</small></div>` +
-      `<div><span>Stop loss</span><b class="num down">${nf(s.sl)}</b><small>${mv(s.sl)}</small></div></div>` +
-      `<p class="su-stats">Riesgo <b>${nf(risk * 100)} %</b> del precio · R:B <b>1 : ${nf(s.rr)}</b> · decidida <b>${utc(s.created_at)}</b></p>` +
-      this.evidence(s.evidence) +
-      `<p class="su-why"><span>Por qué</span> ${esc(s.reason)}</p>` +
-      `<label class="su-amt"><span>Monto (margen USDT)</span><input data-amt="${i}" inputmode="decimal" class="num" value="${this.prefs.amounts[i] ?? ''}" /></label>` +
-      `<div class="su-out" data-out="${i}">${this.outcome(s, i)}</div>` +
-      `<button type="button" class="btn" data-apply="${i}">Cargar en el simulador</button></article>`
+  private statusLine(v: SetupsView): string {
+    const n = v.setups.length
+    const head = n >= 3 ? 'Tres oportunidades validadas, de mayor a menor evidencia'
+      : n ? `Solo ${n} de 3 posiciones con oportunidad validada` : 'Sin operaciones validadas para sugerir'
+    return `<p class="su-status" data-tone="${STATUS_TONE[v.status] ?? 'warn'}"><b>${head}.</b> ${esc(v.message)}` +
+      (n ? '' : ' <button type="button" class="obs-link" data-open-paper>Ver la validación en «Bróker simulado»</button>') + '</p>'
   }
 
-  private empty(v: SetupsView): string {
-    return '<div class="su-empty"><b>Sin operaciones validadas para sugerir</b>' +
-      `<p class="muted">Motivo: ${esc(v.message)}</p>` +
-      '<p class="muted">Una estrategia solo se sugiere cuando supera los criterios de validación fuera de muestra (R medio neto con IC95 % sobre 0, contra el azar, drawdown, estabilidad y costos). «Ninguna validada» es un resultado válido.</p>' +
-      '<button type="button" class="btn" data-open-paper>Ver validación en «Bróker simulado»</button></div>'
+  private body(v: SetupsView): string {
+    const slots = this.slots(v)
+    const rule = slots.find((s) => s.order)?.order?.rule
+    return this.statusLine(v) + funnelHtml(v.funnel) +
+      `<div class="su-grid su-slots">${slots.map((sl) => (sl.state === 'validada' && sl.index !== null && v.setups[sl.index]
+        ? slotCard(sl, v.setups[sl.index], v.criteria_version, String(this.prefs.amounts[sl.index] ?? ''), this.outcome(v.setups[sl.index], sl.index))
+        : emptySlot(sl))).join('')}</div>` +
+      `<p class="muted su-rule">Orden de las posiciones: ${esc(rule ?? 'límite inferior del IC95 % del R medio fuera de muestra (mayor primero)')}. ` +
+      'Es una puntuación de evidencia del sistema; el acierto mostrado es una frecuencia observada en simulación, no una probabilidad calibrada.</p>' +
+      watchHtml(v, this.watchOpen)
   }
 
-  /** Ideas de versiones EN OBSERVACIÓN: sin validar, sin monto ni «cargar»; solo para seguirlas. */
-  private watchCard(s: Setup): string {
-    const mv = (x: number): string => pc((x - s.entry) / s.entry)
-    return `<article class="su-card su-watch" data-side="${s.side}"><header>` +
-      `<span class="su-side">${s.side === 'long' ? 'LONG' : 'SHORT'}</span>` +
-      '<span class="su-tag" data-ok="false">En observación · NO validada</span>' +
-      `<span class="muted su-h">${esc(s.strategy)} · ${esc(s.timeframe)} · ${esc(s.version)}</span></header>` +
-      '<div class="su-lv">' +
-      `<div><span>Entrada (${s.kind === 'limit' ? 'límite' : 'mercado'})</span><b class="num">${nf(s.entry)}</b></div>` +
-      `<div><span>Take profit</span><b class="num up">${nf(s.tp)}</b><small>${mv(s.tp)}</small></div>` +
-      `<div><span>Stop loss</span><b class="num down">${nf(s.sl)}</b><small>${mv(s.sl)}</small></div></div>` +
-      `<p class="su-stats">R:B <b>1 : ${nf(s.rr)}</b> · fuera de muestra n <b>${s.evidence.n_oos}</b> · R medio <b>${rr(s.evidence.mean_r)}</b> · decidida <b>${utc(s.created_at)}</b></p>` +
-      `<p class="muted">Falta: ${esc(s.verdict_reason ?? 'evidencia suficiente')}</p>` +
-      `<p class="su-why"><span>Por qué</span> ${esc(s.reason)}</p></article>`
-  }
-
-  private watch(v: SetupsView): string {
-    if (!v.watch?.length) return ''
-    return '<div class="su-watchbox"><h4 class="sh">Ideas en observación <span class="muted">· aún sin evidencia suficiente · no son sugerencias</span></h4>' +
-      `<div class="su-grid">${v.watch.map((s) => this.watchCard(s)).join('')}</div></div>`
+  private paintHead(): void {
+    this.z('head').innerHTML = '<div class="su-head"><h3 class="sh">Operaciones sugeridas intradía</h3>' +
+      '<span class="su-sym">BTCUSDT</span><span class="sim">Análisis · no es una orden</span>' +
+      '<span class="muted">top 3 · solo estrategias validadas · marcos 15 m y 1 h · tenencia ≤ 36 h</span>' +
+      '<span class="spacer"></span>' +
+      `<label class="su-lev">Apalancamiento <input data-k="lev" type="number" min="1" max="125" class="num" value="${this.prefs.leverage}" />x</label></div>`
   }
 
   private paint(): void {
     const v = this.view
-    const head = '<div class="su-head"><h3 class="sh">Operaciones sugeridas intradía</h3>' +
-      '<span class="sim">Análisis · no es una orden</span>' +
-      `<span class="muted">${v ? `solo estrategias validadas · marcos 15 m y 1 h · tenencia ≤ 36 h` : 'solo estrategias validadas'}</span>` +
-      '<span class="spacer"></span>' +
-      `<label class="su-lev">Apalancamiento <input data-k="lev" type="number" min="1" max="125" class="num" value="${this.prefs.leverage}" />x</label></div>`
-    let body: string
-    if (this.error) body = `<p class="muted">No se pudieron cargar las sugerencias: ${esc(this.error)}</p>`
-    else if (!v) body = '<p class="muted">Cargando sugerencias validadas…</p>'
-    else if (!v.setups.length) body = this.empty(v) + this.watch(v)
-    else body = `<div class="su-grid">${v.setups.map((s, i) => this.card(s, i)).join('')}</div>` + this.watch(v)
-    const foot = v
+    const active = document.activeElement
+    if (active instanceof HTMLInputElement && this.z('body').contains(active)) { this.deferred = true; return }
+    this.deferred = false
+    const body = this.error ? `<p class="muted">No se pudieron cargar las sugerencias: ${esc(this.error)}</p>`
+      : !v ? '<p class="muted">Cargando sugerencias validadas…</p>' : this.body(v)
+    // la hora de la consulta cambia siempre: no entra en la huella del cuerpo
+    if (body !== this.sig) { this.z('body').innerHTML = body; this.sig = body }
+    this.z('foot').innerHTML = v
       ? `<p class="muted su-foot">${NO_GUARANTEE} ` +
         (v.price !== null ? `Precio ${nf(v.price)} · ` : '') +
         (v.asof ? `bróker al ${utc(v.asof)} · ` : '') +
         (v.verdicts_asof ? `veredictos al ${utc(v.verdicts_asof)} (${esc(v.criteria_version)}) · ` : '') +
-        `fuente ${esc(v.source)} · comisión ida y vuelta supuesta ${nf(FEE * 100, 2)} %.</p>`
+        `fuente ${esc(v.source)} · comisión ida y vuelta supuesta ${nf(FEE * 100, 2)} % · consultado ${utc(v.now).slice(11)}.</p>`
       : `<p class="muted su-foot">${NO_GUARANTEE}</p>`
-    this.el.innerHTML = head + body + foot
   }
 }
 

@@ -1,4 +1,4 @@
-/* Operaciones sugeridas: debajo de la esfera, tres tarjetas en fila. */
+/* Operaciones sugeridas: debajo del mapa del sistema, tres posiciones en fila (T122). */
 .setups { margin: 12px 20px 0; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
 .su-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; font-size: 12px; }
 .su-head .sh { margin: 0; }
@@ -67,7 +67,31 @@
 .su-tbl tr[data-against="debajo"] td:nth-child(6), .su-tbl tr[data-review="true"] td:first-child { color: var(--warn); }
 
 .su-watchbox { margin-top: 14px; }
-.su-watchbox h4 { margin: 0 0 8px; }
+.su-watchbox > summary { cursor: pointer; margin: 0 0 8px; }
 .su-watch { opacity: .85; border-style: dashed; }
+
+/* T122: tres posiciones del ranking, embudo de estados y validación de cada posición */
+.su-sym { font-size: 11px; letter-spacing: .08em; padding: 1px 8px; border: 1px solid var(--line); border-radius: 999px; color: var(--text); }
+.su-status { margin: 0 0 8px; font-size: 12px; padding: 6px 10px; border-left: 3px solid var(--warn); background: color-mix(in srgb, var(--warn) 7%, transparent); }
+.su-status[data-tone="ok"] { border-left-color: var(--up); background: color-mix(in srgb, var(--up) 7%, transparent); }
+.su-status[data-tone="bad"] { border-left-color: var(--down); background: color-mix(in srgb, var(--down) 8%, transparent); }
+.su-funnel { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0 0 6px; font-size: 12px; }
+.su-funnel i { font-style: normal; color: var(--muted); }
+.su-step b { color: var(--text); font-size: 14px; }
+.su-step[data-k="ranked"] b { color: var(--accent); }
+.su-step[data-k="discarded"] b { color: var(--warn); }
+.su-disc { margin: 0 0 10px; font-size: 12px; color: var(--muted); }
+.su-disc summary { cursor: pointer; }
+.su-disc ul, .su-rules ul { margin: 2px 0 0; padding-left: 18px; }
+.su-slots { margin-top: 8px; }
+.su-slot-empty { border-style: dashed; justify-content: flex-start; min-height: 120px; }
+.su-slot-empty p { margin: 0; font-size: 12px; }
+.su-prob { margin: 0; font-size: 13px; }
+.su-prob b { font-size: 16px; color: var(--text); }
+.su-ctx, .su-val { margin: 0; font-size: 12px; color: var(--muted); }
+.su-ctx b, .su-val b { color: var(--text); font-weight: 600; }
+.su-rules { font-size: 12px; color: var(--muted); }
+.su-ctx span, .su-val span, .su-rules > span { text-transform: uppercase; letter-spacing: .04em; font-size: 11px; margin-right: 4px; }
+.su-rule { margin: 8px 0 0; font-size: 11px; }
 
 .su-wh { margin: 14px 0 6px; }

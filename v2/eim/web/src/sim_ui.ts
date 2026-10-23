@@ -16,7 +16,7 @@ interface State extends Omit<SimInput, 'entry'> { limit: number | null; draw: bo
 
 const KEY = 'eim.sim'
 // Supuestos típicos de Binance (VIP 0, primer tramo); el usuario los ajusta en «Avanzado».
-const MMR: Record<string, number> = { BTCUSDT: 0.004, ETHUSDT: 0.005 }
+const MMR: Record<string, number> = { BTCUSDT: 0.004 }
 const DEFAULT: State = {
   side: 'long', margin: 'cross', orderType: 'market', leverage: 30, amount: 0, unit: 'margin',
   tp: null, tpMode: 'price', sl: null, slMode: 'price', balance: 1000,

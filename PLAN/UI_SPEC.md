@@ -1,12 +1,13 @@
 # Especificación de interfaz (decisiones del usuario; no cambiar sin consultar)
 
-**Estilo:** limpio, amplio, dinámico e integral. Tema **futurista** por defecto (HUD neón: fondo azul noche, paneles de vidrio, acentos cian; verde = compra, rojo = venta, gris = neutral); temas oscuro y claro/cálido (como el panel F7) disponibles con el interruptor Tema. Tipografía sobria, mucho espacio, bordes finos, sin adornos. Por defecto se ven pocas capas; el resto se activa con un clic (divulgación progresiva).
+**Estilo:** limpio, amplio, dinámico e integral. Tema **futurista** como única apariencia (HUD neón: fondo azul noche, paneles de vidrio, acentos cian; verde = compra, rojo = venta, gris = neutral). Decisión del usuario 2026-10-22 (T122): se retiraron el interruptor Tema y los temas oscuro y claro, y la franja animada tipo radar que barría la pantalla. Tipografía sobria, mucho espacio, bordes finos, sin adornos. Por defecto se ven pocas capas; el resto se activa con un clic (divulgación progresiva).
 
 **Layout "Mesa de trading":**
 - Barra superior: activo, marco temporal, estado "En vivo" (punto), etiqueta de **modo** (Análisis/Simulado/Testnet) siempre visible.
 - Centro (≈70 %): gráfico de velas en tiempo real (TradingView Lightweight Charts).
 - Derecha: columna de agentes (tarjeta por agente: sesgo, confianza, estado, evidencia) y panel de síntesis.
 - Abajo: panel con pestañas: Escenarios · Plan · Bitácora.
+- T122 (2026-10-22), de arriba abajo: Río de decisión → **Mapa del sistema** (ya no es pantalla aparte) → **Operaciones sugeridas**: siempre tres posiciones #1–#3 para BTCUSDT; solo las ocupa una oportunidad validada (T49), las vacías dicen por qué y las ideas en observación van aparte como «pendientes de confirmación» → mesa. El **Historial de sugerencias** es la pestaña inferior inmediatamente después de «Bitácora». Solo BTCUSDT (sin selector de activo).
 - Fila de capas activables: Canal, Niveles, Plan, Escenarios (activas por defecto); VWAP, Liquidaciones, Elliott, etc. (apagadas).
 
 **El agente dibuja sobre el gráfico (en tiempo real, al cierre de cada vela; el precio actual se refresca por tick):**

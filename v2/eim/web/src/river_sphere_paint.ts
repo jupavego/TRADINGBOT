@@ -21,13 +21,13 @@ export function areaSplit(f: number): number {
   return (lo + hi) / 2
 }
 
-const rgbCache = new Map<string, string>() // tema|color CSS → "r,g,b"
+const rgbCache = new Map<string, string>() // color CSS → "r,g,b"
 const sprites = new Map<string, HTMLCanvasElement>() // "r,g,b" → destello
 const layers = new Map<string, { key: string; cv: HTMLCanvasElement }>()
 
 /** Color CSS (incl. `var()` / `color-mix`) → "r,g,b" resolviéndolo con el propio navegador. */
 export function toRgb(css: string, host: HTMLElement): string {
-  const key = `${document.documentElement.dataset.theme ?? ''}|${css}`
+  const key = css
   const hit = rgbCache.get(key)
   if (hit) return hit
   if (rgbCache.size > 64) rgbCache.clear()

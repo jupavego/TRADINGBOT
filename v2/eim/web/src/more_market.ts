@@ -10,7 +10,6 @@ const sec = (ms: number): UTCTimestamp => Math.floor(ms / 1000) as UTCTimestamp
 const bar = (c: Json): Json => ({ time: sec(c.t), open: c.o, high: c.h, low: c.l, close: c.c })
 let charts: PriceChart[] = []
 export const disposeCharts = (): void => { charts.forEach((c) => c.destroy()); charts = [] }
-export const restyleCharts = (): void => charts.forEach((c) => c.restyle())
 
 function newChart(el: HTMLElement): PriceChart {
   const c = new PriceChart(el)

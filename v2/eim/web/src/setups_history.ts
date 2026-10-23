@@ -7,6 +7,9 @@ import { bogIso } from './tz'
  * bróker simulado (`GET /v2/setups/history`), señal contra resultado por estrategia@marco@versión,
  * acierto real, R acumulado, tiempo sin sugerencias y versiones en revisión. Ninguna sugerencia
  * aparece como ejecutada: es la resolución simulada de una oportunidad potencial. Modo: Análisis.
+ * Desde T122 vive en su pestaña inferior (tras «Bitácora»): solo consulta la API con la pestaña
+ * abierta; mientras está cerrada anota que hay novedades y recarga al abrirla. El registro de
+ * cada publicación lo hace el servidor (gancho del bróker), no esta vista.
  */
 
 interface Resolution {
@@ -58,22 +61,35 @@ export class SetupsHistory {
   private symbol = 'BTCUSDT'
   private timer: number | undefined
   private abort: AbortController | null = null
+  private visible = false
+  private dirty = true          // hay novedades sin consultar (pestaña cerrada)
 
   constructor(private el: HTMLElement) { this.paint() }
 
-  setSymbol(sym: string): void {
-    if (sym !== this.symbol) { this.symbol = sym; this.view = null; this.paint() }
-    void this.reload()
+  /** Pestaña abierta o cerrada: al abrirla se consulta si hubo novedades. */
+  show(on: boolean): void {
+    this.visible = on
+    if (on && this.dirty) void this.reload()
   }
 
-  soon(): void { clearTimeout(this.timer); this.timer = window.setTimeout(() => void this.reload(), 2500) }
+  setSymbol(sym: string): void {
+    if (sym !== this.symbol) { this.symbol = sym; this.view = null; this.paint() }
+    this.dirty = true
+    if (this.visible) void this.reload()
+  }
+
+  soon(): void {
+    this.dirty = true
+    if (!this.visible) return
+    clearTimeout(this.timer); this.timer = window.setTimeout(() => void this.reload(), 2500)
+  }
 
   async reload(): Promise<void> {
     this.abort?.abort(); this.abort = new AbortController()
     try {
       const r = await fetch(`${base()}/v2/setups/history?symbol=${this.symbol}&limit=30`, { signal: this.abort.signal })
       if (!r.ok) throw new Error(String((await r.json().catch(() => ({}))).detail ?? r.statusText))
-      this.view = await r.json() as History; this.error = ''
+      this.view = await r.json() as History; this.error = ''; this.dirty = false
     } catch (e) {
       if ((e as Error).name === 'AbortError') return
       this.view = null; this.error = (e as Error).message

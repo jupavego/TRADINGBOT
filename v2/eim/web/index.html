@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Tema único: futurista (T122). El atributo es fijo y lo usan los selectores de cyber.css. -->
 <html lang="es" data-theme="cyber">
 <head>
   <meta charset="UTF-8" />
@@ -19,17 +20,15 @@
       <button id="evclock" class="evclock" type="button" hidden aria-live="off" aria-label="Próximo evento económico"></button>
       <div class="spacer"></div>
       <span id="mode" class="mode" title="Modo de operación">Modo: Análisis</span>
-      <button id="obs-btn" class="btn" aria-pressed="false" title="Mapa visual de todo el flujo de trabajo: qué corre, qué falló, qué falta">Mapa del sistema</button>
       <button id="paper-btn" class="btn" aria-pressed="false" title="Operaciones de los agentes ejecutadas en papel, con sus perfiles">Bróker simulado</button>
       <button id="more-btn" class="btn" aria-pressed="false">Más análisis</button>
-      <button id="theme" class="btn" aria-label="Cambiar tema">Tema</button>
     </header>
     <section id="more" class="more" aria-label="Más análisis" hidden></section>
     <section id="paper" class="paper" aria-label="Bróker simulado" hidden></section>
-    <section id="obs" class="obs" aria-label="Mapa del sistema" hidden></section>
     <section id="river" class="river" aria-label="Río de decisión"></section>
+    <!-- Mapa del sistema (T75) bajo el río (T122): el río explica la decisión; el mapa, el flujo que la produjo -->
+    <section id="obs" class="obs" aria-label="Mapa del sistema"></section>
     <section id="setups" class="setups" aria-label="Operaciones sugeridas"></section>
-    <section id="setups-history" class="setups" aria-label="Historial de sugerencias"></section>
     <main class="desk">
       <section id="simbar" class="simbar" aria-label="Simulador de operación"></section>
       <section class="chart-wrap">
@@ -55,6 +54,7 @@
           <button role="tab" aria-selected="false" data-tab="t-squad" id="tab-squad">Escuadrón</button>
           <button role="tab" aria-selected="false" data-tab="t-lib">Biblioteca</button>
           <button role="tab" aria-selected="false" data-tab="t-log">Bitácora</button>
+          <button role="tab" aria-selected="false" data-tab="t-hist" id="tab-hist">Historial de sugerencias</button>
         </nav>
         <div class="tabbody" id="t-esc"><p class="muted">Cargando escenarios…</p></div>
         <div class="tabbody" id="t-cal" hidden><p class="muted">Cargando calibración…</p></div>
@@ -65,6 +65,7 @@
         <div class="tabbody" id="t-squad" hidden><p class="muted">Consultando el escuadrón de bots…</p></div>
         <div class="tabbody" id="t-lib" hidden><p class="muted">Cargando biblioteca…</p></div>
         <div class="tabbody" id="t-log" hidden><div id="trades-log"></div><h4>Reportes de agentes</h4><div id="journal"></div></div>
+        <div class="tabbody su-histtab" id="t-hist" hidden><p class="muted">Cargando historial de sugerencias…</p></div>
       </section>
     </main>
   </div>
