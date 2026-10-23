@@ -10,11 +10,11 @@ from eim.paper.catalog import generate_ideas
 from eim.paper.engine import Outcome, Path, simulate
 from eim.paper.feedback import FeedbackParams, Learner, context_key, timeframe_stats
 from eim.paper.params import PROFILES, ExecParams
-from tests.paper.helpers import H1, M15, T0, flat, idea, with_bar
+from tests.paper.helpers import H1, M15, T0, flat, idea, tp_mode, with_bar
 from tests.paper.test_strategies import ctx_for, walk
 
 ZERO = ExecParams(costs=ZERO_COSTS, funding_8h_assumed=0.0)
-MOD = next(p for p in PROFILES if p.id == "moderado")
+MOD = tp_mode(next(p for p in PROFILES if p.id == "moderado"))  # salida TP (T109)
 
 
 def test_hold_scales_with_timeframe_but_setups_do_not():

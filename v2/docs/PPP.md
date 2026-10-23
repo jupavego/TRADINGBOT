@@ -1,15 +1,16 @@
-# Protección progresiva de ganancias — PPP (T105, T108)
+# Protección progresiva de ganancias — PPP (T105, T108, T109)
 
 Escalera de protección del bróker simulado: SL dinámico por escalones de beneficio **neto**.
-Vive en el perfil de control `ppp_btcusdt` (T105) y, desde T108, los tres perfiles
-(Conservador, Moderado, Agresivo) traen sus propios parámetros de escalera.
+Nació en el perfil de control `ppp_btcusdt` (T105); T108 dio a los tres perfiles (Conservador,
+Moderado, Agresivo) sus propios parámetros y **T109 los hace salir solo por su stop**.
 **Solo simulación**: `LadderParams` rechaza `real_money`, `time_exit` y `fixed_take_profit`
 (error de validación si se intentan activar).
 
-> **Estado (T108).** Los tres perfiles tienen parámetros de escalera, ficha de instrumento por
-> símbolo y validación al arrancar, pero **siguen saliendo por TP/BE/tiempo**: su `exit_mode`
-> pasa a `"ladder"` en **T109**, que es quien cambia el motor (precedencia entre BE+ y escalones,
-> memoria de aprendizaje y veto de posición duplicada). Hoy solo opera con escalera el control.
+> **Estado (T109).** Los cuatro perfiles salen con `exit_mode="ladder"`: sin TP fijo y sin cierre
+> por tiempo. Antes del primer umbral manda el stop inicial; después, el stop dinámico, que solo
+> sube. Nada más cierra una operación de la estrategia (§2.3). El modo `"tp"` sigue siendo un
+> parámetro para medir cada salida por separado (T111) y para la elección dinámica de ◆1
+> (T113/T114). La persistencia del estado de protección es T110; el panel, T112.
 
 ## 1. Arquitectura identificada y qué se reutilizó
 
@@ -24,10 +25,10 @@ Vive en el perfil de control `ppp_btcusdt` (T105) y, desde T108, los tres perfil
 | 10 Evaluación | `summary.profile_summary`, `balance`, bitácora | sí + `ladder_stats.py` |
 | Agentes/IA | consolidados por la síntesis existente (T44); el perfil exige ir a favor de `syn_bias` y de la tendencia del marco mayor. No se añadió ningún agente | sí |
 
-Los tres perfiles anteriores **no cambian**: mismos trades y eventos con y sin el perfil nuevo
-(`tests/paper/test_ladder_book.py::test_does_not_touch_other_profiles`). La salida TP/BE/tiempo
-sigue en `engine.simulate`; la escalera se simula **dentro del libro** porque los escalones están
-en USDT y dependen de la cantidad, que el libro fija después de dimensionar.
+La salida TP/BE/tiempo sigue en `engine.simulate` (la **sombra** que evalúa estrategias y la
+salida `"tp"` del A/B); la escalera se simula **dentro del libro** porque los escalones están en
+USDT y dependen de la cantidad, que el libro fija después de dimensionar. Un perfil en modo `"tp"`
+ignora el camino de la escalera (`test_ladder_book.py::test_does_not_touch_other_profiles`).
 
 ## 2. Parámetros (todos en `paper/params.py`)
 
@@ -51,8 +52,8 @@ Son la traducción exacta a R de los 5/2,5 · 10/5 · 15/7,5 USDT del encargo co
 inicial. En USDT los tres perfiles no son comparables (el Agresivo protegería **antes**, a
 0,075 R, que el Conservador, a 0,100 R) ni resisten un cambio de capital; en R sí. **Son el punto
 de partida del experimento, no un óptimo**: T111 mide la sensibilidad (0,1 · 0,25 · 0,5 · 1,0 R)
-y decide. `be_with_ladder=True` en los tres (◆3): BE+ y escalones conviven y el stop vigente será
-el mejor de los dos, nunca el peor — lo honra **T109**.
+y decide. `be_with_ladder=True` en los tres (◆3): BE+ y escalones conviven y el stop vigente es
+el mejor de los dos, nunca el peor (§2.3).
 
 ### 2.2 Ficha del instrumento (A6 de T106)
 
@@ -66,6 +67,65 @@ confianza ≥ 0,30, R:B estimado ≥ 1,3, a favor de síntesis y de tendencia ma
 sin cobertura (largo y corto a la vez). Costos: los de `ExecParams.costs` (taker 0,05 %,
 deslizamiento base + volatilidad, funding real del almacén). Feedback fijo: peso 1, nunca pausa y
 **nunca sube el tamaño tras una pérdida**.
+
+### 2.3 Solo cierra el stop (T109)
+
+**Qué puede terminar una operación**, cada cosa con su motivo propio en el libro y contada por
+separado en `summary["ladder"]["exits"]` (`ladder_stats.exit_counts`):
+
+| Motivo | Código | Qué es |
+|---|---|---|
+| Stop inicial | `SL` | el de la idea, antes del primer umbral |
+| Stop dinámico | `SLD` | el SL movido por un escalón **o por el BE+** (`ladder.stop_source`) |
+| Liquidación simulada | `LIQUIDACION` | margen aislado de T107: un hueco que atraviesa la liquidación |
+| Salvaguarda independiente | `SALVAGUARDA` | cierre ordenado por el kill-switch (T31); el bróker simulado hoy no lo emite |
+| Incidencia técnica | — | **no cierra**: datos no finitos dejan la posición abierta marcada «incidencia» |
+
+**Nadie más cierra.** Un cierre por TP, por tiempo, por alcanzar un escalón, por una señal
+contraria de un agente, por retroceso del flotante sin tocar el stop o manual
+(`ladder_audit.FORBIDDEN_CLOSE`) se registra como **violación** (evento «violacion», contador
+`counts.violations` y `ladder.exits.rechazados`) y **no se ejecuta**: la posición sigue abierta
+con su stop vigente y el capital y el margen no se mueven (`book._reject`). Un cierre por el stop
+cuyo historial tiene anomalías sí se ejecuta —el precio tocó el stop— y queda auditado aparte con
+su PnL contabilizado (T106 A5).
+
+**Señales contrarias**: solo informan. El evento de la señal que llega contra una posición abierta
+lleva `against` (las posiciones a las que se opone) y el resumen las cuenta
+(`ladder.contrary_signals`); con cobertura el perfil puede abrir la contraria, sin cobertura se
+rechaza, y en ningún caso se toca la posición abierta.
+
+**El tiempo solo se registra**: `hold_h` de la idea ya no cierra en ningún perfil; la duración
+queda en `ladder.elapsed_ms` y en las métricas (`avg_hours`, `duration`). El objetivo de la idea
+solo es una **estimación** para los filtros de entrada (`min_rr`, `max_cost_r`,
+`min_target_vs_first`) y para el análisis, jamás una orden de salida.
+
+**BE+ conviviendo (◆3).** Si el precio avanza `be_trigger_r` = 1 R (solo ideas de 1 h y 4 h, como
+en T48b), desde la vela siguiente el BE+ propone un stop en entrada + 0,1 R + costo estimado; el
+stop vigente es el **mejor** entre ese y el del escalón, y solo se mueve si sube. Con los umbrales
+reales (0,075–0,100 R) el escalón ya protege ≈ 0,8 R cuando el BE+ se dispara, así que **en la
+práctica no interviene** (`test_with_the_real_steps_be_plus_never_beats_the_ladder`); sí manda con
+un primer escalón lejano (`test_be_plus_coexists_and_the_best_stop_wins`).
+
+**Entradas sin cambios.** El veto «una posición por vela y lado» (`one_per_bar`) y el freno propio
+de la escalera (`brake`) son del control; los tres perfiles conservan sus mínimos de abiertas, su
+cobertura y sus `caps` (T106 §3 señalaba el choque).
+
+**Aprendizaje coherente.** Con escalera el perfil aprende de **sus propios cierres**
+(`LadderRisk`), no de la sombra con TP; el resumen lo declara (`learning`) y los pesos que muestra
+salen de esa memoria. Consecuencias que hay que saber: la memoria **empieza de cero** al encender la
+escalera (el Conservador, que solo opera lo probado, vuelve a entrar sobre todo por su mínimo de
+abiertas hasta acumular 10 cierres propios por estrategia), y el peso queda acotado a
+`LadderParams.max_weight` = 1,5. El Agresivo (`gain` 2,5, `w_max` 3,0) llegaba a 3,0 tras una
+racha corta; con la escalera las ganadoras son pequeñas y frecuentes, la muestra propia es chica y
+una racha no debe multiplicar el tamaño. Con el tope del 3 % por dirección, 1,5 × 2 % es el mismo
+techo que ya imponía `caps`; en el Moderado baja de 2,0 a 1,5; el Conservador (1,5) y el control
+(1,0) no cambian.
+
+**Protección monotónica.** El nivel protegido solo sube dentro de la simulación; una señal nueva
+de la misma estrategia, una señal contraria o un cambio de versión de la estrategia no lo tocan, y
+recalcular la vista (reinicio) da el mismo estado
+(`test_new_signal_or_strategy_version_does_not_reset_the_protection`). Guardar ese estado entre
+procesos y detectar cuando el motor no puede sostener la regla es **T110**.
 
 ## 3. Fórmulas
 
@@ -91,11 +151,12 @@ Se redondea al tick **en contra del operador** (largo arriba, corto abajo) y se 
 
 ## 4. Máquina de estados de una posición
 
-`pendiente` → (llenado) `inicial` (manda el SL de la idea) → (neto máx. ≥ 10) `protegida`
-(escalón n, SL solo sube) → cierra en `cerrada_sl_inicial` o `cerrada_sl_dinamico`.
-`incidencia`: dato de vela no finito; la posición queda abierta, sin cierre inventado.
-Un cierre `TIEMPO/TP/BE/NIVEL/AGENTE/MANUAL` es una **violación**: evento «violacion», no entra en
-el resultado ni en el capital (`ladder_audit.py`, comprobado en cada cierre del libro).
+`pendiente` → (llenado) `inicial` (manda el SL de la idea) → (neto máx. ≥ primer escalón, o BE+)
+`protegida` (escalón n, SL solo sube) → cierra en `cerrada_sl_inicial` o `cerrada_sl_dinamico`
+(o liquidación / salvaguarda, §2.3). `incidencia`: dato de vela no finito; la posición queda
+abierta, sin cierre inventado. Un cierre `TIEMPO/TP/BE/NIVEL/AGENTE/RETROCESO/MANUAL` es una
+**violación**: evento «violacion» y la posición sigue abierta; no se ejecuta (`book._reject`,
+comprobado en cada cierre del libro).
 
 Reglas dentro de una vela de 15 m (sin anticipación, conservador): 1) manda el SL vigente **al
 abrir** la vela (hueco más allá del SL → se ejecuta a la apertura); 2) el avance de la vela solo
@@ -112,7 +173,9 @@ cálculo no duplica operaciones ni eventos. No hay estado en memoria que perder.
 
 ## 6. Métricas (`summary["ladder"]`, API `/v2/paper`)
 
-Operaciones que alcanzaron cada escalón, cierres por SL inicial/dinámico, máximo flotante medio,
+Motivos de cierre por separado (`exits`: stop inicial, stop dinámico, liquidación, salvaguarda,
+incidencias abiertas, otros motivos —debe ser 0— y cierres rechazados), señales contrarias,
+operaciones que alcanzaron cada escalón, cierres por SL inicial/dinámico, máximo flotante medio,
 realizado medio, lo devuelto frente al máximo, realizado − protegido estimado, resultado y
 retrocesos por escalón máximo, lado, régimen, hora UTC de entrada y estrategia, duración
 (solo analítica), pérdidas seguidas, violaciones e incidencias. La UI (pestaña «Perfiles») las

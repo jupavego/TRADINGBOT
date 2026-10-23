@@ -8,13 +8,13 @@ Reglas (deterministas; ningún agente las toca una vez abierta la posición):
   con el riesgo de ESA operación: fijo en USDT (control) o como fracción del riesgo (◆6 de T106).
   Sin TP final y sin cierre por tiempo: solo cierra el SL vigente. La protección nunca baja, ni
   vuelve a la entrada.
-- Beneficio neto estimado de salir a un precio `p` (misma contabilidad que `engine.Outcome.net`,
-  en USDT con `qty` BTC y entrada `f`):
-      neto(p) = qty·(lado·(p − f) − fee_sal·p) − qty·f·(fee_ent + desl_ent + desl_sal + funding)
-  Precio de protección del nivel L (despeje exacto; luego se redondea al tick EN CONTRA del
-  operador —largo arriba, corto abajo— y se vuelve a comprobar `neto ≥ L`):
-      largo : p = (L/qty + f·(1+K)) / (1 − fee_sal)       K = fee_ent+desl_ent+desl_sal+funding
-      corto : p = (f·(1−K) − L/qty) / (1 + fee_sal)
+- BE+ conviviendo (◆3 de T106, `be_with_ladder`, solo en `ExecParams.be_timeframes`): si el precio
+  avanza `be_trigger_r` R, desde la vela siguiente el SL candidato del BE+ es entrada +
+  `be_lock_r` R + costo estimado (como en `engine.simulate`). El SL vigente es el MEJOR de los dos
+  candidatos y solo se mueve si sube; el cierre por un SL movido por cualquiera de los dos es
+  «SLD» (stop dinámico) y el historial dice de dónde vino (`source`: «escalon» o «be»).
+- El SL de cada nivel es el precio cuyo beneficio NETO estimado es ese nivel (fórmulas en
+  `ladder_math.py`, misma contabilidad que `engine.Outcome.net`).
 - Camino de 15 m, sin anticipación y conservador: en cada vela primero se comprueba el SL vigente
   AL ABRIR la vela (un hueco más allá se ejecuta a la apertura); el avance de esa vela solo sube
   el SL desde la vela SIGUIENTE (no se sabe si el extremo llegó antes o después del retroceso).
@@ -33,71 +33,24 @@ Reglas (deterministas; ningún agente las toca una vez abierta la posición):
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, replace
+from dataclasses import replace
+from typing import NamedTuple
 
 import numpy as np
 
 from eim.paper.engine import Outcome, Path, _funding, _limit_fill, _slip, _stop_exit, _with_r
 from eim.paper.ideas import Idea
+from eim.paper.ladder_math import (  # noqa: F401  (reexportadas: tests y `ladder_book`)
+    EPS,
+    LadderCosts,
+    costs_for,
+    floor_qty,
+    level_of,
+    net_usd,
+    nominal,
+    protect_price,
+)
 from eim.paper.params import ExecParams, LadderParams, SymbolSpec
-
-EPS = 1e-9
-
-
-@dataclass(frozen=True)
-class LadderCosts:
-    """Costos de entrada (ya conocidos) y de salida a SL (estimados), como fracciones."""
-
-    fee_in: float
-    slip_in: float
-    fee_out: float
-    slip_out: float
-
-
-def net_usd(side: int, qty: float, fill: float, price: float, funding: float,
-            c: LadderCosts) -> float:
-    """Beneficio neto (USDT) de cerrar `qty` a `price`, con todos los costos modelados."""
-    k = c.fee_in + c.slip_in + c.slip_out + funding
-    return qty * (side * (price - fill) - c.fee_out * price) - qty * fill * k
-
-
-def protect_price(side: int, qty: float, fill: float, level: float, funding: float,
-                  c: LadderCosts, tick: float) -> float:
-    """Precio de SL cuyo neto estimado es `level` USDT, redondeado al tick y verificado."""
-    k = c.fee_in + c.slip_in + c.slip_out + funding
-    if side > 0:
-        exact = (level / qty + fill * (1 + k)) / (1 - c.fee_out)
-        n = math.ceil(exact / tick - EPS)
-    else:
-        exact = (fill * (1 - k) - level / qty) / (1 + c.fee_out)
-        n = math.floor(exact / tick + EPS)
-    for _ in range(5):                       # el redondeo nunca puede dejar el neto bajo el nivel
-        price = round(n * tick, 8)
-        if net_usd(side, qty, fill, price, funding, c) >= level - EPS:
-            return price
-        n += side
-    return round(n * tick, 8)
-
-
-def level_of(max_float: float, first: float, step: float) -> int:
-    """Escalón confirmado por el beneficio neto máximo (0 = aún sin protección)."""
-    if max_float + EPS < first:
-        return 0
-    return 1 + int(math.floor((max_float - first) / step + EPS))
-
-
-def nominal(level: int, first: float, step: float) -> float:
-    """Beneficio neto nominal protegido por un escalón (10, 15, 20, …)."""
-    return first + (level - 1) * step if level > 0 else 0.0
-
-
-def floor_qty(qty: float, qty_step: float) -> float:
-    return math.floor(qty / qty_step + EPS) * qty_step
-
-
-def costs_for(fee_in: float, slip_in: float, ep: ExecParams) -> LadderCosts:
-    cp = ep.costs
-    return LadderCosts(fee_in, slip_in, cp.taker_fee, cp.slip_base_bps / 1e4)
 
 
 def _entry(idea: Idea, path: Path, ep: ExecParams) -> tuple[str, int, int, float, float, float]:
@@ -116,33 +69,64 @@ def _entry(idea: Idea, path: Path, ep: ExecParams) -> tuple[str, int, int, float
             int(k or 0), 0, 0.0, 0.0, 0.0)
 
 
+class _Step(NamedTuple):
+    """Lo que una vela (o un minuto) haría con la protección; `_Run.peek` no muta nada."""
+
+    max_float: float
+    level: int
+    stop: float | None        # nuevo SL (solo si sube) o None
+    source: str               # «escalon» | «be» | «»
+    nominal: float            # neto protegido estimado del nuevo SL
+    be_armed: bool            # el precio llegó al disparo del BE+
+
+
 class _Run:
-    """Estado vivo de la escalera: SL vigente, escalón, máximo flotante e historial."""
+    """Estado vivo de la escalera: SL vigente, escalón, máximo flotante, BE+ e historial."""
 
     def __init__(self, s: int, qty: float, fill: float, c: LadderCosts, stop: float,
-                 first: float, step: float, tick: float) -> None:
+                 first: float, step: float, tick: float,
+                 be: tuple[float, float] | None = None) -> None:
         self.s, self.qty, self.fill, self.c0 = s, qty, fill, c
         self.first, self.step_usd, self.tick = first, step, tick
         self.stop, self.level, self.max_float, self.hist, self.c_stop = stop, 0, -math.inf, [], c
+        self.be, self.be_armed, self.source = be, False, "inicial"   # be = (disparo, SL del BE+)
 
-    def peek(self, fav: float, fund: float, cj: LadderCosts) -> tuple[float, int, float | None]:
-        """(máx. flotante, escalón, nuevo SL o None) si el precio llegara a `fav`; no muta."""
-        mf = max(self.max_float, net_usd(self.s, self.qty, self.fill, fav, fund, cj))
+    @property
+    def protected(self) -> bool:
+        """¿El SL ya se movió desde el inicial (por un escalón o por el BE+)?"""
+        return bool(self.hist)
+
+    def _up(self, p: float, fav: float) -> bool:
+        """Solo sube (demostrado) y el precio ya lo alcanzó."""
+        return (p - self.stop) * self.s > 0 and (fav - p) * self.s >= 0
+
+    def peek(self, fav: float, fund: float, cj: LadderCosts) -> _Step:
+        """Qué pasaría si el precio llegara a `fav`: el nuevo SL es el MEJOR candidato (◆3)."""
+        s = self.s
+        mf = max(self.max_float, net_usd(s, self.qty, self.fill, fav, fund, cj))
         new = level_of(mf, self.first, self.step_usd)
-        if new <= self.level:
-            return mf, self.level, None
-        p = protect_price(self.s, self.qty, self.fill, nominal(new, self.first, self.step_usd),
-                          fund, cj, self.tick)
-        ok = (p - self.stop) * self.s > 0 and (fav - p) * self.s >= 0   # solo sube, demostrado
-        return mf, new, p if ok else None
+        best = _Step(mf, self.level, None, "", 0.0, False)
+        if new > self.level:
+            lv = nominal(new, self.first, self.step_usd)
+            p = protect_price(s, self.qty, self.fill, lv, fund, cj, self.tick)
+            if self._up(p, fav):
+                best = _Step(mf, new, p, "escalon", lv, False)
+        armed = self.be is not None and (fav - self.be[0]) * s >= 0
+        if armed and not self.be_armed:
+            lock = self.be[1]
+            if self._up(lock, fav) and (best.stop is None or (lock - best.stop) * s > 0):
+                best = _Step(mf, self.level, lock, "be",
+                             net_usd(s, self.qty, self.fill, lock, fund, cj), False)
+        return best._replace(be_armed=armed)
 
-    def apply(self, got: tuple[float, int, float | None], end: int, cj: LadderCosts) -> None:
-        self.max_float, new, p = got
-        if p is not None:
-            self.stop, self.level, self.c_stop = p, new, cj
-            self.hist.append({"t": end, "level": new,
-                              "nominal": nominal(new, self.first, self.step_usd),
-                              "stop": p, "max_float": self.max_float})
+    def apply(self, got: _Step, end: int, cj: LadderCosts) -> None:
+        self.max_float = got.max_float
+        self.be_armed = self.be_armed or got.be_armed
+        if got.stop is not None:
+            self.stop, self.level, self.c_stop, self.source = got.stop, got.level, cj, got.source
+            self.hist.append({"t": end, "level": got.level, "nominal": got.nominal,
+                              "stop": got.stop, "max_float": self.max_float,
+                              "source": got.source})
 
 
 def _sub_bars(run: _Run, fine: Path, path: Path, ep: ExecParams, fill_t: int, t0: int, step: int,
@@ -156,10 +140,23 @@ def _sub_bars(run: _Run, fine: Path, path: Path, ep: ExecParams, fill_t: int, t0
         end = int(fine.t[m]) + fine.step
         if (lo <= run.stop) if s > 0 else (h >= run.stop):
             gap = (o <= run.stop) if s > 0 else (o >= run.stop)
-            return ("SLD" if run.level else "SL"), (o if gap else run.stop), end
+            return ("SLD" if run.protected else "SL"), (o if gap else run.stop), end
         fund = _funding(path, s, fill_t, end, ep)[0] + reserve
         run.apply(run.peek(h if s > 0 else lo, fund, cj), end, cj)
     return None
+
+
+def _be_levels(idea: Idea, fill: float, risk: float, ep: ExecParams, lp: LadderParams,
+               tick: float) -> tuple[float, float] | None:
+    """(precio de disparo, SL bloqueado) del BE+ de T48b cuando convive con la escalera (◆3) en
+    el marco de la idea; None si no aplica. El SL se redondea al tick a favor de la protección."""
+    if not (lp.be_with_ladder and ep.be_trigger_r > 0 and idea.timeframe in ep.be_timeframes):
+        return None
+    s = idea.side
+    lock_r = ep.be_lock_r + (ep.est_cost_frac * fill / risk if ep.be_cover_costs else 0.0)
+    lock = fill + s * lock_r * risk
+    n = math.ceil(lock / tick - EPS) if s > 0 else math.floor(lock / tick + EPS)
+    return fill + s * ep.be_trigger_r * risk, round(n * tick, 8)
 
 
 def _fine_covers(fine: Path | None, t0: int, step: int) -> bool:
@@ -198,7 +195,9 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
         return Outcome(idea, "RECHAZADA", "GEOMETRIA", exit_t=fill_t, fill=fill)
     risk = abs(fill - idea.sl)
     first, step_usd = lp.steps(qty * risk)        # escalones de ESTA operación (◆6: en R o fijos)
-    run = _Run(s, qty, fill, costs_for(fee_in, slip_in, ep), idea.sl, first, step_usd, spec.tick)
+    be = _be_levels(idea, fill, risk, ep, lp, spec.tick)
+    run = _Run(s, qty, fill, costs_for(fee_in, slip_in, ep), idea.sl, first, step_usd, spec.tick,
+               be)
     reserve = max(0.0, s * ep.funding_8h_assumed) * lp.funding_reserve   # reserva de funding
     incident, fine_bars = "", 0
     reason, ex, jx, ex_t, last_ok = "", None, None, None, k
@@ -219,8 +218,8 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
                                                          j + 1))
             cj = replace(run.c0, slip_out=slip)               # deslizamiento esperado (reserva)
             got = run.peek(fav, fund, cj)
-            if got[2] is not None and _fine_covers(fine, t0, path.step) and (
-                    (lo <= got[2]) if s > 0 else (h >= got[2])):
+            if got.stop is not None and _fine_covers(fine, t0, path.step) and (
+                    (lo <= got.stop) if s > 0 else (h >= got.stop)):
                 fine_bars += 1                                # ambigua: se resuelve con 1 min
                 hit = _sub_bars(run, fine, path, ep, fill_t, t0, path.step, cj, reserve)
                 if hit:
@@ -229,7 +228,7 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
                     break
                 continue
             if (lo <= run.stop) if s > 0 else (h >= run.stop):   # SL vigente AL ABRIR la vela
-                reason, ex, jx = ("SLD" if run.level else "SL"), _stop_exit(
+                reason, ex, jx = ("SLD" if run.protected else "SL"), _stop_exit(
                     path, s, j, run.stop, k), j
                 break
             run.apply(got, end, cj)
@@ -242,21 +241,26 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
             "first_usd": first, "step_usd": step_usd,
             "max_float_usd": None if run.max_float == -math.inf else run.max_float,
             "stop": run.stop, "initial_sl": idea.sl, "stop_history": run.hist,
-            "incident": incident, "levels": [h_["nominal"] for h_ in run.hist],
+            "incident": incident,
+            "levels": [h_["nominal"] for h_ in run.hist if h_["source"] == "escalon"],
+            "stop_source": run.source,
+            "be": None if be is None else {"trigger": be[0], "lock": be[1],
+                                           "armed": run.be_armed},
             "last_bar_t": int(path.t[end_i]) + path.step, "fine_resolved_bars": fine_bars}
     if reason:
         exit_t = ex_t if ex_t is not None else int(path.t[jx]) + path.step
         fund, assumed = _funding(path, s, fill_t, exit_t, ep)
         fee_out = ep.costs.taker_fee * ex / fill
-        info |= {"state": "cerrada_sl_dinamico" if run.level else "cerrada_sl_inicial",
+        info |= {"state": "cerrada_sl_dinamico" if run.protected else "cerrada_sl_inicial",
                  "protected_est_usd": (net_usd(s, qty, fill, run.stop, fund, run.c_stop)
-                                       if run.level else None), "elapsed_ms": exit_t - fill_t}
+                                       if run.protected else None),
+                 "elapsed_ms": exit_t - fill_t}
         return _with_r(Outcome(idea, "CERRADA", reason, fill_t, fill, exit_t, ex, fee_in, fee_out,
                                slip_in + _slip(path, jx, ep), fund, assumed,
                                s * (ex - fill) / fill, None, mfe, mae, ladder=info))
     mark = float(path.c[end_i])
     fund, assumed = _funding(path, s, fill_t, int(path.t[end_i]) + path.step, ep)
-    info |= {"state": "incidencia" if incident else "protegida" if run.level else "inicial",
+    info |= {"state": "incidencia" if incident else "protegida" if run.protected else "inicial",
              "float_usd": net_usd(s, qty, fill, mark, fund, run.c0),
              "elapsed_ms": int(path.t[end_i]) + path.step - fill_t}
     return _with_r(Outcome(idea, "ABIERTA", "", fill_t, fill, None, None, fee_in, 0.0, slip_in,

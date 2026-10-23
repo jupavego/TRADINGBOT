@@ -1,0 +1,363 @@
+[
+ {
+  "symbol": "BTCUSDT",
+  "from": 1789946100000,
+  "to": 1792706400000,
+  "days": 31.947916666666668,
+  "ideas": 4999,
+  "fine": true,
+  "profiles": {
+   "conservador": {
+    "n": 21,
+    "by_reason": {
+     "SLD": 17,
+     "SL": 4
+    },
+    "exits": {
+     "stop_inicial": 4,
+     "stop_dinamico": 17,
+     "liquidacion": 0,
+     "salvaguarda": 0,
+     "incidencia_abierta": 0,
+     "otros_motivos": 0,
+     "rechazados": 0
+    },
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 36,
+    "open": 0,
+    "be_closes": 0,
+    "pnl": -21.58,
+    "win": 0.667,
+    "avg_h": 1.3,
+    "max_h": 4.2,
+    "max_dd_pct": 1.01
+   },
+   "moderado": {
+    "n": 226,
+    "by_reason": {
+     "SLD": 184,
+     "SL": 42
+    },
+    "exits": {
+     "stop_inicial": 42,
+     "stop_dinamico": 184,
+     "liquidacion": 0,
+     "salvaguarda": 0,
+     "incidencia_abierta": 0,
+     "otros_motivos": 0,
+     "rechazados": 0
+    },
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 1237,
+    "open": 1,
+    "be_closes": 0,
+    "pnl": -753.01,
+    "win": 0.712,
+    "avg_h": 4.8,
+    "max_h": 53.0,
+    "max_dd_pct": 9.39
+   },
+   "agresivo": {
+    "n": 220,
+    "by_reason": {
+     "SLD": 175,
+     "SL": 45
+    },
+    "exits": {
+     "stop_inicial": 45,
+     "stop_dinamico": 175,
+     "liquidacion": 0,
+     "salvaguarda": 0,
+     "incidencia_abierta": 0,
+     "otros_motivos": 0,
+     "rechazados": 0
+    },
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 1174,
+    "open": 2,
+    "be_closes": 0,
+    "pnl": -3547.63,
+    "win": 0.623,
+    "avg_h": 3.2,
+    "max_h": 53.0,
+    "max_dd_pct": 36.96
+   },
+   "ppp_btcusdt": {
+    "n": 73,
+    "by_reason": {
+     "SLD": 56,
+     "SL": 17
+    },
+    "exits": {
+     "stop_inicial": 17,
+     "stop_dinamico": 56,
+     "liquidacion": 0,
+     "salvaguarda": 0,
+     "incidencia_abierta": 0,
+     "otros_motivos": 0,
+     "rechazados": 0
+    },
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 717,
+    "open": 0,
+    "be_closes": 0,
+    "pnl": -517.83,
+    "win": 0.63,
+    "avg_h": 6.6,
+    "max_h": 53.5,
+    "max_dd_pct": 6.0
+   }
+  },
+  "tp_mode": {
+   "conservador": {
+    "n": 36,
+    "by_reason": {
+     "TP": 9,
+     "SL": 21,
+     "TIEMPO": 6
+    },
+    "exits": null,
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 0,
+    "open": 0,
+    "be_closes": 0,
+    "pnl": -316.17,
+    "win": 0.361,
+    "avg_h": 10.2,
+    "max_h": 96.0,
+    "max_dd_pct": 5.68
+   },
+   "moderado": {
+    "n": 106,
+    "by_reason": {
+     "TP": 30,
+     "SL": 48,
+     "BE": 13,
+     "TIEMPO": 15
+    },
+    "exits": null,
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 0,
+    "open": 1,
+    "be_closes": 0,
+    "pnl": -876.38,
+    "win": 0.528,
+    "avg_h": 18.7,
+    "max_h": 130.0,
+    "max_dd_pct": 16.21
+   },
+   "agresivo": {
+    "n": 74,
+    "by_reason": {
+     "TP": 21,
+     "SL": 37,
+     "BE": 12,
+     "TIEMPO": 4
+    },
+    "exits": null,
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 0,
+    "open": 1,
+    "be_closes": 0,
+    "pnl": -1795.69,
+    "win": 0.446,
+    "avg_h": 12.4,
+    "max_h": 69.8,
+    "max_dd_pct": 31.19
+   }
+  }
+ },
+ {
+  "symbol": "ETHUSDT",
+  "from": 1789948800000,
+  "to": 1792710000000,
+  "days": 31.958333333333332,
+  "ideas": 4914,
+  "fine": true,
+  "profiles": {
+   "conservador": {
+    "n": 10,
+    "by_reason": {
+     "SLD": 10
+    },
+    "exits": {
+     "stop_inicial": 0,
+     "stop_dinamico": 10,
+     "liquidacion": 0,
+     "salvaguarda": 0,
+     "incidencia_abierta": 0,
+     "otros_motivos": 0,
+     "rechazados": 0
+    },
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 17,
+    "open": 0,
+    "be_closes": 0,
+    "pnl": 4.05,
+    "win": 0.4,
+    "avg_h": 1.3,
+    "max_h": 2.8,
+    "max_dd_pct": 0.31
+   },
+   "moderado": {
+    "n": 321,
+    "by_reason": {
+     "SLD": 261,
+     "SL": 60
+    },
+    "exits": {
+     "stop_inicial": 60,
+     "stop_dinamico": 261,
+     "liquidacion": 0,
+     "salvaguarda": 0,
+     "incidencia_abierta": 0,
+     "otros_motivos": 0,
+     "rechazados": 0
+    },
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 1131,
+    "open": 4,
+    "be_closes": 0,
+    "pnl": -1178.23,
+    "win": 0.626,
+    "avg_h": 4.0,
+    "max_h": 62.0,
+    "max_dd_pct": 13.12
+   },
+   "agresivo": {
+    "n": 252,
+    "by_reason": {
+     "SLD": 204,
+     "SL": 48
+    },
+    "exits": {
+     "stop_inicial": 48,
+     "stop_dinamico": 204,
+     "liquidacion": 0,
+     "salvaguarda": 0,
+     "incidencia_abierta": 0,
+     "otros_motivos": 0,
+     "rechazados": 0
+    },
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 1155,
+    "open": 2,
+    "be_closes": 0,
+    "pnl": -3875.1,
+    "win": 0.599,
+    "avg_h": 2.9,
+    "max_h": 31.8,
+    "max_dd_pct": 40.43
+   },
+   "ppp_btcusdt": {
+    "n": 0,
+    "by_reason": {},
+    "exits": {
+     "stop_inicial": 0,
+     "stop_dinamico": 0,
+     "liquidacion": 0,
+     "salvaguarda": 0,
+     "incidencia_abierta": 0,
+     "otros_motivos": 0,
+     "rechazados": 0
+    },
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 0,
+    "open": 0,
+    "be_closes": 0,
+    "pnl": 0,
+    "win": null,
+    "avg_h": null,
+    "max_h": null,
+    "max_dd_pct": 0.0
+   }
+  },
+  "tp_mode": {
+   "conservador": {
+    "n": 47,
+    "by_reason": {
+     "TP": 12,
+     "SL": 20,
+     "TIEMPO": 7,
+     "BE": 8
+    },
+    "exits": null,
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 0,
+    "open": 3,
+    "be_closes": 0,
+    "pnl": -43.11,
+    "win": 0.447,
+    "avg_h": 14.0,
+    "max_h": 83.8,
+    "max_dd_pct": 3.29
+   },
+   "moderado": {
+    "n": 144,
+    "by_reason": {
+     "TP": 37,
+     "BE": 25,
+     "SL": 58,
+     "TIEMPO": 24
+    },
+    "exits": null,
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 0,
+    "open": 4,
+    "be_closes": 0,
+    "pnl": -413.5,
+    "win": 0.549,
+    "avg_h": 20.1,
+    "max_h": 96.0,
+    "max_dd_pct": 11.53
+   },
+   "agresivo": {
+    "n": 83,
+    "by_reason": {
+     "TP": 24,
+     "BE": 14,
+     "SL": 32,
+     "TIEMPO": 13
+    },
+    "exits": null,
+    "violations": 0,
+    "violation_reasons": [],
+    "rejected": 0,
+    "contrary": 0,
+    "open": 2,
+    "be_closes": 0,
+    "pnl": 481.5,
+    "win": 0.554,
+    "avg_h": 17.1,
+    "max_h": 96.0,
+    "max_dd_pct": 14.99
+   }
+  }
+ }
+]

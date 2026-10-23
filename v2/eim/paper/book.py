@@ -6,26 +6,31 @@ hasta entonces (por estrategia@marco y, desde T48, por contexto: un contexto que
 consistente se pausa). Margen aislado; apalancamiento entero tal que la liquidación quede a ≥
 `liq_buffer` veces la distancia del SL. La contabilidad (liquidación, suelo del capital y cuenta
 agotada) está en `account.py` y los motivos de rechazo en `vetoes.py`. Siempre SIMULADO.
+
+Con salida por escalera (los cuatro perfiles desde T109) solo cierran el stop inicial, el stop
+dinámico, la liquidación y una salvaguarda independiente (`ladder_audit.ALLOWED_CLOSE`); cualquier
+otro cierre se registra como violación y NO se ejecuta. Una señal contraria a una posición abierta
+solo informa: queda anotada en el evento de esa señal (`against`) y contada en el resumen.
 """
 
 from __future__ import annotations
 
 import heapq
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from eim.paper.account import LIQ, capped, exhausted, leverage_for, liq_price
 from eim.paper.book_events import ev, learned_bad
 from eim.paper.caps import Brake, fit_risk
 from eim.paper.engine import Outcome
 from eim.paper.feedback import Learner, context_key
-from eim.paper.ladder_audit import audit_outcome
+from eim.paper.ladder_audit import SAFEGUARD, audit_outcome, check_close_request
 from eim.paper.ladder_book import LadderRisk, LadderSim, open_ladder
 from eim.paper.params import ProfileParams
 from eim.paper.vetoes import vetoes
 
 PRIO = {"close": 0, "cancel": 1, "fill": 2, "signal": 3}
 EXIT_CAT = {"TP": "tp", "SL": "sl", "SLD": "sl", "BE": "be", "TIEMPO": "tiempo",
-            LIQ: "liquidacion"}
+            LIQ: "liquidacion", SAFEGUARD: "salvaguarda"}
 
 
 @dataclass
@@ -64,6 +69,7 @@ class ProfileState:
     floor_r: dict[str, list[float]] = field(default_factory=dict)
     floor_states: dict[str, str] = field(default_factory=dict)
     violations: list[dict] = field(default_factory=list)   # PPP: cierres que rompen las reglas
+    contrary: int = 0          # señales contrarias a una posición abierta (solo informan, T109)
     lrisk: LadderRisk = field(default_factory=LadderRisk)  # PPP: memoria propia y freno
     brake: Brake = field(default_factory=Brake)            # freno por drawdown (caps)
     exhausted_t: int | None = None     # cuándo se agotó la cuenta (deja de abrir; no se recarga)
@@ -86,6 +92,11 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
         return
     if p.symbols and i.symbol not in p.symbols:
         return
+    # señal contraria a posiciones abiertas: en la escalera solo informa (nadie cierra por ella)
+    against = ([x.o.idea.id for x in st.slots.values() if x.filled and x.side != i.side]
+               if p.exit_mode == "ladder" else [])
+    tag = {"against": against} if against else {}
+    st.contrary += bool(against)
     if p.exit_mode == "ladder":      # la escalera aprende de SUS cierres, no de la sombra con TP
         j, jc = st.lrisk.own(i.sid, context_key(i), p)
     else:
@@ -110,7 +121,7 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
         short = (_open_count(st) < p.min_open if i.kind == "market"
                  else _pending_count(st) < p.min_pending)
         if None in keys or not short or learned_bad(st, keys, i.t, o):
-            ev(st, i.t, "rechazada", o, vs[0][0])
+            ev(st, i.t, "rechazada", o, vs[0][0], **tag)
             return
         floor, skipped = True, keys
     weight = p.floor_weight if floor else j.weight
@@ -121,7 +132,7 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
     if risk_usd <= 0:
         ev(st, i.t, "rechazada", o, f"capital insuficiente: {st.equity:.2f} USDT realizados"
            if want <= 0 else
-           f"tope de riesgo abierto por dirección ({p.caps.max_dir_risk:.1%})")
+           f"tope de riesgo abierto por dirección ({p.caps.max_dir_risk:.1%})", **tag)
         return
     qty = risk_usd / abs(entry - i.sl)
     lev = leverage_for(p, entry, i.sl, mmr)
@@ -130,13 +141,14 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
     if margin > free:
         scale = max(0.0, free * 0.98 / margin)
         if scale < p.min_risk_fill:
-            ev(st, i.t, "rechazada", o, f"margen insuficiente (libre {free:.2f} USDT)")
+            ev(st, i.t, "rechazada", o, f"margen insuficiente (libre {free:.2f} USDT)", **tag)
             return
         qty, margin, risk_usd = qty * scale, margin * scale, risk_usd * scale
     if sim is not None and p.exit_mode == "ladder":
         qty, o = open_ladder(p, sim, i, qty)
         if o.status == "RECHAZADA":
-            ev(st, i.t, "rechazada", o, "cantidad bajo el paso mínimo o geometría inválida")
+            ev(st, i.t, "rechazada", o, "cantidad bajo el paso mínimo o geometría inválida",
+               **tag)
             return
         margin, risk_usd = qty * entry / lev, qty * abs(entry - i.sl)
     st.slots[i.id] = Slot(o, qty, lev, margin, weight, risk_usd, floor=floor, skipped=skipped)
@@ -147,7 +159,7 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
         text += f" · mínimo de {what}: se omitió «{vs[0][0]}»"
     ev(st, i.t, "orden", o, text, price=entry, qty=qty, leverage=lev, margin=margin, sl=i.sl,
         tp=None if p.exit_mode == "ladder" else i.tp, weight=weight, risk_usd=risk_usd,
-        why=list(i.why), floor=floor)
+        why=list(i.why), floor=floor, **tag)
     if o.fill_t is not None:
         heapq.heappush(q, (o.fill_t, PRIO["fill"], _next(seq), "fill", o))
     elif o.status == "CANCELADA":
@@ -169,14 +181,29 @@ def _fill(st: ProfileState, o: Outcome, mmr: float, q: list, seq: list[int]) -> 
         heapq.heappush(q, (o.exit_t, PRIO["close"], _next(seq), "close", o))
 
 
+def _reject(st: ProfileState, o: Outcome, why: str) -> None:
+    """Cierre que no es del stop, ni liquidación, ni salvaguarda (T109): NO se ejecuta. Queda como
+    violación y la posición sigue abierta con su stop vigente; el capital y el margen no se mueven
+    (así tampoco desaparece dinero, T106 A5)."""
+    s = st.slots[o.idea.id]
+    s.o = replace(o, status="ABIERTA", reason="", exit_t=None, exit=None,
+                  ladder=o.ladder and {**o.ladder, "rejected_close": why})
+    st.violations.append({"id": o.idea.id, "t": o.exit_t, "reasons": [why], "executed": False})
+    ev(st, o.exit_t, "violacion", o, f"cierre rechazado, no se ejecuta: {why}; la posición sigue "
+       "abierta con su stop vigente", reason=o.reason)
+
+
 def _close(st: ProfileState, o: Outcome) -> None:
+    if st.p.exit_mode == "ladder" and (why := check_close_request(o.reason)):
+        _reject(st, o, why)
+        return
     s = st.slots.pop(o.idea.id)
     st.used -= s.margin
     bad = audit_outcome(o) if st.p.exit_mode == "ladder" else []
     if bad:
-        # no es un cierre válido de la estrategia: se audita aparte, pero el dinero SÍ se
-        # contabiliza (descartarlo hacía desaparecer el PnL de la cuenta, T106 A5)
-        st.violations.append({"id": o.idea.id, "t": o.exit_t, "reasons": bad})
+        # cierre por el stop con un historial anómalo: el precio tocó el stop, así que se ejecuta
+        # y el dinero SÍ se contabiliza (descartarlo lo hacía desaparecer, T106 A5), auditado aparte
+        st.violations.append({"id": o.idea.id, "t": o.exit_t, "reasons": bad, "executed": True})
         ev(st, o.exit_t, "violacion", o, "cierre inválido (se contabiliza, se audita): "
            + "; ".join(bad))
     notional = s.qty * o.fill
@@ -217,12 +244,21 @@ def _close(st: ProfileState, o: Outcome) -> None:
         for k in s.skipped:
             st.floor_r.setdefault(k, []).append(r)
     what = (f"liquidada a {s.liq:g}: {liq_why}; se pierde el margen ({s.margin:.2f} USDT)"
-            if liq_why
-            else f"cierre por SL dinámico (escalón {o.ladder['level']}, "
-            f"+{o.ladder['nominal_usd']:g} USDT protegidos)" if o.reason == "SLD"
-            else "cierre por SL inicial" if o.ladder else f"cierre por {o.reason}")
+            if liq_why else _exit_text(o))
     ev(st, o.exit_t, EXIT_CAT[reason], o, what, price=s.liq if liq_why else o.exit, pnl=pnl,
         r=r, equity=st.equity, cause=o.cause, **({"liq": s.liq} if liq_why else {}))
+
+
+def _exit_text(o: Outcome) -> str:
+    lad = o.ladder
+    if o.reason == "SLD" and lad.get("stop_source") == "be":
+        return f"cierre por SL dinámico (BE+, +{lad['protected_est_usd']:.2f} USDT estimados)"
+    if o.reason == "SLD":
+        return (f"cierre por SL dinámico (escalón {lad['level']}, "
+                f"+{lad['nominal_usd']:g} USDT protegidos)")
+    if o.reason == SAFEGUARD:
+        return "cierre ordenado por una salvaguarda independiente (kill-switch)"
+    return "cierre por SL inicial" if lad else f"cierre por {o.reason}"
 
 
 def _cancel(st: ProfileState, o: Outcome) -> None:

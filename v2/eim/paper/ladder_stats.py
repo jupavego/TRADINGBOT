@@ -9,6 +9,9 @@ from collections import Counter
 
 import numpy as np
 
+from eim.paper.account import LIQ
+from eim.paper.ladder_audit import ALLOWED_CLOSE, SAFEGUARD
+
 HOUR_MS = 3_600_000
 DUR_EDGES_H = (1, 4, 12, 24, 72)
 
@@ -34,8 +37,18 @@ def _split(trades: list[dict], key) -> dict:
     return out
 
 
+def exit_counts(tr: list[dict], incidents: int, rejected: int) -> dict:
+    """Los cinco motivos que pueden terminar (o detener) una operación con escalera, por separado
+    (T109), más lo que NO debería aparecer nunca: cierres con otro motivo y cierres rechazados."""
+    n = Counter(t["reason"] for t in tr)
+    return {"stop_inicial": n["SL"], "stop_dinamico": n["SLD"], "liquidacion": n[LIQ],
+            "salvaguarda": n[SAFEGUARD], "incidencia_abierta": incidents,
+            "otros_motivos": sum(v for k, v in n.items() if k not in ALLOWED_CLOSE),
+            "rechazados": rejected}
+
+
 def ladder_stats(trades: list[dict], open_pos: list[dict], violations: int,
-                 incidents: int, first: float, step: float) -> dict:
+                 incidents: int, first: float, step: float, rejected: int = 0) -> dict:
     tr = [t for t in trades if t.get("ladder")]
     maxf = [t["ladder"]["max_float_usd"] for t in tr if t["ladder"]["max_float_usd"] is not None]
     reached: Counter = Counter()
@@ -81,6 +94,7 @@ def ladder_stats(trades: list[dict], open_pos: list[dict], violations: int,
         "duration": dict(Counter(_bucket(h) for h in hours)),
         "long_open_positions": long_run, "max_consecutive_losses": best,
         "violations": violations, "incidents": incidents,
+        "exits": exit_counts(tr, incidents, rejected),
         "note": "Tiempos solo analíticos (nunca cierran). «Protegido estimado» = neto del SL "
                 "vigente con el deslizamiento esperado; el realizado puede diferir por hueco, "
                 "deslizamiento de la vela y funding.",

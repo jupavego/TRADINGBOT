@@ -49,7 +49,7 @@ def vetoes(st: ProfileState, i: Idea, j: Judgement, jc: Judgement,
         out.append((f"va contra la síntesis ({i.syn_bias:+.2f}) o esta es débil", "sintesis"))
     if p.exit_mode == "ladder" and (why := viability(p, i, st.equity) or st.lrisk.veto(i.t)):
         out.append((why, None))
-    if p.exit_mode == "ladder" and any(
+    if p.exit_mode == "ladder" and p.ladder.one_per_bar and any(
             x.o.idea.t == i.t and x.side == i.side for x in st.slots.values()):
         out.append(("posición duplicada: ya hay una del mismo lado decidida en esta vela", None))
     if why := st.brake.veto(i.t):

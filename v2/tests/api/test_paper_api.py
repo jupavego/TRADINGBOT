@@ -61,9 +61,10 @@ def test_summary_profiles_and_strategies(client):
     assert v["mode"] == "SIMULADO" and v["coverage"]["contexts"] == 200
     assert [p["id"] for p in v["profiles"]] == ["conservador", "moderado", "agresivo",
                                                 "ppp_btcusdt"]
-    ppp = v["profiles"][-1]
-    assert ppp["params"]["exit_mode"] == "ladder" and ppp["ladder"]["violations"] == 0
-    assert all("ladder" not in p for p in v["profiles"][:-1])
+    # T109: los cuatro perfiles salen solo por su stop (escalera), sin violaciones
+    for p in v["profiles"]:
+        assert p["params"]["exit_mode"] == "ladder" and p["ladder"]["violations"] == 0
+        assert p["ladder"]["exits"]["otros_motivos"] == 0 and p["learning"].startswith("cierres")
     for p in v["profiles"]:
         assert p["equity"] > 0 and set(p["weights"]) == {s["id"] for s in v["strategies"]}
     assert sum(p["n_closed"] for p in v["profiles"]) > 0     # el Conservador solo opera lo probado

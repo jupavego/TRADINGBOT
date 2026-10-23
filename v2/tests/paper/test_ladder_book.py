@@ -14,10 +14,10 @@ from eim.paper.ladder_book import LadderRisk, LadderSim, viability
 from eim.paper.ladder_stats import ladder_stats
 from eim.paper.params import PPP_ID, PROFILES, ExecParams, LadderParams
 from eim.paper.summary import profile_summary
-from tests.paper.helpers import H1, M15, T0, bar, idea
+from tests.paper.helpers import H1, M15, T0, bar, idea, tp_mode
 
 PPP = next(p for p in PROFILES if p.id == PPP_ID)
-MOD = next(p for p in PROFILES if p.id == "moderado")
+MOD_TP = tp_mode(next(p for p in PROFILES if p.id == "moderado"))   # salida TP (A/B, T109)
 E = 70_000.0
 EP = ExecParams(costs=ZERO_COSTS, funding_8h_assumed=0.0)
 
@@ -58,10 +58,12 @@ def test_entry_sizing_and_ladder_close_in_book():
 
 
 def test_does_not_touch_other_profiles():
+    """Un perfil con la salida TP (el modo A/B que sigue existiendo) ignora el camino de la
+    escalera: mismos trades y eventos con y sin él."""
     path = path_of(UP)
     shadow = simulate(btc_idea(), path, EP)
-    before = run_profile(MOD, [shadow], Learner([shadow]), 0.004)
-    after = run_profile(MOD, [shadow], Learner([shadow]), 0.004, LadderSim(path, EP))
+    before = run_profile(MOD_TP, [shadow], Learner([shadow]), 0.004)
+    after = run_profile(MOD_TP, [shadow], Learner([shadow]), 0.004, LadderSim(path, EP))
     assert before.trades == after.trades and before.events == after.events
     assert before.equity == after.equity
 
@@ -103,26 +105,51 @@ def test_restart_recomputation_is_identical():
     assert slot.o.ladder == again.o.ladder and slot.o.ladder["level"] >= 2   # no pierde escalones
 
 
-def test_forged_time_or_tp_close_is_a_violation_but_the_money_is_accounted():
-    """Un cierre que viola las reglas de la escalera se audita como violación, pero su PnL SÍ
-    entra en la cuenta: descartarlo (lo que hacía hasta T107) hacía desaparecer el dinero."""
-    st = build(UP)
-    t = st.trades[0]
+def _forged(reason: str, ladder: dict) -> tuple[ProfileState, Outcome]:
+    """Un perfil con una posición abierta y un cierre «fabricado» con `reason`."""
     o = simulate(btc_idea(), path_of(UP), EP)
-    ladder_o = replace(o, status="CERRADA", reason="TIEMPO", fill_t=T0, fill=E, exit_t=T0 + H1,
-                       exit=E + 500, ladder={"level": 0, "stop": E - 1400, "stop_history": [],
-                                             "incident": ""})
-    fresh = ProfileState(p=PPP, equity=10_000.0)
-    fresh.slots["x"] = Slot(replace(ladder_o, idea=replace(o.idea, id="x")), 0.035, 3, 800.0, 1.0,
-                            50.0, filled=True)
-    fresh.used = 800.0
-    _close(fresh, replace(ladder_o, idea=replace(o.idea, id="x")))
-    (bad,) = fresh.trades
-    assert bad["reason"] == "TIEMPO" and bad["violation"] and fresh.used == 0.0
-    assert bad["pnl"] == pytest.approx(bad["notional"] * ladder_o.net) != 0
-    assert fresh.equity == pytest.approx(10_000.0 + bad["pnl"])    # el dinero no desaparece
-    assert fresh.violations and "tiempo" in fresh.violations[0]["reasons"][0]
-    assert [e["cat"] for e in fresh.events] == ["violacion", "tiempo"] and t["reason"] == "SLD"
+    forged = replace(o, status="CERRADA", reason=reason, fill_t=T0, fill=E, exit_t=T0 + H1,
+                     exit=E + 500, idea=replace(o.idea, id="x"), ladder=ladder)
+    st = ProfileState(p=PPP, equity=10_000.0)
+    st.slots["x"] = Slot(forged, 0.035, 3, 800.0, 1.0, 50.0, filled=True)
+    st.used = 800.0
+    _close(st, forged)
+    return st, forged
+
+
+@pytest.mark.parametrize("reason", ["TIEMPO", "TP", "BE", "NIVEL", "AGENTE", "RETROCESO",
+                                    "MANUAL", "OTRO"])
+def test_forged_close_by_anything_but_the_stop_is_rejected_not_executed(reason):
+    """T109: un cierre que no es del stop (ni liquidación ni salvaguarda) se registra como
+    violación y NO se ejecuta: la posición sigue abierta con su stop y el dinero no se mueve
+    (hasta T107 se ejecutaba y se contabilizaba; antes de T107 su PnL desaparecía)."""
+    st, _ = _forged(reason, {"level": 0, "stop": E - 1400, "stop_history": [], "incident": "",
+                             "elapsed_ms": H1})
+    assert st.trades == [] and st.equity == 10_000.0 and st.used == 800.0
+    (slot,) = st.slots.values()
+    assert slot.o.status == "ABIERTA" and slot.o.exit is None
+    assert slot.o.ladder["rejected_close"] and slot.o.ladder["stop"] == E - 1400
+    (v,) = st.violations
+    assert v["executed"] is False and v["reasons"]
+    assert [e["cat"] for e in st.events] == ["violacion"]
+    assert "no se ejecuta" in st.events[0]["text"]
+    s = profile_summary(st, Learner([]), [], T0 + 5 * H1, 0.004)
+    assert s["ladder"]["exits"]["rechazados"] == 1 and s["counts"]["violations"] == 1
+    assert s["positions"][0]["sl"] == E - 1400              # el stop vigente sigue mandando
+
+
+def test_stop_close_with_tampered_history_is_executed_accounted_and_audited():
+    """Si el precio tocó el stop el cierre ocurre, pero un historial anómalo queda auditado y su
+    PnL entra en la cuenta (el dinero nunca desaparece, T106 A5)."""
+    bad_hist = [{"t": T0, "level": 1, "nominal": 10.0, "stop": E - 2000, "max_float": 11.0,
+                 "source": "escalon"}]                         # «protección» bajo el SL inicial
+    st, forged = _forged("SLD", {"level": 1, "stop": E + 500, "stop_history": bad_hist,
+                                 "incident": "", "nominal_usd": 10.0})
+    (t,) = st.trades
+    assert t["violation"] and t["pnl"] == pytest.approx(t["notional"] * forged.net) != 0
+    assert st.equity == pytest.approx(10_000.0 + t["pnl"]) and st.used == 0.0
+    assert st.violations[0]["executed"] is True
+    assert [e["cat"] for e in st.events] == ["violacion", "sl"]
 
 
 def test_summary_and_metrics():
@@ -137,7 +164,7 @@ def test_summary_and_metrics():
     open_s = profile_summary(build(UP[:3]), Learner([]), [], T0 + 5 * H1, 0.004)
     (pos,) = open_s["positions"]
     assert pos["tp"] is None and pos["expire_t"] is None and pos["sl"] == pos["ladder"]["stop"]
-    assert "ladder" not in profile_summary(build(UP, p=MOD), Learner([]), [], T0, 0.004)
+    assert "ladder" not in profile_summary(build(UP, p=MOD_TP), Learner([]), [], T0, 0.004)
 
 
 def test_ladder_stats_counts_levels_and_streaks():

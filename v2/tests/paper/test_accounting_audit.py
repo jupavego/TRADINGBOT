@@ -17,10 +17,10 @@ from eim.paper.engine import ExecParams, Outcome, Path, simulate
 from eim.paper.feedback import Learner
 from eim.paper.params import PROFILES
 from eim.paper.summary import profile_summary
-from tests.paper.helpers import H1, M15, T0, flat, idea, with_bar
+from tests.paper.helpers import H1, M15, T0, flat, idea, tp_mode, with_bar
 
-AGR = next(p for p in PROFILES if p.id == "agresivo")
-MOD = next(p for p in PROFILES if p.id == "moderado")
+AGR = tp_mode(next(p for p in PROFILES if p.id == "agresivo"))  # salida TP (T109)
+MOD = tp_mode(next(p for p in PROFILES if p.id == "moderado"))  # salida TP (T109)
 
 
 def _blowup(k: int, t: int = T0) -> Outcome:
