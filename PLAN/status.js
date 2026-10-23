@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-23T10:13:15",
+ "generated": "2026-10-23T11:54:21",
  "tasks": [
   {
    "id": "T01",
@@ -1430,8 +1430,8 @@ window.EIM_STATUS = {
    "id": "T113",
    "title": "Auditoría de orquestadores multiagente de inversión",
    "deps": [],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Informe `PLAN/notas/T113_auditoria_orquestadores.md` (2026-10-23, solo lectura; clones aislados en `C:\\t113clones`, nada instalado): 7 candidatos nuevos y 4 reevaluaciones con licencia, actividad, pruebas, red, secretos, orquestador y ejecución. **Hipótesis confirmada: no falta nada esencial**: el contraste pieza por pieza (síntesis, estado, evaluación, riesgo, ejecución, traza) no encuentra nada que EIM no tenga; solo P1 (sensibilidad al calentamiento, BACKLOG) y P2 (insumo de T114). 🚩 `hotbridgeLab/future-trading-ai-agent` es un señuelo de malware (dependencia npm `oracle-redis` que suplanta ioredis y arrastra paquetes retirados por npm); LynchzDEV deja que el LLM envíe órdenes reales; AI Hedge Fund también usa TypeSafe (no lo anotó T56). Alertas de T04/T56 reconfirmadas. **◆ del usuario (2026-10-23): no adoptar nada**; descartados hotbridgeLab, LynchzDEV, gucky25 y Tomortec; P1 solo a BACKLOG. Pendientes en BACKLOG T113. Gate verde.",
    "effort": "medio",
    "phase": 19,
    "goal": "Cerrar la pregunta de fondo de las investigaciones del usuario sobre «agentes orquestadores de otros agentes»: **¿hay algo en esos proyectos que el coordinador propio (síntesis T20/T44 + riesgo T29 + trazabilidad T72–T76) no cubra ya?** El proyecto no necesita más bots que repiten indicadores; necesita saber si falta un patrón de coordinación, de estado o de evaluación. Hipótesis de partida: **no falta nada esencial**; la auditoría debe demostrar lo contrario con evidencia."
