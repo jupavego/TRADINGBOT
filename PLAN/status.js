@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-23T00:06:09",
+ "generated": "2026-10-23T10:13:15",
  "tasks": [
   {
    "id": "T01",
@@ -1420,8 +1420,8 @@ window.EIM_STATUS = {
    "deps": [
     "T109"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Bloque «Protección por perfil» en la pestaña «Perfiles» (2026-10-23, `web/src/paper_protect.ts`; el detalle anterior queda plegado y ya muestra los umbrales reales en R, no los 10/5 USDT fijos): por perfil, umbral e incremento (USDT de referencia + fracción de R), abiertas con protección activa, último escalón alcanzado, cierres por motivo, incidencias, fuera de regla y violaciones; por operación abierta, estado, nivel protegido (o lo que falta), stop vigente, máximo y flotante neto «no realizado» y **neto estimado si salta el stop** con su advertencia (hueco, deslizamiento, latencia). Estados con color y glifo propios: stop inicial · protección inactiva (a favor, bajo el umbral) · protección activa · cerrada por stop inicial · cerrada por stop dinámico; aparte liquidación, salvaguarda e incidencia técnica (incl. `inconsistente` de T110). Violaciones en aviso rojo (bloque y Bitácora, con «Ver solo violaciones»); Bitácora con el motivo de cierre delante (antes lo tapaba un texto genérico) e Historial con el estado de cada cierre; modo y «dinero real deshabilitado» visibles. Backend mínimo: `ladder.stop_est_usd` (abiertas), `ladder.last_step` y `ladder.violations_recent` en el resumen, `reason` en los eventos de cierre y texto «nivel protegido … estimado» (`eim/paper/{ladder,ladder_stats,summary,book}.py`); tests `tests/paper/test_protection_panel.py` (15); doc `v2/docs/PPP.md` §6.1. Capturas en `v2/reports/t112/` (tema único de T122, sin claro/oscuro): bloque por perfil e Historial con datos reales comparados por script con la API en vivo; los estados de abiertas y las violaciones con datos SINTÉTICOS rotulados (la mesa no tenía abiertas ni violaciones). `npm run build` y gate verdes. Pendiente: desplegar (reiniciar la API en vivo, con permiso) y BACKLOG T112.",
    "effort": "medio",
    "phase": 18,
    "goal": "Que la mesa muestre, para cada perfil, en qué estado está la protección de cada operación, sin presentar nunca el beneficio protegido como si ya estuviera ganado. T105 dejó la interfaz del 4.º perfil compilando pero **sin captura visual**: aquí se cierra esa deuda y se extiende a los tres perfiles."

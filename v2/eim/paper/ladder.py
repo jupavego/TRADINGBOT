@@ -286,6 +286,9 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
     info |= {"state": "inconsistente" if hold else "incidencia" if incident
              else "protegida" if run.protected else "inicial",
              "float_usd": net_usd(s, qty, fill, mark, fund, run.c0),
+             # neto ESTIMADO si saltara ahora el stop vigente (costos reservados al fijarlo y
+             # funding devengado); un hueco, el deslizamiento o la latencia pueden dar otro (T112)
+             "stop_est_usd": net_usd(s, qty, fill, run.stop, fund, run.c_stop),
              "elapsed_ms": int(path.t[end_i]) + path.step - fill_t}
     return _with_r(Outcome(idea, "ABIERTA", "", fill_t, fill, None, None, fee_in, 0.0, slip_in,
                            fund, assumed, s * (mark - fill) / fill, None, mfe, mae, mark,

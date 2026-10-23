@@ -25,7 +25,7 @@ const KEY = 'eim.paper.v2'          // v2: la pestaña inicial pasa a «Señales
 const TEMPLATE = `
 <header class="pp-head">
   <h2 class="pp-title">Bróker simulado</h2>
-  <span class="mode" data-mode="SIMULADO">Modo: Simulado · papel, sin órdenes reales</span>
+  <span class="mode" data-mode="SIMULADO">Modo: Simulado · papel, sin órdenes reales · dinero real deshabilitado</span>
   ${symbolPicker('data-k="symbol"')}
   <span class="pp-perp">Perpetuo USDT-M</span>
   <b class="price num" data-x="price">—</b>
@@ -259,7 +259,7 @@ export class PaperView {
     else if (this.tab === 'hist') this.bodies.hist.innerHTML = historyTable(this.trades, names, this.symbol, this.hist)
     else if (this.tab === 'log') void this.journal!.show({ symbol: this.symbol, names, profiles: v.profiles }, this.profile)
     else if (this.tab === 'learn') this.learn!.show(v, this.profile)
-    else this.bodies.prof.innerHTML = profilesTab(v)
+    else this.bodies.prof.innerHTML = profilesTab(v, this.price)
   }
 
   private onClick(t: HTMLElement): void {

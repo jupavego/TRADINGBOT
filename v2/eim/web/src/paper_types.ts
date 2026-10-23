@@ -6,7 +6,15 @@ export interface Judgement { weight: number; state: string; state_label: string;
 export interface LadderPos {
   level: number; nominal_usd: number; max_float_usd: number | null; float_usd: number; stop: number
   initial_sl: number; state: string; incident: string; elapsed_ms: number
-  stop_history: { t: number; level: number; nominal: number; stop: number; max_float: number }[]
+  stop_history: { t: number; level: number; nominal: number; stop: number; max_float: number; source?: string }[]
+  /** Escalones de ESTA operación (con base R cada una tiene los suyos) y origen del stop vigente. */
+  first_usd?: number; step_usd?: number; stop_source?: string
+  /** Neto ESTIMADO si saltara ahora el stop vigente (T112); un hueco o el deslizamiento pueden dar otro. */
+  stop_est_usd?: number
+  /** Cerradas: neto del stop vigente con el deslizamiento esperado. */
+  protected_est_usd?: number | null
+  /** T110: suelo guardado adoptado tras un reinicio · motivo del estado inconsistente. */
+  recovered?: Record<string, unknown> | null; inconsistent?: string | null
 }
 interface Slot {
   id: string; strategy: string; sid: string; timeframe: string; family: string; side: number; kind: string; t: number
@@ -18,6 +26,8 @@ export interface Position extends Slot {
   cost_usd: number; upnl: number; roe: number | null; funding_assumed: boolean
   /** Motivo si la marca ya atravesó la liquidación (la posición debería estar cerrada); «» si no. */
   liq_why?: string
+  /** T110: «inconsistente» (el diario no deja reconstruirla) o «recuperada» (suelo guardado adoptado). */
+  protection_state?: string; protection_why?: string
 }
 export interface Order extends Slot { price: number; expire_t: number | null }
 
@@ -31,6 +41,18 @@ export interface LadderStats {
   avg_hours: number | null; duration: Record<string, number>; long_open_positions: number
   max_consecutive_losses: number; violations: number; incidents: number; note: string
   brake: { halted: boolean; until: number | null; reason: string; consecutive_losses: number; activations: { t: number; until: number; reason: string }[] }
+  /** Escalones de referencia del perfil (USDT) y cómo se definen: `r` = fracción del riesgo de cada operación. */
+  first_usd?: number; step_usd?: number; basis?: string; first_r?: number; step_r?: number; brake_on?: boolean
+  /** Motivos de cierre por separado (T109); `otros_motivos` debe ser 0. */
+  exits?: {
+    stop_inicial: number; stop_dinamico: number; liquidacion: number; salvaguarda: number
+    incidencia_abierta: number; otros_motivos: number; rechazados: number
+  }
+  contrary_signals?: number
+  /** Último movimiento del stop por la protección (abiertas y cerradas, T112). */
+  last_step?: { t: number; level: number; nominal_usd: number; source: string; id: string; sid: string; open: boolean } | null
+  /** Últimas violaciones de reglas: cierres fuera de regla (no ejecutados) o auditados. */
+  violations_recent?: { id: string; t: number; reasons: string[]; executed: boolean }[]
 }
 
 export interface ProfileView {
@@ -53,6 +75,8 @@ export interface ProfileView {
   max_dd_pct: number; positions: Position[]; orders: Order[]; curve: [number, number][]
   by_strategy: Record<string, { n: number; pnl: number; wins: number }>
   weights: Record<string, Judgement>; events_n: number; ladder?: LadderStats
+  /** T110: diario de la protección verificado y operaciones inconsistentes o recuperadas. */
+  protection?: { verified: unknown; inconsistent: number; recovered: number }
 }
 
 export interface StrategyRow {
@@ -109,6 +133,7 @@ export interface PaperTrade {
   qty: number; notional: number; leverage: number; margin: number; reason: string
   pnl: number; r: number | null; roe: number | null; fees: number; slip: number; funding: number
   funding_assumed: boolean; weight: number; floor?: boolean; origin: string; regime: string | null; why: string[]
+  ladder?: LadderPos
 }
 
 export interface PaperEvent {
@@ -118,6 +143,8 @@ export interface PaperEvent {
   price?: number; qty?: number; leverage?: number; margin?: number; sl?: number; tp?: number
   weight?: number; risk_usd?: number; pnl?: number; r?: number | null; equity?: number; liq?: number
   m?: number; n?: number; why?: string[]
+  /** Motivo exacto del cierre (SL, SLD, LIQUIDACION, SALVAGUARDA…) o del cierre rechazado. */
+  reason?: string
 }
 
 export interface ShadowIdea {

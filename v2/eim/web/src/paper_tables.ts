@@ -1,5 +1,6 @@
 /** Tablas estilo exchange: posiciones, órdenes abiertas e historial (libro de operaciones). */
 import { CAUSE, dur, esc, nf, pct, pct0, px, qty, REASON, rr, side, tone, usd, utc } from './paper_fmt'
+import { levelText, posState, stateChip, stopEstimate, tradeState } from './paper_protect'
 import type { Order, PaperTrade, Position } from './paper_types'
 
 type Names = Record<string, string>
@@ -36,7 +37,7 @@ export function positionsTable(ps: Position[], names: Names, sym: string, price:
       `<td class="num">${p.expire_t ? utc(p.expire_t) : 'sin vencimiento'}</td></tr>`
   }).join('')
   return `<div class="pp-scroll"><table class="pp-t"><thead><tr><th>Estrategia · lado</th><th>Tamaño</th><th>Entrada</th>` +
-    `<th>Precio de marca</th><th>Liq. (aprox.)</th><th>Margen</th><th>PnL no realizado (ROE)</th><th>TP / SL</th>` +
+    `<th>Precio de marca</th><th>Liq. (aprox.)</th><th>Margen</th><th>PnL no realizado (ROE)</th><th>TP / SL · protección</th>` +
     `<th>Abierta</th><th>Vence (por tiempo)</th></tr></thead><tbody>${rows}</tbody></table></div>` +
     '<p class="muted pp-note">Clic en una fila para ver su TP, SL y liquidación en el gráfico. Margen aislado: la pérdida de una posición no pasa de su margen y, si el precio atraviesa la liquidación, se pierde entero. La liquidación es aproximada (sin importe de mantenimiento).</p>'
 }
@@ -112,7 +113,7 @@ export function historyTable(ts: PaperTrade[], names: Names, sym: string, f: His
     `<td>${stratCell(t.sid, names, t.origin, t.timeframe, t.floor)}<br><small class="muted">${t.kind === 'limit' ? 'límite' : 'mercado'}${t.regime ? ` · ${esc(t.regime)}` : ''}</small></td>` +
     `<td>${sideCell(t.side, t.leverage)}</td>` +
     `<td class="num">${px(t.fill)} → ${px(t.exit)}<br><small class="muted">${qty(t.qty, sym)}</small></td>` +
-    `<td><span class="pp-reason" data-r="${t.reason}">${REASON[t.reason] ?? t.reason}</span>` +
+    `<td>${tradeState(t) ? closeCell(t) : `<span class="pp-reason" data-r="${t.reason}">${REASON[t.reason] ?? t.reason}</span>`}` +
     (t.cause ? `<br><small class="muted">${esc(CAUSE[t.cause] ?? t.cause)}</small>` : '') + '</td>' +
     `<td class="num ${tone(t.pnl)}"><b>${usd(t.pnl)}</b><br><small>${rr(t.r)} · ROE ${pct(t.roe, 1)}</small></td>` +
     `<td class="num"><small>com. ${nf(t.fees)} · desl. ${nf(t.slip)}<br>funding ${usd(t.funding)}${t.funding_assumed ? '*' : ''}</small></td>` +
@@ -123,10 +124,19 @@ export function historyTable(ts: PaperTrade[], names: Names, sym: string, f: His
     more + '<p class="muted pp-note">PnL neto de comisiones, deslizamiento y funding. * funding supuesto donde faltaba el dato real. Pasa el cursor por una fila para ver por qué se abrió.</p>'
 }
 
-/** TP / SL de una posición u orden; sin TP (perfil PPP) muestra el SL vigente y su escalón. */
-function tpSl(x: { tp: number | null; sl: number; ladder?: { level: number; nominal_usd: number } }): string {
+/** TP / SL de una posición u orden; con escalera (sin TP) muestra el estado de la protección, el
+ *  stop vigente, el nivel protegido y el neto estimado si salta (T112). */
+function tpSl(x: Order | Position): string {
   const sl = `<span class="down">${px(x.sl)}</span>`
   if (x.tp !== null) return `<span class="up">${px(x.tp)}</span> / ${sl}`
-  const lv = x.ladder?.level ? `<br><small class="muted">escalón ${x.ladder.level} · +${nf(x.ladder.nominal_usd, 0)} USDT protegidos</small>` : '<br><small class="muted">SL inicial · sin TP</small>'
-  return `<span class="muted">sin TP</span> / ${sl}${lv}`
+  if (!('ladder' in x) || !x.ladder) return `<span class="muted">sin TP</span> / ${sl}<br><small class="muted">SL inicial · sin TP</small>`
+  return `${stateChip(posState(x))}<br><span class="muted">sin TP</span> / ${sl}<br><small>${levelText(x)}</small>` +
+    `<br><small class="muted">si salta el stop:</small> ${stopEstimate(x)}`
+}
+
+/** Motivo de cierre de una operación de la escalera: estado, escalón o BE+ y lo protegido. */
+function closeCell(t: PaperTrade): string {
+  const l = t.ladder
+  const what = t.reason !== 'SLD' || !l ? '' : l.stop_source === 'be' ? 'BE+' : `escalón ${l.level} · nivel protegido ${nf(l.nominal_usd)} USDT (estimado)`
+  return stateChip(tradeState(t)) + (what ? `<br><small class="muted">${what}</small>` : '')
 }

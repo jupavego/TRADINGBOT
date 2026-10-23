@@ -10,7 +10,7 @@ Moderado, Agresivo) sus propios parámetros y **T109 los hace salir solo por su 
 > por tiempo. Antes del primer umbral manda el stop inicial; después, el stop dinámico, que solo
 > sube. Nada más cierra una operación de la estrategia (§2.3). El modo `"tp"` sigue siendo un
 > parámetro para medir cada salida por separado (T111) y para la elección dinámica de ◆1
-> (T113/T114). La persistencia del estado de protección es T110; el panel, T112.
+> (T113/T114). La persistencia del estado de protección es T110; el panel, T112 (§6.1).
 
 ## 1. Arquitectura identificada y qué se reutilizó
 
@@ -220,6 +220,35 @@ realizado medio, lo devuelto frente al máximo, realizado − protegido estimado
 retrocesos por escalón máximo, lado, régimen, hora UTC de entrada y estrategia, duración
 (solo analítica), pérdidas seguidas, violaciones e incidencias. La UI (pestaña «Perfiles») las
 muestra; la mesa muestra el SL vigente y su escalón en lugar de TP.
+
+### 6.1 Panel de protección (T112)
+
+`eim/web/src/paper_protect.ts`, bloque «Protección por perfil» de la pestaña «Perfiles» (el
+detalle anterior queda plegado debajo). Lee del resumen, sin cálculos propios de dinero:
+
+- **Por perfil:** salida, umbral de activación e incremento (`ladder.first_usd`/`step_usd` de
+  referencia y, con `basis="r"`, sus fracciones de R: cada operación usa su propio riesgo),
+  cuántas abiertas tienen la protección activa, `ladder.last_step` (último movimiento del stop
+  por escalón, BE+ o suelo recuperado, entre abiertas y cerradas), `ladder.exits` por motivo,
+  incidencias, «otros motivos» y rechazados (deben ser 0), violaciones, y máximo flotante medio →
+  realizado medio y realizado − protegido estimado.
+- **Por operación abierta:** estado, nivel protegido (o lo que falta de máximo para activarla),
+  stop vigente y su origen, máximo flotante, flotante neto (`ladder.float_usd`, «no realizado»)
+  y `ladder.stop_est_usd`: neto **estimado** si saltara ahora el stop vigente (costos reservados
+  al fijarlo + funding devengado). La UI lo rotula «estimado» y avisa de que un hueco, el
+  deslizamiento real o la latencia pueden dar otro resultado; ni el nivel ni el flotante se
+  llaman ganancia.
+- **Estados** (chip con color y glifo propios): *stop inicial* (estado `inicial` con flotante neto
+  ≤ 0) · *protección inactiva* (`inicial` con flotante a favor, aún bajo el umbral) · *protección
+  activa* (`protegida`) · *cerrada por stop inicial* (`SL`) · *cerrada por stop dinámico* (`SLD`);
+  aparte *liquidación*, *salvaguarda* e *incidencia técnica* (`incidencia`, `inconsistente` de
+  T110 o marca más allá de la liquidación).
+- **Violaciones visibles:** `ladder.violations_recent` (las 10 últimas) en un aviso rojo arriba
+  del bloque y, en la Bitácora, un aviso con «Ver solo violaciones» cuando el filtro las tiene.
+  Los eventos de cierre llevan `reason` (motivo exacto) y su texto dice «nivel protegido … USDT
+  estimado»; la Bitácora muestra el motivo y el Historial, el estado de cada cierre.
+- **Modo** del resumen (`mode`) y «Dinero real deshabilitado» (aviso rojo si algún perfil
+  declarara `real_money`, que la validación ya impide).
 
 ## 7. Cómo seguirlo
 
