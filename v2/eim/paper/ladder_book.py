@@ -14,6 +14,7 @@ from eim.paper.engine import Outcome, Path
 from eim.paper.feedback import Judgement, context_key, judge
 from eim.paper.ideas import Idea
 from eim.paper.ladder import floor_qty, simulate_ladder
+from eim.paper.ladder_floor import Guard
 from eim.paper.params import ExecParams, LadderParams, ProfileParams, spec_for
 
 
@@ -24,6 +25,9 @@ class LadderSim:
     path: Path
     ep: ExecParams
     fine: Path | None = None     # velas de 1 min para las velas de 15 m ambiguas
+    # lo que el diario de la protección guardó de cada operación, por (perfil, idea) (T110)
+    guards: dict[tuple[str, str], Guard] = field(default_factory=dict, compare=False,
+                                                 hash=False)
 
 
 def viability(p: ProfileParams, i: Idea, equity: float) -> str | None:
@@ -48,12 +52,14 @@ def open_ladder(p: ProfileParams, sim: LadderSim, i: Idea, qty: float) -> tuple[
     """Cantidad al paso del instrumento y resultado simulado de la escalera con esa cantidad.
 
     El paso, el mínimo y el tick salen de la ficha del símbolo (T108): por debajo del mínimo
-    negociable la operación se rechaza en vez de redondearse a algo que el mercado no acepta.
+    negociable la operación se rechaza en vez de redondearse a algo que el mercado no acepta. El
+    estado guardado de la operación en el diario (T110) entra como suelo del SL.
     """
     assert p.ladder is not None
     spec = spec_for(i.symbol)
     q = floor_qty(qty, spec.qty_step)
-    return q, (simulate_ladder(i, sim.path, sim.ep, p.ladder, q, sim.fine, spec=spec)
+    return q, (simulate_ladder(i, sim.path, sim.ep, p.ladder, q, sim.fine, spec=spec,
+                               guard=sim.guards.get((p.id, i.id)))
                if q >= spec.min_qty else Outcome(i, "RECHAZADA", "CANTIDAD"))
 
 

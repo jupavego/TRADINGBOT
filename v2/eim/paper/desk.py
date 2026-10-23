@@ -1,6 +1,6 @@
 """Mesa del bróker simulado: une contextos guardados (15 m, 1 h y 4 h), estrategias, motor,
-retroalimentación y perfiles; el servicio en vivo y el backtest están en `service.py`.
-Siempre SIMULADO."""
+retroalimentación y perfiles; el servicio en vivo y el backtest están en `service.py` y el diario
+de la protección (T110) en `protection_desk.py`. Siempre SIMULADO."""
 
 from __future__ import annotations
 
@@ -29,6 +29,7 @@ from eim.paper.params import (
     ProfileParams,
     check_profiles,
 )
+from eim.paper.protection_desk import DeskProtection
 from eim.paper.service import WARMUP_BARS, DeskService, Job
 from eim.paper.summary import profile_summary
 from eim.paper.trend import HtfTrend
@@ -49,6 +50,7 @@ class View:
     summary: dict = field(default_factory=dict)
     live_ctx: list[tuple[str, int]] = field(default_factory=list)   # velas decididas en vivo
     path: Path | None = None        # camino de 15 m usado en la sombra (T49: réplica contraria)
+    protection: dict = field(default_factory=dict)   # pasada del diario de la protección (T110)
 
 
 def strategy_infos(tfs: tuple[str, ...]) -> list[dict]:
@@ -58,7 +60,7 @@ def strategy_infos(tfs: tuple[str, ...]) -> list[dict]:
             if s.runs_in(tf)]
 
 
-class PaperDesk(DeskService):
+class PaperDesk(DeskService, DeskProtection):
     def __init__(self, store: Store, pstore: PaperStore, registry: AgentRegistry | None = None,
                  exec_params: ExecParams | None = None,
                  profiles: tuple[ProfileParams, ...] = PROFILES, provider: Provider | None = None,
@@ -83,6 +85,7 @@ class PaperDesk(DeskService):
         self.ledger_error = ""
         self._ledger_at = 0
         ledger.ensure(pstore)
+        self._protection_init()
 
     def live_status(self) -> dict:
         return {"last_tick": self.last_tick, "started": self.loop_started, "error": self.live_error}
@@ -173,9 +176,10 @@ class PaperDesk(DeskService):
         v.outcomes = run_shadow(ideas, path, self.ep)
         learner = Learner(v.outcomes)
         mmr = MMR.get(symbol, 0.005)
-        sim = LadderSim(path, self.ep, self._fine(symbol, t0))
+        sim = LadderSim(path, self.ep, self._fine(symbol, t0), guards=self._guards(symbol))
         v.books = {p.id: run_profile(p, v.outcomes, learner, mmr, sim) for p in self.profiles}
         self._record_ledger(v)
+        self._sync_protection(v)
         v.summary = self._payload(v, by_tf, infos, learner, path.end or None,
                                   pc[-1].c if pc else None, n_ideas=len(ideas))
         return v
@@ -246,6 +250,7 @@ class PaperDesk(DeskService):
         ids = [i["id"] for i in infos]
         profiles = [profile_summary(v.books[p.id], learner, ids, now, mmr)
                     for p in self.profiles if p.id in v.books]
+        self.annotate_protection(v, profiles)
         rows = strategy_stats(v.outcomes, infos)
         fams = family_stats(rows)
         cov = self._coverage(v.symbol, by_tf, n_ideas, len(v.outcomes))
@@ -262,5 +267,5 @@ class PaperDesk(DeskService):
             "insights": insights(rows, fams, profiles, cov["origins"]),
             "balance": balance({pid: b.trades for pid, b in v.books.items()},
                                {i["id"]: i["name"] for i in infos}, now, self.tfs),
-            "job": self.job.to_json(), "live": self.live_status(),
+            "job": self.job.to_json(), "live": self.live_status(), "protection": v.protection,
         }

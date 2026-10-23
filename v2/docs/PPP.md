@@ -124,8 +124,8 @@ techo que ya imponía `caps`; en el Moderado baja de 2,0 a 1,5; el Conservador (
 **Protección monotónica.** El nivel protegido solo sube dentro de la simulación; una señal nueva
 de la misma estrategia, una señal contraria o un cambio de versión de la estrategia no lo tocan, y
 recalcular la vista (reinicio) da el mismo estado
-(`test_new_signal_or_strategy_version_does_not_reset_the_protection`). Guardar ese estado entre
-procesos y detectar cuando el motor no puede sostener la regla es **T110**.
+(`test_new_signal_or_strategy_version_does_not_reset_the_protection`). Entre procesos lo sostiene
+el diario de la protección (T110, §5): el SL recalculado nunca queda por debajo del guardado.
 
 ## 3. Fórmulas
 
@@ -154,7 +154,9 @@ Se redondea al tick **en contra del operador** (largo arriba, corto abajo) y se 
 `pendiente` → (llenado) `inicial` (manda el SL de la idea) → (neto máx. ≥ primer escalón, o BE+)
 `protegida` (escalón n, SL solo sube) → cierra en `cerrada_sl_inicial` o `cerrada_sl_dinamico`
 (o liquidación / salvaguarda, §2.3). `incidencia`: dato de vela no finito; la posición queda
-abierta, sin cierre inventado. Un cierre `TIEMPO/TP/BE/NIVEL/AGENTE/RETROCESO/MANUAL` es una
+abierta, sin cierre inventado. `inconsistente` (T110, §5): lo guardado no deja reconstruirla con
+seguridad; queda abierta, sin cierre inventado y sin mover el stop por lo guardado, hasta
+reconciliarla a mano. Un cierre `TIEMPO/TP/BE/NIVEL/AGENTE/RETROCESO/MANUAL` es una
 **violación**: evento «violacion» y la posición sigue abierta; no se ejecuta (`book._reject`,
 comprobado en cada cierre del libro).
 
@@ -164,12 +166,50 @@ sube el SL desde la **siguiente**; 3) una vela que cruza varios escalones aplica
 confirmado por su extremo, sin inventar los intermedios; 4) la vela de llenado de una orden límite
 solo comprueba el SL inicial.
 
-## 5. Persistencia y reinicio
+## 5. Persistencia y reinicio (T110)
 
-La mesa recalcula su vista de forma determinista desde contextos y velas guardados: tras un
-reinicio la posición se reconstruye idéntica (escalón, máximo flotante, SL vigente, historial,
-costos). Probado: el estado con velas parciales es prefijo exacto del estado completo y repetir el
-cálculo no duplica operaciones ni eventos. No hay estado en memoria que perder.
+La mesa recalcula su vista de forma determinista desde contextos y velas guardados: con los mismos
+datos y parámetros, tras un reinicio la posición se reconstruye idéntica (escalón, máximo flotante,
+SL vigente, historial, costos). Pero el recálculo puede dar MENOS que lo vivido (velas de 1 min que
+ya no están, parámetros nuevos, contextos importados): por eso existe el **diario de la protección**.
+
+**Diario** (`eim/paper/protection.py`, tabla `paper_protection` en `data/paper.duckdb`, solo
+adición, clave `op_id|seq` con `op_id = perfil|símbolo|idea`): por cada operación de origen `vivo`
+con escalera, una fila al abrirla (`alta`), una por cada cambio del stop (`escalon`: escalón o BE+)
+y una al cerrarla (`cierre`); la de mayor `seq` es la vigente. Cada fila: perfil, símbolo, lado,
+entrada, cantidad, nocional, SL inicial, umbral de activación e incremento, protección activada,
+máximo neto alcanzado, escalón, neto protegido, SL vigente y su origen, instante de la última
+actualización, costos y reservas estimadas, estado (`abierta`, `protegida`, `cerrada`,
+`inconsistente`, `reconciliada`, `descartada`), historial completo de cambios del stop y motivo
+final de cierre. `paper_protection_pass` recuerda por símbolo cuándo empezó el diario y qué
+operaciones dejó abiertas la última pasada. No viaja con la experiencia compartida (T61).
+
+**Pasada** (`protection_sync.py`, tras cada recálculo de la vista; la primera de cada proceso es la
+recuperación al arrancar): el diario se lee ANTES de simular y su estado vigente entra como **suelo
+del SL** (`ladder_floor.py`): si el SL recalculado queda por debajo del guardado, se adopta el
+guardado desde el instante en que se confirmó (historial `source = "recuperado"`) y se avisa
+(«Protección recuperada del diario», fila `recuperacion`). Si al arrancar el recálculo va por delante
+(el precio siguió con la API parada), se adopta el recálculo y se registran los cambios que
+faltaban (aviso informativo). El nivel adoptado es siempre el mayor de los dos; ninguna fila
+automática deja el SL por debajo del guardado (salvaguarda `_never_lower`).
+
+**Estado inconsistente**: instantánea ausente (la última pasada la dejó abierta y ya no tiene filas)
+o corrupta (ilegible, símbolo o identidad que no cuadran), instantánea de otra operación (lado,
+entrada o cantidad distintos), recálculo que la cerraría ANTES del instante en que la instantánea
+la vio viva, velas que no llegan hasta ese instante, operación guardada que el recálculo no
+encuentra, o guardada cerrada y abierta al recalcular. Entonces: fila `inconsistente`, la operación
+no se cierra sola ni mueve su stop por lo guardado, el diario de esa operación se congela, cuenta
+en el resumen (`protection.n_inconsistent` y `profiles[].protection.inconsistent` de `/v2/paper`)
+y queda una alerta crítica en `op_alerts`. Se resuelve a mano (`docs/RUNBOOK.md` §14):
+`python -m eim.paper proteccion reconciliar <op_id> --decision recalculo|descartar --nota "…"`.
+
+**Observatorio** (contrato de T72): cada fila del diario y cada recuperación emiten un evento
+`alert` del componente `paper.broker` (`detail.what = proteccion_<evento>`) con una traza propia por
+operación (`trace_of(op_id)`), así el mapa cuenta la historia completa de una protección.
+
+**API**: `GET /v2/paper/protection` (estado vigente e inconsistencias), `GET
+/v2/paper/protection/history?op_id=` (todas sus filas) y `POST /v2/paper/protection/resolve`
+(`X-EIM-Confirm: paper-protection`). Tests: `tests/paper/test_protection*.py`.
 
 ## 6. Métricas (`summary["ladder"]`, API `/v2/paper`)
 

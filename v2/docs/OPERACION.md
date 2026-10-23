@@ -148,8 +148,9 @@ Variables (PowerShell: `$env:NAME='…'`; para que persistan, variables de usuar
   importadas entran retiradas: la vigente la decide el código de tu máquina. Holm cuenta la unión de intentos.
 - *No viaja*: velas, funding, calendario y biblioteca (cada máquina los descarga); veredictos,
   pronósticos y tableros (derivados: se recalculan); **kill-switch, latidos, `copy_state`, libro de la
-  subcuenta simulada, `op_*`, `risk_decisions`** (estado de la máquina: el kill-switch de una máquina
-  nunca apaga ni enciende el de otra); **claves y `.env`** (nunca).
+  subcuenta simulada, `op_*`, `risk_decisions`, diario de la protección `paper_protection*` (T110)**
+  (estado de la máquina: el kill-switch de una máquina nunca apaga ni enciende el de otra);
+  **claves y `.env`** (nunca).
 
 **Sin inflar la evidencia.** El bróker es determinista: la misma `estrategia@marco@versión` en la misma
 vela es **la misma operación** en cualquier máquina. Dos equipos corriendo lo mismo no suman `n`; la

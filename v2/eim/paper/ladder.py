@@ -28,6 +28,9 @@ Reglas (deterministas; ningún agente las toca una vez abierta la posición):
   momento, así que el neto realizado puede diferir del nominal (hueco, vela más ancha).
 - Datos no finitos en una vela = incidencia técnica: la posición queda ABIERTA marcada
   «incidencia», sin cierre inventado.
+- Suelo guardado (T110, `ladder_floor.py`): si el diario guardó un SL mejor que el recalculado, se
+  adopta desde el instante en que se confirmó; si lo guardado no deja reconstruirla, la operación
+  queda «inconsistente», abierta y sin cierre inventado.
 """
 
 from __future__ import annotations
@@ -40,6 +43,7 @@ import numpy as np
 
 from eim.paper.engine import Outcome, Path, _funding, _limit_fill, _slip, _stop_exit, _with_r
 from eim.paper.ideas import Idea
+from eim.paper.ladder_floor import Guard, adopt, arm, early, finish, settle_close
 from eim.paper.ladder_math import (  # noqa: F401  (reexportadas: tests y `ladder_book`)
     EPS,
     LadderCosts,
@@ -90,6 +94,7 @@ class _Run:
         self.first, self.step_usd, self.tick = first, step, tick
         self.stop, self.level, self.max_float, self.hist, self.c_stop = stop, 0, -math.inf, [], c
         self.be, self.be_armed, self.source = be, False, "inicial"   # be = (disparo, SL del BE+)
+        self.floor, self.floor_due, self.recovered = None, False, None  # suelo guardado (T110)
 
     @property
     def protected(self) -> bool:
@@ -138,6 +143,7 @@ def _sub_bars(run: _Run, fine: Path, path: Path, ep: ExecParams, fill_t: int, t0
     for m in range(a, b):
         o, h, lo = float(fine.o[m]), float(fine.h[m]), float(fine.l[m])
         end = int(fine.t[m]) + fine.step
+        adopt(run, int(fine.t[m]))
         if (lo <= run.stop) if s > 0 else (h >= run.stop):
             gap = (o <= run.stop) if s > 0 else (o >= run.stop)
             return ("SLD" if run.protected else "SL"), (o if gap else run.stop), end
@@ -171,7 +177,8 @@ def _fine_covers(fine: Path | None, t0: int, step: int) -> bool:
 
 
 def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qty: float,
-                    fine: Path | None = None, *, spec: SymbolSpec) -> Outcome:
+                    fine: Path | None = None, *, spec: SymbolSpec,
+                    guard: Guard | None = None) -> Outcome:
     """Simula la operación con SL inicial y escalera de protección (sin TP ni tiempo).
 
     `spec` es la ficha del instrumento (tick del símbolo, T108): el SL se redondea con el tick de
@@ -179,7 +186,8 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
     `lp.steps(riesgo en USDT)`, así que con `basis="r"` dependen del riesgo realmente abierto.
     `fine` (velas de 1 min) resuelve el orden real de los precios SOLO en las velas de 15 m
     ambiguas (las que pueden subir el SL y volver a tocarlo); sin datos finos se usa la regla
-    conservadora descrita arriba.
+    conservadora descrita arriba. `guard` (T110) es lo que el diario guardó de esta operación:
+    suelo del SL y, si lo hay, el motivo de su estado inconsistente.
     """
     s = idea.side
     what, k, start, fill, fee_in, slip_in = _entry(idea, path, ep)
@@ -198,10 +206,12 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
     be = _be_levels(idea, fill, risk, ep, lp, spec.tick)
     run = _Run(s, qty, fill, costs_for(fee_in, slip_in, ep), idea.sl, first, step_usd, spec.tick,
                be)
+    hold = arm(run, guard, spec.tick)          # estado inconsistente: no se cierra sola (T110)
     reserve = max(0.0, s * ep.funding_8h_assumed) * lp.funding_reserve   # reserva de funding
     incident, fine_bars = "", 0
     reason, ex, jx, ex_t, last_ok = "", None, None, None, k
-    if start > k and ((path.l[k] <= idea.sl) if s > 0 else (path.h[k] >= idea.sl)):
+    if start > k and ((path.l[k] <= idea.sl) if s > 0 else (path.h[k] >= idea.sl)) and not (
+            hold := hold or early(run, int(path.t[k]) + path.step)):
         reason, ex, jx = "SL", idea.sl, k                # límite llenada y SL en la misma vela
     else:
         for j in range(start, len(path.t)):
@@ -212,27 +222,35 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
             last_ok = j
             t0 = int(path.t[j])
             end = t0 + path.step
+            adopt(run, t0)
             fav = h if s > 0 else lo
             fund = _funding(path, s, fill_t, end, ep)[0] + reserve
             slip = max(_slip(path, x, ep) for x in range(max(start, j - lp.slip_lookback + 1),
                                                          j + 1))
             cj = replace(run.c0, slip_out=slip)               # deslizamiento esperado (reserva)
             got = run.peek(fav, fund, cj)
-            if got.stop is not None and _fine_covers(fine, t0, path.step) and (
+            if not hold and got.stop is not None and _fine_covers(fine, t0, path.step) and (
                     (lo <= got.stop) if s > 0 else (h >= got.stop)):
                 fine_bars += 1                                # ambigua: se resuelve con 1 min
                 hit = _sub_bars(run, fine, path, ep, fill_t, t0, path.step, cj, reserve)
-                if hit:
+                if hit and not (hold := early(run, hit[2])):
                     reason, ex, ex_t = hit
                     jx = j
                     break
                 continue
-            if (lo <= run.stop) if s > 0 else (h >= run.stop):   # SL vigente AL ABRIR la vela
+            if ((lo <= run.stop) if s > 0 else (h >= run.stop)) and not (   # SL vigente AL ABRIR
+                    hold := hold or early(run, end)):
                 reason, ex, jx = ("SLD" if run.protected else "SL"), _stop_exit(
                     path, s, j, run.stop, k), j
                 break
             run.apply(got, end, cj)
+    if reason:
+        reason, ex, held = settle_close(run, reason, ex, float(path.l[jx]), float(path.h[jx]))
+        if held:                                     # sin cierre inventado: sigue abierta
+            hold, last_ok, jx, ex_t = held, jx, None, None
     end_i = jx if jx is not None else last_ok
+    if not reason:
+        hold = hold or finish(run, int(path.t[end_i]) + path.step)
     hi, lo = float(path.h[k:end_i + 1].max()), float(path.l[k:end_i + 1].min())
     mfe = max(0.0, ((hi if s > 0 else lo) - fill) * s) / risk
     mae = max(0.0, (fill - (lo if s > 0 else hi)) * s) / risk
@@ -246,7 +264,8 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
             "stop_source": run.source,
             "be": None if be is None else {"trigger": be[0], "lock": be[1],
                                            "armed": run.be_armed},
-            "last_bar_t": int(path.t[end_i]) + path.step, "fine_resolved_bars": fine_bars}
+            "last_bar_t": int(path.t[end_i]) + path.step, "fine_resolved_bars": fine_bars,
+            "recovered": run.recovered, "inconsistent": hold or None}
     if reason:
         exit_t = ex_t if ex_t is not None else int(path.t[jx]) + path.step
         fund, assumed = _funding(path, s, fill_t, exit_t, ep)
@@ -260,7 +279,8 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
                                s * (ex - fill) / fill, None, mfe, mae, ladder=info))
     mark = float(path.c[end_i])
     fund, assumed = _funding(path, s, fill_t, int(path.t[end_i]) + path.step, ep)
-    info |= {"state": "incidencia" if incident else "protegida" if run.protected else "inicial",
+    info |= {"state": "inconsistente" if hold else "incidencia" if incident
+             else "protegida" if run.protected else "inicial",
              "float_usd": net_usd(s, qty, fill, mark, fund, run.c0),
              "elapsed_ms": int(path.t[end_i]) + path.step - fill_t}
     return _with_r(Outcome(idea, "ABIERTA", "", fill_t, fill, None, None, fee_in, 0.0, slip_in,

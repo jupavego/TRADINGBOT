@@ -74,6 +74,8 @@ NOT_SHARED = {
     "val_verdicts, forecasts, leader_verdicts, leader_portfolio": "derivado: se recalcula",
     "kill_switch.json, operation/, copy_state, op_alerts, op_equity, risk_decisions":
         "estado de la máquina: nunca se mezcla",
+    "paper_protection, paper_protection_pass (T110)":
+        "diario de la protección de esta máquina: nunca se mezcla",
     "obs.duckdb (observatorio, T73)": "derivado de los JSONL de cada máquina: no viaja",
     ".env, claves": "secretos: nunca se exportan",
 }

@@ -19,6 +19,7 @@ Comandos desde `v2/`. `API=http://127.0.0.1:8000`. Todo POST lleva `X-EIM-Confir
 | Copia simulada en pausa o con kill-switch | aviso «Copia … en pausa» / «kill-switch» | §11 |
 | Arbitraje «DESCUBIERTA» o kill-switch por pata incompleta | pestaña «Arbitraje» → «Ejecución automática» | §12 |
 | Bot del escuadrón en cuarentena, colgado o con versión nueva | «Escuadrón», alerta `bots.<bot>` | §13 |
+| Protección del bróker simulado recuperada o en «estado inconsistente» | `proteccion` («Protección recuperada…», «…en estado inconsistente», «Diario de protección sin verificar») | §14 |
 
 Dónde mirar: pestaña «Operación» de la UI · `GET $API/v2/operation` · registro
 `data/operation/logs/op-AAAA-MM-DD.jsonl` · tabla `op_alerts`.
@@ -181,3 +182,27 @@ Síntoma: en «Escuadrón» el bot sale `cuarentena`, con señal `degraded` o co
    python -c "from pathlib import Path; from eim.bots.quarantine import Quarantine; import time; q = Quarantine(Path('data/bots')); print(q.release('<bot_id>@<estrategia>', int(time.time()*1000)))"
    ```
    Reiniciar la API (o esperar al próximo recálculo de 4 h) para que la política lo recoja.
+
+## 14. Protección del bróker simulado recuperada o inconsistente (T110)
+El diario `paper_protection` (en `data/paper.duckdb`, solo adición) guarda el escalón y el SL vigente
+de cada operación abierta con escalera; al recalcular la vista el SL nunca queda por debajo de lo
+guardado. Todo es SIMULADO.
+- **«Protección recuperada del diario» (aviso):** el recálculo daba un SL menor (velas de 1 min que
+  faltan, parámetros cambiados…) y se adoptó el guardado. No hay que hacer nada; si se repite tras
+  cada arranque, revisar qué cambió en los datos o en `params.py`.
+- **«Protección por delante de lo guardado» (info, al arrancar):** el precio siguió mientras la API
+  estaba parada; se adoptó el recálculo (el mayor) y se registraron los cambios que faltaban.
+- **«Protección en estado inconsistente» (crítica):** la instantánea falta o está corrupta, no cuadra
+  con la operación recalculada, el recálculo la cerraría antes de lo que se vio en vivo o ya no la
+  encuentra. Esa operación **no se cierra sola ni mueve su stop por lo guardado** hasta resolverla:
+  ```bash
+  python -m eim.paper proteccion lista --estado inconsistente      # motivo en «note»
+  python -m eim.paper proteccion historial "<op_id>"                # todas sus filas
+  python -m eim.paper proteccion reconciliar "<op_id>" --decision recalculo --nota "por qué"
+  ```
+  `recalculo` deja mandar al recálculo (la próxima pasada reanuda el diario desde él; única vía que
+  puede dejar atrás un SL guardado, y queda anotada); `descartar` deja de seguirla (p. ej. la idea ya
+  no existe). Con la API en marcha la CLI va por ella (`POST /v2/paper/protection/resolve`); si no,
+  escribe la base directamente.
+- **«Diario de protección sin verificar» (crítica):** no se pudo leer el diario; la vista se calcula
+  sin suelo y marcada `protection.verified = false` en `GET $API/v2/paper`. Ver §5 si la base está dañada.

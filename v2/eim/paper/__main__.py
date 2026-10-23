@@ -2,6 +2,7 @@
 
     python -m eim.paper backtest --symbol BTCUSDT --days 30 [--step 1]
     python -m eim.paper resumen --symbol BTCUSDT
+    python -m eim.paper proteccion lista|historial|reconciliar …   (T110, `protection_cli.py`)
 
 DuckDB admite un solo proceso escritor: si la API está en marcha (tiene `data/paper.duckdb`
 abierta), `backtest` le pide el trabajo a ella (`POST /v2/paper/backtest`).
@@ -18,6 +19,7 @@ from pathlib import Path
 
 from eim.data.local_api import DEFAULT_API, post_local
 from eim.data.timeframes import SYMBOLS
+from eim.paper import protection_cli
 
 
 def _backtest_local(a: argparse.Namespace) -> int:
@@ -62,7 +64,10 @@ def main(argv: list[str] | None = None) -> int:
     rs = sub.add_parser("resumen", help="resumen de perfiles y estrategias (vía la API)")
     rs.add_argument("--symbol", default="BTCUSDT", choices=SYMBOLS)
     rs.add_argument("--api", default=DEFAULT_API)
+    protection_cli.add_parser(sub)
     a = ap.parse_args(argv)
+    if a.cmd == "proteccion":
+        return protection_cli.run(a)
     if a.cmd == "backtest":
         if not a.local:
             try:

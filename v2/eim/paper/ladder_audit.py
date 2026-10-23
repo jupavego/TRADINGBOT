@@ -71,6 +71,10 @@ def audit_outcome(o: Outcome) -> list[str]:
             if h["level"] <= prev_level or h["nominal"] <= prev_nom:
                 out.append("la protección retrocedió o repitió un nivel")
             prev_level, prev_nom = h["level"], h["nominal"]
+        elif h["source"] == "recuperado":       # suelo guardado adoptado (T110): nunca baja
+            if h["level"] < prev_level:
+                out.append("el estado recuperado bajó el escalón")
+            prev_level, prev_nom = h["level"], max(prev_nom, h["nominal"])
         elif h["level"] != prev_level:
             out.append("el BE+ cambió el escalón (solo puede mover el stop)")
         if o.fill is not None and (h["stop"] - o.fill) * s <= 0:
