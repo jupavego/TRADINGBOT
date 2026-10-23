@@ -3,6 +3,14 @@
 from eim.core.agent import Agent
 from eim.core.arb_market import ArbMarket, FuturesContract, PremiumInfo, SpotPair
 from eim.core.arbitrage import ArbScan, CostModel, Costs, Fill, Leg, Opportunity, Risk
+from eim.core.authority import (
+    EXIT_MODES,
+    Check,
+    ExitMode,
+    MarketKind,
+    RiskDecision,
+    TradeProposal,
+)
 from eim.core.bots import (
     NOT_SAVED,
     VERSION_CHANGED,
@@ -40,6 +48,7 @@ from eim.core.report import AgentReport, Overlay
 MarketSnapshot.model_rebuild()
 
 __all__ = [
+    "EXIT_MODES",
     "NOT_SAVED",
     "SIM_LABEL",
     "SimEquityPoint",
@@ -56,9 +65,11 @@ __all__ = [
     "BotStatus",
     "Book",
     "Candle",
+    "Check",
     "CostModel",
     "Costs",
     "EconEvent",
+    "ExitMode",
     "Fill",
     "FollowQuote",
     "ForecastSet",
@@ -74,6 +85,7 @@ __all__ = [
     "Liquidations",
     "MarketSnapshot",
     "LiqBar",
+    "MarketKind",
     "MicroBar",
     "Mode",
     "NewsItem",
@@ -82,7 +94,9 @@ __all__ = [
     "PositionChange",
     "PremiumInfo",
     "Risk",
+    "RiskDecision",
     "Scenario",
     "SpotPair",
     "Synthesis",
+    "TradeProposal",
 ]

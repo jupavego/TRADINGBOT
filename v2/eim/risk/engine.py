@@ -2,7 +2,9 @@
 
 `RiskEngine.evaluate` corre todas las reglas (para listar todos los motivos), calcula el tamaño
 si todas pasan, registra la decisión en el `sink` (siempre) y la firma con un sello HMAC de
-proceso. `verify` es la única puerta que acepta la ejecución (`eim/execution/gateway.py`): una
+proceso. Con la `TradeProposal` de la fuente (T114, toda ruta real) corren antes las reglas de la
+puerta única (`authority.gate_checks`: fuente registrada, plan = propuesto, caducidad).
+`verify` es la única puerta que acepta la ejecución (`eim/execution/gateway.py`): una
 decisión fabricada, alterada, vetada, vieja o emitida con el kill-switch activo se rechaza.
 """
 
@@ -15,8 +17,10 @@ from collections.abc import Callable
 
 from pydantic import BaseModel
 
+from eim.core.authority import TradeProposal
 from eim.observability import hooks
 from eim.risk import rules
+from eim.risk.authority import gate_checks
 from eim.risk.config import RiskConfig
 from eim.risk.killswitch import KillSwitch, global_kill_switch
 from eim.risk.models import AccountState, Check, MarketContext, PlanRequest, RiskDecision
@@ -24,6 +28,7 @@ from eim.risk.sizing import Sizing, size_position
 
 _KEY = secrets.token_bytes(32)          # vive solo en este proceso; no se persiste
 DECISION_TTL_MS = 60_000                 # una aprobación caduca en 1 min
+AUTHORITY = "risk.engine"                # id de esta autoridad en `eim/risk/authority.py`
 
 
 def _digest(d: BaseModel) -> str:
@@ -67,16 +72,25 @@ class RiskEngine:
             rules.check_cooldown(account, market, cfg),
         ]
 
-    def evaluate(self, plan: PlanRequest, account: AccountState,
-                 market: MarketContext) -> RiskDecision:
+    def evaluate(self, plan: PlanRequest, account: AccountState, market: MarketContext,
+                 proposal: TradeProposal | None = None,
+                 profile_version: str | None = None) -> RiskDecision:
         checks = self._checks(plan, account, market)
+        if proposal is not None:
+            checks[:0] = gate_checks(proposal, AUTHORITY, market.now, symbol=plan.symbol,
+                                     side=plan.side, stop=plan.sl, asof=plan.asof)
         sized: Sizing | str | None = None
         if all(c.ok for c in checks):
             entry = market.last_price or plan.entry    # se ejecutaría al precio actual
             scale = self.config.event_size_factor if market.event_window else 1.0
+            why = market.event_reason
+            ask = proposal.max_risk_frac if proposal else None
+            if ask is not None and ask < self.config.risk_per_trade * scale:
+                # la fuente pide menos riesgo: se concede el menor (nunca más que la política)
+                scale, why = ask / self.config.risk_per_trade, "tope pedido por la fuente"
             sized = ("capital ≤ 0" if account.equity <= 0 else
                      size_position(plan.side, entry, plan.sl, account.equity, self.config,
-                                   scale, market.event_reason))
+                                   scale, why))
             checks.append(Check(rule="tamaño", ok=isinstance(sized, Sizing),
                                 detail=sized if isinstance(sized, str) else
                                 f"{sized.size:.6g} a {sized.leverage:.0f}×"))
@@ -95,7 +109,9 @@ class RiskEngine:
             sl=plan.sl, tp=plan.tp,
             reasons=tuple(reasons), checks=tuple(checks),
             config_version=self.config.version, config_sha256=self.config.sha256,
-            account_source=account.source, **fields)
+            account_source=account.source, proposal=proposal, authority=AUTHORITY,
+            profile_version=profile_version,
+            exit_mode=proposal.exit_mode if proposal else None, **fields)
         d = d.model_copy(update={"seal": _digest(d)})
         self._sink(d)
         hooks.risk_decided(d)

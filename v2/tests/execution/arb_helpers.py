@@ -83,7 +83,9 @@ class ArbRig:
         return ArbAccount(**base)
 
     def decision(self, plan: ArbPlan | None = None, **kw) -> ArbDecision:
-        return self.engine.evaluate(plan or self.plan(**kw), self.account(), self.clock())
+        plan = plan or self.plan(**kw)
+        return self.engine.evaluate(plan, self.account(), self.clock(),
+                                    proposal=plan.as_proposal("arb.scanner", "test"))
 
     def open(self, plan: ArbPlan | None = None, **kw) -> ArbPosition:
         key = self.gw.submit(self.decision(plan, **kw), self.clock())

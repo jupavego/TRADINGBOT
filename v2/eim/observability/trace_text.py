@@ -77,13 +77,17 @@ def step_text(e: dict) -> str:
     if k == "plan":
         if st == "no_data":
             return f"No hubo plan: {d.get('reason') or 'sin motivo registrado'}."
-        return (f"El plan propuso una operación {_side(d.get('side'))} con entrada {_n(d.get('entry'))}, "
+        what = f"La estrategia {d['strategy']}" if d.get("strategy") else "El plan"
+        return (f"{what} propuso una operación {_side(d.get('side'))} con entrada {_n(d.get('entry'))}, "
                 f"SL {_n(d.get('sl'))} y relación riesgo/beneficio {_n(d.get('rr'))}.")
     if k == "risk_decision":
+        # T114: de qué fuente era la propuesta y qué autoridad decidió (si no fue el motor T29)
+        src = f" la propuesta de {d['source']}" if d.get("source") else ""
+        by = "" if e["component_id"] == "risk.engine" else f" Decidió: {who}."
         if st == "rejected":
-            return f"El riesgo vetó: {V.why(e, 'veto')}."
-        return (f"El riesgo aprobó el plan con tamaño {_n(d.get('size'), 4)} y apalancamiento "
-                f"{_n(d.get('leverage'))}x.")
+            return f"El riesgo vetó{src}: {V.why(e, 'veto')}.{by}"
+        return (f"El riesgo aprobó{src or ' el plan'} con tamaño {_n(d.get('size'), 4)} y "
+                f"apalancamiento {_n(d.get('leverage'))}x.{by}")
     if k == "order_intent":
         return f"{who} pidió una orden {_side(d.get('side'))}." if st != "rejected" \
             else f"{who} no pudo pedir la orden."

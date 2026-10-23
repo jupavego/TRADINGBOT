@@ -92,7 +92,11 @@ class RiskDesk:
         last = store.read_candles(symbol, tf, last=1)
         market = market_context(latest, last[-1].t + bar if last else None, now, bar,
                                 last[-1].c if last else None)
-        d = self.engine.evaluate(req, account, market)
+        why = (rep.evidence or ["plan vigente del agente plan"])[0]
+        prop = req.as_proposal("agents.plan", rep.version, confidence=rep.confidence,
+                               reason=why, horizon_ms=rep.horizon_bars * bar or None,
+                               max_age_ms=self.cfg.max_plan_age_bars * bar, exit_mode="bracket")
+        d = self.engine.evaluate(req, account, market, proposal=prop)
         return {**base, "plan": req.model_dump(mode="json"),
                 "decision": d.model_dump(mode="json", exclude={"seal"}),
                 "account": account.model_dump()}, d

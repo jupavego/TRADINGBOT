@@ -7,6 +7,10 @@ consistente se pausa). Margen aislado; apalancamiento entero tal que la liquidac
 `liq_buffer` veces la distancia del SL. La contabilidad (liquidación, suelo del capital y cuenta
 agotada) está en `account.py` y los motivos de rechazo en `vetoes.py`. Siempre SIMULADO.
 
+Quién decide entrar es la política del perfil (`policy.decide`, autoridad `paper.broker` de la
+puerta única de T114): el libro solo crea una posición u orden en `_open`, con una decisión
+aprobada por ella. Las decisiones de ideas en vivo quedan en `decisions` (Observatorio).
+
 Con salida por escalera (los cuatro perfiles desde T109) solo cierran el stop inicial, el stop
 dinámico, la liquidación y una salvaguarda independiente (`ladder_audit.ALLOWED_CLOSE`); cualquier
 otro cierre se registra como violación y NO se ejecuta. Una señal contraria a una posición abierta
@@ -18,15 +22,15 @@ from __future__ import annotations
 import heapq
 from dataclasses import dataclass, field, replace
 
-from eim.paper.account import LIQ, capped, exhausted, leverage_for, liq_price
-from eim.paper.book_events import ev, learned_bad
-from eim.paper.caps import Brake, fit_risk
+from eim.paper.account import LIQ, capped, exhausted, leverage_for, liq_price  # noqa: F401 (tests)
+from eim.paper.book_events import ev
+from eim.paper.caps import Brake
 from eim.paper.engine import Outcome
 from eim.paper.feedback import Learner, context_key
 from eim.paper.ladder_audit import SAFEGUARD, audit_outcome, check_close_request
-from eim.paper.ladder_book import LadderRisk, LadderSim, open_ladder
+from eim.paper.ladder_book import LadderRisk, LadderSim
 from eim.paper.params import ProfileParams
-from eim.paper.vetoes import vetoes
+from eim.paper.policy import PaperDecision, decide, verify
 
 PRIO = {"close": 0, "cancel": 1, "fill": 2, "signal": 3}
 EXIT_CAT = {"TP": "tp", "SL": "sl", "SLD": "sl", "BE": "be", "TIEMPO": "tiempo",
@@ -73,16 +77,7 @@ class ProfileState:
     lrisk: LadderRisk = field(default_factory=LadderRisk)  # PPP: memoria propia y freno
     brake: Brake = field(default_factory=Brake)            # freno por drawdown (caps)
     exhausted_t: int | None = None     # cuándo se agotó la cuenta (deja de abrir; no se recarga)
-
-
-def _open_count(st: ProfileState) -> int:
-    """Operaciones abiertas: posiciones llenadas y órdenes a mercado (se llenan a la apertura)."""
-    return sum(1 for s in st.slots.values() if s.filled or s.o.idea.kind == "market")
-
-
-def _pending_count(st: ProfileState) -> int:
-    """Órdenes de entrada pendientes: límites colocados y aún sin llenar."""
-    return sum(1 for s in st.slots.values() if not s.filled and s.o.idea.kind == "limit")
+    decisions: list[PaperDecision] = field(default_factory=list)  # ideas en vivo (T114)
 
 
 def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
@@ -112,54 +107,27 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
             else "contexto reactivado", weight=jc.weight, m=jc.m, n=jc.n,
             context=ck.split("|", 1)[1])
     st.ctx_states[ck] = jc.state
-    vs = vetoes(st, i, j, jc, ck)
-    floor, skipped = False, ()
-    if vs:
-        # los mínimos solo saltan vetos blandos: a mercado cubren las posiciones abiertas y a
-        # límite las órdenes pendientes (sin elegir por el resultado de la idea)
-        keys = tuple(k for _, k in vs)
-        short = (_open_count(st) < p.min_open if i.kind == "market"
-                 else _pending_count(st) < p.min_pending)
-        if None in keys or not short or learned_bad(st, keys, i.t, o):
-            ev(st, i.t, "rechazada", o, vs[0][0], **tag)
-            return
-        floor, skipped = True, keys
-    weight = p.floor_weight if floor else j.weight
-    entry = o.fill if i.kind == "market" and o.fill else i.entry
-    want = st.equity * p.risk_pct * weight
-    risk_usd = fit_risk(p.caps, st.equity, sum(x.risk_usd for x in st.slots.values()
-                                              if x.side == i.side), want)
-    if risk_usd <= 0:
-        ev(st, i.t, "rechazada", o, f"capital insuficiente: {st.equity:.2f} USDT realizados"
-           if want <= 0 else
-           f"tope de riesgo abierto por dirección ({p.caps.max_dir_risk:.1%})", **tag)
+    d = decide(st, o, j, jc, ck, mmr, sim)
+    if i.origin == "vivo":
+        st.decisions.append(d)
+    if not d.approved:
+        ev(st, i.t, "rechazada", d.o, d.reason, **tag)
         return
-    qty = risk_usd / abs(entry - i.sl)
-    lev = leverage_for(p, entry, i.sl, mmr)
-    margin = qty * entry / lev
-    free = st.equity - st.used
-    if margin > free:
-        scale = max(0.0, free * 0.98 / margin)
-        if scale < p.min_risk_fill:
-            ev(st, i.t, "rechazada", o, f"margen insuficiente (libre {free:.2f} USDT)", **tag)
-            return
-        qty, margin, risk_usd = qty * scale, margin * scale, risk_usd * scale
-    if sim is not None and p.exit_mode == "ladder":
-        qty, o = open_ladder(p, sim, i, qty)
-        if o.status == "RECHAZADA":
-            ev(st, i.t, "rechazada", o, "cantidad bajo el paso mínimo o geometría inválida",
-               **tag)
-            return
-        margin, risk_usd = qty * entry / lev, qty * abs(entry - i.sl)
-    st.slots[i.id] = Slot(o, qty, lev, margin, weight, risk_usd, floor=floor, skipped=skipped)
-    st.used += margin
-    text = "límite" if i.kind == "limit" else "a mercado"
-    if floor:
-        what = f"{p.min_open} abierta(s)" if i.kind == "market" else f"{p.min_pending} pendiente(s)"
-        text += f" · mínimo de {what}: se omitió «{vs[0][0]}»"
-    ev(st, i.t, "orden", o, text, price=entry, qty=qty, leverage=lev, margin=margin, sl=i.sl,
-        tp=None if p.exit_mode == "ladder" else i.tp, weight=weight, risk_usd=risk_usd,
-        why=list(i.why), floor=floor, **tag)
+    _open(st, d, tag, q, seq)
+
+
+def _open(st: ProfileState, d: PaperDecision, tag: dict, q: list, seq: list[int]) -> None:
+    """Único sitio que crea una posición u orden del perfil: con una aprobación de la política."""
+    verify(d)
+    o, p = d.o, st.p
+    i = o.idea
+    st.slots[i.id] = Slot(o, d.qty, d.leverage, d.margin, d.weight, d.risk_usd, floor=d.floor,
+                          skipped=d.skipped)
+    st.used += d.margin
+    text = ("límite" if i.kind == "limit" else "a mercado") + d.note
+    ev(st, i.t, "orden", o, text, price=d.entry, qty=d.qty, leverage=d.leverage, margin=d.margin,
+       sl=i.sl, tp=None if p.exit_mode == "ladder" else i.tp, weight=d.weight,
+       risk_usd=d.risk_usd, why=list(i.why), floor=d.floor, **tag)
     if o.fill_t is not None:
         heapq.heappush(q, (o.fill_t, PRIO["fill"], _next(seq), "fill", o))
     elif o.status == "CANCELADA":

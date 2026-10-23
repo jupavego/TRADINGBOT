@@ -109,3 +109,25 @@ def trace_for(symbol: str, tf: str, close_ts: int) -> str:
     obtienen el mismo `trace_id` sin compartir memoria. `close_ts` = ms epoch UTC del cierre."""
     key = f"{symbol.strip().upper()}|{tf.strip().lower()}|{int(close_ts)}"
     return "tr_" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
+
+
+def trace_for_key(*parts: object) -> str:
+    """Traza determinista de algo que no es una vela (una propuesta y su perfil, T114). El
+    prefijo `K|` impide que coincida con una traza de vela."""
+    key = "K|" + "|".join(str(p) for p in parts)
+    return "tr_" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
+
+
+def event_id_for(ts_ms: int, key: str) -> str:
+    """`event_id` determinista (mismo formato que `new_event_id`): reemitir el mismo hecho tras
+    un recálculo o un reinicio no lo duplica en la base (el indexador ignora lo ya visto)."""
+    return f"{ts_ms:012x}-{hashlib.sha256(key.encode('utf-8')).hexdigest()[:10]}"
+
+
+def proposal_trace(p: Any, scope: str = "") -> str:
+    """Traza de una decisión de la autoridad (T114). El plan de los agentes usa la de su vela
+    (misma traza que sus señales, T74); el resto, una por propuesta (y por perfil, `scope`), para
+    que T76 cuente cada decisión sin mezclarla con la del plan de esa vela."""
+    if p.source == "agents.plan":
+        return trace_for(p.symbol, p.timeframe, p.data_asof)
+    return trace_for_key("proposal", p.source, p.proposal_id, scope)

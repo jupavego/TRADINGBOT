@@ -115,7 +115,9 @@ def carry_plan(r: Rig, notional: float) -> ArbPlan:
 
 def _open(r: Rig, notional: float) -> tuple[ArbPosition | None, dict[str, Any]]:
     now = r.clock()
-    d = r.engine.evaluate(carry_plan(r, notional), r.pilot.account(now, None), now)
+    plan = carry_plan(r, notional)
+    d = r.engine.evaluate(plan, r.pilot.account(now, None), now,
+                          proposal=plan.as_proposal("ops.smoke", "escenarios T45 en papel"))
     if not d.approved:
         return None, decision_row(d)
     return r.ex.positions[r.gw.submit(d, now)], decision_row(d)

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-23T11:54:21",
+ "generated": "2026-10-23T12:32:54",
  "tasks": [
   {
    "id": "T01",
@@ -1442,8 +1442,8 @@ window.EIM_STATUS = {
    "deps": [
     "T113"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "En curso (2026-10-23): contrato `TradeProposal`/`RiskDecision` y puerta única.",
    "effort": "alto",
    "phase": 19,
    "goal": "Una sola puerta de entrada a la ejecución, con un contrato único: **toda** fuente de señal (agentes, estrategias del bróker, bots de T57, copy trading de T41, arbitraje de T39, HFT de T85, video de T70) propone en el mismo formato, y solo el motor determinista de riesgo autoriza. El consenso de diez agentes no puede anular un límite, y ninguna regla de salida vigente puede ser anulada por una señal contraria. Hoy esto es cierto por construcción en varios caminos, pero **no está demostrado en un solo lugar**."

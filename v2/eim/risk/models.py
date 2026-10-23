@@ -1,10 +1,16 @@
-"""Contratos del motor de riesgo: entrada (plan, cuenta, mercado) y salida (`RiskDecision`)."""
+"""Contratos del motor de riesgo: entrada (plan, cuenta, mercado) y salida (`RiskDecision`).
+
+`Check` y `RiskDecision` viven en `eim/core/authority.py` desde T114 (contrato único de todas
+las autoridades); aquí se reexportan para no cambiar ningún import.
+"""
 
 from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from eim.core import Mode
+from eim.core.authority import Check, ExitMode, RiskDecision, TradeProposal
+from eim.risk.authority import expires_after
 
 
 class PlanRequest(BaseModel):
@@ -22,6 +28,19 @@ class PlanRequest(BaseModel):
     rr: float | None = None
     mode: Mode = Mode.SIMULADO
     asof: int                          # ms: instante del plan
+
+    def as_proposal(self, source: str, source_version: str, *, max_age_ms: float,
+                    exit_mode: ExitMode, confidence: float | None = None, reason: str = "",
+                    horizon_ms: int | None = None) -> TradeProposal:
+        """El plan como `TradeProposal` de su fuente (T114). Caduca cuando la regla de vigencia
+        de la política lo daría por viejo (`max_age_ms`), nunca antes."""
+        return TradeProposal(
+            proposal_id=self.plan_id, source=source, source_version=source_version,
+            symbol=self.symbol, side=self.side, timeframe=self.timeframe,
+            horizon_ms=horizon_ms, confidence=confidence, entry=self.entry, stop=self.sl,
+            target=self.tp[0] if self.tp else None, reason=reason[:400], data_asof=self.asof,
+            expires_at=expires_after(self.asof, max_age_ms), exit_mode=exit_mode,
+            mode=self.mode)
 
 
 class AccountState(BaseModel):
@@ -57,41 +76,4 @@ class MarketContext(BaseModel):
     pause_reason: str = ""
 
 
-class Check(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    rule: str
-    ok: bool
-    detail: str
-
-
-class RiskDecision(BaseModel):
-    """Resultado del motor; siempre se registra. `seal` lo firma el motor (ver `engine.verify`)."""
-
-    model_config = ConfigDict(frozen=True)
-
-    approved: bool
-    symbol: str
-    timeframe: str
-    plan_id: str
-    side: int
-    mode: Mode
-    asof: int                                    # instante del plan
-    decided_at: int                              # `MarketContext.now`
-    size: float = 0.0                            # cantidad en moneda base
-    notional: float = 0.0
-    leverage: float = 0.0
-    margin: float = 0.0
-    risk_amount: float = 0.0                     # pérdida hasta el SL (sin costos)
-    risk_frac: float = 0.0
-    liquidation_price: float | None = None
-    entry: float = 0.0                           # entrada del plan (precio de una LIMIT)
-    sized_at: float = 0.0                        # precio actual con el que se dimensionó
-    sl: float = 0.0
-    tp: tuple[float, ...] = ()
-    reasons: tuple[str, ...] = ()                # motivos de veto (o de recorte si aprobado)
-    checks: tuple[Check, ...] = ()
-    config_version: str
-    config_sha256: str
-    account_source: str
-    seal: str = ""
+__all__ = ["AccountState", "Check", "MarketContext", "PlanRequest", "RiskDecision"]

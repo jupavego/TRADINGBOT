@@ -17,7 +17,7 @@ from eim.execution.broker import (
 from eim.execution.gateway import OrderGateway
 from eim.execution.service import CLOSED, OPEN, ExecutionService
 from eim.execution.sim_broker import SimBroker
-from tests.risk.helpers import NOW, account, engine, market, plan
+from tests.risk.helpers import NOW, account, decide, engine, market, plan
 
 S = "BTCUSDT"
 
@@ -68,7 +68,7 @@ def test_service_in_simulated_mode():
     b.set_price(S, 100_000.0)
     eng, _, ks = engine()
     svc = ExecutionService(b, ks, sleep=lambda _: None, clock=lambda: NOW)
-    d = eng.evaluate(plan(), account(), market(last_price=100_000.0))
+    d = decide(eng, plan(), account(), market(last_price=100_000.0))
     tr = svc.trades[OrderGateway(eng, svc).submit(d, NOW)]
     assert svc.mode == Mode.SIMULADO and tr.status == OPEN and b.position(S).qty == 0.025
     b.set_price(S, 104_000.0)

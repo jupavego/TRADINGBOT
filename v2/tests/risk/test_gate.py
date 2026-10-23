@@ -18,7 +18,7 @@ from eim.core import Mode
 from eim.execution.gateway import OrderGateway, OrderIntent
 from eim.risk import RiskDecision, RiskEngine
 from eim.risk.engine import DECISION_TTL_MS
-from tests.risk.helpers import CFG, NOW, account, engine, market, plan
+from tests.risk.helpers import CFG, NOW, decide, engine, plan
 
 EIM = Path(__file__).resolve().parents[2] / "eim"
 
@@ -42,7 +42,7 @@ def _setup():
 
 def test_approved_decision_reaches_broker():
     eng, _, broker, gw = _setup()
-    d = eng.evaluate(plan(), account(), market())
+    d = decide(eng, plan())
     assert gw.submit(d, NOW) == "sim-1"
     o = broker.sent[0]
     assert (o.symbol, o.side, o.size, o.leverage) == (d.symbol, d.side, d.size, d.leverage)
@@ -50,7 +50,7 @@ def test_approved_decision_reaches_broker():
 
 def test_vetoed_decision_rejected():
     eng, _, broker, gw = _setup()
-    d = eng.evaluate(plan(rr=0.5), account(), market())
+    d = decide(eng, plan(rr=0.5))
     with pytest.raises(PermissionError, match="vetado"):
         gw.submit(d, NOW)
     assert broker.sent == []
@@ -69,7 +69,7 @@ def test_fabricated_decision_rejected():
 
 def test_tampered_decision_rejected():
     eng, _, broker, gw = _setup()
-    d = eng.evaluate(plan(), account(), market())
+    d = decide(eng, plan())
     bigger = d.model_copy(update={"size": d.size * 10})
     with pytest.raises(PermissionError, match="sello"):
         gw.submit(bigger, NOW)
@@ -78,7 +78,7 @@ def test_tampered_decision_rejected():
 
 def test_other_config_rejected():
     eng, _, _, _ = _setup()
-    d = eng.evaluate(plan(), account(), market())
+    d = decide(eng, plan())
     other = RiskEngine(CFG.model_copy(update={"sha256": "otro"}), lambda _: None, eng.kill_switch)
     with pytest.raises(PermissionError, match="configuración"):
         OrderGateway(other, FakeBroker()).submit(d, NOW)
@@ -86,7 +86,7 @@ def test_other_config_rejected():
 
 def test_kill_switch_after_approval_blocks():
     eng, ks, broker, gw = _setup()
-    d = eng.evaluate(plan(), account(), market())
+    d = decide(eng, plan())
     ks.activate("desconexión", NOW)
     with pytest.raises(PermissionError, match="kill-switch"):
         gw.submit(d, NOW)
@@ -96,14 +96,14 @@ def test_kill_switch_after_approval_blocks():
 @pytest.mark.parametrize("dt", [DECISION_TTL_MS + 1, -1])
 def test_stale_or_future_decision_rejected(dt):
     eng, _, broker, gw = _setup()
-    d = eng.evaluate(plan(), account(), market())
+    d = decide(eng, plan())
     with pytest.raises(PermissionError, match="caducada"):
         gw.submit(d, NOW + dt)
 
 
 def test_mode_mismatch_rejected():
     eng, _, _, gw = _setup()
-    d = eng.evaluate(plan(mode=Mode.TESTNET), account(), market())
+    d = decide(eng, plan(mode=Mode.TESTNET))
     with pytest.raises(PermissionError, match="modo"):
         gw.submit(d, NOW)
 

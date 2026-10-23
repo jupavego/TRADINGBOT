@@ -9,6 +9,9 @@ líder), frescura del flujo del líder, pérdidas diaria/semanal, monedas abiert
 enfriamiento y tamaño. Su tamaño es el MÁXIMO de la posición: el motor de copia recorta.
 Reducir o cerrar no pasa por aquí: nunca se veta salir.
 
+T114: la orden candidata entra como `TradeProposal` de la fuente `copy.leaders` (salida
+`follow_leader`); la versión de la fuente y del perfil es la huella de `CopyParams`.
+
 Cada subcuenta tiene su propio kill-switch: la simulación jamás toca el global (que detendría
 la operación en papel de T31).
 """
@@ -20,6 +23,7 @@ from collections.abc import Callable
 from eim.copytrading.copy_book import Account
 from eim.copytrading.copy_params import CopyParams
 from eim.core import Mode
+from eim.core.authority import params_fingerprint
 from eim.risk import (
     AccountState,
     KillSwitch,
@@ -46,6 +50,7 @@ class CopyRisk:
         self.kill = kill or KillSwitch()
         self.decisions: list[RiskDecision] = []
         self.engine = RiskEngine(cfg, sink or self.decisions.append, self.kill)
+        self.version = params_fingerprint(p)
 
     def account_state(self, acc: Account, coin: str, source: str) -> AccountState:
         return AccountState(
@@ -62,7 +67,12 @@ class CopyRisk:
                            asof=signal_t)
         market = MarketContext(now=now, bar_ms=self.p.risk_bar_ms, last_close_t=feed_t,
                                last_price=price)
-        return self.engine.evaluate(plan, self.account_state(acc, coin, source), market)
+        prop = plan.as_proposal("copy.leaders", f"replicador {self.version}",
+                                reason=f"el líder aumentó {coin} ({source})",
+                                max_age_ms=self.cfg.max_plan_age_bars * self.p.risk_bar_ms,
+                                exit_mode="follow_leader")
+        return self.engine.evaluate(plan, self.account_state(acc, coin, source), market,
+                                    proposal=prop, profile_version=self.version)
 
     def check_kill(self, acc: Account, now: int) -> list[str]:
         """Regla automática de la subcuenta: caída ≥ límite → kill-switch (solo manual lo apaga)."""

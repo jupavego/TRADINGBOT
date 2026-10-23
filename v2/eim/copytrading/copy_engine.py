@@ -122,6 +122,12 @@ class CopyEngine(EngineControl, EngineState):
 
     # --- señales ------------------------------------------------------------------------------
     def on_signal(self, sig: Signal, quote: ExecQuote | None, now: int) -> list[CopyFill]:
+        if sig.leader_id != self.leader_id:
+            # T114: la regla de salida es seguir a SU líder; una señal ajena no abre ni cierra
+            self._count("rechazo:ajena")
+            self.log("reject", f"señal de otro líder ({sig.leader_id}): no mueve esta copia",
+                     coin=sig.coin, code="ajena")
+            return []
         keys = [f"{tid}:{oid}" for tid, oid in sig.keys]
         if sig.t <= self.state_t or all(k in self.seen for k in keys):
             return []  # ya reflejada en la foto inicial, o repetida

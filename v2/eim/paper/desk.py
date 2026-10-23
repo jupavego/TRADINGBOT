@@ -15,6 +15,7 @@ from eim.data.store import Store
 from eim.data.timeframes import FOCUS, tf_ms
 from eim.paper import ledger
 from eim.paper.balance import balance
+from eim.paper.authority_obs import DecisionEmitter
 from eim.paper.book import ProfileState, run_profile
 from eim.paper.catalog import CATALOG, generate_ideas
 from eim.paper.engine import CAUSES, Outcome, Path, run_shadow
@@ -84,6 +85,7 @@ class PaperDesk(DeskService, DeskProtection):
         self.view_error = ""
         self.ledger_error = ""
         self._ledger_at = 0
+        self.obs, self.obs_error = DecisionEmitter(), ""   # T114: decisiones en vivo → Observatorio
         ledger.ensure(pstore)
         self._protection_init()
 
@@ -179,6 +181,7 @@ class PaperDesk(DeskService, DeskProtection):
         sim = LadderSim(path, self.ep, self._fine(symbol, t0), guards=self._guards(symbol))
         v.books = {p.id: run_profile(p, v.outcomes, learner, mmr, sim) for p in self.profiles}
         self._record_ledger(v)
+        self._emit_decisions(v)
         self._sync_protection(v)
         v.summary = self._payload(v, by_tf, infos, learner, path.end or None,
                                   pc[-1].c if pc else None, n_ideas=len(ideas))
@@ -194,6 +197,13 @@ class PaperDesk(DeskService, DeskProtection):
                 self.ledger_added = getattr(self, "ledger_added", 0) + n
         except Exception as exc:  # noqa: BLE001 - el registro nunca tumba el cálculo de la vista
             self.ledger_error = f"{type(exc).__name__}: {exc}"
+
+    def _emit_decisions(self, v: View) -> None:
+        """Decisiones de ideas en vivo al Observatorio (T114); nunca falla la vista."""
+        try:
+            self.obs.emit_books(v.books)
+        except Exception as exc:  # noqa: BLE001 - observar no puede romper lo observado
+            self.obs_error = f"{type(exc).__name__}: {exc}"
 
     def ledger_tick(self) -> None:
         """Gancho tras cada ciclo: pone al día el libro fijo una vez por hora (calcula la vista

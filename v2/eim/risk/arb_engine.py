@@ -12,11 +12,16 @@ from __future__ import annotations
 import hmac
 from collections.abc import Callable
 
+from eim.core.authority import TradeProposal
+from eim.observability import hooks
 from eim.risk.arb_config import ArbRiskConfig
 from eim.risk.arb_models import ArbAccount, ArbDecision, ArbPlan
+from eim.risk.authority import gate_checks
 from eim.risk.engine import DECISION_TTL_MS, _digest
 from eim.risk.killswitch import KillSwitch, global_kill_switch
 from eim.risk.models import Check
+
+AUTHORITY = "risk.arb_engine"
 
 
 def _c(rule: str, ok: bool, detail: str) -> Check:
@@ -97,9 +102,14 @@ class ArbRiskEngine:
         self.config, self._sink = config, sink
         self.kill_switch = kill_switch or global_kill_switch()
 
-    def evaluate(self, plan: ArbPlan, acct: ArbAccount, now: int) -> ArbDecision:
+    def evaluate(self, plan: ArbPlan, acct: ArbAccount, now: int,
+                 proposal: TradeProposal | None = None) -> ArbDecision:
+        """Con la `TradeProposal` (T114, toda ruta real) corren antes las reglas de la puerta."""
         cfg = self.config
         cs = checks(plan, acct, cfg, self.kill_switch, now)
+        if proposal is not None:
+            cs[:0] = gate_checks(proposal, AUTHORITY, now, symbol=plan.futures.symbol,
+                                 side=plan.spot.side, stop=None, asof=plan.asof)
         fields: dict = {}
         reasons = [f"{c.rule}: {c.detail}" for c in cs if not c.ok]
         if not reasons:
@@ -118,9 +128,11 @@ class ArbRiskEngine:
                 reasons = ["tamaño: sin margen, saldo o exposición disponibles"]
         d = ArbDecision(approved=bool(fields), plan=plan, mode=plan.mode, decided_at=now,
                         reasons=tuple(reasons), checks=tuple(cs), config_version=cfg.version,
-                        config_sha256=cfg.sha256, account_source=acct.source, **fields)
+                        config_sha256=cfg.sha256, account_source=acct.source,
+                        proposal=proposal, **fields)
         d = d.model_copy(update={"seal": _digest(d)})
         self._sink(d)
+        hooks.risk_decided(d.as_record())
         return d
 
     def verify_arb(self, d: ArbDecision, now: int) -> None:
