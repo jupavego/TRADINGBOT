@@ -102,8 +102,8 @@ def test_unregistered_source_opens_nothing_and_the_rejection_is_recorded(source,
 def test_a_decision_without_proposal_never_reaches_an_order():
     """Aprobada y sellada por el motor, pero sin propuesta de una fuente registrada: rechazada
     en la puerta de órdenes (la ruta se verifica otra vez al ejecutar)."""
-    from tests.risk.test_gate import FakeBroker, _setup
     from tests.risk.helpers import NOW, account, market, plan
+    from tests.risk.test_gate import FakeBroker, _setup
     eng, _, broker, gw = _setup()
     d = eng.evaluate(plan(), account(), market())
     assert d.approved and d.proposal is None
@@ -128,7 +128,8 @@ ALLOWED = {
     ("decisión del bróker", "paper/policy.py", "decide"),
     ("decisión del bróker", "paper/policy.py", "_no"),
     ("posición del bróker", "paper/book.py", "_open"),                  # policy.verify antes
-    ("orden de la copia", "copytrading/copy_engine.py", "CopyEngine.on_signal"),  # crece tras _admit
+    # crece solo tras `_admit` (riesgo T29); reducir o cerrar sigue al líder
+    ("orden de la copia", "copytrading/copy_engine.py", "CopyEngine.on_signal"),
     ("relleno de la copia", "copytrading/copy_engine.py", "CopyEngine._execute"),
     # modificar o cerrar: solo la regla de salida de la posición o una salvaguarda
     ("llenado del bróker", "paper/book.py", "run_profile"),             # el precio toca la entrada

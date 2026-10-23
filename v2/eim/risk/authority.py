@@ -147,12 +147,18 @@ def _utc(t: int) -> str:
     return datetime.fromtimestamp(t / 1000, UTC).strftime("%Y-%m-%d %H:%M:%S")
 
 
+def expiry_reason(expires_at: int, now: int) -> str | None:
+    """None si la señal sigue vigente en `now`; si no, el motivo (lo usan todas las autoridades)."""
+    if now > expires_at:
+        return (f"la señal caducó hace {(now - expires_at) / 1000:.0f} s "
+                f"(vigente hasta {_utc(expires_at)} UTC)")
+    return None
+
+
 def expiry_check(p: TradeProposal, now: int) -> Check:
-    if now > p.expires_at:
-        return Check(rule="caducidad", ok=False,
-                     detail=f"la señal caducó hace {(now - p.expires_at) / 1000:.0f} s "
-                            f"(vigente hasta {_utc(p.expires_at)} UTC)")
-    return Check(rule="caducidad", ok=True, detail=f"vigente hasta {_utc(p.expires_at)} UTC")
+    why = expiry_reason(p.expires_at, now)
+    return Check(rule="caducidad", ok=why is None,
+                 detail=why or f"vigente hasta {_utc(p.expires_at)} UTC")
 
 
 def match_check(p: TradeProposal, symbol: str, side: int, stop: float | None,
@@ -177,13 +183,17 @@ def expires_after(asof: int, max_age_ms: float) -> int:
     return asof + math.ceil(max_age_ms)
 
 
+def verify_source(source: str, authority: str, exit_mode: str | None = None) -> None:
+    """Lanza `PermissionError` si `source` no tiene ruta registrada a `authority` (al ejecutar)."""
+    if why := route_reason(source, authority, exit_mode):
+        raise PermissionError(f"ruta no autorizada: {why}")
+
+
 def verify_route(p: TradeProposal | None, authority: str, exit_mode: str | None = None) -> None:
     """Lanza `PermissionError` si la decisión no trae una propuesta con ruta registrada."""
     if p is None:
         raise PermissionError("decisión sin propuesta: ninguna fuente registrada la pidió")
-    why = route_reason(p.source, authority, exit_mode or p.exit_mode)
-    if why:
-        raise PermissionError(f"ruta no autorizada: {why}")
+    verify_source(p.source, authority, exit_mode or p.exit_mode)
 
 
 def verify_decision(d: RiskDecision) -> None:
@@ -192,5 +202,6 @@ def verify_decision(d: RiskDecision) -> None:
 
 
 __all__ = ["AUTHORITIES", "CONTRARY_SIGNAL", "EXIT_RULES", "SOURCES", "Source",
-           "expires_after", "expiry_check", "gate_checks", "match_check", "proposal_trace",
-           "route_check", "route_reason", "verify_decision", "verify_route"]
+           "expires_after", "expiry_check", "expiry_reason", "gate_checks", "match_check",
+           "proposal_trace", "route_check", "route_reason", "verify_decision", "verify_route",
+           "verify_source"]

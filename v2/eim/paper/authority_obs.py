@@ -31,13 +31,14 @@ class DecisionEmitter:
         self._seen: OrderedDict[str, None] = OrderedDict()
         self.max_seen = max_seen
 
-    def _new(self, key: str) -> bool:
-        if key in self._seen:
-            return False
-        self._seen[key] = None
-        while len(self._seen) > self.max_seen:
-            self._seen.popitem(last=False)
-        return True
+    def _done(self, key: str, queued: bool) -> bool:
+        """Recuerda `key` solo si su evento quedó en cola: lo descartado (cola llena, disco) se
+        reintenta en el próximo cálculo, y como el `event_id` es fijo no se duplica."""
+        if queued:
+            self._seen[key] = None
+            while len(self._seen) > self.max_seen:
+                self._seen.popitem(last=False)
+        return queued
 
     def emit_books(self, books: dict[str, ProfileState]) -> int:
         """Emite lo nuevo de todos los perfiles; devuelve cuántos eventos salieron."""
@@ -53,37 +54,44 @@ class DecisionEmitter:
         i, p = d.o.idea, st.p
         base = f"paper|{p.id}|{fp}|{i.id}|{'ok' if d.approved else 'no'}"
         tid, n = None, 0
-        if self._new(base):
+        if base not in self._seen:
             rec = d.as_record(p)
             tid = proposal_trace(rec.proposal, scope=p.id)
             rid = new_run_id()
-            emit("plan", AUTHORITY, run_id=rid, trace_id=tid, mode=Mode.SIMULADO, ts_utc=i.t,
-                 event_key=base + "|plan", inputs=hooks.proposal_refs(rec.proposal),
-                 outputs=[Ref(type="plan", id=i.id[:120])],
-                 detail={"side": i.side, "entry": i.entry, "sl": i.sl, "rr": round(i.rr, 2),
-                         "status": "PROPUESTA", "strategy": i.sid, "source": "paper.strategies",
-                         "profile": p.id, "confidence": i.conf, "symbol": i.symbol,
-                         "timeframe": i.timeframe, "expires_at": i.t + i.fill_ms})
+            ok = emit("plan", AUTHORITY, run_id=rid, trace_id=tid, mode=Mode.SIMULADO,
+                      ts_utc=i.t, event_key=base + "|plan",
+                      inputs=hooks.proposal_refs(rec.proposal),
+                      outputs=[Ref(type="plan", id=i.id[:120])],
+                      detail={"side": i.side, "entry": i.entry, "sl": i.sl, "rr": round(i.rr, 2),
+                              "status": "PROPUESTA", "strategy": i.sid,
+                              "source": "paper.strategies", "profile": p.id,
+                              "confidence": i.conf, "symbol": i.symbol,
+                              "timeframe": i.timeframe, "expires_at": i.t + i.fill_ms})
             hooks.remember(f"plan:{i.id}", rid)
-            hooks.risk_decided(rec, always=True, key=base + "|decision", ts=i.t + 1,
-                               trace_id=tid)
-            n += 2
+            ok = bool(hooks.risk_decided(rec, always=True, key=base + "|decision", ts=i.t + 1,
+                                         trace_id=tid)) and ok
+            n += 2 * self._done(base, ok)
         o = d.o
-        if d.approved and o.fill_t is not None and self._new(base + "|fill"):
-            n += self._fill_event(st, d, tid, o.fill_t, "entrada (posición abierta)", o.fill)
-        if closed is not None and self._new(base + "|exit"):
-            n += self._fill_event(st, d, tid, closed["exit_t"], f"cierre por {closed['reason']}",
-                            closed["exit"], pnl=closed["pnl"], r=closed["r"])
+        if d.approved and o.fill_t is not None and base + "|fill" not in self._seen:
+            n += self._fill_event(st, d, base + "|fill", tid, o.fill_t,
+                                  "entrada (posición abierta)", o.fill)
+        if closed is not None and base + "|exit" not in self._seen:
+            n += self._fill_event(st, d, base + "|exit", tid, closed["exit_t"],
+                                  f"cierre por {closed['reason']}", closed["exit"],
+                                  pnl=closed["pnl"], r=closed["r"])
         return n
 
-    def _fill_event(self, st: ProfileState, d: PaperDecision, tid: str | None, t: int, what: str,
-              price: float | None, **extra) -> int:
+    def _fill_event(self, st: ProfileState, d: PaperDecision, key: str, tid: str | None, t: int,
+                    what: str, price: float | None, **extra) -> int:
+        """Llenado o cierre. Una orden a mercado se llena en la apertura que sigue al cierre de
+        la decisión (mismo ms): el evento va al menos 2 ms después, para que la traza respete
+        la causalidad; el instante real queda en `detail.t`."""
         i = d.o.idea
         if tid is None:
             tid = proposal_trace(i.as_proposal(), scope=st.p.id)
-        emit("fill", AUTHORITY, run_id=new_run_id(), trace_id=tid, mode=Mode.SIMULADO, ts_utc=t,
-             event_key=f"paper|{st.p.id}|{i.id}|{what}|{t}",
-             inputs=[Ref(type="plan", id=i.id[:120])],
-             detail={"what": what, "qty": d.qty, "price": price, "profile": st.p.id,
-                     "symbol": i.symbol, "timeframe": i.timeframe, **extra})
-        return 1
+        ok = emit("fill", AUTHORITY, run_id=new_run_id(), trace_id=tid, mode=Mode.SIMULADO,
+                  ts_utc=max(t, i.t + 2), event_key=f"{key}|{t}",
+                  inputs=[Ref(type="plan", id=i.id[:120])],
+                  detail={"what": what, "qty": d.qty, "price": price, "t": t, "profile": st.p.id,
+                          "symbol": i.symbol, "timeframe": i.timeframe, **extra})
+        return int(self._done(key, ok))

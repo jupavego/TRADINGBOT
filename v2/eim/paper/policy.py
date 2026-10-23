@@ -29,7 +29,7 @@ from eim.paper.feedback import Judgement
 from eim.paper.ladder_book import LadderSim, open_ladder
 from eim.paper.params import ProfileParams
 from eim.paper.vetoes import vetoes
-from eim.risk.authority import route_reason
+from eim.risk.authority import expiry_reason, route_reason, verify_source
 
 if TYPE_CHECKING:
     from eim.paper.book import ProfileState
@@ -99,7 +99,10 @@ def pending_count(st: ProfileState) -> int:
 def decide(st: ProfileState, o: Outcome, j: Judgement, jc: Judgement, ck: str, mmr: float,
            sim: LadderSim | None) -> PaperDecision:
     i, p, eq = o.idea, st.p, st.equity
-    if why := route_reason(SOURCE, AUTHORITY, EXIT_OF[p.exit_mode]):
+    # reglas comunes de la puerta única (T114): ruta registrada y señal vigente. La regla
+    # «plan = propuesto» se cumple por construcción: la propuesta ES la idea (`Idea.as_proposal`)
+    if why := (route_reason(SOURCE, AUTHORITY, EXIT_OF[p.exit_mode])
+               or expiry_reason(i.t + i.fill_ms, i.t)):
         return _no(o, f"puerta única: {why}", equity=eq)
     vs = vetoes(st, i, j, jc, ck)
     floor, skipped = False, ()
@@ -148,5 +151,4 @@ def verify(d: PaperDecision) -> None:
     """Lanza `PermissionError` si `d` no es una aprobación de esta política con ruta vigente."""
     if d.grant is not _GRANT or not d.approved:
         raise PermissionError("el libro solo abre con una decisión aprobada por la política")
-    if why := route_reason(SOURCE, AUTHORITY, None):
-        raise PermissionError(f"ruta no autorizada: {why}")
+    verify_source(SOURCE, AUTHORITY)

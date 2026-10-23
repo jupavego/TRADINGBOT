@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from eim.core import RiskDecision, TradeProposal
 from eim.risk import authority
 from eim.risk import models as risk_models
-from tests.risk.helpers import CFG, H, NOW, account, decide, engine, market, plan, proposal
+from tests.risk.helpers import CFG, H, account, decide, engine, market, plan, proposal
 
 
 def _p(**kw) -> TradeProposal:
@@ -165,4 +165,21 @@ def test_the_api_decision_shows_its_source(tmp_path):
     reports.close()
     assert d["proposal"]["source"] == "agents.plan" and d["authority"] == "risk.engine"
     assert d["checks"][0]["rule"] == "fuente" and d["checks"][0]["ok"]
-    assert NOW  # (el reloj de la API de prueba es el suyo propio)
+
+
+def test_a_broken_projection_never_breaks_the_arb_risk_evaluation(monkeypatch):
+    from eim.observability import hooks
+    from eim.risk.arb_models import ArbDecision
+    from tests.execution.arb_helpers import arb_rig
+    monkeypatch.setattr(hooks, "enabled", lambda: True)
+    monkeypatch.setattr(ArbDecision, "as_record", lambda self: 1 / 0)
+    assert arb_rig().decision().approved                      # observar no rompe lo observado
+
+
+def test_the_source_cap_keeps_the_event_window_reason():
+    eng, _, _ = engine()
+    p = plan()
+    mkt = market(event_window=True, event_reason="ventana pre-evento: IPC")
+    d = eng.evaluate(p, account(), mkt, proposal=proposal(p).model_copy(
+        update={"max_risk_frac": CFG.risk_per_trade * CFG.event_size_factor / 2}))
+    assert any("tope pedido por la fuente" in r and "IPC" in r for r in d.reasons)

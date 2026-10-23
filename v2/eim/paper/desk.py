@@ -14,8 +14,8 @@ from eim.data.providers.base import Provider
 from eim.data.store import Store
 from eim.data.timeframes import FOCUS, tf_ms
 from eim.paper import ledger
-from eim.paper.balance import balance
 from eim.paper.authority_obs import DecisionEmitter
+from eim.paper.balance import balance
 from eim.paper.book import ProfileState, run_profile
 from eim.paper.catalog import CATALOG, generate_ideas
 from eim.paper.engine import CAUSES, Outcome, Path, run_shadow

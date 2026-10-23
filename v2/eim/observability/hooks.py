@@ -236,18 +236,19 @@ def decision_detail(d: Any) -> dict[str, Any]:
 
 @safe
 def risk_decided(d: Any, *, always: bool = False, key: str | None = None,
-                 ts: int | None = None, trace_id: str | None = None) -> None:
+                 ts: int | None = None, trace_id: str | None = None) -> bool:
     """`risk_decision`: id y sello de la decisión, reglas que fallaron. Dentro de una traza se
     registra siempre; fuera (consulta de la UI) solo si se aprobó, para no inundar (`always`
     lo fuerza: decisiones del bróker en vivo). T114: el componente es la autoridad que decidió y
     el detalle dice la fuente, su versión, los datos usados y el resultado; `key` hace el
-    `event_id` determinista (reemitir no duplica) y `ts` lo fecha al instante de la decisión."""
+    `event_id` determinista (reemitir no duplica) y `ts` lo fecha al instante de la decisión.
+    Devuelve si el evento quedó en cola."""
     if current_trace() is None and not d.approved and not always:
-        return
+        return False
     rid = new_run_id()
     p = getattr(d, "proposal", None)
     tid = trace_id or _trace_of(d)
-    emit("risk_decision", getattr(d, "authority", "risk.engine"),
+    queued = emit("risk_decision", getattr(d, "authority", "risk.engine"),
          status="ok" if d.approved else "rejected", run_id=rid,
          parent_run_id=recall(f"plan:{d.plan_id}"), trace_id=tid, mode=d.mode,
          inputs=[Ref(type="plan", id=d.plan_id[:120]), *(proposal_refs(p) if p else [])],
@@ -256,6 +257,16 @@ def risk_decided(d: Any, *, always: bool = False, key: str | None = None,
          detail=decision_detail(d), ts_utc=ts, event_key=key)
     remember(f"risk:{d.plan_id}", rid)
     remember(f"trace:{d.plan_id}", tid)
+    return queued
+
+
+@safe
+def arb_decided(d: Any) -> None:
+    """Decisión del arbitraje (T45) en el contrato único. La proyección (`as_record`) se arma
+    aquí dentro: si falla, la evaluación del riesgo no se entera; y no se arma en vano (sin
+    observatorio, o vetada fuera de una traza)."""
+    if enabled() and (d.approved or current_trace() is not None):
+        risk_decided(d.as_record())
 
 
 @safe

@@ -87,7 +87,8 @@ class RiskEngine:
             ask = proposal.max_risk_frac if proposal else None
             if ask is not None and ask < self.config.risk_per_trade * scale:
                 # la fuente pide menos riesgo: se concede el menor (nunca más que la política)
-                scale, why = ask / self.config.risk_per_trade, "tope pedido por la fuente"
+                scale = ask / self.config.risk_per_trade
+                why = "tope pedido por la fuente" + (f" (y {why})" if why else "")
             sized = ("capital ≤ 0" if account.equity <= 0 else
                      size_position(plan.side, entry, plan.sl, account.equity, self.config,
                                    scale, why))

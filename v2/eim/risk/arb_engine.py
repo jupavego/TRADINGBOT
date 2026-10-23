@@ -132,7 +132,7 @@ class ArbRiskEngine:
                         proposal=proposal, **fields)
         d = d.model_copy(update={"seal": _digest(d)})
         self._sink(d)
-        hooks.risk_decided(d.as_record())
+        hooks.arb_decided(d)
         return d
 
     def verify_arb(self, d: ArbDecision, now: int) -> None:
