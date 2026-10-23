@@ -48,7 +48,7 @@ def sync_candles(
         if candles:
             fetched += len(candles)
             store.upsert_candles(symbol, timeframe, candles, provider.name, kind)
-    total = len(store.read_candles(symbol, timeframe, kind=kind))
+    total = store.count(symbol, timeframe, kind=kind)       # sin un objeto por vela
     gaps = store.find_gaps(symbol, timeframe, kind=kind)
     out = {"fetched": fetched, "total": total, "gaps": len(gaps)}
     if kind == "candles":

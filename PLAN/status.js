@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-23T00:51:43",
+ "generated": "2026-10-23T10:13:15",
  "tasks": [
   {
    "id": "T01",
@@ -1408,8 +1408,8 @@ window.EIM_STATUS = {
     "T110",
     "T49"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "A/B reproducible (2026-10-23) en `v2/reports/ppp_profiles_ab.md` (+ `.json`, `.csv` por operación): `scripts/ppp_profiles_ab.py` sobre una copia del almacén vivo, mismas ideas, camino, costos y motor; A = TP/BE+/tiempo, B = escalera del encargo y sensibilidad 0,5 R y 1 R; emparejado (las entradas de A con la salida B: aísla la salida) y libro completo; fuera de muestra = decisiones antes de 2026-08-16 (3,6 años de 1 h) con velas de 1 min reales (sincronizadas en la copia); condiciones de mercado por día y régimen ex ante; criterios de T49 tal cual (estricto: 0 ops fuera de muestra → EN OBSERVACIÓN; informativo: RECHAZADA lo que tiene muestra). **Resultado: la escalera NO mejora a ningún perfil fuera de muestra** (emparejado, encargo: Conservador −2.993 frente a −2.919 USDT, Moderado −7.458 frente a −4.474, Agresivo −13.411 frente a −9.325; corta las ganadoras de +1,6 R a ≈ +0,1 R) y ningún escenario es rentable. **◆ Decisión del usuario (2026-10-23): adoptar en los tres perfiles** (sin cambio de código). Antes del A/B se corrigió el deslizamiento de entrada de la escalera (BACKLOG T109 (1)). Código `eim/paper/{ladder_metrics,ab_pairs,ab_conditions,ab_gate}.py`, `ladder.py`, `book.py` (riesgo y MFE/MAE en la operación), `validation/evidence.py` (`ref_price` compartido); tests `tests/paper/test_ab_compare.py` (8); doc `v2/docs/PPP.md` §12; BACKLOG T111. Gate verde.",
    "effort": "alto",
    "phase": 18,
    "goal": "Medir si la protección progresiva mejora de verdad los tres perfiles, aislando su efecto de todo lo demás, y **decidir con el usuario** si se adopta, se adopta solo donde mejora, o se archiva. La hipótesis de partida es la misma que en T27: **no mejora** hasta que los datos lo demuestren."

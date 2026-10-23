@@ -328,3 +328,25 @@ desarrollo y fuera de muestra, y sensibilidad a costos). Datos: 40 días de BTCU
 Lectura: el mecanismo funciona según lo especificado (verificado por tests y auditoría), pero
 **las entradas generales no tienen ventaja** frente a un SL inicial a ~2 % y costos de ≈0,16 %; las
 entradas propias son demasiado pocas para evaluarlas. No se declara rentable el perfil.
+
+## 12. A/B de los tres perfiles (T111, 2026-10-23): la escalera NO mejora fuera de muestra
+
+`python scripts/ppp_profiles_ab.py --data <copia>` → `v2/reports/ppp_profiles_ab.md` (+ `.json`,
+`.csv` por operación). Mismo motor, mismas ideas, mismo camino y mismos costos; A = salida anterior
+(`exit_mode="tp"`: TP, BE+, tiempo), B = escalera de T108/T109 y sensibilidad 0,5 R y 1 R. Dos
+comparaciones: **emparejada** (las entradas que A abrió, con la salida B encima: aísla la salida) y
+**libro completo** (cada escenario con sus entradas, su memoria y su capital). Fuera de muestra =
+decisiones anteriores a 2026-08-16 (3,6 años de 1 h), con velas de 1 min reales sincronizadas en la
+copia. Piezas: `paper/ladder_metrics.py` (métricas), `ab_pairs.py`, `ab_conditions.py`,
+`ab_gate.py` (criterios de T49 tal cual).
+
+- Emparejado fuera de muestra, umbral del encargo: Conservador −2.993 frente a −2.919 USDT,
+  Moderado −7.458 frente a −4.474, Agresivo −13.411 frente a −9.325; 0,5 R y 1 R tampoco mejoran.
+- Causa principal: corta a las ganadoras (las que A cerraba en TP a +1,6 R quedan en ≈ +0,1 R);
+  salva perdedoras, pero no compensa, y todas sus salidas pagan taker + deslizamiento.
+- Libro completo: B pierde menos dinero porque opera mucho menos (su memoria propia pausa
+  estrategias; el Conservador apenas opera), no por la salida: por operación es peor que A.
+- Antes del A/B se corrigió el deslizamiento de entrada de la escalera (BACKLOG T109 (1)): ahora
+  entra igual que la sombra; cambia también al control `ppp_btcusdt`.
+- ◆ Decisión del usuario (2026-10-23): **adoptar en los tres perfiles** pese al resultado; queda
+  anotada con sus números en el informe.
