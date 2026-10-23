@@ -120,6 +120,14 @@ class Path:
         self.ft = np.array([t for t, _ in funding], dtype=np.int64)
         self.fr = np.array([x for _, x in funding], dtype=float)
 
+    @classmethod
+    def from_arrays(cls, a: dict[str, np.ndarray], step_ms: int) -> Path:
+        """Camino desde columnas ya leídas (`Store.read_arrays`): sin un objeto por vela."""
+        p = cls([], (), step_ms)
+        p.t = np.asarray(a["t"], dtype=np.int64)
+        p.o, p.h, p.l, p.c = (np.asarray(a[k], dtype=float) for k in "ohlc")
+        return p
+
     @property
     def end(self) -> int:
         return int(self.t[-1]) + self.step if len(self.t) else 0

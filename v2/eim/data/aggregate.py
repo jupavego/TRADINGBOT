@@ -8,7 +8,7 @@ la última vela agregada para sanar huecos del 1 m rellenados tarde.
 from __future__ import annotations
 
 from eim.core import Candle
-from eim.data.store import Store, _lit
+from eim.data.store import Store
 from eim.data.timeframes import tf_ms
 
 HEAL_MS = 86_400_000
@@ -20,15 +20,17 @@ def aggregate(store: Store, symbol: str, src: str = "1m", dst: str = "5m",
     `dst` escritas. El marco `dst` es solo de almacén."""
     import duckdb
 
-    f, k = store._file("candles", symbol, src), tf_ms(dst)   # noqa: SLF001
-    if not f.exists():
+    k = tf_ms(dst)
+    # los dos tramos del almacén (histórico + vivo), sin duplicar velas
+    src_sql = store.sql_source("candles", symbol, src,
+                               None if since is None else int(since) // k * k)
+    if src_sql is None:
         return 0
     need = k // tf_ms(src)
-    where = "" if since is None else f"WHERE t >= {int(since) // k * k} "
     rows = duckdb.connect().execute(
         "SELECT t // ? * ? AS g, arg_min(o, t), max(h), min(l), arg_max(c, t), sum(v), "
-        f"sum(taker_buy_v), sum(trades) FROM read_parquet({_lit(f)}, hive_partitioning=false) "
-        f"{where}GROUP BY 1 HAVING count(*) = ? ORDER BY 1", [k, k, need]).fetchall()
+        f"sum(taker_buy_v), sum(trades) FROM {src_sql} "
+        "GROUP BY 1 HAVING count(*) = ? ORDER BY 1", [k, k, need]).fetchall()
     if not rows:
         return 0
     store.upsert_candles(symbol, dst, [

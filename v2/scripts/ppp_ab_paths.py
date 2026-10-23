@@ -7,23 +7,18 @@ from pathlib import Path as FsPath
 
 import numpy as np
 
+from eim.data.store import Store
 from eim.data.timeframes import tf_ms
 from eim.paper.engine import Path
 
 
 def fine_path(root: FsPath, symbol: str) -> Path | None:
-    """Velas de 1 min como arreglos, leídas directo del Parquet (millones de filas: sin crear un
-    objeto por vela). None si el almacén no las tiene."""
-    f = root / "candles" / f"symbol={symbol}" / "timeframe=1m" / "data.parquet"
-    if not f.exists():
+    """Velas de 1 min como arreglos (millones de filas: sin un objeto por vela), de los dos
+    tramos del almacén. None si el almacén no las tiene."""
+    st = Store(root)
+    if st.bounds(symbol, "1m") is None:
         return None
-    import duckdb
-    a = duckdb.sql(f"SELECT t, o, h, l, c FROM read_parquet('{f.as_posix()}') ORDER BY t"
-                   ).fetchnumpy()
-    p = Path([], (), tf_ms("1m"))
-    p.t = np.asarray(a["t"], dtype=np.int64)
-    p.o, p.h, p.l, p.c = (np.asarray(a[k], dtype=float) for k in ("o", "h", "l", "c"))
-    return p
+    return Path.from_arrays(st.read_arrays(symbol, "1m"), tf_ms("1m"))
 
 
 def optimistic_fine(path: Path, side: int) -> Path:
