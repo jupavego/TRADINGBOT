@@ -29,7 +29,7 @@ class Settings:
     (segundos seguidos sobre el umbral antes de avisar); EIM_PAPER=0 desactiva el servicio en vivo
     del bróker simulado (T47) y EIM_PAPER_S fija los segundos entre ciclos; EIM_ARB_ASSETS
     (p. ej. "BTC" o "BTC,ETH") elige los activos del escáner de arbitraje y EIM_ARB_TRI_ASSETS
-    los de sus ciclos triangulares (foco actual: BTC, sin ETH)."""
+    los de sus ciclos triangulares (foco actual, T122: BTC, sin ETH)."""
 
     data_dir: Path = Path("data")
     reports_db: Path | None = None
@@ -61,7 +61,7 @@ class Settings:
     arbitrage_interval_s: float = 10.0  # pausa entre escaneos (cada uno tarda ~1-2 s)
     arb_alert_score: float = 3.0
     arb_alert_hold_s: float = 60.0
-    arb_assets: tuple[str, ...] = ("BTC", "ETH")  # from_env: BTC y ETH (foco 2026-10-21)
+    arb_assets: tuple[str, ...] = ("BTC",)  # foco BTC (T122, 2026-10-22); "BTC,ETH" lo devuelve
     arb_tri_assets: tuple[str, ...] | None = None  # None = los del cargador
     arb_execution: str = "off"  # T45: "testnet" ejecuta arbitrajes en spot + futuros testnet
     arb_exec_interval_s: float = 60.0
@@ -105,7 +105,7 @@ class Settings:
             arbitrage_interval_s=float(env.get("EIM_ARBITRAGE_S", d.arbitrage_interval_s)),
             arb_alert_score=float(env.get("EIM_ARB_ALERT_SCORE", d.arb_alert_score)),
             arb_alert_hold_s=float(env.get("EIM_ARB_ALERT_S", d.arb_alert_hold_s)),
-            arb_assets=_csv(env.get("EIM_ARB_ASSETS", "BTC,ETH")) or d.arb_assets,
+            arb_assets=_csv(env.get("EIM_ARB_ASSETS", "BTC")) or d.arb_assets,
             arb_tri_assets=_csv(env.get("EIM_ARB_TRI_ASSETS", "USDT,BTC,BNB,SOL,XRP")) or None,
             arb_execution=env.get("EIM_ARB_EXECUTION", d.arb_execution).strip().lower(),
             arb_exec_interval_s=float(env.get("EIM_ARB_EXEC_S", d.arb_exec_interval_s)),

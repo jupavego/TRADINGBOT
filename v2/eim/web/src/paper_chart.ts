@@ -60,7 +60,6 @@ export class PaperPriceChart {
     }
   }
 
-  restyle(): void { this.pc.restyle() }
   destroy(): void { this.pc.destroy() }
 }
 
@@ -88,7 +87,7 @@ export class EquityChart {
       }
       this.paintLegend(vals, p.time !== undefined ? Number(p.time) * 1000 : null)
     })
-    this.restyle()
+    this.applyColors()
   }
 
   set(profiles: ProfileView[]): void {
@@ -114,12 +113,11 @@ export class EquityChart {
       `<small class="muted">${t ? bogIso(t).slice(0, 16).replace('T', ' ') + ' COT' : 'capital realizado + no realizado (USDT)'}</small>`
   }
 
-  restyle(): void {
+  private applyColors(): void {
     this.chart.applyOptions({
       layout: { textColor: cssVar('--muted') },
       grid: { vertLines: { visible: false }, horzLines: { color: cssVar('--grid') } },
     })
-    for (const [id, s] of this.series) s.applyOptions({ color: cssVar(PROFILE_VAR[id] ?? '--accent') })
   }
 
   destroy(): void { this.chart.remove() }

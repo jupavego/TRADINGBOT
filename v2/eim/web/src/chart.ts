@@ -32,11 +32,11 @@ export class PriceChart {
     this.series = this.chart.addSeries(CandlestickSeries, {})
     this.series.attachPrimitive(this.layers)
     this.series.attachPrimitive(this.scen)
-    this.restyle()
+    this.applyColors()
   }
 
-  /** Relee los tokens CSS (se llama al cambiar de tema). */
-  restyle(): void {
+  /** Aplica los colores del tema futurista leídos de los tokens CSS (una vez, al crear). */
+  private applyColors(): void {
     const up = cssVar('--up'), down = cssVar('--down')
     this.chart.applyOptions({
       layout: { textColor: cssVar('--muted') },

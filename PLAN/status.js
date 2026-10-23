@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-22T15:53:38",
+ "generated": "2026-10-22T20:36:36",
  "tasks": [
   {
    "id": "T01",
@@ -1535,6 +1535,20 @@ window.EIM_STATUS = {
    "effort": "bajo",
    "phase": 20,
    "goal": "Que quien vuelva (o quien llegue) no descubra el sistema a golpes: variables documentadas, dependencias nuevas dichas, tablero que dibuja todas las tareas y ningún paquete con claves suelto en el repositorio. Detalle en `PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §G."
+  },
+  {
+   "id": "T122",
+   "title": "Interfaz más ligera, solo BTC y tres operaciones sugeridas priorizadas",
+   "deps": [
+    "T50",
+    "T51",
+    "T75"
+   ],
+   "state": "done",
+   "notes": "Encargo del usuario (2026-10-22). **Tema futurista único** (fuera el interruptor, los temas claro/oscuro, la preferencia guardada y los repintados de tema) y **sin la franja radar** `cy-sweep`. **Solo BTCUSDT operativo**: `FOCUS`, `EIM_ARB_ASSETS=BTC`, recolectores de `servicio_continuo.ps1` y UI (ETH oculto en multiactivo/estacionalidad); la API y el almacén conservan la historia de ETH. **Mapa del sistema bajo el Río** (sin botón ni pantalla propia; sondea solo a la vista; listas plegadas que conservan lo abierto) e **historial de sugerencias como pestaña tras Bitácora** (carga solo con la pestaña abierta). **Ranking de 3 posiciones** `eim/suggestions/ranking.py` + `GET /v2/setups` → `ranking`/`funnel`: solo validadas por T49 en el orden del publicador, vacías con su motivo (nunca rellenadas con ideas en observación), acierto fuera de muestra con IC de Wilson rotulado «no es probabilidad calibrada», invalidación, riesgos del contexto, estado de validación y de la sombra; embudo identificada → analizada → validada → ranking / pendiente / descartada con motivos. UI `web/src/{setups_ui,setups_cards,obs_view,setups_history,main,river_sphere,theme}.ts`; de paso: el panel inferior ya crece con su pestaña (`sim.css` lo fijaba en 190 px) y las pestañas no desbordan. Tests `tests/suggestions/test_ranking.py` (7) + contrato de la ruta; gate verde. Verificado en el navegador contra la API en vivo (la tarjeta validada solo con carga sintética: hoy 0 de 104 versiones validadas). Pendiente: desplegar (reiniciar la API en vivo, con permiso) y BACKLOG T122.",
+   "effort": "medio",
+   "phase": 20,
+   "goal": "Encargo del usuario del 2026-10-22: una mesa más limpia y rápida con el tema futurista como única apariencia, foco operativo exclusivo en BTCUSDT, el mapa del sistema bajo el Río de decisión, el historial de sugerencias en su pestaña inferior y siempre tres posiciones de operación sugerida ordenadas por la evidencia validada, sin rellenar huecos con señales sin validar."
   }
  ]
 };

@@ -1,6 +1,6 @@
 /** Vista "Más análisis": pestañas portadas del legado F7 (consumen `/v2/more/*`). */
 import { esc } from './more_api'
-import { backtestView, disposeCharts, multiAssetView, restyleCharts, vwapView, type Ctx } from './more_market'
+import { backtestView, disposeCharts, multiAssetView, vwapView, type Ctx } from './more_market'
 import { bitacoraView, liquidationsView, seasonalityView } from './more_other'
 
 const TABS: [string, string][] = [
@@ -37,8 +37,6 @@ export class MoreView {
     document.getElementById('app')!.dataset.view = show ? 'more' : 'desk'
     if (show) void this.render(); else disposeCharts()
   }
-
-  restyle(): void { restyleCharts() }
 
   private async render(): Promise<void> {
     const body = this.root.querySelector<HTMLElement>('#more-body')!

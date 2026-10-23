@@ -125,8 +125,6 @@ export class PaperView {
     if (sel) sel.value = this.symbol
   }
 
-  restyle(): void { this.chart?.restyle(); this.eq?.restyle(); if (this.v) this.paintAll() }
-
   private async loadAll(): Promise<void> {
     this.price = null; this.v = null; this.trades = []
     this.q('price').textContent = '—'

@@ -1,12 +1,4 @@
-:root, :root[data-theme="light"] {
-  --bg: #faf7f2; --panel: #fffdf9; --text: #2b2823; --muted: #8a8378; --line: #e6dfd3;
-  --grid: #f0ebe1; --accent: #b4561f; --up: #2f8f5b; --down: #c64a3b; --warn: #b9831c; --neutral: #3b7dc4;
-  --radius: 10px;
-}
-:root[data-theme="dark"] {
-  --bg: #16181b; --panel: #1d2024; --text: #e8e4dc; --muted: #8d9097; --line: #2c3036;
-  --grid: #24272c; --accent: #e08a52; --up: #3fb27a; --down: #e0604f; --warn: #d9a441; --neutral: #5aa0e6;
-}
+/* Colores y tipografías: solo el tema futurista, en cyber.css (T122). */
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 body {
@@ -63,7 +55,7 @@ select, .btn, .seg button {
 .placeholder { color: var(--muted); }
 .placeholder h3 { margin: 0 0 6px; color: var(--text); font-size: 15px; }
 .bottom { grid-area: bottom; display: flex; flex-direction: column; min-height: 0; }
-.tabs { display: flex; gap: 4px; padding: 6px 10px 0; border-bottom: 1px solid var(--line); }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 10px 0; border-bottom: 1px solid var(--line); }
 .tabs button {
   font: inherit; background: none; border: 0; padding: 6px 12px; color: var(--muted);
   cursor: pointer; border-bottom: 2px solid transparent;

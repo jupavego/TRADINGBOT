@@ -14,9 +14,10 @@ STORE_ONLY_TF_MS: dict[str, int] = {"1m": 60_000, "5m": 300_000}
 
 SYMBOLS: tuple[str, ...] = ("BTCUSDT", "ETHUSDT")
 # Foco actual: lo que los servicios analizan en vivo y lo que muestra la UI. 2026-10-15: solo
-# BTCUSDT; 2026-10-21 (decisión del usuario, fase de entrenamiento): vuelve ETHUSDT con historia
-# completa (`python -m eim.data.backfill`) y recolectores propios (`servicio_continuo.ps1`).
-FOCUS: tuple[str, ...] = ("BTCUSDT", "ETHUSDT")
+# BTCUSDT; 2026-10-21: volvió ETHUSDT; 2026-10-22 (T122, decisión del usuario): de nuevo solo
+# BTCUSDT. ETHUSDT sigue en SYMBOLS (la API y el almacén conservan y sirven su historia), pero
+# ningún servicio en vivo lo analiza, simula ni propone, y la UI no lo pide.
+FOCUS: tuple[str, ...] = ("BTCUSDT",)
 
 
 def tf_ms(timeframe: str) -> int:
