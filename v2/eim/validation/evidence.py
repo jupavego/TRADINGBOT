@@ -10,7 +10,9 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 
-from eim.paper.engine import Outcome
+import numpy as np
+
+from eim.paper.engine import Outcome, Path
 from eim.paper.ideas import Idea
 from eim.validation.lineage import Window, out_of_sample
 
@@ -36,6 +38,15 @@ def flip_idea(idea: Idea, ref: float) -> Idea:
     de la decisión). En mercado `ref` = la entrada, así que solo se reflejan SL y TP."""
     return replace(idea, id=f"{idea.id}:contraria", side=-idea.side, entry=2 * ref - idea.entry,
                    sl=2 * ref - idea.sl, tp=2 * ref - idea.tp, key="")
+
+
+def ref_price(o: Outcome, path: Path) -> float:
+    """Precio de la decisión: la entrada a mercado o la apertura de 15 m en `t` (límites)."""
+    i = o.idea
+    if i.kind == "market":
+        return i.entry
+    j = int(np.searchsorted(path.t, i.t))
+    return float(path.o[min(j, len(path.o) - 1)])
 
 
 def flip_r(o: Outcome | None) -> float:

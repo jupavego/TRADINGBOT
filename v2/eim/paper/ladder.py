@@ -58,13 +58,17 @@ from eim.paper.params import ExecParams, LadderParams, SymbolSpec
 
 
 def _entry(idea: Idea, path: Path, ep: ExecParams) -> tuple[str, int, int, float, float, float]:
-    """('ok'|'pending'|'cancel'|'expired', k, start, fill, fee_in, slip_in)."""
+    """('ok'|'pending'|'cancel'|'expired', k, start, fill, fee_in, slip_in).
+
+    La entrada a mercado paga el MISMO deslizamiento de entrada que la sombra (`engine.simulate`,
+    calibrado con el libro real); antes pagaba el de salida y sesgaba el A/B de T111 en contra de
+    la escalera (BACKLOG T109 (1))."""
     s, cp = idea.side, ep.costs
     j0 = int(np.searchsorted(path.t, idea.t))
     if j0 >= len(path.t):
         return "pending", 0, 0, 0.0, 0.0, 0.0
     if idea.kind == "market":
-        slip = _slip(path, j0, ep)
+        slip = _slip(path, j0, ep, entry=True)
         return "ok", j0, j0, float(path.o[j0]) * (1 + s * slip), cp.taker_fee, slip
     what, k = _limit_fill(idea, path, j0)
     if what == "fill":

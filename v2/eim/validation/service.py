@@ -14,17 +14,14 @@ import threading
 from collections import Counter
 from pathlib import Path
 
-import numpy as np
-
 from eim.core import Mode
 from eim.data.validation_store import ValidationStore
 from eim.paper.catalog import CATALOG
 from eim.paper.desk import PaperDesk
 from eim.paper.engine import Outcome, simulate
-from eim.paper.engine import Path as PricePath
 from eim.paper.generate import now_ms
 from eim.validation.criteria import Criteria, load_criteria
-from eim.validation.evidence import flip_idea, trade_of
+from eim.validation.evidence import flip_idea, ref_price, trade_of
 from eim.validation.gate import NAMES, VALIDADA, measure, validate_all
 from eim.validation.lineage import (
     LINEAGE_FILE,
@@ -35,15 +32,6 @@ from eim.validation.lineage import (
 )
 
 FOUR_H = 4 * 3_600_000
-
-
-def _ref_price(o: Outcome, path: PricePath) -> float:
-    """Precio de la decisión: la entrada a mercado o la apertura de 15 m en `t`."""
-    i = o.idea
-    if i.kind == "market":
-        return i.entry
-    j = int(np.searchsorted(path.t, i.t))
-    return float(path.o[min(j, len(path.o) - 1)])
 
 
 def summarize(verdicts: list[dict]) -> dict:
@@ -105,7 +93,7 @@ class Validator:
             trades = []
             for o in closed.get(sid, []):
                 oos = (o.exit_t or 0) <= asof and out_of_sample(o.idea.t, symbol, wins)
-                flip = (simulate(flip_idea(o.idea, _ref_price(o, path)), path, self.desk.ep)
+                flip = (simulate(flip_idea(o.idea, ref_price(o, path)), path, self.desk.ep)
                         if oos and path is not None else None)
                 t = trade_of(o, flip)
                 if t is not None:
