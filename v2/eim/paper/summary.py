@@ -7,9 +7,10 @@ import numpy as np
 from eim.paper.account import LIQ, capped, liq_price, max_dd_pct
 from eim.paper.book import ProfileState
 from eim.paper.feedback import Learner, judge
-from eim.paper.ladder_stats import ladder_stats
+from eim.paper.ladder_stats import ladder_stats, last_step
 
 CURVE_POINTS = 400
+RECENT_VIOLATIONS = 10   # las últimas violaciones van en el resumen: el panel las muestra (T112)
 # El recuento de operaciones no tiene ventana: la vista se rehace desde TODOS los contextos del
 # almacén de ese símbolo en cada consulta (T106 A4), así que solo puede crecer.
 COUNT_SCOPE = ("todo el almacén de este símbolo, sin ventana: la vista se recalcula desde todos "
@@ -86,7 +87,8 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         rejected=sum(1 for v in st.violations if not v.get("executed", True)))
         | {"brake": st.lrisk.to_json(now), "brake_on": p.ladder.brake,
            "basis": p.ladder.basis, "first_r": p.ladder.first_r, "step_r": p.ladder.step_r,
-           "contrary_signals": st.contrary}}
+           "contrary_signals": st.contrary, "last_step": last_step(tr, pos),
+           "violations_recent": st.violations[-RECENT_VIOLATIONS:]}}
            if ladder_on else {})
     return {
         **lad,

@@ -246,17 +246,19 @@ def _close(st: ProfileState, o: Outcome) -> None:
     what = (f"liquidada a {s.liq:g}: {liq_why}; se pierde el margen ({s.margin:.2f} USDT)"
             if liq_why else _exit_text(o))
     ev(st, o.exit_t, EXIT_CAT[reason], o, what, price=s.liq if liq_why else o.exit, pnl=pnl,
-        r=r, equity=st.equity, cause=o.cause, **({"liq": s.liq} if liq_why else {}))
+        r=r, equity=st.equity, cause=o.cause, reason=reason,      # motivo exacto (panel, T112)
+        **({"liq": s.liq} if liq_why else {}))
 
 
 def _exit_text(o: Outcome) -> str:
     lad = o.ladder
     if o.reason == "SLD" and lad.get("stop_source") in ("be", "recuperado"):
         what = "BE+" if lad["stop_source"] == "be" else "SL recuperado del diario"
-        return f"cierre por SL dinámico ({what}, +{lad['protected_est_usd']:.2f} USDT estimados)"
-    if o.reason == "SLD":
-        return (f"cierre por SL dinámico (escalón {lad['level']}, "
-                f"+{lad['nominal_usd']:g} USDT protegidos)")
+        return (f"cierre por SL dinámico ({what}, nivel protegido "
+                f"{lad['protected_est_usd']:.2f} USDT estimado)")
+    if o.reason == "SLD":       # el nivel es del stop, estimado: lo realizado puede diferir
+        return (f"cierre por SL dinámico (escalón {lad['level']}, nivel protegido "
+                f"{lad['nominal_usd']:.2f} USDT estimado)")
     if o.reason == SAFEGUARD:
         return "cierre ordenado por una salvaguarda independiente (kill-switch)"
     return "cierre por SL inicial" if lad else f"cierre por {o.reason}"

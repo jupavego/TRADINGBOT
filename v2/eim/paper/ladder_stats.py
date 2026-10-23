@@ -47,6 +47,19 @@ def exit_counts(tr: list[dict], incidents: int, rejected: int) -> dict:
             "rechazados": rejected}
 
 
+def last_step(trades: list[dict], positions: list[dict]) -> dict | None:
+    """Último movimiento del stop por la protección (escalón, BE+ o suelo recuperado) en el
+    perfil, entre abiertas y cerradas: cuándo, a qué nivel y en qué operación (panel, T112)."""
+    best = None
+    for x, is_open in [(t, False) for t in trades] + [(p, True) for p in positions]:
+        for h in (x.get("ladder") or {}).get("stop_history", []):
+            if best is None or h["t"] > best["t"]:
+                best = {"t": h["t"], "level": h["level"], "nominal_usd": h["nominal"],
+                        "source": h.get("source", "escalon"), "id": x["id"], "sid": x["sid"],
+                        "open": is_open}
+    return best
+
+
 def ladder_stats(trades: list[dict], open_pos: list[dict], violations: int,
                  incidents: int, first: float, step: float, rejected: int = 0) -> dict:
     tr = [t for t in trades if t.get("ladder")]
