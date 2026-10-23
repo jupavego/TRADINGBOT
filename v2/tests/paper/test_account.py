@@ -14,9 +14,9 @@ from eim.paper.engine import Outcome
 from eim.paper.feedback import FeedbackParams, Learner
 from eim.paper.params import PROFILES, ProfileParams
 from eim.paper.summary import profile_summary
-from tests.paper.helpers import H1, T0, idea
+from tests.paper.helpers import H1, T0, idea, tp_mode
 
-AGR = next(p for p in PROFILES if p.id == "agresivo")
+AGR = tp_mode(next(p for p in PROFILES if p.id == "agresivo"))  # salida TP (T109)
 # Perfil de prueba sin apalancamiento: con el SL al 1 % y 0,5 % de riesgo, el margen de cada
 # posición es la MITAD del capital, así que una liquidación se lleva medio capital y la cuenta se
 # agota en siete cierres. Con los perfiles reales (hasta 10x) el margen es una fracción pequeña y

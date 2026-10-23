@@ -7,7 +7,7 @@ estrategias (TP/BE/tiempo) no interviene.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 
 from eim.paper.engine import Outcome, Path
@@ -60,10 +60,24 @@ def open_ladder(p: ProfileParams, sim: LadderSim, i: Idea, qty: float) -> tuple[
 HOUR_MS = 3_600_000
 
 
+def _capped(j: Judgement, lp: LadderParams | None) -> Judgement:
+    """Peso acotado a `lp.max_weight` (T109): una racha corta no infla el tamaño. El estado se
+    recalcula con el peso acotado, como en `feedback._verdict`."""
+    if not lp or j.weight <= lp.max_weight:
+        return j
+    w = lp.max_weight
+    return replace(j, weight=w, state="reforzada" if w > 1.05 else "reducida" if w < 0.95
+                   else "activa")
+
+
 @dataclass
 class LadderRisk:
     """Memoria propia de la escalera: resultados en R de SUS cierres (por estrategia@marco y por
-    contexto) y freno de entradas por pérdidas seguidas o drawdown. Nunca cierra posiciones."""
+    contexto) y freno de entradas por pérdidas seguidas o drawdown. Nunca cierra posiciones.
+
+    Es la única fuente de aprendizaje de un perfil con escalera (T109): la sombra mide salidas con
+    TP/BE/tiempo que estos perfiles ya no usan, así que su memoria empieza de cero al encenderla
+    (T106 §3) y el peso queda acotado a `LadderParams.max_weight`."""
 
     r_by_sid: dict[str, list[float]] = field(default_factory=dict)
     r_by_ctx: dict[str, list[float]] = field(default_factory=dict)
@@ -73,10 +87,14 @@ class LadderRisk:
     halt_reason: str = ""
     activations: list[dict] = field(default_factory=list)
 
+    def strategy(self, sid: str, p: ProfileParams) -> Judgement:
+        """Juicio de una estrategia@marco con lo que la escalera ya cerró (hasta ahora)."""
+        return _capped(judge(self.r_by_sid.get(sid, []), p.feedback), p.ladder)
+
     def own(self, sid: str, ctx: str, p: ProfileParams) -> tuple[Judgement, Judgement]:
         """Juicio de la estrategia y del contexto con lo que la escalera ya cerró (hasta ahora)."""
-        return (judge(self.r_by_sid.get(sid, []), p.feedback),
-                judge(self.r_by_ctx.get(ctx, []), p.feedback))
+        return (self.strategy(sid, p),
+                _capped(judge(self.r_by_ctx.get(ctx, []), p.feedback), p.ladder))
 
     def veto(self, t: int) -> str | None:
         return (f"entradas en pausa hasta {t_iso(self.halt_until)} UTC: {self.halt_reason}"
@@ -90,6 +108,8 @@ class LadderRisk:
             self.r_by_ctx.setdefault(context_key(i), []).append(r)
         self.peak = max(self.peak or initial, equity)
         self.consec = self.consec + 1 if pnl <= 0 else 0
+        if not lp.brake:             # los tres perfiles conservan su propio freno (`caps`)
+            return None
         dd = 1 - equity / self.peak
         why = ""
         if self.consec >= lp.max_consec_losses:

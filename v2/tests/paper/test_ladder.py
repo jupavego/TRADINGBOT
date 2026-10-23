@@ -24,7 +24,7 @@ from eim.paper.ladder import (
 )
 from eim.paper.ladder_audit import audit_outcome, check_close_request
 from eim.paper.params import ExecParams, LadderParams, spec_for
-from tests.paper.helpers import M15, T0, bar, idea
+from tests.paper.helpers import M15, T0, bar, fine_of, idea, walk
 
 E = 70_000.0
 QTY = 0.1
@@ -301,25 +301,6 @@ def test_funding_reserve_puts_the_stop_above_the_nominal_level():
 
 # --- velas de 1 min en las velas ambiguas -------------------------------------------------
 M1 = 60_000
-
-
-def walk(points: list[float], t0: int) -> list:
-    """15 velas de 1 min que recorren `points` en línea recta (reparto equitativo de minutos)."""
-    segs = len(points) - 1
-    out, px = [], points[0]
-    for m in range(15):
-        target = points[1 + min(segs - 1, m * segs // 15)]
-        nxt = px + (target - px) / max(1, (m * segs // 15 + 1) * 15 // segs - m)
-        out.append(bar(t0 + m * M1, px, max(px, nxt), min(px, nxt), nxt))
-        px = nxt
-    return out
-
-
-def fine_of(walks: list[list[float]]) -> Path:
-    cs = []
-    for k, pts in enumerate(walks):
-        cs += walk(pts, T0 + k * M15)
-    return Path(cs, (), M1)
 
 
 AMB_BARS = [(E, E + 125, E - 10, E + 125), (E + 125, E + 160, E + 90, E + 90)]

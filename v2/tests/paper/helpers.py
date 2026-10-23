@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from eim.core import Candle
+from eim.paper.engine import Path
 from eim.paper.ideas import Idea
 
 M15 = 15 * 60_000
@@ -34,3 +35,36 @@ def idea(side: int = 1, kind: str = "market", entry: float = 100.0, sl: float = 
                 side=side, kind=kind, entry=entry, sl=sl, tp=tp,
                 fill_ms=int(fill_h * H1) if kind == "limit" else 0, hold_ms=int(hold_h * H1),
                 conf=conf, why=("test",), key=key, syn_bias=syn_bias)
+
+
+def tp_mode(p):
+    """El perfil con la salida anterior a T109 (SL/TP/BE+/tiempo de la sombra).
+
+    Desde T109 los cuatro perfiles salen con escalera; `exit_mode="tp"` sigue siendo un parámetro
+    (A/B de T111). Los tests de la mecánica del libro que NO depende de la salida —tamaño,
+    mínimos de abiertas, topes, liquidación, libro fijo— la siguen probando en ese modo; los
+    equivalentes en modo escalera están en `tests/paper/test_ladder_stop_only*.py`.
+    """
+    return p.model_copy(update={"exit_mode": "tp"})
+
+
+M1 = 60_000
+
+
+def walk(points: list[float], t0: int) -> list:
+    """15 velas de 1 min que recorren `points` en línea recta (reparto equitativo de minutos)."""
+    segs = len(points) - 1
+    out, px = [], points[0]
+    for m in range(15):
+        target = points[1 + min(segs - 1, m * segs // 15)]
+        nxt = px + (target - px) / max(1, (m * segs // 15 + 1) * 15 // segs - m)
+        out.append(bar(t0 + m * M1, px, max(px, nxt), min(px, nxt), nxt))
+        px = nxt
+    return out
+
+
+def fine_of(walks: list[list[float]]) -> Path:
+    cs = []
+    for k, pts in enumerate(walks):
+        cs += walk(pts, T0 + k * M15)
+    return Path(cs, (), M1)

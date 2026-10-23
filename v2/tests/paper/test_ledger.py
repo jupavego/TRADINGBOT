@@ -13,9 +13,9 @@ from eim.paper.book import run_profile
 from eim.paper.engine import Outcome
 from eim.paper.feedback import Learner
 from eim.paper.params import PROFILES, ExecParams
-from tests.paper.helpers import H1, T0, idea
+from tests.paper.helpers import H1, T0, idea, tp_mode
 
-MOD = next(p for p in PROFILES if p.id == "moderado")
+MOD = tp_mode(next(p for p in PROFILES if p.id == "moderado"))  # salida TP (T109)
 NOW = T0 + 40 * H1
 
 

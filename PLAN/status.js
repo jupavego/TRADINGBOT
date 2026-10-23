@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-22T20:36:36",
+ "generated": "2026-10-22T20:41:17",
  "tasks": [
   {
    "id": "T01",
@@ -1381,8 +1381,8 @@ window.EIM_STATUS = {
     "T108",
     "T107"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Los cuatro perfiles salen solo por su stop (2026-10-22): Conservador, Moderado y Agresivo pasan a `exit_mode=\"ladder\"` (sin TP fijo ni cierre por tiempo; el objetivo queda como estimación de los filtros de entrada). Solo cierran `SL`, `SLD` (escalón o BE+: el mejor de los dos, nunca retrocede, ◆3), `LIQUIDACION` y `SALVAGUARDA`, contados aparte en `ladder.exits`; cualquier otro cierre es violación **y no se ejecuta** (`book._reject`), la incidencia deja la posición abierta y las señales contrarias solo informan (`against`). Aprenden de sus propios cierres con peso ≤ 1,5 (`max_weight`); el veto «una por vela» y el freno propio quedan solo en el control, así que sus entradas no cambian. Código `eim/paper/{book,ladder,ladder_audit,ladder_book,ladder_stats,summary,vetoes,params}.py` + `ladder_math.py`/`ladder_params.py` (nuevos, por el límite de 300 líneas); tests `tests/paper/test_ladder_stop_only*.py` (79: casos A–G, I, J, K × 3 perfiles × largo/corto, y libro) y los de mecánica TP fijados con `tp_mode`; doc `v2/docs/PPP.md` §2.3. Corrida de 32 días BTC+ETH (`v2/reports/t109_stop_only.md`): 0 cierres por TP/tiempo, 0 violaciones, el BE+ nunca cerró; `ppp_btcusdt` idéntico a `main` (73 ops) y el modo `tp` idéntico a T108. Con escalera el Agresivo perdió más en ese periodo (lo mide T111) y hay un sesgo de deslizamiento de entrada anotado en BACKLOG.",
    "effort": "alto",
    "phase": 18,
    "goal": "Llevar los tres perfiles al mismo camino de salida que ya usa el 4.º: **sin take profit fijo y sin cierre por tiempo**. Antes del primer umbral manda el stop inicial; a partir de ahí manda el stop dinámico, que sube de escalón y **nunca retrocede**. Ninguna otra cosa cierra una operación de la estrategia."

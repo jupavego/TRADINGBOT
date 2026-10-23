@@ -77,13 +77,17 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         b["n"] += 1
         b["pnl"] += t["pnl"]
         b["wins"] += int(t["pnl"] > 0)
+    ladder_on = p.exit_mode == "ladder" and p.ladder is not None
     lad = ({"ladder": ladder_stats(
         tr, [{"elapsed_h": (x["ladder"]["elapsed_ms"] / 3_600_000)} for x in pos
              if x.get("ladder")], len(st.violations),
         sum(1 for x in pos if x.get("ladder", {}).get("incident")),
-        *p.ladder.steps(st.equity * p.risk_pct)) | {"brake": st.lrisk.to_json(now),
-            "basis": p.ladder.basis, "first_r": p.ladder.first_r, "step_r": p.ladder.step_r}}
-           if p.exit_mode == "ladder" and p.ladder else {})
+        *p.ladder.steps(st.equity * p.risk_pct),
+        rejected=sum(1 for v in st.violations if not v.get("executed", True)))
+        | {"brake": st.lrisk.to_json(now), "brake_on": p.ladder.brake,
+           "basis": p.ladder.basis, "first_r": p.ladder.first_r, "step_r": p.ladder.step_r,
+           "contrary_signals": st.contrary}}
+           if ladder_on else {})
     return {
         **lad,
         "id": p.id, "name": p.name, "description": p.description,
@@ -117,7 +121,11 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         "orders": sorted(orders, key=lambda x: -x["t"]),
         "curve": _downsample(curve),
         "by_strategy": by,
-        "weights": {sid: learner.at(sid, now, p.feedback).to_json() for sid in strategy_ids},
+        # con escalera el perfil aprende de SUS cierres (T109), no de la sombra con TP
+        "weights": {sid: (st.lrisk.strategy(sid, p) if ladder_on
+                          else learner.at(sid, now, p.feedback)).to_json()
+                    for sid in strategy_ids},
+        "learning": "cierres propios (escalera)" if ladder_on else "sombra (SL/TP/BE+/tiempo)",
         "events_n": len(st.events),
         "min_open": {"target": p.min_open, "open": len(pos),
                      "pending_target": p.min_pending, "pending": len(orders),

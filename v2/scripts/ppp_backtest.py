@@ -21,12 +21,13 @@ from pathlib import Path
 
 from eim.data.paper_store import PaperStore
 from eim.data.store import Store
+from eim.paper.account import max_dd_pct
 from eim.paper.book import run_profile
 from eim.paper.desk import MMR, PaperDesk
 from eim.paper.feedback import Learner
 from eim.paper.ladder_book import LadderSim
 from eim.paper.params import PPP_ID, PROFILES, ExecParams, LadderParams, ProfileParams
-from eim.paper.summary import _max_dd_pct, profile_summary
+from eim.paper.summary import profile_summary
 
 PPP = next(p for p in PROFILES if p.id == PPP_ID)
 GRID = [(10.0, 5.0), (8.0, 3.0), (8.0, 5.0), (10.0, 3.0), (10.0, 7.0), (12.0, 5.0), (12.0, 7.0)]
@@ -58,7 +59,7 @@ def _row(label: str, st, mmr: float, now: int) -> Row:
     pnl = [t["pnl"] for t in st.trades]
     gains, losses = sum(x for x in pnl if x > 0), -sum(x for x in pnl if x < 0)
     return Row(label, len(pnl), sum(pnl), sum(pnl) / len(pnl) if pnl else None,
-               gains / losses if losses > 0 else None, _max_dd_pct(st.curve),
+               gains / losses if losses > 0 else None, max_dd_pct(st.curve),
                sum(1 for x in pnl if x > 0) / len(pnl) if pnl else None,
                lad["closed_initial_sl"], lad["closed_dynamic_sl"], len(s["positions"]),
                lad["avg_gap_max_vs_realized_usd"])

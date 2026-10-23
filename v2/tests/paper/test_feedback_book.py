@@ -10,11 +10,11 @@ from eim.paper.book import leverage_for, liq_price, run_profile
 from eim.paper.engine import Outcome
 from eim.paper.feedback import Learner, judge, strategy_stats
 from eim.paper.params import PROFILES, FeedbackParams, ProfileParams
-from tests.paper.helpers import H1, T0, idea
+from tests.paper.helpers import H1, T0, idea, tp_mode
 
 FB = FeedbackParams(n_min=5, prior_n=5, half_life=50, z_pause=1.0)
-MOD = next(p for p in PROFILES if p.id == "moderado")
-CONS = next(p for p in PROFILES if p.id == "conservador")
+MOD = tp_mode(next(p for p in PROFILES if p.id == "moderado"))  # salida TP (T109)
+CONS = tp_mode(next(p for p in PROFILES if p.id == "conservador"))  # salida TP (T109)
 
 
 def closed(r: float, k: int, strategy: str = "s", family: str = "consenso", side: int = 1,
