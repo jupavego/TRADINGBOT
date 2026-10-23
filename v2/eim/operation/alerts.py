@@ -18,6 +18,7 @@ INFO, WARN, CRITICAL = "info", "warn", "critical"
 DISCONNECT, DIVERGENCE, KILL, DRAWDOWN, DEGRADED = (
     "desconexion", "divergencia", "kill_switch", "drawdown", "agentes_degradados")
 SERVICE, REPORT, BACKUP = "servicio", "informe", "copia_seguridad"
+PROTECTION = "proteccion"      # diario de la protección del bróker simulado (T110)
 
 _DDL = """
 CREATE TABLE IF NOT EXISTS op_alerts (

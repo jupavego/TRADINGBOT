@@ -152,3 +152,17 @@ def test_ledger_routes_expose_the_fixed_log_and_csv(client):
     r = client.get("/v2/paper/ledger.csv?symbol=BTCUSDT")
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv")
     assert r.text.splitlines()[0].startswith("ledger_id,scope,profile,symbol")
+
+
+def test_protection_journal_routes(client):
+    """T110: diario de la protección por la API (sin operaciones en vivo: vacío y verificado)."""
+    r = client.get("/v2/paper/protection?symbol=BTCUSDT").json()
+    assert r["mode"] == "SIMULADO" and r["rows"] == [] and r["counts"] == {}
+    assert client.get("/v2/paper/protection?status=raro").status_code == 400
+    assert client.get("/v2/paper/protection/history?op_id=x|BTCUSDT|y").status_code == 404
+    url = "/v2/paper/protection/resolve?op_id=x%7CBTCUSDT%7Cy&decision=descartar&note=prueba"
+    assert client.post(url).status_code == 403
+    assert client.post(url, headers={"X-EIM-Confirm": "paper-protection"}).status_code == 404
+    v = client.get("/v2/paper?symbol=BTCUSDT").json()
+    assert v["protection"]["verified"] is True and v["protection"]["n_inconsistent"] == 0
+    assert all(p["protection"]["inconsistent"] == 0 for p in v["profiles"])

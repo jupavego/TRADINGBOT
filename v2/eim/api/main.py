@@ -55,6 +55,7 @@ from eim.data.suggestion_store import SuggestionStore
 from eim.data.timeframes import SYMBOLS, TF_MS
 from eim.data.validation_store import ValidationStore
 from eim.observability.emit import configure
+from eim.operation.alerts import AlertCenter
 from eim.operation.cycle import OperationParams
 from eim.operation.supervisor import Operation, Supervisor
 from eim.paper.desk import PaperDesk
@@ -143,6 +144,7 @@ def create_app(
     paper = PaperDesk(store, paper_store, reg,
                       provider=BinanceFutures() if source is None else None,
                       poll_s=cfg.paper_poll_s)
+    paper.alerts = op.alerts if op is not None else AlertCenter(rcon, rlock)   # T110 → op_alerts
     # T49: puerta de validación por estrategia; se recalcula al cierre de cada vela de 4 h.
     validator = Validator(paper, ValidationStore(paper_store))
     paper.after_tick.append(validator.maybe_run)

@@ -9,7 +9,7 @@ from fastapi import APIRouter, Header, HTTPException, Query, Response
 
 from eim.api.execution import confirm
 from eim.data.timeframes import SYMBOLS
-from eim.paper import ledger
+from eim.paper import ledger, protection
 from eim.paper.desk import PaperDesk, View
 from eim.paper.live_feed import live_feed
 
@@ -154,6 +154,42 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
         out["live"] = desk.live_status()
         out["view"] = desk.view_state(v)
         return out
+
+    @router.get("/protection")
+    def protection_journal(symbol: str | None = None, status: str | None = None,
+                           limit: int = Query(500, ge=1, le=20000)) -> dict:
+        """Diario de la protección (T110): estado vigente de cada operación con escalera (escalón,
+        máximo neto, SL vigente, costos, historial de cambios del stop) e inconsistencias."""
+        if symbol is not None:
+            _check(symbol)
+        if status is not None and status not in protection.STATUSES:
+            raise HTTPException(400, f"estado desconocido: {status} "
+                                     f"(válidos: {list(protection.STATUSES)})")
+        return {"mode": "SIMULADO", **desk.protection_overview(symbol, status, limit)}
+
+    @router.get("/protection/history")
+    def protection_history(op_id: str) -> dict:
+        """Todas las filas de una operación en el diario (solo adición), de la primera a la
+        vigente."""
+        rows = protection.history(desk.pstore, op_id)
+        if not rows:
+            raise HTTPException(404, f"el diario no tiene la operación {op_id}")
+        return {"mode": "SIMULADO", "op_id": op_id, "rows": rows}
+
+    @router.post("/protection/resolve")
+    def protection_resolve(op_id: str,
+                           decision: str = Query(..., pattern="^(recalculo|descartar)$"),
+                           note: str = Query(..., min_length=3, max_length=300),
+                           x_eim_confirm: str | None = Header(None)) -> dict:
+        """Reconciliación manual de una operación en estado inconsistente: `recalculo` (el
+        recálculo pasa a mandar) o `descartar` (el diario deja de seguirla). Queda anotada."""
+        confirm(x_eim_confirm, "paper-protection")
+        try:
+            return {"mode": "SIMULADO", "row": desk.resolve_protection(op_id, decision, note)}
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from exc
 
     @router.get("/status")
     def status() -> dict:

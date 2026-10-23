@@ -251,8 +251,9 @@ def _close(st: ProfileState, o: Outcome) -> None:
 
 def _exit_text(o: Outcome) -> str:
     lad = o.ladder
-    if o.reason == "SLD" and lad.get("stop_source") == "be":
-        return f"cierre por SL dinámico (BE+, +{lad['protected_est_usd']:.2f} USDT estimados)"
+    if o.reason == "SLD" and lad.get("stop_source") in ("be", "recuperado"):
+        what = "BE+" if lad["stop_source"] == "be" else "SL recuperado del diario"
+        return f"cierre por SL dinámico ({what}, +{lad['protected_est_usd']:.2f} USDT estimados)"
     if o.reason == "SLD":
         return (f"cierre por SL dinámico (escalón {lad['level']}, "
                 f"+{lad['nominal_usd']:g} USDT protegidos)")

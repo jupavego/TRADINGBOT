@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-22T20:41:17",
+ "generated": "2026-10-22T22:17:57",
  "tasks": [
   {
    "id": "T01",
@@ -1393,8 +1393,8 @@ window.EIM_STATUS = {
    "deps": [
     "T109"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "El escalón sobrevive a un reinicio y nunca baja (2026-10-22). **Diario** `paper_protection` en `data/paper.duckdb` (solo adición, clave `perfil|símbolo|idea|seq`, la fila de mayor `seq` es la vigente): alta, una fila por cada cambio del stop y cierre, con entrada, cantidad, umbral e incremento, máximo neto, escalón, SL vigente, costos y reservas, estado, historial del stop y motivo de cierre; `paper_protection_pass` recuerda qué dejó abierto cada pasada. **Recuperación**: el diario se lee ANTES de recalcular y su estado entra como suelo del SL (`ladder_floor.py`): si el recálculo da menos se adopta el guardado (fila `recuperacion`, aviso `warn`); al arrancar, si va por delante se adopta el recálculo (aviso `info`); salvaguarda `_never_lower`. **Estado inconsistente** (instantánea ausente o corrupta, símbolo/identidad que no cuadran, cierre recalculado anterior a lo guardado, velas que no llegan, operación desaparecida): no se cierra sola ni mueve su stop por lo guardado, se congela su diario, cuenta en `/v2/paper` (`protection`, `profiles[].protection.inconsistent`) y alerta crítica en `op_alerts`; CLI `python -m eim.paper proteccion lista|historial|reconciliar`. Observatorio: evento `alert` de `paper.broker` por fila y recuperación, una traza por operación. API `GET /v2/paper/protection[/history]`, `POST …/resolve` (`X-EIM-Confirm`). Código `eim/paper/{ladder_floor,protection,protection_sync,protection_desk,protection_cli}.py` + `ladder,ladder_book,ladder_audit,book,desk`; tests `tests/paper/test_protection*.py` (19: caso H, menor/mayor, corrupta/ausente/ajena, cierre anterior, historial completo, avisos, CLI) + ruta en `test_paper_api.py`; doc `docs/PPP.md` §5, `RUNBOOK.md` §14. **Reinicio real** (API de la rama sobre datos sintéticos, puerto 8011, la API en vivo intacta): escalón 1 / SL 69 646,4 antes y después, 0 filas nuevas; con parámetros ×3 el recálculo daba SL 67 979,2 y la API devolvió 69 646,4 (`v2/reports/t110_reinicio.md`). Revisión `code-review high`: 6 arreglos; pendientes de diseño en BACKLOG T110. Gate verde.",
    "effort": "medio",
    "phase": 18,
    "goal": "Que una posición abierta con protección activa **no pierda su escalón** si se reinicia la API o el servicio de papel. Hoy el libro se recalcula en cada consulta y solo los cierres en vivo se guardan (`ledger.py`): el estado de lo abierto (escalón, máximo alcanzado, stop vigente, historial de cambios) no se persiste en ninguna parte."
