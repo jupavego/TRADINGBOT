@@ -3,6 +3,10 @@
 `BotSignal` no tiene campos de orden, tamaño, apalancamiento ni claves, y `extra="forbid"` rechaza
 cualquier otro: un bot no puede pedir operar. Lo que se haga con la postura lo decide el motor de
 riesgo (código determinista con veto), nunca el bot.
+
+T114: `BotSignal.as_proposal` la expresa como `TradeProposal` de la fuente `bots.squad`, que en
+el registro de la puerta única (`eim/risk/authority.py`) solo informa: ninguna autoridad la
+acepta y el veto queda con su motivo.
 """
 
 from __future__ import annotations
@@ -11,6 +15,7 @@ from typing import Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
+from eim.core.authority import TradeProposal
 from eim.core.market import Frozen
 
 BotStatus = Literal["ok", "degraded", "no_data"]
@@ -75,3 +80,16 @@ class BotSignal(Frozen):
         if self.status == "no_data" and (self.stance != 0 or self.confidence is not None):
             raise ValueError("sin datos: postura 0 y sin confianza")
         return self
+
+    def as_proposal(self, price: float, ttl_ms: int, bar_ms: int | None = None) -> TradeProposal:
+        """La postura como `TradeProposal` (T114): lado = signo de la postura, stop = el nivel de
+        invalidación si el bot lo da (no se inventa), entrada = `price` (último cierre)."""
+        side = 1 if self.stance > 0 else -1 if self.stance < 0 else 0
+        return TradeProposal(
+            proposal_id=f"{self.bot_id}@{self.strategy}:{self.symbol}:{self.timeframe}:{self.asof}",
+            source="bots.squad", source_version=self.version, symbol=self.symbol, side=side,
+            timeframe=self.timeframe, confidence=self.confidence, entry=price,
+            horizon_ms=self.horizon_bars * bar_ms if self.horizon_bars and bar_ms else None,
+            stop=self.invalidation.level if self.invalidation else None,
+            reason=(self.evidence[0] if self.evidence else f"postura {self.stance:+.2f}")[:400],
+            data_asof=self.asof, expires_at=self.asof + ttl_ms, exit_mode="policy")

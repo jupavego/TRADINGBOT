@@ -7,6 +7,9 @@ Entrada, SL y TP salen de la decisión sellada: no se pueden alterar después de
 
 T45: `ArbGateway` es la puerta equivalente del arbitraje: solo una `ArbDecision` sellada y
 aprobada por `ArbRiskEngine` llega a `ArbExecutor.place_arb` (con la cantidad aprobada).
+
+T114: además, la decisión debe traer la `TradeProposal` de una fuente registrada con ruta a ESA
+autoridad (`authority.verify_route`): aprobada y sellada pero sin fuente registrada no abre nada.
 """
 
 from __future__ import annotations
@@ -16,6 +19,7 @@ from typing import Protocol
 
 from eim.core import Mode
 from eim.observability import hooks
+from eim.risk import authority
 from eim.risk.arb_engine import ArbRiskEngine
 from eim.risk.arb_models import ArbDecision
 from eim.risk.engine import RiskEngine
@@ -51,6 +55,7 @@ class OrderGateway:
         pid, mode = decision.plan_id, decision.mode
         try:
             self._engine.verify(decision, now)
+            authority.verify_decision(decision)
             if decision.mode != self._broker.mode:
                 raise PermissionError(f"decisión en modo {decision.mode.value} y broker en "
                                       f"{self._broker.mode.value}")
@@ -91,6 +96,7 @@ class ArbGateway:
     def submit(self, decision: ArbDecision, now: int) -> str:
         """Verifica la decisión (lanza `PermissionError` si no autoriza) y abre las dos patas."""
         self._engine.verify_arb(decision, now)
+        authority.verify_route(decision.proposal, "risk.arb_engine")
         if decision.mode != self._executor.mode:
             raise PermissionError(f"decisión en modo {decision.mode.value} y ejecutor en "
                                   f"{self._executor.mode.value}")

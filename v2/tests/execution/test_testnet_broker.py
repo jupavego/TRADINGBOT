@@ -12,7 +12,7 @@ from eim.execution.broker import STOP, TAKE_PROFIT, BrokerError, OrderRejected
 from eim.execution.service import CLOSED, FAILED, OPEN, PENDING, ExecutionError
 from tests.execution.fake_binance import KEY, SECRET, FakeBinance
 from tests.execution.helpers import PX, SYM, rig
-from tests.risk.helpers import NOW, account, market, plan
+from tests.risk.helpers import NOW, decide, plan
 
 ORDER, ALGO = "/fapi/v1/order", "/fapi/v1/algoOrder"
 
@@ -100,7 +100,7 @@ def test_same_decision_twice_is_idempotent():
 
 def test_testnet_requires_testnet_decision():
     r = rig()
-    d = r.eng.evaluate(plan(), account(), market())     # decisión SIMULADA
+    d = decide(r.eng, plan())                          # decisión SIMULADA
     with pytest.raises(PermissionError, match="modo"):
         r.gw.submit(d, NOW)
     assert r.fx.posts(ORDER) == []

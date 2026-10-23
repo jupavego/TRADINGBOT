@@ -24,7 +24,7 @@ from typing import Any
 from eim.core import AgentReport, Mode
 from eim.observability import emit as _emit_mod
 from eim.observability.emit import emit
-from eim.observability.events import Ref, new_run_id, trace_for
+from eim.observability.events import Ref, new_run_id, proposal_trace, trace_for
 
 _REMEMBER_MAX = 128
 _links: OrderedDict[str, str] = OrderedDict()
@@ -207,26 +207,66 @@ def forecast_done(fs: Any) -> None:
 
 
 def _trace_of(d: Any) -> str:
-    return trace_for(d.symbol, d.timeframe, d.asof)
+    p = getattr(d, "proposal", None)
+    return proposal_trace(p) if p is not None else trace_for(d.symbol, d.timeframe, d.asof)
+
+
+def proposal_refs(p: Any) -> list[Ref]:
+    """Datos usados por una decisión (T114): la propuesta (huella y versión de la fuente) y el
+    dato hasta el que se decidió. Referencias, nunca volcados."""
+    return [Ref(type="proposal", id=p.proposal_id[:120], hash=_sha(p.model_dump_json())[:16],
+                params_version=p.source_version[:60]),
+            Ref(type="data", id=f"{p.symbol}:{p.timeframe}:{p.data_asof}"[:120])]
+
+
+def decision_detail(d: Any) -> dict[str, Any]:
+    """Lo que el Observatorio guarda de una decisión: resultado, autoridad, fuente y salida."""
+    p = getattr(d, "proposal", None)
+    return {"approved": d.approved, "result": "aprobada" if d.approved else "rechazada",
+            "side": d.side, "size": d.size, "leverage": d.leverage,
+            "failed_rules": [c.rule for c in d.checks if not c.ok],
+            "reasons": [r[:120] for r in d.reasons[:4]],
+            "authority": getattr(d, "authority", "risk.engine"),
+            "source": p.source if p else None, "source_version": p.source_version if p else None,
+            "symbol": d.symbol, "timeframe": d.timeframe,
+            "exit_mode": getattr(d, "exit_mode", None),
+            "profile_version": getattr(d, "profile_version", None),
+            "expires_at": p.expires_at if p else None}
 
 
 @safe
-def risk_decided(d: Any) -> None:
+def risk_decided(d: Any, *, always: bool = False, key: str | None = None,
+                 ts: int | None = None, trace_id: str | None = None) -> bool:
     """`risk_decision`: id y sello de la decisión, reglas que fallaron. Dentro de una traza se
-    registra siempre; fuera (consulta de la UI) solo si se aprobó, para no inundar."""
-    if current_trace() is None and not d.approved:
-        return
+    registra siempre; fuera (consulta de la UI) solo si se aprobó, para no inundar (`always`
+    lo fuerza: decisiones del bróker en vivo). T114: el componente es la autoridad que decidió y
+    el detalle dice la fuente, su versión, los datos usados y el resultado; `key` hace el
+    `event_id` determinista (reemitir no duplica) y `ts` lo fecha al instante de la decisión.
+    Devuelve si el evento quedó en cola."""
+    if current_trace() is None and not d.approved and not always:
+        return False
     rid = new_run_id()
-    emit("risk_decision", "risk.engine", status="ok" if d.approved else "rejected", run_id=rid,
-         parent_run_id=recall(f"plan:{d.plan_id}"), trace_id=_trace_of(d), mode=d.mode,
-         inputs=[Ref(type="plan", id=d.plan_id)],
-         outputs=[Ref(type="risk_decision", id=f"{d.plan_id}@{d.decided_at}",
+    p = getattr(d, "proposal", None)
+    tid = trace_id or _trace_of(d)
+    queued = emit("risk_decision", getattr(d, "authority", "risk.engine"),
+         status="ok" if d.approved else "rejected", run_id=rid,
+         parent_run_id=recall(f"plan:{d.plan_id}"), trace_id=tid, mode=d.mode,
+         inputs=[Ref(type="plan", id=d.plan_id[:120]), *(proposal_refs(p) if p else [])],
+         outputs=[Ref(type="risk_decision", id=f"{d.plan_id}@{d.decided_at}"[:120],
                       hash=(d.seal or "")[:16] or None, params_version=d.config_version)],
-         detail={"approved": d.approved, "side": d.side, "size": d.size,
-                 "leverage": d.leverage, "failed_rules": [c.rule for c in d.checks if not c.ok],
-                 "reasons": [r[:120] for r in d.reasons[:4]]})
+         detail=decision_detail(d), ts_utc=ts, event_key=key)
     remember(f"risk:{d.plan_id}", rid)
-    remember(f"trace:{d.plan_id}", _trace_of(d))
+    remember(f"trace:{d.plan_id}", tid)
+    return queued
+
+
+@safe
+def arb_decided(d: Any) -> None:
+    """Decisión del arbitraje (T45) en el contrato único. La proyección (`as_record`) se arma
+    aquí dentro: si falla, la evaluación del riesgo no se entera; y no se arma en vano (sin
+    observatorio, o vetada fuera de una traza)."""
+    if enabled() and (d.approved or current_trace() is not None):
+        risk_decided(d.as_record())
 
 
 @safe

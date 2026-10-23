@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-23T11:54:21",
+ "generated": "2026-10-23T14:32:41",
  "tasks": [
   {
    "id": "T01",
@@ -1442,8 +1442,8 @@ window.EIM_STATUS = {
    "deps": [
     "T113"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Una puerta y un contrato para toda fuente (2026-10-23): `TradeProposal` y `RiskDecision` en `eim/core/authority.py` (el de T29, traído y ampliado: propuesta, autoridad, versión del perfil y salida concedida; `risk/models.py` lo reexporta). Registro de fuentes y reglas comunes en `eim/risk/authority.py` (`fuente` registrada, activa, no LLM y con esa autoridad; `propuesta` = plan; `caducidad`), que corren el motor T29 (`agents.plan`, `copy.leaders`, `ops.smoke`), el del arbitraje (`arb.scanner`) y la política del bróker simulado, extraída tal cual a `eim/paper/policy.py` (`paper.strategies`: el hueco de T113); `OrderGateway`, `ArbGateway` y `book._open` vuelven a verificar la ruta; `bots.squad` y `agents.context` (LLM) solo informan; T85/T70 planeadas. Proyecciones `PlanRequest`/`Idea`/`BotSignal`/`ArbPlan.as_proposal`; una copia ignora señales de otro líder. Observatorio: `risk_decision` con fuente, versión, datos usados (`proposal`, `data`) y autoridad; el bróker emite sus decisiones en vivo con su traza (`paper/authority_obs.py`, `event_id` determinista). Pruebas `tests/architecture/` (rutas reales con y sin registro, inventario AST de primitivas, ningún LLM alcanzable ni llamado, señal contraria en todas las fuentes) + `tests/core/test_authority_contract.py` + `tests/observability/test_authority_e2e.py`; atajo a propósito detectado y revertido (commits `22f7225`/`b8a49e5`). Doc `v2/docs/ARQUITECTURA.md` «Autoridad de ejecución», `PLAN/CONTRATOS.md`; revisión `code-review high`: 7 arreglos; BACKLOG T114. Gate verde. Pendiente: desplegar (reiniciar la API en vivo, con permiso).",
    "effort": "alto",
    "phase": 19,
    "goal": "Una sola puerta de entrada a la ejecución, con un contrato único: **toda** fuente de señal (agentes, estrategias del bróker, bots de T57, copy trading de T41, arbitraje de T39, HFT de T85, video de T70) propone en el mismo formato, y solo el motor determinista de riesgo autoriza. El consenso de diez agentes no puede anular un límite, y ninguna regla de salida vigente puede ser anulada por una señal contraria. Hoy esto es cierto por construcción en varios caminos, pero **no está demostrado en un solo lugar**."

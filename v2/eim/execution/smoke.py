@@ -64,7 +64,9 @@ def run(symbol: str, equity_cap: float, hold_s: float, sl_frac: float, side: int
     # Plan sintético: no hay agentes; se declaran «ok» solo para esta prueba de fontanería.
     market = MarketContext(now=now, bar_ms=BAR, last_close_t=now, last_price=price,
                            agent_status={a: "ok" for a in cfg.critical_agents})
-    d = engine.evaluate(plan, account, market)
+    prop = plan.as_proposal("ops.smoke", "humo T30", reason="plan sintético de fontanería",
+                            max_age_ms=cfg.max_plan_age_bars * BAR, exit_mode="bracket")
+    d = engine.evaluate(plan, account, market, proposal=prop)
     if not d.approved:
         _say(f"✖ vetado: {d.reasons}")
         return False

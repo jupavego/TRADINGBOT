@@ -79,12 +79,19 @@ FLOW: tuple[Component, ...] = (
     c("risk.killswitch", "risk", "riesgo", "gate", "api", "T29", "Interruptor de emergencia",
       "Estado global que bloquea órdenes nuevas y pide cerrar lo abierto. Se activa a mano o por "
       "pérdida máxima; ningún otro componente puede saltárselo.", produces=("kill_switch_state",)),
+    c("risk.authority", "risk", "riesgo", "gate", "api", "T114", "Puerta única de ejecución",
+      "Lista de las fuentes que pueden proponer una operación y reglas comunes a toda decisión: "
+      "fuente registrada, plan igual al propuesto y señal vigente. Un LLM o una fuente sin "
+      "registrar nunca llegan a una orden.", cadence="cada propuesta",
+      consumes=(("agent.plan", "plan"), ("arbitrage.engine", "arb_scan"),
+                ("leaders.service", "leader_board")), produces=("proposal",)),
     c("risk.engine", "risk", "riesgo", "gate", "api", "T29", "Motor de riesgo",
       "Código fijo, sin opinión, que revisa cada plan: tamaño por riesgo, apalancamiento, "
       "calendario y pérdida diaria. Aprueba, ajusta o veta, y firma la decisión.",
       cadence="cada plan", consumes=(("agent.plan", "plan"), ("agent.calendar", "agent_report"),
                                       ("agent.context", "agent_report"),
-                                      ("risk.killswitch", "kill_switch_state")),
+                                      ("risk.killswitch", "kill_switch_state"),
+                                      ("risk.authority", "proposal")),
       produces=("risk_decision",)),
     c("risk.journal", "risk", "riesgo", "store", "api", "T29", "Registro de decisiones",
       "Guarda cada decisión de riesgo con sus motivos y la versión de reglas usada, para poder "
@@ -93,7 +100,8 @@ FLOW: tuple[Component, ...] = (
     c("risk.arb_engine", "risk", "riesgo", "gate", "api", "T45", "Riesgo del arbitraje",
       "Revisa los planes de dos patas del arbitraje: tamaño, cuenta total y fallo de una pata. "
       "Mismo principio que el motor de riesgo: determinista y con veto.", cadence="cada ciclo",
-      consumes=(("arbitrage.engine", "arb_scan"),), produces=("risk_decision",)),
+      consumes=(("arbitrage.engine", "arb_scan"), ("risk.authority", "proposal")),
+      produces=("risk_decision",)),
     c("arbitrage.engine", "arbitrage", "analisis", "engine", "api", "T38", "Motor de arbitraje",
       "Calcula oportunidades netas de costos (carry de funding, base, perpetuos relacionados) "
       "sobre la fotografía del mercado de arbitraje.", cadence="cada 10 s", cadence_s=10,
@@ -129,8 +137,10 @@ FLOW: tuple[Component, ...] = (
       cadence_s=60, consumes=(("risk.arb_engine", "risk_decision"),), produces=("fill",)),
     c("paper.broker", "paper", "ejecucion", "service", "api", "T47", "Bróker simulado",
       "Prueba decenas de estrategias en papel, en 15 m, 1 h y 4 h, y aprende de cada pérdida. "
-      "Todo es Simulado: nunca envía órdenes.", cadence="cada 60 s", cadence_s=60,
-      consumes=(("data.store", "candles"),), produces=("paper_trade",)),
+      "Todo es Simulado: nunca envía órdenes. Cada perfil decide con su política registrada.",
+      cadence="cada 60 s", cadence_s=60,
+      consumes=(("data.store", "candles"), ("risk.authority", "proposal")),
+      produces=("paper_trade", "risk_decision")),
     c("leaders.copy_sim", "leaders", "ejecucion", "service", "leaders", "T42", "Copia simulada",
       "Una cuenta virtual copia a un líder con los costos reales para ver cuánto del resultado "
       "era copiable. Solo Simulado.", cadence="continuo", cadence_s=300,

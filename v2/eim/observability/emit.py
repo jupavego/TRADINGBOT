@@ -28,6 +28,7 @@ from eim.observability.events import (
     ObsEvent,
     Ref,
     Status,
+    event_id_for,
     new_event_id,
     new_run_id,
 )
@@ -214,8 +215,9 @@ def emit(kind: EventKind, component_id: str, *, status: Status = "ok",
          inputs: tuple[Ref, ...] | list[Ref] = (), outputs: tuple[Ref, ...] | list[Ref] = (),
          detail: dict[str, Any] | None = None, mode: Mode | None = None,
          source: str | None = None, coverage: float | None = None,
-         ts_utc: int | None = None) -> bool:
-    """Registra un evento. Devuelve True si quedó en cola; **nunca lanza ni bloquea**."""
+         ts_utc: int | None = None, event_key: str | None = None) -> bool:
+    """Registra un evento. Devuelve True si quedó en cola; **nunca lanza ni bloquea**.
+    Con `event_key` el `event_id` es determinista (T114): reemitir el mismo hecho no lo duplica."""
     try:
         em = _em()
         if not em.enabled:
@@ -223,7 +225,8 @@ def emit(kind: EventKind, component_id: str, *, status: Status = "ok",
         ts = int(ts_utc if ts_utc is not None else time.time() * 1000)
         cur = _CUR.get()
         ev = ObsEvent(
-            event_id=new_event_id(ts), ts_utc=ts, process=em.process, component_id=component_id,
+            event_id=event_id_for(ts, event_key) if event_key else new_event_id(ts),
+            ts_utc=ts, process=em.process, component_id=component_id,
             kind=kind, status=status, run_id=run_id or (cur[0] if cur else new_run_id()),
             parent_run_id=parent_run_id, trace_id=trace_id or (cur[1] if cur else None),
             duration_ms=duration_ms, inputs=tuple(inputs), outputs=tuple(outputs),

@@ -12,7 +12,7 @@ from eim.execution.service import ExecutionService
 from eim.execution.sim_broker import SimBroker
 from eim.risk import KillSwitch, RiskDecision, RiskEngine
 from tests.execution.fake_binance import KEY, SECRET, FakeBinance
-from tests.risk.helpers import CFG, NOW, account, engine, market, plan
+from tests.risk.helpers import CFG, NOW, account, decide, engine, market, plan
 
 SYM = "BTCUSDT"
 PX = 100_000.0
@@ -29,8 +29,7 @@ class Rig:
     recon: Reconciler
 
     def decision(self, **kw) -> RiskDecision:
-        return self.eng.evaluate(plan(mode=Mode.TESTNET, **kw), account(),
-                                 market(last_price=PX))
+        return decide(self.eng, plan(mode=Mode.TESTNET, **kw), account(), market(last_price=PX))
 
     def open(self, entry_kind: str = "MARKET", **kw) -> str:
         return self.gw.submit(self.decision(**kw), NOW, entry_kind)

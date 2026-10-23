@@ -1,5 +1,6 @@
 """Tipos base de las estrategias en papel: `Draft` (lo que propone una estrategia), `Idea` (la
-propuesta fechada y lista para simular) y `StrategyInfo` (ficha del catálogo)."""
+propuesta fechada y lista para simular) y `StrategyInfo` (ficha del catálogo). Una `Idea` es una
+proyección de `TradeProposal` (T114): `Idea.as_proposal()`."""
 
 from __future__ import annotations
 
@@ -7,6 +8,8 @@ import math
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
+from eim.core.authority import TradeProposal
+from eim.core.mode import Mode
 from eim.paper.params import ExecParams
 from eim.paper.versioning import rules_fingerprint, version_of
 
@@ -65,6 +68,17 @@ class Idea:
     def vid(self) -> str:
         """estrategia@marco@huella: la unidad que se valida (T49); la evidencia no se mezcla."""
         return f"{self.sid}@{self.version}"
+
+    def as_proposal(self) -> TradeProposal:
+        """La idea como `TradeProposal` de la fuente `paper.strategies` (T114). Pide la salida de
+        su sombra (SL/TP/tiempo); la que se concede la decide el perfil (`policy.EXIT_OF`)."""
+        return TradeProposal(
+            proposal_id=self.id, source="paper.strategies",
+            source_version=self.vid if self.version else self.sid, symbol=self.symbol,
+            side=self.side, timeframe=self.timeframe, horizon_ms=self.hold_ms,
+            confidence=self.conf, entry=self.entry, stop=self.sl, target=self.tp,
+            reason="; ".join(self.why)[:400], data_asof=self.t, expires_at=self.t + self.fill_ms,
+            exit_mode="sl_tp_time", mode=Mode.SIMULADO)
 
     @property
     def rr(self) -> float:

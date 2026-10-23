@@ -3,6 +3,10 @@
 El plan sale de una oportunidad del motor T38 (`eim/arbitrage/live/plan.py`); el motor de
 riesgo lo dimensiona o lo veta (`arb_engine.py`) y solo una `ArbDecision` aprobada y sellada
 llega al ejecutor por `ArbGateway` (`eim/execution/gateway.py`).
+
+T114: el plan entra como `TradeProposal` (`ArbPlan.as_proposal`, mercado `spot_perp`, sin stop:
+el riesgo de un arbitraje neutro es la pata incompleta y la liquidación, que veta este motor) y
+`ArbDecision.as_record()` lo proyecta al contrato único `RiskDecision` para registrarlo.
 """
 
 from __future__ import annotations
@@ -13,6 +17,7 @@ from pydantic import Field
 
 from eim.core import Mode
 from eim.core.arbitrage import StrategyId
+from eim.core.authority import RiskDecision, TradeProposal
 from eim.core.market import Frozen
 from eim.risk.models import Check
 
@@ -63,6 +68,16 @@ class ArbPlan(Frozen):
     def spot(self) -> ArbLegPlan:
         return next(lg for lg in self.legs if lg.market == "spot")
 
+    def as_proposal(self, source: str, source_version: str) -> TradeProposal:
+        """El plan como `TradeProposal` (largo spot / corto perpetuo = lado +1)."""
+        return TradeProposal(
+            proposal_id=self.arb_id, source=source, source_version=source_version,
+            symbol=self.futures.symbol, market="spot_perp", side=self.spot.side,
+            timeframe="arb", horizon_ms=int(self.horizon_h * 3_600_000), entry=self.spot.ref_price,
+            reason=f"{self.strategy} · {self.variant}: neto estimado {self.net_bps:.1f} pb "
+                   "(no garantizado)", data_asof=self.asof,
+            expires_at=max(self.valid_until, self.asof), exit_mode="arb_rules", mode=self.mode)
+
 
 class ArbAccount(Frozen):
     """Cuenta al decidir. Margen y exposición son los de TODA la cuenta (direccional incluido)."""
@@ -96,3 +111,17 @@ class ArbDecision(Frozen):
     config_sha256: str
     account_source: str
     seal: str = ""
+    proposal: TradeProposal | None = None      # T114: lo propuesto (ruta registrada)
+
+    def as_record(self) -> RiskDecision:
+        """Proyección al contrato único (registro y Observatorio); la que se ejecuta es esta."""
+        p = self.plan
+        return RiskDecision(
+            approved=self.approved, symbol=p.futures.symbol, timeframe="arb", plan_id=p.arb_id,
+            side=p.spot.side, mode=self.mode, asof=p.asof, decided_at=self.decided_at,
+            size=self.qty, notional=self.notional, leverage=float(self.leverage),
+            margin=self.margin, entry=p.spot.ref_price, sized_at=p.spot.ref_price,
+            reasons=self.reasons, checks=self.checks, config_version=self.config_version,
+            config_sha256=self.config_sha256, account_source=self.account_source,
+            seal=self.seal, proposal=self.proposal, authority="risk.arb_engine",
+            exit_mode="arb_rules")

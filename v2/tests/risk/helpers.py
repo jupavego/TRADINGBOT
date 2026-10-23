@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from eim.core import Mode
+from eim.core import Mode, TradeProposal
 from eim.risk import (
     AccountState,
     KillSwitch,
@@ -24,6 +24,19 @@ def plan(**kw) -> PlanRequest:
                 sl=98_000.0, tp=(104_000.0, 106_000.0), rr=2.0, mode=Mode.SIMULADO,
                 asof=NOW - 5 * 60_000)
     return PlanRequest(**{**base, **kw})
+
+
+def proposal(p: PlanRequest, source: str = "agents.plan") -> TradeProposal:
+    """La propuesta registrada de `p` (T114): sin ella ninguna puerta de órdenes la acepta."""
+    return p.as_proposal(source, "test", max_age_ms=CFG.max_plan_age_bars * H,
+                         exit_mode="bracket")
+
+
+def decide(eng: RiskEngine, p: PlanRequest | None = None, acc: AccountState | None = None,
+           mkt: MarketContext | None = None):
+    """`eng.evaluate` como lo hace una ruta real: con la propuesta de la fuente."""
+    p = p or plan()
+    return eng.evaluate(p, acc or account(), mkt or market(), proposal=proposal(p))
 
 
 def account(**kw) -> AccountState:

@@ -23,6 +23,7 @@ from eim.arbitrage.live.manage import PositionView, decide
 from eim.arbitrage.live.plan import candidates
 from eim.arbitrage.scan import STRATEGIES
 from eim.core import ArbMarket, CostModel
+from eim.core.authority import params_fingerprint
 from eim.data.arb_store import ArbStore
 from eim.execution.arb_book import CLOSING, FAILED, OPEN, ArbPosition
 from eim.execution.arb_executor import ArbExecutor
@@ -54,6 +55,7 @@ class ArbAutopilot:
         self.journal, self.params, self.cm = journal, params, cost_model or CostModel()
         self.directional_symbols, self.clock = directional_symbols, clock
         self.gateway = ArbGateway(engine, ex)
+        self.version = f"selector {params_fingerprint(params)}"   # versión de la fuente (T114)
         self.last: dict[str, Any] | None = None
 
     # --- cuenta total ------------------------------------------------------------
@@ -157,7 +159,8 @@ class ArbAutopilot:
             return
         acct = self.account(now, mkt)
         for plan in plans:
-            d = self.engine.evaluate(plan, acct, now)
+            d = self.engine.evaluate(plan, acct, now,
+                                     proposal=plan.as_proposal("arb.scanner", self.version))
             rep["decisions"].append(decision_row(d))
             if d.approved:
                 rep["opened"] = self.gateway.submit(d, now)

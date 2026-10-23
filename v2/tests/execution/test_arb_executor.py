@@ -49,8 +49,7 @@ def test_second_leg_rejected_unwinds_first_to_net_zero():
     assert [o.role for o in pos.orders][-1] == "deshacer"
     assert 0 <= pos.incident_loss <= pos.max_leg_loss and not r.kill.active
     with pytest.raises(ExecutionError, match="ya falló"):
-        r.gw.submit(r.engine.evaluate(r.plan(arb_id=pos.arb_id), r.account(), r.clock()),
-                    r.clock())
+        r.gw.submit(r.decision(r.plan(arb_id=pos.arb_id)), r.clock())
 
 
 def test_first_leg_partial_hedges_only_what_filled():

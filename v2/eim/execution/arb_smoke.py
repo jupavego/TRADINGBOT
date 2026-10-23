@@ -119,7 +119,9 @@ class Smoke:
 
     def open(self, tag: str) -> ArbPosition:
         now = int(time.time() * 1000)
-        d = self.engine.evaluate(self.plan(tag), self.pilot.account(now, None), now)
+        plan = self.plan(tag)
+        d = self.engine.evaluate(plan, self.pilot.account(now, None), now,
+                                 proposal=plan.as_proposal("ops.smoke", "humo T45"))
         if not d.approved:
             raise SystemExit(f"✖ vetado: {d.reasons}")
         return self.ex.positions[self.gw.submit(d, int(time.time() * 1000))]
