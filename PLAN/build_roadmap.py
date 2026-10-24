@@ -71,8 +71,8 @@ def behind_main() -> bool:
     o sin `origin/main` no se puede saber y se publica como siempre.
     """
     try:
-        r = subprocess.run(["git", "merge-base", "--is-ancestor", "origin/main", "HEAD"],
-                           cwd=PLAN, capture_output=True, text=True)
+        r = subprocess.run(["git", "merge-base", "--is-ancestor", "refs/remotes/origin/main",
+                            "HEAD"], cwd=PLAN, capture_output=True, text=True)
     except OSError:
         return False
     return r.returncode == 1          # 0 = al día; 128 = sin repositorio u `origin/main`
@@ -85,7 +85,7 @@ def publish(tasks: list) -> None:
         return
     if behind_main():
         print("roadmap vivo NO actualizado: esta rama no contiene origin/main (está atrasada); "
-              "trae main (`git merge origin/main`) y vuelve a ejecutarlo")
+              "trae main (`git fetch origin && git merge origin/main`) y vuelve a ejecutarlo")
         return
     dest.mkdir(parents=True, exist_ok=True)
     cur = dest / "status.js"

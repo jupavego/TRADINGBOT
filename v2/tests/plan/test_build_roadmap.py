@@ -1,6 +1,7 @@
 """build_roadmap.py no reescribe status.js si el plan no cambió (así `git pull` no se frena)."""
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -58,9 +59,16 @@ def test_missing_or_broken_status_js_is_regenerated(tmp_path):
 
 
 # --- publicación en la carpeta viva solo desde ramas al día con origin/main ------------------
+# Sin variables GIT_* del proceso que lanza la suite (un hook de git las fija y entonces
+# init/add/commit tocarían el repositorio real) ni firma o hooks globales del equipo.
+ENV = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+GIT = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-c", "commit.gpgsign=false",
+       "-c", "core.hooksPath=/dev/null"]
+
+
 def _git(repo: Path, *args: str) -> str:
-    return subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", *args], cwd=repo,
-                          capture_output=True, text=True, check=True).stdout.strip()
+    return subprocess.run([*GIT, *args], cwd=repo, env=ENV, capture_output=True, text=True,
+                          check=True).stdout.strip()
 
 
 def _repo(tmp_path: Path) -> tuple[Path, Path, str]:
@@ -75,8 +83,8 @@ def _repo(tmp_path: Path) -> tuple[Path, Path, str]:
 
 
 def _publish(plan: Path) -> str:
-    return subprocess.run([sys.executable, str(plan / "build_roadmap.py")], capture_output=True,
-                          text=True, check=True).stdout
+    return subprocess.run([sys.executable, str(plan / "build_roadmap.py")], env=ENV,
+                          capture_output=True, text=True, check=True).stdout
 
 
 def test_publishes_from_a_branch_that_contains_origin_main(tmp_path):
@@ -97,6 +105,7 @@ def test_a_branch_behind_origin_main_does_not_overwrite_the_live_roadmap(tmp_pat
     assert "roadmap vivo publicado" in _publish(plan)
     fresh = live.read_bytes()
     _git(tmp_path, "checkout", "-q", "-b", "rama-vieja", old)        # rama de antes de la fusión
+    _git(tmp_path, "tag", "origin/main", old)       # un tag homónimo (gana al corto) no engaña
     out = _publish(plan)
     assert "NO actualizado" in out and "origin/main" in out
     assert live.read_bytes() == fresh                                 # la viva sigue al día
