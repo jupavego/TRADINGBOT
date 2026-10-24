@@ -5,6 +5,8 @@ HMAC y la cabecera de la clave. Inyección de fallos por ruta:
 - `before`: la petición no llega (ConnectError) · `after`: se procesa pero la respuesta se pierde
 - `503`: error de servidor sin procesar · `reject`: rechazo 400 con código
 - `down = True`: red cortada para todo.
+T83: `countdownCancelAll` (se registra en `countdowns`) y `listenKey` (exige la cabecera de la
+clave, sin firma); `status` + `retry_after` responden un 429/418 a la ruta indicada.
 """
 
 from __future__ import annotations
@@ -37,7 +39,7 @@ URL = "https://testnet.binancefuture.com"
 class Fault:
     method: str
     path: str
-    mode: str                 # before | after | 503 | reject
+    mode: str                 # before | after | 503 | reject | 429 | 418
     times: int = 1
     code: int = -2010
     msg: str = "rechazo simulado"
@@ -71,6 +73,8 @@ class FakeBinance:
         self.down = False
         self.log: list[tuple[str, str, dict]] = []        # (método, ruta, params) procesados
         self.raw: list[str] = []                          # todo lo que viajó (URL + cuerpo)
+        self.headers: list[dict] = []                     # cabeceras de cada petición
+        self.countdowns: list[tuple[str, int]] = []
         self._margin_set: set[str] = set()
 
     def client(self) -> httpx.Client:
@@ -86,6 +90,7 @@ class FakeBinance:
     def handle(self, req: httpx.Request) -> httpx.Response:
         raw = req.url.query.decode() if req.method == "GET" else req.content.decode()
         self.raw.append(str(req.url) + " " + raw)
+        self.headers.append(dict(req.headers))
         if self.down:
             raise httpx.ConnectError("red cortada", request=req)
         path = req.url.path
@@ -99,6 +104,9 @@ class FakeBinance:
                 return _err(-1001, "Internal error", 503)
             if f.mode == "reject":
                 return _err(f.code, f.msg)
+            if f.mode in ("429", "418"):
+                return httpx.Response(int(f.mode), headers={"Retry-After": "2"},
+                                      json={"code": -1003, "msg": "Too many requests"})
         params = dict(parse_qsl(raw))
         if "signature" in params:
             payload = raw.rsplit("&signature=", 1)[0]
@@ -132,6 +140,14 @@ class FakeBinance:
             if path == "/fapi/v1/leverage":
                 s.prepare(p["symbol"], int(p["leverage"]))
                 return httpx.Response(200, json={"leverage": int(p["leverage"])})
+            if path == "/fapi/v1/countdownCancelAll":
+                self.countdowns.append((p["symbol"], int(p["countdownTime"])))
+                return httpx.Response(200, json={"symbol": p["symbol"],
+                                                 "countdownTime": p["countdownTime"]})
+            if path == "/fapi/v1/listenKey":
+                if self.headers[-1].get("x-mbx-apikey") != KEY:
+                    return _err(-2015, "Invalid API-key")
+                return httpx.Response(200, json={"listenKey": "lk-1"} if method == "POST" else {})
             if path in ("/fapi/v1/order", "/fapi/v1/algoOrder"):
                 return self._order(method, path, p)
             if path == "/fapi/v1/openOrders":

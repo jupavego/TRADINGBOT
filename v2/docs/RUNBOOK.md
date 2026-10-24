@@ -20,6 +20,7 @@ Comandos desde `v2/`. `API=http://127.0.0.1:8000`. Todo POST lleva `X-EIM-Confir
 | Arbitraje «DESCUBIERTA» o kill-switch por pata incompleta | pestaña «Arbitraje» → «Ejecución automática» | §12 |
 | Bot del escuadrón en cuarentena, colgado o con versión nueva | «Escuadrón», alerta `bots.<bot>` | §13 |
 | Protección del bróker simulado recuperada o en «estado inconsistente» | `proteccion` («Protección recuperada…», «…en estado inconsistente», «Diario de protección sin verificar») | §14 |
+| Carril HFT bloqueado, «cancelar todo», kill-switch HFT o 418 | `execution.hft` en el Observatorio (`bloqueo`, `cancelar_todo`, `cierre`, `kill`) | §15 |
 
 Dónde mirar: pestaña «Operación» de la UI · `GET $API/v2/operation` · registro
 `data/operation/logs/op-AAAA-MM-DD.jsonl` · tabla `op_alerts`.
@@ -227,3 +228,41 @@ guardado. Todo es SIMULADO.
   escribe la base directamente.
 - **«Diario de protección sin verificar» (crítica):** no se pudo leer el diario; la vista se calcula
   sin suelo y marcada `protection.verified = false` en `GET $API/v2/paper`. Ver §5 si la base está dañada.
+
+## 15. Carril HFT: bloqueo, cancelar todo, divergencia o 418 (T83)
+Solo SIMULADO o TESTNET (`hft_risk_v1`); el servicio en vivo llega en T85. Cada orden del carril
+lleva su `HftDecision` sellada (vigente 1 s) de `risk.hft_engine`; cancelar no la necesita. Los
+hechos quedan en `HftLane.events` y en el Observatorio (componente `execution.hft`).
+1. **Bloqueo + «cancelar todo» (se resuelve solo):** la vigilancia (`HftLane.tick`, con su propio
+   temporizador) cancela del lado cliente todas las órdenes `eih-` vivas y veta toda orden que no
+   reduzca mientras dure la causa. El detalle dice cuál:
+   - `datos`: el libro tiene más de 1 s (WebSocket de mercado cortado o Binance retiene mensajes,
+     como el silencio de 6–8 s visto en T78). Mirar `data/micro_hft/heartbeat.json`.
+   - `libro`: hueco de secuencia (`pu`) o divergencia con el snapshot REST: espera a que el libro
+     se resincronice (lo rehace el recolector, T78).
+   - `reloj`: desvío local − Binance > 500 ms o sin medir. Sincronizar la hora de Windows
+     (`w32tm /resync`) y comprobar el desfase en el banco (`scripts/hft_latency.py`).
+   - `flujo de usuario`: la conexión del `listenKey` se cortó; los fills de ese tramo no llegan
+     por evento. Al reconectar, la reconciliación los recupera consultando cada orden por su id.
+   - `hombre muerto`: la estrategia dejó de latir > 3 s (proceso colgado o bucle bloqueado).
+     En testnet, además, `countdownCancelAll` (15 s) deja de renovarse y Binance cancela todas
+     las órdenes del símbolo aunque este proceso haya muerto.
+   El aviso «desbloqueo» marca la vuelta a la normalidad; no hay que reactivar nada.
+2. **Divergencia (kill-switch global y del carril, `regla:hft_reconciliacion`):** la posición
+   del carril no cuadra con la del exchange tras releer todas sus órdenes. Con el kill-switch el
+   carril cancela todo y cierra su inventario a mercado (reduce-only, con decisión). Antes de
+   desactivar (§1, y el del carril a mano): contrastar con la web de la testnet y revisar si
+   otro carril operó el mismo símbolo en la misma cuenta (su posición debe ir en `external`).
+3. **Sin respuesta del exchange ≥ 30 s:** misma regla y mismo cierre ordenado.
+4. **429 (límite de tasa):** el cliente deja de enviar hasta `Retry-After` (o 1 s) y el riesgo
+   veta «límite del exchange»; reanuda solo. Si se repite, las tasas propias (1/3 de 300/10 s y
+   1200/min) están mal o hay otro proceso usando la misma cuenta o IP.
+5. **418 (IP bloqueada, 2 min–3 días):** kill-switch del carril (`regla:hft_418`), que solo se
+   apaga a mano y después de que venza el bloqueo. No reiniciar en bucle: cada petición alarga
+   el bloqueo. Las órdenes vivas las cancela `countdownCancelAll` (testnet) al no renovarse.
+6. **Rechazos** (`HftExecutor.rejections`): `-5022` post-only que habría cruzado (el libro se
+   movió en vuelo: normal, sin reintento), `-4164` nocional mínimo, `-2022` reduce-only sin
+   posición. Muchos `-5022` seguidos = la estrategia cotiza demasiado cerca del otro lado.
+7. **Cuenta compartida:** `countdownCancelAll` cancela TODAS las órdenes del símbolo, también
+   las de otro carril. Usar una cuenta (o subcuenta) de testnet propia para el carril HFT, o
+   poner `exchange_countdown_ms = 0` en una versión nueva de la configuración.

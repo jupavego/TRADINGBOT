@@ -32,6 +32,7 @@ from eim.execution.broker import (
     OrderRejected,
     OrderSpec,
     OrderState,
+    RateLimited,
     client_id,
     trade_key,
 )
@@ -96,6 +97,8 @@ def ensure_order(broker: Broker, spec: OrderSpec, retries: int = 3, backoff: flo
         except OrderRejected as e:
             if not e.duplicate:
                 raise
+        except RateLimited:
+            raise                                 # T83: ni consultar ni reenviar en la espera
         except NetworkError:
             pass
         for q in range(retries + 1):              # consulta hasta tener respuesta firme

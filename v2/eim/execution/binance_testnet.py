@@ -135,17 +135,22 @@ class BinanceTestnetBroker:
 
     # --- órdenes -----------------------------------------------------------
     def post_order(self, spec: OrderSpec) -> OrderState:
+        return self._post_algo(spec) if spec.conditional else self._post_regular(spec)
+
+    def _post_algo(self, spec: OrderSpec) -> OrderState:
+        data = self._call("POST", "/fapi/v1/algoOrder", {
+            "algoType": "CONDITIONAL", "symbol": spec.symbol,
+            "side": "BUY" if spec.side > 0 else "SELL",
+            "type": "STOP_MARKET" if spec.kind == STOP else "TAKE_PROFIT_MARKET",
+            "triggerPrice": _num(spec.trigger or 0), "workingType": "MARK_PRICE",
+            "closePosition": "true" if spec.close_position else None,
+            "quantity": None if spec.close_position else _num(spec.qty or 0),
+            "reduceOnly": "true" if spec.reduce_only and not spec.close_position else None,
+            "clientAlgoId": spec.client_id})
+        return self._algo_state(data)
+
+    def _post_regular(self, spec: OrderSpec) -> OrderState:
         side = "BUY" if spec.side > 0 else "SELL"
-        if spec.conditional:
-            data = self._call("POST", "/fapi/v1/algoOrder", {
-                "algoType": "CONDITIONAL", "symbol": spec.symbol, "side": side,
-                "type": "STOP_MARKET" if spec.kind == STOP else "TAKE_PROFIT_MARKET",
-                "triggerPrice": _num(spec.trigger or 0), "workingType": "MARK_PRICE",
-                "closePosition": "true" if spec.close_position else None,
-                "quantity": None if spec.close_position else _num(spec.qty or 0),
-                "reduceOnly": "true" if spec.reduce_only and not spec.close_position else None,
-                "clientAlgoId": spec.client_id})
-            return self._algo_state(data)
         data = self._call("POST", "/fapi/v1/order", {
             "symbol": spec.symbol, "side": side, "type": spec.kind,
             "quantity": _num(spec.qty or 0),

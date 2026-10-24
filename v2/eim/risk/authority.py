@@ -13,8 +13,9 @@ fuente:
    decisión sin propuesta registrada no abre nada aunque esté aprobada y sellada.
 
 Las autoridades son código determinista con veto: el motor T29 (`risk.engine`, con
-`risk_v2` o `risk_copy_v1`), el del arbitraje (`risk.arb_engine`) y la política de cada perfil
-del bróker simulado (`paper.broker`: vetos, topes y tamaño). Ninguna regla de salida vigente
+`risk_v2` o `risk_copy_v1`), el del arbitraje (`risk.arb_engine`), el del carril HFT
+(`risk.hft_engine`, una decisión por orden, T83) y la política de cada perfil del bróker simulado
+(`paper.broker`: vetos, topes y tamaño). Ninguna regla de salida vigente
 puede anularla una señal contraria: cerrar no es algo que una fuente pueda pedir (`EXIT_RULES`).
 La prueba de que no hay puerta trasera está en `tests/architecture/`.
 """
@@ -36,6 +37,8 @@ AUTHORITIES: dict[str, str] = {
     "risk.engine": "Motor de riesgo T29: 10 reglas + tamaño, sello HMAC, caducidad de 60 s",
     "risk.arb_engine": "Riesgo del arbitraje T45: cuenta total, patas, vigencia y sello",
     "paper.broker": "Política del perfil del bróker simulado: vetos, topes y tamaño (T47–T109)",
+    "risk.hft_engine": "Riesgo del carril HFT T83: inventario, pérdidas, tasas, datos, reloj; "
+                       "una decisión sellada por orden, vigente 1 s",
 }
 
 # Cierres que admite cada modo de salida. Una señal contraria NO es motivo de cierre en ninguno
@@ -47,6 +50,8 @@ EXIT_RULES: dict[str, tuple[str, ...]] = {
     "follow_leader": ("el líder reduce o cierra", "stop de protección", "kill-switch propio"),
     "arb_rules": ("neto agotado", "vencimiento", "tenencia", "margen o liquidación",
                   "kill-switch"),
+    "hft_rules": ("reduce-only de la estrategia", "cierre a mercado por kill-switch",
+                  "cancelar todo (datos, libro, reloj, flujo de usuario, hombre muerto)"),
     "policy": (),
 }
 CONTRARY_SIGNAL = "señal contraria de otra fuente"
@@ -93,9 +98,11 @@ SOURCES: dict[str, Source] = {s.id: s for s in (
     Source("agents.context", "Contexto con LLM (noticias y eventos)", "T24", "solo_informa",
            (), "—", ("policy",), "eim/agents/context", llm=True,
            note="solo modula la confianza o añade una pausa (veto); nunca propone ni levanta"),
-    Source("hft.micro", "Microestructura y servicio rápido", "T85", "planeada", (), "T83",
-           ("policy",), "eim/hft/service.py (por construir)",
-           note="al construirse debe registrarse aquí y pasar por la puerta"),
+    Source("hft.micro", "Carril HFT (microestructura rápida)", "T83 T85", "activa",
+           ("risk.hft_engine",), "hft_risk_v1", ("hft_rules",),
+           "eim/execution/hft_lane.py · HftLane.submit",
+           note="T83: riesgo y ejecución, solo SIMULADO/TESTNET; las estrategias (T82) y el "
+                "servicio en vivo (T85) aún no existen: hoy solo proponen las pruebas"),
     Source("video.intel", "Agente de videos", "T70", "planeada", (), "—", ("policy",),
            "eim/agents/video_intel (por construir)",
            note="como agente vota en la síntesis: llega a una orden solo por agents.plan"),

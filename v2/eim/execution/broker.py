@@ -16,9 +16,11 @@ from eim.core import Mode
 
 CLIENT_PREFIX = "eim-"
 ARB_PREFIX = "eia-"       # T45: patas de arbitraje (la reconciliación T30 no las toca)
+HFT_PREFIX = "eih-"       # T83: órdenes del carril HFT (tampoco las toca la reconciliación T30)
 # tipos de orden
 MARKET, LIMIT, STOP, TAKE_PROFIT = "MARKET", "LIMIT", "STOP", "TAKE_PROFIT"
 CONDITIONAL = (STOP, TAKE_PROFIT)
+GTX = "GTX"               # T83: post-only (el exchange la rechaza si casaría como taker)
 # estados
 NEW, PARTIAL, FILLED = "NEW", "PARTIALLY_FILLED", "FILLED"
 CANCELED, REJECTED, EXPIRED, TRIGGERED = "CANCELED", "REJECTED", "EXPIRED", "TRIGGERED"
@@ -41,6 +43,19 @@ class NetworkError(BrokerError):
     """Resultado desconocido (timeout, desconexión, 5xx): la orden pudo llegar o no."""
 
 
+class RateLimited(NetworkError):
+    """T83: límite de tasa del exchange (HTTP 429) o IP bloqueada (418). Hasta `until` (ms) no
+    se envía nada: insistir convierte un 429 en un 418 (bloqueo de 2 min a 3 días)."""
+
+    def __init__(self, msg: str, status: int, until: int) -> None:
+        super().__init__(msg)
+        self.status, self.until = status, until
+
+    @property
+    def banned(self) -> bool:
+        return self.status == 418
+
+
 @dataclass(frozen=True)
 class OrderSpec:
     client_id: str
@@ -52,7 +67,7 @@ class OrderSpec:
     trigger: float | None = None     # STOP / TAKE_PROFIT
     reduce_only: bool = False
     close_position: bool = False
-    tif: str = "GTC"                 # LIMIT: GTC | IOC (T45: patas con tiempo límite)
+    tif: str = "GTC"                 # LIMIT: GTC | IOC (T45) | GTX post-only (T83)
 
     @property
     def conditional(self) -> bool:

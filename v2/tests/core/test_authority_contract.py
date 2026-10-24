@@ -88,7 +88,8 @@ def test_route_reasons_name_what_is_wrong():
     assert authority.route_reason("agents.plan", "risk.engine") is None
     assert "no registrada" in authority.route_reason("nadie", "risk.engine")
     assert "solo informa" in authority.route_reason("bots.squad", "risk.engine")
-    assert "planeada" in authority.route_reason("hft.micro", "risk.engine")
+    assert "planeada" in authority.route_reason("video.intel", "risk.engine")
+    assert "decide en" in authority.route_reason("hft.micro", "risk.engine")     # T83: activa
     assert "decide en" in authority.route_reason("agents.plan", "paper.broker")
     assert "modo de salida" in authority.route_reason("agents.plan", "risk.engine", "stop_only")
 
