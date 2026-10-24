@@ -23,7 +23,7 @@ interface Op {
 }
 
 const MODE: Record<string, string> = { ANALISIS: 'Análisis', SIMULADO: 'Simulado', TESTNET: 'Testnet', REAL: 'Real' }
-const STATE: Record<string, string> = { iniciando: 'Iniciando', operando: 'Operando', reintentando: 'Reintentando', detenido: 'Detenido' }
+const STATE: Record<string, string> = { iniciando: 'Iniciando', operando: 'Operando', reintentando: 'Reintentando', detenido: 'Detenido', caido: 'Caído' }
 const RISK_LABEL: Record<string, string> = {
   open_risk: 'Riesgo abierto', daily_loss: 'Pérdida del día', weekly_loss: 'Pérdida de la semana',
   drawdown: 'Drawdown (kill-switch)', open_trades: 'Posiciones abiertas', consecutive_losses: 'Pérdidas seguidas',

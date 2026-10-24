@@ -58,6 +58,7 @@ from eim.observability.emit import configure
 from eim.operation.alerts import AlertCenter
 from eim.operation.cycle import OperationParams
 from eim.operation.supervisor import Operation, Supervisor
+from eim.operation.task_watch import watch_supervisor
 from eim.paper.desk import PaperDesk
 from eim.risk import global_kill_switch, load_config
 from eim.suggestions.tracker import Tracker
@@ -166,7 +167,7 @@ def create_app(
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         if op is not None:
-            task = asyncio.create_task(Supervisor(op).run())
+            task = watch_supervisor(asyncio.create_task(Supervisor(op).run()), op)
         elif runtime.recon is not None:
             task = asyncio.create_task(recon_loop(runtime, cfg.recon_interval_s, now_ms))
         else:
