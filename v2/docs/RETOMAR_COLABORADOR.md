@@ -27,7 +27,7 @@ reconstruir:
 | Qué | Dónde queda | Por qué importa |
 |---|---|---|
 | `v2\data` en frío, verificada (archivos y bytes) | `data\` | Libro simulado, contextos, líderes, sugerencias, puntuaciones de bots: tu historial de operación |
-| Copia consistente de `reports.duckdb` + estado + versiones de parámetros | `v2\backups\eim_<fecha>\` (la hace `eim.data.backup`) | Copia con `manifest.json` (SHA-256, filas por tabla, commit); es la que sabe restaurar el RUNBOOK |
+| Copia consistente de `reports.duckdb`, `paper.duckdb` y `leaders.duckdb` (T115) + observatorio + estado + versiones de parámetros | `v2\backups\eim_<fecha>\` (la hace `eim.data.backup`) | Copia con `manifest.json` (SHA-256, filas por tabla de cada base, bases ausentes, commit); es la que sabe restaurar el RUNBOOK |
 | Cambios sin confirmar | `cambios_sin_confirmar.patch`, `archivos_nuevos_sin_seguir.txt`, `estado_git.txt` | Tu trabajo a medias, aplicable con `git apply` |
 | Todas tus ramas locales | `ramas_locales.bundle` | Ramas que nunca subiste (`git fetch <bundle> <rama>` las recupera) |
 | Variables `EIM_*` del usuario | `env_EIM.json` | Claves de testnet, rutas, `EIM_MACHINE` |

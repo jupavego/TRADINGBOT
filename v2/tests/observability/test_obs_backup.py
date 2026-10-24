@@ -30,7 +30,7 @@ def test_hot_backup_includes_obs_and_verifies(tmp_path):
     data, store = _setup(tmp_path)
     out = B.create(data, tmp_path / "bk", extra_dbs={B.OBS_NAME: (store.con, store.lock)})
     m = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
-    assert m["extra_tables"][B.OBS_NAME]["events"] == 11
+    assert m["dbs"][B.OBS_NAME]["tables"]["events"] == 11
     assert B.OBS_NAME in m["files"] and B.verify(out) == []
     (out / B.OBS_NAME).write_bytes((out / B.OBS_NAME).read_bytes() + b"x")
     assert any("hash distinto" in p for p in B.verify(out))      # un cambio se detecta

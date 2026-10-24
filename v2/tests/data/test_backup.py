@@ -43,7 +43,9 @@ def test_cold_backup_and_verify(tmp_path):
     out = B.create(d, tmp_path / "bk", clock=lambda: T0)
     assert out.name.startswith("eim_20261014-")
     m = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
-    assert m["tables"] == {"t": 3}
+    assert m["dbs"] == {"reports.duckdb": {"tables": {"t": 3}, "via": "frío",
+                                           "seconds": m["dbs"]["reports.duckdb"]["seconds"]}}
+    assert m["absent"] == {}
     assert {"reports.duckdb", "state/kill_switch.json", "state/operation/heartbeat.json",
             "state/operation/logs/op-2026-10-14.jsonl",
             "config/risk/risk_v1.json"} <= set(m["files"])
@@ -74,7 +76,8 @@ def test_hot_backup_while_db_open(tmp_path):
         con, lock = store.connection
         out = B.create(d, tmp_path / "bk", con=con, lock=lock, clock=lambda: T0)
         assert B.verify(out) == []
-        assert json.loads((out / "manifest.json").read_text())["tables"]["t"] == 3
+        db = json.loads((out / "manifest.json").read_text())["dbs"]["reports.duckdb"]
+        assert db["tables"]["t"] == 3 and db["via"] == "caliente"
         con.execute("INSERT INTO t VALUES (4)")                     # la base sigue utilizable
     finally:
         store.close()
@@ -182,7 +185,8 @@ def test_api_backup_requires_confirm(tmp_path):
         with LocalClient(app) as c:
             assert c.post("/v2/backup").status_code == 403                # sin cabecera
             r = c.post("/v2/backup", headers={"X-EIM-Confirm": "backup"}).json()
-            assert r["tables"]["t"] == 3 and r["files"] >= 3
+            assert r["dbs"]["reports.duckdb"]["tables"]["t"] == 3 and r["files"] >= 3
+            assert r["absent"] == {}
             assert c.get("/v2/backup").json()["backups"] == [r["name"]]
             assert B.verify(Path(r["path"])) == []
     finally:

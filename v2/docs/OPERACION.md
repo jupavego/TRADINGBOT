@@ -28,7 +28,7 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 | Copy trading: evaluación (T41) | `run` evalúa cada 5 min y escribe `data/leaders/board_*.json` (pestaña «Líderes», agente `smart_money`); con el vigilante apagado: `score [--portfolio]` | El veredicto (aprobado/vigilancia/descartado) lo fija el scorecard; solo aprueba con ≥ 30 operaciones y ≥ 7 d observados adelante; `unwatch` deja de capturar |
 | Copy trading: servicio continuo | `python -m eim.leaders supervise` (lo lanza `scripts/servicio_continuo.ps1`, §6) | `run` sin fin bajo vigilante de proceso: lo relanza si cae o si su latido se detiene; uno solo por carpeta de datos |
 | Captura HFT (T78) | Servicio: `python -m eim.data.collectors.hft_supervise BTCUSDT --root data` (lo lanza `scripts/servicio_continuo.ps1`, §6). A mano: `python -m eim.data.collectors.hft_ops --root data` (QC + compactación + retención + resumen), `python -m eim.data.collectors.hft_verify --root data --all [--out carpeta]` (ida y vuelta y `.npz` del simulador) | Escribe `data/micro_hft/` (no toca `data/micro/` de T23): todos los diffs de `depth@100ms`, `bookTicker`, `aggTrade`, `markPrice@1s` y `forceOrder` con la hora de Binance y la de llegada; snapshot REST cada 5 min para verificar el libro (top-10 exacto). QC por hora en `data/micro_hft/qc/` y resumen en `qc/symbol=BTCUSDT/summary.json` (horas completas, coincidencia top-10, huecos no detectados, MB/día, proyección a 30 días). Medido (1 h, 04 UTC del 2026-10-24): ≈ 417 MB/día sin compactar, ≈ 370 MB/día compactado (ZSTD) → ≈ 11 GB en 30 días, ≈ 17 GB con la retención de 45 días |
-| Copia de seguridad a demanda | `python -m eim.data.backup create` | Si la API está en marcha, se la pide a ella. La CLI usa `EIM_DATA_DIR`, `EIM_BACKUP_DIR` y `EIM_BACKUP_KEEP` como la API |
+| Copia de seguridad a demanda | `python -m eim.data.backup create` | Las tres bases (`reports`, `paper`, `leaders`) + observatorio y estado. Si la API está en marcha, se la pide a ella; `leaders.duckdb`, al servicio de líderes. La CLI usa `EIM_DATA_DIR`, `EIM_BACKUP_DIR` y `EIM_BACKUP_KEEP` como la API |
 | Verificar la traza de una vela (T74) | `python scripts/obs_verify_traces.py` (desde `v2/`; `--provider spot` si `fapi.binance.com` da 451; `--wait` segundos; `--keep` conserva los datos) | Arranca la API real en papel con carpeta temporal (no toca tus datos ni envía nada a un exchange), espera un ciclo y comprueba la traza más reciente en `/v2/obs/traces`: fuente y cobertura de datos, una señal por agente, síntesis, pronóstico, plan, riesgo y —solo si el riesgo aprobó— la cadena de órdenes. Código de salida 0 si todo lo obligatorio pasa |
 
 **Nunca** lances la API con `--host 0.0.0.0`: además de quedar en la red, el middleware de
@@ -40,7 +40,7 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 | `EIM_DATA_DIR` | `data` | Almacén (parquet, DuckDB, estado) |
 | `EIM_EXECUTION` | `off` | `paper` / `testnet` |
 | `EIM_OPERATE`, `EIM_OPERATE_TF`, `EIM_OPERATE_POLL_S` | `0`, `1h`, `60` | Servicio continuo (lo fija `eim.operation run`) |
-| `EIM_BACKUP_DIR`, `EIM_BACKUP_KEEP` | `backups`, `14` | Copias; se conservan las N más recientes |
+| `EIM_BACKUP_DIR`, `EIM_BACKUP_KEEP` | `backups`, `14` | Copias; se conservan las N completas más recientes (§3) |
 | `EIM_ALLOWED_HOSTS` | `127.0.0.1,localhost,::1` | Cabeceras `Host` aceptadas |
 | `EIM_API_TOKEN` | — | Sin él, ningún cliente remoto entra. Con él: `Authorization: Bearer <token>`; en WebSocket, subprotocolo `eim-token.<token>` (los navegadores no admiten cabeceras ahí) |
 | `EIM_CORS_ORIGINS` | `http://127.0.0.1:5173,http://localhost:5173` | Orígenes del navegador (también para el WebSocket) |
@@ -59,28 +59,60 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 | `EIM_WS_URL`, `EIM_HEARTBEAT_S`, `EIM_SNAPSHOT_BARS`, `EIM_AUTO_HISTORY`, `EIM_RECON_S` | ver `eim/api/config.py` | |
 
 ## 3. Copias de seguridad
-Qué se copia (`eim/data/backup.py`): la base `reports.duckdb` (copia consistente), kill-switch, estado y
-registros del servicio, versiones de parámetros (`eim/risk/versions`, `eim/calibration/versions`) y un
-`manifest.json` con SHA-256 por archivo, filas por tabla y commit de git. Las velas solo con
+Qué se copia (`eim/data/backup.py`, T32 + T115): **las tres bases con historial** —`reports.duckdb`
+(reportes, decisiones de riesgo, libro de planes, alertas, capital, pronósticos), `paper.duckdb`
+(bróker simulado: contextos, operaciones, validación y el registro inmutable de sugerencias de T51)
+y `leaders.duckdb` (capturas en vivo de líderes y la copia simulada, irrepetibles: el exchange solo
+sirve las 10 000 ejecuciones más recientes)— más `obs.duckdb` (observatorio, derivado), kill-switch,
+estado y registros del servicio, QC de la captura HFT, versiones de parámetros (`eim/risk/versions`,
+`eim/calibration/versions`) y un `manifest.json` con SHA-256 por archivo, filas por tabla de cada
+base, camino y segundos de cada copia, bases ausentes y commit de git. Las velas solo con
 `--with-market` (se pueden volver a descargar). **Nunca** se copian claves.
 
-- **Automática:** con el servicio de operación, una copia por día UTC en `EIM_BACKUP_DIR`. Si falla,
-  alerta `copia_seguridad` (una vez) y se reintenta cada hora (no en cada ciclo: la copia retiene el cerrojo de la base) sin detener la operación.
-- **A demanda:** `python -m eim.data.backup create [--with-market]` o `POST /v2/backup` (cabecera `X-EIM-Confirm: backup`). Con el servicio en marcha, la copia espera a que termine el ciclo en curso: base y libro simulado quedan consistentes entre sí.
-- **Verificar:** `python -m eim.data.backup verify [carpeta]` (por defecto la última). Hazlo tras cada copia manual.
-- **Listar:** `python -m eim.data.backup list`.
+**Cada base por su camino** (`eim/data/backup_dbs.py`):
+| Base | En marcha la tiene | Copia en caliente |
+|---|---|---|
+| `reports.duckdb` | la API | su conexión, entre dos ciclos de operación (coherente con el estado del servicio) |
+| `paper.duckdb`, `obs.duckdb` | la API | su conexión, sin frenar el ciclo |
+| `leaders.duckdb` | el servicio de líderes | se le pide una instantánea (`eim/data/leader_snapshot.py`: un archivo `data/leaders/snapshot_request-<t>.json` por pedido, atendidos en orden; la hace en una tarea aparte, sin parar la captura ni su bucle) |
+
+Si nadie la usa, cada base se copia **en frío**. La copia en caliente es una sola sentencia
+`COPY FROM DATABASE` en un cursor propio: una transacción, coherente aunque los escritores sigan
+(no se les retiene el cerrojo). Una base **en uso que no se puede pedir** (servicio de líderes
+colgado, API caída con la base retenida) o dañada **no rompe la copia**: queda *ausente con motivo*
+en el manifiesto (`absent`), la copia sale como «incompleta» y `verify` la distingue de una copia
+dañada (salida 2 = íntegra pero incompleta; 1 = dañada).
+
+- **Automática:** con el servicio de operación, una copia por día UTC en `EIM_BACKUP_DIR`, en un hilo
+  aparte: el ciclo solo espera el tramo de `reports.duckdb` + estado (`held_s` en el manifiesto y en
+  el registro `copia_seguridad`). Si falla, alerta `copia_seguridad` (una vez) y se reintenta cada
+  hora sin detener la operación; si sale incompleta, alerta «Copia de seguridad incompleta» con el
+  motivo y no se repite ese día (corregir y lanzar `create` a mano).
+- **A demanda:** `python -m eim.data.backup create [--with-market]` o `POST /v2/backup` (cabecera
+  `X-EIM-Confirm: backup`). La CLI copia en frío; si una base de la API está en uso, se la pide a la
+  API (que pide a su vez la de líderes a su servicio); si la API no responde, copia en frío lo que
+  esté libre y deja el resto ausente con motivo. Salida 0 = completa, 2 = incompleta.
+- **Verificar:** `python -m eim.data.backup verify [carpeta]` (por defecto la última): hashes, filas por
+  tabla de cada base y bases ausentes. Hazlo tras cada copia manual.
+- **Listar:** `python -m eim.data.backup list` (marca las incompletas).
+- **Retención:** `EIM_BACKUP_KEEP` (14) cuenta copias **completas**: se conservan las N completas más
+  recientes y, aparte, las N más recientes de cualquier tipo (una racha de copias incompletas nunca
+  borra la última completa). Una copia a medias (`.eim_….partial`, proceso interrumpido) nunca cuenta
+  y se borra en la siguiente poda (pasada 1 h, por si es una copia en curso).
 - **Restaurar:** ver `docs/RUNBOOK.md` §5.
 - **Fuera del equipo:** `backups/` está en `.gitignore` y vive en el mismo disco. Sincroniza esa
   carpeta con otro disco o un almacenamiento en la nube (p. ej. OneDrive) o usa `EIM_BACKUP_DIR`
-  apuntando a otra unidad.
+  apuntando a otra unidad. `share export` (§3.1) es otra vía fuera del equipo, pero no se restaura.
 - **Captura HFT (T78):** la copia lleva solo los JSON de calidad (`state/micro_hft_qc/`), nunca los crudos de `data/micro_hft/` (≈ 370 MB/día; se podan a los 45 días). Para conservar más tiempo un tramo para T80/T84, copiarlo a otro disco a mano.
-- **Líderes (`data/leaders.duckdb`): `backup create` todavía NO la copia** (BACKLOG T40 (5)); `share export`
-  (§3.1) sí la exporta a Parquet, y sirve también como respaldo fuera del equipo. Guarda lo que no se
-  puede volver a pedir: fotos de posiciones que cuentan como días adelante, precio del seguidor
-  grabado en vivo, latencias y veredictos; el exchange solo sirve las 10 000 ejecuciones más
-  recientes. Perderla reinicia la cuenta de 7 días. La copia de la API no la puede abrir (la
-  tiene el servicio de líderes, otro proceso). Mientras tanto, copia en frío a mano: detener el
-  servicio de líderes (§6), copiar el archivo y volver a lanzar el script.
+- **Tamaño y tiempo** (medido el 2026-10-24, antes del despliegue): la instantánea de `leaders.duckdb`
+  en vivo, 454 MB y 3,06 M filas en 278 s (la misma base en frío: 26 s); la hace el servicio de
+  líderes y la API solo espera, sin cerrojos. `reports` (≈ 93 MB) ≈ 8 s y `paper` (≈ 47 MB) ≈ 4 s
+  en frío. Una copia completa ronda ≈ 0,65 GB → con `EIM_BACKUP_KEEP=14`, ≈ 9 GB; la base de
+  líderes crece ≈ 50 MB/día. El ciclo de operación solo espera `reports` + estado (`held_s`).
+  La espera de la instantánea sigue mientras avance (la nuestra o la que va delante en la cola):
+  120 s sin que el servicio atienda ni haya nada en curso, o 300 s parada, = ausente con motivo.
+- **Desplegar:** el servicio de líderes anterior a T115 solo atiende el pedido único antiguo y
+  frena su bucle mientras copia: reiniciar **la API y el servicio de líderes** a la vez (§6).
 
 ### 3.1 Experiencia compartida entre colaboradores (T61)
 Las bases (`data/*.duckdb`, `*.parquet`) **no viajan por git** (`.gitignore`): cada equipo acumula su

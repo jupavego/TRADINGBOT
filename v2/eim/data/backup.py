@@ -1,56 +1,67 @@
-"""Copias de seguridad del almacén y de la configuración (T32).
+"""Copias de seguridad de todo el historial y de la configuración (T32, T115).
 
 Una copia es una carpeta `eim_AAAAMMDD-HHMMSS/` con:
-- `reports.duckdb`: copia consistente de la base (reportes, decisiones de riesgo, libro simulado,
-  alertas, capital, pronósticos). En caliente se hace dentro del proceso de la API, bajo el mismo
-  cerrojo que usan los escritores (`COPY FROM DATABASE`); en frío, adjuntando la base en lectura.
-- `obs.duckdb` (T73): observatorio, DERIVADO de los JSONL (entra en la copia; no viaja, T61).
+- las bases (`eim/data/backup_dbs.py`): `reports.duckdb` (reportes, decisiones de riesgo, libro
+  de planes, alertas, capital, pronósticos), `paper.duckdb` (bróker simulado: contextos,
+  operaciones, validación y el registro inmutable de sugerencias de T51), `leaders.duckdb`
+  (capturas en vivo de líderes, irrepetibles) y `obs.duckdb` (observatorio, derivado). Cada una
+  por su camino: en caliente si la tiene abierta su dueño (API o servicio de líderes), en frío
+  si nadie la usa; si está en uso y su dueño no responde, *ausente con motivo* en el manifiesto.
 - `state/`: kill-switch, estado de la operación, registros JSONL y QC de la captura HFT (T78).
 - `config/`: versiones de parámetros (`eim/risk/versions`, `eim/calibration/versions`).
 - `market/` (opcional, `--with-market`): velas/funding en parquet; se pueden volver a descargar.
-- `manifest.json`: SHA-256 y tamaño de cada archivo, filas por tabla, commit de git.
+- `manifest.json`: SHA-256 y tamaño de cada archivo, filas por tabla de cada base, camino y
+  segundos de cada copia, bases ausentes, commit de git.
 
-Nunca se copian secretos: las claves viven solo en variables de entorno.
-
-CLI (desde `v2/`): `python -m eim.data.backup create|verify|restore|list` (ver `main`).
+Nunca se copian secretos: las claves viven solo en variables de entorno. Verificar y restaurar:
+`eim/data/backup_restore.py`. CLI (desde `v2/`): `python -m eim.data.backup
+create|verify|restore|list` (ver `main`).
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import shutil
 import subprocess
 import threading
 import time
+import urllib.error
 from collections.abc import Callable
 from contextlib import nullcontext
 from datetime import UTC, datetime
 from pathlib import Path
 
-import duckdb
-
+from eim.data.backup_dbs import (
+    API_DBS,
+    DB_NAME,
+    DBS,
+    LEADERS,
+    LEADERS_WAIT_S,
+    OBS_NAME,
+    PAPER,
+    BackupError,
+    DbBusy,
+    copy_db,
+    copy_db_cold,
+    copy_db_hot,
+    in_use,
+    sha256,
+)
+from eim.data.backup_restore import complete, copy_tree, restore, summary, verify
 from eim.data.local_api import DEFAULT_API, post_local
+
+__all__ = ["DB_NAME", "LEADERS", "OBS_NAME", "PAPER", "BackupError", "DbBusy",
+           "copy_db_cold", "copy_db_hot", "create", "due_today", "listing", "prune", "restore",
+           "summary", "verify"]
 
 PKG = Path(__file__).resolve().parents[1]                  # v2/eim
 CONFIG_DIRS = {"risk": PKG / "risk" / "versions", "calibration": PKG / "calibration" / "versions"}
-DB_NAME = "reports.duckdb"
-OBS_NAME = "obs.duckdb"                                    # T73; vive en `<data>/obs/`
 PREFIX = "eim_"
-
-
-class BackupError(RuntimeError):
-    pass
-
-
-def _sha256(p: Path) -> str:
-    h = hashlib.sha256()
-    with p.open("rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
-            h.update(chunk)
-    return h.hexdigest()
+FORMAT = 2                                  # T115: `dbs` + `absent` (T32: `tables`/`extra_tables`)
+PARTIAL_STALE_S = 3600.0                    # un `.partial` más viejo es de una copia interrumpida
+API_TIMEOUT_S = LEADERS_WAIT_S + 300.0
 
 
 def _git_commit() -> str | None:
@@ -64,59 +75,28 @@ def _git_commit() -> str | None:
     return out.stdout.strip() or None
 
 
-def _tables(con) -> dict[str, int]:
-    names = [r[0] for r in con.execute(
-        "SELECT table_name FROM duckdb_tables() WHERE database_name = current_database() "
-        "ORDER BY table_name").fetchall()]
-    return {n: con.execute(f'SELECT count(*) FROM "{n}"').fetchone()[0] for n in names}
-
-
-def _sql_path(p: Path) -> str:
-    """Literal SQL de una ruta (ATTACH no admite parámetros): comillas simples duplicadas."""
-    return "'" + p.as_posix().replace("'", "''") + "'"
-
-
-def copy_db_hot(con, lock, dst: Path) -> dict[str, int]:
-    """Copia consistente desde la conexión abierta de la API (mismo cerrojo que los escritores)."""
-    with lock or nullcontext():
-        src = con.execute("SELECT current_database()").fetchone()[0]
-        con.execute(f"ATTACH {_sql_path(dst)} AS eim_backup")
-        try:
-            con.execute(f'COPY FROM DATABASE "{src}" TO eim_backup')
-        finally:
-            con.execute("DETACH eim_backup")
-        return _tables(con)
-
-
-def copy_db_cold(src: Path, dst: Path) -> dict[str, int]:
-    """Copia con la API detenida. Si la base está en uso → BackupError (usar la vía API)."""
-    con = duckdb.connect()
-    try:
-        con.execute(f"ATTACH {_sql_path(src)} AS src (READ_ONLY)")
-    except (duckdb.IOException, duckdb.BinderException) as e:   # otro proceso / este mismo
-        raise BackupError(f"la base está en uso (¿API en marcha?): {e}") from e
-    try:
-        con.execute(f"ATTACH {_sql_path(dst)} AS eim_backup")
-        con.execute("COPY FROM DATABASE src TO eim_backup")
-        con.execute("USE src")
-        return _tables(con)
-    finally:
-        con.close()
-
-
-def _copy_tree(src: Path, dst: Path, pattern: str = "*") -> None:
-    for p in sorted(src.rglob(pattern)) if src.exists() else []:
-        if p.is_file() and not p.name.endswith(".tmp"):
-            q = dst / p.relative_to(src)
-            q.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(p, q)
-
-
 def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | None = None,
-           with_market: bool = False, keep: int = 14, extra_dbs: dict | None = None,
+           hold=None, with_market: bool = False, keep: int = 14, extra_dbs: dict | None = None,
+           strict: bool = True, leaders_wait_s: float | None = None,
+           sleep: Callable[[float], None] = time.sleep,
            clock: Callable[[], float] = time.time) -> Path:
-    """Crea una copia y poda las más antiguas (se conservan `keep`). Devuelve su carpeta.
-    `extra_dbs` = {nombre: (conexión, cerrojo)} de otras bases abiertas (el observatorio)."""
+    """Crea una copia y poda las antiguas (`prune`). Devuelve su carpeta.
+
+    `con`/`lock`: conexión abierta de `reports.duckdb`; `extra_dbs` = {nombre: (conexión,
+    cerrojo)} de las demás bases que tiene abiertas este proceso (paper, observatorio). `hold`
+    (el ciclo de operación) se retiene SOLO mientras se copian `reports.duckdb` y el estado del
+    servicio, que deben ser coherentes entre sí; líderes, paper y observatorio se copian antes,
+    sin él. `strict`: una base de la API en uso sin su conexión → BackupError al empezar (la CLI
+    se la pide entonces a la API); si no, queda ausente con motivo."""
+    t_start = time.perf_counter()
+    wait = LEADERS_WAIT_S if leaders_wait_s is None else leaders_wait_s
+    live = dict(extra_dbs or {})
+    if con is not None:
+        live[DB_NAME] = (con, lock)
+    for name in API_DBS if strict else ():
+        src = data_dir / DBS[name]
+        if name not in live and src.exists() and (why := in_use(src)):
+            raise DbBusy(f"{name} en uso (¿API en marcha?): {why}")
     stamp = datetime.fromtimestamp(clock(), UTC).strftime("%Y%m%d-%H%M%S")
     out, n = dest_root / f"{PREFIX}{stamp}", 1
     while out.exists():                          # dos copias en el mismo segundo
@@ -125,33 +105,49 @@ def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | 
     tmp = dest_root / f".{out.name}.partial"
     shutil.rmtree(tmp, ignore_errors=True)
     tmp.mkdir(parents=True)
+    dbs: dict[str, dict] = {}
+    absent: dict[str, str] = {}
+
+    def take(name: str) -> None:
+        t0 = time.perf_counter()
+        try:
+            got = copy_db(name, data_dir, tmp / name, live.get(name), leaders_wait_s=wait,
+                          sleep=sleep)
+        except BackupError as e:
+            if strict and name in API_DBS and isinstance(e, DbBusy):
+                raise
+            absent[name] = str(e)
+            return
+        if got is not None:
+            dbs[name] = {"tables": got[0], "via": got[1],
+                         "seconds": round(time.perf_counter() - t0, 2)}
+
     try:
-        db = tmp / DB_NAME
-        if con is not None:
-            tables = copy_db_hot(con, lock, db)
-        elif (data_dir / DB_NAME).exists():
-            tables = copy_db_cold(data_dir / DB_NAME, db)
-        else:
-            tables = {}
-        extra = {n: copy_db_hot(c, lk, tmp / n) for n, (c, lk) in (extra_dbs or {}).items()}
-        if not extra_dbs and (data_dir / "obs" / OBS_NAME).exists():
-            extra[OBS_NAME] = copy_db_cold(data_dir / "obs" / OBS_NAME, tmp / OBS_NAME)
-        if (data_dir / "kill_switch.json").exists():
-            (tmp / "state").mkdir(exist_ok=True)
-            shutil.copy2(data_dir / "kill_switch.json", tmp / "state" / "kill_switch.json")
-        _copy_tree(data_dir / "operation", tmp / "state" / "operation")
-        _copy_tree(data_dir / "micro_hft" / "qc", tmp / "state" / "micro_hft_qc", "*.json")
+        for name in (LEADERS, PAPER, OBS_NAME):  # sin `hold`: no dependen del ciclo
+            take(name)
+        with hold or nullcontext():
+            t_hold = time.perf_counter()
+            take(DB_NAME)
+            if (data_dir / "kill_switch.json").exists():
+                (tmp / "state").mkdir(exist_ok=True)
+                shutil.copy2(data_dir / "kill_switch.json", tmp / "state" / "kill_switch.json")
+            copy_tree(data_dir / "operation", tmp / "state" / "operation")
+            held_s = round(time.perf_counter() - t_hold, 2)
+        copy_tree(data_dir / "micro_hft" / "qc", tmp / "state" / "micro_hft_qc", "*.json")
         for name, d in CONFIG_DIRS.items():
-            _copy_tree(d, tmp / "config" / name, "*.json")
+            copy_tree(d, tmp / "config" / name, "*.json")
         if with_market:
             for sub in ("candles", "funding"):
-                _copy_tree(data_dir / sub, tmp / "market" / sub)
-        files = {p.relative_to(tmp).as_posix(): {"sha256": _sha256(p), "bytes": p.stat().st_size}
+                copy_tree(data_dir / sub, tmp / "market" / sub)
+        files = {p.relative_to(tmp).as_posix(): {"sha256": sha256(p), "bytes": p.stat().st_size}
                  for p in sorted(tmp.rglob("*")) if p.is_file()}
-        manifest = {"created_at": stamp, "git_commit": _git_commit(), "data_dir": str(data_dir),
-                    "with_market": with_market, "tables": tables, "extra_tables": extra,
+        manifest = {"format": FORMAT, "created_at": stamp, "git_commit": _git_commit(),
+                    "data_dir": str(data_dir), "with_market": with_market,
+                    "dbs": {k: dbs[k] for k in DBS if k in dbs}, "absent": absent,
+                    "held_s": held_s, "seconds": round(time.perf_counter() - t_start, 2),
                     "files": files}
-        (tmp / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
+        (tmp / "manifest.json").write_text(json.dumps(manifest, indent=1, ensure_ascii=False),
+                                           encoding="utf-8")
         tmp.replace(out)
     except BaseException:
         shutil.rmtree(tmp, ignore_errors=True)
@@ -165,88 +161,28 @@ def listing(dest_root: Path) -> list[Path]:
         if dest_root.exists() else []
 
 
-def prune(dest_root: Path, keep: int) -> list[Path]:
-    old = listing(dest_root)[:-keep] if keep > 0 else []
+def _age_s(p: Path, now_s: float) -> float:
+    return now_s - max((q.stat().st_mtime for q in (p, *p.rglob("*"))), default=now_s)
+
+
+def prune(dest_root: Path, keep: int, now_s: float | None = None) -> list[Path]:
+    """Conserva las `keep` copias COMPLETAS más recientes y, aparte, las `keep` más recientes de
+    cualquier tipo: una copia con bases ausentes nunca empuja fuera a la última completa. Los
+    restos `.partial` (copia interrumpida) nunca cuentan y se borran pasada `PARTIAL_STALE_S`
+    (los más nuevos pueden ser una copia en curso de otro proceso)."""
+    if keep <= 0:
+        return []
+    every = listing(dest_root)
+    stay = set(every[-keep:]) | set([p for p in every if complete(p)][-keep:])
+    old = [p for p in every if p not in stay]
     for p in old:
         shutil.rmtree(p)
+    now = time.time() if now_s is None else now_s
+    for p in sorted(dest_root.glob(f".{PREFIX}*.partial")) if dest_root.exists() else []:
+        if _age_s(p, now) > PARTIAL_STALE_S:
+            shutil.rmtree(p, ignore_errors=True)
+            old.append(p)
     return old
-
-
-def verify(backup: Path) -> list[str]:
-    """Problemas encontrados (vacío = copia íntegra): hashes, archivos y filas por tabla."""
-    mf = backup / "manifest.json"
-    if not mf.exists():
-        return ["falta manifest.json"]
-    m = json.loads(mf.read_text(encoding="utf-8"))
-    problems = []
-    for rel, meta in m["files"].items():
-        p = backup / rel
-        if not p.exists():
-            problems.append(f"falta {rel}")
-        elif _sha256(p) != meta["sha256"]:
-            problems.append(f"hash distinto: {rel}")
-    if (backup / DB_NAME).exists() and not problems:
-        con = duckdb.connect(str(backup / DB_NAME), read_only=True)
-        try:
-            got = _tables(con)
-        finally:
-            con.close()
-        if got != m["tables"]:
-            problems.append(f"filas por tabla distintas: {got} ≠ {m['tables']}")
-    for name, want in m.get("extra_tables", {}).items():
-        if (backup / name).exists() and not problems:
-            con = duckdb.connect(str(backup / name), read_only=True)
-            if _tables(con) != want:
-                problems.append(f"filas por tabla distintas en {name}")
-            con.close()
-    return problems
-
-
-def restore(backup: Path, data_dir: Path,
-            clock: Callable[[], float] = time.time) -> list[str]:
-    """Restaura base y estado en `data_dir` (API DETENIDA). Lo que se reemplaza se conserva con
-    el sufijo `.antes-de-restaurar-<AAAAMMDD-HHMMSS>` (cada restauración el suyo: restaurar dos
-    veces no pierde el original). La configuración versionada vive en git: no se pisa."""
-    problems = verify(backup)
-    if problems:
-        raise BackupError("copia no íntegra: " + "; ".join(problems))
-    db = data_dir / DB_NAME
-    data_dir.mkdir(parents=True, exist_ok=True)
-    suffix = ".antes-de-restaurar-" + datetime.fromtimestamp(clock(), UTC).strftime(
-        "%Y%m%d-%H%M%S")
-    restored = []
-    if (backup / DB_NAME).exists():
-        if db.exists():
-            try:          # otro proceso con la base abierta: bloqueo de DuckDB / de Windows
-                duckdb.connect(str(db)).close()
-                os.replace(db, db.with_name(DB_NAME + suffix))
-            except (duckdb.IOException, PermissionError) as e:
-                raise BackupError(f"detén la API antes de restaurar: {e}") from e
-        db.with_name(DB_NAME + ".wal").unlink(missing_ok=True)
-        shutil.copy2(backup / DB_NAME, db)
-        restored.append(DB_NAME)
-    if (backup / OBS_NAME).exists():             # derivado: se restaura, no se mezcla
-        obs = data_dir / "obs" / OBS_NAME
-        obs.parent.mkdir(parents=True, exist_ok=True)
-        if obs.exists():
-            os.replace(obs, obs.with_name(OBS_NAME + suffix))
-        obs.with_name(OBS_NAME + ".wal").unlink(missing_ok=True)
-        shutil.copy2(backup / OBS_NAME, obs)
-        restored.append(OBS_NAME)
-    state = backup / "state"
-    if (state / "kill_switch.json").exists():
-        shutil.copy2(state / "kill_switch.json", data_dir / "kill_switch.json")
-        restored.append("kill_switch.json")
-    if (state / "operation").exists():
-        op = data_dir / "operation"
-        if op.exists():   # sin restos de un estado que la copia no tenía (p. ej. otro modo)
-            op.rename(op.with_name("operation" + suffix))
-        _copy_tree(state / "operation", op)
-        restored.append("operation/")
-    if (backup / "market").exists():
-        _copy_tree(backup / "market", data_dir)
-        restored.append("market")
-    return restored
 
 
 def due_today(dest_root: Path, now_s: float) -> bool:
@@ -255,9 +191,45 @@ def due_today(dest_root: Path, now_s: float) -> bool:
     return not any(p.name.startswith(f"{PREFIX}{day}") for p in listing(dest_root))
 
 
+def _print_summary(s: dict, head: str) -> None:
+    print(f"{s['path']}: {head}")
+    for name, d in s["dbs"].items():
+        t = d["tables"]
+        how = f"{d['via']}, {d['seconds']} s" if d.get("via") else "copia de T32"
+        print(f"  {name:<15} {len(t):>3} tablas {sum(t.values()):>13,} filas  ({how})")
+    for name, why in s["absent"].items():
+        print(f"  {name:<15} AUSENTE: {why}")
+    if s.get("seconds") is not None:
+        print(f"  {s['files']} archivos, {s['bytes'] / 1e6:.1f} MB, {s['seconds']} s "
+              f"(ciclo de operación retenido {s['held_s']} s)")
+
+
+def _create_cli(a) -> dict:
+    """En frío; si una base de la API está en uso, se la pide a la API (que pide a su vez la de
+    líderes a su servicio); sin API, en frío lo que esté libre y el resto ausente con motivo."""
+    kw = {"with_market": a.with_market, "keep": a.keep}
+    try:
+        return summary(create(a.data_dir, a.dest, **kw))
+    except BackupError as e:
+        print(f"{e}\n→ pidiendo la copia a la API ({a.api})")
+    q = "?with_market=true" if a.with_market else ""
+    try:
+        res = post_local(a.api, f"/v2/backup{q}", "backup", timeout=API_TIMEOUT_S)
+    except (urllib.error.URLError, OSError) as e:
+        print(f"la API no respondió ({e}): copia en frío; lo que siga en uso queda ausente")
+    else:
+        if "dbs" not in res:              # API en marcha con código anterior a T115
+            res = {**res, "dbs": {}, "seconds": None, "absent": {
+                "?": "la API en marcha es anterior a T115 (solo reports y observatorio): "
+                     "reiníciala y repite"}}
+        return res
+    return summary(create(a.data_dir, a.dest, strict=False, **kw))
+
+
 def main(argv: list[str] | None = None) -> int:
     """Mismos valores por defecto que la API (`EIM_DATA_DIR`, `EIM_BACKUP_DIR`,
-    `EIM_BACKUP_KEEP`): la CLI encuentra las copias que hizo el servicio."""
+    `EIM_BACKUP_KEEP`): la CLI encuentra las copias que hizo el servicio. Salida: 0 = copia
+    íntegra y completa, 2 = íntegra con bases ausentes, 1 = dañada o sin copias."""
     env = os.environ
     ap = argparse.ArgumentParser(prog="eim.data.backup")
     ap.add_argument("cmd", choices=["create", "verify", "restore", "list"])
@@ -267,32 +239,32 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--keep", type=int, default=int(env.get("EIM_BACKUP_KEEP", "14")))
     ap.add_argument("--with-market", action="store_true")
     ap.add_argument("--api", default=DEFAULT_API,
-                    help="si la base está en uso, la copia la hace la API en marcha")
+                    help="si una base está en uso, la copia la hace la API en marcha")
     a = ap.parse_args(argv)
     if a.cmd == "list":
         for p in listing(a.dest):
-            print(p)
+            print(f"{p}{'' if complete(p) else '  (incompleta)'}")
         return 0
     if a.cmd == "create":
-        try:
-            out = create(a.data_dir, a.dest, with_market=a.with_market, keep=a.keep)
-        except BackupError as e:
-            print(f"{e} → pidiendo la copia a la API ({a.api})")
-            q = "?with_market=true" if a.with_market else ""
-            res = post_local(a.api, f"/v2/backup{q}", "backup", timeout=300)
-            print(json.dumps(res, ensure_ascii=False, indent=1))
-            return 0
-        print(out)
-        return 0
+        s = _create_cli(a)
+        _print_summary(s, "copia hecha" if not s["absent"] else "copia INCOMPLETA")
+        return 2 if s["absent"] else 0
     target = Path(a.backup) if a.backup else (listing(a.dest) or [None])[-1]
     if target is None:
         print("no hay copias")
         return 1
     if a.cmd == "verify":
         problems = verify(target)
-        print(f"{target}: " + ("íntegra" if not problems else "; ".join(problems)))
-        return 1 if problems else 0
+        if problems:
+            print(f"{target}: " + "; ".join(problems))
+            return 1
+        s = summary(target)
+        _print_summary(s, "íntegra" if not s["absent"] else "íntegra pero INCOMPLETA")
+        return 2 if s["absent"] else 0
+    s = summary(target)
     print("restaurado:", restore(target, a.data_dir))
+    for name, why in s["absent"].items():
+        print(f"no estaba en la copia (se conserva la local): {name} — {why}")
     return 0
 
 

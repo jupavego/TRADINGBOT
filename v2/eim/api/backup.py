@@ -1,11 +1,11 @@
-"""Copias de seguridad en caliente (`/v2/backup`): la API tiene la base abierta, así que la
-copia se hace aquí, bajo el cerrojo de los escritores (T32). Lógica en `eim/data/backup.py`.
-Con el servicio de operación en marcha, la copia espera a que termine el ciclo en curso: base
-y estado del servicio (libro simulado, cursores) quedan consistentes entre sí."""
+"""Copias de seguridad en caliente (`/v2/backup`): la API tiene abiertas `reports.duckdb`,
+`paper.duckdb` y el observatorio, así que la copia se hace aquí (T32, T115); `leaders.duckdb` se
+la pide al servicio de líderes. Lógica en `eim/data/backup.py`. Con el servicio de operación en
+marcha, `reports.duckdb` y el estado del servicio (libro, cursores) se copian entre dos ciclos:
+quedan consistentes entre sí."""
 
 from __future__ import annotations
 
-import json
 from collections.abc import Callable
 from pathlib import Path
 
@@ -37,8 +37,6 @@ def build_backup_router(reports: ReportStore, data_dir: Path, dest: Path, keep: 
             con, lock = reports.connection
             out = backup.create(data_dir, dest, con=con, lock=lock, with_market=with_market,
                                 keep=keep, extra_dbs=extra_dbs)
-        m = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
-        return {"path": str(out), "name": out.name, "files": len(m["files"]),
-                "tables": m["tables"]}
+        return backup.summary(out)      # bases con filas por tabla y las ausentes con motivo
 
     return r

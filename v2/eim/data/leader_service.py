@@ -29,11 +29,11 @@ from eim.copytrading.copy_params import CopyParams
 from eim.copytrading.copy_risk import copy_config
 from eim.core.leaders import Leader
 from eim.data.copy_live import CopyLive
-from eim.data.copy_store import take_snapshot_request
 from eim.data.hl_market import exchange_spec
 from eim.data.leader_board import BoardStore
 from eim.data.leader_eval import evaluate, refresh_portfolios
 from eim.data.leader_quotes import QuoteBook
+from eim.data.leader_snapshot import take_snapshot_request
 from eim.data.leader_store import LeaderStore
 from eim.data.leader_watch import LeaderWatch
 from eim.data.providers.leaders import HyperliquidInfo, HyperliquidStream
@@ -70,6 +70,7 @@ class LeaderService(LeaderWatch):
         self._next = {"score": start + first_score_s, "portfolio": start, "heartbeat": start}
         self.boards_saved = 0
         self.share = None             # T61: `ShareAgent` (lo asigna la CLI `run` si hay nube)
+        self._snap_task: asyncio.Task | None = None       # instantánea a pedido en curso
         self.copy: CopyLive | None = None
         self._copy_logged: dict[str, float] = {}
         if copy_mode != "off":
@@ -183,9 +184,14 @@ class LeaderService(LeaderWatch):
             if got:
                 self._copy_call("cotizaciones", self.copy.on_quotes, got, self.now())
             self._copy_call("vuelta", self.copy.tick, self.now())
-        snap = take_snapshot_request(self.root)  # copia de la base pedida por `copy-sim` (T42)
-        if snap is not None:
-            await self._safe("instantánea", asyncio.to_thread(self.store.snapshot, snap))
+        # Copia de la base pedida por `copy-sim` (T42) o por la copia de seguridad (T115): en una
+        # tarea aparte (≈ 5 min en vivo con 450 MB), así reconciliación, sondeos y la vuelta de
+        # la copia simulada no esperan. Una a la vez: el pedido siguiente aguarda a que acabe.
+        if self._snap_task is None or self._snap_task.done():
+            snap = take_snapshot_request(self.root)
+            if snap is not None:
+                self._snap_task = asyncio.create_task(self._safe(
+                    "instantánea", asyncio.to_thread(self.store.snapshot, snap)))
         if self.share is not None and self.share.due():   # T61: exportar/importar experiencia
             await self._safe("compartir", asyncio.to_thread(self.share.tick))
         now = time.monotonic()

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-24T02:25:32",
+ "generated": "2026-10-24T10:14:29",
  "tasks": [
   {
    "id": "T01",
@@ -1455,8 +1455,8 @@ window.EIM_STATUS = {
     "T32",
     "T61"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**Construido y probado; ◆ falta la aceptación en vivo (exige desplegar: reiniciar API y servicio de líderes).** `backup create` copia `reports`, `paper`, `leaders` y `obs` cada una por su camino (`eim/data/backup_dbs.py`): en caliente con la conexión de la API (una sentencia en cursor propio, sin retener a los escritores), `leaders` por instantánea pedida al servicio (`eim/data/leader_snapshot.py`: un pedido por archivo, en orden, espera mientras avance, limpieza solo de restos; el servicio la hace en una tarea aparte y su bucle sigue), en frío si nadie la usa; en uso sin dueño que responda o dañada → *ausente con motivo* en el manifiesto (formato 2). `verify` (0 completa / 2 incompleta / 1 dañada) y `restore` (`eim/data/backup_restore.py`: comprueba que ninguna base esté abierta antes de tocar nada, reemplaza entera y aparta la anterior con `.wal`) cubren las tres; lee copias de T32. Copia diaria en un hilo: el ciclo solo espera `reports` + estado (`held_s`); alerta «incompleta». `EIM_BACKUP_KEEP` cuenta copias completas; `.partial` nunca. Pruebas: `tests/data/test_backup_full.py`, `test_backup_service.py`, `test_leader_snapshot.py` (ida y vuelta con filas y SHA-256, bases bloqueadas por otro proceso real). Medido en vivo: instantánea de `leaders` 454 MB en 278 s (en frío 26 s); copia completa ≈ 0,65 GB (≈ 9 GB con 14). Docs: OPERACION §3, RUNBOOK §5/§8/§10.",
    "effort": "medio",
    "phase": 20,
    "goal": "Que una copia de seguridad contenga **todo el historial**, no solo los reportes. Hoy `backup create` copia `reports.duckdb` (y `obs.duckdb`, derivado) y deja fuera `paper.duckdb` (contextos del bróker simulado, operaciones y el registro inmutable de sugerencias de T51) y `leaders.duckdb` (capturas en vivo irrepetibles). Restaurar desde `backups/` recupera los reportes y pierde lo demás: ver `PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §A."

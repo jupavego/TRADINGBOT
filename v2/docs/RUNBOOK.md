@@ -73,21 +73,38 @@ Causas (ver `reason` en `GET $API/v2/risk/kill-switch` y eventos): drawdown ≥ 
 ## 5. Restaurar desde copia de seguridad
 > Para traer el historial de **otro equipo** (no restaurar el propio): `python -m eim.data.share import` (OPERACION.md §3.1).
 
+Una copia (T115) lleva las tres bases con historial —`reports.duckdb`, `paper.duckdb` (bróker
+simulado y registro de sugerencias) y `leaders.duckdb` (capturas de líderes y copia simulada)—,
+el observatorio (`obs/obs.duckdb`, derivado), el kill-switch y el estado del servicio.
+
 ```bash
-# 1) detener la API / servicio (Ctrl+C en eim.operation run)
+# 1) detener TODO lo que abre las bases: el vigilante y la API (Ctrl+C en eim.operation run)
+#    y el servicio de líderes (eim.leaders supervise + run; comando en OPERACION.md §6)
 python -m eim.data.backup list
 python -m eim.data.backup verify backups/eim_AAAAMMDD-HHMMSS
 python -m eim.data.backup restore backups/eim_AAAAMMDD-HHMMSS --data-dir data
 # 2) relanzar y comprobar
-python -m eim.operation run --execution paper
+powershell -ExecutionPolicy Bypass -File scripts\servicio_continuo.ps1 -ConWeb
 ```
-`restore` verifica hashes antes de tocar nada, se niega si la base está abierta, guarda la base
-actual como `reports.duckdb.antes-de-restaurar-<AAAAMMDD-HHMMSS>` y la carpeta `operation/` como
-`operation.antes-de-restaurar-<…>` (cada restauración con su sello: repetirla no pierde el original)
-y restaura kill-switch y estado del servicio.
-La configuración versionada no se restaura (vive en git; la copia la conserva para auditoría).
-Velas: si no se copiaron, se vuelven a descargar solas (`EIM_AUTO_HISTORY=1`).
-En testnet, tras restaurar: reconciliar (§2) antes de reactivar.
+- `verify` lista cada base con sus tablas y filas, y las **ausentes** con su motivo. Salida 0 =
+  íntegra y completa; 2 = íntegra pero incompleta (una base estaba en uso y su dueño no la
+  entregó: se puede restaurar el resto); 1 = dañada (archivo que falta, hash o filas distintas):
+  no se restaura, prueba con la copia anterior.
+- `restore` comprueba la copia y que **ninguna** base de destino esté abierta **antes de tocar
+  nada**: con la API o el servicio de líderes en marcha falla con «detén la API y el servicio de
+  líderes antes de restaurar (en uso: …); no se ha tocado nada».
+- Cada base se **reemplaza entera** (nunca se mezcla): la actual queda al lado como
+  `<base>.antes-de-restaurar-<AAAAMMDD-HHMMSS>` (con su `.wal`, si lo había), y la carpeta
+  `operation/` como `operation.antes-de-restaurar-<…>` (cada restauración con su sello: repetirla no
+  pierde el original). Una base **ausente** en la copia no se toca (sigue la local). Para volver
+  atrás, borra la restaurada y quita el sufijo a la apartada.
+- Restaura también kill-switch y estado del servicio. La configuración versionada no se restaura
+  (vive en git; la copia la conserva para auditoría). Velas: si no se copiaron, se vuelven a
+  descargar solas (`EIM_AUTO_HISTORY=1`).
+- Tras restaurar `leaders.duckdb`, los días adelante y la copia simulada siguen donde quedó la copia;
+  lo capturado entre la copia y la restauración se pierde (el exchange solo devuelve las 10 000
+  ejecuciones más recientes por líder).
+- En testnet, tras restaurar: reconciliar (§2) antes de reactivar.
 
 ## 6. Proceso caído o colgado
 `eim.operation run` es un vigilante: relanza la API si muere o si el latido
@@ -102,10 +119,14 @@ Normal que el riesgo vete: cada veto queda en `GET $API/v2/risk/decisions` con s
 agente crítico está `degraded`/`no_data`, revisar cobertura del snapshot (`GET $API/v2/agents`) y
 la fuente de datos (§3). No se fuerza la ejecución: el riesgo tiene la última palabra.
 
-## 8. Copia diaria fallida
+## 8. Copia diaria fallida o incompleta
 Alerta `copia_seguridad` con el error (disco lleno, ruta inexistente, permisos). Corregir y esperar
 el reintento automático (cada hora) o forzar `python -m eim.data.backup create`. La operación no
 se detiene por esto.
+**«Copia de seguridad incompleta»:** la copia se hizo, pero una base quedó *ausente* con el motivo
+del aviso; casi siempre `leaders.duckdb` con el servicio de líderes colgado (no entregó la
+instantánea) → §10, y luego `python -m eim.data.backup create` (salida 0 = completa). La retención
+nunca borra la última copia completa por culpa de las incompletas.
 
 ## 9. Sospecha de clave comprometida (testnet)
 Revocar la clave en la testnet, crear otra (solo futuros, sin retiro, con restricción de IP),
@@ -128,9 +149,9 @@ minuto sin captura retrasa la aprobación de líderes (los días adelante solo c
    en primer plano para ver el error: `python -m eim.leaders run --minutes 5`. Salida de consola del
    servicio: `data/operation/logs/lideres.err.log`. Causas típicas: sin red o Hyperliquid caído
    (la captura reintenta sola sin morir), disco lleno, base dañada.
-5. **Base dañada:** no hay copia automática todavía (BACKLOG T40 (5)). Renombrar
-   `data/leaders.duckdb` y volver a registrar los líderes (`add 0x… --watch`) reinicia la cuenta de
-   días adelante: último recurso.
+5. **Base dañada:** restaurar `leaders.duckdb` de la última copia que la tenga (§5; la copia
+   diaria la pide al servicio). Solo si ninguna copia la tiene: renombrar `data/leaders.duckdb` y
+   volver a registrar los líderes (`add 0x… --watch`), que reinicia la cuenta de días adelante.
 6. **Tras el arreglo:** el tablero se renueva en ≤ 5 min y `smart_money` vuelve a tener datos. Si
    el apagado fue largo, ver en `docs/OPERACION.md` §6 qué huecos quedan (tope de 10 000
    ejecuciones y de 24 h por líder al volver).
