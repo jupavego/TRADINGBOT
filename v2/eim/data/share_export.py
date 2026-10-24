@@ -18,7 +18,8 @@ from typing import Protocol
 
 import duckdb
 
-from eim.data.backup import _sha256, _sql_path
+from eim.data.backup_dbs import sha256 as _sha256
+from eim.data.backup_dbs import sql_path as _sql_path
 from eim.data.share_spec import DB_ORDER, FORMAT, SCHEMA_VERSION, specs_of
 
 PKG = Path(__file__).resolve().parents[1]

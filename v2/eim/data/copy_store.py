@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS copy_journal (
 """
 SUMMARY = "copy_sim.json"
 CONTROL = "copy_control.json"
-SNAPSHOT_REQ = "snapshot_request.json"
 
 
 class CopyTables:
@@ -106,34 +105,3 @@ def take_control(root: str | Path) -> dict | None:
         d = None
     path.unlink(missing_ok=True)
     return d
-
-
-def snapshot_path(root: str | Path, requested_at: int) -> Path:
-    return Path(root) / "leaders" / f"snapshot-{requested_at}.duckdb"
-
-
-def request_snapshot(root: str | Path, now: int) -> Path:
-    """Pide al servicio una copia de `leaders.duckdb`; devuelve dónde la dejará (un archivo
-    por pedido: una copia que otro proceso tenga abierta nunca bloquea la siguiente)."""
-    path = Path(root) / "leaders" / SNAPSHOT_REQ
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"requested_at": now}), encoding="utf-8")
-    return snapshot_path(root, now)
-
-
-def take_snapshot_request(root: str | Path) -> Path | None:
-    """Destino de la copia pedida (None sin pedido). Borra, si puede, las copias anteriores."""
-    path = Path(root) / "leaders" / SNAPSHOT_REQ
-    if not path.exists():
-        return None
-    try:
-        t = int(json.loads(path.read_text(encoding="utf-8"))["requested_at"])
-    except (OSError, ValueError, KeyError, TypeError):
-        t = 0
-    path.unlink(missing_ok=True)
-    for old in path.parent.glob("snapshot-*.duckdb"):
-        try:
-            old.unlink()
-        except OSError:  # abierta por otro proceso: se borra en el próximo pedido
-            pass
-    return snapshot_path(root, t)

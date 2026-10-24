@@ -59,7 +59,8 @@ class Operation:
                  params: OperationParams, data_dir: Path, reports_dir: Path, edge_path: Path,
                  forecaster=None, bots=None, sinks: Iterable[Sink] | None = None,
                  backup_dir: Path | None = None, backup_keep: int = 14,
-                 extra_dbs: dict | None = None, clock: Callable[[], int] = _now) -> None:
+                 extra_dbs: dict | None = None, backup_in_thread: bool = False,
+                 clock: Callable[[], int] = _now) -> None:
         con, lock = reports.connection
         rt = desk.rt
         self.mode = desk.mode.value
@@ -72,6 +73,10 @@ class Operation:
         self._step_lock = threading.RLock()
         self._compact_at = 0
         self._backup_retry_at = 0          # tras un fallo, reintento espaciado (BACKUP_RETRY_MS)
+        self.backup_in_thread = backup_in_thread
+        self._backup_lock = threading.Lock()                 # una copia a la vez
+        self._backup_thread: threading.Thread | None = None
+        self._backup_done: tuple[str, str] | None = None     # resultado del hilo, sin publicar
         self.book = EquityBook(con, lock, self.mode) if rt.svc is not None else None
         rt.equity_book = self.book
         self.log = JsonLog(self.root / "logs", clock)
@@ -198,32 +203,58 @@ class Operation:
 
     def backup_if_due(self, now: int) -> None:
         """Copia de seguridad diaria (UTC). Un fallo alerta (una vez) y se reintenta cada
-        `BACKUP_RETRY_MS` (no en cada ciclo: la copia retiene el cerrojo de la base); nunca
-        detiene la operación."""
-        if (self.backup_dir is None or now < self._backup_retry_at
+        `BACKUP_RETRY_MS` (no en cada ciclo); una copia con bases ausentes alerta y no se repite
+        ese día. Nunca detiene la operación: con `backup_in_thread` (en vivo) corre en un hilo y
+        el ciclo solo espera el tramo de `reports.duckdb` + estado (T115); el resultado se
+        publica en el ciclo siguiente (las alertas no se tocan desde otro hilo)."""
+        running = self._backup_thread is not None and self._backup_thread.is_alive()
+        if not running and self._backup_done is not None:     # el hilo ya terminó de escribir
+            done, self._backup_done = self._backup_done, None
+            self._publish_backup(now, *done)
+        if (self.backup_dir is None or now < self._backup_retry_at or running
                 or not backup.due_today(self.backup_dir, now / 1000)):
             return
-        err = ""
+        if self.backup_in_thread:
+            def run() -> None:
+                self._backup_done = self._daily_backup(now)
+            self._backup_thread = threading.Thread(target=run, name="eim-backup", daemon=True)
+            self._backup_thread.start()
+        else:
+            self._publish_backup(now, *self._daily_backup(now))
+
+    def _daily_backup(self, now: int) -> tuple[str, str]:
+        """(título, detalle) de la alerta `copia_seguridad`; detalle vacío = copia completa."""
         try:
-            out = self.backup_now(clock=lambda: now / 1000)
-            self.log.write("copia_seguridad", path=str(out))
-            hooks_service.service_event("operation.backup", "copia diaria hecha")
+            s = backup.summary(self.backup_now(clock=lambda: now / 1000))
         except Exception as e:  # noqa: BLE001 - se alerta y se sigue operando
             err = f"{type(e).__name__}: {e}"
             self._backup_retry_at = now + BACKUP_RETRY_MS
             self.log.write("copia_seguridad", "warn", error=err)
             hooks_service.service_error("operation.backup", e)
-        self.alerts.update(now, [Condition("copia_seguridad", BACKUP, bool(err), WARN,
-                                           "Copia de seguridad fallida", err)])
+            return "Copia de seguridad fallida", err
+        self.log.write("copia_seguridad", "warn" if s["absent"] else "info", path=s["path"],
+                       mb=round(s["bytes"] / 1e6, 1), seconds=s["seconds"], held_s=s["held_s"],
+                       absent=s["absent"])
+        hooks_service.service_event("operation.backup", "copia diaria hecha")
+        if not s["absent"]:
+            return "Copia de seguridad", ""             # resuelve un fallo o una incompleta
+        return "Copia de seguridad incompleta", "; ".join(
+            f"{k}: {v}" for k, v in s["absent"].items())
+
+    def _publish_backup(self, now: int, title: str, err: str) -> None:
+        self.alerts.update(now, [Condition("copia_seguridad", BACKUP, bool(err), WARN, title,
+                                           err)])
 
     def backup_now(self, with_market: bool = False, clock: Callable[[], float] = time.time):
-        """Copia entre ciclos (base + estado del servicio consistentes entre sí)."""
+        """Copia a demanda o diaria, una a la vez. `reports.duckdb` y el estado del servicio se
+        copian entre ciclos (coherentes entre sí); líderes, paper y observatorio, sin frenarlo."""
         if self.backup_dir is None:
             raise RuntimeError("sin carpeta de copias")
-        with self._step_lock:
+        with self._backup_lock:
             return backup.create(self.data_dir, self.backup_dir, con=self._db[0],
-                                 lock=self._db[1], with_market=with_market,
-                                 keep=self.backup_keep, extra_dbs=self.extra_dbs, clock=clock)
+                                 lock=self._db[1], hold=self._step_lock,
+                                 with_market=with_market, keep=self.backup_keep,
+                                 extra_dbs=self.extra_dbs, clock=clock)
 
 
 class Supervisor:

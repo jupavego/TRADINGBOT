@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import time
 from pathlib import Path
 
 import duckdb
@@ -26,12 +25,11 @@ from eim.copytrading.copy_risk import copy_config
 from eim.copytrading.stats import quantile
 from eim.core.leaders import leader_id
 from eim.data.copy_replay import ReplayResult, funding_rates, replay
-from eim.data.copy_store import read_summary, request_resume, request_snapshot
+from eim.data.copy_store import read_summary, request_resume
 from eim.data.hl_market import candles_1m, exchange_spec
+from eim.data.leader_snapshot import request_snapshot, wait_snapshot
 from eim.data.leader_store import DB_NAME, LeaderStore
 from eim.data.providers.leaders import HyperliquidInfo, now_ms
-
-SNAPSHOT_WAIT_S = 90.0
 
 
 def add_parsers(sub) -> None:
@@ -72,13 +70,12 @@ def _open(a: argparse.Namespace) -> tuple[LeaderStore, str]:
         if a.db:
             raise
     snap = request_snapshot(a.root, now_ms())
-    deadline = time.monotonic() + SNAPSHOT_WAIT_S
-    while time.monotonic() < deadline:
-        time.sleep(1.0)
-        if snap.exists():  # aparece completa: se escribe aparte y se renombra al terminar
-            return LeaderStore(snap), f"{snap} (instantánea del servicio)"
-    raise SystemExit("leaders.duckdb está en uso y el servicio no respondió a la instantánea "
-                     f"en {SNAPSHOT_WAIT_S:.0f} s: usa --db con una copia")
+    try:                   # espera mientras avance (≈ 5 min con 450 MB, o la cola delante)
+        wait_snapshot(a.root, snap)
+    except TimeoutError as exc:
+        raise SystemExit(f"leaders.duckdb está en uso y el servicio {exc}: usa --db con una "
+                         "copia") from exc
+    return LeaderStore(snap), f"{snap} (instantánea del servicio)"
 
 
 def _select(store: LeaderStore, which: str) -> list:

@@ -98,6 +98,8 @@ def create_app(
     hub = Hub(src, store, reports, reg, cfg.snapshot_bars, cfg.agent_timeout_s, forecaster, history,
               bots)
     obs_store, obs_indexer, obs_dbs = build_observatory(cfg.data_dir, reports)   # T73
+    paper_store = PaperStore(cfg.data_dir / "paper.duckdb")       # T47; base propia
+    backup_dbs = {**obs_dbs, "paper.duckdb": paper_store.connection}  # T115: entra en la copia
     rcon, rlock = reports.connection
     kill = global_kill_switch()
     kill.attach(cfg.data_dir / "kill_switch.json")
@@ -116,7 +118,7 @@ def create_app(
                        data_dir=cfg.data_dir, reports_dir=cfg.operation_reports,
                        edge_path=cfg.edge_results, forecaster=forecaster, bots=bots,
                        backup_dir=cfg.backup_dir, backup_keep=cfg.backup_keep,
-                       extra_dbs=obs_dbs)
+                       extra_dbs=backup_dbs, backup_in_thread=source is None)
 
     # T36: solo en vivo (con fuente inyectada —tests— no hay red).
     calendar = (CalendarSync(cfg.data_dir, interval_s=cfg.calendar_interval_s)
@@ -139,8 +141,7 @@ def create_app(
     if runtime.recon is not None:
         runtime.recon.external = arb_rt.futures_qty
     runtime.extra_open = arb_rt.open_symbols
-    # T47: bróker simulado; base propia y servicio en vivo solo con la fuente real.
-    paper_store = PaperStore(cfg.data_dir / "paper.duckdb")
+    # T47: bróker simulado; servicio en vivo solo con la fuente real.
     paper = PaperDesk(store, paper_store, reg,
                       provider=BinanceFutures() if source is None else None,
                       poll_s=cfg.paper_poll_s)
@@ -208,7 +209,7 @@ def create_app(
     app.include_router(build_operation_router(desk, lambda: op, cfg.operation_reports))
     app.include_router(build_execution_router(runtime, now_ms))
     app.include_router(build_backup_router(reports, cfg.data_dir, cfg.backup_dir,
-                                           cfg.backup_keep, lambda: op, extra_dbs=obs_dbs))
+                                           cfg.backup_keep, lambda: op, extra_dbs=backup_dbs))
     app.include_router(build_obs_router(obs_store, obs_indexer, (rcon, rlock)))
     app.state.obs_store, app.state.obs_indexer = obs_store, obs_indexer
     app.include_router(build_share_router(reports, paper_store, cfg.data_dir, lambda: share))
