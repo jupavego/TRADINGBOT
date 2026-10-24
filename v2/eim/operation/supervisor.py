@@ -3,7 +3,7 @@
 Dos niveles de reinicio automático:
 1. Dentro del proceso (`Supervisor.run`): un ciclo que lanza una excepción no mata el bucle;
    se registra, se avisa (alerta «servicio» tras fallos seguidos) y se reintenta con espera
-   exponencial (tope `max_backoff_s`).
+   exponencial (tope `max_backoff_s`). Tampoco lo matan el latido ni el aviso de un fallo.
 2. Fuera del proceso (`eim.operation.watchdog`): relanza la API si muere o si el latido
    (`data/operation/heartbeat.json`) deja de avanzar.
 """
@@ -11,7 +11,6 @@ Dos niveles de reinicio automático:
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 import threading
 import time
@@ -43,6 +42,7 @@ from eim.operation.alerts import (
 from eim.operation.cycle import CycleResult, OperationCycle, OperationParams
 from eim.operation.equity import EquityBook
 from eim.operation.notify import JsonLog, WindowsToast
+from eim.operation.watchdog import write_heartbeat
 
 FAILS_BEFORE_ALERT = 3
 BACKUP_RETRY_MS = 3_600_000
@@ -124,17 +124,15 @@ class Operation:
             self.log.write("obs_alertas_error", "warn", error=f"{type(e).__name__}: {e}")
 
     def heartbeat(self) -> None:
+        """Latido del vigilante; si no se puede escribir tras reintentar, se avisa y se sigue."""
         self.status["last_heartbeat"] = self.clock()
         hooks_service.beat("operation.supervisor", mode=self.desk.mode,
                            status="ok" if not self.status["consecutive_failures"] else "degraded",
                            detail={"state": self.status["state"], "cycles": self.status["cycles"],
                                    "failures": self.status["consecutive_failures"]})
-        self.root.mkdir(parents=True, exist_ok=True)
-        tmp = self.root / "heartbeat.tmp"
-        tmp.write_text(json.dumps({k: self.status[k] for k in (
-            "last_heartbeat", "pid", "state", "mode", "cycles", "consecutive_failures")}),
-            encoding="utf-8")
-        tmp.replace(self.root / "heartbeat.json")
+        if err := write_heartbeat(self.root / "heartbeat.json", {k: self.status[k] for k in (
+                "last_heartbeat", "pid", "state", "mode", "cycles", "consecutive_failures")}):
+            self.log.write("latido_fallido", "warn", error=f"{type(err).__name__}: {err}")
 
     # --- informes -----------------------------------------------------------
     def fee_rate(self) -> float:
@@ -282,14 +280,20 @@ class Supervisor:
                 st["last_error"] = f"{type(e).__name__}: {e}"
                 wait = min(self.max_backoff_s, op.params.poll_s * 2 ** st["consecutive_failures"])
                 hooks_service.service_error("operation.supervisor", e, mode=op.desk.mode)
-                op.log.write("ciclo_fallido", "error", error=st["last_error"],
-                             consecutive=st["consecutive_failures"], retry_s=wait)
-                if st["consecutive_failures"] == FAILS_BEFORE_ALERT:
-                    op.alerts.emit(Alert(op.clock(), SERVICE, CRITICAL,
-                                         "El ciclo de operación falla",
-                                         f"{FAILS_BEFORE_ALERT} fallos seguidos: "
-                                         f"{st['last_error']}", SERVICE))
-            st["next_cycle_at"] = op.clock() + int(wait * 1000)
-            op.heartbeat()
+                try:    # avisar del fallo tampoco puede matar el bucle
+                    op.log.write("ciclo_fallido", "error", error=st["last_error"],
+                                 consecutive=st["consecutive_failures"], retry_s=wait)
+                    if st["consecutive_failures"] == FAILS_BEFORE_ALERT:
+                        op.alerts.emit(Alert(op.clock(), SERVICE, CRITICAL,
+                                             "El ciclo de operación falla",
+                                             f"{FAILS_BEFORE_ALERT} fallos seguidos: "
+                                             f"{st['last_error']}", SERVICE))
+                except Exception as err:  # noqa: BLE001 - el bucle no debe morir
+                    hooks_service.service_error("operation.supervisor", err, mode=op.desk.mode)
+            try:    # ni el latido (2026-10-24: WinError 5 lo detuvo 9 min sin rastro)
+                st["next_cycle_at"] = op.clock() + int(wait * 1000)
+                op.heartbeat()
+            except Exception as e:  # noqa: BLE001 - el bucle no debe morir
+                hooks_service.service_error("operation.supervisor", e, mode=op.desk.mode)
             await self._sleep(wait)
         st["state"] = "detenido"
