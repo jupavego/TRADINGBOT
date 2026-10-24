@@ -1,8 +1,9 @@
 """Recolector: reconstrucción del libro con secuencias simuladas (incluida una con hueco)."""
 from __future__ import annotations
 
-from eim.data.collectors.binance_ws import Collector
+from eim.data.collectors.binance_ws import WS_DEPTH, WS_TRADES, Collector
 from eim.data.collectors.book import LocalBook
+from eim.data.collectors.liq_ws import WS as LIQ_WS
 from eim.data.micro import read_micro
 
 H = 3_600_000
@@ -80,3 +81,11 @@ def test_colector_registra_hueco_pide_snapshot_y_agrega(tmp_path):
 
 def test_sin_recoleccion_no_hay_micro(tmp_path):
     assert read_micro(tmp_path, "ETHUSDT", T0, H, 5) == ([], None)
+
+
+def test_flujos_usan_la_ruta_que_exige_binance():
+    """Binance retira la URL sin ruta: depth por `/public`; aggTrade y forceOrder por `/market`."""
+    base = "wss://fstream.binance.com"
+    assert WS_DEPTH.format(s="btcusdt") == f"{base}/public/stream?streams=btcusdt@depth@100ms"
+    assert WS_TRADES.format(s="btcusdt") == f"{base}/market/stream?streams=btcusdt@aggTrade"
+    assert LIQ_WS["binance"].startswith(f"{base}/market/")

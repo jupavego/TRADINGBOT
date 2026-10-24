@@ -25,8 +25,9 @@ from eim.observability import hooks_service
 from eim.observability.emit import configure
 from eim.operation.watchdog import instance_lock
 
-WS_DEPTH = "wss://fstream.binance.com/stream?streams={s}@depth@100ms"
-# aggTrade ya no se sirve por /stream: vive en el endpoint /market
+# Binance separó los flujos por ruta: `/public` (depth, bookTicker) y `/market` (aggTrade,
+# markPrice, kline, forceOrder); la URL sin ruta solo entrega lo de `/public` y se retira
+WS_DEPTH = "wss://fstream.binance.com/public/stream?streams={s}@depth@100ms"
 WS_TRADES = "wss://fstream.binance.com/market/stream?streams={s}@aggTrade"
 REST = "https://fapi.binance.com/fapi/v1/depth"
 
