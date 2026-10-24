@@ -22,6 +22,7 @@ from eim.api.forecast import DEFAULT_HORIZON
 from eim.api.forecast_db import ForecastStore
 from eim.api.risk import RiskDesk
 from eim.data import backup
+from eim.data.collectors import hft_ops
 from eim.data.collectors.compact import compact_closed
 from eim.execution.sim_broker import SimBroker
 from eim.observability import hooks_service
@@ -149,7 +150,18 @@ class Operation:
             alerts=self.alerts.recent(t0, t1, 1000), active_alerts=self.alerts.active,
             decisions=self.desk.journal.recent(t0, t1, limit=5000),
             edge=weekly.load_edge(self.edge_path), calib=calib,
-            started_at=self.cursors.started_at)
+            started_at=self.cursors.started_at, hft_qc=self.hft_qc(t0, t1))
+
+    def hft_qc(self, t0: int, t1: int) -> dict[str, dict]:
+        """Resumen del control de calidad de la captura HFT (T78) por símbolo, si la hay."""
+        out = {}
+        for s in self.params.symbols:
+            try:
+                if (q := hft_ops.week_summary(self.data_dir, s, t0, t1)) is not None:
+                    out[s] = q
+            except Exception as e:  # noqa: BLE001 - un QC ilegible no impide el informe
+                out[s] = {"error": f"{type(e).__name__}: {e}"}
+        return out
 
     def write_report(self, t0: int, t1: int, name: str | None = None) -> dict:
         rep = self.compose(t0, t1)

@@ -29,6 +29,11 @@ def micro_dir(root: str | Path) -> Path:
     return Path(root) / "micro"
 
 
+def area_dir(root: str | Path, area: str = "micro") -> Path:
+    """Carpeta de un área de captura: `micro` (T23) o `micro_hft` (T78)."""
+    return Path(root) / area
+
+
 def sfx(symbol: str = DEFAULT_SYMBOL) -> str:
     """Sufijo de los archivos de control: vacío para BTCUSDT, `_SIMBOLO` para el resto."""
     sym = symbol.upper()
@@ -39,9 +44,10 @@ def hb_name(symbol: str = DEFAULT_SYMBOL) -> str:
     return f"heartbeat{sfx(symbol)}.json"
 
 
-def write_heartbeat(root: str | Path, row: dict, symbol: str = DEFAULT_SYMBOL) -> None:
+def write_heartbeat(root: str | Path, row: dict, symbol: str = DEFAULT_SYMBOL,
+                    area: str = "micro") -> None:
     """Escritura atómica; un fallo de disco no detiene la captura (el supervisor lo notará)."""
-    d = micro_dir(root)
+    d = area_dir(root, area)
     try:
         d.mkdir(parents=True, exist_ok=True)
         tmp = d / (hb_name(symbol) + ".tmp")
@@ -51,9 +57,10 @@ def write_heartbeat(root: str | Path, row: dict, symbol: str = DEFAULT_SYMBOL) -
         pass
 
 
-def read_heartbeat(root: str | Path, symbol: str = DEFAULT_SYMBOL) -> dict | None:
+def read_heartbeat(root: str | Path, symbol: str = DEFAULT_SYMBOL,
+                   area: str = "micro") -> dict | None:
     try:
-        return json.loads((micro_dir(root) / hb_name(symbol)).read_text(encoding="utf-8"))
+        return json.loads((area_dir(root, area) / hb_name(symbol)).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
 
@@ -74,15 +81,16 @@ def classify(hb: dict | None, now_ms: int, stale_s: float = STALE_S,
     return "capturando", "ok"
 
 
-def disk_report(root: str | Path, now: float | None = None) -> dict:
+def disk_report(root: str | Path, now: float | None = None, area: str = "micro",
+                kinds: tuple[str, ...] = KINDS) -> dict:
     """MB/día por tipo (tamaño ÷ horas con datos × 24), total en MB y espacio libre.
 
     La compactación (otro proceso) borra partes ya listadas: esas se saltan, no tumban al vigilante.
     """
-    base = micro_dir(root)
+    base = area_dir(root, area)
     per_kind: dict[str, float] = {}
     total = 0
-    for kind in KINDS:
+    for kind in kinds:
         size, hours = 0, set()
         for f in (base / kind).glob("symbol=*/date=*/hour=*/part-*.parquet"):
             try:
@@ -102,28 +110,36 @@ def disk_report(root: str | Path, now: float | None = None) -> dict:
             "free_gb": round(free_gb, 1) if free_gb is not None else None}
 
 
-def prune_depth(root: str | Path, keep_days: int = DEPTH_KEEP_DAYS,
-                now: float | None = None) -> int:
-    """Borra las carpetas `date=` de `depth` más viejas que `keep_days`. Devuelve cuántas."""
+def prune_old(root: str | Path, keep_days: int, now: float | None = None, area: str = "micro",
+              kinds: tuple[str, ...] = ("depth",)) -> int:
+    """Borra las carpetas `date=` de `kinds` más viejas que `keep_days`. Devuelve cuántas."""
     cutoff = time.strftime("date=%Y-%m-%d", time.gmtime((now or time.time()) - keep_days * 86400))
     n = 0
-    for d in (micro_dir(root) / "depth").glob("symbol=*/date=*"):
-        if d.name < cutoff:
-            shutil.rmtree(d, ignore_errors=True)
-            n += 1
+    for kind in kinds:
+        for d in (area_dir(root, area) / kind).glob("symbol=*/date=*"):
+            if d.name < cutoff:
+                shutil.rmtree(d, ignore_errors=True)
+                n += 1
     return n
 
 
+def prune_depth(root: str | Path, keep_days: int = DEPTH_KEEP_DAYS,
+                now: float | None = None) -> int:
+    """Borra las carpetas `date=` de `depth` más viejas que `keep_days`. Devuelve cuántas."""
+    return prune_old(root, keep_days, now)
+
+
 def problems(root: str | Path, now_ms: int, free_gb_min: float = FREE_GB_MIN,
-             symbol: str = DEFAULT_SYMBOL) -> list[str]:
+             symbol: str = DEFAULT_SYMBOL, area: str = "micro",
+             label: str = "Microestructura") -> list[str]:
     """Condiciones que merecen aviso local: recolector apagado/sin flujo o disco justo."""
     out = []
-    hb = read_heartbeat(root, symbol)
+    hb = read_heartbeat(root, symbol, area)
     state, why = classify(hb, now_ms)
     young = hb and now_ms - int(hb.get("started_at", 0)) < GRACE_S * 1000
     if state != "capturando" and not (state == "sin_flujo" and young):
-        out.append(f"Microestructura {symbol.upper()} {state}: {why}")
-    free = disk_report(root)["free_gb"]
+        out.append(f"{label} {symbol.upper()} {state}: {why}")
+    free = disk_report(root, area=area, kinds=())["free_gb"]
     if free is not None and free < free_gb_min:
         out.append(f"Disco con {free:.1f} GB libres (mínimo {free_gb_min:.0f} GB) en {root}")
     return out

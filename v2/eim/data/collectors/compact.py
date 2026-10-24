@@ -26,8 +26,12 @@ def _q(path: Path | str) -> str:
     return "'" + Path(path).as_posix().replace("'", "''") + "'"
 
 
-def compact_dir(d: Path) -> tuple[int, int] | None:
-    """Une los `part-*.parquet` de `d`; (archivos antes, filas) o None si no hacía falta."""
+def compact_dir(d: Path, key: str = "t", order: str = "t",
+                codec: str | None = None) -> tuple[int, int] | None:
+    """Une los `part-*.parquet` de `d`; (archivos antes, filas) o None si no hacía falta.
+
+    `key` se suma para verificar, `order` ordena el resultado y `codec` fija la compresión
+    (la captura HFT de T78 usa `seq`, `run, seq` y ZSTD)."""
     parts = sorted(d.glob("part-*.parquet"))
     if len(parts) < 2:
         return None
@@ -38,12 +42,12 @@ def compact_dir(d: Path) -> tuple[int, int] | None:
     con.execute("SET memory_limit = '300MB'")
     con.execute(f"SET temp_directory = {_q(d / '.duck_tmp')}")
     try:
-        n0, s0 = con.execute(f"SELECT COUNT(*), COALESCE(SUM(t), 0) FROM read_parquet({lst})"
-                             ).fetchone()
-        con.execute(f"COPY (SELECT * FROM read_parquet({lst}) ORDER BY t) TO {_q(tmp)} "
-                    "(FORMAT parquet)")
-        n1, s1 = con.execute(f"SELECT COUNT(*), COALESCE(SUM(t), 0) FROM read_parquet({_q(tmp)})"
-                             ).fetchone()
+        src = f"read_parquet({lst}, hive_partitioning = false, union_by_name = true)"
+        n0, s0 = con.execute(f"SELECT COUNT(*), COALESCE(SUM({key}), 0) FROM {src}").fetchone()
+        opts = "FORMAT parquet" + (f", COMPRESSION {codec}" if codec else "")
+        con.execute(f"COPY (SELECT * FROM {src} ORDER BY {order}) TO {_q(tmp)} ({opts})")
+        n1, s1 = con.execute(f"SELECT COUNT(*), COALESCE(SUM({key}), 0) FROM "
+                             f"read_parquet({_q(tmp)}, hive_partitioning = false)").fetchone()
     except Exception:
         tmp.unlink(missing_ok=True)
         raise

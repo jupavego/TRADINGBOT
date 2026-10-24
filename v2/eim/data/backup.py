@@ -5,7 +5,7 @@ Una copia es una carpeta `eim_AAAAMMDD-HHMMSS/` con:
   alertas, capital, pronósticos). En caliente se hace dentro del proceso de la API, bajo el mismo
   cerrojo que usan los escritores (`COPY FROM DATABASE`); en frío, adjuntando la base en lectura.
 - `obs.duckdb` (T73): observatorio, DERIVADO de los JSONL (entra en la copia; no viaja, T61).
-- `state/`: kill-switch, estado del servicio de operación y registros JSONL.
+- `state/`: kill-switch, estado de la operación, registros JSONL y QC de la captura HFT (T78).
 - `config/`: versiones de parámetros (`eim/risk/versions`, `eim/calibration/versions`).
 - `market/` (opcional, `--with-market`): velas/funding en parquet; se pueden volver a descargar.
 - `manifest.json`: SHA-256 y tamaño de cada archivo, filas por tabla, commit de git.
@@ -140,6 +140,7 @@ def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | 
             (tmp / "state").mkdir(exist_ok=True)
             shutil.copy2(data_dir / "kill_switch.json", tmp / "state" / "kill_switch.json")
         _copy_tree(data_dir / "operation", tmp / "state" / "operation")
+        _copy_tree(data_dir / "micro_hft" / "qc", tmp / "state" / "micro_hft_qc", "*.json")
         for name, d in CONFIG_DIRS.items():
             _copy_tree(d, tmp / "config" / name, "*.json")
         if with_market:
