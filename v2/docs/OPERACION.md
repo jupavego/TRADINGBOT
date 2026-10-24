@@ -104,15 +104,16 @@ dañada (salida 2 = íntegra pero incompleta; 1 = dañada).
   carpeta con otro disco o un almacenamiento en la nube (p. ej. OneDrive) o usa `EIM_BACKUP_DIR`
   apuntando a otra unidad. `share export` (§3.1) es otra vía fuera del equipo, pero no se restaura.
 - **Captura HFT (T78):** la copia lleva solo los JSON de calidad (`state/micro_hft_qc/`), nunca los crudos de `data/micro_hft/` (≈ 370 MB/día; se podan a los 45 días). Para conservar más tiempo un tramo para T80/T84, copiarlo a otro disco a mano.
-- **Tamaño y tiempo** (medido el 2026-10-24, antes del despliegue): la instantánea de `leaders.duckdb`
-  en vivo, 454 MB y 3,06 M filas en 278 s (la misma base en frío: 26 s); la hace el servicio de
-  líderes y la API solo espera, sin cerrojos. `reports` (≈ 93 MB) ≈ 8 s y `paper` (≈ 47 MB) ≈ 4 s
-  en frío. Una copia completa ronda ≈ 0,65 GB → con `EIM_BACKUP_KEEP=14`, ≈ 9 GB; la base de
-  líderes crece ≈ 50 MB/día. El ciclo de operación solo espera `reports` + estado (`held_s`).
-  La espera de la instantánea sigue mientras avance (la nuestra o la que va delante en la cola):
-  120 s sin que el servicio atienda ni haya nada en curso, o 300 s parada, = ausente con motivo.
-- **Desplegar:** el servicio de líderes anterior a T115 solo atiende el pedido único antiguo y
-  frena su bucle mientras copia: reiniciar **la API y el servicio de líderes** a la vez (§6).
+- **Tamaño y tiempo** (medido en vivo el 2026-10-24 16:17 UTC, servicios en marcha): copia completa
+  de 672,5 MB en 41 s (53 archivos): `reports` 1,4 s, `paper` 2,5 s y `obs` 2,1 s en caliente;
+  `leaders` (12 tablas, 3,26 M filas) 22 s como instantánea del servicio de líderes (con el servicio
+  anterior a T115, que la hacía dentro de su bucle y con el archivo sin compactar, llegó a 278 s).
+  El ciclo de operación quedó retenido **1,5 s** (`held_s`) y siguió en hora. Con
+  `EIM_BACKUP_KEEP=14`, ≈ 9–10 GB; la base de líderes crece ≈ 50 MB/día. La espera de la
+  instantánea sigue mientras avance (la nuestra o la que va delante en la cola): 120 s sin que el
+  servicio atienda ni haya nada en curso, o 300 s parada, = ausente con motivo.
+- **Al desplegar cambios del protocolo de instantáneas** (`eim/data/leader_snapshot.py`), reiniciar
+  **la API y el servicio de líderes** a la vez (§6): los dos lados deben hablar la misma versión.
 
 ### 3.1 Experiencia compartida entre colaboradores (T61)
 Las bases (`data/*.duckdb`, `*.parquet`) **no viajan por git** (`.gitignore`): cada equipo acumula su

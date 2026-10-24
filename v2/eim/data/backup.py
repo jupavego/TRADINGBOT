@@ -25,6 +25,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import threading
 import time
 import urllib.error
@@ -241,6 +242,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--api", default=DEFAULT_API,
                     help="si una base está en uso, la copia la hace la API en marcha")
     a = ap.parse_args(argv)
+    if hasattr(sys.stdout, "reconfigure"):   # salida redirigida en Windows (cp1252): «→», «≠»
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     if a.cmd == "list":
         for p in listing(a.dest):
             print(f"{p}{'' if complete(p) else '  (incompleta)'}")
