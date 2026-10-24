@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-23T14:32:41",
+ "generated": "2026-10-23T19:29:39",
  "tasks": [
   {
    "id": "T01",
@@ -984,8 +984,8 @@ window.EIM_STATUS = {
    "id": "T77",
    "title": "HFT: viabilidad medida, hipótesis nula y decisión de alcance",
    "deps": [],
-   "state": "pending",
-   "notes": "Especificada (`PLAN/T77.md`, insumo `PLAN/notas/T77_universo_hft.md`, 2026-10-19). Mide latencia real, verifica límites/comisiones de Binance en la fuente y fija criterios `hft_v1` antes de construir. ◆ alcance, criterios y presupuesto de latencia. **Plan y alcance propuesto aprobados por el usuario el 2026-10-19** (híbrido, BTCUSDT perpetuo, datos reales + órdenes simuladas, equipo local); sigue pendiente su aprobación de la nota de decisiones (criterios `hft_v1` numéricos y presupuesto de latencia) cuando T77 la produzca.",
+   "state": "done",
+   "notes": "**◆ Nota de decisiones `PLAN/notas/T77_decisiones.md` aprobada por escrito por el usuario el 2026-10-23** (presupuesto, horizonte, alcance híbrido, criterios `hft_v1`, motor propio, Python, extra `hft`): T79–T85 desbloqueadas. Banco `v2/scripts/hft_latency.py` (+ `eim/hft/latency*.py`, `scripts/hft_client_capacity.py`): 3 × 60 min (21–23 h UTC) en `v2/reports/hft_latency.md`, reacción p99 **310 ms** (2,3 s en ráfagas de `bookTicker`), WS API 237 ms p50, Python = 8,8 % del presupuesto → sin Rust. Fuentes y repos en `PLAN/notas/T77_fuentes.md` (VIP 0 = `CostParams`, límites y filtros de BTCUSDT verificados; HftBacktest solo aislado por `numpy<2.3`; MOSAIC y quant-research sin enlace). Cota `v2/reports/hft_cost_bound.md`: por debajo de 10 s no paga ni con previsión perfecta → horizonte mínimo 30 s. Criterios `hft_v1` numéricos fijados antes de T80. Tests `tests/hft/`; BACKLOG T77. Plan y alcance aprobados por el usuario el 2026-10-19.",
    "effort": "medio",
    "phase": 16,
    "goal": "Fijar con mediciones, **antes de construir**, qué clase de HFT es viable aquí y qué se va a probar. Salen el presupuesto de latencia real, los límites y costos de Binance verificados en la fuente, la decisión sobre cada repositorio de la investigación y los criterios de éxito **escritos antes de ver resultados**."

@@ -1,0 +1,22 @@
+{
+ "measured_utc": "2026-10-24T00:02:28+00:00",
+ "host": {
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.12.10"
+ },
+ "runs": [
+  {
+   "msgs": 200000,
+   "secs": 4.88,
+   "msg_per_s": 40996,
+   "proc_p99_us": 21.5
+  },
+  {
+   "msgs": 200000,
+   "secs": 5.18,
+   "msg_per_s": 38644,
+   "proc_p99_us": 24.5
+  }
+ ],
+ "min_msg_per_s": 38644
+}
