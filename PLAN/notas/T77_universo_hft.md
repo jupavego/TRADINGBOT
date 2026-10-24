@@ -2,6 +2,14 @@
 
 Fecha: 2026-10-19. Insumo: investigación de repositorios compartida por el usuario (12 candidatos). Aquí se contrasta con lo que **ya existe** en `v2/` y se fija qué se aprovecha, qué se descarta y qué hay que medir antes de construir. Las cifras de Binance (límites, filtros, comisiones vigentes) **no se verificaron en esta sesión** (sin acceso a `developers.binance.com`): T77 las verifica en la fuente; lo único tomado del código es `CostParams`.
 
+> **Verificado en T77 (2026-10-23)** — detalle y URL en `PLAN/notas/T77_fuentes.md`, decisiones en `PLAN/notas/T77_decisiones.md`:
+> - Comisiones VIP 0 = `CostParams` (maker 0,0200 %, taker 0,0500 %; −10 % pagando con BNB): la aritmética de §2 se confirma. Spread de BTCUSDT medido: 1 tick = 0,012 pb.
+> - Límites: 2400 de peso/min por IP; 1200 órdenes/min y 300/10 s por cuenta (REST y WS API comparten las órdenes).
+> - HftBacktest: versión publicada **2.4.4** (PyPI, 2025-12-10), Python ≥ 3.11; importa en un entorno aparte pero exige `numpy<2.3` (el proyecto usa 2.4.4) y ocupa 714 MB: no puede compartir entorno con `v2/`.
+> - NautilusTrader: la versión estable (1.231.0) exige Python **≥ 3.12**; la última con 3.11 es 1.221.0. El venv del proyecto en este equipo es **3.12.10** (el 3.13 de §7.2 era el de la sesión que escribió la nota).
+> - El banco de latencia corrió en **este equipo: i5-10300H, 15,8 GB, GTX 1650, Wi-Fi**; el «i5-8250U, 7,9 GB, MX130» de §3 es otro equipo (repetir allí con `scripts/hft_latency.py`).
+> - HFT Lab Core sí tiene pruebas (130 `#[test]` en Rust, CI con `cargo test`), aunque sin carpeta `tests/`. MOSAIC y quant-research no se identificaron sin enlace.
+
 ## 1. Qué significa «HFT» en este proyecto
 | Escala | Latencia | ¿Aplica? |
 |---|---|---|
