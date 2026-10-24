@@ -8,16 +8,17 @@ import contextlib
 import io
 import json
 import math
-import os
 import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
+from tests.opt_in import OPT_IN
+
 V2 = Path(__file__).resolve().parents[2]
 # EIM_LEGACY_DIR permite apuntar a una copia modificada (comprobación de sensibilidad).
-F7 = Path(os.environ.get("EIM_LEGACY_DIR", V2.parent / "legacy" / "F7"))
+F7 = Path(OPT_IN.get("EIM_LEGACY_DIR", V2.parent / "legacy" / "F7"))
 FIXTURES = V2 / "tests" / "fixtures"
 GOLDEN = FIXTURES / "golden"
 CSV = FIXTURES / "ethusdt_1h_1000.csv"

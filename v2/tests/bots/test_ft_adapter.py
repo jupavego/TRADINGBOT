@@ -13,6 +13,7 @@ from eim.bots.card import card_of
 from eim.bots.ft_adapter import FreqtradeAdapter, ft_pair, positions
 from eim.data.bots.runner import RunResult
 from tests.bots.helpers import candles, snapshot
+from tests.opt_in import OPT_IN
 
 ENGINE = "2026.9"
 
@@ -225,7 +226,7 @@ def test_parity_fixture_documents_its_origin():
 
 
 # --- con Freqtrade de verdad (solo si el entorno aparte está configurado) ----------------------
-FT_PY, FT_DIR = os.environ.get("EIM_BOT_FREQTRADE_PY"), os.environ.get("EIM_BOT_FREQTRADE_DIR")
+FT_PY, FT_DIR = OPT_IN.get("EIM_BOT_FREQTRADE_PY"), OPT_IN.get("EIM_BOT_FREQTRADE_DIR")
 
 
 @pytest.mark.skipif(not (FT_PY and FT_DIR), reason="sin entorno de Freqtrade (EIM_BOT_FREQTRADE_*)")

@@ -7,7 +7,6 @@ entorno (3.12 + Rust) y se saltan si `EIM_BOT_PASSIVBOT_PY`/`EIM_BOT_PASSIVBOT_D
 
 import importlib.util
 import json
-import os
 import threading
 from pathlib import Path
 
@@ -21,6 +20,7 @@ from eim.bots.pb_adapter import MINUTE, PassivbotSimAdapter, run_hash
 from eim.core import Candle, SimFill, SimRun
 from eim.data.bots.runner import Limits, RunResult, RunSpec
 from eim.data.bots.simstore import SimRunStore
+from tests.opt_in import OPT_IN
 
 FIX = Path(__file__).resolve().parents[1] / "fixtures" / "bots"
 PARITY = json.loads((FIX / "passivbot_parity.json").read_text(encoding="utf-8"))
@@ -29,7 +29,7 @@ GEN = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(GEN)
 
 SHA = card_of("passivbot").commit_sha
-PY, DIR = os.environ.get("EIM_BOT_PASSIVBOT_PY"), os.environ.get("EIM_BOT_PASSIVBOT_DIR")
+PY, DIR = OPT_IN.get("EIM_BOT_PASSIVBOT_PY"), OPT_IN.get("EIM_BOT_PASSIVBOT_DIR")
 real = pytest.mark.skipif(not (PY and DIR and Path(DIR).exists()),
                           reason="sin el entorno aparte de Passivbot (docs/BOTS.md)")
 

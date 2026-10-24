@@ -46,12 +46,14 @@ def test_exception_does_not_break_runner():
     assert reps[0].status == reps[2].status == "ok"
 
 
+@pytest.mark.perf
 def test_timeout_degrades():
     t0 = time.monotonic()
     reps = run_agents([_Slow(), _Good()], _snap(), timeout=0.1)
     assert reps[0].status == "degraded" and "timeout" in reps[0].warnings[0]
     assert reps[1].status == "ok"
-    assert time.monotonic() - t0 < 0.9
+    took = time.monotonic() - t0
+    assert took < 0.9, f"con timeout de 0,1 s el runner tardó {took:.2f} s"
 
 
 def test_empty():

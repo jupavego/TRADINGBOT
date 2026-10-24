@@ -80,10 +80,12 @@ def test_extra_env_with_secret_looking_name_is_refused(tmp_path):
     assert ok.output["env"]["BOT_MODE"] == "signal"
 
 
+@pytest.mark.perf
 def test_timeout_kills_the_bot_and_is_degraded_not_an_exception(tmp_path):
     script = bot(tmp_path, "import time\ntime.sleep(60)\n")
     res = run_isolated(spec(script, limits=Limits(timeout_s=1.0)))
-    assert res.status == "degraded" and "excedió" in res.warnings[0] and res.duration_s < 20
+    assert res.status == "degraded" and "excedió" in res.warnings[0]
+    assert res.duration_s < 20, f"timeout de 1 s y el bot vivió {res.duration_s:.1f} s"
 
 
 @pytest.mark.skipif(not POSIX, reason="el grupo de procesos solo existe en POSIX")

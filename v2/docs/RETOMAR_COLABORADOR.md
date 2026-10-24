@@ -102,14 +102,20 @@ python -m ruff check eim tests
 python -m pytest -q
 ```
 
+Desde T116 la suite no depende de tu equipo (`tests/conftest.py`): retira todas tus variables
+`EIM_*` (alias, LLM local, carpetas…), fija DuckDB en 1 GB y 2 hilos, apaga los avisos de escritorio
+y **corta la red** (solo el bucle local). Tus variables, tu conexión y los servicios en marcha no
+cambian el resultado; solo el tiempo: ~11 min con los servicios en marcha, ~20 min con la CPU
+a medias (`PLAN/notas/T116_gate.md`). Las únicas variables que
+cuentan son las que activan pruebas opcionales a propósito (`tests/opt_in.py`: motores reales de
+Freqtrade/Passivbot y `EIM_LEGACY_DIR`).
+
 Antes de dar por mala la actualización, descarta las causas conocidas:
 
 | Síntoma | Causa | Qué hacer |
 |---|---|---|
 | `ModuleNotFoundError: scipy` (o `eim`) | Entorno virtual sin reinstalar | Repetir el paso 5 del script con el entorno activo |
-| `test_queries_over_100k_events_stay_within_the_threshold` falla por milisegundos (p95 ~100 ms) | Prueba de rendimiento con umbral absoluto: depende del equipo y de lo que esté corriendo | Repetir con el equipo descargado. Es una fragilidad conocida del gate (ver la fase de estabilización en `PLAN/STATUS.md`) |
-| `test_legacy_db_without_machine_column_is_migrated` falla comparando dos alias de máquina | El test no aísla `EIM_MACHINE`, que `machine_id()` antepone al archivo `data/machine_id` | Conocido y con tarea (T116). Falla si tienes `EIM_MACHINE` definida; no indica nada roto en tu copia |
-| Pruebas de bots/validación lentas o con `Out of Memory` | El almacén real es grande y DuckDB toma memoria | `EIM_DUCKDB_MEMORY` / `EIM_DUCKDB_THREADS` acotan el uso; cierra la API antes |
+| Falla una prueba `perf` (mide tiempo de reloj contra un umbral fijo) | El equipo está muy cargado o hay una regresión de rendimiento real | El mensaje trae la cifra medida (p50/p95/p99/máx). Aíslala con `python -m pytest -q -m perf` y repite; para seguir diagnosticando lo demás, `-m "not perf"`. **No subas el umbral**: es requisito de su tarea |
 | Falla al leer `PLAN/roadmap.html` | Falta regenerarlo | `python PLAN\build_roadmap.py` |
 
 Si falla otra cosa, no lo arregles en `main`: abre rama y PR como siempre (`ONBOARDING.md` §6).

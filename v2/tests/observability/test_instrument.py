@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import itertools
 import json
 import time
 
@@ -17,6 +18,7 @@ from eim.observability.events import ObsEvent, trace_for
 from eim.operation.supervisor import Supervisor
 from tests.agents.conftest import make_snapshot
 from tests.operation.helpers import SYM, H, Market, Rig
+from tests.perf import measure
 
 
 def _events(spool) -> list[dict]:
@@ -175,6 +177,7 @@ def test_cycle_survives_broken_emitter(tmp_path, monkeypatch):
     E.close()
 
 
+@pytest.mark.perf
 def test_cycle_overhead_within_budget(tmp_path):
     """(e) Sobrecosto de observar un ciclo real dentro del umbral de T72. Determinista: eventos
     reales del ciclo × coste p95 medido por evento (el reloj de pared de un ciclo corto varía
@@ -188,15 +191,13 @@ def test_cycle_overhead_within_budget(tmp_path):
     E.flush()
     n_events = E.stats()["emitted"]
     r.close()
-    lat = []
-    for i in range(2000):
-        t0 = time.perf_counter()
-        E.emit("heartbeat", "operation.supervisor", detail={"i": i})
-        lat.append(time.perf_counter() - t0)
+    i = itertools.count()
+    lat = measure(lambda: E.emit("heartbeat", "operation.supervisor", detail={"i": next(i)}),
+                  samples=2000)
     E.close()
-    p95 = sorted(lat)[int(len(lat) * 0.95)]
+    p95 = lat.pct(0.95)
     assert 0 < n_events <= T.MAX_EVENTS_PER_CYCLE, n_events
-    assert p95 * 1e6 <= T.EMIT_P95_US_MAX
+    assert p95 * 1e6 <= T.EMIT_P95_US_MAX, lat.describe("us")
     overhead = n_events * p95
     assert overhead <= max(T.MAX_CYCLE_OVERHEAD_MS / 1000,
                            T.MAX_CYCLE_OVERHEAD_FRACTION * cycle_s), (overhead, cycle_s)
