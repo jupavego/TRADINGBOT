@@ -3,6 +3,8 @@ uso por otro proceso no la rompe; restauración probada de verdad; retención de
 
 import json
 import os
+import subprocess
+import sys
 import threading
 import time
 
@@ -11,7 +13,7 @@ import pytest
 
 from eim.data import backup as B
 from eim.data.backup_dbs import DBS, SNAP, count_file, sha256
-from tests.data.backup_helpers import ROWS, T0, content, data, holding, manifest
+from tests.data.backup_helpers import ROWS, T0, V2, content, data, holding, manifest
 
 
 def test_full_backup_delete_restore_same_rows_and_sha256(tmp_path):
@@ -94,9 +96,14 @@ def test_api_db_in_use_strict_asks_the_api_lenient_marks_it_absent(tmp_path, cap
         out = B.create(d, bk, clock=lambda: T0, strict=False)
         assert B.main(["create", "--data-dir", str(d), "--dest", str(bk),
                        "--api", "http://127.0.0.1:9"]) == 2                # sin API en marcha
+        env = {**os.environ, "PYTHONIOENCODING": "cp1252"}  # salida redirigida en Windows
+        r = subprocess.run([sys.executable, "-m", "eim.data.backup", "create", "--data-dir", str(d),
+                            "--dest", str(bk), "--api", "http://127.0.0.1:9"], cwd=V2, env=env,
+                           capture_output=True)
+        assert r.returncode == 2, r.stderr.decode(errors="replace")    # «→» no la rompe
     assert manifest(out)["absent"][B.PAPER].startswith("en uso por otro proceso")
     assert "la API no respondió" in capsys.readouterr().out
-    assert [B.summary(p)["absent"] != {} for p in B.listing(bk)] == [True, True]
+    assert [B.summary(p)["absent"] != {} for p in B.listing(bk)] == [True] * 3
 
 
 def test_damaged_db_is_absent_and_not_taken_for_in_use(tmp_path):
