@@ -10,6 +10,10 @@ aprobada por `ArbRiskEngine` llega a `ArbExecutor.place_arb` (con la cantidad ap
 
 T114: además, la decisión debe traer la `TradeProposal` de una fuente registrada con ruta a ESA
 autoridad (`authority.verify_route`): aprobada y sellada pero sin fuente registrada no abre nada.
+
+T83: `HftGateway` es la del carril HFT: cada orden (también los cierres reduce-only del propio
+carril) necesita una `HftDecision` sellada, aprobada y vigente (1 s) de `HftRiskEngine`, y su
+fuente debe tener ruta registrada a `risk.hft_engine`. Cancelar no pasa por aquí: solo reduce.
 """
 
 from __future__ import annotations
@@ -18,11 +22,15 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from eim.core import Mode
+from eim.execution.broker import OrderState
 from eim.observability import hooks
 from eim.risk import authority
 from eim.risk.arb_engine import ArbRiskEngine
 from eim.risk.arb_models import ArbDecision
 from eim.risk.engine import RiskEngine
+from eim.risk.hft_engine import AUTHORITY as HFT_AUTHORITY
+from eim.risk.hft_engine import HftRiskEngine
+from eim.risk.hft_models import HftDecision
 from eim.risk.models import RiskDecision
 
 
@@ -101,3 +109,23 @@ class ArbGateway:
             raise PermissionError(f"decisión en modo {decision.mode.value} y ejecutor en "
                                   f"{self._executor.mode.value}")
         return self._executor.place_arb(decision)
+
+
+class HftExecutorPort(Protocol):
+    mode: Mode
+
+    def place_hft(self, decision: HftDecision) -> OrderState | None: ...
+
+
+class HftGateway:
+    def __init__(self, engine: HftRiskEngine, executor: HftExecutorPort) -> None:
+        self._engine, self._executor = engine, executor
+
+    def submit(self, decision: HftDecision, now: int) -> OrderState | None:
+        """Verifica la decisión (lanza `PermissionError` si no autoriza) y envía su orden."""
+        self._engine.verify_hft(decision, now)
+        authority.verify_source(decision.order.source, HFT_AUTHORITY, "hft_rules")
+        if decision.mode != self._executor.mode:
+            raise PermissionError(f"decisión en modo {decision.mode.value} y ejecutor en "
+                                  f"{self._executor.mode.value}")
+        return self._executor.place_hft(decision)

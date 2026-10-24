@@ -32,6 +32,8 @@ ORDER_PATH = (
     "eim.execution.arb_executor", "eim.execution.reconcile", "eim.risk.engine",
     "eim.risk.arb_engine", "eim.risk.authority", "eim.paper.book", "eim.paper.policy",
     "eim.copytrading.copy_engine", "eim.copytrading.copy_risk", "eim.risk.inputs",
+    "eim.risk.hft_engine", "eim.execution.hft_lane", "eim.execution.hft_executor",
+    "eim.execution.binance_ws_api", "eim.execution.user_stream_ws",
 )
 LLM_MODULES = ("eim.data.providers.claude_context", "eim.data.providers.claude_library",
                "eim.library.qa")

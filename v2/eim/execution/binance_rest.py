@@ -6,6 +6,8 @@ Seguridad:
 - Claves solo por entorno: nunca en el repositorio, en `repr` ni en mensajes de error. Los
   parámetros firmados de POST/DELETE van en el cuerpo y el registro de `httpx` se sube a
   WARNING para que ninguna URL firmada llegue a los logs.
+- T83: un 429/418 bloquea el cliente hasta `Retry-After` (o la espera por defecto): mientras
+  dure no sale ninguna petición (`RateLimited` local), porque insistir alarga el bloqueo.
 """
 
 from __future__ import annotations
@@ -20,10 +22,21 @@ from urllib.parse import urlencode, urlsplit
 
 import httpx
 
-from eim.execution.broker import BrokerError, NetworkError, OrderRejected
+from eim.execution.broker import BrokerError, NetworkError, OrderRejected, RateLimited
 
 ENV_KEY, ENV_SECRET = "EIM_TESTNET_API_KEY", "EIM_TESTNET_API_SECRET"
 _AMBIGUOUS_HTTP = {408, 418, 429}
+# espera si el exchange no manda `Retry-After`: 429 → 1 s; 418 → 2 min (bloqueo mínimo de Binance)
+DEFAULT_WAIT_MS = {429: 1_000, 418: 120_000}
+
+
+def rate_wait_ms(status: int, retry_after_s: str | None) -> int:
+    """Milisegundos de espera tras un 429/418 (`Retry-After` en segundos si lo trae)."""
+    try:
+        secs = float(retry_after_s or 0)
+    except ValueError:
+        secs = 0.0
+    return int(secs * 1000) if secs > 0 else DEFAULT_WAIT_MS[status]
 
 
 def check_host(url: str, hosts: frozenset[str], label: str = "la testnet de Binance") -> None:
@@ -63,12 +76,23 @@ class SignedRest:
         self._recv, self._clock = recv_window, clock
         self._offset: int | None = None
         self.last_ok: int | None = None            # ms de la última respuesta del exchange
+        self.blocked: RateLimited | None = None    # T83: último 429/418 (vigente hasta `until`)
         logging.getLogger("httpx").setLevel(logging.WARNING)
 
+    def offset(self) -> int:
+        """Desfase reloj del exchange − local (ms); lo usa también el WS API (T83)."""
+        if self._offset is None:
+            self._sync_time()
+        return self._offset or 0
+
     def call(self, method: str, path: str, params: dict[str, Any] | None = None,
-             signed: bool = True) -> Any:
+             signed: bool = True, keyed: bool = False) -> Any:
+        """`keyed`: solo cabecera de la clave, sin firma (flujo de usuario, `listenKey`)."""
+        b = self.blocked
+        if b is not None and self._clock() < b.until:
+            raise RateLimited(f"en espera por {b}", b.status, b.until)
         p = {k: v for k, v in (params or {}).items() if v is not None}
-        headers: dict[str, str] = {}
+        headers: dict[str, str] = {"X-MBX-APIKEY": self.creds.key} if keyed else {}
         if signed:
             if self._offset is None:
                 self._sync_time()
@@ -87,6 +111,11 @@ class SignedRest:
                 resp = self.client.request(method, path, content=body, headers=headers)
         except httpx.TransportError as exc:          # sin URL: nunca filtra la firma
             raise NetworkError(f"red: {type(exc).__name__} en {method} {path}") from None
+        if resp.status_code in DEFAULT_WAIT_MS:
+            until = self._clock() + rate_wait_ms(resp.status_code, resp.headers.get("Retry-After"))
+            self.blocked = RateLimited(f"HTTP {resp.status_code} en {method} {path}",
+                                       resp.status_code, until)
+            raise self.blocked
         if resp.status_code >= 500 or resp.status_code in _AMBIGUOUS_HTTP:
             raise NetworkError(f"HTTP {resp.status_code} en {method} {path}")
         try:

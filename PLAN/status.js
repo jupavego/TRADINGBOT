@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-24T02:25:32",
+ "generated": "2026-10-24T03:53:12",
  "tasks": [
   {
    "id": "T01",
@@ -1061,8 +1061,8 @@ window.EIM_STATUS = {
     "T77",
     "T30"
    ],
-   "state": "pending",
-   "notes": "Paralelizable con T79–T82.",
+   "state": "done",
+   "notes": "**2026-10-24.** Riesgo `eim/risk/hft_{config,models,rules,engine}.py` + `versions/hft_risk_v1.json` (frozen, SHA en cada decisión; solo SIMULADO/TESTNET): una `HftDecision` sellada (HMAC de T29) por orden, vigente 1 s, con la regla que la causó y proyección `as_record()` a `RiskDecision`; reglas de inventario (cantidad y nocional en el peor caso), exposición neta, tamaño y nocional mínimo (50 USDT), precio a ≤ 30 pb del mid, post-only que cruzaría, órdenes vivas, pérdida por sesión/hora/día, caída intradía, enfriamiento, **tasas de órdenes y cancelaciones a 1/3 de los límites reales de T77** (la validación lo exige), 429/418, y bloqueos (kill-switch global y del carril, libro > 1 s, `pu` sin resincronizar, reloj > 500 ms, flujo de usuario caído, hombre muerto 3 s); una orden que reduce de verdad pasa con bloqueos y kill-switch. Fuente `hft.micro` activa → `risk.hft_engine` (T114, salida `hft_rules`). Ejecución: `HftGateway` (en `gateway.py`), `hft_executor.py` (GTX/IOC/reduce-only, ids `eih-` deterministas, sin reenvíos, cancelación idempotente, `cancel_all` solo del carril), `hft_ledger.py` (fills sin doble conteo por evento o consulta), `hft_recon.py` (reutiliza `reconcile.py`; divergencia o 30 s sin exchange → kill-switch global y del carril), `hft_lane.py` (vigilancia: cancelar todo, cierre reduce-only con decisión, 418 → kill del carril, renueva `countdownCancelAll` 15 s). Órdenes por **WS API** (`binance_ws_api.py`, solo testnet; por la medición de T77: por REST la p99 rompería el presupuesto en ≈ 66 ms) y flujo de usuario `listenKey` por evento (`user_stream.py`, `user_stream_ws.py`): **cierra BACKLOG T30 (1)** (el evento de cuenta cancela la entrada LIMIT viva). Base: `RateLimited` + espera `Retry-After` compartida REST/WS, `ensure_order` no consulta ni reenvía en un límite de tasa, `SimBroker` con GTX/IOC/nocional mínimo/`on_update`. Pruebas `tests/hft/test_hft_{risk,execution,chaos,ws_api}.py` + `test_user_stream_ws.py` (caos sin red: corte de WS de mercado y de usuario, hueco de secuencia, GTX que cruzaría, nocional mínimo, 429/418, fill parcial, doble envío tras reinicio, reloj, hombre muerto, divergencia; **un exchange auditor verifica la decisión en cada envío** de una sesión de 400 pasos con fallos), puerta única de T114 ampliada (ruta real `hft.micro`, inventario con `place_hft` y `ensure_order`, hosts solo de testnet). **Coste p99 de decidir + verificar 0,5–0,7 ms** (límite 6,2 ms = 2 % de 310 ms). `countdownCancelAll` verificado en la documentación oficial; sin claves de testnet no se probó en vivo (BACKLOG T83). `code-review` (6 arreglos). RUNBOOK §15 y SEGURIDAD «Carril HFT». Gate verde (2 323 tests).",
    "effort": "alto",
    "phase": 16,
    "goal": "La capa que **protege el capital e impide errores de operación** del carril HFT, independiente de la IA y de las estrategias. Puede construirse en paralelo con T79–T82: solo necesita la interfaz `Broker` y los límites verificados en T77."

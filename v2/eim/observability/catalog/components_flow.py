@@ -112,6 +112,16 @@ FLOW: tuple[Component, ...] = (
       "Calcula oportunidades netas de costos (carry de funding, base, perpetuos relacionados) "
       "sobre la fotografía del mercado de arbitraje.", cadence="cada 10 s", cadence_s=10,
       consumes=(("data.arb_market", "arb_market"),), produces=("arb_scan",)),
+    c("risk.hft_engine", "risk", "riesgo", "gate", "hft", "T83", "Riesgo del carril HFT",
+      "Código fijo que revisa cada orden rápida antes de enviarla: inventario, pérdidas, ritmo de "
+      "órdenes, libro al día y reloj. Aprueba o veta una a una y firma cada decisión.",
+      cadence="por orden", consumes=(("data.hft_collector", "hft_events"),
+                                     ("risk.killswitch", "kill_switch_state")),
+      produces=("risk_decision",)),
+    c("execution.hft", "execution", "ejecucion", "service", "hft", "T83", "Ejecución del carril HFT",
+      "Envía solo órdenes aprobadas (sin cruzar el libro o solo para reducir), sigue los llenados "
+      "por evento, cuadra con el exchange y lo cancela todo si falta el libro, el reloj o el latido.",
+      cadence="por orden", consumes=(("risk.hft_engine", "risk_decision"),), produces=("fill",)),
     c("execution.gateway", "execution", "ejecucion", "gate", "api", "T30", "Puerta única de órdenes",
       "Solo deja pasar decisiones aprobadas y selladas por el riesgo, vigentes (60 s). Una orden "
       "fabricada, vetada o vieja se rechaza.", cadence="por orden",
