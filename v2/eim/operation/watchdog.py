@@ -30,6 +30,26 @@ def heartbeat_t(path: Path) -> int | None:
         return None
 
 
+def write_heartbeat(path: Path, row: dict, attempts: int = 3, delay_s: float = 0.05,
+                    sleep: Callable[[float], None] = time.sleep) -> OSError | None:
+    """Escritura atómica del latido (temporal + `replace`): None si quedó escrito; si no, el
+    último error (no lanza). En Windows `replace` falla con WinError 5 si otro proceso está
+    leyendo el archivo (el vigilante, una copia): se reintenta `attempts` veces cada `delay_s`.
+    El 2026-10-24 un fallo así, sin reintento ni captura, detuvo el bucle de operación 9 min."""
+    tmp, err = path.with_suffix(".tmp"), None
+    for i in range(attempts):
+        if i:
+            sleep(delay_s)
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tmp.write_text(json.dumps(row), encoding="utf-8")
+            tmp.replace(path)
+            return None
+        except OSError as e:
+            err = e
+    return err
+
+
 def instance_lock(path: Path) -> IO[bytes] | None:
     """Cerrojo de instancia única sobre `path`; None si otro proceso lo tiene. El sistema lo
     suelta al morir el proceso (no quedan cerrojos huérfanos): mantener el objeto abierto."""
@@ -86,15 +106,17 @@ class Watchdog:
         self.restarts = 0
 
     def _watch(self, proc) -> str:
-        """Bloquea hasta que el proceso muere o se cuelga; devuelve el motivo."""
-        started = self._clock()
+        """Bloquea hasta que el proceso muere o se cuelga; devuelve el motivo. Una lectura fallida
+        del latido (archivo reemplazándose en Windows) no lo «detiene»: vale el último leído
+        (T42-12: antes volvía al arranque y reiniciaba con un falso «latido detenido»)."""
+        last = self._clock()
         while True:
             self._sleep(self.check_s)
             rc = proc.poll()
             if rc is not None:
                 return f"el proceso terminó (código {rc})"
-            hb = heartbeat_t(self.hb)
-            last = max(started, hb / 1000 if hb else 0.0)
+            if (hb := heartbeat_t(self.hb)) is not None:
+                last = max(last, hb / 1000)
             if self._clock() - last > self.stale_s:
                 proc.terminate()
                 try:
