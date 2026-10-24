@@ -120,3 +120,48 @@ def test_vigilante_hft_registra_el_mantenimiento(tmp_path):
     (tmp_path / AREA / "qc").write_text("no es carpeta", encoding="utf-8")
     m.tick()                                                          # falla y no tumba nada
     assert [r["paso"] for r in rows() if r["event"] == "mantenimiento_fallido"] == ["poda"]
+
+
+def test_compactacion_sin_reordenar_acota_grupos_y_verifica_el_orden(tmp_path):
+    full_hour(tmp_path, flush_rows=700)
+    d = hour_dir(tmp_path, "depth", SYM, H)
+    assert len(list(d.glob("part-*.parquet"))) >= 5
+    hft_ops.maintain(tmp_path, SYM, T0_S + 3 * 3600)
+    (part,) = d.glob("part-*.parquet")
+    con = duckdb.connect()
+    groups = con.execute(f"SELECT row_group_id, max(row_group_num_rows) FROM parquet_metadata("
+                         f"'{part.as_posix()}') GROUP BY ALL").fetchall()
+    assert len(groups) >= 2                                           # DuckDB redondea (≈ 2 100)
+    assert max(n for _, n in groups) < 2 * hft_ops.LIST_ROW_GROUP
+    seq = con.execute(f"SELECT seq FROM read_parquet('{part.as_posix()}')").fetchnumpy()["seq"]
+    assert len(seq) == 3601 and (seq[1:] > seq[:-1]).all()           # mismo orden de proceso
+
+
+def test_partes_solapadas_no_se_compactan(tmp_path):
+    from eim.data.collectors.compact import compact_dir
+    from eim.data.collectors.hft_writer import write_rows
+
+    row = lambda s: (T0 + s, s, T0, s, 1, 1, s, 99.9, 1.0, 100.1, 2.0)  # noqa: E731
+    write_rows(tmp_path, "bbo", SYM, H, [row(1), row(5)])
+    write_rows(tmp_path, "bbo", SYM, H, [row(3), row(7)])             # se intercala: no válido
+    d = hour_dir(tmp_path, "bbo", SYM, H)
+    try:
+        compact_dir(d, key="seq", order="run, seq", codec="ZSTD", presorted=True)
+        raise AssertionError("debió negarse")
+    except RuntimeError as e:
+        assert "fuera de orden" in str(e)
+    assert len(list(d.glob("part-*.parquet"))) == 2 and not list(d.glob("*.tmp"))
+
+
+def test_un_fallo_de_compactacion_no_frena_el_resumen(tmp_path, monkeypatch):
+    full_hour(tmp_path, flush_rows=1500)
+
+    def sin_memoria(*a, **k):
+        raise MemoryError("Out of Memory Error: failed to allocate data of size 64.0 MiB")
+
+    monkeypatch.setattr(hft_ops, "compact_dir", sin_memoria)
+    res = hft_ops.maintain(tmp_path, SYM, T0_S + 3 * 3600)
+    assert res["compactadas"] == 0 and len(res["compactacion_fallida"]) >= 4
+    assert "MemoryError" in res["compactacion_fallida"][0][1]
+    assert res["qc_horas"] and res["summary"]["hours_complete"] == 1
+    assert json.loads(hft_ops.summary_path(tmp_path, SYM).read_text(encoding="utf-8"))["hours"]

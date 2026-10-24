@@ -26,28 +26,54 @@ def _q(path: Path | str) -> str:
     return "'" + Path(path).as_posix().replace("'", "''") + "'"
 
 
-def compact_dir(d: Path, key: str = "t", order: str = "t",
-                codec: str | None = None) -> tuple[int, int] | None:
+def _out_of_order(con, path: Path, cols: list[str]) -> int:
+    """Filas que no siguen estrictamente a la anterior según `cols` (orden lexicográfico)."""
+    lag = ", ".join(f"lag({c}) OVER () AS p_{c}" for c in cols)
+    cond, eq = [], []
+    for i, c in enumerate(cols):
+        op = "<=" if i == len(cols) - 1 else "<"
+        cond.append("(" + " AND ".join([*eq, f"{c} {op} p_{c}"]) + ")")
+        eq.append(f"{c} = p_{c}")
+    q = (f"SELECT count(*) FROM (SELECT {', '.join(cols)}, {lag} FROM "
+         f"read_parquet({_q(path)}, hive_partitioning = false)) "
+         f"WHERE p_{cols[0]} IS NOT NULL AND ({' OR '.join(cond)})")
+    return int(con.execute(q).fetchone()[0])
+
+
+def compact_dir(d: Path, key: str = "t", order: str = "t", codec: str | None = None,
+                presorted: bool = False, row_group_size: int | None = None
+                ) -> tuple[int, int] | None:
     """Une los `part-*.parquet` de `d`; (archivos antes, filas) o None si no hacía falta.
 
-    `key` se suma para verificar, `order` ordena el resultado y `codec` fija la compresión
-    (la captura HFT de T78 usa `seq`, `run, seq` y ZSTD)."""
+    `key` se suma para verificar, `order` ordena el resultado y `codec` fija la compresión.
+    `presorted` (captura HFT, T78): cada parte ya viene ordenada por `order` y las partes no se
+    solapan, así que se concatenan en el orden de su primera fila sin reordenar en memoria y se
+    verifica que el resultado quede en orden estricto. `row_group_size` acota la memoria del
+    escritor (las filas con listas de niveles pesan KB: un grupo por defecto no cabe en 300 MB)."""
     parts = sorted(d.glob("part-*.parquet"))
     if len(parts) < 2:
         return None
-    lst = "[" + ", ".join(_q(p) for p in parts) + "]"
     tmp = d / f"compact-{time.time_ns()}.tmp"
     con = duckdb.connect()
     con.execute("SET threads = 1")                 # el equipo anda corto de memoria
     con.execute("SET memory_limit = '300MB'")
     con.execute(f"SET temp_directory = {_q(d / '.duck_tmp')}")
     try:
+        if presorted:
+            parts.sort(key=lambda p: con.execute(
+                f"SELECT {order} FROM read_parquet({_q(p)}, hive_partitioning = false) LIMIT 1"
+            ).fetchone())
+        lst = "[" + ", ".join(_q(p) for p in parts) + "]"
         src = f"read_parquet({lst}, hive_partitioning = false, union_by_name = true)"
         n0, s0 = con.execute(f"SELECT COUNT(*), COALESCE(SUM({key}), 0) FROM {src}").fetchone()
-        opts = "FORMAT parquet" + (f", COMPRESSION {codec}" if codec else "")
-        con.execute(f"COPY (SELECT * FROM {src} ORDER BY {order}) TO {_q(tmp)} ({opts})")
+        opts = "FORMAT parquet" + (f", COMPRESSION {codec}" if codec else "") + (
+            f", ROW_GROUP_SIZE {row_group_size}" if row_group_size else "")
+        sel = f"SELECT * FROM {src}" + ("" if presorted else f" ORDER BY {order}")
+        con.execute(f"COPY ({sel}) TO {_q(tmp)} ({opts})")
         n1, s1 = con.execute(f"SELECT COUNT(*), COALESCE(SUM({key}), 0) FROM "
                              f"read_parquet({_q(tmp)}, hive_partitioning = false)").fetchone()
+        if presorted and (bad := _out_of_order(con, tmp, [c.strip() for c in order.split(",")])):
+            raise RuntimeError(f"partes solapadas en {d}: {bad} filas fuera de orden; no se toca")
     except Exception:
         tmp.unlink(missing_ok=True)
         raise
