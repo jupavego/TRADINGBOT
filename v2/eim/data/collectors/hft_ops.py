@@ -32,6 +32,8 @@ QC_MARGIN_S = 300
 COMPACT_MARGIN_H = 2
 SUMMARY_HOURS = 72
 MAX_QC_PER_PASS = 24
+LIST_KINDS = ("depth", "snap", "book")   # filas con listas de niveles: grupos de filas pequeños
+LIST_ROW_GROUP = 2048
 
 
 def summary_path(root: str | Path, symbol: str) -> Path:
@@ -45,21 +47,31 @@ def pending_qc(root: str | Path, symbol: str, now_s: float) -> list[int]:
             if h <= last_closed and not qc.qc_path(root, symbol, h).exists()]
 
 
-def compact_hours(root: str | Path, symbol: str, now_s: float,
-                  max_dirs: int | None = 48) -> list[tuple[str, int, int]]:
+def compact_hours(root: str | Path, symbol: str, now_s: float, max_dirs: int | None = 48
+                  ) -> tuple[list[tuple[str, int, int]], list[tuple[str, str]]]:
+    """(compactadas, fallidas). Concatena las partes ya ordenadas (sin reordenar en memoria: el
+    equipo anda corto); una carpeta que falla se registra y se reintenta en la pasada siguiente."""
     cutoff = int(now_s // 3600) - COMPACT_MARGIN_H
     out: list[tuple[str, int, int]] = []
+    failed: list[tuple[str, str]] = []
     for h in hours_with_data(root, symbol):
         if h >= cutoff or not qc.qc_path(root, symbol, h).exists():
             continue
         for kind in KINDS:
             if max_dirs is not None and len(out) >= max_dirs:
-                return out
+                return out, failed
             d = hour_dir(root, kind, symbol, h)
-            res = compact_dir(d, key="seq", order="run, seq", codec="ZSTD") if d.exists() else None
+            if not d.exists():
+                continue
+            try:
+                res = compact_dir(d, key="seq", order="run, seq", codec="ZSTD", presorted=True,
+                                  row_group_size=LIST_ROW_GROUP if kind in LIST_KINDS else None)
+            except Exception as e:  # noqa: BLE001 - una hora problemática no frena las demás
+                failed.append((str(d), f"{type(e).__name__}: {e}"[:300]))
+                continue
             if res:
                 out.append((str(d), *res))
-    return out
+    return out, failed
 
 
 def prune(root: str | Path, keep_days: int, now_s: float) -> int:
@@ -156,16 +168,23 @@ def week_summary(root: str | Path, symbol: str, t0_ms: int, t1_ms: int) -> dict 
 
 
 def maintain(root: str | Path, symbol: str, now_s: float, keep_days: int = KEEP_DAYS) -> dict:
-    """Una pasada completa: QC pendiente → compactación → retención → resumen."""
-    done = [qc.run_hour(root, symbol, h) for h in pending_qc(root, symbol, now_s)[:MAX_QC_PER_PASS]]
-    compacted = compact_hours(root, symbol, now_s)
+    """Una pasada completa: QC pendiente → compactación → retención → resumen. Un fallo en una
+    hora (QC) o carpeta (compactación) queda en la salida y no impide reescribir el resumen."""
+    done, qc_failed = [], []
+    for h in pending_qc(root, symbol, now_s)[:MAX_QC_PER_PASS]:
+        try:
+            done.append(qc.run_hour(root, symbol, h))
+        except Exception as e:  # noqa: BLE001 - se reintenta en la pasada siguiente
+            qc_failed.append((hour_label(h), f"{type(e).__name__}: {e}"[:300]))
+    compacted, comp_failed = compact_hours(root, symbol, now_s)
     pruned = prune(root, keep_days, now_s)
     summary = summarize(root, symbol, now_s, keep_days=keep_days)
     write_summary(root, symbol, summary)
     return {"qc_horas": [r["hour"] for r in done],
             "qc_incompletas": [r["hour"] for r in done if not r["complete"]],
             "no_detectados": sum(r["holes"]["undetected"] for r in done),
-            "compactadas": len(compacted), "carpetas_podadas": pruned, "summary": summary}
+            "qc_fallida": qc_failed, "compactadas": len(compacted),
+            "compactacion_fallida": comp_failed, "carpetas_podadas": pruned, "summary": summary}
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -37,6 +37,9 @@ class HftMaintenance(Maintenance):
         if res["no_detectados"] or res["qc_incompletas"]:
             self.log.write("qc_hft_aviso", "warn", incompletas=res["qc_incompletas"],
                            no_detectados=res["no_detectados"])
+        if res["qc_fallida"] or res["compactacion_fallida"]:
+            self.log.write("mantenimiento_hft_parcial", "warn", qc=res["qc_fallida"],
+                           compactacion=res["compactacion_fallida"])
 
 
 def main(argv: list[str] | None = None) -> int:
