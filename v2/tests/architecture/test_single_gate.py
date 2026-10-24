@@ -74,8 +74,16 @@ def _smoke(_tmp_path) -> tuple[int, list[str]]:
     return sum(c["ok"] for c in first), [c["detail"] for c in first]
 
 
+def _hft(_tmp_path) -> tuple[int, list[str]]:
+    """Carril HFT (T83): orden que toma (IOC) → riesgo HFT → `HftGateway` → bróker simulado."""
+    from tests.hft.hft_helpers import ASK, SYM, order, rig
+    r = rig()
+    d = r.submit(order(purpose="take", tif="IOC", price=ASK))
+    return int(r.sim.position(SYM).qty != 0), list(d.reasons)
+
+
 ROUTES = {"agents.plan": _agents_plan, "paper.strategies": _paper, "copy.leaders": _copy,
-          "arb.scanner": _arb, "ops.smoke": _smoke}
+          "arb.scanner": _arb, "ops.smoke": _smoke, "hft.micro": _hft}
 
 
 def test_every_active_source_has_a_real_route_under_test():
@@ -124,7 +132,12 @@ ALLOWED = {
     # abrir: solo tras la autoridad (sello + ruta) o su política registrada
     ("orden al exchange", "execution/gateway.py", "OrderGateway.submit"),
     ("arbitraje al exchange", "execution/gateway.py", "ArbGateway.submit"),
+    ("orden HFT al exchange", "execution/gateway.py", "HftGateway.submit"),   # T83
     ("orden firmada", "execution/service.py", "ensure_order"),          # lo usa ExecutionService
+    # quién entrega órdenes al broker: cada uno solo tras su puerta (T30, T45, T83)
+    ("entrega al broker", "execution/service.py", "ExecutionService._ensure"),
+    ("entrega al broker", "execution/arb_legs.py", "Legs.send"),
+    ("entrega al broker", "execution/hft_executor.py", "HftExecutor.place_hft"),
     ("decisión del bróker", "paper/policy.py", "decide"),
     ("decisión del bróker", "paper/policy.py", "_no"),
     ("posición del bróker", "paper/book.py", "_open"),                  # policy.verify antes

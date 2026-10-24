@@ -17,7 +17,9 @@ EIM = Path(__file__).resolve().parents[2] / "eim"
 PRIMITIVES: dict[str, tuple[str, tuple[str, ...] | None, str | None]] = {
     "orden al exchange": ("place", None, None),
     "arbitraje al exchange": ("place_arb", None, None),
+    "orden HFT al exchange": ("place_hft", None, None),                 # T83
     "orden firmada": ("post_order", None, None),
+    "entrega al broker": ("ensure_order", None, None),                   # T83: único reenvío seguro
     "posición del bróker": ("Slot", None, None),
     "decisión del bróker": ("PaperDecision", None, None),
     "llenado del bróker": ("_fill", None, "paper/"),

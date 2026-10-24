@@ -58,3 +58,26 @@ Un bot público es código ajeno. El diseño asume que puede ser malicioso o est
 - **Passivbot (T58)**: el bot trae un archivo con códigos de bróker y lee `api-keys.json`; en el carril de simulación no se crea ni se entrega ninguno, no se instancia ningún exchange (solo `run_backtest` sobre arreglos) y la petición/salida solo llevan velas y fills. La compilación de su motor Rust (cargo descarga crates) es una instalación manual aparte, no parte de la ejecución.
 - **Riesgo residual aceptado**: un bot modo B comprometido podría leer archivos del propio usuario que sean legibles desde su proceso (no hay *chroot*) y, en Windows, intentar red. No tiene claves, no ve la API ni el almacén (la API solo escucha en local y exige `X-EIM-Confirm`), y su salida se valida como datos. No se amplía el alcance sin otra auditoría.
 - **Escuadrón integrado (T60)**: un bot solo puede votar tras superar la puerta de edge y la prueba marginal de T59, con peso medido y fuera de cuarentena; los de clase `L`/`IA` jamás votan. Ningún endpoint nuevo (`/v2/bots*`) acepta órdenes, tamaño ni apalancamiento, y el escaneo estático de `tests/api/test_security.py` sigue pasando. Si un bot que vota se degrada pierde el voto de inmediato (`data/bots/quarantine.json`). Los subprocesos de modo B siguen sin claves; sus límites en Windows son los de arriba (solo timeout y árbol de procesos, sin aislamiento de red por proceso).
+
+## Carril HFT (T83)
+Mismo principio que T29/T30: el riesgo es código determinista con veto y nada llega al exchange
+sin pasar por él. Lo propio del carril:
+- **Una decisión por orden:** `HftRiskEngine` sella cada `HftDecision` con el HMAC de proceso de
+  T29; `HftGateway` exige sello, aprobación, la misma configuración (`hft_risk_v1`, SHA en cada
+  decisión), vigencia de 1 s y la fuente `hft.micro` registrada a `risk.hft_engine` (T114). La
+  orden enviada sale de la decisión (cantidad, precio, lado, `GTX`/`IOC`, reduce-only). Con un
+  kill-switch activo solo pasan órdenes que reducen. Probado: estático (`tests/risk/test_gate.py`,
+  inventario de `tests/architecture/`) y dinámico (un exchange auditor que verifica la decisión
+  en cada envío durante una sesión con todos los fallos, `tests/hft/test_hft_chaos.py`).
+- **Solo testnet:** el WS API de órdenes (`binance_ws_api.py`) solo acepta
+  `wss://testnet.binancefuture.com/ws-fapi/v1` y el flujo de usuario (`user_stream_ws.py`) solo
+  `fstream.binancefuture.com`, también si se inyecta la conexión; los tests comprueban que esos
+  módulos no nombran hosts de producción. Firma HMAC por petición sobre los parámetros ordenados;
+  el secreto nunca viaja (ni en errores). `listenKey` solo con la cabecera de la clave. Sin
+  `session.logon` (exigiría claves Ed25519 nuevas).
+- **No empeorar un bloqueo:** tras un 429/418 el cliente (REST y WS API) no envía nada hasta que
+  vence la espera; `ensure_order` ya no consulta ni reenvía durante un límite de tasa.
+- **Riesgo aceptado:** `countdownCancelAll` actúa sobre todo el símbolo de la cuenta (ver
+  RUNBOOK §15.7). La URL del flujo de usuario de testnet no está publicada en la documentación
+  oficial: se confirma con la primera conexión con claves (BACKLOG T83). Claves de testnet sin
+  permiso de retiro, como siempre; ninguna clave real.

@@ -6,11 +6,17 @@ cantidad que se llena por evento para reproducir fills parciales. Imita las regl
 que importan a la ejecución: id de cliente duplicado entre órdenes abiertas → rechazo,
 reduce-only sin posición → rechazo, condicional que dispararía al instante → rechazo,
 `close_position` sin posición al disparar → expira.
+
+T83 (carril HFT): `GTX` (post-only) que casaría al instante → rechazo `-5022`; `IOC` que no se
+llena entera → el resto expira; nocional por debajo de `min_notional` → rechazo `-4164` (salvo
+reduce-only); `on_update(nuevo, anterior)` avisa de cada cambio de estado de una orden (la
+fuente de los eventos del flujo de usuario simulado, `eim/execution/user_stream.py`).
 """
 
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from dataclasses import asdict, replace
 
 from eim.core import Mode
@@ -18,6 +24,7 @@ from eim.execution.broker import (
     CANCELED,
     EXPIRED,
     FILLED,
+    GTX,
     LIMIT,
     MARKET,
     NEW,
@@ -36,9 +43,11 @@ class SimBroker:
 
     def __init__(self, balance: float = 10_000.0, fee_rate: float = 0.0004,
                  step: float = 0.001, tick: float = 0.1, min_qty: float = 0.001,
-                 fill_cap: float | None = None) -> None:
+                 fill_cap: float | None = None, min_notional: float = 0.0) -> None:
         self.balance, self.fee_rate = balance, fee_rate
         self.step, self.tick, self.min_qty, self.fill_cap = step, tick, min_qty, fill_cap
+        self.min_notional = min_notional
+        self.on_update: Callable[[OrderState, OrderState | None], None] | None = None
         self.leverage: dict[str, int] = {}
         self._orders: dict[str, OrderState] = {}
         self._pos: dict[str, tuple[float, float | None]] = {}
@@ -83,14 +92,24 @@ class SimBroker:
             raise OrderRejected("Order would immediately trigger.", -2021)
         if spec.kind == LIMIT and not spec.price:
             raise OrderRejected("LIMIT sin precio", -1102)
+        if spec.kind == LIMIT and spec.tif == GTX and (px - (spec.price or 0)) * spec.side <= 0:
+            raise OrderRejected("Post Only order will be rejected (would be taker)", -5022)
+        ref = spec.price if spec.kind == LIMIT else px
+        if (not spec.reduce_only and not spec.close_position and not spec.conditional
+                and (spec.qty or 0) * (ref or 0) < self.min_notional):
+            raise OrderRejected(f"Order's notional must be no smaller than {self.min_notional}",
+                                -4164)
         self._seq += 1
         o = OrderState(client_id=spec.client_id, symbol=spec.symbol, side=spec.side,
                        kind=spec.kind, status=NEW, qty=spec.qty, trigger=spec.trigger,
                        close_position=spec.close_position, reduce_only=spec.reduce_only,
                        exchange_id=str(self._seq))
-        self._orders[spec.client_id] = o
+        self._put(o)
         self._limit_px[spec.client_id] = spec.price
         self._match(o)
+        last = self._orders[spec.client_id]
+        if spec.kind == LIMIT and spec.tif == "IOC" and last.is_open:
+            self._put(replace(last, status=EXPIRED))
         return self._orders[spec.client_id]
 
     def get_order(self, symbol: str, client_id: str, conditional: bool) -> OrderState | None:
@@ -104,7 +123,7 @@ class SimBroker:
     def cancel(self, symbol: str, client_id: str, conditional: bool) -> None:
         o = self.get_order(symbol, client_id, conditional)
         if o is not None and o.is_open:
-            self._orders[client_id] = replace(o, status=CANCELED)
+            self._put(replace(o, status=CANCELED))
 
     def open_orders(self, symbol: str) -> list[OrderState]:
         return [o for o in self._orders.values() if o.symbol == symbol and o.is_open]
@@ -134,6 +153,12 @@ class SimBroker:
         self._orders = {o["client_id"]: OrderState(**o) for o in d["orders"]}
 
     # --- casación ----------------------------------------------------------
+    def _put(self, o: OrderState) -> None:
+        old = self._orders.get(o.client_id)
+        self._orders[o.client_id] = o
+        if self.on_update is not None:
+            self.on_update(o, old)
+
     def _reduces(self, symbol: str, side: int) -> bool:
         q = self._pos.get(symbol, (0.0, None))[0]
         return q * side < 0
@@ -155,10 +180,10 @@ class SimBroker:
             if o.close_position and not self._reduces(o.symbol, o.side):
                 q = 0.0
             if q <= 0:
-                self._orders[o.client_id] = replace(o, status=EXPIRED)
+                self._put(replace(o, status=EXPIRED))
                 return
             self._fill(o.symbol, o.side, q, px)
-            self._orders[o.client_id] = replace(o, status=TRIGGERED, filled=q, avg_price=px)
+            self._put(replace(o, status=TRIGGERED, filled=q, avg_price=px))
             return
         limit = self._limit_px.get(o.client_id)
         if o.kind == LIMIT and (px - (limit or 0)) * o.side > 0:
@@ -169,14 +194,14 @@ class SimBroker:
             rest = min(rest, abs(self._pos.get(o.symbol, (0.0, None))[0]))
         q = min(rest, self.fill_cap) if self.fill_cap else rest
         if q <= 0:
-            self._orders[o.client_id] = replace(o, status=EXPIRED)
+            self._put(replace(o, status=EXPIRED))
             return
         self._fill(o.symbol, o.side, q, fill_px)
         filled = o.filled + q
         avg = ((o.avg_price or 0) * o.filled + fill_px * q) / filled
         done = filled >= (o.qty or 0) - 1e-12
-        self._orders[o.client_id] = replace(o, filled=round(filled, 10), avg_price=avg,
-                                            status=FILLED if done else PARTIAL)
+        self._put(replace(o, filled=round(filled, 10), avg_price=avg,
+                          status=FILLED if done else PARTIAL))
 
     def _fill(self, symbol: str, side: int, q: float, px: float) -> None:
         cur, entry = self._pos.get(symbol, (0.0, None))
