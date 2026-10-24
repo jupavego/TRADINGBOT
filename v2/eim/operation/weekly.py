@@ -151,7 +151,8 @@ def calibration(forecasts: list, closes: dict[int, float], horizon: int) -> dict
 def compose(*, t0: int, t1: int, mode: str, symbols: tuple[str, ...], trades: list[LiveTrade],
             fee_rate: float, equity: list[tuple[int, float]], alerts: list[Alert],
             active_alerts: list[str], decisions: list[RiskDecision], edge: dict | None,
-            calib: dict[str, dict], started_at: int | None) -> dict:
+            calib: dict[str, dict], started_at: int | None,
+            hft_qc: dict[str, dict] | None = None) -> dict:
     closed = [t for t in trades if t.status == CLOSED and t.closed_at is not None
               and t0 <= t.closed_at < t1]
     weeks = (t1 - max(t0, started_at or t0)) / WEEK_MS
@@ -165,7 +166,7 @@ def compose(*, t0: int, t1: int, mode: str, symbols: tuple[str, ...], trades: li
         "trades": live, "all_trades": trade_stats(closed, fee_rate),
         "equity": equity_stats(equity), "backtest": base,
         "deviations": deviations(live, base, weeks), "calibration": calib,
-        "incidents": inc, "risk": vetoes(decisions),
+        "incidents": inc, "risk": vetoes(decisions), "hft_qc": hft_qc or {},
         "acceptance": {"recon_unresolved": len(inc["recon_unresolved"]),
                        "weeks_operated": round(weeks, 2),
                        "note": "T31 exige ≥ 4 semanas continuas sin incidentes de "

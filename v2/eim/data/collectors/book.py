@@ -23,6 +23,7 @@ class LocalBook:
     last_u: int | None = None  # `u` del último evento aplicado
     synced: bool = False
     ghosts_pruned: int = 0
+    last_pruned: list[tuple[str, float]] = field(default_factory=list)  # fantasmas del último diff
 
     def load_snapshot(self, last_id: int, bids, asks) -> None:
         self.bids = {float(p): float(q) for p, q in bids if float(q) > 0}
@@ -47,6 +48,7 @@ class LocalBook:
         elif prev != self.last_u:
             self.desync()
             return "gap"
+        self.last_pruned = []
         for book, levels in ((self.bids, bids), (self.asks, asks)):
             for p, q in levels:
                 p, q = float(p), float(q)
@@ -66,11 +68,14 @@ class LocalBook:
                 return
             if updated_bids and not updated_asks:
                 del self.asks[ba]
+                self.last_pruned.append(("a", ba))
             elif updated_asks and not updated_bids:
                 del self.bids[bb]
+                self.last_pruned.append(("b", bb))
             else:  # ambos lados cambiaron: no se sabe cuál es el viejo → se descartan ambos
                 del self.bids[bb]
                 del self.asks[ba]
+                self.last_pruned += [("b", bb), ("a", ba)]
             self.ghosts_pruned += 1
 
     def top(self, n: int = 10) -> tuple[list[tuple[float, float]], list[tuple[float, float]]]:

@@ -68,7 +68,28 @@ def render_md(rep: dict) -> str:
               f"{risk['n_decisions']} decisiones registradas, {risk['n_vetoed']} vetadas. "
               "Motivos más frecuentes: " +
               (", ".join(f"{r} ({n})" for r, n in risk["top_reasons"]) or "—") + "."]
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines + _hft_lines(rep.get("hft_qc") or {})) + "\n"
+
+
+def _hft_lines(hft: dict) -> list[str]:
+    """Control de calidad de la captura HFT (T78): solo el resumen, los crudos no viajan."""
+    out = ["", "## Captura HFT (calidad de datos)", ""]
+    if not hft:
+        return out + ["Sin captura HFT en el periodo (`micro_hft/`)."]
+    for s, q in hft.items():
+        if "error" in q:
+            out.append(f"- {s}: resumen de QC ilegible ({q['error']}).")
+            continue
+        chk = q["checks"]
+        out.append(
+            f"- {s}: {q['hours_complete']}/{q['hours']} horas completas "
+            f"({_f(q['pct_complete'], '{:.1%}')}), racha contigua más larga "
+            f"{q['longest_complete_streak_h']} h; verificaciones top-10 con el snapshot REST "
+            f"{chk['matched']}/{chk['comparable']} ({_f(chk['match_rate'], '{:.2%}')}); "
+            f"huecos encontrados {q['holes_found']}, sin marcar {q['undetected']}; reinicios "
+            f"{q['restarts']}; disco {_f(q['mb_per_day'], '{:.0f}')} MB/día "
+            f"(30 días ≈ {_f(q['projection_30d_gb'], '{:.1f}')} GB).")
+    return out
 
 
 def write(rep: dict, out_dir: Path, name: str | None = None) -> tuple[Path, Path]:

@@ -41,6 +41,12 @@ DATA: tuple[Component, ...] = (
       "en el disco, con latido cada 30 s; un vigilante lo relanza si cae y avisa si el disco o el flujo "
       "fallan. Alimenta al agente de flujo de órdenes.", cadence="continuo", cadence_s=60,
       produces=("micro_bars",)),
+    c("data.hft_collector", "data", "datos", "service", "hft_collector", "T78",
+      "Captura profunda del libro",
+      "Proceso aparte que guarda todos los cambios del libro, mejores precios, operaciones, precio "
+      "de referencia y liquidaciones de BTC con la hora de Binance y la de llegada. Cada 5 min "
+      "compara su libro con uno oficial y cada hora audita la calidad.", cadence="continuo",
+      cadence_s=60, produces=("hft_events",)),
     c("data.liq_collector", "data", "datos", "service", "collector", "T07", "Recolector de liquidaciones",
       "Proceso aparte que escucha las liquidaciones forzadas en vivo de Binance, Bybit y OKX y las "
       "guarda por hora. Reemplaza al archivo histórico de Binance, retirado en 2024.",

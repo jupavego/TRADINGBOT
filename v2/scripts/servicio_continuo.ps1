@@ -113,6 +113,25 @@ foreach ($a in $activos) {
   }
 }
 
+# Captura HFT (T78): libro L2 completo con doble reloj, bookTicker, aggTrade, markPrice y
+# liquidaciones de BTCUSDT en data\micro_hft (amplía T23 sin tocar data\micro). Su vigilante
+# (`eim.data.collectors.hft_supervise`, cerrojo data\micro_hft\supervisor.lock, latido
+# data\micro_hft\heartbeat.json) relanza la captura si cae y cada 10 min audita la calidad de las
+# horas cerradas, compacta y poda los crudos de más de 45 días. Logs: hft.out.log / hft.err.log.
+$vigHft = @($procs | Where-Object { $_.CommandLine -match "eim\.data\.collectors\.hft_supervise\s+BTCUSDT" })
+$recHft = @($procs | Where-Object { $_.CommandLine -match "eim\.data\.collectors\.hft_ws\s+BTCUSDT" })
+if ($vigHft) {
+  Write-Host "El vigilante de la captura HFT ya corre (PID $($vigHft.ProcessId -join ', ')): no se lanza otro."
+} elseif ($recHft) {
+  Write-Host "Hay una captura HFT SIN vigilante (PID $($recHft.ProcessId -join ', ')): detenla para que el vigilante la relance con latido."
+} else {
+  $argv = @("-m", "eim.data.collectors.hft_supervise", "BTCUSDT", "--root", "`"$DataDir`"")
+  Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
+    -RedirectStandardOutput (Join-Path $logs "hft.out.log") `
+    -RedirectStandardError (Join-Path $logs "hft.err.log") | Out-Null
+  Write-Host "Vigilante de la captura HFT lanzado (data\micro_hft; QC por hora en data\micro_hft\qc)."
+}
+
 # Liquidaciones en vivo (Binance/Bybit/OKX): alimentan al agente `liquidations`. Sin puerto: se
 # busca por línea de órdenes para no duplicar. Uno por activo en foco.
 foreach ($a in $activos) {

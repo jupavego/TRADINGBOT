@@ -36,8 +36,9 @@ class Maintenance:
 
     def __init__(self, root: Path, log: JsonLog, keep_days: int, notify: Callable[[Alert], None],
                  clock: Callable[[], float] = time.time,
-                 symbol: str = health.DEFAULT_SYMBOL) -> None:
-        self.symbol = symbol
+                 symbol: str = health.DEFAULT_SYMBOL, area: str = "micro",
+                 label: str = "Microestructura", prune_every_s: float = PRUNE_EVERY_S) -> None:
+        self.symbol, self.area, self.label, self.prune_every_s = symbol, area, label, prune_every_s
         self.root, self.log, self.keep_days = root, log, keep_days
         self.notify, self.clock = notify, clock
         self._next_check = self._next_prune = clock() + health.GRACE_S   # el hijo aún arranca
@@ -49,7 +50,7 @@ class Maintenance:
             self._next_check = now + CHECK_EVERY_S
             self._safe("check", now, self.check)
         if now >= self._next_prune:
-            self._next_prune = now + PRUNE_EVERY_S
+            self._next_prune = now + self.prune_every_s
             self._safe("poda", now, self.prune)
 
     def prune(self, now: float) -> None:
@@ -77,7 +78,8 @@ class Maintenance:
                                         status="error", detail={"error": err})
 
     def check(self, now: float) -> list[str]:
-        msgs = health.problems(self.root, int(now * 1000), symbol=self.symbol)
+        msgs = health.problems(self.root, int(now * 1000), symbol=self.symbol, area=self.area,
+                               label=self.label)
         for m in msgs:
             if now - self._alerted.get(m[:40], 0.0) < REALERT_S:
                 continue
@@ -85,35 +87,38 @@ class Maintenance:
             self.log.write("alerta_microestructura", "error", detalle=m)
             hooks_service.service_event("data.micro_collector", m, status="error")
             try:
-                self.notify(Alert(int(now * 1000), SERVICE, CRITICAL, "Microestructura", m,
-                                  SERVICE))
+                self.notify(Alert(int(now * 1000), SERVICE, CRITICAL, self.label, m, SERVICE))
             except Exception:  # noqa: BLE001, S110 - el aviso nunca frena la vigilancia
                 pass
         return msgs
 
 
 def supervise(root: str | Path, symbol: str, keep_days: int = health.DEPTH_KEEP_DAYS,
-              make_watchdog=Watchdog, notify: Callable[[Alert], None] | None = None) -> str:
+              make_watchdog=Watchdog, notify: Callable[[Alert], None] | None = None,
+              module: str = "eim.data.collectors.binance_ws", area: str = "micro",
+              label: str = "Microestructura", maint_cls: type[Maintenance] = Maintenance,
+              extra_args: tuple[str, ...] = ()) -> str:
+    """Vigila un recolector (`module`) del área `area`; T78 lo reutiliza para la captura HFT."""
     root = Path(root)
-    mdir = health.micro_dir(root)
+    mdir = health.area_dir(root, area)
     lock = instance_lock(mdir / f"supervisor{health.sfx(symbol)}.lock")
     if lock is None:
-        return "Ya hay un vigilante de microestructura en marcha: no se lanza otro."
+        return f"Ya hay un vigilante de {label.lower()} en marcha: no se lanza otro."
     try:
         log = JsonLog(mdir / "logs", echo=True)
-        maint = Maintenance(mdir.parent, log, keep_days, notify or WindowsToast(), symbol=symbol)
+        maint = maint_cls(mdir.parent, log, keep_days, notify or WindowsToast(), symbol=symbol,
+                          area=area, label=label)
 
         def sleep(s: float) -> None:
             time.sleep(s)
             maint.tick()
 
-        cmd = [sys.executable, "-m", "eim.data.collectors.binance_ws", symbol.upper(),
-               "--root", str(root)]
+        cmd = [sys.executable, "-m", module, symbol.upper(), "--root", str(root), *extra_args]
         log.write("vigilante_iniciado", symbol=symbol.upper(), arranque_ms=int(time.time() * 1000))
         make_watchdog(cmd, dict(os.environ), mdir / health.hb_name(symbol), log,
                       stale_s=health.STALE_S, check_s=15.0, sleep=sleep,
-                      title="Microestructura: recolector reiniciado").run()
-        return "vigilante de microestructura detenido"
+                      title=f"{label}: recolector reiniciado").run()
+        return f"vigilante de {label.lower()} detenido"
     finally:
         lock.close()
 
