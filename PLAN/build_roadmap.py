@@ -2,7 +2,8 @@
 
 Uso:  python PLAN/build_roadmap.py [--no-publish]
 Si el plan no cambió, no reescribe status.js (así `git pull` no se bloquea por la marca de hora).
-Además publica roadmap.html y status.js en la carpeta viva que sirve el acceso directo del escritorio.
+Además publica roadmap.html y status.js en la carpeta viva que sirve el acceso directo del escritorio,
+salvo desde una rama que no contiene `origin/main` (pisaría la hoja de ruta con estados viejos).
 El archivo roadmap.html lo relee solo cada pocos segundos (funciona abierto con doble clic).
 """
 import json
@@ -62,10 +63,29 @@ def live_dir() -> Path | None:
     return Path(out).parent / "v2" / "data" / "roadmap_live"
 
 
+def behind_main() -> bool:
+    """True si esta rama no contiene `origin/main` (según el último `git fetch`).
+
+    La carpeta viva es una sola para todas las sesiones: una rama creada antes de la última
+    fusión la pisaría con estados viejos (una tarea ya fusionada volvería a «pendiente»). Sin git
+    o sin `origin/main` no se puede saber y se publica como siempre.
+    """
+    try:
+        r = subprocess.run(["git", "merge-base", "--is-ancestor", "refs/remotes/origin/main",
+                            "HEAD"], cwd=PLAN, capture_output=True, text=True)
+    except OSError:
+        return False
+    return r.returncode == 1          # 0 = al día; 128 = sin repositorio u `origin/main`
+
+
 def publish(tasks: list) -> None:
     """Copia roadmap.html y status.js a la carpeta viva, salvo que sea de un plan más viejo."""
     dest = live_dir()
     if dest is None:
+        return
+    if behind_main():
+        print("roadmap vivo NO actualizado: esta rama no contiene origin/main (está atrasada); "
+              "trae main (`git fetch origin && git merge origin/main`) y vuelve a ejecutarlo")
         return
     dest.mkdir(parents=True, exist_ok=True)
     cur = dest / "status.js"
