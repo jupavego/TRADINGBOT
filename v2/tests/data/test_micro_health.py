@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import os
 import time
+from pathlib import Path
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -140,3 +142,70 @@ def test_files_are_per_symbol(tmp_path):
     assert a and b            # dos vigilantes a la vez: uno por símbolo
     a.close()
     b.close()
+
+
+def test_disk_report_tolerates_part_removed_by_compaction(tmp_path, monkeypatch):
+    """Carrera real de T104: la compactación (otro proceso) borra una parte ya listada."""
+    monkeypatch.setattr(health.shutil, "disk_usage",
+                        lambda p: type("U", (), {"free": 100 * 10**9})())
+    d = tmp_path / "micro" / "trades" / "symbol=BTCUSDT" / "date=2026-10-23" / "hour=11"
+    d.mkdir(parents=True)
+    for name in ("part-1.parquet", "part-2.parquet"):
+        (d / name).write_bytes(b"x" * 1000)
+    listed = Path.glob
+
+    def racing_glob(self, pattern, *a, **kw):
+        found = list(listed(self, pattern, *a, **kw))
+        for p in found:
+            if p.name == "part-2.parquet":
+                p.unlink()                      # entre el listado y el stat()
+        return iter(found)
+
+    monkeypatch.setattr(Path, "glob", racing_glob)
+    r = health.disk_report(tmp_path)
+    assert r["total_mb"] == 0.0 and r["mb_per_day"]["trades"] == round(1000 * 24 / 1e6, 2)
+    assert health.problems(tmp_path, NOW)                 # sin latido: avisa, no lanza
+
+
+class _Log:
+    def __init__(self):
+        self.rows = []
+
+    def write(self, event, level="info", **kw):
+        self.rows.append((event, level, kw))
+
+
+def test_maintenance_failure_is_logged_not_fatal(tmp_path, monkeypatch):
+    events = []
+    monkeypatch.setattr(supervise.hooks_service, "service_event",
+                        lambda comp, what, **kw: events.append((comp, what, kw["status"])))
+
+    def boom(*a, **kw):
+        raise FileNotFoundError("part-9.parquet")
+
+    monkeypatch.setattr(health, "problems", boom)
+    log, clock = _Log(), [time.time()]
+    m = supervise.Maintenance(tmp_path, log, 30, lambda a: None, clock=lambda: clock[0])
+    clock[0] += health.GRACE_S + 1
+    m.tick()                                              # no mata al vigilante
+    fails = [r for r in log.rows if r[0] == "mantenimiento_fallido"]
+    assert [(r[1], r[2]["paso"]) for r in fails] == [("error", "check")]
+    assert "FileNotFoundError" in fails[0][2]["error"]
+    assert "disco" in [r[0] for r in log.rows]            # la poda y el informe siguen
+    assert events == [("data.micro_collector", "mantenimiento fallido (check)", "error")]
+    clock[0] += 61
+    m.tick()                                              # mismo fallo: no se repite el aviso
+    assert len([r for r in log.rows if r[0] == "mantenimiento_fallido"]) == 1
+    assert len(events) == 1
+
+
+def test_maintenance_lets_interrupt_through(tmp_path, monkeypatch):
+    def stop(*a, **kw):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(health, "problems", stop)
+    clock = [time.time()]
+    m = supervise.Maintenance(tmp_path, _Log(), 30, lambda a: None, clock=lambda: clock[0])
+    clock[0] += health.GRACE_S + 1
+    with pytest.raises(KeyboardInterrupt):                # el Watchdog sigue pudiendo pararse
+        m.tick()

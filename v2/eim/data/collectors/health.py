@@ -75,14 +75,20 @@ def classify(hb: dict | None, now_ms: int, stale_s: float = STALE_S,
 
 
 def disk_report(root: str | Path, now: float | None = None) -> dict:
-    """MB/día por tipo (tamaño ÷ horas con datos × 24), total en MB y espacio libre."""
+    """MB/día por tipo (tamaño ÷ horas con datos × 24), total en MB y espacio libre.
+
+    La compactación (otro proceso) borra partes ya listadas: esas se saltan, no tumban al vigilante.
+    """
     base = micro_dir(root)
     per_kind: dict[str, float] = {}
     total = 0
     for kind in KINDS:
         size, hours = 0, set()
         for f in (base / kind).glob("symbol=*/date=*/hour=*/part-*.parquet"):
-            size += f.stat().st_size
+            try:
+                size += f.stat().st_size
+            except OSError:      # desapareció tras el listado (o, en Windows, borrado pendiente)
+                continue
             hours.add((f.parent.parent.name, f.parent.name, f.parent.parent.parent.name))
         total += size
         if hours:

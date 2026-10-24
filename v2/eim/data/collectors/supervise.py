@@ -5,7 +5,8 @@
 Un solo vigilante por carpeta de datos (cerrojo `micro/supervisor.lock`); relanza
 `eim.data.collectors.binance_ws` si muere o si su latido (`micro/heartbeat.json`) se detiene, con
 espera creciente. Cada minuto comprueba salud y disco y avisa en local (registro + notificación);
-cada hora poda los diffs de profundidad más viejos que `--depth-keep-days`. Solo datos públicos.
+cada hora poda los diffs de profundidad más viejos que `--depth-keep-days`. Un fallo de ese
+mantenimiento se registra (`mantenimiento_fallido`) sin detener la vigilancia. Solo datos públicos.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ import argparse
 import os
 import sys
 import time
+import traceback
 from collections.abc import Callable
 from pathlib import Path
 
@@ -45,13 +47,34 @@ class Maintenance:
         now = self.clock()
         if now >= self._next_check:
             self._next_check = now + CHECK_EVERY_S
-            self.check(now)
+            self._safe("check", now, self.check)
         if now >= self._next_prune:
             self._next_prune = now + PRUNE_EVERY_S
-            n = health.prune_depth(self.root, self.keep_days, now)
-            if n:
-                self.log.write("poda_profundidad", dias_borrados=n, conserva_dias=self.keep_days)
-            self.log.write("disco", **health.disk_report(self.root))
+            self._safe("poda", now, self.prune)
+
+    def prune(self, now: float) -> None:
+        n = health.prune_depth(self.root, self.keep_days, now)
+        if n:
+            self.log.write("poda_profundidad", dias_borrados=n, conserva_dias=self.keep_days)
+        self.log.write("disco", **health.disk_report(self.root))
+
+    def _safe(self, step: str, now: float, fn: Callable[[float], object]) -> None:
+        """Un fallo de mantenimiento se registra y avisa (sin repetir) y la vigilancia sigue.
+
+        Solo `Exception`: Ctrl+C llega intacto al Watchdog, y sus propios fallos no pasan por aquí.
+        """
+        try:
+            fn(now)
+        except Exception as e:  # noqa: BLE001 - el mantenimiento nunca tumba al vigilante
+            key = f"mantenimiento:{step}:{type(e).__name__}"
+            if now - self._alerted.get(key, 0.0) < REALERT_S:
+                return
+            self._alerted[key] = now
+            err = f"{type(e).__name__}: {e}"
+            self.log.write("mantenimiento_fallido", "error", paso=step, error=err,
+                           traza=traceback.format_exc()[-1500:])
+            hooks_service.service_event("data.micro_collector", f"mantenimiento fallido ({step})",
+                                        status="error", detail={"error": err})
 
     def check(self, now: float) -> list[str]:
         msgs = health.problems(self.root, int(now * 1000), symbol=self.symbol)
