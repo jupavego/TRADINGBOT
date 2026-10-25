@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import statistics
 import threading
 import time
 
@@ -23,6 +22,7 @@ from eim.observability.store import ObsStore
 from eim.risk.journal import RiskJournal
 from tests.local_client import LocalClient
 from tests.observability.helpers import CLOSE, SYM, T0, TF, candle_trace, ev, write
+from tests.perf import measure
 
 
 @pytest.fixture
@@ -152,6 +152,7 @@ def test_full_app_exposes_only_gets_and_serves_the_observatory(tmp_path):
         assert c.get("/v2/obs/events", headers={"host": "evil.example"}).status_code == 400
 
 
+@pytest.mark.perf
 def test_queries_over_100k_events_stay_within_the_threshold(tmp_path):
     store = ObsStore(tmp_path / "obs.duckdb")
     spool = tmp_path / "spool"
@@ -180,13 +181,10 @@ def test_queries_over_100k_events_stay_within_the_threshold(tmp_path):
                ("/v2/obs/graph", {}), ("/v2/obs/health", {})]
     with TestClient(app) as c:
         for path, params in queries:
-            lat = []
-            for _ in range(20):
-                t = time.perf_counter()
+            def call(path=path, params=params):
                 assert c.get(path, params=params).status_code == 200
-                lat.append((time.perf_counter() - t) * 1000)
-            p95 = statistics.quantiles(lat, n=20)[-1]
-            assert p95 <= T.QUERY_P95_MS_MAX, f"{path} {params}: p95 {p95:.0f} ms"
+            lat = measure(call)                              # calentamiento + p95 de 100
+            assert lat.ms(0.95) <= T.QUERY_P95_MS_MAX, f"{path} {params}: {lat.describe()}"
     assert index_s < 60, f"indexar 100 000 eventos tardó {index_s:.0f} s"
     store.close()
 

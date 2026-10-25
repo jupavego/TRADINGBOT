@@ -62,7 +62,8 @@ def test_recon_rows_keep_their_machine(tmp_path):
     assert got == [("a", 2), ("b", 3)]
 
 
-def test_legacy_db_without_machine_column_is_migrated(tmp_path):
+def test_legacy_db_without_machine_column_is_migrated(tmp_path, monkeypatch):
+    monkeypatch.delenv("EIM_MACHINE", raising=False)          # el alias ganaría al archivo
     d = tmp_path / "data"
     d.mkdir()
     (d / "machine_id").write_text("viejo-1\n", encoding="utf-8")

@@ -24,10 +24,13 @@ def test_candles_valid_and_shape(snap):
     assert valid_candles(paths)
 
 
+@pytest.mark.perf
 def test_fast(snap):
-    t = time.time()
+    BaseEngine().sample(snap, 25, 200)                       # calentamiento, descartado
+    t = time.perf_counter()
     BaseEngine().sample(snap, 25, 200)
-    assert time.time() - t < 3
+    took = time.perf_counter() - t
+    assert took < 3, f"200 trayectorias de 25 velas tardaron {took:.2f} s"
 
 
 def test_seed_reproducible(snap):

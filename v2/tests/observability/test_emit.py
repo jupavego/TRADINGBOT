@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import errno
+import itertools
 import json
 import multiprocessing as mp
-import statistics
 import time
 
 import pytest
@@ -12,6 +12,7 @@ import eim.observability.emit as E
 from eim.core import Mode
 from eim.observability import thresholds as T
 from eim.observability.events import ObsEvent, Ref
+from tests.perf import measure
 
 
 def _lines(spool):
@@ -80,6 +81,7 @@ def test_disk_full_never_raises_and_counts(spool):
     assert E.flush() and E.stats()["written"] >= 2
 
 
+@pytest.mark.perf
 def test_full_queue_drops_and_counts_without_blocking(tmp_path, monkeypatch):
     def slow_write(self, batch):
         time.sleep(0.4)
@@ -88,7 +90,8 @@ def test_full_queue_drops_and_counts_without_blocking(tmp_path, monkeypatch):
     E.configure(process="q", spool_dir=tmp_path / "s", enabled=True, queue_size=3)
     t0 = time.perf_counter()
     results = [E.emit("signal", "agent.ema") for _ in range(300)]
-    assert time.perf_counter() - t0 < 1.0  # nunca espera al escritor lento
+    took = time.perf_counter() - t0
+    assert took < 1.0, f"300 emit() tardaron {took:.2f} s"  # nunca espera al escritor lento
     s = E.stats()
     assert False in results and s["dropped"] >= 200 and s["emitted"] <= 300
     E.flush(5)
@@ -163,19 +166,18 @@ def test_two_processes_do_not_corrupt_lines(tmp_path, same_name):
     assert len(list(spool.glob("*.jsonl"))) == 2  # un archivo por proceso (el pid va en el nombre)
 
 
+@pytest.mark.perf
 def test_emit_cost_within_threshold(spool):
     for _ in range(300):
         E.emit("signal", "agent.ema", detail={"bias": 0.3}, source="b", coverage=1.0)  # calienta
     E.flush()
-    lat = []
-    for i in range(2000):
-        t = time.perf_counter()
-        E.emit("signal", "agent.ema", detail={"i": i, "bias": 0.3}, source="b", coverage=1.0)
-        lat.append((time.perf_counter() - t) * 1e6)
-    lat.sort()
-    assert lat[int(len(lat) * 0.95)] <= T.EMIT_P95_US_MAX, statistics.fmean(lat)
+    i = itertools.count()
+    lat = measure(lambda: E.emit("signal", "agent.ema", detail={"i": next(i), "bias": 0.3},
+                                 source="b", coverage=1.0), samples=2000, warmup=0)
+    assert lat.us(0.95) <= T.EMIT_P95_US_MAX, lat.describe("us")
 
 
+@pytest.mark.perf
 def test_cycle_overhead_within_budget_even_if_disk_fails(tmp_path):
     """Un «ciclo» de MAX_EVENTS_PER_CYCLE eventos con el disco roto cuesta menos que el
     presupuesto y su resultado es idéntico al de un ciclo sin observar."""
@@ -206,4 +208,6 @@ def test_cycle_overhead_within_budget_even_if_disk_fails(tmp_path):
         E.close()
     assert [r.model_dump() for r in observed] == [r.model_dump() for r in plain]
     overhead = best - t_plain
-    assert overhead <= max(T.MAX_CYCLE_OVERHEAD_MS / 1000, T.MAX_CYCLE_OVERHEAD_FRACTION * t_plain)
+    budget = max(T.MAX_CYCLE_OVERHEAD_MS / 1000, T.MAX_CYCLE_OVERHEAD_FRACTION * t_plain)
+    assert overhead <= budget, (f"sobrecosto {overhead * 1e3:.1f} ms > {budget * 1e3:.1f} ms "
+                                f"(ciclo sin observar {t_plain * 1e3:.1f} ms, el mejor de 3)")

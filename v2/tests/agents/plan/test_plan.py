@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import time
 
+import pytest
+
 from eim.agents.plan import PlanAgent, PlanParams
 from eim.agents.plan.plan import Plan, advance, improve, propose
 from eim.core import Candle, MarketSnapshot
@@ -132,10 +134,12 @@ def test_agent_insufficient_bars():
     assert PlanAgent().run(_snap([100.0] * 50)).status == "no_data"
 
 
+@pytest.mark.perf
 def test_agent_real_fixture():
-    t0 = time.time()
+    t0 = time.perf_counter()
     rep = PlanAgent().run(make_snapshot())
-    assert time.time() - t0 < 30
+    took = time.perf_counter() - t0
+    assert took < 30, f"el agente de plan tardó {took:.1f} s"
     assert rep.metrics["mode"] == "ANALISIS" and -1 <= rep.bias <= 1
     if rep.overlays:
         g = rep.overlays[0].geometry

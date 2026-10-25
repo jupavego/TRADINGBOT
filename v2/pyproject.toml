@@ -48,6 +48,9 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = [
+    "perf: mide tiempo de reloj contra un umbral fijo; sigue en el gate (-m \"not perf\" solo para aislarla al diagnosticar)",
+]
 
 [tool.pyright]
 include = ["eim"]

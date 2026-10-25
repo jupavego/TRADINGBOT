@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import re
-import time
 
 import pytest
 from pydantic import ValidationError
@@ -13,6 +12,7 @@ from eim.core import Mode
 from eim.risk.hft_config import HftRiskConfig, load_hft_config
 from eim.risk.hft_models import HftDecision, hft_client_id
 from tests.hft.hft_helpers import ASK, BID, CFG, T0, account, engine, market, order
+from tests.perf import measure
 
 
 # --- configuración ---------------------------------------------------------------------------
@@ -190,18 +190,19 @@ def test_kill_switch_after_approval_blocks_the_send():
 
 
 # --- coste de la decisión (presupuesto de T77) ---------------------------------------------
+@pytest.mark.perf
 def test_decision_cost_p99_fits_the_latency_budget_fraction():
     """Decidir + verificar una orden, p99 ≤ 2 % de los 310 ms p99 del presupuesto de T77."""
     eng, m = engine(), market()
-    costs = []
-    for i in range(2_000):
-        a = account(position=0.002 * (i % 3), live_orders=i % 4, orders_10s=i % 50)
-        o = order(i=f"q{i}", side=1 if i % 2 else -1)
-        t = time.perf_counter_ns()
+    cases = iter([(account(position=0.002 * (i % 3), live_orders=i % 4, orders_10s=i % 50),
+                   order(i=f"q{i}", side=1 if i % 2 else -1)) for i in range(2_001)])
+
+    def decide():
+        a, o = next(cases)
         d = eng.evaluate(o, m, a, T0)
         if d.approved:
             eng.verify_hft(d, T0)
-        costs.append((time.perf_counter_ns() - t) / 1e6)
-    costs.sort()
-    p99 = costs[int(0.99 * len(costs))]
-    assert p99 <= CFG.decision_budget_ms, f"p99 {p99:.3f} ms > {CFG.decision_budget_ms} ms"
+
+    lat = measure(decide, samples=2_000)                    # la primera, de calentamiento
+    assert lat.ms(0.99) <= CFG.decision_budget_ms, (
+        f"{lat.describe()} > {CFG.decision_budget_ms} ms")

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-24T15:22:48",
+ "generated": "2026-10-24T18:38:04",
  "tasks": [
   {
    "id": "T01",
@@ -1468,8 +1468,8 @@ window.EIM_STATUS = {
     "T72",
     "T73"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "`tests/conftest.py` retira toda `EIM_*` del equipo (las opcionales, en `tests/opt_in.py`), fija DuckDB/avisos y **corta la red** (`tests/offline.py`): el ciclo de operación descargaba 30 días de liquidaciones por prueba (~20 s c/u, la causa de los > 25 min). `tests/perf.py` mide con calentamiento y ≥ 100 muestras (mismo umbral, mismo índice); 10 pruebas `perf` siguen en el gate; `test_leaders` aísla `EIM_MACHINE`. Gate 25 min 29 s con 1 fallo → **6 corridas verdes seguidas**: 3 con servicios + CPU a medias + `EIM_*` hostiles (~19–20 min) y 3 con solo los servicios (~11 min); ninguna prueba > 60 s sin carga. Cierre en `PLAN/notas/T116_gate.md`. **Pendiente:** 3 corridas con el equipo descargado y 3 con Ollama real en el equipo de referencia (aquí no hay Ollama y parar los servicios rompe T31/T78).",
    "effort": "medio",
    "phase": 20,
    "goal": "Que `python -m ruff check eim tests && python -m pytest -q` dé el mismo resultado en el equipo del usuario, en el del colaborador y con el equipo cargado. Hoy no: la prueba de rendimiento del observatorio falla por milisegundos y la suite completa puede tardar más de 25 minutos con Ollama y los recolectores activos (`PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §B). Un gate que falla por el equipo enseña a ignorarlo."
