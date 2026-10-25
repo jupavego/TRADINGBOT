@@ -196,14 +196,16 @@ sumar cero; el ejecutor nunca deja una pata huérfana a propósito.
 
 ## 13. Un bot del escuadrón se cuelga, falla o cambia de versión (T60)
 Síntoma: en «Escuadrón» el bot sale `cuarentena`, con señal `degraded` o con el aviso «versión cambió»; alerta `bots.<bot>` o latido `bots.service` en `degraded` en la pestaña «Operación».
-1. Mirar el motivo: `GET $API/v2/bots` (`reasons`, `evidence`) y `data/bots/quarantine.jsonl`. Un bot que se cuelga (modo B) lo mata el tiempo límite del ejecutor y solo deja una señal `degraded`: el resto del ciclo sigue.
+Solo entra en cuarentena un bot que **vota** (hoy ninguno: ver `GET $API/v2/bots/scorecard`); uno que solo informa y falla deja la señal `degraded` y la alerta, nada más.
+1. Mirar el motivo: `GET $API/v2/bots` (`reasons`, `evidence`, `quarantine`) y, desde `v2/`, `python -m eim.bots.quarantine list` (o `data/bots/quarantine.jsonl`). Un bot que se cuelga (modo B) lo mata el tiempo límite del ejecutor y solo deja una señal `degraded`: el resto del ciclo sigue.
 2. Un bot en cuarentena no vota (la síntesis queda como si estuviera en `informa`). No hay que hacer nada urgente: el riesgo y la ejecución no dependen de él.
 3. Versión cambiada (SHA de la ficha o parámetros): su puntuación anterior ya no vale. Volver a puntuar (`python -m eim.bots.scorecard_cli`, `docs/BOTS.md` §Cambiar de versión); mientras tanto vota solo si la nueva medición lo permite.
-4. Reactivar a mano, solo tras entender la causa:
+4. Reactivar a mano, solo tras entender la causa (desde `v2/`, **con la API en marcha**; no hay botón):
    ```bash
-   python -c "from pathlib import Path; from eim.bots.quarantine import Quarantine; import time; q = Quarantine(Path('data/bots')); print(q.release('<bot_id>@<estrategia>', int(time.time()*1000)))"
+   python -m eim.bots.quarantine release <bot_id>@<estrategia> --by <tu nombre>
    ```
-   Reiniciar la API (o esperar al próximo recálculo de 4 h) para que la política lo recoja.
+   La API relee `data/bots/quarantine.json` en el siguiente cierre de vela del escuadrón o en la siguiente consulta a `GET $API/v2/bots`, y la política recupera el voto sin reiniciar (antes de T119 había que reiniciar la API y un disparo posterior deshacía la reactivación). Comprueba: `GET $API/v2/bots` → `quarantine` sin el bot; la bitácora `quarantine.jsonl` guarda el `release` con quién lo hizo.
+   Camino comprobado en T119 con el adaptador real de Hummingbot (`bollinger_v1`) y una caída del ejecutor simulada: voto perdido al instante, `list`, `release` desde otro proceso y voto recuperado en el ciclo siguiente (`tests/bots/test_t119_quarantine.py`).
 
 ## 14. Protección del bróker simulado recuperada o inconsistente (T110)
 El diario `paper_protection` (en `data/paper.duckdb`, solo adición) guarda el escalón y el SL vigente

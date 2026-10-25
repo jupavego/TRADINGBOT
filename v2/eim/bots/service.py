@@ -31,6 +31,24 @@ log = logging.getLogger("eim.bots")
 CandleHistory = Callable[[str, str, int, int], list[Candle]]
 FT_PY_ENV = "EIM_BOT_FREQTRADE_PY"          # intérprete del entorno aparte de Freqtrade
 FT_ENGINE_ENV = "EIM_BOT_FREQTRADE_ENGINE"  # versión del motor fijada (p. ej. «2026.9»)
+# Bots utilizables que nunca entran en el ciclo en vivo, y por qué (T119: ninguno parece vivo)
+OUT_OF_CYCLE = {
+    "nostalgia-for-infinity": "solo histórico: no hay ciclo de 5 min en vivo (cada corrida de "
+                              "3 300 velas pide 1–6 GB de RAM); sus posturas son de relleno y "
+                              "solo cuentan en la puntuación",
+    "passivbot": "carril de simulación (clase L): corre a mano (python -m eim.bots.sim_lane), "
+                 "no en el ciclo",
+}
+NO_ENV = "modo B sin entorno en este equipo (EIM_BOT_FREQTRADE_*): no produce posturas en vivo"
+
+
+def out_of_cycle(cards: dict, active: set[str]) -> list[dict]:
+    """Bots direccionales o de carril, utilizables, que este servicio no lanza, con el motivo."""
+    return [{"bot_id": c.id, "name": c.name, "class": c.bot_class,
+             "reason": OUT_OF_CYCLE.get(c.id) or (NO_ENV if c.integration_mode == "B" else
+                                                  "sin adaptador activo en este servicio")}
+            for c in cards.values()
+            if c.usable and c.bot_class in ("D", "L") and c.id not in active]
 
 
 def _note(sig: BotSignal, note: str) -> BotSignal:
@@ -89,6 +107,8 @@ class BotService:
             hooks_service.service_error(f"bots.{s.bot_id}", "; ".join(s.evidence) or "degradado")
         hooks_service.beat("bots.service", status="degraded" if bad else "ok",
                            detail={"signals": len(sigs), "degraded": len(bad)})
+        if self.quarantine is not None:
+            self.quarantine.sync()      # una reactivación por CLI vale desde este ciclo (T119)
         pol = current_policy()
         if self.quarantine is None or pol is None:
             return

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-24T18:38:04",
+ "generated": "2026-10-25T18:42:03",
  "tasks": [
   {
    "id": "T01",
@@ -1507,8 +1507,8 @@ window.EIM_STATUS = {
     "T59",
     "T60"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**La API viva y el informe no coincidían porque medían bases distintas** (el informe, del equipo del otro colaborador con relleno de 6 meses + FSupertrend/NFI; aquí `bot_signals` empieza el 2026-10-22). Sobre una copia de la base real con el relleno (41 031 posturas): API (`maybe_run` + `GET /v2/bots/scorecard`) = CLI, mismos 18 intentos de Holm y veredictos (`PLAN/notas/T119_verificacion.md`, informe nuevo en `v2/reports/bots_scorecard.md`); pico del recálculo 690 → 253 MB (`PaperStore.regimes`). `freshness`/`frames` en la API y aviso en «Escuadrón» si la medición no es la actual; `live`/`out_of_cycle` (NFI solo histórico); 5m comprobado 10 días con reinicio y caídas; cuarentena releída por la API + CLI `eim.bots.quarantine` (RUNBOOK §13). Tests `tests/bots/test_t119_*.py`. **Falta en vivo:** relleno a la base viva + despliegue (◆).",
    "effort": "medio",
    "phase": 20,
    "goal": "Que lo que dice la interfaz sobre los bots sea lo mismo que dice el informe. El recálculo dentro de la API cayó por memoria y se arregló (`query_lean`, topes de DuckDB) **midiendo con 105 000 posturas sintéticas**, porque la API viva tiene `reports.duckdb` bloqueada; `GET /v2/bots/scorecard` puede seguir mostrando la medición anterior mientras la buena vive en `v2/reports/bots_scorecard.md` (`PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §D). Hasta comprobarlo, el escuadrón vota (o calla) según cifras no verificadas."

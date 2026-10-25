@@ -60,6 +60,16 @@ class PaperStore:
             out.append(d)
         return out
 
+    def regimes(self, symbol: str, timeframe: str) -> list[tuple[int, str | None]]:
+        """(asof, régimen) ascendentes sin parsear el contexto entero: es lo único que lee la
+        puntuación de bots (T119; con `load` parseaba ~65 MB de JSON, +525 MB de pico)."""
+        with self._lock:
+            rows = self._con.execute(
+                "SELECT asof_ms, json_extract_string(ctx, '$.regime') FROM paper_ctx "
+                "WHERE symbol = ? AND timeframe = ? ORDER BY asof_ms",
+                [symbol, timeframe]).fetchall()
+        return [(int(t), r) for t, r in rows]
+
     def stamp(self, symbol: str, timeframe: str) -> tuple[int, int | None]:
         """(cantidad, último asof): cambia cuando hay contextos nuevos."""
         with self._lock:
