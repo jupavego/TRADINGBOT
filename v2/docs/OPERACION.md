@@ -127,8 +127,12 @@ inflar la evidencia**. Todo en modo SIMULADO; nunca viajan claves.
   **solo su rama** `machine/<id>` (un único commit raíz sobrescrito con `push --force`: el servidor guarda
   solo la última foto y la historia no crece) y lee las ramas de las demás con clones superficiales en
   `data/share_repo/view/`. Nadie escribe en la rama de otro: sin conflictos. Usa las credenciales de git del
-  equipo (gestor de credenciales / `gh auth`); cada colaborador necesita acceso de escritura al repo. Un
-  archivo > 90 MB se rechaza (límite de GitHub). **Nunca** apuntes esto al repo del código.
+  equipo (gestor de credenciales / `gh auth`); cada colaborador necesita acceso de escritura al repo. Una
+  tabla de más de 64 MB viaja en partes (`<tabla>.partNNN.parquet`, formato 2 del manifest, T117), así
+  que ningún archivo llega al límite de GitHub (un archivo > 90 MB se rechaza igualmente). **Nunca**
+  apuntes esto al repo del código. Repo del proyecto: `https://github.com/Santivego/eim-shared-data`
+  (privado). Medido el 2026-10-25: una exportación completa pesa ~160 MB, subirla lleva ~3 min y la
+  primera bajada en un equipo nuevo, ~1,5 min.
 - **Carpeta de nube** (Drive/OneDrive): `setup --shared-dir <carpeta>`.
 
 **Automático (lo normal).** Configura una vez y el sistema hace el resto:
@@ -211,8 +215,37 @@ solas) y todo sigue automático.
 **Límites.** La importación manual requiere las bases libres (si no, falla con el mensaje «detén la API y
 el servicio de líderes» y no cambia nada; la automática corre dentro de los procesos que las tienen); la atomicidad es por base (de ahí la copia previa). No hay
 sincronización en vivo ni autenticación entre colaboradores. Nunca pongas una base DuckDB viva dentro de
-la carpeta compartida: solo viajan Parquet + `manifest.json` (SHA-256 por tabla, commit, esquema).
-**Pendiente ◆:** el usuario revisa el informe de la primera mezcla real antes de dar T61 por cerrada.
+la carpeta compartida: solo viajan Parquet + `manifest.json` (SHA-256 por archivo, commit, esquema).
+En modo automático, la unión retiene la base mientras dura: medido (T117) con datos reales, ~10 s en
+`leaders.duckdb` aunque no llegue nada nuevo y ~30 s con ~140 000 filas nuevas (la captura espera; el
+bucle sigue). Si un equipo trae mucho historial de golpe (su primera mezcla), aplícalo a mano.
+
+**Rutina de cada colaborador (T117).**
+- *Una vez por equipo:* alias `--machine` **distinto** del de los demás y fijo para siempre. Antes del
+  primer `setup`, mira `git ls-remote <repo>`: si ya existe la rama `machine/<tu-alias>` es de otro
+  equipo (el código no lo impide y dos equipos con el mismo id se pisarían la rama). La primera mezcla
+  con un equipo nuevo: simulacro en los dos sentidos, revisión y, después, `--apply` (o el arranque con
+  el modo automático). Detalle y protocolo: `PLAN/notas/T117_primera_mezcla.md`.
+- *Al empezar la jornada:* actualizar el código (`git pull`; los dos equipos deben leer el mismo
+  formato, y uno más nuevo se rechaza con «actualiza el código») y arrancar el servicio
+  (`abrir_interfaz.ps1`). Comprobar en `GET /v2/share/status` (o `python -m eim.data.share status`) que
+  `error` está vacío y que `imported` tiene la última foto del otro equipo. Si el otro publicó algo,
+  la API y el servicio de líderes lo unen en ≤ 1 h.
+- *Durante y al terminar:* nada obligatorio. Cada 6 h se exporta solo lo que cambió. Si vas a apagar el
+  equipo varios días, publica antes lo último con `python -m eim.data.share export` (en caliente; en
+  git publica tu rama).
+- *Si algo no cuadra:* el informe de cada importación está en `data/share/import_<id>.json`, los
+  conflictos en `share_conflicts` (DuckDB) y la copia previa en `backups/pre-import_…` (3 últimas). La
+  procedencia está en `GET /v2/validation` → `provenance` (duplicadas = de la última foto de cada
+  máquina, las que ya estaban).
+- *Qué NO viaja nunca* (cada equipo conserva lo suyo aunque se mezcle todo lo demás): kill-switch y
+  estado de la operación (`kill_switch.json`, `operation/`, latidos), `risk_decisions`, `op_*`, libro de
+  la subcuenta simulada y `copy_state`, diario de la protección (T110), el observatorio, velas, funding,
+  calendario y biblioteca (cada equipo los descarga), los derivados (veredictos, pronósticos y tableros:
+  se recalculan) y **las claves y el `.env`**.
+
+**Pendiente ◆ (T61, vía T117):** el usuario revisa los dos simulacros de la primera mezcla real con el
+segundo equipo antes de dar T61 por cerrada (estado en `PLAN/notas/T117_primera_mezcla.md`).
 
 ## 4. Versionado de parámetros
 - Un conjunto de parámetros publicado es **inmutable**: cambiar límites de riesgo = `risk_v2.json`

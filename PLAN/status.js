@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-24T18:38:04",
+ "generated": "2026-10-25T13:09:04",
  "tasks": [
   {
    "id": "T01",
@@ -1481,8 +1481,8 @@ window.EIM_STATUS = {
     "T61",
     "T115"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**Mitad de este equipo hecha (2026-10-25); falta el segundo equipo (no estaba listo).** Transporte elegido por el usuario: repo git privado `Santivego/eim-shared-data` (creado); alias = id actual `laptop-i6pf9ovp-fce8d9`; publicada su rama (copia diaria 00:00 UTC, 3 451 889 filas, ~160 MB) y comprobada la ida y vuelta con un tercer equipo de ensayo. El modo automático sigue apagado en vivo hasta revisar el simulacro. El ensayo con datos reales (dos copias de este historial) destapó y corrigió cuatro fallos: `leader_fills` ya pesa 80 MB → formato 2 del manifest con partes ≤ 64 MB (`share_export.py`, `share_import.py`); huecos `ws` sin símbolo reinsertados en cada importación (clave con `IS NOT DISTINCT FROM`, `share_merge.py`); `provenance` que sumaba duplicadas de cada importación (`validation_store.py`); rutas > 260 caracteres en git (`share_git.py`). Tras los arreglos: unión conmutativa, idempotente y `n` sin crecer (191 → 191). Pruebas `tests/share/test_parts.py` + regresiones en `test_leaders.py`/`test_versions.py`. Informe, cifras, pasos que faltan e instrucciones para el colaborador: `PLAN/notas/T117_primera_mezcla.md`; rutina en `v2/docs/OPERACION.md` §3.1.",
    "effort": "medio",
    "phase": 20,
    "goal": "Estrenar T61 con **dos equipos de verdad** (el del usuario y el del segundo colaborador) y dejar el informe que el usuario tiene pendiente de revisar (◆ de T61). Hasta ahora todo se probó sin red, con fixtures. Mientras no se haga, cada equipo acumula historial en paralelo sin que el otro lo vea."

@@ -66,6 +66,13 @@ def test_holm_counts_union_of_attempts(tmp_path):
     assert p["attempts"] == 5                       # {aaa, bbb, ccc, ddd, eee}: unión por huella
     prov = p["provenance"]["machines"]["b"]
     assert prov["val_versions"]["imported"] == 3 and prov["val_versions"]["duplicates"] == 1
+    apply(a, shared, "a")                           # T117: repetir no infla la procedencia
+    ps = PaperStore(a / "paper.duckdb")
+    try:
+        again = ValidationStore(ps).provenance()["machines"]["b"]["val_versions"]
+    finally:
+        ps.close()
+    assert again == {"imported": 3, "duplicates": 1, "conflicts": 0}
 
 
 def test_derived_verdicts_not_imported(tmp_path):

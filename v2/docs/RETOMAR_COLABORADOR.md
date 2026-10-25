@@ -81,13 +81,20 @@ Dos cosas sí cambian de lectura, no de datos:
 
 ### Unir tu experiencia con la del otro equipo (T61)
 
-Si no está configurado, hazlo una vez (detalle en `OPERACION.md` §3.1):
+El transporte acordado (T117) es el repo **privado** `https://github.com/Santivego/eim-shared-data`
+(pide la invitación con permiso de escritura). Configúralo una vez, desde `v2/`, **con la API y el
+servicio de líderes detenidos** y sin arrancarlos hasta revisar los simulacros: al arrancar con la
+configuración ya puesta, unen solos (detalle en `OPERACION.md` §3.1 y `PLAN/notas/T117_primera_mezcla.md` §7):
 
 ```powershell
-python -m eim.data.share setup --shared-dir "<carpeta de nube>" --machine <alias-unico>
-python -m eim.data.share import          # simulacro: qué traería
-python -m eim.data.share import --apply  # con la API y los líderes detenidos
+git ls-remote https://github.com/Santivego/eim-shared-data.git   # tu alias no debe existir ya
+python -m eim.data.share setup --git-url https://github.com/Santivego/eim-shared-data.git --machine <alias-unico>
+python -m eim.data.share export          # publica tu rama machine/<alias-unico>
+python -m eim.data.share import          # simulacro: qué traería (envía la salida completa)
+python -m eim.data.share import --apply  # solo cuando se hayan revisado los dos simulacros
 ```
+
+`laptop-i6pf9ovp-fce8d9` es el alias del otro equipo: elige otro.
 
 Viaja la experiencia (reportes, operaciones simuladas, contextos, líderes, versiones de
 validación); **no** viaja el estado de tu máquina (kill-switch, latidos, `risk_decisions`, libro de

@@ -41,7 +41,8 @@ class GitTransport:
     def _git(self, cwd: Path | None, *args: str, check: bool = True) -> str:
         env = {**os.environ, "GIT_TERMINAL_PROMPT": "0", "GCM_INTERACTIVE": "never"}
         cmd = ["git", "-c", f"user.name=eim-{self.machine}", "-c", "user.email=eim@localhost",
-               "-c", "core.autocrlf=false", "-c", "gc.auto=0", *args]
+               "-c", "core.autocrlf=false", "-c", "gc.auto=0",
+               "-c", "core.longpaths=true", *args]     # T117: Windows corta en 260 caracteres
         try:
             out = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, env=env,
                                  timeout=self.timeout, encoding="utf-8", errors="replace")

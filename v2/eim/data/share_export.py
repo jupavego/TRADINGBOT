@@ -20,7 +20,7 @@ import duckdb
 
 from eim.data.backup_dbs import sha256 as _sha256
 from eim.data.backup_dbs import sql_path as _sql_path
-from eim.data.share_spec import DB_ORDER, FORMAT, SCHEMA_VERSION, specs_of
+from eim.data.share_spec import DB_ORDER, FORMAT, PART_BYTES, SCHEMA_VERSION, specs_of
 
 PKG = Path(__file__).resolve().parents[1]
 
@@ -59,7 +59,26 @@ def _attach(path: Path):
     return con
 
 
-def _write_db(con, db: str, out: Path, machine: str, tables: dict) -> None:
+def _split(con, f: Path, rows: int, part_bytes: int) -> list[dict]:
+    """Trocea `f` (ya ordenado por la clave) por número de fila en partes de ~`part_bytes`:
+    disjuntas, cubren todas las filas y conservan el orden. Borra `f` al terminar."""
+    k = min(-(-f.stat().st_size // part_bytes), rows)
+    per = -(-rows // k)
+    parts = []
+    for i in range(k):
+        p = f.with_name(f"{f.stem}.part{i:03d}.parquet")
+        con.execute(f"COPY (SELECT * EXCLUDE (file_row_number) FROM read_parquet("
+                    f"{_sql_path(f)}, file_row_number = true) WHERE file_row_number >= {i * per} "
+                    f"AND file_row_number < {(i + 1) * per}) TO {_sql_path(p)} "
+                    "(FORMAT PARQUET, COMPRESSION ZSTD)")
+        n = con.execute(f"SELECT count(*) FROM read_parquet({_sql_path(p)})").fetchone()[0]
+        parts.append({"file": p.name, "rows": int(n), "sha256": _sha256(p)})
+    f.unlink()
+    return parts
+
+
+def _write_db(con, db: str, out: Path, machine: str, tables: dict,
+              part_bytes: int = PART_BYTES) -> None:
     for sp in specs_of(db):
         cols = columns(con, "src", sp.name)
         if not cols:
@@ -72,9 +91,14 @@ def _write_db(con, db: str, out: Path, machine: str, tables: dict) -> None:
         f = out / f"{sp.name}.parquet"
         con.execute(f"COPY (SELECT {select} FROM src.main.\"{sp.name}\" ORDER BY {order}) "
                     f"TO {_sql_path(f)} (FORMAT PARQUET, COMPRESSION ZSTD)")
-        rows = con.execute(f"SELECT count(*) FROM read_parquet({_sql_path(f)})").fetchone()[0]
-        tables[sp.name] = {"db": db, "file": f.name, "rows": int(rows), "sha256": _sha256(f),
-                           "columns": [[c, t] for c, t in cols]}
+        rows = int(con.execute(f"SELECT count(*) FROM read_parquet({_sql_path(f)})"
+                               ).fetchone()[0])
+        meta = {"db": db, "rows": rows, "columns": [[c, t] for c, t in cols]}
+        if f.stat().st_size > part_bytes and rows > 1:    # T117: git no admite > 90 MB
+            meta["parts"] = _split(con, f, rows, part_bytes)
+        else:
+            meta |= {"file": f.name, "sha256": _sha256(f)}
+        tables[sp.name] = meta
 
 
 def prune_own(shared_dir: Path, machine: str, part: str, keep: int) -> list[Path]:
@@ -93,12 +117,13 @@ def prune_own(shared_dir: Path, machine: str, part: str, keep: int) -> list[Path
 
 def export(data_dir: Path, shared_dir: Path, machine: str, *,
            snapshotter: Snapshotter | None = None, now: datetime | None = None,
-           dbs: tuple[str, ...] = DB_ORDER, part: str = "") -> Path:
+           dbs: tuple[str, ...] = DB_ORDER, part: str = "", part_bytes: int = PART_BYTES
+           ) -> Path:
     """Escribe la exportación y devuelve su carpeta. Una base ausente se anota y se sigue; una
     base en uso sin forma de copiarla en caliente es un error (no se exporta a medias).
     `dbs`/`part`: exportación parcial de un proceso que solo tiene algunas bases (la API:
     reports+paper; el servicio de líderes: leaders); el importador toma la más reciente de cada
-    base."""
+    base. Una tabla de más de `part_bytes` viaja en varias partes (`parts` en el manifest)."""
     now = now or datetime.now(UTC)
     stamp = now.strftime("%Y%m%dT%H%M%SZ") + (f"-{part}" if part else "")
     root = shared_dir / machine
@@ -122,7 +147,7 @@ def export(data_dir: Path, shared_dir: Path, machine: str, *,
                     raise
                 con = _attach(snapshotter(db))
             try:
-                _write_db(con, db, tmp, machine, tables)
+                _write_db(con, db, tmp, machine, tables, part_bytes)
             finally:
                 con.close()
         manifest = {"format": FORMAT, "schema_version": SCHEMA_VERSION, "machine": machine,
