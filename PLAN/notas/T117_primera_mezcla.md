@@ -141,7 +141,9 @@ contextos (backtest 37 404, vivo 842), 354 809 ideas y 62 378 operaciones simula
 1. **Fusionar esta rama y desplegarla** en la API y en el servicio de líderes de los **dos** equipos,
    antes de cualquier mezcla real. El código de `main` anterior no lee las partes y reinserta los huecos
    sin símbolo.
-2. **Dar acceso de escritura** a `jupavego` en `Santivego/eim-shared-data` (invitación de GitHub).
+2. ~~**Dar acceso de escritura** a `jupavego` en `Santivego/eim-shared-data`~~ → invitación enviada
+   el 2026-10-25 20:14 UTC con permiso `write`, a la espera de que la acepte
+   (`gh api repos/Santivego/eim-shared-data/invitations`; caduca a los 7 días si no la acepta).
 3. **Colaborador**: instrucciones de §7 (alias distinto, `setup` y `export`, y su simulacro de lo nuestro).
    Comprobar en `git ls-remote` que su rama se llama distinto de `machine/laptop-i6pf9ovp-fce8d9`.
 4. **Este equipo, simulacro real**: `python -m eim.data.backup create` (en caliente), copiar las tres
