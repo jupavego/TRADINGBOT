@@ -1,21 +1,28 @@
-"""Rutas del bróker simulado (T47). Todo es SIMULADO: ninguna ruta envía órdenes."""
+"""Rutas del bróker simulado (T47). Todo es SIMULADO: ninguna ruta envía órdenes.
+
+Auditoría (T118): `GET /v2/paper` lleva el identificador de la instantánea de esa vista
+(`snapshot.id`) y su alcance (`scope`); `GET /v2/paper/snapshot/{id}` devuelve exactamente
+las cifras de entonces aunque el almacén haya cambiado, y `/trades` dice qué tramo devuelve.
+"""
 
 from __future__ import annotations
 
 import csv
 import io
+import re
 
 from fastapi import APIRouter, Header, HTTPException, Query, Response
 
 from eim.api.execution import confirm
 from eim.data.timeframes import SYMBOLS
-from eim.paper import ledger, protection
+from eim.paper import ledger, protection, snapshot
 from eim.paper.desk import PaperDesk, View
 from eim.paper.live_feed import live_feed
 
 CATS = ("orden", "llenada", "tp", "be", "sl", "tiempo", "liquidacion", "salvaguarda", "cuenta",
         "cancelada", "rechazada", "aprendizaje", "violacion")
 VIEW_WAIT_S = 10.0      # espera máxima por un recálculo; después se entrega la vista anterior
+SNAPSHOT_ID = re.compile(r"[0-9a-f]{12}")
 
 
 def _check(symbol: str) -> None:
@@ -79,7 +86,34 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
                 if (strategy is None or strategy in (t["strategy"], t["sid"]))
                 and (tfs is None or t["timeframe"] in tfs)]
         rows.sort(key=lambda t: -t["exit_t"])
-        return {"mode": "SIMULADO", "total": len(rows), "trades": rows[:limit]}
+        shown = rows[:limit]
+        # la lista puede ser un tramo de las más recientes: se dice cuál, nunca pasa por el total
+        return {"mode": "SIMULADO", "total": len(rows), "shown": len(shown),
+                "shown_from": shown[-1]["exit_t"] if shown else None,
+                "shown_to": shown[0]["exit_t"] if shown else None,
+                "snapshot": (v.summary.get("snapshot") or {}).get("id"), "trades": shown}
+
+    @router.get("/snapshot/{sid}")
+    def snapshot_get(sid: str) -> dict:
+        """La foto de una vista ya mostrada, tal como se guardó (T118); `intact` = su huella
+        coincide con el identificador (nadie la alteró)."""
+        if not SNAPSHOT_ID.fullmatch(sid):
+            raise HTTPException(400, f"identificador de instantánea inválido: {sid!r} (12 hex)")
+        got = snapshot.get(desk.pstore, sid)
+        if got is None:
+            raise HTTPException(404, f"la instantánea {sid} no está en este almacén: las "
+                                     "instantáneas son de la máquina que las calculó y la "
+                                     "experiencia compartida no las lleva")
+        return {"mode": "SIMULADO", **got}
+
+    @router.get("/snapshots")
+    def snapshot_list(symbol: str | None = None,
+                      limit: int = Query(50, ge=1, le=1000)) -> dict:
+        """Instantáneas guardadas, más recientes primero, con las operaciones de cada perfil."""
+        if symbol is not None:
+            _check(symbol)
+        return {"mode": "SIMULADO", "error": desk.snapshot_error,
+                "snapshots": snapshot.listing(desk.pstore, symbol, limit)}
 
     @router.get("/ledger")
     def ledger_rows(symbol: str | None = None,

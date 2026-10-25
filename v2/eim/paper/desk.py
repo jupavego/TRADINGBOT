@@ -1,6 +1,7 @@
 """Mesa del bróker simulado: une contextos guardados (15 m, 1 h y 4 h), estrategias, motor,
-retroalimentación y perfiles; el servicio en vivo y el backtest están en `service.py` y el diario
-de la protección (T110) en `protection_desk.py`. Siempre SIMULADO."""
+retroalimentación y perfiles; el servicio en vivo y el backtest están en `service.py`, el diario
+de la protección (T110) en `protection_desk.py` y la instantánea auditable de cada cálculo, con su
+alcance y la conciliación con el libro fijo (T118), en `desk_audit.py`. Siempre SIMULADO."""
 
 from __future__ import annotations
 
@@ -18,6 +19,7 @@ from eim.paper.authority_obs import DecisionEmitter
 from eim.paper.balance import balance
 from eim.paper.book import ProfileState, run_profile
 from eim.paper.catalog import CATALOG, generate_ideas
+from eim.paper.desk_audit import DeskAudit
 from eim.paper.engine import CAUSES, Outcome, Path, run_shadow
 from eim.paper.feedback import Learner, family_stats, strategy_stats, timeframe_stats
 from eim.paper.generate import CtxGenerator, now_ms
@@ -61,7 +63,7 @@ def strategy_infos(tfs: tuple[str, ...]) -> list[dict]:
             if s.runs_in(tf)]
 
 
-class PaperDesk(DeskService, DeskProtection):
+class PaperDesk(DeskService, DeskProtection, DeskAudit):
     def __init__(self, store: Store, pstore: PaperStore, registry: AgentRegistry | None = None,
                  exec_params: ExecParams | None = None,
                  profiles: tuple[ProfileParams, ...] = PROFILES, provider: Provider | None = None,
@@ -88,6 +90,7 @@ class PaperDesk(DeskService, DeskProtection):
         self.obs, self.obs_error = DecisionEmitter(), ""   # T114: decisiones en vivo → Observatorio
         ledger.ensure(pstore)
         self._protection_init()
+        self._audit_init()
 
     def live_status(self) -> dict:
         return {"last_tick": self.last_tick, "started": self.loop_started, "error": self.live_error}
@@ -161,6 +164,7 @@ class PaperDesk(DeskService, DeskProtection):
         firsts = [c[0]["t"] for c in by_tf.values() if c]
         if not firsts:
             v.summary = self._payload(v, by_tf, infos, Learner([]), None, None)
+            self._audit(v, v.summary)
             return v
         ideas = []
         for tf, ctxs in by_tf.items():
@@ -185,6 +189,7 @@ class PaperDesk(DeskService, DeskProtection):
         self._sync_protection(v)
         v.summary = self._payload(v, by_tf, infos, learner, path.end or None,
                                   pc[-1].c if pc else None, n_ideas=len(ideas))
+        self._audit(v, v.summary)
         return v
 
     def _record_ledger(self, v: View) -> None:

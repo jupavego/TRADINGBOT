@@ -7,6 +7,11 @@ tiempo real) se cierra, se guarda con sus precios, costos y versiones de reglas 
 se vuelve a tocar (`INSERT OR IGNORE`). Dos alcances: `perfil` (la operación del libro de un perfil,
 con su tamaño y PnL en USDT) y `sombra` (la idea evaluada sola, en R, para el aprendizaje).
 Las reconstruidas por backtest (`origin = backtest`) no entran: no ocurrieron en vivo.
+
+Desde T118 cada fila de perfil guarda también el capital realizado con el que se dimensionó y el
+que dejó el cierre (`capital_before`/`capital_after`, de `account.capital`, la misma lectura que el
+panel; NULL en las filas anteriores), y `reconcile` compara el libro con la vista de ahora: qué
+operaciones del libro ya no reproduce la vista y cuáles reproduce con otro PnL o capital.
 """
 
 from __future__ import annotations
@@ -26,18 +31,22 @@ COLS = ("ledger_id", "scope", "profile", "symbol", "idea_id", "strategy", "sid",
         "family", "side", "kind", "opened_t", "fill_t", "exit_t", "fill", "exit_price", "sl", "tp",
         "reason", "pnl_usdt", "r", "net_frac", "qty", "notional", "leverage", "fees", "slip",
         "funding", "funding_assumed", "weight", "floor_trade", "origin", "regime", "rules_version",
-        "mech_version", "cost_params", "recorded_ms", "retro", "payload")
+        "mech_version", "cost_params", "recorded_ms", "retro", "payload", "capital_before",
+        "capital_after")
+NEW_COLS = ("capital_before", "capital_after")      # T118: al final, para migrar con ALTER TABLE
 _TYPES = ("VARCHAR PRIMARY KEY, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, "
           "VARCHAR, INTEGER, VARCHAR, BIGINT, BIGINT, BIGINT, DOUBLE, DOUBLE, DOUBLE, DOUBLE, "
           "VARCHAR, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, "
           "BOOLEAN, DOUBLE, BOOLEAN, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, BIGINT, "
-          "BOOLEAN, VARCHAR").split(", ")
+          "BOOLEAN, VARCHAR, DOUBLE, DOUBLE").split(", ")
 DDL = ("CREATE TABLE IF NOT EXISTS paper_ledger (" +
        ", ".join(f"{c} {t}" for c, t in zip(COLS, _TYPES, strict=True)) + ")")
 
 
 def ensure(pstore: PaperStore) -> None:
     pstore.execute(DDL)
+    for c in NEW_COLS:     # un libro creado antes de T118: las filas viejas quedan en NULL
+        pstore.execute(f"ALTER TABLE paper_ledger ADD COLUMN IF NOT EXISTS {c} DOUBLE")
 
 
 def _mech(ep: ExecParams, tf: str) -> tuple[str, str]:
@@ -66,6 +75,7 @@ def _row(scope: str, profile: str, symbol: str, d: dict, ep: ExecParams, now: in
         "regime": d.get("regime"), "rules_version": d.get("version"), "mech_version": mech,
         "cost_params": costs, "recorded_ms": now, "retro": now - exit_t > RETRO_MS,
         "payload": json.dumps(d, default=str, separators=(",", ":")),
+        "capital_before": d.get("capital_before"), "capital_after": d.get("capital_after"),
     }
     return tuple(vals[c] for c in COLS)
 
@@ -118,3 +128,38 @@ def query(pstore: PaperStore, symbol: str | None = None, scope: str | None = Non
 def counts(pstore: PaperStore) -> dict[str, int]:
     rows = pstore.execute("SELECT scope, symbol, count(*) FROM paper_ledger GROUP BY 1, 2")
     return {f"{s}:{sym}": int(n) for s, sym, n in rows}
+
+
+PNL_TOL = 1e-6      # USDT: por debajo, el PnL de la vista y el del libro son el mismo
+
+
+def reconcile(rows: Sequence[dict], books: dict[str, ProfileState]) -> dict[str, dict]:
+    """Libro fijo frente a la vista, por perfil (mismo alcance: operaciones en vivo del símbolo).
+
+    `rows` son las filas `perfil` del símbolo (`query`). Devuelve, por perfil: filas del libro,
+    operaciones en vivo de la vista, cuántas del libro la vista ya no reproduce (`outside`, con su
+    ventana de cierres), cuántas reproduce con otro PnL o motivo (`differ`) y si coinciden en
+    número, PnL y capital (`match`). Una vista recalculada con otras reglas, otro almacén u otro
+    capital inicial no coincide, y esto lo dice en vez de presentarla como la historia."""
+    out: dict[str, dict] = {}
+    for pid, st in books.items():
+        led = {r["idea_id"]: r for r in rows if r["profile"] == pid}
+        view = {t["id"]: t for t in st.trades if t.get("origin") == "vivo"}
+        gone = [r for k, r in led.items() if k not in view]
+        differ = [k for k, r in led.items() if k in view and (
+            abs((r["pnl_usdt"] or 0.0) - view[k]["pnl"]) > PNL_TOL
+            or r["reason"] != view[k]["reason"])]
+        last = max(led.values(), key=lambda r: (r["exit_t"], r["ledger_id"]), default=None)
+        cap = last.get("capital_after") if last else None
+        seen = last is not None and last["idea_id"] in view
+        vcap = view[last["idea_id"]].get("capital_after") if seen else None
+        out[pid] = {
+            "rows": len(led), "view_live": len(view), "outside": len(gone),
+            "outside_from": min((r["exit_t"] for r in gone), default=None),
+            "outside_to": max((r["exit_t"] for r in gone), default=None),
+            "differ": len(differ), "missing": sum(1 for k in view if k not in led),
+            "capital_after": cap, "view_capital_after": vcap,
+            "match": not gone and not differ and len(led) == len(view)
+            and (cap is None or vcap is None or abs(cap - vcap) <= PNL_TOL),
+        }
+    return out

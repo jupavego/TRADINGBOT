@@ -68,6 +68,10 @@ export interface ProfileView {
   counts?: {
     closed: number; by_origin: Record<string, number>; liquidations: number; violations: number
     from: number | null; to: number | null; scope: string
+    /** T118: rechazos por código (capital, tope y freno nunca se confunden). */
+    rejections?: Record<string, number>
+    /** T118: libro fijo frente a esta vista (mismo alcance: operaciones en vivo del símbolo). */
+    ledger?: LedgerCheck | null
   }
   margin_used: number; reserved: number; available: number
   n_closed: number; win_rate: number | null; pf: number | null; avg_r: number | null
@@ -109,6 +113,27 @@ export interface Insight { tone: 'good' | 'bad' | 'warn' | 'info'; text: string 
 
 export interface Job { state: string; symbol: string; tf: string; done: number; total: number; saved: number; error: string; started: number | null; finished: number | null }
 
+export interface LedgerCheck {
+  rows: number; view_live: number; outside: number; outside_from: number | null; outside_to: number | null
+  differ: number; missing: number; capital_after: number | null; view_capital_after: number | null; match: boolean
+}
+
+/** Hueco del alcance (T118): historia que esta vista no abarca, con su porqué. */
+export interface ScopeGap {
+  kind: 'libro_fijo' | 'instantanea'; profile: string; name: string; why: string
+  rows?: number; view_live?: number; outside?: number; differ?: number; from?: number | null; to?: number | null
+  n?: number; now?: number; id?: string; computed?: number
+}
+
+/** Alcance declarado de la vista (T118): tramo, techo y huecos. */
+export interface ViewScope {
+  kind: string; from: number | null; to: number | null; closes_from: number | null; closes_to: number | null
+  contexts: number; origins: Record<string, number>; ceiling: number; ceiling_why: string
+  complete: boolean; gaps: ScopeGap[]
+  /** Solo si el cálculo del alcance falló (la instantánea se guarda igual). */
+  error?: string
+}
+
 export interface PaperSummary {
   mode: string; symbol: string; timeframe: string; path_tf: string; now: number; mark: number | null
   timeframes: string[]; causes: Record<string, string>
@@ -124,6 +149,15 @@ export interface PaperSummary {
   balance: Record<string, BalanceWindow>
   /** Frescura de la vista: con un backtest largo se entrega la última calculada mientras se rehace. */
   view?: { computed: number; stale: boolean; refreshing: boolean; error: string }
+  /** T118: instantánea guardada de esta vista (se vuelve a leer por su id) y su alcance. */
+  snapshot?: { id: string | null; computed: number; error: string }
+  scope?: ViewScope | null
+}
+
+/** Respuesta de `/v2/paper/trades`: la lista puede ser solo las más recientes de `total`. */
+export interface TradesResp {
+  total: number; shown: number; shown_from: number | null; shown_to: number | null
+  snapshot: string | null; trades: PaperTrade[]
 }
 
 export interface PaperTrade {

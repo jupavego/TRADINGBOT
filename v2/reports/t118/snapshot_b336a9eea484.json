@@ -1,0 +1,423 @@
+{
+ "computed": 1792964968925,
+ "id": "b336a9eea484",
+ "intact": true,
+ "mode": "SIMULADO",
+ "recorded": 1792965022774,
+ "snapshot": {
+  "computed": 1792964968925,
+  "coverage": {
+   "contexts": 38162,
+   "from": 1673431200000,
+   "ideas": 354034,
+   "origins": {
+    "backtest": 37404,
+    "vivo": 758
+   },
+   "simulated": 62266,
+   "takeable": 62154,
+   "timeframes": {
+    "15m": {
+     "contexts": 3661,
+     "from": 1789527600000,
+     "origins": {
+      "backtest": 3104,
+      "vivo": 557
+     },
+     "to": 1792886400000
+    },
+    "1h": {
+     "contexts": 33183,
+     "from": 1673431200000,
+     "origins": {
+      "backtest": 33028,
+      "vivo": 155
+     },
+     "to": 1792886400000
+    },
+    "4h": {
+     "contexts": 1318,
+     "from": 1773921600000,
+     "origins": {
+      "backtest": 1272,
+      "vivo": 46
+     },
+     "to": 1792886400000
+    }
+   },
+   "to": 1792886400000
+  },
+  "data": {
+   "candles": [
+    1672531200000,
+    1792961100000
+   ],
+   "contexts": {
+    "15m": [
+     3661,
+     1792886400000
+    ],
+    "1h": [
+     33183,
+     1792886400000
+    ],
+    "4h": [
+     1318,
+     1792886400000
+    ]
+   },
+   "funding_last": 1792944000000
+  },
+  "mark": 80457.1,
+  "mode": "SIMULADO",
+  "now": 1792962000000,
+  "path_tf": "15m",
+  "profiles": [
+   {
+    "available": 9958.410737641954,
+    "avg_r": -0.15104504864958765,
+    "balance": 9958.410737641954,
+    "best": 7.854464516948126,
+    "counts": {
+     "by_origin": {
+      "backtest": 11
+     },
+     "closed": 11,
+     "from": 1673448660000,
+     "ledger": {
+      "capital_after": null,
+      "differ": 0,
+      "match": true,
+      "missing": 0,
+      "outside": 0,
+      "outside_from": null,
+      "outside_to": null,
+      "rows": 0,
+      "view_capital_after": null,
+      "view_live": 0
+     },
+     "liquidations": 0,
+     "rejections": {
+      "observacion": 55918
+     },
+     "scope": "todo el almacén de este símbolo, sin ventana: la vista se recalcula desde todos los contextos guardados. Si la experiencia compartida (T61) importó contextos de otras máquinas, cuentan aquí también: el almacén no los distingue.",
+     "to": 1673526900000,
+     "violations": 0
+    },
+    "dd": {
+     "base": "equity",
+     "from": 1673431200000,
+     "pct": 0.006665647922706702,
+     "to": 1792962000000
+    },
+    "equity": 9958.410737641954,
+    "exhausted": false,
+    "exhausted_t": null,
+    "fees": 26.5513394005567,
+    "funding": 0.21494111883592312,
+    "id": "conservador",
+    "initial": 10000.0,
+    "margin_used": 0,
+    "max_dd_pct": 0.006665647922706702,
+    "min_equity": 100.0,
+    "n_closed": 11,
+    "name": "Conservador",
+    "open": 0,
+    "pending": 0,
+    "pf": 0.397322019910342,
+    "realized": -41.589262358045744,
+    "reserved": 0,
+    "return_base": "equity",
+    "return_pct": -0.004158926235804605,
+    "slip": 27.114580507652896,
+    "upnl": 0.0,
+    "win_rate": 0.7272727272727273,
+    "worst": -34.32270522677507
+   },
+   {
+    "available": 7869.009275860187,
+    "avg_r": -0.09033059153325311,
+    "balance": 7869.009275860189,
+    "best": 73.97036189394505,
+    "counts": {
+     "by_origin": {
+      "backtest": 534,
+      "vivo": 8
+     },
+     "closed": 542,
+     "from": 1673448660000,
+     "ledger": {
+      "capital_after": null,
+      "differ": 6,
+      "match": false,
+      "missing": 0,
+      "outside": 0,
+      "outside_from": null,
+      "outside_to": null,
+      "rows": 8,
+      "view_capital_after": 7869.009275860189,
+      "view_live": 8
+     },
+     "liquidations": 0,
+     "rejections": {
+      "contra_tendencia": 400,
+      "costo": 8181,
+      "cupo": 15,
+      "freno_drawdown": 6,
+      "pausa_contexto": 7,
+      "pausa_estrategia": 46206,
+      "rr": 270
+     },
+     "scope": "todo el almacén de este símbolo, sin ventana: la vista se recalcula desde todos los contextos guardados. Si la experiencia compartida (T61) importó contextos de otras máquinas, cuentan aquí también: el almacén no los distingue.",
+     "to": 1792885500000,
+     "violations": 0
+    },
+    "dd": {
+     "base": "equity",
+     "from": 1673431200000,
+     "pct": 0.2150168449041169,
+     "to": 1792962000000
+    },
+    "equity": 7869.009275860189,
+    "exhausted": false,
+    "exhausted_t": null,
+    "fees": 1186.081293600927,
+    "funding": -0.909205135338603,
+    "id": "moderado",
+    "initial": 10000.0,
+    "margin_used": 0,
+    "max_dd_pct": 0.2150168449041169,
+    "min_equity": 100.0,
+    "n_closed": 542,
+    "name": "Moderado",
+    "open": 0,
+    "pending": 0,
+    "pf": 0.4831393212499188,
+    "realized": -2130.9907241398114,
+    "reserved": 0,
+    "return_base": "equity",
+    "return_pct": -0.21309907241398118,
+    "slip": 1104.5703894190885,
+    "upnl": 0.0,
+    "win_rate": 0.7896678966789668,
+    "worst": -135.68973862120495
+   },
+   {
+    "available": 4265.052316040672,
+    "avg_r": -0.1410969830376421,
+    "balance": 4265.05231604067,
+    "best": 71.94634158801391,
+    "counts": {
+     "by_origin": {
+      "backtest": 473,
+      "vivo": 9
+     },
+     "closed": 482,
+     "from": 1673448300000,
+     "ledger": {
+      "capital_after": null,
+      "differ": 7,
+      "match": false,
+      "missing": 0,
+      "outside": 3,
+      "outside_from": 1792548000000,
+      "outside_to": 1792635300000,
+      "rows": 12,
+      "view_capital_after": 4265.05231604067,
+      "view_live": 9
+     },
+     "liquidations": 0,
+     "rejections": {
+      "contra_tendencia": 398,
+      "costo": 4461,
+      "freno_drawdown": 97,
+      "pausa_estrategia": 53536,
+      "rr": 5,
+      "tope_direccion": 116
+     },
+     "scope": "todo el almacén de este símbolo, sin ventana: la vista se recalcula desde todos los contextos guardados. Si la experiencia compartida (T61) importó contextos de otras máquinas, cuentan aquí también: el almacén no los distingue.",
+     "to": 1792859040000,
+     "violations": 0
+    },
+    "dd": {
+     "base": "equity",
+     "from": 1673431200000,
+     "pct": 0.5775946737972233,
+     "to": 1792962000000
+    },
+    "equity": 4265.05231604067,
+    "exhausted": false,
+    "exhausted_t": null,
+    "fees": 3043.64570646893,
+    "funding": 3.902128024196789,
+    "id": "agresivo",
+    "initial": 10000.0,
+    "margin_used": 0,
+    "max_dd_pct": 0.5775946737972233,
+    "min_equity": 100.0,
+    "n_closed": 482,
+    "name": "Agresivo",
+    "open": 0,
+    "pending": 0,
+    "pf": 0.3730604600971275,
+    "realized": -5734.94768395933,
+    "reserved": 0,
+    "return_base": "equity",
+    "return_pct": -0.573494768395933,
+    "slip": 2559.4491516162516,
+    "upnl": 0.0,
+    "win_rate": 0.7468879668049793,
+    "worst": -260.31781376785517
+   },
+   {
+    "available": 8176.736817195145,
+    "avg_r": -0.08662071075388664,
+    "balance": 8176.736817195145,
+    "best": 37.56307439926897,
+    "counts": {
+     "by_origin": {
+      "backtest": 456,
+      "vivo": 8
+     },
+     "closed": 464,
+     "from": 1673484960000,
+     "ledger": {
+      "capital_after": null,
+      "differ": 7,
+      "match": false,
+      "missing": 0,
+      "outside": 1,
+      "outside_from": 1792635300000,
+      "outside_to": 1792635300000,
+      "rows": 9,
+      "view_capital_after": 8176.736817195145,
+      "view_live": 8
+     },
+     "liquidations": 0,
+     "rejections": {
+      "cobertura": 15,
+      "confianza": 51,
+      "contra_tendencia": 665,
+      "costo": 11985,
+      "cupo": 29,
+      "duplicada": 321,
+      "freno_escalera": 2,
+      "pausa_contexto": 4,
+      "pausa_estrategia": 38766,
+      "rr": 756,
+      "sintesis": 729
+     },
+     "scope": "todo el almacén de este símbolo, sin ventana: la vista se recalcula desde todos los contextos guardados. Si la experiencia compartida (T61) importó contextos de otras máquinas, cuentan aquí también: el almacén no los distingue.",
+     "to": 1792885500000,
+     "violations": 0
+    },
+    "dd": {
+     "base": "equity",
+     "from": 1673431200000,
+     "pct": 0.19500074302735818,
+     "to": 1792962000000
+    },
+    "equity": 8176.736817195145,
+    "exhausted": false,
+    "exhausted_t": null,
+    "fees": 1248.1622830125334,
+    "funding": 10.711791168851423,
+    "id": "ppp_btcusdt",
+    "initial": 10000.0,
+    "margin_used": 0,
+    "max_dd_pct": 0.19500074302735818,
+    "min_equity": 100.0,
+    "n_closed": 464,
+    "name": "Progressive Profit Protection — BTCUSDT",
+    "open": 0,
+    "pending": 0,
+    "pf": 0.6579610264830009,
+    "realized": -1823.2631828048552,
+    "reserved": 0,
+    "return_base": "equity",
+    "return_pct": -0.1823263182804855,
+    "slip": 1239.6323234977417,
+    "upnl": 0.0,
+    "win_rate": 0.7543103448275862,
+    "worst": -64.01381844845893
+   }
+  ],
+  "scope": {
+   "ceiling": 62154,
+   "ceiling_why": "cada idea que la sombra no rechazó da como mucho una operación por perfil: ningún recuento de esta vista puede pasar de ahí",
+   "closes_from": 1673448300000,
+   "closes_to": 1792885500000,
+   "complete": false,
+   "contexts": 38162,
+   "from": 1673431200000,
+   "gaps": [
+    {
+     "differ": 6,
+     "from": null,
+     "kind": "libro_fijo",
+     "name": "Moderado",
+     "outside": 0,
+     "profile": "moderado",
+     "rows": 8,
+     "to": null,
+     "view_live": 8,
+     "why": "la vista se recalcula con las reglas, el capital y los contextos de ahora; el libro fijo conserva cada operación en vivo tal como se cerró"
+    },
+    {
+     "differ": 7,
+     "from": 1792548000000,
+     "kind": "libro_fijo",
+     "name": "Agresivo",
+     "outside": 3,
+     "profile": "agresivo",
+     "rows": 12,
+     "to": 1792635300000,
+     "view_live": 9,
+     "why": "la vista se recalcula con las reglas, el capital y los contextos de ahora; el libro fijo conserva cada operación en vivo tal como se cerró"
+    },
+    {
+     "differ": 7,
+     "from": 1792635300000,
+     "kind": "libro_fijo",
+     "name": "Progressive Profit Protection — BTCUSDT",
+     "outside": 1,
+     "profile": "ppp_btcusdt",
+     "rows": 9,
+     "to": 1792635300000,
+     "view_live": 8,
+     "why": "la vista se recalcula con las reglas, el capital y los contextos de ahora; el libro fijo conserva cada operación en vivo tal como se cerró"
+    }
+   ],
+   "kind": "almacen",
+   "origins": {
+    "backtest": 37404,
+    "vivo": 758
+   },
+   "to": 1792886400000
+  },
+  "sources": {
+   "candles": "binance-futures",
+   "costs": "tarifa regular Binance (supuesto: taker 0,05 %, maker 0,02 %)",
+   "funding": "binance-futures",
+   "funding_last": 1792944000000
+  },
+  "symbol": "BTCUSDT",
+  "timeframes": [
+   "15m",
+   "1h",
+   "4h"
+  ],
+  "versions": {
+   "code": "4f1d5bff82c4+cambios",
+   "exec": "5871b183ec29",
+   "policy": "paper_policy_v1",
+   "profiles": {
+    "agresivo": "773949e39cfa",
+    "conservador": "8d5d70514d1a",
+    "moderado": "5d2dcbcbe468",
+    "ppp_btcusdt": "ac3e28361be9"
+   }
+  }
+ },
+ "symbol": "BTCUSDT"
+}

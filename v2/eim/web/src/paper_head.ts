@@ -72,7 +72,8 @@ export function acctHtml(p: ProfileView): string {
   return `<h4 class="sh">Cuenta · ${esc(p.name)}</h4><div class="pp-kv">` +
     row('Capital (equity = saldo + flotante)', `${nf(p.equity)} USDT`) +
     row('Saldo realizado (balance)', `${nf(p.balance)} USDT`) +
-    `<div><span>PnL no realizado</span><b class="num ${t(p.upnl)}" data-x="upnl-live">${usd(p.upnl)} USDT</b></div>` +
+    row('PnL no realizado (instantánea)', `${usd(p.upnl)} USDT`, t(p.upnl)) +
+    `<div><span title="Con el último precio del flujo en vivo; no entra en la instantánea ni en el capital de arriba">PnL no realizado en vivo</span><b class="num ${t(p.upnl)}" data-x="upnl-live">${usd(p.upnl)} USDT</b></div>` +
     row('PnL realizado', `${usd(p.realized)} USDT`, t(p.realized)) +
     row('Rentabilidad (sobre equity)', pct(p.return_pct), t(p.return_pct)) +
     row(`Drawdown máx. (${esc(dd.base)})`, pct(-dd.pct)) +
