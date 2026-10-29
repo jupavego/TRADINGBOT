@@ -20,3 +20,8 @@
 .sq-dot[data-s="1"] { background: var(--up); }
 .sq-dot[data-s="-1"] { background: var(--down); }
 .scen .sq-support { font-size: 11px; color: var(--muted); }
+.sq-warn { margin: 6px 0 10px; padding: 6px 10px; border: 1px solid var(--warn); border-radius: 8px; color: var(--warn); font-size: 13px; }
+.sq-warn[data-state="fallida"] { border-color: var(--down); color: var(--down); }
+.sq-row[data-live="0"] td { opacity: .7; }
+.sq-off { margin: 4px 0 0; padding-left: 18px; font-size: 13px; }
+.sq-off small { color: var(--muted); }

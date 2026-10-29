@@ -24,6 +24,7 @@ from eim.bots.shadow import identities
 from eim.data.bots.scorestore import ScoreStore
 from eim.data.bots.simstore import SimRunStore
 from eim.data.bots.store import BotSignalStore
+from eim.data.machine import machine_id
 from eim.data.paper_store import PaperStore
 from eim.data.store import Store
 from eim.data.timeframes import tf_ms
@@ -77,6 +78,8 @@ def main(argv: list[str] | None = None) -> int:
         marg = measure_marginals(scorer, build_panel(scorer, data, a.symbol, a.workers),
                                  a.symbol)
     out = scorer.compute(a.symbol, marginals=marg)
+    # en qué máquina y sobre qué base: el informe de otro equipo no es el de esta API (T119)
+    out["measured_on"] = {"machine": machine_id(data), "data_dir": str(data.resolve())}
     md, js = write(out, Path(a.reports_dir) if a.reports_dir else None)
     print(out["summary"], "\n", md, "\n", js)
     return 0
