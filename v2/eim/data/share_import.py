@@ -23,7 +23,15 @@ from eim.data.machine import FILE as MACHINE_FILE
 from eim.data.share_export import ShareError, _sha256
 from eim.data.share_merge import Result, merge_table
 from eim.data.share_report import Report
-from eim.data.share_spec import DB_ORDER, FORMAT, LOG_DDL, SCHEMA_VERSION, specs_of
+from eim.data.share_spec import (
+    DB_ORDER,
+    FORMAT,
+    FORMATS,
+    LOG_DDL,
+    SCHEMA_VERSION,
+    parts_of,
+    specs_of,
+)
 from eim.data.share_versions import merge_versions
 
 
@@ -48,20 +56,30 @@ def check(path: Path, machine: str) -> tuple[dict | None, list[str]]:
     except (OSError, ValueError, KeyError, TypeError) as exc:
         return None, [f"manifest ilegible: {exc}"]
     problems = []
-    if m.get("format") != FORMAT:
-        problems.append(f"formato {m.get('format')} no soportado (se espera {FORMAT})")
+    if m.get("format") not in FORMATS:
+        problems.append(f"formato {m.get('format')} no soportado (este código lee hasta el "
+                        f"{FORMAT}): actualiza el código (git pull) antes de importar")
     if int(m.get("schema_version", 0)) > SCHEMA_VERSION:
         problems.append(f"esquema {m.get('schema_version')} más nuevo que el local "
                         f"({SCHEMA_VERSION}): actualiza el código (git pull) antes de importar")
     if m.get("machine") != machine:
         problems.append(f"el manifest dice máquina {m.get('machine')!r}, la carpeta {machine!r}")
-    for meta in tables.values():
-        f = path / meta["file"]
+    try:
+        parts = [pt for meta in tables.values() for pt in parts_of(meta)]
+    except (KeyError, TypeError) as exc:
+        return m, [*problems, f"manifest ilegible: falta {exc}"]
+    for pt in parts:
+        f = path / pt["file"]
         if not f.exists():
-            problems.append(f"falta {meta['file']}")
-        elif _sha256(f) != meta["sha256"]:
-            problems.append(f"hash distinto: {meta['file']} (manifest alterado o archivo dañado)")
+            problems.append(f"falta {pt['file']}")
+        elif _sha256(f) != pt["sha256"]:
+            problems.append(f"hash distinto: {pt['file']} (manifest alterado o archivo dañado)")
     return m, problems
+
+
+def files(path: Path, meta: dict) -> list[Path]:
+    """Archivos Parquet de una tabla exportada (una o varias partes)."""
+    return [path / pt["file"] for pt in parts_of(meta)]
 
 
 def discover(shared_dir: Path, own: str, only: set[str] | None = None
@@ -143,13 +161,13 @@ def _merge_db(con, db: str, exports: list[Export], import_id: str, now_ms: int, 
             if sp.kind == "versions":
                 if "val_windows" not in tabs:
                     continue
-                v, w = merge_versions(con, e.path / tabs["val_versions"]["file"],
-                                      e.path / tabs["val_windows"]["file"], e.machine,
+                v, w = merge_versions(con, files(e.path, tabs["val_versions"]),
+                                      files(e.path, tabs["val_windows"]), e.machine,
                                       import_id, now_ms)
                 out += [Result("val_versions", e.machine, v.new, v.dup, 0, v.incompatible),
                         Result("val_windows", e.machine, w.new, w.dup, 0, w.incompatible)]
                 continue
-            out.append(merge_table(con, sp, e.path / tabs[sp.name]["file"],
+            out.append(merge_table(con, sp, files(e.path, tabs[sp.name]),
                                    tabs[sp.name]["columns"], e.machine, import_id))
     for r in out:
         e = next(x for x in exports if x.machine == r.src and db in x.use)

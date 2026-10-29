@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from eim.data.share_merge import lit as _lit
+
 VCOLS = ("sid", "n", "fingerprint", "strategy", "timeframe", "created_ms", "parent", "origin",
          "note", "retired_ms")
 
@@ -23,13 +25,10 @@ class Counts:
     incompatible: int = 0
 
 
-def _lit(path) -> str:
-    return "'" + str(path).replace("\\", "/").replace("'", "''") + "'"
-
-
 def merge_versions(con, vfile, wfile, src: str, import_id: str, now_ms: int
                    ) -> tuple[Counts, Counts]:
-    """Une `val_versions` y `val_windows` exportadas (`vfile`, `wfile`: Parquet) en `con`."""
+    """Une `val_versions` y `val_windows` exportadas (`vfile`, `wfile`: Parquet o listas de
+    partes) en `con`."""
     incoming = con.execute(f"SELECT {', '.join(VCOLS)} FROM read_parquet({_lit(vfile)}) "
                            "ORDER BY sid, n").fetchall()
     local = {(r[0], r[1]): int(r[2]) for r in con.execute(

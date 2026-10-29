@@ -100,7 +100,10 @@ class ValidationStore:
     def provenance(self) -> dict:
         """Qué aportó cada máquina a esta base (filas importadas por tabla y las descartadas por
         duplicadas), de `share_origin`/`import_log`. Vacío si nunca se importó. Los contextos son
-        la evidencia: de ellos salen, deterministas, las ideas y operaciones de cada versión."""
+        la evidencia: de ellos salen, deterministas, las ideas y operaciones de cada versión.
+        Duplicadas = filas de la ÚLTIMA foto de esa máquina que ya estaban aquí por otra vía (no
+        importadas de ella); conflictos, los de esa importación (T117: sumar todas las
+        importaciones inflaba la cifra con cada foto nueva aunque los datos no cambiaran)."""
         have = {r[0] for r in self.ps.execute(
             "SELECT table_name FROM duckdb_tables() WHERE database_name = current_database()")}
         if not {"share_origin", "import_log"} <= have:
@@ -110,14 +113,16 @@ class ValidationStore:
                 "SELECT tbl, machine, count(*) FROM share_origin GROUP BY tbl, machine"):
             out.setdefault(m, {}).setdefault(tbl, {"imported": 0, "duplicates": 0,
                                                    "conflicts": 0})["imported"] = int(n)
-        for tbl, m, d, c in self.ps.execute(
-                "SELECT tbl, src_machine, sum(n_dup), sum(n_conflict) FROM import_log "
-                "GROUP BY tbl, src_machine"):
+        for tbl, m, seen, c in self.ps.execute(
+                "SELECT tbl, src_machine, arg_max(n_new + n_dup + n_conflict, at_ms), "
+                "arg_max(n_conflict, at_ms) FROM import_log GROUP BY tbl, src_machine"):
             row = out.setdefault(m, {}).setdefault(tbl, {"imported": 0, "duplicates": 0,
                                                          "conflicts": 0})
-            row["duplicates"], row["conflicts"] = int(d), int(c)
-        return {"machines": out, "note": "filas aportadas por otras máquinas; duplicadas = ya "
-                "estaban (misma estrategia@marco@versión en la misma vela = la misma operación)"}
+            row["duplicates"] = max(int(seen) - row["imported"] - int(c), 0)
+            row["conflicts"] = int(c)
+        return {"machines": out, "note": "filas aportadas por otras máquinas; duplicadas = de su "
+                "última foto, las que ya estaban aquí (misma estrategia@marco@versión en la misma "
+                "vela = la misma operación)"}
 
     # --- veredictos -------------------------------------------------------------------
     def save_verdicts(self, criteria: str, symbol: str, asof_ms: int, computed_ms: int,

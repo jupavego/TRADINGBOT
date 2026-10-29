@@ -14,8 +14,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-FORMAT = 1
+FORMAT = 2              # 2 (T117): una tabla grande viaja en partes (`parts`)
+FORMATS = (1, 2)        # los que este código sabe leer
 SCHEMA_VERSION = 1      # sube si cambia la forma de lo exportado; se rechazan los mayores
+PART_BYTES = 64 * 1024 * 1024   # por encima, la tabla se trocea (GitHub corta en 100 MB)
 LOG_DDL = (
     """CREATE TABLE IF NOT EXISTS import_log (
         import_id VARCHAR, at_ms BIGINT, tbl VARCHAR, src_machine VARCHAR, src_created VARCHAR,
@@ -83,3 +85,10 @@ NOT_SHARED = {
 
 def specs_of(db: str) -> list[Spec]:
     return [s for s in SPECS if s.db == db]
+
+
+def parts_of(meta: dict) -> list[dict]:
+    """Archivos de una tabla del manifest: `[{file, rows, sha256}…]` (formato 1: uno solo)."""
+    if "parts" in meta:
+        return list(meta["parts"])
+    return [{"file": meta["file"], "rows": meta.get("rows"), "sha256": meta["sha256"]}]

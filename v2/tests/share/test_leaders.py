@@ -76,3 +76,21 @@ def test_legacy_db_without_machine_column_is_migrated(tmp_path, monkeypatch):
     LeaderStore(d / "leaders.duckdb").close()
     LeaderStore(d / "leaders.duckdb").close()                 # idempotente
     assert rows(d, "leaders.duckdb", "SELECT machine FROM leader_recon") == [("viejo-1",)]
+
+
+def test_gap_without_symbol_is_idempotent(tmp_path):
+    """T117: los huecos del websocket no tienen símbolo (NULL en la clave); con `=` nunca
+    casaban y cada importación los volvía a insertar."""
+    a = build(tmp_path, "a")
+    b = build(tmp_path, "b")
+    ls = LeaderStore(b / "leaders.duckdb")
+    for sym in (None, "BTC"):
+        ls.query("INSERT INTO leader_gaps VALUES (?,?,?,?,?,?,?,?,?)",
+                 [LID, sym, T0, T0 + 1, "ws", "", T0 + 2, 0, "b"])
+    ls.close()
+    shared = tmp_path / "cloud"
+    publish(b, shared, "b")
+    assert apply(a, shared, "a").totals()["leader_gaps"]["new"] == 2
+    again = apply(a, shared, "a").totals()["leader_gaps"]
+    assert again == {"new": 0, "dup": 2, "conflict": 0, "incompatible": 0}
+    assert rows(a, "leaders.duckdb", "SELECT count(*) FROM leader_gaps") == [(2,)]

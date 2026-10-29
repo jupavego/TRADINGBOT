@@ -31,6 +31,9 @@ class Result:
 
 
 def lit(path) -> str:
+    """Literal SQL de una ruta, o lista de rutas (tabla en partes, formato 2)."""
+    if isinstance(path, list | tuple):
+        return "[" + ", ".join(lit(p) for p in path) + "]"
     return "'" + str(path).replace("\\", "/").replace("'", "''") + "'"
 
 
@@ -49,7 +52,8 @@ def _key_str(sp: Spec, alias: str) -> str:
 
 
 def merge_table(con, sp: Spec, file, columns: list[list], src: str, import_id: str) -> Result:
-    """Une `file` (Parquet con `columns` = [[nombre, tipo]…]) en la tabla local `sp.name`."""
+    """Une `file` (Parquet, o lista de partes, con `columns` = [[nombre, tipo]…]) en la tabla
+    local `sp.name`."""
     res = Result(sp.name, src)
     got = [(c, t) for c, t in columns]
     have = local_columns(con, sp.name)
@@ -59,7 +63,9 @@ def merge_table(con, sp: Spec, file, columns: list[list], src: str, import_id: s
         return res
     names = [c for c, _ in have]
     cmp_cols = [c for c in names if c not in sp.key and c not in sp.volatile]
-    km = " AND ".join(f"t.{q(k)} = i.{q(k)}" for k in sp.key)
+    # T117: NULL en la clave (huecos `ws` sin símbolo) casa con NULL; con `=` se reinsertaban
+    # en cada importación
+    km = " AND ".join(f"t.{q(k)} IS NOT DISTINCT FROM i.{q(k)}" for k in sp.key)
     eq = " AND ".join(f"t.{q(c)} IS NOT DISTINCT FROM i.{q(c)}" for c in cmp_cols) or "TRUE"
     order = ", ".join(q(c) for c in names)
     part = ", ".join(q(k) for k in sp.key)
