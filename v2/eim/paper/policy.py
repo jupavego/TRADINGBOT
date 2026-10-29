@@ -11,6 +11,10 @@ fijan). El libro solo abre desde una `PaperDecision` aprobada por aquí (`book._
 `PaperDecision.as_record` la proyecta al contrato único `RiskDecision` (con la `TradeProposal`
 de la idea) para registrarla en el Observatorio; en el bucle caliente no se construye ningún
 modelo pydantic (el libro decide ≈ 250 000 ideas por cálculo de la vista).
+
+Cada rechazo lleva el código de su primer motivo (`code`, T118): la cuenta agotada o sin capital
+(`vetoes.CAPITAL_CODES`) nunca sale como tope de riesgo por dirección ni como freno por drawdown.
+El capital sale de `account.capital`, la misma lectura que usan el panel y el libro fijo.
 """
 
 from __future__ import annotations
@@ -21,14 +25,14 @@ from typing import TYPE_CHECKING
 
 from eim.core import Mode
 from eim.core.authority import RiskDecision, params_fingerprint
-from eim.paper.account import leverage_for
+from eim.paper.account import capital, leverage_for
 from eim.paper.book_events import learned_bad
 from eim.paper.caps import fit_risk
 from eim.paper.engine import Outcome
 from eim.paper.feedback import Judgement
 from eim.paper.ladder_book import LadderSim, open_ladder
-from eim.paper.params import ProfileParams
-from eim.paper.vetoes import vetoes
+from eim.paper.params import ProfileParams, spec_for
+from eim.paper.vetoes import Veto, vetoes
 from eim.risk.authority import expiry_reason, route_reason, verify_source
 
 if TYPE_CHECKING:
@@ -48,6 +52,7 @@ class PaperDecision:
     o: Outcome                         # el resultado que se abre (la escalera lo reescribe)
     approved: bool
     reasons: tuple[str, ...] = ()      # vetos (el primero es el que se muestra) o la nota
+    code: str = ""                     # código del primer veto (`vetoes.Veto.code`); "" si aprueba
     qty: float = 0.0
     leverage: int = 0
     margin: float = 0.0
@@ -82,8 +87,9 @@ class PaperDecision:
             exit_mode=exit_mode)  # type: ignore[arg-type]
 
 
-def _no(o: Outcome, *why: str, equity: float = 0.0) -> PaperDecision:
-    return PaperDecision(o=o, approved=False, reasons=tuple(why), equity=equity)
+def _no(o: Outcome, *why: Veto, equity: float = 0.0) -> PaperDecision:
+    return PaperDecision(o=o, approved=False, reasons=tuple(v.text for v in why),
+                         code=why[0].code, equity=equity)
 
 
 def open_count(st: ProfileState) -> int:
@@ -98,44 +104,55 @@ def pending_count(st: ProfileState) -> int:
 
 def decide(st: ProfileState, o: Outcome, j: Judgement, jc: Judgement, ck: str, mmr: float,
            sim: LadderSim | None) -> PaperDecision:
-    i, p, eq = o.idea, st.p, st.equity
+    i, p, cap = o.idea, st.p, capital(st)
+    eq = cap.balance
     # reglas comunes de la puerta única (T114): ruta registrada y señal vigente. La regla
     # «plan = propuesto» se cumple por construcción: la propuesta ES la idea (`Idea.as_proposal`)
     if why := (route_reason(SOURCE, AUTHORITY, EXIT_OF[p.exit_mode])
                or expiry_reason(i.t + i.fill_ms, i.t)):
-        return _no(o, f"puerta única: {why}", equity=eq)
-    vs = vetoes(st, i, j, jc, ck)
+        return _no(o, Veto(f"puerta única: {why}", None, "puerta"), equity=eq)
+    vs = vetoes(st, i, j, jc, ck, cap)
     floor, skipped = False, ()
     if vs:
         # los mínimos solo saltan vetos blandos: a mercado cubren las posiciones abiertas y a
         # límite las órdenes pendientes (sin elegir por el resultado de la idea)
-        keys = tuple(k for _, k in vs)
+        keys = tuple(v.soft for v in vs)
         short = (open_count(st) < p.min_open if i.kind == "market"
                  else pending_count(st) < p.min_pending)
         if None in keys or not short or learned_bad(st, keys, i.t, o):
-            return _no(o, *(t for t, _ in vs), equity=eq)
+            return _no(o, *vs, equity=eq)
         floor, skipped = True, keys
     weight = p.floor_weight if floor else j.weight
     entry = o.fill if i.kind == "market" and o.fill else i.entry
     want = eq * p.risk_pct * weight
+    if want <= 0:          # el capital, no el tope: con capital ≤ 0 no cabe ningún riesgo
+        return _no(o, Veto(f"capital insuficiente: {eq:.2f} USDT realizados", None,
+                           "capital_insuficiente"), equity=eq)
     risk_usd = fit_risk(p.caps, eq, sum(x.risk_usd for x in st.slots.values()
                                         if x.side == i.side), want)
     if risk_usd <= 0:
-        return _no(o, f"capital insuficiente: {eq:.2f} USDT realizados" if want <= 0 else
-                   f"tope de riesgo abierto por dirección ({p.caps.max_dir_risk:.1%})", equity=eq)
+        return _no(o, Veto(f"tope de riesgo abierto por dirección ({p.caps.max_dir_risk:.1%})",
+                           None, "tope_direccion"), equity=eq)
     qty = risk_usd / abs(entry - i.sl)
     lev = leverage_for(p, entry, i.sl, mmr)
     margin = qty * entry / lev
-    free = eq - st.used
+    free = cap.available
     if margin > free:
         scale = max(0.0, free * 0.98 / margin)
         if scale < p.min_risk_fill:
-            return _no(o, f"margen insuficiente (libre {free:.2f} USDT)", equity=eq)
+            return _no(o, Veto(f"margen insuficiente (libre {free:.2f} USDT)", None, "margen"),
+                       equity=eq)
         qty, margin, risk_usd = qty * scale, margin * scale, risk_usd * scale
     if sim is not None and p.exit_mode == "ladder":
-        qty, o = open_ladder(p, sim, i, qty)
+        want_qty, (qty, o) = qty, open_ladder(p, sim, i, qty)
+        if o.status == "RECHAZADA" and o.reason == "CANTIDAD":
+            return _no(o, Veto(f"cantidad {want_qty:.6g} bajo el mínimo negociable "
+                               f"{spec_for(i.symbol).min_qty:g} (riesgo {risk_usd:.2f} USDT con "
+                               f"capital realizado {eq:.2f} USDT)", None, "cantidad_minima"),
+                       equity=eq)
         if o.status == "RECHAZADA":
-            return _no(o, "cantidad bajo el paso mínimo o geometría inválida", equity=eq)
+            return _no(o, Veto(f"geometría inválida para la escalera ({o.reason})", None,
+                               "geometria"), equity=eq)
         margin, risk_usd = qty * entry / lev, qty * abs(entry - i.sl)
     note = ""
     if floor:

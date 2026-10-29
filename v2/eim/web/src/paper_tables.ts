@@ -1,4 +1,5 @@
 /** Tablas estilo exchange: posiciones, órdenes abiertas e historial (libro de operaciones). */
+import { histPart } from './paper_audit'
 import { CAUSE, dur, esc, nf, pct, pct0, px, qty, REASON, rr, side, tone, usd, utc } from './paper_fmt'
 import { levelText, posState, stateChip, stopEstimate, tradeState } from './paper_protect'
 import type { Order, PaperTrade, Position } from './paper_types'
@@ -94,7 +95,8 @@ export function ordersTable(os: Order[], names: Names, sym: string, ps: Position
 
 export interface HistFilter { strategy: string; result: 'all' | 'win' | 'loss'; limit: number }
 
-export function historyTable(ts: PaperTrade[], names: Names, sym: string, f: HistFilter): string {
+/** `total` = cerradas del perfil en la vista: si la lista trae menos, se dice que es un tramo (T118). */
+export function historyTable(ts: PaperTrade[], names: Names, sym: string, f: HistFilter, total = ts.length): string {
   const sel = ts.filter((t) => (f.strategy === '' || t.sid === f.strategy) &&
     (f.result === 'all' || (f.result === 'win' ? t.pnl > 0 : t.pnl <= 0)))
   const pnl = sel.reduce((a, t) => a + t.pnl, 0)
@@ -106,7 +108,8 @@ export function historyTable(ts: PaperTrade[], names: Names, sym: string, f: His
     `</select></label><label>Resultado <select data-hf="result"><option value="all">Todas</option>` +
     `<option value="win"${f.result === 'win' ? ' selected' : ''}>Ganadoras</option><option value="loss"${f.result === 'loss' ? ' selected' : ''}>Perdedoras</option></select></label>` +
     `<span class="pp-sum">${sel.length} operaciones · acierto ${pct0(sel.length ? wins.length / sel.length : null)} · ` +
-    `PnL <b class="${tone(pnl)}">${usd(pnl)} USDT</b> · PF ${loss > 0 ? nf(gain / loss) : '—'}</span></div>`
+    `PnL <b class="${tone(pnl)}">${usd(pnl)} USDT</b> · PF ${loss > 0 ? nf(gain / loss) : '—'}</span></div>` +
+    histPart(total, ts.length, ts.length ? ts[ts.length - 1].exit_t : null)
   if (!sel.length) return head + '<p class="muted">Sin operaciones cerradas con este filtro.</p>'
   const rows = sel.slice(0, f.limit).map((t) => `<tr title="${esc(t.why.join(' · '))}">` +
     `<td class="num">${utc(t.fill_t)}<br><small class="muted">→ ${utc(t.exit_t)}</small></td>` +

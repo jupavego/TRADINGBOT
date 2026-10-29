@@ -11,6 +11,11 @@ Quién decide entrar es la política del perfil (`policy.decide`, autoridad `pap
 puerta única de T114): el libro solo crea una posición u orden en `_open`, con una decisión
 aprobada por ella. Las decisiones de ideas en vivo quedan en `decisions` (Observatorio).
 
+Cada cierre guarda el capital realizado con el que se dimensionó (`capital_before`) y el que deja
+(`capital_after`), leídos con `account.capital` igual que el panel (T118): el libro fijo los
+conserva tal como ocurrieron. Cada rechazo lleva su código (`vetoes.Veto.code`) y se cuenta en
+`rejected`.
+
 Con salida por escalera (los cuatro perfiles desde T109) solo cierran el stop inicial, el stop
 dinámico, la liquidación y una salvaguarda independiente (`ladder_audit.ALLOWED_CLOSE`); cualquier
 otro cierre se registra como violación y NO se ejecuta. Una señal contraria a una posición abierta
@@ -22,7 +27,14 @@ from __future__ import annotations
 import heapq
 from dataclasses import dataclass, field, replace
 
-from eim.paper.account import LIQ, capped, exhausted, leverage_for, liq_price  # noqa: F401 (tests)
+from eim.paper.account import (  # noqa: F401 (leverage_for: tests)
+    LIQ,
+    capital,
+    capped,
+    exhausted,
+    leverage_for,
+    liq_price,
+)
 from eim.paper.book_events import ev
 from eim.paper.caps import Brake
 from eim.paper.engine import Outcome
@@ -51,6 +63,7 @@ class Slot:
     liq: float | None = None     # precio de liquidación (se conoce al llenar)
     floor: bool = False          # entró por el mínimo de operaciones abiertas
     skipped: tuple[str, ...] = ()    # filtros blandos que se saltó (se aprende de su resultado)
+    base: float = 0.0            # capital realizado con el que se dimensionó (T118)
 
     @property
     def side(self) -> int:
@@ -78,6 +91,7 @@ class ProfileState:
     brake: Brake = field(default_factory=Brake)            # freno por drawdown (caps)
     exhausted_t: int | None = None     # cuándo se agotó la cuenta (deja de abrir; no se recarga)
     decisions: list[PaperDecision] = field(default_factory=list)  # ideas en vivo (T114)
+    rejected: dict[str, int] = field(default_factory=dict)  # rechazos por código (T118)
 
 
 def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
@@ -111,7 +125,8 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
     if i.origin == "vivo":
         st.decisions.append(d)
     if not d.approved:
-        ev(st, i.t, "rechazada", d.o, d.reason, **tag)
+        st.rejected[d.code] = st.rejected.get(d.code, 0) + 1
+        ev(st, i.t, "rechazada", d.o, d.reason, code=d.code, **tag)
         return
     _open(st, d, tag, q, seq)
 
@@ -122,7 +137,7 @@ def _open(st: ProfileState, d: PaperDecision, tag: dict, q: list, seq: list[int]
     o, p = d.o, st.p
     i = o.idea
     st.slots[i.id] = Slot(o, d.qty, d.leverage, d.margin, d.weight, d.risk_usd, floor=d.floor,
-                          skipped=d.skipped)
+                          skipped=d.skipped, base=d.equity)
     st.used += d.margin
     text = ("límite" if i.kind == "limit" else "a mercado") + d.note
     ev(st, i.t, "orden", o, text, price=d.entry, qty=d.qty, leverage=d.leverage, margin=d.margin,
@@ -202,7 +217,7 @@ def _close(st: ProfileState, o: Outcome) -> None:
           "funding": notional * o.funding, "funding_assumed": o.funding_assumed,
           "weight": s.weight, "floor": s.floor, "skipped": list(s.skipped), "risk_usd": s.risk_usd,
           "origin": i.origin, "regime": i.regime, "why": list(i.why), "mfe_r": o.mfe_r,
-          "mae_r": o.mae_r,
+          "mae_r": o.mae_r, "capital_before": s.base, "capital_after": capital(st).balance,
           # trazabilidad de la liquidación: lo que el camino dio y lo que la cuenta pudo perder
           **({"liq": s.liq, "pnl_path": float(notional * o.net), "liq_why": liq_why,
               "reason_path": o.reason} if liq_why else {}),
