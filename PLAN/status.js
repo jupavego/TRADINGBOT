@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-25T13:09:04",
+ "generated": "2026-10-29T16:22:36",
  "tasks": [
   {
    "id": "T01",
@@ -1507,8 +1507,8 @@ window.EIM_STATUS = {
     "T59",
     "T60"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**La API viva y el informe no coincidían porque medían bases distintas** (el informe, del equipo del otro colaborador con relleno de 6 meses + FSupertrend/NFI; aquí `bot_signals` empieza el 2026-10-22). Sobre una copia de la base real con el relleno (41 031 posturas): API (`maybe_run` + `GET /v2/bots/scorecard`) = CLI, mismos 18 intentos de Holm y veredictos (`PLAN/notas/T119_verificacion.md`, informe nuevo en `v2/reports/bots_scorecard.md`); pico del recálculo 690 → 253 MB (`PaperStore.regimes`). `freshness`/`frames` en la API y aviso en «Escuadrón» si la medición no es la actual; `live`/`out_of_cycle` (NFI solo histórico); 5m comprobado 10 días con reinicio y caídas; cuarentena releída por la API + CLI `eim.bots.quarantine` (RUNBOOK §13). Tests `tests/bots/test_t119_*.py`. **Falta en vivo:** relleno a la base viva + despliegue (◆).",
    "effort": "medio",
    "phase": 20,
    "goal": "Que lo que dice la interfaz sobre los bots sea lo mismo que dice el informe. El recálculo dentro de la API cayó por memoria y se arregló (`query_lean`, topes de DuckDB) **midiendo con 105 000 posturas sintéticas**, porque la API viva tiene `reports.duckdb` bloqueada; `GET /v2/bots/scorecard` puede seguir mostrando la medición anterior mientras la buena vive en `v2/reports/bots_scorecard.md` (`PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §D). Hasta comprobarlo, el escuadrón vota (o calla) según cifras no verificadas."
@@ -1549,6 +1549,32 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 20,
    "goal": "Encargo del usuario del 2026-10-22: una mesa más limpia y rápida con el tema futurista como única apariencia, foco operativo exclusivo en BTCUSDT, el mapa del sistema bajo el Río de decisión, el historial de sugerencias en su pestaña inferior y siempre tres posiciones de operación sugerida ordenadas por la evidencia validada, sin rellenar huecos con señales sin validar."
+  },
+  {
+   "id": "T123",
+   "title": "Tubería con colas acotadas: ninguna etapa arrastra al resto",
+   "deps": [
+    "T23",
+    "T72"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 20,
+   "goal": "Que una etapa lenta o un proveedor que inunda no puedan tumbar el bucle entero. Hoy la tubería viva (recolectores → instantánea → agentes → síntesis → plan) no declara límites entre etapas: si `aggTrade`/`depth` llegan más rápido de lo que se escribe, o un agente tarda, el efecto se propaga hacia arriba y la memoria crece sin tope en un equipo de 7,9 GB. Idea tomada de Firedancer (Jump): etapas aisladas, cola acotada en cada frontera y política de contrapresión declarada, nunca implícita. No se copia código ni se añade dependencia."
+  },
+  {
+   "id": "T124",
+   "title": "Instantáneas de datos versionadas: todo backtest se puede repetir",
+   "deps": [
+    "T03",
+    "T27"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 20,
+   "goal": "Un número de backtest, de calibración o de la puerta de edge que no se puede volver a producir no es un número. El almacén se rellena y se corrige con el tiempo (Binance revisa y completa velas, los recolectores compactan), y hoy nada fija **qué datos vio** un resultado: si la cifra cambia no se sabe si cambió el código, los parámetros o los datos. Idea tomada de ArcticDB (Man Group), implementada sobre DuckDB: ArcticDB está bajo Business Source License 1.1 y su documentación limita el uso gratuito a no comercial, personal o académico, así que **no se instala**."
   }
  ]
 };

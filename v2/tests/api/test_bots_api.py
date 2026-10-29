@@ -96,6 +96,8 @@ def test_squad_endpoint_lists_real_bots_with_label_and_no_orders(client):
     assert {b["strategy"] for b in r["bots"]} >= {"bollinger_v1", "macd_bb_v1"}
     assert all(b["votes"] is False and b["asof"] == rep["asof"] for b in r["bots"])
     assert all(not {"size", "qty", "leverage", "order"} & set(b) for b in r["bots"])
-    assert r["support"]["total"] == sum(b["signal_status"] == "ok" for b in r["bots"])
+    # el apoyo solo cuenta bots que opinan ahora (T119): estas velas sintéticas son de 2023
+    assert r["support"]["total"] == sum(b["signal_status"] == "ok" and b["live"]
+                                        for b in r["bots"])
     assert client.get("/v2/bots", params={"symbol": "XXX"}).status_code == 400
     assert client.post("/v2/bots", headers={"X-EIM-Confirm": "1"}).status_code in (404, 405)

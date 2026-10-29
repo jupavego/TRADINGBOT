@@ -34,6 +34,25 @@ def _bot_section(b: dict) -> list[str]:
     return out
 
 
+def _source(m: dict | None) -> list[str]:
+    if not m:
+        return []
+    return [f"Medido en la máquina `{m['machine']}` sobre la base `{m['data_dir']}`: solo vale "
+            "para la API que lea esa misma base.\n"]
+
+
+def _frames(frames: list[dict]) -> list[str]:
+    """Qué leyó la puntuación de cada marco (T119): posturas y hasta dónde llegan sus velas."""
+    if not frames:
+        return []
+    out = ["## Marcos leídos\n", "| Marco | Posturas | Desde | Hasta | Velas del camino | "
+           "Velas hasta | Fija el corte |", "|---|---|---|---|---|---|---|"]
+    out += [f"| {f['timeframe']} | {f['signals']} | {_ts(f['first_signal'])} | "
+            f"{_ts(f['last_signal'])} | {f['path_tf']} | {_ts(f['candles_to'])} | "
+            f"{'sí' if f['sets_asof'] else 'no'} |" for f in frames]
+    return [*out, ""]
+
+
 def render(p: dict) -> str:
     s = p["summary"]
     lines = [
@@ -42,6 +61,7 @@ def render(p: dict) -> str:
         f"criterios `{p['criteria']['version']}` (sha {p['criteria']['sha256'][:12]}) · "
         f"intentos en la familia de Holm: {p['attempts_total']} (cada versión de cada bot, "
         "también las retiradas, más un control aleatorio por cada una).\n",
+        *_source(p.get("measured_on")),
         "## Respuesta corta\n",
         f"- **Votan**: {', '.join(s['votan']) or 'ninguno'}",
         f"- **Solo informan**: {', '.join(s['informan']) or 'ninguno'}",
@@ -49,6 +69,7 @@ def render(p: dict) -> str:
         f"- **Modulan la confianza**: {', '.join(s['modulan_confianza']) or 'ninguno'}",
         f"- Estados: {s['states']}\n",
         "> " + p["windows_note"] + "\n",
+        *_frames(p.get("frames", [])),
         "## Concepto por bot (cuatro dimensiones, sin nota global)\n",
         "| Bot@estrategia@marco@versión | Estado | Rendimiento | Evidencia | Seguridad | "
         "Operativa | R medio | n OOS | p Holm | Control (R medio) | Peso inicial |",
