@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-28T03:04:45",
+ "generated": "2026-10-29T16:22:32",
  "tasks": [
   {
    "id": "T01",
@@ -1494,8 +1494,8 @@ window.EIM_STATUS = {
     "T107",
     "T106"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Cada cálculo de la vista guarda (solo adición, `paper_view_snapshot`, ≈ 2,7 KB comprimida) la foto de lo que muestra el panel con un identificador = huella SHA-256 del contenido que la franja superior enseña y enlaza; `GET /v2/paper/snapshot/<id>` devuelve exactamente esas cifras e `intact`. La misma franja declara el tramo, el techo (ideas no rechazadas por la sombra) y lo que la vista deja fuera (libro fijo que ya no reproduce o con otro PnL, instantáneas que contaban más); el Historial avisa que lista solo las 2 000 más recientes. Una sola base de capital (`account.capital`: motor, panel y libro fijo con `capital_before`/`capital_after`) y código por motivo de rechazo (capital ≠ tope ≠ freno). Medido en una copia del almacén vivo: con T118 ninguna cifra ni peso cambia frente a `main` y no hay sobrecoste medible; el libro fijo de BTCUSDT NO coincide con la vista (filas anteriores a T109) y ahora se ve. Código `eim/paper/{snapshot,view_scope,desk_audit,account,vetoes,policy,book,ledger,summary}.py`, `api/paper.py`, `web/src/paper_{audit,template,view,tables,head,types}.ts`; tests `tests/paper/test_{auditable,capital_base}.py` (11); nota `PLAN/notas/T118_cifras_auditables.md` (captura e instantánea `b336a9eea484`). Falta desplegar (pedir permiso).",
    "effort": "alto",
    "phase": 20,
    "goal": "Que una cifra que se vio ayer se pueda volver a ver hoy. Hoy el panel se recalcula desde **todo** el almacén en cada consulta y el capital se re-simula desde 10 000 USDT, así que una captura pasada no es auditable (alerta A4 de `T106_auditoria_salidas.md`, pendiente (1) de `T107_contabilidad.md`), y con capital ≤ 0 el motivo de rechazo que se registra no es el real (`v2/eim/paper/book.py:168-169`). Con dos colaboradores mirando el mismo panel desde equipos distintos, esto deja de ser un detalle."

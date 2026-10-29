@@ -1,10 +1,14 @@
-"""Resumen de un perfil para la vista: cuenta, posiciones, órdenes, métricas y curva."""
+"""Resumen de un perfil para la vista: cuenta, posiciones, órdenes, métricas y curva.
+
+Las cifras de la cuenta salen de `account.capital`, la misma lectura que dimensiona en el motor y
+que guarda el libro fijo (T118).
+"""
 
 from __future__ import annotations
 
 import numpy as np
 
-from eim.paper.account import LIQ, capped, liq_price, max_dd_pct
+from eim.paper.account import LIQ, capital, capped, liq_price, max_dd_pct
 from eim.paper.book import ProfileState
 from eim.paper.feedback import Learner, judge
 from eim.paper.ladder_stats import ladder_stats, last_step
@@ -65,7 +69,8 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
     pnl = np.array([t["pnl"] for t in tr], dtype=float)
     rs = np.array([t["r"] for t in tr if t["r"] is not None], dtype=float)
     gains, losses = float(pnl[pnl > 0].sum()), float(-pnl[pnl < 0].sum())
-    equity = st.equity + upnl
+    cap = capital(st, upnl)
+    equity = cap.equity
     curve = list(st.curve) + ([(now, equity)] if st.curve else [])
     dd = max_dd_pct(curve)
     exits = [t["exit_t"] for t in tr if t["exit_t"] is not None]
@@ -83,7 +88,7 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         tr, [{"elapsed_h": (x["ladder"]["elapsed_ms"] / 3_600_000)} for x in pos
              if x.get("ladder")], len(st.violations),
         sum(1 for x in pos if x.get("ladder", {}).get("incident")),
-        *p.ladder.steps(st.equity * p.risk_pct),
+        *p.ladder.steps(cap.balance * p.risk_pct),
         rejected=sum(1 for v in st.violations if not v.get("executed", True)))
         | {"brake": st.lrisk.to_json(now), "brake_on": p.ladder.brake,
            "basis": p.ladder.basis, "first_r": p.ladder.first_r, "step_r": p.ladder.step_r,
@@ -94,15 +99,15 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         **lad,
         "id": p.id, "name": p.name, "description": p.description,
         "params": p.model_dump(mode="json"),
-        "initial": p.initial_equity, "balance": st.equity, "equity": equity, "upnl": upnl,
-        "realized": st.equity - p.initial_equity,
+        "initial": cap.initial, "balance": cap.balance, "equity": equity, "upnl": cap.upnl,
+        "realized": cap.realized,
         # una sola definición (T107): balance = realizado, equity = balance + flotante y la
         # rentabilidad se mide SIEMPRE sobre equity, con el capital inicial como base
-        "return_pct": equity / p.initial_equity - 1, "return_base": "equity",
+        "return_pct": cap.return_pct, "return_base": "equity",
         "exhausted": st.exhausted_t is not None, "exhausted_t": st.exhausted_t,
         "min_equity": p.initial_equity * p.min_equity_frac,
         "margin_used": sum(x["margin"] for x in pos), "reserved": sum(x["margin"] for x in orders),
-        "available": st.equity - st.used,
+        "available": cap.available,
         "n_closed": len(tr), "win_rate": float((pnl > 0).mean()) if len(pnl) else None,
         "pf": gains / losses if losses > 0 else None,
         "avg_r": float(rs.mean()) if len(rs) else None,
@@ -118,6 +123,8 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         "counts": {"closed": len(tr), "by_origin": origins, "scope": COUNT_SCOPE,
                    "liquidations": sum(1 for t in tr if t["reason"] == LIQ),
                    "violations": len(st.violations),
+                   # rechazos por código (T118): capital, tope y freno nunca se confunden
+                   "rejections": dict(sorted(st.rejected.items())),
                    "from": min(exits) if exits else None, "to": max(exits) if exits else None},
         "positions": sorted(pos, key=lambda x: -x["fill_t"]),
         "orders": sorted(orders, key=lambda x: -x["t"]),

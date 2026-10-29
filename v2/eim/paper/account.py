@@ -11,17 +11,60 @@ Sin recargas de capital: cuando el capital REALIZADO baja del suelo (`min_equity
 inicial) el perfil queda AGOTADO, deja de abrir y mantiene lo abierto hasta su cierre. Una cuenta
 agotada no vuelve: si algún día se quieren recargas serán un movimiento explícito y contabilizado
 aparte. Todo es SIMULADO.
+
+Una sola base de capital (T118): `capital(st)` es la ÚNICA lectura de la cuenta. La usan el motor
+para dimensionar (`policy.decide`), el panel (`summary.profile_summary`) y el libro fijo (capital
+antes y después de cada cierre, `book._close`), así que las tres cifras no pueden divergir.
 """
 
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from eim.paper.params import ProfileParams
 
+if TYPE_CHECKING:
+    from eim.paper.book import ProfileState
+
 LIQ = "LIQUIDACION"           # motivo de cierre propio: no es una salida de la estrategia
+
+
+@dataclass(slots=True)
+class Capital:
+    """La cuenta de un perfil en un instante. `balance` (realizado) es la base del tamaño, del
+    suelo y del libro fijo; `equity` suma el flotante y es la base de la rentabilidad. Es una
+    lectura: no se muta (sin `frozen` porque se crea una por decisión, ≈ 1 M por vista)."""
+
+    initial: float
+    balance: float                 # capital realizado
+    used: float                    # margen apartado (posiciones y órdenes pendientes)
+    upnl: float = 0.0              # flotante a la última marca (0 al dimensionar)
+
+    @property
+    def equity(self) -> float:
+        return self.balance + self.upnl
+
+    @property
+    def available(self) -> float:
+        return self.balance - self.used
+
+    @property
+    def realized(self) -> float:
+        return self.balance - self.initial
+
+    @property
+    def return_pct(self) -> float:
+        return self.equity / self.initial - 1
+
+
+def capital(st: ProfileState, upnl: float = 0.0) -> Capital:
+    """Capital del perfil ahora: lo que dimensiona, lo que muestra el panel y lo que guarda el
+    libro fijo (T118)."""
+    return Capital(st.p.initial_equity, st.equity, st.used, upnl)
 
 
 def leverage_for(p: ProfileParams, entry: float, sl: float, mmr: float) -> int:

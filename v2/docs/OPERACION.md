@@ -317,6 +317,16 @@ Los libros y el índice no se versionan ni se suben a ningún servicio; el texto
     guardados del símbolo, así que el número solo crece y, si la experiencia compartida (T61) importó
     contextos de otras máquinas, también los cuenta (el almacén no los distingue). El único registro
     inmutable es el libro fijo (`/v2/paper/ledger`), que guarda solo cierres en vivo.
+  - **Instantánea y alcance (T118):** cada cálculo de la vista guarda la foto de lo que muestra el
+    panel (tabla `paper_view_snapshot` de `paper.duckdb`, solo adición) y la franja de arriba del
+    panel enseña su identificador. Para auditar una cifra vista antes: `GET /v2/paper/snapshot/<id>`
+    devuelve exactamente esas cifras, con el almacén y las versiones de entonces, e `intact` dice si
+    la fila sigue sin alterar (`GET /v2/paper/snapshots?symbol=…` las lista). Las instantáneas son de
+    la máquina que las calculó: para auditar una captura de otro colaborador, pedírsela a él. La
+    misma franja dice el tramo que ve la vista, su techo (cierres posibles por perfil con este
+    almacén) y lo que deja fuera: operaciones del libro fijo que ya no reproduce o reproduce con
+    otro PnL, e instantáneas anteriores que contaban más. El Historial avisa cuando lista solo las
+    más recientes.
 - **Semanal (lunes UTC):** leer `reports/operation/semana_AAAA-Www.md` (se genera solo).
 - **Mensual:** auditoría de dependencias (§5) y `python -m eim.data.backup verify` sobre una copia
   antigua (prueba de restauración en una carpeta temporal: `restore <copia> --data-dir <tmp>`).

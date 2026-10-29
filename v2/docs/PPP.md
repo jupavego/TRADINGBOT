@@ -350,3 +350,28 @@ copia. Piezas: `paper/ladder_metrics.py` (métricas), `ab_pairs.py`, `ab_conditi
   entra igual que la sombra; cambia también al control `ppp_btcusdt`.
 - ◆ Decisión del usuario (2026-10-23): **adoptar en los tres perfiles** pese al resultado; queda
   anotada con sus números en el informe.
+
+## 13. Cifras auditables (T118, 2026-10-25)
+
+La vista se recalcula desde todo el almacén en cada consulta, así que una cifra de ayer no se puede
+volver a obtener recalculando. Desde T118:
+
+- **Instantánea** (`paper/snapshot.py`): cada cálculo de la vista guarda, solo adición, la foto de
+  lo que el panel muestra (cuenta y cifras de cada perfil, recuento con origen, alcance, conciliación
+  con el libro fijo, rechazos por código, versiones de perfiles, mecánica, política y código, estado
+  del almacén y sello de tiempo) en `paper_view_snapshot`. El identificador es la huella SHA-256 del
+  contenido; `GET /v2/paper/snapshot/<id>` devuelve exactamente esas cifras y vuelve a calcular la
+  huella (`intact`). Son de la máquina que las calculó.
+- **Alcance** (`paper/view_scope.py`, `scope` en `/v2/paper`): tramo de decisiones y de cierres,
+  techo (`ceiling` = ideas que la sombra no rechazó: ningún perfil puede tener más cierres) y huecos
+  con su porqué: operaciones del libro fijo que la vista ya no reproduce o reproduce con otro PnL
+  o motivo, e instantáneas anteriores que contaban más operaciones de un perfil. El Historial avisa
+  cuando lista solo las más recientes (pide 2 000) y rotula sus sumas como de ese tramo.
+- **Una sola base de capital** (`account.capital`): el motor dimensiona, el panel muestra y el libro
+  fijo guarda (`capital_before`/`capital_after`) la misma lectura. Fijado contra una serie conocida
+  en `tests/paper/test_capital_base.py` (10 000 → 10 200 → 10 098 → 10 249,47 USDT).
+- **Motivo de rechazo con código** (`vetoes.Veto.code`, evento `rechazada`, `counts.rejections`):
+  la cuenta agotada o sin capital (`cuenta_agotada`, `capital_insuficiente`) nunca se etiqueta
+  como `tope_direccion` ni como `freno_drawdown`; la cantidad bajo el mínimo negociable
+  (`cantidad_minima`) se separa de la geometría inválida (`geometria`). Ningún aprendizaje lee el
+  motivo de un rechazo (los pesos y `floor_r` solo ven operaciones cerradas).

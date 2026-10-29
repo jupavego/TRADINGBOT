@@ -1,9 +1,10 @@
 /** Vista «Bróker simulado» (T47/T48): cuentas de papel por perfil en 15 m, 1 h y 4 h. */
-import { fetchSnapshot, openStream, symbolPicker, type StreamHandle } from './api'
+import { fetchSnapshot, openStream, type StreamHandle } from './api'
 import { PaperArb } from './paper_arb'
 import { balanceView } from './paper_balance'
 import { EquityChart, PaperPriceChart } from './paper_chart'
 import { esc, getPaper, PaperError, postPaper, px, usd } from './paper_fmt'
+import { scopeHtml } from './paper_audit'
 import { acctHtml, cardsHtml, covText, jobHtml, liveStrip } from './paper_head'
 import { PaperJournal } from './paper_journal'
 import { PaperLearn } from './paper_learn'
@@ -11,49 +12,14 @@ import { PaperLedger } from './paper_ledger'
 import { PaperLive } from './paper_live'
 import { profilesTab } from './paper_profiles'
 import { historyTable, ordersTable, paintMarks, positionsTable, type HistFilter } from './paper_tables'
-import type { Job, PaperSummary, PaperTrade, ProfileView } from './paper_types'
+import { TABS, TEMPLATE } from './paper_template'
+import type { Job, PaperSummary, PaperTrade, ProfileView, TradesResp } from './paper_types'
 import type { StreamMsg } from './types'
 
-const TABS: [string, string][] = [['live', 'Señales en vivo'], ['pos', 'Posiciones'], ['ord', 'Órdenes abiertas'], ['hist', 'Historial'],
-  ['log', 'Bitácora'], ['reg', 'Registro fijo'], ['learn', 'Aprendizaje'], ['prof', 'Perfiles'], ['arb', 'Arbitraje']]
 const POLL_MS = 60_000
 const RETRY_MS = 8_000            // vista aún calculándose (503) o rehaciéndose: vuelve a pedirla pronto
 const LIVE_MS = 15_000            // repinta la franja «en vivo» (hace X s)
-const CHART_TFS = ['15m', '1h', '4h']
 const KEY = 'eim.paper.v2'          // v2: la pestaña inicial pasa a «Señales en vivo» (T48c)
-
-const TEMPLATE = `
-<header class="pp-head">
-  <h2 class="pp-title">Bróker simulado</h2>
-  <span class="mode" data-mode="SIMULADO">Modo: Simulado · papel, sin órdenes reales · dinero real deshabilitado</span>
-  ${symbolPicker('data-k="symbol"')}
-  <span class="pp-perp">Perpetuo USDT-M</span>
-  <b class="price num" data-x="price">—</b>
-  <span class="spacer"></span>
-  <span class="pp-cov muted" data-x="cov"></span>
-  <label class="pp-bt" title="Reconstruye las decisiones de días pasados para que el aprendizaje tenga historial; el servicio en vivo no lo necesita">Historial <select data-k="days"><option value="7">7 días</option><option value="30" selected>30 días</option>
-    <option value="60">60 días</option><option value="90">90 días</option></select>
-    <select data-k="bttf" aria-label="Temporalidades del backtest"><option value="">15m · 1h · 4h</option>
-    <option>15m</option><option>1h</option><option>4h</option></select></label>
-  <button class="btn" data-act="bt">Reconstruir historial (backtest)</button>
-  <span class="pp-job" data-x="job"></span>
-</header>
-<div class="pp-livebar" data-x="live" aria-live="polite"></div>
-<section class="pp-balance" data-x="bal" aria-label="Balance de operaciones ganadas y perdidas"></section>
-<div class="pp-cards" data-x="cards" role="tablist" aria-label="Perfiles"></div>
-<div class="pp-grid">
-  <section class="pp-chart"><div class="pp-chart-h"><h4 class="sh">Velas · operaciones del perfil</h4>
-    <div class="seg" data-x="ctf" role="group" aria-label="Temporalidad del gráfico">${CHART_TFS.map((t) => `<button type="button" data-ctf="${t}">${t}</button>`).join('')}</div>
-    <small class="muted" data-x="src"></small></div>
-    <div class="pp-pc" data-x="pc"></div></section>
-  <aside class="pp-side">
-    <div class="pp-acct" data-x="acct"></div>
-    <h4 class="sh">Capital por perfil</h4><div class="pp-eqleg" data-x="eqleg"></div><div class="pp-eq" data-x="eq"></div>
-  </aside>
-</div>
-<p class="alert" data-x="msg" role="status" hidden></p>
-<nav class="tabs pp-tabs" role="tablist">${TABS.map(([id, t]) => `<button role="tab" data-t="${id}" aria-selected="${id === 'live'}">${t}<small data-n="${id}"></small></button>`).join('')}</nav>
-<div class="pp-body" data-x="body"></div>`
 
 export class PaperView {
   private symbol = 'BTCUSDT'
@@ -64,6 +30,7 @@ export class PaperView {
   private liveTimer: number | undefined
   private v: PaperSummary | null = null
   private trades: PaperTrade[] = []
+  private tradesTotal = 0          // cerradas del perfil en la vista (la lista trae las más recientes)
   private price: number | null = null
   private focus: string | null = null
   private hist: HistFilter = { strategy: '', result: 'all', limit: 100 }
@@ -126,7 +93,7 @@ export class PaperView {
   }
 
   private async loadAll(): Promise<void> {
-    this.price = null; this.v = null; this.trades = []
+    this.price = null; this.v = null; this.trades = []; this.tradesTotal = 0
     this.q('price').textContent = '—'
     this.q('body').dataset.loading = 'true'
     await this.loadChart()
@@ -175,9 +142,9 @@ export class PaperView {
     try {
       const [v, t] = await Promise.all([
         getPaper<PaperSummary>(`?symbol=${this.symbol}`),
-        getPaper<{ trades: PaperTrade[] }>(`/trades?symbol=${this.symbol}&profile=${this.profile}&limit=2000`),
+        getPaper<TradesResp>(`/trades?symbol=${this.symbol}&profile=${this.profile}&limit=2000`),
       ])
-      this.v = v; this.trades = t.trades
+      this.v = v; this.trades = t.trades; this.tradesTotal = t.total ?? t.trades.length
       if (!v.profiles.some((p) => p.id === this.profile)) this.profile = v.profiles[0]?.id ?? this.profile
     } catch (e) {
       // Aviso en su propia franja (reemplazar el cuerpo borraba las pestañas); reintenta pronto
@@ -197,6 +164,7 @@ export class PaperView {
   private paintAll(): void {
     const v = this.v!
     this.q('cov').textContent = covText(v)
+    this.q('scope').innerHTML = scopeHtml(v)
     this.q('live').innerHTML = liveStrip(v)
     this.paintJob(v.job)
     this.q('bal').innerHTML = balanceView(v, this.bal)
@@ -248,7 +216,7 @@ export class PaperView {
     const v = this.v, p = this.prof()
     const names = Object.fromEntries(v.strategies.map((s) => [s.id, s.name]))
     const n = (id: string, x: number | string): void => { this.root.querySelector(`[data-n="${id}"]`)!.textContent = ` ${x}` }
-    n('pos', p?.positions.length ?? 0); n('ord', p ? p.orders.length + 2 * p.positions.length : 0); n('hist', this.trades.length); n('log', p?.events_n ?? '')
+    n('pos', p?.positions.length ?? 0); n('ord', p ? p.orders.length + 2 * p.positions.length : 0); n('hist', this.tradesTotal > this.trades.length ? `${this.trades.length}/${this.tradesTotal}` : this.trades.length); n('log', p?.events_n ?? '')
     n('learn', ''); n('prof', ''); n('live', ''); n('arb', ''); n('reg', '')
     if (this.tab === 'arb') { void this.arb!.show(); return }   // T45: no depende del perfil
     if (this.tab === 'reg') { void this.ledger!.show({ symbol: this.symbol }); return }   // registro fijo: no depende de la vista
@@ -256,7 +224,7 @@ export class PaperView {
     if (this.tab === 'live') void this.live!.show({ symbol: this.symbol, names, profiles: v.profiles })
     else if (this.tab === 'pos') this.bodies.pos.innerHTML = positionsTable(p.positions, names, this.symbol, this.price, this.focus)
     else if (this.tab === 'ord') this.bodies.ord.innerHTML = ordersTable(p.orders, names, this.symbol, p.positions, this.price)
-    else if (this.tab === 'hist') this.bodies.hist.innerHTML = historyTable(this.trades, names, this.symbol, this.hist)
+    else if (this.tab === 'hist') this.bodies.hist.innerHTML = historyTable(this.trades, names, this.symbol, this.hist, this.tradesTotal)
     else if (this.tab === 'log') void this.journal!.show({ symbol: this.symbol, names, profiles: v.profiles }, this.profile)
     else if (this.tab === 'learn') this.learn!.show(v, this.profile)
     else this.bodies.prof.innerHTML = profilesTab(v, this.price)
