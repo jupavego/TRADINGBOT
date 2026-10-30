@@ -195,8 +195,9 @@ Estos elementos son **locales de cada cuenta/equipo** (no se versionan):
 - [ ] Invitación a GitHub aceptada y `gh auth status` correcto
 - [ ] Repo clonado, entorno virtual creado, `pip install -e ".[dev]"` y `npm install` hechos
 - [ ] Gate en verde: `python -m ruff check eim tests && python -m pytest -q`
+- [ ] `python -m eim.continuity check` (desde `v2/`) sin BLOQUEO; si el equipo no tiene datos, recuperarlos antes de arrancar (`v2/docs/CONTINUIDAD.md` §3)
 - [ ] API + web corriendo en `http://127.0.0.1:5173`
-- [ ] Leídos: `CLAUDE.md`, `PLAN/00_MASTER.md`, `PLAN/STATUS.md`, `v2/docs/ARQUITECTURA.md` y `v2/docs/OPERACION.md`
+- [ ] Leídos: `CLAUDE.md`, `PLAN/ESTADO_PROYECTO.md`, `PLAN/00_MASTER.md`, `PLAN/STATUS.md`, `v2/docs/ARQUITECTURA.md` y `v2/docs/OPERACION.md`
 - [ ] Tarea acordada con el otro desarrollador y reclamada en `STATUS.md` (◐)
 - [ ] Primera rama creada y primer PR abierto
 
