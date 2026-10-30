@@ -16,7 +16,7 @@ más reciente por fecha y su siguiente paso. Formato:
 
 ## 2026-10-30 04:00 UTC · laptop-i6pf9ovp-fce8d9 · T125 continuidad entre equipos
 - **Hecho:** auditoría de dónde vive cada dato (`v2/docs/ALMACENAMIENTO.md`); copia completa nueva
-  y verificada `eim_20261030-030349` (1 000 MB, 4 bases, 5,3 M filas) y la más antigua apartada en
+  y verificada `eim_20261030-030349` (1 000 MB, 4 bases, 6,18 M filas) y la más antigua apartada en
   `v2/backups/archivo/`; parches de los worktrees con cambios ajenos + memoria de Claude guardados en
   `v2/backups/proteccion_T125_20261030-0310/`; `eim.continuity` (`check`, `publish`, `offsite`);
   arranque seguro de `eim.operation run`; tarea diaria de copia externa (scripts).
@@ -26,7 +26,7 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** `tests/continuity` (28) + share + copias + operación → 127 verdes; `check` real contra
   la carpeta viva → CON AVISOS (copia externa aún no publicada, cambios sin confirmar de otras
   sesiones); ida y vuelta LOCAL de la copia real (1 000 MB → 326 MB en 2 partes en 64 s; descarga +
-  verificación 37 s; `restore` en carpeta limpia) → filas idénticas en las 4 bases (5,3 M); clon
+  verificación 37 s; `restore` en carpeta limpia) → filas idénticas en las 4 bases (6,18 M); clon
   limpio en otra carpeta: sin datos → NO SINCRONIZADO y `eim.operation run` sale con 3 sin crear
   bases; con los datos restaurados → CON AVISOS, sin bloqueos. Gate: ruff OK, 2 425 pruebas
   pasadas y 7 omitidas en 13 min (servicios en marcha).
@@ -34,3 +34,23 @@ más reciente por fecha y su siguiente paso. Formato:
   permisos de la sesión: la ejecuta el usuario; equipo de Juan Pablo sin verificar.
 - **En curso:** T31, T45, T78, T104, T116, T117, T125.
 - **Siguiente paso:** el usuario ejecuta `v2\scripts\copia_externa.ps1` en la portátil; fusionar el PR de T125, actualizar la carpeta principal e instalar la tarea diaria; en `juanpablo-cpu`, `docs/CONTINUIDAD.md` §2 y §3 A.
+
+## 2026-10-30 14:05 UTC · laptop-i6pf9ovp-fce8d9 · T125 primera publicación real
+- **Hecho:** `publish` contra la carpeta viva (con el modo de permisos con aprobación; el automático
+  de Claude la bloqueaba): copia externa `eim_20261030-030349` en la versión `eim-copias` de
+  `Santivego/eim-shared-data` (326 MB en 2 partes + extras) y experiencia `20261030T030349Z` en
+  `machine/laptop-i6pf9ovp-fce8d9`, en 334 s. PR #171 fusionado. T125 → ☑.
+- **Archivos:** `PLAN/{STATUS,BITACORA,ESTADO_PROYECTO}.md`, `PLAN/status.js`.
+- **Pruebas:** `offsite list` → completa, 6 183 230 filas; `offsite pull` en una carpeta vacía (36 s,
+  partes + zip + copia verificados) + `backup restore` → filas por tabla idénticas a la copia
+  original en las 4 bases; extras con los 3 parches, la memoria de Claude y `data/`; `check` en la
+  carpeta viva → copia externa OK (CON AVISOS solo por cambios sin confirmar de otras sesiones).
+- **Desplegado (14:50 UTC, con permiso):** `git merge --ff-only origin/main` en la carpeta
+  principal (sin reiniciar servicios) e `instalar_copia_externa.ps1` → tarea «EIM - copia externa
+  diaria» (20:30 hora local); probada con `Start-ScheduledTask` → salida 0 en 54 s (copia ya en
+  GitHub, no la vuelve a subir). El registro salía con los acentos rotos (la consola oculta usa
+  ibm850): `copia_externa.ps1` fija ahora la salida de la consola a UTF-8 (llega con el PR #172).
+- **Abierto:** `juanpablo-cpu` sin verificar.
+- **En curso:** T31, T45, T78, T104, T116, T117, T119.
+- **Siguiente paso:** fusionar el PR #172 y `--ff-only` en la carpeta principal; en `juanpablo-cpu`,
+  `docs/CONTINUIDAD.md` §2 y §3 A.
