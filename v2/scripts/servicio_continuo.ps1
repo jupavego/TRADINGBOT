@@ -15,11 +15,16 @@
   (data/leaders/heartbeat.json) se detiene; escribe el tablero cada 5 min. Si ya corre (o hay un
   `run` a mano), no se lanza otro. Solo lectura de datos públicos.
 
+  Arranque seguro (T125): si la carpeta de datos no tiene historial, el vigilante NO arranca (crearía
+  bases vacías) y lo explica en vigilante.err.log; -DatosNuevos lo permite (instalación nueva a
+  propósito). Antes de nada en un equipo nuevo: `python -m eim.continuity check`.
+
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File v2\scripts\servicio_continuo.ps1 -ConWeb
 #>
 param(
   [switch]$ConWeb,
+  [switch]$DatosNuevos,
   [string]$DataDir = "",
   [int]$Puerto = 8000
 )
@@ -63,6 +68,7 @@ if (Escuchando $Puerto) {
 } else {
   $argv = @("-m", "eim.operation", "run", "--execution", "paper", "--port", "$Puerto",
             "--data-dir", "`"$DataDir`"")
+  if ($DatosNuevos) { $argv += "--allow-empty-data" }
   Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $logs "vigilante.out.log") `
     -RedirectStandardError (Join-Path $logs "vigilante.err.log")

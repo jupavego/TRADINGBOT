@@ -1,7 +1,9 @@
 """CLI de la operación continua (desde `v2/`).
 
 - `python -m eim.operation run [--execution paper|testnet] [--port 8000]`: lanza la API con el
-  servicio de operación bajo el vigilante (reinicio automático). Nunca dinero real.
+  servicio de operación bajo el vigilante (reinicio automático). Nunca dinero real. Se niega a
+  arrancar sobre una carpeta de datos SIN historial (T125: crearía bases vacías que parecerían
+  el estado actual) salvo `--allow-empty-data` (primera instalación a propósito).
 - `python -m eim.operation report [--from AAAA-MM-DD] [--to AAAA-MM-DD]`: pide a la API en
   marcha el informe del periodo (por defecto, la semana en curso). La base DuckDB la tiene
   abierta el servicio, por eso el informe se genera dentro de ese proceso.
@@ -16,10 +18,18 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+from eim.continuity.datastate import has_history
 from eim.data.local_api import DEFAULT_API, post_local
 from eim.observability.emit import configure
 from eim.operation.notify import JsonLog
 from eim.operation.watchdog import Watchdog
+
+EMPTY_DATA = """NO SE ARRANCA: {data} no tiene historial (ni reports, ni paper, ni leaders.duckdb).
+Arrancar aquí crearía bases VACÍAS que parecerían el estado actual del proyecto.
+  1. python -m eim.continuity check         (qué falta y dónde está lo último)
+  2. recupera el historial: python -m eim.continuity offsite pull  +  python -m eim.data.backup
+     restore <carpeta>, o importa la experiencia de los demás equipos (docs/CONTINUIDAD.md §3)
+  3. solo si de verdad es una instalación nueva: --allow-empty-data"""
 
 
 def _ms(day: str) -> int:
@@ -35,6 +45,8 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--tf", default="1h")
     r.add_argument("--poll", type=float, default=60.0)
     r.add_argument("--data-dir", default=os.environ.get("EIM_DATA_DIR", "data"))
+    r.add_argument("--allow-empty-data", action="store_true",
+                   help="arrancar aunque la carpeta de datos no tenga historial")
     p = sub.add_parser("report", help="informe del periodo (vía la API en marcha)")
     p.add_argument("--from", dest="start")
     p.add_argument("--to", dest="end")
@@ -42,6 +54,9 @@ def main(argv: list[str] | None = None) -> int:
     a = ap.parse_args(argv)
 
     if a.cmd == "run":
+        if not a.allow_empty_data and not has_history(Path(a.data_dir)):
+            print(EMPTY_DATA.format(data=Path(a.data_dir).resolve()), file=sys.stderr)
+            return 3
         env = {**os.environ, "EIM_OPERATE": "1", "EIM_EXECUTION": a.execution,
                "EIM_OPERATE_TF": a.tf, "EIM_OPERATE_POLL_S": str(a.poll),
                "EIM_DATA_DIR": a.data_dir}

@@ -99,6 +99,11 @@ class GitTransport:
             self._git(self.own, "checkout", "-q", "--orphan", self.branch)
         (self.own / ".gitignore").write_text(IGNORE, encoding="utf-8")
 
+    def prepare_own(self) -> None:
+        """Solo el clon de MI rama (T125: exportar sin bajar las ramas de los demás)."""
+        with self.lock():
+            self._ensure_own(self.remote_heads())
+
     def pull(self) -> list[str]:
         """Prepara `view/` y trae las ramas nuevas de las demás máquinas. Devuelve las
         máquinas cuya foto cambió."""
