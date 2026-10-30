@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-29T16:44:06",
+ "generated": "2026-10-29T22:57:30",
  "tasks": [
   {
    "id": "T01",
@@ -1575,6 +1575,19 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 20,
    "goal": "Un número de backtest, de calibración o de la puerta de edge que no se puede volver a producir no es un número. El almacén se rellena y se corrige con el tiempo (Binance revisa y completa velas, los recolectores compactan), y hoy nada fija **qué datos vio** un resultado: si la cifra cambia no se sabe si cambió el código, los parámetros o los datos. Idea tomada de ArcticDB (Man Group), implementada sobre DuckDB: ArcticDB está bajo Business Source License 1.1 y su documentación limita el uso gratuito a no comercial, personal o académico, así que **no se instala**."
+  },
+  {
+   "id": "T125",
+   "title": "Continuidad entre equipos: una fuente oficial por tipo de dato y arranque seguro",
+   "deps": [
+    "T115",
+    "T117"
+   ],
+   "state": "progress",
+   "notes": "Encargo del usuario (2026-10-29). **Hecho:** `eim/continuity` — `check` (entorno, fuente central, código, datos, copias, tareas, seguridad → LISTO / CON AVISOS / NO SINCRONIZADO; bloquea sin historial, con datos más viejos que lo publicado, con la misma identidad en dos equipos o sin llegar a GitHub), `offsite` (copia de T115 + extras —parches sin confirmar, memoria de Claude, estado pequeño— en la versión `eim-copias` del repo privado de datos, en partes con SHA-256; `pull` verifica todo), `publish` (copia → verificar → copia externa → experiencia exportada DESDE la copia → aviso de código); `eim.operation run` se niega sin historial (`--allow-empty-data`); `scripts/copia_externa.ps1` + `instalar_copia_externa.ps1`; docs `v2/docs/{CONTINUIDAD,ALMACENAMIENTO}.md`, `PLAN/{ESTADO_PROYECTO,BITACORA}.md` (unión automática). Copia nueva verificada `eim_20261030-030349` (1 000 MB); ida y vuelta LOCAL de esa copia real (partes → clon limpio → `restore`) con filas idénticas (5,3 M); clon limpio: sin datos → NO SINCRONIZADO y el lanzador sale con 3; gate 2 425 ✓ / 7 omitidas en 13 min con servicios. **Falta (◆):** la subida real a GitHub (copia externa + experiencia) la bloqueó el control de permisos de la sesión → el usuario ejecuta `v2\\scripts\\copia_externa.ps1`; fusionar, actualizar la carpeta principal, instalar la tarea diaria y repetir la recuperación desde un clon limpio contra GitHub.",
+   "effort": "medio",
+   "phase": 20,
+   "goal": "Encargo del usuario (2026-10-29): pasar de un equipo a otro (portátil de Santivego, segunda portátil, `juanpablo-cpu`) y encontrar el mismo proyecto al día —código, tareas, historial de backtesting y de operaciones simuladas, configuración y conocimiento— sin depender de un equipo concreto ni de la memoria de una conversación. No se reconstruye nada que ya exista: el código viaja por git, la experiencia por el repo privado de T61/T117 y las copias completas son las de T115. Lo que faltaba es que la copia completa **salga del disco**, que cada equipo **sepa al arrancar** si está al día, y que el estado del proyecto esté escrito en el repo."
   }
  ]
 };

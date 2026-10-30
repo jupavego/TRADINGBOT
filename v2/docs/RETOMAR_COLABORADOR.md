@@ -129,6 +129,10 @@ Si falla otra cosa, no lo arregles en `main`: abre rama y PR como siempre (`ONBO
 
 ## 6. Arrancar y comprobar
 
+Primero (T125): `python -m eim.continuity check` desde `v2/`. Dice si el código y los datos de
+este equipo están al día frente a GitHub y a la copia externa, y bloquea si no lo están
+(`docs/CONTINUIDAD.md`).
+
 ```powershell
 # API (desde v2/)
 python -m uvicorn eim.api.main:app --port 8000 --reload

@@ -54,6 +54,7 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 | `EIM_ARB_ALERT_SCORE`, `EIM_ARB_ALERT_S` | `3`, `60` | Alerta de arbitraje: puntuación del selector ≥ umbral (pb/día ajustados por riesgo) sostenida N segundos de escaneos seguidos (T39) |
 | `EIM_PAPER`, `EIM_PAPER_S` | `1`, `60` | Bróker simulado (T47/T48): cada ciclo trae velas de 15 m/1 h/4 h y funding de BTCUSDT y analiza las velas cerradas nuevas de los tres marcos → `data/paper.duckdb`. `0` lo apaga. Siempre SIMULADO |
 | `EIM_SHARED_DIR`, `EIM_MACHINE`, `EIM_SHARE_*` | — | Experiencia compartida entre equipos (T61, §3.1): carpeta de nube compartida, alias único de esta máquina y cadencias del modo automático (también `python -m eim.data.share setup`) |
+| `EIM_OFFSITE_REPO`, `EIM_OFFSITE_KEEP` | `Santivego/eim-shared-data`, `7` | Copia externa (T125, `docs/CONTINUIDAD.md`): repo privado de GitHub cuyas versiones guardan las copias completas, y cuántas conserva cada equipo |
 | `EIM_FRED_API_KEY` | — | Opcional (gratuita): valores real/anterior/revisado de IPC, NFP, PCE, PIB, IPP desde FRED. Sin ella los eventos salen sin valores |
 | `EIM_LIBRARY_DIR`, `EIM_LIBRARY_INDEX`, `EIM_TESSERACT` | `data/library/books`, `data/library/index`, autodetección | Biblioteca de trading (T52): carpeta de los libros del usuario (fuera del repo), índice local (catálogo, texto por página, caché de OCR) y ruta de `tesseract.exe` si no está en el PATH |
 | `EIM_WS_URL`, `EIM_HEARTBEAT_S`, `EIM_SNAPSHOT_BARS`, `EIM_AUTO_HISTORY`, `EIM_RECON_S` | ver `eim/api/config.py` | |
@@ -100,9 +101,12 @@ dañada (salida 2 = íntegra pero incompleta; 1 = dañada).
   borra la última completa). Una copia a medias (`.eim_….partial`, proceso interrumpido) nunca cuenta
   y se borra en la siguiente poda (pasada 1 h, por si es una copia en curso).
 - **Restaurar:** ver `docs/RUNBOOK.md` §5.
-- **Fuera del equipo:** `backups/` está en `.gitignore` y vive en el mismo disco. Sincroniza esa
-  carpeta con otro disco o un almacenamiento en la nube (p. ej. OneDrive) o usa `EIM_BACKUP_DIR`
-  apuntando a otra unidad. `share export` (§3.1) es otra vía fuera del equipo, pero no se restaura.
+- **Fuera del equipo (T125):** `backups/` está en `.gitignore` y vive en el mismo disco. La copia
+  externa la sube `python -m eim.continuity publish` (o `scripts/copia_externa.ps1`, cada día con
+  `scripts/instalar_copia_externa.ps1`) a la versión `eim-copias` del repo privado de datos
+  (`EIM_OFFSITE_REPO`, por defecto `Santivego/eim-shared-data`), en partes con SHA-256, con los
+  extras (cambios sin confirmar, memoria de Claude, estado pequeño); se recupera con
+  `offsite pull` + `backup restore`. Detalle: `docs/CONTINUIDAD.md`.
 - **Captura HFT (T78):** la copia lleva solo los JSON de calidad (`state/micro_hft_qc/`), nunca los crudos de `data/micro_hft/` (≈ 830 MB/día; se podan a los 45 días). Para conservar más tiempo un tramo para T80/T84, copiarlo a otro disco a mano.
 - **Tamaño y tiempo** (medido en vivo el 2026-10-24 16:17 UTC, servicios en marcha): copia completa
   de 672,5 MB en 41 s (53 archivos): `reports` 1,4 s, `paper` 2,5 s y `obs` 2,1 s en caliente;
