@@ -3,3 +3,7 @@
 v2/eim/risk/versions/*.json text eol=lf
 v2/eim/calibration/versions/*.json text eol=lf
 v2/eim/validation/versions/*.json text eol=lf
+
+# T125: cada sesión (en cualquier equipo) añade su entrada al final de la bitácora; al unir ramas
+# git conserva las entradas de los dos lados en vez de marcar conflicto.
+PLAN/BITACORA.md merge=union

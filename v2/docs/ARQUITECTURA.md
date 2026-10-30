@@ -62,7 +62,9 @@ de decisión versionados), `legacy/F7/` (código anterior, solo oráculo de regr
   propio proceso escritor; la API y `build_snapshot` leen los tableros JSON de `data/leaders/`.
 - `data/kill_switch.json`: estado persistido del kill-switch.
 - `data/operation/`: latido, estado del servicio (libro simulado), registros JSONL por día.
-- `backups/`: copias (ver `docs/OPERACION.md`).
+- `backups/`: copias (ver `docs/OPERACION.md`); fuera del disco, la copia externa de T125.
+- Inventario completo (qué vive dónde, fuente oficial y cómo viaja): `docs/ALMACENAMIENTO.md`;
+  continuidad entre equipos (`eim/continuity`): `docs/CONTINUIDAD.md`.
 
 ## API (prefijo `/v2`)
 Lectura: `health`, `snapshot`, `agents`, `reports`, `synthesis`, `overlays`, `forecast`,

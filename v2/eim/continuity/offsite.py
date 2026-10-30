@@ -129,13 +129,14 @@ def push(t: Releases, backup: Path, machine: str, *, extras: Path | None = None,
         if c.machine == machine and c.backup == backup.name and c.complete:
             return {**c.meta, "skipped": True}
     now = datetime.now(UTC)
+    if work:
+        work.mkdir(parents=True, exist_ok=True)
     tmp = Path(tempfile.mkdtemp(prefix=".offsite-", dir=work)) if work else \
         Path(tempfile.mkdtemp(prefix="eim-offsite-"))
     try:
         parts, zsha, zbytes = pack(backup, extras, tmp, base, part_bytes)
-        for p in parts:
-            if assets.get(p["name"], {}).get("bytes") != p["bytes"]:
-                t.upload(tmp / p["name"])
+        for p in parts:        # todas: los extras cambian entre intentos, el zip también
+            t.upload(tmp / p["name"])
         meta = {"format": FORMAT, "machine": machine, "backup": backup.name,
                 "created_at": m.get("created_at"), "published_at": now.isoformat(),
                 "git_commit": m.get("git_commit"), "dbs": m.get("dbs", {}),

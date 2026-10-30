@@ -42,7 +42,7 @@ def test_roundtrip_is_identical(tmp_path):
 def test_push_twice_uploads_nothing_new(tmp_path):
     _, bk = backup(tmp_path)
     t = FakeReleases(tmp_path / "gh")
-    O.push(t, bk, "a", part_bytes=4096)
+    O.push(t, bk, "a", part_bytes=4096, work=tmp_path / "w" / "no-existe")   # la crea
     n = len(t.uploads)
     assert O.push(t, bk, "a", part_bytes=4096)["skipped"]
     assert len(t.uploads) == n
@@ -57,8 +57,9 @@ def test_interrupted_upload_is_never_complete_and_resumes(tmp_path):
     assert O.remote_copies(t) == []
     t.uploads.clear()
     O.push(t, bk, "a", part_bytes=4096)
-    assert t.uploads == [meta["parts"][-1]["name"], f"a__{bk.name}.meta.json"]
-    assert O.remote_copies(t)[0].complete
+    assert t.uploads[-1] == f"a__{bk.name}.meta.json" and len(t.uploads) == len(meta["parts"]) + 1
+    [c] = O.remote_copies(t)
+    assert c.complete and B.verify(O.pull(t, c, tmp_path / "dest")) == []
 
 
 def test_missing_part_makes_copy_incomplete(tmp_path):

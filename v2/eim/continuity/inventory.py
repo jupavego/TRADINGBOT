@@ -35,8 +35,10 @@ ITEMS: tuple[Item, ...] = (
     # --- código, tareas y conocimiento: git ----------------------------------------------
     Item("eim", "código fuente de la aplicación (API, agentes, riesgo, ejecución, web)",
          CRITICAL, GIT, "git: ramas + PR; `check` avisa de lo no subido"),
-    Item("eim/risk/versions", "versiones de parámetros de riesgo y perfiles (Conservador, "
-         "Moderado, Agresivo…), SL/TP y protección", CRITICAL, GIT, "git (inmutables, SHA-256)"),
+    Item("eim/risk/versions", "versiones de los parámetros de riesgo (papel, testnet, copia, "
+         "arbitraje, HFT)", CRITICAL, GIT, "git (inmutables, SHA-256 sellado en cada decisión)"),
+    Item("eim/paper/params.py", "perfiles del bróker simulado (Conservador, Moderado, "
+         "Agresivo), SL/TP y escalera de protección (`ladder_params.py`)", CRITICAL, GIT, "git"),
     Item("eim/calibration/versions", "versiones de calibración", HIGH, GIT, "git"),
     Item("eim/validation/versions", "criterios de la puerta de validación", HIGH, GIT, "git"),
     Item("reports", "informes generados versionados (puerta de edge, escuadrón, A/B…)", HIGH,
