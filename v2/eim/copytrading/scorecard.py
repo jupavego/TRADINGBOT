@@ -190,16 +190,22 @@ def score(d: LeaderData, n_trials: int, now: int, p: ScoreParams | None = None
     """Scorecard y las operaciones adelante (para las cohortes del filtro)."""
     p = p or ScoreParams()
     trips = build_trips(d.fills, d.funding, p.avg_down_tol)
+    fwd = forward_trips(trips, d.forward_start)
+    return assemble(d, trips, fwd, copy_stats(fwd, d.fills, d.quotes, p), n_trials, now, p), fwd
+
+
+def assemble(d: LeaderData, trips: list[Trip], fwd: list[Trip], cp: CopyStats, n_trials: int,
+             now: int, p: ScoreParams) -> Scorecard:
+    """Scorecard con los viajes y la copiabilidad ya calculados (de `d` no usa `fills` ni
+    `quotes`: la evaluación incremental los arma sin guardar el historial)."""
     pf = portfolio_stats(d.portfolio, p) if d.portfolio else None
     av = pf.account_value if pf and pf.account_value else None
-    fwd = forward_trips(trips, d.forward_start)
     fwd_ids = {id(t) for t in fwd}
     hist = [t for t in trips if id(t) not in fwd_ids]
     a = trade_stats(trips, av, n_trials, p)
     f = trade_stats(fwd, av, n_trials, p)
     h = trade_stats(hist, av, n_trials, p)
     days = d.observed_ms / DAY_MS
-    cp = copy_stats(fwd, d.fills, d.quotes, p)
     ups = [x.unrealized_pnl for x in d.positions if x.unrealized_pnl is not None]
     unreal = sum(ups) if ups else None
     hard = _hard(a, pf, unreal, av, p)
@@ -208,10 +214,9 @@ def score(d: LeaderData, n_trials: int, now: int, p: ScoreParams | None = None
     else:
         verdict, quality, reasons = _forward(f, cp, days, n_trials, p)
     ld = d.leader
-    card = Scorecard(
+    return Scorecard(
         leader_id=ld.id, address=ld.address, label=ld.label, origin=ld.origin,
         verdict=verdict, quality=quality, reasons=reasons + _notes(a, cp), all=a, hist=h,
         fwd=f, portfolio=pf, copyability=cp, forward_start=d.forward_start, forward_days=days,
         account_value=av, unrealized=unreal, n_positions=len(d.positions),
         n_trials=n_trials, scored_at=now)
-    return card, fwd

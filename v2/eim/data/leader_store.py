@@ -12,12 +12,15 @@ from __future__ import annotations
 
 import json
 import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 import duckdb
 
 from eim.core.leaders import Leader, LeaderFill, LeaderFunding, LeaderPosition, LeaderStatus
 from eim.data.copy_store import COPY_DDL, CopyTables
+from eim.data.duck import tune
 from eim.data.leader_score_store import SCORE_DDL, ScoreTables
 from eim.data.machine import add_machine_column, machine_id
 from eim.leaders.book import Gap, Recon
@@ -70,6 +73,7 @@ class LeaderStore(ScoreTables, CopyTables):
         if self.path != ":memory:":
             Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         self._con = duckdb.connect(self.path)
+        tune(self._con)  # sin tope, DuckDB toma el 80 % de la RAM (12,5 de 16 GB)
         self._con.execute(_DDL + SCORE_DDL + COPY_DDL)
         self._lock = threading.Lock()
         self.machine = "local" if self.path == ":memory:" else machine_id(Path(self.path).parent)
@@ -88,6 +92,22 @@ class LeaderStore(ScoreTables, CopyTables):
     def connection(self):
         """(conexión, cerrojo) para la experiencia compartida (T61, `eim.data.share_auto`)."""
         return self._con, self._lock
+
+    @contextmanager
+    def reader(self) -> Iterator[duckdb.DuckDBPyConnection]:
+        """Cursor propio en una transacción de lectura: instantánea coherente de DuckDB que no
+        toma el candado, así la captura (bucle del WS) sigue escribiendo mientras se lee en tandas
+        (evaluación incremental, `leader_fold_io.py`)."""
+        with self._lock:
+            cur = self._con.cursor()
+        try:
+            cur.execute("BEGIN TRANSACTION")
+            yield cur
+        finally:
+            try:
+                cur.execute("ROLLBACK")
+            finally:
+                cur.close()
 
     def _exec(self, q: str, params: list | tuple = ()) -> list[tuple]:
         with self._lock:

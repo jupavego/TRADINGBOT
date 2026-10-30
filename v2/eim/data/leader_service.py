@@ -5,7 +5,8 @@
 - `portfolio` de cada líder capturado cada 6 h (dos líderes por minuto para no gastar el
   presupuesto de peso) → preselección.
 - Cada `score_every_s` evalúa a todos (en un hilo) y guarda el tablero en `data/leaders/`;
-  también al cerrar. Solo lectura de datos públicos: no hay órdenes.
+  también al cerrar. La evaluación es incremental (`EvalCache`: solo lee lo nuevo de cada
+  líder), así la memoria no crece con el historial. Solo lectura de datos públicos: no hay órdenes.
 - Copia simulada en vivo (T42, `copy_mode` ≠ `off`): una subcuenta virtual por líder con
   las mismas ejecuciones, cotizaciones, marcas y reconciliaciones (`copy_live.py`).
 - Latido en `data/leaders/heartbeat.json` (como mucho cada `HEARTBEAT_EVERY_S`) cada vez que
@@ -32,6 +33,7 @@ from eim.data.copy_live import CopyLive
 from eim.data.hl_market import exchange_spec
 from eim.data.leader_board import BoardStore
 from eim.data.leader_eval import evaluate, refresh_portfolios
+from eim.data.leader_fold_io import EvalCache
 from eim.data.leader_quotes import QuoteBook
 from eim.data.leader_snapshot import take_snapshot_request
 from eim.data.leader_store import LeaderStore
@@ -62,6 +64,7 @@ class LeaderService(LeaderWatch):
         super().__init__(store, info, leaders, **kw)
         self.root = root
         self.p = params or ScoreParams()
+        self.eval_cache = EvalCache(self.p)
         self.boards = BoardStore(root)
         coins = quote_coins if quote_coins is not None else self._coins()
         self.quotes = QuoteBook(coins, self.p.exec_delay_ms, self.p.live_max_latency_ms)
@@ -230,7 +233,8 @@ class LeaderService(LeaderWatch):
             log.error("latido: %s", exc)
 
     async def score_now(self) -> None:
-        board = await asyncio.to_thread(evaluate, self.store, self.now(), self.p)
+        board = await asyncio.to_thread(evaluate, self.store, self.now(), self.p,
+                                        cache=self.eval_cache)
         self.boards.save(board)
         self.boards_saved += 1
 

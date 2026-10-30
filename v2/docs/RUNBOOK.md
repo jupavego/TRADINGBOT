@@ -149,7 +149,10 @@ minuto sin captura retrasa la aprobación de líderes (los días adelante solo c
    el motivo está en `reason` (código de salida o «latido detenido»). Detén el servicio y lánzalo
    en primer plano para ver el error: `python -m eim.leaders run --minutes 5`. Salida de consola del
    servicio: `data/operation/logs/lideres.err.log`. Causas típicas: sin red o Hyperliquid caído
-   (la captura reintenta sola sin morir), disco lleno, base dañada.
+   (la captura reintenta sola sin morir), disco lleno, base dañada. Con «latido detenido» mira
+   también la memoria del `run` (`Get-Process -Id <pid>`): por encima de ~2 GB es que corre un
+   código anterior a la evaluación incremental (2026-10-29, `docs/OPERACION.md` §6) y basta con
+   relanzarlo con el código nuevo.
 5. **Base dañada:** restaurar `leaders.duckdb` de la última copia que la tenga (§5; la copia
    diaria la pide al servicio). Solo si ninguna copia la tiene: renombrar `data/leaders.duckdb` y
    volver a registrar los líderes (`add 0x… --watch`), que reinicia la cuenta de días adelante.

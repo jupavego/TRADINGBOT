@@ -2,19 +2,22 @@
 
 La corre el servicio de vigilancia cada pocos minutos (es el único proceso que puede abrir
 `data/leaders.duckdb`) y la CLI `python -m eim.leaders score` con el vigilante apagado. El
-tablero se guarda en `data/leaders/` (JSON) para la API y `build_snapshot`.
+tablero se guarda en `data/leaders/` (JSON) para la API y `build_snapshot`. Viajes y
+copiabilidad salen de `EvalCache` (`leader_fold_io.py`): el servicio lo conserva entre vueltas
+y solo lee lo nuevo; `gather` + `score` (todo el historial en memoria) queda como referencia.
 """
 
 from __future__ import annotations
 
 import logging
 
-from eim.copytrading import Board, ScoreParams, build_board, score
+from eim.copytrading import Board, ScoreParams, build_board
 from eim.copytrading.board import position_changes
 from eim.copytrading.forward import VerdictMark, cohorts, covered_ms
 from eim.copytrading.scorecard import LeaderData, Scorecard
 from eim.copytrading.trades import Trip
 from eim.core.leaders import Leader
+from eim.data.leader_fold_io import EvalCache
 from eim.data.leader_store import LeaderStore
 from eim.leaders.params import POSITIONS_MAX_AGE_MS
 
@@ -33,18 +36,27 @@ def n_trials(store: LeaderStore, p: ScoreParams) -> int:
     return max(p.min_trials, len(lds), universe)
 
 
-def gather(store: LeaderStore, ld: Leader, asof: int) -> LeaderData:
-    """Todo lo capturado del líder conocido a `asof` (nunca posterior)."""
+def context(store: LeaderStore, ld: Leader, asof: int) -> LeaderData:
+    """Lo capturado del líder conocido a `asof` (nunca posterior), sin su historial de
+    ejecuciones, funding ni cotizaciones (eso lo pliega `EvalCache`)."""
     times = store.photo_times(ld.id, asof)
     near = store.positions_near(ld.id, asof)
     positions = near[1] if near and asof - near[0] <= POSITIONS_MAX_AGE_MS else []
     pf = store.portfolio(ld.id)
     return LeaderData(
-        leader=ld, fills=[f for f in store.fills_fast(ld.id) if f.observed_at <= asof],
-        funding=[r for r in store.funding_rows(ld.id) if r.observed_at <= asof],
-        positions=positions, portfolio=pf[1] if pf and pf[0] <= asof else None,
-        quotes=store.follow_quotes(ld.id), forward_start=times[0] if times else None,
-        observed_ms=covered_ms(times, PHOTO_STEP_MS))
+        leader=ld, fills=[], positions=positions,
+        portfolio=pf[1] if pf and pf[0] <= asof else None,
+        forward_start=times[0] if times else None, observed_ms=covered_ms(times, PHOTO_STEP_MS))
+
+
+def gather(store: LeaderStore, ld: Leader, asof: int) -> LeaderData:
+    """Todo lo capturado del líder a `asof`, historial completo en memoria (referencia de
+    `EvalCache` en los tests; con millones de ejecuciones ocupa varios GB)."""
+    d = context(store, ld, asof)
+    d.fills = [f for f in store.fills_fast(ld.id) if f.observed_at <= asof]
+    d.funding = [r for r in store.funding_rows(ld.id) if r.observed_at <= asof]
+    d.quotes = store.follow_quotes(ld.id)
+    return d
 
 
 def _photo_at(store: LeaderStore, lid: str, t: int) -> list | None:
@@ -68,17 +80,20 @@ def _record(store: LeaderStore, cards: list[Scorecard], now: int) -> None:
 
 
 def evaluate(store: LeaderStore, now: int, p: ScoreParams | None = None,
-             record: bool = True) -> Board:
-    """Puntúa a todos los líderes capturados (watch/approved/rejected) y arma el tablero."""
+             record: bool = True, cache: EvalCache | None = None) -> Board:
+    """Puntúa a todos los líderes capturados (watch/approved/rejected) y arma el tablero. Sin
+    `cache` (o con otros parámetros) lee cada historial entero, en tandas."""
     p = p or ScoreParams()
+    cache = cache if cache is not None and cache.p == p else EvalCache(p)
     tracked = [ld for ld in store.leaders() if ld.tracked and ld.venue == "hyperliquid"]
+    cache.keep({ld.id for ld in tracked})
     trials = n_trials(store, p)
     cards: list[Scorecard] = []
     fwd: dict[str, list[Trip]] = {}
     positions, positions_at, changes, errors = {}, {}, {}, []
     for ld in tracked:
         try:
-            card, trips = score(gather(store, ld, now), trials, now, p)
+            card, trips = cache.score(store, ld, now, trials, context(store, ld, now))
         except Exception as exc:  # un líder con datos rotos no tumba el tablero
             errors.append(f"{ld.id}: {type(exc).__name__}: {exc}"[:300])
             log.exception("scorecard %s", ld.id)
