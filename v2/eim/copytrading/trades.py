@@ -5,12 +5,17 @@ o al cruzar de lado (giro: cierra el viaje viejo y abre otro con el resto). Neto
 cerrado del exchange − comisiones + funding cobrado durante el viaje. Si la primera ejecución
 vista ya parte de una posición, el viaje es **parcial** (su apertura es anterior a nuestro
 historial) y no entra en las estadísticas.
+
+`SymbolTrips` arma los viajes de una moneda ejecución a ejecución: `build_trips` lo usa con
+todo el historial de una vez y la evaluación incremental (`trip_fold.py`) lo conserva entre
+vueltas y le pasa solo lo nuevo.
 """
 
 from __future__ import annotations
 
 import bisect
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from eim.core.leaders import LeaderFill, LeaderFunding, Side
@@ -48,6 +53,8 @@ class Trip:
     _out_qty: float = 0.0
     _out_cost: float = 0.0
     _pos: float = 0.0
+    _n_legs: int = 0  # patas aplicadas (la evaluación incremental no las guarda todas)
+    _n_taker: int = 0
 
     @property
     def closed(self) -> bool:
@@ -71,14 +78,14 @@ class Trip:
 
     @property
     def taker_share(self) -> float:
-        return sum(lg.fill.crossed for lg in self.legs) / len(self.legs) if self.legs else 0.0
+        return self._n_taker / self._n_legs if self._n_legs else 0.0
 
     def add_in(self, f: LeaderFill, qty: float, fee: float, tol: float) -> None:
         if self._in_qty and self.complete:
             e = self.entry
             worse = f.price < e * (1 - tol) if self.side == "long" else f.price > e * (1 + tol)
             self.avg_downs += worse
-        if not self.legs or not self.first_size:
+        if not self._n_legs or not self.first_size:
             self.first_size = qty
         self._in_qty += qty
         self._in_cost += qty * f.price
@@ -96,56 +103,100 @@ class Trip:
 
     def _touch(self, f: LeaderFill, qty: float, fee: float, buy: bool) -> None:
         self.legs.append(Leg(f, qty, buy))
+        self._n_legs += 1
+        self._n_taker += f.crossed
         self.fees += fee
         self.liquidated |= f.liquidated
         if f.leverage is not None:
             self.leverage_max = max(self.leverage_max or 0.0, f.leverage)
 
 
+class SymbolTrips:
+    """Viajes de UNA moneda, alimentados en orden (t, observed_at, tid). Las ejecuciones del
+    mismo milisegundo esperan juntas en `_group` hasta que llega otra hora (o `flush`): se
+    encadenan por posición antes de aplicarse. `on_legs(trip)` se llama tras cada ejecución
+    con los viajes que recibieron patas (la evaluación incremental las pliega y las suelta)."""
+
+    def __init__(self, symbol: str, avg_down_tol: float = 0.002,
+                 on_legs: Callable[[Trip], None] | None = None,
+                 trip_cls: type[Trip] = Trip) -> None:
+        self.symbol, self.tol = symbol, avg_down_tol
+        self.done: list[Trip] = []
+        self.cur: Trip | None = None
+        self.prev: float | None = None  # posición final de la última ejecución aplicada
+        self.last_t: int | None = None  # hora del último grupo aplicado
+        self._group: list[LeaderFill] = []
+        self._on_legs, self._cls = on_legs, trip_cls
+
+    def add(self, f: LeaderFill) -> None:
+        if self._group and f.t != self._group[0].t:
+            self.flush()
+        self._group.append(f)
+
+    def flush(self) -> None:
+        if not self._group:
+            return
+        group, self._group = self._group, []
+        self.last_t = group[0].t
+        for f in _chain_group(group, self.prev):
+            n = len(self.done)
+            self._step(f)
+            if self._on_legs is not None:  # terminados en este paso (con o sin pata) y el abierto
+                for tr in self.done[n:]:
+                    self._on_legs(tr)
+                if self.cur is not None:
+                    self._on_legs(self.cur)
+
+    def trips(self) -> list[Trip]:
+        """Cerrados y cortados en orden, y el abierto al final."""
+        self.flush()
+        return self.done + ([self.cur] if self.cur is not None else [])
+
+    def _step(self, f: LeaderFill) -> None:
+        sym, tol, cur = self.symbol, self.tol, self.cur
+        s, e = f.start_position, f.end_position
+        if self.prev is not None and not _same(s, self.prev):
+            if cur is not None:  # la posición no sigue a la anterior: hueco en los datos
+                cur.complete = False
+                self.done.append(cur)
+            cur = None
+        if cur is None and s != 0:  # posición abierta antes de lo visto (o tras un hueco)
+            cur = self._cls(sym, "long" if s > 0 else "short", f.t, complete=False,
+                            before_history=self.prev is None, _pos=abs(s))
+        self.prev = e
+        if f.action == "open" or cur is None:
+            if cur is not None:  # apertura sin cierre previo: hueco en los datos
+                cur.complete = False
+                self.done.append(cur)
+            cur = self._cls(sym, f.side, f.t, complete=True)
+            cur.add_in(f, abs(e), f.fee, tol)
+        elif f.action == "increase":
+            cur.add_in(f, f.size, f.fee, tol)
+        elif f.action == "reduce":
+            cur.add_out(f, f.size, f.fee, f.closed_pnl)
+        else:  # close o flip: termina el viaje
+            old = abs(s)
+            share = old / f.size if f.size else 1.0
+            cur.add_out(f, old, f.fee * share, f.closed_pnl)
+            cur.t_close = f.t
+            self.done.append(cur)
+            cur = None
+            if f.action == "flip":
+                cur = self._cls(sym, "long" if e > 0 else "short", f.t, complete=True)
+                cur.add_in(f, abs(e), f.fee * (1 - share), tol)
+        self.cur = cur
+
+
 def build_trips(fills: list[LeaderFill], funding: list[LeaderFunding] | None = None,
                 avg_down_tol: float = 0.002) -> list[Trip]:
     """Viajes por moneda en orden temporal (cerrados y abiertos). `fills` de un solo líder."""
-    by_sym: dict[str, list[LeaderFill]] = defaultdict(list)
+    by_sym: dict[str, SymbolTrips] = {}
     for f in sorted(fills, key=lambda f: (f.t, f.observed_at, f.tid)):
-        by_sym[f.symbol].append(f)
-    trips: list[Trip] = []
-    for sym, raw in by_sym.items():
-        fs = _chained(raw)
-        cur: Trip | None = None
-        prev: float | None = None
-        for f in fs:
-            s, e = f.start_position, f.end_position
-            if prev is not None and not _same(s, prev):
-                if cur is not None:  # la posición no sigue a la anterior: hueco en los datos
-                    cur.complete = False
-                    trips.append(cur)
-                cur = None
-            if cur is None and s != 0:  # posición abierta antes de lo visto (o tras un hueco)
-                cur = Trip(sym, "long" if s > 0 else "short", f.t, complete=False,
-                           before_history=prev is None, _pos=abs(s))
-            prev = e
-            if f.action == "open" or cur is None:
-                if cur is not None:  # apertura sin cierre previo: hueco en los datos
-                    cur.complete = False
-                    trips.append(cur)
-                cur = Trip(sym, f.side, f.t, complete=True)
-                cur.add_in(f, abs(e), f.fee, avg_down_tol)
-            elif f.action == "increase":
-                cur.add_in(f, f.size, f.fee, avg_down_tol)
-            elif f.action == "reduce":
-                cur.add_out(f, f.size, f.fee, f.closed_pnl)
-            else:  # close o flip: termina el viaje
-                old = abs(s)
-                share = old / f.size if f.size else 1.0
-                cur.add_out(f, old, f.fee * share, f.closed_pnl)
-                cur.t_close = f.t
-                trips.append(cur)
-                cur = None
-                if f.action == "flip":
-                    cur = Trip(sym, "long" if e > 0 else "short", f.t, complete=True)
-                    cur.add_in(f, abs(e), f.fee * (1 - share), avg_down_tol)
-        if cur is not None:
-            trips.append(cur)
+        b = by_sym.get(f.symbol)
+        if b is None:
+            b = by_sym[f.symbol] = SymbolTrips(f.symbol, avg_down_tol)
+        b.add(f)
+    trips = [tr for b in by_sym.values() for tr in b.trips()]
     _assign_funding(trips, funding or [])
     return sorted(trips, key=lambda tr: (tr.t_open, tr.symbol))
 
@@ -154,27 +205,33 @@ def _same(a: float, b: float) -> bool:
     return abs(a - b) <= 1e-9 * max(1.0, abs(a))
 
 
+def _chain_group(group: list[LeaderFill], cur: float | None) -> list[LeaderFill]:
+    """Un milisegundo, siguiendo la cadena posición inicial → final desde `cur` (el `tid` no
+    la respeta). Sin continuación posible se toma la que no continúa a ninguna otra del grupo
+    (o la primera restante)."""
+    group, out = list(group), []
+    while group:
+        k = next((n for n, f in enumerate(group)
+                  if cur is not None and _same(f.start_position, cur)), None)
+        if k is None:  # inicio del grupo: el que no continúa a ningún otro del grupo
+            ends = [f.end_position for f in group]
+            k = next((n for n, f in enumerate(group)
+                      if not any(_same(f.start_position, e) for e in ends)), 0)
+        f = group.pop(k)
+        out.append(f)
+        cur = f.end_position
+    return out
+
+
 def _chained(fs: list[LeaderFill]) -> list[LeaderFill]:
-    """Orden temporal; dentro del mismo milisegundo, siguiendo la cadena posición inicial →
-    final (el `tid` no la respeta). Sin continuación posible se toma la primera restante."""
+    """Orden temporal; dentro del mismo milisegundo, encadenado por posición (`_chain_group`)."""
     out: list[LeaderFill] = []
     i = 0
     while i < len(fs):
         j = i
         while j < len(fs) and fs[j].t == fs[i].t:
             j += 1
-        group = fs[i:j]
-        cur = out[-1].end_position if out else None
-        while group:
-            k = next((n for n, f in enumerate(group)
-                      if cur is not None and _same(f.start_position, cur)), None)
-            if k is None:  # inicio del grupo: el que no continúa a ningún otro del grupo
-                ends = [f.end_position for f in group]
-                k = next((n for n, f in enumerate(group)
-                          if not any(_same(f.start_position, e) for e in ends)), 0)
-            f = group.pop(k)
-            out.append(f)
-            cur = f.end_position
+        out += _chain_group(fs[i:j], out[-1].end_position if out else None)
         i = j
     return out
 
