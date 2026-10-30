@@ -19,6 +19,9 @@ $logs = Join-Path $DataDir "operation\logs"
 New-Item -ItemType Directory -Force $logs | Out-Null
 $log = Join-Path $logs "copia_externa.log"
 $env:PYTHONIOENCODING = "utf-8"
+# La consola oculta de la tarea usa ibm850: sin esto, la salida UTF-8 de Python llega al registro
+# con los acentos rotos («verificaci├│n»).
+try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch {}
 $argv = @("-m", "eim.continuity", "--data-dir", $DataDir, "publish")
 if ($SinExperiencia) { $argv += "--no-share" }
 Push-Location $v2

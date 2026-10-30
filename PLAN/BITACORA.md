@@ -45,9 +45,12 @@ más reciente por fecha y su siguiente paso. Formato:
   partes + zip + copia verificados) + `backup restore` → filas por tabla idénticas a la copia
   original en las 4 bases; extras con los 3 parches, la memoria de Claude y `data/`; `check` en la
   carpeta viva → copia externa OK (CON AVISOS solo por cambios sin confirmar de otras sesiones).
-- **Abierto:** la carpeta principal va 6 commits por detrás de `origin/main` (sin `eim/continuity`);
-  la tarea diaria no está instalada; `juanpablo-cpu` sin verificar.
+- **Desplegado (14:50 UTC, con permiso):** `git merge --ff-only origin/main` en la carpeta
+  principal (sin reiniciar servicios) e `instalar_copia_externa.ps1` → tarea «EIM - copia externa
+  diaria» (20:30 hora local); probada con `Start-ScheduledTask` → salida 0 en 54 s (copia ya en
+  GitHub, no la vuelve a subir). El registro salía con los acentos rotos (la consola oculta usa
+  ibm850): `copia_externa.ps1` fija ahora la salida de la consola a UTF-8 (llega con el PR #172).
+- **Abierto:** `juanpablo-cpu` sin verificar.
 - **En curso:** T31, T45, T78, T104, T116, T117, T119.
-- **Siguiente paso:** con permiso, `git merge --ff-only origin/main` en la carpeta principal (no
-  reinicia nada) y `powershell -ExecutionPolicy Bypass -File v2\scripts\instalar_copia_externa.ps1`;
-  en `juanpablo-cpu`, `docs/CONTINUIDAD.md` §2 y §3 A.
+- **Siguiente paso:** fusionar el PR #172 y `--ff-only` en la carpeta principal; en `juanpablo-cpu`,
+  `docs/CONTINUIDAD.md` §2 y §3 A.

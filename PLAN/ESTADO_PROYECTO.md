@@ -9,7 +9,7 @@ lo aplazado en `BACKLOG.md` y el registro de sesiones en `BITACORA.md`. Para com
 
 | Equipo | Identidad | Qué tiene | Verificado |
 |---|---|---|---|
-| Portátil de Santivego (`LAPTOP-I6PF9OVP`) | `laptop-i6pf9ovp-fce8d9` | Servicio continuo 24/7 desde la carpeta principal (rama `main`): API + operación en papel (corrida de T31) + bróker simulado (15 m/1 h/4 h, solo BTCUSDT), servicio de líderes (7 líderes, copia simulada), recolector de microestructura y captura HFT de BTCUSDT; copia completa diaria a las 00:00 UTC; copia externa en `eim-copias` (la primera, 2026-10-30; la tarea diaria aún sin instalar); tarea «EIM - vigilancia captura HFT». Sin variables `EIM_*` (sin claves de testnet), sin Ollama, sin Freqtrade | sí, 2026-10-30 |
+| Portátil de Santivego (`LAPTOP-I6PF9OVP`) | `laptop-i6pf9ovp-fce8d9` | Servicio continuo 24/7 desde la carpeta principal (rama `main`): API + operación en papel (corrida de T31) + bróker simulado (15 m/1 h/4 h, solo BTCUSDT), servicio de líderes (7 líderes, copia simulada), recolector de microestructura y captura HFT de BTCUSDT; copia completa diaria a las 00:00 UTC; copia externa diaria en `eim-copias` a las 20:30 hora local (tarea «EIM - copia externa diaria», desde el 2026-10-30); tarea «EIM - vigilancia captura HFT». Sin variables `EIM_*` (sin claves de testnet), sin Ollama, sin Freqtrade | sí, 2026-10-30 |
 | Equipo de Juan Pablo (`jupavego`) | por definir (no puede ser la de arriba) | Relleno de 6 meses del escuadrón de bots, Freqtrade en `D:/eim-bots` (FSupertrend, NFI), velas de 5 m (T58–T60) | **no** (no accesible desde la portátil) |
 | `juanpablo-cpu` / otra portátil | por definir | Desconocido desde aquí | **no** |
 
@@ -27,7 +27,7 @@ configuración de riesgo; la puerta de edge (T27) **NO PASA**.
 | T116 Gate estable | 6 corridas verdes (11–20 min con servicios) | 3 corridas con el equipo descargado y 3 con Ollama real en el equipo de referencia |
 | T117 Primera mezcla | Mitad de la portátil hecha; #165 fusionado y desplegado (2026-10-29); modo automático **apagado** (no hay `data/share_config.json`) | Juan Pablo: aceptar la invitación a `Santivego/eim-shared-data` **antes del 2026-11-01 ~20:14 UTC** (caduca), publicar su rama y enviar su simulacro (instrucciones en el PR #165 y en `notas/T117_primera_mezcla.md` §7); ◆ el usuario revisa los dos simulacros; después aplicar |
 | T119 Escuadrón verificado | Hecha el 2026-10-29 (relleno en la base viva, PR #167 desplegado); la marca ☑ está **sin confirmar** en el worktree `t119-marcar` | Confirmar esa marca (otra sesión); queda en BACKLOG la comparación API ↔ CLI sobre una copia en caliente |
-| T125 Continuidad entre equipos | Hecha el 2026-10-30 (PR #171): primera copia externa y experiencia publicadas; recuperadas desde GitHub en una carpeta vacía con filas idénticas | ◆ Desplegar: `--ff-only` en la carpeta principal (con permiso; no reinicia nada) e `instalar_copia_externa.ps1`; en `juanpablo-cpu`, `v2/docs/CONTINUIDAD.md` §2 y §3 A |
+| T125 Continuidad entre equipos | Hecha y desplegada el 2026-10-30 (PR #171): primera copia externa y experiencia publicadas y recuperadas desde GitHub en una carpeta vacía con filas idénticas; tarea diaria instalada y probada | En `juanpablo-cpu`, `v2/docs/CONTINUIDAD.md` §2 y §3 A |
 
 Pendientes destacadas: T120 (recolectores sin «sin datos»), T121 (documentación y variables),
 T123 (colas acotadas), T124 (instantáneas de datos), T46, T62–T71 (motores locales y video),
@@ -44,8 +44,6 @@ T79–T86 (HFT), T87–T103 (multiactivo). Orden sugerido en `00_MASTER.md` (fas
 - El `summary.json` de la captura HFT está congelado con el vigilante viejo (compactación de horas
   pesadas); se calcula a demanda con el código nuevo (ver T78).
 - Memoria del sistema de la portátil al límite (34,3 de 35,8 GB confirmados el 2026-10-29).
-- La carpeta principal está 6 commits por detrás de `origin/main` (entre ellos #171: todavía sin
-  `eim/continuity` ni los scripts de copia externa).
 - Cambios sin confirmar de otras sesiones en los worktrees `t117-mezcla` (notas de T117) y
   `t119-marcar` (cierre de T119); guardados también como parche en
   `v2/backups/proteccion_T125_20261030-0310/` (local).
