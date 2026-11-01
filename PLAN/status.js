@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-01T16:47:21",
+ "generated": "2026-11-01T17:04:04",
  "tasks": [
   {
    "id": "T01",
@@ -1591,16 +1591,40 @@ window.EIM_STATUS = {
   },
   {
    "id": "T126",
-   "title": "Director de recursos: los trabajos pesados no tumban la captura y todo arranca solo",
+   "title": "Director de recursos (fase 1): los trabajos pesados no tumban la captura y todo arranca solo",
    "deps": [
     "T125",
     "T78"
    ],
-   "state": "progress",
-   "notes": "Encargo del usuario (2026-11-01), fase 1. **Diagnóstico:** la ventana de 72 h de T78 se perdió por saturación del equipo (31-oct 13–14 UTC, prueba de un modelo de visión de T62) y por un apagado forzado (21:46 UTC); tras reiniciar nada arrancó en ~23 h (tareas solo «al iniciar sesión»); la tarea programada dejaba los 26 procesos del EIM en BELOW_NORMAL, por debajo del gate, Ollama o cualquier programa abierto; 34 alertas falsas de latido al día. **Hecho (rama `claude/t126-director-fase1`):** `eim/operation/priority.py` (niveles por papel: captura en ABOVE_NORMAL, servicios en BELOW_NORMAL, lo pesado en IDLE; solo con `EIM_PRIORITY=on`; mantenimiento de los vigilantes en batch; `python -m eim.operation.priority run batch -- <orden>`), cadencias reales del almacén (3600 s) y del bróker (300 s), `instalar_inicio_automatico.ps1 -AlEncender` (tarea S4U al encender) y `servicio_continuo.ps1` sin duplicados con dos arranques a la vez, T78 por racha (`hft_ops --streak`, `t78_streak` en el resumen). Detalle y ◆ pendientes en `PLAN/T126.md`; fases 2–3 en BACKLOG T126. **Desplegado 2026-11-01 21:34 UTC** (PR #175, con permiso del usuario): servicios relanzados por la tarea de inicio de sesión; recolectores en AboveNormal, API, líderes y vigilantes en BelowNormal; API `ok` y latidos frescos. Tarea al encender registrada por el usuario y probada (salida 0, sin duplicados). **Falta:** fases 2–3 (BACKLOG T126).",
+   "state": "done",
+   "notes": "Encargo del usuario (2026-11-01), fase 1. **Diagnóstico:** la ventana de 72 h de T78 se perdió por saturación del equipo (31-oct 13–14 UTC, prueba de un modelo de visión de T62) y por un apagado forzado (21:46 UTC); tras reiniciar nada arrancó en ~23 h (tareas solo «al iniciar sesión»); la tarea programada dejaba los 26 procesos del EIM en BELOW_NORMAL, por debajo del gate, Ollama o cualquier programa abierto; 34 alertas falsas de latido al día. **Hecho (rama `claude/t126-director-fase1`):** `eim/operation/priority.py` (niveles por papel: captura en ABOVE_NORMAL, servicios en BELOW_NORMAL, lo pesado en IDLE; solo con `EIM_PRIORITY=on`; mantenimiento de los vigilantes en batch; `python -m eim.operation.priority run batch -- <orden>`), cadencias reales del almacén (3600 s) y del bróker (300 s), `instalar_inicio_automatico.ps1 -AlEncender` (tarea S4U al encender) y `servicio_continuo.ps1` sin duplicados con dos arranques a la vez, T78 por racha (`hft_ops --streak`, `t78_streak` en el resumen). Detalle y ◆ pendientes en `PLAN/T126.md`; fases 2–3 en BACKLOG T126. **Desplegado 2026-11-01 21:34 UTC** (PR #175, con permiso del usuario): servicios relanzados por la tarea de inicio de sesión; recolectores en AboveNormal, API, líderes y vigilantes en BelowNormal; API `ok` y latidos frescos. Tarea al encender registrada por el usuario y probada (salida 0, sin duplicados). **☑ 2026-11-01:** fase 1 cerrada (desplegada, tarea al encender registrada y probada, ajustes de Windows hechos); sigue en T127 (registro de consumo y cola de trabajos pesados) y T128 (consolidación), fase 21 de la hoja de ruta.",
    "effort": "medio",
-   "phase": 20,
+   "phase": 21,
    "goal": "Encargo del usuario (2026-11-01): las corridas que deben durar días (T78: 72 h de captura HFT; T31: 4 semanas de papel) fallan una y otra vez en `juanpablo-cpu`, un i5-6400 de 4 núcleos con 16 GB que ahora funciona como servidor 24/7. Hay que diagnosticar por qué, regular la ejecución según la capacidad del equipo y poder parar y reanudar lo pesado sin perder lo hecho. Se hace por fases; esta ficha cubre la **fase 1** (sin arquitectura nueva) y deja la 2 y la 3 en `BACKLOG.md` (T126)."
+  },
+  {
+   "id": "T127",
+   "title": "Director de recursos (fase 2): registro de consumo y trabajos pesados que se pausan y se reanudan",
+   "deps": [
+    "T126"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 21,
+   "goal": "Encargo del usuario (2026-11-01), continuación de T126. Con las prioridades por nivel ya desplegadas, falta **medir** lo que consume cada proceso y **regular** los trabajos pesados (gate, copia diaria y externa, importaciones de experiencia, pruebas de modelos de T62) según la capacidad real del equipo. Un trabajo pesado debe poder empezar solo cuando hay margen, pausarse si la captura en vivo sufre y reanudarse después desde su último punto de control, sin repetir lo hecho ni tener que correr días seguidos."
+  },
+  {
+   "id": "T128",
+   "title": "Director de recursos (fase 3): un recolector por fuente, retención de líderes y ganchos fuera del bucle de la API",
+   "deps": [
+    "T126"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 21,
+   "goal": "Encargo del usuario (2026-11-01), continuación de T126: quitar la lógica redundante o mal calibrada que encontró la auditoría de T126 y que gasta CPU, RAM o disco sin aportar a los procesos que importan. Con ella dejan de crecer sin control la base de líderes y el ruido de avisos."
   }
  ]
 };
