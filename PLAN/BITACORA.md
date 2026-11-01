@@ -119,3 +119,19 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** ◆ desplegar (reiniciar los servicios con el código nuevo) y registrar la tarea al encender desde una consola de administrador. Ajustes de Windows del usuario: inicio rápido, botón de encendido y, opcionalmente, exclusión de `v2\data` en Defender. Fases 2–3 en BACKLOG T126.
 - **En curso:** T31, T45, T78 (sin ventana fija: por racha), T104, T116, T117, T126.
 - **Siguiente paso:** con permiso del usuario, fusionar el PR, `git merge --ff-only origin/main` en la carpeta principal, reiniciar los servicios por la tarea y comprobar las clases de prioridad. Después, dejar correr la captura y leer `hft_ops --streak` hasta las 72 h.
+
+## 2026-11-01 21:40 UTC · juanpablo-cpu · T126 despliegue de la fase 1
+- **Hecho:** con permiso del usuario se desplegó la fase 1.
+  - PR #175 fusionado (`efda32c`) y `git merge --ff-only origin/main` en la carpeta principal.
+  - A las 21:34 UTC se detuvieron los 4 vigilantes y luego sus 5 servicios: 18 procesos con su lanzador, ninguno quedó vivo.
+  - Se relanzó todo con `Start-ScheduledTask` de la tarea de inicio de sesión (resultado 0). Vite, la hoja de ruta, el icono y «equipo despierto» siguieron en marcha y el script no los duplicó.
+- **Archivos:** `PLAN/{BITACORA,STATUS,ESTADO_PROYECTO,BACKLOG}.md`.
+- **Pruebas:**
+  - Prioridades medidas en los procesos reales: `binance_ws`, `hft_ws` y `liq_ws` en **AboveNormal**; la API, `leaders run`, los vigilantes y `eim.operation run` en **BelowNormal**. Antes estaban los 18 en BelowNormal.
+  - La API respondió `ok` en SIMULADO, «operando», con 19 agentes, a los 12 s; 4 ciclos sin error y 0 reinicios.
+  - A los 4 min: latidos de líderes 11 s y bróker 51 s, sin error. Captura HFT sincronizada, 0 mensajes perdidos, 0 silencios y 1/1 verificación del libro igual a Binance.
+  - Un solo Vite, una sola hoja de ruta y un solo vigilante de la API.
+  - Alertas al arrancar: «Precio en vivo» y «Difusor» sin latido, que salen en cada arranque hasta que se abre la interfaz, y «Protección en estado inconsistente: agresivo BTCUSDT», el diario de T110 que se repite en cada arranque desde el 31-oct. Ninguna la causa T126.
+- **Abierto:** ◆ registrar `instalar_inicio_automatico.ps1 -AlEncender` desde una consola de administrador. Ajustes de Windows del usuario. Fases 2–3 en BACKLOG T126. La hora 21 UTC del 1-nov saldrá incompleta por el reinicio.
+- **En curso:** T31, T45, T78 (por racha desde las 22 UTC del 1-nov), T104, T116, T117, T126.
+- **Siguiente paso:** leer `python -m eim.data.collectors.hft_ops --root data --streak` a diario; T78 se cumple en cuanto la racha llegue a 72 h, como pronto el 2026-11-04 22 UTC.
