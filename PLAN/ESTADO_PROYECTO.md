@@ -56,7 +56,7 @@ T79–T86 (HFT), T87–T103 (multiactivo). Orden sugerido en `00_MASTER.md` (fas
   `t119-marcar` (cierre de T119); guardados también como parche en
   `v2/backups/proteccion_T125_20261030-0310/` (local).
 
-- **`juanpablo-cpu`, corridas largas (diagnóstico T126, 2026-11-01):** apagado forzado el 31-oct 21:46 UTC (botón de encendido durante una suspensión; inicio rápido activo); las tareas del EIM solo arrancan al iniciar sesión; desde T126 (2026-11-01 21:34 UTC) la captura corre en ABOVE_NORMAL y el resto del EIM en BELOW_NORMAL, y la tarea al encender está registrada. Ajustes de Windows pendientes del usuario: inicio rápido, botón de encendido, exclusión de `v2\data` en Defender (opcional).
+- **`juanpablo-cpu`, corridas largas (diagnóstico T126, 2026-11-01; mitigado el mismo día):** apagado forzado el 31-oct 21:46 UTC (botón de encendido durante una suspensión; inicio rápido activo); las tareas del EIM solo arrancan al iniciar sesión; desde T126 (2026-11-01 21:34 UTC) la captura corre en ABOVE_NORMAL y el resto del EIM en BELOW_NORMAL, y la tarea al encender está registrada. Ajustes de Windows hechos por el usuario (2026-11-01): inicio rápido **desactivado** (`HiberbootEnabled` 0, comprobado), botón de encendido en «Apagar» (ahora apagado completo) y `v2\data` excluida del análisis en tiempo real de Defender. Queda por ver el primer reinicio real: los servicios deben arrancar ~2 min después de encender, sin iniciar sesión.
 
 ## 4. Decisiones vigentes del usuario (no reabrir sin preguntar)
 
