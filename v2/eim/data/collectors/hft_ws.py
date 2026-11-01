@@ -29,6 +29,7 @@ from eim.data.collectors.hft_schema import AREA
 from eim.data.collectors.hft_writer import COMPONENT, HftStore
 from eim.observability import hooks_service
 from eim.observability.emit import configure
+from eim.operation.priority import apply_role
 from eim.operation.watchdog import instance_lock
 
 WS = {"depth": "wss://fstream.binance.com/public/stream?streams={s}@depth@100ms",
@@ -219,6 +220,7 @@ def main() -> None:
     ap.add_argument("--check-s", type=float, default=CHECK_EVERY_S)
     a = ap.parse_args()
     configure(process="hft_collector", spool_dir=Path(a.root) / "obs" / "spool")
+    apply_role("hft_collector")   # T126: nivel de prioridad del proceso
     lock = instance_lock(health.area_dir(a.root, AREA) / f"collector{health.sfx(a.symbol)}.lock")
     if lock is None:
         print("Ya hay una captura HFT de este símbolo en esta carpeta de datos.", flush=True)

@@ -23,8 +23,10 @@ DATA: tuple[Component, ...] = (
       cadence_s=5, produces=("ticks",)),
     c("data.store", "data", "datos", "store", "api", "T03", "Almacén de velas",
       "Guarda las velas y el funding en el disco del equipo y detecta huecos. Recibe lo que "
-      "pide Binance y lo entrega ordenado al snapshot.", cadence="cada ciclo (60 s)",
-      cadence_s=60, consumes=(("data.binance_rest", "candles"), ("data.binance_rest", "funding")),
+      "pide Binance y lo entrega ordenado al snapshot.", cadence="cada vela cerrada (1 h)",
+      # T126: emite al analizar cada vela de 1 h; con 60 s la alerta «sin latido» saltaba a
+      # los :03 de cada hora y se resolvía a los :00 (23 veces el 2026-10-31)
+      cadence_s=3600, consumes=(("data.binance_rest", "candles"), ("data.binance_rest", "funding")),
       produces=("candles", "funding")),
     c("data.liquidations", "data", "datos", "provider", "api", "T07", "Liquidaciones",
       "Descarga el archivo público de liquidaciones forzadas de Binance. Lo entrega al snapshot "
@@ -154,7 +156,10 @@ FLOW: tuple[Component, ...] = (
     c("paper.broker", "paper", "ejecucion", "service", "api", "T47", "Bróker simulado",
       "Prueba decenas de estrategias en papel, en 15 m, 1 h y 4 h, y aprende de cada pérdida. "
       "Todo es Simulado: nunca envía órdenes. Cada perfil decide con su política registrada.",
-      cadence="cada 60 s", cadence_s=60,
+      # T126: late cada ciclo de 60 s, pero tras él corren los ganchos (validación de 4 h,
+      # puntuación de bots) sin latir: unos minutos callado es normal. 300 s × 3 = 900 s, el
+      # mismo plazo con el que el vigilante da por colgada la API (11 falsas el 2026-10-31)
+      cadence="cada 60 s (más los ganchos tras cada vela)", cadence_s=300,
       consumes=(("data.store", "candles"), ("risk.authority", "proposal")),
       produces=("paper_trade", "risk_decision")),
     c("leaders.copy_sim", "leaders", "ejecucion", "service", "leaders", "T42", "Copia simulada",

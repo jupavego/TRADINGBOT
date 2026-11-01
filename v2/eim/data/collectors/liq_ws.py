@@ -20,6 +20,7 @@ from pathlib import Path
 from eim.data.collectors.writer import HourlyWriter
 from eim.observability import hooks_service
 from eim.observability.emit import configure
+from eim.operation.priority import apply_role
 
 WS = {
     "binance": "wss://fstream.binance.com/market/stream?streams={s}@forceOrder",
@@ -156,6 +157,7 @@ def main() -> None:
     ap.add_argument("--root", default="data")
     a = ap.parse_args()
     configure(process="liq_collector", spool_dir=Path(a.root) / "obs" / "spool")
+    apply_role("liq_collector")   # T126: nivel de prioridad del proceso
     try:
         asyncio.run(run(a.root, a.symbol))
     except KeyboardInterrupt:

@@ -24,6 +24,7 @@ from eim.observability import hooks_service
 from eim.observability.emit import configure
 from eim.operation.alerts import CRITICAL, SERVICE, Alert
 from eim.operation.notify import JsonLog, WindowsToast
+from eim.operation.priority import apply_role, lowered
 from eim.operation.watchdog import Watchdog, instance_lock
 
 CHECK_EVERY_S = 60.0
@@ -51,7 +52,8 @@ class Maintenance:
             self._safe("check", now, self.check)
         if now >= self._next_prune:
             self._next_prune = now + self.prune_every_s
-            self._safe("poda", now, self.prune)
+            with lowered("batch"):   # T126: la poda/QC/compactación no compite con la captura
+                self._safe("poda", now, self.prune)
 
     def prune(self, now: float) -> None:
         n = health.prune_depth(self.root, self.keep_days, now)
@@ -131,6 +133,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--depth-keep-days", type=int, default=health.DEPTH_KEEP_DAYS)
     a = ap.parse_args(argv)
     configure(process="micro_watchdog", spool_dir=Path(a.root) / "obs" / "spool")
+    apply_role("micro_watchdog")   # T126: nivel de prioridad del proceso
     print(supervise(a.root, a.symbol, a.depth_keep_days))
     return 0
 

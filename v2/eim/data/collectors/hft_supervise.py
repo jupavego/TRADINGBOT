@@ -18,6 +18,7 @@ from eim.data.collectors import hft_ops
 from eim.data.collectors.hft_schema import AREA
 from eim.data.collectors.supervise import Maintenance, supervise
 from eim.observability.emit import configure
+from eim.operation.priority import apply_role
 
 MAINT_EVERY_S = 600.0
 LABEL = "Captura HFT"
@@ -50,6 +51,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--keep-days", type=int, default=hft_ops.KEEP_DAYS)
     a = ap.parse_args(argv)
     configure(process="hft_watchdog", spool_dir=Path(a.root) / "obs" / "spool")
+    apply_role("hft_watchdog")   # T126: nivel de prioridad del proceso
     print(supervise(a.root, a.symbol, a.keep_days, module="eim.data.collectors.hft_ws",
                     area=AREA, label=LABEL, maint_cls=HftMaintenance))
     return 0
