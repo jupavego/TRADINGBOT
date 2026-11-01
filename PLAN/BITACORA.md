@@ -148,3 +148,9 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `PLAN/{ESTADO_PROYECTO,T126,BITACORA}.md`.
 - **Abierto:** ver el primer reinicio real (servicios ~2 min tras encender, sin iniciar sesión). Restos de juegos en NVIDIA App a decisión del usuario.
 - **Siguiente paso:** seguir la racha de T78 con `hft_ops --streak`.
+
+## 2026-11-01 22:15 UTC · juanpablo-cpu · T126 en la hoja de ruta
+- **Hecho:** a pedido del usuario, el director de recursos entra en la hoja de ruta con su avance. Nueva fase 21 «Capacidad del equipo y procesos largos» con T126 (fase 1, ☑), T127 (fase 2: registro de consumo y cola de trabajos pesados con pausa, reanudación y puntos de control) y T128 (fase 3: un recolector por fuente, retención de líderes, ganchos fuera de la API, menos ruido; ◆ qué historial de líderes se conserva y qué restos se borran). Los ítems de la línea T126 del BACKLOG quedan repartidos entre las dos.
+- **Archivos:** `PLAN/{T126,T127,T128,STATUS,00_MASTER,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/roadmap.html`, `PLAN/status.js`.
+- **Pruebas:** `build_roadmap.py` sin tareas huérfanas (128 tareas, 81 hechas); hoja de ruta viva comprobada en el navegador.
+- **Siguiente paso:** T127 y T128 están «Listas»; empezar por T127, antes comprobando el primer reinicio real.

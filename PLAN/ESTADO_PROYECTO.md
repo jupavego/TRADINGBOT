@@ -28,10 +28,10 @@ configuración de riesgo; la puerta de edge (T27) **NO PASA**.
 | T117 Primera mezcla | Mezcla real **aplicada en `juanpablo-cpu`** (2026-10-30 23:25 UTC); idempotencia (0 nuevas) y simulacro en sentido portátil (217 084 nuevas, 0 incompatibles) hechos desde aquí; modo automático apagado en los dos equipos | En `juanpablo-cpu`: revisar `share_conflicts` (1 243 en reports, 3 449 en paper) y cerrar la tarea; aplicar en la portátil es opcional |
 | T119 Escuadrón verificado | **Hecha** (☑ 2026-10-31 desde `juanpablo-cpu`): API = CLI sobre copia en caliente, 24 intentos de Holm idénticos | — |
 | T125 Continuidad entre equipos | Hecha (PR #171); `juanpablo-cpu` con copia externa diaria propia desde el 2026-10-31 | Huecos encontrados al usarla en BACKLOG T125 (1)–(9) |
-| T126 Director de recursos | Fase 1 **desplegada** el 2026-11-01 21:34 UTC (PR #175): recolectores en AboveNormal, servicios en BelowNormal, mantenimiento en Idle; alertas de latido con su cadencia real; T78 por racha | Tarea «EIM - servicio continuo al encender» registrada por el usuario (S4U, 2 min tras arrancar) y probada una vez con los servicios en marcha: salida 0, no lanzó ni tocó nada. Siguiente: fases 2–3 (BACKLOG T126) |
+| T126 Director de recursos | Fase 1 **desplegada** el 2026-11-01 21:34 UTC (PR #175): recolectores en AboveNormal, servicios en BelowNormal, mantenimiento en Idle; alertas de latido con su cadencia real; T78 por racha | Tarea «EIM - servicio continuo al encender» registrada por el usuario (S4U, 2 min tras arrancar) y probada una vez con los servicios en marcha: salida 0, no lanzó ni tocó nada. Hecha (☑). Siguiente: T127 (registro de consumo y cola de trabajos pesados) y T128 (consolidación), en la fase 21 de la hoja de ruta |
 
 Pendientes destacadas: T120 (recolectores sin «sin datos»), T121 (documentación y variables),
-T123 (colas acotadas), T124 (instantáneas de datos), T46, T62–T71 (motores locales y video),
+T123 (colas acotadas), T127–T128 (director de recursos: consumo, cola de trabajos y consolidación; fase 21), T124 (instantáneas de datos), T46, T62–T71 (motores locales y video),
 T79–T86 (HFT), T87–T103 (multiactivo). Orden sugerido en `00_MASTER.md` (fase 20).
 
 ## 3. Problemas conocidos sin resolver
