@@ -141,3 +141,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** `Start-ScheduledTask` con los servicios en marcha. Salió con código 0 en ~3 s: 23 procesos del EIM antes y 23 después, ninguno nuevo y ninguno parado. El registro operativo del Programador está desactivado (lo normal en Windows 10), así que no hay más rastro de la ejecución.
 - **Abierto:** el arranque desde cero sin sesión iniciada solo se verá en el próximo reinicio real. Si Vite no levanta (PATH de `npm` en S4U), la interfaz llega al iniciar sesión. Los ajustes de Windows siguen pendientes del usuario.
 - **Siguiente paso:** tras el próximo reinicio, comprobar que los servicios arrancaron antes de iniciar sesión (`proceso_lanzado` en `data/operation/logs/op-*.jsonl` unos 2 min después del arranque).
+
+## 2026-11-01 22:00 UTC · juanpablo-cpu · T126 ajustes de Windows
+- **Hecho:** el usuario hizo los ajustes de Windows (Claude no cambia ajustes del sistema; solo los comprobó). Desactivó el inicio rápido: `HiberbootEnabled` 0, leído del registro. Excluyó `C:\Users\jo\Desktop\JP\TRADINGBOT\v2\data` del análisis de Defender, comprobado en su captura de Seguridad de Windows. El botón de encendido sigue en «Apagar» (`PBUTTONACTION` 3), que sin inicio rápido es un apagado completo.
+- **Causa del 31-oct confirmada:** con el botón en «Apagar» y el inicio rápido activo, pulsarlo inicia una hibernación del núcleo. Por eso el evento 41 marca `SleepInProgress=1`: esa transición se colgó y la segunda pulsación cortó la corriente.
+- **Archivos:** `PLAN/{ESTADO_PROYECTO,T126,BITACORA}.md`.
+- **Abierto:** ver el primer reinicio real (servicios ~2 min tras encender, sin iniciar sesión). Restos de juegos en NVIDIA App a decisión del usuario.
+- **Siguiente paso:** seguir la racha de T78 con `hft_ops --streak`.
