@@ -135,3 +135,9 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** ◆ registrar `instalar_inicio_automatico.ps1 -AlEncender` desde una consola de administrador. Ajustes de Windows del usuario. Fases 2–3 en BACKLOG T126. La hora 21 UTC del 1-nov saldrá incompleta por el reinicio.
 - **En curso:** T31, T45, T78 (por racha desde las 22 UTC del 1-nov), T104, T116, T117, T126.
 - **Siguiente paso:** leer `python -m eim.data.collectors.hft_ops --root data --streak` a diario; T78 se cumple en cuanto la racha llegue a 72 h, como pronto el 2026-11-04 22 UTC.
+
+## 2026-11-01 21:55 UTC · juanpablo-cpu · T126 tarea al encender
+- **Hecho:** el usuario registró «EIM - servicio continuo al encender» desde una consola de administrador. Comprobado: estado `Ready`, S4U con el usuario `jo`, nivel limitado, disparo al arrancar con 2 min de retraso y la acción de `servicio_continuo.ps1 -ConWeb`. La tarea de inicio de sesión se conserva.
+- **Pruebas:** `Start-ScheduledTask` con los servicios en marcha. Salió con código 0 en ~3 s: 23 procesos del EIM antes y 23 después, ninguno nuevo y ninguno parado. El registro operativo del Programador está desactivado (lo normal en Windows 10), así que no hay más rastro de la ejecución.
+- **Abierto:** el arranque desde cero sin sesión iniciada solo se verá en el próximo reinicio real. Si Vite no levanta (PATH de `npm` en S4U), la interfaz llega al iniciar sesión. Los ajustes de Windows siguen pendientes del usuario.
+- **Siguiente paso:** tras el próximo reinicio, comprobar que los servicios arrancaron antes de iniciar sesión (`proceso_lanzado` en `data/operation/logs/op-*.jsonl` unos 2 min después del arranque).
