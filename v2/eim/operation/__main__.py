@@ -22,6 +22,7 @@ from eim.continuity.datastate import has_history
 from eim.data.local_api import DEFAULT_API, post_local
 from eim.observability.emit import configure
 from eim.operation.notify import JsonLog
+from eim.operation.priority import apply_role
 from eim.operation.watchdog import Watchdog
 
 EMPTY_DATA = """NO SE ARRANCA: {data} no tiene historial (ni reports, ni paper, ni leaders.duckdb).
@@ -64,6 +65,7 @@ def main(argv: list[str] | None = None) -> int:
                "--port", str(a.port)]
         root = Path(a.data_dir) / "operation"
         configure(process="watchdog", spool_dir=Path(a.data_dir) / "obs" / "spool")
+        apply_role("watchdog")   # T126: nivel de prioridad del proceso
         Watchdog(cmd, env, root / "heartbeat.json", JsonLog(root / "logs", echo=True)).run()
         return 0
 

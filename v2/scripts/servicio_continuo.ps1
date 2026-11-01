@@ -19,6 +19,14 @@
   bases vacías) y lo explica en vigilante.err.log; -DatosNuevos lo permite (instalación nueva a
   propósito). Antes de nada en un equipo nuevo: `python -m eim.continuity check`.
 
+  Prioridades (T126): fija EIM_PRIORITY=on y cada servicio toma su nivel al arrancar
+  (`eim/operation/priority.py`): los recolectores en vivo por encima de lo normal; la API, los
+  líderes y los vigilantes por debajo de los programas del usuario; su mantenimiento y Ollama al
+  fondo (Idle). Puede correr dos veces a la vez (tarea al encender + tarea al iniciar sesión): un
+  cerrojo global hace que la segunda
+  espere a la primera y solo complete lo que falte; desde la sesión 0 (sin escritorio) no lanza el
+  icono de la bandeja, que llega con la tarea de inicio de sesión.
+
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File v2\scripts\servicio_continuo.ps1 -ConWeb
 #>
@@ -37,6 +45,22 @@ $logs = Join-Path $DataDir "operation\logs"
 New-Item -ItemType Directory -Force $logs | Out-Null
 $env:PYTHONIOENCODING = "utf-8"
 
+# Dos lanzamientos a la vez (al encender y al iniciar sesión) duplicarían el vigilante: el segundo
+# espera aquí a que el primero termine de lanzar y luego solo completa lo que falte.
+$turno = New-Object System.Threading.Mutex($false, "Global\EIM_servicio_continuo")
+try { [void]$turno.WaitOne([TimeSpan]::FromMinutes(5)) } catch [System.Threading.AbandonedMutexException] { }
+
+# Una tarea que corre sin sesión iniciada puede no traer las variables del usuario: se copian las
+# EIM_* que falten (identidad del equipo, tope de DuckDB, ruta de Ollama...).
+$delUsuario = [Environment]::GetEnvironmentVariables("User")
+foreach ($k in @($delUsuario.Keys)) {
+  if ($k -like "EIM_*" -and -not [Environment]::GetEnvironmentVariable($k, "Process")) {
+    [Environment]::SetEnvironmentVariable($k, $delUsuario[$k], "Process")
+  }
+}
+# T126: cada servicio fija su nivel de prioridad al arrancar (lo heredan todos los hijos).
+if (-not $env:EIM_PRIORITY) { $env:EIM_PRIORITY = "on" }
+
 function Escuchando([int]$p) {
   [bool](Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue)
 }
@@ -48,9 +72,11 @@ if (Test-Path $ollama) {
   if (Escuchando 11434) {
     Write-Host "Ollama ya corre en 127.0.0.1:11434: no se lanza otro."
   } else {
-    Start-Process -FilePath $ollama -ArgumentList "serve" -WindowStyle Hidden `
+    $p = Start-Process -FilePath $ollama -ArgumentList "serve" -WindowStyle Hidden -PassThru `
       -RedirectStandardOutput (Join-Path $logs "ollama.out.log") `
       -RedirectStandardError (Join-Path $logs "ollama.err.log")
+    # T126: generar texto es trabajo de lote; sus procesos «runner» heredan Idle
+    try { $p.PriorityClass = "Idle" } catch { }
     Write-Host "Ollama lanzado (LLM local de Contexto; tarda ~1 min en responder la primera vez)."
   }
   $env:EIM_CONTEXT_LLM = "local"   # lo heredan el vigilante y la API que lanza este script
@@ -63,8 +89,12 @@ if (Test-Path $ollama) {
 # rotulado "Windows PowerShell", que es de donde cuelga su NotifyIcon de usar y tirar.
 if (-not $env:EIM_NOTIFY) { $env:EIM_NOTIFY = "0" }
 
+$vigOp = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
+  Where-Object { $_.CommandLine -match '-m\s+eim\.operation\s+run(\s|$)' })
 if (Escuchando $Puerto) {
   Write-Host "Ya hay un servicio en el puerto ${Puerto}: no se lanza otro."
+} elseif ($vigOp) {
+  Write-Host "El vigilante de la API ya corre (PID $($vigOp.ProcessId -join ', ')) y aún arranca: no se lanza otro."
 } else {
   $argv = @("-m", "eim.operation", "run", "--execution", "paper", "--port", "$Puerto",
             "--data-dir", "`"$DataDir`"")
@@ -188,7 +218,9 @@ if (Escuchando 8765) {
 }
 
 if ($ConWeb) {
-  if (Escuchando 5173) {
+  $vite = @(Get-CimInstance Win32_Process -Filter "Name='node.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.CommandLine -match 'eim[\\/]web.*vite' })
+  if ((Escuchando 5173) -or $vite) {   # Vite que aún arranca: otro tomaría el puerto 5174
     Write-Host "La interfaz ya está en http://127.0.0.1:5173"
   } else {
     Start-Process -FilePath "npm.cmd" -ArgumentList @("run", "dev") `
@@ -200,9 +232,13 @@ if ($ConWeb) {
 }
 # Icono junto al reloj: estado del servicio y avisos. Va aqui y no en `abrir_interfaz.ps1`
 # para que tambien aparezca cuando el servicio arranca solo con Windows (tarea programada).
-# Si ya hay uno, el propio script se va (mutex), asi que repetir no duplica.
-Start-Process "wscript.exe" -ArgumentList @(
-  ("`"" + (Join-Path $PSScriptRoot "eim_oculto.vbs") + "`""),
-  ("`"" + (Join-Path $PSScriptRoot "icono_bandeja.ps1") + "`"")) -WindowStyle Hidden
+# Si ya hay uno, el propio script se va (mutex), asi que repetir no duplica. En la sesion 0
+# (tarea al encender, sin escritorio) no se veria: lo lanza la tarea de inicio de sesion.
+if ((Get-Process -Id $PID).SessionId -ne 0) {
+  Start-Process "wscript.exe" -ArgumentList @(
+    ("`"" + (Join-Path $PSScriptRoot "eim_oculto.vbs") + "`""),
+    ("`"" + (Join-Path $PSScriptRoot "icono_bandeja.ps1") + "`"")) -WindowStyle Hidden
+}
 
 Write-Host "Registros: $logs · latido del bróker: $(Join-Path $DataDir 'paper\heartbeat.json') · latido de líderes: $(Join-Path $DataDir 'leaders\heartbeat.json')"
+try { $turno.ReleaseMutex() } catch { }

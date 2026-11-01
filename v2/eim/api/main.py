@@ -57,6 +57,7 @@ from eim.data.validation_store import ValidationStore
 from eim.observability.emit import configure
 from eim.operation.alerts import AlertCenter
 from eim.operation.cycle import OperationParams
+from eim.operation.priority import apply_role
 from eim.operation.supervisor import Operation, Supervisor
 from eim.operation.task_watch import watch_supervisor
 from eim.paper.desk import PaperDesk
@@ -106,6 +107,7 @@ def create_app(
     kill.attach(cfg.data_dir / "kill_switch.json")
     runtime = build_runtime(cfg.execution, kill, load_config())
     configure(process="api", mode=runtime.mode, spool_dir=cfg.data_dir / "obs" / "spool")
+    apply_role("api")   # T126: nivel de prioridad del proceso
     desk = RiskDesk(store, reports, kill=kill, runtime=runtime)
     op = None
     if cfg.operate:   # T31: el ciclo continuo reconcilia; no hace falta el bucle aparte

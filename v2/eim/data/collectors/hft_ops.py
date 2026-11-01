@@ -12,6 +12,10 @@ Lo llama el vigilante (`hft_supervise`) cada 10 min; también a mano:
 - **Resumen** (`micro_hft/qc/symbol=S/summary.json`): horas completas, coincidencia top-10, huecos
   no detectados, racha contigua más larga, MB/día y proyección a 30 días. Va al informe semanal y a
   la copia diaria; los crudos no.
+- **Aceptación de T78 por racha** (T126, `t78_streak` del resumen o `--streak`): no hace falta
+  «abrir una ventana» de 72 h; la captura sigue y T78 se cumple en cuanto haya 72 horas completas
+  SEGUIDAS (una hora incompleta o sin auditar la corta) con ≥ 99 % de coincidencia top-10 y ningún
+  hueco sin detectar. Lee solo los JSON de QC, que se conservan aunque se poden los crudos.
 """
 
 from __future__ import annotations
@@ -23,7 +27,7 @@ from pathlib import Path
 
 from eim.data.collectors import health, qc
 from eim.data.collectors.compact import compact_dir
-from eim.data.collectors.hft_read import hour_label, hours_with_data
+from eim.data.collectors.hft_read import hour_label, hours_with_data, parse_hour
 from eim.data.collectors.hft_schema import AREA, KINDS
 from eim.data.collectors.hft_writer import hour_dir
 
@@ -32,6 +36,8 @@ QC_MARGIN_S = 300
 COMPACT_MARGIN_H = 2
 SUMMARY_HOURS = 72
 MAX_QC_PER_PASS = 24
+T78_NEED_H = 72
+T78_MATCH_MIN = 0.99
 LIST_KINDS = ("depth", "snap", "book")   # filas con listas de niveles: grupos de filas pequeños
 LIST_ROW_GROUP = 2048
 
@@ -144,7 +150,53 @@ def summarize(root: str | Path, symbol: str, now_s: float, hours: int = SUMMARY_
     out["disk"] = {**disk, "keep_days": keep_days,
                    "projection_30d_gb": round(disk["mb_per_day_total"] * 30 / 1000, 2),
                    "projection_keep_gb": round(disk["mb_per_day_total"] * keep_days / 1000, 2)}
+    out["t78_streak"] = streak(root, symbol, now_s, since_h=h1 - keep_days * 24)
     return out
+
+
+def qc_reports(root: str | Path, symbol: str, since_h: int | None = None) -> list[dict]:
+    """Todos los JSON de QC del símbolo desde `since_h`, por hora (no dependen de los crudos)."""
+    hours = []
+    for f in (Path(root) / AREA / "qc" / f"symbol={symbol}").glob("date=*/hour=*.json"):
+        h = parse_hour(f"{f.parent.name.removeprefix('date=')}T{f.stem.removeprefix('hour=')}")
+        if since_h is None or h >= since_h:
+            hours.append(h)
+    return [r for h in sorted(hours) if (r := qc.load(root, symbol, h)) is not None]
+
+
+def _run_info(run: list[dict]) -> dict:
+    comp = sum(r["checks"]["comparable"] for r in run)
+    ok = sum(r["checks"]["matched"] for r in run)
+    return {"hours": len(run), "first_hour": run[0]["hour"] if run else None,
+            "last_hour": run[-1]["hour"] if run else None,
+            "match_rate": round(ok / comp, 4) if comp else None,
+            "undetected": sum(r["holes"]["undetected"] for r in run)}
+
+
+def streak(root: str | Path, symbol: str, now_s: float, since_h: int | None = None,
+           need_h: int = T78_NEED_H) -> dict:
+    """Racha de horas completas seguidas (T126): la mayor (`best`, decide T78) y la que sigue
+    viva (`current`: acaba en la última hora auditable, o en la anterior si su QC aún no
+    corrió), con las horas que le faltan para `need_h`."""
+    reps = qc_reports(root, symbol, since_h)
+    best, start, prev = (0, 0), 0, None
+    for i, r in enumerate(reps):
+        h = r["hour_index"]
+        if not r["complete"] or (prev is not None and h != prev + 1):
+            start = i + 1 if not r["complete"] else i
+        if r["complete"] and i + 1 - start > best[1] - best[0]:
+            best = (start, i + 1)
+        prev = h
+    last = reps[-1] if reps else None
+    fresh = last_auditable(now_s) - 1
+    alive = last is not None and last["complete"] and last["hour_index"] >= fresh
+    cur = _run_info(reps[start:] if alive else [])
+    top = _run_info(reps[best[0]:best[1]])
+    passed = (top["hours"] >= need_h and top["undetected"] == 0
+              and (top["match_rate"] or 0) >= T78_MATCH_MIN)
+    return {"need_h": need_h, "since": hour_label(since_h) if since_h is not None else None,
+            "audited_hours": len(reps), "best": top, "current": cur,
+            "remaining_h": 0 if passed else max(0, need_h - cur["hours"]), "passed": passed}
 
 
 def write_summary(root: str | Path, symbol: str, summary: dict) -> Path:
@@ -193,7 +245,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--root", default="data")
     ap.add_argument("--symbol", default="BTCUSDT")
     ap.add_argument("--keep-days", type=int, default=KEEP_DAYS)
+    ap.add_argument("--streak", action="store_true",
+                    help="solo la racha de T78 (lee los JSON de QC; no audita ni compacta)")
+    ap.add_argument("--since", help="hora UTC AAAA-MM-DDTHH desde la que cuenta la racha")
     a = ap.parse_args(argv)
+    if a.streak:
+        since = parse_hour(a.since) if a.since else None
+        rep = streak(a.root, a.symbol, time.time(), since)
+        print(json.dumps(rep, ensure_ascii=False, indent=1))
+        return 0
     res = maintain(a.root, a.symbol, time.time(), a.keep_days)
     print(json.dumps({k: v for k, v in res.items() if k != "summary"}, ensure_ascii=False))
     print(json.dumps(res["summary"], ensure_ascii=False, indent=1))

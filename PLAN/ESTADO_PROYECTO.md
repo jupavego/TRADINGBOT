@@ -1,6 +1,6 @@
 # Estado del proyecto (punto de entrada al cambiar de equipo)
 
-**Actualizado:** 2026-10-31 07:18 UTC, desde `juanpablo-cpu` (las tareas en curso siguen aquí). Actualízalo
+**Actualizado:** 2026-11-01 21:15 UTC, desde `juanpablo-cpu` (T126 fase 1 en la rama `claude/t126-director-fase1`, sin desplegar). Actualízalo
 al cerrar una sesión que cambie algo de esta página; el detalle por tarea sigue en `STATUS.md`,
 lo aplazado en `BACKLOG.md` y el registro de sesiones en `BITACORA.md`. Para comprobar un equipo:
 `python -m eim.continuity check` (desde `v2/`; procedimientos en `v2/docs/CONTINUIDAD.md`).
@@ -22,12 +22,13 @@ configuración de riesgo; la puerta de edge (T27) **NO PASA**.
 |---|---|---|
 | T31 Paper trading | Corrida propia de `juanpablo-cpu` desde el 2026-10-30 23:35 UTC (decisión del usuario 2026-10-31); la de la portátil sigue en paralelo | Seguirla aquí ≥ 4 semanas (→ 2026-11-27) y cerrarla con su informe; los semanales salen solos cada lunes UTC en `v2/reports/operation/` |
 | T45 Arbitraje | 3/3 escenarios en el bróker simulado (sin cuenta de Binance, decisión 2026-10-18) | Pendientes en `BACKLOG.md` (T45) |
-| T78 Captura HFT | Corrida de 72 h del 24–27 oct en la portátil **NO CUMPLE** (hora 2026-10-25T20, 98,9 %). En `juanpablo-cpu` el #162 ya corre (captura desde el 2026-10-29 16:21 UTC); en las horas comunes rinde mejor que la portátil (6 de 9 completas frente a 0); lo que le resta horas es la carga local | En `juanpablo-cpu`: ventana de 72 h del 2026-10-31T08 al 2026-11-03T07 UTC (72 horas completas: de las 08:00 UTC del 31-oct a las 08:00 UTC del 3-nov), abierta tras los gates de T116 y la copia externa repetida sin trabajos pesados encima (gates, importaciones); aceptación al leer `data/micro_hft/qc/symbol=BTCUSDT/summary.json` al final: criterio estricto, las 72 horas completas (libro utilizable ≥ 99 % en cada una: `hours_complete` 72, `pct_complete` 1); el vigilante `vigilar_hft.py` de la portátil vive en su `data/` y no viaja. Cifras en `STATUS.md` |
+| T78 Captura HFT | Corrida de 72 h del 24–27 oct en la portátil **NO CUMPLE** (hora 2026-10-25T20, 98,9 %). En `juanpablo-cpu` la ventana del 2026-10-31T08 UTC se perdió: horas 13–14 UTC por saturación del equipo (prueba de un modelo de visión de T62) y apagado forzado a las 21:46 UTC, con ~23 h sin servicios hasta iniciar sesión (T126). Mejor racha: 9 h (31-oct 04–12 UTC) | Sin ventana fija (T126): dejar la captura corriendo y leer `python -m eim.data.collectors.hft_ops --root data --streak` (o `t78_streak` en `data/micro_hft/qc/symbol=BTCUSDT/summary.json`); T78 se cumple en cuanto una racha llegue a 72 horas completas seguidas (mismo criterio estricto por hora). Antes, desplegar T126 y registrar la tarea al encender |
 | T104 Microestructura | En vivo desde 2026-10-23 (ruta `/public`) | La cierra T120 |
 | T116 Gate estable | 6 corridas verdes en la portátil; en `juanpablo-cpu`, 3 con Ollama generando sin parar **no verdes** (2, 1 y 10 fallos, 36–86 min): todos de pruebas con plazo de tiempo o latidos, que pasan aisladas | En `juanpablo-cpu`: decidir si el gate debe aguantar Ollama generando (margen de las pruebas `perf`/latidos) y 3 corridas con el equipo descargado (◆ permiso para parar servicios; fuera de la ventana de T78) |
 | T117 Primera mezcla | Mezcla real **aplicada en `juanpablo-cpu`** (2026-10-30 23:25 UTC); idempotencia (0 nuevas) y simulacro en sentido portátil (217 084 nuevas, 0 incompatibles) hechos desde aquí; modo automático apagado en los dos equipos | En `juanpablo-cpu`: revisar `share_conflicts` (1 243 en reports, 3 449 en paper) y cerrar la tarea; aplicar en la portátil es opcional |
 | T119 Escuadrón verificado | **Hecha** (☑ 2026-10-31 desde `juanpablo-cpu`): API = CLI sobre copia en caliente, 24 intentos de Holm idénticos | — |
 | T125 Continuidad entre equipos | Hecha (PR #171); `juanpablo-cpu` con copia externa diaria propia desde el 2026-10-31 | Huecos encontrados al usarla en BACKLOG T125 (1)–(9) |
+| T126 Director de recursos | Fase 1 hecha en la rama `claude/t126-director-fase1` (prioridades por nivel, alertas de latido con su cadencia real, tarea al encender, T78 por racha); sin desplegar | ◆ reiniciar los servicios con el código nuevo y registrar `instalar_inicio_automatico.ps1 -AlEncender` como administrador; luego fases 2–3 (BACKLOG T126) |
 
 Pendientes destacadas: T120 (recolectores sin «sin datos»), T121 (documentación y variables),
 T123 (colas acotadas), T124 (instantáneas de datos), T46, T62–T71 (motores locales y video),
@@ -55,6 +56,8 @@ T79–T86 (HFT), T87–T103 (multiactivo). Orden sugerido en `00_MASTER.md` (fas
   `t119-marcar` (cierre de T119); guardados también como parche en
   `v2/backups/proteccion_T125_20261030-0310/` (local).
 
+- **`juanpablo-cpu`, corridas largas (diagnóstico T126, 2026-11-01):** apagado forzado el 31-oct 21:46 UTC (botón de encendido durante una suspensión; inicio rápido activo); las tareas del EIM solo arrancan al iniciar sesión; hasta desplegar T126 todo el EIM corre en BELOW_NORMAL, por debajo de cualquier programa. Ajustes de Windows pendientes del usuario: inicio rápido, botón de encendido, exclusión de `v2\data` en Defender (opcional).
+
 ## 4. Decisiones vigentes del usuario (no reabrir sin preguntar)
 
 - Sin dinero real hasta superar la puerta de edge (T27) y semanas de papel (T31). Todo SIMULADO.
@@ -76,6 +79,7 @@ T79–T86 (HFT), T87–T103 (multiactivo). Orden sugerido en `00_MASTER.md` (fas
   código nuevo (12 s–3 min; mirar `servicio_iniciado` en `data/operation/logs/op-*.jsonl`).
   Líderes: igual con el proceso real de `eim.leaders run`. Pedir permiso antes de reiniciar: la
   corrida de T31 vive ahí.
+- En `juanpablo-cpu` (4 núcleos), todo trabajo pesado con los servicios en marcha (gate, importaciones, pruebas de modelos de T62) va con `python -m eim.operation.priority run batch -- <orden>`: a la misma prioridad, la captura HFT pierde horas (T126).
 - Un proceso lanzado desde la herramienta de terminal muere al acabar la llamada: los servicios
   se lanzan con `Invoke-CimMethod Win32_Process Create` (como `servicio_continuo.ps1`).
 - Con la API en marcha `reports.duckdb`/`paper.duckdb` están bloqueados: las CLI piden el trabajo a

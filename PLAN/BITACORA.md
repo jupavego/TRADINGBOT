@@ -95,3 +95,27 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** BACKLOG T125 (6)–(9). T116: decidir si el gate debe aguantar Ollama generando (margen de las pruebas con plazo). T117: revisar `share_conflicts` fila a fila. La copia externa diaria (~01:30 UTC) cae dentro de la ventana de T78. Conviene pausar Windows Update durante la ventana: lo hace el usuario.
 - **En curso:** T31 (aquí y en la portátil), T45, T78 (ventana del 2026-10-31T08 al 2026-11-03T07 UTC (72 horas completas: de las 08:00 UTC del 31-oct a las 08:00 UTC del 3-nov), abierta tras los gates de T116 y la copia externa repetida), T104, T116, T117.
 - **Siguiente paso:** al cerrar la ventana de T78, leer `data/micro_hft/qc/symbol=BTCUSDT/summary.json` y anotar la aceptación en `STATUS.md`. Después, T104 (corte de red provocado y línea base de 7 días) y T116 con el equipo descargado (◆ permiso para parar servicios).
+
+## 2026-11-01 21:40 UTC · juanpablo-cpu · T126 director de recursos (fase 1)
+- **Hecho:** a pedido del usuario, diagnóstico de por qué fallan las corridas de días en este equipo (i5-6400, 4 núcleos, 16 GB) y fase 1 del arreglo en la rama `claude/t126-director-fase1`, **sin desplegar** (los servicios en marcha no se tocaron).
+  - **Diagnóstico** (detalle en `PLAN/T126.md`):
+    - La ventana de 72 h de T78 se perdió el 31-oct a las 13–14 UTC, cuando el equipo se saturó con la prueba de un modelo de visión de T62.
+    - A las 21:46 UTC hubo un apagado forzado: botón de encendido durante una suspensión, con el inicio rápido activo.
+    - Después, ~23 h sin servicios: las tareas del EIM solo arrancan al iniciar sesión.
+    - La tarea programada dejaba los 26 procesos del EIM en BELOW_NORMAL, captura incluida, por debajo de cualquier programa abierto.
+    - 34 alertas falsas de latido al día.
+    - Restos de pruebas de juegos (NVIDIA Overlay, FrameView SDK) a decisión del usuario.
+  - **Prioridades por nivel** (`eim/operation/priority.py`): captura en vivo en ABOVE_NORMAL, API, líderes y vigilantes en BELOW_NORMAL, mantenimiento, gate, copias y Ollama en IDLE. Se activa solo con `EIM_PRIORITY=on` (lo fija `servicio_continuo.ps1`). Para trabajos a mano: `python -m eim.operation.priority run batch -- <orden>`.
+  - **Cadencias reales en el catálogo:** almacén de velas 3600 s y bróker 300 s.
+  - **Arranque al encender:** `instalar_inicio_automatico.ps1 -AlEncender` registra una tarea S4U, sin necesidad de iniciar sesión. El lanzador ya no duplica nada con dos arranques a la vez.
+  - **T78 por racha:** `hft_ops --streak` y `t78_streak` en el resumen. La mejor racha real es de 9 h (31-oct 04–12 UTC).
+- **Archivos:**
+  - `v2/eim/operation/priority.py` y los 9 puntos de arranque (`api/main.py`, `collectors/{binance_ws,hft_ws,liq_ws,supervise,hft_supervise}.py`, `leaders/cli.py`, `operation/__main__.py`).
+  - `v2/eim/data/collectors/hft_ops.py` y `v2/eim/observability/catalog/components_flow.py`.
+  - `v2/scripts/{servicio_continuo,instalar_inicio_automatico}.ps1`.
+  - `v2/tests/{operation/test_priority,data/test_hft_streak}.py` y `v2/tests/observability/test_obs_alerts.py`.
+  - `v2/docs/OPERACION.md`, `CLAUDE.md`, `PLAN/{T126,STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md` y la hoja de ruta.
+- **Pruebas:** gate con la herramienta nueva (`priority run batch`, el intérprete real en IDLE, comprobado en vivo) y los servicios en marcha: ruff limpio; 2 436 pasadas, 7 omitidas y 0 fallidas en 12 min 39 s. Pruebas nuevas: niveles en subprocesos (la captura sube, el mantenimiento baja y se restaura, la API queda en BELOW_NORMAL, `run` deja a los hijos en IDLE), todo papel declarado con nivel, racha de T78 (5) y las dos alertas sin saltar a su ritmo normal. Los dos scripts se analizan sin errores, y la detección del vigilante de la API y de Vite encuentra los procesos reales. Racha calculada sobre los JSON de QC de la carpeta viva (solo lectura): 57 horas auditadas, la mejor de 9 h.
+- **Abierto:** ◆ desplegar (reiniciar los servicios con el código nuevo) y registrar la tarea al encender desde una consola de administrador. Ajustes de Windows del usuario: inicio rápido, botón de encendido y, opcionalmente, exclusión de `v2\data` en Defender. Fases 2–3 en BACKLOG T126.
+- **En curso:** T31, T45, T78 (sin ventana fija: por racha), T104, T116, T117, T126.
+- **Siguiente paso:** con permiso del usuario, fusionar el PR, `git merge --ff-only origin/main` en la carpeta principal, reiniciar los servicios por la tarea y comprobar las clases de prioridad. Después, dejar correr la captura y leer `hft_ops --streak` hasta las 72 h.
