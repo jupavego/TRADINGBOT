@@ -46,8 +46,10 @@ class FakeInfo:
     filtradas por `startTime` como el endpoint real."""
 
     def __init__(self, states: list[dict], fills: list[dict] | None = None,
-                 funding: list[dict] | None = None, offset: int = 0) -> None:
+                 funding: list[dict] | None = None, offset: int = 0,
+                 twap: list[dict] | None = None) -> None:
         self.states, self.fills, self.funding_rows = list(states), list(fills or []), funding or []
+        self.twap = list(twap or [])                    # ejecuciones de órdenes TWAP (T128)
         self.offset = offset
         self.calls: list[tuple] = []
 
@@ -58,6 +60,11 @@ class FakeInfo:
     def user_fills_by_time(self, user: str, start: int, end: int | None = None) -> list[dict]:
         self.calls.append(("fills", user, start))
         return [f for f in self.fills if f["time"] >= start]
+
+    def user_twap_fills_by_time(self, user: str, start: int, end: int | None = None
+                                ) -> list[dict]:
+        self.calls.append(("twap", user, start))
+        return [f for f in self.twap if f["time"] >= start]
 
     def user_funding(self, user: str, start: int, end: int | None = None) -> list[dict]:
         self.calls.append(("funding", user, start))

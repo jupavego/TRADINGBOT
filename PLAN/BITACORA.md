@@ -298,3 +298,22 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Decidido (el usuario lo delegó, opción recomendada):** se quitó la variable de usuario `EIM_OLLAMA_EXE` (era `Z:\Ollama\ollama.exe`). La copia local cargaría un modelo de ~3,5 GB con la RAM libre bajando a 2,5 GB durante T78, y Contexto no vota (sesgo 0). `E:\Ollama\ollama.exe`, la ruta por defecto, no existe: el lanzador no arranca Ollama y no hay aviso. Los servicios en marcha conservan la variable hasta su reinicio. Para activar Contexto con LLM tras T78: `EIM_OLLAMA_EXE=C:\eim-localai\ollama\ollama.exe`, midiendo la RAM.
 - **Abierto:** ◆ entra con el reinicio de la API tras T78. Faltan los entregables 2 y 5: esperan la decisión de la puerta (qué historial de líderes se conserva y qué restos de `data/` se borran).
 - **Siguiente paso:** la decisión de la puerta para los entregables 2 y 5.
+
+## 2026-11-02 18:40 UTC · juanpablo-cpu · T128 base de líderes, primera parte (entregables 2 y 5)
+- **Medido** (copias de la noche, sin tocar la base viva):
+  - **Espacio:** `leaders.duckdb` pesa 2,1 GB con 1,34 GB en uso, y ~0,75 GB son bloques libres que DuckDB no devuelve al disco. De lo usado, ~450 MB son datos y ~890 MB índices de las claves primarias.
+  - **Crecimiento real:** ~110 MB por día en marcha, no 300.
+  - **Quién lo llena:** el 85 % de las ejecuciones (2,67 M de 3,13 M) es de un líder rechazado de alta frecuencia (~50 ejecuciones por operación cerrada). 16 de los 17 líderes capturados están rechazados: son el grupo de control de T41.
+  - **Resincronías:** dos líderes rechazados ejecutan órdenes TWAP sin parar (278 y 597 porciones en una hora; API pública, 2026-11-02). `userFills` no las trae, así que su libro nunca cuadraba y se resincronizaba en cada reconciliación.
+- **Decisión del usuario:** los rechazados conservan 7 días de detalle. Al leer la evaluación se vio que un resumen por día cambiaría los veredictos (Sharpe por operación, deflactado, caída) y que las fotos de posiciones dan los días observados. El usuario aprobó guardar en su lugar las operaciones cerradas y conservar las fotos (PR aparte).
+- **Hecho (esta parte):**
+  - `eim/data/duck_compact.py`: compacta una base que nadie tiene abierta si más del 30 % está libre, con la misma copia que la diaria. Comprueba las filas tabla a tabla y luego cambia un archivo por otro (`.old` si se corta). El vigilante de líderes la llama al arrancar, en lote, antes de lanzar `run`. Medido sobre una copia de 1,34 GB: 76 s.
+  - **TWAP:** suscripción WS `userTwapSliceFills` junto a `userFills` (mismos usuarios, dentro del límite de 10 por IP). REST `userTwapSliceFillsByTime` paginado en cada relleno, arranque, sondeo y reconciliación (`parse.twap_fills`).
+  - **Entregable 5:** con el visto bueno del usuario, a la Papelera (recuperable): la carpeta vacía `leaders.duckdb.tmp`, cerrojos, latido y registros de ETHUSDT (~450 KB) y `ollama.*.log`.
+- **Archivos:** `v2/eim/data/duck_compact.py`, `v2/eim/leaders/{cli,parse}.py`, `v2/eim/data/leader_watch.py`, `v2/eim/data/providers/leaders.py`, `v2/tests/data/{test_duck_compact,test_leader_twap,test_leader_watch}.py`, `v2/tests/leaders/helpers.py`, `v2/docs/OPERACION.md`, `PLAN/{STATUS,BITACORA}.md`.
+- **Pruebas:** 7 nuevas.
+  - **Compactado:** conserva filas y claves, y después no hay nada que hacer; deja en paz las bases pequeñas; una copia que no cuadra deja el original; un cambio cortado se deshace.
+  - **TWAP:** sus porciones por REST cuadran el libro sin resincronizar; las del WS se guardan como `ws`; el REST desenvuelve y pagina.
+  Gate en el PR.
+- **Abierto:** ◆ entra con el reinicio tras T78: el primer arranque compacta (2,1 → ~1,35 GB, ~1–2 min sin captura de líderes; al arrancar se rellena el último día). Falta la retención por operaciones cerradas.
+- **Siguiente paso:** retención por operaciones cerradas, comprobando sobre una copia que los veredictos no cambian.

@@ -1,12 +1,13 @@
 """Vigilante de líderes (T40): WS + REST de Hyperliquid → libro esperado, historial,
 reconciliación periódica y relleno de huecos. Solo lectura: no envía órdenes.
 
-- ≤ 10 líderes por WS (`userFills`, límite oficial por IP); el resto por consulta REST.
+- ≤ 10 líderes por WS (`userFills` y `userTwapSliceFills`, límite oficial de 10 usuarios por IP);
+  el resto por consulta REST. Las ejecuciones de órdenes TWAP llegan aparte (T128).
 - Al empezar: estado real (`clearinghouseState`) + ejecuciones del último día. El WS arranca
   en paralelo: lo que llegue de un líder aún sin estado se descarta y lo cubre su arranque.
 - Huecos: (a) `startPosition` que no cuadra con el libro, (b) corte del WS, (c) divergencia en
-  la reconciliación. (a) y (b) se rellenan con `userFillsByTime`; si tras rellenar y
-  re-comprobar (5/10/15 s) el libro sigue sin cuadrar, (c) resincroniza con el estado real.
+  la reconciliación. (a) y (b) se rellenan por REST (`…ByTime`); si tras rellenar y re-comprobar
+  (5/10/15 s) el libro sigue sin cuadrar, (c) resincroniza con el estado real.
 - Todo el estado se muta en el hilo del bucle asyncio; el REST va en hilos (`to_thread`).
 - `observed_at` = reloj local + desfase medido contra el servidor (`clock_offset_ms`), para
   que `observed_at − t` sea la latencia real y no el error del reloj de la máquina.
@@ -27,7 +28,7 @@ from eim.data.leader_store import LeaderStore
 from eim.data.providers.leaders import HyperliquidInfo, HyperliquidStream, now_ms
 from eim.leaders import params as P
 from eim.leaders.book import Gap, LeaderBook, Recon
-from eim.leaders.parse import order_fills, parse_funding, parse_positions
+from eim.leaders.parse import order_fills, parse_funding, parse_positions, twap_fills
 from eim.observability import hooks_service
 
 log = logging.getLogger(__name__)
@@ -98,11 +99,11 @@ class LeaderWatch:
 
     def on_message(self, msg: dict, observed_at: int) -> None:
         ch = msg.get("channel")
-        if ch == "userFills":
+        if ch in ("userFills", "userTwapSliceFills"):
             d = msg.get("data") or {}
             channel: Channel = "ws_snapshot" if d.get("isSnapshot") else "ws"
-            self.ingest(str(d.get("user", "")).lower(), d.get("fills") or [], observed_at,
-                        channel)
+            raws = d.get("fills") if ch == "userFills" else twap_fills(d.get("twapSliceFills"))
+            self.ingest(str(d.get("user", "")).lower(), raws or [], observed_at, channel)
         elif ch == "error":
             self.errors.append(str(msg.get("data"))[:200])
             log.error("WS: %s", msg.get("data"))
@@ -169,6 +170,7 @@ class LeaderWatch:
     async def _fill_since(self, address: str, since: int,
                           channel: Channel = "rest_backfill") -> int:
         raws = await asyncio.to_thread(self.info.user_fills_by_time, address, since)
+        raws += await asyncio.to_thread(self.info.user_twap_fills_by_time, address, since)
         return self.ingest(address, raws, self.now(), channel)
 
     async def reconcile(self, address: str, retries: int = 0, final: bool = False
@@ -286,7 +288,8 @@ class LeaderWatch:
     async def run(self, stop: asyncio.Event, minutes: float | None = None) -> None:
         tasks = [asyncio.create_task(self._periodic(stop))]  # arranca cada líder
         if self.ws_users:
-            subs = [{"type": "userFills", "user": a} for a in self.ws_users]
+            subs = [{"type": t, "user": a} for a in self.ws_users
+                    for t in ("userFills", "userTwapSliceFills")]
             stream = HyperliquidStream(subs, self.on_message, on_down=self.on_down,
                                        on_up=self.on_up, clock=self.now, **self.stream_kw)
             tasks.append(asyncio.create_task(stream.run(stop)))
