@@ -122,7 +122,7 @@ Antes de dar por mala la actualización, descarta las causas conocidas:
 | Síntoma | Causa | Qué hacer |
 |---|---|---|
 | `ModuleNotFoundError: scipy` (o `eim`) | Entorno virtual sin reinstalar | Repetir el paso 5 del script con el entorno activo |
-| Falla una prueba `perf` (mide tiempo de reloj contra un umbral fijo) | El equipo está muy cargado o hay una regresión de rendimiento real | El mensaje trae la cifra medida (p50/p95/p99/máx). Aíslala con `python -m pytest -q -m perf` y repite; para seguir diagnosticando lo demás, `-m "not perf"`. **No subas el umbral**: es requisito de su tarea |
+| Falla una prueba `perf` (mide tiempo de reloj contra un umbral fijo) | Una regresión de rendimiento real (desde 2026-11-02 se miden en prioridad NORMAL y con la mediana de 3 rondas, así que la carga del equipo ya no basta para tumbarlas) | El mensaje trae la cifra medida (p50/p95/p99/máx). Aíslala con `python -m pytest -q -m perf` y repite; para seguir diagnosticando lo demás, `-m "not perf"`. **No subas el umbral**: es requisito de su tarea |
 | Falla al leer `PLAN/roadmap.html` | Falta regenerarlo | `python PLAN\build_roadmap.py` |
 
 Si falla otra cosa, no lo arregles en `main`: abre rama y PR como siempre (`ONBOARDING.md` §6).

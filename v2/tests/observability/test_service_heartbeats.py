@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 from types import SimpleNamespace
 
 import pytest
@@ -27,9 +28,13 @@ def _events(spool, component=None) -> list[dict]:
     return [e for e in ev if component is None or e["component_id"] == component]
 
 
-async def _run_for(coro, seconds: float) -> None:
+async def _run_until(coro, done, timeout: float = 120.0) -> None:
+    """Corre `coro` hasta que `done()` se cumple (o `timeout`). Con el equipo cargado un plazo
+    fijo de 0,15 s no bastaba (T116); sin carga termina igual de rápido."""
     task = asyncio.create_task(coro)
-    await asyncio.sleep(seconds)
+    end = time.monotonic() + timeout
+    while not done() and time.monotonic() < end:
+        await asyncio.sleep(0.02)
     task.cancel()
     try:
         await task
@@ -66,7 +71,7 @@ def test_arb_scanner_heartbeat_and_error(spool):
         raise ConnectionError("sin red")
 
     sync.run_once = run_once
-    asyncio.run(_run_for(sync.loop(), 0.15))
+    asyncio.run(_run_until(sync.loop(), lambda: len(_events(spool, "data.arb_market")) >= 2))
     ev = _events(spool, "data.arb_market")
     hb = [e for e in ev if e["kind"] == "heartbeat"]
     assert len(hb) == 1 and hb[0]["status"] == "degraded" and hb[0]["detail"]["errors"] == 1
@@ -87,7 +92,8 @@ def test_arb_executor_loop_heartbeat_in_testnet_mode_and_error(spool):
         return {"opened": True, "actions": ["a"], "decisions": [1, 2], "skipped": None}
 
     rt = SimpleNamespace(cycle=cycle, error="", interval_s=0.01)
-    asyncio.run(_run_for(arb_loop(rt), 0.15))
+    asyncio.run(_run_until(arb_loop(rt), lambda: {"heartbeat", "alert"} <= {
+        e["kind"] for e in _events(spool, "arbitrage.executor")}))
     ev = _events(spool, "arbitrage.executor")
     hb = [e for e in ev if e["kind"] == "heartbeat"]
     err = [e for e in ev if e["kind"] == "alert"]
@@ -110,7 +116,9 @@ def test_experience_sync_heartbeat_or_error_after_each_tick(spool):
             self.ticks += 1
             self.error = "" if self.ticks == 1 else "RuntimeError: carpeta compartida ausente"
 
-    asyncio.run(_run_for(share_loop(Agent(), poll_s=0.01, first_s=0), 0.2))
+    agent = Agent()
+    asyncio.run(_run_until(share_loop(agent, poll_s=0.01, first_s=0),
+                           lambda: len(_events(spool, "operation.experience_sync")) >= 2))
     ev = _events(spool, "operation.experience_sync")
     assert [e["kind"] for e in ev] == ["heartbeat", "alert"]
     assert ev[1]["status"] == "error" and "carpeta compartida" in ev[1]["detail"]["error"]
@@ -146,7 +154,9 @@ def test_live_ticks_heartbeat_is_sampled_and_drop_is_an_event(spool, monkeypatch
         async for ev in src.stream("BTCUSDT", "1h"):
             seen.append(ev)
 
-    asyncio.run(_run_for(consume(), 1.4))      # el reintento espera 1 s
+    asyncio.run(_run_until(consume(), lambda: len(seen) >= 12 and any(    # reintento: 1 s
+        e["detail"].get("what") == "conexión restablecida"
+        for e in _events(spool, "data.live_ticks"))))
     ticks = [e for e in seen if e["type"] == "tick"]
     assert len(ticks) >= 5                              # el flujo de ticks no se altera
     ev = _events(spool, "data.live_ticks")

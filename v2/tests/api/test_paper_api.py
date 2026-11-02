@@ -56,8 +56,19 @@ def client(tmp_path_factory):
         yield c
 
 
+def _fresh(client, url: str, timeout: float = 300.0) -> dict:
+    """La ruta espera la vista `VIEW_WAIT_S` y si no, da la anterior o 503. Con el equipo cargado
+    rehacerla tarda más (T116): se repite hasta tener la vista al día."""
+    end = time.monotonic() + timeout
+    while True:
+        r = client.get(url)
+        if r.status_code == 200 and not r.json()["view"]["stale"] or time.monotonic() > end:
+            return r.json()
+        time.sleep(0.25)
+
+
 def test_summary_profiles_and_strategies(client):
-    v = client.get("/v2/paper?symbol=BTCUSDT").json()
+    v = _fresh(client, "/v2/paper?symbol=BTCUSDT")
     assert v["mode"] == "SIMULADO" and v["coverage"]["contexts"] == 200
     assert [p["id"] for p in v["profiles"]] == ["conservador", "moderado", "agresivo",
                                                 "ppp_btcusdt"]
@@ -98,7 +109,8 @@ def test_backtest_requires_confirm_and_runs(client):
     assert client.post("/v2/paper/backtest?days=0.05&tf=1m", headers=h).status_code == 400
     r = client.post("/v2/paper/backtest?symbol=BTCUSDT&days=0.05&tf=1h,15m", headers=h)
     assert r.status_code == 200 and r.json()["state"] == "corriendo"
-    for _ in range(120):
+    end = time.monotonic() + 300               # T116: con el equipo cargado tarda más
+    while time.monotonic() < end:
         job = client.get("/v2/paper/status").json()["job"]
         if job["state"] != "corriendo":
             break
@@ -125,7 +137,7 @@ def test_live_signals_route(client):
     ps = client.app.state.paper.pstore
     for i in range(650, 680):
         ps.save("BTCUSDT", "1h", ctx_for(client.cs[i]), "vivo", 0)
-    f = client.get("/v2/paper/live?symbol=BTCUSDT&limit=20").json()
+    f = _fresh(client, "/v2/paper/live?symbol=BTCUSDT&limit=20")
     assert f["mode"] == "SIMULADO" and f["candles_total"] == 30 and f["total"] > 0
     assert f["live"]["error"] == "" and len(f["decisions"]) <= 20
     ts = [d["t"] for d in f["decisions"]]

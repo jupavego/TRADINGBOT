@@ -338,3 +338,24 @@ más reciente por fecha y su siguiente paso. Formato:
   Gate en el PR.
 - **Abierto:** ◆ entra con el reinicio tras T78: el vigilante poda y compacta antes de lanzar `run`. Medir una semana que `leaders.duckdb` deja de crecer (aceptación de T128).
 - **Siguiente paso:** desplegar los entregables 1–4 con el reinicio tras T78.
+
+## 2026-11-02 21:20 UTC · juanpablo-cpu · T116 gate estable con la cola en IDLE
+- **Problema:** desde T127 el gate corre en IDLE. Con el equipo cargado fallaba a veces en
+  pruebas de tiempo de reloj que aisladas pasan (`test_emit`, `test_obs_api`; con Ollama además
+  latidos, `test_paper_api` y dos procesos). Cada fallo costaba repetir 16 min de gate.
+- **Hecho:**
+  - **Prioridad:** las pruebas `perf` suben el proceso a NORMAL mientras corren (autouse en
+    `tests/conftest.py`, `tests/perf.py::normal_priority`), por debajo de la captura (ABOVE_NORMAL).
+  - **Medición:** `measure` entrega la ronda de p95 mediano de 3.
+  - **Esperas:** las pruebas con plazos fijos cortos (latidos 0,15–1,4 s, vista del bróker, backtest
+    30 s, dos procesos 60 s) esperan hasta que se cumple, con tope amplio.
+  - Mismos umbrales (`thresholds.py` intacto), ninguna prueba saltada ni borrada.
+- **Medido:** con 3 procesos ocupando CPU en BELOW_NORMAL y las pruebas en IDLE, `main` falla
+  `test_obs_api` (p95 189 ms, p99 1 742 ms) y la rama pasa 3 de 3 (147–425 s). La captura (ABOVE_NORMAL)
+  no se ve afectada por esa carga.
+- **Archivos:** `v2/tests/{perf,conftest}.py`, `v2/tests/observability/{test_emit,test_service_heartbeats}.py`,
+  `v2/tests/api/test_paper_api.py`, `v2/tests/hft/test_hft_risk.py`, `v2/docs/RETOMAR_COLABORADOR.md`,
+  `PLAN/notas/T116_gate.md`, `PLAN/{STATUS,BACKLOG,BITACORA}.md`.
+- **Abierto:** gates completos seguidos por la cola (en el PR). Las 3 corridas con el equipo
+  descargado necesitan parar los servicios: tras T78.
+- **Siguiente paso:** con el PR fusionado, los gates por la cola dejan de fallar por la carga.

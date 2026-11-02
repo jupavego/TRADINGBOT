@@ -195,7 +195,7 @@ def test_decision_cost_p99_fits_the_latency_budget_fraction():
     """Decidir + verificar una orden, p99 ≤ 2 % de los 310 ms p99 del presupuesto de T77."""
     eng, m = engine(), market()
     cases = iter([(account(position=0.002 * (i % 3), live_orders=i % 4, orders_10s=i % 50),
-                   order(i=f"q{i}", side=1 if i % 2 else -1)) for i in range(2_001)])
+                   order(i=f"q{i}", side=1 if i % 2 else -1)) for i in range(6_001)])
 
     def decide():
         a, o = next(cases)
@@ -203,6 +203,6 @@ def test_decision_cost_p99_fits_the_latency_budget_fraction():
         if d.approved:
             eng.verify_hft(d, T0)
 
-    lat = measure(decide, samples=2_000)                    # la primera, de calentamiento
+    lat = measure(decide, samples=2_000)    # la primera, de calentamiento; 3 rondas (T116)
     assert lat.ms(0.99) <= CFG.decision_budget_ms, (
         f"{lat.describe()} > {CFG.decision_budget_ms} ms")
