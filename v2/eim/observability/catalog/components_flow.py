@@ -38,10 +38,11 @@ DATA: tuple[Component, ...] = (
       "Consulta Fed, BLS y BEA cada 6 horas y guarda las fechas de publicaciones. Si la fuente "
       "no da el consenso, queda vacío: no se inventa.", cadence="cada 6 h", cadence_s=21600,
       produces=("econ_events",)),
-    c("data.micro_collector", "data", "datos", "service", "collector", "T23", "Recolector de órdenes",
-      "Proceso aparte que escucha operaciones y libro de órdenes de Binance y los guarda por hora "
-      "en el disco, con latido cada 30 s; un vigilante lo relanza si cae y avisa si el disco o el flujo "
-      "fallan. Alimenta al agente de flujo de órdenes.", cadence="continuo", cadence_s=60,
+    c("data.micro_collector", "data", "datos", "service", "hft_collector", "T128",
+      "Recolector de órdenes",
+      "Desde T128 sale de la captura profunda: cada segundo guarda una foto de los 10 mejores "
+      "niveles de su libro verificado y lee de ella las operaciones. Alimenta al agente de flujo "
+      "de órdenes sin abrir otra conexión.", cadence="continuo", cadence_s=60,
       produces=("micro_bars",)),
     c("data.hft_collector", "data", "datos", "service", "hft_collector", "T78",
       "Captura profunda del libro",

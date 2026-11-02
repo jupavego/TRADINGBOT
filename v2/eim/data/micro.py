@@ -1,8 +1,15 @@
-"""Lectura de la recolección de microestructura y agregados por vela (sin red)."""
+"""Lectura de la recolección de microestructura y agregados por vela (sin red).
+
+Fuentes (T128): los trades y los huecos salen de la captura HFT (`micro_hft/`) cuando la hay
+para la ventana; si no, del recolector viejo (`micro/`, T23). Las fotos top-10 por segundo están
+en `micro/top`: las escribía el recolector viejo y ahora las escribe la captura (`micro_feed`).
+Los huecos de ambas fuentes se suman: una vela con un hueco en cualquiera queda incompleta.
+"""
 
 from __future__ import annotations
 
 import json
+import time
 from bisect import bisect_right
 from pathlib import Path
 
@@ -16,6 +23,23 @@ def _glob(root: Path, kind: str, symbol: str) -> str | None:
     if not any(base.glob("date=*/hour=*/part-*.parquet")):
         return None
     return (base / "date=*" / "hour=*" / "part-*.parquet").as_posix().replace("'", "''")
+
+
+HFT = "micro_hft"
+DAY_MS = 86_400_000
+# huecos de la captura que rompen el libro o pierden trades; un silencio no pierde nada
+HFT_GAP_SQL = "stream IN ('depth', 'trades') AND cause <> 'silencio'"
+
+
+def _hft_files(root: Path, kind: str, symbol: str, start: int, end: int) -> str | None:
+    """Lista DuckDB de las partes de `micro_hft/<kind>` de los días que toca la ventana."""
+    base = root / HFT / kind / f"symbol={symbol}"
+    days = {time.strftime("%Y-%m-%d", time.gmtime(t / 1000))
+            for t in range(start - start % DAY_MS, max(end, start + 1), DAY_MS)}
+    files = sorted(p for d in days for p in (base / f"date={d}").glob("hour=*/part-*.parquet"))
+    if not files:
+        return None
+    return "[" + ", ".join("'" + f.as_posix().replace("'", "''") + "'" for f in files) + "]"
 
 
 def _read(root: Path, kind: str, symbol: str, cols: str, start: int, end: int) -> list[tuple]:
@@ -104,15 +128,21 @@ def combine(
 
 
 def _read_trade_bars(root: Path, symbol: str, t0: int, step: int, n: int) -> dict[int, tuple]:
-    """Trades reducidos por vela dentro de DuckDB (no se traen millones de filas a Python)."""
-    g = _glob(root, "trades", symbol)
-    if g is None:
+    """Trades reducidos por vela dentro de DuckDB (no se traen millones de filas a Python). De
+    la captura HFT si la hay (un trade repetido tras reconectar cuenta una vez), si no de T23."""
+    end = t0 + n * step
+    if (files := _hft_files(root, "trades", symbol, t0, end)) is not None:
+        src = (f"(SELECT DISTINCT ON (agg_id) t_ms AS t, q, maker FROM read_parquet({files}, "
+               f"union_by_name=true, hive_partitioning=false) WHERE t_ms >= ? AND t_ms < ?)")
+    elif (g := _glob(root, "trades", symbol)) is not None:
+        src = (f"(SELECT t, q, maker FROM read_parquet('{g}', hive_partitioning=false) "
+               f"WHERE t >= ? AND t < ?)")
+    else:
         return {}
     q = (f"SELECT CAST(floor((t - ?) / ?) AS BIGINT) i, "
          f"SUM(CASE WHEN maker THEN 0 ELSE q END), SUM(CASE WHEN maker THEN q ELSE 0 END), "
-         f"COUNT(*) FROM read_parquet('{g}', hive_partitioning=false) "
-         f"WHERE t >= ? AND t < ? GROUP BY 1")
-    rows = duckdb.connect().execute(q, [t0, step, t0, t0 + n * step]).fetchall()
+         f"COUNT(*) FROM {src} GROUP BY 1")
+    rows = duckdb.connect().execute(q, [t0, step, t0, end]).fetchall()
     return {int(i): (float(b), float(s), int(c)) for i, b, s, c in rows if 0 <= i < n}
 
 
@@ -128,6 +158,29 @@ def _read_tops(root: Path, symbol: str, start: int, end: int) -> list[tuple]:
          f"FROM read_parquet('{g}', hive_partitioning=false) WHERE t >= ? AND t < ? ORDER BY t")
     return [(r[0], r[1], r[2], r[3], r[4], r[5] or 0.0, r[6] or 0.0)
             for r in duckdb.connect().execute(q, [start, end]).fetchall()]
+
+
+def _read_gaps(root: Path, symbol: str, start: int, end: int) -> list[tuple[int, int]]:
+    """Tramos (ms) de hueco que tocan la ventana: los instantes de T23 y los tramos marcados de
+    la captura HFT."""
+    out = [(r[0], r[0]) for r in _read(root, "gaps", symbol, "t", start, end)]
+    if (files := _hft_files(root, "gaps", symbol, start - DAY_MS, end)) is not None:
+        q = (f"SELECT start_ns // 1000000, end_ns // 1000000 FROM read_parquet({files}, "
+             f"union_by_name=true, hive_partitioning=false) WHERE {HFT_GAP_SQL} "
+             f"AND end_ns >= ? * 1000000 AND start_ns < ? * 1000000")
+        out += [(int(a), int(b)) for a, b in duckdb.connect().execute(q, [start, end]).fetchall()]
+    return out
+
+
+def _instants(spans: list[tuple[int, int]], t0: int, step: int, end: int) -> list[int]:
+    """Cada tramo, como instantes: sus extremos dentro de la ventana y uno por vela que cruza.
+    Así quedan incompletas todas las velas que toca y ningún par de fotos lo salta."""
+    out: list[int] = []
+    for a, b in spans:
+        lo, hi = max(a, t0), min(b, end - 1)
+        if lo <= hi:
+            out += [lo, *range(t0 + ((lo - t0) // step + 1) * step, hi + 1, step), hi]
+    return out
 
 
 def _last_top_levels(root: Path, symbol: str, start: int, end: int):
@@ -148,7 +201,7 @@ def read_micro(
     end = t0 + n * step
     tb = _read_trade_bars(root, symbol, t0, step, n)
     tops = _read_tops(root, symbol, t0, end)
-    gaps = [r[0] for r in _read(root, "gaps", symbol, "t", t0, end)]
+    gaps = _instants(_read_gaps(root, symbol, t0, end), t0, step, end)
     bars = combine(tb, tops, gaps, t0, step, n)
     book = None
     last = _last_top_levels(root, symbol, t0, end) if tops else None

@@ -147,9 +147,17 @@ if ($lideres -or (Ocupado (Join-Path $DataDir "leaders\supervisor.lock"))) {
 # profundidad vieja. Sin esto la esfera queda en «recolector apagado». Logs: micro.* (BTC) y
 # micro_<SIMBOLO>.* (resto). ETHUSDT salió del foco el 2026-10-22 (T122): ya no se lanzan sus
 # recolectores; los que sigan vivos de una sesión anterior se detienen a mano o al reiniciar.
+# T128: donde hay captura HFT (BTCUSDT), la microestructura del agente sale de ella
+# (`micro_feed`): fotos top-10 en data\micro\top y el mismo latido. El recolector T23 ya no se
+# lanza para esos activos; uno que siga vivo de antes se para con detener_servicio.ps1 -Todo.
 $activos = @("BTCUSDT")
+$conHft = @("BTCUSDT")
 $procs = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue)
 foreach ($a in $activos) {
+  if ($conHft -contains $a) {
+    Write-Host "Microestructura de ${a}: la deriva la captura HFT (T128); el recolector T23 no se lanza."
+    continue
+  }
   $sufijo = if ($a -eq "BTCUSDT") { "" } else { "_$a" }
   $vigMicro = @($procs | Where-Object { $_.CommandLine -match "eim\.data\.collectors\.supervise\s+$a" })
   $recMicro = @($procs | Where-Object { $_.CommandLine -match "eim\.data\.collectors\.binance_ws\s+$a" })
@@ -167,7 +175,7 @@ foreach ($a in $activos) {
 }
 
 # Captura HFT (T78): libro L2 completo con doble reloj, bookTicker, aggTrade, markPrice y
-# liquidaciones de BTCUSDT en data\micro_hft (amplía T23 sin tocar data\micro). Su vigilante
+# liquidaciones de BTCUSDT en data\micro_hft, y la microestructura del agente (T128). Su vigilante
 # (`eim.data.collectors.hft_supervise`, cerrojo data\micro_hft\supervisor.lock, latido
 # data\micro_hft\heartbeat.json) relanza la captura si cae y cada 10 min audita la calidad de las
 # horas cerradas, compacta y poda los crudos de más de 45 días. Logs: hft.out.log / hft.err.log.
