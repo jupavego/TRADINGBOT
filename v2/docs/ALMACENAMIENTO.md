@@ -58,6 +58,7 @@ estas bases y de las versiones en git.
 | `data/kill_switch.json` | Kill-switch persistido | alta | copia diaria (`state/`) |
 | `data/operation` | Latido, estado del servicio (libro simulado), registros JSONL por día | alta | copia diaria (`state/operation`) |
 | `data/usage` | Registro de consumo (T127): CPU, RAM privada y prioridad por proceso cada 30 s; ~5 MB/día, los días cerrados en `.jsonl.gz`; 30 días | baja | no viaja; fuera de `data/operation` para no engordar la copia diaria |
+| `data/jobs` | Cola de trabajos pesados (T127): un JSON por trabajo, pasos por día y salida de cada uno; 14 días | baja | no viaja |
 | `data/machine_id` | Identidad del equipo (`laptop-i6pf9ovp-fce8d9` aquí): procedencia de cada fila compartida | alta | no se copia a otro equipo; queda anotada en la copia externa |
 | `data/leaders` | Tableros, resumen de la copia simulada (`copy_sim.json`), metadatos, latido | media | lo regenera el servicio; resumen y meta en los extras |
 | `data/paper/arb_tests.json` | Resultados de los escenarios de arbitraje simulado | media | extras |
