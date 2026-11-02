@@ -106,7 +106,9 @@ dañada (salida 2 = íntegra pero incompleta; 1 = dañada).
   `scripts/instalar_copia_externa.ps1`) a la versión `eim-copias` del repo privado de datos
   (`EIM_OFFSITE_REPO`, por defecto `Santivego/eim-shared-data`), en partes con SHA-256, con los
   extras (cambios sin confirmar, memoria de Claude, estado pequeño); se recupera con
-  `offsite pull` + `backup restore`. Detalle: `docs/CONTINUIDAD.md`.
+  `offsite pull` + `backup restore`. Una subida cortada retoma desde la última parte subida, y cada
+  parte se reintenta 3 veces (T127). El script pasa por la cola de trabajos pesados, así que se pausa
+  si la captura HFT sufre. Detalle: `docs/CONTINUIDAD.md`.
 - **Captura HFT (T78):** la copia lleva solo los JSON de calidad (`state/micro_hft_qc/`), nunca los crudos de `data/micro_hft/` (≈ 830 MB/día; se podan a los 45 días). Para conservar más tiempo un tramo para T80/T84, copiarlo a otro disco a mano.
 - **Tamaño y tiempo** (medido en vivo el 2026-10-24 16:17 UTC, servicios en marcha): copia completa
   de 672,5 MB en 41 s (53 archivos): `reports` 1,4 s, `paper` 2,5 s y `obs` 2,1 s en caliente;
