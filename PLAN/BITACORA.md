@@ -295,5 +295,6 @@ más reciente por fecha y su siguiente paso. Formato:
   - Precio en vivo y Difusor no avisan hasta que alguien se conecta, y sí después.
   - El escáner va cada minuto salvo con ejecución.
   Gate en el PR.
-- **Abierto:** ◆ entra con el reinicio de la API tras T78. Decidir si `EIM_OLLAMA_EXE` pasa a la copia local (Contexto con LLM) o se quita (sin aviso). Faltan los entregables 2 y 5: esperan la decisión de la puerta (qué historial de líderes se conserva y qué restos de `data/` se borran).
+- **Decidido (el usuario lo delegó, opción recomendada):** se quitó la variable de usuario `EIM_OLLAMA_EXE` (era `Z:\Ollama\ollama.exe`). La copia local cargaría un modelo de ~3,5 GB con la RAM libre bajando a 2,5 GB durante T78, y Contexto no vota (sesgo 0). `E:\Ollama\ollama.exe`, la ruta por defecto, no existe: el lanzador no arranca Ollama y no hay aviso. Los servicios en marcha conservan la variable hasta su reinicio. Para activar Contexto con LLM tras T78: `EIM_OLLAMA_EXE=C:\eim-localai\ollama\ollama.exe`, midiendo la RAM.
+- **Abierto:** ◆ entra con el reinicio de la API tras T78. Faltan los entregables 2 y 5: esperan la decisión de la puerta (qué historial de líderes se conserva y qué restos de `data/` se borran).
 - **Siguiente paso:** la decisión de la puerta para los entregables 2 y 5.
