@@ -220,3 +220,19 @@ más reciente por fecha y su siguiente paso. Formato:
   La suite de continuidad pasa entera (34). Gate por la cola: 2 464 pasadas, 7 omitidas, 0 fallidas (850 s, 0 pausas).
 - **Abierto:** entregable 5 (parar los servicios sin elevar: necesita que el usuario registre una tarea desde una consola de administrador). La próxima copia externa diaria (20:30 hora local) será la primera por la cola: revisar `data/operation/logs/copia_externa.log` y `python -m eim.operation.jobs list`.
 - **Siguiente paso:** entregable 5.
+
+## 2026-11-02 05:45 UTC · juanpablo-cpu · T127 parar los servicios sin elevar (entregable 5)
+- **Hecho:**
+  - **Causa confirmada:** desde la sesión del usuario, `OpenProcess` sobre un servicio de la sesión 0 da error 5 incluso solo para consultar (`PROCESS_QUERY_LIMITED_INFORMATION`) o leer sus permisos. Los procesos de la sesión del usuario tienen `D:(A;;0x1fffff;;;<usuario>)(…;BA)(…;SY)`. Los que lanza la tarea S4U nacen con una lista sin el usuario, aunque corren con su misma cuenta. Por eso ni el lanzador ve su línea de órdenes ni «Parar servicio» los para.
+  - **Arreglo:** `eim/operation/proc_access.py`. Cada servicio Python, al arrancar con `EIM_PRIORITY=on` (`priority.apply_role`, que ya llaman todos), añade a su propia lista un permiso para su usuario: terminar, consultar, leer su memoria (para la línea de órdenes por WMI), pausar, esperar y leer sus permisos. No incluye escribir en su memoria ni crear hilos. Es lo que ya tiene cualquier programa de la sesión del usuario. Sustituye a la tarea S4U elevada que proponía T127.md, porque una tarea con privilegios que ejecuta un script editable por el usuario sería una puerta para saltarse el UAC.
+  - `scripts/detener_servicio.ps1`: para primero los vigilantes y, 2 s después, los servicios, en cualquier sesión. Sin `-Todo` hace lo mismo que el icono (operación, líderes, interfaz, «equipo despierto»); con `-Todo`, también la captura, el registro de consumo y la hoja de ruta. Al final lista lo que en otra sesión no se deja ver. «Parar servicio» del icono lo usa en vez de su bucle sin orden.
+- **Archivos:** `v2/eim/operation/{proc_access,priority}.py`, `v2/scripts/{detener_servicio,icono_bandeja}.ps1`, `v2/tests/operation/test_proc_access.py`, `v2/docs/OPERACION.md`, `PLAN/{STATUS,ESTADO_PROYECTO,T127,BITACORA}.md`.
+- **Pruebas:** 3 nuevas, que pasaron 3 veces:
+  - **Servicio de la sesión 0 emulado** (lista de permisos solo con SYSTEM):
+    - antes es inaccesible y WMI devuelve su línea de órdenes vacía;
+    - tras `apply_role` se puede consultar, pausar, leer y terminar, y WMI ve su línea de órdenes;
+    - sigue sin poder escribirse ni crearle hilos.
+  - Sin `EIM_PRIORITY` no cambia nada.
+  - El script para primero el vigilante y luego la API; la captura sigue hasta `-Todo`. `-SoloCon` evita tocar los servicios reales. Gate por la cola: el primero falló solo en `test_emit::test_cycle_overhead_within_budget_even_if_disk_fails`, una prueba de tiempos (68 ms frente a 50 ms con el equipo al 40–75 %, según el registro de consumo). No toca este cambio: aislada pasa 5/5, con y sin él (BACKLOG T127 (1)). El segundo, verde: 2 465 pasadas, 7 omitidas, 0 fallidas (855 s, 0 pausas).
+- **Abierto:** ◆ desplegar: hay que reiniciar los servicios, que hoy corren en la sesión 0 con el código anterior, y por tanto parar la captura. Se hará cuando se cumpla T78, como pronto al cerrar la hora 22 UTC del 4-nov; hasta entonces, para pararlos sigue haciendo falta un PowerShell de administrador. Queda la aceptación de T127: una semana del registro de consumo en el informe semanal.
+- **Siguiente paso:** tras T78, reiniciar los servicios y comprobar que `detener_servicio.ps1` los para sin elevar.

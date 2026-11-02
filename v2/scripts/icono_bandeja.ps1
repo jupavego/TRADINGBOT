@@ -229,10 +229,9 @@ $mParar = Opcion "Parar servicio" {
     "Se detendra la operacion en papel, los lideres y la interfaz. El icono sigue aqui.",
     "EIM - parar el servicio", "YesNo", "Warning")
   if ($r -ne "Yes") { return }
-  $patron = 'eim\.operation|eim\.leaders|eim\.api|eim\.data\.micro|uvicorn.*eim|mantener_despierto|eim\.web'
-  Get-CimInstance Win32_Process |
-    Where-Object { $_.Name -match '^(python|node|powershell)\.exe$' -and $_.CommandLine -match $patron } |
-    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+  # T127: vigilantes primero y en cualquier sesión (también los de la tarea al encender).
+  Start-Process powershell.exe -WindowStyle Hidden -ArgumentList @("-NoProfile", "-ExecutionPolicy",
+    "Bypass", "-File", ('"' + (Join-Path $scripts "detener_servicio.ps1") + '"'))
 }
 $menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator)) | Out-Null
 Opcion "Quitar el icono (el servicio sigue)" {
