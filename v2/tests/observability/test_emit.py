@@ -160,7 +160,7 @@ def test_two_processes_do_not_corrupt_lines(tmp_path, same_name):
     for p in ps:
         p.start()
     for p in ps:
-        p.join(60)
+        p.join(300)     # T116: con el equipo cargado, arrancar dos Python puede tardar
     rows = _lines(spool)  # json.loads falla si hay una línea cortada o mezclada
     assert len(rows) == 2 * n and len({r["event_id"] for r in rows}) == 2 * n
     assert len(list(spool.glob("*.jsonl"))) == 2  # un archivo por proceso (el pid va en el nombre)

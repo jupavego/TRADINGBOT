@@ -92,3 +92,53 @@ contra el golden) y la reproducibilidad del backtest de extremo a extremo; su co
   el equipo de referencia.
 - El corte de red no alcanza a los subprocesos (hoy ninguno usa la red) y el ciclo no permite
   inyectar los fetchers de liquidaciones/titulares → `PLAN/BACKLOG.md` T116 (2)(3).
+
+## 2026-11-02 · `juanpablo-cpu` · el gate en IDLE por la cola (T127)
+
+Desde T127 el gate corre por la cola de trabajos pesados, en IDLE, para no quitarle CPU a la
+captura de T78. Con el equipo al 40–75 %, dos gates de T127/T128 fallaron en una prueba `perf`
+cada uno: `test_emit::test_cycle_overhead_within_budget_even_if_disk_fails` (68 ms > 50) y
+`test_obs_api::test_queries_over_100k_events_stay_within_the_threshold` (p95 120 ms > 100;
+p99 919 ms). Aisladas pasaban: el reloj medía cuánto deja Windows esperar a un proceso IDLE, no
+lo que tarda el código.
+
+- **Prioridad:** cada prueba `perf` sube el proceso a NORMAL mientras corre y luego lo devuelve a
+  su prioridad (`tests/perf.py::normal_priority`, autouse en `tests/conftest.py`). NORMAL sigue por
+  debajo de la captura (ABOVE_NORMAL): las pruebas `perf` duran segundos y no le quitan nada.
+- **Mediana de rondas:** `measure` hace 3 rondas de ≥ 100 muestras y entrega la de p95 mediano (la
+  «mediana de varias repeticiones» del entregable 1). Una pausa de la cola o un pico ajeno en una
+  ronda ya no decide. Mismos umbrales y mismo índice de percentil.
+- **Esperas, no requisitos:** `test_service_heartbeats` corre cada bucle hasta ver sus eventos (tope
+  120 s) en vez de 0,15–1,4 s fijos. `test_paper_api` repite hasta tener la vista al día (la ruta
+  espera `VIEW_WAIT_S` = 10 s y si no da 503 o la anterior) y espera el backtest hasta 300 s, no 30.
+  `test_emit::test_two_processes_do_not_corrupt_lines` espera a sus dos procesos hasta 300 s, no 60.
+  Sin carga terminan igual de rápido.
+
+**Medido con carga sintética** (3 procesos ocupando CPU en BELOW_NORMAL, la prioridad de los
+servicios, y las pruebas en IDLE como en la cola, sobre las pruebas afectadas):
+
+| Corrida | Código | Resultado | Tiempo |
+|---|---|---|---|
+| control | `main` sin el cambio | **falla** `test_obs_api` (p95 189 ms, p99 1 742 ms) | — |
+| 1 | rama T116 | verde | — |
+| 2 | rama T116 (dos tandas de carga a la vez) | verde | 425 s |
+| 3 | rama T116 | verde | 147 s |
+
+`test_obs_api` pasa a tardar ~58 s sin carga (3 rondas de 10 consultas), por debajo del minuto.
+
+**Tres gates completos seguidos por la cola** (2026-11-02, servicios en marcha, rama T116):
+
+| Gate | Resultado | Duración | Pausas |
+|---|---|---|---|
+| 1 | verde: 2 503 pasadas, 7 omitidas | 950 s | 0 |
+| 2 | verde: 2 503 pasadas, 7 omitidas | 895 s | 0 |
+| 3 | 1 fallo: `test_proc_access::test_the_stop_script_stops_watchdogs_first_and_only_what_was_asked` | 1 346 s | 2 (370 s) |
+
+El fallo del 3.º no es de carga. La cola lo pausó dos veces («3 huecos nuevos en la captura»,
+22:05 y 22:09 UTC) y lo dejó congelado 185 s cada vez. La prueba lanza un PowerShell con 120 s de
+plazo, y el plazo caducó durante la pausa. Arreglo: `submit --retry-paused N` repite el trabajo que
+falla después de una pausa, y el gate se lanza con `--retry-paused 1`.
+
+Los huecos de esa hora fueron silencios de 3–8 s en todos los flujos de la captura a la vez, y
+siguieron con el gate ya congelado (la captura tuvo su CPU de siempre, ~4 %). A las 22:07 UTC también
+se cortó la conexión de liquidaciones de OKX: apunta a la red, no al gate.

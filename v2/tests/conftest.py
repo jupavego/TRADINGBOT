@@ -9,13 +9,17 @@
   depende de la RAM libre ni de lo que el equipo tenga en `EIM_DUCKDB_*`.
 - `EIM_NOTIFY=0`: ningún supervisor de prueba lanza avisos de escritorio en Windows.
 - Sin red: solo el bucle local (`tests/offline.py`); el resultado no depende de la conexión.
+- Las pruebas `perf` corren en prioridad NORMAL aunque el gate vaya en IDLE (`tests/perf.py`).
 """
 from __future__ import annotations
 
 import os
 
+import pytest
+
 import tests.opt_in  # noqa: F401 — copia las variables opcionales antes de limpiar
 from tests.offline import block_network
+from tests.perf import normal_priority
 
 for _k in [k for k in os.environ if k.upper().startswith("EIM_")]:
     del os.environ[_k]
@@ -23,3 +27,13 @@ os.environ.update({"EIM_OBS": "off", "EIM_NOTIFY": "0",
                    "EIM_DUCKDB_MEMORY": "1GB", "EIM_DUCKDB_THREADS": "2"})
 os.environ.pop("ANTHROPIC_API_KEY", None)  # la suite nunca llama al LLM real
 block_network()
+
+
+@pytest.fixture(autouse=True)
+def _perf_at_normal_priority(request):
+    """T116: una prueba `perf` mide el código, no la cola de Windows de un proceso IDLE."""
+    if request.node.get_closest_marker("perf") is None:
+        yield
+        return
+    with normal_priority():
+        yield

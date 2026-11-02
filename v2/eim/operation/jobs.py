@@ -19,6 +19,8 @@ BELOW_NORMAL (`service`), con todo su árbol en un objeto de Windows (`jobs_proc
 - No cuentan un latido de la captura de más de 2 min (captura parada, o sin captura en este
   equipo: no hay nada que proteger) ni la CPU: con el trabajo en IDLE el equipo siempre parece
   lleno.
+- **Repetir tras una pausa** (`--retry-paused N`, T116): en la pausa caducan los plazos de reloj
+  del trabajo (120 s de plazo, 185 s congelado); si falla tras pausas se repite (el gate, con 1).
 """
 
 from __future__ import annotations
@@ -224,7 +226,21 @@ class Runner:
 
 def submit(data_dir: Path, name: str, cmd: list[str], cwd: Path, tier: str = "batch",
            min_ram_mb: int = 0, monitor: Monitor | None = None, poll_s: float = POLL_S,
-           say: Callable[[str], None] = _say) -> int:
+           say: Callable[[str], None] = _say, retry_paused: int = 0,
+           resume_after_s: float = RESUME_AFTER_S) -> int:
+    for attempt in range(retry_paused + 1):
+        rc, j = _submit_once(data_dir, name, cmd, cwd, tier, min_ram_mb, monitor, poll_s, say,
+                             resume_after_s)
+        if rc == 0 or j is None or not j.pauses or attempt == retry_paused:
+            return rc
+        say(f"{name} falló tras {j.pauses} pausa(s) de la cola ({j.paused_s:.0f} s congelado): "
+            "un plazo de reloj pudo caducar durante la pausa; se repite.")
+    return rc
+
+
+def _submit_once(data_dir: Path, name: str, cmd: list[str], cwd: Path, tier: str,
+                 min_ram_mb: int, monitor: Monitor | None, poll_s: float,
+                 say: Callable[[str], None], resume_after_s: float) -> tuple[int, Job | None]:
     store = Store(data_dir)
     store.prune(time.time())
     job = store.new(name, cmd, cwd, tier, min_ram_mb)
@@ -232,7 +248,7 @@ def submit(data_dir: Path, name: str, cmd: list[str], cwd: Path, tier: str = "ba
     while True:
         if (lock := instance_lock(store.root / "runner.lock")) is not None:
             try:
-                Runner(store, monitor or Monitor(data_dir), poll_s, say=say).drain()
+                Runner(store, monitor or Monitor(data_dir), poll_s, resume_after_s, say=say).drain()
             finally:
                 lock.close()
         if (j := store.get(job.id)) is None or j.state in FINAL:
@@ -240,10 +256,10 @@ def submit(data_dir: Path, name: str, cmd: list[str], cwd: Path, tier: str = "ba
         time.sleep(min(poll_s, 2.0))
     if j is None:
         say("El trabajo desapareció de la cola.")
-        return 3
+        return 3, None
     tail = store.out_path(j).read_text("utf-8", errors="replace").splitlines()[-15:]
     say("\n".join(tail))
-    return j.rc if j.rc is not None else (130 if j.state == CANCELLED else 3)
+    return (j.rc if j.rc is not None else (130 if j.state == CANCELLED else 3)), j
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -256,6 +272,8 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--tier", choices=("batch", "service"), default="batch")
     s.add_argument("--cwd", default=".")
     s.add_argument("--min-ram-mb", type=int, default=0)
+    s.add_argument("--retry-paused", type=int, default=0,
+                   help="repite hasta N veces si falla tras una pausa (el gate: 1)")
     s.add_argument("command", nargs=argparse.REMAINDER, help="-- orden y argumentos")
     sub.add_parser("list", help="trabajos recientes")
     c = sub.add_parser("cancel", help="cancela un trabajo en cola o en marcha")
@@ -266,7 +284,8 @@ def main(argv: list[str] | None = None) -> int:
         cmd = a.command[1:] if a.command[:1] == ["--"] else a.command
         if not cmd:
             ap.error("falta la orden: submit --name N -- <orden> [args]")
-        return submit(Path(a.data_dir), a.name, cmd, Path(a.cwd), a.tier, a.min_ram_mb)
+        return submit(Path(a.data_dir), a.name, cmd, Path(a.cwd), a.tier, a.min_ram_mb,
+                      retry_paused=a.retry_paused)
     if a.cmd == "cancel":
         ok = store.cancel(a.id)
         print("cancelación pedida" if ok else "no está en cola ni en marcha")
