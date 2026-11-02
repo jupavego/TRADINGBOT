@@ -44,6 +44,8 @@ class HftCapture:
         self.checks = Counter()
         self.snaps_handled = 0
         self.last_msg_ms: int | None = None
+        self.on_book = None   # T128: (hora del evento en ms, libro) tras cada diff aplicado
+        self._depth_ms = 0    # hora del último diff recibido (la foto tras sincronizar)
 
     # --- utilidades ----------------------------------------------------------
     def _add(self, kind: str, recv: int, mono: int, *fields) -> None:
@@ -140,6 +142,7 @@ class HftCapture:
         diff = Diff(int(d["U"]), int(d["u"]), int(d["pu"]), list(zip(bp, bq, strict=True)),
                     list(zip(ap, aq, strict=True)))
         before = self.vb.book.last_u
+        self._depth_ms = int(d.get("T") or d["E"])
         res = self.vb.on_diff(diff)
         if res == "gap":
             self.gap("depth", "secuencia", self.last_depth_ok, recv, recv, mono,
@@ -147,7 +150,15 @@ class HftCapture:
             self.unsynced_since = recv
         elif res == "ok":
             self.last_depth_ok = recv
+            self._feed()
         self._after_book(recv, mono)
+
+    def _feed(self) -> None:
+        if self.on_book is not None:
+            try:
+                self.on_book(self._depth_ms, self.vb.book)
+            except Exception:  # noqa: BLE001 - el feed nunca para la captura
+                self.counts["errores_feed"] += 1
 
     def on_snapshot(self, snap: dict, purpose: str, req: int, recv: int, mono: int) -> None:
         self._tick(recv, mono)
@@ -156,7 +167,10 @@ class HftCapture:
         last_id = int(snap["lastUpdateId"])
         self._add("snap", recv, mono, req, int(snap.get("E", -1)), int(snap.get("T", -1)),
                   last_id, purpose, bp, bq, ap, aq)
+        was = self.vb.book.synced
         res = self.vb.on_snapshot(last_id, snap["bids"], snap["asks"])
+        if not was and self.vb.book.synced and self._depth_ms:
+            self._feed()      # el libro recién sincronizado (con los diffs pendientes ya puestos)
         self.snaps_handled += 1
         self.counts[f"snap_{res}"] += 1
         self._after_book(recv, mono)

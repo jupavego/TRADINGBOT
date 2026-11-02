@@ -2,13 +2,16 @@
 
     python -m eim.data.collectors.hft_ws BTCUSDT --root data [--check-s 300]
 
-Escribe en `data/micro_hft/` (la partición `micro/` de T23 queda igual): todos los diffs de
+Escribe en `data/micro_hft/` todos los diffs de
 `depth@100ms`, `bookTicker`, `aggTrade`, `markPrice@1s` y `forceOrder`, cada uno con el reloj del
 exchange y el local de recepción; snapshots REST para sincronizar y, cada `--check-s`, para
 verificar el libro reconstruido. Tres conexiones (`/public` depth, `/public` bookTicker,
 `/market` el resto) sellan cada mensaje al llegar y lo dejan en una cola acotada: si se llena se
 descarta y el tramo queda marcado (`cola_llena`), nunca se bloquea la recepción. Latido en
-`data/micro_hft/heartbeat.json`; lo vigila `eim.data.collectors.hft_supervise`.
+`data/micro_hft/heartbeat.json`; lo vigila `eim.data.collectors.hft_supervise`. Con su libro
+verificado alimenta también la microestructura del agente (`micro_feed`, T128): una foto top-10
+por segundo en `data/micro/top` y el latido `data/micro/heartbeat.json`, en lugar del
+recolector T23.
 """
 
 from __future__ import annotations
@@ -27,6 +30,7 @@ from eim.data.collectors.hft_clock import CHECK_S as CLOCK_EVERY_S
 from eim.data.collectors.hft_clock import RecvClock
 from eim.data.collectors.hft_schema import AREA
 from eim.data.collectors.hft_writer import COMPONENT, HftStore
+from eim.data.collectors.micro_feed import MicroFeed
 from eim.observability import hooks_service
 from eim.observability.emit import configure
 from eim.operation.priority import apply_role
@@ -187,12 +191,19 @@ async def run(root, symbol: str, stop: asyncio.Event | None = None,
     run_ns = clock.now()[0]
     store = HftStore(root, symbol)
     cap = HftCapture(symbol, store, run_ns)
+    feed = MicroFeed(root, symbol)
+    cap.on_book = feed.on_book
     inbox = Inbox()
     s = cap.symbol.lower()
 
     async def beat() -> None:
         while not stop.is_set():
             heartbeat(root, cap, inbox, store, run_ns // 1_000_000)
+            try:      # en un hilo: el Parquet del feed no frena la cola de la captura
+                await asyncio.to_thread(feed.flush)
+                feed.heartbeat(cap.status())
+            except Exception:  # noqa: BLE001 - el feed nunca para la captura
+                cap.counts["errores_feed"] += 1
             await _nap(stop, health.HEARTBEAT_EVERY_S)
         heartbeat(root, cap, inbox, store, run_ns // 1_000_000)
 
@@ -210,6 +221,11 @@ async def run(root, symbol: str, stop: asyncio.Event | None = None,
                 await all_tasks(client)
     finally:
         store.close()
+        try:
+            feed.flush()
+            feed.close()
+        except Exception:  # noqa: BLE001 - al cerrar, lo que no se escriba se pierde
+            pass
 
 
 def main() -> None:

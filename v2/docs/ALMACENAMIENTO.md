@@ -74,7 +74,7 @@ estas bases y de las versiones en git.
 | `data/spot_candles` | Velas spot | baja | se descargan solas |
 | `data/funding` | Funding | baja | se descarga solo |
 | `data/calendar` | Calendario económico | baja | se descarga solo |
-| `data/micro` | Captura de microestructura T23/T104 (2,2 GB) | alta (irrepetible) | **no viaja**; se poda sola; para conservar un tramo, copiarlo a un disco externo |
+| `data/micro` | Microestructura del agente: fotos top-10 por segundo (`top`, de la captura HFT desde T128), liquidaciones en vivo y lo que dejó el recolector T23 (`trades`, `depth`, `gaps`: ya no crecen) (2,2 GB) | alta (irrepetible) | **no viaja**; se poda sola; para conservar un tramo, copiarlo a un disco externo |
 | `data/micro_hft` | Captura HFT T78 (3,1 GB; ≈ 830 MB/día; poda a 45 días) | alta (irrepetible) | solo el QC en la copia; crudos a disco externo a mano |
 | `data/library/index` | Índice de la biblioteca de libros (T52) | baja | se rehace con `python -m eim.library ingest`; los libros (`17.0 - TRADING\Books`) nunca se suben |
 | `data/roadmap_live` | Hoja de ruta servida por el icono | baja | `python PLAN/build_roadmap.py` |

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-02T00:22:38",
+ "generated": "2026-11-02T05:00:53",
  "tasks": [
   {
    "id": "T01",
@@ -1620,8 +1620,8 @@ window.EIM_STATUS = {
    "deps": [
     "T126"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**En curso (2026-11-02).** Entregable 1, **un recolector por fuente**: la captura HFT alimenta la microestructura del agente (`eim/data/collectors/micro_feed.py`). Cada segundo guarda el top-10 de su libro verificado en `data/micro/top` y escribe el latido de siempre; `eim/data/micro.py` lee los trades y los huecos de `micro_hft`. El lanzador ya no arranca el recolector T23 para BTCUSDT. La prueba de regresión da las mismas velas con los mismos mensajes de Binance, con y sin un diff perdido. ◆ Desplegar tras T78 (reinicia la captura) y validar unas horas con el recolector viejo en otra carpeta. Faltan los entregables 2–5.",
    "effort": "medio",
    "phase": 21,
    "goal": "Encargo del usuario (2026-11-01), continuación de T126: quitar la lógica redundante o mal calibrada que encontró la auditoría de T126 y que gasta CPU, RAM o disco sin aportar a los procesos que importan. Con ella dejan de crecer sin control la base de líderes y el ruido de avisos."

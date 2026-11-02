@@ -92,7 +92,8 @@ ITEMS: tuple[Item, ...] = (
          regenerable=True),
     Item("data/calendar", "calendario económico", LOW, "Fed/BLS/BEA", "se descarga solo",
          regenerable=True),
-    Item("data/micro", "captura de microestructura T23/T104 (trades, libro, liquidaciones)",
+    Item("data/micro", "microestructura: fotos top-10 (de la captura HFT desde T128), "
+         "liquidaciones y lo que dejó T23",
          HIGH, "el equipo que la capturó", "no viaja (GB); se poda sola; copia manual a disco "
          "externo si hace falta un tramo"),
     Item("data/micro_hft", "captura HFT T78 (libro L2, bookTicker…; ≈ 830 MB/día)", HIGH,
