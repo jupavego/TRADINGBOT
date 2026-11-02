@@ -14,6 +14,10 @@ EIM, para que el equipo siga respondiendo; lo pesado, al fondo.
 | `service`  | BELOW_NORMAL     | API, líderes, vigilantes, registro de consumo (T127)          |
 | `batch`    | IDLE             | mantenimiento (auditoría, compactación, poda), gate, copias, LLM |
 
+Dentro de un servicio, un hilo dedicado a trabajo de fondo baja al nivel `batch` con
+`lower_thread` (T128: los ganchos del bróker en la API): THREAD_PRIORITY_LOWEST en un proceso
+BELOW_NORMAL queda en 4, a la par de los trabajos IDLE y por debajo del resto del servicio.
+
 Windows no deja morir de hambre a IDLE: un hilo que lleva unos segundos sin turno recibe un
 impulso, así que lo pesado avanza aunque el equipo esté ocupado, solo que sin estorbar.
 
@@ -48,6 +52,7 @@ ROLES = {
     "micro_watchdog": "service", "hft_watchdog": "service", "usage": "service",
 }
 INHERITED = ("service", "batch")           # niveles que Windows pasa a los hijos
+THREAD_LOWEST = -2                          # THREAD_PRIORITY_LOWEST
 
 
 def enabled(env: Mapping[str, str] | None = None) -> bool:
@@ -120,6 +125,30 @@ def lowered(tier: str = "batch", env: Mapping[str, str] | None = None) -> Iterat
     finally:
         if changed:
             _set_class(prev)
+
+
+def thread_priority() -> int | None:
+    """Prioridad relativa del hilo actual (Windows); None en otros sistemas."""
+    if sys.platform != "win32":
+        return None
+    k = _kernel32()
+    k.GetCurrentThread.restype = ctypes.c_void_p
+    k.GetThreadPriority.argtypes = [ctypes.c_void_p]
+    return int(k.GetThreadPriority(k.GetCurrentThread()))
+
+
+def lower_thread(env: Mapping[str, str] | None = None) -> bool:
+    """Baja el hilo actual al nivel `batch` para siempre: solo para hilos dedicados a trabajo de
+    fondo. Solo Windows y con `EIM_PRIORITY` activo; nunca lanza."""
+    if not enabled(env) or sys.platform != "win32":
+        return False
+    try:
+        k = _kernel32()
+        k.GetCurrentThread.restype = ctypes.c_void_p
+        k.SetThreadPriority.argtypes = [ctypes.c_void_p, ctypes.c_int]
+        return bool(k.SetThreadPriority(k.GetCurrentThread(), THREAD_LOWEST))
+    except OSError:
+        return False
 
 
 def main(argv: list[str] | None = None) -> int:

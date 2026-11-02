@@ -51,7 +51,7 @@ class Job:
 
 class DeskService:
     """Mezcla para `PaperDesk`: espera `store`, `pstore`, `gens`, `tfs`, `ep`, `provider`,
-    `symbols`, `poll_s`, `job`, `last_tick`, `live_error`, `after_tick`."""
+    `symbols`, `poll_s`, `job`, `last_tick`, `live_error`, `hooks`."""
 
     def _origin_for(self, tf: str):
         bar = tf_ms(tf)
@@ -165,6 +165,7 @@ class DeskService:
 
     async def loop(self) -> None:
         self.loop_started = now_ms()
+        self.hooks.start()
         while True:
             try:
                 await asyncio.to_thread(self.tick)
@@ -172,9 +173,7 @@ class DeskService:
                 self.live_error = f"{type(exc).__name__}: {exc}"
                 hooks_service.service_error("paper.broker", exc, mode=Mode.SIMULADO)
                 self._beat(0)
-            for hook in self.after_tick:   # p. ej. la validación al cierre de cada vela de 4 h
-                try:
-                    await asyncio.to_thread(hook)
-                except Exception as exc:  # un gancho nunca detiene el servicio
-                    self.live_error = f"{type(exc).__name__}: {exc}"
+            # T128: los ganchos (validación de 4 h, libro fijo, bots, setups) corren en su hilo,
+            # a nivel batch y con su latido; el ciclo no los espera y late cada vuelta.
+            self.hooks.kick()
             await asyncio.sleep(self.poll_s)

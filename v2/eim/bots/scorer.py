@@ -154,11 +154,12 @@ class BotScorer:
     def due(self, now: int) -> bool:
         return self.last_run is None or self.last_run < now - now % FOUR_H
 
-    def maybe_run(self) -> None:
-        """Gancho del bróker: recalcula al pasar cada cierre de vela de 4 h; nunca lo tumba."""
+    def maybe_run(self) -> bool:
+        """Gancho del bróker: recalcula al pasar cada cierre de vela de 4 h (True si recalculó
+        sin error); nunca lo tumba."""
         now = now_ms()
         if not self.due(now):
-            return
+            return False
         try:
             for sym in self.symbols:
                 self.compute(sym, now)
@@ -167,3 +168,4 @@ class BotScorer:
             self.error = f"{type(exc).__name__}: {exc}"
             log.warning("puntuación de bots: %s", self.error)
         self.last_run = now
+        return not self.error

@@ -254,3 +254,25 @@ más reciente por fecha y su siguiente paso. Formato:
   Pasan también las de recolector, captura y `hft_ws`. Gate por la cola: el primero falló solo en una prueba de tiempos de la API de observabilidad (p95 120 ms > 100 ms con el equipo cargado; aislada 3/3, BACKLOG T127 (1)). El segundo, verde: 2 470 pasadas, 7 omitidas, 0 fallidas. Con el cerrojo de un solo escritor (y su prueba), otro gate verde: 2 471 pasadas, 7 omitidas, 0 fallidas.
 - **Abierto:** ◆ desplegar cuando se cumpla T78: reinicia la captura, y el corte cabe en el 99 % de cobertura por hora. Validar unas horas comparando con el recolector T23 lanzado a mano en otra carpeta. Faltan los entregables 2–5; el 2 y el 5 esperan la decisión de la puerta: qué historial de líderes se conserva y qué restos de `data/` se borran.
 - **Siguiente paso:** entregable 3 (ganchos fuera del bucle de la API) o 4 (menos ruido), que no tocan la captura.
+
+## 2026-11-02 16:27 UTC · juanpablo-cpu · T128 ganchos del bróker fuera de su ciclo (entregable 3)
+- **Medido:**
+  - En el observatorio, el bróker late cada ~62 s (mediana). Al cierre de cada vela de 4 h calla de 90 a 230 s, porque su ciclo esperaba a los ganchos.
+  - Sobre una copia de las bases de la copia diaria (por la cola, en IDLE): la validación tarda 2,1 s, la puntuación de bots 2,3 s y los setups 0,3 s. Lo caro es la vista del bróker, que los ganchos rehacen cuando hay contextos nuevos: 37 s (29 s de CPU). La validación la pide cada 4 h, el libro fijo cada hora y los setups, en un hilo aparte, cada 15 min.
+  - Un proceso aparte no sirve: DuckDB no deja abrir `paper.duckdb` ni `reports.duckdb` desde otro proceso mientras la API los tiene abiertos.
+- **Hecho:**
+  - `eim/paper/hooks.py` (`HookRunner`): el ciclo del bróker solo avisa (`kick`) y sigue. Los ganchos corren en orden en su propio hilo. Si llega un aviso durante una pasada, queda una más pendiente, nunca una cola. Un gancho que falla no tumba a los demás y avisa como `paper.hooks`, como mucho cada 15 min.
+  - **Latido:** `paper.hooks` late tras cada pasada (muestreado a ~4 min) con lo que tardó cada gancho. La validación y la puntuación laten con su propio componente cuando recalculan (`maybe_run` devuelve True si lo hizo sin error). Estado en `/v2/paper` → `live.hooks`.
+  - **Nivel batch dentro de la API:** `priority.lower_thread` baja el hilo de los ganchos y el que rehace la vista a THREAD_PRIORITY_LOWEST. En el proceso BELOW_NORMAL quedan a 4, a la par de los trabajos IDLE y por debajo del resto de la API. Solo con `EIM_PRIORITY` activo.
+  - **Catálogo:** `paper.broker` vuelve a «cada 60 s» (cadencia 120 s, aviso a los 6 min). Nuevo `paper.hooks` (300 s). `validation.gate` pasa a cada cierre de 4 h.
+- **Archivos:** `v2/eim/paper/{hooks,service,desk}.py`, `v2/eim/operation/priority.py`, `v2/eim/api/main.py`, `v2/eim/validation/service.py`, `v2/eim/bots/scorer.py`, `v2/eim/observability/catalog/components_flow.py`, `v2/tests/paper/test_hooks.py`, `v2/tests/api/test_paper_api.py`, `v2/tests/observability/test_obs_alerts.py`, `v2/docs/OPERACION.md`, `PLAN/{STATUS,BITACORA}.md`.
+- **Pruebas:** 6 nuevas.
+  - Una pasada corre todos los ganchos en orden y uno que falla no para al resto.
+  - Los avisos durante una pasada dejan una sola pasada más.
+  - El bróker sigue su ciclo mientras un gancho lento corre.
+  - Los ganchos corren a nivel batch y solo su hilo baja.
+  - `lower_thread` necesita `EIM_PRIORITY`.
+  - En la API, los cuatro ganchos se registran en orden y corren sin errores.
+  Se ajusta la prueba de silencio del bróker (T126). Gate en el PR.
+- **Abierto:** ◆ entra con el reinicio de la API tras T78 (no toca la captura). Después, comprobar en el observatorio que el bróker late cada minuto también al cierre de 4 h y cuánto tarda cada gancho. Faltan los entregables 2, 4 y 5.
+- **Siguiente paso:** entregable 4 (menos ruido y menos gasto).
