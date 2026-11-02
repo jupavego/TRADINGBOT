@@ -45,10 +45,17 @@ $logs = Join-Path $DataDir "operation\logs"
 New-Item -ItemType Directory -Force $logs | Out-Null
 $env:PYTHONIOENCODING = "utf-8"
 
-# Dos lanzamientos a la vez (al encender y al iniciar sesión) duplicarían el vigilante: el segundo
-# espera aquí a que el primero termine de lanzar y luego solo completa lo que falte.
-$turno = New-Object System.Threading.Mutex($false, "Global\EIM_servicio_continuo")
-try { [void]$turno.WaitOne([TimeSpan]::FromMinutes(5)) } catch [System.Threading.AbandonedMutexException] { }
+# Dos lanzamientos a la vez (al encender y al iniciar sesión): el segundo espera aquí a que el
+# primero termine de lanzar y luego solo completa lo que falte. Desde la sesión del usuario no se
+# ve la línea de órdenes de los procesos de la sesión 0 (ni siempre se puede abrir este cerrojo si
+# lo creó la tarea al encender): lo que de verdad impide duplicados es el cerrojo de instancia de
+# cada servicio (vigilantes, recolectores, «equipo despierto») y los puertos; estas comprobaciones
+# solo evitan lanzar procesos que se irían al instante.
+$turno = $null
+try {
+  $turno = New-Object System.Threading.Mutex($false, "Global\EIM_servicio_continuo")
+  try { [void]$turno.WaitOne([TimeSpan]::FromMinutes(5)) } catch [System.Threading.AbandonedMutexException] { }
+} catch { Start-Sleep -Seconds 30 }   # sin acceso: la otra tarea está lanzando; se le da ventaja
 
 # Una tarea que corre sin sesión iniciada puede no traer las variables del usuario: se copian las
 # EIM_* que falten (identidad del equipo, tope de DuckDB, ruta de Ollama...).
@@ -63,6 +70,16 @@ if (-not $env:EIM_PRIORITY) { $env:EIM_PRIORITY = "on" }
 
 function Escuchando([int]$p) {
   [bool](Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue)
+}
+
+# T126: ¿corre ya el servicio dueño de este cerrojo de instancia? Cada servicio bloquea el byte 0 de
+# su archivo `*.lock` (`instance_lock`); el bloqueo lo ve cualquier sesión de Windows, al contrario
+# que la línea de órdenes de los procesos de la sesión 0 (tarea al encender). Si está ocupado no se
+# lanza nada: ni un duplicado que se iría al instante ni un Start-Process sobre su registro abierto.
+function Ocupado([string]$cerrojo) {
+  if (-not (Test-Path $cerrojo)) { return $false }
+  try { $f = [System.IO.File]::Open($cerrojo, "Open", "ReadWrite", "ReadWrite") } catch { return $true }
+  try { $f.Lock(0, 1); $f.Unlock(0, 1); return $false } catch { return $true } finally { $f.Close() }
 }
 
 # LLM local para el agente `context` (Ollama, solo en 127.0.0.1): se arranca si está instalado y no
@@ -93,8 +110,8 @@ $vigOp = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorActio
   Where-Object { $_.CommandLine -match '-m\s+eim\.operation\s+run(\s|$)' })
 if (Escuchando $Puerto) {
   Write-Host "Ya hay un servicio en el puerto ${Puerto}: no se lanza otro."
-} elseif ($vigOp) {
-  Write-Host "El vigilante de la API ya corre (PID $($vigOp.ProcessId -join ', ')) y aún arranca: no se lanza otro."
+} elseif ($vigOp -or (Ocupado (Join-Path $DataDir "operation\supervisor.lock"))) {
+  Write-Host "El vigilante de la API ya corre y aún arranca: no se lanza otro."
 } else {
   $argv = @("-m", "eim.operation", "run", "--execution", "paper", "--port", "$Puerto",
             "--data-dir", "`"$DataDir`"")
@@ -109,8 +126,8 @@ if (Escuchando $Puerto) {
 # data/leaders/supervisor.lock impide de todos modos un segundo vigilante.
 $lideres = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
   Where-Object { $_.CommandLine -match '-m\s+eim\.leaders\s.*\s(supervise|run)(\s|$)' })
-if ($lideres) {
-  Write-Host "El servicio de líderes ya corre (PID $($lideres.ProcessId -join ', ')): no se lanza otro."
+if ($lideres -or (Ocupado (Join-Path $DataDir "leaders\supervisor.lock"))) {
+  Write-Host "El servicio de líderes ya corre: no se lanza otro."
 } else {
   $argv = @("-m", "eim.leaders", "--root", "`"$DataDir`"", "supervise")
   $out = Join-Path $logs "lideres.out.log"
@@ -136,8 +153,8 @@ foreach ($a in $activos) {
   $sufijo = if ($a -eq "BTCUSDT") { "" } else { "_$a" }
   $vigMicro = @($procs | Where-Object { $_.CommandLine -match "eim\.data\.collectors\.supervise\s+$a" })
   $recMicro = @($procs | Where-Object { $_.CommandLine -match "eim\.data\.collectors\.binance_ws\s+$a" })
-  if ($vigMicro) {
-    Write-Host "El vigilante de microestructura de $a ya corre (PID $($vigMicro.ProcessId -join ', ')): no se lanza otro."
+  if ($vigMicro -or (Ocupado (Join-Path $DataDir "micro\supervisor$sufijo.lock"))) {
+    Write-Host "El vigilante de microestructura de $a ya corre: no se lanza otro."
   } elseif ($recMicro) {
     Write-Host "Hay un recolector de microestructura de $a SIN vigilante (PID $($recMicro.ProcessId -join ', ')): detenlo para que el vigilante lo relance con latido."
   } else {
@@ -156,8 +173,8 @@ foreach ($a in $activos) {
 # horas cerradas, compacta y poda los crudos de más de 45 días. Logs: hft.out.log / hft.err.log.
 $vigHft = @($procs | Where-Object { $_.CommandLine -match "eim\.data\.collectors\.hft_supervise\s+BTCUSDT" })
 $recHft = @($procs | Where-Object { $_.CommandLine -match "eim\.data\.collectors\.hft_ws\s+BTCUSDT" })
-if ($vigHft) {
-  Write-Host "El vigilante de la captura HFT ya corre (PID $($vigHft.ProcessId -join ', ')): no se lanza otro."
+if ($vigHft -or (Ocupado (Join-Path $DataDir "micro_hft\supervisor.lock"))) {
+  Write-Host "El vigilante de la captura HFT ya corre: no se lanza otro."
 } elseif ($recHft) {
   Write-Host "Hay una captura HFT SIN vigilante (PID $($recHft.ProcessId -join ', ')): detenla para que el vigilante la relance con latido."
 } else {
@@ -174,8 +191,8 @@ foreach ($a in $activos) {
   $sufijo = if ($a -eq "BTCUSDT") { "" } else { "_$a" }
   $liq = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
     Where-Object { $_.CommandLine -match "eim\.data\.collectors\.liq_ws\s+$a" })
-  if ($liq) {
-    Write-Host "El recolector de liquidaciones de $a ya corre (PID $($liq.ProcessId -join ', ')): no se lanza otro."
+  if ($liq -or (Ocupado (Join-Path $DataDir "micro\liq_collector$sufijo.lock"))) {
+    Write-Host "El recolector de liquidaciones de $a ya corre: no se lanza otro."
   } else {
     $argv = @("-m", "eim.data.collectors.liq_ws", $a, "--root", "`"$DataDir`"")
     Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
