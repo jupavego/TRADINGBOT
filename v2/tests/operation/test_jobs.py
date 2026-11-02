@@ -178,3 +178,37 @@ def test_the_job_and_its_children_run_at_idle(tmp_path):
                        Path.cwd(), monitor=calm(tmp_path), poll_s=0.05,
                        say=lambda s: None) == 0
     assert out.read_text() == "4" and usage_win.supported()      # 4 = IDLE
+
+
+class _PressureOnce(jobs.Monitor):
+    """Presión simulada en la captura durante unos sondeos, en cuanto el trabajo arranca."""
+
+    def __init__(self, data_dir: Path, flag: Path) -> None:
+        super().__init__(data_dir, ram=lambda: 8000, cpu=lambda: 5.0)
+        self.flag, self.n = flag, 0
+
+    def pressure(self) -> list[str]:
+        if self.flag.exists() and self.n < 3:
+            self.n += 1
+            return ["presión simulada"]
+        return []
+
+
+def test_a_job_that_fails_after_a_pause_is_repeated_once(tmp_path):
+    """T116: un plazo de reloj caduca con el trabajo congelado; se repite, no se da por malo."""
+    flag = tmp_path / "arranco"
+    code = ("import pathlib, sys, time\nf = pathlib.Path(sys.argv[1])\nfirst = not f.exists()\n"
+            "f.write_text('x')\ntime.sleep(0.5)\nsys.exit(1 if first else 0)\n")
+    said: list[str] = []
+    rc = jobs.submit(tmp_path, "gate", [sys.executable, "-c", code, str(flag)], tmp_path,
+                     monitor=_PressureOnce(tmp_path, flag), poll_s=0.05, say=said.append,
+                     retry_paused=1, resume_after_s=0.1)
+    runs = Store(tmp_path).all()
+    assert rc == 0 and [(j.state, j.pauses) for j in runs] == [("fallido", 1), ("hecho", 0)]
+    assert any("se repite" in s for s in said)
+    # sin pausas, un fallo es un fallo: no se repite
+    code_fail = "import sys; sys.exit(5)"
+    assert jobs.submit(tmp_path, "otro", [sys.executable, "-c", code_fail], tmp_path,
+                       monitor=calm(tmp_path), poll_s=0.05, say=said.append, retry_paused=1) == 5
+    assert [j.state for j in Store(tmp_path).all()][-1] == "fallido" and len(
+        Store(tmp_path).all()) == 3

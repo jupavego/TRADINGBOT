@@ -125,3 +125,20 @@ servicios, y las pruebas en IDLE como en la cola, sobre las pruebas afectadas):
 | 3 | rama T116 | verde | 147 s |
 
 `test_obs_api` pasa a tardar ~58 s sin carga (3 rondas de 10 consultas), por debajo del minuto.
+
+**Tres gates completos seguidos por la cola** (2026-11-02, servicios en marcha, rama T116):
+
+| Gate | Resultado | Duración | Pausas |
+|---|---|---|---|
+| 1 | verde: 2 503 pasadas, 7 omitidas | 950 s | 0 |
+| 2 | verde: 2 503 pasadas, 7 omitidas | 895 s | 0 |
+| 3 | 1 fallo: `test_proc_access::test_the_stop_script_stops_watchdogs_first_and_only_what_was_asked` | 1 346 s | 2 (370 s) |
+
+El fallo del 3.º no es de carga. La cola lo pausó dos veces («3 huecos nuevos en la captura»,
+22:05 y 22:09 UTC) y lo dejó congelado 185 s cada vez. La prueba lanza un PowerShell con 120 s de
+plazo, y el plazo caducó durante la pausa. Arreglo: `submit --retry-paused N` repite el trabajo que
+falla después de una pausa, y el gate se lanza con `--retry-paused 1`.
+
+Los huecos de esa hora fueron silencios de 3–8 s en todos los flujos de la captura a la vez, y
+siguieron con el gate ya congelado (la captura tuvo su CPU de siempre, ~4 %). A las 22:07 UTC también
+se cortó la conexión de liquidaciones de OKX: apunta a la red, no al gate.

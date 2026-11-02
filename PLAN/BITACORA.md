@@ -359,3 +359,8 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** gates completos seguidos por la cola (en el PR). Las 3 corridas con el equipo
   descargado necesitan parar los servicios: tras T78.
 - **Siguiente paso:** con el PR fusionado, los gates por la cola dejan de fallar por la carga.
+- **Tres gates por la cola:** 1.º y 2.º verdes (2 503 pasadas, 950 y 895 s). El 3.º falló en
+  `test_proc_access` porque la cola lo pausó dos veces (185 s congelado cada una, por silencios
+  de red en la captura) y el plazo de 120 s de un PowerShell caducó durante la pausa. Arreglo:
+  `jobs submit --retry-paused N` repite el trabajo que falla tras una pausa; el gate va con 1
+  (`CLAUDE.md`, `docs/OPERACION.md`). Prueba nueva en `tests/operation/test_jobs.py`.
