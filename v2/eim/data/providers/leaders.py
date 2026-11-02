@@ -1,11 +1,12 @@
 """Hyperliquid por API pública oficial (sin claves): `/info` por REST y WS (T40, fuente T33).
 
 - `HyperliquidInfo`: estado de cuenta (`clearinghouseState`), ejecuciones (`userFills`,
-  `userFillsByTime` paginado), funding (`userFunding` paginado), `vaultDetails` y
-  `portfolio` (T41), `meta` y velas `candleSnapshot` (T42), con
-  reintentos y presupuesto de peso por minuto (límite oficial 1200/IP). Estima además el
-  desfase del reloj local frente al del servidor (`time` de `clearinghouseState` contra el
-  punto medio del viaje): sin corregirlo la latencia medida sale negativa.
+  `userFillsByTime` paginado; las de órdenes TWAP, aparte, con `userTwapSliceFillsByTime`),
+  funding (`userFunding` paginado), `vaultDetails` y `portfolio` (T41), `meta` y velas
+  `candleSnapshot` (T42), con reintentos y presupuesto de peso por minuto (límite oficial
+  1200/IP). Estima además el desfase del reloj local frente al del servidor (`time` de
+  `clearinghouseState` contra el punto medio del viaje): sin corregirlo la latencia medida sale
+  negativa.
 - `HyperliquidStream`: una conexión WS con suscripciones, latido (`ping`) y reconexión con
   espera exponencial; avisa del corte (`on_down`) y de la vuelta (`on_up`) para que el
   vigilante registre el hueco y lo rellene por REST.
@@ -34,6 +35,7 @@ from eim.leaders.params import (
     PING_EVERY_S,
     REST_WEIGHT_PER_MIN,
 )
+from eim.leaders.parse import twap_fills
 
 INFO_URL = "https://api.hyperliquid.xyz/info"
 WS_URL = "wss://api.hyperliquid.xyz/ws"
@@ -117,12 +119,14 @@ class HyperliquidInfo:
         """Las últimas 2000 ejecuciones (de la más nueva a la más vieja)."""
         return self.post({"type": "userFills", "user": user})
 
-    def _paged(self, body: dict, start: int, end: int | None, page: int) -> list[dict]:
+    def _paged(self, body: dict, start: int, end: int | None, page: int,
+               unwrap: Callable[[list], list[dict]] | None = None) -> list[dict]:
         """Pagina por `startTime` hasta una página corta o `MAX_PAGES` (lo más antiguo)."""
         out: list[dict] = []
         for _ in range(MAX_PAGES):
             q = body | {"startTime": start} | ({"endTime": end} if end is not None else {})
             rows = self.post(q)
+            rows = unwrap(rows) if unwrap else rows
             out += rows
             if len(rows) < page:
                 return out
@@ -138,6 +142,12 @@ class HyperliquidInfo:
         """Ejecuciones con t ≥ start (solo las 10 000 más recientes son consultables)."""
         return self._paged({"type": "userFillsByTime", "user": user, "aggregateByTime": False},
                            start, end, FILLS_PAGE)
+
+    def user_twap_fills_by_time(self, user: str, start: int, end: int | None = None
+                                ) -> list[dict]:
+        """Ejecuciones de órdenes TWAP con t ≥ start, con el formato de `userFills` (T128)."""
+        return self._paged({"type": "userTwapSliceFillsByTime", "user": user}, start, end,
+                           FILLS_PAGE, unwrap=twap_fills)
 
     def user_funding(self, user: str, start: int, end: int | None = None) -> list[dict]:
         return self._paged({"type": "userFunding", "user": user}, start, end, FUNDING_PAGE)

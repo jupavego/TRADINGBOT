@@ -94,7 +94,8 @@ def test_reconnect_gap_is_backfilled_and_duplicates_dropped(tmp_path):
     final = store.query("SELECT size_ok, match, resynced FROM leader_recon "
                         "ORDER BY observed_at DESC, t DESC LIMIT 1")[0]
     assert final == (True, True, False)
-    assert len([m for m in c2.sent if m["method"] == "subscribe"]) == 1
+    subs = [m["subscription"]["type"] for m in c2.sent if m["method"] == "subscribe"]
+    assert sorted(subs) == ["userFills", "userTwapSliceFills"]   # T128: las TWAP aparte
 
 
 def test_divergence_resolved_by_backfill_without_resync(tmp_path):

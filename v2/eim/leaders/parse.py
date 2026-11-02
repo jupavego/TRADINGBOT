@@ -82,6 +82,14 @@ def _chain(rows: list[dict]) -> list[dict]:
     return [rows[i] for i in order]
 
 
+def twap_fills(rows: list | None) -> list[dict]:
+    """Ejecuciones de órdenes TWAP (`userTwapSliceFills[ByTime]`, REST o WS: `{fill, twapId}`)
+    con el formato de `userFills`, que no las trae (T128: dos líderes se resincronizaban cada
+    30–60 s porque su posición cambiaba por TWAP sin ejecuciones visibles)."""
+    return [r["fill"] for r in rows or []
+            if isinstance(r, dict) and isinstance(r.get("fill"), dict)]
+
+
 def order_fills(raws: list[dict]) -> list[dict]:
     """Sin repetidos y en orden cronológico real. `userFills` (REST) llega del más nuevo al
     más viejo y el WS/`userFillsByTime` al revés; a igual milisegundo manda la cadena."""

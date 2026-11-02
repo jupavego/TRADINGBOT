@@ -31,20 +31,22 @@ import duckdb
 from pydantic import ValidationError
 
 from eim.core.leaders import Leader, leader_id
+from eim.data.duck_compact import compact
 from eim.data.leader_board import BOARD_DIR, BoardStore
 from eim.data.leader_discover import discover
 from eim.data.leader_eval import evaluate, refresh_portfolios
 from eim.data.leader_ranking import RankingUnavailable, discover_ranking
 from eim.data.leader_report import render, summary
 from eim.data.leader_service import HEARTBEAT, LeaderService
-from eim.data.leader_store import LeaderStore
+from eim.data.leader_store import DB_NAME, LeaderStore
 from eim.data.providers.leaders import HyperliquidInfo, now_ms
 from eim.leaders import copy_cli
 from eim.leaders.board_text import render_board
 from eim.leaders.parse import vault_leader
+from eim.observability import hooks_service
 from eim.observability.emit import configure
 from eim.operation.notify import JsonLog
-from eim.operation.priority import apply_role
+from eim.operation.priority import apply_role, lowered
 from eim.operation.watchdog import Watchdog, instance_lock
 
 
@@ -87,6 +89,24 @@ def _list(store: LeaderStore, status: str | None) -> str:
                      for ld in rows) or "(sin líderes)"
 
 
+def _compact(root: str | Path) -> None:
+    """T128: devuelve al disco lo que DuckDB dejó libre (2,1 → ~1,3 GB el 2026-11-02), antes de
+    lanzar a `run`. En lote; si falla, el servicio arranca igual con la base de siempre. Una
+    base en uso (`duckdb.IOException`) la trata quien llama."""
+    try:
+        with lowered("batch"):
+            done = compact(Path(root) / DB_NAME)
+    except duckdb.IOException:
+        raise
+    except Exception as exc:  # noqa: BLE001 - compactar nunca impide capturar
+        logging.getLogger(__name__).warning("compactado de %s: %s", DB_NAME, exc)
+        hooks_service.service_error("leaders.service", exc, detail={"what": "compactado"})
+        return
+    if done:
+        logging.getLogger(__name__).info("%s compactada: %s", DB_NAME, done)
+        hooks_service.service_event("leaders.service", "base compactada", detail=done)
+
+
 def _supervise(a: argparse.Namespace, make_watchdog=Watchdog) -> str:
     """Un solo vigilante por carpeta de datos (cerrojo `leaders/supervisor.lock`); su hijo
     `run` es el único proceso que abre `leaders.duckdb`."""
@@ -98,6 +118,7 @@ def _supervise(a: argparse.Namespace, make_watchdog=Watchdog) -> str:
         return "Ya hay un vigilante de líderes en marcha: no se lanza otro."
     try:
         try:
+            _compact(a.root)
             store = LeaderStore.at_root(a.root)
         except duckdb.IOException:
             return "leaders.duckdb está en uso por otro proceso (¿`run` a mano?): detenlo antes."
