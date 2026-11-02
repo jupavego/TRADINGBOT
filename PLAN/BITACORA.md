@@ -364,3 +364,36 @@ más reciente por fecha y su siguiente paso. Formato:
   de red en la captura) y el plazo de 120 s de un PowerShell caducó durante la pausa. Arreglo:
   `jobs submit --retry-paused N` repite el trabajo que falla tras una pausa; el gate va con 1
   (`CLAUDE.md`, `docs/OPERACION.md`). Prueba nueva en `tests/operation/test_jobs.py`.
+
+## 2026-11-02 23:20 UTC · juanpablo-cpu · Despliegue de #185–#191 y racha de T78 rota
+- **Racha de T78:** llegó a 23 h (2026-11-01T23 → 02T21) y se rompió en la hora 02T22. Entre
+  22:04 y 22:10 UTC hubo 19 silencios de 3–8 s en todos los flujos a la vez y una desconexión:
+  libro útil 98,2 % y precio de marca 98,5 %, por debajo del 99 %.
+  - Apunta a la red: la captura tuvo su CPU de siempre (~4 %), varios silencios ocurrieron con el
+    gate ya congelado por la cola, y la conexión de liquidaciones de OKX también cayó a las 22:07.
+  - La hora 21, con carga sintética de T116 en BELOW_NORMAL, quedó completa (libro útil 100 %).
+- **Despliegue:** con la racha en cero, el usuario aprobó desplegar ya en vez de esperar tres
+  días. Lo hizo con un PowerShell de administrador (`desplegar_t128.ps1`, fuera del repo): los
+  servicios de la sesión 0 se pararon a las 23:12:50 y se relanzaron con la tarea al encender.
+  Comprobado:
+  - **API:** responde, con 19 agentes y la operación en marcha.
+  - **Captura HFT:** volvió a las 23:13:39 (49 s de corte, así que la hora 23 queda incompleta).
+    La microestructura sale de ella (`micro/heartbeat.json` con `source: hft_ws`, 87 fotos en el
+    primer minuto) y el recolector T23 ya no se lanza (#186).
+  - **Bróker:** los ganchos corren en su hilo y laten como `paper.hooks`; primera pasada de 38 s,
+    34 de ellos la validación (#187).
+  - **Arbitraje:** el escáner toma una foto cada 61 s (#188).
+  - **Líderes:** el vigilante podó 7 rechazados y compactó `leaders.duckdb` de 2 151 a 1 267 MB
+    en 77 s; el servicio volvió a latir a las 23:17:46 (#189, #190).
+  - **Permisos:** desde la sesión del usuario, sin elevar, ya hay permiso de consulta y de
+    detención sobre los procesos del EIM (#185); se comprobó el permiso sin parar ninguno.
+  - **Prioridades:** captura y liquidaciones en ABOVE_NORMAL; API y vigilantes en BELOW_NORMAL.
+- **Aviso que ya existía:** «Protección en estado inconsistente: agresivo BTCUSDT» (la operación
+  del 31-oct de `agente_levels`; el recálculo la cerraría antes del estado guardado). Sale en cada
+  arranque de la API desde el 2026-11-01; no viene de este despliegue. Resolverlo es decisión del
+  usuario.
+- **Abierto:**
+  - T78 se cumple como pronto al cerrar la hora 23 UTC del 2026-11-05.
+  - Validar unas horas la microestructura con el recolector viejo en otra carpeta.
+  - Medir una semana el tamaño de `leaders.duckdb`.
+  - T116: tres corridas con el equipo descargado.
