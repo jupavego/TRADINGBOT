@@ -64,6 +64,8 @@ ITEMS: tuple[Item, ...] = (
     Item("data/kill_switch.json", "kill-switch persistido", HIGH, "cada equipo", BACKUP),
     Item("data/operation", "latido, estado del servicio (libro simulado), registros JSONL",
          HIGH, "cada equipo", BACKUP),
+    Item("data/usage", "registro de consumo por proceso cada 30 s (T127), 30 días", LOW,
+         "cada equipo", NONE + " (fuera de la copia diaria a propósito)"),
     Item("data/machine_id", "identidad del equipo (procedencia de cada fila compartida)", HIGH,
          "cada equipo", "no se copia a otro equipo; queda anotada en la copia externa"),
     Item("data/leaders", "tableros, resumen de la copia simulada, metadatos y latido del "

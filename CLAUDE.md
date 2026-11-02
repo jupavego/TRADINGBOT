@@ -33,7 +33,7 @@ Contrato central: `Agent.run(MarketSnapshot) -> AgentReport` (sesgo −1..+1, co
 
 ## Comandos
 - Gate (desde `v2/`): `python -m ruff check eim tests && python -m pytest -q`
-- Trabajos pesados con los servicios en marcha (gate, importaciones, pruebas de modelos locales): anteponer `python -m eim.operation.priority run batch --` para no robar CPU a la captura en vivo (T126).
+- Trabajos pesados con los servicios en marcha (gate, importaciones, pruebas de modelos locales): anteponer `python -m eim.operation.priority run batch --` para no robar CPU a la captura en vivo (T126). Consumo del equipo por día y su cruce con la captura HFT: `python -m eim.operation.usage summary --days 7` (T127).
 - API dev (desde `v2/`): `python -m uvicorn eim.api.main:app --port 8000 --reload`
 - Web dev: `cd v2/eim/web && npm run dev`
 - Navegador integrado: usar `http://127.0.0.1:PUERTO` (con `localhost` falla).

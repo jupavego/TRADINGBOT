@@ -202,6 +202,18 @@ foreach ($a in $activos) {
   }
 }
 
+# Registro de consumo (T127): CPU, RAM y prioridad de cada proceso del EIM y del equipo cada
+# 30 s en data\usage\ (sin abrir los procesos: también ve los de la sesión 0).
+if (Ocupado (Join-Path $DataDir "usage\usage.lock")) {
+  Write-Host "El registro de consumo ya corre: no se lanza otro."
+} else {
+  Start-Process -FilePath $py -ArgumentList @("-m", "eim.operation.usage", "run", "--data-dir", "`"$DataDir`"") `
+    -WorkingDirectory $v2 -WindowStyle Hidden `
+    -RedirectStandardOutput (Join-Path $logs "consumo.out.log") `
+    -RedirectStandardError (Join-Path $logs "consumo.err.log") | Out-Null
+  Write-Host "Registro de consumo lanzado (data\usage)."
+}
+
 # Equipo despierto: proceso aparte que pide a Windows no suspender por inactividad mientras la
 # API esté arriba (no toca el plan de energía; ver mantener_despierto.ps1). No se duplica.
 $despierto = @(Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |
