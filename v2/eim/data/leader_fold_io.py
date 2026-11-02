@@ -11,6 +11,12 @@ Un líder se rehace desde cero cuando lo leído no cuadra con lo plegado: otro n
 ejecuciones del esperado (unión de otro equipo T61, inserción tardía) o cotizaciones nuevas de
 patas ya plegadas. Una moneda con un relleno anterior a lo aplicado se rehace sola. Así la
 memoria no depende del tamaño del historial (2026-10-29: 10–13 GB → ver `docs/OPERACION.md`).
+
+T128: de los rechazados, lo anterior al corte de cada moneda ya no está en `leader_fills` sino
+plegado en `leader_archive*` (`leader_prune.py`). Rehacer arranca de ahí y solo lee lo
+posterior; las cuentas del control incluyen lo archivado. Una ejecución anterior al corte que
+reaparezca (unión T61) se ignora: ya está dentro de lo archivado o llegó demasiado tarde para
+contarla. Cada poda cambia la `generation` del archivo y el líder se rehace.
 """
 
 from __future__ import annotations
@@ -25,10 +31,12 @@ from eim.copytrading.scorecard import LeaderData, Scorecard, assemble
 from eim.copytrading.trades import Trip
 from eim.copytrading.trip_fold import FillRow, LeaderFold, Quote
 from eim.core.leaders import Leader
+from eim.data import leader_archive as archive
 
 QUOTE_FINAL_MS = 300_000  # `QuoteBook` graba la cotización ≤ ~61 s después: a los 5 min es final
 MARGIN_MS = 120_000  # relectura hacia atrás: ejecución grabada justo después de la lectura previa
 CHUNK = 5_000  # filas por tanda al leer un historial entero (cada tanda retiene el GIL)
+NO_CUT, MAX_T = -(2**62), 2**62  # moneda sin archivo / sin tope de hora
 
 _COLS = ("f.symbol, f.t, f.observed_at, f.tid, f.oid, f.side, f.action, f.size, f.price, "
          "f.start_position, f.end_position, f.fee, f.closed_pnl, f.crossed, f.liquidated, "
@@ -40,7 +48,12 @@ _SYMBOL_SQL = (  # la cotización de una ejecución es de su misma moneda (`Quot
     f"SELECT {_COLS}, q.follow_at, q.quote_t, q.bid, q.ask, q.mid, q.src FROM leader_fills f "
     "LEFT JOIN (SELECT tid, oid, follow_at, quote_t, bid, ask, mid, src FROM leader_follow "
     "WHERE leader_id = ? AND symbol = ?) q ON q.tid = f.tid AND q.oid = f.oid "
-    f"WHERE f.leader_id = ? AND f.observed_at <= ? AND f.symbol = ?{_ORDER}")
+    f"WHERE f.leader_id = ? AND f.observed_at <= ? AND f.symbol = ? AND f.t > ? AND f.t <= ?"
+    f"{_ORDER}")
+_TOTAL_SQL = (  # sin lo anterior al corte de su moneda (ya contado en el archivo)
+    "SELECT count(*) FROM leader_fills f LEFT JOIN leader_archive a ON a.leader_id = f.leader_id "
+    "AND a.symbol = f.symbol WHERE f.leader_id = ? AND f.observed_at <= ? AND "
+    "(a.cut_t IS NULL OR f.t > a.cut_t)")
 
 
 class FundingRow(NamedTuple):
@@ -56,9 +69,11 @@ def _rows(cur, sql: str, params: list) -> Iterator[FillRow]:
             yield FillRow(*r)
 
 
-def _symbol_rows(cur, lid: str, asof: int, symbol: str) -> Iterator[FillRow]:
-    """Todas las ejecuciones de una moneda a `asof`, en orden, con su cotización si la hay."""
-    return _rows(cur, _SYMBOL_SQL, [lid, symbol, lid, asof, symbol])
+def _symbol_rows(cur, lid: str, asof: int, symbol: str, after: int = NO_CUT,
+                 upto: int = MAX_T) -> Iterator[FillRow]:
+    """Las ejecuciones de una moneda a `asof` con `after` < t ≤ `upto`, en orden, con su
+    cotización si la hay."""
+    return _rows(cur, _SYMBOL_SQL, [lid, symbol, lid, asof, symbol, after, upto])
 
 
 def _count(cur, sql: str, params: list) -> int:
@@ -71,6 +86,8 @@ class _State:
     asof: int
     n_quotes: int  # cotizaciones con observed_at ≤ fold.final_before al plegar
     recent: dict[tuple[int, int], int]  # (tid, oid) → observed_at de lo leído hace < MARGIN_MS
+    gen: tuple[int, int] = (0, 0)  # `archive.generation` al rehacer
+    cuts: dict[str, int] | None = None  # moneda → corte del archivo
 
 
 class EvalCache:
@@ -107,12 +124,13 @@ class EvalCache:
 
     def _fold(self, cur, lid: str, asof: int) -> LeaderFold:
         final = asof - QUOTE_FINAL_MS
-        total = _count(cur, "SELECT count(*) FROM leader_fills WHERE leader_id = ? AND "
-                            "observed_at <= ?", [lid, asof])
+        gen = archive.generation(cur, lid)
+        total = gen[1] + _count(cur, _TOTAL_SQL, [lid, asof])
         st = self.states.get(lid)
-        if st is not None and asof >= st.asof:
+        if st is not None and asof >= st.asof and st.gen == gen:
+            cuts = st.cuts or {}
             rows = [r for r in _rows(cur, _NEW_SQL, [lid, asof, st.asof - MARGIN_MS])
-                    if (r.tid, r.oid) not in st.recent]
+                    if (r.tid, r.oid) not in st.recent and r.t > cuts.get(r.symbol, NO_CUT)]
             if st.fold.n + len(rows) == total and \
                     self._n_quotes(cur, lid, st.fold.final_before) == st.n_quotes:
                 self._advance(cur, lid, st, rows, final, asof)
@@ -122,6 +140,7 @@ class EvalCache:
             st = None
         if st is None:
             st = self.states[lid] = self._rebuild(cur, lid, final, asof)
+            st.gen = gen
         st.n_quotes = self._n_quotes(cur, lid, final)
         return st.fold
 
@@ -142,8 +161,9 @@ class EvalCache:
             if r.symbol not in redo:
                 fold.apply(r)
         self.redone += len(redo)
+        cuts = st.cuts or {}
         for sym in sorted(redo):
-            fold.rebuild(sym, _symbol_rows(cur, lid, asof, sym))
+            fold.rebuild(sym, _symbol_rows(cur, lid, asof, sym, cuts.get(sym, NO_CUT)))
         fold.settle()
         st.asof = asof
         st.recent = {k: o for k, o in st.recent.items() if o > asof - MARGIN_MS}
@@ -154,13 +174,17 @@ class EvalCache:
         self.rebuilds += 1
         fold = LeaderFold(self.p)
         fold.begin(final, {})
+        bases = archive.load(cur, lid, self.p)
+        for base in bases.values():
+            fold.restore(base)
+        cuts = {sym: base.cut_t for sym, base in bases.items()}
         recent: dict[tuple[int, int], int] = {}
         for (sym,) in cur.execute("SELECT DISTINCT symbol FROM leader_fills WHERE leader_id = ? "
                                   "AND observed_at <= ? ORDER BY 1", [lid, asof]).fetchall():
-            for r in _symbol_rows(cur, lid, asof, sym):
+            for r in _symbol_rows(cur, lid, asof, sym, cuts.get(sym, NO_CUT)):
                 fold.observe(r)
                 fold.apply(r)
                 if r.observed_at > asof - MARGIN_MS:
                     recent[(r.tid, r.oid)] = r.observed_at
         fold.settle()
-        return _State(fold, asof, 0, recent)
+        return _State(fold, asof, 0, recent, cuts=cuts)
