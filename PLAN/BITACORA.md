@@ -165,3 +165,18 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** la comprobación `Ocupado` contra los cerrojos reales de la sesión 0 da ocupados los 5 que existían y libre un archivo de prueba. 3 pruebas nuevas (vigilante duplicado, liquidaciones duplicadas, y `Ocupado` de PowerShell frente a `instance_lock` de Python) más las relacionadas: 31 pasadas. Los dos scripts se analizan sin errores. Gate en Idle con los servicios en marcha: ruff limpio; 2 439 pasadas, 7 omitidas y 0 fallidas en 14 min 12 s.
 - **Abierto:** ◆ desplegar (reiniciar los servicios; hoy corren en la sesión 0 con el código anterior, sin el cerrojo de liquidaciones: no cerrar ni abrir sesión hasta desplegar). La racha de T78 cuenta desde las 23 UTC del 1-nov.
 - **Siguiente paso:** fusionar, desplegar y comprobar que una ejecución de la tarea de inicio de sesión con todo en marcha no lanza nada.
+
+## 2026-11-02 02:55 UTC · juanpablo-cpu · T126 despliegue de los cerrojos de instancia (PR #180)
+- **Hecho:**
+  - Fusionado el PR #180 (`d23d030`) con permiso del usuario, y main actualizada en la carpeta principal.
+  - **Detener los servicios de la sesión 0:** desde la sesión del usuario, sin elevar, `Stop-Process` dio «Acceso denegado» en los 25 procesos y no se detuvo ninguno. El usuario ejecutó, en un PowerShell de administrador, un script de un solo uso: detiene los procesos del usuario en la sesión 0 (vigilantes antes que sus hijos), relanza con la tarea al encender y espera a la API.
+  - **Relanzado** a las 02:48:07 UTC en la sesión 0: 25 procesos, 3 recolectores en AboveNormal y el resto en BelowNormal; los 5 cerrojos (vigilantes de la API, líderes, microestructura y HFT, y liquidaciones) tomados, y los de la API y las liquidaciones solo existen con el código nuevo. API `ok` (19 agentes, SIMULADO, operando), interfaz y hoja de ruta escuchando.
+  - **Prueba sin duplicados:** la tarea de inicio de sesión, lanzada con todo en marcha, terminó en 8 s (salida 0) con los mismos 26 procesos y sin reabrir ningún registro. El lanzador, ejecutado a mano, da «ya corre: no se lanza otro» en cada servicio; el segundo «equipo despierto» sale por su cerrojo global.
+- **Archivos:** `PLAN/{STATUS,ESTADO_PROYECTO,T127,BITACORA}.md`, `v2/docs/OPERACION.md`.
+- **Pruebas:** las del PR #180 (gate verde: 2 439 pasadas, 7 omitidas) y las comprobaciones de arriba.
+- **Abierto:**
+  - **Parar los servicios de la sesión 0 sin elevar:** «Parar servicio» del icono no los alcanza (entregable 5 de T127).
+  - Avisos tras el arranque, ninguno del despliegue: dos «sin latido» transitorios (precio en vivo y difusor de la API) y la alerta de protección inconsistente de BTCUSDT, que sale en cada arranque desde el 31-oct.
+  - El lanzador avisa de que Ollama no está instalado (`Z:\Ollama`, la unidad Z: no existe): el agente de contexto queda «sin datos».
+  - **Racha de T78:** iba en 3 h (23 a 01 UTC); el corte de ~1 min deja incompleta la hora de las 02, así que cuenta de nuevo desde las 03 UTC del 2-nov y se cumple como pronto el 5-nov a las 03 UTC.
+- **Siguiente paso:** dejar correr la captura; revisar la racha con `hft_ops --streak`.
