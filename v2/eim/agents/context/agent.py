@@ -36,9 +36,10 @@ class ContextAgent:
     requires = {"headlines"}
 
     def __init__(self, params: ContextParams | None = None,
-                 analyzer: Analyzer | None = None) -> None:
+                 analyzer: Analyzer | None = None, unavailable: str = "") -> None:
         self.params = params or ContextParams()
         self.analyzer = analyzer
+        self.unavailable = unavailable    # por qué no hay analizador, si se sabe (T128)
         self._inj = [re.compile(p, re.IGNORECASE) for p in self.params.injection_patterns]
 
     def _clean(self, snapshot: MarketSnapshot, warnings: list[str]) -> list[NewsItem]:
@@ -65,8 +66,8 @@ class ContextAgent:
         p = self.params
         warnings: list[str] = []
         if self.analyzer is None:
-            return self._no_data(snapshot, warnings,
-                                 "sin analizador LLM configurado (clave/red no disponibles)")
+            return self._no_data(snapshot, warnings, self.unavailable
+                                 or "sin analizador LLM configurado (clave/red no disponibles)")
         items = self._clean(snapshot, warnings)
         if len(items) < p.min_headlines:
             return self._no_data(snapshot, warnings,

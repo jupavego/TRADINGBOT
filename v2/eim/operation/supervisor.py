@@ -113,13 +113,13 @@ class Operation:
         return res
 
     def _obs_alerts(self, now: int) -> None:
-        """Salud mínima del observatorio (T75): por transición, vía `op_alerts` + aviso local."""
+        """Salud mínima del observatorio (T75) y LLM local (T128): por transición, `op_alerts`."""
         db = self.extra_dbs.get("obs.duckdb")
-        if db is None:
-            return
         try:
-            from eim.observability.obs_alerts import obs_conditions
-            self.alerts.update(now, obs_conditions(db[0], db[1], now))
+            from eim.observability.obs_alerts import llm_conditions, obs_conditions
+            obs = (obs_conditions(db[0], db[1], now, started_ms=self.status["process_started_at"])
+                   if db is not None else [])
+            self.alerts.update(now, obs + llm_conditions(now))
         except Exception as e:  # noqa: BLE001 - el observatorio nunca tumba la operación
             self.log.write("obs_alertas_error", "warn", error=f"{type(e).__name__}: {e}")
 

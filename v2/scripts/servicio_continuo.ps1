@@ -97,6 +97,10 @@ if (Test-Path $ollama) {
     Write-Host "Ollama lanzado (LLM local de Contexto; tarda ~1 min en responder la primera vez)."
   }
   $env:EIM_CONTEXT_LLM = "local"   # lo heredan el vigilante y la API que lanza este script
+} elseif ($env:EIM_OLLAMA_EXE) {
+  # T128: configurado pero sin acceso (p. ej. una unidad de red, que la tarea al encender no ve).
+  # La API lo avisa en sus alertas («LLM local no disponible») y en el motivo de Contexto.
+  Write-Warning "EIM_OLLAMA_EXE apunta a $ollama, que no existe en esta sesión: Contexto queda sin datos."
 } else {
   Write-Host "Ollama no está instalado ($ollama): Contexto queda en «sin datos» salvo ANTHROPIC_API_KEY."
 }

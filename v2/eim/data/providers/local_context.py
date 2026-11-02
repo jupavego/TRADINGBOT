@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import json
 import os
+import threading
+from collections.abc import Mapping
 from typing import Any
 
 import httpx
@@ -21,6 +23,31 @@ from eim.data.providers.claude_context import SYSTEM_PROMPT
 
 DEFAULT_HOST = "http://127.0.0.1:11434"
 DEFAULT_MODEL = "qwen3:4b"  # ajustable con EIM_LOCAL_LLM_MODEL; verificar licencia al instalarlo
+CHECK_TIMEOUT_S = 2.0       # una unidad de red caída puede tardar minutos en contestar
+
+
+def _exists(path: str, timeout: float) -> bool | None:
+    """¿Existe la ruta? None si no contesta a tiempo."""
+    out: list[bool] = []
+    t = threading.Thread(target=lambda: out.append(os.path.exists(path)), daemon=True)
+    t.start()
+    t.join(timeout)
+    return out[0] if out else None
+
+
+def ollama_problem(env: Mapping[str, str] | None = None) -> str | None:
+    """Por qué el Ollama configurado no puede arrancar en esta sesión, o None (T128). Solo si el
+    usuario lo configuró con `EIM_OLLAMA_EXE`: sin la variable, Contexto sin LLM es una elección.
+    El lanzador (`servicio_continuo.ps1`) solo arranca Ollama si la ruta existe."""
+    exe = (os.environ if env is None else env).get("EIM_OLLAMA_EXE", "").strip().strip('"')
+    if not exe:
+        return None
+    ok = _exists(exe, CHECK_TIMEOUT_S)
+    if ok:
+        return None
+    return (f"EIM_OLLAMA_EXE apunta a {exe}, que {'no contesta' if ok is None else 'no existe'} "
+            "en esta sesión: Ollama no arranca y Contexto queda sin datos. La tarea al encender "
+            "no ve las unidades de red: apunta la variable a una copia local.")
 
 
 TASK = ("Tarea: `tema` = el tema dominante en pocas palabras (no copies un titular). "
