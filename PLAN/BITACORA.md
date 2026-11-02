@@ -203,3 +203,20 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** 8 nuevas, que pasaron tres veces seguidas. Cubren la presión según el latido, la pausa real de un trabajo con CPU (el contador se congela) y su reanudación sola, la espera sin margen con cancelación, cancelar uno en marcha, los restos de un ejecutor muerto, el código de salida, el relevo de un segundo `submit` y el árbol en IDLE. Gate **por la propia cola** contra los datos reales: admitido al instante, 2 458 pasadas, 7 omitidas, 0 fallidas, 850 s y 0 pausas (la captura no sufrió). Tras endurecer la lectura del estado (Windows niega leer o reemplazar el JSON mientras el otro lado lo usa: reintentos breves en `Store.save` y `Store.get`), un segundo gate por la cola dio lo mismo en 790 s.
 - **Abierto:** entregables 3 (puntos de control de la copia externa), 4 (copia externa por la cola) y 5 (parar los servicios sin elevar).
 - **Siguiente paso:** puntos de control de la copia externa.
+
+## 2026-11-02 05:00 UTC · juanpablo-cpu · T127 copia externa reanudable y por la cola (entregables 3 y 4)
+- **Hecho:**
+  - **Puntos de control de la subida** (`eim/continuity/offsite.py`): antes, cada reintento volvía a comprimir y subía todas las partes de 256 MB, porque los extras cambian entre intentos. Ahora, con `work`, el empaquetado queda en `backups/.continuity/pack-<equipo>__<copia>/` con `pack.json` (partes, SHA-256 y cuáles subieron). El intento siguiente lo reutiliza, salta las partes ya subidas que siguen en GitHub con su tamaño y sube el resto y el `meta` al final; luego borra la carpeta. Los extras quedan los del primer intento. Cada parte se reintenta 3 veces (espera de 20 y 60 s), porque la pausa de la cola puede cortar una conexión. Se borran los empaquetados de copias anteriores del mismo equipo y los temporales de antes. Sin `work`, el comportamiento no cambia. `publish` anota «(retomada: N ya subidas)». Alcance: solo se retoma la misma copia; si la pasada siguiente llega tras la copia diaria de las 00:00 UTC, elige la nueva y la sube entera. El beneficio está en repetir el mismo día y en los reintentos por parte.
+  - **Por la cola** (`scripts/copia_externa.ps1`): la lanza con `python -m eim.operation.jobs submit --name copia_externa -- … publish`, así que espera margen, corre en IDLE y se pausa si la captura sufre; `-SinCola` la lanza como antes. La tarea de Windows no cambia. Si la tarea la corta a las 3 h, Windows mata el trabajo con el ejecutor (objeto de la cola) y la pasada siguiente retoma.
+  - No se probó lanzando el script real: con otra carpeta de datos, `publish` sigue usando `backups/` y subiría la copia de hoy a GitHub. Se comprobó en PowerShell la orden que compone y cómo la entiende la cola.
+- **Archivos:** `v2/eim/continuity/{offsite,publish}.py`, `v2/scripts/copia_externa.ps1`, `v2/tests/continuity/test_offsite_resume.py`, `v2/docs/{CONTINUIDAD,OPERACION}.md`, `PLAN/{STATUS,BITACORA}.md`.
+- **Pruebas:** 6 nuevas, todas sin red:
+  - un corte tras 2 partes retoma sin repetirlas;
+  - una parte que falla una vez se reintenta en la misma pasada;
+  - los extras del primer intento se conservan;
+  - una parte perdida en remoto o un empaquetado dañado se suben de nuevo;
+  - se limpian los restos de copias anteriores;
+  - `publish` dice «retomada».
+  La suite de continuidad pasa entera (34). Gate por la cola: 2 464 pasadas, 7 omitidas, 0 fallidas (850 s, 0 pausas).
+- **Abierto:** entregable 5 (parar los servicios sin elevar: necesita que el usuario registre una tarea desde una consola de administrador). La próxima copia externa diaria (20:30 hora local) será la primera por la cola: revisar `data/operation/logs/copia_externa.log` y `python -m eim.operation.jobs list`.
+- **Siguiente paso:** entregable 5.
