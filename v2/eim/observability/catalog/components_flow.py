@@ -55,8 +55,9 @@ DATA: tuple[Component, ...] = (
       "guarda por hora. Reemplaza al archivo histórico de Binance, retirado en 2024.",
       cadence="continuo", cadence_s=3600, produces=("liq_flow",)),
     c("data.arb_market", "arbitrage", "datos", "service", "api", "T39", "Mercado para arbitraje",
-      "Cada ~10 s toma una fotografía de precios spot y futuros de Binance (solo lectura) para "
-      "buscar diferencias que dejen ganancia neta.", cadence="cada 10 s", cadence_s=10,
+      "Cada minuto (cada 10 s si opera en testnet) toma una fotografía de precios spot y futuros "
+      "de Binance (solo lectura) para buscar diferencias que dejen ganancia neta.",
+      cadence="cada 60 s (10 s con ejecución)", cadence_s=60,
       produces=("arb_market",)),
     c("leaders.service", "leaders", "datos", "service", "leaders", "T41", "Líderes de Hyperliquid",
       "Proceso aparte que sigue a los traders públicos mejor evaluados y escribe un tablero cada "
@@ -113,7 +114,8 @@ FLOW: tuple[Component, ...] = (
       produces=("risk_decision",)),
     c("arbitrage.engine", "arbitrage", "analisis", "engine", "api", "T38", "Motor de arbitraje",
       "Calcula oportunidades netas de costos (carry de funding, base, perpetuos relacionados) "
-      "sobre la fotografía del mercado de arbitraje.", cadence="cada 10 s", cadence_s=10,
+      "sobre la fotografía del mercado de arbitraje.", cadence="cada 60 s (10 s con ejecución)",
+      cadence_s=60,
       consumes=(("data.arb_market", "arb_market"),), produces=("arb_scan",)),
     c("risk.hft_engine", "risk", "riesgo", "gate", "hft", "T83", "Riesgo del carril HFT",
       "Código fijo que revisa cada orden rápida antes de enviarla: inventario, pérdidas, ritmo de "

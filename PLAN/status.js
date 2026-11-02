@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-02T11:27:30",
+ "generated": "2026-11-02T12:10:12",
  "tasks": [
   {
    "id": "T01",
@@ -1621,7 +1621,7 @@ window.EIM_STATUS = {
     "T126"
    ],
    "state": "progress",
-   "notes": "**En curso (2026-11-02).** Entregable 1, **un recolector por fuente**: la captura HFT alimenta la microestructura del agente (`eim/data/collectors/micro_feed.py`). Cada segundo guarda el top-10 de su libro verificado en `data/micro/top` y escribe el latido de siempre; `eim/data/micro.py` lee los trades y los huecos de `micro_hft`. El lanzador ya no arranca el recolector T23 para BTCUSDT. La prueba de regresión da las mismas velas con los mismos mensajes de Binance, con y sin un diff perdido. ◆ Desplegar tras T78 (reinicia la captura) y validar unas horas con el recolector viejo en otra carpeta. Entregable 3, **ganchos fuera del ciclo**: la validación de 4 h, el libro fijo, la puntuación de bots y los setups corren en su hilo (`eim/paper/hooks.py`), a nivel batch (`priority.lower_thread`), y laten como `paper.hooks`. El bróker late cada vuelta otra vez (cadencia 120 s), y la vista del bróker, lo caro (~30 s de CPU), se rehace a nivel batch. ◆ Entra con el reinicio de la API tras T78. Faltan los entregables 2, 4 y 5.",
+   "notes": "**En curso (2026-11-02).** Entregable 1, **un recolector por fuente**: la captura HFT alimenta la microestructura del agente (`eim/data/collectors/micro_feed.py`). Cada segundo guarda el top-10 de su libro verificado en `data/micro/top` y escribe el latido de siempre; `eim/data/micro.py` lee los trades y los huecos de `micro_hft`. El lanzador ya no arranca el recolector T23 para BTCUSDT. La prueba de regresión da las mismas velas con los mismos mensajes de Binance, con y sin un diff perdido. ◆ Desplegar tras T78 (reinicia la captura) y validar unas horas con el recolector viejo en otra carpeta. Entregable 3, **ganchos fuera del ciclo**: la validación de 4 h, el libro fijo, la puntuación de bots y los setups corren en su hilo (`eim/paper/hooks.py`), a nivel batch (`priority.lower_thread`), y laten como `paper.hooks`. El bróker late cada vuelta otra vez (cadencia 120 s), y la vista del bróker, lo caro (~30 s de CPU), se rehace a nivel batch. ◆ Entra con el reinicio de la API tras T78. Entregable 4, **menos ruido y menos gasto**: aviso «LLM local no disponible» si `EIM_OLLAMA_EXE` apunta a una ruta que no existe (hoy `Z:`), con el motivo también en Contexto. «Precio en vivo» y «Difusor» solo se vigilan desde que un cliente se conecta en ese arranque. El escáner de arbitraje toma una foto por minuto (cada 10 s solo con ejecución en testnet). La interfaz compilada no compensa: Vite gasta 0,001 % de CPU y ~170 MB de memoria reservada. Faltan los entregables 2 y 5 (esperan la decisión de la puerta).",
    "effort": "medio",
    "phase": 21,
    "goal": "Encargo del usuario (2026-11-01), continuación de T126: quitar la lógica redundante o mal calibrada que encontró la auditoría de T126 y que gasta CPU, RAM o disco sin aportar a los procesos que importan. Con ella dejan de crecer sin control la base de líderes y el ruido de avisos."

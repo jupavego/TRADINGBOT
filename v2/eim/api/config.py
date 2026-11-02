@@ -25,11 +25,12 @@ class Settings:
     EIM_CALENDAR=0 desactiva el calendario económico en vivo (T36), EIM_CALENDAR_S (segundos
     entre consultas) y EIM_FRED_API_KEY (opcional: valores reales; la lee `providers/fred.py`);
     EIM_ARBITRAGE=0 desactiva el escáner de arbitraje (T39), EIM_ARBITRAGE_S (segundos entre
-    escaneos), EIM_ARB_ALERT_SCORE (umbral de alerta, pb/día ajustados) y EIM_ARB_ALERT_S
-    (segundos seguidos sobre el umbral antes de avisar); EIM_PAPER=0 desactiva el servicio en vivo
-    del bróker simulado (T47) y EIM_PAPER_S fija los segundos entre ciclos; EIM_ARB_ASSETS
-    (p. ej. "BTC" o "BTC,ETH") elige los activos del escáner de arbitraje y EIM_ARB_TRI_ASSETS
-    los de sus ciclos triangulares (foco actual, T122: BTC, sin ETH)."""
+    escaneos: 60, o 10 con EIM_ARB_EXECUTION=testnet; T128), EIM_ARB_ALERT_SCORE (umbral de alerta,
+    pb/día ajustados) y EIM_ARB_ALERT_S (segundos seguidos sobre el umbral antes de avisar);
+    EIM_PAPER=0 desactiva el servicio en vivo del bróker simulado (T47) y EIM_PAPER_S fija los
+    segundos entre ciclos; EIM_ARB_ASSETS (p. ej. "BTC" o "BTC,ETH") elige los activos del escáner
+    de arbitraje y EIM_ARB_TRI_ASSETS los de sus ciclos triangulares (foco actual, T122: BTC, sin
+    ETH)."""
 
     data_dir: Path = Path("data")
     reports_db: Path | None = None
@@ -58,7 +59,10 @@ class Settings:
     calendar: bool = False      # T36: refresco del calendario (1 por defecto en from_env)
     calendar_interval_s: float = 6 * 3600
     arbitrage: bool = False     # T39: escáner de arbitraje (1 por defecto en from_env)
-    arbitrage_interval_s: float = 10.0  # pausa entre escaneos (cada uno tarda ~1-2 s)
+    # T128: pausa entre escaneos (cada uno tarda ~1-2 s y guarda 47 KB). Sin ejecución basta
+    # una fotografía por minuto (la alerta pide 60 s seguidos); el ejecutor de T45 la quiere fresca
+    arbitrage_interval_s: float = 60.0
+    arb_exec_scan_s: float = 10.0
     arb_alert_score: float = 3.0
     arb_alert_hold_s: float = 60.0
     arb_assets: tuple[str, ...] = ("BTC",)  # foco BTC (T122, 2026-10-22); "BTC,ETH" lo devuelve
@@ -78,6 +82,8 @@ class Settings:
         env = os.environ
         origins = env.get("EIM_CORS_ORIGINS")
         d = cls()
+        arb_exec = env.get("EIM_ARB_EXECUTION", d.arb_execution).strip().lower()
+        scan = d.arb_exec_scan_s if arb_exec == "testnet" else d.arbitrage_interval_s
         return cls(
             data_dir=Path(env.get("EIM_DATA_DIR", str(d.data_dir))),
             reports_db=Path(env["EIM_REPORTS_DB"]) if env.get("EIM_REPORTS_DB") else None,
@@ -102,12 +108,12 @@ class Settings:
             calendar=env.get("EIM_CALENDAR", "1") != "0",
             calendar_interval_s=float(env.get("EIM_CALENDAR_S", d.calendar_interval_s)),
             arbitrage=env.get("EIM_ARBITRAGE", "1") != "0",
-            arbitrage_interval_s=float(env.get("EIM_ARBITRAGE_S", d.arbitrage_interval_s)),
+            arbitrage_interval_s=float(env.get("EIM_ARBITRAGE_S", scan)),
             arb_alert_score=float(env.get("EIM_ARB_ALERT_SCORE", d.arb_alert_score)),
             arb_alert_hold_s=float(env.get("EIM_ARB_ALERT_S", d.arb_alert_hold_s)),
             arb_assets=_csv(env.get("EIM_ARB_ASSETS", "BTC")) or d.arb_assets,
             arb_tri_assets=_csv(env.get("EIM_ARB_TRI_ASSETS", "USDT,BTC,BNB,SOL,XRP")) or None,
-            arb_execution=env.get("EIM_ARB_EXECUTION", d.arb_execution).strip().lower(),
+            arb_execution=arb_exec,
             arb_exec_interval_s=float(env.get("EIM_ARB_EXEC_S", d.arb_exec_interval_s)),
             paper=env.get("EIM_PAPER", "1") != "0",
             paper_poll_s=float(env.get("EIM_PAPER_S", d.paper_poll_s)),

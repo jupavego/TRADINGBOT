@@ -276,3 +276,25 @@ más reciente por fecha y su siguiente paso. Formato:
   Se ajusta la prueba de silencio del bróker (T126). Gate en el PR.
 - **Abierto:** ◆ entra con el reinicio de la API tras T78 (no toca la captura). Después, comprobar en el observatorio que el bróker late cada minuto también al cierre de 4 h y cuánto tarda cada gancho. Faltan los entregables 2, 4 y 5.
 - **Siguiente paso:** entregable 4 (menos ruido y menos gasto).
+
+## 2026-11-02 17:09 UTC · juanpablo-cpu · T128 menos ruido y menos gasto (entregable 4)
+- **Medido:**
+  - **Ollama:** `EIM_OLLAMA_EXE` apunta a `Z:\Ollama\ollama.exe`, una unidad de red (`\\DESKTOP-TVD562Q\USB`) que la tarea al encender (sesión 0) no ve. El lanzador no arranca Ollama y Contexto queda «sin datos» sin aviso. Hay una copia local en `C:\eim-localai\ollama\ollama.exe` (T62); cambiar la variable es decisión del usuario, porque gasta RAM.
+  - **Interfaz:** el registro de consumo da a Vite (`web`, sesión 0) 0,001 % de CPU de media (máx. 0,69 %) y ~170 MB de memoria reservada, casi toda fuera de la RAM. Servirla compilada ahorraría ~150 MB a cambio de recompilar con cada cambio: no se hace.
+  - **Arbitraje:** el escáner toma una foto cada ~11 s, de 47 KB cada una (~400 MB de escritura al día), aunque aquí no hay ejecución.
+  - **Vigilancia con cliente:** el canal en vivo del Hub solo nace cuando la interfaz se suscribe y ya no se cierra.
+- **Hecho:**
+  - `local_context.ollama_problem`: el motivo, con la comprobación de la ruta acotada a 2 s (una unidad de red caída tarda minutos). `obs_alerts.llm_conditions` lo convierte en el aviso «LLM local no disponible», que el supervisor añade a sus alertas, como mucho una comprobación cada 10 min. El registro pasa el motivo al agente Contexto (`unavailable`). El lanzador escribe un `Write-Warning`.
+  - `obs_conditions(started_ms=…)`: `data.live_ticks` y `api.hub` (`CON_CLIENTE`) no se vigilan hasta su primer evento en este arranque.
+  - `Settings`: escáner de arbitraje cada 60 s, o cada 10 s con `EIM_ARB_EXECUTION=testnet`. La alerta de oportunidad sigue pidiendo 60 s seguidos. El agente de arbitraje, que no vota, verá fotos de hasta un minuto con menos confianza. Catálogo ajustado.
+- **Archivos:** `v2/eim/data/providers/local_context.py`, `v2/eim/agents/context/agent.py`, `v2/eim/agents/registry.py`, `v2/eim/observability/obs_alerts.py`, `v2/eim/operation/supervisor.py`, `v2/eim/api/config.py`, `v2/eim/observability/catalog/components_flow.py`, `v2/scripts/servicio_continuo.ps1`, `v2/tests/operation/test_t128_ruido.py`, `v2/docs/OPERACION.md`, `PLAN/{STATUS,BITACORA}.md`.
+- **Pruebas:** 6 nuevas.
+  - El motivo solo sale si la variable está puesta y la ruta falta; una unidad que no contesta no cuelga la comprobación.
+  - El aviso se enciende, se apaga y comprueba como mucho cada 10 min.
+  - Contexto dice por qué no tiene LLM.
+  - Precio en vivo y Difusor no avisan hasta que alguien se conecta, y sí después.
+  - El escáner va cada minuto salvo con ejecución.
+  Gate en el PR.
+- **Decidido (el usuario lo delegó, opción recomendada):** se quitó la variable de usuario `EIM_OLLAMA_EXE` (era `Z:\Ollama\ollama.exe`). La copia local cargaría un modelo de ~3,5 GB con la RAM libre bajando a 2,5 GB durante T78, y Contexto no vota (sesgo 0). `E:\Ollama\ollama.exe`, la ruta por defecto, no existe: el lanzador no arranca Ollama y no hay aviso. Los servicios en marcha conservan la variable hasta su reinicio. Para activar Contexto con LLM tras T78: `EIM_OLLAMA_EXE=C:\eim-localai\ollama\ollama.exe`, midiendo la RAM.
+- **Abierto:** ◆ entra con el reinicio de la API tras T78. Faltan los entregables 2 y 5: esperan la decisión de la puerta (qué historial de líderes se conserva y qué restos de `data/` se borran).
+- **Siguiente paso:** la decisión de la puerta para los entregables 2 y 5.
