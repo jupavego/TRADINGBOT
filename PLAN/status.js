@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-01T21:51:56",
+ "generated": "2026-11-01T22:18:04",
  "tasks": [
   {
    "id": "T01",
@@ -1608,8 +1608,8 @@ window.EIM_STATUS = {
    "deps": [
     "T126"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**En curso (2026-11-02).** Entregable 1, **registro de consumo**: `eim/operation/usage{,_win,_summary}.py` escribe cada 30 s, en `data/usage/`, la CPU, la RAM y la prioridad de cada parte del EIM, de los programas ajenos que más gastan y del equipo, sin abrir los procesos (ve los de la sesión 0). Lo lanza `servicio_continuo.ps1`; resumen por día cruzado con las horas incompletas de la captura HFT (`usage summary`) y sección «Consumo del equipo» en el informe semanal. Faltan la cola de trabajos pesados, los puntos de control de la copia externa y parar los servicios sin elevar.",
    "effort": "medio",
    "phase": 21,
    "goal": "Encargo del usuario (2026-11-01), continuación de T126. Con las prioridades por nivel ya desplegadas, falta **medir** lo que consume cada proceso y **regular** los trabajos pesados (gate, copia diaria y externa, importaciones de experiencia, pruebas de modelos de T62) según la capacidad real del equipo. Un trabajo pesado debe poder empezar solo cuando hay margen, pausarse si la captura en vivo sufre y reanudarse después desde su último punto de control, sin repetir lo hecho ni tener que correr días seguidos."

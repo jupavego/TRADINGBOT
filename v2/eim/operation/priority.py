@@ -11,7 +11,7 @@ EIM, para que el equipo siga respondiendo; lo pesado, al fondo.
 | nivel      | clase de Windows | quién                                                        |
 |------------|------------------|--------------------------------------------------------------|
 | `realtime` | ABOVE_NORMAL     | recolectores en vivo (microestructura, HFT, liquidaciones)    |
-| `service`  | BELOW_NORMAL     | API, líderes, vigilantes (como antes de T126)                 |
+| `service`  | BELOW_NORMAL     | API, líderes, vigilantes, registro de consumo (T127)          |
 | `batch`    | IDLE             | mantenimiento (auditoría, compactación, poda), gate, copias, LLM |
 
 Windows no deja morir de hambre a IDLE: un hilo que lleva unos segundos sin turno recibe un
@@ -43,7 +43,7 @@ POSIX_NICE = {"service": 5, "batch": 19}   # sin privilegios solo se puede bajar
 ROLES = {
     "collector": "realtime", "hft_collector": "realtime", "liq_collector": "realtime",
     "api": "service", "leaders": "service", "watchdog": "service",
-    "micro_watchdog": "service", "hft_watchdog": "service",
+    "micro_watchdog": "service", "hft_watchdog": "service", "usage": "service",
 }
 INHERITED = ("service", "batch")           # niveles que Windows pasa a los hijos
 
