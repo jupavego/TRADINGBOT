@@ -41,7 +41,7 @@ Rutas relativas a `v2/` salvo indicación. Tamaños y filas medidos en `laptop-i
 |---|---|---|---|---|
 | `data/reports.duckdb` | Reportes de agentes, decisiones de riesgo, operaciones simuladas (`sim_trades`), alertas, capital, pronósticos | 206 MB · 9 tablas · 70 915 filas | crítica | copia diaria + copia externa; experiencia (`reports`, `sim_trades`) |
 | `data/paper.duckdb` | Bróker simulado: contextos por vela, ideas, operaciones con entrada/salida/SL/TP y costos, validación (intentos, ventanas, veredictos), sugerencias, protección, instantáneas del panel | 91 MB · 12 tablas · 49 066 filas | crítica | copia diaria + copia externa; experiencia (`paper_ctx`, `val_versions`, `val_windows`) |
-| `data/leaders.duckdb` | Capturas en vivo de líderes de Hyperliquid y copia simulada (**irrepetibles**: el exchange solo sirve las 10 000 ejecuciones más recientes) | 1 125 MB · 12 tablas · 5,17 M filas | crítica | copia diaria + copia externa; experiencia (`leader_*`, `copy_journal`) |
+| `data/leaders.duckdb` | Capturas en vivo de líderes de Hyperliquid y copia simulada (**irrepetibles**: el exchange solo sirve las 10 000 ejecuciones más recientes). De los rechazados, 7 días de detalle y lo anterior archivado ya plegado (`leader_archive*`, T128) | 1 125 MB · 12 tablas · 5,17 M filas | crítica | copia diaria + copia externa; experiencia (`leader_*` salvo el archivo, `copy_journal`) |
 | `data/obs/obs.duckdb` | Observatorio (derivado del spool JSONL) | 10 tablas · 894 k filas | media | copia diaria + externa; reconstruible |
 
 Las operaciones simuladas conservan sus registros originales (no resúmenes): entrada, salida,
@@ -51,6 +51,13 @@ completas en la copia. Lo que el sistema «aprende» son datos, no un modelo opa
 veredictos de la puerta de validación (`val_*`), contextos de los que salen las ideas
 (`paper_ctx`), calibración versionada y la evidencia de líderes. No hay pesos entrenados fuera de
 estas bases y de las versiones en git.
+
+Excepción (T128): de los líderes rechazados, el grupo de control de la evaluación, la base viva
+solo guarda 7 días de ejecuciones y cotizaciones del seguidor. Lo anterior queda plegado en
+`leader_archive` y `leader_archive_trips` (viajes cerrados con su seguidor, latencias, tomadoras
+y número de ejecuciones), lo justo para que la evaluación dé las mismas cifras. Con el detalle
+se borra su procedencia de la unión T61 (`share_origin`). El detalle crudo
+de esos días solo sigue en las copias diarias (14) y en las versiones de la copia externa.
 
 ### Estado de la máquina
 | Ruta | Qué | Importancia | Se conserva / viaja |

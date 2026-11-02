@@ -11,6 +11,10 @@ el historial completo (`tests/copytrading/test_trip_fold.py`).
 
 Quien lo alimenta (`eim/data/leader_fold_io.py`) garantiza el orden: lo nuevo de una moneda va
 por `apply` solo si es posterior a lo aplicado; si no, `rebuild` la rehace entera.
+
+T128: de los líderes rechazados lo anterior a 7 días se archiva ya plegado (`SymbolBase`, ver
+`trip_archive.py`); `restore` arranca la moneda desde ahí y `rebuild` vuelve a ese punto, no a
+cero.
 """
 
 from __future__ import annotations
@@ -80,6 +84,20 @@ class FoldTrip(Trip):
 
 
 @dataclass
+class SymbolBase:
+    """Lo archivado de una moneda (T128): sus viajes plegados hasta `cut_t`, instante tras el que
+    la posición quedó plana y sin patas en espera, y las cuentas de esas ejecuciones."""
+
+    symbol: str
+    cut_t: int
+    prev: float | None  # posición final de la última ejecución archivada
+    trips: list[FoldTrip] = field(default_factory=list)
+    n: int = 0
+    taker: tuple[int, int] = (0, 0)  # como `LeaderFold.taker`
+    latency: dict[str, dict[int, int]] = field(default_factory=dict)  # canal → {ms: veces}
+
+
+@dataclass
 class _Sym:
     trips: SymbolTrips
     pending: dict[int, FoldTrip] = field(default_factory=dict)  # id → viaje con patas en espera
@@ -89,6 +107,7 @@ class LeaderFold:
     def __init__(self, p: ScoreParams) -> None:
         self.p = p
         self.syms: dict[str, _Sym] = {}
+        self.bases: dict[str, SymbolBase] = {}  # lo archivado de cada moneda (T128)
         self.latency: dict[str, array] = {}  # canal → latencias en vivo (ms)
         self.taker = [0, 0]  # (tomadoras, ejecuciones) fuera del historial reenviado
         self.n = 0  # ejecuciones contadas
@@ -97,6 +116,21 @@ class LeaderFold:
 
     def begin(self, final_before: int, quotes: dict[tuple[int, int], Quote]) -> None:
         self.final_before, self.quotes = final_before, quotes
+
+    def restore(self, base: SymbolBase) -> None:
+        """Arranca una moneda desde lo archivado y suma sus cuentas (antes de cualquier fila:
+        lo que llegue después solo puede ser posterior a `base.cut_t`)."""
+        self.bases[base.symbol] = base
+        self.syms[base.symbol] = self._new(base.symbol)
+        self.n += base.n
+        self.taker[0] += base.taker[0]
+        self.taker[1] += base.taker[1]
+        for ch, hist in base.latency.items():
+            xs = self.latency.get(ch)
+            if xs is None:
+                xs = self.latency[ch] = array("d")
+            for ms, k in hist.items():
+                xs.extend(array("d", [float(ms)]) * k)
 
     # --- alimentación -----------------------------------------------------------------------
     def observe(self, r: FillRow) -> None:
@@ -134,8 +168,8 @@ class LeaderFold:
         s.trips.add(r)
 
     def rebuild(self, symbol: str, rows: Iterable[FillRow]) -> None:
-        """Rehace los viajes de una moneda con TODAS sus ejecuciones en orden (no las cuentas:
-        esas ejecuciones ya pasaron por `observe`)."""
+        """Rehace los viajes de una moneda con TODAS sus ejecuciones posteriores a lo archivado,
+        en orden (no las cuentas: esas ejecuciones ya pasaron por `observe`)."""
         s = self.syms[symbol] = self._new(symbol)
         for r in rows:
             s.trips.add(r)
@@ -149,7 +183,12 @@ class LeaderFold:
                 self._drain(tr)
 
     def _new(self, symbol: str) -> _Sym:
-        return _Sym(SymbolTrips(symbol, self.p.avg_down_tol, self._drain, FoldTrip))
+        s = _Sym(SymbolTrips(symbol, self.p.avg_down_tol, self._drain, FoldTrip))
+        base = self.bases.get(symbol)
+        if base is not None:  # como si acabara de aplicar lo archivado
+            s.trips.done = list(base.trips)
+            s.trips.prev, s.trips.last_t = base.prev, base.cut_t
+        return s
 
     def _quote(self, f: FillRow) -> Quote | None:
         q = f.quote()

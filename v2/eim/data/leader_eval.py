@@ -51,7 +51,8 @@ def context(store: LeaderStore, ld: Leader, asof: int) -> LeaderData:
 
 def gather(store: LeaderStore, ld: Leader, asof: int) -> LeaderData:
     """Todo lo capturado del líder a `asof`, historial completo en memoria (referencia de
-    `EvalCache` en los tests; con millones de ejecuciones ocupa varios GB)."""
+    `EvalCache` en los tests; con millones de ejecuciones ocupa varios GB). De un rechazado
+    podado (T128) solo ve lo posterior a cada corte: lo archivado lo suma `EvalCache`."""
     d = context(store, ld, asof)
     d.fills = [f for f in store.fills_fast(ld.id) if f.observed_at <= asof]
     d.funding = [r for r in store.funding_rows(ld.id) if r.observed_at <= asof]

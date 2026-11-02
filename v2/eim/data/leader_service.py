@@ -9,6 +9,8 @@
   líder), así la memoria no crece con el historial. Solo lectura de datos públicos: no hay órdenes.
 - Copia simulada en vivo (T42, `copy_mode` ≠ `off`): una subcuenta virtual por líder con
   las mismas ejecuciones, cotizaciones, marcas y reconciliaciones (`copy_live.py`).
+- Poda diaria de los rechazados (T128, `leader_prune.py`): 7 días de detalle y lo anterior
+  archivado ya plegado; la evaluación da las mismas cifras y la base deja de crecer.
 - Latido en `data/leaders/heartbeat.json` (como mucho cada `HEARTBEAT_EVERY_S`) cada vez que
   termina una tarea, bien o mal: el vigilante de proceso (`python -m eim.leaders supervise`)
   relanza el servicio si nada termina en 15 min. Por tarea y no por vuelta del bucle: tras un
@@ -34,6 +36,7 @@ from eim.data.hl_market import exchange_spec
 from eim.data.leader_board import BoardStore
 from eim.data.leader_eval import evaluate, refresh_portfolios
 from eim.data.leader_fold_io import EvalCache
+from eim.data.leader_prune import prune
 from eim.data.leader_quotes import QuoteBook
 from eim.data.leader_snapshot import take_snapshot_request
 from eim.data.leader_store import LeaderStore
@@ -50,6 +53,8 @@ PORTFOLIO_PER_TICK = 2  # `portfolio` pesa 20: dos por minuto no compiten con la
 DAY_MS = 86_400_000
 HEARTBEAT_EVERY_S = 30.0
 HEARTBEAT = "heartbeat.json"
+PRUNE_EVERY_S = 86_400.0
+FIRST_PRUNE_S = 1_800.0  # tras el arranque: relleno y primera evaluación ya hechos
 
 log = logging.getLogger(__name__)
 
@@ -59,6 +64,7 @@ class LeaderService(LeaderWatch):
                  root: str | Path, params: ScoreParams | None = None,
                  quote_coins: list[str] | None = None, score_every_s: float = 300.0,
                  first_score_s: float = 60.0, portfolio_every_s: float = 60.0,
+                 prune_every_s: float = PRUNE_EVERY_S, first_prune_s: float = FIRST_PRUNE_S,
                  copy_mode: str = "off", copy_params: CopyParams | None = None,
                  **kw) -> None:
         super().__init__(store, info, leaders, **kw)
@@ -69,8 +75,10 @@ class LeaderService(LeaderWatch):
         coins = quote_coins if quote_coins is not None else self._coins()
         self.quotes = QuoteBook(coins, self.p.exec_delay_ms, self.p.live_max_latency_ms)
         self.score_every_s, self.portfolio_every_s = score_every_s, portfolio_every_s
+        self.prune_every_s = prune_every_s
         start = time.monotonic()
-        self._next = {"score": start + first_score_s, "portfolio": start, "heartbeat": start}
+        self._next = {"score": start + first_score_s, "portfolio": start, "heartbeat": start,
+                      "prune": start + first_prune_s}
         self.boards_saved = 0
         self.share = None             # T61: `ShareAgent` (lo asigna la CLI `run` si hay nube)
         self._snap_task: asyncio.Task | None = None       # instantánea a pedido en curso
@@ -205,6 +213,9 @@ class LeaderService(LeaderWatch):
         if now >= self._next["score"]:
             self._next["score"] = now + self.score_every_s
             await self._safe("evaluación", self.score_now())
+        if now >= self._next["prune"]:  # tras la evaluación, nunca a la vez (misma caché)
+            self._next["prune"] = now + self.prune_every_s
+            await self._safe("poda", self.prune_now())
 
     async def _safe(self, what: str, coro) -> None:
         await super()._safe(what, coro)
@@ -237,6 +248,17 @@ class LeaderService(LeaderWatch):
                                         cache=self.eval_cache)
         self.boards.save(board)
         self.boards_saved += 1
+
+    async def prune_now(self) -> None:
+        """La evaluación siguiente ve el archivo nuevo (`generation`) y rehace a esos líderes."""
+        got = await asyncio.to_thread(prune, self.store, self.now(), self.p)
+        if got:
+            detail = {"leaders": len(got), "fills": sum(x.fills for x in got.values()),
+                      "quotes": sum(x.quotes for x in got.values()),
+                      "trips": sum(x.trips for x in got.values()),
+                      "origins": sum(x.origins for x in got.values())}
+            log.info("poda de rechazados: %s", detail)
+            hooks_service.service_event("leaders.service", "poda de rechazados", detail=detail)
 
     async def run(self, stop: asyncio.Event, minutes: float | None = None) -> None:
         self.heartbeat()
