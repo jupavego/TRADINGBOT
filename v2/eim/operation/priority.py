@@ -37,6 +37,8 @@ import sys
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 
+from eim.operation import proc_access
+
 ENV = "EIM_PRIORITY"
 WINDOWS_CLASS = {"realtime": 0x8000, "service": 0x4000, "batch": 0x40}
 POSIX_NICE = {"service": 5, "batch": 19}   # sin privilegios solo se puede bajar
@@ -96,12 +98,14 @@ def set_tier(tier: str) -> bool:
 
 
 def apply_role(role: str, env: Mapping[str, str] | None = None) -> str | None:
-    """Al arrancar un servicio: fija el nivel de su papel si `EIM_PRIORITY` está activo.
-    Devuelve el nivel aplicado, o None si no se tocó nada."""
-    tier = ROLES.get(role)
-    if tier is None or not enabled(env):
+    """Al arrancar un servicio, si `EIM_PRIORITY` está activo: fija el nivel de su papel y deja
+    que su usuario lo vea y lo pare desde cualquier sesión (`proc_access`, T127). Devuelve el
+    nivel aplicado, o None si no se tocó el nivel."""
+    if not enabled(env):
         return None
-    return tier if set_tier(tier) else None
+    proc_access.open_to_user()
+    tier = ROLES.get(role)
+    return tier if tier is not None and set_tier(tier) else None
 
 
 @contextmanager
