@@ -166,3 +166,17 @@ def test_protection_journal_routes(client):
     v = client.get("/v2/paper?symbol=BTCUSDT").json()
     assert v["protection"]["verified"] is True and v["protection"]["n_inconsistent"] == 0
     assert all(p["protection"]["inconsistent"] == 0 for p in v["profiles"])
+
+
+def test_hooks_are_registered_in_order_and_run_outside_the_cycle(client):
+    """T128: validación, libro fijo, bots y setups van en el hilo de ganchos, no en el ciclo."""
+    paper = client.app.state.paper
+    assert [(h.name, h.component) for h in paper.hooks.hooks] == [
+        ("validacion", "validation.gate"), ("libro", None), ("bots", "bots.scoring"),
+        ("setups", None)]
+    out = paper.hooks.run_once()
+    assert out["errors"] == {} and "validacion" in out["ran"] and "libro" in out["ran"]
+    assert paper.hooks.run_once()["ran"] == []          # hasta el próximo cierre, nada que hacer
+    live = client.get("/v2/paper?symbol=BTCUSDT").json()["live"]
+    assert live["hooks"]["passes"] == 2 and set(live["hooks"]["hooks"]) == {
+        "validacion", "libro", "bots", "setups"}

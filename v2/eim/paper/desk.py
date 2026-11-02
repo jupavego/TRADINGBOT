@@ -14,6 +14,7 @@ from eim.data.paper_store import PaperStore
 from eim.data.providers.base import Provider
 from eim.data.store import Store
 from eim.data.timeframes import FOCUS, tf_ms
+from eim.operation.priority import lower_thread
 from eim.paper import ledger
 from eim.paper.authority_obs import DecisionEmitter
 from eim.paper.balance import balance
@@ -23,6 +24,7 @@ from eim.paper.desk_audit import DeskAudit
 from eim.paper.engine import CAUSES, Outcome, Path, run_shadow
 from eim.paper.feedback import Learner, family_stats, strategy_stats, timeframe_stats
 from eim.paper.generate import CtxGenerator, now_ms
+from eim.paper.hooks import HookRunner
 from eim.paper.insights import insights
 from eim.paper.ladder_book import LadderSim
 from eim.paper.params import (
@@ -79,7 +81,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         self.live_error = ""
         self.last_tick: int | None = None
         self.loop_started: int | None = None    # el servicio arrancó (aunque falte el 1er ciclo)
-        self.after_tick: list = []              # ganchos tras cada ciclo (T49: validación)
+        self.hooks = HookRunner()               # ganchos tras cada ciclo, en su hilo (T128)
         self._cache: dict[str, View] = {}
         self._lock = threading.Lock()
         self._busy: dict[str, threading.Event] = {}    # recálculos en segundo plano en curso
@@ -93,7 +95,8 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         self._audit_init()
 
     def live_status(self) -> dict:
-        return {"last_tick": self.last_tick, "started": self.loop_started, "error": self.live_error}
+        return {"last_tick": self.last_tick, "started": self.loop_started, "error": self.live_error,
+                "hooks": self.hooks.status()}
 
     # --- cálculo ----------------------------------------------------------------------
     def _stamp(self, symbol: str) -> tuple:
@@ -142,6 +145,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
             ev = self._busy[symbol] = threading.Event()
 
         def work() -> None:
+            lower_thread()   # T128: rehacer la vista (~30 s de CPU) es trabajo de fondo
             try:
                 self.view(symbol)
                 self.view_error = ""
@@ -210,14 +214,15 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         except Exception as exc:  # noqa: BLE001 - observar no puede romper lo observado
             self.obs_error = f"{type(exc).__name__}: {exc}"
 
-    def ledger_tick(self) -> None:
+    def ledger_tick(self) -> bool:
         """Gancho tras cada ciclo: pone al día el libro fijo una vez por hora (calcula la vista
         solo si hay contextos nuevos; si alguien la consultó antes, ya está calculada)."""
         if now_ms() - self._ledger_at < LEDGER_EVERY_MS:
-            return
+            return False
         self._ledger_at = now_ms()
         for sym in self.symbols:
             self.view(sym)
+        return True
 
     def _fine(self, symbol: str, t0: int) -> Path | None:
         """Velas finas (1 min) para resolver el orden dentro de las velas de 15 m ambiguas del

@@ -157,12 +157,16 @@ FLOW: tuple[Component, ...] = (
     c("paper.broker", "paper", "ejecucion", "service", "api", "T47", "Bróker simulado",
       "Prueba decenas de estrategias en papel, en 15 m, 1 h y 4 h, y aprende de cada pérdida. "
       "Todo es Simulado: nunca envía órdenes. Cada perfil decide con su política registrada.",
-      # T126: late cada ciclo de 60 s, pero tras él corren los ganchos (validación de 4 h,
-      # puntuación de bots) sin latir: unos minutos callado es normal. 300 s × 3 = 900 s, el
-      # mismo plazo con el que el vigilante da por colgada la API (11 falsas el 2026-10-31)
-      cadence="cada 60 s (más los ganchos tras cada vela)", cadence_s=300,
+      # T128: late en cada ciclo de 60 s; sus ganchos corren aparte (`paper.hooks`) y ya no
+      # lo callan. 120 s × 3 = 360 s: holgura para el ciclo del cierre de 4 h
+      cadence="cada 60 s", cadence_s=120,
       consumes=(("data.store", "candles"), ("risk.authority", "proposal")),
       produces=("paper_trade", "risk_decision")),
+    c("paper.hooks", "paper", "validacion", "service", "api", "T128", "Ganchos del bróker",
+      "Tras cada ciclo del bróker, y en segundo plano para no frenarlo: la validación al cierre "
+      "de 4 h, el libro fijo cada hora, la puntuación de bots y el seguimiento de sugerencias. "
+      "Late con lo que tardó cada uno.", cadence="tras cada ciclo (latido cada ~4 min)",
+      cadence_s=300, consumes=(("paper.broker", "paper_trade"),)),
     c("leaders.copy_sim", "leaders", "ejecucion", "service", "leaders", "T42", "Copia simulada",
       "Una cuenta virtual copia a un líder con los costos reales para ver cuánto del resultado "
       "era copiable. Solo Simulado.", cadence="continuo", cadence_s=300,
@@ -239,7 +243,8 @@ VALIDATION: tuple[Component, ...] = (
       consumes=(("backtest.engine", "backtest_result"),), produces=("edge_verdict",)),
     c("validation.gate", "validation", "validacion", "gate", "api", "T49", "Puerta por estrategia",
       "Pone a prueba cada estrategia del bróker simulado con criterios inmutables y le da un "
-      "veredicto con motivo: validada, en observación o rechazada.", cadence="a demanda",
+      "veredicto con motivo: validada, en observación o rechazada.",
+      cadence="cada cierre de vela de 4 h (y a demanda)", cadence_s=4 * 3600,
       consumes=(("paper.broker", "paper_trade"),), produces=("validation_verdict",)),
     c("validation.setups_publisher", "validation", "validacion", "service", "api", "T50",
       "Publicador de sugerencias", "Publica como máximo 3 oportunidades intradía, solo de "
