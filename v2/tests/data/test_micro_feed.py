@@ -11,6 +11,7 @@ from eim.data.collectors import health
 from eim.data.collectors.binance_ws import Collector
 from eim.data.collectors.micro_feed import MicroFeed
 from eim.data.micro import read_micro
+from eim.operation.watchdog import instance_lock
 from tests.data.hft_helpers import MS, SYM, T0, Exchange, capture, send, snap, trade
 
 STEP, BARS, SECONDS = 60_000, 20, 1200
@@ -118,3 +119,25 @@ def test_the_feed_never_stops_the_capture_and_keeps_the_panel_heartbeat(tmp_path
     hb = health.read_heartbeat(tmp_path, SYM)
     assert hb["source"] == "hft_ws" and hb["depth_msgs"] == 6 and hb["symbol"] == SYM
 
+
+
+def test_while_an_old_collector_runs_the_feed_writes_nothing_and_then_takes_over(tmp_path):
+    t23 = instance_lock(tmp_path / "micro" / "collector.lock")      # un recolector T23 vivo
+    feed = MicroFeed(tmp_path, SYM)
+    ex = Exchange(3)
+    cap, _ = capture(tmp_path / "hft")
+    cap.on_book = feed.on_book
+    send(cap, ex.step(e_ms=T0 // MS)[0], T0 + MS)
+    snap(cap, ex.snapshot(), T0 + 20 * MS)
+    for s in range(1, 4):
+        send(cap, ex.step(e_ms=T0 // MS + 1000 * s)[0], T0 + s * 10**9)
+    feed.flush()
+    feed.heartbeat(cap.status())
+    assert feed.tops == 0 and not (tmp_path / "micro" / "top").exists()
+    assert health.read_heartbeat(tmp_path, SYM) is None               # el latido es de T23
+    t23.close()                                                       # T23 se detuvo
+    feed.heartbeat(cap.status())
+    send(cap, ex.step(e_ms=T0 // MS + 5000)[0], T0 + 5 * 10**9)
+    feed.flush()
+    assert feed.tops == 1 and health.read_heartbeat(tmp_path, SYM)["source"] == "hft_ws"
+    feed.close()

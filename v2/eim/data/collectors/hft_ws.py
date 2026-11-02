@@ -223,6 +223,7 @@ async def run(root, symbol: str, stop: asyncio.Event | None = None,
         store.close()
         try:
             feed.flush()
+            feed.close()
         except Exception:  # noqa: BLE001 - al cerrar, lo que no se escriba se pierde
             pass
 

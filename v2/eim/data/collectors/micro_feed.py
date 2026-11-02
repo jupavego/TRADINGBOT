@@ -8,6 +8,9 @@ segundo en `data/micro/top` (el mismo formato que antes) y el latido `data/micro
 para el panel. Los trades y los huecos los lee `eim.data.micro` directamente de `micro_hft`.
 
 La captura no espera nunca al feed: `on_book` solo acumula y `flush` se llama desde un hilo.
+Un solo escritor: el feed toma el cerrojo del recolector T23 (`micro/collector.lock`). Mientras
+un T23 siga vivo (por ejemplo, si la captura se reinicia con este código antes del despliegue
+coordinado), el feed no escribe nada y lo reintenta en cada latido.
 """
 
 from __future__ import annotations
@@ -18,8 +21,9 @@ import time
 from pathlib import Path
 
 from eim.data.collectors.book import LocalBook
-from eim.data.collectors.health import write_heartbeat
+from eim.data.collectors.health import micro_dir, sfx, write_heartbeat
 from eim.data.collectors.writer import HourlyWriter
+from eim.operation.watchdog import instance_lock
 
 TOP_EVERY_MS = 1000
 
@@ -33,10 +37,19 @@ class MicroFeed:
         self._last = 0
         self.tops = 0
         self.started_at = int(time.time() * 1000)
+        self._lock = None
+        self.claim()
+
+    def claim(self) -> bool:
+        """¿Es el escritor? Toma el cerrojo de T23 si está libre."""
+        if self._lock is None:
+            self._lock = instance_lock(micro_dir(self.root) / f"collector{sfx(self.symbol)}.lock")
+        return self._lock is not None
 
     def on_book(self, t_ms: int, book: LocalBook) -> None:
         """Tras cada diff aplicado al libro sincronizado (hora del evento de Binance)."""
-        if t_ms - self._last < self.every or not book.bids or not book.asks:
+        if (self._lock is None or t_ms - self._last < self.every
+                or not book.bids or not book.asks):
             return
         self._last = t_ms
         bids, asks = book.top(10)
@@ -53,7 +66,10 @@ class MicroFeed:
             self._w.flush()
 
     def heartbeat(self, status: dict) -> None:
-        """El latido de siempre del recolector de microestructura, con las cifras de la captura."""
+        """El latido de siempre del recolector de microestructura, con las cifras de la captura
+        (solo si es el escritor: si no, el latido es de T23)."""
+        if not self.claim():
+            return
         counts = status.get("counts") or {}
         write_heartbeat(self.root, {
             "last_heartbeat": int(time.time() * 1000), "pid": os.getpid(), "symbol": self.symbol,
@@ -61,3 +77,8 @@ class MicroFeed:
             "trades": counts.get("trades", 0), "depth_msgs": counts.get("depth", 0),
             "gaps": sum((status.get("gaps") or {}).values()), "tops": self.tops,
             "source": "hft_ws"}, self.symbol)
+
+    def close(self) -> None:
+        if self._lock is not None:
+            self._lock.close()
+            self._lock = None
