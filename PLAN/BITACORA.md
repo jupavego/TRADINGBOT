@@ -481,3 +481,7 @@ más reciente por fecha y su siguiente paso. Formato:
   - En `.claude/worktrees/t129-proteccion-falso-positivo` (bloqueado, de otra sesión) hay una «T129» sin confirmar (fase 18) sobre el mismo falso positivo: choca con el número de la T129 de la fase 22 y su arreglo ya está en `main` (T130). Decisión del usuario: descartarla o renombrarla como anexo de T130.
   - Panel de `/v2/paper/exits` (BACKLOG T130 (1)).
 - **Siguiente paso:** T131.
+## 2026-11-03 16:30 UTC · juanpablo-cpu · Traspaso a otra cuenta de Claude
+- El usuario sigue con otra cuenta de Claude en este PC. Traspaso en `PLAN/ESTADO_PROYECTO.md` §0: primeros pasos, estado de git y worktrees a medias, y siguiente tarea (T131, tras integrar `claude/fase22-mejoras-estudio`).
+- La «T129» duplicada (fase 18) del worktree `t129-proteccion-falso-positivo` queda superada por T130; su diagnóstico se conservó como `PLAN/notas/T130_anexo_falso_inconsistente.md`, con la causa de raíz (sincronización del 1 m solo en el tick del bróker). Esa carrera queda en BACKLOG T130 (4).
+- Se pidió a la sesión «Biblioteca del proyecto» que confirme y suba su trabajo en `claude/fase22-mejoras-estudio` sin fusionar: lo hizo, en el **PR #199** (abierto; revisar y fusionar antes de T131). Se quitaron los worktrees fusionados y limpios `wt-t128f` y `wt-t62`.
