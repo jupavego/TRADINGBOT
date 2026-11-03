@@ -104,6 +104,7 @@ T79–T86 (HFT), T87–T103 (multiactivo). Orden sugerido en `00_MASTER.md` (fas
   - Cierres parciales y SL inicial con piso de volatilidad, solo en el banco hasta que T134 los apruebe (el SL nuevo crea versiones en T49).
   - Agentes solo como selectores discretos validados por `ExitFeatures`; nunca escriben stops; LLM fuera.
   - Sin dependencias nuevas salvo statsmodels si T133 lo exige, tras T04.
+  - Mejoras de método E1–E12 del estudio de la bibliografía (2026-11-03, `PLAN/notas/T129_sl_dinamico.md` §8): purga y embargo, Romano-Wolf además de Holm, objetivo de selección pre-registrado, estrés de costos, cota del oráculo antes de T133, prueba en papel con potencia calculada (sustituye a «mismo signo») y Kelly sobre el límite inferior de E[R].
 - T125: la copia completa externa va a la versión `eim-copias` del mismo repo privado; cada
   equipo con identidad propia; el código público nunca lleva datos ni claves.
 
