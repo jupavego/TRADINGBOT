@@ -373,3 +373,7 @@ td[data-sign="-1"] { color: var(--down); }
 .lib-form { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
 .lib-form input { flex: 1 1 220px; }
 .lib-answer { margin-top: 6px; font-size: 12px; }
+
+/* Pestaña Inversionistas: documento autocontenido (public/inversionistas.html) a todo el ancho */
+.tabbody.inv { padding: 0; }
+.tabbody.inv iframe { display: block; width: 100%; height: 100%; min-height: 78vh; border: 0; background: #040a13; }
