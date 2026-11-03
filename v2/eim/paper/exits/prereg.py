@@ -23,10 +23,13 @@ from pydantic import BaseModel, ConfigDict, Field
 from eim.validation.criteria import file_hash
 
 VERSIONS_DIR = Path(__file__).parent / "versions"
-DEFAULT_VERSION = "prereg_t131_v1"
+DEFAULT_VERSION = "prereg_t131_v2"
 # SHA-256 (fin de línea LF) de cada versión publicada. Solo se añaden entradas.
+# v2 corrige la definición de la meseta (sobre LA MEJORA frente a la base, como dice §5.3 de
+# `PLAN/notas/T129_sl_dinamico.md`, no sobre el E[R] absoluto); v1 queda publicada e intacta.
 PUBLISHED: dict[str, str] = {
     "prereg_t131_v1": "730a11f987e65e0835aa9e4090a7d62005be60fd582953f6113605fa27bc9c73",
+    "prereg_t131_v2": "0dd3d9d8550beac024ac71f5d33c52f45da31b7526bf7e1844df98af117e64f0",
 }
 IMPLEMENTED = "implementada"
 

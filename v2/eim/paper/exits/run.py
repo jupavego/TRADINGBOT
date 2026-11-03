@@ -158,7 +158,11 @@ def analyse(ideas: Sequence[Idea], ctx: ExitContext, pr: Prereg, ladder: LadderP
     """Corrida del banco sobre `ideas` con la rejilla implementada. Devuelve todo en un dict."""
     vs = variants_of(pr, ladder)
     real = bench.real_ideas(ideas)
-    b = bench.run(real, [v.policy for v in vs], ctx, pr.risk_usd)
+    # Los marcos de decisión del pre-registro son vinculantes: en 15 m los contextos arrancan en
+    # 2026-09-16, fuera de la ventana del diseño, así que no hay fuera de muestra que medir (§5.3).
+    tfs = set(pr.design.decision_timeframes)
+    kept = [i for i in real if i.timeframe in tfs]
+    b = bench.run(kept, [v.policy for v in vs], ctx, pr.risk_usd)
     start, end = _span(b, pr)
     embargo = wf.embargo_for([t for v in vs for t in b.trades(v.id)],
                              feature_ms=int(pr.design.embargo_feature_hours * HOUR_MS),
@@ -183,6 +187,9 @@ def analyse(ideas: Sequence[Idea], ctx: ExitContext, pr: Prereg, ladder: LadderP
     return {
         "cost_factor": cost_factor, "attempts": pr.attempts(),
         "pending_variants": pr.pending(), "bench": b.to_json(),
+        "ideas": {"given": len(ideas), "control": len(ideas) - len(real),
+                  "timeframes_kept": sorted(tfs),
+                  "dropped_by_timeframe": len(real) - len(kept)},
         "window": {"from": wf.iso(start), "to": wf.iso(end),
                    "embargo_hours": round(embargo / HOUR_MS, 2)},
         "variants": per_variant,

@@ -123,6 +123,11 @@ def render(meta: dict, res: dict, ctrl: dict, stress: dict | None = None) -> str
            f"{res['bench']['paired']} están emparejadas (todas las variantes las cerraron); "
            f"{res['bench']['skipped_qty']} se descartaron por no llegar a la cantidad mínima con "
            f"el riesgo fijo de {pr['risk_usd']:g} USDT.", "",
+           (f"Marcos de decisión del pre-registro: "
+            f"{', '.join(res['ideas']['timeframes_kept'])}; se dejaron fuera "
+            f"{res['ideas']['dropped_by_timeframe']} ideas de otros marcos y "
+            f"{res['ideas']['control']} del control, que se mide aparte."
+            if "ideas" in res else ""), "",
            "Lo que **no** se mide aquí, con su tarea: "
            + ", ".join(f"`{k}` ({v})" for k, v in res["pending_variants"].items())
            + ". Cuentan como intentos aunque no se corran (E12).", "",

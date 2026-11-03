@@ -42,8 +42,8 @@ def test_a_file_whose_name_and_version_disagree_fails(tmp_path):
 def test_an_unknown_field_is_refused_instead_of_ignored(tmp_path):
     data = json.loads((pr.VERSIONS_DIR / f"{pr.DEFAULT_VERSION}.json").read_bytes())
     data["accept"]["atajo"] = True
-    p = tmp_path / "prereg_t131_v2.json"
-    data["version"] = "prereg_t131_v2"
+    p = tmp_path / "prereg_t131_v9.json"
+    data["version"] = "prereg_t131_v9"
     p.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     with pytest.raises(Exception, match="atajo"):
         pr.load_prereg(path=p)

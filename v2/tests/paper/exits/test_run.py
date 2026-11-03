@@ -25,14 +25,14 @@ SEED = 131
 def small_prereg(tmp_path_factory):
     """El pre-registro real con tramos y réplicas pequeños (no publicado: sin huella fijada)."""
     data = json.loads((VERSIONS_DIR / "prereg_t131_v1.json").read_bytes())
-    data["version"] = "prereg_t131_v2"
+    data["version"] = "prereg_t131_v9"
     data["design"] |= {"fit_months": 2, "test_months": 1, "step_months": 1,
                        "embargo_feature_hours": 24, "start": "2025-01-01T00:00:00Z",
                        "end": "2030-01-01T00:00:00Z"}
     data["bootstrap"]["reps"] = 1000
     data["multiple"]["reps"] = 1000
     data["ruin"] |= {"reps": 50, "trades": 50}
-    p = tmp_path_factory.mktemp("prereg") / "prereg_t131_v2.json"
+    p = tmp_path_factory.mktemp("prereg") / "prereg_t131_v9.json"
     p.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     return load_prereg(path=p)
 
