@@ -1,0 +1,361 @@
+{
+ "meta": {
+  "data": "C:\\Users\\jo\\Desktop\\JP\\TRADINGBOT\\v2\\backups\\t131_banco",
+  "symbol": "BTCUSDT",
+  "commit": "28d46ea",
+  "built": "2026-11-03T23:08+00:00",
+  "prereg": "prereg_t131_v2",
+  "prereg_sha256": "0dd3d9d8550beac024ac71f5d33c52f45da31b7526bf7e1844df98af117e64f0",
+  "fine_bars": 2019972,
+  "seconds": 70.9
+ },
+ "window": {
+  "from": "2023-01-11T10:00+00:00",
+  "to": "2026-08-16T00:00+00:00",
+  "folds": 10,
+  "embargo_hours": 200.0
+ },
+ "bench": {
+  "policies": [
+   "M0 first_r=0.1",
+   "M1 be=1/0.1"
+  ],
+  "ideas": 60720,
+  "paired": 45822,
+  "skipped_qty": 0,
+  "dropped": {
+   "M0 first_r=0.1": {
+    "CANCELADA": 14868,
+    "RECHAZADA": 18,
+    "PENDIENTE": 1
+   },
+   "M1 be=1/0.1": {
+    "CANCELADA": 14868,
+    "RECHAZADA": 18,
+    "ABIERTA": 11,
+    "PENDIENTE": 1
+   }
+  }
+ },
+ "policy_by_day": {
+  "Lateral": "M0",
+  "Tendencia": "M1",
+  "Intermedio": "M0",
+  "sin_dato": "M0"
+ },
+ "day_counts": {
+  "Intermedio": 14466,
+  "Lateral": 13474,
+  "sin_dato": 42,
+  "Tendencia": 17840
+ },
+ "envelope_wins": {
+  "M0 first_r=0.1": 28794,
+  "M1 be=1/0.1": 17028
+ },
+ "metrics": {
+  "M0 first_r=0.1": {
+   "n": 29828,
+   "wins": 22696,
+   "losses": 7132,
+   "win_rate": 0.7608958026015824,
+   "avg_win_r": 0.12726823924630495,
+   "avg_loss_r": -1.048335004102901,
+   "win_loss_ratio": 0.12140035270043577,
+   "net_r": -4588.245291327753,
+   "won_r": 2888.4799579341375,
+   "lost_r": -7476.72524926189,
+   "pf": 0.38632955761204296,
+   "expectancy_r": -0.15382343071368354,
+   "expectancy_gross_r": 0.012982396260775842,
+   "cost_r": 0.1668058269744594,
+   "net_usd": -457589.42608483206,
+   "expectancy_usd": -15.340935566743733,
+   "max_dd_r": 4591.001911645673,
+   "max_dd_usd": 457863.65840356395,
+   "recovery_factor": -0.9993995601894812,
+   "sharpe_daily": -16.43744468434692,
+   "sortino_daily": -11.273840368686532,
+   "cvar95_r": -1.3499413946095864,
+   "mfe_r": 0.29235151652944696,
+   "mae_r": 0.39712789948344485,
+   "mae_over_mfe": 1.3583917887542216,
+   "giveback_r": 0.4461749472431305,
+   "giveback_winners_r": 0.20934554357893437,
+   "mfe1r_n": 222,
+   "mfe1r_to_loss": 0.013513513513513514,
+   "hours_mean": 2.1987103839792588,
+   "hours_winners": 1.6653264892492068,
+   "hours_losers": 3.8960857169564407,
+   "exits": {
+    "SL": 6162,
+    "SLD": 23666
+   },
+   "span": [
+    1704970800000,
+    1783838700000
+   ],
+   "ruin_risk": 0.0025,
+   "ruin_params": {
+    "risk_pct": 0.01,
+    "trades": 200,
+    "reps": 2000,
+    "floor": 0.5
+   }
+  },
+  "M1 be=1/0.1": {
+   "n": 29828,
+   "wins": 14665,
+   "losses": 15163,
+   "win_rate": 0.49165213892986454,
+   "avg_win_r": 0.8429940563112633,
+   "avg_loss_r": -1.1152800933487184,
+   "win_loss_ratio": 0.755858605689003,
+   "net_r": -4548.484219641937,
+   "won_r": 12362.507835804678,
+   "lost_r": -16910.992055446615,
+   "pf": 0.7310338621927871,
+   "expectancy_r": -0.15249041905732658,
+   "expectancy_gross_r": -0.00034908371746477897,
+   "cost_r": 0.1521413353398618,
+   "net_usd": -453388.8468389928,
+   "expectancy_usd": -15.200108852051521,
+   "max_dd_r": 4560.384878251183,
+   "max_dd_usd": 454585.9483127065,
+   "recovery_factor": -0.9973904267014827,
+   "sharpe_daily": -7.699396360461249,
+   "sortino_daily": -7.212830648303642,
+   "cvar95_r": -1.3942545194518527,
+   "mfe_r": 0.8989647035943675,
+   "mae_r": 0.6758076521611492,
+   "mae_over_mfe": 0.7517621653653805,
+   "giveback_r": 1.051455122651694,
+   "giveback_winners_r": 0.5785204744036374,
+   "mfe1r_n": 14031,
+   "mfe1r_to_loss": 0.02009835364549925,
+   "hours_mean": 9.5022210674534,
+   "hours_winners": 10.436754176610979,
+   "hours_losers": 8.59838092725714,
+   "exits": {
+    "BE": 6564,
+    "SL": 13884,
+    "TIEMPO": 2109,
+    "TP": 7271
+   },
+   "span": [
+    1704970800000,
+    1783987200000
+   ],
+   "ruin_risk": 0.146,
+   "ruin_params": {
+    "risk_pct": 0.01,
+    "trades": 200,
+    "reps": 2000,
+    "floor": 0.5
+   }
+  },
+  "M4_oraculo": {
+   "n": 29828,
+   "wins": 20214,
+   "losses": 9614,
+   "win_rate": 0.6776853962719592,
+   "avg_win_r": 0.3861784433036753,
+   "avg_loss_r": -1.101251637307583,
+   "win_loss_ratio": 0.3506722988833246,
+   "net_r": -2781.222188134612,
+   "won_r": 7806.211052940492,
+   "lost_r": -10587.433241075103,
+   "pf": 0.7373091168740922,
+   "expectancy_r": -0.09324199370171021,
+   "expectancy_gross_r": 0.06536661835503232,
+   "cost_r": 0.1586086120567425,
+   "net_usd": -277319.32802042173,
+   "expectancy_usd": -9.297282017581525,
+   "max_dd_r": 2811.8400310105503,
+   "max_dd_usd": 280378.37174598145,
+   "recovery_factor": -0.9891111007246972,
+   "sharpe_daily": -6.066768628540961,
+   "sortino_daily": -5.982213627634049,
+   "cvar95_r": -1.3731245118944368,
+   "mfe_r": 0.557574055887256,
+   "mae_r": 0.49398308206517805,
+   "mae_over_mfe": 0.8859506227905692,
+   "giveback_r": 0.6508160495889663,
+   "giveback_winners_r": 0.30717354915355216,
+   "mfe1r_n": 6295,
+   "mfe1r_to_loss": 0.01636219221604448,
+   "hours_mean": 4.7987433507666175,
+   "hours_winners": 4.193606741202467,
+   "hours_losers": 6.071078635323486,
+   "exits": {
+    "BE": 2542,
+    "SL": 8743,
+    "SLD": 14449,
+    "TIEMPO": 556,
+    "TP": 3538
+   },
+   "span": [
+    1704970800000,
+    1783843200000
+   ],
+   "ruin_risk": 0.012,
+   "ruin_params": {
+    "risk_pct": 0.01,
+    "trades": 200,
+    "reps": 2000,
+    "floor": 0.5
+   }
+  },
+  "M4_envolvente": {
+   "n": 29828,
+   "wins": 23291,
+   "losses": 6537,
+   "win_rate": 0.7808435027490949,
+   "avg_win_r": 0.5863724248939529,
+   "avg_loss_r": -1.1308000731500254,
+   "win_loss_ratio": 0.5185465042114105,
+   "net_r": 6265.16007002334,
+   "won_r": 13657.200148205056,
+   "lost_r": -7392.040078181716,
+   "pf": 1.847554937981943,
+   "expectancy_r": 0.21004291504704775,
+   "expectancy_gross_r": 0.35382290682658074,
+   "cost_r": 0.14377999177953302,
+   "net_usd": 623616.1105003868,
+   "expectancy_usd": 20.90707088978097,
+   "max_dd_r": 45.1204089729772,
+   "max_dd_usd": 4519.247432663105,
+   "recovery_factor": 138.85423941470856,
+   "sharpe_daily": 11.631763500646489,
+   "sortino_daily": 20.609802112274522,
+   "cvar95_r": -1.3497440725748981,
+   "mfe_r": 0.7094904681566491,
+   "mae_r": 0.4471967120791305,
+   "mae_over_mfe": 0.630306864080933,
+   "giveback_r": 0.4994475531096012,
+   "giveback_winners_r": 0.28506857586923257,
+   "mfe1r_n": 10286,
+   "mfe1r_to_loss": 0.00048609760839976666,
+   "hours_mean": 5.520808747932591,
+   "hours_winners": 5.93699211426445,
+   "hours_losers": 4.037968487073581,
+   "exits": {
+    "BE": 2712,
+    "SL": 6098,
+    "SLD": 12756,
+    "TIEMPO": 1029,
+    "TP": 7233
+   },
+   "span": [
+    1704970800000,
+    1783987200000
+   ],
+   "ruin_risk": 0.0,
+   "ruin_params": {
+    "risk_pct": 0.01,
+    "trades": 200,
+    "reps": 2000,
+    "floor": 0.5
+   }
+  }
+ },
+ "checks": {
+  "M4_oraculo": {
+   "M0 first_r=0.1": {
+    "delta_expectancy_r": 0.06058143701197333,
+    "ci": [
+     0.04532395321562613,
+     0.07583021625094317
+    ],
+    "c1_delta_positivo": true,
+    "c2_cociente_y_pf": false,
+    "c3_dd_y_cvar": false,
+    "detalle": {
+     "win_loss_ratio": 0.3506722988833246,
+     "pf": 0.7373091168740922,
+     "pf_base": 0.38632955761204296,
+     "pf_exigido": 0.4442789912538494,
+     "max_dd_r": 2811.8400310105503,
+     "max_dd_base": 4591.001911645673,
+     "max_dd_permitido": 5050.102102810241,
+     "cvar95_r": -1.3731245118944368,
+     "cvar95_base": -1.3499413946095864
+    },
+    "cumple_1_a_3": false,
+    "n_pares": 29828
+   },
+   "M1 be=1/0.1": {
+    "delta_expectancy_r": 0.05924842535561636,
+    "ci": [
+     0.04610818074088083,
+     0.07275374418322181
+    ],
+    "c1_delta_positivo": true,
+    "c2_cociente_y_pf": false,
+    "c3_dd_y_cvar": true,
+    "detalle": {
+     "win_loss_ratio": 0.3506722988833246,
+     "pf": 0.7373091168740922,
+     "pf_base": 0.7310338621927871,
+     "pf_exigido": 0.8406889415217051,
+     "max_dd_r": 2811.8400310105503,
+     "max_dd_base": 4560.384878251183,
+     "max_dd_permitido": 5016.423366076302,
+     "cvar95_r": -1.3731245118944368,
+     "cvar95_base": -1.3942545194518527
+    },
+    "cumple_1_a_3": false,
+    "n_pares": 29828
+   }
+  },
+  "M4_envolvente": {
+   "M0 first_r=0.1": {
+    "delta_expectancy_r": 0.3638663457607313,
+    "ci": [
+     0.3494033604690411,
+     0.3785814632453004
+    ],
+    "c1_delta_positivo": true,
+    "c2_cociente_y_pf": true,
+    "c3_dd_y_cvar": true,
+    "detalle": {
+     "win_loss_ratio": 0.5185465042114105,
+     "pf": 1.847554937981943,
+     "pf_base": 0.38632955761204296,
+     "pf_exigido": 0.4442789912538494,
+     "max_dd_r": 45.1204089729772,
+     "max_dd_base": 4591.001911645673,
+     "max_dd_permitido": 5050.102102810241,
+     "cvar95_r": -1.3497440725748981,
+     "cvar95_base": -1.3499413946095864
+    },
+    "cumple_1_a_3": true,
+    "n_pares": 29828
+   },
+   "M1 be=1/0.1": {
+    "delta_expectancy_r": 0.3625333341043743,
+    "ci": [
+     0.35223618119627287,
+     0.37296135750103104
+    ],
+    "c1_delta_positivo": true,
+    "c2_cociente_y_pf": true,
+    "c3_dd_y_cvar": true,
+    "detalle": {
+     "win_loss_ratio": 0.5185465042114105,
+     "pf": 1.847554937981943,
+     "pf_base": 0.7310338621927871,
+     "pf_exigido": 0.8406889415217051,
+     "max_dd_r": 45.1204089729772,
+     "max_dd_base": 4560.384878251183,
+     "max_dd_permitido": 5016.423366076302,
+     "cvar95_r": -1.3497440725748981,
+     "cvar95_base": -1.3942545194518527
+    },
+    "cumple_1_a_3": true,
+    "n_pares": 29828
+   }
+  }
+ },
+ "verdict": "M4 SE DESCARTA (E6): ni conociendo el régimen con certeza cumpliría los criterios 1–3 de §5.4 — frente a M0 first_r=0.1 falla el criterio 2 (cociente y PF) y el 3 (DD y CVaR); frente a M1 be=1/0.1 falla el criterio 2 (cociente y PF). Un predictor real recupera solo una fracción de ese techo, así que no hay nada que recuperar y no se construyen rasgos"
+}
