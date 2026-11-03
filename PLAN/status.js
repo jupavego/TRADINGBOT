@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-03T11:02:08",
+ "generated": "2026-11-03T13:14:56",
  "tasks": [
   {
    "id": "T01",
@@ -1656,8 +1656,8 @@ window.EIM_STATUS = {
    "deps": [
     "T130"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Hecho (2026-11-03). Nota `PLAN/notas/T131_banco_salidas.md`, informe `v2/reports/t131_banco.md`. **Banco** `eim/paper/exits/`: interfaz pura `ExitPolicy` con M0 (escalera) y M1 (TP/BE+/tiempo) que **delegan** en `simulate_ladder` y `engine.simulate` (las dos funciones de T111), así que reproducen sus cifras por construcción: identidad campo a campo con fixtures y con 500 ideas reales, 0 diferencias. Banco emparejado con tamaño fijo y sin la memoria de los perfiles; métricas de §5.3 (devolución desde el MFE, CVaR 95 %, riesgo de ruina, Sharpe y Sortino diarios); pliegues de 12 + 3 meses con paso de 3, **purga y embargo** (E1); **Romano-Wolf** principal con Holm de referencia (E3); **PBO** por CSCV; objetivo de selección pre-registrado (E2) y estrés de costos ×1,5 y ×2 (E4a). **Pre-registro inmutable** con huella fijada en `prereg.py` y 107 intentos (M0–M8, S1–S3, los estimadores σ y los parámetros de T136 por E12), confirmado en un commit anterior a cualquier resultado; `v2` corrige la meseta para medirla sobre **la mejora** frente a la base, como dice §5.3 (con el nivel absoluto no elegía nada, porque todas las variantes pierden), y `v1` queda publicada e intacta. **Datos:** la historia desde 2023 reconstruida en una COPIA (`v2/backups/t131_banco/`, `scripts/t131_history.py`, por la cola de T127): 4 h, 1 h, 15 m y 1 m (2 019 972 velas) y 4 209 tasas de funding, **cobertura 100 % y 0 huecos**; los contextos de 1 h ya cubrían 2023-01-11 → hoy (33 399, de la mezcla de T117), así que no hubo que regenerarlos. **Primera corrida** (60 720 ideas, 45 814 emparejadas, 29 828 fuera de muestra por variante, 10 pliegues, 18 min): la escalera queda confirmada en 3,5 años y fuera de muestra (acierto 76,1 %, ganadora +0,127 R, perdedora −1,048 R, cociente 0,12, PF 0,39, igual que los 307 cierres de T129); **las once variantes pierden** (−0,138 a −0,175 R); **nada bate a la salida vigente** tras corregir (la mejor, `M0 0.075`, p bruto 0,013 → Romano-Wolf 0,057 y Holm 0,126; frente a M1, `M1 be=1.5/0` pasa Romano-Wolf 0,034 y **no** Holm 0,064: las dos correcciones discrepan y E3 obliga a decirlo); **PBO 0,46** frente al 0,2 que pide el pre-registro y Sharpe deflactado 0,000 en todas; 0 fugas en los 10 pliegues (en el primero, 8 operaciones purgadas por cerrar dentro de la prueba y 265 en el embargo de 200 h). **El control aleatorio falla** en `M0` con `first_r` 0,075 y 0,1 (bruto +0,025, IC [+0,004, +0,047]): se informa como fallo y se diagnostica (§9.4) en dos efectos de ≈ +0,010 R —el motor solo baja al 1 min en las velas ambiguas, y la reserva de costos del stop infla el bruto, no el neto—; **no hay anticipación** (sobre paseos aleatorios y sin costos M0 y M1 dan E[R] ≈ 0). El nulo del control hay que rehacerlo antes de T132: BACKLOG T131 (8). Pruebas: 110 en `tests/paper/exits/`, sin red, con la que exige la aceptación (ninguna operación del ajuste se cierra dentro de su prueba ni de su embargo).",
    "effort": "alto",
    "phase": 22,
    "goal": "Un banco reproducible que mida cualquier política de salida sobre **las mismas entradas** y con los mismos costos, sin margen para ajustar después de ver los resultados (§5.3–5.4 de `PLAN/notas/T129_sl_dinamico.md`)."
