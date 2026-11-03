@@ -481,6 +481,10 @@ más reciente por fecha y su siguiente paso. Formato:
   - En `.claude/worktrees/t129-proteccion-falso-positivo` (bloqueado, de otra sesión) hay una «T129» sin confirmar (fase 18) sobre el mismo falso positivo: choca con el número de la T129 de la fase 22 y su arreglo ya está en `main` (T130). Decisión del usuario: descartarla o renombrarla como anexo de T130.
   - Panel de `/v2/paper/exits` (BACKLOG T130 (1)).
 - **Siguiente paso:** T131.
+## 2026-11-03 16:30 UTC · juanpablo-cpu · Traspaso a otra cuenta de Claude
+- El usuario sigue con otra cuenta de Claude en este PC. Traspaso en `PLAN/ESTADO_PROYECTO.md` §0: primeros pasos, estado de git y worktrees a medias, y siguiente tarea (T131, tras integrar `claude/fase22-mejoras-estudio`).
+- La «T129» duplicada (fase 18) del worktree `t129-proteccion-falso-positivo` queda superada por T130; su diagnóstico se conservó como `PLAN/notas/T130_anexo_falso_inconsistente.md`, con la causa de raíz (sincronización del 1 m solo en el tick del bróker). Esa carrera queda en BACKLOG T130 (4).
+- Se pidió a la sesión «Biblioteca del proyecto» que confirme y suba su trabajo en `claude/fase22-mejoras-estudio` sin fusionar: lo hizo, en el **PR #199** (fusionado en `382d423`). Se quitaron los worktrees fusionados y limpios `wt-t128f` y `wt-t62`.
 ## 2026-11-03 16:20 UTC · juanpablo-cpu · Fase 22 enriquecida con el estudio de la bibliografía
 - **Hecho:** se cruzaron las tareas pendientes de la fase 22 (T131–T136) con tres obras leídas completas en esta sesión: Kelly y Xiu, *Financial Machine Learning*; Sutton y Barto, *Reinforcement Learning*; y Kakushadze, *101 Formulaic Alphas*. Los apuntes con páginas están en `v2/data/library/estudio/`, fuera de git. El informe de T129 ya tenía los métodos; se añadieron 12 mejoras de método (E1–E12) en `PLAN/notas/T129_sl_dinamico.md` §8:
   - purga y embargo entre ajuste y prueba;

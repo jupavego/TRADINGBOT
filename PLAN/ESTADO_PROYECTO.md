@@ -1,9 +1,30 @@
 # Estado del proyecto (punto de entrada al cambiar de equipo)
 
-**Actualizado:** 2026-11-03 16:15 UTC, desde `juanpablo-cpu` (despliegue de T129/T130; Windows se reinició a las 15:56 UTC y la racha de T78 volvió a 0). Actualízalo
+**Actualizado:** 2026-11-03 16:30 UTC, desde `juanpablo-cpu` (traspaso a otra cuenta de Claude, §0; antes: despliegue de T129/T130; Windows se reinició a las 15:56 UTC y la racha de T78 volvió a 0). Actualízalo
 al cerrar una sesión que cambie algo de esta página; el detalle por tarea sigue en `STATUS.md`,
 lo aplazado en `BACKLOG.md` y el registro de sesiones en `BITACORA.md`. Para comprobar un equipo:
 `python -m eim.continuity check` (desde `v2/`; procedimientos en `v2/docs/CONTINUIDAD.md`).
+
+## 0. Traspaso a otra cuenta de Claude (2026-11-03 16:30 UTC, `juanpablo-cpu`)
+
+El usuario sigue con **otra cuenta de Claude en este mismo PC**. Las sesiones de la cuenta anterior pierden su contexto, pero el disco no cambia: repo, worktrees, `v2/data/`, servicios y tareas programadas siguen igual. La memoria local de Claude (`~/.claude/projects/…/memory`) puede no ser visible desde la otra cuenta: **lo que manda es este archivo**.
+
+**Al empezar con la cuenta nueva**, desde `v2/`:
+1. `.\.venv\Scripts\python.exe -m eim.continuity check`. Hay que usar el python del `.venv`: el del sistema no tiene pydantic.
+2. Leer este archivo, las últimas entradas de `BITACORA.md` y `STATUS.md`.
+3. `git -C .. worktree list` para ver lo que hay a medias (tabla de abajo).
+
+**Estado de git al traspasar:** `main` = el commit que fusiona este traspaso (justo después de `6372e46`, que contiene T129, T130 y su despliegue). Sin PR abiertos: el #199 (mejoras de la fase 22) se fusionó en `382d423`. Carpeta principal en `main`, sin cambios rastreados (sin versionar: `.claude/settings.local.json`, `.claude/worktrees/` y `v2/reports/operation/`, los semanales de T31; versionarlos es decisión del usuario).
+
+| Worktree / rama | Estado al traspasar | Qué hacer |
+|---|---|---|
+| `.claude/worktrees/fase22-mejoras` · `claude/fase22-mejoras-estudio` → **PR #199 fusionado** (`382d423`) | Hecho por la sesión «Biblioteca del proyecto»: mejoras E1–E12 en §8 de `PLAN/notas/T129_sl_dinamico.md`. Criterios de §5.4 más estrictos: el 1 con Romano-Wolf; el 7 con potencia calculada y un IC que contenga la estimación de T134; un criterio 8 nuevo con el deslizamiento ×1,5. T131–T136 actualizadas; una viñeta en §4 de este archivo. Sin cambios de código | Ya integrado. T131 se empieza sobre las fichas resultantes; su pre-registro congela esos criterios |
+| `.claude/worktrees/t129-proteccion-falso-positivo` · `claude/t129-proteccion-falso-positivo` (bloqueado, sin remoto) | «T129» duplicada (fase 18) del falso positivo del 31-oct, sin confirmar. **Superada por T130**; su diagnóstico se conservó como `PLAN/notas/T130_anexo_falso_inconsistente.md` | Descartar con permiso del usuario: `git worktree unlock` + `git worktree remove --force` y borrar la rama local |
+| `wt-t128f`, `wt-t62` (scratchpads de sesiones de la cuenta anterior) | Fusionadas (#190, #193) y limpias | Quitados en el traspaso |
+
+**Servicios:** Windows se reinició el 2026-11-03 a las 15:56 UTC y la tarea de inicio de sesión relanzó todo a las 15:57 (sesión 1). La API se redesplegó a las 16:08 UTC con T130 (`GET /v2/paper/exits`, `python -m eim.paper salidas`). La racha de T78 volvió a 0 con el reinicio: comprobar con `python -m eim.data.collectors.hft_ops --root data --streak`.
+
+**Siguiente tarea:** T131 (fase 22, `PLAN/T131.md`, ya con las mejoras del #199). Las ◆ de la fase 22 ya están resueltas (§4 y §6 de `PLAN/notas/T129_sl_dinamico.md`). Resultado vivo a tener en cuenta: en este periodo lateral la escalera supera a la sombra A en los cuatro perfiles y las dos pierden; T133 (régimen ex ante) es la pieza clave.
 
 ## 1. Qué corre y dónde
 
