@@ -33,6 +33,7 @@ Contrato central: `Agent.run(MarketSnapshot) -> AgentReport` (sesgo −1..+1, co
 
 ## Comandos
 - Gate (desde `v2/`): `python -m ruff check eim tests && python -m pytest -q`
+- Trabajos pesados con los servicios en marcha (gate, importaciones, pruebas de modelos locales): por la cola, `python -m eim.operation.jobs submit --name gate --retry-paused 1 -- python -m pytest -q` (si falla tras una pausa de la cola, se repite una vez: T116). Va en IDLE, un trabajo a la vez, y se pausa si la captura HFT sufre (T127). Para uno corto basta con anteponer `python -m eim.operation.priority run batch --` (T126). Consumo del equipo por día y su cruce con la captura HFT: `python -m eim.operation.usage summary --days 7` (T127).
 - API dev (desde `v2/`): `python -m uvicorn eim.api.main:app --port 8000 --reload`
 - Web dev: `cd v2/eim/web && npm run dev`
 - Navegador integrado: usar `http://127.0.0.1:PUERTO` (con `localhost` falla).

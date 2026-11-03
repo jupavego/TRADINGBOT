@@ -5,7 +5,8 @@ dos procesos escribiendo el mismo archivo. Deduplicación por clave primaria:
 ejecuciones (líder, tid, oid), funding (líder, moneda, t), apalancamiento (líder, moneda, t).
 Las posiciones se guardan como foto solo si cambian (o cada `SNAPSHOT_KEEP_MS`).
 Tablas de la evaluación (T41: cartera, precio del seguidor, veredictos) en
-`leader_score_store.py`; las de la copia simulada (T42: estado y bitácora) en `copy_store.py`.
+`leader_score_store.py`; las de la copia simulada (T42: estado y bitácora) en `copy_store.py`;
+las del archivo de lo podado (T128) en `leader_archive.py`.
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ import duckdb
 from eim.core.leaders import Leader, LeaderFill, LeaderFunding, LeaderPosition, LeaderStatus
 from eim.data.copy_store import COPY_DDL, CopyTables
 from eim.data.duck import tune
+from eim.data.leader_archive import ARCHIVE_DDL
 from eim.data.leader_score_store import SCORE_DDL, ScoreTables
 from eim.data.machine import add_machine_column, machine_id
 from eim.leaders.book import Gap, Recon
@@ -74,7 +76,7 @@ class LeaderStore(ScoreTables, CopyTables):
             Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         self._con = duckdb.connect(self.path)
         tune(self._con)  # sin tope, DuckDB toma el 80 % de la RAM (12,5 de 16 GB)
-        self._con.execute(_DDL + SCORE_DDL + COPY_DDL)
+        self._con.execute(_DDL + SCORE_DDL + COPY_DDL + ARCHIVE_DDL)
         self._lock = threading.Lock()
         self.machine = "local" if self.path == ":memory:" else machine_id(Path(self.path).parent)
         for t in _MACHINE_TABLES:       # bases previas a T61: rellena con el id local
@@ -194,7 +196,8 @@ class LeaderStore(ScoreTables, CopyTables):
     def history(self, lid: str, start: int | None = None, end: int | None = None
                 ) -> list[dict]:
         """Eventos en orden: apertura/aumento/reducción/cierre/giro (con comisión y PnL
-        cerrado), funding y cambios de apalancamiento."""
+        cerrado), funding y cambios de apalancamiento. De un rechazado, las ejecuciones solo
+        de los últimos 7 días (T128: lo anterior está archivado ya plegado)."""
         out: list[dict] = [{"kind": f.action, "t": f.t, "symbol": f.symbol, "side": f.side,
                             "size": f.size, "price": f.price, "position": f.end_position,
                             "fee": f.fee, "closed_pnl": f.closed_pnl, "liquidated": f.liquidated,

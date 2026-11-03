@@ -40,7 +40,8 @@ class ScoreTables:
 
     # --- lectura rápida del historial ---------------------------------------------------------
     def fills_fast(self, lid: str) -> list[LeaderFill]:
-        """Todas las ejecuciones del líder sin revalidar (ya se validaron al guardarlas)."""
+        """Todas las ejecuciones guardadas del líder sin revalidar (ya se validaron al
+        guardarlas). De un rechazado, solo lo no podado (T128, `leader_prune.py`)."""
         rows = self._exec(f"SELECT {', '.join(_FILL_KEYS)} FROM leader_fills WHERE "
                           "leader_id = ? ORDER BY t, observed_at", [lid])
         return [LeaderFill.model_construct(**dict(zip(_FILL_KEYS, r, strict=True)))

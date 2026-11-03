@@ -23,8 +23,10 @@ DATA: tuple[Component, ...] = (
       cadence_s=5, produces=("ticks",)),
     c("data.store", "data", "datos", "store", "api", "T03", "Almacén de velas",
       "Guarda las velas y el funding en el disco del equipo y detecta huecos. Recibe lo que "
-      "pide Binance y lo entrega ordenado al snapshot.", cadence="cada ciclo (60 s)",
-      cadence_s=60, consumes=(("data.binance_rest", "candles"), ("data.binance_rest", "funding")),
+      "pide Binance y lo entrega ordenado al snapshot.", cadence="cada vela cerrada (1 h)",
+      # T126: emite al analizar cada vela de 1 h; con 60 s la alerta «sin latido» saltaba a
+      # los :03 de cada hora y se resolvía a los :00 (23 veces el 2026-10-31)
+      cadence_s=3600, consumes=(("data.binance_rest", "candles"), ("data.binance_rest", "funding")),
       produces=("candles", "funding")),
     c("data.liquidations", "data", "datos", "provider", "api", "T07", "Liquidaciones",
       "Descarga el archivo público de liquidaciones forzadas de Binance. Lo entrega al snapshot "
@@ -36,10 +38,11 @@ DATA: tuple[Component, ...] = (
       "Consulta Fed, BLS y BEA cada 6 horas y guarda las fechas de publicaciones. Si la fuente "
       "no da el consenso, queda vacío: no se inventa.", cadence="cada 6 h", cadence_s=21600,
       produces=("econ_events",)),
-    c("data.micro_collector", "data", "datos", "service", "collector", "T23", "Recolector de órdenes",
-      "Proceso aparte que escucha operaciones y libro de órdenes de Binance y los guarda por hora "
-      "en el disco, con latido cada 30 s; un vigilante lo relanza si cae y avisa si el disco o el flujo "
-      "fallan. Alimenta al agente de flujo de órdenes.", cadence="continuo", cadence_s=60,
+    c("data.micro_collector", "data", "datos", "service", "hft_collector", "T128",
+      "Recolector de órdenes",
+      "Desde T128 sale de la captura profunda: cada segundo guarda una foto de los 10 mejores "
+      "niveles de su libro verificado y lee de ella las operaciones. Alimenta al agente de flujo "
+      "de órdenes sin abrir otra conexión.", cadence="continuo", cadence_s=60,
       produces=("micro_bars",)),
     c("data.hft_collector", "data", "datos", "service", "hft_collector", "T78",
       "Captura profunda del libro",
@@ -52,8 +55,9 @@ DATA: tuple[Component, ...] = (
       "guarda por hora. Reemplaza al archivo histórico de Binance, retirado en 2024.",
       cadence="continuo", cadence_s=3600, produces=("liq_flow",)),
     c("data.arb_market", "arbitrage", "datos", "service", "api", "T39", "Mercado para arbitraje",
-      "Cada ~10 s toma una fotografía de precios spot y futuros de Binance (solo lectura) para "
-      "buscar diferencias que dejen ganancia neta.", cadence="cada 10 s", cadence_s=10,
+      "Cada minuto (cada 10 s si opera en testnet) toma una fotografía de precios spot y futuros "
+      "de Binance (solo lectura) para buscar diferencias que dejen ganancia neta.",
+      cadence="cada 60 s (10 s con ejecución)", cadence_s=60,
       produces=("arb_market",)),
     c("leaders.service", "leaders", "datos", "service", "leaders", "T41", "Líderes de Hyperliquid",
       "Proceso aparte que sigue a los traders públicos mejor evaluados y escribe un tablero cada "
@@ -110,7 +114,8 @@ FLOW: tuple[Component, ...] = (
       produces=("risk_decision",)),
     c("arbitrage.engine", "arbitrage", "analisis", "engine", "api", "T38", "Motor de arbitraje",
       "Calcula oportunidades netas de costos (carry de funding, base, perpetuos relacionados) "
-      "sobre la fotografía del mercado de arbitraje.", cadence="cada 10 s", cadence_s=10,
+      "sobre la fotografía del mercado de arbitraje.", cadence="cada 60 s (10 s con ejecución)",
+      cadence_s=60,
       consumes=(("data.arb_market", "arb_market"),), produces=("arb_scan",)),
     c("risk.hft_engine", "risk", "riesgo", "gate", "hft", "T83", "Riesgo del carril HFT",
       "Código fijo que revisa cada orden rápida antes de enviarla: inventario, pérdidas, ritmo de "
@@ -154,9 +159,16 @@ FLOW: tuple[Component, ...] = (
     c("paper.broker", "paper", "ejecucion", "service", "api", "T47", "Bróker simulado",
       "Prueba decenas de estrategias en papel, en 15 m, 1 h y 4 h, y aprende de cada pérdida. "
       "Todo es Simulado: nunca envía órdenes. Cada perfil decide con su política registrada.",
-      cadence="cada 60 s", cadence_s=60,
+      # T128: late en cada ciclo de 60 s; sus ganchos corren aparte (`paper.hooks`) y ya no
+      # lo callan. 120 s × 3 = 360 s: holgura para el ciclo del cierre de 4 h
+      cadence="cada 60 s", cadence_s=120,
       consumes=(("data.store", "candles"), ("risk.authority", "proposal")),
       produces=("paper_trade", "risk_decision")),
+    c("paper.hooks", "paper", "validacion", "service", "api", "T128", "Ganchos del bróker",
+      "Tras cada ciclo del bróker, y en segundo plano para no frenarlo: la validación al cierre "
+      "de 4 h, el libro fijo cada hora, la puntuación de bots y el seguimiento de sugerencias. "
+      "Late con lo que tardó cada uno.", cadence="tras cada ciclo (latido cada ~4 min)",
+      cadence_s=300, consumes=(("paper.broker", "paper_trade"),)),
     c("leaders.copy_sim", "leaders", "ejecucion", "service", "leaders", "T42", "Copia simulada",
       "Una cuenta virtual copia a un líder con los costos reales para ver cuánto del resultado "
       "era copiable. Solo Simulado.", cadence="continuo", cadence_s=300,
@@ -191,6 +203,12 @@ OPERATION: tuple[Component, ...] = (
       "guardados.", cadence="cada semana", cadence_s=604800,
       consumes=(("risk.journal", "risk_log"), ("execution.sim_ledger", "sim_trade")),
       produces=("report",)),
+    c("operation.usage", "operation", "validacion", "service", "usage", "T127",
+      "Registro de consumo",
+      "Proceso aparte que cada 30 s anota cuánta CPU y memoria gasta cada parte del EIM, el "
+      "resto del equipo y la cola de la captura HFT. Dice si una hora perdida de la captura "
+      "coincidió con el equipo saturado.", cadence="cada 30 s", cadence_s=60,
+      produces=("usage_log",)),
     c("api.hub", "api", "analisis", "service", "api", "T08", "Difusor de la API",
       "Al cerrar cada vela corre los agentes y difunde el resultado por WebSocket a la interfaz. "
       "La API solo escucha en este equipo.", cadence="cada cierre de vela", cadence_s=3600,
@@ -227,7 +245,8 @@ VALIDATION: tuple[Component, ...] = (
       consumes=(("backtest.engine", "backtest_result"),), produces=("edge_verdict",)),
     c("validation.gate", "validation", "validacion", "gate", "api", "T49", "Puerta por estrategia",
       "Pone a prueba cada estrategia del bróker simulado con criterios inmutables y le da un "
-      "veredicto con motivo: validada, en observación o rechazada.", cadence="a demanda",
+      "veredicto con motivo: validada, en observación o rechazada.",
+      cadence="cada cierre de vela de 4 h (y a demanda)", cadence_s=4 * 3600,
       consumes=(("paper.broker", "paper_trade"),), produces=("validation_verdict",)),
     c("validation.setups_publisher", "validation", "validacion", "service", "api", "T50",
       "Publicador de sugerencias", "Publica como máximo 3 oportunidades intradía, solo de "

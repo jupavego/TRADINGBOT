@@ -64,6 +64,10 @@ ITEMS: tuple[Item, ...] = (
     Item("data/kill_switch.json", "kill-switch persistido", HIGH, "cada equipo", BACKUP),
     Item("data/operation", "latido, estado del servicio (libro simulado), registros JSONL",
          HIGH, "cada equipo", BACKUP),
+    Item("data/usage", "registro de consumo por proceso cada 30 s (T127), 30 días", LOW,
+         "cada equipo", NONE + " (fuera de la copia diaria a propósito)"),
+    Item("data/jobs", "cola de trabajos pesados: estado, pasos y salida (T127), 14 días", LOW,
+         "cada equipo", NONE),
     Item("data/machine_id", "identidad del equipo (procedencia de cada fila compartida)", HIGH,
          "cada equipo", "no se copia a otro equipo; queda anotada en la copia externa"),
     Item("data/leaders", "tableros, resumen de la copia simulada, metadatos y latido del "
@@ -88,7 +92,8 @@ ITEMS: tuple[Item, ...] = (
          regenerable=True),
     Item("data/calendar", "calendario económico", LOW, "Fed/BLS/BEA", "se descarga solo",
          regenerable=True),
-    Item("data/micro", "captura de microestructura T23/T104 (trades, libro, liquidaciones)",
+    Item("data/micro", "microestructura: fotos top-10 (de la captura HFT desde T128), "
+         "liquidaciones y lo que dejó T23",
          HIGH, "el equipo que la capturó", "no viaja (GB); se poda sola; copia manual a disco "
          "externo si hace falta un tramo"),
     Item("data/micro_hft", "captura HFT T78 (libro L2, bookTicker…; ≈ 830 MB/día)", HIGH,

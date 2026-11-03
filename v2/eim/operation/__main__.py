@@ -22,7 +22,8 @@ from eim.continuity.datastate import has_history
 from eim.data.local_api import DEFAULT_API, post_local
 from eim.observability.emit import configure
 from eim.operation.notify import JsonLog
-from eim.operation.watchdog import Watchdog
+from eim.operation.priority import apply_role
+from eim.operation.watchdog import Watchdog, instance_lock
 
 EMPTY_DATA = """NO SE ARRANCA: {data} no tiene historial (ni reports, ni paper, ni leaders.duckdb).
 Arrancar aquí crearía bases VACÍAS que parecerían el estado actual del proyecto.
@@ -64,7 +65,19 @@ def main(argv: list[str] | None = None) -> int:
                "--port", str(a.port)]
         root = Path(a.data_dir) / "operation"
         configure(process="watchdog", spool_dir=Path(a.data_dir) / "obs" / "spool")
-        Watchdog(cmd, env, root / "heartbeat.json", JsonLog(root / "logs", echo=True)).run()
+        apply_role("watchdog")   # T126: nivel de prioridad del proceso
+        # T126: un solo vigilante por carpeta de datos. Con la tarea al encender y la de inicio de
+        # sesión, el lanzador puede no ver al otro (otra sesión de Windows) y un segundo vigilante
+        # reintentaría para siempre abrir el puerto ocupado
+        lock = instance_lock(root / "supervisor.lock")
+        if lock is None:
+            print("Ya hay un vigilante de la API en esta carpeta de datos: no se lanza otro.",
+                  file=sys.stderr)
+            return 4
+        try:
+            Watchdog(cmd, env, root / "heartbeat.json", JsonLog(root / "logs", echo=True)).run()
+        finally:
+            lock.close()
         return 0
 
     q = []

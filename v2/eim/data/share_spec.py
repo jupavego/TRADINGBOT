@@ -74,6 +74,8 @@ DB_ORDER = (REPORTS, PAPER, LEADERS)
 NOT_SHARED = {
     "candles/funding/calendar/biblioteca": "reproducible: cada máquina lo vuelve a descargar",
     "val_verdicts, forecasts, leader_verdicts, leader_portfolio": "derivado: se recalcula",
+    "leader_archive, leader_archive_trips (T128)":
+        "lo podado de los rechazados, ya plegado: cada equipo archiva lo suyo",
     "kill_switch.json, operation/, copy_state, op_alerts, op_equity, risk_decisions":
         "estado de la máquina: nunca se mezcla",
     "paper_protection, paper_protection_pass (T110)":

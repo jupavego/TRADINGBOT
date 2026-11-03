@@ -9,6 +9,7 @@
   supervise [--ws-max N]                       `run` continuo bajo vigilante de proceso: lo
                                                relanza si cae o si su latido se detiene
   score [--portfolio] [--json]                 evaluar ahora (con el vigilante apagado)
+  prune [--days 7]                             podar rechazados y compactar (vigilante apagado)
   report [--minutes M] [--json]                latencia, coincidencia y huecos
   history 0xDIR [--last N]                     historial guardado de un líder
   copy-sim | copy-status | copy-resume         copia simulada (T42): ver `copy_cli.py`
@@ -31,19 +32,23 @@ import duckdb
 from pydantic import ValidationError
 
 from eim.core.leaders import Leader, leader_id
+from eim.data.duck_compact import compact
 from eim.data.leader_board import BOARD_DIR, BoardStore
 from eim.data.leader_discover import discover
 from eim.data.leader_eval import evaluate, refresh_portfolios
+from eim.data.leader_prune import DAY_MS, KEEP_MS, prune
 from eim.data.leader_ranking import RankingUnavailable, discover_ranking
 from eim.data.leader_report import render, summary
 from eim.data.leader_service import HEARTBEAT, LeaderService
-from eim.data.leader_store import LeaderStore
+from eim.data.leader_store import DB_NAME, LeaderStore
 from eim.data.providers.leaders import HyperliquidInfo, now_ms
 from eim.leaders import copy_cli
 from eim.leaders.board_text import render_board
 from eim.leaders.parse import vault_leader
+from eim.observability import hooks_service
 from eim.observability.emit import configure
 from eim.operation.notify import JsonLog
+from eim.operation.priority import apply_role, lowered
 from eim.operation.watchdog import Watchdog, instance_lock
 
 
@@ -86,16 +91,66 @@ def _list(store: LeaderStore, status: str | None) -> str:
                      for ld in rows) or "(sin líderes)"
 
 
+def _compact(root: str | Path) -> None:
+    """T128: devuelve al disco lo que DuckDB dejó libre (2,1 → ~1,3 GB el 2026-11-02), antes de
+    lanzar a `run`. En lote; si falla, el servicio arranca igual con la base de siempre. Una
+    base en uso (`duckdb.IOException`) la trata quien llama."""
+    try:
+        with lowered("batch"):
+            done = compact(Path(root) / DB_NAME)
+    except duckdb.IOException:
+        raise
+    except Exception as exc:  # noqa: BLE001 - compactar nunca impide capturar
+        logging.getLogger(__name__).warning("compactado de %s: %s", DB_NAME, exc)
+        hooks_service.service_error("leaders.service", exc, detail={"what": "compactado"})
+        return
+    if done:
+        logging.getLogger(__name__).info("%s compactada: %s", DB_NAME, done)
+        hooks_service.service_event("leaders.service", "base compactada", detail=done)
+
+
+def _prune_cold(root: str | Path, now: int, keep_ms: int = KEEP_MS) -> dict:
+    """T128: poda de los rechazados con la base cerrada para los demás (antes de compactar,
+    así el compactado ya devuelve ese espacio). Abre y cierra la base."""
+    store = LeaderStore.at_root(root)
+    try:
+        with lowered("batch"):
+            got = prune(store, now, keep_ms=keep_ms)
+    finally:
+        store.close()
+    return {lid: {"fills": x.fills, "quotes": x.quotes, "trips": x.trips, "origins": x.origins}
+            for lid, x in got.items()}
+
+
+def _prune_then_compact(root: str | Path) -> None:
+    """Como `_compact`: un fallo de la poda se registra y el servicio arranca igual."""
+    try:
+        got = _prune_cold(root, now_ms())
+    except duckdb.IOException:
+        raise
+    except Exception as exc:  # noqa: BLE001 - podar nunca impide capturar
+        logging.getLogger(__name__).warning("poda de %s: %s", DB_NAME, exc)
+        hooks_service.service_error("leaders.service", exc, detail={"what": "poda"})
+    else:
+        if got:
+            logging.getLogger(__name__).info("poda de rechazados: %s", got)
+            hooks_service.service_event("leaders.service", "poda de rechazados",
+                                        detail={"leaders": len(got)})
+    _compact(root)
+
+
 def _supervise(a: argparse.Namespace, make_watchdog=Watchdog) -> str:
     """Un solo vigilante por carpeta de datos (cerrojo `leaders/supervisor.lock`); su hijo
     `run` es el único proceso que abre `leaders.duckdb`."""
     configure(process="watchdog", spool_dir=Path(a.root) / "obs" / "spool")
+    apply_role("watchdog")   # T126: nivel de prioridad del proceso
     root = Path(a.root) / BOARD_DIR
     lock = instance_lock(root / "supervisor.lock")
     if lock is None:
         return "Ya hay un vigilante de líderes en marcha: no se lanza otro."
     try:
         try:
+            _prune_then_compact(a.root)
             store = LeaderStore.at_root(a.root)
         except duckdb.IOException:
             return "leaders.duckdb está en uso por otro proceso (¿`run` a mano?): detenlo antes."
@@ -146,6 +201,8 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("score")
     p.add_argument("--portfolio", action="store_true", help="pedir `portfolio` antes (REST)")
     p.add_argument("--json", action="store_true")
+    p = sub.add_parser("prune")
+    p.add_argument("--days", type=float, default=7.0, help="días de detalle que se conservan")
     p = sub.add_parser("report")
     p.add_argument("--minutes", type=float, default=60.0)
     p.add_argument("--json", action="store_true")
@@ -163,6 +220,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if a.cmd.startswith("copy-"):  # abre la base (o una instantánea) por su cuenta
         print(copy_cli.main(a))
+        return 0
+    if a.cmd == "prune":  # abre y cierra la base; luego la compacta
+        got = _prune_cold(a.root, now_ms(), int(a.days * DAY_MS))
+        done = compact(Path(a.root) / DB_NAME)
+        print(json.dumps({"podado": got, "compactado": done}, indent=1))
         return 0
     store = LeaderStore.at_root(a.root)
     try:
@@ -199,6 +261,7 @@ def _dispatch(store: LeaderStore, a: argparse.Namespace) -> str:
                          for x in a.addresses)
     if a.cmd == "run":
         configure(process="leaders", spool_dir=Path(a.root) / "obs" / "spool")
+        apply_role("leaders")   # T126: nivel de prioridad del proceso
         watch = LeaderService(store, HyperliquidInfo(), store.leaders(), root=a.root,
                               ws_max=max(0, min(a.ws_max, 10)),
                               copy_mode=os.environ.get("EIM_COPY_SIM", "tracked"))

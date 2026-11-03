@@ -68,7 +68,8 @@ def render_md(rep: dict) -> str:
               f"{risk['n_decisions']} decisiones registradas, {risk['n_vetoed']} vetadas. "
               "Motivos más frecuentes: " +
               (", ".join(f"{r} ({n})" for r, n in risk["top_reasons"]) or "—") + "."]
-    return "\n".join(lines + _hft_lines(rep.get("hft_qc") or {})) + "\n"
+    return "\n".join(lines + _hft_lines(rep.get("hft_qc") or {})
+                     + _usage_lines(rep.get("usage") or [])) + "\n"
 
 
 def _hft_lines(hft: dict) -> list[str]:
@@ -89,6 +90,41 @@ def _hft_lines(hft: dict) -> list[str]:
             f"huecos encontrados {q['holes_found']}, sin marcar {q['undetected']}; reinicios "
             f"{q['restarts']}; disco {_f(q['mb_per_day'], '{:.0f}')} MB/día "
             f"(30 días ≈ {_f(q['projection_30d_gb'], '{:.1f}')} GB).")
+    return out
+
+
+def _hours(hs: list[str]) -> str:
+    return f" ({', '.join(hs)})" if hs else ""
+
+
+def _usage_lines(days: list[dict]) -> list[str]:
+    """Consumo del equipo (T127): ¿coincidieron las horas perdidas de la captura con el equipo
+    saturado? Una hora perdida sin saturación ni hueco de registro apunta a otra causa."""
+    out = ["", "## Consumo del equipo", ""]
+    if not days:
+        return out + ["Sin registro de consumo en el periodo (`usage/`)."]
+    for d in days:
+        if "error" in d:
+            out.append(f"- Registro de consumo ilegible ({d['error']}).")
+            continue
+        h = d["hft"]
+        hft = (f"captura HFT: {len(h['incomplete'])} de {h['hours']} horas incompletas"
+               f"{_hours(h['incomplete'])}, {len(h['incomplete_saturated'])} con el equipo "
+               f"saturado{_hours(h['incomplete_saturated'])} y "
+               f"{len(h['incomplete_unlogged'])} sin registro{_hours(h['incomplete_unlogged'])}"
+               if h["hours"] else "sin captura HFT")
+        if not d["samples"]:
+            out.append(f"- {d['day']}: sin registro de consumo; {hft}.")
+            continue
+        c, p = d["cpu"], d["peak"]
+        roles = ", ".join(f"{k} {v:.1f}" for k, v in list(d["roles_cpu_mean"].items())[:4])
+        out.append(
+            f"- {d['day']}: {d['samples']} muestras ({_f(d['coverage'], '{:.0%}')} del día); CPU "
+            f"del equipo media {c['mean']:.0f} % (p95 {c['p95']:.0f} %, máx. {c['max']:.0f} % "
+            f"a las {p['ts'][11:16]} UTC, sobre todo {p['top'] or '—'}); RAM libre mín. "
+            f"{d['ram_free_min_mb'] / 1024:.1f} GB; EIM {d['eim_cpu_mean']:.1f} % de media "
+            f"({roles or '—'}). Horas saturadas: {', '.join(d['saturated_hours']) or 'ninguna'}; "
+            f"{hft}.")
     return out
 
 

@@ -12,7 +12,9 @@ antes de cambiar de equipo, y lo que corre solo cada día (`scripts/instalar_cop
 6. Aviso del código que todavía no está en GitHub (eso lo sube el usuario: commit + push/PR).
 
 Cada pasada deja una línea en `data/continuity/publish.jsonl`. Repetirla no duplica nada: la
-copia externa ya subida se salta y la exportación de la misma copia ya existe.
+copia externa ya subida se salta, una subida cortada retoma desde la última parte subida (T127)
+y la exportación de la misma copia ya existe. `scripts/copia_externa.ps1` la pasa por la cola
+de trabajos pesados (`eim.operation.jobs`): se pausa si la captura HFT sufre.
 """
 
 from __future__ import annotations
@@ -101,7 +103,9 @@ def publish(v2: Path, data_dir: Path, backup_dir: Path, *, repo: str, machine: s
         meta = offsite.push(t, backup, machine, extras=tmp, info=info, work=backup_dir / WORK)
         step("copia externa", True, f"{repo} · {meta['backup']} · "
              f"{meta['zip_bytes'] / 1e6:,.0f} MB en {len(meta['parts'])} parte(s)"
-             + (" (ya estaba)" if meta["skipped"] else "") + " · " + "; ".join(notes))
+             + (" (ya estaba)" if meta["skipped"] else "")
+             + (f" (retomada: {meta['resumed_parts']} ya subidas)" if meta.get("resumed_parts")
+                else "") + " · " + "; ".join(notes))
         gone = offsite.prune(t, machine, keep)
         step("poda externa", True, f"{len(gone)} archivo(s) antiguos borrados (se conservan "
              f"las {keep} últimas de {machine})")

@@ -23,6 +23,7 @@ from eim.data.collectors.health import HEARTBEAT_EVERY_S, micro_dir, sfx, write_
 from eim.data.collectors.writer import HourlyWriter
 from eim.observability import hooks_service
 from eim.observability.emit import configure
+from eim.operation.priority import apply_role
 from eim.operation.watchdog import instance_lock
 
 # Binance separó los flujos por ruta: `/public` (depth, bookTicker) y `/market` (aggTrade,
@@ -171,6 +172,7 @@ def main() -> None:
     ap.add_argument("--root", default="data")
     a = ap.parse_args()
     configure(process="collector", spool_dir=Path(a.root) / "obs" / "spool")
+    apply_role("collector")   # T126: nivel de prioridad del proceso
     # nunca dos escritores del mismo símbolo a la vez
     lock = instance_lock(micro_dir(a.root) / f"collector{sfx(a.symbol)}.lock")
     if lock is None:

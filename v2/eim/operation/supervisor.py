@@ -26,7 +26,7 @@ from eim.data.collectors.compact import compact_closed
 from eim.execution.sim_broker import SimBroker
 from eim.observability import hooks_service
 from eim.operation import report as report_io
-from eim.operation import state, weekly
+from eim.operation import state, usage_summary, weekly
 from eim.operation.alerts import (
     BACKUP,
     CRITICAL,
@@ -113,13 +113,13 @@ class Operation:
         return res
 
     def _obs_alerts(self, now: int) -> None:
-        """Salud mínima del observatorio (T75): por transición, vía `op_alerts` + aviso local."""
+        """Salud mínima del observatorio (T75) y LLM local (T128): por transición, `op_alerts`."""
         db = self.extra_dbs.get("obs.duckdb")
-        if db is None:
-            return
         try:
-            from eim.observability.obs_alerts import obs_conditions
-            self.alerts.update(now, obs_conditions(db[0], db[1], now))
+            from eim.observability.obs_alerts import llm_conditions, obs_conditions
+            obs = (obs_conditions(db[0], db[1], now, started_ms=self.status["process_started_at"])
+                   if db is not None else [])
+            self.alerts.update(now, obs + llm_conditions(now))
         except Exception as e:  # noqa: BLE001 - el observatorio nunca tumba la operación
             self.log.write("obs_alertas_error", "warn", error=f"{type(e).__name__}: {e}")
 
@@ -153,7 +153,8 @@ class Operation:
             alerts=self.alerts.recent(t0, t1, 1000), active_alerts=self.alerts.active,
             decisions=self.desk.journal.recent(t0, t1, limit=5000),
             edge=weekly.load_edge(self.edge_path), calib=calib,
-            started_at=self.cursors.started_at, hft_qc=self.hft_qc(t0, t1))
+            started_at=self.cursors.started_at, hft_qc=self.hft_qc(t0, t1),
+            usage=usage_summary.for_report(self.data_dir, t0, t1, self.params.symbols))
 
     def hft_qc(self, t0: int, t1: int) -> dict[str, dict]:
         """Resumen del control de calidad de la captura HFT (T78) por símbolo, si la hay."""

@@ -38,6 +38,26 @@ def test_silent_component_alerts_and_healthy_does_not():
     assert not _by(obs_conditions(con, lock, now))[f"obs_sin_latido:{comp.id}"].on
 
 
+def test_hourly_store_and_broker_hooks_do_not_flap():
+    """T126: el almacén emite con cada vela de 1 h (20 min sin eventos es su ritmo normal; antes
+    saltaban 34 avisos falsos al día). T128: el bróker ya no calla mientras corren sus ganchos
+    (laten aparte, cada ~4 min): 5 min sin latir ya es raro y 7 avisan."""
+    now = 10_000_000_000
+    con, lock = _db([("data.store", now - 20 * 60_000, "data_fetch"),
+                     ("paper.broker", now - 5 * 60_000, "heartbeat"),
+                     ("paper.hooks", now - 14 * 60_000, "heartbeat")], last_pass=now)
+    got = _by(obs_conditions(con, lock, now))
+    assert not got["obs_sin_latido:data.store"].on
+    assert not got["obs_sin_latido:paper.broker"].on
+    assert not got["obs_sin_latido:paper.hooks"].on
+    con, lock = _db([("data.store", now - 4 * 3600_000, "data_fetch"),
+                     ("paper.broker", now - 7 * 60_000, "heartbeat"),
+                     ("paper.hooks", now - 16 * 60_000, "heartbeat")], last_pass=now)
+    got = _by(obs_conditions(con, lock, now))                     # callados de verdad: avisan
+    assert got["obs_sin_latido:data.store"].on and got["obs_sin_latido:paper.broker"].on
+    assert got["obs_sin_latido:paper.hooks"].on
+
+
 def test_stale_data_and_late_indexer():
     now = 10_000_000_000
     con, lock = _db([("data.store", now - 2_000_000, "data_fetch")], last_pass=now - 1_000_000)

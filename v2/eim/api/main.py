@@ -57,6 +57,7 @@ from eim.data.validation_store import ValidationStore
 from eim.observability.emit import configure
 from eim.operation.alerts import AlertCenter
 from eim.operation.cycle import OperationParams
+from eim.operation.priority import apply_role
 from eim.operation.supervisor import Operation, Supervisor
 from eim.operation.task_watch import watch_supervisor
 from eim.paper.desk import PaperDesk
@@ -106,6 +107,7 @@ def create_app(
     kill.attach(cfg.data_dir / "kill_switch.json")
     runtime = build_runtime(cfg.execution, kill, load_config())
     configure(process="api", mode=runtime.mode, spool_dir=cfg.data_dir / "obs" / "spool")
+    apply_role("api")   # T126: nivel de prioridad del proceso
     desk = RiskDesk(store, reports, kill=kill, runtime=runtime)
     op = None
     if cfg.operate:   # T31: el ciclo continuo reconcilia; no hace falta el bucle aparte
@@ -149,8 +151,8 @@ def create_app(
     paper.alerts = op.alerts if op is not None else AlertCenter(rcon, rlock)   # T110 → op_alerts
     # T49: puerta de validación por estrategia; se recalcula al cierre de cada vela de 4 h.
     validator = Validator(paper, ValidationStore(paper_store))
-    paper.after_tick.append(validator.maybe_run)
-    paper.after_tick.append(paper.ledger_tick)    # libro de registro fijo (solo adición)
+    paper.hooks.add("validacion", validator.maybe_run, "validation.gate")
+    paper.hooks.add("libro", paper.ledger_tick)    # libro de registro fijo (solo adición)
     # T61: experiencia compartida automática (solo si hay carpeta compartida configurada):
     # importa lo de las demás máquinas y exporta lo propio, sin comandos.
     share = None
@@ -187,6 +189,7 @@ def create_app(
             if t is not None:
                 t.cancel()
         paper.stop_backtest()
+        paper.hooks.stop()
         await hub.close()
         reports.close()
         paper_store.close()
@@ -218,13 +221,13 @@ def create_app(
     # T59: puntuación del escuadrón; se recalcula al cierre de cada vela de 4 h.
     bot_scorer = BotScorer(bot_store, ScoreStore(rcon, rlock), store, paper_store,
                            SimRunStore(rcon, rlock))
-    paper.after_tick.append(bot_scorer.maybe_run)
+    paper.hooks.add("bots", bot_scorer.maybe_run, "bots.scoring")
     SquadRuntime(bot_scorer, bots.quarantine).refresh()   # T60: política vigente desde T59
     app.include_router(build_bots_router(bot_store, bots, bot_scorer))
     # T51: registro y resolución de lo publicado; el bróker lo llama tras cada ciclo.
     setups_router = build_setups_router(
         paper, validator, tracker=Tracker(SuggestionStore(paper_store), paper.ep))
-    paper.after_tick.append(setups_router.tick)
+    paper.hooks.add("setups", setups_router.tick)
     app.include_router(setups_router)
     app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))

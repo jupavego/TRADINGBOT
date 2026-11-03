@@ -55,11 +55,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Siguiente paso:** fusionar el PR #172 y `--ff-only` en la carpeta principal; en `juanpablo-cpu`,
   `docs/CONTINUIDAD.md` §2 y §3 A.
 
-## 2026-10-30 23:40 UTC · juanpablo-cpu · T125/T117 llegada del equipo y simulacro
+## 2026-10-30 23:40 UTC · juanpablo-cpu · T125/T117 llegada del equipo, simulacro e importación
 - **Hecho:** diagnóstico de `DESKTOP-93R810K`. El clon está en `C:\Users\jo\Desktop\JP\TRADINGBOT`, con `main` 19 commits atrasado y nada sin subir: las ramas locales `t106`/`t107` ya están en `origin/main`, y solo quedan sin seguir `.claude/settings.local.json` y el informe propio `v2/reports/operation/semana_2026-W43.*`. Es el **caso A** (historial propio). El modo automático de T61 apuntaba al repo viejo `jupavego/eim-shared-data` (ramas `machine/juanpablo` y `machine/juanpablo-cpu`). No hay `D:/eim-bots`. Corrían el recolector de microestructura, la captura HFT y Vite; la API, la operación y los líderes estaban parados (último latido de la operación: 2026-10-29 16:31 UTC). La tarea «EIM - servicio continuo (broker simulado)» arrancaba al iniciar sesión.
   - Respaldo en `%USERPROFILE%\EIM_respaldos\20261030-175903`. `-SoloRespaldo` se paró en su verificación (la captura HFT escribe en `micro_hft`, BACKLOG T125 (1)); los mismos pasos, completados a mano, dan 346 archivos y 432 642 449 B idénticos sin `micro_hft`, y el bundle de ramas verificado. Copia del sistema: `eim_20261030-230202` **íntegra**.
   - `git pull --ff-only` (`ebf3900` → `f44cae5`). Locks sin cambios: el simulacro de pip no instala nada, `pip check` y `npm ls` salen bien y se reinstaló el paquete editable; `npm ci` no se ejecutó porque Vite estaba en marcha.
   - Con permiso del usuario: tarea de inicio **desactivada**, `data/share_repo` apartado a `share_repo.jupavego-20261030` (BACKLOG T125 (2)), `share setup --git-url https://github.com/Santivego/eim-shared-data.git --machine juanpablo-cpu`, `export` → rama `machine/juanpablo-cpu` en Santivego (`0105753`, `20261030T231112Z`, 29 s) y `import` en simulacro (100 s).
+  - Con el visto bueno del usuario al simulacro: `import --apply --from laptop-i6pf9ovp-fce8d9` con los servicios parados, sobre la misma foto (`730dce4`), en 124 s. Salieron las mismas cifras. Copia previa en `backups/pre-import_20261030T232551Z-juanpablo-cpu`; veredictos recalculados (208 intentos).
 - **Archivos:** `PLAN/{BITACORA,ESTADO_PROYECTO,BACKLOG}.md`.
 - **Pruebas:**
   - `backup verify` → 4 bases, 561 909 filas (reports 116 631, paper 18 716, leaders 232 639, obs 193 923).
@@ -67,9 +68,33 @@ más reciente por fecha y su siguiente paso. Formato:
   - `git ls-remote` de Santivego antes del export: solo `machine/laptop-i6pf9ovp-fce8d9` (identidad libre). Después: más `machine/juanpablo-cpu`. La rama del repo viejo no cambió (`a54bc4f`).
   - Simulacro desde `laptop-i6pf9ovp-fce8d9` `20261030T030349Z` (nuevas / ya estaban / conflicto / incompat.): reports 12 517 / 589 / 1 242 / 0 · sim_trades 41 / 3 / 1 / 0 · paper_ctx 35 499 / 8 / 3 449 / 0 · val_versions 0 / 191 / 0 / 0 · val_windows 104 / 87 / 0 / 0 · leaders 15 / 0 / 0 / 0 · leader_fills 2 807 174 · leader_funding 35 772 · leader_leverage 4 · leader_positions 35 444 · leader_follow 2 129 264 · leader_recon 87 924 · leader_gaps 16 623 · copy_journal 33 992 (líderes: todo nuevas). **Total: 5 194 373 nuevas, 878 ya estaban, 4 692 en conflicto, 0 incompatibles.** Las bases y los WAL no cambiaron (mismos bytes y fechas).
   - Gate: ruff OK; 2 425 pruebas pasadas, 7 omitidas y 0 fallidas en 13,4 min, con el recolector y la captura HFT en marcha.
-- **Abierto:** ◆ revisión del simulacro por el usuario (no se ejecutó `import --apply`). Mientras `share_config.json` apunte a Santivego, abrir la API o los líderes (icono o `servicio_continuo.ps1`) **aplica** la importación sola. Por la cantidad de filas de líderes, aplicar antes a mano con los servicios parados (nota T117 §6.6). Este equipo no tiene copia externa ni Freqtrade.
-- **En curso:** T31 (portátil), T45, T78, T104, T116, T117, T119.
-- **Siguiente paso:** ◆ visto bueno del simulacro → `import --apply` en `juanpablo-cpu` con los servicios parados; la portátil hace su simulacro sobre `machine/juanpablo-cpu`; decidir si `juanpablo-cpu` opera a diario (reactivar la tarea de inicio e instalar `instalar_copia_externa.ps1`).
+  - Tras aplicar, cada tabla importada creció exactamente en sus «nuevas»: líderes +5 146 212, paper_ctx +35 499, reports +12 517, val_windows +104, sim_trades +41. `share_conflicts` sumó +1 243 (reports) y +3 449 (paper). El recálculo añadió 104 `val_verdicts`, 486 filas de `paper_ledger` y 1 `paper_view_snapshot`. `backup verify` de `eim_20261030-232849` → **íntegra**, 10 955 952 filas (reports 142 992, paper 93 965, leaders 10 525 072, obs 193 923). `leaders.duckdb` pasó de 88 MB a 1,27 GB.
+  - Arranque (con permiso, 23:35 UTC). Modo automático **apagado** antes, como en la portátil: `share_config.json` apartado, y `GET /v2/share/status` → `enabled: false`. `servicio_continuo.ps1 -ConWeb` lanzado por WMI. API sana en 8 s (`SIMULADO`, «operando», 19 agentes). El primer ciclo del bróker falló al leer una hora de microestructura que la operación compactaba en ese instante (`micro_compactada`, 23:37:43); el reintento se puso al día con ~31 h de velas en ~17 min, y el cierre de las 00:00 UTC se analizó solo (15m/1h/4h, sin error). Operación: 23 ciclos, 0 fallos. Líderes: 17/17 listos y tablero fresco. Arbitraje: escaneo cada ~11 s. Microestructura y HFT con latido (`dropped` 0). Proyección con 3 escenarios. Operaciones sugeridas: «sin validadas» (89 en observación, 15 rechazadas; puerta T49). La interfaz se dibuja «EN VIVO»; vista del bróker: 38 914 velas (1 105 en vivo) y 270 operaciones, 77 % ganadas. Tras abrir la interfaz se resolvieron los avisos «sin latido» de precio en vivo y difusor. Siguen degradados por datos, como antes del reinicio: liquidaciones (cobertura 54 %), microestructura (huecos de secuencia), VWAP mensual parcial y literatura. Hoja de ruta viva republicada (`build_roadmap.py`: 125 tareas, 79 hechas).
+- **Abierto:** la importación manual no anota `data/share/state_*.json` (BACKLOG T125 (5)); con el modo automático apagado no hace falta. Revisar `share_conflicts` fila a fila (nota T117 §6.6). Este equipo no tiene copia externa ni Freqtrade.
+- **En curso:** T31 (portátil; aquí corre una operación en papel propia), T45, T78, T104, T116, T117, T119.
+- **Siguiente paso:** la portátil hace su simulacro sobre `machine/juanpablo-cpu`; decidir si `juanpablo-cpu` opera a diario (reactivar la tarea de inicio e instalar `instalar_copia_externa.ps1`, que también publica su experiencia).
+
+## 2026-10-31 07:18 UTC · juanpablo-cpu · T31/T78/T116/T117/T119 tareas en curso desde este equipo
+- **Hecho:** por decisión del usuario, las tareas que estaban en curso en la portátil siguen desde aquí.
+  - **Operación diaria:** la tarea «EIM - servicio continuo (broker simulado)» está reactivada (al iniciar sesión) y se instaló «EIM - copia externa diaria» (20:30 hora local, ~01:30 UTC). La primera copia externa, a mano, es `eim_20261030-232849` (581 MB en 3 partes). La exportación de la experiencia falló con HTTP 408 al subir 243 MB, y el reintento dijo «PUBLICADO» sin subir nada (BACKLOG T125 (6)). Se subió a mano con `http.postBuffer` grande → `machine/juanpablo-cpu` = `87a7426`.
+  - **T31:** corrida propia de este equipo desde el 2026-10-30 23:35 UTC hasta el 2026-11-27. La de la portátil sigue en paralelo.
+  - **T117:** desde aquí se comprobó la idempotencia y se hizo el simulacro en sentido portátil. La unión es conmutativa.
+  - **T119 ☑:** la API y la CLI dan la misma puntuación.
+  - **Copias de `leaders.duckdb`:** las copias en caliente `eim_20261031-000042` y `-002221` salieron **sin `leaders.duckdb`**: la instantánea del servicio de líderes se quedó sin memoria con el tope de 1 GB y una base de 1,27 GB. Con permiso: `EIM_DUCKDB_MEMORY=2GB` (variable de usuario) y reinicio solo del servicio de líderes. La API, la operación, el bróker y los recolectores siguieron en marcha y `/v2/health` respondió `ok` todo el rato. Resultado: `eim_20261031-005644` completa (BACKLOG T125 (7)).
+  - **T78:** contraste con la QC de la portátil (viaja en su copia externa `eim_20261030-030349`). Aquí rinde mejor; lo que le resta horas es la carga local. Ventana de 72 h: del 2026-10-31T08 al 2026-11-03T07 UTC (72 horas completas: de las 08:00 UTC del 31-oct a las 08:00 UTC del 3-nov), abierta tras los gates de T116 y la copia externa repetida.
+  - **T116:** las 3 corridas «con Ollama real» que quedaban pendientes, con `qwen3:4b` generando sin parar y los servicios en marcha. **No salen verdes**, pero todos los fallos son de pruebas con plazo de tiempo o latidos.
+  - **Copia diaria del 2026-10-31:** la tarea de las 01:36 UTC falló por la carga de T116: TLS con GitHub agotado, `git ls-remote` a 300 s y `git rev-parse` a 60 s (BACKLOG T125 (8)). La copia local de ese día quedó verificada. Repetida a mano a las 07:09 UTC (la misma copia diaria aprobada): `eim_20261031-005644` subida (589 MB en 3 partes, con líderes) y experiencia `20261031T005644Z` publicada, `machine/juanpablo-cpu` = `35cc71e` (comprobado con `git ls-remote`). Su *bundle* de ramas solo locales falló por una ruta relativa (BACKLOG T125 (9)).
+  - **Suspensión:** a petición del usuario se comprobó que no detiene los procesos. Plan «Alto rendimiento»: suspender e hibernar «Nunca», con corriente y con batería; 0 suspensiones, reanudaciones o reinicios en las 24 h previas. Windows Update sin reinicio pendiente (horas activas 8–17 hora local). La app de Claude mantiene el equipo despierto mientras trabaja. No se cambió ningún ajuste del sistema.
+- **Archivos:** `PLAN/{BITACORA,STATUS,ESTADO_PROYECTO,BACKLOG}.md` y la hoja de ruta regenerada.
+- **Pruebas:**
+  - T117, idempotencia: la misma foto sobre la copia posterior da 0 nuevas en las 14 tablas. Sentido portátil (copia `eim_20261030-030349` y exportación `20261030T232849Z`): 217 084 nuevas, 5 195 251 ya estaban (= lo aplicado aquí), los mismos 4 692 conflictos y 0 incompatibles.
+  - T119: API viva (`GET /v2/bots/scorecard`, corte 00:00 UTC, `vigente`) frente a la CLI sobre la copia en caliente `eim_20261031-002221` (corte 00:15 UTC). Mismos 24 intentos de Holm (id, veredicto, n, p bruto, p Holm, retirado, control), mismos estados por bot y mismo resumen (11 informan, 0 votan).
+  - Copia `eim_20261031-005644`: `backup verify` → **íntegra**, 1 565 MB, líderes 10 589 988 filas. La instantánea de líderes tardó 410 s con el equipo cargado.
+  - T78: antes de la ventana, 19 de 32 horas completas (59 %). En las 11 horas en que capturaban los dos equipos (28-oct 23 UTC a 30-oct 01 UTC), la portátil completó 0 (24–122 silencios por hora) y este equipo 6 de las 9 que llevaba capturando. Las 2 horas que fallan en ambos (28-oct 23 y 29-oct 23 UTC, con desconexiones) son eventos de Binance.
+  - T116: 3 corridas de 00:32 a 03:38 UTC con 324 generaciones de Ollama. `ruff` limpio en las 3. `pytest`: 2, 1 y 10 fallos, en 63,8, 36,2 y 85,8 min (las de la portátil, 11–20 min). Fallan `test_emit` (sobrecarga del ciclo, las 3; dos procesos), `test_obs_api` (100k eventos), `test_hft_risk` (p99), 3 de `test_service_heartbeats` y 3 de `test_paper_api`. Los 11 casos pasan aislados en 63 s con los servicios en marcha.
+- **Abierto:** BACKLOG T125 (6)–(9). T116: decidir si el gate debe aguantar Ollama generando (margen de las pruebas con plazo). T117: revisar `share_conflicts` fila a fila. La copia externa diaria (~01:30 UTC) cae dentro de la ventana de T78. Conviene pausar Windows Update durante la ventana: lo hace el usuario.
+- **En curso:** T31 (aquí y en la portátil), T45, T78 (ventana del 2026-10-31T08 al 2026-11-03T07 UTC (72 horas completas: de las 08:00 UTC del 31-oct a las 08:00 UTC del 3-nov), abierta tras los gates de T116 y la copia externa repetida), T104, T116, T117.
+- **Siguiente paso:** al cerrar la ventana de T78, leer `data/micro_hft/qc/symbol=BTCUSDT/summary.json` y anotar la aceptación en `STATUS.md`. Después, T104 (corte de red provocado y línea base de 7 días) y T116 con el equipo descargado (◆ permiso para parar servicios).
 
 ## 2026-10-31 07:45 UTC · juanpablo-cpu · T62 motores locales (auditoría y banco)
 - **Hecho:** T62 de ☐ a ◐, en la rama `claude/t62-motores-locales` (worktree aparte: en la carpeta principal trabajaba la sesión de T116).
@@ -96,3 +121,305 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** ◆ postura ante YouTube; banco en el equipo de referencia (7,9 GB); muestras de audio reales con 3 min corregidos a mano; ◆ pasar el Ollama del sistema a `C:\eim-localai` (parar el de `Z:`, variables de usuario, puerto 11434). Nada commiteado.
 - **En curso:** T31 (portátil), T45, T62, T78, T104, T116, T117, T119.
 - **Siguiente paso:** correr las órdenes de `OPERACION.md` §7 en la portátil; con eso y la postura ante YouTube, cerrar T62 y empezar T63.
+
+## 2026-11-01 21:40 UTC · juanpablo-cpu · T126 director de recursos (fase 1)
+- **Hecho:** a pedido del usuario, diagnóstico de por qué fallan las corridas de días en este equipo (i5-6400, 4 núcleos, 16 GB) y fase 1 del arreglo en la rama `claude/t126-director-fase1`, **sin desplegar** (los servicios en marcha no se tocaron).
+  - **Diagnóstico** (detalle en `PLAN/T126.md`):
+    - La ventana de 72 h de T78 se perdió el 31-oct a las 13–14 UTC, cuando el equipo se saturó con la prueba de un modelo de visión de T62.
+    - A las 21:46 UTC hubo un apagado forzado: botón de encendido durante una suspensión, con el inicio rápido activo.
+    - Después, ~23 h sin servicios: las tareas del EIM solo arrancan al iniciar sesión.
+    - La tarea programada dejaba los 26 procesos del EIM en BELOW_NORMAL, captura incluida, por debajo de cualquier programa abierto.
+    - 34 alertas falsas de latido al día.
+    - Restos de pruebas de juegos (NVIDIA Overlay, FrameView SDK) a decisión del usuario.
+  - **Prioridades por nivel** (`eim/operation/priority.py`): captura en vivo en ABOVE_NORMAL, API, líderes y vigilantes en BELOW_NORMAL, mantenimiento, gate, copias y Ollama en IDLE. Se activa solo con `EIM_PRIORITY=on` (lo fija `servicio_continuo.ps1`). Para trabajos a mano: `python -m eim.operation.priority run batch -- <orden>`.
+  - **Cadencias reales en el catálogo:** almacén de velas 3600 s y bróker 300 s.
+  - **Arranque al encender:** `instalar_inicio_automatico.ps1 -AlEncender` registra una tarea S4U, sin necesidad de iniciar sesión. El lanzador ya no duplica nada con dos arranques a la vez.
+  - **T78 por racha:** `hft_ops --streak` y `t78_streak` en el resumen. La mejor racha real es de 9 h (31-oct 04–12 UTC).
+- **Archivos:**
+  - `v2/eim/operation/priority.py` y los 9 puntos de arranque (`api/main.py`, `collectors/{binance_ws,hft_ws,liq_ws,supervise,hft_supervise}.py`, `leaders/cli.py`, `operation/__main__.py`).
+  - `v2/eim/data/collectors/hft_ops.py` y `v2/eim/observability/catalog/components_flow.py`.
+  - `v2/scripts/{servicio_continuo,instalar_inicio_automatico}.ps1`.
+  - `v2/tests/{operation/test_priority,data/test_hft_streak}.py` y `v2/tests/observability/test_obs_alerts.py`.
+  - `v2/docs/OPERACION.md`, `CLAUDE.md`, `PLAN/{T126,STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md` y la hoja de ruta.
+- **Pruebas:** gate con la herramienta nueva (`priority run batch`, el intérprete real en IDLE, comprobado en vivo) y los servicios en marcha: ruff limpio; 2 436 pasadas, 7 omitidas y 0 fallidas en 12 min 39 s. Pruebas nuevas: niveles en subprocesos (la captura sube, el mantenimiento baja y se restaura, la API queda en BELOW_NORMAL, `run` deja a los hijos en IDLE), todo papel declarado con nivel, racha de T78 (5) y las dos alertas sin saltar a su ritmo normal. Los dos scripts se analizan sin errores, y la detección del vigilante de la API y de Vite encuentra los procesos reales. Racha calculada sobre los JSON de QC de la carpeta viva (solo lectura): 57 horas auditadas, la mejor de 9 h.
+- **Abierto:** ◆ desplegar (reiniciar los servicios con el código nuevo) y registrar la tarea al encender desde una consola de administrador. Ajustes de Windows del usuario: inicio rápido, botón de encendido y, opcionalmente, exclusión de `v2\data` en Defender. Fases 2–3 en BACKLOG T126.
+- **En curso:** T31, T45, T78 (sin ventana fija: por racha), T104, T116, T117, T126.
+- **Siguiente paso:** con permiso del usuario, fusionar el PR, `git merge --ff-only origin/main` en la carpeta principal, reiniciar los servicios por la tarea y comprobar las clases de prioridad. Después, dejar correr la captura y leer `hft_ops --streak` hasta las 72 h.
+
+## 2026-11-01 21:40 UTC · juanpablo-cpu · T126 despliegue de la fase 1
+- **Hecho:** con permiso del usuario se desplegó la fase 1.
+  - PR #175 fusionado (`efda32c`) y `git merge --ff-only origin/main` en la carpeta principal.
+  - A las 21:34 UTC se detuvieron los 4 vigilantes y luego sus 5 servicios: 18 procesos con su lanzador, ninguno quedó vivo.
+  - Se relanzó todo con `Start-ScheduledTask` de la tarea de inicio de sesión (resultado 0). Vite, la hoja de ruta, el icono y «equipo despierto» siguieron en marcha y el script no los duplicó.
+- **Archivos:** `PLAN/{BITACORA,STATUS,ESTADO_PROYECTO,BACKLOG}.md`.
+- **Pruebas:**
+  - Prioridades medidas en los procesos reales: `binance_ws`, `hft_ws` y `liq_ws` en **AboveNormal**; la API, `leaders run`, los vigilantes y `eim.operation run` en **BelowNormal**. Antes estaban los 18 en BelowNormal.
+  - La API respondió `ok` en SIMULADO, «operando», con 19 agentes, a los 12 s; 4 ciclos sin error y 0 reinicios.
+  - A los 4 min: latidos de líderes 11 s y bróker 51 s, sin error. Captura HFT sincronizada, 0 mensajes perdidos, 0 silencios y 1/1 verificación del libro igual a Binance.
+  - Un solo Vite, una sola hoja de ruta y un solo vigilante de la API.
+  - Alertas al arrancar: «Precio en vivo» y «Difusor» sin latido, que salen en cada arranque hasta que se abre la interfaz, y «Protección en estado inconsistente: agresivo BTCUSDT», el diario de T110 que se repite en cada arranque desde el 31-oct. Ninguna la causa T126.
+- **Abierto:** ◆ registrar `instalar_inicio_automatico.ps1 -AlEncender` desde una consola de administrador. Ajustes de Windows del usuario. Fases 2–3 en BACKLOG T126. La hora 21 UTC del 1-nov saldrá incompleta por el reinicio.
+- **En curso:** T31, T45, T78 (por racha desde las 22 UTC del 1-nov), T104, T116, T117, T126.
+- **Siguiente paso:** leer `python -m eim.data.collectors.hft_ops --root data --streak` a diario; T78 se cumple en cuanto la racha llegue a 72 h, como pronto el 2026-11-04 22 UTC.
+
+## 2026-11-01 21:55 UTC · juanpablo-cpu · T126 tarea al encender
+- **Hecho:** el usuario registró «EIM - servicio continuo al encender» desde una consola de administrador. Comprobado: estado `Ready`, S4U con el usuario `jo`, nivel limitado, disparo al arrancar con 2 min de retraso y la acción de `servicio_continuo.ps1 -ConWeb`. La tarea de inicio de sesión se conserva.
+- **Pruebas:** `Start-ScheduledTask` con los servicios en marcha. Salió con código 0 en ~3 s: 23 procesos del EIM antes y 23 después, ninguno nuevo y ninguno parado. El registro operativo del Programador está desactivado (lo normal en Windows 10), así que no hay más rastro de la ejecución.
+- **Abierto:** el arranque desde cero sin sesión iniciada solo se verá en el próximo reinicio real. Si Vite no levanta (PATH de `npm` en S4U), la interfaz llega al iniciar sesión. Los ajustes de Windows siguen pendientes del usuario.
+- **Siguiente paso:** tras el próximo reinicio, comprobar que los servicios arrancaron antes de iniciar sesión (`proceso_lanzado` en `data/operation/logs/op-*.jsonl` unos 2 min después del arranque).
+
+## 2026-11-01 22:00 UTC · juanpablo-cpu · T126 ajustes de Windows
+- **Hecho:** el usuario hizo los ajustes de Windows (Claude no cambia ajustes del sistema; solo los comprobó). Desactivó el inicio rápido: `HiberbootEnabled` 0, leído del registro. Excluyó `C:\Users\jo\Desktop\JP\TRADINGBOT\v2\data` del análisis de Defender, comprobado en su captura de Seguridad de Windows. El botón de encendido sigue en «Apagar» (`PBUTTONACTION` 3), que sin inicio rápido es un apagado completo.
+- **Causa del 31-oct confirmada:** con el botón en «Apagar» y el inicio rápido activo, pulsarlo inicia una hibernación del núcleo. Por eso el evento 41 marca `SleepInProgress=1`: esa transición se colgó y la segunda pulsación cortó la corriente.
+- **Archivos:** `PLAN/{ESTADO_PROYECTO,T126,BITACORA}.md`.
+- **Abierto:** ver el primer reinicio real (servicios ~2 min tras encender, sin iniciar sesión). Restos de juegos en NVIDIA App a decisión del usuario.
+- **Siguiente paso:** seguir la racha de T78 con `hft_ops --streak`.
+
+## 2026-11-01 22:15 UTC · juanpablo-cpu · T126 en la hoja de ruta
+- **Hecho:** a pedido del usuario, el director de recursos entra en la hoja de ruta con su avance. Nueva fase 21 «Capacidad del equipo y procesos largos» con T126 (fase 1, ☑), T127 (fase 2: registro de consumo y cola de trabajos pesados con pausa, reanudación y puntos de control) y T128 (fase 3: un recolector por fuente, retención de líderes, ganchos fuera de la API, menos ruido; ◆ qué historial de líderes se conserva y qué restos se borran). Los ítems de la línea T126 del BACKLOG quedan repartidos entre las dos.
+- **Archivos:** `PLAN/{T126,T127,T128,STATUS,00_MASTER,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/roadmap.html`, `PLAN/status.js`.
+- **Pruebas:** `build_roadmap.py` sin tareas huérfanas (128 tareas, 81 hechas); hoja de ruta viva comprobada en el navegador.
+- **Siguiente paso:** T127 y T128 están «Listas»; empezar por T127, antes comprobando el primer reinicio real.
+
+## 2026-11-01 22:45 UTC · juanpablo-cpu · T126 prueba del reinicio y del arranque desde la sesión 0
+- **Hecho:**
+  - **Reinicio real a pedido del usuario** (arranque a las 22:08:34 UTC). Windows inició sesión solo a los 8 s (inicio de sesión automático tras un reinicio voluntario), así que actuó la tarea de inicio de sesión: vigilante a las 22:09:57 y API a las 22:10:46. La tarea al encender, a las 22:10:10, esperó el cerrojo y no lanzó nada (salida 0). Al arrancar se disparó también la copia externa diaria, que el 31-oct no llegó a correr: `eim_20261101-221145` publicada (622 MB, salida 0, 733 s).
+  - **Arranque en frío desde la sesión 0**, simulado con permiso del usuario. Se detuvieron los 25 procesos (servicios, Vite y «equipo despierto») a las 22:25:03 UTC y se lanzó a mano la tarea al encender. En 19 s escuchaban la API y Vite (salida 0), y luego quedaron API `ok`, líderes, captura HFT sincronizada (1/1 verificación) e identidad `juanpablo-cpu`, sin errores en los registros. Todo en la sesión 0, con la prioridad base correcta: 3 procesos en AboveNormal (los recolectores) y 17 en BelowNormal.
+  - **Hallazgo:** desde la sesión del usuario no se puede leer la línea de órdenes, la prioridad ni la hora de inicio de los procesos de la sesión 0 (sí la prioridad base por WMI, los puertos y los cerrojos). `servicio_continuo.ps1` detectaba los servicios por la línea de órdenes, así que al iniciar sesión después de un arranque en frío habría lanzado otro recolector de liquidaciones (sin cerrojo: dos escritores) y otro «equipo despierto». El resto lo frenaban sus cerrojos o los puertos, pero tocando sus registros abiertos.
+  - **Arreglo:** cerrojo de instancia en `liq_ws` y en `eim.operation run`, cerrojo global en `mantener_despierto.ps1`, y `Ocupado` en el lanzador, que consulta el cerrojo de cada servicio (visible desde cualquier sesión) antes de lanzarlo. Si el cerrojo global del lanzador no se puede abrir, espera 30 s.
+- **Archivos:** `v2/eim/data/collectors/liq_ws.py`, `v2/eim/operation/__main__.py`, `v2/scripts/{servicio_continuo,mantener_despierto}.ps1`, `v2/tests/operation/test_instance_locks.py`, `PLAN/{STATUS,ESTADO_PROYECTO,T127,BITACORA}.md`.
+- **Pruebas:** la comprobación `Ocupado` contra los cerrojos reales de la sesión 0 da ocupados los 5 que existían y libre un archivo de prueba. 3 pruebas nuevas (vigilante duplicado, liquidaciones duplicadas, y `Ocupado` de PowerShell frente a `instance_lock` de Python) más las relacionadas: 31 pasadas. Los dos scripts se analizan sin errores. Gate en Idle con los servicios en marcha: ruff limpio; 2 439 pasadas, 7 omitidas y 0 fallidas en 14 min 12 s.
+- **Abierto:** ◆ desplegar (reiniciar los servicios; hoy corren en la sesión 0 con el código anterior, sin el cerrojo de liquidaciones: no cerrar ni abrir sesión hasta desplegar). La racha de T78 cuenta desde las 23 UTC del 1-nov.
+- **Siguiente paso:** fusionar, desplegar y comprobar que una ejecución de la tarea de inicio de sesión con todo en marcha no lanza nada.
+
+## 2026-11-02 02:55 UTC · juanpablo-cpu · T126 despliegue de los cerrojos de instancia (PR #180)
+- **Hecho:**
+  - Fusionado el PR #180 (`d23d030`) con permiso del usuario, y main actualizada en la carpeta principal.
+  - **Detener los servicios de la sesión 0:** desde la sesión del usuario, sin elevar, `Stop-Process` dio «Acceso denegado» en los 25 procesos y no se detuvo ninguno. El usuario ejecutó, en un PowerShell de administrador, un script de un solo uso: detiene los procesos del usuario en la sesión 0 (vigilantes antes que sus hijos), relanza con la tarea al encender y espera a la API.
+  - **Relanzado** a las 02:48:07 UTC en la sesión 0: 25 procesos, 3 recolectores en AboveNormal y el resto en BelowNormal; los 5 cerrojos (vigilantes de la API, líderes, microestructura y HFT, y liquidaciones) tomados, y los de la API y las liquidaciones solo existen con el código nuevo. API `ok` (19 agentes, SIMULADO, operando), interfaz y hoja de ruta escuchando.
+  - **Prueba sin duplicados:** la tarea de inicio de sesión, lanzada con todo en marcha, terminó en 8 s (salida 0) con los mismos 26 procesos y sin reabrir ningún registro. El lanzador, ejecutado a mano, da «ya corre: no se lanza otro» en cada servicio; el segundo «equipo despierto» sale por su cerrojo global.
+- **Archivos:** `PLAN/{STATUS,ESTADO_PROYECTO,T127,BITACORA}.md`, `v2/docs/OPERACION.md`.
+- **Pruebas:** las del PR #180 (gate verde: 2 439 pasadas, 7 omitidas) y las comprobaciones de arriba.
+- **Abierto:**
+  - **Parar los servicios de la sesión 0 sin elevar:** «Parar servicio» del icono no los alcanza (entregable 5 de T127).
+  - Avisos tras el arranque, ninguno del despliegue: dos «sin latido» transitorios (precio en vivo y difusor de la API) y la alerta de protección inconsistente de BTCUSDT, que sale en cada arranque desde el 31-oct.
+  - El lanzador avisa de que Ollama no está instalado (`Z:\Ollama`, la unidad Z: no existe): el agente de contexto queda «sin datos».
+  - **Racha de T78:** iba en 3 h (23 a 01 UTC); el corte de ~1 min deja incompleta la hora de las 02, así que cuenta de nuevo desde las 03 UTC del 2-nov y se cumple como pronto el 5-nov a las 03 UTC.
+- **Siguiente paso:** dejar correr la captura; revisar la racha con `hft_ops --streak`.
+
+## 2026-11-02 03:25 UTC · juanpablo-cpu · T127 registro de consumo (entregable 1)
+- **Hecho:**
+  - `eim/operation/usage_win.py` lee con `ctypes`, en una llamada de ~4 ms, todos los procesos del equipo (`NtQuerySystemInformation`): padre, sesión, prioridad base, CPU acumulada y RAM privada, sin abrir ninguno. Así se miden también los servicios de la sesión 0. También lee la CPU del equipo, la memoria y los dueños de los puertos.
+  - `eim/operation/usage.py` toma una muestra cada 30 s y la escribe en `data/usage/AAAA-MM-DD.jsonl` (~1,7 KB por muestra; los días cerrados se comprimen; 30 días). Cada parte del EIM sale con su papel por su archivo de observabilidad (`obs/spool/<papel>.<día>.<pid>.jsonl`, válido si es posterior al nacimiento del proceso) o por su puerto; los lanzadores del venv (< 4 MB confirmados) y los vigilantes salen por parentesco. Fuera de `data/operation`, porque la copia diaria copia esa carpeta entera mientras retiene el ciclo.
+  - `eim/operation/usage_summary.py` resume cada día (CPU media/p95/máx., RAM libre mínima, horas saturadas, gasto por papel y por programa) y lo cruza con las horas incompletas de la captura HFT. Resultado: cuáles coincidieron con el equipo saturado y cuáles no tienen registro. Nueva sección «Consumo del equipo» en el informe semanal.
+  - Lo lanza `servicio_continuo.ps1` (cerrojo `data/usage/usage.lock`, nivel `service`); componente `operation.usage` en el catálogo.
+  - **Primera medida (03:10 UTC):** equipo al 22 %; el EIM, 14,4 %. De eso, el recolector viejo de microestructura (`collector`, T23) se lleva **11,4 %** del equipo, frente a 1,2 % de la captura HFT y 1,6 % de la API (dato para T128.1).
+- **Archivos:** `v2/eim/operation/{usage,usage_win,usage_summary,priority,report,weekly,supervisor}.py`, `v2/eim/observability/catalog/components_flow.py`, `v2/eim/continuity/inventory.py`, `v2/scripts/servicio_continuo.ps1`, `v2/tests/operation/test_usage.py`, `v2/docs/{OPERACION,ALMACENAMIENTO}.md`, `CLAUDE.md`, `PLAN/{STATUS,BITACORA}.md`.
+- **Pruebas:** 9 nuevas: atribución sin línea de órdenes, PID reutilizado, CPU como parte del equipo, archivo diario, compresión y poda, resumen cruzado con QC, informe, cerrojo y lectura real de Windows. Además, bucle real de 9 s sobre una carpeta temporal (4 muestras, segunda instancia rechazada con salida 4, coste propio 0,1 % del equipo). Gate verde: 2 448 pasadas, 7 omitidas, 0 fallidas (14 min 41 s en Idle, de 03:18 a 03:33 UTC, con los servicios en marcha: su QC de la hora 03 dirá si estorbó a la captura).
+- **Abierto:** desplegarlo no reinicia nada (es un proceso nuevo): basta con lanzar la tarea de inicio de sesión, que solo arranca lo que falta. La sección del informe semanal llega con el próximo reinicio de la API. Siguen pendientes los entregables 2–5 de T127.
+- **Siguiente paso:** con permiso, desplegar el registro y, después, la cola de trabajos pesados (entregable 2).
+
+## 2026-11-02 04:10 UTC · juanpablo-cpu · T127 cola de trabajos pesados (entregable 2) y despliegue del registro de consumo
+- **Hecho:**
+  - **Despliegue del registro de consumo** (PR #182, con permiso del usuario): fusionado y lanzado a las 03:38 UTC con la tarea de inicio de sesión. Esa tarea solo arrancó el muestreador (dos procesos, sesión 1, BelowNormal), sin tocar nada más. Escribe en `data/usage/` cada 30 s con los 11 papeles reconocidos; sus registros de errores están vacíos.
+  - **El gate en Idle no estorba a la captura:** el del PR #182 (03:18–03:33 UTC) no dejó ni un hueco ni un descarte en la captura HFT; la cola llegó como mucho a 645 mensajes. El QC de la hora 03 lo confirma: completa, libro usable 100 %, sin huecos, 12/12 verificaciones, con el gate y el despliegue del registro dentro.
+  - **Corrección:** la hora 02 UTC del 2-nov salió completa en el QC. El corte del despliegue del PR #180 duró menos de 36 s, dentro del 99 % de cobertura por hora (`qc.COVERAGE_MIN`). La entrada de las 02:55 decía que la rompía. La racha de T78 sigue desde las 23 UTC del 1-nov (5 h con la hora 03) y se cumple como pronto al cerrar la hora 22 UTC del 4-nov.
+  - **Cola de trabajos pesados:** `python -m eim.operation.jobs submit --name N -- <orden>` (`eim/operation/jobs{,_store,_proc}.py`). Un ejecutor (cerrojo `data/jobs/runner.lock`) corre un trabajo a la vez: lo hace quien encola si no hay otro, y el siguiente que espera toma el relevo si aquel muere. Se admite con RAM libre ≥ 2 GB, CPU ≤ 80 % y la captura sin presión. Se pausa con todo su árbol (`NtSuspendProcess` sobre cada proceso de un objeto de Windows) si la cola de la captura pasa de 1 000, la escritura se atrasa más de 200, hay huecos o descartes nuevos, la captura se reinicia o la RAM libre baja de 1 GB. Se reanuda tras 90 s sin presión, o a los 15 min si la presión no viene de él. El objeto mata el trabajo si el ejecutor muere (`KILL_ON_JOB_CLOSE`), así que nada queda congelado ni huérfano. Arranca en IDLE, suspendido hasta entrar en el objeto. Registro en `data/jobs/log/`, salida en `data/jobs/out/`, 14 días.
+- **Archivos:** `v2/eim/operation/{jobs,jobs_store,jobs_proc}.py`, `v2/tests/operation/test_jobs.py`, `v2/eim/continuity/inventory.py`, `v2/docs/{OPERACION,ALMACENAMIENTO}.md`, `CLAUDE.md`, `PLAN/{STATUS,ESTADO_PROYECTO,BITACORA}.md`.
+- **Pruebas:** 8 nuevas, que pasaron tres veces seguidas. Cubren la presión según el latido, la pausa real de un trabajo con CPU (el contador se congela) y su reanudación sola, la espera sin margen con cancelación, cancelar uno en marcha, los restos de un ejecutor muerto, el código de salida, el relevo de un segundo `submit` y el árbol en IDLE. Gate **por la propia cola** contra los datos reales: admitido al instante, 2 458 pasadas, 7 omitidas, 0 fallidas, 850 s y 0 pausas (la captura no sufrió). Tras endurecer la lectura del estado (Windows niega leer o reemplazar el JSON mientras el otro lado lo usa: reintentos breves en `Store.save` y `Store.get`), un segundo gate por la cola dio lo mismo en 790 s.
+- **Abierto:** entregables 3 (puntos de control de la copia externa), 4 (copia externa por la cola) y 5 (parar los servicios sin elevar).
+- **Siguiente paso:** puntos de control de la copia externa.
+
+## 2026-11-02 05:00 UTC · juanpablo-cpu · T127 copia externa reanudable y por la cola (entregables 3 y 4)
+- **Hecho:**
+  - **Puntos de control de la subida** (`eim/continuity/offsite.py`): antes, cada reintento volvía a comprimir y subía todas las partes de 256 MB, porque los extras cambian entre intentos. Ahora, con `work`, el empaquetado queda en `backups/.continuity/pack-<equipo>__<copia>/` con `pack.json` (partes, SHA-256 y cuáles subieron). El intento siguiente lo reutiliza, salta las partes ya subidas que siguen en GitHub con su tamaño y sube el resto y el `meta` al final; luego borra la carpeta. Los extras quedan los del primer intento. Cada parte se reintenta 3 veces (espera de 20 y 60 s), porque la pausa de la cola puede cortar una conexión. Se borran los empaquetados de copias anteriores del mismo equipo y los temporales de antes. Sin `work`, el comportamiento no cambia. `publish` anota «(retomada: N ya subidas)». Alcance: solo se retoma la misma copia; si la pasada siguiente llega tras la copia diaria de las 00:00 UTC, elige la nueva y la sube entera. El beneficio está en repetir el mismo día y en los reintentos por parte.
+  - **Por la cola** (`scripts/copia_externa.ps1`): la lanza con `python -m eim.operation.jobs submit --name copia_externa -- … publish`, así que espera margen, corre en IDLE y se pausa si la captura sufre; `-SinCola` la lanza como antes. La tarea de Windows no cambia. Si la tarea la corta a las 3 h, Windows mata el trabajo con el ejecutor (objeto de la cola) y la pasada siguiente retoma.
+  - No se probó lanzando el script real: con otra carpeta de datos, `publish` sigue usando `backups/` y subiría la copia de hoy a GitHub. Se comprobó en PowerShell la orden que compone y cómo la entiende la cola.
+- **Archivos:** `v2/eim/continuity/{offsite,publish}.py`, `v2/scripts/copia_externa.ps1`, `v2/tests/continuity/test_offsite_resume.py`, `v2/docs/{CONTINUIDAD,OPERACION}.md`, `PLAN/{STATUS,BITACORA}.md`.
+- **Pruebas:** 6 nuevas, todas sin red:
+  - un corte tras 2 partes retoma sin repetirlas;
+  - una parte que falla una vez se reintenta en la misma pasada;
+  - los extras del primer intento se conservan;
+  - una parte perdida en remoto o un empaquetado dañado se suben de nuevo;
+  - se limpian los restos de copias anteriores;
+  - `publish` dice «retomada».
+  La suite de continuidad pasa entera (34). Gate por la cola: 2 464 pasadas, 7 omitidas, 0 fallidas (850 s, 0 pausas).
+- **Abierto:** entregable 5 (parar los servicios sin elevar: necesita que el usuario registre una tarea desde una consola de administrador). La próxima copia externa diaria (20:30 hora local) será la primera por la cola: revisar `data/operation/logs/copia_externa.log` y `python -m eim.operation.jobs list`.
+- **Siguiente paso:** entregable 5.
+
+## 2026-11-02 05:45 UTC · juanpablo-cpu · T127 parar los servicios sin elevar (entregable 5)
+- **Hecho:**
+  - **Causa confirmada:** desde la sesión del usuario, `OpenProcess` sobre un servicio de la sesión 0 da error 5 incluso solo para consultar (`PROCESS_QUERY_LIMITED_INFORMATION`) o leer sus permisos. Los procesos de la sesión del usuario tienen `D:(A;;0x1fffff;;;<usuario>)(…;BA)(…;SY)`. Los que lanza la tarea S4U nacen con una lista sin el usuario, aunque corren con su misma cuenta. Por eso ni el lanzador ve su línea de órdenes ni «Parar servicio» los para.
+  - **Arreglo:** `eim/operation/proc_access.py`. Cada servicio Python, al arrancar con `EIM_PRIORITY=on` (`priority.apply_role`, que ya llaman todos), añade a su propia lista un permiso para su usuario: terminar, consultar, leer su memoria (para la línea de órdenes por WMI), pausar, esperar y leer sus permisos. No incluye escribir en su memoria ni crear hilos. Es lo que ya tiene cualquier programa de la sesión del usuario. Sustituye a la tarea S4U elevada que proponía T127.md, porque una tarea con privilegios que ejecuta un script editable por el usuario sería una puerta para saltarse el UAC.
+  - `scripts/detener_servicio.ps1`: para primero los vigilantes y, 2 s después, los servicios, en cualquier sesión. Sin `-Todo` hace lo mismo que el icono (operación, líderes, interfaz, «equipo despierto»); con `-Todo`, también la captura, el registro de consumo y la hoja de ruta. Al final lista lo que en otra sesión no se deja ver. «Parar servicio» del icono lo usa en vez de su bucle sin orden.
+- **Archivos:** `v2/eim/operation/{proc_access,priority}.py`, `v2/scripts/{detener_servicio,icono_bandeja}.ps1`, `v2/tests/operation/test_proc_access.py`, `v2/docs/OPERACION.md`, `PLAN/{STATUS,ESTADO_PROYECTO,T127,BITACORA}.md`.
+- **Pruebas:** 3 nuevas, que pasaron 3 veces:
+  - **Servicio de la sesión 0 emulado** (lista de permisos solo con SYSTEM):
+    - antes es inaccesible y WMI devuelve su línea de órdenes vacía;
+    - tras `apply_role` se puede consultar, pausar, leer y terminar, y WMI ve su línea de órdenes;
+    - sigue sin poder escribirse ni crearle hilos.
+  - Sin `EIM_PRIORITY` no cambia nada.
+  - El script para primero el vigilante y luego la API; la captura sigue hasta `-Todo`. `-SoloCon` evita tocar los servicios reales. Gate por la cola: el primero falló solo en `test_emit::test_cycle_overhead_within_budget_even_if_disk_fails`, una prueba de tiempos (68 ms frente a 50 ms con el equipo al 40–75 %, según el registro de consumo). No toca este cambio: aislada pasa 5/5, con y sin él (BACKLOG T127 (1)). El segundo, verde: 2 465 pasadas, 7 omitidas, 0 fallidas (855 s, 0 pausas).
+- **Abierto:** ◆ desplegar: hay que reiniciar los servicios, que hoy corren en la sesión 0 con el código anterior, y por tanto parar la captura. Se hará cuando se cumpla T78, como pronto al cerrar la hora 22 UTC del 4-nov; hasta entonces, para pararlos sigue haciendo falta un PowerShell de administrador. Queda la aceptación de T127: una semana del registro de consumo en el informe semanal.
+- **Siguiente paso:** tras T78, reiniciar los servicios y comprobar que `detener_servicio.ps1` los para sin elevar.
+
+## 2026-11-02 07:30 UTC · juanpablo-cpu · T128 un recolector por fuente (entregable 1)
+- **Hecho:**
+  - **Diagnóstico:** el recolector T23 (`binance_ws`) abría dos conexiones más a Binance para BTCUSDT. Llevaba su propio libro (la misma clase `LocalBook` que la captura HFT) y guardaba cada nivel de cada diff como una fila. El registro de consumo le mide ~11 % de la CPU del equipo, frente al ~1 % de la captura. El agente solo necesita los trades, una foto top-10 por segundo y los huecos.
+  - **Feed** (`eim/data/collectors/micro_feed.py`): `HftCapture` llama a `on_book` tras cada diff aplicado y al completar una sincronía, como hacía T23 con el primer diff tras el snapshot. El feed guarda en memoria la foto top-10 de cada segundo, y `hft_ws` la vuelca a `data/micro/top` en un hilo desde su latido, así la cola de la captura nunca espera. También escribe `data/micro/heartbeat.json` para `/v2/micro/status`. Un fallo del feed solo cuenta `errores_feed`. **Un solo escritor:** el feed toma el cerrojo de T23 (`micro/collector.lock`). Si la captura se reiniciara con este código antes del despliegue coordinado, mientras T23 siga vivo el feed no escribe nada (dos libros distintos en `micro/top` estropearían el OFI) y lo reintenta en cada latido. Con el feed activo, T23 no puede arrancar.
+  - **Lector** (`eim/data/micro.py`): trades de `micro_hft` (un trade repetido tras reconectar cuenta una vez) o de `micro` si no hay captura en la ventana. Huecos de ambas fuentes; de la captura, los tramos de `depth`/`trades` salvo silencios, que dejan incompletas todas las velas que tocan.
+  - **Lanzador:** ya no arranca el recolector T23 para BTCUSDT. El módulo sigue para otros símbolos y para validar. Catálogo: `data.micro_collector` sale de la captura.
+- **Archivos:** `v2/eim/data/collectors/{micro_feed,hft_capture,hft_ws}.py`, `v2/eim/data/micro.py`, `v2/scripts/servicio_continuo.ps1`, `v2/eim/observability/catalog/components_flow.py`, `v2/eim/continuity/inventory.py`, `v2/tests/data/test_micro_feed.py`, `v2/docs/{OPERACION,ALMACENAMIENTO}.md`, `PLAN/{STATUS,BITACORA}.md`.
+- **Pruebas:** 6 nuevas.
+  - Los mismos mensajes de Binance (20 min, 1 diff y 1 trade por segundo, con y sin un diff perdido y su resincronía) por el recolector T23 y por la captura con el feed dan **las mismas velas**: OFI, desequilibrio, trades y velas completas. Volúmenes y delta coinciden salvo el último decimal (orden de suma de DuckDB), y el último libro es el mismo.
+  - La vela del arranque queda incompleta: no hay libro hasta el primer snapshot.
+  - Un trade repetido cuenta una vez.
+  - Una desconexión larga deja incompletas todas sus velas, y un silencio ninguna.
+  - Un fallo del feed no para la captura.
+  - Mientras un T23 siga vivo, el feed no escribe nada; cuando T23 se detiene, toma el relevo.
+  Pasan también las de recolector, captura y `hft_ws`. Gate por la cola: el primero falló solo en una prueba de tiempos de la API de observabilidad (p95 120 ms > 100 ms con el equipo cargado; aislada 3/3, BACKLOG T127 (1)). El segundo, verde: 2 470 pasadas, 7 omitidas, 0 fallidas. Con el cerrojo de un solo escritor (y su prueba), otro gate verde: 2 471 pasadas, 7 omitidas, 0 fallidas.
+- **Abierto:** ◆ desplegar cuando se cumpla T78: reinicia la captura, y el corte cabe en el 99 % de cobertura por hora. Validar unas horas comparando con el recolector T23 lanzado a mano en otra carpeta. Faltan los entregables 2–5; el 2 y el 5 esperan la decisión de la puerta: qué historial de líderes se conserva y qué restos de `data/` se borran.
+- **Siguiente paso:** entregable 3 (ganchos fuera del bucle de la API) o 4 (menos ruido), que no tocan la captura.
+
+## 2026-11-02 16:27 UTC · juanpablo-cpu · T128 ganchos del bróker fuera de su ciclo (entregable 3)
+- **Medido:**
+  - En el observatorio, el bróker late cada ~62 s (mediana). Al cierre de cada vela de 4 h calla de 90 a 230 s, porque su ciclo esperaba a los ganchos.
+  - Sobre una copia de las bases de la copia diaria (por la cola, en IDLE): la validación tarda 2,1 s, la puntuación de bots 2,3 s y los setups 0,3 s. Lo caro es la vista del bróker, que los ganchos rehacen cuando hay contextos nuevos: 37 s (29 s de CPU). La validación la pide cada 4 h, el libro fijo cada hora y los setups, en un hilo aparte, cada 15 min.
+  - Un proceso aparte no sirve: DuckDB no deja abrir `paper.duckdb` ni `reports.duckdb` desde otro proceso mientras la API los tiene abiertos.
+- **Hecho:**
+  - `eim/paper/hooks.py` (`HookRunner`): el ciclo del bróker solo avisa (`kick`) y sigue. Los ganchos corren en orden en su propio hilo. Si llega un aviso durante una pasada, queda una más pendiente, nunca una cola. Un gancho que falla no tumba a los demás y avisa como `paper.hooks`, como mucho cada 15 min.
+  - **Latido:** `paper.hooks` late tras cada pasada (muestreado a ~4 min) con lo que tardó cada gancho. La validación y la puntuación laten con su propio componente cuando recalculan (`maybe_run` devuelve True si lo hizo sin error). Estado en `/v2/paper` → `live.hooks`.
+  - **Nivel batch dentro de la API:** `priority.lower_thread` baja el hilo de los ganchos y el que rehace la vista a THREAD_PRIORITY_LOWEST. En el proceso BELOW_NORMAL quedan a 4, a la par de los trabajos IDLE y por debajo del resto de la API. Solo con `EIM_PRIORITY` activo.
+  - **Catálogo:** `paper.broker` vuelve a «cada 60 s» (cadencia 120 s, aviso a los 6 min). Nuevo `paper.hooks` (300 s). `validation.gate` pasa a cada cierre de 4 h.
+- **Archivos:** `v2/eim/paper/{hooks,service,desk}.py`, `v2/eim/operation/priority.py`, `v2/eim/api/main.py`, `v2/eim/validation/service.py`, `v2/eim/bots/scorer.py`, `v2/eim/observability/catalog/components_flow.py`, `v2/tests/paper/test_hooks.py`, `v2/tests/api/test_paper_api.py`, `v2/tests/observability/test_obs_alerts.py`, `v2/docs/OPERACION.md`, `PLAN/{STATUS,BITACORA}.md`.
+- **Pruebas:** 6 nuevas.
+  - Una pasada corre todos los ganchos en orden y uno que falla no para al resto.
+  - Los avisos durante una pasada dejan una sola pasada más.
+  - El bróker sigue su ciclo mientras un gancho lento corre.
+  - Los ganchos corren a nivel batch y solo su hilo baja.
+  - `lower_thread` necesita `EIM_PRIORITY`.
+  - En la API, los cuatro ganchos se registran en orden y corren sin errores.
+  Se ajusta la prueba de silencio del bróker (T126). Gate en el PR.
+- **Abierto:** ◆ entra con el reinicio de la API tras T78 (no toca la captura). Después, comprobar en el observatorio que el bróker late cada minuto también al cierre de 4 h y cuánto tarda cada gancho. Faltan los entregables 2, 4 y 5.
+- **Siguiente paso:** entregable 4 (menos ruido y menos gasto).
+
+## 2026-11-02 17:09 UTC · juanpablo-cpu · T128 menos ruido y menos gasto (entregable 4)
+- **Medido:**
+  - **Ollama:** `EIM_OLLAMA_EXE` apunta a `Z:\Ollama\ollama.exe`, una unidad de red (`\\DESKTOP-TVD562Q\USB`) que la tarea al encender (sesión 0) no ve. El lanzador no arranca Ollama y Contexto queda «sin datos» sin aviso. Hay una copia local en `C:\eim-localai\ollama\ollama.exe` (T62); cambiar la variable es decisión del usuario, porque gasta RAM.
+  - **Interfaz:** el registro de consumo da a Vite (`web`, sesión 0) 0,001 % de CPU de media (máx. 0,69 %) y ~170 MB de memoria reservada, casi toda fuera de la RAM. Servirla compilada ahorraría ~150 MB a cambio de recompilar con cada cambio: no se hace.
+  - **Arbitraje:** el escáner toma una foto cada ~11 s, de 47 KB cada una (~400 MB de escritura al día), aunque aquí no hay ejecución.
+  - **Vigilancia con cliente:** el canal en vivo del Hub solo nace cuando la interfaz se suscribe y ya no se cierra.
+- **Hecho:**
+  - `local_context.ollama_problem`: el motivo, con la comprobación de la ruta acotada a 2 s (una unidad de red caída tarda minutos). `obs_alerts.llm_conditions` lo convierte en el aviso «LLM local no disponible», que el supervisor añade a sus alertas, como mucho una comprobación cada 10 min. El registro pasa el motivo al agente Contexto (`unavailable`). El lanzador escribe un `Write-Warning`.
+  - `obs_conditions(started_ms=…)`: `data.live_ticks` y `api.hub` (`CON_CLIENTE`) no se vigilan hasta su primer evento en este arranque.
+  - `Settings`: escáner de arbitraje cada 60 s, o cada 10 s con `EIM_ARB_EXECUTION=testnet`. La alerta de oportunidad sigue pidiendo 60 s seguidos. El agente de arbitraje, que no vota, verá fotos de hasta un minuto con menos confianza. Catálogo ajustado.
+- **Archivos:** `v2/eim/data/providers/local_context.py`, `v2/eim/agents/context/agent.py`, `v2/eim/agents/registry.py`, `v2/eim/observability/obs_alerts.py`, `v2/eim/operation/supervisor.py`, `v2/eim/api/config.py`, `v2/eim/observability/catalog/components_flow.py`, `v2/scripts/servicio_continuo.ps1`, `v2/tests/operation/test_t128_ruido.py`, `v2/docs/OPERACION.md`, `PLAN/{STATUS,BITACORA}.md`.
+- **Pruebas:** 6 nuevas.
+  - El motivo solo sale si la variable está puesta y la ruta falta; una unidad que no contesta no cuelga la comprobación.
+  - El aviso se enciende, se apaga y comprueba como mucho cada 10 min.
+  - Contexto dice por qué no tiene LLM.
+  - Precio en vivo y Difusor no avisan hasta que alguien se conecta, y sí después.
+  - El escáner va cada minuto salvo con ejecución.
+  Gate en el PR.
+- **Decidido (el usuario lo delegó, opción recomendada):** se quitó la variable de usuario `EIM_OLLAMA_EXE` (era `Z:\Ollama\ollama.exe`). La copia local cargaría un modelo de ~3,5 GB con la RAM libre bajando a 2,5 GB durante T78, y Contexto no vota (sesgo 0). `E:\Ollama\ollama.exe`, la ruta por defecto, no existe: el lanzador no arranca Ollama y no hay aviso. Los servicios en marcha conservan la variable hasta su reinicio. Para activar Contexto con LLM tras T78: `EIM_OLLAMA_EXE=C:\eim-localai\ollama\ollama.exe`, midiendo la RAM.
+- **Abierto:** ◆ entra con el reinicio de la API tras T78. Faltan los entregables 2 y 5: esperan la decisión de la puerta (qué historial de líderes se conserva y qué restos de `data/` se borran).
+- **Siguiente paso:** la decisión de la puerta para los entregables 2 y 5.
+
+## 2026-11-02 18:40 UTC · juanpablo-cpu · T128 base de líderes, primera parte (entregables 2 y 5)
+- **Medido** (copias de la noche, sin tocar la base viva):
+  - **Espacio:** `leaders.duckdb` pesa 2,1 GB con 1,34 GB en uso, y ~0,75 GB son bloques libres que DuckDB no devuelve al disco. De lo usado, ~450 MB son datos y ~890 MB índices de las claves primarias.
+  - **Crecimiento real:** ~110 MB por día en marcha, no 300.
+  - **Quién lo llena:** el 85 % de las ejecuciones (2,67 M de 3,13 M) es de un líder rechazado de alta frecuencia (~50 ejecuciones por operación cerrada). 16 de los 17 líderes capturados están rechazados: son el grupo de control de T41.
+  - **Resincronías:** dos líderes rechazados ejecutan órdenes TWAP sin parar (278 y 597 porciones en una hora; API pública, 2026-11-02). `userFills` no las trae, así que su libro nunca cuadraba y se resincronizaba en cada reconciliación.
+- **Decisión del usuario:** los rechazados conservan 7 días de detalle. Al leer la evaluación se vio que un resumen por día cambiaría los veredictos (Sharpe por operación, deflactado, caída) y que las fotos de posiciones dan los días observados. El usuario aprobó guardar en su lugar las operaciones cerradas y conservar las fotos (PR aparte).
+- **Hecho (esta parte):**
+  - `eim/data/duck_compact.py`: compacta una base que nadie tiene abierta si más del 30 % está libre, con la misma copia que la diaria. Comprueba las filas tabla a tabla y luego cambia un archivo por otro (`.old` si se corta). El vigilante de líderes la llama al arrancar, en lote, antes de lanzar `run`. Medido sobre una copia de 1,34 GB: 76 s.
+  - **TWAP:** suscripción WS `userTwapSliceFills` junto a `userFills` (mismos usuarios, dentro del límite de 10 por IP). REST `userTwapSliceFillsByTime` paginado en cada relleno, arranque, sondeo y reconciliación (`parse.twap_fills`).
+  - **Entregable 5:** con el visto bueno del usuario, a la Papelera (recuperable): la carpeta vacía `leaders.duckdb.tmp`, cerrojos, latido y registros de ETHUSDT (~450 KB) y `ollama.*.log`.
+- **Archivos:** `v2/eim/data/duck_compact.py`, `v2/eim/leaders/{cli,parse}.py`, `v2/eim/data/leader_watch.py`, `v2/eim/data/providers/leaders.py`, `v2/tests/data/{test_duck_compact,test_leader_twap,test_leader_watch}.py`, `v2/tests/leaders/helpers.py`, `v2/docs/OPERACION.md`, `PLAN/{STATUS,BITACORA}.md`.
+- **Pruebas:** 7 nuevas.
+  - **Compactado:** conserva filas y claves, y después no hay nada que hacer; deja en paz las bases pequeñas; una copia que no cuadra deja el original; un cambio cortado se deshace.
+  - **TWAP:** sus porciones por REST cuadran el libro sin resincronizar; las del WS se guardan como `ws`; el REST desenvuelve y pagina.
+  Gate en el PR.
+- **Abierto:** ◆ entra con el reinicio tras T78: el primer arranque compacta (2,1 → ~1,35 GB, ~1–2 min sin captura de líderes; al arrancar se rellena el último día). Falta la retención por operaciones cerradas.
+- **Siguiente paso:** retención por operaciones cerradas, comprobando sobre una copia que los veredictos no cambian.
+
+## 2026-11-02 20:45 UTC · juanpablo-cpu · T128 base de líderes, segunda parte: retención de los rechazados (entregable 2)
+- **Hecho:**
+  - **Archivo plegado** (`eim/copytrading/trip_archive.py`, puro): por moneda, el corte es el último instante ≤ ahora − 7 d tras el que la posición quedó plana y sin cotizaciones pendientes. Lo anterior se guarda como `SymbolBase`: los viajes con su seguidor (`TripFollow`), el histograma de latencias en vivo (milisegundos enteros: no pierde nada), las tomadoras y el número de ejecuciones. `LeaderFold.restore` arranca de ahí y `rebuild` vuelve a ese punto, no a cero.
+  - **Tablas** `leader_archive` y `leader_archive_trips` (`eim/data/leader_archive.py`): columnas y JSON con versión, sin pickle. Los deslizamientos de cada viaje van en una lista de DOUBLE. No viajan en T61.
+  - **Poda** (`eim/data/leader_prune.py`): solo líderes `rejected`. Por moneda y en lotes de 200 000 ejecuciones, archiva y borra (`leader_fills` y las cotizaciones de esas ejecuciones en `leader_follow`) en una sola transacción; al final de cada líder, una pasada borra su procedencia T61 huérfana en `share_origin` (lote a lote costaba 314 s en vez de 92). Funding, fotos de posiciones, reconciliaciones y huecos se conservan enteros. Corre en el servicio una vez al día (la primera, 30 min tras arrancar), en `supervise` antes del compactado y con `python -m eim.leaders prune [--days 7]` (servicio apagado; poda y compacta).
+  - **Evaluación** (`leader_fold_io.py`): rehacer carga el archivo y lee solo lo posterior a cada corte; el control de ejecuciones suma lo archivado; cada poda cambia la `generation` y el líder se rehace. Una ejecución anterior al corte que reaparezca (unión T61) se ignora y la poda siguiente la borra.
+  - **Otros lectores:** `copy-sim` (T42) de un rechazado empieza en la primera foto posterior a su último corte y lo avisa. `history`, `gather`, `fills_fast` documentan que solo ven lo no podado. `report`, la copia en vivo y el arranque del vigilante solo leen lo reciente.
+- **Medido** (copias de `backups/eim_20261102-000037/leaders.duckdb`, nunca la base viva, por la cola; 17 líderes capturados, 16 rechazados):
+  - **Mismas cifras:** con 7 días y con un corte artificial de 1 día, el tablero entero sale idéntico bit a bit antes de podar, después y tras compactar: veredictos, razones y cifras (`all`, `hist`, `fwd`, `copyability`) de los 17.
+  - **7 días:** 7 líderes podados; 590 617 ejecuciones (571 649 del de alta frecuencia), 510 237 cotizaciones y 1,09 M claves de `share_origin` fuera; 15 936 viajes archivados (4 MB). Compactada, de 1 343 a 1 161 MB. Durante la poda el archivo crece a ~1,8 GB (bloques libres que el compactado devuelve). Poda 139 s (92 s sin limpiar `share_origin`; 314 s limpiándola lote a lote, descartado); compactado 65 s.
+  - **1 día:** 10 líderes, 1,30 M ejecuciones, 27 800 viajes; 937 MB compactada.
+  - **Dónde está el espacio:** ~450 MB son datos; el resto, índices de claves primarias. La tabla más grande es `share_origin` (5,16 M claves de texto de la unión T61, hoy apagada): por eso la poda borra también su procedencia huérfana.
+  - **Lo que sigue creciendo:** todas las ejecuciones recientes son de rechazados (el líder en `watch` no opera). Sin poda quedan las fotos de posiciones (~0,7 KB por foto en disco, 1 000–8 000 fotos al día), reconciliaciones, huecos y la bitácora de la copia: unos pocos MB al día frente a ~110.
+- **Archivos:** `v2/eim/copytrading/{trip_archive,trip_fold}.py`, `v2/eim/data/{leader_archive,leader_prune,leader_fold_io,leader_service,leader_store,leader_eval,leader_score_store,copy_replay,share_spec}.py`, `v2/eim/leaders/cli.py`, `v2/tests/copytrading/test_trip_archive.py`, `v2/tests/data/test_leader_prune.py`, `v2/docs/{OPERACION,ALMACENAMIENTO}.md`, `PLAN/{STATUS,BITACORA}.md`.
+- **Pruebas:** 13 nuevas.
+  - **Puras:** arrancar del archivo da lo mismo que `build_trips` + `copy_stats` sobre todo el historial, en cinco cortes; por lotes se llega al mismo archivo que de una vez; solo se corta con la posición plana y todo definitivo; las cuentas cuadran con el plegado.
+  - **Con la base:** evaluación vuelta a vuelta con poda «diaria» igual a releer todo el historial (y el tablero entero); solo se podan rechazados; con lo podado se va su procedencia en `share_origin` y nada más; una ejecución podada que vuelve se ignora y se vuelve a podar; se archivan todos los campos de `Trip` y otros parámetros avisan; el servicio poda y deja la siguiente para mañana; `supervise` poda antes de compactar y un fallo no le impide arrancar; la CLI poda y compacta; `copy-sim` empieza tras el corte.
+  Gate en el PR.
+- **Abierto:** ◆ entra con el reinicio tras T78: el vigilante poda y compacta antes de lanzar `run`. Medir una semana que `leaders.duckdb` deja de crecer (aceptación de T128).
+- **Siguiente paso:** desplegar los entregables 1–4 con el reinicio tras T78.
+
+## 2026-11-02 21:20 UTC · juanpablo-cpu · T116 gate estable con la cola en IDLE
+- **Problema:** desde T127 el gate corre en IDLE. Con el equipo cargado fallaba a veces en
+  pruebas de tiempo de reloj que aisladas pasan (`test_emit`, `test_obs_api`; con Ollama además
+  latidos, `test_paper_api` y dos procesos). Cada fallo costaba repetir 16 min de gate.
+- **Hecho:**
+  - **Prioridad:** las pruebas `perf` suben el proceso a NORMAL mientras corren (autouse en
+    `tests/conftest.py`, `tests/perf.py::normal_priority`), por debajo de la captura (ABOVE_NORMAL).
+  - **Medición:** `measure` entrega la ronda de p95 mediano de 3.
+  - **Esperas:** las pruebas con plazos fijos cortos (latidos 0,15–1,4 s, vista del bróker, backtest
+    30 s, dos procesos 60 s) esperan hasta que se cumple, con tope amplio.
+  - Mismos umbrales (`thresholds.py` intacto), ninguna prueba saltada ni borrada.
+- **Medido:** con 3 procesos ocupando CPU en BELOW_NORMAL y las pruebas en IDLE, `main` falla
+  `test_obs_api` (p95 189 ms, p99 1 742 ms) y la rama pasa 3 de 3 (147–425 s). La captura (ABOVE_NORMAL)
+  no se ve afectada por esa carga.
+- **Archivos:** `v2/tests/{perf,conftest}.py`, `v2/tests/observability/{test_emit,test_service_heartbeats}.py`,
+  `v2/tests/api/test_paper_api.py`, `v2/tests/hft/test_hft_risk.py`, `v2/docs/RETOMAR_COLABORADOR.md`,
+  `PLAN/notas/T116_gate.md`, `PLAN/{STATUS,BACKLOG,BITACORA}.md`.
+- **Abierto:** gates completos seguidos por la cola (en el PR). Las 3 corridas con el equipo
+  descargado necesitan parar los servicios: tras T78.
+- **Siguiente paso:** con el PR fusionado, los gates por la cola dejan de fallar por la carga.
+- **Tres gates por la cola:** 1.º y 2.º verdes (2 503 pasadas, 950 y 895 s). El 3.º falló en
+  `test_proc_access` porque la cola lo pausó dos veces (185 s congelado cada una, por silencios
+  de red en la captura) y el plazo de 120 s de un PowerShell caducó durante la pausa. Arreglo:
+  `jobs submit --retry-paused N` repite el trabajo que falla tras una pausa; el gate va con 1
+  (`CLAUDE.md`, `docs/OPERACION.md`). Prueba nueva en `tests/operation/test_jobs.py`.
+
+## 2026-11-02 23:20 UTC · juanpablo-cpu · Despliegue de #185–#191 y racha de T78 rota
+- **Racha de T78:** llegó a 23 h (2026-11-01T23 → 02T21) y se rompió en la hora 02T22. Entre
+  22:04 y 22:10 UTC hubo 19 silencios de 3–8 s en todos los flujos a la vez y una desconexión:
+  libro útil 98,2 % y precio de marca 98,5 %, por debajo del 99 %.
+  - Apunta a la red: la captura tuvo su CPU de siempre (~4 %), varios silencios ocurrieron con el
+    gate ya congelado por la cola, y la conexión de liquidaciones de OKX también cayó a las 22:07.
+  - La hora 21, con carga sintética de T116 en BELOW_NORMAL, quedó completa (libro útil 100 %).
+- **Despliegue:** con la racha en cero, el usuario aprobó desplegar ya en vez de esperar tres
+  días. Lo hizo con un PowerShell de administrador (`desplegar_t128.ps1`, fuera del repo): los
+  servicios de la sesión 0 se pararon a las 23:12:50 y se relanzaron con la tarea al encender.
+  Comprobado:
+  - **API:** responde, con 19 agentes y la operación en marcha.
+  - **Captura HFT:** volvió a las 23:13:39 (49 s de corte, así que la hora 23 queda incompleta).
+    La microestructura sale de ella (`micro/heartbeat.json` con `source: hft_ws`, 87 fotos en el
+    primer minuto) y el recolector T23 ya no se lanza (#186).
+  - **Bróker:** los ganchos corren en su hilo y laten como `paper.hooks`; primera pasada de 38 s,
+    34 de ellos la validación (#187).
+  - **Arbitraje:** el escáner toma una foto cada 61 s (#188).
+  - **Líderes:** el vigilante podó 7 rechazados y compactó `leaders.duckdb` de 2 151 a 1 267 MB
+    en 77 s; el servicio volvió a latir a las 23:17:46 (#189, #190).
+  - **Permisos:** desde la sesión del usuario, sin elevar, ya hay permiso de consulta y de
+    detención sobre los procesos del EIM (#185); se comprobó el permiso sin parar ninguno.
+  - **Prioridades:** captura y liquidaciones en ABOVE_NORMAL; API y vigilantes en BELOW_NORMAL.
+- **Aviso que ya existía:** «Protección en estado inconsistente: agresivo BTCUSDT» (la operación
+  del 31-oct de `agente_levels`; el recálculo la cerraría antes del estado guardado). Sale en cada
+  arranque de la API desde el 2026-11-01; no viene de este despliegue. Resolverlo es decisión del
+  usuario.
+- **Abierto:**
+  - T78 se cumple como pronto al cerrar la hora 23 UTC del 2026-11-05.
+  - Validar unas horas la microestructura con el recolector viejo en otra carpeta.
+  - Medir una semana el tamaño de `leaders.duckdb`.
+  - T116: tres corridas con el equipo descargado.

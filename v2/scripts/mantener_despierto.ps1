@@ -18,6 +18,15 @@ param([int]$Puerto = 8000, [int]$GraciaSeg = 180, [int]$CadaSeg = 30)
 $ErrorActionPreference = "Stop"
 $Host.UI.RawUI.WindowTitle = "EIM - equipo despierto"
 
+# T126: uno solo por equipo, en cualquier sesión. El lanzador no ve la línea de órdenes de los
+# procesos de otra sesión (la tarea al encender corre en la 0); si el cerrojo lo tiene un proceso
+# de otra sesión, Windows puede negar incluso abrirlo: también significa que ya hay uno.
+try {
+  $unico = New-Object System.Threading.Mutex($false, "Global\EIM_mantener_despierto")
+  try { $mio = $unico.WaitOne(0) } catch [System.Threading.AbandonedMutexException] { $mio = $true }
+} catch { $mio = $false }
+if (-not $mio) { Write-Host "Ya hay un «equipo despierto» activo en este equipo."; exit 0 }
+
 Add-Type -Namespace EIM -Name Energia -MemberDefinition @"
 [System.Runtime.InteropServices.DllImport("kernel32.dll")]
 public static extern uint SetThreadExecutionState(uint estado);

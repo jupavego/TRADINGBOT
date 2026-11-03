@@ -12,6 +12,9 @@ seguidor habría visto y hecho, con el MISMO motor que corre en vivo:
 - velas de 1 min de Hyperliquid → marcas, capital y stops (al cierre de cada minuto con su
   mínimo/máximo: si abrimos dentro de ese minuto, un extremo anterior puede disparar el stop;
   sesgo en contra del seguidor, raro con stops al 5 %).
+- T128: de un rechazado podado solo queda el detalle posterior a su último corte
+  (`leader_archive.floor`): la reproducción empieza en la primera foto desde ese corte y lo
+  dice en `warnings`.
 """
 
 from __future__ import annotations
@@ -29,6 +32,7 @@ from eim.copytrading.portfolio import account_values, value_at
 from eim.copytrading.trades import Trip, build_trips
 from eim.core import Candle
 from eim.core.leaders import FollowQuote, Leader, LeaderPosition
+from eim.data import leader_archive
 from eim.data.hl_market import MIN_MS, Bar
 from eim.risk import RiskConfig
 
@@ -130,7 +134,9 @@ def replay(store, leader: Leader, p: CopyParams, spec: ExchangeSpec, risk_cfg: R
            end: int, start: int | None = None) -> ReplayResult | None:
     """None si el líder no tiene ninguna foto (nunca empezamos a seguirlo)."""
     lid = leader.id
-    photos = [x for x in _photos(store, lid) if start is None or x[1] >= start]
+    cut = leader_archive.floor(store, lid)  # T128: antes, ejecuciones podadas
+    photos = [x for x in _photos(store, lid)
+              if (start is None or x[1] >= start) and (cut is None or x[0] >= cut)]
     if not photos:
         return None
     t_state, t0, first = photos[0]
@@ -200,6 +206,9 @@ def replay(store, leader: Leader, p: CopyParams, spec: ExchangeSpec, risk_cfg: R
     funding = store.funding_rows(lid)
     res.trips = [tr for tr in build_trips(store.fills_fast(lid), funding)
                  if tr.t_open > t_state and tr.complete and tr.t_open <= end]
+    if cut is not None:
+        res.warnings.append(f"detalle podado hasta {cut} (T128): reproducción desde la primera "
+                            "foto posterior")
     if not avs:
         res.warnings.append("sin historial de cuenta (`portfolio`): no se pudo fijar la "
                             "proporción")

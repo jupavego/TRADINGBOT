@@ -8,8 +8,14 @@ que se reescribe), guarda los archivos de todas las copias de todos los equipos:
 `<máquina>__<copia>.meta.json` (SHA-256 de cada parte y del zip, filas por tabla de cada
 base, commit, equipo). Sin `meta` no hay copia: una subida interrumpida nunca se ve completa.
 
-Subir la misma copia dos veces no duplica nada (`push` la salta); `pull` verifica cada parte,
-el zip y después la copia entera (`backup_restore.verify`). Cada equipo solo poda lo suyo.
+Subir la misma copia dos veces no duplica nada (`push` la salta). Una subida cortada retoma
+desde la última parte subida (T127): con `work`, el empaquetado queda en
+`<work>/pack-<máquina>__<copia>/` con `pack.json` (partes, SHA-256 y cuáles ya subieron) hasta
+que sube el `meta`; los extras quedan los del primer intento. Solo se retoma la MISMA copia:
+si llega otra más nueva, su empaquetado sustituye al anterior. Cada parte se reintenta
+(`RETRIES`): la pausa de la cola de trabajos puede cortar una conexión a medias. `pull` verifica
+cada parte, el zip y después la copia entera (`backup_restore.verify`). Cada equipo solo poda
+lo suyo.
 Nunca viajan claves: la copia de T115 no las tiene y los extras tampoco (`extras.py`).
 """
 
@@ -17,9 +23,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import tempfile
+import time
 import zipfile
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -35,6 +44,7 @@ FORMAT = 1
 PART_BYTES = 256 * 1024 * 1024
 BLOCK = 8 * 1024 * 1024
 ORPHAN_S = 86_400.0                 # partes sin `meta` más viejas: subida abandonada
+RETRIES, RETRY_WAIT_S = 3, (20.0, 60.0)
 
 
 def base_name(machine: str, backup: str) -> str:
@@ -114,10 +124,38 @@ def remote_copies(t: Releases, assets: dict | None = None) -> list[RemoteCopy]:
     return sorted(out, key=lambda c: (c.machine, c.backup))
 
 
+def _load_pack(d: Path) -> dict | None:
+    """El empaquetado de un intento anterior, si sigue entero (cada parte, con su tamaño)."""
+    try:
+        pk = json.loads((d / "pack.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    whole = all((d / p["name"]).is_file() and (d / p["name"]).stat().st_size == p["bytes"]
+                for p in pk.get("parts", []))
+    return pk if whole and pk.get("parts") else None
+
+
+def _save_pack(d: Path, pk: dict) -> None:
+    (d / "pack.json.tmp").write_text(json.dumps(pk, ensure_ascii=False), encoding="utf-8")
+    os.replace(d / "pack.json.tmp", d / "pack.json")
+
+
+def _upload(t: Releases, path: Path, sleep: Callable[[float], None]) -> None:
+    for i in range(RETRIES):
+        try:
+            t.upload(path)
+            return
+        except OffsiteError:
+            if i == RETRIES - 1:
+                raise
+            sleep(RETRY_WAIT_S[min(i, len(RETRY_WAIT_S) - 1)])
+
+
 def push(t: Releases, backup: Path, machine: str, *, extras: Path | None = None,
          info: dict | None = None, work: Path | None = None,
-         part_bytes: int = PART_BYTES) -> dict:
-    """Sube la copia (si no estaba ya completa). Devuelve su `meta` con `skipped`."""
+         part_bytes: int = PART_BYTES, sleep: Callable[[float], None] = time.sleep) -> dict:
+    """Sube la copia (si no estaba ya completa). Devuelve su `meta` con `skipped` y
+    `resumed_parts` (partes que ya había subido un intento anterior)."""
     m = read_manifest(backup)
     if m is None or (problems := verify(backup)):
         raise OffsiteError(f"{backup.name} no es una copia íntegra: "
@@ -131,26 +169,45 @@ def push(t: Releases, backup: Path, machine: str, *, extras: Path | None = None,
     now = datetime.now(UTC)
     if work:
         work.mkdir(parents=True, exist_ok=True)
-    tmp = Path(tempfile.mkdtemp(prefix=".offsite-", dir=work)) if work else \
-        Path(tempfile.mkdtemp(prefix="eim-offsite-"))
+        for old in [*work.glob(f"pack-{machine}{SEP}*"), *work.glob(".offsite-*")]:
+            if old.name != f"pack-{base}":                 # de copias o versiones anteriores
+                shutil.rmtree(old, ignore_errors=True)
+        tmp = work / f"pack-{base}"
+        pk = _load_pack(tmp)
+    else:
+        tmp, pk = Path(tempfile.mkdtemp(prefix="eim-offsite-")), None
     try:
-        parts, zsha, zbytes = pack(backup, extras, tmp, base, part_bytes)
-        for p in parts:        # todas: los extras cambian entre intentos, el zip también
-            t.upload(tmp / p["name"])
+        if pk is None:
+            shutil.rmtree(tmp, ignore_errors=True)
+            parts, zsha, zbytes = pack(backup, extras, tmp, base, part_bytes)
+            pk = {"parts": parts, "zip_sha256": zsha, "zip_bytes": zbytes, "uploaded": [],
+                  "extras": sorted(p.relative_to(extras).as_posix() for p in extras.rglob("*")
+                                   if p.is_file()) if extras else []}
+            _save_pack(tmp, pk)
+        resumed = 0
+        for p in pk["parts"]:
+            if p["name"] in pk["uploaded"] and assets.get(p["name"], {}).get("bytes") == p["bytes"]:
+                resumed += 1                                    # la subió un intento anterior
+                continue
+            _upload(t, tmp / p["name"], sleep)
+            pk["uploaded"] = sorted({*pk["uploaded"], p["name"]})
+            _save_pack(tmp, pk)
         meta = {"format": FORMAT, "machine": machine, "backup": backup.name,
                 "created_at": m.get("created_at"), "published_at": now.isoformat(),
                 "git_commit": m.get("git_commit"), "dbs": m.get("dbs", {}),
                 "absent": m.get("absent", {}),
                 "backup_bytes": sum(f["bytes"] for f in m.get("files", {}).values()),
-                "zip_bytes": zbytes, "zip_sha256": zsha, "parts": parts,
-                "extras": sorted(p.relative_to(extras).as_posix() for p in extras.rglob("*")
-                                 if p.is_file()) if extras else [], **(info or {})}
+                "zip_bytes": pk["zip_bytes"], "zip_sha256": pk["zip_sha256"],
+                "parts": pk["parts"], "extras": pk["extras"], **(info or {})}
         mp = tmp / f"{base}.meta.json"
         mp.write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
-        t.upload(mp)
-    finally:
-        shutil.rmtree(tmp, ignore_errors=True)
-    return {**meta, "skipped": False}
+        _upload(t, mp, sleep)
+    except BaseException:
+        if not work:                     # sin `work` no hay punto de control que guardar
+            shutil.rmtree(tmp, ignore_errors=True)
+        raise
+    shutil.rmtree(tmp, ignore_errors=True)
+    return {**meta, "skipped": False, "resumed_parts": resumed}
 
 
 def _safe_extract(z: zipfile.ZipFile, dest: Path) -> None:

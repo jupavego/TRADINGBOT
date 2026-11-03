@@ -17,9 +17,12 @@ import json
 import time
 from pathlib import Path
 
+from eim.data.collectors.health import micro_dir, sfx
 from eim.data.collectors.writer import HourlyWriter
 from eim.observability import hooks_service
 from eim.observability.emit import configure
+from eim.operation.priority import apply_role
+from eim.operation.watchdog import instance_lock
 
 WS = {
     "binance": "wss://fstream.binance.com/market/stream?streams={s}@forceOrder",
@@ -156,6 +159,13 @@ def main() -> None:
     ap.add_argument("--root", default="data")
     a = ap.parse_args()
     configure(process="liq_collector", spool_dir=Path(a.root) / "obs" / "spool")
+    apply_role("liq_collector")   # T126: nivel de prioridad del proceso
+    # T126: nunca dos escritores del mismo símbolo. El lanzador busca procesos por su línea de
+    # órdenes, que no ve en otra sesión de Windows (los de la tarea al encender corren en la 0)
+    lock = instance_lock(micro_dir(a.root) / f"liq_collector{sfx(a.symbol)}.lock")
+    if lock is None:
+        print("Ya hay un recolector de liquidaciones en esta carpeta de datos.", flush=True)
+        raise SystemExit(3)
     try:
         asyncio.run(run(a.root, a.symbol))
     except KeyboardInterrupt:

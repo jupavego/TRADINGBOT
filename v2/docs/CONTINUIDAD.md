@@ -109,12 +109,17 @@ Freqtrade (`docs/BOTS.md`) y los libros. Las capturas crudas de microestructura/
    (= `python -m eim.continuity publish`). Usa la copia de hoy si existe (si no, la hace en
    caliente pidiéndola a la API), la verifica, sube la copia externa con los extras, exporta la
    experiencia **desde la copia** (nunca toca la carpeta viva ni activa el modo automático) y
-   avisa de lo que falte subir. Repetirla no duplica nada. Si la carpeta viva tiene
+   avisa de lo que falte subir. Repetirla no duplica nada, y si se cortó a mitad de la subida retoma
+   desde la última parte subida (T127): el empaquetado espera en `backups/.continuity/pack-<equipo>__<copia>/`
+   hasta que sube el `meta`. Vale para la misma copia: repetir el mismo día, antes de la copia diaria
+   siguiente (00:00 UTC), que sería otra y se subiría entera. El script la pasa por la cola de trabajos pesados: espera margen, corre
+   en IDLE y se pausa si la captura HFT sufre (`-SinCola` la lanza directamente). Si la carpeta viva tiene
    `share_config.json` (modo automático de T61), la experiencia la exportan los servicios y
    `publish` no la toca.
 4. Automático cada día: `v2\scripts\instalar_copia_externa.ps1` (tarea «EIM - copia externa
    diaria», 20:30 hora local; `-Quitar` la quita). Registro: `data/operation/logs/copia_externa.log`
-   y `data/continuity/publish.jsonl`.
+   (pasos de la cola y final de la salida), la salida entera en `data/jobs/out/` y el resumen en
+   `data/continuity/publish.jsonl`.
 
 ## 6. Copias y recuperación ante fallos
 

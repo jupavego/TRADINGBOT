@@ -41,7 +41,7 @@ Rutas relativas a `v2/` salvo indicación. Tamaños y filas medidos en `laptop-i
 |---|---|---|---|---|
 | `data/reports.duckdb` | Reportes de agentes, decisiones de riesgo, operaciones simuladas (`sim_trades`), alertas, capital, pronósticos | 206 MB · 9 tablas · 70 915 filas | crítica | copia diaria + copia externa; experiencia (`reports`, `sim_trades`) |
 | `data/paper.duckdb` | Bróker simulado: contextos por vela, ideas, operaciones con entrada/salida/SL/TP y costos, validación (intentos, ventanas, veredictos), sugerencias, protección, instantáneas del panel | 91 MB · 12 tablas · 49 066 filas | crítica | copia diaria + copia externa; experiencia (`paper_ctx`, `val_versions`, `val_windows`) |
-| `data/leaders.duckdb` | Capturas en vivo de líderes de Hyperliquid y copia simulada (**irrepetibles**: el exchange solo sirve las 10 000 ejecuciones más recientes) | 1 125 MB · 12 tablas · 5,17 M filas | crítica | copia diaria + copia externa; experiencia (`leader_*`, `copy_journal`) |
+| `data/leaders.duckdb` | Capturas en vivo de líderes de Hyperliquid y copia simulada (**irrepetibles**: el exchange solo sirve las 10 000 ejecuciones más recientes). De los rechazados, 7 días de detalle y lo anterior archivado ya plegado (`leader_archive*`, T128) | 1 125 MB · 12 tablas · 5,17 M filas | crítica | copia diaria + copia externa; experiencia (`leader_*` salvo el archivo, `copy_journal`) |
 | `data/obs/obs.duckdb` | Observatorio (derivado del spool JSONL) | 10 tablas · 894 k filas | media | copia diaria + externa; reconstruible |
 
 Las operaciones simuladas conservan sus registros originales (no resúmenes): entrada, salida,
@@ -52,11 +52,20 @@ veredictos de la puerta de validación (`val_*`), contextos de los que salen las
 (`paper_ctx`), calibración versionada y la evidencia de líderes. No hay pesos entrenados fuera de
 estas bases y de las versiones en git.
 
+Excepción (T128): de los líderes rechazados, el grupo de control de la evaluación, la base viva
+solo guarda 7 días de ejecuciones y cotizaciones del seguidor. Lo anterior queda plegado en
+`leader_archive` y `leader_archive_trips` (viajes cerrados con su seguidor, latencias, tomadoras
+y número de ejecuciones), lo justo para que la evaluación dé las mismas cifras. Con el detalle
+se borra su procedencia de la unión T61 (`share_origin`). El detalle crudo
+de esos días solo sigue en las copias diarias (14) y en las versiones de la copia externa.
+
 ### Estado de la máquina
 | Ruta | Qué | Importancia | Se conserva / viaja |
 |---|---|---|---|
 | `data/kill_switch.json` | Kill-switch persistido | alta | copia diaria (`state/`) |
 | `data/operation` | Latido, estado del servicio (libro simulado), registros JSONL por día | alta | copia diaria (`state/operation`) |
+| `data/usage` | Registro de consumo (T127): CPU, RAM privada y prioridad por proceso cada 30 s; ~5 MB/día, los días cerrados en `.jsonl.gz`; 30 días | baja | no viaja; fuera de `data/operation` para no engordar la copia diaria |
+| `data/jobs` | Cola de trabajos pesados (T127): un JSON por trabajo, pasos por día y salida de cada uno; 14 días | baja | no viaja |
 | `data/machine_id` | Identidad del equipo (`laptop-i6pf9ovp-fce8d9` aquí): procedencia de cada fila compartida | alta | no se copia a otro equipo; queda anotada en la copia externa |
 | `data/leaders` | Tableros, resumen de la copia simulada (`copy_sim.json`), metadatos, latido | media | lo regenera el servicio; resumen y meta en los extras |
 | `data/paper/arb_tests.json` | Resultados de los escenarios de arbitraje simulado | media | extras |
@@ -72,7 +81,7 @@ estas bases y de las versiones en git.
 | `data/spot_candles` | Velas spot | baja | se descargan solas |
 | `data/funding` | Funding | baja | se descarga solo |
 | `data/calendar` | Calendario económico | baja | se descarga solo |
-| `data/micro` | Captura de microestructura T23/T104 (2,2 GB) | alta (irrepetible) | **no viaja**; se poda sola; para conservar un tramo, copiarlo a un disco externo |
+| `data/micro` | Microestructura del agente: fotos top-10 por segundo (`top`, de la captura HFT desde T128), liquidaciones en vivo y lo que dejó el recolector T23 (`trades`, `depth`, `gaps`: ya no crecen) (2,2 GB) | alta (irrepetible) | **no viaja**; se poda sola; para conservar un tramo, copiarlo a un disco externo |
 | `data/micro_hft` | Captura HFT T78 (3,1 GB; ≈ 830 MB/día; poda a 45 días) | alta (irrepetible) | solo el QC en la copia; crudos a disco externo a mano |
 | `data/library/index` | Índice de la biblioteca de libros (T52) | baja | se rehace con `python -m eim.library ingest`; los libros (`17.0 - TRADING\Books`) nunca se suben |
 | `data/roadmap_live` | Hoja de ruta servida por el icono | baja | `python PLAN/build_roadmap.py` |
