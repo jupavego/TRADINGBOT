@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-10-30T10:30:17",
+ "generated": "2026-10-31T09:58:58",
  "tasks": [
   {
    "id": "T01",
@@ -778,8 +778,8 @@ window.EIM_STATUS = {
    "id": "T62",
    "title": "Motores de IA locales: auditoría y banco de pruebas en este equipo",
    "deps": [],
-   "state": "pending",
-   "notes": "Especificada (`PLAN/T62.md`, insumo `PLAN/notas/T62_universo_motores.md`, 2026-10-19). Equipo de referencia: i5-8250U, 7,9 GB, MX130 2 GB (medido). ◆ qué motores entran + postura frente a YouTube.",
+   "state": "progress",
+   "notes": "**Auditoría hecha (2026-10-31, `PLAN/notas/T62_auditoria.md`)**: 5 grupos, solo lectura, licencia de código **y** de pesos, SHA/digest a fijar, 15 alertas (Términos de YouTube; `ollama serve` consulta `ollama.com` salvo `OLLAMA_NO_CLOUD=1`; el `qwen3:4b` instalado es la variante *Thinking*; pesos no comerciales o con términos propios descartados; telemetría por defecto en pyannote/CrewAI/PaddleOCR; GPU Maxwell sin ventaja; runner interno de Ollama sin clave; el VLM no cabe). **Lista aprobada por el usuario (2026-10-31) e instalada en `juanpablo-cpu`** en `C:\\eim-localai` (`docs/OPERACION.md` §7: SHA-256 verificados, digests comprobados, `pip-audit` limpio; su Ollama en 127.0.0.1:11435 mientras el de `Z:` ocupe el 11434). **Banco** `v2/scripts/localai_bench.py` (+ 8 módulos, `localai_data/claims_cases.json`, 9 pruebas en `tests/localai/`) **medido completo en `juanpablo-cpu`** (`v2/reports/localai/bench_juanpablo-cpu.md`, con los servicios en marcha): `qwen3:4b-instruct` JSON válido 100 %, precisión 79 %, recall 85 %, 0 niveles inventados, ≈ 8 tok/s; Ollama ≈ llama.cpp; GPU ×0,93; Pydantic AI no mejora a la validación propia (no se adopta); RapidOCR 99 % de cifras (Tesseract 57 %); escenas ffmpeg/PySceneDetect 20–43 % (→ T66); VLM 2B 8,8 GB y 66 s/fotograma (fuera del mínimo); faster-whisper small ×0,15–0,18 del tiempo real; presupuesto ≈ 95 videos de 20 min por noche sin VLM. **Falta**: correr el banco en el equipo de referencia (portátil de Santivego, 7,9 GB), que es el que decide; ◆ postura ante YouTube (`docs/SEGURIDAD.md`); muestras de audio reales con transcripción corregida a mano (el WER medido es sobre voz sintética).",
    "effort": "alto",
    "phase": 14,
    "goal": "Decidir con evidencia **qué motores de código abierto entran** y que corren de verdad en el equipo de referencia (i5-8250U, 7,9 GB, GPU MX130 de 2 GB): captación, ASR, escenas, OCR, visión-lenguaje, LLM de texto y embeddings. Salen una lista aprobada con licencia (código **y** pesos), versión fijada y una tabla de rendimiento medido; lo que no cabe se descarta con motivo."

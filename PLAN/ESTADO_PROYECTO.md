@@ -1,6 +1,6 @@
 # Estado del proyecto (punto de entrada al cambiar de equipo)
 
-**Actualizado:** 2026-10-30 23:40 UTC, desde `juanpablo-cpu` (llegada del equipo, T117/T125). Actualízalo
+**Actualizado:** 2026-10-31 15:00 UTC, desde `juanpablo-cpu` (T62 instalación y banco; antes: llegada del equipo, T117/T125). Actualízalo
 al cerrar una sesión que cambie algo de esta página; el detalle por tarea sigue en `STATUS.md`,
 lo aplazado en `BACKLOG.md` y el registro de sesiones en `BITACORA.md`. Para comprobar un equipo:
 `python -m eim.continuity check` (desde `v2/`; procedimientos en `v2/docs/CONTINUIDAD.md`).
@@ -11,7 +11,7 @@ lo aplazado en `BACKLOG.md` y el registro de sesiones en `BITACORA.md`. Para com
 |---|---|---|---|
 | Portátil de Santivego (`LAPTOP-I6PF9OVP`) | `laptop-i6pf9ovp-fce8d9` | Servicio continuo 24/7 desde la carpeta principal (rama `main`): API + operación en papel (corrida de T31) + bróker simulado (15 m/1 h/4 h, solo BTCUSDT), servicio de líderes (7 líderes, copia simulada), recolector de microestructura y captura HFT de BTCUSDT; copia completa diaria a las 00:00 UTC; copia externa diaria en `eim-copias` a las 20:30 hora local (tarea «EIM - copia externa diaria», desde el 2026-10-30); tarea «EIM - vigilancia captura HFT». Sin variables `EIM_*` (sin claves de testnet), sin Ollama, sin Freqtrade | sí, 2026-10-30 |
 | Equipo de Juan Pablo (`jupavego`) con Freqtrade | desconocida; **no** es `juanpablo-cpu` (allí no hay `D:/eim-bots`). En el repo viejo `jupavego/eim-shared-data` hay una rama `machine/juanpablo` (última foto 2026-10-22) que `juanpablo-cpu` importó ese día; no está en Santivego | Relleno de 6 meses del escuadrón de bots, Freqtrade en `D:/eim-bots` (FSupertrend, NFI), velas de 5 m (T58–T60) | **no** |
-| `DESKTOP-93R810K` (Juan Pablo) | `juanpablo-cpu` | Clon en `C:\Users\jo\Desktop\JP\TRADINGBOT` (`main`). Historial propio: 4 bases, 561 909 filas (copia `eim_20261030-230202` verificada). En marcha: recolector de microestructura y captura HFT de BTCUSDT. **Parados**: API, operación en papel y líderes. Tarea «EIM - servicio continuo (broker simulado)» **desactivada** el 2026-10-30 con permiso (arrancaba la operación en papel al iniciar sesión). Experiencia en `machine/juanpablo-cpu` de Santivego; `share_config.json` → Santivego (el modo automático **aplicaría** la importación al arrancar la API o los líderes). Sin copia externa, sin claves de testnet, `EIM_OLLAMA_EXE` definido, sin Freqtrade | sí, 2026-10-30 |
+| `DESKTOP-93R810K` (Juan Pablo) | `juanpablo-cpu` | Clon en `C:\Users\jo\Desktop\JP\TRADINGBOT` (`main`). Historial propio: 4 bases, 561 909 filas (copia `eim_20261030-230202` verificada). En marcha: recolector de microestructura y captura HFT de BTCUSDT. **Parados**: API, operación en papel y líderes. Tarea «EIM - servicio continuo (broker simulado)» **desactivada** el 2026-10-30 con permiso (arrancaba la operación en papel al iniciar sesión). Experiencia en `machine/juanpablo-cpu` de Santivego; `share_config.json` → Santivego (el modo automático **aplicaría** la importación al arrancar la API o los líderes). Sin copia externa, sin claves de testnet, `EIM_OLLAMA_EXE` definido (apunta al Ollama de `Z:`), sin Freqtrade. Motores locales de T62 en `C:\eim-localai` (2026-10-31; su Ollama en 127.0.0.1:11435, lanzado a mano solo para el banco) | sí, 2026-10-30 |
 
 Modo: **SIMULADO** en todo (API: `mode: SIMULADO`). Dinero real imposible: `REAL` prohibido por la
 configuración de riesgo; la puerta de edge (T27) **NO PASA**.
@@ -27,6 +27,7 @@ configuración de riesgo; la puerta de edge (T27) **NO PASA**.
 | T116 Gate estable | 6 corridas verdes (11–20 min con servicios) | 3 corridas con el equipo descargado y 3 con Ollama real en el equipo de referencia |
 | T117 Primera mezcla | Mitad de la portátil hecha; #165 fusionado y desplegado (2026-10-29); en la portátil, modo automático **apagado** (no hay `data/share_config.json`). Juan Pablo aceptó la invitación (permiso WRITE); `juanpablo-cpu` publicó `machine/juanpablo-cpu` (`0105753`, exportación `20261030T231112Z`) y su simulacro de lo de la portátil está en `BITACORA.md` (2026-10-30 23:40) | ◆ el usuario revisa ese simulacro; la portátil hace el suyo sobre `machine/juanpablo-cpu` (§6.4 de la nota); después aplicar. En `juanpablo-cpu`, a mano con los servicios parados (`import --apply`: trae ~5 M filas de líderes, más de 100 000 → §6.6) **antes** de abrir la API |
 | T119 Escuadrón verificado | Hecha el 2026-10-29 (relleno en la base viva, PR #167 desplegado); la marca ☑ está **sin confirmar** en el worktree `t119-marcar` | Confirmar esa marca (otra sesión); queda en BACKLOG la comparación API ↔ CLI sobre una copia en caliente |
+| T62 Motores locales | Auditoría hecha y lista **aprobada** (2026-10-31, `PLAN/notas/T62_auditoria.md`); instalada en `juanpablo-cpu` (`C:\eim-localai`) y banco medido completo allí (`v2/reports/localai/bench_juanpablo-cpu.md`: `qwen3:4b-instruct` + RapidOCR + faster-whisper small entran; GPU, Pydantic AI y el VLM 2B no) | Correr el banco en la portátil (equipo de referencia, `docs/OPERACION.md` §7); ◆ postura ante YouTube (`v2/docs/SEGURIDAD.md`); muestras de audio reales; después cerrar T62 |
 | T125 Continuidad entre equipos | Hecha y desplegada el 2026-10-30 (PR #171): primera copia externa y experiencia publicadas y recuperadas desde GitHub en una carpeta vacía con filas idénticas; tarea diaria instalada y probada | `juanpablo-cpu` revisado el 2026-10-30 (`check` CON AVISOS, §3 A hasta el simulacro); le falta su copia externa (`copia_externa.ps1` + `instalar_copia_externa.ps1`) si va a operar a diario |
 
 Pendientes destacadas: T120 (recolectores sin «sin datos»), T121 (documentación y variables),
@@ -44,6 +45,14 @@ T79–T86 (HFT), T87–T103 (multiactivo). Orden sugerido en `00_MASTER.md` (fas
 - El `summary.json` de la captura HFT está congelado con el vigilante viejo (compactación de horas
   pesadas); se calcula a demanda con el código nuevo (ver T78).
 - Memoria del sistema de la portátil al límite (34,3 de 35,8 GB confirmados el 2026-10-29).
+- En `juanpablo-cpu`, Ollama (`EIM_OLLAMA_EXE=Z:\Ollama\ollama.exe`) vive en la unidad de red
+  `\\DESKTOP-TVD562Q\USB`; el 2026-10-31 hacia las 07:00 UTC cayó y Ollama dejó de poder cargar
+  modelos (el servidor sigue respondiendo). Además `serve` consulta `ollama.com` cada 4 h si no
+  lleva `OLLAMA_NO_CLOUD=1` (T62, alerta 2). Ya hay uno instalado en disco local
+  (`C:\eim-localai`, `docs/OPERACION.md` §7); ◆ falta el cambio: parar el de `Z:`, poner las
+  variables de usuario y dejar el local en el 11434 (BACKLOG T62 (6)).
+- En `juanpablo-cpu`, el VLM `qwen3-vl:2b` (8,8 GB de memoria privada) junto a los servicios dejó
+  el equipo sin memoria (consultas de 1 min); no cargarlo con los servicios en marcha.
 - Cambios sin confirmar de otras sesiones en los worktrees `t117-mezcla` (notas de T117) y
   `t119-marcar` (cierre de T119); guardados también como parche en
   `v2/backups/proteccion_T125_20261030-0310/` (local).
