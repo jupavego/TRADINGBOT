@@ -359,21 +359,23 @@ Orden: T130 → T131 → (T132 ‖ T133) → **T134 ◆** → T135 ‖ T136. Cad
   - Riesgo de ruina: probabilidad de caer al 50 % del capital en N operaciones con el `risk_pct` del perfil, por bootstrap por bloques.
 - **Contra el sobreajuste:**
   - Rejilla cerrada y pre-registrada, con huella en un archivo inmutable como `validation_v1.json`.
-  - Holm sobre todas las variantes y Sharpe deflactado.
+  - Romano-Wolf sobre todas las variantes, con Holm como referencia conservadora, y Sharpe deflactado (§8, E3).
   - PBO por CSCV (Bailey, Borwein, López de Prado y Zhu).
   - Elegir mesetas, no picos: los vecinos a ±1 paso deben conservar ≥ 70 % de la mejora.
+  - Purga y embargo entre ajuste y prueba, objetivo de selección pre-registrado y estrés de costos (§8, E1, E2 y E4).
 
 ### 5.4 Criterios para aprobar o rechazar una salida nueva (pre-registrados)
 
 **Se aprueba si cumple todo:**
 
-1. ΔE[R] emparejado frente a M0 y frente a M1 > 0, con IC 95 % (bootstrap por días) por encima de 0, tras Holm.
+1. ΔE[R] emparejado frente a M0 y frente a M1 > 0, con IC 95 % (bootstrap por días) por encima de 0, tras Romano-Wolf; se informa también Holm y, si discrepan, se dice (E3).
 2. Cociente ganancia media / pérdida media ≥ 0,5 (hoy 0,11) y PF ≥ 1,15 × el de M0.
 3. DD máximo en R ≤ el de M0 × 1,1, y CVaR 95 % no peor que M0.
 4. ΔE[R] > 0 en ≥ ⅔ de los pliegues y en cada año natural (2023, 2024, 2025, 2026).
 5. Meseta de parámetros (§5.3) y PBO < 0,2.
 6. El control aleatorio queda en ≈ −costo (su IC incluye −costo).
-7. Prospectivo: ≥ 4 semanas en papel con el mismo signo.
+7. Prospectivo: ≥ 4 semanas en papel y al menos el número de operaciones que se calcule antes de empezar (E9). La estimación en papel es > 0 y su IC 95 % contiene la de T134, es decir, no hay degradación significativa. Si faltan operaciones, se alarga el periodo. (Antes decía «con el mismo signo»: una salida sin efecto lo cumple la mitad de las veces por azar.)
+8. Sigue cumpliendo 1 con el deslizamiento de los stops a ×1,5 (E4).
 
 **Se rechaza** si falla cualquiera. «PF > 1 de forma sostenida» **no** es un criterio de la salida, sino de la entrada (T27). Adoptar una salida mejor no habilita dinero real.
 
@@ -416,6 +418,31 @@ Se añaden al banco porque tienen base teórica, son baratos de probar y respond
 
 Siguen descartados el aprendizaje por refuerzo y el meta-etiquetado en esta fase (§2.1).
 
+## 8. Mejoras de método tras estudiar la bibliografía (2026-11-03)
+
+El usuario pidió revisar la fase 22 con lo estudiado en tres obras leídas completas: Kelly y Xiu, *Financial Machine Learning* (NBER w31502, 2023); Sutton y Barto, *Reinforcement Learning*, 2.ª ed. (2020); y Kakushadze, *101 Formulaic Alphas* (2016). Los apuntes, con sus páginas, están en `v2/data/library/estudio/`, fuera de git. Las páginas citadas son las del PDF.
+
+El informe ya cubría los métodos: HAR-RV, PBO, Sharpe deflactado, CVaR, Kelly como freno y volatilidad objetivo. El estudio aporta **huecos de método**: sitios donde el banco podría medir mal o la decisión apoyarse en un criterio débil. También confirma el descarte del aprendizaje por refuerzo para la salida: Kelly y Xiu solo lo justifican cuando las propias órdenes mueven el precio (pp. 134-135).
+
+Un apunte de fondo: la escalera ilustra lo que Sutton y Barto advierten en §17.4 y §17.6 (pp. 491-500). Optimizar o celebrar un objetivo secundario, el acierto, en lugar del objetivo, E[R] neto, da un sistema que cumple lo pedido y no lo querido.
+
+| Id | Mejora | Por qué | Fuente | Tarea |
+|---|---|---|---|---|
+| E1 | **Purga y embargo** entre el tramo de ajuste y el de prueba. Se sacan del ajuste las operaciones que se cierran dentro de la prueba. Se deja un hueco ≥ la duración p99 de las operaciones de la política, y ≥ la ventana más larga de sus rasgos | Sin ellos, una operación abierta al final del ajuste y los rasgos con ventana larga cruzan el borde: fuga entre tramos | Kelly y Xiu, p. 39; López de Prado (2018), purga | T131, T133 |
+| E2 | **Objetivo de selección pre-registrado** dentro del tramo de ajuste: E[R] neto de costos, con CVaR 95 % y DD máximo no peores que M0 en ese tramo, y elegir el centro de la meseta, no el pico | §5.3 decía «solo en el tramo de ajuste», pero no qué se maximiza; lo que se optimiza es lo que se obtiene | Sutton y Barto §17.4 | T131 |
+| E3 | **Romano-Wolf** (remuestreo por pasos) como corrección principal, con los mismos remuestreos por bloques de días; Holm queda como referencia | Las variantes de la rejilla están muy correlacionadas (mismas entradas, parámetros vecinos). Holm no aprovecha esa dependencia y pierde potencia, y podría rechazar una salida que sí es mejor. Los dos controlan el error por familia; hoy ninguno de los métodos con remuestreo está en el código | White (2000), Hansen (2005), Romano y Wolf (2005); Kelly y Xiu, pp. 101-104 | T131, T134 |
+| E4 | **Costos: estrés y calibración.** (a) Todo el banco también con el deslizamiento de los stops ×1,5 y ×2; una salida que solo gana con el costo base no se aprueba (§5.4, 8). (b) Calibrar prospectivamente el deslizamiento con el libro de la captura HFT (T78/T128, cobertura desde finales de octubre de 2026), en el instante en que saltó cada stop del bróker | Las salidas ajustadas son las más sensibles a costos; los patrones que mejor «predicen» suelen ser los caros de operar. Hoy el costo del stop es un modelo, no un dato | Kelly y Xiu, pp. 130-134; Lo y Remorov (2017) | T131, T134, T136 |
+| E5 | **MAE de las ganadoras sin fuga ni circularidad** (M8 y la fase de supervivencia de M5): el cuantil se calcula solo con operaciones del tramo de ajuste. «Ganadora» se define con una salida de referencia **fija y pre-registrada**, no con la política que se evalúa. Se exige una muestra mínima y, si no se alcanza, se usa el valor base | Con la escalera, las ganadoras se cierran a +0,1 R enseguida y su MAE es pequeño; M8 daría stops ajustados, que es el mismo defecto H1 | Sweeney (1997); disciplina de validación de Kelly y Xiu, pp. 36-41 | T132 |
+| E6 | **Cota del oráculo** antes de construir rasgos: E[R] de M4 si el régimen se conociera con certeza (M0 en días laterales y M1 en días de tendencia, etiquetas ex post de `ab_conditions`). Si incluso así M4 no cumpliría los criterios 1-3 de §5.4 frente a M0 y M1, se descarta sin más trabajo | Un predictor real solo recupera una parte de lo que daría el oráculo; si el techo ya es bajo, no merece la pena | Valor de la información perfecta (cálculo directo con T131) | T133 |
+| E7 | **Pruebas múltiples en el régimen.** Se pre-registra la lista de rasgos × horizontes N × marcos. Se criba con Benjamini-Hochberg (FDR 10 %) y se confirma el rasgo elegido con Holm o Romano-Wolf. Todos los intentos cuentan en el Sharpe deflactado. Como las etiquetas de N horas se solapan, se aplica E1 y los IC son por bloques de días | Con decenas de pruebas, alguna supera la tasa base por azar | Kelly y Xiu, pp. 101-104; Benjamini y Hochberg (1995) | T133 |
+| E8 | **Valor económico, no solo AUC.** La AUC y el Brier son un filtro; el veredicto final de M4 es ΔE[R] neto en el banco (T134) | «El R² no mide el valor económico»: un predictor débil puede valer dinero, y uno significativo puede no valerlo tras costos | Kelly y Xiu, pp. 68-72 | T133, T134 |
+| E9 | **Prueba prospectiva con potencia.** Antes de empezar se calcula el efecto mínimo detectable con las operaciones esperadas por semana y la varianza de las diferencias emparejadas de T134. Se aprueba con el criterio 7 nuevo de §5.4; sin potencia suficiente, se alarga | «El mismo signo» lo cumple por azar una salida sin efecto en el 50 % de los casos. Desplegar solo con una garantía probabilística de mejora, como en el caso de Adobe | Sutton y Barto §16.7 (pp. 472-475) | T135 |
+| E10 | **Kelly sobre el límite inferior del IC de E[R]**, no sobre la estimación puntual, y fraccionado | Con muestras pequeñas da tamaño 0 aunque la media sea positiva: protege del error de estimación | Kelly (1956); MacLean, Thorp y Ziemba (2011) | T136 |
+| E11 | **Una sola σ versionada** para el stop (T132) y para el tamaño por volatilidad objetivo (T136) | Dos estimaciones distintas pueden contradecir el riesgo presupuestado y la distancia del stop | Coherencia interna (§4.1) | T136 |
+| E12 | **Freno de drawdown y límite de CVaR dentro de la rejilla de T131**, contados como intentos; y **comprobación del ES**: que las pérdidas de cola reales coincidan con el CVaR estimado | Ajustar después los parámetros de riesgo es otra forma de sobreajuste. Un límite de CVaR mal calibrado da una falsa seguridad | Acerbi y Székely (2014) | T131, T136 |
+
+Descartado tras el estudio: repartir capital de forma adaptativa (bandido) durante la prueba en papel. Rompe la comparación estadística, y solo tendría sentido después, entre políticas ya aprobadas. También se descarta reajustar parámetros en vivo: una versión nueva exige un pre-registro nuevo (Sutton y Barto §17.6: importa también cómo se comporta el sistema mientras aprende).
+
 ## Fuentes
 
 - Kaminski, K. y Lo, A. (2014). «When do stop-loss rules stop losses?», *Journal of Financial Markets* 18: 234–254. [MIT DSpace](https://dspace.mit.edu/handle/1721.1/114876) · [RePEc](https://econpapers.repec.org/RePEc:eee:finmar:v:18:y:2014:i:c:p:234-254)
@@ -431,3 +458,5 @@ Siguen descartados el aprendizaje por refuerzo y el meta-etiquetado en esta fase
 - Citados sin consulta en línea: Parkinson (1980) y Garman y Klass (1980), *Journal of Business*; Lo y MacKinlay (1988), *Review of Financial Studies*.
 - Obras citadas sin consulta en línea en esta sesión (bibliografía de T52): Sweeney, *Maximum Adverse Excursion* (1997); López de Prado, *Advances in Financial Machine Learning* (2018); Tharp, *Trade Your Way to Financial Freedom* (2006); Kaufman, *Trading Systems and Methods* (2019); Corsi (2009), *Journal of Financial Econometrics*; Bollerslev (1986); Hamilton (1989); Grossman y Zhou (1993), *Mathematical Finance*; Shefrin y Statman (1985), *Journal of Finance*; Bailey, Borwein, López de Prado y Zhu, «The Probability of Backtest Overfitting»; Adams y MacKay (2007), BOCPD; Moody y Saffell (2001).
 - Repositorios: metadatos con `gh api repos/<repo>` y `gh search repos` el 2026-11-03 (§2.2).
+- Leídas completas para §8 (PDF legales en `v2/data/library/books/`, fuera de git): Kelly, B. y Xiu, D. (2023), «Financial Machine Learning», NBER w31502; Sutton, R. y Barto, A. (2020), *Reinforcement Learning: An Introduction*, 2.ª ed., MIT Press (PDF de los autores, CC BY-NC-ND 2.0); Kakushadze, Z. (2016), «101 Formulaic Alphas», arXiv 1601.00991.
+- Citadas en §8 sin consulta en línea en esta sesión: White, H. (2000), «A Reality Check for Data Snooping», *Econometrica* 68(5); Hansen, P. R. (2005), «A Test for Superior Predictive Ability», *Journal of Business & Economic Statistics* 23(4); Romano, J. y Wolf, M. (2005), «Stepwise Multiple Testing as Formalized Data Snooping», *Econometrica* 73(4); Benjamini, Y. y Hochberg, Y. (1995), *Journal of the Royal Statistical Society B* 57(1); Acerbi, C. y Székely, B. (2014), «Backtesting Expected Shortfall», *Risk*; Kelly, J. L. (1956), *Bell System Technical Journal*; MacLean, L., Thorp, E. y Ziemba, W. (2011), *The Kelly Capital Growth Investment Criterion*, World Scientific.

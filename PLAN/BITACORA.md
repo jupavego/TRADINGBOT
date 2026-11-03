@@ -481,3 +481,25 @@ más reciente por fecha y su siguiente paso. Formato:
   - En `.claude/worktrees/t129-proteccion-falso-positivo` (bloqueado, de otra sesión) hay una «T129» sin confirmar (fase 18) sobre el mismo falso positivo: choca con el número de la T129 de la fase 22 y su arreglo ya está en `main` (T130). Decisión del usuario: descartarla o renombrarla como anexo de T130.
   - Panel de `/v2/paper/exits` (BACKLOG T130 (1)).
 - **Siguiente paso:** T131.
+## 2026-11-03 16:20 UTC · juanpablo-cpu · Fase 22 enriquecida con el estudio de la bibliografía
+- **Hecho:** se cruzaron las tareas pendientes de la fase 22 (T131–T136) con tres obras leídas completas en esta sesión: Kelly y Xiu, *Financial Machine Learning*; Sutton y Barto, *Reinforcement Learning*; y Kakushadze, *101 Formulaic Alphas*. Los apuntes con páginas están en `v2/data/library/estudio/`, fuera de git. El informe de T129 ya tenía los métodos; se añadieron 12 mejoras de método (E1–E12) en `PLAN/notas/T129_sl_dinamico.md` §8:
+  - purga y embargo entre ajuste y prueba;
+  - objetivo de selección pre-registrado;
+  - Romano-Wolf además de Holm;
+  - estrés de costos ×1,5 y ×2, y calibración del deslizamiento con la captura HFT;
+  - MAE de las ganadoras sin fuga ni circularidad (M8, M5);
+  - cota del oráculo antes de T133;
+  - pruebas múltiples en el régimen;
+  - valor económico por encima de la AUC;
+  - prueba en papel con potencia calculada;
+  - Kelly sobre el límite inferior de E[R];
+  - una sola σ para stop y tamaño;
+  - freno de drawdown y CVaR dentro de la rejilla, con comprobación del ES.
+- **Criterios de §5.4 cambiados antes del pre-registro de T131:**
+  - el 1 usa Romano-Wolf (Holm como referencia);
+  - el 7 deja «el mismo signo» (una salida sin efecto lo cumple el 50 % de las veces) y pasa a potencia calculada + IC que contiene la estimación de T134;
+  - nuevo 8: seguir aprobando con el deslizamiento de los stops ×1,5.
+- **Archivos:** `PLAN/notas/T129_sl_dinamico.md` (§5.3, §5.4, §8, fuentes), `PLAN/T131.md`–`PLAN/T136.md`, `PLAN/ESTADO_PROYECTO.md`. Sin cambios de código.
+- **Pruebas:** no hay código; solo se regeneró la hoja de ruta.
+- **Abierto:** nada nuevo. Sigue descartado el aprendizaje por refuerzo para la salida; el estudio lo confirma (solo se justifica cuando las propias órdenes mueven el precio).
+- **Siguiente paso:** T131, ahora con E1–E4 y E12 en su pre-registro.
