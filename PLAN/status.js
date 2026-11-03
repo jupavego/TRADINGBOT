@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-03T00:46:39",
+ "generated": "2026-11-03T11:02:08",
  "tasks": [
   {
    "id": "T01",
@@ -1644,8 +1644,8 @@ window.EIM_STATUS = {
    "deps": [
     "T129"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Hecho (2026-11-03). **MFE/MAE desde el llenado** (`eim/paper/excursion.py`), con una sola definición en sombra y escalera: en la entrada límite no cuenta la vela del llenado; en la salida por stop no cuenta el favorable de su vela; la salida por tiempo no cuenta su vela; en la escalera se mide lo que el modelo recorrió vivo. **Falso positivo de T110** arreglado en `ladder_floor.early`: un cierre con 1 min dentro de la vela que fijó el suelo ya no es «inconsistente» (`floor_superseded`; si baja el stop, sigue la salvaguarda). Prueba de punta a punta con el caso del 31-oct. **Calidad de la salida y A/B en vivo con la sombra**: `eim/paper/exit_quality.py`, `GET /v2/paper/exits`, `python -m eim.paper salidas`. BE+ inerte documentado en `docs/PPP.md` §2.3 y §14. Pruebas `tests/paper/test_{t130_measurement,exit_quality}.py` y ruta en `tests/api/test_paper_api.py`. Panel y despliegue en BACKLOG T130.",
    "effort": "medio",
    "phase": 22,
    "goal": "Antes de comparar salidas (T131–T134), las métricas tienen que medir bien. T129 encontró tres defectos de medición y uno de lógica inerte (H3, H6, H7 de `PLAN/notas/T129_sl_dinamico.md`)."

@@ -437,3 +437,17 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** las ◆ de §6 del informe (reabrir la decisión de T111, cierres parciales, geometría del SL inicial, papel de los agentes, dependencias). La historia desde 2023 no está en este equipo: T131 la reconstruye en una copia.
 - **Siguiente paso:** decidir las ◆ y empezar T130.
 - **◆ de T129 resueltas (2026-11-03, el usuario pidió «hacer todo lo recomendado»):** la escalera queda como referencia provisional hasta T134, sin cambiar la salida en vivo, y el A/B en vivo sale de la sombra. Cierres parciales y SL con piso solo en el banco; agentes como selectores discretos validados; sin dependencias nuevas salvo statsmodels si T133 lo exige. Modelos añadidos (§7 del informe): stop por tiempo, salida por reversión del marco mayor, SL por cuantil del MAE, estimadores OHLC de volatilidad, cociente de varianzas, vida media de OU y momento de serie temporal.
+
+## 2026-11-03 07:40 UTC · juanpablo-cpu · T130 medición honesta de las salidas
+- **Hecho:**
+  - MFE/MAE desde el llenado (`eim/paper/excursion.py`), con una sola definición en `engine.simulate` y en `simulate_ladder`.
+  - Falso positivo de T110 arreglado (`ladder_floor.early`, `floor_superseded`).
+  - Calidad de la salida y A/B en vivo frente a la sombra (`eim/paper/exit_quality.py`, `GET /v2/paper/exits`, `python -m eim.paper salidas`).
+  - BE+ inerte documentado (`docs/PPP.md` §2.3 y §14).
+- **Vista previa con el libro real (JSON del 2026-11-03):**
+  - Agresivo: acierto 76,9 % frente a un 90,3 % de equilibrio; los costos se llevan el 80 % de lo ganado en bruto.
+  - Frente a la sombra, la escalera pierde en el Agresivo (Δ −0,10 R, 46 pares) y gana en el Moderado (+0,31, 17 pares) y en el control (+0,18, 14 pares). El periodo es lateral y las muestras pequeñas y dependientes.
+- **Archivos:** `v2/eim/paper/{excursion,exit_quality,exit_cli,engine,ladder,ladder_floor,__main__}.py`, `v2/eim/api/paper.py`, `v2/docs/PPP.md`, `v2/tests/paper/test_{t130_measurement,exit_quality}.py`, `v2/tests/api/test_paper_api.py`, `PLAN/{STATUS,BACKLOG,BITACORA}.md`.
+- **Pruebas:** ruff limpio; `tests/paper` (331), API del bróker y seguridad verdes; gate completo por la cola (ver PR).
+- **Abierto:** panel y despliegue (BACKLOG T130). La API viva sigue con el código anterior hasta fusionar y reiniciar solo la API (con permiso; no toca la captura HFT).
+- **Siguiente paso:** T131, banco emparejado con la historia desde 2023 reconstruida en una copia.
