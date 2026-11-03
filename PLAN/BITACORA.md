@@ -423,3 +423,16 @@ más reciente por fecha y su siguiente paso. Formato:
   - Validar unas horas la microestructura con el recolector viejo en otra carpeta.
   - Medir una semana el tamaño de `leaders.duckdb`.
   - T116: tres corridas con el equipo descargado.
+
+## 2026-11-03 06:30 UTC · juanpablo-cpu · Operación inconsistente resuelta y T129 (stop dinámico, solo lectura)
+- **Comprobación al volver:** continuidad CON AVISOS (sin bloqueo), servicios latiendo, copias del 2026-11-03 locales y externas. La racha de T78 iba en 5 h (desde 2026-11-03T00). Hay que usar el python del `.venv`: el del sistema no tiene pydantic.
+- **Aviso «Protección en estado inconsistente: agresivo BTCUSDT»:** era un corto de `agente_levels@1h` del 31-oct. Se fijó el escalón 2 (SL 77 164,5) a las 03:45 con la regla de 15 m sin velas de 1 m completas; con ellas, el recálculo lo cerraba a las 03:41. Las velas de 1 m y los trades HFT confirman el toque del SL a las 03:40:03 UTC. Con permiso del usuario se reconcilió con `recalculo` (nota en el diario): SLD a 77 164,5 y +0,11 R. El Agresivo deja de tener esa posición fantasma.
+- **T129 (encargo del usuario, sin cambios de código):** informe `PLAN/notas/T129_sl_dinamico.md`.
+  - **Libro:** 307 cierres, acierto 75,6 %, +0,108 R por ganadora frente a −0,964 R por perdedora (PF 0,35).
+  - **Causa:** el stop del escalón queda a menos de un incremento del extremo (27–61 USD de BTC, frente a 29 USD de rango mediano en 1 min).
+  - **Además:** costos de 0,12 R/op y entradas sin ventaja antes de costos.
+  - **Resto del informe:** hallazgos H1–H10, investigación con fuentes y repositorios verificados (`gh api`), arquitectura propuesta y plan T130–T136 (fase 22) con criterios pre-registrados.
+- **Archivos:** `PLAN/notas/T129_sl_dinamico.md`, `PLAN/T129.md`–`PLAN/T136.md`, `PLAN/{STATUS,00_MASTER,BITACORA,ESTADO_PROYECTO}.md`, `PLAN/roadmap.html`. Scripts de lectura fuera del repo (scratchpad de la sesión).
+- **Pruebas:** no aplica (solo documentos); ruff y las pruebas que leen `PLAN/`.
+- **Abierto:** las ◆ de §6 del informe (reabrir la decisión de T111, cierres parciales, geometría del SL inicial, papel de los agentes, dependencias). La historia desde 2023 no está en este equipo: T131 la reconstruye en una copia.
+- **Siguiente paso:** decidir las ◆ y empezar T130.
