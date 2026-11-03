@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-03T13:14:56",
+ "generated": "2026-11-03T18:10:39",
  "tasks": [
   {
    "id": "T01",
@@ -1680,8 +1680,8 @@ window.EIM_STATUS = {
    "deps": [
     "T131"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Hecho (2026-11-03). **Veredicto: M4 SE DESCARTA.** Nota `PLAN/notas/T133_regimen_ex_ante.md`, informe `v2/reports/t133_oracle.md`. La tarea se cierra en su **entregable 0**, la cota del oráculo (E6), como manda su ficha: «si incluso así M4 no cumpliría los criterios 1–3 de §5.4, se descarta sin seguir». Con el banco de T131 sobre la copia reconstruida y solo los tramos de prueba de sus 10 pliegues (29 828 operaciones fuera de muestra por serie), el **oráculo por día** —etiqueta ex post de `ab_conditions`: M0 en los días laterales, M1 en los de tendencia, «intermedio» a la escalera— mejora la esperanza de −0,154 a **−0,093 R** (Δ +0,061 frente a M0, IC [+0,045, +0,076]) y el drawdown de 4 591 a 2 812 R, pero **no cumple**: frente a M0 falla el criterio 2 (cociente 0,35 < 0,50) y el 3 (CVaR −1,373 peor que −1,350), y frente a M1 falla el 2 (PF 0,737 < 1,15 × 0,731 = 0,841). Y sobre todo **sigue perdiendo**: conocer el régimen decide cuál de las dos salidas usar, no cambia la forma de las operaciones. La **envolvente por operación** (la mejor de las dos en cada entrada) sí cumple (E[R] +0,210, PF 1,85) y **no prueba nada**: su drawdown cae a 45 R, que es el termómetro de cuánta información futura usa; no es un selector de régimen, porque el régimen es del día y ella acierta operación a operación. **Pruebas estadísticas sobre rasgos: 0** —no se construyó ninguno, así que no hubo cribado de Benjamini-Hochberg ni confirmación, y el recuento de intentos de la fase queda limpio (E7). Sin dependencias nuevas: la ◆5 de T129 (statsmodels tras T04) **no se abre**. El agente `regime` no se tocó. **Consecuencia para la fase 22:** T134 ya no mide M4; M2, M3, M5–M8 y S1 **no** quedan afectadas (cambian la geometría del stop, no eligen entre las dos salidas de hoy), así que T132 sigue igual. Código: `eim/paper/exits/{oracle,oracle_report}.py` y `scripts/t133_oracle.py` (~70 s), con 16 pruebas; una fija que el veredicto se juzgue con el oráculo por día y no con la envolvente. `ruff` limpio y 173 pruebas verdes en los paquetes afectados; **gate completo pendiente** a propósito (rompería la racha de T78, BACKLOG T127 (3)).",
    "effort": "medio",
    "phase": 22,
    "goal": "T111 mostró que la escalera gana en días laterales y la salida A en días de tendencia, pero la etiqueta de régimen que se conoce al entrar no separa los casos. Una salida adaptativa (M4) solo tiene sentido si algún rasgo conocido al entrar **predice** el tipo de las horas siguientes."
