@@ -451,3 +451,33 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** ruff limpio; `tests/paper` (331), API del bróker y seguridad verdes; gate completo por la cola (ver PR).
 - **Abierto:** panel y despliegue (BACKLOG T130). La API viva sigue con el código anterior hasta fusionar y reiniciar solo la API (con permiso; no toca la captura HFT).
 - **Siguiente paso:** T131, banco emparejado con la historia desde 2023 reconstruida en una copia.
+## 2026-11-03 16:15 UTC · juanpablo-cpu · Despliegue de T129 y T130 (#194, #197)
+- **Antes de desplegar:**
+  - Windows se reinició a las 15:56 UTC (no fue el despliegue). La tarea de inicio de sesión relanzó todo a las 15:57, en la sesión 1.
+  - La racha de T78 volvió a 0 (iba en 5 h a las 05 UTC).
+  - La carpeta principal estaba en la rama de otra sesión, `claude/doc-biblioteca-operacion` (PR #195, subida y sin cambios rastreados). Se devolvió a `main` y se avisó a esa sesión.
+- **Despliegue (con permiso del usuario):**
+  - #194 y #197 fusionados (`695b2cb`); `git merge --ff-only` en la carpeta principal.
+  - Se paró solo el Python real de la API (pid 4656) a las 16:07:53. El vigilante `eim.operation run` (13112) la relanzó en 43 s (pid 3380, BelowNormal); `servicio_iniciado` a las 16:08:31.
+  - La captura HFT no se tocó: siguió latiendo.
+- **Comprobado:**
+  - `GET /v2/paper/exits` responde en modo SIMULADO.
+  - `python -m eim.paper salidas` funciona.
+  - Diario de protección: 81 cerradas, 0 inconsistentes.
+- **A/B en vivo emparejado** (vista 5c4b4251a135, todas las ideas): la escalera **supera** a la salida A de la sombra en los cuatro perfiles en este periodo:
+
+  | Perfil | Pares | Δ | Escalera | Sombra (A) |
+  |---|--:|--:|--:|--:|
+  | Moderado | 106 | +0,46 R | −0,17 | −0,62 |
+  | Agresivo | 147 | +0,15 R | −0,12 | −0,27 |
+  | `ppp_btcusdt` | 39 | +0,24 R | — | — |
+  | Conservador | 11 | +0,13 R | — | — |
+
+  - Las dos salidas pierden.
+  - Cuando A llega al TP, la escalera cobra +0,07…+0,24 R frente a +1,3…+1,4 R. Cuando A pierde por SL, la escalera pierde −0,29…−0,45 R frente a −1,1 R.
+  - Coincide con T111 (la escalera gana en lateral y pierde en tendencia): estos 17 días fueron mayormente laterales. Por eso T133 es la pieza clave.
+  - La vista previa de antes, con solo 1 000 decisiones, daba Δ −0,10 en el Agresivo: muestra parcial.
+- **Abierto:**
+  - En `.claude/worktrees/t129-proteccion-falso-positivo` (bloqueado, de otra sesión) hay una «T129» sin confirmar (fase 18) sobre el mismo falso positivo: choca con el número de la T129 de la fase 22 y su arreglo ya está en `main` (T130). Decisión del usuario: descartarla o renombrarla como anexo de T130.
+  - Panel de `/v2/paper/exits` (BACKLOG T130 (1)).
+- **Siguiente paso:** T131.
