@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-03T00:39:32",
+ "generated": "2026-11-03T00:46:39",
  "tasks": [
   {
    "id": "T01",
@@ -1633,7 +1633,7 @@ window.EIM_STATUS = {
     "T111"
    ],
    "state": "done",
-   "notes": "Encargo del usuario (2026-11-03), sin cambios de código. Informe `PLAN/notas/T129_sl_dinamico.md`. Libro del bróker, 307 cierres: acierto 75,6 %, pero +0,108 R por ganadora frente a −0,964 R por perdedora (PF 0,35; equilibrio en el 90 %). **Causa: el stop del escalón queda a menos de un incremento del extremo** (27–61 USD de BTC, frente a 29 USD de rango mediano en 1 min). Además, costos de 0,12 R/op (59 % del bruto del SLD) y entradas sin ventaja antes de costos (T27/T49/T111). Hallazgos H1–H10: BE+ inerte en modo escalera, MFE inflado en entradas límite, falso positivo de T110 (resuelto a mano el caso del 31-oct). Investigación con fuentes verificadas y repositorios con licencia y actividad reales. Propuesta: motor de gestión de la posición con una sola política por posición. Plan T130–T136 con criterios pre-registrados. ◆ pendientes en §6 del informe.",
+   "notes": "Encargo del usuario (2026-11-03), sin cambios de código. Informe `PLAN/notas/T129_sl_dinamico.md`. Libro del bróker, 307 cierres: acierto 75,6 %, pero +0,108 R por ganadora frente a −0,964 R por perdedora (PF 0,35; equilibrio en el 90 %). **Causa: el stop del escalón queda a menos de un incremento del extremo** (27–61 USD de BTC, frente a 29 USD de rango mediano en 1 min). Además, costos de 0,12 R/op (59 % del bruto del SLD) y entradas sin ventaja antes de costos (T27/T49/T111). Hallazgos H1–H10: BE+ inerte en modo escalera, MFE inflado en entradas límite, falso positivo de T110 (resuelto a mano el caso del 31-oct). Investigación con fuentes verificadas y repositorios con licencia y actividad reales. Propuesta: motor de gestión de la posición con una sola política por posición. Plan T130–T136 con criterios pre-registrados. ◆ resueltas el 2026-11-03 (§6 del informe: la escalera queda como referencia provisional hasta T134, sin cambios en vivo; cierres parciales y SL con piso solo en el banco; agentes como selectores validados; sin dependencias nuevas) y modelos M6–M8 añadidos (§7).",
    "effort": "medio",
    "phase": 22,
    "goal": "Encargo del usuario (2026-11-03). El bróker simulado gana más operaciones de las que pierde, pero lo ganado no cubre lo perdido. Toca auditar el stop dinámico real (escalera de T105–T110), investigar métodos cuantitativos, repositorios y prácticas institucionales, y proponer una arquitectura y un plan de validación. **Sin modificar código.**"

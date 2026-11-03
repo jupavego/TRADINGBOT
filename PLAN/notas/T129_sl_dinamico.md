@@ -379,6 +379,18 @@ Orden: T130 → T131 → (T132 ‖ T133) → **T134 ◆** → T135 ‖ T136. Cad
 
 ## 6. Decisiones ◆ del usuario
 
+**Resueltas el 2026-11-03.** El usuario pidió «hacer todo lo recomendado según lo analizado». Cada ◆ queda con la opción que sale de la evidencia:
+
+| ◆ | Decisión | Por qué |
+|---|---|---|
+| 1 | **T111 reabierta.** La escalera queda como **referencia provisional (M0)** en los perfiles hasta T134; **no se cambia la salida en vivo ahora**. El A/B en vivo sale de la sombra, que ya simula la salida A para cada idea; T130 lo hace visible (emparejado sombra–escalera, costo en R) | Pasar un perfil a A no añade información, porque la sombra ya mide A sobre las mismas ideas. Además, cambiar dos veces la salida en vivo sin validar es justo el error que T134 debe evitar. A también pierde (PF 0,75–0,87), así que no hay urgencia que justifique saltarse la validación |
+| 2 | **Cierres parciales permitidos solo en el banco** (S2 en T131–T134); en vivo sigue la regla de T105 hasta que T134 apruebe | Un cierre parcial no cambia la esperanza en un precio sin memoria: reparte la exposición y añade costos de salida. Su valor (menos varianza y drawdown) hay que medirlo, no suponerlo |
+| 3 | **SL inicial con piso por volatilidad, permitido en el banco** (S1). Si T134 lo aprueba, entra como **versión nueva** de cada estrategia en T49 | Con costos, el stop ajustado destruye valor (Lo y Remorov); el costo por R se reduce a la mitad con el doble de distancia y la mitad de tamaño. Reiniciar la evidencia de T49 es el precio honesto del cambio |
+| 4 | **Agentes como selectores discretos y validados.** Entran por `ExitFeatures` (versionado, con `source` y cobertura) y solo eligen entre valores pre-registrados. Ningún agente escribe stops y los LLM quedan fuera | Mantiene el riesgo determinista y con veto (CLAUDE.md, T114) y evita instrucciones contradictorias. Un rasgo que no supera T133 no entra |
+| 5 | **Sin dependencias nuevas por defecto.** HAR-RV, los estimadores OHLC y los rasgos de régimen se implementan con numpy y scipy (HAR es una regresión lineal). **statsmodels** (BSD-3) solo si T133 necesita Markov switching, tras la revisión de licencia y seguridad de T04. **arch** no hace falta | Menos superficie y la misma capacidad. El GARCH no aporta sobre HAR-RV en horizontes cortos, según los estudios con BTC citados |
+
+Opciones originales, para el registro:
+
 1. **¿Se reabre la decisión de T111?** La escalera sigue en los tres perfiles aunque T111 la midió peor fuera de muestra.
    - **a)** Mantenerla en vivo mientras dura la fase 22 (es papel; sirve de referencia M0).
    - **b)** Volver ya el Moderado (o todos) a la salida A para tener un A/B en vivo.
@@ -388,6 +400,21 @@ Orden: T130 → T131 → (T132 ‖ T133) → **T134 ◆** → T135 ‖ T136. Cad
 3. **¿Se acepta cambiar la geometría del SL inicial (S1)?** Crea versiones nuevas de las estrategias en T49 y reinicia su evidencia.
 4. **¿Pueden los agentes modificar la salida?** Solo eligiendo entre valores discretos ya validados (propuesto), o la salida es puramente mecánica.
 5. **¿Nuevas dependencias** (statsmodels o arch) si T133 las justifica, tras la revisión de T04?
+
+## 7. Modelos adicionales incorporados al plan (2026-11-03)
+
+Se añaden al banco porque tienen base teórica, son baratos de probar y responden a lo observado en el libro:
+
+| Id | Modelo | Base | Por qué aquí | Tarea |
+|---|---|---|---|---|
+| M6 | **Stop por tiempo** (barrera vertical): salir si no se alcanza +x R en T velas del marco | Barrera vertical de la triple barrera (López de Prado, 2018) | Las perdedoras duran mucho más que las ganadoras (mediana de 98–465 min frente a 29–99): una operación que no arranca tiende a acabar en el SL | T131/T132 |
+| M7 | **Salida por reversión de la señal del marco mayor** (`htf_dir` cambia de signo) | Práctica documentada de los seguidores de tendencia (Hurst, Ooi y Pedersen, 2017) | Hoy las señales contrarias solo informan; esta es la salida natural de una tendencia. El dato ya está en los contextos | T131/T132 |
+| M8 | **Stop por cuantil del MAE de las ganadoras**: SL inicial = cuantil q del MAE histórico de las ganadoras de la estrategia@marco, en unidades de σ | Sweeney (1997), con el MAE corregido en T130 | Fija la distancia con datos de cada estrategia, no con un k común | T132 (tras T130) |
+| σ-OHLC | **Estimadores de volatilidad con velas**: Parkinson (1980), Garman–Klass (1980), Yang–Zhang (2000) | Más eficientes que el cierre a cierre; Yang–Zhang es insesgado con deriva y con saltos de apertura | Dan una σ de calidad en los tramos de 2023–2026 donde no hay 1 m, y sirven de control frente a HAR-RV | T132 |
+| VR/OU | **Cociente de varianzas** (Lo y MacKinlay, 1988) y **vida media de Ornstein–Uhlenbeck** sobre ventanas recientes | Contraste estándar de paseo aleatorio frente a momento o reversión | Mide la dinámica que, según Kaminski y Lo y Leung y Zhang, decide si conviene un arrastre ajustado o amplio | T133 |
+| TSMOM | **Momento de serie temporal** como rasgo de régimen | Momento significativo en BTC a escala diaria y semanal (Liu y Tsyvinski, 2021) | Apoya arrastres amplios en horizontes de días. En los horizontes intradía de hoy (mediana de 41–120 min) hay que medirlo; no se da por hecho | T133 |
+
+Siguen descartados el aprendizaje por refuerzo y el meta-etiquetado en esta fase (§2.1).
 
 ## Fuentes
 
@@ -399,5 +426,8 @@ Orden: T130 → T131 → (T132 ‖ T133) → **T134 ◆** → T135 ‖ T136. Cad
 - Hurst, B., Ooi, Y. H. y Pedersen, L. H. (2017). «A Century of Evidence on Trend-Following Investing», *Journal of Portfolio Management*. [PDF](https://fairmodel.econ.yale.edu/ec439/hurst.pdf)
 - Moreira, A. y Muir, T. (2017). «Volatility-Managed Portfolios», *Journal of Finance* 72(4) (citado; para BTC no se encontró un estudio revisado neto de costos: [búsqueda del 2026-11-03](https://medium.com/coinmonks/whats-vol-got-to-do-with-it-886b57c2d762) solo devuelve trabajos divulgativos).
 - HAR-RV con BTC: Gkillas, Gupta y Pierdzioch (2021), *European Journal of Finance*; Bouri, Gkillas, Gupta y Pierdzioch (2021), *Computational Economics* [repositorio](https://repository.up.ac.za/handle/2263/76318); saltos y HAR en horizonte corto [arXiv 1912.05228](https://arxiv.org/pdf/1912.05228v3.pdf).
+- Liu, Y. y Tsyvinski, A. (2021). «Risks and Returns of Cryptocurrency», *Review of Financial Studies* 34(6): 2689–2727. [RePEc](https://econpapers.repec.org/RePEc:oup:rfinst:v:34:y:2021:i:6:p:2689-2727.) · [NBER w24877](https://www.nber.org/system/files/working_papers/w24877/w24877.pdf)
+- Yang, D. y Zhang, Q. (2000). «Drift-independent volatility estimation based on high, low, open, and close prices», *Journal of Business* 73(3): 477–491. [RePEc](https://econpapers.repec.org/RePEc:ucp:jnlbus:v:73:y:2000:i:3:p:477-91)
+- Citados sin consulta en línea: Parkinson (1980) y Garman y Klass (1980), *Journal of Business*; Lo y MacKinlay (1988), *Review of Financial Studies*.
 - Obras citadas sin consulta en línea en esta sesión (bibliografía de T52): Sweeney, *Maximum Adverse Excursion* (1997); López de Prado, *Advances in Financial Machine Learning* (2018); Tharp, *Trade Your Way to Financial Freedom* (2006); Kaufman, *Trading Systems and Methods* (2019); Corsi (2009), *Journal of Financial Econometrics*; Bollerslev (1986); Hamilton (1989); Grossman y Zhou (1993), *Mathematical Finance*; Shefrin y Statman (1985), *Journal of Finance*; Bailey, Borwein, López de Prado y Zhu, «The Probability of Backtest Overfitting»; Adams y MacKay (2007), BOCPD; Moody y Saffell (2001).
 - Repositorios: metadatos con `gh api repos/<repo>` y `gh search repos` el 2026-11-03 (§2.2).
