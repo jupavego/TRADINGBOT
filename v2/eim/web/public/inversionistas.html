@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EIM · Sistema documental para inversionistas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Exo+2:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Paleta tomada de la interfaz del EIM (v2/eim/web/src/cyber.css) */
+  :root {
+    --bg:#040a13; --panel:#08131f; --grid:#0c1f30; --line:#173750;
+    --text:#d9f4ff; --muted:#6d8fa3;
+    --cyan:#22e1ff; --up:#12e58f; --down:#ff3d5f; --warn:#ffb547; --neutral:#8b98a6;
+    --f-d:"Orbitron","Rajdhani",system-ui,sans-serif; --f-b:"Exo 2",system-ui,"Segoe UI",sans-serif; --f-n:"JetBrains Mono",ui-monospace,monospace;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; color:var(--text); font:15px/1.55 var(--f-b);
+    background:var(--bg) radial-gradient(circle at 80% -10%, rgba(34,225,255,.12), transparent 45%);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:40px 40px; background-attachment:fixed; }
+  header, section { max-width:1120px; margin:0 auto; padding:28px 16px; }
+  h1,h2,h3 { font-family:var(--f-d); margin:0; }
+  h1 { font-size:30px; letter-spacing:.06em; }
+  h2 { font-size:20px; color:var(--cyan); letter-spacing:.08em; margin-bottom:4px; }
+  h3 { font-size:12px; color:var(--warn); letter-spacing:.14em; text-transform:uppercase; margin:22px 0 8px; }
+  .sub { color:var(--muted); margin:0 0 14px; }
+  .num { font-family:var(--f-n); }
+  nav { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  nav a { padding:6px 14px; border:1px solid var(--line); background:var(--panel); color:var(--text); text-decoration:none; font:600 12px var(--f-d); letter-spacing:.06em; border-radius:6px; }
+  nav a:hover { border-color:var(--cyan); color:var(--cyan); }
+  .hero { display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+  .hero svg { width:120px; height:120px; flex:none; }
+  .warn { border:1px solid var(--warn); background:rgba(255,181,71,.06); border-radius:6px; padding:10px 14px; font-size:13px; color:var(--muted); margin-top:16px; }
+  .warn b { color:var(--warn); }
+  .panel { background:rgba(8,19,31,.82); border:1px solid var(--line); border-radius:6px; padding:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:10px; }
+  .box { background:rgba(8,19,31,.82); border:1px solid var(--line); border-radius:6px; padding:12px; font-size:13px; position:relative; }
+  .box h4 { margin:6px 0 4px; font:600 12px var(--f-d); letter-spacing:.08em; color:var(--cyan); text-transform:uppercase; }
+  .box ul { margin:0; padding-left:16px; color:var(--muted); }
+  .box.hl { border-color:var(--cyan); box-shadow:0 0 18px rgba(34,225,255,.15) inset; }
+  .ic { width:26px; height:26px; fill:none; stroke:var(--cyan); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .ic.up { stroke:var(--up); } .ic.down { stroke:var(--down); } .ic.warn { stroke:var(--warn); }
+  .n { position:absolute; top:8px; right:10px; font:600 11px var(--f-n); color:var(--muted); }
+  .var { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:8px; }
+  .var div { border:1px dashed var(--line); border-radius:6px; padding:8px 10px; font-size:12px; color:var(--muted); }
+  .var b { display:block; color:var(--text); font:600 12px var(--f-d); letter-spacing:.04em; }
+  svg.diag { width:100%; height:auto; display:block; }
+  svg text { font-family:var(--f-b); fill:var(--text); }
+  svg .t-d { font-family:var(--f-d); letter-spacing:.06em; }
+  svg .t-m { fill:var(--muted); }
+  /* canvas */
+  .bmc { display:grid; grid-template-columns:repeat(10,1fr); gap:8px; }
+  .a1{grid-column:1/3;grid-row:1/3} .a2{grid-column:3/5;grid-row:1} .a6{grid-column:3/5;grid-row:2}
+  .a3{grid-column:5/7;grid-row:1/3} .a4{grid-column:7/9;grid-row:1} .a7{grid-column:7/9;grid-row:2}
+  .a5{grid-column:9/11;grid-row:1/3} .a8{grid-column:1/6;grid-row:3} .a9{grid-column:6/11;grid-row:3}
+  .lane { display:grid; grid-template-columns:150px 1fr; gap:8px; margin-bottom:8px; }
+  .lane > b { border:1px solid var(--cyan); color:var(--cyan); border-radius:6px; padding:10px; font:600 11px var(--f-d); letter-spacing:.06em; display:flex; align-items:center; gap:8px; background:rgba(34,225,255,.06); }
+  .items { display:flex; flex-wrap:wrap; gap:8px; }
+  .items span { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:13px; flex:1 1 120px; }
+  .dash { border-top:2px dashed var(--cyan); opacity:.6; text-align:center; font:11px var(--f-n); color:var(--cyan); margin:4px 0 8px; }
+  .op { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .op .big { grid-column:1/4; }
+  @media (max-width:760px) {
+    .bmc { grid-template-columns:1fr; } .bmc .box { grid-column:auto !important; grid-row:auto !important; }
+    .lane { grid-template-columns:1fr; } .op { grid-template-columns:1fr; } .op .big { grid-column:auto; }
+    h1 { font-size:22px; }
+  }
+</style>
+</head>
+<body>
+<!-- Símbolos reutilizables -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-data" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+    <symbol id="i-brain" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="12" cy="12" r="2.5"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6l3.2 4.5M7 18l3.2-4.5M14 10.5L17.2 7M14 13.5l3.2 3.5"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5L16 9.5"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 20h18M5 16l4-5 4 3 6-8"/><path d="M15 6h4v4"/></symbol>
+    <symbol id="i-candle" viewBox="0 0 24 24"><path d="M6 3v4M6 17v4M12 6v3M12 19v2M18 2v5M18 15v5"/><rect x="4" y="7" width="4" height="10"/><rect x="10" y="9" width="4" height="10"/><rect x="16" y="7" width="4" height="8"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h14l-4-4M20 16H6l4 4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5C10 8.5 11 8 12 8c1.5 0 2.5.8 2.5 2s-1 1.7-2.5 2-2.5.8-2.5 2 1 2 2.5 2c1 0 2-.5 2.5-1.5M12 6v2M12 16v2"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 5a3.5 3.5 0 010 6.5M18 14c2.2.6 3.5 2.6 3.5 5"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h12l-2 4 2 4H5"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3M14 9l2 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5M3 17.5l9 5 9-5" opacity=".6"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 2h8l5 5v15H6z"/><path d="M14 2v5h5M9 13h7M9 17h7"/></symbol>
+  </defs>
+</svg>
+
+<header>
+  <div class="hero">
+    <!-- Emblema: hexágono con vela y nodos de red -->
+    <svg viewBox="0 0 120 120" aria-label="Emblema EIM">
+      <polygon points="60,6 106,33 106,87 60,114 14,87 14,33" fill="rgba(34,225,255,.06)" stroke="#22e1ff" stroke-width="2"/>
+      <polygon points="60,20 94,40 94,80 60,100 26,80 26,40" fill="none" stroke="#173750" stroke-width="1"/>
+      <path d="M44 42v10M44 74v8M60 36v8M60 80v10M76 32v12M76 66v14" stroke="#6d8fa3" stroke-width="2"/>
+      <rect x="40" y="52" width="8" height="22" fill="#ff3d5f"/>
+      <rect x="56" y="44" width="8" height="36" fill="#12e58f"/>
+      <rect x="72" y="44" width="8" height="22" fill="#12e58f"/>
+      <circle cx="26" cy="40" r="3" fill="#22e1ff"/><circle cx="94" cy="40" r="3" fill="#22e1ff"/><circle cx="60" cy="100" r="3" fill="#ffb547"/>
+    </svg>
+    <div>
+      <h1>EIM · SISTEMA DOCUMENTAL</h1>
+      <p class="sub" style="max-width:640px">Plataforma de ingeniería financiera cuantitativa para Bitcoin Futures con IA. Cinco piezas que comparten una sola fuente de información.</p>
+    </div>
+  </div>
+  <div class="warn"><b>Regla de honestidad:</b> toda cifra de rendimiento dice de dónde viene (backtest, fuera de muestra, simulación o capital real). «[por definir]» es un marcador, no un resultado. Esto es estructura de documentos, no asesoría financiera ni oferta de inversión; la captación de capital y las comisiones requieren revisión legal y regulatoria.</div>
+  <nav><a href="#sistema">SISTEMA</a><a href="#deck">01 DECK</a><a href="#bmc">02 CANVAS</a><a href="#blueprint">03 BLUEPRINT</a><a href="#im">04 MEMORANDUM</a><a href="#onepager">05 ONE-PAGER</a><a href="#roadmap">RUTA</a></nav>
+</header>
+
+<section id="sistema">
+  <h2>ARQUITECTURA DOCUMENTAL</h2>
+  <p class="sub">Un núcleo de verdad (métricas, riesgos, capital) alimenta los cinco documentos para que ninguno contradiga a otro.</p>
+  <div class="panel">
+  <svg class="diag" viewBox="0 0 900 340" role="img" aria-label="Núcleo de datos conectado a cinco documentos">
+    <g stroke="#173750" stroke-width="1.5" fill="none">
+      <path d="M450 170L120 70M450 170L285 70M450 170L450 60M450 170L615 70M450 170L780 70"/>
+    </g>
+    <g stroke="#22e1ff" stroke-width="1.5" fill="none" stroke-dasharray="4 5" opacity=".7">
+      <path d="M450 170L120 70M450 170L285 70M450 170L450 60M450 170L615 70M450 170L780 70"/>
+    </g>
+    <circle cx="450" cy="190" r="78" fill="rgba(34,225,255,.07)" stroke="#22e1ff" stroke-width="2"/>
+    <circle cx="450" cy="190" r="58" fill="none" stroke="#173750"/>
+    <text class="t-d" x="450" y="182" text-anchor="middle" font-size="13" fill="#22e1ff">NÚCLEO</text>
+    <text class="t-m" x="450" y="202" text-anchor="middle" font-size="12">métricas · riesgo · capital</text>
+    <g font-size="12" text-anchor="middle">
+      <g transform="translate(120,40)"><rect x="-70" y="-38" width="140" height="78" rx="6" fill="#08131f" stroke="#173750"/><use href="#i-flag" x="-10" y="-34" width="20" height="20" fill="none" stroke="#ffb547" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="0" fill="#ffb547">01 CAPTACIÓN</text><text y="20" class="t-m">Pitch Deck</text></g>
+      <g transform="translate(285,40)"><rect x="-70" y="-38" width="140" height="78" rx="6" fill="#08131f" stroke="#173750"/><use href="#i-coin" x="-10" y="-34" width="20" height="20" fill="none" stroke="#ffb547" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="0" fill="#ffb547">02 MODELO</text><text y="20" class="t-m">Business Canvas</text></g>
+      <g transform="translate(450,40)"><rect x="-70" y="-38" width="140" height="78" rx="6" fill="#08131f" stroke="#173750"/><use href="#i-layers" x="-10" y="-34" width="20" height="20" fill="none" stroke="#ffb547" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="0" fill="#ffb547">03 INGENIERÍA</text><text y="20" class="t-m">Blueprint</text></g>
+      <g transform="translate(615,40)"><rect x="-70" y="-38" width="140" height="78" rx="6" fill="#08131f" stroke="#173750"/><use href="#i-doc" x="-10" y="-34" width="20" height="20" fill="none" stroke="#ffb547" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="0" fill="#ffb547">04 EVALUACIÓN</text><text y="20" class="t-m">Memorandum</text></g>
+      <g transform="translate(780,40)"><rect x="-70" y="-38" width="140" height="78" rx="6" fill="#08131f" stroke="#173750"/><use href="#i-eye" x="-10" y="-34" width="20" height="20" fill="none" stroke="#ffb547" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="0" fill="#ffb547">05 DIVULGACIÓN</text><text y="20" class="t-m">One-Pager</text></g>
+    </g>
+  </svg>
+  </div>
+
+  <h3>Escalera de evidencia · se repite en todos los documentos</h3>
+  <div class="panel">
+  <svg class="diag" viewBox="0 0 900 270" role="img" aria-label="Escalera de evidencia">
+    <g font-size="12">
+      <rect x="20"  y="190" width="160" height="60"  fill="rgba(255,61,95,.15)"  stroke="#ff3d5f"/>
+      <rect x="190" y="150" width="160" height="100" fill="rgba(255,61,95,.15)"  stroke="#ff3d5f"/>
+      <rect x="360" y="110" width="160" height="140" fill="rgba(255,181,71,.15)" stroke="#ffb547"/>
+      <rect x="530" y="70"  width="160" height="180" fill="rgba(255,181,71,.15)" stroke="#ffb547"/>
+      <rect x="700" y="30"  width="180" height="220" fill="rgba(18,229,143,.15)" stroke="#12e58f"/>
+      <g text-anchor="middle">
+        <use href="#i-data" x="88" y="164" width="24" height="24" fill="none" stroke="#ff3d5f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" x="100" y="215" fill="#ff3d5f">BACKTEST</text><text class="t-m" x="100" y="235">descarta ideas</text>
+        <use href="#i-eye" x="258" y="124" width="24" height="24" fill="none" stroke="#ff3d5f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" x="270" y="185" fill="#ff3d5f">FUERA DE MUESTRA</text><text class="t-m" x="270" y="205">datos no vistos</text>
+        <use href="#i-candle" x="428" y="84" width="24" height="24" fill="none" stroke="#ffb547" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" x="440" y="150" fill="#ffb547">PAPER TRADING</text><text class="t-m" x="440" y="170">mercado en vivo</text>
+        <use href="#i-coin" x="598" y="44" width="24" height="24" fill="none" stroke="#ffb547" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" x="610" y="115" fill="#ffb547">CAPITAL PEQUEÑO</text><text class="t-m" x="610" y="135">costos reales</text>
+        <use href="#i-shield" x="778" y="4" width="24" height="24" fill="none" stroke="#12e58f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" x="790" y="80" fill="#12e58f">CAPITAL AUDITADO</text><text class="t-m" x="790" y="100">único rendimiento</text>
+      </g>
+    </g>
+    <path d="M30 22h640" stroke="#6d8fa3" stroke-dasharray="3 4"/><text class="t-m" x="30" y="16" font-size="11">menos confianza  →  más confianza</text>
+  </svg>
+  </div>
+</section>
+
+<section id="deck">
+  <h2>01 · PITCH DECK</h2>
+  <p class="sub">Doce láminas, un símbolo por mensaje: problema → solución → evidencia → negocio → petición.</p>
+  <div class="grid">
+    <div class="box"><span class="n">01</span><svg class="ic"><use href="#i-flag"/></svg><h4>Portada</h4>EIM, lema, contacto</div>
+    <div class="box"><span class="n">02</span><svg class="ic down"><use href="#i-alert"/></svg><h4>Problema</h4>Trading emocional, bots opacos, riesgo mal medido</div>
+    <div class="box"><span class="n">03</span><svg class="ic"><use href="#i-brain"/></svg><h4>Solución</h4>Ingeniería financiera cuantitativa con IA</div>
+    <div class="box"><span class="n">04</span><svg class="ic warn"><use href="#i-target"/></svg><h4>Tesis / edge</h4>Qué ineficiencia explota y por qué persiste</div>
+    <div class="box"><span class="n">05</span><svg class="ic"><use href="#i-layers"/></svg><h4>Arquitectura</h4>Datos → señales → IA → riesgo → ejecución</div>
+    <div class="box"><span class="n">06</span><svg class="ic up"><use href="#i-chart"/></svg><h4>Evidencia</h4>Cada cifra con su etiqueta de la escalera</div>
+    <div class="box"><span class="n">07</span><svg class="ic up"><use href="#i-shield"/></svg><h4>Riesgo</h4>Límites de exposición, drawdown, kill-switch</div>
+    <div class="box"><span class="n">08</span><svg class="ic warn"><use href="#i-coin"/></svg><h4>Modelo económico</h4>Comisiones y participación [por definir]</div>
+    <div class="box"><span class="n">09</span><svg class="ic"><use href="#i-candle"/></svg><h4>Mercado</h4>Futuros de BTC y capital algorítmico</div>
+    <div class="box"><span class="n">10</span><svg class="ic"><use href="#i-swap"/></svg><h4>Competencia</h4>Fondos cuantitativos, bots minoristas, discrecional</div>
+    <div class="box"><span class="n">11</span><svg class="ic"><use href="#i-users"/></svg><h4>Equipo y gobierno</h4>Roles, controles, auditoría</div>
+    <div class="box"><span class="n">12</span><svg class="ic warn"><use href="#i-bolt"/></svg><h4>Ronda y hitos</h4>Monto y uso de fondos [por definir]</div>
+  </div>
+  <h3>Cinco enfoques narrativos</h3>
+  <div class="var">
+    <div><b>AIRBNB · SIMPLICIDAD</b>Una frase por lámina; el algoritmo en lenguaje llano.</div>
+    <div><b>UBER · DISRUPCIÓN</b>De operar por intuición a operar por sistema controlado.</div>
+    <div><b>BUFFER · MÉTRICAS</b>Sharpe, drawdown, hit rate, siempre etiquetados.</div>
+    <div><b>LINKEDIN · RED</b>Más datos y capital → mejores modelos → mejor ejecución.</div>
+    <div><b>FRONT · MADUREZ</b>Producto, hitos, diferenciación y expansión.</div>
+  </div>
+</section>
+
+<section id="bmc">
+  <h2>02 · BUSINESS MODEL CANVAS</h2>
+  <p class="sub">Cómo EIM crea, entrega y captura valor.</p>
+  <div class="bmc">
+    <div class="box a1"><svg class="ic"><use href="#i-swap"/></svg><h4>Socios clave</h4><ul><li>Exchanges de futuros</li><li>Proveedores de datos</li><li>Nube e infraestructura</li><li>Custodia, legal, cumplimiento</li></ul></div>
+    <div class="box a2"><svg class="ic"><use href="#i-bolt"/></svg><h4>Actividades</h4><ul><li>Investigación y backtesting</li><li>Entrenar y validar modelos</li><li>Ejecución y monitoreo</li></ul></div>
+    <div class="box a3 hl"><svg class="ic up"><use href="#i-target"/></svg><h4>Propuesta de valor</h4><ul><li>Exposición a Bitcoin Futures con proceso cuantitativo</li><li>Riesgo medido y limitado por diseño</li><li>Reportes que separan backtest de capital real</li></ul></div>
+    <div class="box a4"><svg class="ic"><use href="#i-eye"/></svg><h4>Relación</h4><ul><li>Reportes periódicos</li><li>Tablero de métricas</li><li>Data room</li></ul></div>
+    <div class="box a5"><svg class="ic"><use href="#i-users"/></svg><h4>Segmentos</h4><ul><li>Inversionistas privados</li><li>Family offices</li><li>Socios de capital</li></ul></div>
+    <div class="box a6"><svg class="ic"><use href="#i-key"/></svg><h4>Recursos</h4><ul><li>Código y modelos</li><li>Datos históricos y en vivo</li><li>Infraestructura de ejecución</li><li>Capital</li></ul></div>
+    <div class="box a7"><svg class="ic"><use href="#i-doc"/></svg><h4>Canales</h4><ul><li>Red directa</li><li>One-Pager y Deck</li><li>Data room</li></ul></div>
+    <div class="box a8"><svg class="ic down"><use href="#i-alert"/></svg><h4>Costos</h4><ul><li>Datos e infraestructura</li><li>Comisiones del exchange y deslizamiento</li><li>Legal y cumplimiento · desarrollo</li></ul></div>
+    <div class="box a9"><svg class="ic up"><use href="#i-coin"/></svg><h4>Ingresos</h4><ul><li>Comisión de gestión [por definir]</li><li>Comisión por desempeño [por definir]</li><li>Participación según estructura legal</li></ul></div>
+  </div>
+  <h3>Ciclo de la IA (variante del lienzo)</h3>
+  <div class="panel">
+  <svg class="diag" viewBox="0 0 900 190" role="img" aria-label="Ciclo datos modelos decisiones resultados">
+    <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#22e1ff"/></marker></defs>
+    <g font-size="12" text-anchor="middle">
+      <g transform="translate(90,70)"><rect x="-70" y="-30" width="140" height="60" rx="6" fill="#08131f" stroke="#22e1ff"/><use href="#i-data" x="-64" y="-10" width="20" height="20" fill="none" stroke="#22e1ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="-2" fill="#22e1ff">DATOS</text><text class="t-m" y="16">mercado en vivo</text></g>
+      <g transform="translate(290,70)"><rect x="-70" y="-30" width="140" height="60" rx="6" fill="#08131f" stroke="#22e1ff"/><use href="#i-brain" x="-64" y="-10" width="20" height="20" fill="none" stroke="#22e1ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="-2" fill="#22e1ff">MODELOS</text><text class="t-m" y="16">señales + confianza</text></g>
+      <g transform="translate(490,70)"><rect x="-70" y="-30" width="140" height="60" rx="6" fill="#08131f" stroke="#ffb547"/><use href="#i-target" x="-64" y="-10" width="20" height="20" fill="none" stroke="#ffb547" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="-2" fill="#ffb547">DECISIONES</text><text class="t-m" y="16">pasan por riesgo</text></g>
+      <g transform="translate(690,70)"><rect x="-70" y="-30" width="140" height="60" rx="6" fill="#08131f" stroke="#12e58f"/><use href="#i-chart" x="-64" y="-10" width="20" height="20" fill="none" stroke="#12e58f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="-2" fill="#12e58f">RESULTADOS</text><text class="t-m" y="16">fills y PnL reales</text></g>
+    </g>
+    <g stroke="#22e1ff" stroke-width="1.8" fill="none" marker-end="url(#ar)">
+      <path d="M160 70H218"/><path d="M360 70H418"/><path d="M560 70H618"/>
+    </g>
+    <path d="M690 102V160H90V102" stroke="#12e58f" stroke-width="1.8" fill="none" stroke-dasharray="5 5" marker-end="url(#ar)"/>
+    <text class="t-m" x="390" y="180" font-size="11" text-anchor="middle">retroalimentación: nuevos datos reentrenan y recalibran</text>
+  </svg>
+  </div>
+  <h3>Otras variantes</h3>
+  <div class="var">
+    <div><b>SPOTIFY · DOBLE MERCADO</b>Capital de inversionistas y liquidez del mercado, con EIM en medio.</div>
+    <div><b>SAAS · RECURRENTE</b>Si se licencia la tecnología: suscripción, retención, margen.</div>
+    <div><b>FINTECH · INTERMEDIACIÓN</b>Capital, exchange, comisiones y controles.</div>
+  </div>
+</section>
+
+<section id="blueprint">
+  <h2>03 · TECHNICAL &amp; BUSINESS BLUEPRINT</h2>
+  <p class="sub">Cómo el capital se transforma en una operación cuantitativa controlada.</p>
+  <div class="panel">
+  <svg class="diag" viewBox="0 0 900 250" role="img" aria-label="Flujo de la operación">
+    <defs><marker id="ar2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#22e1ff"/></marker></defs>
+    <g font-size="11" text-anchor="middle">
+      <g transform="translate(60,80)"><circle r="34" fill="#08131f" stroke="#22e1ff" stroke-width="2"/><use href="#i-data" x="-13" y="-13" width="26" height="26" fill="none" stroke="#22e1ff" stroke-width="1.6"/><text class="t-d" y="56" fill="#22e1ff">DATOS</text><text class="t-m" y="72">precios · libro · funding</text></g>
+      <g transform="translate(190,80)"><circle r="34" fill="#08131f" stroke="#22e1ff" stroke-width="2"/><use href="#i-layers" x="-13" y="-13" width="26" height="26" fill="none" stroke="#22e1ff" stroke-width="1.6"/><text class="t-d" y="56" fill="#22e1ff">FEATURES</text><text class="t-m" y="72">régimen de mercado</text></g>
+      <g transform="translate(320,80)"><circle r="34" fill="#08131f" stroke="#22e1ff" stroke-width="2"/><use href="#i-brain" x="-13" y="-13" width="26" height="26" fill="none" stroke="#22e1ff" stroke-width="1.6"/><text class="t-d" y="56" fill="#22e1ff">IA</text><text class="t-m" y="72">señal + confianza</text></g>
+      <g transform="translate(450,80)"><circle r="34" fill="#08131f" stroke="#ffb547" stroke-width="2"/><use href="#i-target" x="-13" y="-13" width="26" height="26" fill="none" stroke="#ffb547" stroke-width="1.6"/><text class="t-d" y="56" fill="#ffb547">ESTRATEGIA</text><text class="t-m" y="72">entrada · salida · tamaño</text></g>
+      <g transform="translate(580,80)"><circle r="34" fill="#08131f" stroke="#12e58f" stroke-width="2"/><use href="#i-shield" x="-13" y="-13" width="26" height="26" fill="none" stroke="#12e58f" stroke-width="1.6"/><text class="t-d" y="56" fill="#12e58f">RIESGO</text><text class="t-m" y="72">veto · kill-switch</text></g>
+      <g transform="translate(710,80)"><circle r="34" fill="#08131f" stroke="#22e1ff" stroke-width="2"/><use href="#i-bolt" x="-13" y="-13" width="26" height="26" fill="none" stroke="#22e1ff" stroke-width="1.6"/><text class="t-d" y="56" fill="#22e1ff">EJECUCIÓN</text><text class="t-m" y="72">órdenes · latencia</text></g>
+      <g transform="translate(840,80)"><circle r="34" fill="#08131f" stroke="#22e1ff" stroke-width="2"/><use href="#i-candle" x="-13" y="-13" width="26" height="26" fill="none" stroke="#22e1ff" stroke-width="1.6"/><text class="t-d" y="56" fill="#22e1ff">EXCHANGE</text><text class="t-m" y="72">fills reales</text></g>
+    </g>
+    <g stroke="#22e1ff" stroke-width="1.8" marker-end="url(#ar2)">
+      <path d="M96 80H152"/><path d="M226 80H282"/><path d="M356 80H412"/><path d="M486 80H542"/><path d="M616 80H672"/><path d="M746 80H802"/>
+    </g>
+    <path d="M840 120V225H60V120" stroke="#12e58f" stroke-width="1.8" fill="none" stroke-dasharray="5 5" marker-end="url(#ar2)"/>
+    <text class="t-m" x="450" y="243" font-size="11" text-anchor="middle">los fills reales y los errores vuelven a los datos</text>
+  </svg>
+  </div>
+
+  <h3>Arquitectura por capas</h3>
+  <div class="lane"><b><svg class="ic"><use href="#i-flag"/></svg>Estrategia y gobierno</b><div class="items"><span>Tesis y política de riesgo</span><span>Comité y aprobaciones</span><span>Auditoría y controles</span></div></div>
+  <div class="lane"><b><svg class="ic"><use href="#i-users"/></svg>Negocio y procesos</b><div class="items"><span>Captación de capital</span><span>Reportes a inversionistas</span><span>Distribución de resultados</span></div></div>
+  <div class="lane"><b><svg class="ic"><use href="#i-brain"/></svg>Aplicaciones</b><div class="items"><span>Motor de señales</span><span>Gestor de portafolio y riesgo</span><span>Motor de ejecución</span><span>Panel de monitoreo</span></div></div>
+  <div class="lane"><b><svg class="ic"><use href="#i-data"/></svg>Datos</b><div class="items"><span>Histórico de mercado</span><span>Registro de órdenes y fills</span><span>Versiones de modelos</span></div></div>
+  <div class="lane"><b><svg class="ic"><use href="#i-key"/></svg>Infraestructura</b><div class="items"><span>Servidores y redundancia</span><span>APIs del exchange</span><span>Gestión de llaves</span><span>Alertas 24/7</span></div></div>
+
+  <h3>Service blueprint · lo visible y lo que ocurre detrás</h3>
+  <div class="lane"><b><svg class="ic"><use href="#i-users"/></svg>Inversionista</b><div class="items"><span>Aporta capital</span><span>Recibe reportes</span><span>Consulta métricas</span><span>Retira o reinvierte</span></div></div>
+  <div class="dash">línea de interacción</div>
+  <div class="lane"><b><svg class="ic"><use href="#i-eye"/></svg>Frente visible</b><div class="items"><span>Tablero</span><span>Informe mensual</span><span>Atención</span></div></div>
+  <div class="dash">línea de visibilidad</div>
+  <div class="lane"><b><svg class="ic"><use href="#i-bolt"/></svg>Operación interna</b><div class="items"><span>Conciliación</span><span>Monitoreo de riesgo</span><span>Revisión de modelos</span></div></div>
+  <div class="dash">línea de soporte</div>
+  <div class="lane"><b><svg class="ic"><use href="#i-data"/></svg>Sistemas</b><div class="items"><span>Motor de trading</span><span>Base de datos</span><span>Exchange</span></div></div>
+</section>
+
+<section id="im">
+  <h2>04 · INVESTMENT MEMORANDUM</h2>
+  <p class="sub">Cinco memorandos en un documento, más el mapa de riesgos que no puede faltar.</p>
+  <div class="grid">
+    <div class="box hl"><svg class="ic"><use href="#i-doc"/></svg><h4>Ejecutivo</h4><ul><li>Tesis de inversión</li><li>Oportunidad y equipo</li><li>Condiciones de participación</li></ul></div>
+    <div class="box hl"><svg class="ic up"><use href="#i-chart"/></svg><h4>Financiero</h4><ul><li>Escenarios base, adverso y extremo</li><li>Costos, márgenes, flujo de caja</li><li>Capital requerido y retorno potencial</li></ul></div>
+    <div class="box hl"><svg class="ic"><use href="#i-brain"/></svg><h4>Tesis tecnológica</h4><ul><li>Por qué IA + cuantitativo aquí</li><li>Ventajas y límites</li><li>Riesgo de sobreajuste</li></ul></div>
+    <div class="box hl"><svg class="ic warn"><use href="#i-shield"/></svg><h4>Debida diligencia</h4><ul><li>Estructura jurídica y regulatoria</li><li>Propiedad intelectual</li><li>Custodia, gobierno y controles</li></ul></div>
+    <div class="box hl"><svg class="ic warn"><use href="#i-coin"/></svg><h4>Asignación de capital</h4><ul><li>Cuánto y para qué</li><li>Hitos financiados</li><li>Escenarios de crecimiento</li></ul></div>
+  </div>
+  <h3>Mapa de riesgos</h3>
+  <div class="grid">
+    <div class="box"><svg class="ic down"><use href="#i-candle"/></svg><h4>Mercado</h4>Volatilidad, liquidaciones, cambio de régimen</div>
+    <div class="box"><svg class="ic down"><use href="#i-brain"/></svg><h4>Modelo</h4>Sobreajuste, deterioro del edge, datos sesgados</div>
+    <div class="box"><svg class="ic down"><use href="#i-bolt"/></svg><h4>Operativo</h4>Fallas de infraestructura, API, latencia, llaves</div>
+    <div class="box"><svg class="ic down"><use href="#i-swap"/></svg><h4>Contraparte</h4>Exchange, custodia, insolvencia</div>
+    <div class="box"><svg class="ic down"><use href="#i-doc"/></svg><h4>Regulatorio</h4>Captación, licencias, jurisdicción</div>
+  </div>
+</section>
+
+<section id="onepager">
+  <h2>05 · INVESTOR ONE-PAGER</h2>
+  <p class="sub">La propuesta completa en una página.</p>
+
+  <div class="panel" style="margin-bottom:12px">
+  <svg class="diag" viewBox="0 0 900 170" role="img" aria-label="Recorrido del capital">
+    <defs><marker id="ar3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#22e1ff"/></marker></defs>
+    <g font-size="11" text-anchor="middle">
+      <g transform="translate(75,65)"><rect x="-44" y="-44" width="88" height="88" rx="14" fill="#08131f" stroke="#22e1ff" stroke-width="2"/><use href="#i-users" x="-16" y="-18" width="32" height="32" fill="none" stroke="#22e1ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="62" fill="#22e1ff">INVERSIONISTA</text><text class="t-m" y="78">aporta</text></g>
+      <g transform="translate(225,65)"><rect x="-44" y="-44" width="88" height="88" rx="14" fill="#08131f" stroke="#ffb547" stroke-width="2"/><use href="#i-coin" x="-16" y="-18" width="32" height="32" fill="none" stroke="#ffb547" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="62" fill="#ffb547">CAPITAL</text><text class="t-m" y="78">segregado</text></g>
+      <g transform="translate(375,65)"><rect x="-44" y="-44" width="88" height="88" rx="14" fill="#08131f" stroke="#22e1ff" stroke-width="2"/><use href="#i-layers" x="-16" y="-18" width="32" height="32" fill="none" stroke="#22e1ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="62" fill="#22e1ff">EIM</text><text class="t-m" y="78">señal · riesgo</text></g>
+      <g transform="translate(525,65)"><rect x="-44" y="-44" width="88" height="88" rx="14" fill="#08131f" stroke="#22e1ff" stroke-width="2"/><use href="#i-candle" x="-16" y="-18" width="32" height="32" fill="none" stroke="#22e1ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="62" fill="#22e1ff">EXCHANGE</text><text class="t-m" y="78">futuros BTC</text></g>
+      <g transform="translate(675,65)"><rect x="-44" y="-44" width="88" height="88" rx="14" fill="#08131f" stroke="#12e58f" stroke-width="2"/><use href="#i-chart" x="-16" y="-18" width="32" height="32" fill="none" stroke="#12e58f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="62" fill="#12e58f">RESULTADO</text><text class="t-m" y="78">PnL real</text></g>
+      <g transform="translate(825,65)"><rect x="-44" y="-44" width="88" height="88" rx="14" fill="#08131f" stroke="#12e58f" stroke-width="2"/><use href="#i-doc" x="-16" y="-18" width="32" height="32" fill="none" stroke="#12e58f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="62" fill="#12e58f">REPORTE</text><text class="t-m" y="78">con evidencia</text></g>
+    </g>
+    <g stroke="#22e1ff" stroke-width="1.8" marker-end="url(#ar3)"><path d="M123 65H177"/><path d="M273 65H327"/><path d="M423 65H477"/><path d="M573 65H627"/><path d="M723 65H777"/></g>
+  </svg>
+  </div>
+  <div class="op">
+    <div class="box hl big"><svg class="ic"><use href="#i-layers"/></svg><h4>EIM</h4><b style="font:600 18px var(--f-d);letter-spacing:.04em">Ingeniería financiera cuantitativa para Bitcoin Futures</b><div style="color:var(--muted);margin-top:4px">Capital convertido en operación sistemática, con riesgo limitado por diseño y resultados reportados con su nivel de evidencia.</div></div>
+    <div class="box"><svg class="ic up"><use href="#i-candle"/></svg><h4>Oportunidad</h4><ul><li>Mercado 24/7 y muy líquido</li><li>Ineficiencias explotables con datos e IA</li></ul></div>
+    <div class="box"><svg class="ic"><use href="#i-layers"/></svg><h4>Cómo funciona</h4><ul><li>Datos → señales → riesgo → ejecución</li><li>Monitoreo permanente</li></ul></div>
+    <div class="box"><svg class="ic warn"><use href="#i-chart"/></svg><h4>Evidencia</h4><ul><li>Backtest: <span class="num">[por definir]</span></li><li>Fuera de muestra: <span class="num">[por definir]</span></li><li>Capital real: <span class="num">[por definir]</span></li></ul></div>
+    <div class="box"><svg class="ic up"><use href="#i-shield"/></svg><h4>Riesgo</h4><ul><li>Drawdown máximo: <span class="num">[por definir]</span></li><li>Límites y kill-switch</li></ul></div>
+    <div class="box"><svg class="ic warn"><use href="#i-coin"/></svg><h4>Inversión requerida</h4><ul><li>Monto y uso de fondos <span class="num">[por definir]</span></li></ul></div>
+    <div class="box"><svg class="ic"><use href="#i-doc"/></svg><h4>Contacto</h4><ul><li>jpvelasquez18@gmail.com</li></ul></div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <h2>HOJA DE RUTA</h2>
+  <p class="sub">Cada fase se supera con evidencia, no con fechas.</p>
+  <div class="panel">
+  <svg class="diag" viewBox="0 0 900 150" role="img" aria-label="Fases de la compañía">
+    <path d="M40 60H860" stroke="#173750" stroke-width="3"/>
+    <path d="M40 60H300" stroke="#22e1ff" stroke-width="3"/>
+    <g font-size="12" text-anchor="middle">
+      <g transform="translate(90,60)"><circle r="14" fill="#040a13" stroke="#22e1ff" stroke-width="2"/><use href="#i-layers" x="-9" y="-9" width="18" height="18" fill="none" stroke="#22e1ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="42" fill="#22e1ff">CONSTRUCCIÓN</text><text class="t-m" y="60">datos · motor · backtest</text></g>
+      <g transform="translate(270,60)"><circle r="14" fill="#040a13" stroke="#22e1ff" stroke-width="2"/><use href="#i-eye" x="-9" y="-9" width="18" height="18" fill="none" stroke="#22e1ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="42" fill="#22e1ff">VALIDACIÓN</text><text class="t-m" y="60">fuera de muestra · paper</text></g>
+      <g transform="translate(450,60)"><circle r="14" fill="#040a13" stroke="#ffb547" stroke-width="2"/><use href="#i-coin" x="-9" y="-9" width="18" height="18" fill="none" stroke="#ffb547" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="42" fill="#ffb547">CAPITAL REAL</text><text class="t-m" y="60">pequeño, límites estrictos</text></g>
+      <g transform="translate(630,60)"><circle r="14" fill="#040a13" stroke="#6d8fa3" stroke-width="2"/><use href="#i-users" x="-9" y="-9" width="18" height="18" fill="none" stroke="#6d8fa3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="42" fill="#d9f4ff">LANZAMIENTO</text><text class="t-m" y="60">inversionistas · auditoría</text></g>
+      <g transform="translate(810,60)"><circle r="14" fill="#040a13" stroke="#6d8fa3" stroke-width="2"/><use href="#i-bolt" x="-9" y="-9" width="18" height="18" fill="none" stroke="#6d8fa3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text class="t-d" y="42" fill="#d9f4ff">ESCALA</text><text class="t-m" y="60">más capital y estrategias</text></g>
+    </g>
+  </svg>
+  </div>
+</section>
+</body>
+</html>
