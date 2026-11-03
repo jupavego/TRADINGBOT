@@ -42,6 +42,7 @@ from typing import NamedTuple
 import numpy as np
 
 from eim.paper.engine import Outcome, Path, _funding, _limit_fill, _slip, _stop_exit, _with_r
+from eim.paper.excursion import Extremes
 from eim.paper.ideas import Idea
 from eim.paper.ladder_floor import Guard, adopt, arm, early, finish, settle_close
 from eim.paper.ladder_math import (  # noqa: F401  (reexportadas: tests y `ladder_book`)
@@ -99,6 +100,7 @@ class _Run:
         self.stop, self.level, self.max_float, self.hist, self.c_stop = stop, 0, -math.inf, [], c
         self.be, self.be_armed, self.source = be, False, "inicial"   # be = (disparo, SL del BE+)
         self.floor, self.floor_due, self.recovered = None, False, None  # suelo guardado (T110)
+        self.ext, self.superseded = Extremes(s), None     # MFE/MAE vivos; suelo superado (T130)
 
     @property
     def protected(self) -> bool:
@@ -152,6 +154,7 @@ def _sub_bars(run: _Run, fine: Path, path: Path, ep: ExecParams, fill_t: int, t0
             gap = (o <= run.stop) if s > 0 else (o >= run.stop)
             return ("SLD" if run.protected else "SL"), (o if gap else run.stop), end
         fund = _funding(path, s, fill_t, end, ep)[0] + reserve
+        run.ext.see(h if s > 0 else lo, lo if s > 0 else h)
         run.apply(run.peek(h if s > 0 else lo, fund, cj), end, cj)
     return None
 
@@ -237,7 +240,7 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
                     (lo <= got.stop) if s > 0 else (h >= got.stop)):
                 fine_bars += 1                                # ambigua: se resuelve con 1 min
                 hit = _sub_bars(run, fine, path, ep, fill_t, t0, path.step, cj, reserve)
-                if hit and not (hold := early(run, hit[2])):
+                if hit and not (hold := early(run, hit[2], fine_end=end)):
                     reason, ex, ex_t = hit
                     jx = j
                     break
@@ -247,6 +250,7 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
                 reason, ex, jx = ("SLD" if run.protected else "SL"), _stop_exit(
                     path, s, j, run.stop, k), j
                 break
+            run.ext.see(fav, lo if s > 0 else h)
             run.apply(got, end, cj)
     if reason:
         reason, ex, held = settle_close(run, reason, ex, float(path.l[jx]), float(path.h[jx]))
@@ -255,9 +259,7 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
     end_i = jx if jx is not None else last_ok
     if not reason:
         hold = hold or finish(run, int(path.t[end_i]) + path.step)
-    hi, lo = float(path.h[k:end_i + 1].max()), float(path.l[k:end_i + 1].min())
-    mfe = max(0.0, ((hi if s > 0 else lo) - fill) * s) / risk
-    mae = max(0.0, (fill - (lo if s > 0 else hi)) * s) / risk
+    mfe, mae = run.ext.r(fill, risk, ex if reason else None)     # desde el llenado (T130)
     info = {"qty": qty, "level": run.level,
             "nominal_usd": nominal(run.level, first, step_usd),
             "first_usd": first, "step_usd": step_usd,
@@ -269,7 +271,8 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
             "be": None if be is None else {"trigger": be[0], "lock": be[1],
                                            "armed": run.be_armed},
             "last_bar_t": int(path.t[end_i]) + path.step, "fine_resolved_bars": fine_bars,
-            "recovered": run.recovered, "inconsistent": hold or None}
+            "recovered": run.recovered, "inconsistent": hold or None,
+            "floor_superseded": run.superseded}
     if reason:
         exit_t = ex_t if ex_t is not None else int(path.t[jx]) + path.step
         fund, assumed = _funding(path, s, fill_t, exit_t, ep)

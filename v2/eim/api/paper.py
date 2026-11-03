@@ -17,6 +17,7 @@ from eim.api.execution import confirm
 from eim.data.timeframes import SYMBOLS
 from eim.paper import ledger, protection, snapshot
 from eim.paper.desk import PaperDesk, View
+from eim.paper.exit_quality import desk_exit_quality
 from eim.paper.live_feed import live_feed
 
 CATS = ("orden", "llenada", "tp", "be", "sl", "tiempo", "liquidacion", "salvaguarda", "cuenta",
@@ -92,6 +93,15 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
                 "shown_from": shown[-1]["exit_t"] if shown else None,
                 "shown_to": shown[0]["exit_t"] if shown else None,
                 "snapshot": (v.summary.get("snapshot") or {}).get("id"), "trades": shown}
+
+    @router.get("/exits")
+    def exits(symbol: str = "BTCUSDT") -> dict:
+        """Calidad de la salida por perfil y A/B en vivo frente a la sombra (T130)."""
+        _check(symbol)
+        v = _view(desk, symbol)
+        return {"mode": "SIMULADO", "symbol": symbol,
+                "snapshot": (v.summary.get("snapshot") or {}).get("id"),
+                "view": desk.view_state(v), "profiles": desk_exit_quality(v.books, v.outcomes)}
 
     @router.get("/snapshot/{sid}")
     def snapshot_get(sid: str) -> dict:

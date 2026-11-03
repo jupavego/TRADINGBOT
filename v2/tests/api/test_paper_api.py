@@ -103,6 +103,15 @@ def test_trades_journal_ideas(client):
     assert i["ideas"] and all(x["strategy"] == "sugerencia_1" for x in i["ideas"])
 
 
+def test_exits_route_reports_exit_quality_per_profile(client):
+    """T130: calidad de la salida y A/B con la sombra, solo lectura y con su modo."""
+    j = _fresh(client, "/v2/paper/exits?symbol=BTCUSDT")
+    assert j["mode"] == "SIMULADO" and set(j["profiles"]) >= {"moderado", "agresivo"}
+    q = j["profiles"]["moderado"]
+    assert {"breakeven_win_rate", "cost_mean_r", "gross_expectancy_r", "vs_shadow"} <= set(q)
+    assert client.get("/v2/paper/exits?symbol=XRPUSDT").status_code == 400
+
+
 def test_backtest_requires_confirm_and_runs(client):
     assert client.post("/v2/paper/backtest?symbol=BTCUSDT&days=0.05").status_code == 403
     h = {"X-EIM-Confirm": "paper-backtest"}

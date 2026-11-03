@@ -25,6 +25,7 @@ import numpy as np
 
 from eim.core import Candle
 from eim.data.timeframes import tf_ms
+from eim.paper.excursion import shadow_excursion
 from eim.paper.ideas import Idea
 from eim.paper.params import ExecParams
 
@@ -243,11 +244,9 @@ def simulate(idea: Idea, path: Path, p: ExecParams) -> Outcome:
         if not reason and kh < len(path.t):
             reason, ex, jx = "TIEMPO", float(path.o[kh]), kh
 
-    last = jx if jx is not None else len(path.t) - 1
-    hi, lo = float(path.h[k:last + 1].max()), float(path.l[k:last + 1].min())
-    fav_px, adv_px = (min(hi, idea.tp), max(lo, idea.sl)) if s > 0 else (max(lo, idea.tp),
-                                                                          min(hi, idea.sl))
-    mfe, mae = max(0.0, (fav_px - fill) * s) / risk, max(0.0, (fill - adv_px) * s) / risk
+    # MFE/MAE desde el llenado y solo con la posición viva (T130, `excursion.py`)
+    mfe, mae = shadow_excursion(path, s, idea.kind, k, start, jx if reason else None, reason,
+                                fill, risk, ex)
     if reason:
         # SL/TP se resuelven dentro de la vela (se sabe a su cierre); tiempo, a la apertura
         exit_t = int(path.t[jx]) + (0 if reason == "TIEMPO" else path.step)

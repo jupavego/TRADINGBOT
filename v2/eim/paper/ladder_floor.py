@@ -9,7 +9,8 @@ nivel protegido es siempre el mayor de los dos y nunca baja en silencio (`recove
 Una operación queda «estado inconsistente» (`hold`) cuando lo guardado no deja reconstruirla con
 seguridad: la instantánea falta o está corrupta (lo decide `protection.load` antes de simular), no
 cuadra con la operación recalculada (lado, entrada o cantidad), el recálculo la cerraría ANTES del
-instante en que la instantánea la vio viva, o las velas guardadas no llegan hasta ese instante.
+instante en que la instantánea la vio viva (salvo dentro de la vela que fijó el suelo y resuelto con
+velas de 1 min, T130: ver `early`), o las velas guardadas no llegan hasta ese instante.
 Mientras dure, la simulación no la cierra (sin cierre inventado) y el SL no se mueve por lo
 guardado; la resuelve una persona (`python -m eim.paper proteccion reconciliar`).
 
@@ -96,11 +97,22 @@ def adopt(run, t: int) -> None:
                      "max_float": run.max_float, "source": "recuperado"})
 
 
-def early(run, exit_t: int) -> str:
+def early(run, exit_t: int, fine_end: int | None = None) -> str:
     """Motivo si el recálculo cerraría la operación antes del instante en que lo guardado la vio
-    viva (los datos ya no permiten reconstruirla: no se inventa ese cierre)."""
+    viva (los datos ya no permiten reconstruirla: no se inventa ese cierre).
+
+    Excepción (T130): un cierre resuelto con velas de 1 min DENTRO de la vela de 15 m cuyo cierre
+    fijó el suelo (`fine_end == Floor.t`) no es inconsistente. Ese suelo salió de la regla
+    conservadora, cuando las velas finas de esa vela aún no estaban (caso del 2026-10-31), y su
+    orden real lo supera. El cierre se acepta y se anota en `run.superseded`; si bajara el stop
+    guardado, la salvaguarda del diario (`protection_sync._never_lower`) la retiene igual."""
     f = run.floor
     if not run.floor_due or exit_t > f.t:
+        return ""
+    if fine_end is not None and fine_end == f.t:
+        run.floor_due = False
+        run.superseded = {"saved_t": f.t, "saved_stop": f.stop, "saved_level": f.level,
+                          "seq": f.seq, "exit_t": exit_t}
         return ""
     return (f"el recálculo la cerraría a las {_iso(exit_t)} UTC, antes del estado guardado "
             f"({_iso(f.t)} UTC, SL {f.stop:g}) que la vio viva")

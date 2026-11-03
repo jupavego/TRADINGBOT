@@ -104,7 +104,9 @@ en T48b), desde la vela siguiente el BE+ propone un stop en entrada + 0,1 R + co
 stop vigente es el **mejor** entre ese y el del escalón, y solo se mueve si sube. Con los umbrales
 reales (0,075–0,100 R) el escalón ya protege ≈ 0,8 R cuando el BE+ se dispara, así que **en la
 práctica no interviene** (`test_with_the_real_steps_be_plus_never_beats_the_ladder`); sí manda con
-un primer escalón lejano (`test_be_plus_coexists_and_the_best_stop_wins`).
+un primer escalón lejano (`test_be_plus_coexists_and_the_best_stop_wins`). Confirmado en el libro
+vivo (T129): 0 de 245 cierres dinámicos vinieron del BE+. **Queda documentado como inerte y no se
+retira** (◆ de T129): quitarlo cambiaría la huella de versión de T49 sin cambiar ningún resultado.
 
 **Entradas sin cambios.** El veto «una posición por vela y lado» (`one_per_bar`) y el freno propio
 de la escalera (`brake`) son del control; los tres perfiles conservan sus mínimos de abiertas, su
@@ -375,3 +377,31 @@ volver a obtener recalculando. Desde T118:
   como `tope_direccion` ni como `freno_drawdown`; la cantidad bajo el mínimo negociable
   (`cantidad_minima`) se separa de la geometría inválida (`geometria`). Ningún aprendizaje lee el
   motivo de un rechazo (los pesos y `floor_r` solo ven operaciones cerradas).
+
+## 14. Medición honesta de las salidas (T130, 2026-11-03)
+
+- **MFE/MAE desde el llenado** (`paper/excursion.py`), con la misma definición en la sombra y en la
+  escalera. Solo cuenta lo que la posición recorrió viva:
+  - en una entrada límite, la vela del llenado no cuenta (antes inflaba el MFE con precios
+    anteriores al llenado: 0,49 R con un neto máximo de −51 USDT);
+  - en la vela de salida por stop no cuenta el extremo favorable (el motor supone que el stop llegó
+    primero), y una salida por tiempo no cuenta la vela en cuya apertura sale;
+  - en la escalera, el MFE es el extremo que el propio modelo recorrió, minuto a minuto si hubo
+    velas de 1 min.
+
+  Solo cambia lo que se informa (causas de pérdida, medias de MFE/MAE): ninguna decisión de
+  trading lee el MFE.
+- **Suelo superado por el orden real** (`ladder_floor.early`): un cierre resuelto con velas de
+  1 min dentro de la vela de 15 m cuyo cierre fijó el suelo ya no queda «inconsistente», como
+  ocurrió el 2026-10-31. Se anota en `ladder.floor_superseded`. Si bajara el stop guardado, la
+  salvaguarda del diario lo sigue reteniendo.
+- **Calidad de la salida y A/B en vivo** (`paper/exit_quality.py`, `GET /v2/paper/exits`,
+  `python -m eim.paper salidas`). Por perfil da:
+  - ganancia y pérdida media en R;
+  - acierto real y acierto de equilibrio;
+  - costo medio en R y E[R] antes de costos;
+  - parte de lo ganado en bruto que se llevan los costos;
+  - emparejado con la sombra (la misma idea con la salida A), separado según la sombra llegara al
+    TP o perdiera por SL.
+
+  Varios perfiles comparten ideas: sus operaciones no son independientes entre sí.
