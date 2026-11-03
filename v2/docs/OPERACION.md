@@ -270,8 +270,7 @@ segundo equipo antes de dar T61 por cerrada (estado en `PLAN/notas/T117_primera_
 ### Biblioteca de trading (T52)
 Dependencias opcionales: `python -m pip install -e ".[library]"` y, para PDF escaneados, Tesseract (`winget install UB-Mannheim.TesseractOCR`, pide permisos de administrador; idioma `eng` incluido).
 ```bash
-set EIM_LIBRARY_DIR=C:
-uta\Books        # PowerShell: $env:EIM_LIBRARY_DIR = '...'
+set EIM_LIBRARY_DIR=C:\ruta\a\Books        # PowerShell: $env:EIM_LIBRARY_DIR = '...'
 python -m eim.library ingest               # cataloga; reutiliza lo ya extraído si la huella no cambió (OCR ~3 s/pág., con caché)
 python -m eim.library list                 # catálogo: páginas con texto, OCR, motivo si falta texto
 python -m eim.library search "hanging man confirmation" --book nison_candles
