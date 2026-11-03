@@ -1,6 +1,6 @@
 # Estado del proyecto (punto de entrada al cambiar de equipo)
 
-**Actualizado:** 2026-11-03 05:15 UTC, desde `juanpablo-cpu` (fusión de T62, medido el 2026-10-31; antes: T126 fase 1 desplegada el 2026-11-01 21:34 UTC). Actualízalo
+**Actualizado:** 2026-11-03 06:30 UTC, desde `juanpablo-cpu` (T129: diagnóstico del stop dinámico y fase 22 planificada; antes, 05:15 UTC: fusión de T62). Actualízalo
 al cerrar una sesión que cambie algo de esta página; el detalle por tarea sigue en `STATUS.md`,
 lo aplazado en `BACKLOG.md` y el registro de sesiones en `BITACORA.md`. Para comprobar un equipo:
 `python -m eim.continuity check` (desde `v2/`; procedimientos en `v2/docs/CONTINUIDAD.md`).
@@ -30,8 +30,9 @@ configuración de riesgo; la puerta de edge (T27) **NO PASA**.
 | T62 Motores locales | Auditoría hecha y lista **aprobada** (2026-10-31, `PLAN/notas/T62_auditoria.md`); instalada en `juanpablo-cpu` (`C:\eim-localai`) y banco medido completo allí (`v2/reports/localai/bench_juanpablo-cpu.md`: `qwen3:4b-instruct` + RapidOCR + faster-whisper small entran; GPU, Pydantic AI y el VLM 2B no) | Correr el banco en la portátil (equipo de referencia, `docs/OPERACION.md` §7); ◆ postura ante YouTube (`v2/docs/SEGURIDAD.md`); muestras de audio reales; después cerrar T62 |
 | T125 Continuidad entre equipos | Hecha (PR #171); `juanpablo-cpu` con copia externa diaria propia desde el 2026-10-31 | Huecos encontrados al usarla en BACKLOG T125 (1)–(9) |
 | T126 Director de recursos | Fase 1 **desplegada** el 2026-11-01 21:34 UTC (PR #175): recolectores en AboveNormal, servicios en BelowNormal, mantenimiento en Idle; alertas de latido con su cadencia real; T78 por racha | Tarea «EIM - servicio continuo al encender» registrada por el usuario (S4U, 2 min tras arrancar) y probada una vez con los servicios en marcha: salida 0, no lanzó ni tocó nada. Hecha (☑). Siguiente: T127 (registro de consumo y cola de trabajos pesados) y T128 (consolidación), en la fase 21 de la hoja de ruta |
+| T129 Stop dinámico (solo lectura) | **Hecha** (☑ 2026-11-03): la escalera deja el stop a menos de un incremento del extremo (27–61 USD de BTC, dentro del ruido de 1 min). Ganadoras de +0,11 R frente a perdedoras de −0,96 R (PF 0,35). Informe `PLAN/notas/T129_sl_dinamico.md` | ◆ resueltas (§4); siguiente: T130 → T131 → T132 ‖ T133 → T134 ◆ |
 
-Pendientes destacadas: T120 (recolectores sin «sin datos»), T121 (documentación y variables),
+Pendientes destacadas: fase 22 (T130–T136, gestión dinámica del riesgo de la posición), T120 (recolectores sin «sin datos»), T121 (documentación y variables),
 T123 (colas acotadas), T127–T128 (director de recursos: consumo, cola de trabajos y consolidación; fase 21), T124 (instantáneas de datos), T46, T62–T71 (motores locales y video),
 T79–T86 (HFT), T87–T103 (multiactivo). Orden sugerido en `00_MASTER.md` (fase 20).
 
@@ -77,6 +78,11 @@ T79–T86 (HFT), T87–T103 (multiactivo). Orden sugerido en `00_MASTER.md` (fas
   actual; modo automático solo tras revisar los simulacros; segundo colaborador = `jupavego`.
 - T78: criterio estricto por hora (≥ 99 % de horas completas).
 - Libros de trading: solo uso local, nunca se suben (`17.0 - TRADING\Books`).
+- T129 (2026-11-03, «hacer todo lo recomendado»):
+  - La escalera queda como referencia provisional hasta T134, sin cambiar la salida en vivo; el A/B en vivo sale de la sombra.
+  - Cierres parciales y SL inicial con piso de volatilidad, solo en el banco hasta que T134 los apruebe (el SL nuevo crea versiones en T49).
+  - Agentes solo como selectores discretos validados por `ExitFeatures`; nunca escriben stops; LLM fuera.
+  - Sin dependencias nuevas salvo statsmodels si T133 lo exige, tras T04.
 - T125: la copia completa externa va a la versión `eim-copias` del mismo repo privado; cada
   equipo con identidad propia; el código público nunca lleva datos ni claves.
 

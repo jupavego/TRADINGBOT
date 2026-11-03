@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-03T00:15:35",
+ "generated": "2026-11-03T00:46:39",
  "tasks": [
   {
    "id": "T01",
@@ -1625,6 +1625,103 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 21,
    "goal": "Encargo del usuario (2026-11-01), continuación de T126: quitar la lógica redundante o mal calibrada que encontró la auditoría de T126 y que gasta CPU, RAM o disco sin aportar a los procesos que importan. Con ella dejan de crecer sin control la base de líderes y el ruido de avisos."
+  },
+  {
+   "id": "T129",
+   "title": "Stop dinámico: auditoría, investigación y propuesta (fase 1, solo lectura)",
+   "deps": [
+    "T111"
+   ],
+   "state": "done",
+   "notes": "Encargo del usuario (2026-11-03), sin cambios de código. Informe `PLAN/notas/T129_sl_dinamico.md`. Libro del bróker, 307 cierres: acierto 75,6 %, pero +0,108 R por ganadora frente a −0,964 R por perdedora (PF 0,35; equilibrio en el 90 %). **Causa: el stop del escalón queda a menos de un incremento del extremo** (27–61 USD de BTC, frente a 29 USD de rango mediano en 1 min). Además, costos de 0,12 R/op (59 % del bruto del SLD) y entradas sin ventaja antes de costos (T27/T49/T111). Hallazgos H1–H10: BE+ inerte en modo escalera, MFE inflado en entradas límite, falso positivo de T110 (resuelto a mano el caso del 31-oct). Investigación con fuentes verificadas y repositorios con licencia y actividad reales. Propuesta: motor de gestión de la posición con una sola política por posición. Plan T130–T136 con criterios pre-registrados. ◆ resueltas el 2026-11-03 (§6 del informe: la escalera queda como referencia provisional hasta T134, sin cambios en vivo; cierres parciales y SL con piso solo en el banco; agentes como selectores validados; sin dependencias nuevas) y modelos M6–M8 añadidos (§7).",
+   "effort": "medio",
+   "phase": 22,
+   "goal": "Encargo del usuario (2026-11-03). El bróker simulado gana más operaciones de las que pierde, pero lo ganado no cubre lo perdido. Toca auditar el stop dinámico real (escalera de T105–T110), investigar métodos cuantitativos, repositorios y prácticas institucionales, y proponer una arquitectura y un plan de validación. **Sin modificar código.**"
+  },
+  {
+   "id": "T130",
+   "title": "Medición honesta de las salidas: MFE/MAE, inconsistencias de T110 y costo en R",
+   "deps": [
+    "T129"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 22,
+   "goal": "Antes de comparar salidas (T131–T134), las métricas tienen que medir bien. T129 encontró tres defectos de medición y uno de lógica inerte (H3, H6, H7 de `PLAN/notas/T129_sl_dinamico.md`)."
+  },
+  {
+   "id": "T131",
+   "title": "Banco de salidas emparejado, walk-forward y pre-registro",
+   "deps": [
+    "T130"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 22,
+   "goal": "Un banco reproducible que mida cualquier política de salida sobre **las mismas entradas** y con los mismos costos, sin margen para ajustar después de ver los resultados (§5.3–5.4 de `PLAN/notas/T129_sl_dinamico.md`)."
+  },
+  {
+   "id": "T132",
+   "title": "Salidas candidatas: volatilidad, estructura, híbrida y SL inicial con piso",
+   "deps": [
+    "T131"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 22,
+   "goal": "Implementar como funciones puras las políticas M2, M3 y M5 y la variante S1 de `PLAN/notas/T129_sl_dinamico.md` (§3, §4.1, §4.5), sin conectarlas a los perfiles."
+  },
+  {
+   "id": "T133",
+   "title": "Régimen ex ante: ¿algún rasgo anticipa tendencia o lateral?",
+   "deps": [
+    "T131"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 22,
+   "goal": "T111 mostró que la escalera gana en días laterales y la salida A en días de tendencia, pero la etiqueta de régimen que se conoce al entrar no separa los casos. Una salida adaptativa (M4) solo tiene sentido si algún rasgo conocido al entrar **predice** el tipo de las horas siguientes."
+  },
+  {
+   "id": "T134",
+   "title": "Experimento pre-registrado de salidas y decisión de adopción",
+   "deps": [
+    "T132",
+    "T133"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 22,
+   "goal": "Correr en el banco de T131 las políticas M0–M5 y S1 (y S2/S3 si el usuario las permite) con la rejilla pre-registrada. Informar todo, incluido lo que no funcione, y llevar la decisión al usuario."
+  },
+  {
+   "id": "T135",
+   "title": "Motor de gestión de la posición en el bróker simulado (solo si T134 aprueba)",
+   "deps": [
+    "T134"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "alto",
+   "phase": 22,
+   "goal": "Llevar al bróker simulado la salida que T134 apruebe, como `exit_mode=\"adaptativo\"` junto a `tp` y `ladder`, con la jerarquía de §4.2 de `PLAN/notas/T129_sl_dinamico.md`."
+  },
+  {
+   "id": "T136",
+   "title": "Riesgo por operación con costos y control de drawdown gradual",
+   "deps": [
+    "T134"
+   ],
+   "state": "pending",
+   "notes": "",
+   "effort": "medio",
+   "phase": 22,
+   "goal": "El riesgo por operación de hoy no incluye los costos: cada stop inicial cuesta −1,14 R. El tope de costo admite hasta 0,20 R y el freno de drawdown es todo o nada. Toca medir y, si T134 lo aprueba, aplicar las prácticas S3 de `PLAN/notas/T129_sl_dinamico.md`."
   }
  ]
 };
