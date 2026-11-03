@@ -36,6 +36,12 @@ def iso(t: int) -> str:
     return datetime.fromtimestamp(t / 1000, UTC).isoformat(timespec="minutes")
 
 
+def from_iso(s: str) -> int:
+    """Fecha ISO UTC → ms (acepta la `Z` del pre-registro)."""
+    d = datetime.fromisoformat(s.replace("Z", "+00:00"))
+    return int((d if d.tzinfo else d.replace(tzinfo=UTC)).timestamp() * 1000)
+
+
 def add_months(t: int, n: int) -> int:
     """`t` (ms UTC) más `n` meses naturales, conservando el día (recortado al fin de mes)."""
     d = datetime.fromtimestamp(t / 1000, UTC)
