@@ -81,3 +81,24 @@ sin pasar por él. Lo propio del carril:
   RUNBOOK §15.7). La URL del flujo de usuario de testnet no está publicada en la documentación
   oficial: se confirma con la primera conexión con claves (BACKLOG T83). Claves de testnet sin
   permiso de retiro, como siempre; ninguna clave real.
+
+## Motores de IA locales (T62)
+Auditoría completa en `PLAN/notas/T62_auditoria.md`; aquí solo las reglas que se aplican al instalarlos (T63 las hace cumplir en código).
+- **Solo local y sin nube.** Ollama solo como `ollama.exe serve` (nunca la app de bandeja: se actualiza sola cada hora), en disco local (no en una unidad de red), con `OLLAMA_NO_CLOUD=1` (sin él, `serve` consulta `ollama.com` al arrancar y cada 4 h, firmando con la clave del equipo) y `OLLAMA_HOST=127.0.0.1:11434`. `llama-server` y el servidor de whisper.cpp, si se usan, en 127.0.0.1 con `--offline --no-webui --api-key <aleatoria>` (por defecto traen CORS `*` y web UI sin clave). Ojo: el runner que Ollama lanza por debajo es un `llama-server` en un puerto efímero de 127.0.0.1 **sin clave y con CORS `*`** mientras hay un modelo cargado (medido 2026-10-31); `OLLAMA_KEEP_ALIVE` corto lo acota.
+- **Binarios verificados:** cada descarga en su propio directorio y comprobada con el SHA-256 publicado en la misma release (o el *digest* del activo de GitHub) antes de descomprimir; los instaladores se extraen (7-Zip) en vez de ejecutarse cuando se puede. Estado en `juanpablo-cpu`: `ollama.exe` firmado por Ollama Inc.; `llama-server` de llama.cpp sin firma; Tesseract con firma de la Universität Mannheim que este Windows no valida («UnknownError»): en los tres cuenta el SHA-256.
+- **Pesos solo en formatos sin código:** GGUF (Ollama/llama.cpp), safetensors u ONNX, con revisión o digest fijados en la lista aprobada; nunca `trust_remote_code`, `torch.hub.load` ni checkpoints pickle (`.bin`/`.pt` sin `weights_only`). Nada se descarga en ejecución: los pesos se bajan aparte y se cargan con `local_files_only=True`/`HF_HUB_OFFLINE=1`.
+- **Licencia de los pesos, no de la familia:** solo Apache-2.0, MIT o equivalentes; quedan fuera las de investigación/no comerciales (Qwen RESEARCH, Mistral Research, CC-BY-NC), las de términos propios con política de uso (Gemma Terms, Llama Community License) y la familia LFM.
+- **Sin telemetría:** pyannote (`PYANNOTE_METRICS_ENABLED=0` si algún día se usa), CrewAI y PaddleOCR quedan fuera; `litellm` no se instala nunca (versiones con ladrón de credenciales en 2026-03).
+- **Entorno aparte:** los extras `[video]`/`[localai]` se instalan en un entorno virtual propio en `EIM_LOCALAI_DIR`, no en el de la API; el gate no los exige. `pip-audit` también sobre ese entorno (§5 de `OPERACION.md`).
+- **El contenido es dato:** transcripciones, títulos, texto en pantalla y salidas de un modelo nunca son instrucciones (mismo patrón que T24/T52: bloque delimitado declarado no confiable, validación con esquema, descarte de lo que no tenga cita).
+
+## Videos de YouTube (T62) — propuesta, ◆ pendiente de decisión del usuario
+**Hechos** (auditoría T62, grupo A): los Términos de YouTube prohíben descargar el contenido sin permiso y acceder por medios automatizados; las Developer Policies de la API prohíben guardar copias del audiovisual y separar el audio; la API oficial solo baja subtítulos de videos propios; `youtube-transcript-api` usa un endpoint interno no documentado y sufre bloqueos de IP; el RSS de canal no está documentado (404 en las pruebas).
+
+**Postura propuesta** (el usuario la aprueba, la ajusta o la rechaza; hasta entonces T64/T65 no descargan nada):
+1. **Uso personal, local y sin redistribuir.** Nada de video, audio ni transcripción completa entra a git, a la mezcla entre equipos de T61 ni a ningún servicio; sí viajan las afirmaciones derivadas (paráfrasis corta + enlace + segundo), como las fichas de la biblioteca (T52).
+2. **Primero lo oficial:** descubrimiento y metadatos solo con la YouTube Data API v3 (clave propia del usuario, dentro de su cuota) o el RSS cuando responda.
+3. **Subtítulos antes que audio:** subtítulos ya publicados por el canal como primera fuente; `youtube-transcript-api` solo si el usuario acepta que es un acceso no oficial, con ritmo bajo (cola nocturna, pocos videos) y sin proxies rotativos para esquivar bloqueos.
+4. **Audio solo como respaldo y aceptando que choca con los Términos:** `yt-dlp` en proceso aislado (sin claves en el entorno, `YTDLP_NO_PLUGINS`, `--ignore-config`, versión fijada, sin `-U`), audio a carpeta temporal y **borrado al terminar la transcripción**; si el usuario no acepta este punto, los videos sin subtítulos se omiten.
+5. **Sin cookies ni cuenta del usuario,** sin evadir límites ni bloqueos, sin descargar video (solo audio o subtítulos) y solo de los canales que el usuario elija (nunca «todo lo de todos los canales», T64).
+6. **Revisión:** si YouTube o Google piden parar, o la API cambia sus condiciones, se para y se revisa esta sección.

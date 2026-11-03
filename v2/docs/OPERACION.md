@@ -56,6 +56,9 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 | `EIM_SHARED_DIR`, `EIM_MACHINE`, `EIM_SHARE_*` | — | Experiencia compartida entre equipos (T61, §3.1): carpeta de nube compartida, alias único de esta máquina y cadencias del modo automático (también `python -m eim.data.share setup`) |
 | `EIM_OFFSITE_REPO`, `EIM_OFFSITE_KEEP` | `Santivego/eim-shared-data`, `7` | Copia externa (T125, `docs/CONTINUIDAD.md`): repo privado de GitHub cuyas versiones guardan las copias completas, y cuántas conserva cada equipo |
 | `EIM_FRED_API_KEY` | — | Opcional (gratuita): valores real/anterior/revisado de IPC, NFP, PCE, PIB, IPP desde FRED. Sin ella los eventos salen sin valores |
+| `EIM_LOCALAI_DIR` | — (el banco usa `data/localai`) | Motores de IA locales (T62, §7): carpeta **fuera del repo y en disco local** (no en una unidad de red) con el entorno aparte (`venv`), los binarios y los pesos. En la portátil de referencia `E:\eim-localai` (C: tiene 6 GB libres) |
+| `EIM_LLAMACPP_SERVER`, `EIM_WHISPERCPP` | `EIM_LOCALAI_DIR\llama.cpp\llama-server.exe`, `…\whisper.cpp\whisper-cli.exe` | Binarios de llama.cpp y whisper.cpp para el banco de T62 (opcionales) |
+| `EIM_OLLAMA_EXE`, `EIM_CONTEXT_LLM`, `EIM_LOCAL_LLM_HOST`, `EIM_LOCAL_LLM_MODEL` | `E:\Ollama\ollama.exe`, —, `http://127.0.0.1:11434`, `qwen3:4b` | Ollama que lanza `servicio_continuo.ps1`; `EIM_CONTEXT_LLM=local` pone el agente de contexto sobre Ollama (T24); servidor y modelo del LLM local |
 | `EIM_LIBRARY_DIR`, `EIM_LIBRARY_INDEX`, `EIM_TESSERACT` | `data/library/books`, `data/library/index`, autodetección | Biblioteca de trading (T52): carpeta de los libros del usuario (fuera del repo), índice local (catálogo, texto por página, caché de OCR) y ruta de `tesseract.exe` si no está en el PATH |
 | `EIM_WS_URL`, `EIM_HEARTBEAT_S`, `EIM_SNAPSHOT_BARS`, `EIM_AUTO_HISTORY`, `EIM_RECON_S` | ver `eim/api/config.py` | |
 
@@ -386,3 +389,74 @@ Los libros y el índice no se versionan ni se suben a ningún servicio; el texto
 - **Semanal (lunes UTC):** leer `reports/operation/semana_AAAA-Www.md` (se genera solo).
 - **Mensual:** auditoría de dependencias (§5) y `python -m eim.data.backup verify` sobre una copia
   antigua (prueba de restauración en una carpeta temporal: `restore <copia> --data-dir <tmp>`).
+
+## 7. Motores locales (T62)
+Auditoría y lista aprobada propuesta: `PLAN/notas/T62_auditoria.md` (◆ el usuario decide qué entra);
+reglas de seguridad: `docs/SEGURIDAD.md` § «Motores de IA locales». Nada de esto lo exige el gate ni
+la API: la integración en EIM es T63. **Estado (2026-10-31):** instalado en `juanpablo-cpu`
+(`C:\eim-localai`, lista aprobada por el usuario); su Ollama solo corrió en el puerto 11435 durante
+el banco y EIM no lo usa mientras no se defina `EIM_OLLAMA_EXE` (T128 quitó la que apuntaba a la
+unidad de red `Z:`; activarlo tras T78, midiendo la RAM). Falta el equipo de referencia.
+
+**Dónde.** Todo en `EIM_LOCALAI_DIR` (disco local con ≥ 20 GB libres, fuera del repo, nunca en
+una unidad de red):
+```
+%EIM_LOCALAI_DIR%\ollama\          ollama-windows-amd64.zip descomprimido (sin la app de bandeja)
+%EIM_LOCALAI_DIR%\ollama\models\   modelos (OLLAMA_MODELS)
+%EIM_LOCALAI_DIR%\llama.cpp\       llama-server.exe (opcional, plan B)
+%EIM_LOCALAI_DIR%\models\faster-whisper\<modelo>\   pesos de faster-whisper (revisión fijada)
+%EIM_LOCALAI_DIR%\tesseract\       Tesseract extraído del instalador, con tessdata\ eng/spa/osd
+%EIM_LOCALAI_DIR%\venv\            entorno aparte con los extras [video,localai,library]
+%EIM_LOCALAI_DIR%\downloads\       un directorio por descarga, con su SHA-256 comprobado
+```
+
+**Instalación mínima** (una vez aprobada la lista; versiones fijadas en la auditoría):
+1. **Ollama v0.40.11** (`675150d6`): bajar `ollama-windows-amd64.zip` (1,59 GB) de la release
+   oficial de GitHub, comprobar su SHA-256 (`bda4a493…eda12a`) con el `sha256sum.txt` de la misma
+   release y descomprimir en `%EIM_LOCALAI_DIR%\ollama` (`ollama.exe` firmado por «Ollama Inc.»).
+   Variables de usuario: `EIM_OLLAMA_EXE=%EIM_LOCALAI_DIR%\ollama\ollama.exe`,
+   `OLLAMA_MODELS=%EIM_LOCALAI_DIR%\ollama\models`, `OLLAMA_HOST=127.0.0.1:11434`,
+   **`OLLAMA_NO_CLOUD=1`**, `OLLAMA_MAX_LOADED_MODELS=1`, `OLLAMA_NOPRUNE=1`. Arranque: solo
+   `ollama.exe serve` (lo hace `servicio_continuo.ps1`); su registro debe decir
+   «Ollama cloud disabled: true».
+2. **Modelos** (`ollama pull`, y comprobar el digest con `ollama list` contra la tabla de la
+   auditoría): `qwen3:4b-instruct` (`0edcdef34593`), `qwen3-vl:2b-instruct-q4_K_M`
+   (`afc393e3572c`) y, para T71, `qwen3-embedding:0.6b` (`ac6da0dfba84`). Con
+   `OLLAMA_NO_CLOUD=1` el `pull` del registro sigue funcionando.
+3. **Entorno aparte:** `python -m venv %EIM_LOCALAI_DIR%\venv` (Python 3.12) y, desde `v2/`,
+   `%EIM_LOCALAI_DIR%\venv\Scripts\python -m pip install -e ".[video,localai,library]" pip-audit`
+   (`library` trae Pillow y pytesseract, que usa el banco; ≈ 0,85 GB); después
+   `python -m pip_audit` en ese entorno (2026-10-31: sin vulnerabilidades conocidas).
+4. **Pesos de faster-whisper** (sin descarga en ejecución), cada uno en su carpeta:
+   `snapshot_download(<repo>, revision=<sha>, allow_patterns=["config.json",
+   "preprocessor_config.json", "model.bin", "tokenizer.json", "vocabulary.*"],
+   local_dir=r"%EIM_LOCALAI_DIR%\models\faster-whisper\<modelo>")` con `small` =
+   `Systran/faster-whisper-small@536b0662…` (0,46 GB) y `large-v3-turbo` =
+   `dropbox-dash/faster-whisper-large-v3-turbo@0a363e91…` (1,6 GB). El banco usa esa carpeta y
+   no el alias de faster-whisper (alerta 11) y anota la revisión.
+5. **llama.cpp b12018** (opcional, plan B): `llama-b12018-bin-win-cpu-x64.zip` (24,6 MB, SHA-256
+   `205755a9…acb9a6` según el *digest* de la release) en `%EIM_LOCALAI_DIR%\llama.cpp`; sin firma.
+6. **Tesseract 5.5.3** (opcional, ya lo usa la biblioteca): `tesseract-ocr-w64-setup-5.5.3.20260724.exe`
+   de la release oficial (SHA-256 `bee9e343…0ae4`), **extraído con 7-Zip** en
+   `%EIM_LOCALAI_DIR%\tesseract` sin ejecutar el instalador (no pide administrador; su firma de
+   la Universität Mannheim sale «UnknownError» en este Windows, por eso cuenta el SHA-256). El
+   instalador no trae idiomas: `eng`, `spa` y `osd` de `tessdata_best@e12c65a9` en `tessdata\`,
+   comprobando con `git hash-object` el SHA del blob que da la API de GitHub.
+   `EIM_TESSERACT=%EIM_LOCALAI_DIR%\tesseract\tesseract.exe`.
+
+**Comando de verificación** (mide en el equipo y escribe `reports/localai/bench_<equipo>.md`):
+```bash
+%EIM_LOCALAI_DIR%\venv\Scripts\python scripts/localai_bench.py --sections system,llm,engines,gpu --llm qwen3:4b-instruct
+%EIM_LOCALAI_DIR%\venv\Scripts\python scripts/localai_bench.py --sections scenes,ocr,vlm --vlm qwen3-vl:2b-instruct-q4_K_M
+%EIM_LOCALAI_DIR%\venv\Scripts\python scripts/localai_bench.py --sections asr,embeddings,frameworks --audio-dir <carpeta> --emb qwen3-embedding:0.6b --llm qwen3:4b-instruct
+```
+Si el Ollama del banco no es el del puerto 11434, definir antes `EIM_LOCAL_LLM_HOST` y
+`OLLAMA_MODELS` (el banco lee de ahí el GGUF para llama.cpp) y `EIM_TESSERACT`. El VLM se mide
+sobre 12 fotogramas a 768 px (`--vlm-frames`, `--vlm-side`) y se corta solo si la RAM libre baja de
+1,5 GB: en `juanpablo-cpu` su runner llegó a 8,8 GB y dejó el equipo sin memoria (auditoría,
+alerta 15). Una sección que falla queda anotada como error y las demás siguen.
+El banco no descarga nada (lo que falte sale «no instalado»/«no descargado»), mide con los servicios
+de EIM tal como estén (y lo anota) y fusiona corridas sucesivas en el mismo informe. Las muestras de
+audio (`--audio-dir`) llevan `manifest.json` con `file`, `lang` y `ref` (transcripción corregida a
+mano de los primeros 3 min). Cada colaborador lo corre en su equipo; la lista se escribe para el
+mínimo.
