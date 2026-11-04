@@ -112,11 +112,25 @@ def test_m6_closes_at_the_open_of_its_bar_when_the_advance_fell_short(world):
 
 
 def test_m6_does_not_close_what_already_advanced_enough(world):
+    """Con `min_r > 0`, la barrera perdona a la operación que ya llegó a ese avance."""
     p, fine, f = world
     px = float(p.c[1])
     i = idea(entry=px, sl=px * 0.97, tp=px * 1.3, t=int(p.t[1]) + p.step, hold_h=1000)
-    o = TimeExit("M6", "M6", f, bars=10, min_r=0.0).simulate(i, ctx(p, ZERO, fine), QTY)
+    o = TimeExit("M6", "M6", f, bars=10, min_r=0.05).simulate(i, ctx(p, ZERO, fine), QTY)
+    assert o.ladder["advance_r"] >= 0.05
     assert o.reason != "TIEMPO"
+
+
+def test_m6_with_min_r_zero_is_an_unconditional_vertical_barrier(world):
+    """`min_r = 0` no tiene excepción: cierra siempre a las `bars` velas.
+
+    Leerlo como «cierra si el avance es menor que 0» dejaría el valor pre-registrado inerte,
+    porque el avance nunca es negativo."""
+    p, fine, f = world
+    px = float(p.c[1])
+    i = idea(entry=px, sl=px * 0.9, tp=px * 1.3, t=int(p.t[1]) + p.step, hold_h=1000)
+    o = TimeExit("M6", "M6", f, bars=10, min_r=0.0).simulate(i, ctx(p, ZERO, fine), QTY)
+    assert o.reason == "TIEMPO" and o.ladder["bars"] <= 10
 
 
 def test_m7_only_closes_when_the_higher_timeframe_flips(world):

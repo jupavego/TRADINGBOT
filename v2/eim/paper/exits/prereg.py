@@ -33,7 +33,7 @@ DEFAULT_VERSION = "prereg_t131_v3"
 PUBLISHED: dict[str, str] = {
     "prereg_t131_v1": "730a11f987e65e0835aa9e4090a7d62005be60fd582953f6113605fa27bc9c73",
     "prereg_t131_v2": "0dd3d9d8550beac024ac71f5d33c52f45da31b7526bf7e1844df98af117e64f0",
-    "prereg_t131_v3": "d3c24a1a54d1975a6a3cae9b7828e3eb5ba55bf283c56fa0149ffc9164172efc",
+    "prereg_t131_v3": "bc3cd8840aba278551126992bac22bfde53cedfab706361ebb2d5caefe744cd3",
 }
 DISCARDED = "descartada_T133"
 IMPLEMENTED = "implementada"
@@ -95,6 +95,14 @@ class WinnersMaeSpec(_Frozen):
     quantile: float = Field(gt=0, lt=1)
     min_trades: int = Field(ge=1)
     unit: str = "sigma"
+    why: str = ""
+
+
+class InitialStopSpec(_Frozen):
+    """Con qué salida se acompañan las familias que solo cambian el SL inicial (S1 y M8)."""
+
+    families: tuple[str, ...]
+    companion: str
     why: str = ""
 
 
@@ -162,6 +170,7 @@ class Prereg(_Frozen):
     cost_stress: CostStress
     control: Control
     winners_mae: WinnersMaeSpec | None = None      # solo desde la v3
+    initial_stop: InitialStopSpec | None = None    # solo desde la v3
     ruin: Ruin
     accept: Accept
     grid: tuple[GridItem, ...]

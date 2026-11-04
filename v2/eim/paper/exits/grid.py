@@ -64,6 +64,18 @@ def _tag(prefix: str, knobs: dict) -> str:
     return f"{prefix} " + " ".join(bits)
 
 
+def companion_of(pr: Prereg, ladder: LadderParams, vid: str) -> ExitPolicy:
+    """La salida que acompaña a S1 y M8, la que declara `initial_stop.companion`.
+
+    Hoy es M0 con sus valores vigentes: así la comparación contra la base M0 aísla exactamente lo
+    que esas dos familias cambian —el stop inicial—, con la misma salida a los dos lados.
+    """
+    name = pr.initial_stop.companion if pr.initial_stop else "M0"
+    if name != "M0":
+        raise ValueError(f"acompañante no soportado: {name!r} (hoy solo M0)")
+    return LadderExit(ladder, id=f"{vid}/M0", label=f"{vid} con M0")
+
+
 def expand(pr: Prereg, feats: dict[str, ExitFeatures], ladder: LadderParams, path_t: np.ndarray,
            quantile_of: Callable[[str, int], float | None] | None = None,
            est_cost_frac: float = 0.0) -> tuple[list[Variant], dict[str, str]]:
@@ -84,7 +96,8 @@ def expand(pr: Prereg, feats: dict[str, ExitFeatures], ladder: LadderParams, pat
             continue
         for kn in _combos(g.params):
             vid = _tag(g.id, kn)
-            pol = _policy(g.id, vid, kn, feats, ladder, path_t, quantile_of, lim, est_cost_frac)
+            pol = _policy(g.id, vid, kn, feats, ladder, path_t, quantile_of, lim,
+                          est_cost_frac, companion_of(pr, ladder, vid))
             if pol is None:
                 skipped[vid] = f"el estimador {kn.get('sigma')!r} no tiene rasgos en esta corrida"
                 continue
@@ -93,8 +106,8 @@ def expand(pr: Prereg, feats: dict[str, ExitFeatures], ladder: LadderParams, pat
 
 
 def _policy(fam: str, vid: str, kn: dict, feats: dict[str, ExitFeatures], ladder: LadderParams,
-            path_t: np.ndarray, quantile_of, lim: TrailLimits,
-            est_cost_frac: float) -> ExitPolicy | None:
+            path_t: np.ndarray, quantile_of, lim: TrailLimits, est_cost_frac: float,
+            companion: ExitPolicy) -> ExitPolicy | None:
     """La política de una combinación; None si le falta el estimador σ que pide."""
     if fam == "M0":
         v = float(kn["first_r"])
@@ -126,12 +139,12 @@ def _policy(fam: str, vid: str, kn: dict, feats: dict[str, ExitFeatures], ladder
         return HtfExit(vid, vid, f)
     if fam == "M8":
         return InitialStopExit(vid, vid, "M8", f,
-                               winners_mae_floor(f, path_t, quantile_of), knobs=dict(kn))
+                               winners_mae_floor(f, path_t, quantile_of),
+                               inner=companion, knobs=dict(kn))
     if fam == "S1":
         return InitialStopExit(vid, vid, "S1", f,
                                sigma_floor(f, path_t, float(kn["d_min_sigma"])),
-                               inner=TrailExit(f"{vid}/M2", vid, f, "M2", {"k": 3.0}, lim),
-                               knobs=dict(kn))
+                               inner=companion, knobs=dict(kn))
     return None
 
 

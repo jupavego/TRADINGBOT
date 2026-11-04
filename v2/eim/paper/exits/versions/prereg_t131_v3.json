@@ -233,7 +233,7 @@
           0.95
         ]
       },
-      "note": "El cuantil se calcula SOLO con las ganadoras del tramo de ajuste de cada pliegue y con la salida de referencia de `winners_mae`, nunca con la política que se evalúa (E5). Sin la muestra mínima por estrategia@marco no hay cuantil y el SL de la idea no se toca."
+      "note": "El cuantil se calcula SOLO con las ganadoras del tramo de ajuste de cada pliegue y con la salida de referencia de `winners_mae`, nunca con la política que se evalúa (E5). Sin la muestra mínima por estrategia@marco no hay cuantil y el SL de la idea no se toca. Se acompaña de la salida que declara `initial_stop.companion`."
     },
     {
       "id": "S1",
@@ -250,7 +250,7 @@
           "harrv_1m"
         ]
       },
-      "note": "Tamaño constante en riesgo; si T134 lo aprueba, crea versiones nuevas en T49."
+      "note": "Tamaño constante en riesgo; si T134 lo aprueba, crea versiones nuevas en T49. Se acompaña de la salida que declara `initial_stop.companion`."
     },
     {
       "id": "S2",
@@ -301,7 +301,8 @@
     "Control aleatorio (criterio 6, redefinido en la v3): el nulo de la v1 y la v2 estaba MAL ESPECIFICADO para una salida dependiente del camino. Pedía que el R bruto de las entradas al azar contuviera el 0, lo que solo se cumple si la serie es una martingala; el BTC no lo es a 15 min, y un stop de arrastre es precisamente una apuesta a esa dependencia (Kaminski y Lo; Lo y Remorov). Medido en T131: la escalera ajustada daba +0,025 R de bruto con el 0 fuera del IC, sin que hubiera anticipación alguna (sobre paseos aleatorios independientes y sin costos da 0). El nulo correcto conserva la distribución de retornos y destruye la dependencia: se barajan los log-retornos de las velas de 1 min, se rehace el camino de 15 m agregando desde ellas, se generan las entradas al azar sobre ESE camino con la misma geometría y los mismos costos, y se compara el bruto observado con la distribución de los `surrogates` sustitutos (p de una cola con corrección +1). Se RECHAZA la salida si p < alpha, es decir si vuelve rentables las entradas al azar más de lo que explica la propia distribución de retornos.",
     "Libro completo (diseño secundario de §5.3): en T134 solo se puede calcular para M0 y M1, las dos salidas que `paper/book.py` sabe ejecutar. Para M2-M8 y S1 exigiría conectarlas a los perfiles, que es T135 y está fuera del alcance de T134. Se informa así, no se omite.",
     "Estrés de costos: para ahorrar cómputo solo se repite con ×1,5 y ×2 en las variantes que pasan el criterio 1 con el costo base, más las dos bases como referencia. Una variante que no pasa el criterio 1 al costo base tampoco lo pasaría con costos mayores, así que ningún veredicto cambia; el informe dice de cada variante si se midió con estrés o no.",
-    "Salida de referencia de E5: se nombra en `winners_mae.reference` y la usan M8 y la fase de supervivencia de M5. Quedó fijada en esta misma versión, antes de calcular cualquier resultado con ella (el historial de git lo muestra: el commit que crea la v3 es el que la nombra)."
+    "Salida de referencia de E5: se nombra en `winners_mae.reference` y la usan M8 y la fase de supervivencia de M5. Quedó fijada en esta misma versión, antes de calcular cualquier resultado con ella (el historial de git lo muestra: el commit que crea la v3 es el que la nombra).",
+    "Acompañante de S1 y M8: se nombra en `initial_stop`, y quedó fijado en esta misma versión antes de calcular cualquier resultado con ella."
   ],
   "winners_mae": {
     "reference": "M1 be=1/0.1",
@@ -309,5 +310,13 @@
     "min_trades": 30,
     "unit": "sigma",
     "why": "E5 exige una salida de referencia FIJA y pre-registrada para definir «ganadora». Se elige M1 con sus valores vigentes (la salida A de T111, TP/BE+/tiempo) por dos razones: no es ninguna de las candidatas que M8 y M5 van a usar el cuantil para construir, así que no hay circularidad; y sus ganadoras corren hasta el TP, de modo que su MAE refleja el retroceso que aguanta una operación que acaba bien. Con la escalera como referencia pasaría lo contrario: sus ganadoras se cierran a +0,1 R enseguida, su MAE es diminuto y M8 heredaría stops ajustadísimos, que es el defecto H1 que la fase 22 intenta corregir."
+  },
+  "initial_stop": {
+    "families": [
+      "S1",
+      "M8"
+    ],
+    "companion": "M0",
+    "why": "S1 y M8 no son salidas: cambian la GEOMETRÍA del SL inicial y necesitan una salida que las acompañe. Con qué se acompañan es un grado de libertad, así que se fija aquí: con M0 y sus valores vigentes, la escalera que el bróker simulado ejecuta hoy. Así la comparación contra la base M0 aísla exactamente lo que estas dos cambian —el stop inicial— con la misma salida a los dos lados, y responde la pregunta útil: ¿mejora apartar el stop inicial la salida que el sistema de verdad usa? Sin acompañante, las dos se quedan sin nada que las cierre en positivo y su E[R] condicionado a cerrar es −1 R por construcción, que no informa de nada."
   }
 }
