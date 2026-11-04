@@ -54,11 +54,21 @@ class Totals:
     var_paired: dict[str, float | None]
 
 
-def _years_of(trades: Sequence[bench.BenchTrade], years: Sequence[int]) -> dict:
+def _years_of(trades: Sequence[bench.BenchTrade], base: Sequence[bench.BenchTrade],
+              years: Sequence[int]) -> dict:
+    """ΔE[R] frente a la base por año natural, sobre las ideas que cerraron las dos.
+
+    El criterio 4 de §5.4 pide «ΔE[R] > 0 en cada año natural», igual que el 1: es la MEJORA la
+    que tiene que aguantar año a año. Medir el E[R] absoluto exigiría que la variante fuera
+    rentable todos los años, que es un criterio de la ENTRADA (T27) y no de la salida, y lo
+    fallarían todas en un mercado sin ventaja de entrada.
+    """
+    by_id = {t.id: t for t in base}
     out = {}
     for y in years:
-        rs = [t.r for t in trades if wf.iso(t.t).startswith(str(y))]
-        out[str(y)] = float(np.mean(rs)) if rs else None
+        d = [t.r - by_id[t.id].r for t in trades
+             if t.id in by_id and wf.iso(t.t).startswith(str(y))]
+        out[str(y)] = float(np.mean(d)) if d else None
     return out
 
 
@@ -102,7 +112,7 @@ def run_batch(ideas: Sequence[Idea], bases: Sequence[Variant], batch: Sequence[V
         out[v.id] = Totals(
             test=metrics.summary(tested, pr.ruin.risk_pct, pr.ruin.trades, pr.ruin.reps, rng),
             all=metrics.summary(tr),
-            years=_years_of(tested, pr.accept.years),
+            years=_years_of(tested, base_test.get(bases[0].id, []), pr.accept.years),
             folds=_fold_deltas(tr, base_tr.get(bases[0].id, []), fs),
             diffs=diffs, n_closed=len(tr), var_paired=var_p,
             cuts={k: metrics.by_group(tested, k)

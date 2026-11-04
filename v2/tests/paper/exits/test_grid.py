@@ -28,8 +28,9 @@ def world():
 
 def expand(world, **kw):
     p, feats = world
+    factory = kw.pop("quantile_for", lambda q: (lambda sid, t: 2.0 * q))
     return grid.expand(load_prereg(), feats, LADDER_BY_PROFILE["moderado"], p.t,
-                       quantile_of=kw.pop("quantile_of", lambda s, t: 2.0), **kw)
+                       quantile_for=factory, **kw)
 
 
 def test_the_grid_yields_exactly_the_pre_registered_combinations(world):
@@ -46,9 +47,36 @@ def test_the_grid_yields_exactly_the_pre_registered_combinations(world):
 
 
 def test_m8_is_declared_not_dropped_when_there_is_no_quantile(world):
-    vs, skipped = expand(world, quantile_of=None)
+    vs, skipped = expand(world, quantile_for=None)
     assert all(v.family != "M8" for v in vs)
     assert "M8" in skipped and "cuantil" in skipped["M8"]
+
+
+def test_each_m8_variant_gets_its_own_quantile(world):
+    """`q` es justo el parámetro que M8 varía: si todas compartieran cuantil, serían la misma
+    política contada tres veces y entrarían en la corrección como copias correlacionadas."""
+    seen = {}
+
+    def factory(q: float):
+        def of(sid: str, t: int) -> float:
+            seen[q] = seen.get(q, 0) + 1
+            return 2.0 * q
+        return of
+
+    vs, _ = expand(world, quantile_for=factory)
+    m8 = [v for v in vs if v.family == "M8"]
+    assert len(m8) == 3
+    assert sorted(v.knobs["q"] for v in m8) == [0.8, 0.9, 0.95]
+    # cada variante usa SU fábrica: tres distancias mínimas distintas para la misma idea
+    from eim.paper.exits.policy import ExitContext
+    from eim.paper.params import spec_for
+    from tests.paper.exits.helpers import ZERO
+    from tests.paper.helpers import idea
+    p, _feats = world
+    i = idea(entry=float(p.c[200]), sl=float(p.c[200]) * 0.9999, t=int(p.t[200]) + p.step)
+    ctx = ExitContext(path=p, ep=ZERO, spec=spec_for("BTCUSDT"))
+    dists = {v.knobs["q"]: v.policy.min_dist_of(i, ctx) for v in m8}
+    assert len({round(x, 9) for x in dists.values() if x is not None}) == 3, dists
 
 
 def test_every_variant_carries_its_own_identity(world):
@@ -104,7 +132,7 @@ def test_a_missing_sigma_estimator_is_declared_not_silently_substituted(world):
     p, feats = world
     few = {k: v for k, v in feats.items() if k in ("atr14", "parkinson")}
     vs, skipped = grid.expand(load_prereg(), few, LADDER_BY_PROFILE["moderado"], p.t,
-                              quantile_of=lambda s, t: 2.0)
+                              quantile_for=lambda q: (lambda sid, t: 2.0 * q))
     assert any("garman_klass" in k for k in skipped) or any(
         "garman_klass" in str(v) for v in skipped.values())
     assert all(v.knobs.get("sigma") in (None, "atr14", "parkinson") for v in vs)

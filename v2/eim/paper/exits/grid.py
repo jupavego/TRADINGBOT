@@ -77,12 +77,16 @@ def companion_of(pr: Prereg, ladder: LadderParams, vid: str) -> ExitPolicy:
 
 
 def expand(pr: Prereg, feats: dict[str, ExitFeatures], ladder: LadderParams, path_t: np.ndarray,
-           quantile_of: Callable[[str, int], float | None] | None = None,
+           quantile_for: Callable[[float], Callable[[str, int], float | None] | None] | None = None,
            est_cost_frac: float = 0.0) -> tuple[list[Variant], dict[str, str]]:
     """(variantes corribles, familias que no se corren con su motivo).
 
-    `feats` son los rasgos por nombre de estimador σ; cada familia pide el suyo. `quantile_of` es
-    el cuantil del MAE de las ganadoras por pliegue (E5); sin él, M8 no se corre y se declara.
+    `feats` son los rasgos por nombre de estimador σ; cada familia pide el suyo. `quantile_for` es
+    una FÁBRICA: recibe el `q` de la variante y devuelve su cuantil del MAE de las ganadoras por
+    pliegue (E5). Tiene que ser una fábrica y no una función fija, porque `q` es justo el
+    parámetro que M8 varía: con una sola función, sus tres variantes serían la misma política
+    contada tres veces, y además entrarían en la corrección por pruebas múltiples como tres copias
+    perfectamente correlacionadas. Sin fábrica, M8 no se corre y se declara.
     """
     out: list[Variant] = []
     skipped: dict[str, str] = {}
@@ -91,12 +95,16 @@ def expand(pr: Prereg, feats: dict[str, ExitFeatures], ladder: LadderParams, pat
         if g.status != IMPLEMENTED:
             skipped[g.id] = g.status
             continue
-        if g.id == "M8" and quantile_of is None:
+        if g.id == "M8" and quantile_for is None:
             skipped[g.id] = "sin cuantil del MAE (hacen falta los pliegues de la referencia)"
             continue
         for kn in _combos(g.params):
             vid = _tag(g.id, kn)
-            pol = _policy(g.id, vid, kn, feats, ladder, path_t, quantile_of, lim,
+            qof = quantile_for(float(kn["q"])) if (g.id == "M8" and quantile_for) else None
+            if g.id == "M8" and qof is None:
+                skipped[vid] = f"sin cuantil del MAE para q={kn['q']}"
+                continue
+            pol = _policy(g.id, vid, kn, feats, ladder, path_t, qof, lim,
                           est_cost_frac, companion_of(pr, ladder, vid))
             if pol is None:
                 skipped[vid] = f"el estimador {kn.get('sigma')!r} no tiene rasgos en esta corrida"

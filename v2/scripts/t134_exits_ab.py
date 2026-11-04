@@ -17,6 +17,7 @@ import argparse
 import csv
 import json
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -109,6 +110,7 @@ def main() -> int:  # noqa: PLR0915
 
     # 1-2. bases, pliegues y el cuantil del MAE de las ganadoras (E5).
     bases = _pick_bases(pr, feats, ladder, v.path.t)
+    print(f"bases: {', '.join(x.id for x in bases)}", flush=True)
     b0 = bench.run(ideas, [x.policy for x in bases], ctx, pr.risk_usd)
     embargo = wf.embargo_for(
         [t for x in bases for t in b0.trades(x.id)],
@@ -122,15 +124,22 @@ def main() -> int:  # noqa: PLR0915
     ref_id = pr.winners_mae.reference if pr.winners_mae else bases[-1].id
     ref = next((x for x in bases if x.id.startswith(ref_id.split()[0])), bases[-1])
     ratio_of = _ratio_of(feats[SIGMAS[1]], v.path.t, {i.id: i for i in ideas})
-    wmae = winners_mae.build(b0.trades(ref.id), fs, ratio_of,
-                             reference=ref.id, quantile=pr.winners_mae.quantile,
-                             min_trades=pr.winners_mae.min_trades) if pr.winners_mae else None
+    ref_trades = b0.trades(ref.id, paired_only=False)
+    qs = sorted({float(q) for g in pr.grid if g.id == "M8" for q in g.params.get("q", ())})
+    wmae_by_q = {q: winners_mae.build(ref_trades, fs, ratio_of, reference=ref.id,
+                                      quantile=q, min_trades=pr.winners_mae.min_trades)
+                 for q in qs} if pr.winners_mae else {}
+    wmae = wmae_by_q.get(pr.winners_mae.quantile) if pr.winners_mae else None
     print(f"bases listas: {len(b0.paired())} emparejadas, {len(fs)} pliegues, embargo "
           f"{embargo / 3_600_000:.0f} h ({experiment.elapsed(t0)} s)", flush=True)
     del b0
 
+    def quantile_for(q: float):
+        w = wmae_by_q.get(q)
+        return None if w is None else w.quantile_of()
+
     vs, skipped = grid.expand(pr, feats, ladder, v.path.t,
-                              quantile_of=wmae.quantile_of() if wmae else None,
+                              quantile_for=quantile_for if wmae_by_q else None,
                               est_cost_frac=desk.ep.est_cost_frac)
     print(f"rejilla: {len(vs)} variantes corribles, {len(skipped)} familias fuera", flush=True)
 
@@ -176,7 +185,7 @@ def main() -> int:  # noqa: PLR0915
 
 def _pick_bases(pr, feats, ladder, path_t):
     """Las dos bases: la escalera y la sombra con sus valores vigentes."""
-    allv, _ = grid.expand(pr, feats, ladder, path_t, quantile_of=None)
+    allv, _ = grid.expand(pr, feats, ladder, path_t, quantile_for=None)
     m0 = next(x for x in allv if x.family == "M0" and x.knobs.get("first_r") == 0.1)
     m1 = next(x for x in allv if x.family == "M1"
               and x.knobs.get("be_trigger_r") == 1.0 and x.knobs.get("be_lock_r") == 0.1)
@@ -257,7 +266,7 @@ def _assemble(a, pr, view, fine, htf, feats, ideas, bases, vs, skipped, fs, emba
                  "command": f"python scripts/t134_exits_ab.py --data {a.data}",
                  "fine_bars": 0 if fine is None else len(fine.t),
                  "htf_bars": 0 if htf is None else len(htf.t),
-                 "ideas": len(ideas), "seconds": experiment.elapsed(t0)},
+                 "ideas": len(ideas), "out": a.out, "seconds": experiment.elapsed(t0)},
         "window": {"from": wf.iso(fs[0].fit_from) if fs else None,
                    "to": wf.iso(fs[-1].test_to) if fs else None, "folds": len(fs),
                    "embargo_hours": round(embargo / 3_600_000, 2),
@@ -298,13 +307,16 @@ def _write(out: Path, res: dict, tot: dict, verds: list) -> None:
 
 
 def _say(res: dict, verds: list) -> None:
+    """Resumen por consola. Se fuerza UTF-8: la consola de Windows es cp1252 y una flecha o un
+    guion largo la rompían DESPUÉS de haber escrito el informe, que es la peor forma de fallar."""
     from collections import Counter
+
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     print(f"\nveredictos: {dict(Counter(x.status for x in verds))}")
     for x in verds:
         if x.status != REJECTED:
-            print(f"  {x.status}: {x.variant} — {x.reason}")
-    print(f"\ninforme en {res['meta']['command']} → reports/exits_ab.md "
-          f"({res['meta']['seconds']:.0f} s)")
+            print(f"  {x.status}: {x.variant} - {x.reason}")
+    print(f"\ninforme escrito en {res['meta']['out']} ({res['meta']['seconds']:.0f} s)")
 
 
 if __name__ == "__main__":

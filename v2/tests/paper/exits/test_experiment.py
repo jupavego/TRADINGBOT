@@ -64,7 +64,7 @@ def small(world):
 def _setup(world, small):
     path, fine, feats, ideas = world
     vs, _ = grid.expand(small, feats, LADDER_BY_PROFILE["moderado"], path.t,
-                        quantile_of=lambda s, t: 2.0)
+                        quantile_for=lambda q: (lambda sid, t: 2.0 * q))
     bases = [v for v in vs if v.family in ("M0", "M1")][:1] + [
         v for v in vs if v.family == "M1"][:1]
     bases = [next(v for v in vs if v.id == "M0 first_r=0.1"),
