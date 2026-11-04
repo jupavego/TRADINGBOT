@@ -38,6 +38,29 @@ def walk_path(n: int, seed: int, px0: float = 70_000.0, sigma: float = 0.0015,
     return Path(cs)
 
 
+def coherent_path(bars: int, seed: int, px0: float = 70_000.0, sigma: float = 0.0015,
+                  per_bar: int = 15) -> tuple[Path, Path]:
+    """(camino de 15 m, velas de 1 min) **coherentes**: el grueso se agrega del fino.
+
+    Hace falta para medir la esperanza de una salida con arrastre. `walk_path` pega mechas
+    sorteadas aparte del recorrido, así que su máximo y su mínimo no corresponden a ningún camino
+    real; un Chandelier, que ancla en el extremo, mueve el stop a un nivel que el precio nunca
+    visitó en ese orden y sale sistemáticamente peor. Agregando de verdad desde 1 min, el extremo
+    de la vela es el extremo del camino y la medición no tiene ese artefacto.
+    """
+    rng = np.random.default_rng(seed)
+    n = bars * per_bar
+    c = px0 * np.exp(np.cumsum(rng.normal(0.0, sigma / np.sqrt(per_bar), n)))
+    o = np.concatenate(([px0], c[:-1]))
+    fine = Path([bar(T0 + k * 60_000, float(o[k]), float(max(o[k], c[k])),
+                     float(min(o[k], c[k])), float(c[k])) for k in range(n)], (), 60_000)
+    coarse = [bar(T0 + j * M15, float(o[j * per_bar]),
+                  float(np.max(fine.h[j * per_bar:(j + 1) * per_bar])),
+                  float(np.min(fine.l[j * per_bar:(j + 1) * per_bar])),
+                  float(c[(j + 1) * per_bar - 1])) for j in range(bars)]
+    return Path(coarse), fine
+
+
 def random_ideas(path: Path, n: int, seed: int, risk_frac: float = 0.01,
                  rr: float = 2.0, strategy: str = "control_aleatorio") -> list[Idea]:
     """`n` entradas a mercado con lado al azar y la misma geometría relativa (el control de §5.3).
