@@ -1,0 +1,262 @@
+{
+ "meta": {
+  "data": "C:\\Users\\jo\\Desktop\\JP\\TRADINGBOT\\v2\\backups\\t131_banco",
+  "symbol": "BTCUSDT",
+  "commit": "6b78951",
+  "sigma": "parkinson",
+  "htf": "1h",
+  "built": "2026-11-04T00:14+00:00",
+  "ideas": 4000,
+  "paired": 2860,
+  "fine_bars": 2019972,
+  "seconds": 189.2
+ },
+ "feature_coverage": {
+  "atr14": {
+   "version": "v1",
+   "sigma": "atr14",
+   "source": {
+    "sigma_abs": "atr14 sobre las velas del camino, ventana 96",
+    "swing_low": "fractal de 5 velas del camino, confirmado",
+    "swing_high": "fractal de 5 velas del camino, confirmado",
+    "htf_dir": "EMA 21/55 del marco mayor, con su ultima vela cerrada",
+    "bar_range": "rango relativo mediano de 96 velas"
+   },
+   "coverage": {
+    "sigma_abs": 0.999895,
+    "swing_low": 0.999918,
+    "swing_high": 0.99994,
+    "htf_dir": 1.0,
+    "bar_range": 0.999289
+   }
+  },
+  "parkinson": {
+   "version": "v1",
+   "sigma": "parkinson",
+   "source": {
+    "sigma_abs": "parkinson sobre las velas del camino, ventana 96",
+    "swing_low": "fractal de 5 velas del camino, confirmado",
+    "swing_high": "fractal de 5 velas del camino, confirmado",
+    "htf_dir": "EMA 21/55 del marco mayor, con su ultima vela cerrada",
+    "bar_range": "rango relativo mediano de 96 velas"
+   },
+   "coverage": {
+    "sigma_abs": 0.999289,
+    "swing_low": 0.999918,
+    "swing_high": 0.99994,
+    "htf_dir": 1.0,
+    "bar_range": 0.999289
+   }
+  },
+  "garman_klass": {
+   "version": "v1",
+   "sigma": "garman_klass",
+   "source": {
+    "sigma_abs": "garman_klass sobre las velas del camino, ventana 96",
+    "swing_low": "fractal de 5 velas del camino, confirmado",
+    "swing_high": "fractal de 5 velas del camino, confirmado",
+    "htf_dir": "EMA 21/55 del marco mayor, con su ultima vela cerrada",
+    "bar_range": "rango relativo mediano de 96 velas"
+   },
+   "coverage": {
+    "sigma_abs": 0.999289,
+    "swing_low": 0.999918,
+    "swing_high": 0.99994,
+    "htf_dir": 1.0,
+    "bar_range": 0.999289
+   }
+  },
+  "yang_zhang": {
+   "version": "v1",
+   "sigma": "yang_zhang",
+   "source": {
+    "sigma_abs": "yang_zhang sobre las velas del camino, ventana 96",
+    "swing_low": "fractal de 5 velas del camino, confirmado",
+    "swing_high": "fractal de 5 velas del camino, confirmado",
+    "htf_dir": "EMA 21/55 del marco mayor, con su ultima vela cerrada",
+    "bar_range": "rango relativo mediano de 96 velas"
+   },
+   "coverage": {
+    "sigma_abs": 0.999282,
+    "swing_low": 0.999918,
+    "swing_high": 0.99994,
+    "htf_dir": 1.0,
+    "bar_range": 0.999289
+   }
+  },
+  "harrv_1m": {
+   "version": "v1",
+   "sigma": "harrv_1m",
+   "source": {
+    "sigma_abs": "HAR-RV de las velas de 1 min, ajustado solo con dias anteriores",
+    "swing_low": "fractal de 5 velas del camino, confirmado",
+    "swing_high": "fractal de 5 velas del camino, confirmado",
+    "htf_dir": "EMA 21/55 del marco mayor, con su ultima vela cerrada",
+    "bar_range": "rango relativo mediano de 96 velas"
+   },
+   "coverage": {
+    "sigma_abs": 0.948474,
+    "swing_low": 0.999918,
+    "swing_high": 0.99994,
+    "htf_dir": 1.0,
+    "bar_range": 0.999289
+   }
+  }
+ },
+ "policies": {
+  "M2 k=3": {
+   "params": {
+    "policy": "M2",
+    "sigma": "parkinson",
+    "features": "v1",
+    "k": 3.0,
+    "activate_r": 0.5,
+    "floor_n": 2.0
+   },
+   "n": 2995,
+   "expectancy_r": -0.11016197117067704,
+   "win_rate": 0.45375626043405676,
+   "pf": 0.744019427471442,
+   "cost_r": 0.18645635132509616,
+   "exits": {
+    "SL": 936,
+    "SLD": 2059
+   },
+   "dropped": {
+    "CANCELADA": 1005
+   }
+  },
+  "M3 f5": {
+   "params": {
+    "policy": "M3",
+    "sigma": "parkinson",
+    "features": "v1",
+    "buffer_sigma": 0.25,
+    "floor_n": 2.0
+   },
+   "n": 2995,
+   "expectancy_r": -0.02364533788901759,
+   "win_rate": 0.27913188647746245,
+   "pf": 0.9444778969474619,
+   "cost_r": 0.16880769565881928,
+   "exits": {
+    "SL": 278,
+    "SLD": 2717
+   },
+   "dropped": {
+    "CANCELADA": 1005
+   }
+  },
+  "M5": {
+   "params": {
+    "policy": "M5",
+    "sigma": "parkinson",
+    "features": "v1",
+    "k": 3.0,
+    "survival_r": 0.3,
+    "a_r": 1.0,
+    "b_r": 0.1,
+    "trail": "M2",
+    "floor_n": 2.0
+   },
+   "n": 2995,
+   "expectancy_r": -0.10651362682322255,
+   "win_rate": 0.5071786310517529,
+   "pf": 0.8124754591433537,
+   "cost_r": 0.19977631748262667,
+   "exits": {
+    "SL": 1411,
+    "SLD": 1584
+   },
+   "dropped": {
+    "CANCELADA": 1005
+   }
+  },
+  "M6 b16": {
+   "params": {
+    "policy": "M6",
+    "bars": 16,
+    "min_r": 0.5,
+    "features": "v1"
+   },
+   "n": 2890,
+   "expectancy_r": -0.9234527274278241,
+   "win_rate": 0.0685121107266436,
+   "pf": 0.008148597051164696,
+   "cost_r": 0.2224084669898193,
+   "exits": {
+    "SL": 1878,
+    "TIEMPO": 1012
+   },
+   "dropped": {
+    "CANCELADA": 1005,
+    "ABIERTA": 105
+   }
+  },
+  "M7": {
+   "params": {
+    "policy": "M7",
+    "features": "v1",
+    "htf_coverage": 1.0
+   },
+   "n": 2995,
+   "expectancy_r": 0.1556787718869332,
+   "win_rate": 0.2517529215358932,
+   "pf": 1.1824477436315082,
+   "cost_r": 0.20560014905203092,
+   "exits": {
+    "HTF": 970,
+    "SL": 2025
+   },
+   "dropped": {
+    "CANCELADA": 1005
+   }
+  },
+  "S1 d2 + M2": {
+   "params": {
+    "policy": "S1",
+    "sigma": "parkinson",
+    "features": "v1",
+    "inner": {
+     "policy": "M2",
+     "sigma": "parkinson",
+     "features": "v1",
+     "k": 3.0,
+     "floor_n": 2.0
+    }
+   },
+   "n": 2995,
+   "expectancy_r": -0.1028378036824203,
+   "win_rate": 0.31252086811352253,
+   "pf": 0.7024047455433874,
+   "cost_r": 0.17389033022148379,
+   "exits": {
+    "SL": 75,
+    "SLD": 2920
+   },
+   "dropped": {
+    "CANCELADA": 1005
+   }
+  },
+  "S1 d2 sola": {
+   "params": {
+    "policy": "S1",
+    "sigma": "parkinson",
+    "features": "v1",
+    "inner": null
+   },
+   "n": 2860,
+   "expectancy_r": -1.2566641759119797,
+   "win_rate": 0.001048951048951049,
+   "pf": 0.00038375748414898846,
+   "cost_r": 0.25666417591197965,
+   "exits": {
+    "SL": 2860
+   },
+   "dropped": {
+    "CANCELADA": 1005,
+    "ABIERTA": 135
+   }
+  }
+ }
+}

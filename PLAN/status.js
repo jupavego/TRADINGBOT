@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-03T18:10:39",
+ "generated": "2026-11-03T19:19:12",
  "tasks": [
   {
    "id": "T01",
@@ -1668,8 +1668,8 @@ window.EIM_STATUS = {
    "deps": [
     "T131"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "Hecho (2026-11-04). Informe `v2/reports/t132_smoke.md`. **Todas las candidatas de §3 y §7 implementadas como `ExitPolicy` puras**, sin tocar los perfiles ni el libro (una prueba lo comprueba en los imports): **M2** Chandelier (`extremo − k·σ` desde un avance de `a` R), **M3** estructura (swing confirmado por fractal ± colchón), **M5** híbrida por fases con **una** política por fase y nunca el máximo de varias (H5), **M6** barrera de tiempo, **M7** reversión del marco mayor, **S1** SL inicial con piso de `d_min·σ` y **M8** SL inicial por cuantil del MAE de las ganadoras. **σ:** ATR de Wilder, cierre a cierre, Parkinson, Garman–Klass, Rogers–Satchell, Yang–Zhang (`sigma.py`) y **HAR-RV de 1 min** ajustado solo con días anteriores (`harrv.py`), todos causales y en σ relativo; sin ventana devuelven `nan`, nunca 0. **`ExitFeatures` v1** (`features.py`) con procedencia y cobertura por campo. **E5 sin fuga ni circularidad** (`winners_mae.py`): cuantil por pliegue, solo con ganadoras del tramo de ajuste, «ganadora» definida por una salida de referencia **fija** y muestra mínima por estrategia@marco. **Dos defectos que encontraron las pruebas:** el motor calculaba el candidato con el extremo de la vela ANTERIOR (el arrastre iba un paso por detrás de `ladder.py`; ahora la regla recibe el extremo prospectivo, como `peek`), y mi `htf_dir` usaba EMAs del propio camino de 15 m en vez del **marco mayor** (con el 1 h real, las salidas de M7 bajan de 1 825 a 970). **Cobertura medida en 3,5 años:** σ 99,9 % (HAR-RV 94,8 %), swings 100 %, marco mayor 100 %. Pruebas: 212 en `tests/paper/exits/`, con las de §5.2 a cientos de semillas (trinquete, piso, sin anticipación, huecos, determinismo y E[R] ≈ 0 en paseo aleatorio sin costos, con y sin velas finas) y la que exige la aceptación: el cuantil de M8 de un pliegue no cambia aunque se reescriba por completo su tramo de prueba. La propiedad de E[R] ≈ 0 fallaba por el fixture, no por el motor (`walk_path` pega mechas sorteadas aparte del recorrido y un arrastre que ancla en el extremo sale sesgado: −0,11 R); con camino coherente da 0,00 con k = 1, 2,5 y 6. `ruff` limpio; **gate completo pendiente** con el de T133 (rompería la racha de T78, §3 de ESTADO_PROYECTO). Elegir parámetros o ganadora es T134, que además necesita una versión nueva del pre-registro (poner M2–M8 y S1 como implementadas, quitar M4 y arreglar el nulo del control, BACKLOG T131 (8)).",
    "effort": "medio",
    "phase": 22,
    "goal": "Implementar como funciones puras las políticas M2, M3 y M5 y la variante S1 de `PLAN/notas/T129_sl_dinamico.md` (§3, §4.1, §4.5), sin conectarlas a los perfiles."

@@ -75,13 +75,36 @@ def swings(h: np.ndarray, lo: np.ndarray, bars: int) -> tuple[np.ndarray, np.nda
     return out_lo, out_hi
 
 
-def htf_direction(c: np.ndarray, fast: int = EMA_FAST, slow: int = EMA_SLOW) -> np.ndarray:
-    """Signo de la tendencia: +1 si la EMA rápida va por encima de la lenta, −1 si por debajo."""
+def _dir_of(c: np.ndarray, fast: int, slow: int) -> np.ndarray:
+    """+1 si la EMA rápida va por encima de la lenta, −1 si por debajo, 0 sin dato."""
     f, s = ema(c, fast), ema(c, slow)
     out = np.zeros(len(c), dtype=np.int8)
     ok = np.isfinite(f) & np.isfinite(s)
     out[ok & (f > s)] = 1
     out[ok & (f < s)] = -1
+    return out
+
+
+def htf_direction(path_t: np.ndarray, c: np.ndarray, htf: Path | None = None,
+                  fast: int = EMA_FAST, slow: int = EMA_SLOW,
+                  htf_step: int = 0) -> np.ndarray:
+    """Signo de la tendencia del **marco mayor** por vela del camino.
+
+    Es lo que mide `ExecParams.htf` en el resto del proyecto (1 h para decisiones de 15 m, 4 h para
+    las de 1 h): la dirección de dos EMAs del marco MAYOR, no del propio camino. Con `htf` se usa
+    ese marco y se propaga a cada vela del camino la última vela mayor **ya cerrada** (`t + paso ≤
+    t_vela`), que es lo que evita la anticipación. Sin `htf` se cae a las EMAs del propio camino,
+    que es un **sustituto declarado**, no lo mismo: lo dice `source` de los rasgos.
+    """
+    if htf is None or not len(htf.t):
+        return _dir_of(c, fast, slow)
+    step = htf_step or htf.step
+    d = _dir_of(htf.c, fast, slow)
+    closed = np.asarray(htf.t, dtype=np.int64) + step          # instante en que se conoce
+    idx = np.searchsorted(closed, np.asarray(path_t, dtype=np.int64), side="right") - 1
+    out = np.zeros(len(path_t), dtype=np.int8)
+    ok = idx >= 0
+    out[ok] = d[idx[ok]]
     return out
 
 
@@ -122,11 +145,13 @@ def _cover(x: np.ndarray) -> float:
 
 
 def build(path: Path, sigma_name: str, *, swing_bars: int = 5, fine: Path | None = None,
-          sigma_window: int = SIGMA_WINDOW) -> ExitFeatures:
+          sigma_window: int = SIGMA_WINDOW, htf: Path | None = None) -> ExitFeatures:
     """Rasgos de todo el camino con el estimador `sigma_name`.
 
     `fine` solo hace falta para `harrv_1m`; sin velas finas ese estimador queda todo en `nan` y las
     políticas que lo pidan usarán su valor base, que es lo correcto: no se inventa una σ.
+    `htf` son las velas del **marco mayor** para `htf_dir` (1 h o 4 h); sin ellas se usa el
+    sustituto declarado de las EMAs del propio camino, y `source` lo dice.
     """
     o, h, lo, c = path.o, path.h, path.l, path.c
     if sigma_name == HARRV:
@@ -140,7 +165,10 @@ def build(path: Path, sigma_name: str, *, swing_bars: int = 5, fine: Path | None
     with np.errstate(invalid="ignore"):
         sig_abs = rel * np.where((c > 0) & np.isfinite(c), c, np.nan)
     s_lo, s_hi = swings(h, lo, swing_bars)
-    hd = htf_direction(c)
+    hd = htf_direction(path.t, c, htf)
+    htf_src = (f"EMA {EMA_FAST}/{EMA_SLOW} del marco mayor, con su ultima vela cerrada"
+               if htf is not None and len(htf.t)
+               else f"SUSTITUTO: EMA {EMA_FAST}/{EMA_SLOW} del propio camino (sin marco mayor)")
     rng = median_range(h, lo, c)
     return ExitFeatures(
         version=VERSION, sigma_name=sigma_name, sigma_abs=sig_abs, swing_low=s_lo,
@@ -148,7 +176,7 @@ def build(path: Path, sigma_name: str, *, swing_bars: int = 5, fine: Path | None
         source={"sigma_abs": src,
                 "swing_low": f"fractal de {swing_bars} velas del camino, confirmado",
                 "swing_high": f"fractal de {swing_bars} velas del camino, confirmado",
-                "htf_dir": f"EMA {EMA_FAST}/{EMA_SLOW} del propio camino",
+                "htf_dir": htf_src,
                 "bar_range": f"rango relativo mediano de {RANGE_WINDOW} velas"},
         coverage={"sigma_abs": _cover(sig_abs), "swing_low": _cover(s_lo),
                   "swing_high": _cover(s_hi), "htf_dir": float((hd != 0).mean()) if len(hd) else 0,

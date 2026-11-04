@@ -182,3 +182,31 @@ def test_an_initial_stop_policy_can_delegate_the_trail_to_another_one(world):
     assert o.ladder["rule"] == "M2"                    # el arrastre lo llevó la interna
     assert o.ladder["initial_sl"] != pytest.approx(i.sl)
     assert pol.params["inner"]["policy"] == "M2"
+
+
+def test_no_candidate_module_can_touch_the_book_or_the_store():
+    """Aceptación de T132: ninguna política toca el libro. Se comprueba en los imports.
+
+    Las políticas son funciones puras sobre el camino. Si alguna importara `book`, `ledger`,
+    `desk` o `data`, podría escribir en el libro del bróker o leer del almacén, y el banco
+    dejaría de medir solo la salida. Es más barato impedirlo aquí que descubrirlo después.
+    """
+    import ast
+    from pathlib import Path as FsPath
+
+    forbidden = ("eim.paper.book", "eim.paper.ledger", "eim.paper.desk", "eim.paper.service",
+                 "eim.data", "eim.execution", "eim.api")
+    root = FsPath(__file__).resolve().parents[3] / "eim" / "paper" / "exits"
+    mods = ("candidates.py", "rules.py", "trail.py", "features.py", "sigma.py", "harrv.py",
+            "winners_mae.py", "policy.py", "bench.py")
+    for mod in mods:
+        tree = ast.parse((root / mod).read_text(encoding="utf-8"))
+        names: list[str] = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                names += [n.name for n in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                names.append(node.module)
+        for name in names:
+            assert not any(name == bad or name.startswith(bad + ".") for bad in forbidden), (
+                f"{mod} importa {name}")
