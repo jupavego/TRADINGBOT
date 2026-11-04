@@ -135,6 +135,15 @@ Bases: `M0 first_r=0.1` −0,1538 (acierto 76,1 %, PF 0,386) y `M1 be=1/0.1` −
 
 ### 5.2 Lo que sí encontró: el stop inicial, no el arrastre
 
+Este es el resultado más sólido del experimento, y conviene verlo junto en vez de disperso en la
+tabla de pruebas múltiples: **7 variantes baten a M0** con p de Romano-Wolf < 0,05, y son **3 de
+M8 y 4 de S1**. Ni una de las reglas de arrastre —M2 con sus **45** variantes, M3, M5, M6, M7—
+bate a la escalera con significación.
+
+No es que M8 pasara por casualidad: lo único que mejora a la base, de forma sistemática y en **dos
+familias independientes**, es **apartar el stop inicial**. Frente a M1 solo aguantan 2 de esas 7,
+y por eso solo esas dos pasan el criterio 1, que exige batir a las dos bases.
+
 Las **únicas dos** variantes que pasan el criterio 1 son de M8, y la segunda mejor de todo el
 banco es de S1. Las dos cambian **la geometría del SL inicial**, no la regla de arrastre. Y M8
 muestra un patrón monótono: cuanto más se aparta el stop, mejor.
@@ -161,16 +170,29 @@ misma pérdida en R cuesta menos en costos.
   pero **no cambia la forma de las operaciones**: las ganadoras siguen siendo diminutas.
 - **Criterio 4:** 10 de 10 pliegues con Δ > 0, pero **2023 falla**. La mejora no aguanta todos los
   años naturales.
-- **Criterio 5:** no forma meseta. El PBO sí pasa (**0,129** < 0,20), que es una mejora real sobre
-  el 0,46 de T131 y se explica porque T131 medía con once variantes casi idénticas.
+- **Criterio 5:** no forma meseta. El PBO sí pasa (**0,129** < 0,20), pero **no es comparable con
+  el 0,46 de T131**: allí el CSCV solo tenía once variantes casi idénticas entre las que elegir, y
+  con tan poca variedad el estadístico no mide lo que pretende. El fiable es este; el de T131
+  estaba **mal medido**, no era pesimista.
 - Y sobre todo: **sigue perdiendo** −0,1045 R por operación.
 
-### 5.4 El criterio 6 queda validado
+### 5.4 El criterio 6 queda validado, con una salvedad sobre M8
 
 Todas las variantes medidas pasan el control contra el nulo por sustitutas (p = 0,62 y 0,67): el
 bruto observado (+0,026) queda **por debajo** del nulo (media +0,045, p95 +0,098). El «fallo» que
 T131 veía era la mala especificación del nulo, no un defecto del banco. Es la confirmación de que
 el arreglo de BACKLOG T131 (8) era necesario y suficiente.
+
+**La salvedad:** `M8 q=0.9` y `M8 q=0.95` salen en el control con cifras **idénticas** a M0 hasta
+el último decimal. No es casualidad: `control_aleatorio@1h` **no alcanza la muestra mínima de
+ganadoras** —el pliegue 0 tiene cuantil para 27 estrategias y esa no está—, así que su cuantil no
+existe, M8 no toca el SL y sobre el control **es** M0. El comportamiento del código es el correcto
+(sin muestra no se aprieta), pero significa que el criterio 6 midió a **su acompañante**, no a
+ella: **ese «sí» no avala la geometría de M8**.
+
+No cambia el veredicto —M8 ya está rechazada por los criterios 2, 4 y 5—, pero sí lo que se puede
+afirmar. Si M8 o S1 se reconsideran en T136, su control hay que rehacerlo con entradas al azar que
+**sí** tengan muestra de ganadoras, o el criterio no mide nada de ellas. Queda en BACKLOG T134.
 
 ### 5.5 Insumos de potencia para T135 (E9)
 

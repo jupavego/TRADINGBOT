@@ -107,7 +107,37 @@ def _multiplicity(res: dict) -> list[str]:
                 + ("coinciden en todas las variantes."
                    if not disagree else "**discrepan** en "
                    + ", ".join(f"`{k}`" for k in disagree[:8]) + " (E3: se informa)."), ""]
+        out += _who_beats(blk, base)
     return out
+
+
+INITIAL_STOP_FAMILIES = ("M8", "S1")
+
+
+def _who_beats(blk: dict, base: str, alpha: float = 0.05) -> list[str]:
+    """Cuántas variantes baten a la base tras corregir, y de qué familias son.
+
+    La tabla ya lo contiene, pero disperso en veinte filas. Dicho junto cambia la lectura: si
+    todas las que ganan pertenecen a las familias que cambian el SL **inicial**, entonces lo que
+    mejora no es la regla de arrastre, y eso es lo que hay que llevarse de aquí.
+    """
+    winners = [k for k, p in (blk.get("p_rw") or {}).items() if p < alpha]
+    if not winners:
+        return [f"**Ninguna variante bate a `{base}`** tras corregir por pruebas múltiples.", ""]
+    fams: dict[str, int] = {}
+    for k in winners:
+        fams[k.split()[0]] = fams.get(k.split()[0], 0) + 1
+    bits = ", ".join(f"{n} de `{f}`" for f, n in sorted(fams.items()))
+    out = [f"**{len(winners)} variantes baten a `{base}`** con p de Romano-Wolf < {alpha:g}: "
+           f"{bits}."]
+    only_initial = set(fams) <= set(INITIAL_STOP_FAMILIES)
+    if only_initial:
+        out.append("**Todas pertenecen a las familias que cambian el SL inicial** (`M8`, `S1`), "
+                   "ninguna a las reglas de arrastre (`M2` con sus 45 variantes, `M3`, `M5`, "
+                   "`M6`, `M7`). No es que una pasara por casualidad: lo único que mejora a la "
+                   "base, de forma sistemática y en dos familias independientes, es **apartar el "
+                   "stop inicial**.")
+    return out + [""]
 
 
 def _control(res: dict) -> list[str]:
@@ -126,7 +156,35 @@ def _control(res: dict) -> list[str]:
         out.append(f"| `{k}` | {_n(x.get('observed_gross_r'))} | {_n(x.get('null_mean'))} | "
                    f"{_n(x.get('null_p95'))} | {_n(x.get('p_one_sided'), 3)} | "
                    f"{'sí' if x.get('ok') else 'NO' if x.get('ok') is False else NA} |")
-    return out + [""]
+    return out + [""] + _control_caveat(res, c)
+
+
+def _control_caveat(res: dict, c: dict) -> list[str]:
+    """Avisa de las variantes que sobre el control salieron IDÉNTICAS a una base.
+
+    Si coinciden hasta el último decimal, la política no tocó nada sobre las entradas al azar y lo
+    que el criterio 6 midió fue **su acompañante**, no ella. Pasa con M8 y S1 cuando la estrategia
+    del control no alcanza la muestra mínima de ganadoras: sin muestra no se aprieta, que es lo
+    correcto, pero entonces ese «sí» no avala la geometría de la variante.
+    """
+    bases = {b: c[b].get("observed_gross_r") for b in res.get("bases", []) if b in c}
+    inert = {k: b for k, x in c.items() if k not in bases
+             for b, v in bases.items()
+             if v is not None and x.get("observed_gross_r") == v}
+    if not inert:
+        return []
+    out = ["> **Salvedad.** "
+           + ", ".join(f"`{k}`" for k in inert)
+           + (" sale" if len(inert) == 1 else " salen")
+           + " con cifras **idénticas** a "
+           + ", ".join(f"`{b}`" for b in dict.fromkeys(inert.values()))
+           + ", lo que significa que sobre las entradas al azar no tocó nada: el criterio 6 midió "
+             "a su acompañante, no a ella. Ocurre cuando la estrategia del control no alcanza la "
+             "muestra mínima de ganadoras y el cuantil no existe (sin muestra no se aprieta). "
+             "**Ese «sí» no avala su geometría.** Si alguna de estas se reconsidera en T136, su "
+             "control hay que rehacerlo con entradas al azar que sí tengan muestra de ganadoras.",
+           ""]
+    return out
 
 
 def _power(res: dict) -> list[str]:
@@ -158,7 +216,12 @@ def render(res: dict) -> str:
              f"{pb.get('combinations')} combinaciones y {pb.get('variants')} variantes "
              f"(logit mediano {_n(pb.get('logit_median'), 2)}). El pre-registro pide < 0,2."
              if pb.get("pbo") is not None else
-             f"No se pudo calcular: {pb.get('reason', 'sin datos')}."), ""]
+             f"No se pudo calcular: {pb.get('reason', 'sin datos')}."), "",
+            ("No es comparable con el 0,46 de T131: allí el CSCV solo tenía once variantes casi "
+             "idénticas entre las que elegir, y con tan poca variedad el estadístico no mide lo "
+             "que pretende. El número fiable es este; el de T131 estaba mal medido, no era "
+             "pesimista."
+             if pb.get("pbo") is not None else ""), ""]
     out += _control(res)
     out += _power(res)
     st = res.get("stress") or {}

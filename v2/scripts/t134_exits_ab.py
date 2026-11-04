@@ -78,11 +78,19 @@ def main() -> int:  # noqa: PLR0915
     ap.add_argument("--batch", type=int, default=experiment.BATCH)
     ap.add_argument("--no-control", action="store_true")
     ap.add_argument("--no-stress", action="store_true")
+    ap.add_argument("--from-json", default="",
+                    help="solo vuelve a escribir el informe desde un JSON ya calculado")
     a = ap.parse_args()
     data = Path(a.data)
     if data.resolve() == Path("data").resolve():
         print("no se corre sobre el almacen vivo")
         return 2
+    if a.from_json:
+        res = json.loads(Path(a.from_json).read_text(encoding="utf-8"))
+        out = Path(a.out)
+        out.with_suffix(".md").write_text(render(res), encoding="utf-8")
+        print(f"informe reescrito desde {a.from_json}")
+        return 0
     pr = load_prereg()
     sym = pr.symbol
     t0 = time.perf_counter()

@@ -91,6 +91,9 @@ Solo las 12 mejores por E[R]; el resto, en el `.json` y el `.csv`.
 
 Romano-Wolf y Holm coinciden en todas las variantes.
 
+**7 variantes baten a `M0 first_r=0.1`** con p de Romano-Wolf < 0.05: 3 de `M8`, 4 de `S1`.
+**Todas pertenecen a las familias que cambian el SL inicial** (`M8`, `S1`), ninguna a las reglas de arrastre (`M2` con sus 45 variantes, `M3`, `M5`, `M6`, `M7`). No es que una pasara por casualidad: lo único que mejora a la base, de forma sistemática y en dos familias independientes, es **apartar el stop inicial**.
+
 ### Frente a `M1 be_trigger_r=1 be_lock_r=0.1`
 
 913 días de remuestreo, 5000 réplicas.
@@ -112,9 +115,14 @@ Romano-Wolf y Holm coinciden en todas las variantes.
 
 Romano-Wolf y Holm **discrepan** en `M8 q=0.9` (E3: se informa).
 
+**2 variantes baten a `M1 be_trigger_r=1 be_lock_r=0.1`** con p de Romano-Wolf < 0.05: 2 de `M8`.
+**Todas pertenecen a las familias que cambian el SL inicial** (`M8`, `S1`), ninguna a las reglas de arrastre (`M2` con sus 45 variantes, `M3`, `M5`, `M6`, `M7`). No es que una pasara por casualidad: lo único que mejora a la base, de forma sistemática y en dos familias independientes, es **apartar el stop inicial**.
+
 ## 4. Probabilidad de sobreajuste (PBO, CSCV)
 
 PBO = **0.13** con 8 tramos, 70 combinaciones y 89 variantes (logit mediano +4.49). El pre-registro pide < 0,2.
+
+No es comparable con el 0,46 de T131: allí el CSCV solo tenía once variantes casi idénticas entre las que elegir, y con tan poca variedad el estadístico no mide lo que pretende. El número fiable es este; el de T131 estaba mal medido, no era pesimista.
 
 ## 5. Control aleatorio (criterio 6, nulo por series sustitutas)
 
@@ -126,6 +134,8 @@ El nulo conserva la distribución de retornos y destruye la dependencia serial: 
 | `M1 be_trigger_r=1 be_lock_r=0.1` | -0.0039 | +0.0407 | +0.1582 | +0.667 | sí |
 | `M8 q=0.9` | +0.0257 | +0.0448 | +0.0982 | +0.619 | sí |
 | `M8 q=0.95` | +0.0257 | +0.0448 | +0.0982 | +0.619 | sí |
+
+> **Salvedad.** `M8 q=0.9`, `M8 q=0.95` salen con cifras **idénticas** a `M0 first_r=0.1`, lo que significa que sobre las entradas al azar no tocó nada: el criterio 6 midió a su acompañante, no a ella. Ocurre cuando la estrategia del control no alcanza la muestra mínima de ganadoras y el cuantil no existe (sin muestra no se aprieta). **Ese «sí» no avala su geometría.** Si alguna de estas se reconsidera en T136, su control hay que rehacerlo con entradas al azar que sí tengan muestra de ganadoras.
 
 ## 6. Insumos de potencia para T135 (E9)
 
