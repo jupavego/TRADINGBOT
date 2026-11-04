@@ -102,17 +102,34 @@ def floor_ok(candidate: float, ref: float, side: int, sigma_abs: float | None,
     return (ref - candidate) * side >= n * sigma_abs - EPS
 
 
-def _apply(st: TrailState, cand: float | None, ref: float, side: int, tick: float,
-           sigma_abs: float | None, floor_n: float, j: int, end: int, rule_id: str) -> None:
-    """Mueve el stop si el candidato sube, respeta el piso y ya lo alcanzó el precio."""
+def can_move(st: TrailState, cand: float | None, ref: float, side: int, tick: float,
+             sigma_abs: float | None, floor_n: float) -> float | None:
+    """El stop al que se movería, o None si no se mueve. No muta nada.
+
+    El piso de ruido se mide sobre el candidato **sin redondear**: el redondeo al tick va en
+    contra del operador y es un ajuste de precisión del instrumento, no una decisión de la
+    política. Si decidiera el piso, una variante con `k` igual al piso quedaría muerta por un
+    tick —el stop no se movería nunca— y el banco informaría de una política inerte creyendo
+    que mide la suya (medido: con k=2 y piso 2σ, 0 movimientos y 55 221 velas recorridas en
+    balde por idea).
+    """
     if cand is None or not math.isfinite(cand):
-        return
+        return None
+    if not floor_ok(cand, ref, side, sigma_abs, floor_n):
+        return None
     p = round_against(cand, side, tick)
     if (p - st.stop) * side <= 0:                      # trinquete: solo sube
-        return
+        return None
     if (ref - p) * side < -EPS:                        # no se pone al otro lado del precio
-        return
-    if not floor_ok(p, ref, side, sigma_abs, floor_n):
+        return None
+    return p
+
+
+def _apply(st: TrailState, cand: float | None, ref: float, side: int, tick: float,
+           sigma_abs: float | None, floor_n: float, j: int, end: int, rule_id: str) -> None:
+    """Mueve el stop si puede."""
+    p = can_move(st, cand, ref, side, tick, sigma_abs, floor_n)
+    if p is None:
         return
     st.stop, st.moved = p, True
     st.hist.append({"t": end, "stop": p, "bar": j, "source": rule_id, "phase": st.phase,
@@ -202,10 +219,11 @@ def simulate_trail(idea: Idea, path: Path, ep: ExecParams, rule: StopRule, qty: 
             prospect = st.prospect(fav)                 # el extremo CON esta vela, sin aplicarlo
             st.phase = rule.phase_at(st, j, prospect)
             cand = rule.stop_at(st, j, prospect)
-            rounded = (round_against(cand, s, spec.tick)
-                       if cand is not None and math.isfinite(cand) else None)
-            would = rounded is not None and (rounded - st.stop) * s > 0
-            ambiguous = would and ((lo <= rounded) if s > 0 else (h >= rounded))
+            # La vela es ambigua solo si el stop PODRÍA moverse ahí y además ese stop nuevo cae
+            # dentro del rango de la vela. Si el piso o el trinquete lo van a rechazar, no hay
+            # ambigüedad que resolver y bajar al 1 min sería recorrerlo para nada.
+            rounded = can_move(st, cand, prospect, s, spec.tick, sig, limits.floor_n)
+            ambiguous = rounded is not None and ((lo <= rounded) if s > 0 else (h >= rounded))
             if ambiguous and _fine_covers(fine, t0, path.step):
                 fine_bars += 1
                 hit = _sub_bars(st, rule, fine, path, ep, t0, path.step, sig, limits.floor_n,
@@ -253,10 +271,20 @@ def simulate_trail(idea: Idea, path: Path, ep: ExecParams, rule: StopRule, qty: 
 
 
 def _closes_by_time(st: TrailState, limits: TrailLimits, j: int, start: int) -> bool:
-    """Barrera vertical (M6): tras `time_bars` velas sin llegar a `time_min_r`, se cierra."""
+    """Barrera vertical (M6): tras `time_bars` velas se cierra, salvo que el avance llegara a
+    `time_min_r`.
+
+    `time_min_r = 0` significa **sin excepción**: la barrera cierra siempre a las `time_bars`
+    velas. Es la barrera vertical de la triple barrera sin objetivo de beneficio. Leerlo como
+    «cierra si el avance es menor que 0» dejaría el valor pre-registrado 0 inerte, porque el
+    avance nunca es negativo (`advance_of` lo acota en 0): tres variantes de M6 medirían «no
+    cerrar nunca» en vez de lo que declara la rejilla.
+    """
     if limits.time_bars is None:
         return False
-    return j - start >= limits.time_bars and st.advance_r < limits.time_min_r - EPS
+    if j - start < limits.time_bars:
+        return False
+    return limits.time_min_r <= 0 or st.advance_r < limits.time_min_r - EPS
 
 
 def _closes_by_htf(limits: TrailLimits, htf_dir: np.ndarray | None, j: int,

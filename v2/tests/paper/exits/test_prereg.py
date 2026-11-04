@@ -49,17 +49,32 @@ def test_an_unknown_field_is_refused_instead_of_ignored(tmp_path):
         pr.load_prereg(path=p)
 
 
-def test_the_grid_counts_every_attempt_including_what_t132_has_not_built_yet():
-    p = pr.load_prereg()
-    by_id = {g.id: g for g in p.grid}
-    assert set(by_id) == {"M0", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8",
-                          "S1", "S2", "S3"}
-    assert by_id["M2"].combos == 3 * 5 * 3            # k × σ × activación
-    assert by_id["S3"].combos == 2 * 3 * 2            # E12: los parámetros de T136 cuentan
-    assert p.attempts() == sum(g.combos for g in p.grid) == 107
-    assert p.implemented() == ("M0", "M1")
-    assert set(p.pending()) == set(by_id) - {"M0", "M1"}
-    assert p.pending()["M4"] == "pendiente_T133"
+def test_the_grid_counts_every_attempt_in_every_version():
+    """La rejilla y el recuento de intentos no cambian entre versiones: lo que cambia es el estado.
+
+    Que los 107 intentos se conserven en la v3 es deliberado: M4 se descartó en T133, pero
+    declararla ya fue un grado de libertad gastado y descontarla abarataría la corrección por
+    pruebas múltiples a posteriori."""
+    for version in ("prereg_t131_v1", "prereg_t131_v2", "prereg_t131_v3"):
+        p = pr.load_prereg(version)
+        by_id = {g.id: g for g in p.grid}
+        assert set(by_id) == {"M0", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8",
+                              "S1", "S2", "S3"}, version
+        assert by_id["M2"].combos == 3 * 5 * 3        # k × σ × activación
+        assert by_id["S3"].combos == 2 * 3 * 2        # E12: los parámetros de T136 cuentan
+        assert p.attempts() == sum(g.combos for g in p.grid) == 107, version
+
+
+def test_the_statuses_are_the_ones_of_each_version():
+    v2 = pr.load_prereg("prereg_t131_v2")
+    assert v2.implemented() == ("M0", "M1")
+    assert v2.pending()["M4"] == "pendiente_T133"
+    v3 = pr.load_prereg("prereg_t131_v3")
+    assert v3.implemented() == ("M0", "M1", "M2", "M3", "M5", "M6", "M7", "M8", "S1")
+    assert v3.pending() == {"M4": pr.DISCARDED, "S2": "pendiente_permiso_y_codigo",
+                            "S3": "pendiente_T136"}
+    assert v3.winners_mae is not None and v3.winners_mae.reference.startswith("M1")
+    assert v3.control.by_surrogates and v3.control.surrogates >= 20
 
 
 def test_the_design_is_the_one_of_5_3():
