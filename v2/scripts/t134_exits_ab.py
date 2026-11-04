@@ -287,9 +287,33 @@ def _assemble(a, pr, view, fine, htf, feats, ideas, bases, vs, skipped, fs, emba
     }
 
 
+CUTS_KEPT = 10          # variantes (además de las bases) que conservan sus cortes en el JSON
+
+
+def _trim(res: dict) -> dict:
+    """El JSON sin los cortes de las variantes que nadie consideraría.
+
+    Los cortes por régimen, marco, familia y lado de las 89 variantes son 6,8 MB de los 8,8 del
+    archivo, y el informe más grande del repo son 610 KB. Se conservan los de las bases y las
+    `CUTS_KEPT` mejores por E[R] —las únicas que alguien mirará— y el resto se regenera con la
+    misma orden, que es justo lo que pide la aceptación de T134.
+    """
+    order = sorted(res["metrics"], key=lambda k: -(res["metrics"][k]["test"]
+                                                   .get("expectancy_r") or -9e9))
+    keep = set(res["bases"]) | set(order[:CUTS_KEPT])
+    out = {**res, "metrics": {}}
+    for k, v in res["metrics"].items():
+        out["metrics"][k] = v if k in keep else {**v, "cuts": None}
+    out["cuts_kept"] = sorted(keep)
+    out["cuts_note"] = (f"Los cortes por régimen, marco, familia y lado se guardan de las bases y "
+                        f"de las {CUTS_KEPT} mejores por E[R]; los de las demás se regeneran con "
+                        f"`{res['meta']['command']}`.")
+    return out
+
+
 def _write(out: Path, res: dict, tot: dict, verds: list) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.with_suffix(".json").write_text(json.dumps(res, ensure_ascii=False, indent=1,
+    out.with_suffix(".json").write_text(json.dumps(_trim(res), ensure_ascii=False, indent=1,
                                                    default=str), encoding="utf-8")
     out.with_suffix(".md").write_text(render(res), encoding="utf-8")
     rows = []
