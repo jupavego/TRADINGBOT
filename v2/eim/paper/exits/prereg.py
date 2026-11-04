@@ -23,14 +23,19 @@ from pydantic import BaseModel, ConfigDict, Field
 from eim.validation.criteria import file_hash
 
 VERSIONS_DIR = Path(__file__).parent / "versions"
-DEFAULT_VERSION = "prereg_t131_v2"
+DEFAULT_VERSION = "prereg_t131_v3"
 # SHA-256 (fin de línea LF) de cada versión publicada. Solo se añaden entradas.
 # v2 corrige la definición de la meseta (sobre LA MEJORA frente a la base, como dice §5.3 de
-# `PLAN/notas/T129_sl_dinamico.md`, no sobre el E[R] absoluto); v1 queda publicada e intacta.
+# `PLAN/notas/T129_sl_dinamico.md`, no sobre el E[R] absoluto).
+# v3 es la del experimento de T134: marca como implementadas las políticas de T132, pasa M4 a
+# descartada (T133, sin descontar sus intentos) y redefine el criterio 6 con un nulo por series
+# sustitutas. v1 y v2 quedan publicadas e intactas.
 PUBLISHED: dict[str, str] = {
     "prereg_t131_v1": "730a11f987e65e0835aa9e4090a7d62005be60fd582953f6113605fa27bc9c73",
     "prereg_t131_v2": "0dd3d9d8550beac024ac71f5d33c52f45da31b7526bf7e1844df98af117e64f0",
+    "prereg_t131_v3": "d3c24a1a54d1975a6a3cae9b7828e3eb5ba55bf283c56fa0149ffc9164172efc",
 }
+DISCARDED = "descartada_T133"
 IMPLEMENTED = "implementada"
 
 
@@ -83,9 +88,29 @@ class CostStress(_Frozen):
     approve_at: float = Field(ge=1)
 
 
+class WinnersMaeSpec(_Frozen):
+    """E5: la salida de referencia que define «ganadora», nombrada en el pre-registro."""
+
+    reference: str
+    quantile: float = Field(gt=0, lt=1)
+    min_trades: int = Field(ge=1)
+    unit: str = "sigma"
+    why: str = ""
+
+
 class Control(_Frozen):
+    """Criterio 6. Desde la v3 el nulo es por series sustitutas; v1 y v2 no traían esos campos."""
+
     strategy: str
     expect: str
+    null: str = ""                               # "" = el nulo viejo (bruto contra 0)
+    surrogates: int = Field(0, ge=0)
+    block_minutes: int = Field(1, ge=1)
+    alpha: float = Field(0.05, gt=0, lt=0.5)
+
+    @property
+    def by_surrogates(self) -> bool:
+        return bool(self.null) and self.surrogates > 0
 
 
 class Ruin(_Frozen):
@@ -136,6 +161,7 @@ class Prereg(_Frozen):
     selection: Selection
     cost_stress: CostStress
     control: Control
+    winners_mae: WinnersMaeSpec | None = None      # solo desde la v3
     ruin: Ruin
     accept: Accept
     grid: tuple[GridItem, ...]

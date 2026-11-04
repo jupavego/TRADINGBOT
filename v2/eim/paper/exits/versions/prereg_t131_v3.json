@@ -1,0 +1,313 @@
+{
+  "version": "prereg_t131_v3",
+  "description": "Pre-registro del banco de salidas de la fase 22, versión 3, la que usa el experimento de T134. Cambia tres cosas respecto a la v2, y nada más: (1) las políticas que T132 implementó pasan a «implementada»; (2) M4 pasa a «descartada_T133», porque su cota del oráculo no cumple los criterios 1-3 ni conociendo el régimen con certeza, y SIGUE CONTANDO como intento; (3) el criterio 6, el del control aleatorio, se redefine con un nulo correcto: la misma salida sobre series sustitutas con la dependencia serial destruida y la distribución de retornos intacta. v1 y v2 quedan publicadas e intactas. Cambiar cualquier valor = archivo nuevo prereg_t131_v4.json, nunca una edición.",
+  "scope": "BTCUSDT. Diseño emparejado: todas las ideas de todas las estrategias con tamaño fijo y sin la memoria de los perfiles; solo cambia la regla de salida. Secundario: el libro completo de cada perfil (T111). Control: las mismas salidas sobre las entradas de control_aleatorio.",
+  "symbol": "BTCUSDT",
+  "seed": 131,
+  "risk_usd": 100.0,
+  "design": {
+    "start": "2023-01-01T00:00:00Z",
+    "end": "2026-08-16T00:00:00Z",
+    "reserve_note": "El tramo 2026-08-16 → hoy queda de reserva (T111 ya lo vio de forma agregada). La prueba definitiva es la prospectiva en papel de T135.",
+    "path_timeframe": "15m",
+    "fine_timeframe": "1m",
+    "decision_timeframes": [
+      "1h",
+      "4h"
+    ],
+    "fit_months": 12,
+    "test_months": 3,
+    "step_months": 3,
+    "embargo_quantile": 0.99,
+    "embargo_feature_hours": 200
+  },
+  "bootstrap": {
+    "block": "day_utc",
+    "reps": 5000,
+    "level": 0.95
+  },
+  "multiple": {
+    "primary": "romano_wolf",
+    "reference": "holm",
+    "reps": 5000,
+    "alpha": 0.05
+  },
+  "pbo": {
+    "splits": 8,
+    "max_pbo": 0.2
+  },
+  "selection": {
+    "objective": "expectancy_r",
+    "constraints": [
+      "cvar95_r_not_worse_than_base",
+      "max_dd_r_not_worse_than_base"
+    ],
+    "base": "M0",
+    "choose": "plateau_center",
+    "plateau_keep": 0.7
+  },
+  "cost_stress": {
+    "stop_slip_multipliers": [
+      1.0,
+      1.5,
+      2.0
+    ],
+    "approve_at": 1.5
+  },
+  "control": {
+    "strategy": "control_aleatorio",
+    "null": "retornos_reales_barajados",
+    "surrogates": 20,
+    "block_minutes": 1,
+    "alpha": 0.05,
+    "expect": "El R BRUTO (neto + costo) de las entradas al azar no puede superar al de la misma salida sobre series sustitutas más allá del azar: p >= alpha, una cola."
+  },
+  "ruin": {
+    "risk_pct": 0.01,
+    "trades": 200,
+    "reps": 2000,
+    "floor": 0.5
+  },
+  "accept": {
+    "bases": [
+      "M0",
+      "M1"
+    ],
+    "delta_ci_lower_above": 0.0,
+    "win_loss_ratio_min": 0.5,
+    "pf_vs_base_min": 1.15,
+    "max_dd_vs_base_max": 1.1,
+    "cvar_not_worse": true,
+    "folds_positive_frac_min": 0.6667,
+    "years": [
+      2023,
+      2024,
+      2025,
+      2026
+    ],
+    "plateau_keep": 0.7,
+    "pbo_max": 0.2,
+    "prospective_weeks_min": 4
+  },
+  "grid": [
+    {
+      "id": "M0",
+      "family": "escalera",
+      "status": "implementada",
+      "params": {
+        "first_r": [
+          0.075,
+          0.1,
+          0.25,
+          0.5,
+          1.0
+        ]
+      },
+      "note": "step_r = first_r / 2 (la traducción exacta del encargo de T108); la referencia M0 son los valores vigentes de cada perfil."
+    },
+    {
+      "id": "M1",
+      "family": "sombra_tp_be_tiempo",
+      "status": "implementada",
+      "params": {
+        "be_trigger_r": [
+          0.5,
+          1.0,
+          1.5
+        ],
+        "be_lock_r": [
+          0.0,
+          0.1
+        ]
+      },
+      "note": "Salida A de T111; la referencia es (1,0 · 0,1), la vigente en ExecParams."
+    },
+    {
+      "id": "M2",
+      "family": "arrastre_volatilidad",
+      "status": "implementada",
+      "params": {
+        "k": [
+          2,
+          3,
+          4
+        ],
+        "sigma": [
+          "atr14",
+          "harrv_1m",
+          "parkinson",
+          "garman_klass",
+          "yang_zhang"
+        ],
+        "activate_r": [
+          0.0,
+          0.5,
+          1.0
+        ]
+      }
+    },
+    {
+      "id": "M3",
+      "family": "arrastre_estructura",
+      "status": "implementada",
+      "params": {
+        "fractal_bars": [
+          3,
+          5
+        ],
+        "noise_floor_n": [
+          2,
+          3
+        ]
+      },
+      "note": "Colchón fijo de 0,25 σ (§4.5); swing confirmado de 15 m."
+    },
+    {
+      "id": "M4",
+      "family": "regimen",
+      "status": "descartada_T133",
+      "params": {
+        "policy_map": [
+          "M0|M2_k4",
+          "M2_k2|M2_k4"
+        ]
+      },
+      "note": "DESCARTADA en T133 por la cota del oráculo (E6): ni con el régimen conocido con certeza cumple los criterios 1-3 de §5.4 (cociente 0,35 < 0,50 y CVaR peor que M0; PF 0,737 < 0,841 frente a M1), y sigue perdiendo (E[R] −0,093). Sus 2 combinaciones NO se descuentan de los intentos: declararlas ya fue un grado de libertad gastado, y mantenerlas es la cuenta conservadora."
+    },
+    {
+      "id": "M5",
+      "family": "hibrida",
+      "status": "implementada",
+      "params": {
+        "a_r": [
+          0.5,
+          1.0,
+          1.5
+        ],
+        "b_r": [
+          0.0,
+          0.1
+        ],
+        "trail": [
+          "M2",
+          "M3"
+        ]
+      }
+    },
+    {
+      "id": "M6",
+      "family": "tiempo",
+      "status": "implementada",
+      "params": {
+        "bars": [
+          8,
+          16,
+          24
+        ],
+        "min_r": [
+          0.0,
+          0.5
+        ]
+      },
+      "note": "Barrera vertical; solo existe en el banco (◆2 de T129)."
+    },
+    {
+      "id": "M7",
+      "family": "reversion_marco_mayor",
+      "status": "implementada",
+      "params": {
+        "confirm_bars": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "id": "M8",
+      "family": "cuantil_mae_ganadoras",
+      "status": "implementada",
+      "params": {
+        "q": [
+          0.8,
+          0.9,
+          0.95
+        ]
+      },
+      "note": "El cuantil se calcula SOLO con las ganadoras del tramo de ajuste de cada pliegue y con la salida de referencia de `winners_mae`, nunca con la política que se evalúa (E5). Sin la muestra mínima por estrategia@marco no hay cuantil y el SL de la idea no se toca."
+    },
+    {
+      "id": "S1",
+      "family": "sl_inicial_con_piso",
+      "status": "implementada",
+      "params": {
+        "d_min_sigma": [
+          1.5,
+          2.0,
+          3.0
+        ],
+        "sigma": [
+          "atr14",
+          "harrv_1m"
+        ]
+      },
+      "note": "Tamaño constante en riesgo; si T134 lo aprueba, crea versiones nuevas en T49."
+    },
+    {
+      "id": "S2",
+      "family": "cierre_parcial",
+      "status": "pendiente_permiso_y_codigo",
+      "params": {
+        "fraction": [
+          0.3333,
+          0.5
+        ],
+        "at_r": [
+          1.0,
+          1.5
+        ]
+      },
+      "note": "Sin implementar y sin permiso: el cierre parcial contradice la regla de T105 y ◆2 de T129 solo lo permite en el banco. T132 no lo construyó. No se corre en T134; cuenta como intento."
+    },
+    {
+      "id": "S3",
+      "family": "riesgo_cartera_T136",
+      "status": "pendiente_T136",
+      "params": {
+        "vol_target": [
+          0.5,
+          1.0
+        ],
+        "dd_brake": [
+          0.05,
+          0.08,
+          0.1
+        ],
+        "cvar_limit_r": [
+          0.3,
+          0.5
+        ]
+      },
+      "note": "Es de T136 (tamaño por volatilidad objetivo, freno de drawdown y límite de CVaR). No se corre en T134; cuenta como intento por E12."
+    }
+  ],
+  "notes": [
+    "Purga y embargo (E1): del tramo de ajuste salen las operaciones que se cierran dentro del tramo de prueba y las que se cierran dentro del embargo. El embargo es el mayor entre la duración p99 de las operaciones de la política y embargo_feature_hours.",
+    "Objetivo de selección (E2): dentro de cada tramo de ajuste se maximiza expectancy_r (neto de costos) con el CVaR 95 % y el DD máximo no peores que la base en ESE tramo, y se toma el centro de la meseta, no el pico.",
+    "Centro de la meseta (regla exacta, v2): la meseta se mide sobre LA MEJORA frente a la base en ese tramo (ΔE[R] = expectancy_r de la variante − expectancy_r de la base), no sobre el E[R] absoluto. Es candidata la variante factible cuyos vecinos a ±1 paso de la rejilla conservan ≥ plateau_keep de su mejora y cuya propia mejora alcanza ≥ plateau_keep de la mayor mejora factible del tramo; entre las candidatas gana la que maximiza el MÍNIMO de su entorno (ella y sus vecinos). Si ninguna cumple, el tramo no elige variante y se informa la mejor sin restricciones.",
+    "Pruebas múltiples (E3): Romano-Wolf con el mismo remuestreo de días para todas las variantes; Holm se informa como referencia y, si discrepan, se dice.",
+    "Estrés de costos (E4a): todo el banco se repite con el deslizamiento de los stops ×1,5 y ×2; una salida que solo gana con el costo base no se aprueba.",
+    "Intentos: la rejilla entera cuenta en el Sharpe deflactado y en las correcciones, incluidas las variantes que no se lleguen a correr.",
+    "Este archivo se publica (su SHA-256 queda fijado en prereg.py) ANTES del primer resultado de M2-M8 y S1-S3.",
+    "Control aleatorio (criterio 6, redefinido en la v3): el nulo de la v1 y la v2 estaba MAL ESPECIFICADO para una salida dependiente del camino. Pedía que el R bruto de las entradas al azar contuviera el 0, lo que solo se cumple si la serie es una martingala; el BTC no lo es a 15 min, y un stop de arrastre es precisamente una apuesta a esa dependencia (Kaminski y Lo; Lo y Remorov). Medido en T131: la escalera ajustada daba +0,025 R de bruto con el 0 fuera del IC, sin que hubiera anticipación alguna (sobre paseos aleatorios independientes y sin costos da 0). El nulo correcto conserva la distribución de retornos y destruye la dependencia: se barajan los log-retornos de las velas de 1 min, se rehace el camino de 15 m agregando desde ellas, se generan las entradas al azar sobre ESE camino con la misma geometría y los mismos costos, y se compara el bruto observado con la distribución de los `surrogates` sustitutos (p de una cola con corrección +1). Se RECHAZA la salida si p < alpha, es decir si vuelve rentables las entradas al azar más de lo que explica la propia distribución de retornos.",
+    "Libro completo (diseño secundario de §5.3): en T134 solo se puede calcular para M0 y M1, las dos salidas que `paper/book.py` sabe ejecutar. Para M2-M8 y S1 exigiría conectarlas a los perfiles, que es T135 y está fuera del alcance de T134. Se informa así, no se omite.",
+    "Estrés de costos: para ahorrar cómputo solo se repite con ×1,5 y ×2 en las variantes que pasan el criterio 1 con el costo base, más las dos bases como referencia. Una variante que no pasa el criterio 1 al costo base tampoco lo pasaría con costos mayores, así que ningún veredicto cambia; el informe dice de cada variante si se midió con estrés o no.",
+    "Salida de referencia de E5: se nombra en `winners_mae.reference` y la usan M8 y la fase de supervivencia de M5. Quedó fijada en esta misma versión, antes de calcular cualquier resultado con ella (el historial de git lo muestra: el commit que crea la v3 es el que la nombra)."
+  ],
+  "winners_mae": {
+    "reference": "M1 be=1/0.1",
+    "quantile": 0.9,
+    "min_trades": 30,
+    "unit": "sigma",
+    "why": "E5 exige una salida de referencia FIJA y pre-registrada para definir «ganadora». Se elige M1 con sus valores vigentes (la salida A de T111, TP/BE+/tiempo) por dos razones: no es ninguna de las candidatas que M8 y M5 van a usar el cuantil para construir, así que no hay circularidad; y sus ganadoras corren hasta el TP, de modo que su MAE refleja el retroceso que aguanta una operación que acaba bien. Con la escalera como referencia pasaría lo contrario: sus ganadoras se cierran a +0,1 R enseguida, su MAE es diminuto y M8 heredaría stops ajustadísimos, que es el defecto H1 que la fase 22 intenta corregir."
+  }
+}
