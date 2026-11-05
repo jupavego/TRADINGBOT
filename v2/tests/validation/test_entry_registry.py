@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import replace
 
 import pytest
@@ -147,3 +148,24 @@ def test_candidate_rule_needs_everything_the_prereg_says():
     ]
     for by, inert, c in bad:
         assert not er.candidates(PR, by, inert, var, c)
+
+
+def test_pooled_tables_leave_out_the_control():
+    """Las entradas al azar se miden aparte: en el agregado moverían las cifras de las reales."""
+    ts = trades(n=30, mean=1.0, t0=iso_ms("2025-01-01T00:00:00Z"), step_h=1, live_last=0)
+    ctl = "control_aleatorio@1h"
+    real = ev.version_of(SID, S1, PR, "fp")
+    rnd = ev.version_of(ctl, S1, PR, "fq")
+    run = er.VariantRun("s1", trades={SID: ts[:10], ctl: ts})
+    got = er.pooled_table(PR.reading("banco"), {}, [(real, "s1"), (rnd, "s1")], {"s1": run}, [],
+                          "BTCUSDT", iso_ms("2030-01-01T00:00:00Z"), "control_aleatorio")
+    assert got["s1"]["1h"]["n"] == 10 and got["s1"]["todos"]["n"] == 10
+
+
+def test_cost_summary_leaves_out_the_control():
+    run = er.VariantRun("s1")
+    run.stats = {SID: Counter(ideas=10, moved=5, vetoed=2),
+                 "control_aleatorio@1h": Counter(ideas=90, moved=90, vetoed=90)}
+    run.cost_sum = {SID: 1.0, "control_aleatorio@1h": 90.0}
+    x = er.cost_summary(run, "control_aleatorio")["1h"]
+    assert x["ideas"] == 10 and x["moved_frac"] == 0.5 and x["cost_ex_ante_r"] == pytest.approx(0.1)

@@ -47,6 +47,7 @@ from eim.validation.lineage import iso_ms
 from eim.validation.service import summarize
 
 PREREG_COMMIT = "213247f"
+M1_T134 = "M1 be_trigger_r=1 be_lock_r=0.1"     # la sombra en T134: la misma salida que el padre
 
 
 def log(t0: float, msg: str) -> None:
@@ -79,7 +80,7 @@ def published(reports: Path) -> dict:
     t134 = json.loads((reports / "exits_ab.json").read_text(encoding="utf-8"))["metrics"]
     t136 = json.loads((reports / "t136_riesgo.json").read_text(encoding="utf-8"))
     pick = {k: t134[k]["test"] for k in ("M0 first_r=0.1", "M8 q=0.95",
-                                         "S1 d_min_sigma=3 sigma=atr14")}
+                                         "S1 d_min_sigma=3 sigma=atr14", M1_T134)}
     return {**pick, "cap": next(x for x in t136["cost_caps"] if x["cap_r"] == 0.08)}
 
 
@@ -191,6 +192,9 @@ def main() -> int:  # noqa: PLR0915
             [i for i in real if i.timeframe in tfs],
             ExitContext(path=path, ep=ep, spec=spec, fine=fine), book, atr, pr,
             LADDER_BY_PROFILE["moderado"], t131.risk_usd, published(Path("reports")))
+        reg["padre con su propia sombra (M1)"] = ec.check_parent(
+            sample["banco"]["pooled"]["base"]["todos"], published(Path("reports"))[M1_T134],
+            pr.regression.tolerance_r)
         log(t0, f"regresión: {[(k, x['ok']) for k, x in reg.items()]}")
     csid = f"{pr.control.strategy}@{pr.control.timeframe}"
     g = ec.control_geometry([i for i in ideas if i.sid == csid])
@@ -232,7 +236,7 @@ def main() -> int:  # noqa: PLR0915
                  "command": f"python scripts/t137_entrada.py --data {a.data}"},
         "variant_ids": [v.id for v in pr.variants],
         "readings": res_read,
-        "variants": {k: {"cost": run.cost_summary(x),
+        "variants": {k: {"cost": run.cost_summary(x, pr.strategies.control),
                          "inert": sum(1 for lb, i in inert.items() if i and variant_of[lb] == k)}
                      for k, x in runs.items()},
         "cap_left_out": run.cap_left_out(sample["banco"]["pooled"], tf15["pooled"]),

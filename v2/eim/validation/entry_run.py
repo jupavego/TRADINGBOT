@@ -120,12 +120,16 @@ def pooled(trades: Sequence[Trade]) -> dict:
 def pooled_table(r: Reading, parent: Mapping[str, Version],
                  versions: Sequence[tuple[Version, str]],
                  run_by_variant: Mapping[str, VariantRun], registry: Sequence[Version],
-                 symbol: str, asof: int) -> dict[str, dict[str, dict]]:
-    """variante → marco → agregado en esta lectura, con la versión padre al lado para comparar."""
+                 symbol: str, asof: int, control: str = "") -> dict[str, dict[str, dict]]:
+    """variante → marco → agregado en esta lectura, con la versión padre al lado para comparar.
+
+    El control no entra: las entradas al azar se miden aparte, como en T134, y mezclarlas movería
+    las cifras de las estrategias reales.
+    """
     groups: dict[tuple[str, str], list[Trade]] = {}
     rows = [*versions, *((v, BASE) for v in parent.values())]
     for v, vid in rows:
-        if not in_reading(r, v.sid) or vid not in run_by_variant:
+        if v.strategy == control or not in_reading(r, v.sid) or vid not in run_by_variant:
             continue
         wins = windows_for(r, v, [x for x in registry if x.sid == v.sid])
         got = select(run_by_variant[vid].trades.get(v.sid, []), wins, symbol, asof)
@@ -138,12 +142,14 @@ def pooled_table(r: Reading, parent: Mapping[str, Version],
     return out
 
 
-def cost_summary(run: VariantRun) -> dict[str, dict]:
+def cost_summary(run: VariantRun, control: str = "") -> dict[str, dict]:
     """Por marco: ideas, cuántas movió la geometría, cuántas vetó el tope y su costo ex ante."""
     tot: dict[str, Counter] = {}
     cost: dict[str, float] = {}
     for sid, c in run.stats.items():
-        tf = sid.split("@")[1]
+        strategy, tf = sid.split("@")
+        if strategy == control:
+            continue
         tot.setdefault(tf, Counter()).update(c)
         cost[tf] = cost.get(tf, 0.0) + run.cost_sum.get(sid, 0.0)
     out = {}
@@ -210,7 +216,8 @@ def sample_table(pr: Prereg, crit_all: Criteria, versions, runs, registry, paren
             total[vid] = total.get(vid, 0) + 1
             meets[vid] = meets.get(vid, 0) + int(ok)
         out[r.id] = {"meets_v1": meets, "versions": total,
-                     "pooled": pooled_table(r, parents, versions, runs, registry, sym, asof)}
+                     "pooled": pooled_table(r, parents, versions, runs, registry, sym, asof,
+                                            pr.strategies.control)}
     return out
 
 
@@ -219,8 +226,9 @@ def tf15_block(pr, runs, parents_ids, asof) -> dict:
     start = iso_ms(pr.m8_folds.tf15m.test_from)
     out = {}
     for vid in ("base", *parents_ids):
-        ts = [t for sid, xs in runs[vid].trades.items() if sid.endswith("@15m") for t in xs
-              if t.exit_t <= asof]
+        ts = [t for sid, xs in runs[vid].trades.items()
+              if sid.endswith("@15m") and not sid.startswith(f"{pr.strategies.control}@")
+              for t in xs if t.exit_t <= asof]
         out[vid] = {"todo": pooled(ts),
                     "desde 2026-10-16": pooled([t for t in ts if t.t >= start])}
     return {"note": pr.timeframe_15m.note, "pooled": out}

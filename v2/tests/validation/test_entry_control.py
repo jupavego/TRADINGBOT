@@ -136,3 +136,10 @@ def test_report_says_plainly_when_none_validated_and_shows_the_mode():
 def test_report_names_the_versions_the_rule_lets_through():
     res = _res() | {"candidates": [{"id": "x@1h@v1372", "variant": "s1", "passed": {}}]}
     assert "`x@1h@v1372`" in entry_report.render(res)
+
+
+def test_parent_check_needs_both_the_count_and_the_expectancy():
+    got = {"n": 100, "mean_r": -0.15}
+    assert ec.check_parent(got, {"n": 100, "expectancy_r": -0.15}, 1e-6)["ok"] is True
+    assert ec.check_parent(got, {"n": 99, "expectancy_r": -0.15}, 1e-6)["ok"] is False
+    assert ec.check_parent(got, {"n": 100, "expectancy_r": -0.14}, 1e-6)["ok"] is False

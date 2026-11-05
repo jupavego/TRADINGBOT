@@ -121,6 +121,13 @@ def _cap(res: dict) -> list[str]:
             name = "padre" if vid == "base" else vid
             out.append(f"| {name} | {tf} | {x['ideas']} | {_pct(x['moved_frac'])} | "
                        f"{_pct(x['vetoed_frac'])} | {_f(x['cost_ex_ante_r'], 3, False)} |")
+    inert = {k: v.get("inert", 0) for k, v in res["variants"].items() if v.get("inert")}
+    if inert:
+        out += ["", "Versiones **inertes**, en las que la geometría no movió ni un SL y son su "
+                "padre con otro nombre (cuentan como intentos, pero no ponen a prueba nada): "
+                + ", ".join(f"{k} {n}" for k, n in inert.items()) + ". M8 lo es cuando la "
+                "estrategia@marco no llega a 30 ganadoras en el tramo de ajuste, y S1 cuando su "
+                "stop ya estaba más lejos de 3 ATR de 15 m."]
     out += ["", "| Con tope | Sin tope | Operaciones con tope | Sin tope | Quedan fuera |",
             "|---|---|--:|--:|--:|"]
     for c in res["cap_left_out"]:
@@ -173,6 +180,13 @@ def _regression(res: dict) -> list[str]:
     for k, x in reg.items():
         out.append(f"| `{k}` | {x['n']} | {_f(x['expectancy_r'], 6)} | {x['want_n']} | "
                    f"{_f(x['want_expectancy_r'], 6)} | {MARK[x['ok']]} |")
+    gap = res.get("m8_unit_gap") or {}
+    if gap:
+        out += ["", "**Las unidades de M8 no coinciden, y se conserva así a propósito.** T134 "
+                "estima el cuantil en σ de Parkinson y lo aplica sobre σ ATR14, con una mediana de "
+                f"ATR14/Parkinson de {gap['atr14_over_parkinson_median']:.3f}: el stop queda más "
+                "lejos de lo que dice `q`. Es la geometría que dio la señal, así que es la que se "
+                "evalúa; corregirla sería otra variante y otros intentos (BACKLOG)."]
     return [*out, ""]
 
 

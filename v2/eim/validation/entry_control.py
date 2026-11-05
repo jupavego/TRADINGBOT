@@ -145,6 +145,18 @@ def control_report(pr: Prereg, runs: dict[str, VariantRun], null: dict, moved: d
     return out
 
 
+def check_parent(got: dict, want: dict, tol: float) -> dict:
+    """El padre, corrido por el camino de las versiones, tiene que ser la M1 que publicó T134.
+
+    Es lo que prueba el camino completo: de todas las ideas, por la regla y por `run_shadow`, sin
+    tocar nada, se llega a las mismas operaciones que el banco midió con su propia salida.
+    """
+    a, b = got.get("mean_r"), want.get("expectancy_r")
+    return {"n": got.get("n"), "expectancy_r": a, "want_n": want.get("n"),
+            "want_expectancy_r": b, "ok": (a is not None and b is not None and abs(a - b) <= tol
+                                           and got.get("n") == want.get("n"))}
+
+
 def regression(ideas: Sequence[Idea], ctx: ExitContext, book: QuantileBook, atr, pr: Prereg,
                ladder: LadderParams, risk_usd: float, published: dict) -> dict:
     """Reproduce M8 q=0.95, S1 d_min=3 atr14 y el tope de 0,08 R con M0 sobre los tramos de T134."""
