@@ -36,12 +36,13 @@ def _local(data: str, symbol: str) -> dict:
     from eim.data.store import Store
     from eim.data.validation_store import ValidationStore
     from eim.paper.desk import PaperDesk
+    from eim.validation.attempts import ATTEMPTS_FILE
     from eim.validation.service import Validator
 
     ps = PaperStore(Path(data) / "paper.duckdb")
     try:
         desk = PaperDesk(Store(data), ps)
-        return Validator(desk, ValidationStore(ps)).compute(symbol)
+        return Validator(desk, ValidationStore(ps), attempts=ATTEMPTS_FILE).compute(symbol)
     finally:
         ps.close()
 

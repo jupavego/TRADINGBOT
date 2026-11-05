@@ -39,6 +39,9 @@ _DDL = (
 )
 _VCOLS = ("sid, n, fingerprint, strategy, timeframe, created_ms, parent, origin, note, "
           "retired_ms")
+# Intentos evaluados fuera del servicio (T137). `ensure` no los ve: no pueden ser el padre de una
+# versión viva, porque le pasarían sus ventanas de ajuste, ni contar para su numeración.
+ATTEMPT_ORIGINS = frozenset({"T137"})
 
 
 class ValidationStore:
@@ -67,7 +70,8 @@ class ValidationStore:
                decls: Sequence[Declaration] = ()) -> Version:
         """La versión de esta huella; si es nueva se registra (padre = la vigente) y la
         vigente se retira. Una huella ya vista vuelve a ser la vigente (misma versión)."""
-        fam = self.versions(sid)
+        every = self.versions(sid)
+        fam = [v for v in every if v.origin not in ATTEMPT_ORIGINS]
         current = next((v for v in fam if v.retired_ms is None), None)
         same = next((v for v in fam if v.fingerprint == fingerprint), None)
         if same is not None:
@@ -81,6 +85,8 @@ class ValidationStore:
         origin, note, windows = ((decl.origin, decl.note, decl.windows) if decl else
                                  (AUTO_ORIGIN, "", auto_windows(now_ms)))
         n = max((v.n for v in fam), default=0) + 1
+        while any(v.n == n for v in every):          # la unión entre máquinas renumera los intentos
+            n += 1
         parent = current.n if current else (fam[-1].n if fam else None)
         self._retire(current, now_ms)
         self.ps.execute(f"INSERT INTO val_versions ({_VCOLS}) VALUES (?,?,?,?,?,?,?,?,?,?)",
@@ -90,6 +96,34 @@ class ValidationStore:
                             [(sid, n, w.from_ms, w.to_ms, w.symbol, w.note) for w in windows])
         return Version(sid, n, fingerprint, strategy, timeframe, now_ms, parent, origin, note,
                        None, tuple(windows))
+
+    def register_attempts(self, attempts: Sequence[Version]) -> int:
+        """Da de alta intentos evaluados fuera del servicio (T137). Devuelve cuántos son nuevos.
+
+        Nacen retirados y no tocan a la vigente de su estrategia, que es lo que haría `ensure`.
+        Idempotente por `(sid, huella)`, la identidad que usa también la unión entre máquinas.
+        """
+        rows = self.ps.execute("SELECT sid, n, fingerprint FROM val_versions")
+        known = {(r[0], r[2]) for r in rows}
+        taken = {(r[0], int(r[1])) for r in rows}
+        new = 0
+        for v in attempts:
+            if (v.sid, v.fingerprint) in known:
+                continue
+            parent = v.parent if (v.sid, v.parent) in taken else None
+            n = v.n
+            while (v.sid, n) in taken:
+                n += 1
+            self.ps.execute(f"INSERT INTO val_versions ({_VCOLS}) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                            [v.sid, n, v.fingerprint, v.strategy, v.timeframe, v.created_ms,
+                             parent, v.origin, v.note, v.retired_ms])
+            self.ps.executemany("INSERT INTO val_windows VALUES (?,?,?,?,?,?)",
+                                [(v.sid, n, w.from_ms, w.to_ms, w.symbol, w.note)
+                                 for w in v.windows])
+            known.add((v.sid, v.fingerprint))
+            taken.add((v.sid, n))
+            new += 1
+        return new
 
     def _retire(self, v: Version | None, now_ms: int) -> None:
         if v is not None:

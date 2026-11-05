@@ -20,6 +20,7 @@ from eim.paper.catalog import CATALOG
 from eim.paper.desk import PaperDesk
 from eim.paper.engine import Outcome, simulate
 from eim.paper.generate import now_ms
+from eim.validation.attempts import load_attempts
 from eim.validation.criteria import Criteria, load_criteria
 from eim.validation.evidence import flip_idea, ref_price, trade_of
 from eim.validation.gate import NAMES, VALIDADA, measure, validate_all
@@ -44,10 +45,11 @@ def summarize(verdicts: list[dict]) -> dict:
 
 class Validator:
     def __init__(self, desk: PaperDesk, vstore: ValidationStore, crit: Criteria | None = None,
-                 lineage: Path = LINEAGE_FILE) -> None:
+                 lineage: Path = LINEAGE_FILE, attempts: Path | None = None) -> None:
         self.desk, self.vstore = desk, vstore
         self.crit = crit or load_criteria()
         self.lineage = lineage
+        self.attempts = attempts          # intentos de fuera del servicio que cuentan en Holm
         self.last_run: int | None = None
         self.error = ""
         self._cov: dict[str, dict | None] = {}     # cobertura del último cálculo por símbolo
@@ -56,6 +58,9 @@ class Validator:
     # --- versiones --------------------------------------------------------------------
     def current_versions(self, now: int) -> dict[str, Version]:
         """Registra (si hace falta) y devuelve la versión vigente de cada estrategia@marco."""
+        if self.attempts is not None:
+            self.vstore.register_attempts(load_attempts(self.attempts))
+            self.attempts = None          # una vez por proceso: el alta es idempotente
         decls = load_declarations(self.lineage)
         out = {}
         for tf in self.desk.tfs:
