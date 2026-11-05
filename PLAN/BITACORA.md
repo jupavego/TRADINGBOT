@@ -608,9 +608,9 @@ más reciente por fecha y su siguiente paso. Formato:
 
 ## 2026-11-05 22:40 UTC · juanpablo-cpu · T136 fusionada y decisiones ◆1 y ◆2
 - **Hecho:** PR #208 fusionado (`fe33c1c`) y `main` traído a la carpeta principal **sin reiniciar servicios**: cargarán T136 en su próximo reinicio. El usuario resolvió la ◆1: `risk_includes_costs` se enciende **al cerrar T31** (→ 2026-11-27) y no antes. Queda como sección «Al cerrar» de `PLAN/T31.md`, que es lo que leerá quien cierre esa tarea, con dos trampas anotadas: la prueba que fija el valor apagado y la corrida de la portátil, a la que el cambio le llegaría al traer `main`. El parámetro sigue en `False`. Resuelta también la ◆2: el tope de costo **no se aprieta en los perfiles** y se evalúa junto con el SL inicial más amplio, como versión de estrategia puntuada por la puerta de T49.
-- **Corregido:** el «siguiente frente: T27/T49» que venía del traspaso y de esta misma sesión no se sostiene tal cual: las dos están ☑ con veredicto negativo y la ficha de T49 excluye cambiar estrategias. Lo que falta es una tarea nueva; queda en BACKLOG y §0 lo dice.
-- **Archivos:** `PLAN/T31.md`, `PLAN/{STATUS,ESTADO_PROYECTO,BACKLOG,BITACORA}.md`, `PLAN/status.js`, `PLAN/notas/T136_riesgo.md`. Sin cambios de código.
+- **Corregido:** el «siguiente frente: T27/T49» que venía del traspaso y de esta misma sesión no se sostiene tal cual: las dos están ☑ con veredicto negativo y la ficha de T49 excluye cambiar estrategias. A petición del usuario queda como **T137**, en una fase 23 nueva de la hoja de ruta (`PLAN/T137.md`), pendiente de empezar.
+- **Archivos:** `PLAN/T31.md`, `PLAN/T137.md`, `PLAN/{STATUS,ESTADO_PROYECTO,BACKLOG,BITACORA}.md`, `PLAN/roadmap.html`, `PLAN/status.js`, `PLAN/notas/T136_riesgo.md`. Sin cambios de código.
 - **Pruebas:** sin código nuevo, así que no se repitió el gate; el último es el de T136. `build_roadmap.py` sin errores.
-- **Abierto:** la ◆3 de T136 (freno gradual) y crear la tarea de la entrada. La auditoría de la hora 22 UTC de hoy pasó a la sesión aparte sobre la cobertura de `mark`.
+- **Abierto:** la ◆3 de T136 (freno gradual). La auditoría de la hora 22 UTC de hoy pasó a la sesión aparte sobre la cobertura de `mark`.
 - **En curso:** T31, T45, T62, T104, T78, T116, T117, T127, T128, sin cambios aquí; la cobertura de `mark` (T78) va en su propia sesión.
-- **Siguiente paso:** responder la ◆3 de T136 y crear la tarea de la entrada (BACKLOG T136, 2026-11-05): versiones con SL inicial más amplio y tope de costo, puntuadas por la puerta de T49.
+- **Siguiente paso:** responder la ◆3 de T136 y empezar T137: versiones con SL inicial más amplio y tope de costo, puntuadas por la puerta de T49.
