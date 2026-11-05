@@ -220,6 +220,8 @@ llevó la memoria a 10,2 GB antes de arreglarse. Ninguno de los 114 stops medido
    apagado hasta entonces; los pasos están en `PLAN/T31.md`.
 2. **¿Se aprieta el tope de costo a 0,08 R?** Mejora E[R] de −0,118 a −0,056 R y deja fuera el
    89 % de las operaciones. Es el mismo hallazgo que el SL inicial de T134, visto desde el costo.
+   **Resuelta por el usuario (2026-11-05): no se aprieta en los perfiles.** Se evalúa junto con el
+   SL inicial más amplio, como versión de estrategia puntuada por la puerta de T49 (BACKLOG).
 3. **¿Se cambia el freno de hoy por el gradual?** El de hoy reinicia el máximo y reanuda; el
    gradual, con tramo 0, apaga y no vuelve. Es la diferencia entre perder el 96 % y el 10 % por
    trimestre en el Agresivo.
