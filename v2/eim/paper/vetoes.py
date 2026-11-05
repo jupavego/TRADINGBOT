@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, NamedTuple
 
+from eim.paper import risk_budget
 from eim.paper.account import Capital, capital, exhausted
 from eim.paper.feedback import Judgement
 from eim.paper.ideas import Idea
@@ -36,7 +37,8 @@ def vetoes(st: ProfileState, i: Idea, j: Judgement, jc: Judgement, ck: str,
            cap: Capital | None = None) -> list[Veto]:
     p, out = st.p, []
     eq = (cap or capital(st)).balance      # la misma lectura con la que la política dimensiona
-    cost_r = p.est_cost_frac / ((abs(i.entry - i.sl) / i.entry) or 1e-9)
+    # una sola definición del costo en R, compartida con el riesgo presupuestado (T136)
+    cost_r = risk_budget.cost_r(i.entry, i.sl, p.est_cost_frac)
     if st.exhausted_t is not None or exhausted(p, eq):   # nadie recarga: la cuenta no vuelve
         out.append(Veto(exhausted(p, eq) or "cuenta agotada: no se abren posiciones nuevas "
                         f"(capital realizado {eq:.2f} USDT)", None, "cuenta_agotada"))

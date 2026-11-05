@@ -97,6 +97,12 @@ class ProfileParams(BaseModel):
     # > 0,3 R → −0,63 R/op. En 15 m el costo medio era 0,48 R por operación.
     est_cost_frac: float = 0.0016
     max_cost_r: float = 0.2
+    # T136 (1): si el riesgo presupuestado incluye el costo de ida y vuelta. Hoy NO, y por eso un
+    # perfil que dice arriesgar `risk_pct` arriesga de hecho `risk_pct · (1 + costo en R)` cuando
+    # salta el SL inicial (0,167 R de media en el banco de T131 → ≈ 17 % de más). Encenderlo
+    # reduce el tamaño de TODAS las entradas, así que cambiaría una corrida en marcha (T31) y es
+    # decisión ◆ del usuario; el informe de T136 mide lo que haría.
+    risk_includes_costs: bool = False
     require_htf: bool = False        # exige ir a favor de la tendencia del marco mayor
     min_risk_fill: float = 0.25      # si el margen no alcanza para ≥ 25 % del riesgo: rechazo
     # Mínimo de operaciones abiertas: si hay menos de `min_open` posiciones, la primera señal a

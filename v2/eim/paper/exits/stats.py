@@ -66,6 +66,18 @@ def resample_means(sums: np.ndarray, cnts: np.ndarray, reps: int,
     return np.concatenate(out) if out else np.array([], dtype=float)
 
 
+def day_block_means(days: np.ndarray, values: np.ndarray, reps: int,
+                    rng: np.random.Generator) -> np.ndarray:
+    """Medias de `reps` remuestreos de días completos de `values` (bloques de día).
+
+    Es la pieza que comparten el IC emparejado, Romano-Wolf y la comprobación del ES de T136:
+    cualquier estadístico que sea la MEDIA de una serie por operación se remuestrea con esto.
+    """
+    keys = np.unique(days)
+    sums, cnts = _by_day(days, values, keys)
+    return resample_means(sums, cnts, reps, rng)
+
+
 def paired_ci(diffs: Sequence[tuple[int, float]], reps: int, level: float,
               rng: np.random.Generator) -> tuple[float, float]:
     """IC del ΔE[R] medio emparejado por bootstrap de bloques de día (percentiles)."""

@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING
 
 from eim.core import Mode
 from eim.core.authority import RiskDecision, params_fingerprint
+from eim.paper import risk_budget
 from eim.paper.account import capital, leverage_for
 from eim.paper.book_events import learned_bad
 from eim.paper.caps import fit_risk
@@ -125,6 +126,14 @@ def decide(st: ProfileState, o: Outcome, j: Judgement, jc: Judgement, ck: str, m
     weight = p.floor_weight if floor else j.weight
     entry = o.fill if i.kind == "market" and o.fill else i.entry
     want = eq * p.risk_pct * weight
+    # T136 (4): freno GRADUAL por drawdown y límite de CVaR. Recortan el tamaño en vez de parar
+    # en seco; con recorte 0 no se abre, y a diferencia del freno todo o nada no hay pausa por
+    # horas: en cuanto la cuenta recupera, el riesgo vuelve. Apagados por defecto.
+    cut, why_cut = st.brake.scale(p.caps, eq)
+    if cut <= 0:
+        return _no(o, Veto(why_cut or "freno gradual por drawdown", None, "freno_gradual"),
+                   equity=eq)
+    want *= cut
     if want <= 0:          # el capital, no el tope: con capital ≤ 0 no cabe ningún riesgo
         return _no(o, Veto(f"capital insuficiente: {eq:.2f} USDT realizados", None,
                            "capital_insuficiente"), equity=eq)
@@ -133,7 +142,13 @@ def decide(st: ProfileState, o: Outcome, j: Judgement, jc: Judgement, ck: str, m
     if risk_usd <= 0:
         return _no(o, Veto(f"tope de riesgo abierto por dirección ({p.caps.max_dir_risk:.1%})",
                            None, "tope_direccion"), equity=eq)
-    qty = risk_usd / abs(entry - i.sl)
+    # T136 (1): el riesgo presupuestado incluye el costo de ida y vuelta si el perfil lo
+    # pide; apagado, es la distancia al SL de siempre y no cambia ninguna cifra.
+    qty = risk_budget.qty_for_risk(risk_usd, entry, i.sl, p.est_cost_frac,
+                                   p.risk_includes_costs)
+    if qty <= 0:           # SL en la entrada: lo veta antes el costo, pero no se aprueba con 0
+        return _no(o, Veto(f"geometría inválida: SL {i.sl:g} sobre la entrada {entry:g}", None,
+                           "geometria"), equity=eq)
     lev = leverage_for(p, entry, i.sl, mmr)
     margin = qty * entry / lev
     free = cap.available
@@ -153,11 +168,15 @@ def decide(st: ProfileState, o: Outcome, j: Judgement, jc: Judgement, ck: str, m
         if o.status == "RECHAZADA":
             return _no(o, Veto(f"geometría inválida para la escalera ({o.reason})", None,
                                "geometria"), equity=eq)
-        margin, risk_usd = qty * entry / lev, qty * abs(entry - i.sl)
-    note = ""
+        # la escalera puede recortar la cantidad al paso del instrumento: el riesgo
+        # informado se recalcula con la MISMA distancia presupuestada (T136)
+        margin = qty * entry / lev
+        risk_usd = qty * risk_budget.budget_distance(entry, i.sl, p.est_cost_frac,
+                                                     p.risk_includes_costs)
+    note = f" · {why_cut}" if why_cut else ""
     if floor:
         what = f"{p.min_open} abierta(s)" if i.kind == "market" else f"{p.min_pending} pendiente(s)"
-        note = f" · mínimo de {what}: se omitió «{vs[0][0]}»"
+        note += f" · mínimo de {what}: se omitió «{vs[0][0]}»"
     return PaperDecision(o=o, approved=True, reasons=(note.lstrip(" ·"),) if note else (),
                          qty=qty, leverage=lev, margin=margin, weight=weight, risk_usd=risk_usd,
                          entry=entry, equity=eq, floor=floor, skipped=skipped, note=note,
