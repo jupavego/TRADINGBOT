@@ -605,3 +605,11 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** las tres ◆ de T136 (`risk_includes_costs`, tope de costo a 0,08 R, freno gradual). Auditar la hora 22 UTC de hoy, la del gate, cuando cierre: da una segunda medición de si el gate daña la captura; mirar `book_usable` y `depth`, porque `complete` está falseado por `mark`. El PR de T136 falta por fusionar.
 - **En curso:** T31, T45, T62, T104, T78, T116, T117, T127, T128, sin cambios en esta sesión.
 - **Siguiente paso:** fusionar el PR de T136 y responder sus tres ◆. Después, el frente de la entrada: T27 (puerta de edge) y T49 (versiones de estrategia).
+
+## 2026-11-05 22:40 UTC · juanpablo-cpu · T136 fusionada y primera ◆ resuelta
+- **Hecho:** PR #208 fusionado (`fe33c1c`) y `main` traído a la carpeta principal **sin reiniciar servicios**: cargarán T136 en su próximo reinicio. El usuario resolvió la ◆1: `risk_includes_costs` se enciende **al cerrar T31** (→ 2026-11-27) y no antes. Queda como sección «Al cerrar» de `PLAN/T31.md`, que es lo que leerá quien cierre esa tarea, con dos trampas anotadas: la prueba que fija el valor apagado y la corrida de la portátil, a la que el cambio le llegaría al traer `main`. El parámetro sigue en `False`.
+- **Archivos:** `PLAN/T31.md`, `PLAN/{STATUS,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`, `PLAN/notas/T136_riesgo.md`. Sin cambios de código.
+- **Pruebas:** sin código nuevo, así que no se repitió el gate; el último es el de T136. `build_roadmap.py` sin errores.
+- **Abierto:** las ◆2 (tope de costo a 0,08 R) y ◆3 (freno gradual) de T136. La auditoría de la hora 22 UTC de hoy pasó a la sesión aparte sobre la cobertura de `mark`.
+- **En curso:** T31, T45, T62, T104, T78, T116, T117, T127, T128, sin cambios aquí; la cobertura de `mark` (T78) va en su propia sesión.
+- **Siguiente paso:** responder las ◆2 y ◆3 de T136. Después, el frente de la entrada: T27 (puerta de edge) y T49 (versiones de estrategia).

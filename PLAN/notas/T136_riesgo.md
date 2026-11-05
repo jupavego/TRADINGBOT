@@ -216,7 +216,8 @@ llevó la memoria a 10,2 GB antes de arreglarse. Ninguno de los 114 stops medido
 
 1. **¿Se enciende `risk_includes_costs`?** Hace verdadero el riesgo declarado (−14,8 % de tamaño).
    Cambia todas las entradas de una corrida en marcha, así que conviene decidir si se hace ahora o
-   al cerrar T31 (2026-11-27).
+   al cerrar T31 (2026-11-27). **Resuelta por el usuario (2026-11-05): al cerrar T31.** Sigue
+   apagado hasta entonces; los pasos están en `PLAN/T31.md`.
 2. **¿Se aprieta el tope de costo a 0,08 R?** Mejora E[R] de −0,118 a −0,056 R y deja fuera el
    89 % de las operaciones. Es el mismo hallazgo que el SL inicial de T134, visto desde el costo.
 3. **¿Se cambia el freno de hoy por el gradual?** El de hoy reinicia el máximo y reanuda; el
