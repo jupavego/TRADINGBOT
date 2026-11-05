@@ -149,6 +149,8 @@ def main() -> int:  # noqa: PLR0915
     book = ev.quantile_book(ref, ev.mae_ratio(park, path.t, {i.id: i for i in real}), plan, pr)
     log(t0, f"cuantiles de M8: {len(ref)} operaciones de referencia; "
             f"{sum(len(w.by_sid) for bf in book.by_tf.values() for w in bf.per_fold)} con muestra")
+    with np.errstate(divide="ignore", invalid="ignore"):
+        unit_gap = float(np.nanmedian(atr.sigma_abs / park.sigma_abs))
     del ref, park
     gc.collect()
 
@@ -236,6 +238,7 @@ def main() -> int:  # noqa: PLR0915
         "cap_left_out": run.cap_left_out(sample["banco"]["pooled"], tf15["pooled"]),
         "control": control, "regression": reg, "tf15m": tf15,
         "m8_quantiles": {tf: bf.to_json() for tf, bf in book.by_tf.items()},
+        "m8_unit_gap": {"atr14_over_parkinson_median": unit_gap, "note": pr.geometry.m8.unit_note},
         "candidates": run.candidates(pr, by_reading, inert, variant_of, control),
     }
     write_outputs(out, res)

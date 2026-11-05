@@ -3,9 +3,9 @@
 **El control de T134 no ponía a prueba la geometría.** `control_aleatorio@1h` no llegaba a la
 muestra mínima de ganadoras, así que M8 no tocaba el SL y sobre las entradas al azar era M0 hasta
 el último decimal (BACKLOG T134 (1)). Aquí el cuantil del control se toma de la estrategia con sus
-mismas salidas (`entry_versions.QuantileBook`), y además se informa de cuántas ideas movió de verdad: si
-una geometría casi no mueve nada, el control se declara «no la pone a prueba» y no cuenta como
-aprobado, en vez de dar un «sí» que no mide nada.
+mismas salidas (`entry_versions.QuantileBook`), y además se informa de cuántas ideas movió de
+verdad: si una geometría casi no mueve nada, el control se declara «no la pone a prueba» y no cuenta
+como aprobado, en vez de dar un «sí» que no mide nada.
 
 El nulo es el de T134 (retornos reales barajados, `surrogate.py`), con una diferencia necesaria: la
 distancia de SL y el R:B de las entradas al azar se sortean de las ideas reales del control, y la σ
