@@ -96,7 +96,19 @@ El umbral de 1,5 s se eligió frente a 2,0 s porque un mensaje perdido deja un i
 
 ## 6. La hora del gate de T136 (2026-11-05T22)
 
-PENDIENTE_HORA22
+**El gate de T136 no dañó la captura.** Corrió de 21:57:10 a 22:21:20 UTC (1 451 s, una pausa de la cola de 115 s), así que tocó también el final de la hora 21. Las dos horas salieron con libro útil 1,0, sin ningún tramo marcado y 12 de 12 verificaciones REST. `complete` sale falso en ambas, pero solo por `mark` (§2).
+
+| Hora | Gate | Libro útil | `depth`: cobertura, mensajes | `depth` p50 / p99 / máx (ms) | Tramos marcados |
+|---|---|---|---|---|---|
+| 2026-11-03T18 | T131, por la cola, 2 pausas | **0,9164** | 0,9172, 32 366 | 208 / 216 / 1 295 | 31 desconexiones, 5 silencios… |
+| 2026-11-04T17 | fase 22, por la cola, 945 s, sin pausas | 1,0000 | 1,0000, 35 293 | 201 / 219 / 681 | ninguno |
+| 2026-11-05T20 | **ninguno (referencia)** | 1,0000 | 1,0000, 35 289 | 950 / 995 / 1 815 | ninguno |
+| 2026-11-05T21 | T136, últimos 3 min | 1,0000 | 1,0000, 35 291 | 948 / 984 / 1 357 | ninguno |
+| 2026-11-05T22 | T136, primeros 21 min | 1,0000 | 1,0000, 35 294 | 947 / 957 / 1 856 | ninguno |
+
+Las latencias de 2026-11-05 llevan los ~835 ms del reloj (§3); lo comparable es la p99 frente a la p50, y no empeora respecto a la hora de referencia.
+
+Son **2 gates sin daño de 3**. El que dañó también iba por la cola y no se sabe qué cambió, así que la regla sigue en pie: no correr el gate completo con una racha ya avanzada (BACKLOG T127 (3)).
 
 ## 7. La decisión ◆
 
@@ -104,7 +116,15 @@ PENDIENTE_HORA22
 
 **B. ¿Se recalculan las horas pasadas?**
 
-PENDIENTE_OPCIONES
+| Opción | Qué se hace | Racha hoy | T78, como pronto, si nada la rompe |
+|---|---|---|---|
+| **1. Recalcular desde 2026-11-05T09 (recomendada)** | `--requalify 2026-11-05T09 --apply` | **14 h** (09–22) | Al cerrar la hora **2026-11-08T08 UTC** |
+| 2. Solo de aquí en adelante | Recalificar desde la primera hora que cierre tras decidir | 0 | Decidiendo en la hora 23 de hoy, al cerrar la **2026-11-08T23 UTC**: 15 h más tarde |
+| 3. No adoptar la medida | Nada | 0 | Sin fecha: depende de cuándo salga la fase de la banda, salvo corregir el reloj (C) |
+
+La hora 09 es el inicio natural: la 08 está rota de verdad por el reinicio (libro útil 0,9542) y antes de ella la medida no cambia ningún veredicto. Con la réplica de §5 y la hora 22, cambian 13 horas de 150.
+
+**El argumento en contra de recalcular:** es cambiar la vara después de ver el resultado, algo que este proyecto prohíbe en sus experimentos (E12). Se recomienda igualmente porque no baja el mínimo, no mueve ninguna otra hora, es apenas más estricta con los huecos reales y cada JSON recalificado conserva su veredicto original (`requalified.complete_before`) y su `coverage`. Pero la decisión es del usuario: T78 es su criterio.
 
 **C. ¿Se sincroniza el reloj?** No hace falta para T78 si se adopta la medida. Recomendación: **dejarlo como está hasta cerrar T78** y entonces corregirlo con permiso, porque un salto a mitad de corrida no aporta nada y mueve todos los sellos del equipo. Si la medida **no** se adopta, es la única salida. Ojo: `w32tm /resync` no bastaría con un desfase menor de 1 s, por lo visto en §3.
 

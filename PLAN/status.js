@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-05T17:58:13",
+ "generated": "2026-11-05T18:15:19",
  "tasks": [
   {
    "id": "T01",
@@ -1745,7 +1745,7 @@ window.EIM_STATUS = {
     "T126"
    ],
    "state": "progress",
-   "notes": "**Diagnóstico hecho (2026-11-05); medida lista en el PR, sin desplegar; falta la ◆ del usuario.** Nota `PLAN/notas/T138_cobertura_mark.md`. Hipótesis confirmada: las horas 09–21 UTC del 2026-11-05 tienen 46 800 mensajes y 0 eventos perdidos, pero dan 5 308 segundos vacíos y 5 308 dobles porque las llegadas caen sobre el límite del segundo. El reloj va ~835 ms adelantado desde el arranque de las 08:11 UTC (NTP y cota por snapshots REST), y Windows Time no corrige menos de 1 s. Medida `coverage_cadence` y `hft_ops --requalify`: en una réplica sobre 149 horas solo cambian las 12 falsas. **◆ ¿Se adopta, y se recalculan las horas pasadas?**",
+   "notes": "**Diagnóstico hecho (2026-11-05); medida lista en el PR, sin desplegar; falta la ◆ del usuario.** Nota `PLAN/notas/T138_cobertura_mark.md`. Hipótesis confirmada: las horas 09–21 UTC del 2026-11-05 tienen 46 800 mensajes y 0 eventos perdidos, pero dan 5 308 segundos vacíos y 5 308 dobles porque las llegadas caen sobre el límite del segundo. El reloj va ~835 ms adelantado desde el arranque de las 08:11 UTC (NTP y cota por snapshots REST), y Windows Time no corrige menos de 1 s. Medida `coverage_cadence` y `hft_ops --requalify`: en una réplica sobre 150 horas solo cambian las 13 falsas. **◆ ¿Se adopta, y se recalculan las horas pasadas?**",
    "effort": "bajo",
    "phase": 21,
    "goal": "Que la racha de T78 no se rompa por una forma de contar. Un flujo de 1 Hz contado por segundo de llegada vacía unos segundos y duplica otros cuando su fase cae sobre el límite del segundo, y `qc.py` da por incompletas horas en las que no falta ningún mensaje. Pasó el 2026-11-05 desde el arranque de las 08:11 UTC, que dejó el reloj del equipo unos 800 ms adelantado."
