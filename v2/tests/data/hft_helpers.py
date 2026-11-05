@@ -106,9 +106,11 @@ def snap(cap: HftCapture, s: dict, recv: int, purpose: str = "sync") -> None:
     cap.handle(("snap", purpose, s, recv - 100 * MS, recv, recv - T0))
 
 
-def full_hour(tmp_path, lose_at: int | None = None, seed: int = 0, flush_rows: int = 10**9):
+def full_hour(tmp_path, lose_at: int | None = None, seed: int = 0, flush_rows: int = 10**9,
+              mark_at=None):
     """Una hora entera: 1 diff, 1 bookTicker, 1 markPrice y 1 trade por segundo; verificación
-    REST cada 10 min. Con `lose_at` se pierde el diff de ese segundo (y se resincroniza)."""
+    REST cada 10 min. Con `lose_at` se pierde el diff de ese segundo (y se resincroniza).
+    `mark_at(s)` da la llegada del markPrice del segundo `s` (None: ese mensaje se pierde)."""
     cap, store = capture(tmp_path, flush_rows=flush_rows)
     ex = Exchange(seed)
     send(cap, ex.step(e_ms=T0 // MS)[0], T0 + MS)
@@ -124,7 +126,9 @@ def full_hour(tmp_path, lose_at: int | None = None, seed: int = 0, flush_rows: i
         if mid is not None:
             snap(cap, mid, t + 40 * MS, "check")
         send(cap, bbo(s + 1, 99.9, 100.1, e), t + MS)
-        send(cap, mark(e), t + 2 * MS)
+        at = t + 2 * MS if mark_at is None else mark_at(s)
+        if at is not None:
+            send(cap, mark(e), at)
         send(cap, trade(1000 + s, e), t + 3 * MS)
     store.flush()
     return cap, store

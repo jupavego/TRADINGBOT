@@ -16,6 +16,8 @@ Lo llama el vigilante (`hft_supervise`) cada 10 min; también a mano:
   «abrir una ventana» de 72 h; la captura sigue y T78 se cumple en cuanto haya 72 horas completas
   SEGUIDAS (una hora incompleta o sin auditar la corta) con ≥ 99 % de coincidencia top-10 y ningún
   hueco sin detectar. Lee solo los JSON de QC, que se conservan aunque se poden los crudos.
+- **Recalificar** (T138, `--requalify DESDE [--apply]`): aplica la regla vigente a los JSON de
+  versiones anteriores leyendo solo `mark`. Corre aparte, sin reiniciar la captura ni el vigilante.
 """
 
 from __future__ import annotations
@@ -199,6 +201,25 @@ def streak(root: str | Path, symbol: str, now_s: float, since_h: int | None = No
             "remaining_h": 0 if passed else max(0, need_h - cur["hours"]), "passed": passed}
 
 
+def requalify(root: str | Path, symbol: str, since_h: int | None = None,
+              apply: bool = False) -> dict:
+    """Recalifica los JSON de versiones anteriores desde `since_h` (T138). Sin `apply` no escribe
+    nada: solo dice qué horas cambiarían de veredicto. Se puede repetir: no vuelve a tocar las
+    horas al día, así que recoge también las que audite un vigilante aún sin reiniciar."""
+    done, changed = 0, []
+    for h in [r["hour_index"] for r in qc_reports(root, symbol, since_h)]:
+        rep = qc.requalify(root, symbol, h, write=apply)
+        if rep is None:
+            continue
+        done += 1
+        if rep["complete"] != rep["requalified"]["complete_before"]:
+            m = rep["streams"]["mark"]
+            changed.append({"hour": rep["hour"], "complete": rep["complete"],
+                            "coverage": m["coverage"], "coverage_cadence": m["coverage_cadence"],
+                            "book_usable": rep["book_usable"], "msgs": m["msgs"]})
+    return {"applied": apply, "requalified": done, "changed": changed}
+
+
 def write_summary(root: str | Path, symbol: str, summary: dict) -> Path:
     p = summary_path(root, symbol)
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -248,7 +269,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--streak", action="store_true",
                     help="solo la racha de T78 (lee los JSON de QC; no audita ni compacta)")
     ap.add_argument("--since", help="hora UTC AAAA-MM-DDTHH desde la que cuenta la racha")
+    ap.add_argument("--requalify", metavar="DESDE",
+                    help="recalifica los JSON de QC antiguos desde esa hora UTC AAAA-MM-DDTHH "
+                         "(T138); sin --apply solo lista lo que cambiaría")
+    ap.add_argument("--apply", action="store_true", help="con --requalify, escribe los JSON")
     a = ap.parse_args(argv)
+    if a.requalify:
+        res = requalify(a.root, a.symbol, parse_hour(a.requalify), a.apply)
+        print(json.dumps(res, ensure_ascii=False, indent=1))
+        return 0
     if a.streak:
         since = parse_hour(a.since) if a.since else None
         rep = streak(a.root, a.symbol, time.time(), since)
