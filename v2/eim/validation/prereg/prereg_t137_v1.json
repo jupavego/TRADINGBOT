@@ -1,0 +1,145 @@
+{
+ "version": "prereg_t137_v1",
+ "declared": "2026-11-05",
+ "description": "Pre-registro de T137: versiones de estrategia con el SL inicial más amplio de T134 (M8 q=0.95, S1 d_min=3 atr14) y tope de costo de 0,08 R, puntuadas con validation_v1. Fijado ANTES del primer cálculo sobre datos reales; cambiar cualquier valor es un archivo nuevo (prereg_t137_v2), nunca una edición.",
+ "mode": "SIMULADO",
+ "symbol": "BTCUSDT",
+ "symbol_why": "Es el único símbolo con banco. Los contextos de ETHUSDT son de unos 10 días y se paran el 2026-10-28, y T134 y T136 tampoco lo midieron.",
+ "seed": 137,
+ "criteria": "validation_v1",
+ "criteria_sha256": "0a5b19962ded0d12dfdbccac0359f91c1bebf211ed891f7817c96667e01c30a8",
+ "data": {
+  "root": "backups/t131_banco",
+  "contexts": "paper_ctx de la copia: 1 h desde 2023-01-11, 4 h desde 2026-03-19, 15 m desde 2026-09-16, todos hasta 2026-11-03T00:00Z. Velas y funding de la misma copia.",
+  "registry": "val_versions, val_windows y val_verdicts de la misma copia: 208 versiones y 312 claves símbolo|versión con p previo.",
+  "ideas": "Todas las que generan las reglas vigentes (generate_ideas), no solo las que entraron en la sombra del padre. Cada versión corre su propia sombra (run_shadow): con el stop más lejos una idea dura más y bloquea más entradas, y eso forma parte de la versión."
+ },
+ "strategies": {
+  "scope": "Todas las del catálogo en todos sus marcos, sin elegir ninguna: elegir mirando los cortes por estrategia de T134 sería contaminar.",
+  "sids": 104,
+  "by_timeframe": {"15m": 31, "1h": 36, "4h": 37},
+  "control": "control_aleatorio"
+ },
+ "exit": {
+  "policy": "sombra",
+  "detail": "engine.simulate con la ExecParams vigente: SL, TP, BE+ y tiempo. validation_v1 se define sobre operaciones sombra, así que es la única salida que se puntúa.",
+  "tp": "El TP de la idea no se toca en precio: la geometría de T134 solo aparta el SL.",
+  "be": "El BE+ se dispara a 1 R del riesgo ya apartado.",
+  "m0_only_in_regression": "El acompañante M0 de T134 solo se usa en la comprobación de regresión. No se puntúa ni da veredicto."
+ },
+ "geometry": {
+  "m8": {
+   "policy": "M8",
+   "q": 0.95,
+   "reference": "M1 be=1/0.1",
+   "min_trades": 30,
+   "mae_sigma": "parkinson",
+   "floor_sigma": "atr14",
+   "unit_note": "T134 estimó el cuantil del MAE con la σ de Parkinson (t134_exits_ab._ratio_of con SIGMAS[1]) y lo aplica multiplicando por la σ ATR14 (grid._policy toma el primer estimador). Las unidades no coinciden y el stop queda más lejos de lo que dice q. Se conserva tal cual porque ESA es la geometría con señal que T134 midió; corregirla sería otra variante y va a BACKLOG.",
+   "without_sample": "Sin min_trades ganadoras de esa estrategia@marco en el tramo de ajuste no hay cuantil y el SL de la idea no se toca."
+  },
+  "s1": {"policy": "S1", "d_min_sigma": 3.0, "sigma": "atr14"},
+  "common": "σ de la última vela de 15 m cerrada en la decisión. El SL solo se aparta, nunca se acerca (candidates.widen_stop)."
+ },
+ "cost_cap": {
+  "max_cost_r": 0.08,
+  "est_cost_frac": 0.0016,
+  "formula": "risk_budget.cost_r(entrada, SL, est_cost_frac), la misma del veto de los perfiles",
+  "sl": "El SL de la versión, ya apartado: es el stop que esa versión pagaría. Por eso M8 y S1 dejan fuera menos ideas que el 89 % que T136 midió con el SL de la idea.",
+  "when": "Al decidir y antes de la sombra: una idea vetada no ocupa la plaza de su estrategia."
+ },
+ "variants": [
+  {"id": "m8", "n": 1371, "geometry": "m8", "cost_cap": false},
+  {"id": "s1", "n": 1372, "geometry": "s1", "cost_cap": false},
+  {"id": "tope", "n": 1373, "geometry": null, "cost_cap": true},
+  {"id": "m8_tope", "n": 1374, "geometry": "m8", "cost_cap": true},
+  {"id": "s1_tope", "n": 1375, "geometry": "s1", "cost_cap": true}
+ ],
+ "attempts": {
+  "per_variant": 104,
+  "total": 520,
+  "prior_keys": 312,
+  "family": 832,
+  "null_reps": 33280,
+  "rule": "Cada variante suma 104 intentos, uno por estrategia@marco, 520 en total, y la familia de Holm pasa de 312 a 832 claves. No se descuenta ninguno, aunque salga inerte, sin operaciones o se descarte. Los 107 de T134 no entran aquí: son otra familia, corregida con Romano-Wolf, y su ventana queda excluida de la lectura oficial."
+ },
+ "windows": {
+  "selection": {
+   "from": "2023-01-11T10:00:00Z",
+   "to": "2026-07-11T10:00:00Z",
+   "note": "T134 y T136 eligieron M8 q=0.95, S1 d_min=3 atr14 y el tope 0,08 R mirando esta ventana: es ventana de ajuste de las cinco variantes según la definición de T49."
+  },
+  "m8_fit_15m": {
+   "from": "2026-09-16T03:00:00Z",
+   "to": "2026-10-16T14:00:00Z",
+   "note": "Ajuste del cuantil de M8 en 15 m, dentro de la ventana que T48b ya declaró. Solo la llevan las variantes con M8."
+  },
+  "parent": "Cada versión tiene de padre la v2 vigente de su estrategia@marco (las 104 coinciden con la huella del código) y hereda sus ventanas: la automática hasta 2026-10-22T22:36Z y las de T48b y T54. La evidencia no se hereda: las operaciones de la versión son solo las que ella misma simula."
+ },
+ "m8_folds": {
+  "embargo_hours": 200,
+  "bank": {"from": "2023-01-11T10:00:00Z", "to": "2026-08-16T00:00:00Z", "fit_months": 12, "test_months": 3, "step_months": 3, "note": "Los 10 pliegues de T134, solo para la lectura del banco: cada tramo de prueba usa el cuantil de su tramo de ajuste."},
+  "after_bank": {"fit_from": "2025-07-11T10:00:00Z", "fit_to": "2026-07-11T10:00:00Z", "test_from": "2026-07-11T10:00:00Z", "timeframes": ["1h", "4h"], "note": "El pliegue siguiente del mismo diseño. Su cuantil queda congelado para todo lo posterior."},
+  "tf15m": {"fit_from": "2026-09-16T03:00:00Z", "fit_to": "2026-10-16T14:00:00Z", "test_from": "2026-10-16T14:00:00Z", "timeframes": ["15m"], "note": "15 m no tiene historia en el banco."}
+ },
+ "readings": [
+  {
+   "id": "oficial",
+   "verdict": true,
+   "rule": "tuning_windows: las ventanas de la versión y de sus ancestros, las que aplica el código de T49.",
+   "note": "Da el veredicto. Se sabe antes de calcular que queda muy corta: 2026-10-22T22:36Z → 2026-11-03, unos 11 días. Casi con seguridad ninguna versión llegará a V1, y eso es lo que dice la regla de T49 con los datos que hay."
+  },
+  {
+   "id": "reserva",
+   "verdict": false,
+   "ranges": [["2026-07-11T10:00:00Z", "2026-08-16T00:00:00Z"], ["2026-10-16T14:00:00Z", null]],
+   "timeframes": ["15m", "1h", "4h"],
+   "note": "Descriptiva. Los datos en los que no se eligió la geometría ni se ajustaron las reglas de T48b. No aplica la ventana automática, así que no puede dar veredicto. T111 y T129 sí vieron de forma agregada parte del segundo tramo."
+  },
+  {
+   "id": "banco",
+   "verdict": false,
+   "ranges": [["2024-01-11T10:00:00Z", "2026-07-11T10:00:00Z"]],
+   "timeframes": ["1h", "4h"],
+   "note": "Descriptiva y contaminada a favor: es la ventana donde se eligió la geometría. Sirve de cota optimista, porque lo que falla aquí no pasaría en datos limpios; lo que pasa aquí no demuestra nada."
+  }
+ ],
+ "live_rule": {
+  "alta": "2026-11-06T00:00:00Z",
+  "rule": "Una operación de estas versiones solo cuenta como origin=vivo si su decisión es posterior al alta. Los contextos en vivo anteriores existen, pero sus reglas aún no: reconstruirlas después es backtest.",
+  "consequence": "Con los datos de la copia hay 0 operaciones en vivo, V5 queda pendiente y ninguna versión puede salir VALIDADA en esta corrida: el máximo es EN OBSERVACIÓN. Se declara antes de calcular, no es un resultado."
+ },
+ "control": {
+  "strategy": "control_aleatorio",
+  "timeframe": "1h",
+  "quantile_source": "consenso_sintesis@marco del mismo pliegue, porque control_aleatorio declara las mismas salidas (SL 1,5 ATR, TP 2,5 ATR). Si no llega a min_trades, el cuantil conjunto de todas las estrategias reales de ese marco.",
+  "real_from": "2024-01-11T10:00:00Z",
+  "null": "retornos_reales_barajados",
+  "surrogates": 20,
+  "bars": 4000,
+  "ideas": 300,
+  "block_minutes": 1,
+  "alpha": 0.05,
+  "ideas_geometry": "Distancia de SL y R:B sorteadas de las ideas reales de control_aleatorio@1h, y σ calculada sobre la propia serie sustituta. Así el tope y la geometría actúan igual que en la serie real, y no con el 1 % fijo de T134, que el tope vetaría entero.",
+  "min_moved_frac": 0.25,
+  "expect": "El bruto de las entradas al azar no puede destacar sobre las sustitutas: p >= alpha, una cola. Si una geometría mueve el SL en menos del 25 % de las ideas de control, ese control se declara «no pone a prueba la geometría» y no se cuenta como aprobado."
+ },
+ "timeframe_15m": {
+  "measured": true,
+  "note": "Hay contextos desde 2026-09-16, aunque el banco de T131 no los lleve. Además de contar en las lecturas oficial y de reserva, se informa de todo el tramo con contextos, de forma descriptiva: costo en R ex ante y realizado, cuánto deja fuera el tope y E[R] por variante. M8 solo aparta el stop desde 2026-10-16T14:00Z."
+ },
+ "regression": {
+  "rule": "Antes de creer las cifras, reproducir con el mismo código de geometría lo que ya se publicó: M8 q=0.95 y S1 d_min=3 atr14 con M0 sobre los tramos de prueba de T134 (reports/exits_ab.json) y el tope 0,08 con M0 (reports/t136_riesgo.json). Si no coinciden, se busca la causa antes de informar nada.",
+  "tolerance_r": 1e-06
+ },
+ "decision_rule": {
+  "verdict": "El veredicto de cada versión es el de la puerta en la lectura oficial, sin retoques.",
+  "candidate": "Regla de lectura para la ◆, no un criterio de T49. Se propone seguir una versión de forma prospectiva solo si: (1) en el banco cumple V1, V2, V3 con Holm, V4 y V6 y V5 no falla; (2) en la reserva tiene n ≥ 20 y R medio > 0; (3) su geometría no es inerte; y (4) el control de su variante no la rechaza. Si ninguna cumple, se propone no seguir con esta línea.",
+  "not_changed": "No cambian validation_v1, los perfiles, las salidas en vivo ni el catálogo. Estas versiones no generan ideas en vivo: nada altera lo que abren los perfiles durante T31."
+ },
+ "notes": [
+  "Por qué tres lecturas: la regla de T49 aplicada por el código deja 11 días; sin mirar nada más, el informe solo podría decir «sin muestra». La reserva y el banco responden lo que se pregunta, pero ninguna puede validar nada, y por eso se fija aquí cuál da veredicto antes de ver una sola cifra.",
+  "Las lecturas de reserva y banco no suman intentos: no producen veredicto. Se calculan con la misma familia de Holm que la oficial para que sus p sean comparables.",
+  "Una corrida posterior con más datos usa este mismo pre-registro y estas mismas huellas: los contextos nuevos desde el alta son los primeros que pueden contar como vivo. Es la única vía por la que una de estas versiones podría llegar a VALIDADA."
+ ]
+}

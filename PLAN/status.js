@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-05T17:45:54",
+ "generated": "2026-11-05T17:50:36",
  "tasks": [
   {
    "id": "T01",
@@ -1731,7 +1731,7 @@ window.EIM_STATUS = {
     "T134",
     "T136"
    ],
-   "state": "pending",
+   "state": "progress",
    "notes": "Abierta el 2026-11-05 por decisión del usuario (◆2 de T136). Ficha `PLAN/T137.md`. T27 y T49 están cerradas con veredicto negativo y la ficha de T49 excluye cambiar estrategias, así que este es el trabajo que quedaba: puntuar con `validation_v1` versiones con la geometría de `M8 q=0.95` y `S1`, y con tope de costo de 0,08 R, con pre-registro previo. No toca los perfiles ni la corrida de T31.",
    "effort": "alto",
    "phase": 23,
