@@ -171,7 +171,33 @@ en el `bbo` guardado el primer instante de su vela en que la punta del libro alc
 stop, y compara el deslizamiento que supuso el modelo con el que daba el libro. Convenio:
 **positivo = peor para el operador**; un largo cierra vendiendo y se cruza contra el bid.
 
-RESULTADO_DESLIZAMIENTO
+**Cobertura.** La captura va de 2026-10-28T23 a 2026-11-04T18 (122 h). De las 346 operaciones
+cerradas en vivo, todas por stop, 129 caen en horas con captura: **114 se midieron** y en las otras
+15 el libro no llegó al nivel del stop.
+
+| pb (positivo = peor) | Mediana | Media | p90 |
+|---|--:|--:|--:|
+| Real, según el libro | 2,08 | 5,02 | 14,35 |
+| Modelo de costos | 5,70 | 6,10 | — |
+
+**Veredicto con la regla declarada** (falla si se queda corto en más de la mitad de los stops):
+**el modelo aguanta.** Se queda corto en 32 de 114 (28 %), y la diferencia mediana, real menos
+modelo, es −2,53 pb.
+
+**La cola no la cubre.** El peor caso son **77,4 pb reales frente a 17,1 del modelo** (Moderado,
+BTCUSDT 1 h, `base_tendencia`), y 17,1 es además el máximo del modelo en toda la muestra. En
+promedio el modelo sigue cubriendo el costo, pero un stop concreto puede costar 4,5 veces lo
+supuesto.
+
+**Parte de la muestra es cota por abajo.** En el 17 % de los medidos (19 de 114) la mejor punta no
+aguantaba la cantidad, así que esos stops costaron más de lo medido. Saber cuánto exige recorrer
+`depth`, y no se hizo.
+
+**La hora incompleta no afecta al resultado.** La hora 18 UTC del 2026-11-04 salió incompleta
+(libro útil 98,39 %, 18 silencios): coincide con la primera versión de `t136_deslizamiento.py`, que
+llevó la memoria a 10,2 GB antes de arreglarse. Ninguno de los 114 stops medidos cae en esa hora.
+
+**No se cambia el modelo de costos.**
 
 ## Lo que T136 no hace, y se dice
 
