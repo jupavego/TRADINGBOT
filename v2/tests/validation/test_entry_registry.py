@@ -9,6 +9,8 @@ import pytest
 
 from eim.data.paper_store import PaperStore
 from eim.data.validation_store import ValidationStore
+from eim.paper.catalog import CATALOG
+from eim.paper.params import ExecParams
 from eim.validation import entry_run as er
 from eim.validation import entry_versions as ev
 from eim.validation.attempts import load_attempts, write_attempts
@@ -169,3 +171,21 @@ def test_cost_summary_leaves_out_the_control():
     run.cost_sum = {SID: 1.0, "control_aleatorio@1h": 90.0}
     x = er.cost_summary(run, "control_aleatorio")["1h"]
     assert x["ideas"] == 10 and x["moved_frac"] == 0.5 and x["cost_ex_ante_r"] == pytest.approx(0.1)
+
+
+def test_repo_attempts_are_the_declared_ones_and_not_the_live_versions():
+    """El archivo que llega al registro vivo: los 520 declarados, ninguno con huella viva."""
+    got = load_attempts()
+    ep = ExecParams()
+    live = {f"{i.id}@{tf}": i.version(tf, ep) for tf in ep.timeframes for i in CATALOG.values()
+            if i.runs_in(tf)}
+    assert len(got) == PR.attempts.total
+    assert len({(v.sid, v.n) for v in got}) == len(got)
+    assert {v.n for v in got} == {v.n for v in PR.variants}
+    assert {v.sid for v in got} == set(live)
+    assert all(v.fingerprint != live[v.sid] for v in got)
+    alta = iso_ms(PR.live_rule.alta)
+    assert all(v.origin == ev.ORIGIN and v.retired_ms == alta and v.windows for v in got)
+    sel = iso_ms(PR.windows.selection.from_) + 1
+    assert all(any(w.covers(sel, "BTCUSDT") for w in v.windows) for v in got)
+
