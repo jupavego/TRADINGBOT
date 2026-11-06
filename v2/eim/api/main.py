@@ -65,7 +65,7 @@ from eim.risk import global_kill_switch, load_config
 from eim.suggestions.tracker import Tracker
 from eim.synthesis.params import role_of
 from eim.synthesis.squad import default_params
-from eim.validation.attempts import ATTEMPTS_FILE
+from eim.validation.attempts import ATTEMPTS_DIR
 from eim.validation.service import Validator
 
 API_VERSION = "2.0.0"
@@ -152,7 +152,7 @@ def create_app(
     paper.alerts = op.alerts if op is not None else AlertCenter(rcon, rlock)   # T110 → op_alerts
     # T49: puerta de validación por estrategia; se recalcula al cierre de cada vela de 4 h.
     validator = Validator(paper, ValidationStore(paper_store),
-                          attempts=ATTEMPTS_FILE if cfg.val_attempts else None)
+                          attempts=ATTEMPTS_DIR if cfg.val_attempts else None)
     paper.hooks.add("validacion", validator.maybe_run, "validation.gate")
     paper.hooks.add("libro", paper.ledger_tick)    # libro de registro fijo (solo adición)
     # T61: experiencia compartida automática (solo si hay carpeta compartida configurada):
