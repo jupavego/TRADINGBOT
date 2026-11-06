@@ -2,7 +2,9 @@
 
 El informe semanal cuenta lo que pasó, pero no sabe cuándo un fallo propio alteró lo medido. Lo que
 se haya diagnosticado y medido se apunta aquí, con su evidencia, y sale en cada informe cuyo periodo
-se solape. Se añade a mano y no se borra: es parte de la lectura de la corrida.
+se solape. Se añade a mano y no se borra: es parte de la lectura de la corrida. Al resolverse se
+pone `t1`. Cada equipo lleva su propia corrida y este archivo llega a todos con `main`: cada distorsión
+dice de qué equipo se midió y solo sale en los informes de ese equipo.
 """
 
 from __future__ import annotations
@@ -12,6 +14,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Distortion:
+    machine: str              # equipo cuyos libros se midieron (`data/machine_id`)
     t0: int                   # desde cuándo afecta a los libros (ms UTC)
     t1: int | None            # hasta cuándo; None = aún sin resolver
     title: str
@@ -21,7 +24,8 @@ class Distortion:
 
 KNOWN: tuple[Distortion, ...] = (
     Distortion(
-        t0=1_793_751_120_000,        # 2026-11-04 00:32 UTC, la primera congelada
+        machine="juanpablo-cpu",
+        t0=1_793_752_329_000,        # 2026-11-04 00:32:09 UTC, la primera fila «inconsistente»
         t1=None,
         title="5 posiciones fantasma en Agresivo, Moderado y PPP (T142)",
         detail=("Congeladas por un escalón guardado antes de tener las velas de 1 min, siguieron "
@@ -37,7 +41,9 @@ KNOWN: tuple[Distortion, ...] = (
 )
 
 
-def overlapping(t0: int, t1: int, known: tuple[Distortion, ...] = KNOWN) -> list[dict]:
-    """Las que afectan al periodo [t0, t1), para el informe."""
+def overlapping(t0: int, t1: int, machine: str | None,
+                known: tuple[Distortion, ...] = KNOWN) -> list[dict]:
+    """Las de este equipo que afectan al periodo [t0, t1), para el informe."""
     return [{"from": d.t0, "to": d.t1, "title": d.title, "detail": d.detail, "ref": d.ref}
-            for d in known if d.t0 < t1 and (d.t1 is None or d.t1 > t0)]
+            for d in known
+            if d.machine == machine and d.t0 < t1 and (d.t1 is None or d.t1 > t0)]

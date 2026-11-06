@@ -18,7 +18,8 @@ La espera no tiene plazo si la cola del 1 min no ha llegado, porque tarde o temp
 INTERIOR puede no rellenarse nunca, si Binance no tiene ese minuto: `sync_candles` lo reintenta en
 cada ciclo y, cuando la cola lo rebasa en `HOLE_WAIT_MS`, la regla conservadora ya es definitiva.
 
-Puro: sin I/O. Los que esperan salen en `PassResult.waiting` y en la vista (`waiting_fine`).
+Puro: sin I/O. Los que esperan salen en `PassResult.waiting` y en la vista (`waiting_fine`); si la
+cola del 1 min lleva más de `HOLE_WAIT_MS` parada, `protection_desk` además lo avisa.
 """
 
 from __future__ import annotations
@@ -61,9 +62,6 @@ def settled(c: Cur, ready: Ready | None) -> tuple[Cur, bool]:
              len(hist))
     if n == len(hist) and (c.close is None or ready(c.close["exit_t"])):
         return c, False
-    last = hist[n - 1] if n else None
-    return replace(c, close=None, info={
-        **c.info, "stop_history": hist[:n], "active": last.get("active", True) if last else False,
-        "level": last["level"] if last else 0, "stop": last["stop"] if last else c.initial_sl,
-        "max_float_usd": last["max_float"] if last else None,
-        "stop_source": last["source"] if last else "inicial"}), True
+    # sin cierre, de `info` la pasada solo lee el historial y el escalón: el resto no se recalcula
+    return replace(c, close=None, info={**c.info, "stop_history": hist[:n],
+                                        "level": hist[n - 1]["level"] if n else 0}), True

@@ -5,10 +5,15 @@ from __future__ import annotations
 import threading
 from types import SimpleNamespace
 
+import duckdb
 import numpy as np
 import pytest
 
+from eim.data.paper_store import PaperStore
+from eim.data.store import Store
+from eim.operation.alerts import AlertCenter
 from eim.paper import protection
+from eim.paper.desk import PaperDesk
 from eim.paper.engine import Path
 from eim.paper.protection_desk import DeskProtection
 from eim.paper.protection_ops import Cur
@@ -16,6 +21,7 @@ from eim.paper.protection_settle import HOLE_WAIT_MS, gate, settled
 from eim.paper.protection_sync import current_ops, plan, run_pass
 from tests.paper.helpers import M1, M15, T0
 from tests.paper.protection_helpers import EP, OP, SYM, book, pullback, rise, sim_book, step, store
+from tests.paper.test_strategies import ctx_for, walk
 
 BAR = T0 - T0 % M15          # múltiplo de 15 m (las velas de los helpers no tienen por qué serlo)
 
@@ -84,16 +90,12 @@ def test_settled_keeps_what_cannot_change_and_cuts_from_the_first_that_can():
     ready = lambda t: t <= BAR + M15                              # noqa: E731
     a, b = h(BAR + M15, 91.0, active=True), h(BAR + 2 * M15, 92.0)
     got, waits = settled(cur([a, b, h(BAR + 3 * M15, 93.0)]), ready)
-    assert waits and got.info["stop_history"] == [a]
-    assert (got.info["stop"], got.info["level"], got.info["active"]) == (91.0, 1, True)
-    assert got.info["stop_source"] == "escalon" and got.info["max_float_usd"] == 2.0
+    assert waits and got.info["stop_history"] == [a] and got.info["level"] == 1
 
 
-def test_settled_with_nothing_ready_leaves_the_initial_state():
+def test_settled_with_nothing_ready_leaves_no_steps():
     got, waits = settled(cur([h(BAR + M15, 91.0)]), lambda t: False)
-    assert waits and got.info["stop_history"] == []
-    assert (got.info["stop"], got.info["level"], got.info["active"]) == (90.0, 0, False)
-    assert got.info["stop_source"] == "inicial" and got.info["max_float_usd"] is None
+    assert waits and got.info["stop_history"] == [] and got.info["level"] == 0
 
 
 def test_settled_holds_a_close_of_a_candle_without_its_minutes():
@@ -163,20 +165,58 @@ def test_a_saved_close_is_not_reported_inconsistent_while_a_candle_waits(ps):
     assert res.held == {} and res.rows == [] and res.waiting == []
 
 
-def test_view_reports_what_is_waiting(ps):
-    class Desk(DeskProtection):
-        def __init__(self):
-            self.pstore, self.ep, self.alerts = ps, EP, None
-            self._lock, self._cache = threading.Lock(), {}
-            self._protection_init()
+class Desk(DeskProtection):
+    def __init__(self, ps, alerts=None):
+        self.pstore, self.ep, self.alerts = ps, EP, alerts
+        self._lock, self._cache = threading.Lock(), {}
+        self._protection_init()
 
-    d = Desk()
-    st = sim_book(rise(6), guards=d._guards(SYM))
-    v = SimpleNamespace(symbol=SYM, books={st.p.id: st}, protection={})
-    d._sync_protection(v, fine_at([0]))
+    def view(self, fine):
+        st = sim_book(rise(6), guards=self._guards(SYM))
+        v = SimpleNamespace(symbol=SYM, books={st.p.id: st}, protection={})
+        self._sync_protection(v, fine)
+        return v
+
+
+def test_view_reports_what_is_waiting(ps):
+    d = Desk(ps)
+    v = d.view(fine_at([0]))
     assert v.protection["waiting_fine"] == [OP] and v.protection["n_inconsistent"] == 0
-    st = sim_book(rise(6), guards=d._guards(SYM))
-    v = SimpleNamespace(symbol=SYM, books={st.p.id: st}, protection={})
-    d._sync_protection(v)
-    assert v.protection["waiting_fine"] == []
+    assert d.view(None).protection["waiting_fine"] == []
     assert protection.history(ps, OP)[-1]["level"] == 5
+
+
+def test_a_stuck_minute_tail_raises_a_warning_that_clears(ps):
+    """La espera no tiene plazo: no puede ser además silenciosa."""
+    con = duckdb.connect(":memory:")
+    try:
+        center = AlertCenter(con, threading.Lock())
+        d = Desk(ps, center)
+        d.view(fine_at([0]))                                      # la cola quedó años atrás
+        title = f"Diario de protección a la espera de velas de 1 min ({SYM})"
+        assert ("warn", title, False) in [(a.level, a.title, a.resolved) for a in center.recent()]
+        d.view(None)
+        assert ("info", f"Resuelta: {title}", True) in [
+            (a.level, a.title, a.resolved) for a in center.recent()]
+    finally:
+        con.close()
+
+
+def test_the_desk_passes_the_journal_the_minute_candles_it_simulated_with(tmp_path, monkeypatch):
+    """Sin este argumento volvería el fallo de T142 y ninguna otra prueba lo vería."""
+    cs = walk(600)
+    st = Store(tmp_path)
+    for tf in ("1h", "15m", "1m"):
+        st.upsert_candles(SYM, tf, cs, "test")
+    pstore = PaperStore(tmp_path / "p.duckdb")
+    try:
+        for c in cs[450:460]:
+            pstore.save(SYM, "1h", ctx_for(c), "backtest", 0)
+        got = []
+        monkeypatch.setattr(PaperDesk, "_sync_protection",
+                            lambda self, v, fine=None: got.append(fine))
+        PaperDesk(st, pstore).view(SYM)
+        (fine,) = got
+        assert fine is not None and fine.step == M1 and len(fine.t)
+    finally:
+        pstore.close()

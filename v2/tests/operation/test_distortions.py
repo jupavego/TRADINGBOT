@@ -7,12 +7,12 @@ from dataclasses import replace
 from eim.operation import distortions, report, weekly
 
 MON = 1_793_577_600_000      # 2026-11-02 00:00 UTC, lunes
-FAULT = distortions.Distortion(t0=MON + 10, t1=MON + 20, title="Fallo", detail="Medido.",
-                               ref="PLAN/notas/x.md")
+FAULT = distortions.Distortion(machine="a", t0=MON + 10, t1=MON + 20, title="Fallo",
+                               detail="Medido.", ref="PLAN/notas/x.md")
 
 
 def _in(t0: int, t1: int, d: distortions.Distortion = FAULT) -> list[dict]:
-    return distortions.overlapping(t0, t1, (d,))
+    return distortions.overlapping(t0, t1, "a", (d,))
 
 
 def test_a_distortion_shows_only_in_the_periods_it_touches():
@@ -20,6 +20,11 @@ def test_a_distortion_shows_only_in_the_periods_it_touches():
     assert _in(MON + 19, MON + 30)[0]["ref"] == "PLAN/notas/x.md"
     assert _in(MON, MON + 10) == []                  # el periodo acaba cuando empieza
     assert _in(MON + 20, MON + 30) == []             # el periodo empieza cuando ya acabó
+
+
+def test_a_distortion_shows_only_in_the_reports_of_the_measured_machine():
+    assert distortions.overlapping(MON, MON + 11, "otro", (FAULT,)) == []
+    assert distortions.overlapping(MON, MON + 11, None, (FAULT,)) == []
 
 
 def test_an_unresolved_distortion_shows_in_every_later_report():
@@ -36,14 +41,20 @@ def test_report_section_says_what_where_and_until_when():
     assert report._distortion_lines([]) == []
 
 
+def test_t142_starts_when_the_first_operation_froze():
+    (d,) = distortions.KNOWN
+    assert report._d(d.t0) == "2026-11-04 00:32 UTC" and d.machine == "juanpablo-cpu"
+
+
 def test_t142_reaches_the_report_of_its_week_and_not_the_previous_one(tmp_path):
-    t0, t1 = weekly.week_bounds(distortions.KNOWN[0].t0)
+    (known,) = distortions.KNOWN
+    t0, t1 = weekly.week_bounds(known.t0)
     assert t0 == MON and t1 == MON + weekly.WEEK_MS
     rep = weekly.compose(t0=t0, t1=t1, mode="SIMULADO", symbols=("BTCUSDT",), trades=[],
                          fee_rate=0.0004, equity=[], alerts=[], active_alerts=[], decisions=[],
                          edge=None, calib={"BTCUSDT": weekly.calibration([], {}, 25)},
-                         started_at=t0)
+                         started_at=t0, machine=known.machine)
     _, md = report.write(rep, tmp_path)
     text = md.read_text(encoding="utf-8")
     assert "5 posiciones fantasma" in text and "T142_posiciones_fantasma.md" in text
-    assert distortions.overlapping(t0 - weekly.WEEK_MS, t0) == []
+    assert distortions.overlapping(t0 - weekly.WEEK_MS, t0, known.machine) == []

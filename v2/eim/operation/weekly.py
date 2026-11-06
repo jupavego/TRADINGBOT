@@ -153,7 +153,8 @@ def compose(*, t0: int, t1: int, mode: str, symbols: tuple[str, ...], trades: li
             fee_rate: float, equity: list[tuple[int, float]], alerts: list[Alert],
             active_alerts: list[str], decisions: list[RiskDecision], edge: dict | None,
             calib: dict[str, dict], started_at: int | None,
-            hft_qc: dict[str, dict] | None = None, usage: list[dict] | None = None) -> dict:
+            hft_qc: dict[str, dict] | None = None, usage: list[dict] | None = None,
+            machine: str | None = None) -> dict:
     closed = [t for t in trades if t.status == CLOSED and t.closed_at is not None
               and t0 <= t.closed_at < t1]
     weeks = (t1 - max(t0, started_at or t0)) / WEEK_MS
@@ -168,7 +169,7 @@ def compose(*, t0: int, t1: int, mode: str, symbols: tuple[str, ...], trades: li
         "equity": equity_stats(equity), "backtest": base,
         "deviations": deviations(live, base, weeks), "calibration": calib,
         "incidents": inc, "risk": vetoes(decisions), "hft_qc": hft_qc or {},
-        "distortions": overlapping(t0, t1),
+        "distortions": overlapping(t0, t1, machine),
         "usage": usage or [],
         "acceptance": {"recon_unresolved": len(inc["recon_unresolved"]),
                        "weeks_operated": round(weeks, 2),
