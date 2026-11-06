@@ -16,6 +16,7 @@ from eim.data.store import Store
 from eim.data.timeframes import FOCUS, tf_ms
 from eim.operation.priority import lower_thread
 from eim.paper import ledger
+from eim.paper.adaptive import policies_for
 from eim.paper.authority_obs import DecisionEmitter
 from eim.paper.balance import balance
 from eim.paper.book import ProfileState, run_profile
@@ -186,8 +187,12 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         v.outcomes = run_shadow(ideas, path, self.ep)
         learner = Learner(v.outcomes)
         mmr = MMR.get(symbol, 0.005)
-        sim = LadderSim(path, self.ep, self._fine(symbol, t0), guards=self._guards(symbol))
-        v.books = {p.id: run_profile(p, v.outcomes, learner, mmr, sim) for p in self.profiles}
+        fine = self._fine(symbol, t0)
+        htf = self.ep.htf[self.ep.path_tf][0]    # T135: marco mayor del camino; hoy, sin perfiles
+        exits = policies_for(self.profiles, symbol, path, fine, lambda: Path(
+            self.store.read_candles(symbol, htf, start=t0 - 60 * tf_ms(htf)), (), tf_ms(htf)))
+        sim = LadderSim(path, self.ep, fine, guards=self._guards(symbol), exits=exits)
+        v.books ={p.id: run_profile(p, v.outcomes, learner, mmr, sim) for p in self.profiles}
         self._record_ledger(v)
         self._emit_decisions(v)
         self._sync_protection(v)
@@ -225,9 +230,10 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         return True
 
     def _fine(self, symbol: str, t0: int) -> Path | None:
-        """Velas finas (1 min) para resolver el orden dentro de las velas de 15 m ambiguas del
-        perfil de escalera; None si ningún perfil las usa o el almacén no las tiene."""
-        tfs = {p.ladder.fine_tf for p in self.profiles if p.ladder and symbol in (p.symbols or (
+        """Velas finas (1 min) para resolver el orden dentro de las velas de 15 m ambiguas (y para
+        el HAR-RV de la salida adaptativa); None si ningún perfil las usa o el almacén no las
+        tiene."""
+        tfs = {p.fine_tf for p in self.profiles if p.fine_tf and symbol in (p.symbols or (
             symbol,))}
         if not tfs:
             return None

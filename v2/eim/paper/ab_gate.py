@@ -17,6 +17,7 @@ from collections.abc import Mapping, Sequence
 
 import numpy as np
 
+from eim.paper.adaptive import simulate_adaptive
 from eim.paper.engine import Outcome, simulate
 from eim.paper.ladder import simulate_ladder
 from eim.paper.ladder_book import LadderSim
@@ -31,7 +32,7 @@ from eim.validation.lineage import Version, Window, out_of_sample, tuning_window
 def gate_trades(trades: Sequence[dict], outcomes: Mapping[str, Outcome], sim: LadderSim,
                 p: ProfileParams) -> list[Trade]:
     """Operaciones cerradas del libro → evidencia de la puerta, con el R del lado contrario
-    simulado con la salida de `p` (escalera si `p.exit_mode == "ladder"`)."""
+    simulado con la salida de `p`: escalera, adaptativa (T135) o la sombra."""
     out = []
     for t in trades:
         o = outcomes[t["id"]]
@@ -39,7 +40,10 @@ def gate_trades(trades: Sequence[dict], outcomes: Mapping[str, Outcome], sim: La
         flip = flip_idea(i, ref_price(o, sim.path))
         fo = (simulate_ladder(flip, sim.path, sim.ep, p.ladder, t["qty"], sim.fine,
                               spec=spec_for(i.symbol))
-              if p.exit_mode == "ladder" else simulate(flip, sim.path, sim.ep))
+              if p.exit_mode == "ladder"
+              else simulate_adaptive(p, sim, flip, t["qty"], guarded=False)
+              if p.exit_mode == "adaptativo"
+              else simulate(flip, sim.path, sim.ep))
         risk = risk_of(t)
         out.append(Trade(t=i.t, exit_t=int(t["exit_t"]), r=float(t["r"]), r_flip=flip_r(fo),
                          cost_r=cost_of(t) / risk if risk else 0.0,

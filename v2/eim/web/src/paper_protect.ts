@@ -1,7 +1,7 @@
 /** Estado de la protección progresiva por perfil y por operación (T112). Todo es SIMULADO.
  *  El nivel protegido es un nivel del stop y el flotante no está realizado: ninguno es ganancia. */
 import { PROFILE_VAR } from './paper_chart'
-import { dur, esc, nf, pct, px, side, tone, usd, utc } from './paper_fmt'
+import { dur, esc, nf, pct, phaseLabel, px, side, tone, usd, utc } from './paper_fmt'
 import type { LadderStats, PaperSummary, PaperTrade, Position, ProfileView } from './paper_types'
 
 /** Cinco estados de la escalera y, aparte, liquidación, salvaguarda e incidencia técnica. */
@@ -27,7 +27,7 @@ export function posState(p: Position): string {
   const l = p.ladder
   if (!l) return ''
   if (p.protection_state === 'inconsistente' || l.state === 'incidencia' || l.state === 'inconsistente' || l.incident || p.liq_why) return 'incidencia'
-  if (l.state === 'protegida') return 'activa'
+  if (l.state === 'protegida' || (l.exit && l.active)) return 'activa'
   return l.float_usd > 0 ? 'inactiva' : 'inicial'
 }
 
@@ -42,6 +42,7 @@ export function tradeState(t: PaperTrade): string {
 /** Nivel protegido (o lo que falta para activarlo) de una posición abierta. */
 export function levelText(p: Position): string {
   const l = p.ladder!
+  if (l.exit) return `${esc(phaseLabel(l.exit.phase))} · ${esc(l.exit.motive)}`
   if (l.level > 0) return `escalón ${l.level} · nivel ${nf(l.nominal_usd)} USDT netos <small class="muted">(nivel del stop, estimado; no es ganancia)</small>`
   if (l.stop_source === 'be') return 'BE+ (sin escalón)'
   const left = (l.first_usd ?? 0) - Math.max(l.max_float_usd ?? 0, 0)

@@ -24,14 +24,15 @@ from eim.core.mode import Mode
 MarketKind = Literal["perp", "spot", "spot_perp"]   # spot_perp = arbitraje de dos patas (T45)
 # Modo de salida. Lo pide la fuente y lo concede la autoridad (puede no coincidir):
 #   stop_only     solo cierra el stop, inicial o dinámico (escalera de T109)
+#   adaptive_stop como `stop_only`, con los cierres pre-registrados de su política (T135)
 #   sl_tp_time    SL, TP, BE+ y tiempo de la sombra del bróker (modo «tp»)
 #   bracket       SL y TP condicionales colocados antes de la entrada (T30)
 #   follow_leader sale cuando sale el líder, con stop de protección (T42)
 #   arb_rules     reglas de gestión del arbitraje: neto agotado, vencimiento, tenencia (T45)
 #   hft_rules     reglas del carril HFT: inventario a reduce-only, cancelar todo, kill-switch (T83)
 #   policy        la fuente no pide modo: lo decide la política
-ExitMode = Literal["stop_only", "sl_tp_time", "bracket", "follow_leader", "arb_rules",
-                   "hft_rules", "policy"]
+ExitMode = Literal["stop_only", "adaptive_stop", "sl_tp_time", "bracket", "follow_leader",
+                   "arb_rules", "hft_rules", "policy"]
 EXIT_MODES: tuple[str, ...] = ExitMode.__args__  # type: ignore[attr-defined]
 TARGET_LABEL = "estimación"
 

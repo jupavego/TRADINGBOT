@@ -75,10 +75,13 @@ def current_ops(symbol: str, books: dict[str, ProfileState], ep: ExecParams) -> 
     out: dict[str, Cur] = {}
     for pid, st in books.items():
         lp = st.p.ladder
-        if st.p.exit_mode != "ladder" or lp is None:
+        if not st.p.stop_driven:
             continue
-        res = {"fee_out_est": ep.costs.taker_fee, "slip_reserve_bars": lp.slip_lookback,
-               "funding_reserve": lp.funding_reserve}
+        # la salida adaptativa (T135) no reserva escalones: su fase, motivo, fuente y versión van
+        # en el historial de cada fila (`adaptive.decorate`), sin columnas nuevas
+        res = ({"fee_out_est": ep.costs.taker_fee, "slip_reserve_bars": lp.slip_lookback,
+                "funding_reserve": lp.funding_reserve} if lp is not None
+               else {"fee_out_est": ep.costs.taker_fee})
         for s in st.slots.values():
             o, i = s.o, s.o.idea
             if s.filled and o.ladder and i.origin == "vivo":
@@ -103,14 +106,16 @@ def current_ops(symbol: str, books: dict[str, ProfileState], ep: ExecParams) -> 
 def _state_now(c: Cur) -> dict:
     hist = c.info["stop_history"]
     last = hist[-1] if hist else None
-    return {"active": bool(hist), "level": c.info["level"], "stop": c.info["stop"],
+    # «activa» = el stop ya protege. Un arrastre adaptativo puede moverse sin cruzar la entrada
+    return {"active": c.info.get("active", bool(hist)), "level": c.info["level"],
+            "stop": c.info["stop"],
             "max_float_usd": c.info["max_float_usd"],
             "protected_usd": last["nominal"] if last else None,
             "stop_source": c.info["stop_source"], "updated_t": last["t"] if last else c.fill_t}
 
 
 def _state_at(h: dict) -> dict:
-    return {"active": True, "level": h["level"], "stop": h["stop"],
+    return {"active": h.get("active", True), "level": h["level"], "stop": h["stop"],
             "max_float_usd": h["max_float"], "protected_usd": h["nominal"],
             "stop_source": h["source"], "updated_t": h["t"]}
 

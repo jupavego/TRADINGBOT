@@ -2,11 +2,24 @@
 
 export interface Judgement { weight: number; state: string; state_label: string; m: number; se: number | null; n: number }
 
+/** Fase, motivo, fuente y versión del stop vigente de una salida adaptativa (T135). */
+export interface ExitInfo {
+  mode: string; policy: string; version: string; features: string; phase: string; motive: string; source: string
+}
+/** Bloque del perfil con salida adaptativa: la política, sus rasgos con su fuente y cobertura. */
+export interface AdaptiveStats {
+  policy: string; version: string; features: string; params: Record<string, unknown>
+  feature_info: { version?: string; sigma?: string; source?: Record<string, string>; coverage?: Record<string, number> }
+  open_phases: Record<string, number>; closes: Record<string, number>; contrary_signals: number
+}
+
 /** Estado de la protección progresiva (perfil PPP) de una posición abierta. */
 export interface LadderPos {
   level: number; nominal_usd: number; max_float_usd: number | null; float_usd: number; stop: number
   initial_sl: number; state: string; incident: string; elapsed_ms: number
   stop_history: { t: number; level: number; nominal: number; stop: number; max_float: number; source?: string }[]
+  /** T135: salida adaptativa. Sin esto, la operación sale por la escalera. */
+  exit?: ExitInfo; active?: boolean
   /** Escalones de ESTA operación (con base R cada una tiene los suyos) y origen del stop vigente. */
   first_usd?: number; step_usd?: number; stop_source?: string
   /** Neto ESTIMADO si saltara ahora el stop vigente (T112); un hueco o el deslizamiento pueden dar otro. */
@@ -78,7 +91,7 @@ export interface ProfileView {
   best: number | null; worst: number | null; fees: number; funding: number; slip: number
   max_dd_pct: number; positions: Position[]; orders: Order[]; curve: [number, number][]
   by_strategy: Record<string, { n: number; pnl: number; wins: number }>
-  weights: Record<string, Judgement>; events_n: number; ladder?: LadderStats
+  weights: Record<string, Judgement>; events_n: number; ladder?: LadderStats; adaptive?: AdaptiveStats
   /** T110: diario de la protección verificado y operaciones inconsistentes o recuperadas. */
   protection?: { verified: unknown; inconsistent: number; recovered: number }
 }

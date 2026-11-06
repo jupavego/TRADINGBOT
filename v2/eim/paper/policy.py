@@ -27,6 +27,7 @@ from eim.core import Mode
 from eim.core.authority import RiskDecision, params_fingerprint
 from eim.paper import risk_budget
 from eim.paper.account import capital, leverage_for
+from eim.paper.adaptive import open_adaptive
 from eim.paper.book_events import learned_bad
 from eim.paper.caps import fit_risk
 from eim.paper.engine import Outcome
@@ -42,7 +43,7 @@ if TYPE_CHECKING:
 SOURCE = "paper.strategies"
 AUTHORITY = "paper.broker"
 POLICY_VERSION = "paper_policy_v1"     # vetos + topes + tamaño del libro (T47–T109)
-EXIT_OF = {"ladder": "stop_only", "tp": "sl_tp_time"}
+EXIT_OF = {"ladder": "stop_only", "tp": "sl_tp_time", "adaptativo": "adaptive_stop"}
 _GRANT = object()                      # solo `decide` firma una decisión aprobada
 
 
@@ -81,7 +82,7 @@ class PaperDecision:
             risk_amount=self.risk_usd,
             risk_frac=self.risk_usd / self.equity if self.equity > 0 else 0.0,
             entry=i.entry, sized_at=self.entry or i.entry, sl=i.sl,
-            tp=() if p.exit_mode == "ladder" else (i.tp,), reasons=self.reasons,
+            tp=() if p.stop_driven else (i.tp,), reasons=self.reasons,
             config_version=POLICY_VERSION, config_sha256=hashlib.sha256(dump).hexdigest(),
             account_source=f"perfil {p.id}: capital realizado {self.equity:.2f} USDT (SIMULADO)",
             proposal=i.as_proposal(), authority=AUTHORITY, profile_version=params_fingerprint(p),
@@ -158,15 +159,17 @@ def decide(st: ProfileState, o: Outcome, j: Judgement, jc: Judgement, ck: str, m
             return _no(o, Veto(f"margen insuficiente (libre {free:.2f} USDT)", None, "margen"),
                        equity=eq)
         qty, margin, risk_usd = qty * scale, margin * scale, risk_usd * scale
-    if sim is not None and p.exit_mode == "ladder":
-        want_qty, (qty, o) = qty, open_ladder(p, sim, i, qty)
+    if sim is not None and p.stop_driven:
+        ladder = p.exit_mode == "ladder"
+        want_qty, (qty, o) = qty, (open_ladder if ladder else open_adaptive)(p, sim, i, qty)
         if o.status == "RECHAZADA" and o.reason == "CANTIDAD":
             return _no(o, Veto(f"cantidad {want_qty:.6g} bajo el mínimo negociable "
                                f"{spec_for(i.symbol).min_qty:g} (riesgo {risk_usd:.2f} USDT con "
                                f"capital realizado {eq:.2f} USDT)", None, "cantidad_minima"),
                        equity=eq)
         if o.status == "RECHAZADA":
-            return _no(o, Veto(f"geometría inválida para la escalera ({o.reason})", None,
+            what = "la escalera" if ladder else "la salida adaptativa"
+            return _no(o, Veto(f"geometría inválida para {what} ({o.reason})", None,
                                "geometria"), equity=eq)
         # la escalera puede recortar la cantidad al paso del instrumento: el riesgo
         # informado se recalcula con la MISMA distancia presupuestada (T136)

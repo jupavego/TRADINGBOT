@@ -1,6 +1,6 @@
 /** Tablas estilo exchange: posiciones, órdenes abiertas e historial (libro de operaciones). */
 import { histPart } from './paper_audit'
-import { CAUSE, dur, esc, nf, pct, pct0, px, qty, REASON, rr, side, tone, usd, utc } from './paper_fmt'
+import { CAUSE, dur, esc, nf, pct, pct0, phaseLabel, px, qty, REASON, rr, side, tone, usd, utc } from './paper_fmt'
 import { levelText, posState, stateChip, stopEstimate, tradeState } from './paper_protect'
 import type { Order, PaperTrade, Position } from './paper_types'
 
@@ -71,7 +71,7 @@ function exitOrders(ps: Position[], names: Names, sym: string, price: number | n
     const q = `<td class="num">${qty(p.qty, sym)}</td>`
     const tpRow = p.tp === null ? '' : `<tr data-exit="tp">${who}<td>Take profit · límite (reduce)</td><td class="num up">${px(p.tp)}<br>${dist(p.tp, p)}</td>${q}</tr>`
     return tpRow +
-      `<tr data-exit="sl">${who}<td>${p.ladder ? `Stop loss dinámico · escalón ${p.ladder.level}` : 'Stop loss'} · stop a mercado (reduce)</td><td class="num down">${px(p.sl)}<br>${dist(p.sl, p)}</td>${q}</tr>`
+      `<tr data-exit="sl">${who}<td>${p.ladder?.exit ? `Stop loss dinámico · ${esc(phaseLabel(p.ladder.exit.phase))}` : p.ladder ? `Stop loss dinámico · escalón ${p.ladder.level}` : 'Stop loss'} · stop a mercado (reduce)</td><td class="num down">${px(p.sl)}<br>${dist(p.sl, p)}</td>${q}</tr>`
   }).join('')
   return `<h4>Órdenes de salida de las posiciones abiertas (${ps.length * 2})</h4><div class="pp-scroll"><table class="pp-t"><thead><tr>` +
     `<th>Estrategia · lado</th><th>Tipo</th><th>Precio de disparo</th><th>Cantidad</th></tr></thead><tbody>${rows}</tbody></table></div>` +
@@ -140,6 +140,7 @@ function tpSl(x: Order | Position): string {
 /** Motivo de cierre de una operación de la escalera: estado, escalón o BE+ y lo protegido. */
 function closeCell(t: PaperTrade): string {
   const l = t.ladder
+  if (l?.exit) return `${stateChip(tradeState(t))}<br><small class="muted">${esc(l.exit.motive)}</small>`
   const what = t.reason !== 'SLD' || !l ? '' : l.stop_source === 'be' ? 'BE+' : `escalón ${l.level} · nivel protegido ${nf(l.nominal_usd)} USDT (estimado)`
   return stateChip(tradeState(t)) + (what ? `<br><small class="muted">${what}</small>` : '')
 }
