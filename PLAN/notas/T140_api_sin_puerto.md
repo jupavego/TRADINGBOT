@@ -81,7 +81,8 @@ La API corre con prioridad 6 (por debajo de lo normal, T126) y esos procesos con
 
 - **El gate de T135 no la dañó:** corrió entre las 05:10 y las 05:26 UTC y la hora 05 salió completa.
 - **Las horas 06 y 07 salieron incompletas:** silencios desde las 06:11 y desconexiones desde las 07:54 («keepalive ping timeout»), todos los flujos a la vez. El equipo estaba libre (CPU 4–19 %, más de 7 GB de RAM libres) y la cola vacía, lo que apunta a la red y no a la carga, sin poder asegurarlo. A las 07:54 había un `git-remote-https` en marcha, que no prueba nada.
-- **Racha:** 5 h desde las 08 UTC. Si no se corta, llega a 72 h el 2026-11-09 hacia las 08:00 UTC.
+- **Comprobado con la recalificación de T138, en seco:** las horas 06 y 07 siguen incompletas (libro útil 98,4 % y 93,2 %, con huecos reales). Solo cambiaría la hora 00, por `mark`, y eso no afecta a la racha actual.
+- **Racha:** 6 h desde las 08 UTC, medida a las 14:38 UTC. Si no se corta, llega a 72 h el 2026-11-09 hacia las 08:00 UTC.
 
 ## 5. El reinicio (2026-11-06, con permiso del usuario)
 
@@ -96,6 +97,6 @@ Se esperó a que terminara el gate de T139 y a que acabara un ciclo, y se detuvo
 | 13:52:38 | `/v2/paper` responde 200; antes daba 503 mientras calculaba la primera vista, que es lo previsto |
 | 13:52:37 | Salen las 5 alertas críticas de §3, las mismas |
 
-Los otros 14 procesos de servicio siguieron vivos y la captura escribió un parquet a las 13:51:58. La interfaz sale «SIN CONEXIÓN» unos segundos, hasta que responde `/v2/snapshot` (≈ 10 s con el equipo cargado), y después «EN VIVO» con el precio en movimiento. **Falta auditar la hora 13 de T78**, que aún no había cerrado.
+Los otros 14 procesos de servicio siguieron vivos y la captura escribió un parquet a las 13:51:58. La interfaz sale «SIN CONEXIÓN» unos segundos, hasta que responde `/v2/snapshot` (≈ 10 s con el equipo cargado), y después «EN VIVO» con el precio en movimiento. **La hora 13 de T78 salió completa**, con 0 eventos sin detectar: el reinicio no afectó a la captura. A las 14:38 UTC la API seguía escuchando.
 
 **El fallo sigue sin arreglar:** puede repetirse hasta cerrar T140, y este reinicio solo lo cura por ahora.
