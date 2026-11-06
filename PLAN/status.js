@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-05T19:56:20",
+ "generated": "2026-11-05T22:28:27",
  "tasks": [
   {
    "id": "T01",
@@ -1757,8 +1757,8 @@ window.EIM_STATUS = {
     "T49",
     "T137"
    ],
-   "state": "pending",
-   "notes": "**Ficha escrita (2026-11-06), sin empezar y sin calcular nada sobre datos reales.** `PLAN/T139.md`. Cinco hipótesis con información que el catálogo nunca midió (funding, flujo agresor continuación y reversión, cascada forzada, momento en 1 d), la misma salida que `control_aleatorio` y 9 claves: Holm de 832 a 841, z ≈ 3,85. **Datos:** 2023 → hoy solo puede descartar; se puntúa antes de 2023 (limpio para el proyecto, un solo uso, cobertura sin verificar) y desde el pre-registro. **Bruto mínimo:** 15 m imposible (V6 falla con 0,38 R); 1 h ≈ +0,21 R, muy improbable (lo mejor medido, +0,060 R con n = 961); 4 h ≈ +0,15 a +0,24 R, el único con margen y el menos medido. Solo en vivo habría que esperar cerca de un año aun con +0,30 R de bruto. **Parada:** P0–P3, con una sola ronda y fecha límite de 6 meses; el resultado más probable es P1. ◆ cuatro preguntas en la ficha: abrir o parar ya, lista de hipótesis, parada vinculante y Holm completo.",
+   "state": "progress",
+   "notes": "**En curso desde el 2026-11-06.** Ficha `PLAN/T139.md`; pre-registro `prereg_t139_v1`, con alta el 2026-11-06T05:00Z. Cinco hipótesis con información que el catálogo nunca midió (funding, flujo agresor continuación y reversión, cascada forzada, momento en 1 d), la misma salida que `control_aleatorio` y 9 claves: Holm de 832 a 841, z ≈ 3,85. **Datos:** 2023 → hoy solo puede descartar; se puntúa antes de 2023 (limpio para el proyecto, un solo uso, cobertura sin verificar) y desde el pre-registro. **Bruto mínimo:** 15 m imposible (V6 falla con 0,38 R); 1 h ≈ +0,21 R, muy improbable (lo mejor medido, +0,060 R con n = 961); 4 h ≈ +0,15 a +0,24 R, el único con margen y el menos medido. Solo en vivo habría que esperar cerca de un año aun con +0,30 R de bruto. **Parada:** P0–P3, con una sola ronda y fecha límite de 6 meses; el resultado más probable es P1. ◆ resueltas por el usuario (2026-11-06, «lo recomendado»): se abre la ronda, con H5 en 1 d, parada vinculante y Holm completo.",
    "effort": "alto",
    "phase": 23,
    "goal": "Comprobar, en una sola ronda pre-registrada y sin tocar stops ni salidas, si alguna entrada con información que el catálogo nunca midió (funding, flujo agresor, flujo forzado, marco diario) da un R bruto que cubra los costos medidos en datos limpios. Si ninguna lo da, recomendar parar la búsqueda. «Ninguna validada» es un resultado válido, y también el más probable."
