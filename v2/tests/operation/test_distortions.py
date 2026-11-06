@@ -46,14 +46,16 @@ def test_t142_starts_when_the_first_operation_froze():
     assert report._d(d.t0) == "2026-11-04 00:32 UTC" and d.machine == "juanpablo-cpu"
 
 
-def test_t142_reaches_the_report_of_its_week_and_not_the_previous_one(tmp_path):
+def test_t142_reaches_the_report_of_its_week_and_not_the_previous_one(tmp_path, monkeypatch):
     (known,) = distortions.KNOWN
+    (tmp_path / "machine_id").write_text(known.machine, encoding="utf-8")
+    monkeypatch.delenv("EIM_MACHINE", raising=False)
     t0, t1 = weekly.week_bounds(known.t0)
     assert t0 == MON and t1 == MON + weekly.WEEK_MS
     rep = weekly.compose(t0=t0, t1=t1, mode="SIMULADO", symbols=("BTCUSDT",), trades=[],
                          fee_rate=0.0004, equity=[], alerts=[], active_alerts=[], decisions=[],
                          edge=None, calib={"BTCUSDT": weekly.calibration([], {}, 25)},
-                         started_at=t0, machine=known.machine)
+                         started_at=t0, data_dir=tmp_path)
     _, md = report.write(rep, tmp_path)
     text = md.read_text(encoding="utf-8")
     assert "5 posiciones fantasma" in text and "T142_posiciones_fantasma.md" in text

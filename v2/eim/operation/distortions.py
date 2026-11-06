@@ -3,8 +3,8 @@
 El informe semanal cuenta lo que pasó, pero no sabe cuándo un fallo propio alteró lo medido. Lo que
 se haya diagnosticado y medido se apunta aquí, con su evidencia, y sale en cada informe cuyo periodo
 se solape. Se añade a mano y no se borra: es parte de la lectura de la corrida. Al resolverse se
-pone `t1`. Cada equipo lleva su propia corrida y este archivo llega a todos con `main`: cada distorsión
-dice de qué equipo se midió y solo sale en los informes de ese equipo.
+pone `t1`. Cada equipo lleva su propia corrida y este archivo llega a todos con `main`: cada
+distorsión dice de qué equipo se midió y solo sale en los informes de ese equipo.
 """
 
 from __future__ import annotations
