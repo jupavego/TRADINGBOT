@@ -65,6 +65,29 @@ def test_la_captura_sube_y_el_mantenimiento_baja_y_se_restaura():
     assert _py("-c", api, env=ON) == "service"     # por debajo de los programas del usuario
 
 
+LEVELS = ("import json, os\nfrom eim.operation import priority as p, priority_memory as m\n"
+          "m.set_levels(None, 2, 1)\np.apply_role('{role}')\nr = m.read(os.getpid())\n"
+          "print(json.dumps([r['memory'], r['io'], sorted(r['threads'])]))")
+
+
+@win
+@pytest.mark.parametrize("role", ["hft_collector", "liq_collector", "collector"])
+def test_los_recolectores_suben_su_memoria_y_su_es_al_arrancar(role):
+    assert json.loads(_py("-c", LEVELS.format(role=role), env=ON)) == [5, 2, ["5/2"]]
+
+
+@win
+@pytest.mark.parametrize("role", ["api", "leaders", "hft_watchdog", "usage"])
+def test_los_demas_servicios_conservan_memoria_y_es(role):
+    """Subir la API antes de decidirlo dejaría a la captura sin ventaja (◆C de T141)."""
+    assert json.loads(_py("-c", LEVELS.format(role=role), env=ON)) == [2, 1, ["2/1"]]
+
+
+@win
+def test_sin_la_variable_la_memoria_tampoco_cambia():
+    assert json.loads(_py("-c", LEVELS.format(role="hft_collector"))) == [2, 1, ["2/1"]]
+
+
 @win
 def test_run_deja_la_orden_y_sus_hijos_por_debajo_de_los_servicios():
     """Windows hace heredar IDLE: también al proceso real detrás del lanzador del venv."""

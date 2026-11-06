@@ -1,8 +1,33 @@
 # T141 — Qué ahoga a la API, y qué se puede decidir (2026-11-06)
 
-Hecho desde `juanpablo-cpu`, solo leyendo: 4,6 días de `data/usage` (2-nov 03:38 a 6-nov 19:10 UTC, 12 534 muestras, con un hueco de 6,3 h el 3-nov), `data/operation/logs`, `data/jobs/log`, los JSON de QC de la captura y los registros locales de las sesiones de Claude. **No se cambió ninguna prioridad ni se reinició ningún servicio.** Los cambios de prioridad solo se probaron en un proceso de prueba propio.
+Hecho desde `juanpablo-cpu`, solo leyendo: 4,6 días de `data/usage` (2-nov 03:38 a 6-nov 19:10 UTC, 12 534 muestras, con un hueco de 6,3 h el 3-nov), `data/operation/logs`, `data/jobs/log`, los JSON de QC de la captura y los registros locales de las sesiones de Claude. El informe se hizo sin cambiar ninguna prioridad ni reiniciar ningún servicio; los cambios se probaron antes en un proceso de prueba propio. Después el usuario decidió (abajo).
 
 Salvo que se diga otra cosa, las horas son UTC y la CPU es % del equipo entero: con 4 núcleos, un núcleo lleno es el 25 %.
+
+## Decisión del usuario (2026-11-06 ≈ 20:00 UTC): ◆A y ◆B
+
+**◆A, regla para el trabajo pesado:** escrita en `~/.claude/CLAUDE.md`, de este equipo y fuera del repositorio. Va ahí, y no solo en `OPERACION`, porque `RECUAPP` y el propio EIM también aparecen en los episodios de carga. Rige para las sesiones que arranquen desde ahora: las ya abiertas no la leen. La orden se probó desde otra carpeta con un trabajo de prueba.
+
+**◆B, memoria y E/S de los recolectores:** aplicada **a las 20:01:48 UTC, en marcha y sin reiniciar** (`python -m eim.operation.priority_memory apply`).
+
+| Proceso | Antes | Después |
+|---|---|---|
+| `hft_collector` (PID 11376, 14 hilos) | memoria 2, E/S baja | **memoria 5, E/S normal**, en todos sus hilos |
+| `liq_collector` (PID 17348, 12 hilos) | memoria 2, E/S baja | **memoria 5, E/S normal**, en todos sus hilos |
+| API (PID 13376) y el resto de los servicios | memoria 2, E/S baja | sin cambios |
+
+**Se queda fijo:** desde este PR, `priority.apply_role` sube a los recolectores al arrancar. Hasta que se fusione y se reinicien, un reinicio de la captura la devolvería a 2.
+
+**Auditoría de la captura:**
+
+| | Antes (19:58 UTC) | Después |
+|---|---|---|
+| Racha T78 (`hft_ops --streak`) | 4 h, desde 2026-11-06T15; mejor racha, 23 h | @@RACHA@@ |
+| Última hora | T18 completa | @@HORA@@ |
+| Latido y cola | cola 1, sin descartes, mismo arranque | a los 8 s: cola 1, sin descartes, mismo arranque. @@COLA@@ |
+| Horas incompletas del día (`usage summary`) | 00, 06, 07 y 14 | @@INCOMPLETAS@@ |
+
+**Lo que esto no prueba:** una hora tranquila solo dice que el cambio no estorba. La mejora se verá en el próximo episodio de presión de memoria, si la captura conserva sus ~150 MB en vez de bajar a 18–40 MB, y se lee con `python -m eim.operation.usage incidents --days 7`.
 
 ## Resumen
 
@@ -132,7 +157,7 @@ Serían **11 avisos en 4,6 días (2,4 al día)**, uno por tramo. Cuatro de los 1
 python -m eim.operation.usage incidents --days 7
 ```
 
-**Ventana propuesta:** 3 días desde ese reinicio. Si es hoy, **hasta el 2026-11-10**, lo que además cubre el final de la racha de T78 (como pronto el 2026-11-09 hacia las 08:00 UTC). Si en esa ventana no hay bloqueos, se dirá que no los hubo. La medición también deja `faults`, para separar por fin memoria y CPU en un caso como el de las 04:14.
+**Ventana propuesta:** 3 días desde ese reinicio. Si es hoy, **hasta el 2026-11-10**, lo que además cubre el final de la racha de T78. Esa racha se rompió en la hora 14 del 6-nov y va desde la 15, así que se cumple como pronto al cerrar la hora 2026-11-09T14 UTC. Si en esa ventana no hay bloqueos, se dirá que no los hubo. La medición también deja `faults`, para separar por fin memoria y CPU en un caso como el de las 04:14.
 
 **Sin comprobar:** leer las órdenes desde la sesión 0, donde no se ha probado; hoy los servicios corren en la sesión 1. Si falla, el árbol queda medido y sin nombre, sin más daño.
 
@@ -150,12 +175,12 @@ python -m eim.operation.usage incidents --days 7
 
 **Cómo se aplicaría:**
 
-- **◆A** es un texto para `~/.claude/CLAUDE.md` o el `CLAUDE.md` de `OPERACION`. **No se ha escrito:** es la decisión del usuario y otro proyecto. La orden sería, desde `TRADINGBOT\v2`:
+- **◆A** (decidida) está en `~/.claude/CLAUDE.md`. La orden, válida desde cualquier carpeta:
   ```bash
-  python -m eim.operation.jobs submit --name forma --cwd "C:\Users\jo\Desktop\JP\OPERACION\PROTOTIPO" --min-ram-mb 4000 -- python -I scripts/23_modelo_forma_semilunar.py --procesos 2
+  C:/Users/jo/Desktop/JP/TRADINGBOT/v2/.venv/Scripts/python.exe -m eim.operation.jobs --data-dir C:/Users/jo/Desktop/JP/TRADINGBOT/v2/data submit --name forma --cwd C:/Users/jo/Desktop/JP/OPERACION/PROTOTIPO --min-ram-mb 4000 -- python -I scripts/23_modelo_forma_semilunar.py --procesos 2
   ```
   No limita ni cierra ningún programa del usuario. Es una regla para lo que se lanza desde las sesiones.
-- **◆B y ◆C** se pueden aplicar **en marcha, sin reiniciar**, así que no cortan la racha. En un proceso de prueba, el cambio llegó a sus hilos y se revirtió sin problema, y hoy Windows da permiso para hacerlo sobre la captura y la API. Tras un apagado, los servicios volverían a 2 hasta llevarlo a `priority.apply_role`, que es un cambio de código aparte. **No se ha tocado ningún servicio.**
+- **◆B** (decidida) está aplicada y fijada (arriba). **◆C** se podría aplicar igual, en marcha y sin reiniciar, y exigiría añadir la API a `priority_memory.targets` y a `apply_role`; las pruebas fallan si la API sube sin decidirlo.
 - **◆D** es añadir un nivel que dé NORMAL en `priority.WINDOWS_CLASS`, asignárselo a la API en `ROLES` y reiniciarla, y antes hay que confirmar qué hijos lanza la API, porque heredarían la clase normal.
 
 **Mi recomendación:**

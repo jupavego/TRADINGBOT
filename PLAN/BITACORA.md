@@ -726,7 +726,7 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** `ruff` limpio y gate completo por la cola: `gate-t141`, rc 0, **3 102 pasadas, 8 omitidas, 0 fallos**, 965 s, sin pausas. Revisión de código a nivel medio: 10 hallazgos, corregidos. Una muestra real con `usage run --once`, sin escribir nada. Sin notificación real ni prueba desde la sesión 0. Cambios de prioridad probados solo en un proceso hijo propio.
 - **Abierto:** T141 sigue ◐. Falta fusionar, reiniciar el registro de consumo (pide permiso; no toca la captura) y medir 3 días, hasta el 2026-11-10 si es hoy. Opciones ◆A–◆E del usuario. **Ninguna prioridad cambió y no se reinició nada.** No editados, por ser de T140: `watchdog`, `__main__`, `continuity/check`, los scripts y `RUNBOOK`.
 - **En curso:** T140 en su sesión; T31, T45, T62, T78, T104, T116, T117, T127, T128, T135.
-- **Siguiente paso:** decidir ◆A y ◆B. Después, con el registro ya reiniciado: `python -m eim.operation.usage incidents --days 7`.
+- **Siguiente paso:** con el registro ya reiniciado, `python -m eim.operation.usage incidents --days 7`. El usuario decidió ◆A y ◆B justo después: entrada siguiente.
 
 ## 2026-11-06 19:20 UTC · juanpablo-cpu · T140: trae main y queda lista para el PR
 - **Hecho:** se fusionaron #212 (T139) y #214 (las fichas), así que la rama trajo `main`. Solo chocaban `PLAN/{BACKLOG,STATUS,ESTADO_PROYECTO}.md` y `PLAN/status.js`: se conservó lo de ambos lados. Ningún archivo de código se solapa con T139.
@@ -735,3 +735,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** fusionar este PR. **Desplegar:** reiniciar vigilante y API (◆ permiso); la API sigue con el proceso de las 13:51 UTC y el fallo aún puede repetirse.
 - **En curso:** T135 (◐); T31, T45, T62, T104, T78, T116, T117, T127 y T128 sin cambios aquí.
 - **Siguiente paso:** el despliegue de T140 y después T142.
+## 2026-11-06 20:15 UTC · juanpablo-cpu · T141: el usuario decide ◆A y ◆B, y se aplican
+- **Hecho:** ◆A, regla en `~/.claude/CLAUDE.md`, fuera del repositorio: lo pesado que se lance desde sesiones de Claude va por la cola y con 2 procesos como máximo; la orden se probó desde otra carpeta. ◆B, memoria y E/S de `hft_collector` y `liq_collector` de 2 y baja a **5 y normal**, a las 20:01:48 UTC, en marcha y sin reiniciar, comprobado hilo a hilo. `priority.apply_role` lo repite al arrancar. Herramienta nueva: `python -m eim.operation.priority_memory show|apply`. Se trajo `origin/main` (T140) a mano: `sync_with_base_branch` falló con el mismo «Committer identity unknown»; conflictos solo en `ESTADO_PROYECTO`, `STATUS` y `status.js`.
+- **Sin tocar:** la API y los demás servicios siguen en memoria 2 y E/S baja, a propósito; hay pruebas que fallan si suben. No se reinició nada.
+- **Corrección:** el informe decía que T78 podía cumplirse hacia el 2026-11-09 08:00 UTC. La racha se rompió en la hora T14 del 6-nov, también con el criterio recalificado, y va desde T15: como pronto al cerrar la hora 2026-11-09T14 UTC.
+- **Archivos:** `v2/eim/operation/{priority,priority_memory}.py`, `v2/tests/operation/{test_priority,test_priority_memory}.py`, `v2/docs/OPERACION.md`, `PLAN/notas/T141_carga_ajena.md`, `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/{roadmap.html,status.js}`; fuera del repositorio, `~/.claude/CLAUDE.md`.
+- **Pruebas:** @@GATE2@@ Auditoría de la captura antes y después en el informe.
+- **Abierto:** T141 sigue ◐. Falta fusionar el PR #216 y reiniciar el registro de consumo (pide permiso) y medir 3 días. **La mejora de ◆B no está medida:** hace falta un episodio de presión de memoria. Si la captura se reinicia antes de desplegar, vuelve a memoria 2. Las sesiones ya abiertas no leen la regla de ◆A.
+- **En curso:** T31, T45, T62, T78, T104, T116, T117, T127, T128, T135, T141.
+- **Siguiente paso:** fusionar con permiso del usuario, y después `python -m eim.operation.usage incidents --days 7`.
