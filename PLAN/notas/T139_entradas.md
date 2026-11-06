@@ -67,10 +67,10 @@ Ocho de nueve están lejos: como mucho un tercio del mínimo, y dos con bruto ne
 - **No mide ETHUSDT** (T122), **ni el libro de los perfiles**, **ni entradas maker** (BACKLOG T139).
 - **No toca T31:** nada escribe en `data/paper.duckdb`. Los 9 intentos quedan en `v2/eim/validation/attempts_t139.json` y entran en el registro vivo al próximo reinicio de la API, con la familia en 841. Solo la hace más exigente.
 
-## 6. ◆ Pregunta al usuario
+## 6. ◆ Resuelta: se cierra la búsqueda con P1
 
-**¿Se cierra la búsqueda de entradas con P1?** La regla es vinculante y la evidencia lo sostiene: **sí.** Ninguna de las nueve pasa, la más cercana se debilita en el tramo reciente y no podría validarse antes de la fecha límite. Parar es no abrir más tareas de búsqueda de entradas direccionales con estos datos; T31 cierra como está previsto y los perfiles no cambian.
+El usuario delegó la decisión (2026-11-06, «toma tu la mejor decision»), y **Claude decidió cerrar**, aplicando la regla de parada que el usuario hizo vinculante antes de calcular. Seguir `flujo_sigue@4h` habría sido una excepción a esa regla justo cuando salió un resultado cercano, que es lo que la regla existe para impedir. Tampoco habría servido de mucho: se debilita en el tramo reciente y no podría validarse antes de la fecha límite (§2).
 
-Para qué sirve entonces el sistema (análisis, arbitraje, HFT tras T78) es otra decisión, posterior a esta.
+**Qué significa:** no se abren más tareas de búsqueda de entradas direccionales con estos datos. La línea solo se reabre con una fuente con al menos un año de historia propia, evaluada en vivo y con claves nuevas. T31 cierra como está previsto y los perfiles no cambian. La etapa en vivo se queda sin implementar.
 
-Pendiente aparte: el gate completo, que no se corrió porque hay una racha de T78 en curso. Se han pasado `ruff` y `tests/validation`.
+**Lo que sigue siendo del usuario:** para qué sirve entonces el sistema (análisis, arbitraje, HFT tras T78). Es otra decisión, posterior a esta, y no se tomó aquí.

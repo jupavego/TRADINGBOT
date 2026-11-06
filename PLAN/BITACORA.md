@@ -675,6 +675,7 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** ◆ ¿se cierra la búsqueda con P1? Gate completo. Etapa en vivo sin implementar, porque ninguna clave sigue.
 - **En curso:** T31, T45, T62, T104, T78, T116, T117, T127, T128, T139.
 - **Siguiente paso:** la respuesta del usuario; después, el gate cuando no haya racha en juego, y T139 a ☑.
+
 ## 2026-11-06 05:30 UTC · juanpablo-cpu · T135 motor de la posición, construido y apagado
 - **Hecho:** el usuario pidió empezar T135 «mientras no interrumpa lo que se está llevando a cabo». Su condición era que T134 aprobara una salida, y no aprobó ninguna; T137 además cerró la línea de apartar el stop. Se construyó lo que no depende de elegir: `exit_mode="adaptativo"` con M2, M3, M5, M6 y M7, por la autoridad de T114, con el suelo del diario T110, fase, motivo, fuente y versión, panel en «Perfiles» y cálculo de potencia (E9). **Ningún perfil lo usa y el A/B no empezó:** no hay salida que comparar. Todo en un worktree propio, sin reiniciar nada ni tocar la base.
 - **Comprobado que no cambia nada de lo vigente:** contra `main`, con `PYTHONHASHSEED=0`, las huellas de los 4 perfiles, sus volcados y las 111 versiones de T49 son idénticos. La solución obvia lo habría roto: un `"adaptive": null` en el volcado cambia la versión de los cuatro perfiles.
