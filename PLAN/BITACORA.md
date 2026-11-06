@@ -686,3 +686,13 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** auditar la hora 05 UTC de hoy, la del gate, cuando cierre: es otra medición de si el gate daña la captura. Diagnosticar la API. El roadmap vivo no recoge el ◐ de T135 hasta fusionar, porque la rama de T139 ya publicó más tareas.
 - **En curso:** T135 (◐), T139 en su propia sesión y sus trabajos en la cola; T31, T45, T62, T104, T78, T116, T117, T127 y T128 sin cambios aquí.
 - **Siguiente paso:** T135 queda parada hasta que haya una salida aprobada por §5.4; hoy el frente es la entrada (T139). Lo urgente es la API.
+
+## 2026-11-06 14:15 UTC · juanpablo-cpu · T139 cerrada: la búsqueda de entradas se para
+- **Hecho:** el usuario delegó la ◆ de cierre («toma tu la mejor decision») y Claude decidió cerrar con P1, aplicando la regla de parada que el usuario hizo vinculante antes de calcular. Seguir `flujo_sigue@4h` habría sido una excepción justo ante un resultado cercano. T139 a ☑. Se trajo `origin/main` (T135) a mano, porque `sync_with_base_branch` falló con «Committer identity unknown»; conflictos solo en `BACKLOG`, `ESTADO_PROYECTO` y `status.js`.
+- **Archivos:** `PLAN/{T139,STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/notas/T139_entradas.md`, `PLAN/{roadmap.html,status.js}`.
+- **Pruebas:** `ruff` limpio y gate completo por la cola sobre el código fusionado: `gate-t139`, rc 0, **3 054 pasadas, 8 omitidas, 0 fallos**, 1 105 s, sin pausas. Contadas en el registro de puntos, porque `addopts = "-q"` más `-q` oculta el resumen (BACKLOG T139 (10)).
+- **Gate y racha de T78:** se corrió a sabiendas con la racha en 5 h, porque era lo más barato que iba a estar. **La hora 13 salió completa,** con libro 1,0 y sin huecos. La hora 05, la que dejó abierta la sesión de T135, también. Con estas van cuatro horas de gate sanas y una rota; el registro está en `ESTADO_PROYECTO` §3.
+- **T78:** con `mark` recalificado, la racha llegó a 21 h (2026-11-05T09 → 2026-11-06T05) y se rompió en las horas T06 y T07, sin ningún trabajo en la cola; causa sin investigar (BACKLOG). La actual va en 6 h desde T08 y T78 se cumple como pronto al cerrar la hora 2026-11-09T07 UTC. No se aplicó `--requalify --apply`.
+- **Abierto:** PR #212 sin fusionar. ◆ del usuario, posterior a esta: para qué sirve entonces el sistema. **La API sigue sin escuchar en el puerto 8000** (comprobado a las 14:09 UTC; no se tocó). Los 9 intentos entran en el registro cuando se reinicie.
+- **En curso:** T31, T45, T62, T78, T104, T116, T117, T127, T128, T135.
+- **Siguiente paso:** fusionar con permiso del usuario, y traer `main` a la carpeta principal, que sigue en `d1921eb`, sin reiniciar nada que no se decida aparte.

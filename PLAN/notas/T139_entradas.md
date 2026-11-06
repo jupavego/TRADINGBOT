@@ -52,7 +52,7 @@ Ocho de nueve están lejos: como mucho un tercio del mínimo, y dos con bruto ne
 
 **Cobertura del tramo limpio (2020–2022): 100 %** en 1 min, 15 min, 1 h, 4 h, funding y `taker_buy_v`. La historia empieza el 2019-09-08T17:57Z, lo que la ficha daba por sin verificar.
 
-**Pruebas:** señales causales (reescribir el futuro no cambia ninguna decisión), funding en su valor base sin señal, huecos sin señal, bruto ≈ 0 en paseo aleatorio sin costos, ninguna clave en `CATALOG` y ninguna importación desde `eim/paper`. La revisión de código encontró que la guarda de la lectura limpia no exigía la regresión con contextos mínimos: se corrigió antes de gastarla.
+**Pruebas:** señales causales (reescribir el futuro no cambia ninguna decisión), funding en su valor base sin señal, huecos sin señal, bruto ≈ 0 en paseo aleatorio sin costos, ninguna clave en `CATALOG` y ninguna importación desde `eim/paper`. La revisión de código encontró que la guarda de la lectura limpia no exigía la regresión con contextos mínimos: se corrigió antes de gastarla. **Gate completo** (`gate-t139`, por la cola, con T135 ya fusionada): 3 054 pasadas, 8 omitidas, 0 fallos en 1 105 s, sin pausas, y la hora de captura en que corrió salió completa.
 
 ## 4. Lo que se aprendió por el camino
 
