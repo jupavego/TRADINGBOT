@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-06T08:41:17",
+ "generated": "2026-11-06T13:47:41",
  "tasks": [
   {
    "id": "T01",
@@ -1749,6 +1749,19 @@ window.EIM_STATUS = {
    "effort": "bajo",
    "phase": 21,
    "goal": "Que la racha de T78 no se rompa por una forma de contar. Un flujo de 1 Hz contado por segundo de llegada vacía unos segundos y duplica otros cuando su fase cae sobre el límite del segundo, y `qc.py` da por incompletas horas en las que no falta ningún mensaje. Pasó el 2026-11-05 desde el arranque de las 08:11 UTC, que dejó el reloj del equipo unos 800 ms adelantado."
+  },
+  {
+   "id": "T139",
+   "title": "La entrada (2): una ronda de hipótesis nuevas para buscar R bruto positivo",
+   "deps": [
+    "T49",
+    "T137"
+   ],
+   "state": "done",
+   "notes": "**Hecha (2026-11-06): P1, ninguna clave sigue y la búsqueda de entradas se para.** ◆ de cierre delegada por el usuario («toma tu la mejor decision»): Claude decidió cerrar, aplicando la regla de parada vinculante. Nota `PLAN/notas/T139_entradas.md`, informe `v2/reports/t139_entradas.{md,json,csv}`. Pre-registro `prereg_t139_v1` en `3d396f7`, anterior a la descarga y a todo cálculo; ◆ previas resueltas con «lo recomendado». 9 claves, familia de 841, z ≈ 3,85: las 9 salen RECHAZADA. **La más cercana, `flujo_sigue@4h`:** +0,182 R netos, IC [+0,0002, +0,366], +0,250 R brutos con los dos lados positivos, n = 152, y solo le falla V3 con Holm (p 0,0016). Con una familia de 9 sí seguiría, y se dice tal cual; no se reabre porque se decidió antes de calcular. Se debilita en el banco (+0,018 R netos) y no podría validarse antes de la fecha límite: en 6 meses harían falta +0,48 R brutos en vivo. Las otras ocho están lejos. **Regresión exacta contra T137** por los dos caminos (n = 1 810, bruto −0,009823), cobertura del 100 % en 2020–2022 y control en verde. Los 9 intentos en `attempts_t139.json` entran en el registro al reiniciar la API. `eim/paper` y el catálogo no se tocaron; T31 sigue igual. `ruff` limpio y **gate completo verde** por la cola, con T135 ya fusionada: 3 054 pasadas, 8 omitidas, 0 fallos en 1 105 s, sin pausas. Etapa en vivo sin implementar, porque ninguna clave sigue.",
+   "effort": "alto",
+   "phase": 23,
+   "goal": "Comprobar, en una sola ronda pre-registrada y sin tocar stops ni salidas, si alguna entrada con información que el catálogo nunca midió (funding, flujo agresor, flujo forzado, marco diario) da un R bruto que cubra los costos medidos en datos limpios. Si ninguna lo da, recomendar parar la búsqueda. «Ninguna validada» es un resultado válido, y también el más probable."
   },
   {
    "id": "T140",
