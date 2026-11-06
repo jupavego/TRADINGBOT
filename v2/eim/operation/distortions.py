@@ -33,7 +33,7 @@ KNOWN: tuple[Distortion, ...] = (
                 "2026-11-06 00:00 UTC, frente a los mismos libros sin congelar: Moderado +17,30 "
                 "USDT (7 entradas no tomadas), Agresivo −171,26 (5) y PPP −13,14 (4); en total "
                 "−167,10 USDT. Sus 5 cierres (+22,22 USDT) ya están en el libro fijo: lo que le "
-                "falta son las 16 entradas no tomadas (−189,33 USDT, incluido el efecto en el "
+                "falta son las 16 entradas no tomadas (−189,32 USDT, incluido el efecto en el "
                 "tamaño de las demás). Hasta reconciliarlas, Agresivo y PPP salen mejor y Moderado "
                 "peor de lo que habrían salido. Es una medida sobre el recálculo, no un resultado "
                 "operado, y crece mientras sigan congeladas."),

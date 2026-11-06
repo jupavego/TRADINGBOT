@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-06T13:47:41",
+ "generated": "2026-11-06T14:55:07",
  "tasks": [
   {
    "id": "T01",
@@ -1796,8 +1796,8 @@ window.EIM_STATUS = {
     "T110",
     "T130"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-06: 5 operaciones de Agresivo, Moderado y PPP congeladas desde el 2026-11-04 repiten el patrón del falso positivo del 31-oct, que T130 no eliminó del todo. Siguen abiertas en los libros de T31; efecto sin medir. Reconciliarlas pide permiso (◆). Ficha `PLAN/T142.md`.",
+   "state": "progress",
+   "notes": "2026-11-06, `juanpablo-cpu`: las 5 comprobadas con velas de 1 min y trades (falsos positivos, +22,22 USDT, ya en el libro fijo) y efecto medido hasta 2026-11-06 00:00 UTC: 16 entradas no tomadas, −167,10 USDT en total (nota `PLAN/notas/T142_posiciones_fantasma.md`, y en el informe de T31). Causa arreglada en `v2/eim/paper/protection_settle.py`, `_never_lower` intacto, huellas idénticas a `main`. **Falta, con permiso del usuario (◆): fusionar, reiniciar la API y reconciliar las 5.** Hasta entonces siguen congeladas.",
    "effort": "medio",
    "phase": 21,
    "goal": "Sacar de los libros las 5 operaciones congeladas desde el 2026-11-04 y evitar que se creen más. Se guarda un escalón al cierre de la vela de 15 m sin tener aún sus velas de 1 m. Cuando llegan, el recálculo ve la operación cerrada por debajo de ese stop, `_never_lower` la congela y, congelada, **no se cierra sola**. T130 arregló la mitad de este caso (`ladder_floor.early`), y su propia documentación avisa de la otra mitad. La evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §3 y `PLAN/notas/T130_anexo_falso_inconsistente.md`."
