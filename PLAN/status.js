@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-06T09:10:37",
+ "generated": "2026-11-06T13:47:41",
  "tasks": [
   {
    "id": "T01",
@@ -1762,6 +1762,45 @@ window.EIM_STATUS = {
    "effort": "alto",
    "phase": 23,
    "goal": "Comprobar, en una sola ronda pre-registrada y sin tocar stops ni salidas, si alguna entrada con información que el catálogo nunca midió (funding, flujo agresor, flujo forzado, marco diario) da un R bruto que cubra los costos medidos en datos limpios. Si ninguna lo da, recomendar parar la búsqueda. «Ninguna validada» es un resultado válido, y también el más probable."
+  },
+  {
+   "id": "T140",
+   "title": "La API no se queda sorda sin que el vigilante lo note",
+   "deps": [
+    "T126",
+    "T127"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-06 tras diagnosticar más de 11 h sin puerto con el proceso «sano»: `asyncio` cierra el socket de escucha al fallar un `accept` (`WinError 64`) y el vigilante solo mira el latido. Ficha `PLAN/T140.md`, diagnóstico `PLAN/notas/T140_api_sin_puerto.md`.",
+   "effort": "medio",
+   "phase": 21,
+   "goal": "Que una API sin puerto se detecte y se recupere sola en minutos. El 2026-11-06 estuvo más de 11 horas sorda con el proceso «sano»: `asyncio` cerró el socket de escucha tras un `WinError 64`, el latido siguió al día y ni el vigilante ni `continuity check` lo vieron. El diagnóstico con la evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §1."
+  },
+  {
+   "id": "T141",
+   "title": "Que la carga ajena no ahogue a la API",
+   "deps": [
+    "T126",
+    "T127"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-06: 3 reinicios «latido detenido» en 46 h con el equipo saturado por `python.exe` ajenos sin identificar. Es calibración: medir antes de decidir (◆). Ficha `PLAN/T141.md`.",
+   "effort": "medio",
+   "phase": 21,
+   "goal": "Saber qué satura el equipo y evitar que eso pare la API. Hubo tres reinicios «latido detenido» en 46 h (2026-11-05 04:14 y 07:12, 2026-11-06 01:41), sin ninguno en los días anteriores desde el 30-oct. En todos el equipo estaba bajo presión, con `python.exe` ajenos en prioridad normal mientras la API, en prioridad baja, perdía casi toda su RAM. La evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §2."
+  },
+  {
+   "id": "T142",
+   "title": "Posiciones fantasma: el escalón prematuro y las 5 operaciones congeladas",
+   "deps": [
+    "T110",
+    "T130"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-06: 5 operaciones de Agresivo, Moderado y PPP congeladas desde el 2026-11-04 repiten el patrón del falso positivo del 31-oct, que T130 no eliminó del todo. Siguen abiertas en los libros de T31; efecto sin medir. Reconciliarlas pide permiso (◆). Ficha `PLAN/T142.md`.",
+   "effort": "medio",
+   "phase": 21,
+   "goal": "Sacar de los libros las 5 operaciones congeladas desde el 2026-11-04 y evitar que se creen más. Se guarda un escalón al cierre de la vela de 15 m sin tener aún sus velas de 1 m. Cuando llegan, el recálculo ve la operación cerrada por debajo de ese stop, `_never_lower` la congela y, congelada, **no se cierra sola**. T130 arregló la mitad de este caso (`ladder_floor.early`), y su propia documentación avisa de la otra mitad. La evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §3 y `PLAN/notas/T130_anexo_falso_inconsistente.md`."
   }
  ]
 };
