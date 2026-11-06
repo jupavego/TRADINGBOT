@@ -19,6 +19,11 @@ _PROCESS_INFO = 5                         # SystemProcessInformation
 _LENGTH_MISMATCH = 0xC0000004
 _INSUFFICIENT_BUFFER = 122
 _MB = 1 << 20
+_QUERY_LIMITED, _VM_READ = 0x1000, 0x0010  # PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ
+_COMMAND_LINE_INFO = 60                   # ProcessCommandLineInformation (Windows 8.1 o posterior)
+_TOO_SMALL = (_LENGTH_MISMATCH, 0xC0000023, 0x80000005)   # tres formas de «no cabe»
+_PEB_PARAMETERS, _PARAMS_CURRENT_DIR = 0x20, 0x38    # desplazamientos en 64 bits
+_MAX_PATH_BYTES = 65534
 
 
 class Proc(NamedTuple):
@@ -31,6 +36,7 @@ class Proc(NamedTuple):
     cpu: int        # tiempo de CPU acumulado (usuario + núcleo), en 100 ns
     ram: int        # conjunto de trabajo privado (bytes): la RAM física que solo él ocupa
     commit: int     # memoria confirmada privada (bytes)
+    faults: int = 0  # fallos de página duros acumulados: lo que tuvo que volver del disco (T141)
 
     @property
     def created_s(self) -> float:
@@ -120,7 +126,7 @@ def snapshot() -> dict[int, Proc]:
             "System Idle Process" if pid == 0 else "")
         out[pid] = Proc(pid, p.InheritedFromUniqueProcessId or 0, name, p.SessionId,
                         p.BasePriority, p.CreateTime, p.UserTime + p.KernelTime,
-                        p.WorkingSetPrivateSize, p.PagefileUsage)
+                        p.WorkingSetPrivateSize, p.PagefileUsage, p.HardFaultCount)
         if not p.NextEntryOffset:
             return out
         off += p.NextEntryOffset
@@ -148,6 +154,79 @@ def memory() -> dict[str, int]:
             "ram_total_mb": m.ullTotalPhys // _MB,
             "commit_mb": (m.ullTotalPageFile - m.ullAvailPageFile) // _MB,
             "commit_limit_mb": m.ullTotalPageFile // _MB}
+
+
+def _open(pid: int, access: int):
+    k = _kernel32()
+    k.OpenProcess.restype = wintypes.HANDLE
+    k.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    k.CloseHandle.argtypes = [wintypes.HANDLE]
+    return k, k.OpenProcess(access, False, pid)
+
+
+def _query_info():
+    fn = ctypes.WinDLL("ntdll").NtQueryInformationProcess   # type: ignore[attr-defined]
+    fn.restype = ctypes.c_ulong
+    fn.argtypes = [wintypes.HANDLE, ctypes.c_ulong, ctypes.c_void_p, ctypes.c_ulong,
+                   ctypes.POINTER(ctypes.c_ulong)]
+    return fn
+
+
+def command_line(pid: int) -> str | None:
+    """Línea de órdenes de otro proceso (T141), o None si Windows no la da. Pide el permiso más
+    bajo que hay y no lee su memoria."""
+    k, h = _open(pid, _QUERY_LIMITED)
+    if not h:
+        return None
+    try:
+        query, size = _query_info(), 4096
+        for _ in range(3):
+            buf, need = ctypes.create_string_buffer(size), ctypes.c_ulong(0)
+            status = query(h, _COMMAND_LINE_INFO, buf, size, ctypes.byref(need))
+            if status == 0:
+                text = _UnicodeString.from_buffer(buf)
+                return ctypes.wstring_at(text.Buffer, text.Length // 2) if text.Buffer else ""
+            if status not in _TOO_SMALL:
+                return None
+            size = max(need.value, size * 2)
+        return None
+    finally:
+        k.CloseHandle(h)
+
+
+def working_dir(pid: int) -> str | None:
+    """Carpeta de trabajo de otro proceso de 64 bits (T141), o None. Windows no tiene llamada
+    para esto: se lee en su bloque de proceso, sin escribir nada."""
+    if ctypes.sizeof(ctypes.c_void_p) != 8:
+        return None
+    k, h = _open(pid, _QUERY_LIMITED | _VM_READ)
+    if not h:
+        return None
+    k.ReadProcessMemory.argtypes = [wintypes.HANDLE, ctypes.c_void_p, ctypes.c_void_p,
+                                    ctypes.c_size_t, ctypes.POINTER(ctypes.c_size_t)]
+
+    def read(addr: int, size: int) -> bytes | None:
+        buf, got = ctypes.create_string_buffer(size), ctypes.c_size_t(0)
+        ok = k.ReadProcessMemory(h, addr, buf, size, ctypes.byref(got))
+        return buf.raw[:size] if ok and got.value == size else None
+
+    try:
+        info = (ctypes.c_void_p * 6)()                # PROCESS_BASIC_INFORMATION; [1]: PEB
+        if _query_info()(h, 0, info, ctypes.sizeof(info), None) != 0 or not info[1]:
+            return None
+        params = read(info[1] + _PEB_PARAMETERS, 8)
+        if params is None:
+            return None
+        raw = read(int.from_bytes(params, "little") + _PARAMS_CURRENT_DIR, 16)
+        if raw is None:
+            return None
+        length, addr = int.from_bytes(raw[:2], "little"), int.from_bytes(raw[8:], "little")
+        if not 0 < length <= _MAX_PATH_BYTES or not addr:
+            return None
+        text = read(addr, length)
+        return text.decode("utf-16-le", "replace") if text else None
+    finally:
+        k.CloseHandle(h)
 
 
 def listeners(ports: set[int] | frozenset[int]) -> dict[int, int]:

@@ -6,18 +6,15 @@ Lo escribe en `data/usage/AAAA-MM-DD.jsonl` (fuera de `data/operation`, que la c
 copia entero), comprime los días cerrados y conserva 30. Sirve para saber, cuando la captura
 pierde una hora, si el equipo estaba saturado y quién lo saturaba (`usage_summary.py`).
 
-Quién es quién sin la línea de órdenes (la de los servicios de la sesión 0 no se lee desde la
-sesión del usuario): el archivo `obs/spool/<papel>.<día>.<pid>.jsonl` de cada proceso Python
-del EIM, si se escribió después de nacer el proceso (un PID reutilizado no hereda el papel);
-el dueño de los puertos 8000 (API), 5173 (interfaz) y 8765 (hoja de ruta), y el parentesco:
-un `python.exe` cuyo único hijo Python tiene papel es su lanzador del venv (casi no reserva
-memoria) o su vigilante (`watchdog`, `micro_watchdog`, `hft_watchdog`, que casi no emiten
-eventos); los `cmd`/`node` sobre la interfaz y los hijos de un proceso del EIM heredan su
-papel. «Equipo despierto» y el icono (PowerShell; apenas gastan) cuentan entre los demás.
+Quién es quién: `usage_roles.py` da el papel de cada parte del EIM. Los programas ajenos que
+pasan de un umbral quedan identificados por su línea de órdenes y su carpeta (`usage_foreign.py`,
+T141), y `usage_alert.py` avisa cuando la carga ajena empieza a ahogar a la API (T141). El cruce
+de ciclos lentos y reinicios con todo esto está en `usage_incidents.py`.
 
     python -m eim.operation.usage run [--every 30] [--keep-days 30]   # el servicio
     python -m eim.operation.usage run --once                           # una muestra, a mano
     python -m eim.operation.usage summary [--days 7]                   # resumen por día
+    python -m eim.operation.usage incidents [--days 7] [--slow 120]    # ciclos lentos y reinicios
 """
 
 from __future__ import annotations
@@ -29,7 +26,7 @@ import os
 import shutil
 import sys
 import time
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -37,6 +34,9 @@ from eim.observability import hooks_service
 from eim.observability.emit import configure
 from eim.operation import usage_win
 from eim.operation.priority import apply_role
+from eim.operation.usage_alert import culprit, for_service
+from eim.operation.usage_foreign import Identifier
+from eim.operation.usage_roles import PORT_ROLES, attribute, spool_roles
 from eim.operation.usage_win import Proc
 from eim.operation.watchdog import instance_lock
 
@@ -44,85 +44,19 @@ COMPONENT = "operation.usage"
 EVERY_S = 30
 KEEP_DAYS = 30
 TOP = 5                                    # programas ajenos al EIM que se anotan por CPU
-PORT_ROLES = {8000: "api", 5173: "web", 8765: "roadmap"}
-NAME_ROLES = {"ollama.exe": "ollama", "ollama_llama_server.exe": "ollama"}
-WATCHDOG_OF = {"collector": "micro_watchdog", "hft_collector": "hft_watchdog"}  # si no, watchdog
-PYTHON = ("python.exe", "pythonw.exe")
-LAUNCHER_MAX_COMMIT = 4 << 20              # el lanzador del venv reserva < 1 MB; Python, > 10 MB
-_WEB_UP = ("cmd.exe", "node.exe")          # padres de la interfaz que comparten su papel
 
 
 def usage_dir(data_dir: Path) -> Path:
     return Path(data_dir) / "usage"
 
 
-def spool_roles(spool: Path, procs: Mapping[int, Proc]) -> dict[int, str]:
-    """PID → papel según los archivos de observabilidad de los procesos vivos."""
-    out: dict[int, str] = {}
-    try:
-        entries = list(os.scandir(spool))
-    except OSError:
-        return out
-    for e in entries:
-        role, _, pid = e.name.removesuffix(".jsonl").rpartition(".")
-        role = role.rpartition(".")[0]
-        p = procs.get(int(pid)) if pid.isdigit() else None
-        if not role or p is None or p.name.lower() not in PYTHON:
-            continue
-        try:
-            if e.stat().st_mtime >= p.created_s - 1:
-                out[p.pid] = role
-        except OSError:
-            continue
-    return out
-
-
-def attribute(procs: Mapping[int, Proc], spool: Mapping[int, str],
-              ports: Mapping[int, int]) -> dict[int, str]:
-    """PID → papel de cada proceso del EIM (los que no aparecen son del resto del equipo)."""
-    roles = dict(spool)
-    for pid, p in procs.items():
-        if (r := NAME_ROLES.get(p.name.lower())) and pid not in roles:
-            roles[pid] = r
-    for port, pid in ports.items():
-        if pid in procs and port in PORT_ROLES:
-            roles.setdefault(pid, PORT_ROLES[port])
-    kids: dict[int, list[int]] = {}
-    for pid, p in procs.items():
-        par = procs.get(p.ppid)
-        if par is not None and p.ppid != pid and par.created <= p.created:  # padre verdadero
-            kids.setdefault(p.ppid, []).append(pid)
-    changed = True
-    while changed:
-        changed = False
-        for pid, p in procs.items():
-            if pid in roles:
-                continue
-            name, ch = p.name.lower(), kids.get(pid, [])
-            up = {roles[c] for c in ch if c in roles}
-            py = [c for c in ch if procs[c].name.lower() in PYTHON]
-            if name in PYTHON and len(py) == 1 and py[0] in roles:
-                child = roles[py[0]]
-                roles[pid] = child if p.commit < LAUNCHER_MAX_COMMIT else (  # lanzador del venv
-                    WATCHDOG_OF.get(child, "watchdog"))                       # o su vigilante
-            elif name in _WEB_UP and up == {"web"}:
-                roles[pid] = "web"
-            elif p.ppid in roles and pid in kids.get(p.ppid, []):
-                roles[pid] = roles[p.ppid]                 # hijo de un proceso del EIM
-            else:
-                continue
-            changed = True
-    return roles
-
-
 def _mb(b: float) -> float:
     return round(b / (1 << 20), 1)
 
 
-def record(now_s: float, dt_s: float, procs: Mapping[int, Proc], prev_cpu: Mapping[tuple, int],
-           prev_wall: float, roles: Mapping[int, str], machine_cpu: float, mem: dict,
-           hft: dict | None, ncpu: int, top: int = TOP) -> dict:
-    """Una muestra. La CPU se da en % del equipo entero (con 4 núcleos, un hilo lleno = 25 %)."""
+def cpu_meter(prev_cpu: Mapping[tuple, int], prev_wall: float, dt_s: float,
+              ncpu: int) -> Callable[[Proc], float]:
+    """CPU de un proceso desde la muestra anterior, en % del equipo entero."""
     scale = 100 / (dt_s * 1e7 * max(1, ncpu))
 
     def pct(p: Proc) -> float:
@@ -131,6 +65,15 @@ def record(now_s: float, dt_s: float, procs: Mapping[int, Proc], prev_cpu: Mappi
             base = 0 if p.created_s >= prev_wall else p.cpu
         return max(0.0, (p.cpu - base) * scale)
 
+    return pct
+
+
+def record(now_s: float, dt_s: float, procs: Mapping[int, Proc], prev_cpu: Mapping[tuple, int],
+           prev_wall: float, roles: Mapping[int, str], machine_cpu: float, mem: dict,
+           hft: dict | None, ncpu: int, top: int = TOP, foreign: list[dict] | None = None,
+           beat_age: float | None = None) -> dict:
+    """Una muestra. La CPU se da en % del equipo entero (con 4 núcleos, un hilo lleno = 25 %)."""
+    pct = cpu_meter(prev_cpu, prev_wall, dt_s, ncpu)
     groups: dict[str, dict] = {}
     others: dict[str, dict] = {}
     for pid, p in procs.items():
@@ -139,22 +82,25 @@ def record(now_s: float, dt_s: float, procs: Mapping[int, Proc], prev_cpu: Mappi
         role = roles.get(pid)
         g = (groups if role else others).setdefault(
             role or p.name, {"n": 0, "cpu": 0.0, "ram_mb": 0.0, "commit_mb": 0.0, "prio": 0,
-                             "pids": []})
+                             "pids": [], "faults": 0})
         g["n"] += 1
         g["cpu"] += pct(p)
         g["ram_mb"] += p.ram
         g["commit_mb"] += p.commit
         g["prio"] = max(g["prio"], p.prio)
         g["pids"].append(pid)
+        g["faults"] += p.faults
 
     def tidy(g: dict, pids: bool) -> dict:
         out = {"n": g["n"], "cpu": round(g["cpu"], 2), "ram_mb": _mb(g["ram_mb"]),
                "commit_mb": _mb(g["commit_mb"]), "prio": g["prio"]}
-        return {**out, "pids": sorted(g["pids"])} if pids else out
+        return {**out, "pids": sorted(g["pids"]), "faults": g["faults"]} if pids else out
 
     by_cpu = sorted(others, key=lambda k: -others[k]["cpu"])[:top]
     by_ram = [k for k in sorted(others, key=lambda k: -others[k]["ram_mb"]) if k not in by_cpu][:3]
     eim = list(groups.values())
+    extra = {**({"foreign": foreign} if foreign else {}),
+             **({"api_beat_age_s": beat_age} if beat_age is not None else {})}
     return {
         "t": int(now_s * 1000),
         "ts": datetime.fromtimestamp(now_s, UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -165,6 +111,7 @@ def record(now_s: float, dt_s: float, procs: Mapping[int, Proc], prev_cpu: Mappi
         "roles": {k: tidy(g, True) for k, g in sorted(groups.items())},
         "others": [{"name": k, **tidy(others[k], False)} for k in by_cpu + by_ram],
         "hft": hft,
+        **extra,
     }
 
 
@@ -182,6 +129,15 @@ def hft_state(data_dir: Path, now_s: float) -> dict | None:
             "beat_age_s": age(hb.get("last_heartbeat"))}
 
 
+def api_beat_age(data_dir: Path, now_s: float) -> float | None:
+    """Segundos desde el último latido de la API (None si no se puede leer)."""
+    try:
+        hb = json.loads((Path(data_dir) / "operation" / "heartbeat.json").read_text("utf-8"))
+        return round(now_s - int(hb["last_heartbeat"]) / 1000, 1)
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
 class Sampler:
     """Toma muestras; la primera solo fija la referencia de los contadores de CPU."""
 
@@ -189,6 +145,7 @@ class Sampler:
         self.data_dir, self.backend = Path(data_dir), backend
         self.ncpu = ncpu or os.cpu_count() or 1
         self.prev: tuple[float, int, int, dict] | None = None
+        self.identifier = Identifier(backend)
 
     def sample(self, now_s: float | None = None) -> dict | None:
         now = time.time() if now_s is None else now_s
@@ -200,9 +157,12 @@ class Sampler:
             return None
         roles = attribute(procs, spool_roles(self.data_dir / "obs" / "spool", procs),
                           self.backend.listeners(frozenset(PORT_ROLES)))
+        foreign = self.identifier.identify(procs, roles,
+                                           cpu_meter(prev[3], prev[0], now - prev[0], self.ncpu))
         return record(now, now - prev[0], procs, prev[3], prev[0], roles,
                       100 * (busy - prev[1]) / (total - prev[2]), self.backend.memory(),
-                      hft_state(self.data_dir, now), self.ncpu)
+                      hft_state(self.data_dir, now), self.ncpu, foreign=foreign,
+                      beat_age=api_beat_age(self.data_dir, now))
 
 
 def append(data_dir: Path, rec: dict) -> Path:
@@ -253,12 +213,16 @@ def run(data_dir: Path, every_s: float = EVERY_S, keep_days: int = KEEP_DAYS,
         return 0 if rec else 1
     configure(process="usage", spool_dir=data_dir / "obs" / "spool")
     apply_role("usage")                    # T126: nivel de prioridad del proceso
+    warning = for_service(data_dir)        # T141: aviso temprano de carga ajena
     last_prune = 0.0
     try:
         while True:
             time.sleep(every_s)
             try:
                 if (rec := s.sample()) is not None:
+                    if (a := warning.update(rec)) is not None:
+                        rec["alert"] = {"title": a.title, "detail": a.detail,
+                                        "culprit": culprit(rec)}
                     append(data_dir, rec)
                     hooks_service.beat(COMPONENT, min_interval_s=60, detail={
                         "cpu": rec["machine"]["cpu"], "eim_cpu": rec["eim"]["cpu"]})
@@ -286,13 +250,19 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--data-dir", default="data")
     s.add_argument("--days", type=int, default=7)
     s.add_argument("--symbol", default="BTCUSDT")
+    i = sub.add_parser("incidents", help="ciclos lentos y reinicios, cruzados con el consumo")
+    i.add_argument("--data-dir", default="data")
+    i.add_argument("--days", type=int, default=7)
+    i.add_argument("--slow", type=float, default=120.0, help="segundos desde los que es lento")
     a = ap.parse_args(argv)
     if a.cmd == "run":
         return run(Path(a.data_dir), a.every, a.keep_days, a.once)
-    from eim.operation import usage_summary
+    from eim.operation import usage_incidents, usage_summary
 
-    print(json.dumps(usage_summary.recent(Path(a.data_dir), a.days, a.symbol, time.time()),
-                     ensure_ascii=False, indent=1))
+    out = (usage_incidents.recent(Path(a.data_dir), a.days, time.time(), a.slow)
+           if a.cmd == "incidents" else
+           usage_summary.recent(Path(a.data_dir), a.days, a.symbol, time.time()))
+    print(json.dumps(out, ensure_ascii=False, indent=1))
     return 0
 
 

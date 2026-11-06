@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-06T13:47:41",
+ "generated": "2026-11-06T14:17:18",
  "tasks": [
   {
    "id": "T01",
@@ -1783,8 +1783,8 @@ window.EIM_STATUS = {
     "T126",
     "T127"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-06: 3 reinicios «latido detenido» en 46 h con el equipo saturado por `python.exe` ajenos sin identificar. Es calibración: medir antes de decidir (◆). Ficha `PLAN/T141.md`.",
+   "state": "progress",
+   "notes": "Código e informe hechos (2026-11-06): el registro identifica a los ajenos (`usage_foreign.py`), `usage incidents` cruza cada bloqueo y `usage_alert.py` avisa con umbrales medidos. **Informe `PLAN/notas/T141_carga_ajena.md`:** 4 de 5 bloqueos coinciden con scripts de `OPERACION/PROTOTIPO` con 4–7 procesos; la cola no estuvo en ninguno; todo el EIM, captura incluida, corre con prioridad de memoria 2 y E/S baja. Falta: fusionar, reiniciar el registro de consumo (pide permiso) y medir 3 días, hasta el 2026-11-10 si es hoy; y las opciones ◆A–◆E del usuario. Ninguna prioridad cambió.",
    "effort": "medio",
    "phase": 21,
    "goal": "Saber qué satura el equipo y evitar que eso pare la API. Hubo tres reinicios «latido detenido» en 46 h (2026-11-05 04:14 y 07:12, 2026-11-06 01:41), sin ninguno en los días anteriores desde el 30-oct. En todos el equipo estaba bajo presión, con `python.exe` ajenos en prioridad normal mientras la API, en prioridad baja, perdía casi toda su RAM. La evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §2."

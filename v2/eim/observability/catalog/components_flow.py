@@ -207,8 +207,8 @@ OPERATION: tuple[Component, ...] = (
       "Registro de consumo",
       "Proceso aparte que cada 30 s anota cuánta CPU y memoria gasta cada parte del EIM, el "
       "resto del equipo y la cola de la captura HFT. Dice si una hora perdida de la captura "
-      "coincidió con el equipo saturado.", cadence="cada 30 s", cadence_s=60,
-      produces=("usage_log",)),
+      "coincidió con el equipo saturado, y avisa si la carga ajena empieza a ahogar a la API.",
+      cadence="cada 30 s", cadence_s=60, produces=("usage_log", "alert")),
     c("api.hub", "api", "analisis", "service", "api", "T08", "Difusor de la API",
       "Al cerrar cada vela corre los agentes y difunde el resultado por WebSocket a la interfaz. "
       "La API solo escucha en este equipo.", cadence="cada cierre de vela", cadence_s=3600,
