@@ -654,3 +654,13 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** fusionar el PR #211. Los intentos entran en el registro vivo al siguiente reinicio de la API.
 - **En curso:** T31 (→ 2026-11-27), T45, T62, T104, T78, T116, T117, T127, T128, sin cambios aquí.
 - **Siguiente paso:** buscar entradas con bruto positivo, que es una tarea nueva todavía sin ficha.
+
+## 2026-11-06 01:05 UTC · juanpablo-cpu · T139: ficha de la búsqueda de entradas con R bruto positivo
+- **Hecho:** ficha `PLAN/T139.md`, con fila en `STATUS.md`, fase 23 en la hoja de ruta y en `00_MASTER.md` (no estaba) y una línea en `BACKLOG.md`. **Sin calcular nada sobre datos de mercado ni implementar estrategias:** las cifras nuevas son aritmética sobre lo publicado (`v2/reports/t137_entrada.csv`, costos de T137, criterios de `validation_v1`).
+- **Lo que fija:** cinco hipótesis (H1 funding, H2 y H3 flujo agresor, H4 cascada forzada, H5 momento en 1 d) con la salida de `control_aleatorio`. 9 claves, familia de 841, z ≈ 3,85. 2023 → hoy solo descarta; se puntúa antes de 2023, de un solo uso, y en vivo desde el pre-registro. Regla de lectura de cinco condiciones y parada P0–P3 con fecha límite de 6 meses.
+- **Hallazgos al calcular los mínimos:** V3 mide el bruto y V2 el neto, así que el costo manda sobre Holm desde n ≈ 160 en 1 h y n ≈ 560 en 4 h, y reducir la familia apenas ayudaría. 15 m no puede pasar V6 sea cual sea la entrada. La evidencia de 4 h son solo 114 días de contextos. V3 no controla la deriva. Que `taker_buy_v` esté en el banco de T131 y la historia anterior a 2023 **no se ha comprobado**: es el paso 4 de la ficha.
+- **Archivos:** `PLAN/{T139,STATUS,BACKLOG,BITACORA,ESTADO_PROYECTO,00_MASTER}.md`, `PLAN/roadmap.html`, `PLAN/status.js`. Sin cambios de código.
+- **Pruebas:** sin código nuevo. `ruff check eim tests` limpio y `test_build_roadmap` + `test_tasks_inventory` en verde (10 pruebas); **gate completo sin correr a propósito**, para no arriesgar la racha de T78 (como pronto hasta 2026-11-08T08 UTC) por un cambio solo de documentos. `continuity check` da CON AVISOS desde la carpeta principal; desde este worktree da NO SINCRONIZADO solo porque el worktree no tiene `v2/data`.
+- **Abierto:** las cuatro ◆ de la ficha: abrir o parar ya, lista de hipótesis, parada vinculante, Holm completo.
+- **En curso:** T31, T45, T62, T104, T78, T116, T117, T127, T128, sin cambios aquí.
+- **Siguiente paso:** responder las ◆. Si se abre, el primer commit es `prereg_t139_v1.json`, antes de descargar nada.
