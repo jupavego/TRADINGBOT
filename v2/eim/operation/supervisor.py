@@ -153,7 +153,7 @@ class Operation:
             alerts=self.alerts.recent(t0, t1, 1000), active_alerts=self.alerts.active,
             decisions=self.desk.journal.recent(t0, t1, limit=5000),
             edge=weekly.load_edge(self.edge_path), calib=calib,
-            started_at=self.cursors.started_at, hft_qc=self.hft_qc(t0, t1),
+            started_at=self.cursors.started_at, hft_qc=self.hft_qc(t0, t1), data_dir=self.data_dir,
             usage=usage_summary.for_report(self.data_dir, t0, t1, self.params.symbols))
 
     def hft_qc(self, t0: int, t1: int) -> dict[str, dict]:

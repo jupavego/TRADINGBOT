@@ -12,7 +12,8 @@ entró en la simulación). Reglas, por operación de origen `vivo` con escalera:
   velas que no llegan, operación guardada que el recálculo no encuentra, guardada cerrada pero
   abierta al recalcular) → una fila «inconsistente» y el diario de esa operación queda congelado
   (ni cambios ni cierre) hasta reconciliarla a mano (`reconcile`).
-Ninguna fila automática deja el SL por debajo del guardado (`_never_lower`).
+Ninguna fila automática deja el SL por debajo del guardado (`_never_lower`). Y nada que dependa de
+una vela de 15 m sin sus velas de 1 min se guarda todavía (T142, `protection_settle`).
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ from dataclasses import dataclass, field
 
 from eim.data.paper_store import PaperStore
 from eim.paper.book import ProfileState
+from eim.paper.engine import Path
 from eim.paper.params import ExecParams
 from eim.paper.protection import (
     COLS,
@@ -31,33 +33,16 @@ from eim.paper.protection import (
     Journal,
     append,
     history,
-    op_key,
     problem,
     split,
     write_pass,
 )
+from eim.paper.protection_ops import Cur, current_ops
+from eim.paper.protection_settle import Ready, gate, settled
 
 EPS = 1e-9
 GONE = "la operación guardada no aparece al recalcular: no se puede reconstruir con seguridad"
 DECISIONS = {"recalculo": "reconciliada", "descartar": "descartada"}
-
-
-@dataclass(frozen=True)
-class Cur:
-    """Operación de origen `vivo` con escalera, tal como la dejó el recálculo."""
-
-    op_id: str
-    profile: str
-    symbol: str
-    idea_id: str
-    side: int
-    entry: float
-    qty: float
-    initial_sl: float
-    fill_t: int
-    info: dict                    # estado de la escalera (`Outcome.ladder`)
-    costs: dict
-    close: dict | None = None     # {"reason", "exit", "exit_t", "pnl"} si cerró
 
 
 @dataclass
@@ -69,38 +54,7 @@ class PassResult:
     recovered: list[dict] = field(default_factory=list)    # recálculo < guardado: se adoptó éste
     ahead: list[dict] = field(default_factory=list)        # al arrancar, recálculo > guardado
     open_ids: set[str] = field(default_factory=set)
-
-
-def current_ops(symbol: str, books: dict[str, ProfileState], ep: ExecParams) -> dict[str, Cur]:
-    out: dict[str, Cur] = {}
-    for pid, st in books.items():
-        lp = st.p.ladder
-        if not st.p.stop_driven:
-            continue
-        # la salida adaptativa (T135) no reserva escalones: su fase, motivo, fuente y versión van
-        # en el historial de cada fila (`adaptive.decorate`), sin columnas nuevas
-        res = ({"fee_out_est": ep.costs.taker_fee, "slip_reserve_bars": lp.slip_lookback,
-                "funding_reserve": lp.funding_reserve} if lp is not None
-               else {"fee_out_est": ep.costs.taker_fee})
-        for s in st.slots.values():
-            o, i = s.o, s.o.idea
-            if s.filled and o.ladder and i.origin == "vivo":
-                k = op_key(pid, symbol, i.id)
-                out[k] = Cur(k, pid, symbol, i.id, i.side, o.fill, s.qty, i.sl, o.fill_t, o.ladder,
-                             {"fee_in": o.fee_in, "slip_in": o.slip, "funding": o.funding,
-                              "funding_assumed": o.funding_assumed,
-                              "cost_usd": s.qty * o.fill * (o.fee_in + o.slip + o.funding), **res})
-        for t in st.trades:
-            if t.get("ladder") and t.get("origin") == "vivo":
-                k = op_key(pid, symbol, t["id"])
-                out[k] = Cur(k, pid, symbol, t["id"], t["side"], t["fill"], t["qty"], t["sl"],
-                             t["fill_t"], t["ladder"],
-                             {"fees_usd": t["fees"], "slip_usd": t["slip"],
-                              "funding_usd": t["funding"],
-                              "funding_assumed": t["funding_assumed"], **res},
-                             {"reason": t["reason"], "exit": t["exit"], "exit_t": t["exit_t"],
-                              "pnl": t["pnl"]})
-    return out
+    waiting: list[str] = field(default_factory=list)       # a la espera de velas de 1 min (T142)
 
 
 def _state_now(c: Cur) -> dict:
@@ -191,8 +145,9 @@ def _never_lower(rows: list[dict], saved: dict) -> bool:
 
 
 def plan(j: Journal, ops: dict[str, Cur], now: int, *, startup: bool = False,
-         seen: set[str] | None = None) -> PassResult:
-    """Qué escribir y qué avisar en esta pasada (puro: no toca la base)."""
+         seen: set[str] | None = None, ready: Ready | None = None) -> PassResult:
+    """Qué escribir y qué avisar en esta pasada (puro: no toca la base). `ready` dice qué instantes
+    ya no pueden cambiar con velas de 1 min que falten (T142); None, todos."""
     seen = set() if seen is None else seen
     res = PassResult(j.symbol, j.first_ms or now)
     for op_id in sorted(set(ops) | set(j.latest)):
@@ -211,9 +166,12 @@ def plan(j: Journal, ops: dict[str, Cur], now: int, *, startup: bool = False,
                 res.rows.append(_copy(saved, seq, "reconciliada", "descartada",
                                       "el recálculo ya no tiene la operación", now))
             continue
+        if status is None and c.close is not None and c.fill_t < res.first_ms:
+            continue                                        # cerrada antes de que hubiera diario
+        c, waits = settled(c, ready)
+        if waits:
+            res.waiting.append(op_id)
         if status in (None, "reconciliada"):
-            if status is None and c.close is not None and c.fill_t < res.first_ms:
-                continue                                    # cerrada antes de que hubiera diario
             note = ("reanudada desde el recálculo tras la reconciliación" if status
                     else "" if j.first_ms else "el diario empieza con la operación ya abierta")
             res.rows += _fresh(c, seq, now, note)
@@ -261,9 +219,12 @@ def _follow(c: Cur, saved: dict, seq: int, now: int, startup: bool, seen: set[st
 
 
 def run_pass(pstore: PaperStore, j: Journal, books: dict[str, ProfileState], ep: ExecParams,
-             now: int, *, startup: bool = False, seen: set[str] | None = None) -> PassResult:
-    """Pasada completa: decide, escribe las filas nuevas y recuerda qué quedó abierto."""
-    res = plan(j, current_ops(j.symbol, books, ep), now, startup=startup, seen=seen)
+             now: int, *, startup: bool = False, seen: set[str] | None = None,
+             fine: Path | None = None) -> PassResult:
+    """Pasada completa: decide, escribe las filas nuevas y recuerda qué quedó abierto. `fine` son
+    las velas de 1 min con las que se simuló: lo que dependa de las que faltan, espera (T142)."""
+    res = plan(j, current_ops(j.symbol, books, ep), now, startup=startup, seen=seen,
+               ready=gate(fine, ep))
     append(pstore, res.rows)
     if j.first_ms is None or res.open_ids != j.prev_open:    # solo si cambió
         write_pass(pstore, j.symbol, res.first_ms, now, res.open_ids)

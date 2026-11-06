@@ -105,7 +105,9 @@ def early(run, exit_t: int, fine_end: int | None = None) -> str:
     fijó el suelo (`fine_end == Floor.t`) no es inconsistente. Ese suelo salió de la regla
     conservadora, cuando las velas finas de esa vela aún no estaban (caso del 2026-10-31), y su
     orden real lo supera. El cierre se acepta y se anota en `run.superseded`; si bajara el stop
-    guardado, la salvaguarda del diario (`protection_sync._never_lower`) la retiene igual."""
+    guardado, la salvaguarda del diario (`protection_sync._never_lower`) la retiene igual. Desde
+    T142 el diario no guarda ese suelo hasta tener las velas de 1 min (`protection_settle`): esto
+    queda para lo guardado antes, y para un hueco que se rellene pasado `HOLE_WAIT_MS`."""
     f = run.floor
     if not run.floor_due or exit_t > f.t:
         return ""
