@@ -124,10 +124,11 @@ Cinco regresiones contra lo publicado, todas exactas al sexto decimal y con el m
 La última prueba el camino entero: de todas las ideas, por la regla y por `run_shadow`, sin tocar
 nada, se llega a las mismas operaciones que el banco midió con su propia salida.
 
-**La corrida se repitió una vez,** y lo que cambió se dice: la primera mezclaba `control_aleatorio`
-en las tablas agregadas, y T134 lo mide aparte. Se vio porque el padre daba −0,155 R en vez de los
-−0,152 R de T134. Solo cambian los agregados: los veredictos por versión salen iguales. Esa
-comprobación quedó como la quinta regresión.
+**La corrida se repitió dos veces,** y lo que cambió se dice. La primera mezclaba
+`control_aleatorio` en las tablas agregadas, y T134 lo mide aparte: se vio porque el padre daba
+−0,155 R en vez de los −0,152 R de T134, y esa comprobación quedó como la quinta regresión. La
+última sale del código ya revisado (`f569129`, `code-review` de la ficha). Los recuentos de
+veredictos son los mismos en las tres: ninguna cifra de las tablas de veredictos cambió por repetir.
 
 ## 5. Tres cosas encontradas por el camino
 

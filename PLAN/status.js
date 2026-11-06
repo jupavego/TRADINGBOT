@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-05T17:50:36",
+ "generated": "2026-11-05T19:32:13",
  "tasks": [
   {
    "id": "T01",
@@ -1731,11 +1731,24 @@ window.EIM_STATUS = {
     "T134",
     "T136"
    ],
-   "state": "progress",
-   "notes": "Abierta el 2026-11-05 por decisión del usuario (◆2 de T136). Ficha `PLAN/T137.md`. T27 y T49 están cerradas con veredicto negativo y la ficha de T49 excluye cambiar estrategias, así que este es el trabajo que quedaba: puntuar con `validation_v1` versiones con la geometría de `M8 q=0.95` y `S1`, y con tope de costo de 0,08 R, con pre-registro previo. No toca los perfiles ni la corrida de T31.",
+   "state": "done",
+   "notes": "Hecha (2026-11-06), con la ◆ en manos del usuario. **Veredicto: 0 de 520 versiones validadas** (484 EN OBSERVACIÓN, 36 RECHAZADA) y ninguna cumple la regla de lectura pre-registrada para proponer seguimiento. Nota `PLAN/notas/T137_entrada.md`, informe `v2/reports/t137_entrada.{md,json,csv}`, reproducible con `python scripts/t137_entrada.py --data backups/t131_banco` (6 min). Pre-registro `prereg_t137_v1` en `213247f`, anterior a todo cálculo: las 104 estrategia@marco, sin elegir, × 5 variantes (`m8`, `s1`, `tope`, `m8_tope`, `s1_tope`); Holm de 312 a 832 claves. **Lo que queda: apartar el stop no crea ventaja, abarata el costo en R.** En el banco el bruto sigue en cero en todas (padre −0,000 R; `m8_tope` −0,005 R): el neto mejora de −0,152 a −0,060 R y el costo baja de 0,152 a 0,054 R. **Tres lecturas, y solo una da veredicto:** la oficial (regla de T49 con ventanas de la versión y sus ancestros) tiene ≈ 11 días y nadie llega a V1, 0 de 520; la reserva tampoco, 0 de 520; el banco, contaminado a favor porque ahí se eligió la geometría, llega en 102 de 365 y aun así ninguna pasa V3 con Holm. Ninguna podía salir VALIDADA: sin tramo en vivo V5 queda pendiente, y se fijó antes de calcular. **El tope** deja fuera el 86,0 % de las operaciones en el banco (`m8_tope` 61,5 %) y el 100 % en 15 m. **Control rehecho** (cierra BACKLOG T134 (1)): cuantil de `consenso_sintesis`, M8 mueve el SL en el 92 % de las ideas al azar y nada destaca sobre las sustitutas. **15 m medido** (cierra BACKLOG T136 (1)): costo ex ante de la idea media 0,490 R. **Cinco regresiones exactas** contra T134 y T136. Encontrado: las unidades de M8 no coinciden desde T134 (ATR14/Parkinson 1,377), conservado a propósito. Los 520 intentos quedan en `v2/eim/validation/attempts_t137.json` y entran en el registro vivo al reiniciar la API, sin tocar T31; `eim/paper` y el catálogo no se tocaron. **Gate completo verde** por la cola (`gate-t137`, desde el worktree @ `f569129` y con el `--data-dir` de los servicios): `ruff` limpio, **2 908 pruebas pasadas, 8 omitidas, 0 fallos** en 1 206 s, sin pausas.",
    "effort": "alto",
    "phase": 23,
    "goal": "Comprobar si alguna estrategia deja de perder cuando entra con el stop más lejos y solo si el costo en R es bajo. Las mediciones de la fase 22 dicen que el problema está en la entrada y no en la salida, y lo único con señal fue geométrico: `M8 q=0.95` y `S1 d_min=3 atr14` (T134) apartan el SL inicial, y el tope de costo de 0,08 R (T136) es el mismo hallazgo visto desde el costo, porque un costo bajo en R equivale a un stop lejano. Hasta ahora se midió en el banco de salidas; aquí se puntúa como lo que es, versiones de estrategia, con la puerta de T49. «Ninguna validada» es un resultado válido."
+  },
+  {
+   "id": "T138",
+   "title": "Cobertura de mark sin dependencia de la fase, y el reloj del equipo",
+   "deps": [
+    "T78",
+    "T126"
+   ],
+   "state": "done",
+   "notes": "Hecha (2026-11-06). Nota `PLAN/notas/T138_cobertura_mark.md`. Las horas 09–21 UTC del 2026-11-05 tenían 46 800 mensajes y 0 eventos perdidos, pero daban 5 308 segundos vacíos y 5 308 dobles porque las llegadas caían sobre el límite del segundo; el reloj va ~835 ms adelantado desde el arranque de las 08:11 UTC y Windows Time no corrige menos de 1 s. **◆ resuelta:** `qc.cadence_coverage` decide en `mark` (`QC_VERSION` 2) y `hft_ops --requalify` recalificó desde 2026-11-05T09; solo cambiaron las 14 horas falsas (10–23). Hasta reiniciar el vigilante hay que recalificar antes de leer la racha. Racha 15 h; T78 como pronto al cerrar 2026-11-08T08 UTC. Gate verde por la cola: 2 875 pasadas, 8 omitidas, 0 fallos. Reloj sin decidir: BACKLOG T138 (3).",
+   "effort": "bajo",
+   "phase": 21,
+   "goal": "Que la racha de T78 no se rompa por una forma de contar. Un flujo de 1 Hz contado por segundo de llegada vacía unos segundos y duplica otros cuando su fase cae sobre el límite del segundo, y `qc.py` da por incompletas horas en las que no falta ningún mensaje. Pasó el 2026-11-05 desde el arranque de las 08:11 UTC, que dejó el reloj del equipo unos 800 ms adelantado."
   }
  ]
 };
