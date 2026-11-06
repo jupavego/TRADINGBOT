@@ -1,6 +1,8 @@
 # T138 — Por qué la racha de T78 está en 0 sin que falten datos
 
-Fecha: 2026-11-05, desde `juanpablo-cpu`. Solo se leyeron crudos de `mark` (3 600 filas por hora) y columnas escalares de `snap` y `clock`, por la prioridad `batch`. Ningún servicio reiniciado, ningún JSON de QC reescrito, el reloj sin tocar.
+Fecha: 2026-11-05, desde `juanpablo-cpu`. Solo se leyeron crudos de `mark` (3 600 filas por hora) y columnas escalares de `snap` y `clock`, por la prioridad `batch`. Ningún servicio reiniciado y el reloj sin tocar.
+
+**Decisión del usuario (2026-11-05, «Sí, y recalcula»): se adopta la medida y se recalifica desde 2026-11-05T09.** Aplicado con `--requalify` a las 23:43 UTC, después de un gate verde; los JSON solo se tocaron en ese paso. Detalle en §7.
 
 ## 1. Veredicto
 
@@ -108,9 +110,13 @@ El umbral de 1,5 s se eligió frente a 2,0 s porque un mensaje perdido deja un i
 
 Las latencias de 2026-11-05 llevan los ~835 ms del reloj (§3); lo comparable es la p99 frente a la p50, y no empeora respecto a la hora de referencia.
 
-Son **2 gates sin daño de 3**. El que dañó también iba por la cola y no se sabe qué cambió, así que la regla sigue en pie: no correr el gate completo con una racha ya avanzada (BACKLOG T127 (3)).
+**Otra medición, el gate de esta misma tarea** (23:20:47–23:42:58 UTC, 1 331 s, sin pausas). Hora 23: libro útil 0,9989, `depth` con cobertura 0,9994 y 35 292 mensajes, p50 / p99 / máx 948 / 1 124 / 4 177 ms y **2 silencios marcados**. La hora cuenta como completa, pero esta vez sí se nota: la p99 de `depth` sube unos 130 ms sobre la referencia y la de `bbo` llega a 4 874 ms (1 045 en la hora 22). Esa hora `bbo` también tuvo casi el triple de mensajes (4,07 M frente a 1,42 M), así que no se le puede achacar todo al gate.
+
+Van **3 gates que no rompen la hora, de 4**, y el último ya deja huella. El que la rompió también iba por la cola y no se sabe qué cambió, así que la regla sigue en pie: no correr el gate completo con una racha ya avanzada (BACKLOG T127 (3)).
 
 ## 7. La decisión ◆
+
+**Resuelta el 2026-11-05: A sí, B opción 1.** La racha pasó de 0 a 14 h al aplicar (09–22) y a 15 h con la hora 23; T78 se cumple como pronto al cerrar la hora 2026-11-08T08 UTC. La réplica en seco previa coincidió con el resultado: 13 horas de no a sí, y dentro de cada JSON solo cambiaron `version`, `complete`, `coverage_cadence` y `requalified`. **C sigue sin decidir.** Lo que sigue es el razonamiento tal como se presentó.
 
 **A. ¿Se adopta la medida de cadencia para `mark`?** Toca el criterio de aceptación de T78, y por eso no se ha aplicado nada.
 
@@ -128,7 +134,7 @@ La hora 09 es el inicio natural: la 08 está rota de verdad por el reinicio (lib
 
 **C. ¿Se sincroniza el reloj?** No hace falta para T78 si se adopta la medida. Recomendación: **dejarlo como está hasta cerrar T78** y entonces corregirlo con permiso, porque un salto a mitad de corrida no aporta nada y mueve todos los sellos del equipo. Si la medida **no** se adopta, es la única salida. Ojo: `w32tm /resync` no bastaría con un desfase menor de 1 s, por lo visto en §3.
 
-**Despliegue sin parar la captura:** el vigilante carga `qc.py` al arrancar, así que fusionar no cambia lo que hace. Y es el padre del recolector: reiniciarlo corta la captura, que en el despliegue del 2026-11-02 estuvo 49 s parada, y con más de 36 s la hora se pierde. Por eso se añadió `--requalify`, que corre aparte. Mientras el vigilante siga con el código viejo, sus JSON nuevos salen en versión 1 y hay que recalificar antes de leer la racha; reiniciarlo puede esperar a cuando se cumpla T78, como ya prevé §3 de `ESTADO_PROYECTO.md`.
+**Despliegue sin parar la captura:** el vigilante carga `qc.py` al arrancar, así que fusionar no cambia lo que hace. Y es el padre del recolector: reiniciarlo corta la captura, que en el despliegue del 2026-11-02 estuvo 49 s parada, y con más de 36 s la hora se pierde. Por eso se añadió `--requalify`, que corre aparte. Mientras el vigilante siga con el código viejo, sus JSON nuevos salen en versión 1 y hay que recalificar antes de leer la racha. **Comprobado de punta a punta con la hora 23:** el vigilante la escribió en versión 1, `--streak` dijo 0 h, y tras `--requalify` dijo 15 h. Reiniciarlo puede esperar a cuando se cumpla T78, como ya prevé §3 de `ESTADO_PROYECTO.md`.
 
 ## 8. Lo que queda sin saber
 

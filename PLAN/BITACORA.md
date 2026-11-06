@@ -624,3 +624,13 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** ◆ de T138: ¿se adopta la medida y se recalculan las horas pasadas? ◆ del reloj, con permiso. Sin explicar: por qué el arranque del 2026-11-03 casi no movió el reloj.
 - **En curso:** T31, T45, T62, T104, T78, T116, T117, T127, T128, T137, sin cambios aquí.
 - **Siguiente paso:** la decisión del usuario. Si adopta: fusionar, traer `main` a la carpeta principal sin reiniciar, `hft_ops --requalify 2026-11-05T09 --apply`, `--streak`, y el gate completo por la cola.
+
+## 2026-11-06 00:20 UTC · juanpablo-cpu · T138 cerrada: medida adoptada y horas recalificadas
+- **Hecho:** el usuario resolvió la ◆ («Sí, y recalcula»). Gate completo por la cola (`gate-t138`, 23:20:47–23:42:58 UTC, sin pausas). Después, `hft_ops --requalify 2026-11-05T09 --apply`: en seco y aplicado dieron lo mismo, 13 horas de no a sí, y dentro de cada JSON solo cambiaron `version`, `complete`, `coverage_cadence` y `requalified`. Con la hora 23, recalificada igual, la racha de T78 va en **15 h** (faltan 57); se cumple como pronto al cerrar la hora 2026-11-08T08 UTC. Ningún servicio reiniciado.
+- **Comprobado de punta a punta:** el vigilante, aún con el código viejo, escribió la hora 23 en versión 1 y `--streak` dijo 0 h. Tras `--requalify`, 15 h. **Hasta reiniciarlo hay que recalificar antes de leer la racha**; `t78_streak` de `summary.json` tiene el mismo retraso.
+- **Medición:** el gate de T138 no rompió la hora 23, pero se nota (libro útil 0,9989, 2 silencios, p99 de `bbo` 4 874 ms, con casi el triple de `bbo` que la hora 22). Van 3 gates que no rompen la hora, de 4; la regla no se levanta.
+- **Archivos:** `PLAN/{T138,STATUS,ESTADO_PROYECTO,BACKLOG,BITACORA}.md`, `PLAN/notas/T138_cobertura_mark.md`, `PLAN/status.js`. En el almacén: los JSON de QC de las horas 09–23 del 2026-11-05.
+- **Pruebas:** `ruff check eim tests` limpio; `pytest -q` entero: 2 875 pasadas, 8 omitidas, 0 fallos en 1 331 s.
+- **Abierto:** ◆ el reloj sigue ~835 ms adelantado (BACKLOG T138 (3)). Sin explicar: por qué el arranque del 2026-11-03 casi no lo movió.
+- **En curso:** T31, T45, T62, T104, T78, T116, T117, T127, T128, T137, sin cambios aquí.
+- **Siguiente paso:** dejar correr la captura hasta 2026-11-08T08 UTC sin gates completos, y recalificar antes de cada lectura de la racha.
