@@ -634,3 +634,23 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** ◆ el reloj sigue ~835 ms adelantado (BACKLOG T138 (3)). Sin explicar: por qué el arranque del 2026-11-03 casi no lo movió.
 - **En curso:** T31, T45, T62, T104, T78, T116, T117, T127, T128, T137, sin cambios aquí.
 - **Siguiente paso:** dejar correr la captura hasta 2026-11-08T08 UTC sin gates completos, y recalificar antes de cada lectura de la racha.
+
+## 2026-11-06 00:40 UTC · juanpablo-cpu · T137: versiones de entrada por la puerta de T49, ninguna validada
+- **Hecho:** T137 entera, con el pre-registro `prereg_t137_v1` en `213247f`, anterior a todo cálculo. 520 versiones (las 104 estrategia@marco × `m8`, `s1`, `tope`, `m8_tope`, `s1_tope`), cada una con su propia sombra, puntuadas con `validation_v1` sin cambios. **Veredicto oficial: 0 VALIDADA, 484 EN OBSERVACIÓN, 36 RECHAZADA**, y ninguna cumple la regla de lectura pre-registrada para proponer seguimiento.
+- **Lo que queda:** apartar el stop no crea ventaja, abarata el costo en R. En el banco el bruto sigue en cero en todas (padre −0,000 R, `m8_tope` −0,005 R); el neto mejora de −0,152 a −0,060 R y el costo baja de 0,152 a 0,054 R. La mejora de T134 y T136 era real, pero es costo diluido.
+- **Decisión de diseño, fijada antes de calcular:** `M8 q=0.95`, `S1` y el tope se eligieron mirando T134 y T136, así que esa ventana es ajuste según la definición de T49, y además se heredan las automáticas del padre (hasta 2026-10-22T22:36Z). La lectura oficial queda en ≈ 11 días y 0 de 520 llegan a V1; la reserva tampoco. El banco es solo descriptivo, una cota optimista: llegan 102 de 365 y ninguna pasa V3 con Holm.
+- **Cierra:** BACKLOG T134 (1), el control ahora mueve el SL en el 92 % de las ideas al azar con M8 y nada destaca sobre las sustitutas; y BACKLOG T136 (1), 15 m medido, costo ex ante de la idea media 0,490 R y el tope deja fuera el 100 %.
+- **Encontrado:** (1) las unidades de M8 no coinciden desde T134 (cuantil en σ de Parkinson aplicado sobre σ ATR14, mediana 1,377); se conservó porque es la geometría con señal, y va a BACKLOG. (2) Un intento registrado podía ser padre de una versión viva y pasarle sus ventanas; lo atrapó una prueba y `ensure` ya no los ve. (3) La primera corrida mezclaba el control en los agregados: se vio porque el padre no daba la cifra de T134.
+- **Archivos:** `v2/eim/validation/{entry_prereg,entry_versions,entry_run,entry_control,entry_report,attempts,service,gate,__main__}.py`, `v2/eim/validation/prereg/prereg_t137_v1.json`, `v2/eim/validation/attempts_t137.json`, `v2/eim/data/validation_store.py`, `v2/eim/api/{config,main}.py`, `v2/scripts/t137_entrada.py`, `v2/reports/t137_entrada.{md,json,csv}`, `v2/docs/OPERACION.md`, `v2/tests/validation/test_entry_{prereg,versions,control,registry}.py`, `test_service.py`, `PLAN/notas/T137_entrada.md`, `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`. `eim/paper` y el catálogo no se tocaron.
+- **Pruebas:** cinco regresiones exactas contra T134 y T136 sobre datos reales. `pytest -q` entero por la cola (`gate-t137`, 00:10–00:30 UTC, desde el worktree @ `f569129`, con el `--data-dir` de los servicios): **rc 0, 2 908 pasadas, 8 omitidas, 0 fallos**, sin pausas. Tras traer `main` (T138) solo se repitieron `tests/validation` y las pruebas de `qc` de T138, porque no comparten código. La hora 00 UTC del gate no se auditó en la captura HFT.
+- **Abierto:** la ◆ de T137: ¿se cierra la línea de apartar el stop? Los 520 intentos entran en el registro vivo al próximo reinicio de la API; hasta entonces el registro es `attempts_t137.json`. No se reinició nada.
+- **En curso:** T31 (→ 2026-11-27), T45, T62, T104, T78, T116, T117, T127, T128, sin cambios aquí.
+- **Siguiente paso:** responder la ◆. Si se cierra, buscar entradas con bruto positivo, que es una tarea nueva.
+
+## 2026-11-06 00:45 UTC · juanpablo-cpu · T137: el usuario cierra la línea de apartar el stop
+- **Hecho:** el usuario resolvió la ◆ de T137: la línea se cierra. No se adopta ninguna versión, los perfiles no cambian y la corrida no se repite al cerrar T31. Los 520 intentos siguen contando en Holm.
+- **Archivos:** `PLAN/{STATUS,ESTADO_PROYECTO,BACKLOG,BITACORA}.md`, `PLAN/notas/T137_entrada.md`, `PLAN/status.js`. Sin cambios de código.
+- **Pruebas:** sin código nuevo, así que no se repitió el gate; el último es `gate-t137`. `build_roadmap.py` sin errores.
+- **Abierto:** fusionar el PR #211. Los intentos entran en el registro vivo al siguiente reinicio de la API.
+- **En curso:** T31 (→ 2026-11-27), T45, T62, T104, T78, T116, T117, T127, T128, sin cambios aquí.
+- **Siguiente paso:** buscar entradas con bruto positivo, que es una tarea nueva todavía sin ficha.

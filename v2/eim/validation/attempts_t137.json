@@ -1,0 +1,5285 @@
+{
+"description": "Intentos de T137: cuentan en Holm aunque se descarten. Solo se añaden archivos; este no se edita.",
+"prereg": "prereg_t137_v1",
+"prereg_sha256": "a5713685b9a67c0d3f15474b488c3cbc736fc2aba3dc10d56fb4ecaaf867dbb5",
+"origin": "T137",
+"created": "2026-11-06T00:00:00Z",
+"windows": {
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z": {
+"from": "2023-01-11T10:00:00Z",
+"to": "2026-07-11T10:00:00Z",
+"symbol": null,
+"note": "T134 y T136 eligieron M8 q=0.95, S1 d_min=3 atr14 y el tope 0,08 R mirando esta ventana: es ventana de ajuste de las cinco variantes según la definición de T49."
+},
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z": {
+"from": "2026-09-16T03:00:00Z",
+"to": "2026-10-16T14:00:00Z",
+"symbol": null,
+"note": "Ajuste del cuantil de M8 en 15 m, dentro de la ventana que T48b ya declaró. Solo la llevan las variantes con M8."
+}
+},
+"attempts": [
+{
+"sid": "agente_derivatives@15m",
+"n": 1371,
+"fingerprint": "200ad1803f6d",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@15m",
+"n": 1372,
+"fingerprint": "ae332db8e121",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@15m",
+"n": 1373,
+"fingerprint": "4b5764eba4bd",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@15m",
+"n": 1374,
+"fingerprint": "ea2066da4da7",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@15m",
+"n": 1375,
+"fingerprint": "0782ff1824f0",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@1h",
+"n": 1371,
+"fingerprint": "91e7f3057b5d",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@1h",
+"n": 1372,
+"fingerprint": "a103c268789e",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@1h",
+"n": 1373,
+"fingerprint": "d1748c926ad1",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@1h",
+"n": 1374,
+"fingerprint": "84e1db52df0f",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@1h",
+"n": 1375,
+"fingerprint": "c522f5bf8e58",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@4h",
+"n": 1371,
+"fingerprint": "748b6b4291b2",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@4h",
+"n": 1372,
+"fingerprint": "2a39c60951db",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@4h",
+"n": 1373,
+"fingerprint": "ae6a25fbc85e",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@4h",
+"n": 1374,
+"fingerprint": "ca314a0baeca",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_derivatives@4h",
+"n": 1375,
+"fingerprint": "27d6b6c0ed4b",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@15m",
+"n": 1371,
+"fingerprint": "c21faadc8058",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@15m",
+"n": 1372,
+"fingerprint": "cf6b17654868",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@15m",
+"n": 1373,
+"fingerprint": "c7a40febf342",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@15m",
+"n": 1374,
+"fingerprint": "8f8d5b5b59ff",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@15m",
+"n": 1375,
+"fingerprint": "e6ae060268b5",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@1h",
+"n": 1371,
+"fingerprint": "f1ee236a4b07",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@1h",
+"n": 1372,
+"fingerprint": "ddadd282fe0f",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@1h",
+"n": 1373,
+"fingerprint": "46ab76411a62",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@1h",
+"n": 1374,
+"fingerprint": "d641ee6f704a",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@1h",
+"n": 1375,
+"fingerprint": "419b02b8f0e1",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@4h",
+"n": 1371,
+"fingerprint": "c2a39b22c144",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@4h",
+"n": 1372,
+"fingerprint": "7ba60de61ae4",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@4h",
+"n": 1373,
+"fingerprint": "0c542a34d2bf",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@4h",
+"n": 1374,
+"fingerprint": "9e325f7f2edb",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_elliott@4h",
+"n": 1375,
+"fingerprint": "55b24019b1f1",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@15m",
+"n": 1371,
+"fingerprint": "a09c63737b92",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_ema@15m",
+"n": 1372,
+"fingerprint": "f151cf21c5a2",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@15m",
+"n": 1373,
+"fingerprint": "de10be309ced",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@15m",
+"n": 1374,
+"fingerprint": "c2852750012e",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_ema@15m",
+"n": 1375,
+"fingerprint": "d13dcbf71d13",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@1h",
+"n": 1371,
+"fingerprint": "d1f01d102119",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@1h",
+"n": 1372,
+"fingerprint": "85eb2b8826e5",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@1h",
+"n": 1373,
+"fingerprint": "b6969adc7db7",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@1h",
+"n": 1374,
+"fingerprint": "fff4cdb991f7",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@1h",
+"n": 1375,
+"fingerprint": "c14715796f14",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@4h",
+"n": 1371,
+"fingerprint": "6bc8cf2ca04f",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@4h",
+"n": 1372,
+"fingerprint": "2e9353665503",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@4h",
+"n": 1373,
+"fingerprint": "f3928758b958",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@4h",
+"n": 1374,
+"fingerprint": "2e1dca3924c8",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_ema@4h",
+"n": 1375,
+"fingerprint": "677eb7a79117",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@15m",
+"n": 1371,
+"fingerprint": "38c149918ab5",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_levels@15m",
+"n": 1372,
+"fingerprint": "5354a305b952",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@15m",
+"n": 1373,
+"fingerprint": "36c0cec6fa0e",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@15m",
+"n": 1374,
+"fingerprint": "f74c66ce9006",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_levels@15m",
+"n": 1375,
+"fingerprint": "643b89345b36",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@1h",
+"n": 1371,
+"fingerprint": "7cb4f6763454",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@1h",
+"n": 1372,
+"fingerprint": "9bad424b07cc",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@1h",
+"n": 1373,
+"fingerprint": "664f47982c04",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@1h",
+"n": 1374,
+"fingerprint": "cbd2910143c5",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@1h",
+"n": 1375,
+"fingerprint": "5dd4174a7a22",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@4h",
+"n": 1371,
+"fingerprint": "1992c0d5a065",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@4h",
+"n": 1372,
+"fingerprint": "fe2bcb873a6a",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@4h",
+"n": 1373,
+"fingerprint": "7686f8255fb2",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@4h",
+"n": 1374,
+"fingerprint": "921c17a5f4a9",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_levels@4h",
+"n": 1375,
+"fingerprint": "3c34084f6b51",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@15m",
+"n": 1371,
+"fingerprint": "a77f81f150b1",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@15m",
+"n": 1372,
+"fingerprint": "6379dd98d883",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@15m",
+"n": 1373,
+"fingerprint": "be79b684cc26",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@15m",
+"n": 1374,
+"fingerprint": "74b9798d9ffb",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@15m",
+"n": 1375,
+"fingerprint": "7e6acf78bdd2",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@1h",
+"n": 1371,
+"fingerprint": "4738a6b26b2b",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@1h",
+"n": 1372,
+"fingerprint": "a85a3fe529af",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@1h",
+"n": 1373,
+"fingerprint": "525586241f23",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@1h",
+"n": 1374,
+"fingerprint": "eb2c5fae739d",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@1h",
+"n": 1375,
+"fingerprint": "eea70915270f",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@4h",
+"n": 1371,
+"fingerprint": "8215c337bec2",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@4h",
+"n": 1372,
+"fingerprint": "f89a0497d8f2",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@4h",
+"n": 1373,
+"fingerprint": "e56ae0f69d8c",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@4h",
+"n": 1374,
+"fingerprint": "938a4e4ceee6",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_price_action@4h",
+"n": 1375,
+"fingerprint": "90ca0032c359",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@15m",
+"n": 1371,
+"fingerprint": "f2cf19d3dffd",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_structure@15m",
+"n": 1372,
+"fingerprint": "5daa34f0f422",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@15m",
+"n": 1373,
+"fingerprint": "4ab0a2095b33",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@15m",
+"n": 1374,
+"fingerprint": "4a525e7951ff",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_structure@15m",
+"n": 1375,
+"fingerprint": "c3c60464c2b2",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@1h",
+"n": 1371,
+"fingerprint": "733d3acab5d3",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@1h",
+"n": 1372,
+"fingerprint": "1cbf8fd114a4",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@1h",
+"n": 1373,
+"fingerprint": "7658ed075332",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@1h",
+"n": 1374,
+"fingerprint": "ad889a187419",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@1h",
+"n": 1375,
+"fingerprint": "30c2c6418236",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@4h",
+"n": 1371,
+"fingerprint": "4b90ee83affa",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@4h",
+"n": 1372,
+"fingerprint": "4f057c5e221b",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@4h",
+"n": 1373,
+"fingerprint": "211bb949e149",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@4h",
+"n": 1374,
+"fingerprint": "56a905c65081",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_structure@4h",
+"n": 1375,
+"fingerprint": "0daa111f759d",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@15m",
+"n": 1371,
+"fingerprint": "a75fdfbcb58e",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_technical@15m",
+"n": 1372,
+"fingerprint": "756923e35938",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@15m",
+"n": 1373,
+"fingerprint": "39d5cffb04ca",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@15m",
+"n": 1374,
+"fingerprint": "634f5dbc9f0b",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_technical@15m",
+"n": 1375,
+"fingerprint": "f7966ebdf469",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@1h",
+"n": 1371,
+"fingerprint": "fecda270f6c7",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@1h",
+"n": 1372,
+"fingerprint": "b85c1cc5b3f2",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@1h",
+"n": 1373,
+"fingerprint": "6172640e4d34",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@1h",
+"n": 1374,
+"fingerprint": "7943c50b2128",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@1h",
+"n": 1375,
+"fingerprint": "b98bfafb9faa",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@4h",
+"n": 1371,
+"fingerprint": "07e854c381d3",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@4h",
+"n": 1372,
+"fingerprint": "3fde8cafd2a8",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@4h",
+"n": 1373,
+"fingerprint": "eda0d4b45432",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@4h",
+"n": 1374,
+"fingerprint": "8d3d632641d1",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_technical@4h",
+"n": 1375,
+"fingerprint": "d1236aacac68",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@15m",
+"n": 1371,
+"fingerprint": "d025a3331239",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@15m",
+"n": 1372,
+"fingerprint": "1b44e030a2a5",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@15m",
+"n": 1373,
+"fingerprint": "d5ac14e13ca8",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@15m",
+"n": 1374,
+"fingerprint": "50a45b2b379f",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@15m",
+"n": 1375,
+"fingerprint": "18dc1169fbb3",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@1h",
+"n": 1371,
+"fingerprint": "92874b4a7e26",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@1h",
+"n": 1372,
+"fingerprint": "0e6f96eb441a",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@1h",
+"n": 1373,
+"fingerprint": "9a5c6f36ecb4",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@1h",
+"n": 1374,
+"fingerprint": "8c57857074d8",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@1h",
+"n": 1375,
+"fingerprint": "72478d57e3c5",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@4h",
+"n": 1371,
+"fingerprint": "fd902fa9d96d",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@4h",
+"n": 1372,
+"fingerprint": "06c35b5f8a58",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@4h",
+"n": 1373,
+"fingerprint": "00b1e52d022b",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@4h",
+"n": 1374,
+"fingerprint": "b8d83375c568",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "agente_vwap@4h",
+"n": 1375,
+"fingerprint": "1833cb45a482",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@15m",
+"n": 1371,
+"fingerprint": "5e51c5ae8258",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@15m",
+"n": 1372,
+"fingerprint": "0afd8243eb34",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@15m",
+"n": 1373,
+"fingerprint": "2695bc073e10",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@15m",
+"n": 1374,
+"fingerprint": "c2b909bf0bb0",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@15m",
+"n": 1375,
+"fingerprint": "6c6469d755c8",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@1h",
+"n": 1371,
+"fingerprint": "aa52a181c528",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@1h",
+"n": 1372,
+"fingerprint": "60487f360dfe",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@1h",
+"n": 1373,
+"fingerprint": "59856cdfeec1",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@1h",
+"n": 1374,
+"fingerprint": "47735b160a89",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@1h",
+"n": 1375,
+"fingerprint": "1a6f26088ffd",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@4h",
+"n": 1371,
+"fingerprint": "7cb5d483431a",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@4h",
+"n": 1372,
+"fingerprint": "690959458825",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@4h",
+"n": 1373,
+"fingerprint": "610ea6e565b5",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@4h",
+"n": 1374,
+"fingerprint": "5b270ca03fb4",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_retroceso@4h",
+"n": 1375,
+"fingerprint": "d56066deea56",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@15m",
+"n": 1371,
+"fingerprint": "e20e81f8f7d5",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@15m",
+"n": 1372,
+"fingerprint": "dfa136970f8b",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@15m",
+"n": 1373,
+"fingerprint": "3650b1472473",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@15m",
+"n": 1374,
+"fingerprint": "45d8de1226b9",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@15m",
+"n": 1375,
+"fingerprint": "68cedd8586b4",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@1h",
+"n": 1371,
+"fingerprint": "dbcb40c3c17a",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@1h",
+"n": 1372,
+"fingerprint": "b588d4468ba8",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@1h",
+"n": 1373,
+"fingerprint": "b86c73d17a9b",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@1h",
+"n": 1374,
+"fingerprint": "5205483f2504",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@1h",
+"n": 1375,
+"fingerprint": "af6e588d359d",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@4h",
+"n": 1371,
+"fingerprint": "2dc328aa062c",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@4h",
+"n": 1372,
+"fingerprint": "0a49aed1d735",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@4h",
+"n": 1373,
+"fingerprint": "dbb720838a7d",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@4h",
+"n": 1374,
+"fingerprint": "e5c057804956",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "base_tendencia@4h",
+"n": 1375,
+"fingerprint": "18b08a2146ea",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@15m",
+"n": 1371,
+"fingerprint": "a50b18ea10ef",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@15m",
+"n": 1372,
+"fingerprint": "227ba78ce2b2",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@15m",
+"n": 1373,
+"fingerprint": "6b4021dea341",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@15m",
+"n": 1374,
+"fingerprint": "aec2e2b201bd",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@15m",
+"n": 1375,
+"fingerprint": "a80011553f9f",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@1h",
+"n": 1371,
+"fingerprint": "316370641f3c",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@1h",
+"n": 1372,
+"fingerprint": "6043dbf75e0c",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@1h",
+"n": 1373,
+"fingerprint": "8561e440d0f0",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@1h",
+"n": 1374,
+"fingerprint": "b30172f10aec",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@1h",
+"n": 1375,
+"fingerprint": "3c124c015b16",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@4h",
+"n": 1371,
+"fingerprint": "f54dced869fc",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@4h",
+"n": 1372,
+"fingerprint": "781e25a7a977",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@4h",
+"n": 1373,
+"fingerprint": "e2a3694cd548",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@4h",
+"n": 1374,
+"fingerprint": "4bdfbeb36349",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_fuerte@4h",
+"n": 1375,
+"fingerprint": "cb970078abce",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@15m",
+"n": 1371,
+"fingerprint": "74e8bbe2db66",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@15m",
+"n": 1372,
+"fingerprint": "ba2d49f2aa20",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@15m",
+"n": 1373,
+"fingerprint": "855b06a1ab0a",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@15m",
+"n": 1374,
+"fingerprint": "1c85e195d4d3",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@15m",
+"n": 1375,
+"fingerprint": "317573055045",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@1h",
+"n": 1371,
+"fingerprint": "f64bdb988880",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@1h",
+"n": 1372,
+"fingerprint": "a93222078894",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@1h",
+"n": 1373,
+"fingerprint": "a10077e58503",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@1h",
+"n": 1374,
+"fingerprint": "5928d74782b4",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@1h",
+"n": 1375,
+"fingerprint": "ae03523b7278",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@4h",
+"n": 1371,
+"fingerprint": "19dd5d2bbc7e",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@4h",
+"n": 1372,
+"fingerprint": "95f00000eeae",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@4h",
+"n": 1373,
+"fingerprint": "b62d8c49d4a6",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@4h",
+"n": 1374,
+"fingerprint": "f412f35ad1c3",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "consenso_sintesis@4h",
+"n": 1375,
+"fingerprint": "67438d8c1036",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@15m",
+"n": 1371,
+"fingerprint": "24ff75570a4c",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@15m",
+"n": 1372,
+"fingerprint": "eb782c13b89b",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@15m",
+"n": 1373,
+"fingerprint": "173758ad1b76",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@15m",
+"n": 1374,
+"fingerprint": "f54f24bfc2a5",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@15m",
+"n": 1375,
+"fingerprint": "74c50a1467e9",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@1h",
+"n": 1371,
+"fingerprint": "e3ff9f70361d",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@1h",
+"n": 1372,
+"fingerprint": "c7f03ee7002d",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@1h",
+"n": 1373,
+"fingerprint": "79abb2abda12",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@1h",
+"n": 1374,
+"fingerprint": "296a110c0598",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@1h",
+"n": 1375,
+"fingerprint": "2151167f02a7",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@4h",
+"n": 1371,
+"fingerprint": "77e87c5523fa",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@4h",
+"n": 1372,
+"fingerprint": "33d4c338b350",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@4h",
+"n": 1373,
+"fingerprint": "58275fda772f",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@4h",
+"n": 1374,
+"fingerprint": "b890277493a5",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "contra_sintesis@4h",
+"n": 1375,
+"fingerprint": "0aff4e182c71",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@15m",
+"n": 1371,
+"fingerprint": "a61092ee01d0",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@15m",
+"n": 1372,
+"fingerprint": "c7b59b82d50b",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@15m",
+"n": 1373,
+"fingerprint": "675d2c1b3e68",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@15m",
+"n": 1374,
+"fingerprint": "6d3d4b6c6cd7",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@15m",
+"n": 1375,
+"fingerprint": "6f4952d07f2d",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@1h",
+"n": 1371,
+"fingerprint": "bea21e4d1ba1",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@1h",
+"n": 1372,
+"fingerprint": "37aec802c78d",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@1h",
+"n": 1373,
+"fingerprint": "69e6767ca266",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@1h",
+"n": 1374,
+"fingerprint": "a39049b3e080",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@1h",
+"n": 1375,
+"fingerprint": "1a1470f518aa",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@4h",
+"n": 1371,
+"fingerprint": "cc5cd4d55faf",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@4h",
+"n": 1372,
+"fingerprint": "fd305502a10c",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@4h",
+"n": 1373,
+"fingerprint": "4ae57a767f48",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@4h",
+"n": 1374,
+"fingerprint": "e824e2ec39ea",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "control_aleatorio@4h",
+"n": 1375,
+"fingerprint": "d976ffe720a6",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@15m",
+"n": 1371,
+"fingerprint": "a6149fcd05d1",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@15m",
+"n": 1372,
+"fingerprint": "c4a0218fee3f",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@15m",
+"n": 1373,
+"fingerprint": "9e9a6f9c8018",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@15m",
+"n": 1374,
+"fingerprint": "3a72dce307f4",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@15m",
+"n": 1375,
+"fingerprint": "9aa5d3a6eace",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@1h",
+"n": 1371,
+"fingerprint": "5aa55f31934c",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@1h",
+"n": 1372,
+"fingerprint": "2f7a40d531e9",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@1h",
+"n": 1373,
+"fingerprint": "4c7f1aec85b0",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@1h",
+"n": 1374,
+"fingerprint": "aa6e44b1fe1f",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@1h",
+"n": 1375,
+"fingerprint": "968e3fefc228",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@4h",
+"n": 1371,
+"fingerprint": "c8fb8ace6519",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@4h",
+"n": 1372,
+"fingerprint": "7f63f7d8a6b3",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@4h",
+"n": 1373,
+"fingerprint": "981b227802de",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@4h",
+"n": 1374,
+"fingerprint": "c0d5ded475be",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_dominante@4h",
+"n": 1375,
+"fingerprint": "0a6693560356",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@15m",
+"n": 1371,
+"fingerprint": "93dd44bd9a7c",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@15m",
+"n": 1372,
+"fingerprint": "ecaf4fd2ca4a",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@15m",
+"n": 1373,
+"fingerprint": "4e3c57cfe232",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@15m",
+"n": 1374,
+"fingerprint": "9e0219ee41f4",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@15m",
+"n": 1375,
+"fingerprint": "3279dc0e1e3d",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@1h",
+"n": 1371,
+"fingerprint": "de15153c4222",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@1h",
+"n": 1372,
+"fingerprint": "72b3f81062f5",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@1h",
+"n": 1373,
+"fingerprint": "c958404a1b47",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@1h",
+"n": 1374,
+"fingerprint": "91753a27f295",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@1h",
+"n": 1375,
+"fingerprint": "6a366a0013fc",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@4h",
+"n": 1371,
+"fingerprint": "3a5e372b9529",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@4h",
+"n": 1372,
+"fingerprint": "1fd6548f7541",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@4h",
+"n": 1373,
+"fingerprint": "b63901551362",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@4h",
+"n": 1374,
+"fingerprint": "3cd661d16153",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_rango@4h",
+"n": 1375,
+"fingerprint": "f4521f7265f8",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@15m",
+"n": 1371,
+"fingerprint": "0c90891e30b0",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@15m",
+"n": 1372,
+"fingerprint": "6ff2b9a180a0",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@15m",
+"n": 1373,
+"fingerprint": "3fafcd8a546e",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@15m",
+"n": 1374,
+"fingerprint": "522df4513dcc",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@15m",
+"n": 1375,
+"fingerprint": "d81ed232c589",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@1h",
+"n": 1371,
+"fingerprint": "a92fe7adcf86",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@1h",
+"n": 1372,
+"fingerprint": "cbdcaf278e03",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@1h",
+"n": 1373,
+"fingerprint": "235385c4a51e",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@1h",
+"n": 1374,
+"fingerprint": "5299f524213d",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@1h",
+"n": 1375,
+"fingerprint": "837ac1d81909",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@4h",
+"n": 1371,
+"fingerprint": "dc8c3fca5405",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@4h",
+"n": 1372,
+"fingerprint": "20addd675c2e",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@4h",
+"n": 1373,
+"fingerprint": "c9712d18d71a",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@4h",
+"n": 1374,
+"fingerprint": "0dde356257ba",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "escenario_retroceso@4h",
+"n": 1375,
+"fingerprint": "1c132c751d1c",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@15m",
+"n": 1371,
+"fingerprint": "cd1ec27eddac",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_adx@15m",
+"n": 1372,
+"fingerprint": "f8b0792cf1ef",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@15m",
+"n": 1373,
+"fingerprint": "cb647cce261e",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@15m",
+"n": 1374,
+"fingerprint": "9ef8dc7a8d67",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_adx@15m",
+"n": 1375,
+"fingerprint": "412368e9aef6",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@1h",
+"n": 1371,
+"fingerprint": "90eb166c9d51",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@1h",
+"n": 1372,
+"fingerprint": "2077345250e1",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@1h",
+"n": 1373,
+"fingerprint": "0e8a029f60a0",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@1h",
+"n": 1374,
+"fingerprint": "1958357ca83b",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@1h",
+"n": 1375,
+"fingerprint": "7ca49b81e002",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@4h",
+"n": 1371,
+"fingerprint": "eebda47eb358",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@4h",
+"n": 1372,
+"fingerprint": "68a4f3da5588",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@4h",
+"n": 1373,
+"fingerprint": "5d8859e369b9",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@4h",
+"n": 1374,
+"fingerprint": "c9116a723854",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_adx@4h",
+"n": 1375,
+"fingerprint": "3faf53b08cc5",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@15m",
+"n": 1371,
+"fingerprint": "2454ec3bce8a",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@15m",
+"n": 1372,
+"fingerprint": "953be77eb36a",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@15m",
+"n": 1373,
+"fingerprint": "4d4a4b4224ba",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@15m",
+"n": 1374,
+"fingerprint": "6fa314a6f968",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@15m",
+"n": 1375,
+"fingerprint": "10183df2de35",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@1h",
+"n": 1371,
+"fingerprint": "faa1634f72d6",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@1h",
+"n": 1372,
+"fingerprint": "e813d323a0e9",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@1h",
+"n": 1373,
+"fingerprint": "6ffd87cfa042",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@1h",
+"n": 1374,
+"fingerprint": "e31561f2efce",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@1h",
+"n": 1375,
+"fingerprint": "9362974f9ef5",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@4h",
+"n": 1371,
+"fingerprint": "9f906047609b",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@4h",
+"n": 1372,
+"fingerprint": "bc65d1277115",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@4h",
+"n": 1373,
+"fingerprint": "1a6f3a90940d",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@4h",
+"n": 1374,
+"fingerprint": "f63d8af275d2",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_reversion@4h",
+"n": 1375,
+"fingerprint": "010378578273",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@15m",
+"n": 1371,
+"fingerprint": "b7919e099bda",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@15m",
+"n": 1372,
+"fingerprint": "7f898d46941d",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@15m",
+"n": 1373,
+"fingerprint": "2ac0a47293cf",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@15m",
+"n": 1374,
+"fingerprint": "8083d5c7185a",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@15m",
+"n": 1375,
+"fingerprint": "7e72841981a3",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@1h",
+"n": 1371,
+"fingerprint": "bc20a3aac3e1",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@1h",
+"n": 1372,
+"fingerprint": "5362e83aa91a",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@1h",
+"n": 1373,
+"fingerprint": "56e985593ebd",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@1h",
+"n": 1374,
+"fingerprint": "95d13a998c37",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@1h",
+"n": 1375,
+"fingerprint": "19497d0cb9d1",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@4h",
+"n": 1371,
+"fingerprint": "8f6e2407d282",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@4h",
+"n": 1372,
+"fingerprint": "69bef9b47653",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@4h",
+"n": 1373,
+"fingerprint": "4e319af2b882",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@4h",
+"n": 1374,
+"fingerprint": "3badfb7dfc0d",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_bb_ruptura@4h",
+"n": 1375,
+"fingerprint": "e873c4ed6c81",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@15m",
+"n": 1371,
+"fingerprint": "525f997438d9",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@15m",
+"n": 1372,
+"fingerprint": "28c9a85ac29a",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@15m",
+"n": 1373,
+"fingerprint": "0d5b2f6ef308",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@15m",
+"n": 1374,
+"fingerprint": "a62fce2a3fc5",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@15m",
+"n": 1375,
+"fingerprint": "e19496e85696",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@1h",
+"n": 1371,
+"fingerprint": "839615e8219d",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@1h",
+"n": 1372,
+"fingerprint": "32ca290d257d",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@1h",
+"n": 1373,
+"fingerprint": "6bce62fc45ab",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@1h",
+"n": 1374,
+"fingerprint": "71c18a2ba80a",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@1h",
+"n": 1375,
+"fingerprint": "6c5eec662722",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@4h",
+"n": 1371,
+"fingerprint": "bab01f49e296",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@4h",
+"n": 1372,
+"fingerprint": "b0b0880c5758",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@4h",
+"n": 1373,
+"fingerprint": "38435d6aafef",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@4h",
+"n": 1374,
+"fingerprint": "08568b48ba47",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_cruce_ema@4h",
+"n": 1375,
+"fingerprint": "b5a415c1f065",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@15m",
+"n": 1371,
+"fingerprint": "ef2716917b60",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@15m",
+"n": 1372,
+"fingerprint": "d3c312f30830",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@15m",
+"n": 1373,
+"fingerprint": "7957f90f6bd1",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@15m",
+"n": 1374,
+"fingerprint": "078d3442c7d7",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@15m",
+"n": 1375,
+"fingerprint": "e1fa03e236a5",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@1h",
+"n": 1371,
+"fingerprint": "555d2f786ef9",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@1h",
+"n": 1372,
+"fingerprint": "8e60b435906e",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@1h",
+"n": 1373,
+"fingerprint": "d49a08093479",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@1h",
+"n": 1374,
+"fingerprint": "0b8eacec5641",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@1h",
+"n": 1375,
+"fingerprint": "0afb59312260",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@4h",
+"n": 1371,
+"fingerprint": "e2d35f7a8b8f",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@4h",
+"n": 1372,
+"fingerprint": "88589362c0fb",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@4h",
+"n": 1373,
+"fingerprint": "08da4f5c8a1c",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@4h",
+"n": 1374,
+"fingerprint": "5eb50055122d",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_donchian@4h",
+"n": 1375,
+"fingerprint": "4ae223970c99",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@15m",
+"n": 1371,
+"fingerprint": "e82135978853",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_macd@15m",
+"n": 1372,
+"fingerprint": "1030e2ff9664",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@15m",
+"n": 1373,
+"fingerprint": "b2ed2a945470",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@15m",
+"n": 1374,
+"fingerprint": "47cace839b94",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_macd@15m",
+"n": 1375,
+"fingerprint": "221d1bb6b70f",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@1h",
+"n": 1371,
+"fingerprint": "8fad26b507e3",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@1h",
+"n": 1372,
+"fingerprint": "203ebcc67954",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@1h",
+"n": 1373,
+"fingerprint": "c12949fca51f",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@1h",
+"n": 1374,
+"fingerprint": "1e2574fb7335",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@1h",
+"n": 1375,
+"fingerprint": "2b65a8cf2134",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@4h",
+"n": 1371,
+"fingerprint": "5c61b1f63502",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@4h",
+"n": 1372,
+"fingerprint": "ff03f284bcb7",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@4h",
+"n": 1373,
+"fingerprint": "641c3aeb1e12",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@4h",
+"n": 1374,
+"fingerprint": "b6a7ec4f5131",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_macd@4h",
+"n": 1375,
+"fingerprint": "90d43f027d4f",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@15m",
+"n": 1371,
+"fingerprint": "756d8c719a42",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@15m",
+"n": 1372,
+"fingerprint": "bd969115a665",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@15m",
+"n": 1373,
+"fingerprint": "06d4646cf89f",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@15m",
+"n": 1374,
+"fingerprint": "004f62d4d594",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@15m",
+"n": 1375,
+"fingerprint": "13c5c05e06eb",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@1h",
+"n": 1371,
+"fingerprint": "c0c6ea7d2017",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@1h",
+"n": 1372,
+"fingerprint": "cc89b21280ee",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@1h",
+"n": 1373,
+"fingerprint": "cee9df61592d",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@1h",
+"n": 1374,
+"fingerprint": "30dbba99a12a",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@1h",
+"n": 1375,
+"fingerprint": "204ebb485e0c",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@4h",
+"n": 1371,
+"fingerprint": "fbf67cba6086",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@4h",
+"n": 1372,
+"fingerprint": "6b9969758313",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@4h",
+"n": 1373,
+"fingerprint": "e4d853c2bcfe",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@4h",
+"n": 1374,
+"fingerprint": "644375978b9e",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_rsi@4h",
+"n": 1375,
+"fingerprint": "4ce0482aafd5",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@15m",
+"n": 1371,
+"fingerprint": "ed6a7743d504",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@15m",
+"n": 1372,
+"fingerprint": "addbbac87b70",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@15m",
+"n": 1373,
+"fingerprint": "18eece26731e",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@15m",
+"n": 1374,
+"fingerprint": "44253303feb4",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@15m",
+"n": 1375,
+"fingerprint": "f1c211e0c846",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@1h",
+"n": 1371,
+"fingerprint": "7a283c8cff00",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@1h",
+"n": 1372,
+"fingerprint": "81f5c40b950c",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@1h",
+"n": 1373,
+"fingerprint": "6bfd63758d75",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@1h",
+"n": 1374,
+"fingerprint": "944a1fc75173",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@1h",
+"n": 1375,
+"fingerprint": "ffad9adfbd7c",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@4h",
+"n": 1371,
+"fingerprint": "a0c7bcbc0341",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@4h",
+"n": 1372,
+"fingerprint": "39c36c990a34",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@4h",
+"n": 1373,
+"fingerprint": "5397a678727c",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@4h",
+"n": 1374,
+"fingerprint": "eb0ccc532f66",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ind_supertrend@4h",
+"n": 1375,
+"fingerprint": "a9edec81d48d",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_canal_4sem@4h",
+"n": 1371,
+"fingerprint": "8c375e368207",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_canal_4sem@4h",
+"n": 1372,
+"fingerprint": "219939d6ae8e",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_canal_4sem@4h",
+"n": 1373,
+"fingerprint": "3304ee40464d",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_canal_4sem@4h",
+"n": 1374,
+"fingerprint": "e972b19292e1",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_canal_4sem@4h",
+"n": 1375,
+"fingerprint": "8025c632e574",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_envolvente@1h",
+"n": 1371,
+"fingerprint": "dba80617690f",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_envolvente@1h",
+"n": 1372,
+"fingerprint": "de87e57d019f",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_envolvente@1h",
+"n": 1373,
+"fingerprint": "c9b13e77e8b0",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_envolvente@1h",
+"n": 1374,
+"fingerprint": "0078f146d401",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_envolvente@1h",
+"n": 1375,
+"fingerprint": "81ead5b1c3b9",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_envolvente@4h",
+"n": 1371,
+"fingerprint": "d9e21e682124",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_envolvente@4h",
+"n": 1372,
+"fingerprint": "d1c3e9b59ffb",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_envolvente@4h",
+"n": 1373,
+"fingerprint": "94cbbbf7cb02",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_envolvente@4h",
+"n": 1374,
+"fingerprint": "b3b7a126c1dc",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_envolvente@4h",
+"n": 1375,
+"fingerprint": "617d741ef379",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_estrella_3v@1h",
+"n": 1371,
+"fingerprint": "11dc0b2a3510",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_estrella_3v@1h",
+"n": 1372,
+"fingerprint": "9eb4fd5e1a6b",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_estrella_3v@1h",
+"n": 1373,
+"fingerprint": "a57aa2cae5cc",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_estrella_3v@1h",
+"n": 1374,
+"fingerprint": "6cd4caac3d6c",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_estrella_3v@1h",
+"n": 1375,
+"fingerprint": "fbf6cec5c837",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_estrella_3v@4h",
+"n": 1371,
+"fingerprint": "f32800c08b0a",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_estrella_3v@4h",
+"n": 1372,
+"fingerprint": "af5ecb3dd22c",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_estrella_3v@4h",
+"n": 1373,
+"fingerprint": "3ae2d5a37006",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_estrella_3v@4h",
+"n": 1374,
+"fingerprint": "6a57afcc6ff3",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_estrella_3v@4h",
+"n": 1375,
+"fingerprint": "680ae103a861",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_rsi_recruce@1h",
+"n": 1371,
+"fingerprint": "78ebfeaa98bb",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_rsi_recruce@1h",
+"n": 1372,
+"fingerprint": "697e8e5a3a76",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_rsi_recruce@1h",
+"n": 1373,
+"fingerprint": "caeb120a0c5e",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_rsi_recruce@1h",
+"n": 1374,
+"fingerprint": "a43cb7921163",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_rsi_recruce@1h",
+"n": 1375,
+"fingerprint": "23001e21bd98",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_rsi_recruce@4h",
+"n": 1371,
+"fingerprint": "f68d32ab0bd7",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_rsi_recruce@4h",
+"n": 1372,
+"fingerprint": "3943d3d2f3aa",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_rsi_recruce@4h",
+"n": 1373,
+"fingerprint": "525bd4a698aa",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_rsi_recruce@4h",
+"n": 1374,
+"fingerprint": "5cf53182bb57",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_rsi_recruce@4h",
+"n": 1375,
+"fingerprint": "fdc8890252f1",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_vela_cola@1h",
+"n": 1371,
+"fingerprint": "efba4da816cf",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_vela_cola@1h",
+"n": 1372,
+"fingerprint": "97c3ec18642e",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_vela_cola@1h",
+"n": 1373,
+"fingerprint": "856b8f1ccfa5",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_vela_cola@1h",
+"n": 1374,
+"fingerprint": "c23b06b28f4e",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_vela_cola@1h",
+"n": 1375,
+"fingerprint": "ca4b6cfbfe57",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_vela_cola@4h",
+"n": 1371,
+"fingerprint": "4a2e84180e6d",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_vela_cola@4h",
+"n": 1372,
+"fingerprint": "7630849eddb7",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_vela_cola@4h",
+"n": 1373,
+"fingerprint": "d39b164d43d3",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_vela_cola@4h",
+"n": 1374,
+"fingerprint": "2e661f74f412",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "lit_vela_cola@4h",
+"n": 1375,
+"fingerprint": "d97a92692839",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@15m",
+"n": 1371,
+"fingerprint": "50f78e35fa1b",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@15m",
+"n": 1372,
+"fingerprint": "9eda1e6d1124",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@15m",
+"n": 1373,
+"fingerprint": "190066f60466",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@15m",
+"n": 1374,
+"fingerprint": "e832706dcaba",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@15m",
+"n": 1375,
+"fingerprint": "e12e67869362",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@1h",
+"n": 1371,
+"fingerprint": "2b7f5e5509bb",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@1h",
+"n": 1372,
+"fingerprint": "d9ea1015d8f4",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@1h",
+"n": 1373,
+"fingerprint": "c3a9e687a7b3",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@1h",
+"n": 1374,
+"fingerprint": "51e903137d2f",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@1h",
+"n": 1375,
+"fingerprint": "aea43c46c948",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@4h",
+"n": 1371,
+"fingerprint": "8542a2ea98ac",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@4h",
+"n": 1372,
+"fingerprint": "b24864383f14",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@4h",
+"n": 1373,
+"fingerprint": "2c1c2cdda82b",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@4h",
+"n": 1374,
+"fingerprint": "c0ce86191ec3",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp1@4h",
+"n": 1375,
+"fingerprint": "a1c501b4112c",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@15m",
+"n": 1371,
+"fingerprint": "fb54caeb9358",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@15m",
+"n": 1372,
+"fingerprint": "33fce30c224d",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@15m",
+"n": 1373,
+"fingerprint": "a6081dccdc46",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@15m",
+"n": 1374,
+"fingerprint": "279963f35f5d",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@15m",
+"n": 1375,
+"fingerprint": "a2b126c72403",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@1h",
+"n": 1371,
+"fingerprint": "d40496ed53f6",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@1h",
+"n": 1372,
+"fingerprint": "60581d72f088",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@1h",
+"n": 1373,
+"fingerprint": "3cc3f4f07c74",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@1h",
+"n": 1374,
+"fingerprint": "fc8feaab4d9b",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@1h",
+"n": 1375,
+"fingerprint": "cc742a68ca0d",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@4h",
+"n": 1371,
+"fingerprint": "6653df5ce3c0",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@4h",
+"n": 1372,
+"fingerprint": "32346bdf5623",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@4h",
+"n": 1373,
+"fingerprint": "4edb711adbd7",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@4h",
+"n": 1374,
+"fingerprint": "30eb0b070531",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "plan_tp2@4h",
+"n": 1375,
+"fingerprint": "cbb5ed3546e0",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ppp_tendencia@1h",
+"n": 1371,
+"fingerprint": "2006fddd82bf",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ppp_tendencia@1h",
+"n": 1372,
+"fingerprint": "ca4a71f058b2",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ppp_tendencia@1h",
+"n": 1373,
+"fingerprint": "d5e9b40053ff",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ppp_tendencia@1h",
+"n": 1374,
+"fingerprint": "a13728c86d42",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ppp_tendencia@1h",
+"n": 1375,
+"fingerprint": "270b25ad7cbf",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ppp_tendencia@4h",
+"n": 1371,
+"fingerprint": "47cfaba626d3",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ppp_tendencia@4h",
+"n": 1372,
+"fingerprint": "9b29498141b3",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ppp_tendencia@4h",
+"n": 1373,
+"fingerprint": "87aa93276106",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ppp_tendencia@4h",
+"n": 1374,
+"fingerprint": "c311176c0006",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "ppp_tendencia@4h",
+"n": 1375,
+"fingerprint": "edbd75c2071b",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@15m",
+"n": 1371,
+"fingerprint": "574537856b7f",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@15m",
+"n": 1372,
+"fingerprint": "e37f063cffa6",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@15m",
+"n": 1373,
+"fingerprint": "0a9e9a41995a",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@15m",
+"n": 1374,
+"fingerprint": "41e4c1e388d3",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@15m",
+"n": 1375,
+"fingerprint": "bdc8000c6723",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@1h",
+"n": 1371,
+"fingerprint": "7bccad5d99dc",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@1h",
+"n": 1372,
+"fingerprint": "ec5c38f199c0",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@1h",
+"n": 1373,
+"fingerprint": "8e49e77a833c",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@1h",
+"n": 1374,
+"fingerprint": "8b1ef478523f",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@1h",
+"n": 1375,
+"fingerprint": "32f072439628",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@4h",
+"n": 1371,
+"fingerprint": "66fa9ae99a74",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@4h",
+"n": 1372,
+"fingerprint": "bbee35bdf1e9",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@4h",
+"n": 1373,
+"fingerprint": "2f30b038a18d",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@4h",
+"n": 1374,
+"fingerprint": "cd4ff89c062d",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_1@4h",
+"n": 1375,
+"fingerprint": "d97437509bef",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@15m",
+"n": 1371,
+"fingerprint": "17f538f13d26",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@15m",
+"n": 1372,
+"fingerprint": "757d8b8a4838",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@15m",
+"n": 1373,
+"fingerprint": "b253c19ba332",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@15m",
+"n": 1374,
+"fingerprint": "3a9188a09282",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@15m",
+"n": 1375,
+"fingerprint": "c5bc2ae94316",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@1h",
+"n": 1371,
+"fingerprint": "7d858622863f",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@1h",
+"n": 1372,
+"fingerprint": "8daeffacf9f6",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@1h",
+"n": 1373,
+"fingerprint": "872f3e2c76a5",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@1h",
+"n": 1374,
+"fingerprint": "029488c33c44",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@1h",
+"n": 1375,
+"fingerprint": "e63cb178cdae",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@4h",
+"n": 1371,
+"fingerprint": "79da39b8e8d2",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@4h",
+"n": 1372,
+"fingerprint": "74693099b354",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@4h",
+"n": 1373,
+"fingerprint": "427dbb2f53ec",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@4h",
+"n": 1374,
+"fingerprint": "32b7bd0f23b3",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_2@4h",
+"n": 1375,
+"fingerprint": "2044118d9300",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@15m",
+"n": 1371,
+"fingerprint": "9d15b6308954",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@15m",
+"n": 1372,
+"fingerprint": "abc2ff3a8da9",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@15m",
+"n": 1373,
+"fingerprint": "431951a77b87",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@15m",
+"n": 1374,
+"fingerprint": "ac37680b51c4",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@15m",
+"n": 1375,
+"fingerprint": "639d96427fb7",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@1h",
+"n": 1371,
+"fingerprint": "7240d844f0c3",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@1h",
+"n": 1372,
+"fingerprint": "404d0c5abee1",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@1h",
+"n": 1373,
+"fingerprint": "d98c70355405",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@1h",
+"n": 1374,
+"fingerprint": "6af9a89871fe",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@1h",
+"n": 1375,
+"fingerprint": "4111ccffd7b7",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@4h",
+"n": 1371,
+"fingerprint": "4f5698fac8ff",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@4h",
+"n": 1372,
+"fingerprint": "aff9ffa69c13",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@4h",
+"n": 1373,
+"fingerprint": "ec6b3f0c6dff",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@4h",
+"n": 1374,
+"fingerprint": "5b512c829e61",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_3@4h",
+"n": 1375,
+"fingerprint": "2e7f83b62a91",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@15m",
+"n": 1371,
+"fingerprint": "fd4b29c396a1",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@15m",
+"n": 1372,
+"fingerprint": "ba589bc3907d",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@15m",
+"n": 1373,
+"fingerprint": "06f14506daed",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@15m",
+"n": 1374,
+"fingerprint": "108b6060ee63",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z",
+"2026-09-16T03:00:00Z|2026-10-16T14:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@15m",
+"n": 1375,
+"fingerprint": "3c7b05165177",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@1h",
+"n": 1371,
+"fingerprint": "603eed4de70d",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@1h",
+"n": 1372,
+"fingerprint": "6ceafc1fe282",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@1h",
+"n": 1373,
+"fingerprint": "1f4dfb414b24",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@1h",
+"n": 1374,
+"fingerprint": "9ec9549ef9ea",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@1h",
+"n": 1375,
+"fingerprint": "1dfc0d381af5",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@4h",
+"n": 1371,
+"fingerprint": "20c103c1871f",
+"parent": 2,
+"variant": "m8",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@4h",
+"n": 1372,
+"fingerprint": "a6a81e923293",
+"parent": 2,
+"variant": "s1",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@4h",
+"n": 1373,
+"fingerprint": "c86877566231",
+"parent": 2,
+"variant": "tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@4h",
+"n": 1374,
+"fingerprint": "027f5b8982e7",
+"parent": 2,
+"variant": "m8_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+},
+{
+"sid": "sugerencia_alineada@4h",
+"n": 1375,
+"fingerprint": "e3f42dace139",
+"parent": 2,
+"variant": "s1_tope",
+"windows": [
+"2023-01-11T10:00:00Z|2026-07-11T10:00:00Z"
+]
+}
+]
+}

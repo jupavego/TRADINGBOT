@@ -16,6 +16,9 @@ from eim.data.validation_store import ValidationStore
 from eim.paper.catalog import CATALOG
 from eim.paper.engine import Path, simulate
 from eim.paper.params import ExecParams
+from eim.validation import entry_versions as ev
+from eim.validation.attempts import write_attempts
+from eim.validation.entry_prereg import load_prereg
 from eim.validation.gate import OBSERVACION, RECHAZADA, VALIDADA
 from eim.validation.service import Validator
 from tests.local_client import LocalClient
@@ -107,6 +110,40 @@ def test_only_current_version_counts_and_new_version_inherits_nothing(vstore, tm
     assert p2["attempts"] == 2 * n_versions("1h")
     old = next(x for x in p2["versions"] if x["id"] == f"{SID}@v1")
     assert old["retired"] == later
+
+
+def test_registered_attempts_count_in_holm_and_do_not_touch_the_live_evidence(tmp_path):
+    """T137: los intentos versionados entran en la familia; la versión viva sigue igual."""
+    path, ep = _path(), ExecParams()
+    cur = CATALOG["consenso_sintesis"].version("1h", ep)
+    desk = FakeDesk(ep, FakeView(_outcomes(path, cur), path))
+    pr = load_prereg()
+    attempts = [ev.version_of(SID, v, pr, f"fp{v.id}", 1) for v in pr.variants]
+    file = tmp_path / "intentos.json"
+    write_attempts(file, pr.version, pr.sha256, attempts, {a.label: v.id for a, v in
+                                                           zip(attempts, pr.variants, strict=True)})
+    lineage = tmp_path / "sin_declaraciones.json"
+    runs = {}
+    for name, extra in (("sin", None), ("con", file)):
+        ps = PaperStore(":memory:")
+        try:
+            runs[name] = Validator(desk, ValidationStore(ps), lineage=lineage,
+                                   attempts=extra).compute("X", T0 - H1)
+        finally:
+            ps.close()
+    a, b = (next(x for x in runs[k]["verdicts"] if x["sid"] == SID) for k in ("sin", "con"))
+    assert runs["con"]["attempts"] == runs["sin"]["attempts"] + 5
+    assert a["id"] == b["id"] == f"{SID}@v1" and a["n_oos"] == b["n_oos"] > 0
+    assert a["retired"] is None and b["retired"] is None
+    assert b["p_holm"] >= a["p_holm"]
+    # no se evalúan ni se publican: ningún veredicto es de un intento de T137
+    assert all(x["origin"] != ev.ORIGIN for x in runs["con"]["verdicts"])
+    assert sum(x["origin"] == ev.ORIGIN for x in runs["con"]["versions"]) == 5
+
+
+def test_attempts_are_only_loaded_by_the_real_api_settings(monkeypatch):
+    monkeypatch.delenv("EIM_VAL_ATTEMPTS", raising=False)
+    assert Settings().val_attempts is False and Settings.from_env().val_attempts is True
 
 
 def test_due_every_4h_close(vstore, tmp_path):
