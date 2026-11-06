@@ -58,15 +58,14 @@ def state_of(k: KeyReading) -> str:
     return FUERA
 
 
-def recommend(keys: Sequence[KeyReading], coverage_ok: bool, control_ok: Sequence[bool | None]
-              ) -> dict:
-    """La recomendación P0–P3 de una lectura. Es una recomendación: decide el usuario."""
+def recommend(keys: Sequence[KeyReading], control_ok: Sequence[bool | None]) -> dict:
+    """La recomendación de la lectura limpia. Es una recomendación: decide el usuario.
+
+    P0 se resuelve antes, en la etapa de cobertura: sin cobertura esta lectura no llega a correr.
+    """
     states = {k.verdict.version.label: state_of(k) for k in keys}
     follow = [x for x, s in states.items() if s == SIGUE]
     watch = [x for x, s in states.items() if s == OBSERVACION]
-    if not coverage_ok:
-        return {"code": "P0", "follow": [], "watch": [], "states": states,
-                "text": "Parar: el tramo limpio no tiene cobertura suficiente."}
     if any(x is False for x in control_ok):
         return {"code": "CONTROL", "follow": follow, "watch": watch, "states": states,
                 "text": "El control falla: las entradas al azar destacan sobre sus sustitutas. "

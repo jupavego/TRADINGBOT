@@ -26,7 +26,7 @@ from eim.validation.hypotheses import pipeline as pp
 from eim.validation.hypotheses import rules as ru
 from eim.validation.hypotheses.prereg import Prereg
 from eim.validation.hypotheses.signals import daily_candles
-from eim.validation.lineage import Version, iso_ms
+from eim.validation.lineage import Version, iso_ms, ms_iso
 
 FLOW = ("flujo_sigue", "flujo_revierte")
 Log = Callable[[str], None]
@@ -95,6 +95,37 @@ def sample_counts(pr: Prereg, w: World, ep: ExecParams, ideas: Mapping[str, list
     return out
 
 
+def coverage_of(pr: Prereg, w: World, count: Callable[[str, int, int], int]) -> dict:
+    """Cobertura real del tramo limpio: `count(marco, a, b)` son las velas guardadas en él."""
+    cov = pr.coverage
+    a, b = iso_ms(cov.from_), iso_ms(cov.to)
+    series = {}
+    for name in cov.series:
+        if name == "funding":
+            rows, expected = sum(1 for t, _ in w.funding if a <= t < b), (b - a) // (8 * 3_600_000)
+        else:
+            rows, expected = count(name, a, b), (b - a) // tf_ms(name)
+        series[name] = {"rows": int(rows), "expected": int(expected),
+                        "coverage": rows / expected if expected else 0.0,
+                        "ok": bool(expected and rows / expected >= cov.min)}
+    taker = {}
+    for tf in cov.taker_timeframes:
+        s = w.series[tf]
+        keep = (s.t >= a) & (s.t < b)
+        with_data, rows = int(np.isfinite(s.taker[keep]).sum()), int(keep.sum())
+        taker[tf] = {"rows": rows, "with_data": with_data,
+                     "coverage": with_data / rows if rows else 0.0,
+                     "ok": bool(rows and with_data / rows >= cov.min)}
+    ok, flow = all(x["ok"] for x in series.values()), all(x["ok"] for x in taker.values())
+    verdict = ("cumple." if ok and flow else
+               "H2 y H3 caen por falta de `taker_buy_v`; siguen contando en Holm." if ok else
+               "NO cumple: se recomienda parar (P0).")
+    first = int(w.minutes.t[0]) if w.minutes is not None and len(w.minutes.t) else None
+    return {"from": cov.from_, "to": cov.to, "min": cov.min, "series": series, "taker": taker,
+            "first_minute": None if first is None else ms_iso(first), "ok": ok, "flow_ok": flow,
+            "verdict": verdict}
+
+
 def setup(pr: Prereg, ep: ExecParams, prior: Mapping[str, float | None], symbol: str
           ) -> tuple[list[Version], dict[str, float | None]]:
     """Las versiones y la familia de Holm. Falla si no suman lo que el pre-registro declaró."""
@@ -125,14 +156,16 @@ def rows_of(r_id: str, verdicts: Sequence[Verdict], sides: Mapping[str, pp.SideS
 def _score(pr: Prereg, rid: str, versions, trades, family, crit, w: World
            ) -> tuple[list[Verdict], dict[str, pp.SideStats]]:
     """Una lectura: veredictos de la puerta y bruto por lado de lo que cuenta en ella."""
-    r = pr.reading(rid)
-    asof = int(w.path.end)
-    verdicts = pp.score_reading(r, versions, trades, family, crit, w.symbol, asof,
-                                (w.path.t, w.path.c))
-    rule = pr.reading_rule
-    sides = {v.sid: pp.side_stats(pp.selected(r, v, trades.get(v.sid, []), w.symbol, asof),
-                                  rule.min_side_trades, rule.cost_stress) for v in versions}
-    return verdicts, sides
+    verdicts = pp.score_reading(pr.reading(rid), versions, trades, family, crit, w.symbol,
+                                int(w.path.end), (w.path.t, w.path.c))
+    return verdicts, _sides_of(pr, rid, versions, trades, w)
+
+
+def _sides_of(pr: Prereg, rid: str, versions, trades, w: World) -> dict[str, pp.SideStats]:
+    """Bruto por lado de lo que cuenta en una lectura, sin pasar por la puerta."""
+    r, rule, asof = pr.reading(rid), pr.reading_rule, int(w.path.end)
+    return {v.sid: pp.side_stats(pp.selected(r, v, trades.get(v.sid, []), w.symbol, asof),
+                                 rule.min_side_trades, rule.cost_stress) for v in versions}
 
 
 def control_run(pr: Prereg, w: World, ep: ExecParams, paths: Sequence[Path],
@@ -157,6 +190,8 @@ def _closes(w: World, a: int, b: int) -> tuple[np.ndarray, float, int]:
         raise ValueError("las sustitutas necesitan las velas de 1 min")
     m = w.minutes
     i, j = int(np.searchsorted(m.t, a)), int(np.searchsorted(m.t, b))
+    if j <= i:
+        raise ValueError("el tramo de las sustitutas no tiene velas de 1 min")
     return m.c[i:j], float(m.c[i]), int(m.t[i])
 
 
@@ -179,14 +214,14 @@ def bank_stage(pr: Prereg, crit: Criteria, w: World, ep: ExecParams,
 
 
 def clean_stage(pr: Prereg, crit: Criteria, w: World, ep: ExecParams,
-                prior: Mapping[str, float | None], coverage_ok: bool, log: Log,
-                dropped: Sequence[str] = ()) -> dict:
-    """La lectura oficial, con la regla de lectura y la recomendación P0–P3."""
+                prior: Mapping[str, float | None], log: Log, dropped: Sequence[str] = ()
+                ) -> dict:
+    """La lectura oficial, con la regla de lectura y su recomendación."""
     versions, family = setup(pr, ep, prior, w.symbol)
     ideas = key_ideas(pr, w, ep, dropped)
     trades = key_trades(pr, w, ep, ideas, log)
     verdicts, sides = _score(pr, "oficial", versions, trades, family, crit, w)
-    _, bank_sides = _score(pr, "banco", versions, trades, family, crit, w)
+    bank_sides = _sides_of(pr, "banco", versions, trades, w)
     a = iso_ms(pr.windows.adjust.from_)
     first = int(w.minutes.t[0]) if w.minutes is not None and len(w.minutes.t) else 0
     fine, px0, t0 = _closes(w, first, a)
@@ -206,7 +241,7 @@ def clean_stage(pr: Prereg, crit: Criteria, w: World, ep: ExecParams,
         sid = row["sid"]
         row.update(state=dc.state_of(k), conditions=dc.conditions(k), bank_gross=k.bank_gross,
                    bank_n=bank_sides[sid].n, null=nulls[sid])
-    rec = dc.recommend(keys, coverage_ok, list(ctl_ok.values()))
+    rec = dc.recommend(keys, list(ctl_ok.values()))
     return {"versions": versions, "family": len(family), "control": control, "rows": rows,
             "recommendation": rec, "baseline": baseline(pr, w, ep, a), "trades": trades}
 

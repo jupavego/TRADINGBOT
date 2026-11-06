@@ -8,61 +8,28 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from eim.core import Candle
 from eim.data.timeframes import STORE_ONLY_TF_MS, TF_MS, tf_ms
 from eim.paper.catalog import CATALOG
 from eim.validation.attempts import load_attempts, write_attempts
 from eim.validation.criteria import load_criteria
 from eim.validation.evidence import Trade
-from eim.validation.gate import OBSERVACION, Check, Measure, Verdict
-from eim.validation.hypotheses import decision as dc
 from eim.validation.hypotheses import nulls as nl
 from eim.validation.hypotheses import pipeline as pp
 from eim.validation.hypotheses import report as rp
 from eim.validation.hypotheses import rules as ru
 from eim.validation.hypotheses import world as wd
 from eim.validation.hypotheses.prereg import load_prereg
-from eim.validation.lineage import Version, iso_ms
+from eim.validation.lineage import iso_ms
+from tests.validation.t139_market import make_world, prior_keys
 
 PR = load_prereg()
 CRIT = load_criteria()
 EP = ru.exec_params(PR)
-M = 60_000
-T0 = iso_ms("2022-01-01T00:00:00Z")
-DAYS = 130
-
-
-def _candle(a: np.ndarray, flow: np.ndarray, step: int, i: int, k: int, t0: int) -> Candle:
-    seg = a[i:i + k]
-    return Candle(t=t0 + i * step, o=float(seg[0]), h=float(seg.max() * 1.0005),
-                  l=float(seg.min() * 0.9995), c=float(seg[-1]), v=float(k),
-                  taker_buy_v=float(k) * float(flow[i]), trades=k)
 
 
 @pytest.fixture(scope="module")
 def world() -> wd.World:
-    """130 días de paseo aleatorio: no hay ventaja que encontrar."""
-    rng = np.random.default_rng(139)
-    n = DAYS * 24 * 4
-    px = 30000 * np.exp(np.cumsum(rng.normal(0, 0.0012, n)))
-    flow = np.clip(rng.normal(0.5, 0.12, n), 0.05, 0.95)     # compra agresora, ruido sin más
-    fifteen = [_candle(px, flow, 15 * M, i, 1, T0) for i in range(n)]
-    bars = {"15m": fifteen}
-    for tf, k in (("1h", 4), ("4h", 16)):
-        bars[tf] = [_candle(px, flow, 15 * M, i, k, T0) for i in range(0, n - k + 1, k)]
-        step = tf_ms(tf)
-        bars[tf] = [c.model_copy(update={"t": T0 + j * step}) for j, c in enumerate(bars[tf])]
-    funding = [(T0 + 8 * 3_600_000 * j, float(rng.normal(1e-4, 1e-4))) for j in range(DAYS * 3)]
-    nm = DAYS * 1440
-    mp = 30000 * np.exp(np.cumsum(rng.normal(0, 0.0003, nm)))
-    r = rng.uniform(1e-4, 5e-4, nm)
-    mins = ru.Minutes(T0 + np.arange(nm, dtype=np.int64) * M, mp.copy(), mp * (1 + r), mp * (1 - r),
-                      mp * (1 + rng.normal(0, 1e-4, nm)), rng.lognormal(0, 1, nm))
-    return wd.world_of("BTCUSDT", bars, funding, mins)
-
-
-def _prior() -> dict:
-    return {f"BTCUSDT|previa{k}@1h@v1": None for k in range(832)}
+    return make_world()
 
 
 @pytest.fixture(scope="module")
@@ -126,7 +93,7 @@ def test_unknown_rule_fails_instead_of_staying_silent(world):
 
 # --- familia, puerta y registro -------------------------------------------------------------------
 def test_family_is_841_and_every_key_counts_even_without_trades():
-    versions, family = wd.setup(PR, EP, _prior(), "BTCUSDT")
+    versions, family = wd.setup(PR, EP, prior_keys(), "BTCUSDT")
     assert len(versions) == 9 and len(family) == 841
     assert all(f"BTCUSDT|{v.label}" in family for v in versions)
     with pytest.raises(ValueError, match="familia"):
@@ -147,7 +114,7 @@ def test_attempts_folder_gathers_every_file(tmp_path):
     write_attempts(tmp_path / "attempts_t139.json", PR.version, PR.sha256, vs,
                    {v.label: v.strategy for v in vs}, task="T139")
     got = load_attempts(tmp_path)
-    assert [v.label for v in got] == sorted(v.label for v in vs) or len(got) == 9
+    assert sorted(v.label for v in got) == sorted(v.label for v in vs)
     assert all(x.note.startswith("T139") and x.retired_ms is not None for x in got)
     assert all(not x.windows[0].covers(iso_ms("2021-01-01"), "BTCUSDT") for x in got)
 
@@ -180,66 +147,12 @@ def test_balanced_gross_cancels_the_drift():
     assert pp.side_stats([], 20, 1.5).gross is None
 
 
-# --- regla de lectura y parada --------------------------------------------------------------------
-def _verdict(oks: dict[str, bool | None], n: int = 300, verdict: str = OBSERVACION,
-             strategy: str = "x") -> Verdict:
-    v = Version(f"{strategy}@1h", 1, "f", strategy, "1h", 0, None, "T139")
-    m = Measure("x", 0, n, 0, 0, 0.1, 0.05, {}, (0.0, 0.2), 0.001, 10, 0.1, 0.1, [], 0, None, 0.1,
-                (None, None))
-    checks = tuple(Check(k, k, None, "", oks.get(k, True), "") for k in
-                   ("V1", "V2", "V3", "V4", "V5", "V6"))
-    return Verdict(v, m, verdict, "", checks, 0.01, "validation_v1", ())
-
-
-def _sides(**kw) -> pp.SideStats:
-    base = dict(n=300, gross=0.3, cost=0.1, n_long=150, n_short=150, gross_long=0.3,
-                gross_short=0.3, balanced=0.3, stressed=0.1)
-    return pp.SideStats(**{**base, **kw})
-
-
-def _key(oks=None, null=0.1, bank=0.1, control=True, strategy="x", **sides) -> dc.KeyReading:
-    return dc.KeyReading(_verdict(oks or {}, strategy=strategy), _sides(**sides), null, bank,
-                         control)
-
-
-def test_a_key_follows_only_with_all_five_conditions():
-    assert dc.state_of(_key()) == dc.SIGUE
-    assert dc.state_of(_key(oks={"V5": None})) == dc.SIGUE       # el tramo en vivo, pendiente
-    for bad in (_key(oks={"V3": False}), _key(oks={"V5": False}), _key(balanced=0.05),
-                _key(balanced=None), _key(stressed=-0.01), _key(null=0.5), _key(control=False),
-                _key(control=None), _key(bank=-0.01)):
-        assert dc.state_of(bad) == dc.FUERA
-
-
-def test_the_bank_only_discards_and_no_trades_there_do_not_discard():
-    assert dc.conditions(_key(bank=None))["5_banco"] is True
-    assert dc.conditions(_key(bank=0.0))["5_banco"] is True
-    assert dc.conditions(_key(bank=-0.001))["5_banco"] is False
-
-
-def test_no_sample_with_balanced_gross_over_cost_stays_in_observation():
-    assert dc.state_of(_key(oks={"V1": False})) == dc.OBSERVACION
-    assert dc.state_of(_key(oks={"V1": False}, balanced=0.05)) == dc.FUERA
-
-
-def test_recommendations():
-    good = _key(strategy="a")
-    bad = _key(balanced=0.0, strategy="b")
-    watch = _key(oks={"V1": False}, strategy="c")
-    assert dc.recommend([bad], True, [True])["code"] == "P1"
-    assert dc.recommend([good, bad], True, [True])["follow"] == ["a@1h@v1"]
-    assert dc.recommend([bad, watch], True, [True])["code"] == "OBSERVACION"
-    assert dc.recommend([good, bad], True, [True])["code"] == "SIGUE"
-    assert dc.recommend([good], False, [True])["code"] == "P0"
-    assert dc.recommend([good], True, [False])["code"] == "CONTROL"
-
-
 # --- de punta a punta -----------------------------------------------------------------------------
 @pytest.fixture(scope="module")
 def clean(world):
     pr = PR.model_copy(update={"control": PR.control.model_copy(update={"surrogates": 4,
                                                                         "bars": 1500})})
-    return wd.clean_stage(pr, CRIT, world, EP, _prior(), True, lambda _m: None)
+    return wd.clean_stage(pr, CRIT, world, EP, prior_keys(), lambda _m: None)
 
 
 def test_end_to_end_on_a_random_walk_nothing_follows(clean):
@@ -259,9 +172,11 @@ def test_report_renders_and_says_the_mode(clean, tmp_path):
                              "null_reps": 33640}}
     md = rp.render_clean(res)
     assert "SIMULADO" in md and "## 1. Recomendación" in md and "funding_contra@1h" in md
-    assert rp.gross_needed(1000, 0.15) == pytest.approx(0.212, abs=1e-3)
-    assert rp.gross_needed(100, 0.08) == pytest.approx(0.385, abs=1e-3)
-    assert rp.gross_needed(0, 0.08) is None
+    assert rp.z_holm(841) == pytest.approx(3.848, abs=1e-3)
+    assert rp.gross_needed(1000, 0.15, 841) == pytest.approx(0.212, abs=1e-3)
+    assert rp.gross_needed(100, 0.08, 841) == pytest.approx(0.385, abs=1e-3)
+    assert rp.gross_needed(100, 0.08, 9) < rp.gross_needed(100, 0.08, 841)
+    assert rp.gross_needed(0, 0.08, 841) is None
 
 
 def test_gross_on_a_random_walk_without_costs_is_about_zero(world, ideas):
@@ -272,8 +187,7 @@ def test_gross_on_a_random_walk_without_costs_is_about_zero(world, ideas):
     for sid in ("flujo_sigue@1h", "funding_contra@1h"):
         xs = ideas[sid]
         out = [o for o in pp.run_shadow(xs, world.path, free) if o.status == "CERRADA"]
-        if len(out) < 20:
-            continue
+        assert len(out) >= 20, sid
         g = np.array([o.r + (o.fee_in + o.fee_out + o.slip + o.funding) / o.risk for o in out])
         assert abs(g.mean()) < 3.5 * g.std(ddof=1) / np.sqrt(len(g)), sid
 

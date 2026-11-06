@@ -8,13 +8,14 @@ from __future__ import annotations
 
 import math
 from collections.abc import Sequence
+from statistics import NormalDist
 
 CSV_FIELDS = ("reading", "id", "sid", "verdict", "state", "n", "mean_r", "ci_lo", "ci_hi", "p_raw",
               "p_holm", "max_dd", "windows", "windows_pos", "n_live", "gross", "cost", "n_long",
               "n_short", "gross_long", "gross_short", "balanced", "stressed", "bank_gross",
               "bank_n", "V1", "V2", "V3", "V4", "V5", "V6", "reason")
 GATE = ("V1", "V2", "V3", "V4", "V5", "V6")
-Z_HOLM = 3.848                       # p < 0,05 / 841, una cola
+ALPHA = 0.05
 Z_IC = 1.96
 
 
@@ -28,12 +29,17 @@ def _ok(x: bool | None) -> str:
     return "·" if x is None else "✓" if x else "✗"
 
 
-def gross_needed(n: int, cost: float | None, sigma: float = 1.0) -> float | None:
+def z_holm(family: int) -> float:
+    """El z que Holm exige a la mejor clave de una familia: p < α / familia, una cola."""
+    return NormalDist().inv_cdf(1 - ALPHA / family)
+
+
+def gross_needed(n: int, cost: float | None, family: int, sigma: float = 1.0) -> float | None:
     """El bruto mínimo de la ficha (§4): V3 con Holm y V2 sobre el costo. Solo informa."""
     if n <= 0 or cost is None:
         return None
     se = sigma / math.sqrt(n)
-    return max(Z_HOLM * se, cost + Z_IC * se)
+    return max(z_holm(family) * se, cost + Z_IC * se)
 
 
 def _head(res: dict, title: str) -> list[str]:
@@ -61,12 +67,12 @@ def _gate_table(rows: Sequence[dict]) -> list[str]:
     return out
 
 
-def _side_table(rows: Sequence[dict]) -> list[str]:
+def _side_table(rows: Sequence[dict], family: int) -> list[str]:
     out = ["| Clave | n | Bruto | Costo | Mínimo necesario | Largos: n, bruto | Cortos: n, bruto | "
            "Equilibrado | Neto costos × 1,5 |", "|---|--:|--:|--:|--:|--:|--:|--:|--:|"]
     for r in rows:
         out.append(f"| `{r['sid']}` | {r['n']} | {_n(r['gross'])} | {_n(r['cost'], 3, False)} | "
-                   f"{_n(gross_needed(r['n'], r['cost']), 3, False)} | "
+                   f"{_n(gross_needed(r['n'], r['cost'], family), 3, False)} | "
                    f"{r['n_long']}, {_n(r['gross_long'])} | "
                    f"{r['n_short']}, {_n(r['gross_short'])} | "
                    f"{_n(r['balanced'])} | {_n(r['stressed'])} |")
@@ -125,7 +131,7 @@ def render_bank(res: dict) -> str:
             f"{reg['missing_bars']} instantes sin vela.", "",
             "## 2. Control en el banco", "", *_control(res["control"]), "",
             "## 3. Las claves en el banco", "", *_gate_table(res["rows"]), "",
-            *_side_table(res["rows"]), ""]
+            *_side_table(res["rows"], res["meta"]["family"]), ""]
     return "\n".join(out)
 
 
@@ -160,9 +166,9 @@ def render_clean(res: dict) -> str:
             "Cuenta lo anterior a 2023 y lo posterior al alta.", "",
             *_gate_table(res["rows"]), "",
             "## 3. El bruto, frente a lo que haría falta", "",
-            "«Mínimo necesario» es la cuenta de la ficha con σ = 1 R: `max(3,85·σ/√n, costo + "
+            "«Mínimo necesario» es la cuenta de la ficha con σ = 1 R: `max(z_Holm·σ/√n, costo + "
             "1,96·σ/√n)`. El equilibrado es la media simple de largos y cortos: cancela la deriva.",
-            "", *_side_table(res["rows"]), "",
+            "", *_side_table(res["rows"], res["meta"]["family"]), "",
             "## 4. La regla de lectura, condición a condición", "", *_conditions(res["rows"]), "",
             "## 5. Control con entradas al azar", "",
             "Antes de 2023, frente a sus series sustitutas: no puede destacar.", "",

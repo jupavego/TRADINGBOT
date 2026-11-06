@@ -25,7 +25,6 @@ import numpy as np
 
 from eim.data.paper_store import PaperStore
 from eim.data.store import Store
-from eim.data.timeframes import tf_ms
 from eim.data.validation_store import ValidationStore
 from eim.paper.exits import walkforward as wf
 from eim.validation.attempts import ATTEMPTS_DIR, load_attempts, write_attempts
@@ -34,7 +33,6 @@ from eim.validation.hypotheses import report as rp
 from eim.validation.hypotheses import rules as ru
 from eim.validation.hypotheses import world as wd
 from eim.validation.hypotheses.prereg import Prereg, load_prereg
-from eim.validation.lineage import iso_ms
 
 PREREG_COMMIT = "3d396f7"
 T137_FILE = ATTEMPTS_DIR / "attempts_t137.json"
@@ -60,39 +58,6 @@ def load_world(store: Store, sym: str, t0: float) -> wd.World:
     w = wd.world_of(sym, candles, store.read_series("funding", sym), load_minutes(store, sym))
     log(t0, f"1 min: {len(w.minutes.t)}; funding: {len(w.funding)}; 1 d: {len(w.series['1d'].t)}")
     return w
-
-
-def measure_coverage(store: Store, w: wd.World, pr: Prereg) -> dict:
-    """Cobertura real del tramo limpio. Nada se da por cubierto."""
-    cov = pr.coverage
-    a, b = iso_ms(cov.from_), iso_ms(cov.to)
-    series = {}
-    for name in cov.series:
-        if name == "funding":
-            rows = sum(1 for t, _ in w.funding if a <= t < b)
-            expected = (b - a) // (8 * 3_600_000)
-        else:
-            ts = store.read_arrays(pr.symbol, name, a, b - 1)["t"]
-            rows, expected = len(ts), (b - a) // tf_ms(name)
-        series[name] = {"rows": int(rows), "expected": int(expected),
-                        "coverage": rows / expected if expected else 0.0,
-                        "ok": bool(expected and rows / expected >= cov.min)}
-    taker = {}
-    for tf in cov.taker_timeframes:
-        s = w.series[tf]
-        keep = (s.t >= a) & (s.t < b)
-        with_data = int(np.isfinite(s.taker[keep]).sum())
-        rows = int(keep.sum())
-        taker[tf] = {"rows": rows, "with_data": with_data,
-                     "coverage": with_data / rows if rows else 0.0,
-                     "ok": bool(rows and with_data / rows >= cov.min)}
-    ok, flow = all(x["ok"] for x in series.values()), all(x["ok"] for x in taker.values())
-    verdict = ("cumple." if ok and flow else
-               "H2 y H3 caen por falta de `taker_buy_v`; siguen contando en Holm." if ok else
-               "NO cumple: se para (P0).")
-    return {"from": cov.from_, "to": cov.to, "min": cov.min, "series": series, "taker": taker,
-            "first_minute": wf.iso(int(w.minutes.t[0])) if len(w.minutes.t) else None,
-            "ok": ok, "flow_ok": flow, "verdict": verdict}
 
 
 def prior_keys(ps: PaperStore, crit, sym: str) -> dict:
@@ -169,7 +134,7 @@ def run_stage(a, pr: Prereg, crit, store: Store, ps: PaperStore, t0: float) -> i
     sym = pr.symbol
     w = load_world(store, sym, t0)
     ep = ru.exec_params(pr)
-    cov = measure_coverage(store, w, pr)
+    cov = wd.coverage_of(pr, w, lambda tf, x, y: len(store.read_arrays(sym, tf, x, y - 1)["t"]))
     log(t0, f"cobertura: {cov['verdict']}")
     dropped = () if cov["flow_ok"] else wd.FLOW
     prior = prior_keys(ps, crit, sym)
@@ -190,7 +155,7 @@ def run_stage(a, pr: Prereg, crit, store: Store, ps: PaperStore, t0: float) -> i
         print("P0: el tramo limpio no tiene cobertura; no se corre nada mas")
         return 1
     if a.stage == "banco":
-        stored = [c for c in ps.load(sym, "1h")]
+        stored = [{k: c.get(k) for k in ("t", "close", "atr")} for c in ps.load(sym, "1h")]
         res = wd.bank_stage(pr, crit, w, ep, prior, stored, lambda m: log(t0, m), dropped)
         res["meta"] = meta(a, pr, crit, w, res["family"], t0)
         dump(REPORTS / "t139_banco.json", res)
@@ -202,9 +167,10 @@ def run_stage(a, pr: Prereg, crit, store: Store, ps: PaperStore, t0: float) -> i
 
     reg_ok = _bank_regression_ok()
     if not reg_ok:
-        print("sin regresion en verde en reports/t139_banco.json: primero la etapa banco")
+        print("sin las dos regresiones en verde en reports/t139_banco.json: primero la etapa banco")
         return 2
-    res = wd.clean_stage(pr, crit, w, ep, prior, cov["ok"], lambda m: log(t0, m), dropped)
+    res = wd.clean_stage(pr, crit, w, ep, prior, lambda m: log(t0, m), dropped)
+    keep_previous()
     res["meta"] = meta(a, pr, crit, w, res["family"], t0)
     res["coverage"] = cov
     dump(REPORTS / "t139_entradas.json", res)
@@ -219,7 +185,18 @@ def _bank_regression_ok() -> bool:
     if not p.exists():
         return False
     reg = json.loads(p.read_text(encoding="utf-8")).get("regression") or {}
-    return (reg.get("stored") or {}).get("ok") is True
+    return all((reg.get(k) or {}).get("ok") is True for k in ("stored", "minimal"))
+
+
+def keep_previous() -> None:
+    """Repetir no borra: la lectura anterior queda al lado, para poder ver qué cambió."""
+    k = 1
+    while (REPORTS / f"t139_entradas.anterior{k}.json").exists():
+        k += 1
+    for ext in ("json", "md", "csv"):
+        p = REPORTS / f"t139_entradas.{ext}"
+        if p.exists():
+            p.rename(REPORTS / f"t139_entradas.anterior{k}.{ext}")
 
 
 if __name__ == "__main__":
