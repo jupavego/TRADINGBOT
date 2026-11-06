@@ -21,6 +21,7 @@ Comandos desde `v2/`. `API=http://127.0.0.1:8000`. Todo POST lleva `X-EIM-Confir
 | Bot del escuadrón en cuarentena, colgado o con versión nueva | «Escuadrón», alerta `bots.<bot>` | §13 |
 | Protección del bróker simulado recuperada o en «estado inconsistente» | `proteccion` («Protección recuperada…», «…en estado inconsistente», «Diario de protección sin verificar») | §14 |
 | Carril HFT bloqueado, «cancelar todo», kill-switch HFT o 418 | `execution.hft` en el Observatorio (`bloqueo`, `cancelar_todo`, `cierre`, `kill`) | §15 |
+| La interfaz no carga, pero la operación sigue con latido | icono «EIM sin puerto», `puerto sin escuchar` en `proceso_reiniciado`, «la API NO escucha» en `continuity check` | §16 |
 
 Dónde mirar: pestaña «Operación» de la UI · `GET $API/v2/operation` · registro
 `data/operation/logs/op-AAAA-MM-DD.jsonl` · tabla `op_alerts`.
@@ -108,8 +109,9 @@ powershell -ExecutionPolicy Bypass -File scripts\servicio_continuo.ps1 -ConWeb
 - En testnet, tras restaurar: reconciliar (§2) antes de reactivar.
 
 ## 6. Proceso caído o colgado
-`eim.operation run` es un vigilante: relanza la API si muere o si el latido
-(`data/operation/heartbeat.json`) no avanza en 15 min, con espera creciente (máx. 5 min). El libro
+`eim.operation run` es un vigilante: relanza la API si muere, si el latido
+(`data/operation/heartbeat.json`) no avanza en 15 min o si pierde el puerto (§16), con espera
+creciente (máx. 5 min). El libro
 simulado y los cursores se restauran del estado. Si entra en bucle de reinicios: leer
 `proceso_reiniciado` en el registro, arrancar la API a mano en primer plano para ver el error:
 `python -m uvicorn eim.api.main:app --port 8000`.
@@ -271,3 +273,49 @@ hechos quedan en `HftLane.events` y en el Observatorio (componente `execution.hf
 7. **Cuenta compartida:** `countdownCancelAll` cancela TODAS las órdenes del símbolo, también
    las de otro carril. Usar una cuenta (o subcuenta) de testnet propia para el carril HFT, o
    poner `exchange_countdown_ms = 0` en una versión nueva de la configuración.
+
+## 16. La API sin puerto (T140)
+**Síntoma:** la interfaz dice «SIN CONEXIÓN» y las CLI que piden por HTTP fallan, pero el proceso
+vive y el latido sigue al día. El ciclo de operación y el bróker siguen trabajando dentro del
+proceso; se pierde la interfaz y todo lo que entra por HTTP. El 2026-11-06 duró casi 12 h sin que
+nada avisara (`PLAN/notas/T140_api_sin_puerto.md`).
+
+**Confirmarlo:**
+```powershell
+Get-NetTCPConnection -LocalPort 8000 -State Listen     # vacío: nadie escucha
+python -m eim.continuity check --offline               # «la API NO escucha en 127.0.0.1:8000»
+```
+Si fue un cierre del socket, `data/operation/logs/vigilante.err*.log` tiene `Accept failed on a
+socket`, ya con su hora. Esos registros se conservan entre arranques (los 10 últimos de cada uno).
+
+**Qué pasa solo:** el vigilante mira cada 15 s la tabla de puertos del sistema. Con 2 min seguidos
+sin escuchar reinicia la API con el motivo `puerto sin escuchar`, y deja `proceso_reiniciado` y un
+aviso crítico. Si tras lanzarla el puerto no llega a abrirse, espera 20 min, porque un arranque con
+el equipo cargado llegó a tardar 7. Un bucle bloqueado no cuenta: el puerto sigue en escucha, y de
+eso se ocupa el latido (§6).
+
+**Reiniciar solo la API a mano** (la captura, los líderes y la interfaz no se tocan). Pedir permiso
+antes: ahí vive la corrida de T31.
+```powershell
+Get-CimInstance Win32_Process -Filter "Name='python.exe'" |
+  Where-Object { $_.CommandLine -match '-m\s+uvicorn\s+eim\.api\.main' } |
+  Select-Object ProcessId, ParentProcessId
+Stop-Process -Id <pid de la hija> -Force
+```
+Salen dos filas: la hija es la que tiene por `ParentProcessId` el `ProcessId` de la otra. El
+vigilante la relanza en segundos. `GET /v2/paper` da 503 hasta que calcula su primera vista.
+
+**Reiniciar el vigilante y la API** (hace falta para que entre un cambio del propio vigilante o de
+la línea de órdenes de la API). Solo para esos dos, y luego lanza lo que falte sin duplicar nada:
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\detener_servicio.ps1 -SoloCon "--port 8000"
+powershell -ExecutionPolicy Bypass -File scripts\servicio_continuo.ps1 -ConWeb
+```
+
+**La causa y la reproducción:** en Windows, `ProactorEventLoop` cierra el socket de escucha para
+siempre cuando falla un `accept` (`WinError 64`), y basta con que un cliente corte con RST mientras
+el bucle está ocupado. Por eso la API corre con `SelectorEventLoop` desde T140
+(`eim/operation/event_loop.py`). `python -m eim.operation.accept_check` compara los dos bucles en un
+puerto efímero, sin tocar los servicios. Para volver al bucle anterior basta con quitar `--loop` de
+`api_cmd` (`eim/operation/__main__.py`) y reiniciar vigilante y API; la vigilancia del puerto sigue
+funcionando igual.
