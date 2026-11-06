@@ -141,7 +141,8 @@ def test_registered_attempts_count_in_holm_and_do_not_touch_the_live_evidence(tm
     assert sum(x["origin"] == ev.ORIGIN for x in runs["con"]["versions"]) == 5
 
 
-def test_attempts_are_only_loaded_by_the_real_api_settings():
+def test_attempts_are_only_loaded_by_the_real_api_settings(monkeypatch):
+    monkeypatch.delenv("EIM_VAL_ATTEMPTS", raising=False)
     assert Settings().val_attempts is False and Settings.from_env().val_attempts is True
 
 

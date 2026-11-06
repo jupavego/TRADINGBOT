@@ -17,7 +17,7 @@ from eim.validation.attempts import load_attempts, write_attempts
 from eim.validation.criteria import load_criteria
 from eim.validation.entry_prereg import load_prereg
 from eim.validation.gate import OBSERVACION, Check, Measure, Verdict, measure
-from eim.validation.lineage import Version, Window, iso_ms
+from eim.validation.lineage import Declaration, Version, Window, iso_ms
 from tests.validation.helpers import trades
 
 PR = load_prereg()
@@ -188,4 +188,13 @@ def test_repo_attempts_are_the_declared_ones_and_not_the_live_versions():
     assert all(v.origin == ev.ORIGIN and v.retired_ms == alta and v.windows for v in got)
     sel = iso_ms(PR.windows.selection.from_) + 1
     assert all(any(w.covers(sel, "BTCUSDT") for w in v.windows) for v in got)
+
+
+def test_live_version_declared_with_the_attempts_origin_stays_visible(vstore):
+    """El origen a secas no esconde una versión viva: `ensure` crearía una por cálculo."""
+    a = vstore.ensure(SID, "consenso_sintesis", "1h", "vivo", 1000, [
+        Declaration(ev.ORIGIN, "", (), {SID: "vivo"})])
+    assert a.origin == ev.ORIGIN
+    assert vstore.ensure(SID, "consenso_sintesis", "1h", "vivo", 2000, []) == a
+    assert len(vstore.versions(SID)) == 1
 

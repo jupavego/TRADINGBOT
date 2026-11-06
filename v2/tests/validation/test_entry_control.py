@@ -143,3 +143,13 @@ def test_parent_check_needs_both_the_count_and_the_expectancy():
     assert ec.check_parent(got, {"n": 100, "expectancy_r": -0.15}, 1e-6)["ok"] is True
     assert ec.check_parent(got, {"n": 99, "expectancy_r": -0.15}, 1e-6)["ok"] is False
     assert ec.check_parent(got, {"n": 100, "expectancy_r": -0.14}, 1e-6)["ok"] is False
+
+
+def test_control_without_real_trades_has_no_verdict():
+    """Sin operaciones no hay nada que juzgar: ni aprobado ni, por el NaN, rechazado."""
+    run = er.VariantRun("m8")
+    run.stats["control_aleatorio@1h"] = Counter(ideas=100, moved=90)
+    got = ec.control_report(PR, {"m8": run}, {"m8": [0.1] * 20}, {"m8": [0.5]},
+                            iso_ms(PR.control.real_from))["m8"]
+    assert got["n_real"] == 0 and got["ok"] is None and got["p_one_sided"] is None
+

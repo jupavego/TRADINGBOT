@@ -34,7 +34,7 @@ from eim.validation.entry_versions import (
     windows_for,
 )
 from eim.validation.evidence import Trade, flip_idea, ref_price, select, trade_of
-from eim.validation.gate import Verdict, measure, validate_all
+from eim.validation.gate import Verdict, measure, meets_data, validate_all
 from eim.validation.lineage import Version, iso_ms
 
 
@@ -102,8 +102,7 @@ def score_reading(r: Reading, versions: Sequence[tuple[Version, str]],
         trades = run_by_variant[vid].trades.get(v.sid, [])
         m = measure(f"{symbol}|{v.label}", trades, wins, symbol, asof, crit, attempts, prices)
         items.append((v, m, wins))
-    prior = {k: p for k, p in family.items() if k not in {m.label for _, m, _ in items}}
-    return validate_all(items, prior, crit)
+    return validate_all(items, family, crit)
 
 
 def pooled(trades: Sequence[Trade]) -> dict:
@@ -208,11 +207,7 @@ def sample_table(pr: Prereg, crit_all: Criteria, versions, runs, registry, paren
                 continue
             wins = windows_for(r, v, [x for x in registry if x.sid == v.sid])
             got = select(runs[vid].trades.get(v.sid, []), wins, sym, asof).oos
-            by_regime: dict[str, int] = {}
-            for t in got:
-                by_regime[t.regime] = by_regime.get(t.regime, 0) + 1
-            big = sum(1 for n in by_regime.values() if n >= crit.min_per_regime)
-            ok = len(got) >= crit.min_trades and big >= crit.min_regimes
+            ok = meets_data(len(got), Counter(t.regime for t in got), crit)
             total[vid] = total.get(vid, 0) + 1
             meets[vid] = meets.get(vid, 0) + int(ok)
         out[r.id] = {"meets_v1": meets, "versions": total,

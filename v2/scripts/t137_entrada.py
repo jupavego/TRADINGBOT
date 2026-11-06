@@ -93,7 +93,7 @@ def say_sample(sample: dict) -> None:
             print(f"  {vid:<8} " + " · ".join(bits))
 
 
-def main() -> int:  # noqa: PLR0915
+def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--data", required=True)
     ap.add_argument("--out", default="reports/t137_entrada")
@@ -113,10 +113,22 @@ def main() -> int:  # noqa: PLR0915
         print("no se corre sobre el almacen vivo")
         return 2
     pr, crit, t131 = load_prereg(), load_criteria(), load_t131()
-    sym, t0 = pr.symbol, time.perf_counter()
+    t0 = time.perf_counter()
     tmp = Path(tempfile.mkdtemp(prefix="t137_"))
-    shutil.copy2(data / "paper.duckdb", tmp / "paper.duckdb")
-    store, ps = Store(data), PaperStore(tmp / "paper.duckdb")
+    try:
+        shutil.copy2(data / "paper.duckdb", tmp / "paper.duckdb")
+        ps = PaperStore(tmp / "paper.duckdb")
+        try:
+            return run_all(a, out, pr, crit, t131, Store(data), ps, t0)
+        finally:
+            ps.close()
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def run_all(a, out, pr, crit, t131, store, ps, t0) -> int:  # noqa: PLR0915
+    """La corrida entera, ya con la copia temporal abierta."""
+    sym = pr.symbol
     desk = PaperDesk(store, ps, profiles=())
     ep, spec = desk.ep, spec_for(sym)
     ideas, path = load_world(store, ps, desk, sym)
@@ -168,7 +180,7 @@ def main() -> int:  # noqa: PLR0915
 
     # 4. cada variante corre su propia sombra
     start = iso_ms(pr.reading("banco").ranges[0][0])
-    flip_from = FAR if a.sample_only else start
+    flip_from = ev.FAR_MS if a.sample_only else start
     runs = {ev.BASE: run.run_variant(ideas, ev.rule_of(None, pr, atr, path.t, None, spec.tick), {},
                                      path, ep, ev.FAR_MS, start)}
     for v in pr.variants:
@@ -179,8 +191,6 @@ def main() -> int:  # noqa: PLR0915
     sample = run.sample_table(pr, crit, versions, runs, registry, parents, sym, asof)
     say_sample(sample)
     if a.sample_only:
-        ps.close()
-        shutil.rmtree(tmp, ignore_errors=True)
         return 0
 
     # 5. regresión contra lo publicado, y control con entradas al azar
@@ -247,13 +257,8 @@ def main() -> int:  # noqa: PLR0915
     }
     write_outputs(out, res)
     write_attempts(ATTEMPTS_FILE, pr.version, pr.sha256, [x for x, _ in versions], variant_of)
-    ps.close()
-    shutil.rmtree(tmp, ignore_errors=True)
     log(t0, f"informe en {out.with_suffix('.md')}; candidatas: {len(res['candidates'])}")
     return 0
-
-
-FAR = ev.FAR_MS
 
 
 def _head() -> str:
@@ -270,7 +275,7 @@ def write_outputs(out: Path, res: dict) -> None:
         w.writerows(rows)
     keep = {**res, "readings": {k: {**r, "rows": [
         {f: _round(x.get(f)) for f in er.CSV_FIELDS if f not in ("reason", "strategy")}
-        for x in r["rows"] if x["n"] >= 100]} for k, r in res["readings"].items()}}
+        for x in r["rows"]]} for k, r in res["readings"].items()}}
     out.with_suffix(".json").write_text(
         json.dumps(keep, ensure_ascii=False, indent=0, default=_num), encoding="utf-8")
     out.with_suffix(".md").write_text(er.render(res), encoding="utf-8")

@@ -44,6 +44,11 @@ _VCOLS = ("sid, n, fingerprint, strategy, timeframe, created_ms, parent, origin,
 ATTEMPT_ORIGINS = frozenset({"T137"})
 
 
+def _is_attempt(v: Version) -> bool:
+    """Un intento nace retirado: el origen a secas lo podría llevar una declaración normal."""
+    return v.origin in ATTEMPT_ORIGINS and v.retired_ms == v.created_ms
+
+
 class ValidationStore:
     def __init__(self, pstore: PaperStore) -> None:
         self.ps = pstore
@@ -71,7 +76,7 @@ class ValidationStore:
         """La versión de esta huella; si es nueva se registra (padre = la vigente) y la
         vigente se retira. Una huella ya vista vuelve a ser la vigente (misma versión)."""
         every = self.versions(sid)
-        fam = [v for v in every if v.origin not in ATTEMPT_ORIGINS]
+        fam = [v for v in every if not _is_attempt(v)]
         current = next((v for v in fam if v.retired_ms is None), None)
         same = next((v for v in fam if v.fingerprint == fingerprint), None)
         if same is not None:

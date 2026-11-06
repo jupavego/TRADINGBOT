@@ -18,7 +18,7 @@ import numpy as np
 
 from eim.backtest.edge import holm
 from eim.validation import stats as st
-from eim.validation.criteria import Criteria
+from eim.validation.criteria import Criteria, DataRule
 from eim.validation.evidence import Trade, select
 from eim.validation.lineage import Version, Window
 
@@ -103,11 +103,16 @@ def measure(label: str, trades: Sequence[Trade], windows: Sequence[Window], symb
         cost_r=float(np.mean([o.cost_r for o in x])) if n else None, span=span, extras=extras)
 
 
+def meets_data(n: int, regimes: Mapping[str, int], rule: DataRule) -> bool:
+    """V1: operaciones suficientes y regímenes suficientes con muestra."""
+    big = sum(1 for v in regimes.values() if v >= rule.min_per_regime)
+    return n >= rule.min_trades and big >= rule.min_regimes
+
+
 def _checks(m: Measure, p_holm: float | None, crit: Criteria) -> list[Check]:
     c1, c2, c3 = crit.v1_data, crit.v2_expectancy, crit.v3_random
     c4, c5, c6 = crit.v4_drawdown, crit.v5_stability, crit.v6_costs
-    big = {k: v for k, v in m.regimes.items() if v >= c1.min_per_regime}
-    ok1 = m.n >= c1.min_trades and len(big) >= c1.min_regimes
+    ok1 = meets_data(m.n, m.regimes, c1)
     lo, hi = m.ci
     ok2 = None if m.n < 2 else bool(m.mean_r > 0 and lo > 0)
     ok3 = None if p_holm is None else bool(p_holm < c3.alpha)

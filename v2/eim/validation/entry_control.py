@@ -134,6 +134,8 @@ def control_report(pr: Prereg, runs: dict[str, VariantRun], null: dict, moved: d
     for vid, run in runs.items():
         gross, n = real_gross(run, sid, start)
         res = surrogate.verdict(gross, null.get(vid, []), c.alpha)
+        if n == 0:          # bruto NaN: el p saldría 1/(sustitutas + 1), como si destacara
+            res = {**res, "p_one_sided": None, "ok": None, "reason": "sin operaciones de control"}
         st = run.stats.get(sid)
         frac = (st["moved"] / st["ideas"]) if st and st["ideas"] else 0.0
         spec = None if vid == BASE else pr.variant(vid)
