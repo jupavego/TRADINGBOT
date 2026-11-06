@@ -1,6 +1,6 @@
 # T137 — La entrada: SL inicial más amplio y tope de costo, por la puerta de T49
 
-Modo: **SIMULADO** · BTCUSDT · datos hasta 2026-11-03T18:00+00:00 · pre-registro `prereg_t137_v1` (SHA-256 `a5713685b9a67c0d…`, commit `213247f`, anterior a todo cálculo) · criterios `validation_v1` sin cambios · calculado con `edc9e11` · 520 intentos nuevos, familia de Holm de 832.
+Modo: **SIMULADO** · BTCUSDT · datos hasta 2026-11-03T18:00+00:00 · pre-registro `prereg_t137_v1` (SHA-256 `a5713685b9a67c0d…`, commit `213247f`, anterior a todo cálculo) · criterios `validation_v1` sin cambios · calculado con `f569129` · 520 intentos nuevos, familia de Holm de 832.
 
 ## 1. Veredicto (lectura oficial)
 
