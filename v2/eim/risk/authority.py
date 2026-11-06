@@ -45,6 +45,8 @@ AUTHORITIES: dict[str, str] = {
 # (el de la copia es que el PROPIO líder cierre: es su regla, no una señal ajena).
 EXIT_RULES: dict[str, tuple[str, ...]] = {
     "stop_only": ("SL", "SLD", "LIQUIDACION", "SALVAGUARDA"),
+    # TIEMPO y HTF solo para la política que los pre-registra (M6 y M7): `adaptive.close_violation`
+    "adaptive_stop": ("SL", "SLD", "TIEMPO", "HTF", "LIQUIDACION", "SALVAGUARDA"),
     "sl_tp_time": ("SL", "SLD", "TP", "BE", "TIEMPO", "LIQUIDACION", "SALVAGUARDA"),
     "bracket": ("SL", "TP", "cierre ordenado (kill-switch o reconciliación)"),
     "follow_leader": ("el líder reduce o cierra", "stop de protección", "kill-switch propio"),
@@ -79,7 +81,8 @@ SOURCES: dict[str, Source] = {s.id: s for s in (
            "eim/api/risk.py · RiskDesk.evaluate"),
     Source("paper.strategies", "Estrategias del bróker simulado (ideas sombra)",
            "T47 T48 T105–T112", "activa", ("paper.broker",),
-           "perfil del bróker: vetos, topes y tamaño", ("stop_only", "sl_tp_time"),
+           "perfil del bróker: vetos, topes y tamaño",
+           ("stop_only", "adaptive_stop", "sl_tp_time"),
            "eim/paper/policy.py · decide", note="incluye la familia «sugerencias» (T50)"),
     Source("copy.leaders", "Copia simulada de líderes", "T41 T42", "activa", ("risk.engine",),
            "risk_copy_v1", ("follow_leader",), "eim/copytrading/copy_risk.py · CopyRisk.check"),

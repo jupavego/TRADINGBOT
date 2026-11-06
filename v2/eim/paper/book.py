@@ -35,17 +35,18 @@ from eim.paper.account import (  # noqa: F401 (leverage_for: tests)
     leverage_for,
     liq_price,
 )
+from eim.paper.adaptive import audit_close, close_violation, exit_text
 from eim.paper.book_events import ev
 from eim.paper.caps import Brake
 from eim.paper.engine import Outcome
 from eim.paper.feedback import Learner, context_key
-from eim.paper.ladder_audit import SAFEGUARD, audit_outcome, check_close_request
+from eim.paper.ladder_audit import SAFEGUARD
 from eim.paper.ladder_book import LadderRisk, LadderSim
 from eim.paper.params import ProfileParams
 from eim.paper.policy import PaperDecision, decide, verify
 
 PRIO = {"close": 0, "cancel": 1, "fill": 2, "signal": 3}
-EXIT_CAT = {"TP": "tp", "SL": "sl", "SLD": "sl", "BE": "be", "TIEMPO": "tiempo",
+EXIT_CAT = {"TP": "tp", "SL": "sl", "SLD": "sl", "BE": "be", "TIEMPO": "tiempo", "HTF": "tiempo",
             LIQ: "liquidacion", SAFEGUARD: "salvaguarda"}
 
 
@@ -92,6 +93,7 @@ class ProfileState:
     exhausted_t: int | None = None     # cuándo se agotó la cuenta (deja de abrir; no se recarga)
     decisions: list[PaperDecision] = field(default_factory=list)  # ideas en vivo (T114)
     rejected: dict[str, int] = field(default_factory=dict)  # rechazos por código (T118)
+    exit_info: dict = field(default_factory=dict)   # rasgos de la salida adaptativa (T135)
 
 
 def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
@@ -103,10 +105,10 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
         return
     # señal contraria a posiciones abiertas: en la escalera solo informa (nadie cierra por ella)
     against = ([x.o.idea.id for x in st.slots.values() if x.filled and x.side != i.side]
-               if p.exit_mode == "ladder" else [])
+               if p.stop_driven else [])
     tag = {"against": against} if against else {}
     st.contrary += bool(against)
-    if p.exit_mode == "ladder":      # la escalera aprende de SUS cierres, no de la sombra con TP
+    if p.stop_driven:                # aprende de SUS cierres, no de la sombra con TP
         j, jc = st.lrisk.own(i.sid, context_key(i), p)
     else:
         j = learner.at(i.sid, i.t, p.feedback)
@@ -141,7 +143,7 @@ def _open(st: ProfileState, d: PaperDecision, tag: dict, q: list, seq: list[int]
     st.used += d.margin
     text = ("límite" if i.kind == "limit" else "a mercado") + d.note
     ev(st, i.t, "orden", o, text, price=d.entry, qty=d.qty, leverage=d.leverage, margin=d.margin,
-       sl=i.sl, tp=None if p.exit_mode == "ladder" else i.tp, weight=d.weight,
+       sl=i.sl, tp=None if p.stop_driven else i.tp, weight=d.weight,
        risk_usd=d.risk_usd, why=list(i.why), floor=d.floor, **tag)
     if o.fill_t is not None:
         heapq.heappush(q, (o.fill_t, PRIO["fill"], _next(seq), "fill", o))
@@ -177,12 +179,12 @@ def _reject(st: ProfileState, o: Outcome, why: str) -> None:
 
 
 def _close(st: ProfileState, o: Outcome) -> None:
-    if st.p.exit_mode == "ladder" and (why := check_close_request(o.reason)):
+    if why := close_violation(st.p, o.reason):
         _reject(st, o, why)
         return
     s = st.slots.pop(o.idea.id)
     st.used -= s.margin
-    bad = audit_outcome(o) if st.p.exit_mode == "ladder" else []
+    bad = audit_close(st.p, o)
     if bad:
         # cierre por el stop con un historial anómalo: el precio tocó el stop, así que se ejecuta
         # y el dinero SÍ se contabiliza (descartarlo lo hacía desaparecer, T106 A5), auditado aparte
@@ -202,7 +204,7 @@ def _close(st: ProfileState, o: Outcome) -> None:
     if why := st.brake.closed(st.p.caps, st.equity, st.p.initial_equity, o.exit_t, r):
         ev(st, o.exit_t, "aprendizaje", o,
            f"freno de entradas {st.p.caps.dd_pause_hours:g} h: {why}")
-    if o.ladder and st.p.ladder and (why := st.lrisk.closed(
+    if o.ladder and st.p.stop_driven and (why := st.lrisk.closed(
             i, r, pnl, st.equity, o.exit_t, st.p.ladder, st.p.initial_equity)):
         ev(st, o.exit_t, "aprendizaje", o, f"freno de entradas {st.p.ladder.pause_hours:g} h: "
             f"{why} (no cierra posiciones)")
@@ -236,6 +238,8 @@ def _close(st: ProfileState, o: Outcome) -> None:
 
 def _exit_text(o: Outcome) -> str:
     lad = o.ladder
+    if lad and lad.get("exit"):      # salida adaptativa (T135): fase, motivo y versión
+        return exit_text(o)
     if o.reason == "SLD" and lad.get("stop_source") in ("be", "recuperado"):
         what = "BE+" if lad["stop_source"] == "be" else "SL recuperado del diario"
         return (f"cierre por SL dinámico ({what}, nivel protegido "
@@ -258,9 +262,12 @@ def _cancel(st: ProfileState, o: Outcome) -> None:
 
 def run_profile(p: ProfileParams, outcomes: list[Outcome], learner: Learner,
                 mmr: float, sim: LadderSim | None = None) -> ProfileState:
-    if p.exit_mode == "ladder" and sim is None:
-        raise ValueError(f"el perfil {p.id} (escalera) necesita el camino de precios (`sim`)")
+    if p.stop_driven and sim is None:
+        what = "escalera" if p.exit_mode == "ladder" else "adaptativo"
+        raise ValueError(f"el perfil {p.id} ({what}) necesita el camino de precios (`sim`)")
     st = ProfileState(p=p, equity=p.initial_equity)
+    if p.adaptive is not None and p.id in sim.exits:
+        st.exit_info = sim.exits[p.id].feats.to_json()
     seq = [0]
     q: list = [(o.idea.t, PRIO["signal"], _next(seq), "signal", o) for o in outcomes]
     heapq.heapify(q)

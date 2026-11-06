@@ -1705,8 +1705,8 @@ window.EIM_STATUS = {
    "deps": [
     "T134"
    ],
-   "state": "pending",
-   "notes": "**Aparcada (2026-11-04), no descartada.** Su condición es «solo si T134 aprueba» y T134 rechazó las 87 variantes, así que no hay salida que llevar al bróker. Se reabre el día que se adopte una, y entonces ya tiene la potencia calculada por T134 (E9: σ de las diferencias emparejadas `M8 q=0.95` − M0 = 0,352 R → ≈ 315 operaciones emparejadas para +0,049 R con α 0,05 a una cola y potencia 0,80; el ritmo real por perfil se toma del libro en vivo).",
+   "state": "progress",
+   "notes": "**Reabierta por el usuario (2026-11-06): motor construido y apagado, sin perfil que lo use; el A/B sigue sin poder empezar** porque no hay salida aprobada. Nota `PLAN/notas/T135_motor.md`. Código: `v2/eim/paper/adaptive.py` y `adaptive_params.py` (`exit_mode=\"adaptativo\"`, modo `adaptive_stop` en la autoridad, M2, M3, M5, M6 y M7), suelo del diario T110 en `exits/trail.py`, fase, motivo, fuente y versión en el historial del diario sin columnas nuevas, panel `web/src/paper_adaptive.ts` y potencia E9 en `exits/power.py` + `scripts/t135_potencia.py` (reproduce las 315 operaciones). Comprobado contra `main` con la semilla fija: huellas de los 4 perfiles y de las 111 versiones de T49 idénticas. Falta una salida aprobada, su plan de potencia y el A/B de ≥ 4 semanas. Antes: **aparcada (2026-11-04), no descartada.** Su condición es «solo si T134 aprueba» y T134 rechazó las 87 variantes, así que no hay salida que llevar al bróker. Se reabre el día que se adopte una, y entonces ya tiene la potencia calculada por T134 (E9: σ de las diferencias emparejadas `M8 q=0.95` − M0 = 0,352 R → ≈ 315 operaciones emparejadas para +0,049 R con α 0,05 a una cola y potencia 0,80; el ritmo real por perfil se toma del libro en vivo).",
    "effort": "alto",
    "phase": 22,
    "goal": "Llevar al bróker simulado la salida que T134 apruebe, como `exit_mode=\"adaptativo\"` junto a `tp` y `ladder`, con la jerarquía de §4.2 de `PLAN/notas/T129_sl_dinamico.md`."

@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 
+from eim.paper.adaptive_params import AdaptiveParams
 from eim.paper.engine import Outcome, Path
 from eim.paper.feedback import Judgement, context_key, judge
 from eim.paper.ideas import Idea
@@ -28,6 +29,8 @@ class LadderSim:
     # lo que el diario de la protección guardó de cada operación, por (perfil, idea) (T110)
     guards: dict[tuple[str, str], Guard] = field(default_factory=dict, compare=False,
                                                  hash=False)
+    # política de cada perfil con salida adaptativa (T135, `adaptive.policies_for`)
+    exits: dict[str, object] = field(default_factory=dict, compare=False, hash=False)
 
 
 def viability(p: ProfileParams, i: Idea, equity: float) -> str | None:
@@ -66,7 +69,7 @@ def open_ladder(p: ProfileParams, sim: LadderSim, i: Idea, qty: float) -> tuple[
 HOUR_MS = 3_600_000
 
 
-def _capped(j: Judgement, lp: LadderParams | None) -> Judgement:
+def _capped(j: Judgement, lp: LadderParams | AdaptiveParams | None) -> Judgement:
     """Peso acotado a `lp.max_weight` (T109): una racha corta no infla el tamaño. El estado se
     recalcula con el peso acotado, como en `feedback._verdict`."""
     if not lp or j.weight <= lp.max_weight:
@@ -95,26 +98,27 @@ class LadderRisk:
 
     def strategy(self, sid: str, p: ProfileParams) -> Judgement:
         """Juicio de una estrategia@marco con lo que la escalera ya cerró (hasta ahora)."""
-        return _capped(judge(self.r_by_sid.get(sid, []), p.feedback), p.ladder)
+        return _capped(judge(self.r_by_sid.get(sid, []), p.feedback), p.ladder or p.adaptive)
 
     def own(self, sid: str, ctx: str, p: ProfileParams) -> tuple[Judgement, Judgement]:
         """Juicio de la estrategia y del contexto con lo que la escalera ya cerró (hasta ahora)."""
         return (self.strategy(sid, p),
-                _capped(judge(self.r_by_ctx.get(ctx, []), p.feedback), p.ladder))
+                _capped(judge(self.r_by_ctx.get(ctx, []), p.feedback), p.ladder or p.adaptive))
 
     def veto(self, t: int) -> str | None:
         return (f"entradas en pausa hasta {t_iso(self.halt_until)} UTC: {self.halt_reason}"
                 if t < self.halt_until else None)
 
     def closed(self, i: Idea, r: float | None, pnl: float, equity: float, exit_t: int,
-               lp: LadderParams, initial: float) -> str | None:
-        """Registra un cierre; devuelve el texto del freno si este cierre lo activa."""
+               lp: LadderParams | None, initial: float) -> str | None:
+        """Registra un cierre; devuelve el texto del freno si este cierre lo activa. Sin escalera
+        (salida adaptativa, T135) solo aprende: el freno es el de `caps`."""
         if r is not None:
             self.r_by_sid.setdefault(i.sid, []).append(r)
             self.r_by_ctx.setdefault(context_key(i), []).append(r)
         self.peak = max(self.peak or initial, equity)
         self.consec = self.consec + 1 if pnl <= 0 else 0
-        if not lp.brake:             # los tres perfiles conservan su propio freno (`caps`)
+        if lp is None or not lp.brake:   # los tres perfiles conservan su propio freno (`caps`)
             return None
         dd = 1 - equity / self.peak
         why = ""

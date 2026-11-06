@@ -89,7 +89,7 @@ class TrailExit:
     def simulate(self, idea: Idea, ctx: ExitContext, qty: float) -> Outcome:
         return simulate_trail(idea, ctx.path, ctx.ep, self._rule(), qty, spec=ctx.spec,
                               sigma_abs=self.feats.sigma_abs, limits=self.limits,
-                              fine=ctx.fine, htf_dir=self.feats.htf_dir)
+                              fine=ctx.fine, htf_dir=self.feats.htf_dir, guard=ctx.guard)
 
 
 @dataclass(frozen=True)
@@ -111,7 +111,7 @@ class TimeExit:
         limits = TrailLimits(time_bars=self.bars, time_min_r=self.min_r)
         return simulate_trail(idea, ctx.path, ctx.ep, FixedStop(id=self.id), qty, spec=ctx.spec,
                               sigma_abs=self.feats.sigma_abs, limits=limits, fine=ctx.fine,
-                              htf_dir=self.feats.htf_dir)
+                              htf_dir=self.feats.htf_dir, guard=ctx.guard)
 
 
 @dataclass(frozen=True)
@@ -131,7 +131,7 @@ class HtfExit:
         return simulate_trail(idea, ctx.path, ctx.ep, FixedStop(id=self.id), qty, spec=ctx.spec,
                               sigma_abs=self.feats.sigma_abs,
                               limits=TrailLimits(htf_flip=True), fine=ctx.fine,
-                              htf_dir=self.feats.htf_dir)
+                              htf_dir=self.feats.htf_dir, guard=ctx.guard)
 
 
 @dataclass(frozen=True)
@@ -164,7 +164,7 @@ class InitialStopExit:
             return self.inner.simulate(wide, ctx, qty)
         return simulate_trail(wide, ctx.path, ctx.ep, FixedStop(id=self.id), qty, spec=ctx.spec,
                               sigma_abs=self.feats.sigma_abs, fine=ctx.fine,
-                              htf_dir=self.feats.htf_dir)
+                              htf_dir=self.feats.htf_dir, guard=ctx.guard)
 
 
 def sigma_floor(feats: ExitFeatures, path_t: np.ndarray, d_min: float):

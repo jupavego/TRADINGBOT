@@ -142,10 +142,22 @@ def exec_fingerprint(ep: ExecParams, timeframe: str) -> dict:
     }
 
 
+def exit_fingerprint(identity: dict) -> str:
+    """Huella corta de una política de salida (T135): sus valores, sus rasgos y su versión."""
+    return hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()[:SHORT]
+
+
 def version_of(strategy_id: str, family: str, rules: str, timeframe: str,
-               ep: ExecParams | None = None) -> str:
-    """Huella corta de `estrategia@marco`: reglas + mecánica del marco."""
-    blob = json.dumps({"id": strategy_id, "family": family, "rules": rules, "tf": timeframe,
-                       "exec": exec_fingerprint(ep or ExecParams(), timeframe)},
-                      sort_keys=True)
+               ep: ExecParams | None = None, exit_policy: dict | None = None) -> str:
+    """Huella corta de `estrategia@marco`: reglas + mecánica del marco.
+
+    `exit_policy` (T135, §4.4 de T129) es la identidad de la salida adaptativa con la que se mide:
+    cambiar la salida es otra versión y la evidencia no se mezcla. Sin ella la clave ni siquiera
+    existe, así que ninguna huella vigente cambia: la sombra sigue siendo la misma salida.
+    """
+    payload = {"id": strategy_id, "family": family, "rules": rules, "tf": timeframe,
+               "exec": exec_fingerprint(ep or ExecParams(), timeframe)}
+    if exit_policy is not None:
+        payload["exit"] = exit_policy
+    blob = json.dumps(payload, sort_keys=True)
     return hashlib.sha256(blob.encode()).hexdigest()[:SHORT]

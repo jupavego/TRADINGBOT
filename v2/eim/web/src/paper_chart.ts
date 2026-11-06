@@ -5,7 +5,7 @@ import {
 } from 'lightweight-charts'
 import { PriceChart } from './chart'
 import { cssVar } from './theme'
-import { esc, nf, rr, side } from './paper_fmt'
+import { esc, nf, phaseLabel, rr, side } from './paper_fmt'
 import type { PaperTrade, Position, ProfileView } from './paper_types'
 import { bogIso, chartTimeLocale } from './tz'
 
@@ -55,7 +55,8 @@ export class PaperPriceChart {
       add(p.entry, cssVar('--accent'), `${side(p.side)} ${p.timeframe} ${on ? '' : p.strategy}`.trim(), on ? LineStyle.Solid : LineStyle.Dotted)
       if (!on) continue
       if (p.tp !== null) add(p.tp, cssVar('--up'), 'TP sim')
-      add(p.sl, cssVar('--down'), p.ladder ? `SL dinámico (esc. ${p.ladder.level})` : 'SL sim')
+      add(p.sl, cssVar('--down'), p.ladder?.exit ? `SL dinámico (${phaseLabel(p.ladder.exit.phase)})`
+        : p.ladder ? `SL dinámico (esc. ${p.ladder.level})` : 'SL sim')
       add(p.liq, cssVar('--warn'), 'Liq. sim', LineStyle.Dotted)
     }
   }

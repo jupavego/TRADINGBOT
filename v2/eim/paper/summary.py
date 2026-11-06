@@ -9,6 +9,7 @@ from __future__ import annotations
 import numpy as np
 
 from eim.paper.account import LIQ, capital, capped, liq_price, max_dd_pct
+from eim.paper.adaptive import adaptive_summary
 from eim.paper.book import ProfileState
 from eim.paper.feedback import Learner, judge
 from eim.paper.ladder_stats import ladder_stats, last_step
@@ -95,8 +96,10 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
            "contrary_signals": st.contrary, "last_step": last_step(tr, pos),
            "violations_recent": st.violations[-RECENT_VIOLATIONS:]}}
            if ladder_on else {})
+    ada = {"adaptive": adaptive_summary(st, pos)} if p.adaptive is not None else {}
     return {
         **lad,
+        **ada,
         "id": p.id, "name": p.name, "description": p.description,
         "params": p.model_dump(mode="json"),
         "initial": cap.initial, "balance": cap.balance, "equity": equity, "upnl": cap.upnl,
@@ -130,11 +133,13 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         "orders": sorted(orders, key=lambda x: -x["t"]),
         "curve": _downsample(curve),
         "by_strategy": by,
-        # con escalera el perfil aprende de SUS cierres (T109), no de la sombra con TP
-        "weights": {sid: (st.lrisk.strategy(sid, p) if ladder_on
+        # con escalera o salida adaptativa el perfil aprende de SUS cierres (T109), no de la sombra
+        "weights": {sid: (st.lrisk.strategy(sid, p) if ladder_on or ada
                           else learner.at(sid, now, p.feedback)).to_json()
                     for sid in strategy_ids},
-        "learning": "cierres propios (escalera)" if ladder_on else "sombra (SL/TP/BE+/tiempo)",
+        "learning": ("cierres propios (escalera)" if ladder_on
+                     else "cierres propios (salida adaptativa)" if ada
+                     else "sombra (SL/TP/BE+/tiempo)"),
         "events_n": len(st.events),
         "min_open": {"target": p.min_open, "open": len(pos),
                      "pending_target": p.min_pending, "pending": len(orders),
