@@ -39,7 +39,7 @@ Es un fallo conocido de CPython en Windows ([python/cpython#93821](https://githu
 
 **Ha pasado más de una vez:** `vigilante.err.log` empieza el 2026-11-05 08:13 y, antes de reiniciar, contenía dos arranques y **dos** `Accept failed`, uno en cada uno. La instancia anterior también lo sufrió y el reinicio de las 01:41 la curó por casualidad. El registro no lleva hora, así que no se sabe cuánto tiempo estuvo sorda ni cuántas veces pasó antes: ese archivo se reescribe al arrancar los servicios.
 
-**Lo que no está probado:** que el bloqueo sea lo que provoca el `WinError 64`. Es lo coherente con la coincidencia de las 02:00: con el bucle parado, el cliente se cansa y abandona la conexión antes del `accept`. Falta reproducirlo (T140).
+**Reproducido después (§6):** con el bucle bloqueado, un cliente que corta con RST provoca el `WinError 64` y cierra el socket. Lo que sigue sin probarse es qué cliente lo hizo aquel día.
 
 **Qué sigue funcionando sin el socket:** el bróker y el ciclo de operación, a las 13:34 UTC seguían al día. Se pierde la interfaz y todo lo que entra por HTTP. `python -m eim.paper proteccion` intenta entonces abrir la base directamente, con la API aún dueña del archivo.
 
@@ -100,3 +100,58 @@ Se esperó a que terminara el gate de T139 y a que acabara un ciclo, y se detuvo
 Los otros 14 procesos de servicio siguieron vivos y la captura escribió un parquet a las 13:51:58. La interfaz sale «SIN CONEXIÓN» unos segundos, hasta que responde `/v2/snapshot` (≈ 10 s con el equipo cargado), y después «EN VIVO» con el precio en movimiento. **La hora 13 de T78 salió completa**, con 0 eventos sin detectar: el reinicio no afectó a la captura. A las 14:38 UTC la API seguía escuchando.
 
 **El fallo sigue sin arreglar:** puede repetirse hasta cerrar T140, y este reinicio solo lo cura por ahora.
+
+## 6. T140: la reproducción, el bucle y lo que se hizo
+
+**El fallo se reproduce.** `python -m eim.operation.accept_check`, con uvicorn 0.51.0 y Python 3.12.10 en un puerto efímero. El bucle queda bloqueado, una conexión consume el `accept` pendiente y otra queda en la cola y se rinde:
+
+| Bucle | Cómo se rinde el cliente | Puerto después | HTTP | `Accept failed` |
+|---|---|---|---|---|
+| Proactor | **RST** | **cerrado** | falla | sí |
+| Proactor | cierre normal | abierto | 200 | no |
+| Proactor | Python con tiempo de espera | abierto | 200 | no |
+| Proactor | `Invoke-RestMethod`, como el icono | abierto | 200 | no |
+| Selector | los cuatro | abierto | 200 | no |
+
+Otra sesión lo reprodujo por su cuenta, sin ver este código, con 3 rondas por escenario: Proactor con bloqueo y RST falla 3 de 3, y sin bloqueo o con cierre normal 0 de 3; Selector, 0 de 3 en todos.
+
+**Lo que sigue sin saberse:**
+- **Qué cliente mandó el RST aquel día.** El icono queda descartado en este escenario; Chrome y Vite no se probaron.
+- **Si el incidente real siguió esta secuencia exacta.** Es lo más probable: aparecen los mismos dos mensajes, y los ciclos estuvieron parados de 01:59:37 a 02:05:59, junto a la última petición servida (02:00:17). Pero el registro de entonces no llevaba hora.
+
+**Se adopta `SelectorEventLoop`** con `uvicorn --loop eim.operation.event_loop:selector_loop`:
+- **Por qué:** conserva el puerto, no toca partes privadas de `asyncio` y no deja ruido en el registro.
+- **Lo que se cede:** `select` admite 512 sockets en Windows, y la API viva tenía 42 el 2026-11-06. Tampoco admite subprocesos ni tuberías de `asyncio`: `eim/` tiene 0 usos y una prueba lo fija.
+- **Descartado:** un parche sobre `_proactor.accept` que absorbe el `WinError 64`. También conservó el puerto (2 de 2), pero depende de un atributo privado y deja un mensaje por cada conexión perdida. Queda como reserva si Selector da problemas.
+
+**Ensayo con la API real** (2026-11-06, 14:50–14:58 UTC): vigilante, API y operación en papel desde este código, puerto 18140, datos vacíos y prioridad IDLE, sin tocar los servicios.
+- **Bucle:** la línea de órdenes llevaba `--loop eim.operation.event_loop:selector_loop`.
+- **Operación:** análisis de 1 h y 4 h a las 14:51:38 y 6 ciclos correctos.
+- **HTTP:** `/v2/health`, `/v2/operation`, `/v2/agents`, `/v2/paper` y `/v2/risk` dieron 200.
+- **WebSocket:** 12 mensajes en 4 s, con ticks en vivo desde Binance.
+- **Resistencia:** 60 RST seguidos durante una vista pesada; siguió en escucha, `/v2/health` respondió 200 y no hubo `Accept failed`.
+- **Parada:** `detener_servicio.ps1 -SoloCon "--port 18140"` paró solo esa instancia.
+- **No ensayado:** el relanzamiento con `servicio_continuo.ps1`, porque aquí habría lanzado otros servicios; ni horas de funcionamiento continuo.
+
+**La vigilancia del puerto se aparta de la ficha.** Pedía una conexión TCP; se usa la tabla de puertos del sistema (`port_watch.listening`), porque una sonda que conecta podría provocar el fallo si cortara con RST. Solo si la tabla no muestra a nadie se intenta conectar, porque esa consulta puede fallar sin avisar y entonces ya no hay socket que dañar. Reinicia tras 2 min sin escuchar, o tras 20 min si no llegó a abrirse.
+
+**Efecto de la falta de puerto en T31: ninguno en los libros.** Ventana 02:00:17–13:51:18 UTC, recontado en `op-2026-11-06.jsonl`: 665 ciclos, 663 correctos (los otros 2, «sin datos del proveedor» a las 07:55 y 07:57), reconciliación correcta en los 665, 15 decisiones sin plan vigente y capital igual al principio y al final (9 720,05). Otra sesión midió además las entradas y salidas del bróker en esa ventana (Moderado 3/4, Agresivo 3/4, PPP 1/2, Conservador 0/0); esas no se recontaron aquí. Lo que sí toca a T31 va aparte: las 5 operaciones congeladas (T142) y los huecos de ciclo por saturación (T141).
+
+**Otros cambios:**
+- **Registros:** el stderr de todo servicio bajo vigilante y la salida de la API llevan hora UTC. Los `vigilante.*` se conservan entre arranques (los 10 últimos).
+- **Por qué solo la API pasa su salida por tubería:** `Watchdog` también vigila la captura y los líderes, y una tubería ataría la captura de T78 al hilo que la lee.
+- **Estado:** `continuity check` y el icono de la bandeja distinguen «sin puerto» de «parada», exigiendo un latido de menos de 3 min para no confundirla con una parada normal.
+
+**Desplegarlo exige reiniciar el vigilante además de la API**, porque la vigilancia y la línea de órdenes viven en el vigilante: `RUNBOOK.md` §16. La captura no se toca, y mientras no se reinicien, la captura y los líderes siguen con el código viejo sin que eso afecte a nada.
+
+**Portátil:** el `--loop` propio necesita un uvicorn que lo admita. El lock fija 0.51.0 desde el 2026-10-21; antes de desplegar allí, comprobar `pip show uvicorn`.
+
+**Lo que le pasó a la captura mientras se hacía T140:** la hora 14 UTC salió incompleta y la racha de 6 h de T78 volvió a 0. No se pudo aislar la causa, y este trabajo pudo contribuir:
+
+| UTC | Hueco | Qué había |
+|---|---|---|
+| 14:34:05–14:34:39 | `bbo`: 28,4 s y desconexión | CPU 13–18 %: ajeno a la carga |
+| 14:39:21–14:40:36 | `depth`, `mark` y `bbo`, hasta 18 s, y dos desconexiones | `git worktree add` de T140 a las 14:39:17 (1 602 archivos). CPU al 97 % a las 14:38, antes de ese comando, con Chrome y Claude; 61 % a las 14:39 y 26 % a las 14:40 |
+| 14:57:16–14:57:36 | `mark`: 20,2 s | El ensayo de arriba, a prioridad IDLE, con la CPU alrededor del 60 % |
+
+`bbo` perdió ≈ 53 s frente a los 36 que admite el 0,99. Sin la tanda de las 14:39–14:40 habría perdido unos 39 s: tan cerca del límite que no se puede decir que la hora se hubiera perdido igualmente. **Consecuencia práctica:** con una racha en juego, crear un worktree también es trabajo pesado (BACKLOG T140 (7)). La cola además pausó `gate-t140` a las 15:14 por «2 huecos nuevos»; falta el QC de la hora 15.

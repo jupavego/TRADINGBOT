@@ -15,14 +15,20 @@ import platform
 import shutil
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from eim.continuity import datastate, gitstate, offsite, tasks
+from eim.data.local_api import DEFAULT_API
+from eim.operation.port_watch import listening
 
 OK, WARN, BLOCK = "OK", "AVISO", "BLOQUEO"
 VERDICT = {OK: ("LISTO", 0), WARN: ("CON AVISOS", 2), BLOCK: ("NO SINCRONIZADO", 1)}
+API_PORT = urlsplit(DEFAULT_API).port or 8000
+API_BEAT_S = 180.0      # la operación late cada minuto: más viejo que esto, puede estar parada
 OWN_COPY_MAX_H = 36.0
 LOCAL_COPY_MAX_H = 30.0
 CLASH_H = 48.0
@@ -180,6 +186,24 @@ def _data(r: Report, ds: datastate.DataState) -> None:
               "activa tras revisar los simulacros)")
 
 
+def _api_port(r: Report, ds: datastate.DataState, probe: Callable[[], bool | None]) -> None:
+    """T140: un latido reciente no dice que la API atienda. El 2026-11-06 estuvo casi 12 h sin
+    puerto y esta comprobación solo decía «servicios con latido reciente». Se exige un latido de
+    hace pocos minutos: con los 15 de `LIVE_S`, una parada normal parecería una API sin puerto."""
+    if ds.services.get("operación", float("inf")) >= API_BEAT_S:
+        return
+    state = probe()
+    where = f"127.0.0.1:{API_PORT}"
+    if state:
+        r.add(OK, "procesos", f"API escuchando en {where}")
+    elif state is None:
+        r.add(WARN, "procesos", f"no se pudo comprobar si la API escucha en {where}")
+    else:
+        r.add(WARN, "procesos", f"la operación tiene latido, pero la API NO escucha en {where}: "
+              "la interfaz y las órdenes por HTTP no funcionan",
+              "docs/RUNBOOK.md §16: el vigilante la reinicia solo; si no, reinicia solo la API")
+
+
 def _tasks(r: Report, plan: Path) -> None:
     t = tasks.read(plan)
     doing = ", ".join(i for i, _ in t.by_state["en curso"])
@@ -202,7 +226,8 @@ def _safety(r: Report, env: dict) -> None:
 
 
 def run(v2: Path, data_dir: Path, backup_dir: Path, *, network: bool = True,
-        env: dict | None = None, transport: offsite.Releases | None = None) -> Report:
+        env: dict | None = None, transport: offsite.Releases | None = None,
+        api_probe: Callable[[], bool | None] | None = None) -> Report:
     env = dict(os.environ if env is None else env)
     host = platform.node()
     ds = datastate.state(data_dir, backup_dir)
@@ -210,6 +235,7 @@ def run(v2: Path, data_dir: Path, backup_dir: Path, *, network: bool = True,
     _environment(r, v2)
     _code(r, v2, fetch=network)
     _data(r, ds)
+    _api_port(r, ds, api_probe or (lambda: listening(API_PORT)))
     if network:
         _remote(r, transport or offsite.Releases(offsite.repo_from_env(env), timeout=120), ds,
                 host)
