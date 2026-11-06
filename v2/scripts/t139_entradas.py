@@ -74,13 +74,14 @@ def prior_keys(ps: PaperStore, crit, sym: str) -> dict:
 def meta(a, pr: Prereg, crit, w: wd.World, family: int, t0: float) -> dict:
     head = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True,
                           check=False).stdout.strip()
-    return {"data": a.data, "symbol": pr.symbol, "stage": a.stage, "commit": head,
+    data = f"backups/{Path(a.data).name}"          # sin la ruta de este equipo: el repo es público
+    return {"data": data, "symbol": pr.symbol, "stage": a.stage, "commit": head,
             "prereg": pr.version, "prereg_sha256": pr.sha256, "prereg_commit": PREREG_COMMIT,
             "criteria": crit.version, "criteria_sha256": crit.sha256,
             "asof": wf.iso(int(w.path.end)),
             "family": family, "null_reps": crit.null_reps(family),
             "code": ru.code_hash(), "seconds": round(time.perf_counter() - t0, 1),
-            "command": f"python scripts/t139_entradas.py --data {a.data} --stage {a.stage}",
+            "command": f"python scripts/t139_entradas.py --data {data} --stage {a.stage}",
             "repeat_reason": a.repeat_reason or None}
 
 

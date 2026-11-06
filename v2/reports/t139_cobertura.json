@@ -1,0 +1,158 @@
+{
+"coverage": {
+"from": "2020-01-01T00:00:00Z",
+"to": "2023-01-01T00:00:00Z",
+"min": 0.99,
+"series": {
+"1m": {
+"rows": 1578240,
+"expected": 1578240,
+"coverage": 1.0,
+"ok": true
+},
+"15m": {
+"rows": 105216,
+"expected": 105216,
+"coverage": 1.0,
+"ok": true
+},
+"1h": {
+"rows": 26304,
+"expected": 26304,
+"coverage": 1.0,
+"ok": true
+},
+"4h": {
+"rows": 6576,
+"expected": 6576,
+"coverage": 1.0,
+"ok": true
+},
+"funding": {
+"rows": 3288,
+"expected": 3288,
+"coverage": 1.0,
+"ok": true
+}
+},
+"taker": {
+"1h": {
+"rows": 26304,
+"with_data": 26304,
+"coverage": 1.0,
+"ok": true
+},
+"4h": {
+"rows": 6576,
+"with_data": 6576,
+"coverage": 1.0,
+"ok": true
+}
+},
+"first_minute": "2019-09-08T17:57:00Z",
+"ok": true,
+"flow_ok": true,
+"verdict": "cumple."
+},
+"sample": {
+"funding_contra@1h": {
+"ideas": 1485,
+"antes de 2023": 454,
+"antes de 2023 largos": 252,
+"antes de 2023 cortos": 202,
+"banco": 624,
+"banco largos": 410,
+"banco cortos": 214
+},
+"funding_contra@4h": {
+"ideas": 1485,
+"antes de 2023": 232,
+"antes de 2023 largos": 126,
+"antes de 2023 cortos": 106,
+"banco": 330,
+"banco largos": 218,
+"banco cortos": 112
+},
+"flujo_sigue@1h": {
+"ideas": 3238,
+"antes de 2023": 635,
+"antes de 2023 cortos": 305,
+"antes de 2023 largos": 330,
+"banco": 857,
+"banco cortos": 412,
+"banco largos": 445
+},
+"flujo_sigue@4h": {
+"ideas": 800,
+"antes de 2023": 152,
+"antes de 2023 cortos": 78,
+"antes de 2023 largos": 74,
+"banco": 222,
+"banco cortos": 97,
+"banco largos": 125
+},
+"flujo_revierte@1h": {
+"ideas": 525,
+"antes de 2023": 205,
+"antes de 2023 cortos": 109,
+"antes de 2023 largos": 96,
+"banco": 247,
+"banco cortos": 125,
+"banco largos": 122
+},
+"flujo_revierte@4h": {
+"ideas": 158,
+"antes de 2023": 60,
+"antes de 2023 cortos": 31,
+"antes de 2023 largos": 29,
+"banco": 72,
+"banco largos": 26,
+"banco cortos": 46
+},
+"cascada_revierte@1h": {
+"ideas": 1674,
+"antes de 2023": 451,
+"antes de 2023 largos": 214,
+"antes de 2023 cortos": 237,
+"banco": 651,
+"banco cortos": 326,
+"banco largos": 325
+},
+"cascada_revierte@4h": {
+"ideas": 1336,
+"antes de 2023": 266,
+"antes de 2023 largos": 121,
+"antes de 2023 cortos": 145,
+"banco": 390,
+"banco cortos": 176,
+"banco largos": 214
+},
+"momento_1d@1d": {
+"ideas": 2587,
+"antes de 2023": 121,
+"antes de 2023 cortos": 48,
+"antes de 2023 largos": 73,
+"banco": 151,
+"banco largos": 92,
+"banco cortos": 59
+}
+},
+"meta": {
+"data": "C:\\Users\\jo\\Desktop\\JP\\TRADINGBOT\\v2\\backups\\t139_banco",
+"symbol": "BTCUSDT",
+"stage": "cobertura",
+"commit": "b56993e",
+"prereg": "prereg_t139_v1",
+"prereg_sha256": "f24f72bfc3d8cc928b7884f31550e74e9f4e3e5cf04bd27df2dbf29436510d16",
+"prereg_commit": "3d396f7",
+"criteria": "validation_v1",
+"criteria_sha256": "0a5b19962ded0d12dfdbccac0359f91c1bebf211ed891f7817c96667e01c30a8",
+"asof": "2026-11-06T03:30+00:00",
+"family": 841,
+"null_reps": 33640,
+"code": "cf87ca70cb68800b29e9ab6557a3e059a1c52a58a63e1226b27245e395e24a89",
+"seconds": 25.4,
+"command": "python scripts/t139_entradas.py --data C:\\Users\\jo\\Desktop\\JP\\TRADINGBOT\\v2\\backups\\t139_banco --stage cobertura",
+"repeat_reason": null
+}
+}
