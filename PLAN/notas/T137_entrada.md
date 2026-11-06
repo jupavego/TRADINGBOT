@@ -171,7 +171,9 @@ Nacen retirados, no se evalúan, no se publican y `ensure` no los ve, así que:
 
 ## 8. ◆ Pregunta al usuario
 
-**¿Se cierra esta línea de trabajo?**
+**¿Se cierra esta línea de trabajo?** **Resuelta por el usuario (2026-11-06): se cierra.** No se
+adopta ninguna de estas versiones, los perfiles no cambian y la corrida no se repite al cerrar T31.
+Los 520 intentos siguen contando en Holm. La orden queda escrita por si algún día se reabre.
 
 Lo que sostiene la evidencia: **sí.** Es lo que el pre-registro fijó para este caso («si ninguna
 cumple, se propone no seguir con esta línea»). Apartar el stop y filtrar por costo reducen la

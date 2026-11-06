@@ -646,3 +646,11 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** la ◆ de T137: ¿se cierra la línea de apartar el stop? Los 520 intentos entran en el registro vivo al próximo reinicio de la API; hasta entonces el registro es `attempts_t137.json`. No se reinició nada.
 - **En curso:** T31 (→ 2026-11-27), T45, T62, T104, T78, T116, T117, T127, T128, sin cambios aquí.
 - **Siguiente paso:** responder la ◆. Si se cierra, buscar entradas con bruto positivo, que es una tarea nueva.
+
+## 2026-11-06 00:45 UTC · juanpablo-cpu · T137: el usuario cierra la línea de apartar el stop
+- **Hecho:** el usuario resolvió la ◆ de T137: la línea se cierra. No se adopta ninguna versión, los perfiles no cambian y la corrida no se repite al cerrar T31. Los 520 intentos siguen contando en Holm.
+- **Archivos:** `PLAN/{STATUS,ESTADO_PROYECTO,BACKLOG,BITACORA}.md`, `PLAN/notas/T137_entrada.md`, `PLAN/status.js`. Sin cambios de código.
+- **Pruebas:** sin código nuevo, así que no se repitió el gate; el último es `gate-t137`. `build_roadmap.py` sin errores.
+- **Abierto:** fusionar el PR #211. Los intentos entran en el registro vivo al siguiente reinicio de la API.
+- **En curso:** T31 (→ 2026-11-27), T45, T62, T104, T78, T116, T117, T127, T128, sin cambios aquí.
+- **Siguiente paso:** buscar entradas con bruto positivo, que es una tarea nueva todavía sin ficha.
