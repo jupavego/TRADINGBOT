@@ -7,15 +7,23 @@ import type { AdaptiveStats, PaperSummary, Position, ProfileView } from './paper
 
 const MODE: Record<string, string> = { SIMULADO: 'Simulado', TESTNET: 'Testnet', ANALISIS: 'Análisis' }
 
-/** La política del perfil y de dónde salen sus rasgos: fuente y cobertura reales, a la vista. */
-function policyLine(p: ProfileView, a: AdaptiveStats): string {
+/** El rasgo del que depende esta política, con su fuente y su cobertura reales: M7 mira el marco
+ *  mayor (que puede ser un sustituto, y se dice), M6 solo el tiempo y las demás, σ. */
+function featureText(a: AdaptiveStats): string {
   const info = a.feature_info ?? {}
-  const cover = info.coverage?.sigma_abs
-  const src = info.source?.sigma_abs ?? 'sin dato de la fuente'
+  if (a.policy === 'M6') return 'barrera de tiempo: no depende de rasgos'
+  const key = a.policy === 'M7' ? 'htf_dir' : 'sigma_abs'
+  const cover = info.coverage?.[key]
+  const pc = cover === undefined ? '—' : `${nf(cover * 100, 1)} %`
+  const src = info.source?.[key] ?? 'sin dato de la fuente'
+  return `${a.policy === 'M7' ? 'marco mayor' : `σ ${esc(info.sigma ?? '—')}`} · cobertura ${pc} · ${esc(src)}`
+}
+
+/** La política del perfil y de dónde salen sus rasgos. */
+function policyLine(p: ProfileView, a: AdaptiveStats): string {
   return `<li><span class="pp-pname" style="--pc:var(${PROFILE_VAR[p.id] ?? '--accent'})">${esc(p.name)}</span> · ` +
     `<b>${esc(a.policy)}</b> <small class="muted">versión ${esc(a.version)} · rasgos ${esc(a.features)}</small><br>` +
-    `<small class="muted" title="${esc(src)}">σ ${esc(info.sigma ?? '—')} · cobertura ${cover === undefined ? '—' : `${nf(cover * 100, 1)} %`} · ` +
-    `señales contrarias que solo informaron: ${a.contrary_signals}</small></li>`
+    `<small class="muted">${featureText(a)} · señales contrarias que solo informaron: ${a.contrary_signals}</small></li>`
 }
 
 function positionRow(p: ProfileView, x: Position, names: Record<string, string>, price: number | null): string {

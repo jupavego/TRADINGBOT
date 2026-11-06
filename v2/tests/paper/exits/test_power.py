@@ -82,3 +82,12 @@ def test_a_confirmed_plan_cannot_be_changed_afterwards(tmp_path):
     with pytest.raises(FileExistsError, match="versión nueva"):
         write_plan(plan(effect=0.06), f)
     assert json.loads(f.read_text(encoding="utf-8"))["fingerprint"] == p["fingerprint"]
+
+
+def test_a_plan_edited_by_hand_is_detected(tmp_path):
+    f = tmp_path / "plan.json"
+    p = plan()
+    write_plan(p, f)
+    f.write_text(json.dumps({**p, "required_n": 50}), encoding="utf-8")   # conserva la huella
+    with pytest.raises(ValueError, match="se editó"):
+        write_plan(p, f)

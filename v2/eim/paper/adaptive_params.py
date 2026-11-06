@@ -17,6 +17,10 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
+from eim.paper.exits.sigma import OHLC
+
+HARRV = "harrv_1m"           # el mismo nombre que `exits/features.py`; ahí vive el estimador
+
 
 class AdaptiveParams(BaseModel):
     """Una política de T132 y sus valores: una sola por perfil, nunca el máximo de varias (H5)."""
@@ -37,13 +41,19 @@ class AdaptiveParams(BaseModel):
     bars: int | None = None          # M6: barrera de tiempo, en velas del camino
     min_r: float = 0.0               # M6: 0 = cierra siempre a las `bars` velas
     fine_tf: str = "1m"              # velas finas: las mismas en el vivo y en el recálculo
+    # Tope del peso aprendido, el mismo de la escalera (T109): una racha corta no infla el tamaño.
+    # No entra en `knobs`: decide cuánto se abre, no cómo se sale.
+    max_weight: float = 1.5
 
     @model_validator(mode="after")
     def _coherent(self) -> AdaptiveParams:
         if self.policy == "M6" and (self.bars is None or self.bars < 1):
             raise ValueError("M6 exige `bars` ≥ 1: sin barrera de tiempo no es M6")
-        if self.floor_n < 0 or self.k <= 0:
-            raise ValueError("`floor_n` no puede ser negativo y `k` tiene que ser positivo")
+        if self.floor_n < 0 or self.k <= 0 or self.max_weight <= 0:
+            raise ValueError("`floor_n` no puede ser negativo; `k` y `max_weight`, positivos")
+        if self.sigma != HARRV and self.sigma not in OHLC:   # falla al construir, no al operar
+            raise ValueError(f"estimador de volatilidad desconocido: {self.sigma!r}; "
+                             f"disponibles: {[*sorted(OHLC), HARRV]}")
         return self
 
     def knobs(self) -> dict:

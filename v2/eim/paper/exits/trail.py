@@ -73,8 +73,6 @@ class TrailState:
     level: int = 0               # veces que se movió el stop (el «escalón» del diario)
     source: str = "inicial"
     max_float: float = -math.inf
-    first: float = 0.0
-    step_usd: float = 0.0
     floor: Floor | None = None
     floor_due: bool = False
     recovered: dict | None = None

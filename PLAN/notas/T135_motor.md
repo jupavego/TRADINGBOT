@@ -34,6 +34,10 @@ Esto importa porque la solución obvia lo habría roto. Un campo `adaptive` nuev
 - **Interfaz:** bloque «Salida adaptativa» en «Perfiles», con modo, fase, stop vigente, motivo, fuente, y σ con su cobertura. No aparece mientras ningún perfil la use.
 - **Potencia (E9):** `exits/power.py` y `scripts/t135_potencia.py`. Reproduce las 315 operaciones de T134 y `write_plan` se niega a reescribir un plan confirmado con otro contenido.
 
+## Revisión de código (nivel alto, la que pide la ficha)
+
+Diez hallazgos. **Corregidos, con prueba:** `check_profiles` no cubría a los perfiles adaptativos; `sigma` no se validaba al construir; el peso aprendido no tenía el tope `max_weight` de la escalera; un plan de potencia editado a mano pasaba por bueno; el panel enseñaba σ en M6 y M7, que no la usan, y no decía la fuente de `htf_dir`. **Sin corregir, a propósito:** ver abajo y BACKLOG T135.
+
 ## Lo que falta para cerrar T135
 
 1. **Una salida aprobada por los criterios de §5.4.** Hoy no la hay.
@@ -46,4 +50,8 @@ Esto importa porque la solución obvia lo habría roto. Un campo `adaptive` nuev
 - **Sin prueba con datos reales.** El libro se probó con velas sintéticas y costos cero. El motor de arrastre sí corrió sobre datos reales en T134, pero la unión con el libro y el diario no.
 - **La captura de la interfaz es con datos de prueba,** porque ningún perfil genera datos reales. El criterio de aceptación pide una captura; esta muestra el panel, no una operación real.
 - **Coste por consulta:** con un perfil adaptativo, los rasgos se recalculan en cada vista sobre todo el camino. Hoy no ocurre. Antes de encender uno hay que medirlo en este equipo.
+- **Anticipación en las velas ambiguas, heredada de T132:** `_sub_bars` usa σ y swing de una vela que aún no ha cerrado. Corregirlo cambiaría las cifras de T134, así que queda en BACKLOG hasta decidir si se rehace aquella medición.
+- **M7 mira un solo marco mayor por camino** (el de 15 m, 1 h), también para ideas de 1 h y 4 h. Es lo mismo que midió el banco.
+- **Un A/B de libro contra M0 no tendría las mismas entradas:** el veto `viability` solo existe en la escalera, porque depende de su primer escalón. El tamaño sí es comparable, con el mismo tope de peso. La comparación limpia es la emparejada de `ab_pairs.py`, sobre las mismas ideas.
+- **La huella de un perfil cambia entre procesos,** desde antes de T135: `families` es un `frozenset` y su orden depende de `PYTHONHASHSEED`. Por eso la comparación de arriba se hizo con la semilla fija. BACKLOG T135.
 - **`REASON.SLD`** dice «SL dinámico (escalón)» en listas como la del libro fijo, aunque el cierre sea de un arrastre. La tabla principal muestra el motivo correcto.

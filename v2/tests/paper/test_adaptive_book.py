@@ -33,10 +33,10 @@ from eim.paper.book import ProfileState, Slot, _close, run_profile
 from eim.paper.engine import Outcome, Path, simulate
 from eim.paper.exits.policy import ExitContext
 from eim.paper.feedback import Learner
-from eim.paper.ladder_book import LadderSim
+from eim.paper.ladder_book import LadderRisk, LadderSim
 from eim.paper.ladder_floor import Guard
 from eim.paper.ladder_metrics import profile_metrics
-from eim.paper.params import PROFILES, ExecParams, spec_for
+from eim.paper.params import PROFILES, ExecParams, check_profiles, spec_for
 from eim.paper.policy import EXIT_OF
 from eim.paper.summary import profile_summary
 from eim.risk.authority import EXIT_RULES, SOURCES, verify_route
@@ -120,6 +120,28 @@ def test_policies_that_move_the_initial_stop_are_not_allowed(name):
 def test_m6_needs_its_barrier():
     with pytest.raises(ValueError, match="M6 exige"):
         AdaptiveParams(policy="M6")
+
+
+def test_unknown_volatility_estimator_fails_when_building_the_profile():
+    with pytest.raises(ValueError, match="estimador de volatilidad"):
+        AdaptiveParams(policy="M2", sigma="atr_14")
+    assert AdaptiveParams(policy="M2", sigma="harrv_1m").sigma == "harrv_1m"
+
+
+def test_startup_check_covers_adaptive_profiles():
+    p = adaptive_profile().model_copy(update={"symbols": None})
+    check_profiles((p,), ("BTCUSDT",))
+    with pytest.raises(ValueError, match=p.id):
+        check_profiles((p,), ("NOEXISTEUSDT",))
+
+
+def test_learned_weight_has_the_same_cap_as_the_ladder():
+    """Una racha buena no infla el tamaño más que en la escalera: mezclaría salida y tamaño."""
+    p = adaptive_profile(max_weight=1.1)
+    risk = LadderRisk(r_by_sid={"s": [3.0] * 200})
+    plain = p.model_copy(update={"adaptive": None, "exit_mode": "tp"})
+    assert risk.strategy("s", plain).weight > 1.1
+    assert risk.strategy("s", p).weight == pytest.approx(1.1)
 
 
 def test_without_adaptive_profiles_nothing_is_built_or_read():

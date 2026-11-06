@@ -90,6 +90,8 @@ def write_plan(plan: dict, path: str | Path) -> Path:
     p = Path(path)
     if p.exists():
         old = json.loads(p.read_text(encoding="utf-8"))
+        if old.get("fingerprint") != fingerprint(old):
+            raise ValueError(f"{p} no cuadra con su huella: se editó después de confirmarse")
         if old.get("fingerprint") != plan.get("fingerprint"):
             raise FileExistsError(f"{p} ya guarda otro plan ({str(old.get('fingerprint'))[:12]}): "
                                   "un cambio es una versión nueva con su propio archivo")

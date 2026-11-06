@@ -188,8 +188,9 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         learner = Learner(v.outcomes)
         mmr = MMR.get(symbol, 0.005)
         fine = self._fine(symbol, t0)
-        exits = policies_for(self.profiles, symbol, path, fine, lambda: Path(   # T135; hoy, ninguna
-            self.store.read_candles(symbol, "1h", start=t0 - 60 * tf_ms("1h")), (), tf_ms("1h")))
+        htf = self.ep.htf[self.ep.path_tf][0]    # T135: marco mayor del camino; hoy, sin perfiles
+        exits = policies_for(self.profiles, symbol, path, fine, lambda: Path(
+            self.store.read_candles(symbol, htf, start=t0 - 60 * tf_ms(htf)), (), tf_ms(htf)))
         sim = LadderSim(path, self.ep, fine, guards=self._guards(symbol), exits=exits)
         v.books ={p.id: run_profile(p, v.outcomes, learner, mmr, sim) for p in self.profiles}
         self._record_ledger(v)

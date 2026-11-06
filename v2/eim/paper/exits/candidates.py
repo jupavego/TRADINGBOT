@@ -164,7 +164,7 @@ class InitialStopExit:
             return self.inner.simulate(wide, ctx, qty)
         return simulate_trail(wide, ctx.path, ctx.ep, FixedStop(id=self.id), qty, spec=ctx.spec,
                               sigma_abs=self.feats.sigma_abs, fine=ctx.fine,
-                              htf_dir=self.feats.htf_dir)
+                              htf_dir=self.feats.htf_dir, guard=ctx.guard)
 
 
 def sigma_floor(feats: ExitFeatures, path_t: np.ndarray, d_min: float):

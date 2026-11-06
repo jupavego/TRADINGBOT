@@ -271,7 +271,7 @@ def check_profiles(profiles: tuple[ProfileParams, ...], symbols: tuple[str, ...]
     for p in profiles:
         if p.exit_mode == "ladder" and p.ladder is None:
             raise ValueError(f"{p.id}: exit_mode 'ladder' exige parámetros de escalera")
-        if p.ladder is None:
+        if p.ladder is None and p.adaptive is None:
             continue
         for s in p.symbols or symbols:
             try:
