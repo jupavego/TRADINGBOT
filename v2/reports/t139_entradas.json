@@ -1,0 +1,628 @@
+{
+"family": 841,
+"control": {
+"1h": {
+"ok": true,
+"gross": -0.02032307861980135,
+"n": 2073,
+"p": 1.0,
+"null_mean": 0.031562812349839826,
+"null_sd": 0.029436340595848258,
+"null_p95": 0.07676815244223344
+},
+"4h": {
+"ok": true,
+"gross": 0.052837459607828555,
+"n": 507,
+"p": 0.42857142857142855,
+"null_mean": 0.025566842202790024,
+"null_sd": 0.058566382769857914,
+"null_p95": 0.09696686390207915
+}
+},
+"rows": [
+{
+"reading": "oficial",
+"id": "funding_contra@1h@v1391",
+"sid": "funding_contra@1h",
+"verdict": "RECHAZADA",
+"reason": "falla V2 (Expectativa neta), V3 (Contra el azar), V4 (Drawdown), V5 (Estabilidad) → ciclo de mejora",
+"n": 454,
+"mean_r": -0.04045761270023172,
+"ci_lo": -0.1452874898885023,
+"ci_hi": 0.06410506373528052,
+"p_raw": 0.018727148420082638,
+"p_holm": 1.0,
+"max_dd": 0.34136538039265796,
+"windows": 29,
+"windows_pos": 13,
+"n_live": 0,
+"regimes": {
+"range": 342,
+"volatile": 93,
+"trend_up": 11,
+"trend_down": 8
+},
+"V1": true,
+"V2": false,
+"V3": false,
+"V4": false,
+"V5": false,
+"V6": true,
+"gross": 0.05435046525530455,
+"cost": 0.09480807795553627,
+"n_long": 252,
+"n_short": 202,
+"gross_long": 0.10502056454482361,
+"gross_short": -0.008861737818748938,
+"balanced": 0.04807941336303734,
+"stressed": -0.08786165167799986,
+"state": "fuera",
+"conditions": {
+"1_puerta": false,
+"2_bruto_equilibrado": false,
+"3_costos_x1_5": false,
+"4_sustitutas": false,
+"5_banco": true
+},
+"bank_gross": 0.01832285150000134,
+"bank_n": 624,
+"null": {
+"surrogates": 20,
+"mean": 0.02804895776807726,
+"sd": 0.058081747091038256,
+"p95": 0.11611848689177179
+}
+},
+{
+"reading": "oficial",
+"id": "funding_contra@4h@v1391",
+"sid": "funding_contra@4h",
+"verdict": "RECHAZADA",
+"reason": "falla V2 (Expectativa neta), V3 (Contra el azar), V5 (Estabilidad) → ciclo de mejora",
+"n": 232,
+"mean_r": -0.03424591144017159,
+"ci_lo": -0.17443316259806035,
+"ci_hi": 0.11269434417237306,
+"p_raw": 0.20825778068428405,
+"p_holm": 1.0,
+"max_dd": 0.14733684463819252,
+"windows": 24,
+"windows_pos": 10,
+"n_live": 0,
+"regimes": {
+"range": 170,
+"volatile": 42,
+"trend_up": 16,
+"trend_down": 4
+},
+"V1": true,
+"V2": false,
+"V3": false,
+"V4": true,
+"V5": false,
+"V6": true,
+"gross": 0.0066509152490456195,
+"cost": 0.040896826689217194,
+"n_long": 126,
+"n_short": 106,
+"gross_long": 0.1060703179874399,
+"gross_short": -0.11152686536451742,
+"balanced": -0.002728273688538757,
+"stressed": -0.054694324784780195,
+"state": "fuera",
+"conditions": {
+"1_puerta": false,
+"2_bruto_equilibrado": false,
+"3_costos_x1_5": false,
+"4_sustitutas": false,
+"5_banco": true
+},
+"bank_gross": 0.06280492351536247,
+"bank_n": 330,
+"null": {
+"surrogates": 20,
+"mean": 0.022920983527706287,
+"sd": 0.06313743184034501,
+"p95": 0.15981273746944313
+}
+},
+{
+"reading": "oficial",
+"id": "flujo_sigue@1h@v1391",
+"sid": "flujo_sigue@1h",
+"verdict": "RECHAZADA",
+"reason": "claramente negativa: R medio -0.080 + 1·EE 0.046 < 0 → ciclo de mejora",
+"n": 635,
+"mean_r": -0.08017452278208034,
+"ci_lo": -0.17707501019473532,
+"ci_hi": 0.015859310983401168,
+"p_raw": 0.015843762076038166,
+"p_holm": 1.0,
+"max_dd": 0.49169380737731716,
+"windows": 32,
+"windows_pos": 10,
+"n_live": 0,
+"regimes": {
+"range": 546,
+"volatile": 65,
+"trend_up": 15,
+"trend_down": 9
+},
+"V1": true,
+"V2": false,
+"V3": false,
+"V4": false,
+"V5": false,
+"V6": true,
+"gross": 0.060271572285611606,
+"cost": 0.14044609506769196,
+"n_long": 330,
+"n_short": 305,
+"gross_long": 0.10782941080929123,
+"gross_short": 0.008815550276384497,
+"balanced": 0.05832248054283787,
+"stressed": -0.15039757031592635,
+"state": "fuera",
+"conditions": {
+"1_puerta": false,
+"2_bruto_equilibrado": false,
+"3_costos_x1_5": false,
+"4_sustitutas": false,
+"5_banco": false
+},
+"bank_gross": -0.027087331794754182,
+"bank_n": 857,
+"null": {
+"surrogates": 20,
+"mean": 0.054686930240395316,
+"sd": 0.039964246122191315,
+"p95": 0.11127836319843039
+}
+},
+{
+"reading": "oficial",
+"id": "flujo_sigue@4h@v1391",
+"sid": "flujo_sigue@4h",
+"verdict": "RECHAZADA",
+"reason": "falla V3 (Contra el azar) → ciclo de mejora",
+"n": 152,
+"mean_r": 0.18242732016832933,
+"ci_lo": 0.00020248412544441477,
+"ci_hi": 0.36587673099449686,
+"p_raw": 0.001575458517879968,
+"p_holm": 1.0,
+"max_dd": 0.07161055342750511,
+"windows": 19,
+"windows_pos": 13,
+"n_live": 0,
+"regimes": {
+"range": 128,
+"volatile": 21,
+"trend_down": 3
+},
+"V1": true,
+"V2": true,
+"V3": false,
+"V4": true,
+"V5": null,
+"V6": true,
+"gross": 0.2499802188706572,
+"cost": 0.0675528987023279,
+"n_long": 74,
+"n_short": 78,
+"gross_long": 0.330413930986427,
+"gross_short": 0.17367131250441414,
+"balanced": 0.2520426217454206,
+"stressed": 0.14865087081716535,
+"state": "fuera",
+"conditions": {
+"1_puerta": false,
+"2_bruto_equilibrado": true,
+"3_costos_x1_5": true,
+"4_sustitutas": true,
+"5_banco": true
+},
+"bank_gross": 0.11265185859626121,
+"bank_n": 222,
+"null": {
+"surrogates": 20,
+"mean": 0.049332589422665815,
+"sd": 0.08055590771169008,
+"p95": 0.16516568292834813
+}
+},
+{
+"reading": "oficial",
+"id": "flujo_revierte@1h@v1391",
+"sid": "flujo_revierte@1h",
+"verdict": "RECHAZADA",
+"reason": "claramente negativa: R medio -0.273 + 1·EE 0.080 < 0 → ciclo de mejora",
+"n": 205,
+"mean_r": -0.2730241936423883,
+"ci_lo": -0.4282331732092439,
+"ci_hi": -0.11291565701927342,
+"p_raw": 0.9435807496804495,
+"p_holm": 1.0,
+"max_dd": 0.4387673917456213,
+"windows": 23,
+"windows_pos": 6,
+"n_live": 0,
+"regimes": {
+"range": 173,
+"trend_up": 7,
+"volatile": 22,
+"trend_down": 3
+},
+"V1": true,
+"V2": false,
+"V3": false,
+"V4": false,
+"V5": false,
+"V6": true,
+"gross": -0.09275339617698809,
+"cost": 0.18027079746540017,
+"n_long": 96,
+"n_short": 109,
+"gross_long": 0.01138451332996874,
+"gross_short": -0.18447118803632628,
+"balanced": -0.08654333735317878,
+"stressed": -0.3631595923750884,
+"state": "fuera",
+"conditions": {
+"1_puerta": false,
+"2_bruto_equilibrado": false,
+"3_costos_x1_5": false,
+"4_sustitutas": false,
+"5_banco": false
+},
+"bank_gross": -0.02951763192678702,
+"bank_n": 247,
+"null": {
+"surrogates": 20,
+"mean": 0.06630941504523655,
+"sd": 0.07310281542181883,
+"p95": 0.14858580234428934
+}
+},
+{
+"reading": "oficial",
+"id": "flujo_revierte@4h@v1391",
+"sid": "flujo_revierte@4h",
+"verdict": "RECHAZADA",
+"reason": "claramente negativa: R medio -0.221 + 1·EE 0.151 < 0 → ciclo de mejora",
+"n": 60,
+"mean_r": -0.22063445035051016,
+"ci_lo": -0.5051455728929977,
+"ci_hi": 0.08459428605641034,
+"p_raw": 0.8359442347135936,
+"p_holm": 1.0,
+"max_dd": 0.14794251797550761,
+"windows": 1,
+"windows_pos": 0,
+"n_live": 0,
+"regimes": {
+"range": 52,
+"volatile": 6,
+"trend_down": 2
+},
+"V1": false,
+"V2": false,
+"V3": false,
+"V4": true,
+"V5": null,
+"V6": true,
+"gross": -0.1201879893635301,
+"cost": 0.10044646098697999,
+"n_long": 29,
+"n_short": 31,
+"gross_long": -0.20793723845587608,
+"gross_short": -0.03809998214810975,
+"balanced": -0.12301861030199292,
+"stressed": -0.2708576808440002,
+"state": "fuera",
+"conditions": {
+"1_puerta": false,
+"2_bruto_equilibrado": false,
+"3_costos_x1_5": false,
+"4_sustitutas": false,
+"5_banco": false
+},
+"bank_gross": -0.37471162231021515,
+"bank_n": 72,
+"null": {
+"surrogates": 20,
+"mean": 0.024447894917618878,
+"sd": 0.14265448712342715,
+"p95": 0.2672281909855676
+}
+},
+{
+"reading": "oficial",
+"id": "cascada_revierte@1h@v1391",
+"sid": "cascada_revierte@1h",
+"verdict": "RECHAZADA",
+"reason": "claramente negativa: R medio -0.103 + 1·EE 0.055 < 0 → ciclo de mejora",
+"n": 451,
+"mean_r": -0.10301316446181454,
+"ci_lo": -0.21117723055162807,
+"ci_hi": 0.006545996302142457,
+"p_raw": 0.3074224904134836,
+"p_holm": 1.0,
+"max_dd": 0.4146897513210731,
+"windows": 31,
+"windows_pos": 7,
+"n_live": 0,
+"regimes": {
+"volatile": 154,
+"range": 271,
+"trend_up": 15,
+"trend_down": 11
+},
+"V1": true,
+"V2": false,
+"V3": false,
+"V4": false,
+"V5": false,
+"V6": true,
+"gross": 0.011709781481970726,
+"cost": 0.11472294594378522,
+"n_long": 214,
+"n_short": 237,
+"gross_long": -0.04222066076648683,
+"gross_short": 0.06040646773163282,
+"balanced": 0.009092903482572995,
+"stressed": -0.1603746374337071,
+"state": "fuera",
+"conditions": {
+"1_puerta": false,
+"2_bruto_equilibrado": false,
+"3_costos_x1_5": false,
+"4_sustitutas": false,
+"5_banco": false
+},
+"bank_gross": -0.018718565507399334,
+"bank_n": 651,
+"null": {
+"surrogates": 20,
+"mean": 0.023527765017760667,
+"sd": 0.044174507551599136,
+"p95": 0.08831967682003562
+}
+},
+{
+"reading": "oficial",
+"id": "cascada_revierte@4h@v1391",
+"sid": "cascada_revierte@4h",
+"verdict": "RECHAZADA",
+"reason": "falla V2 (Expectativa neta), V3 (Contra el azar), V5 (Estabilidad) → ciclo de mejora",
+"n": 266,
+"mean_r": -0.009821372423826639,
+"ci_lo": -0.1373643277183448,
+"ci_hi": 0.11861012683478452,
+"p_raw": 0.10534764127106805,
+"p_holm": 1.0,
+"max_dd": 0.14530250091587826,
+"windows": 27,
+"windows_pos": 14,
+"n_live": 0,
+"regimes": {
+"range": 188,
+"volatile": 53,
+"trend_up": 18,
+"trend_down": 7
+},
+"V1": true,
+"V2": false,
+"V3": false,
+"V4": true,
+"V5": false,
+"V6": true,
+"gross": 0.05886808765732213,
+"cost": 0.06868946008114876,
+"n_long": 121,
+"n_short": 145,
+"gross_long": -0.01530862922127144,
+"gross_short": 0.12076727898359674,
+"balanced": 0.05272932488116265,
+"stressed": -0.04416610246440102,
+"state": "fuera",
+"conditions": {
+"1_puerta": false,
+"2_bruto_equilibrado": false,
+"3_costos_x1_5": false,
+"4_sustitutas": false,
+"5_banco": true
+},
+"bank_gross": 0.03746656253117819,
+"bank_n": 390,
+"null": {
+"surrogates": 20,
+"mean": 0.03275594254312283,
+"sd": 0.07869556779234751,
+"p95": 0.13091582932149157
+}
+},
+{
+"reading": "oficial",
+"id": "momento_1d@1d@v1391",
+"sid": "momento_1d@1d",
+"verdict": "RECHAZADA",
+"reason": "falla V2 (Expectativa neta), V3 (Contra el azar), V5 (Estabilidad) → ciclo de mejora",
+"n": 121,
+"mean_r": 0.048389502526702724,
+"ci_lo": -0.14908703187481653,
+"ci_hi": 0.24949216560682586,
+"p_raw": 0.21646205523022502,
+"p_holm": 1.0,
+"max_dd": 0.08840482627062762,
+"windows": 4,
+"windows_pos": 0,
+"n_live": 0,
+"regimes": {
+"sin dato": 9,
+"range": 78,
+"volatile": 14,
+"trend_up": 20
+},
+"V1": true,
+"V2": false,
+"V3": false,
+"V4": true,
+"V5": false,
+"V6": true,
+"gross": 0.11485029138696645,
+"cost": 0.0664607888602637,
+"n_long": 73,
+"n_short": 48,
+"gross_long": 0.21822234997075207,
+"gross_short": -0.04236138104254086,
+"balanced": 0.0879304844641056,
+"stressed": 0.015159108096570879,
+"state": "fuera",
+"conditions": {
+"1_puerta": false,
+"2_bruto_equilibrado": true,
+"3_costos_x1_5": true,
+"4_sustitutas": false,
+"5_banco": true
+},
+"bank_gross": 0.044742854260842006,
+"bank_n": 151,
+"null": {
+"surrogates": 20,
+"mean": -0.02078168974640146,
+"sd": 0.1066415003066729,
+"p95": 0.130163685323576
+}
+}
+],
+"recommendation": {
+"code": "P1",
+"follow": [],
+"watch": [],
+"states": {
+"funding_contra@1h@v1391": "fuera",
+"funding_contra@4h@v1391": "fuera",
+"flujo_sigue@1h@v1391": "fuera",
+"flujo_sigue@4h@v1391": "fuera",
+"flujo_revierte@1h@v1391": "fuera",
+"flujo_revierte@4h@v1391": "fuera",
+"cascada_revierte@1h@v1391": "fuera",
+"cascada_revierte@4h@v1391": "fuera",
+"momento_1d@1d@v1391": "fuera"
+},
+"text": "Parar la búsqueda (P1): ninguna clave sigue ni queda en observación, y no hay segunda ronda."
+},
+"baseline": {
+"indicadores": {
+"1h": {
+"strategies": 8,
+"n": 6780,
+"gross_r": 0.002242580288307647
+},
+"4h": {
+"strategies": 8,
+"n": 1738,
+"gross_r": 0.0440886608021894
+}
+},
+"base": {
+"1h": {
+"strategies": 2,
+"n": 3913,
+"gross_r": 0.030379785348265936
+},
+"4h": {
+"strategies": 2,
+"n": 962,
+"gross_r": 0.05869212177021688
+}
+},
+"control": {
+"1h": {
+"strategies": 1,
+"n": 2073,
+"gross_r": -0.02032307861980135
+},
+"4h": {
+"strategies": 1,
+"n": 507,
+"gross_r": 0.052837459607828555
+}
+}
+},
+"meta": {
+"data": "backups/t139_banco",
+"symbol": "BTCUSDT",
+"stage": "limpia",
+"commit": "0d04ab3",
+"prereg": "prereg_t139_v1",
+"prereg_sha256": "f24f72bfc3d8cc928b7884f31550e74e9f4e3e5cf04bd27df2dbf29436510d16",
+"prereg_commit": "3d396f7",
+"criteria": "validation_v1",
+"criteria_sha256": "0a5b19962ded0d12dfdbccac0359f91c1bebf211ed891f7817c96667e01c30a8",
+"asof": "2026-11-06T03:30+00:00",
+"family": 841,
+"null_reps": 33640,
+"code": "cf87ca70cb68800b29e9ab6557a3e059a1c52a58a63e1226b27245e395e24a89",
+"seconds": 764.1,
+"command": "python scripts/t139_entradas.py --data backups/t139_banco --stage limpia",
+"repeat_reason": null
+},
+"coverage": {
+"from": "2020-01-01T00:00:00Z",
+"to": "2023-01-01T00:00:00Z",
+"min": 0.99,
+"series": {
+"1m": {
+"rows": 1578240,
+"expected": 1578240,
+"coverage": 1.0,
+"ok": true
+},
+"15m": {
+"rows": 105216,
+"expected": 105216,
+"coverage": 1.0,
+"ok": true
+},
+"1h": {
+"rows": 26304,
+"expected": 26304,
+"coverage": 1.0,
+"ok": true
+},
+"4h": {
+"rows": 6576,
+"expected": 6576,
+"coverage": 1.0,
+"ok": true
+},
+"funding": {
+"rows": 3288,
+"expected": 3288,
+"coverage": 1.0,
+"ok": true
+}
+},
+"taker": {
+"1h": {
+"rows": 26304,
+"with_data": 26304,
+"coverage": 1.0,
+"ok": true
+},
+"4h": {
+"rows": 6576,
+"with_data": 6576,
+"coverage": 1.0,
+"ok": true
+}
+},
+"first_minute": "2019-09-08T17:57:00Z",
+"ok": true,
+"flow_ok": true,
+"verdict": "cumple."
+}
+}

@@ -664,3 +664,14 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** las cuatro ◆ de la ficha: abrir o parar ya, lista de hipótesis, parada vinculante, Holm completo.
 - **En curso:** T31, T45, T62, T104, T78, T116, T117, T127, T128, sin cambios aquí.
 - **Siguiente paso:** responder las ◆. Si se abre, el primer commit es `prereg_t139_v1.json`, antes de descargar nada.
+
+## 2026-11-06 05:40 UTC · juanpablo-cpu · T139: la lectura limpia da P1
+- **Hecho:** el usuario respondió «lo recomendado» a las cuatro ◆. Pre-registro `3d396f7` antes de descargar; reglas y pruebas `8a599e7`; revisión de código `b56993e`; descarga de 2019-09-08 → hoy a `backups/t139_banco` por la cola; cobertura, regresión y banco con los intentos confirmados en `0d04ab3`; lectura limpia una vez, 770 s.
+- **Resultado:** P1, ninguna clave sigue, y las 9 salen RECHAZADA. `flujo_sigue@4h` es la única cerca (+0,182 R netos, IC [+0,0002, +0,366], n = 152) y solo falla V3 con Holm (p 0,0016). Con una familia de 9 sí seguiría: consta en la nota, §2. No se reabre: se decidió antes de calcular. Se debilita en el banco (+0,018 R) y no podría validarse antes de la fecha límite.
+- **Corregido:** la primera ficha leía el p95 de +0,096 R del control de T137 como si fuera con n ≈ 1 800; son 300 ideas por serie. Corregido antes del pre-registro.
+- **Archivos:** `v2/eim/validation/hypotheses/`, `v2/eim/validation/{attempts.py,attempts_t139.json,__main__.py}`, `v2/eim/validation/prereg/prereg_t139_v1.json`, `v2/eim/api/main.py`, `v2/eim/data/timeframes.py` (1 d solo de almacén), `v2/scripts/t139_entradas.py`, `v2/tests/validation/{t139_market,test_t139_*}.py`, `v2/reports/t139_*`, `PLAN/notas/T139_entradas.md` y el plan.
+- **Pruebas:** `ruff check eim tests` limpio y `tests/validation` en verde, a prioridad `batch`. **Gate completo sin correr** para no arriesgar la racha de T78. Las horas 03 y 04 UTC, con mis trabajos, salieron completas; la 05 sin auditar al escribir esto. Otra sesión corrió `gate-t135` a las 05:00 UTC, no es de aquí.
+- **Sin desplegar:** la API sigue con el código anterior. Los 9 intentos entran en el registro al reiniciarla.
+- **Abierto:** ◆ ¿se cierra la búsqueda con P1? Gate completo. Etapa en vivo sin implementar, porque ninguna clave sigue.
+- **En curso:** T31, T45, T62, T104, T78, T116, T117, T127, T128, T139.
+- **Siguiente paso:** la respuesta del usuario; después, el gate cuando no haya racha en juego, y T139 a ☑.
