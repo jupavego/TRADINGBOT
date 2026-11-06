@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-05T17:45:54",
+ "generated": "2026-11-05T19:14:20",
  "tasks": [
   {
    "id": "T01",
@@ -1736,6 +1736,19 @@ window.EIM_STATUS = {
    "effort": "alto",
    "phase": 23,
    "goal": "Comprobar si alguna estrategia deja de perder cuando entra con el stop más lejos y solo si el costo en R es bajo. Las mediciones de la fase 22 dicen que el problema está en la entrada y no en la salida, y lo único con señal fue geométrico: `M8 q=0.95` y `S1 d_min=3 atr14` (T134) apartan el SL inicial, y el tope de costo de 0,08 R (T136) es el mismo hallazgo visto desde el costo, porque un costo bajo en R equivale a un stop lejano. Hasta ahora se midió en el banco de salidas; aquí se puntúa como lo que es, versiones de estrategia, con la puerta de T49. «Ninguna validada» es un resultado válido."
+  },
+  {
+   "id": "T138",
+   "title": "Cobertura de mark sin dependencia de la fase, y el reloj del equipo",
+   "deps": [
+    "T78",
+    "T126"
+   ],
+   "state": "done",
+   "notes": "Hecha (2026-11-06). Nota `PLAN/notas/T138_cobertura_mark.md`. Las horas 09–21 UTC del 2026-11-05 tenían 46 800 mensajes y 0 eventos perdidos, pero daban 5 308 segundos vacíos y 5 308 dobles porque las llegadas caían sobre el límite del segundo; el reloj va ~835 ms adelantado desde el arranque de las 08:11 UTC y Windows Time no corrige menos de 1 s. **◆ resuelta:** `qc.cadence_coverage` decide en `mark` (`QC_VERSION` 2) y `hft_ops --requalify` recalificó desde 2026-11-05T09; solo cambiaron las 14 horas falsas (10–23). Hasta reiniciar el vigilante hay que recalificar antes de leer la racha. Racha 15 h; T78 como pronto al cerrar 2026-11-08T08 UTC. Gate verde por la cola: 2 875 pasadas, 8 omitidas, 0 fallos. Reloj sin decidir: BACKLOG T138 (3).",
+   "effort": "bajo",
+   "phase": 21,
+   "goal": "Que la racha de T78 no se rompa por una forma de contar. Un flujo de 1 Hz contado por segundo de llegada vacía unos segundos y duplica otros cuando su fase cae sobre el límite del segundo, y `qc.py` da por incompletas horas en las que no falta ningún mensaje. Pasó el 2026-11-05 desde el arranque de las 08:11 UTC, que dejó el reloj del equipo unos 800 ms adelantado."
   }
  ]
 };

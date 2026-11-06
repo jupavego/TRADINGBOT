@@ -9,7 +9,9 @@ REST. Después cruza cada hueco que encuentra con los tramos que el recolector M
 es un «hueco no detectado» (debe ser 0). Los tramos con hueco se marcan, no se arreglan.
 
 Una hora es **completa** si ≥ 99 % de sus segundos tienen libro utilizable (diffs recibidos y fuera
-de un tramo marcado), `bookTicker` y `markPrice` cubren ≥ 99 % y no hay huecos sin detectar.
+de un tramo marcado), `bookTicker` y `markPrice` cubren ≥ 99 % y no hay huecos sin detectar. La
+cobertura de `markPrice` (1 Hz) se mide por su cadencia (`coverage_cadence`, T138), no por segundo
+de llegada; `coverage` se sigue informando igual en todos los flujos, pero en `mark` ya no decide.
 """
 
 from __future__ import annotations
@@ -26,9 +28,11 @@ from eim.data.collectors.hft_read import hour_label, read_hour, tail_row
 from eim.data.collectors.hft_schema import HOUR_NS, KINDS
 from eim.data.collectors.hft_writer import hour_dir
 
-QC_VERSION = 1
+QC_VERSION = 2                    # 2: `mark` se juzga por su cadencia (T138)
 COVERAGE_MIN = 0.99
 TOL_NS = 1_000_000_000            # holgura al casar un hueco con una marca del recolector
+# flujos de cadencia fija: (periodo nominal, intervalo entre llegadas a partir del cual hay hueco)
+CADENCE_NS = {"mark": (1_000_000_000, 1_500_000_000)}
 CONN = {"depth": "depth", "bbo": "bbo", "trades": "market", "mark": "market", "liq": "market"}
 BOOK_CAUSES = ("secuencia", "sin_libro", "silencio", "cola_llena", "desconexion")
 ID_COL = {"depth": "last_id", "bbo": "upd_id", "trades": "agg_id"}
@@ -48,6 +52,23 @@ def _per_second(recv: np.ndarray, hour: int) -> np.ndarray:
     return np.bincount(sec[(sec >= 0) & (sec < 3600)], minlength=3600)
 
 
+def cadence_coverage(recv: np.ndarray, hour: int, period_ns: int, gap_ns: int) -> float:
+    """Cobertura de un flujo de cadencia fija, sin depender de la fase de sus llegadas (T138).
+
+    Contado por segundo de reloj, un flujo de 1 Hz cuyas llegadas caen sobre el límite del segundo
+    vacía unos segundos y duplica otros con solo unos ms de vaivén, sin que falte nada. Aquí se mide
+    el tiempo sin datos: cada intervalo entre llegadas mayor que `gap_ns` (también contra los bordes
+    de la hora) resta lo que excede del periodo. El tope por mensajes conserva lo que el conteo
+    vigilaba además: un flujo más lento que su periodo, pero sin ningún intervalo largo."""
+    h0 = hour * HOUR_NS
+    t = np.sort(recv[(recv >= h0) & (recv < h0 + HOUR_NS)])
+    if not len(t):
+        return 0.0
+    d = np.diff(np.concatenate([[h0], t, [h0 + HOUR_NS]]))
+    lost = int((d[d > gap_ns] - period_ns).sum())
+    return round(max(min(1 - lost / HOUR_NS, len(t) * period_ns / HOUR_NS), 0.0), 4)
+
+
 def _same_run(df: pd.DataFrame) -> np.ndarray:
     run = df["run"].to_numpy(np.int64)
     return run[1:] == run[:-1]
@@ -55,11 +76,14 @@ def _same_run(df: pd.DataFrame) -> np.ndarray:
 
 def stream_stats(df: pd.DataFrame, kind: str, hour: int) -> dict:
     if df.empty:
-        return {"msgs": 0, "coverage": 0.0, "reorders": 0}
+        cadence = {"coverage_cadence": 0.0} if kind in CADENCE_NS else {}
+        return {"msgs": 0, "coverage": 0.0, **cadence, "reorders": 0}
     recv = df["recv_ns"].to_numpy(np.int64)
     cnt = _per_second(recv, hour)
     out = {"msgs": len(df), "rate_mean": round(len(df) / 3600, 2), "rate_max": int(cnt.max()),
            "coverage": round(float((cnt > 0).mean()), 4)}
+    if kind in CADENCE_NS:
+        out["coverage_cadence"] = cadence_coverage(recv, hour, *CADENCE_NS[kind])
     e = df["e_ms"].to_numpy(np.int64)
     ok = e > 0
     if ok.any():
@@ -142,6 +166,13 @@ def _unusable_seconds(gaps: pd.DataFrame, hour: int) -> np.ndarray:
     return mask
 
 
+def _complete(usable: float, undetected: int, streams: dict) -> bool:
+    """La regla de hora completa (ver la cabecera del módulo)."""
+    return bool(usable >= COVERAGE_MIN and not undetected
+                and streams["bbo"]["coverage"] >= COVERAGE_MIN
+                and streams["mark"]["coverage_cadence"] >= COVERAGE_MIN)
+
+
 def qc_hour(hour: int, frames: dict[str, pd.DataFrame], tails: dict[str, dict | None],
             gaps: pd.DataFrame, checks: pd.DataFrame, clock: pd.DataFrame, book: pd.DataFrame,
             disk_mb: dict[str, float] | None = None) -> dict:
@@ -162,11 +193,10 @@ def qc_hour(hour: int, frames: dict[str, pd.DataFrame], tails: dict[str, dict | 
     n_comp, n_ok = len(comp), int(comp["match"].sum()) if len(comp) else 0
     jumps = clock[clock["kind"] == "salto"] if not clock.empty else clock
     by_cause = gaps["cause"].value_counts().to_dict() if not gaps.empty else {}
-    complete = (usable >= COVERAGE_MIN and not missing
-                and all(streams[k]["coverage"] >= COVERAGE_MIN for k in ("bbo", "mark")))
     return {
         "version": QC_VERSION, "hour": hour_label(hour), "hour_index": hour,
-        "generated_at": int(time.time() * 1000), "complete": bool(complete),
+        "generated_at": int(time.time() * 1000),
+        "complete": _complete(usable, len(missing), streams),
         "book_usable": round(usable, 4), "streams": streams,
         "checks": {"total": len(checks), "comparable": n_comp, "matched": n_ok,
                    "match_rate": round(n_ok / n_comp, 4) if n_comp else None,
@@ -206,13 +236,16 @@ def run_hour(root: str | Path, symbol: str, hour: int, write: bool = True) -> di
                   {k: _dir_mb(hour_dir(root, k, symbol, hour)) for k in KINDS})
     rep["symbol"] = symbol
     if write:
-        p = qc_path(root, symbol, hour)
-        p.parent.mkdir(parents=True, exist_ok=True)
-        tmp = p.with_suffix(".tmp")
-        tmp.write_text(json.dumps(rep, ensure_ascii=False, indent=1, default=str),
-                       encoding="utf-8")
-        tmp.replace(p)
+        _save(root, symbol, hour, rep)
     return rep
+
+
+def _save(root: str | Path, symbol: str, hour: int, rep: dict) -> None:
+    p = qc_path(root, symbol, hour)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    tmp = p.with_suffix(".tmp")
+    tmp.write_text(json.dumps(rep, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+    tmp.replace(p)
 
 
 def load(root: str | Path, symbol: str, hour: int) -> dict | None:
@@ -220,4 +253,28 @@ def load(root: str | Path, symbol: str, hour: int) -> dict | None:
         return json.loads(qc_path(root, symbol, hour).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
+
+
+def requalify(root: str | Path, symbol: str, hour: int, write: bool = False) -> dict | None:
+    """Recalifica con la regla vigente una hora auditada por una versión anterior (T138).
+
+    Solo lee `mark`: el resto de la regla ya está en el JSON, así que no hay que traer `bbo` a
+    memoria. Conserva el veredicto original en `requalified`. None si ya está al día, si no tiene
+    JSON o si sus crudos de `mark` ya se podaron (entonces se queda como estaba)."""
+    rep = load(root, symbol, hour)
+    if rep is None or rep.get("version", 1) >= QC_VERSION:
+        return None
+    df = read_hour(root, symbol, "mark", hour, "recv_ns")
+    if df.empty:
+        return None
+    rep["streams"]["mark"]["coverage_cadence"] = cadence_coverage(
+        df["recv_ns"].to_numpy(np.int64), hour, *CADENCE_NS["mark"])
+    rep["requalified"] = {"from_version": rep.get("version", 1),
+                          "complete_before": bool(rep["complete"]),
+                          "at": int(time.time() * 1000)}
+    rep["complete"] = _complete(rep["book_usable"], rep["holes"]["undetected"], rep["streams"])
+    rep["version"] = QC_VERSION
+    if write:
+        _save(root, symbol, hour, rep)
+    return rep
 
