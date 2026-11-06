@@ -655,6 +655,27 @@ más reciente por fecha y su siguiente paso. Formato:
 - **En curso:** T31 (→ 2026-11-27), T45, T62, T104, T78, T116, T117, T127, T128, sin cambios aquí.
 - **Siguiente paso:** buscar entradas con bruto positivo, que es una tarea nueva todavía sin ficha.
 
+## 2026-11-06 01:05 UTC · juanpablo-cpu · T139: ficha de la búsqueda de entradas con R bruto positivo
+- **Hecho:** ficha `PLAN/T139.md`, con fila en `STATUS.md`, fase 23 en la hoja de ruta y en `00_MASTER.md` (no estaba) y una línea en `BACKLOG.md`. **Sin calcular nada sobre datos de mercado ni implementar estrategias:** las cifras nuevas son aritmética sobre lo publicado (`v2/reports/t137_entrada.csv`, costos de T137, criterios de `validation_v1`).
+- **Lo que fija:** cinco hipótesis (H1 funding, H2 y H3 flujo agresor, H4 cascada forzada, H5 momento en 1 d) con la salida de `control_aleatorio`. 9 claves, familia de 841, z ≈ 3,85. 2023 → hoy solo descarta; se puntúa antes de 2023, de un solo uso, y en vivo desde el pre-registro. Regla de lectura de cinco condiciones y parada P0–P3 con fecha límite de 6 meses.
+- **Hallazgos al calcular los mínimos:** V3 mide el bruto y V2 el neto, así que el costo manda sobre Holm desde n ≈ 160 en 1 h y n ≈ 560 en 4 h, y reducir la familia apenas ayudaría. 15 m no puede pasar V6 sea cual sea la entrada. La evidencia de 4 h son solo 114 días de contextos. V3 no controla la deriva. Que `taker_buy_v` esté en el banco de T131 y la historia anterior a 2023 **no se ha comprobado**: es el paso 4 de la ficha.
+- **Archivos:** `PLAN/{T139,STATUS,BACKLOG,BITACORA,ESTADO_PROYECTO,00_MASTER}.md`, `PLAN/roadmap.html`, `PLAN/status.js`. Sin cambios de código.
+- **Pruebas:** sin código nuevo. `ruff check eim tests` limpio y `test_build_roadmap` + `test_tasks_inventory` en verde (10 pruebas); **gate completo sin correr a propósito**, para no arriesgar la racha de T78 (como pronto hasta 2026-11-08T08 UTC) por un cambio solo de documentos. `continuity check` da CON AVISOS desde la carpeta principal; desde este worktree da NO SINCRONIZADO solo porque el worktree no tiene `v2/data`.
+- **Abierto:** las cuatro ◆ de la ficha: abrir o parar ya, lista de hipótesis, parada vinculante, Holm completo.
+- **En curso:** T31, T45, T62, T104, T78, T116, T117, T127, T128, sin cambios aquí.
+- **Siguiente paso:** responder las ◆. Si se abre, el primer commit es `prereg_t139_v1.json`, antes de descargar nada.
+
+## 2026-11-06 05:40 UTC · juanpablo-cpu · T139: la lectura limpia da P1
+- **Hecho:** el usuario respondió «lo recomendado» a las cuatro ◆. Pre-registro `3d396f7` antes de descargar; reglas y pruebas `8a599e7`; revisión de código `b56993e`; descarga de 2019-09-08 → hoy a `backups/t139_banco` por la cola; cobertura, regresión y banco con los intentos confirmados en `0d04ab3`; lectura limpia una vez, 770 s.
+- **Resultado:** P1, ninguna clave sigue, y las 9 salen RECHAZADA. `flujo_sigue@4h` es la única cerca (+0,182 R netos, IC [+0,0002, +0,366], n = 152) y solo falla V3 con Holm (p 0,0016). Con una familia de 9 sí seguiría: consta en la nota, §2. No se reabre: se decidió antes de calcular. Se debilita en el banco (+0,018 R) y no podría validarse antes de la fecha límite.
+- **Corregido:** la primera ficha leía el p95 de +0,096 R del control de T137 como si fuera con n ≈ 1 800; son 300 ideas por serie. Corregido antes del pre-registro.
+- **Archivos:** `v2/eim/validation/hypotheses/`, `v2/eim/validation/{attempts.py,attempts_t139.json,__main__.py}`, `v2/eim/validation/prereg/prereg_t139_v1.json`, `v2/eim/api/main.py`, `v2/eim/data/timeframes.py` (1 d solo de almacén), `v2/scripts/t139_entradas.py`, `v2/tests/validation/{t139_market,test_t139_*}.py`, `v2/reports/t139_*`, `PLAN/notas/T139_entradas.md` y el plan.
+- **Pruebas:** `ruff check eim tests` limpio y `tests/validation` en verde, a prioridad `batch`. **Gate completo sin correr** para no arriesgar la racha de T78. Las horas 03 y 04 UTC, con mis trabajos, salieron completas; la 05 sin auditar al escribir esto. Otra sesión corrió `gate-t135` a las 05:00 UTC, no es de aquí.
+- **Sin desplegar:** la API sigue con el código anterior. Los 9 intentos entran en el registro al reiniciarla.
+- **Abierto:** ◆ ¿se cierra la búsqueda con P1? Gate completo. Etapa en vivo sin implementar, porque ninguna clave sigue.
+- **En curso:** T31, T45, T62, T104, T78, T116, T117, T127, T128, T139.
+- **Siguiente paso:** la respuesta del usuario; después, el gate cuando no haya racha en juego, y T139 a ☑.
+
 ## 2026-11-06 05:30 UTC · juanpablo-cpu · T135 motor de la posición, construido y apagado
 - **Hecho:** el usuario pidió empezar T135 «mientras no interrumpa lo que se está llevando a cabo». Su condición era que T134 aprobara una salida, y no aprobó ninguna; T137 además cerró la línea de apartar el stop. Se construyó lo que no depende de elegir: `exit_mode="adaptativo"` con M2, M3, M5, M6 y M7, por la autoridad de T114, con el suelo del diario T110, fase, motivo, fuente y versión, panel en «Perfiles» y cálculo de potencia (E9). **Ningún perfil lo usa y el A/B no empezó:** no hay salida que comparar. Todo en un worktree propio, sin reiniciar nada ni tocar la base.
 - **Comprobado que no cambia nada de lo vigente:** contra `main`, con `PYTHONHASHSEED=0`, las huellas de los 4 perfiles, sus volcados y las 111 versiones de T49 son idénticos. La solución obvia lo habría roto: un `"adaptive": null` en el volcado cambia la versión de los cuatro perfiles.
@@ -688,3 +709,20 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** fusionar #214 y este trabajo. **Desplegar:** reiniciar vigilante y API (◆ permiso), porque hasta entonces el fallo puede repetirse. Leer el QC de la hora 15.
 - **En curso:** T135 (◐), T139 en su PR #212; T31, T45, T62, T104, T78, T116, T117, T127 y T128 sin cambios aquí.
 - **Siguiente paso:** el despliegue de T140 y después T142, que es lo que sí toca a los libros de T31.
+## 2026-11-06 14:15 UTC · juanpablo-cpu · T139 cerrada: la búsqueda de entradas se para
+- **Hecho:** el usuario delegó la ◆ de cierre («toma tu la mejor decision») y Claude decidió cerrar con P1, aplicando la regla de parada que el usuario hizo vinculante antes de calcular. Seguir `flujo_sigue@4h` habría sido una excepción justo ante un resultado cercano. T139 a ☑. Se trajo `origin/main` (T135) a mano, porque `sync_with_base_branch` falló con «Committer identity unknown»; conflictos solo en `BACKLOG`, `ESTADO_PROYECTO` y `status.js`.
+- **Archivos:** `PLAN/{T139,STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/notas/T139_entradas.md`, `PLAN/{roadmap.html,status.js}`.
+- **Pruebas:** `ruff` limpio y gate completo por la cola sobre el código fusionado: `gate-t139`, rc 0, **3 054 pasadas, 8 omitidas, 0 fallos**, 1 105 s, sin pausas. Contadas en el registro de puntos, porque `addopts = "-q"` más `-q` oculta el resumen (BACKLOG T139 (10)).
+- **Gate y racha de T78:** se corrió a sabiendas con la racha en 5 h, porque era lo más barato que iba a estar. **La hora 13 salió completa,** con libro 1,0 y sin huecos. La hora 05, la que dejó abierta la sesión de T135, también. Con estas van cuatro horas de gate sanas y una rota; el registro está en `ESTADO_PROYECTO` §3.
+- **T78:** con `mark` recalificado, la racha llegó a 21 h (2026-11-05T09 → 2026-11-06T05) y se rompió en las horas T06 y T07, sin ningún trabajo en la cola; causa sin investigar (BACKLOG). La actual va en 6 h desde T08 y T78 se cumple como pronto al cerrar la hora 2026-11-09T07 UTC. No se aplicó `--requalify --apply`.
+- **Abierto:** PR #212 sin fusionar. ◆ del usuario, posterior a esta: para qué sirve entonces el sistema. La API escucha desde las 13:51 UTC y `/v2/health` da 200 (comprobado a las 14:48 UTC); el diagnóstico y las fichas están en el PR #214 y el fallo puede repetirse hasta desplegar T140. **Corrección:** una versión anterior de esta línea decía que seguía caída a las 14:09 UTC, por una prueba mía contra `/api/health`, ruta que no existe y da 404. Los 9 intentos entran en el registro al primer reinicio de la API después de fusionar este PR: el de las 13:51 fue sin ellos.
+- **En curso:** T31, T45, T62, T78, T104, T116, T117, T127, T128, T135.
+- **Siguiente paso:** fusionar con permiso del usuario, y traer `main` a la carpeta principal, hoy en `b935cde`, sin reiniciar nada que no se decida aparte.
+
+## 2026-11-06 19:20 UTC · juanpablo-cpu · T140: trae main y queda lista para el PR
+- **Hecho:** se fusionaron #212 (T139) y #214 (las fichas), así que la rama trajo `main`. Solo chocaban `PLAN/{BACKLOG,STATUS,ESTADO_PROYECTO}.md` y `PLAN/status.js`: se conservó lo de ambos lados. Ningún archivo de código se solapa con T139.
+- **Captura T78:** la hora 15, la del gate de T140, salió completa (libro útil 99,5 %) pese a sus 2 huecos, y la 16 también (1,0). La racha cuenta desde la 15, iba en 3 h a las 19:11 UTC y T78 se cumple como pronto al cerrar 2026-11-09T14 UTC.
+- **Pruebas:** tras traer `main` se repitieron `ruff` y las pruebas de T140 y de continuidad, porque el resto no comparte código; la de los usos de `asyncio` que Selector no admite ya recorre también el código de T139. El gate completo es el de antes de traer `main` (`gate-t140`).
+- **Abierto:** fusionar este PR. **Desplegar:** reiniciar vigilante y API (◆ permiso); la API sigue con el proceso de las 13:51 UTC y el fallo aún puede repetirse.
+- **En curso:** T135 (◐); T31, T45, T62, T104, T78, T116, T117, T127 y T128 sin cambios aquí.
+- **Siguiente paso:** el despliegue de T140 y después T142.

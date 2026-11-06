@@ -1,0 +1,153 @@
+{
+ "version": "prereg_t139_v1",
+ "declared": "2026-11-06",
+ "description": "Pre-registro de T139: una sola ronda de hipótesis de entrada con información que el catálogo nunca midió, puntuadas con validation_v1. Fijado ANTES de descargar la historia anterior a 2023 y de todo cálculo sobre datos reales; cambiar cualquier valor es un archivo nuevo (prereg_t139_v2), nunca una edición, y sus claves nuevas solo puntúan con datos posteriores a su fecha.",
+ "mode": "SIMULADO",
+ "symbol": "BTCUSDT",
+ "symbol_why": "T122: foco solo en BTCUSDT.",
+ "seed": 139,
+ "criteria": "validation_v1",
+ "criteria_sha256": "0a5b19962ded0d12dfdbccac0359f91c1bebf211ed891f7817c96667e01c30a8",
+ "version_n": 1391,
+ "exit": {
+  "sl_atr": 1.5,
+  "tp_atr": 2.5,
+  "conf": 0.5,
+  "hold_bars": 24,
+  "kind": "market",
+  "be_timeframes": ["1h", "4h", "1d"],
+  "atr": "ATR de `paper.context`: media simple del rango verdadero de las últimas 14 velas del marco, incluida la vela de decisión.",
+  "detail": "La misma salida que control_aleatorio y consenso_sintesis: atr_draft(lado, ctx, 1.5, 2.5), con engine.simulate, la ExecParams vigente y una idea viva por estrategia@marco. El BE+ se extiende a 1 d porque ExecParams solo lo declara para 1 h y 4 h, y sin él H5 tendría otra salida."
+ },
+ "hypotheses": [
+  {
+   "id": "H1",
+   "strategy": "funding_contra",
+   "timeframes": ["1h", "4h"],
+   "rule": "Tras cada pago de funding: si la tasa está estrictamente por encima del p90 de las 270 tasas anteriores (90 días, sin incluirla), corto; si está estrictamente por debajo de su p10, largo. Se decide en la primera vela del marco cuyo cierre es ≥ la hora del pago, truncada al minuto.",
+   "params": {"window_prints": 270, "q_low": 0.10, "q_high": 0.90}
+  },
+  {
+   "id": "H2",
+   "strategy": "flujo_sigue",
+   "timeframes": ["1h", "4h"],
+   "rule": "Desequilibrio de la vela = 2·taker_buy_v/v − 1, sumado en las últimas 4 velas. z = (suma − media) / desviación de esa suma en las velas de los 90 días anteriores, sin incluir la actual. z ≥ +2, largo; z ≤ −2, corto. Sin dato en ≥ 90 % de la ventana, no hay señal.",
+   "params": {"sum_bars": 4, "window_days": 90, "z": 2.0, "min_coverage": 0.90}
+  },
+  {
+   "id": "H3",
+   "strategy": "flujo_revierte",
+   "timeframes": ["1h", "4h"],
+   "rule": "El mismo z que H2, y además |cierre − apertura| de la vela ≥ 1 ATR con el signo de z: se entra en contra. Es H2 condicionada a un movimiento grande y con el signo opuesto: las dos se declaran porque la literatura está dividida y elegir el signo exigiría mirar.",
+   "params": {"sum_bars": 4, "window_days": 90, "z": 2.0, "min_coverage": 0.90, "min_move_atr": 1.0}
+  },
+  {
+   "id": "H4",
+   "strategy": "cascada_revierte",
+   "timeframes": ["1h", "4h"],
+   "rule": "Aproximación al flujo forzado con velas de 1 min. Cada día UTC se fijan dos umbrales con los 90 días anteriores: p99,9 del rango relativo (h − l)/o y p99 del volumen. Una vela de 1 min que supere los dos (≥) marca cascada. Si en la vela del marco que cierra hay alguna, se entra en contra del sentido (cierre − apertura) de la última. Con menos del 90 % de la ventana, o si esa vela de 1 min abre y cierra igual, no hay señal.",
+   "params": {"q_range": 0.999, "q_volume": 0.99, "window_days": 90, "min_coverage": 0.90}
+  },
+  {
+   "id": "H5",
+   "strategy": "momento_1d",
+   "timeframes": ["1d"],
+   "rule": "Velas de 1 d agregadas de las de 4 h, solo con días UTC completos (6 velas). Se decide a diario con el signo de cierre / cierre de hace 28 velas − 1.",
+   "params": {"lookback_bars": 28}
+  }
+ ],
+ "attempts": {
+  "new": 9,
+  "prior_keys": 312,
+  "t137_keys": 520,
+  "family": 841,
+  "null_reps": 33640,
+  "rule": "Una clave por estrategia@marco: H1–H4 en 1 h y 4 h, H5 en 1 d. Cuentan desde este commit, salgan con operaciones o sin ellas, inertes, descartadas o sin llegar a correr. Las claves previas son las 312 del registro de la copia y las 520 de attempts_t137.json. No se descuenta ninguna."
+ },
+ "windows": {
+  "adjust": {
+   "from": "2023-01-01T00:00:00Z",
+   "to": "2026-11-06T05:00:00Z",
+   "note": "T27, T35 y T131–T137 miraron este tramo, incluida la reserva de T137: es ventana de ajuste de las 9 claves según la definición de T49."
+  }
+ },
+ "readings": [
+  {
+   "id": "oficial",
+   "verdict": true,
+   "note": "La regla de T49 sin cambios: cuenta lo que queda fuera de la ventana de ajuste, es decir, antes de 2023 y desde el alta. Es la lectura limpia.",
+   "ranges": []
+  },
+  {
+   "id": "banco",
+   "verdict": false,
+   "note": "Descriptiva y contaminada. Solo puede descartar, nunca aprobar. No suma intentos.",
+   "ranges": [["2023-01-01T00:00:00Z", "2026-11-06T05:00:00Z"]]
+  }
+ ],
+ "live_rule": {
+  "alta": "2026-11-06T05:00:00Z",
+  "deadline": "2027-05-06T05:00:00Z",
+  "rule": "Una operación cuenta como origin=vivo si su decisión es igual o posterior al alta. Las reglas son deterministas sobre velas y funding, así que se recalculan más tarde con la historia refrescada sin dejar de contar como tales."
+ },
+ "coverage": {
+  "from": "2020-01-01T00:00:00Z",
+  "to": "2023-01-01T00:00:00Z",
+  "min": 0.99,
+  "series": ["1m", "15m", "1h", "4h", "funding"],
+  "taker_timeframes": ["1h", "4h"],
+  "rule": "P0. Cobertura medida antes de ver ningún resultado. Sin el 99 % de taker_buy_v en 1 h y 4 h, H2 y H3 caen solas y siguen contando en Holm. Sin el 99 % de alguna serie de velas o de funding, se para: el resto de la ronda se apoya en ese tramo."
+ },
+ "stages": [
+  {"id": "cobertura", "rule": "Solo cobertura y recuentos: ningún R."},
+  {"id": "banco", "rule": "Regresión, control de anticipación y lectura del banco. Las reglas ya están congeladas: lo que se vea aquí solo autoriza a corregir defectos del código, declarándolos en el informe, y nunca a cambiar una regla, un parámetro o una clave."},
+  {"id": "limpia", "rule": "La lectura oficial, una vez. Repetirla exige declarar el motivo, que queda en el informe; solo vale un defecto del código, no un resultado que no guste."}
+ ],
+ "regression": {
+  "source": "reports/t137_entrada.json, control.base",
+  "strategy": "control_aleatorio@1h",
+  "from": "2024-01-11T10:00:00Z",
+  "n": 1810,
+  "gross_r": -0.009823,
+  "tolerance_r": 1e-6,
+  "asof": "2026-11-03T18:00:00Z",
+  "rule": "Con contextos mínimos {t, close, atr} en los instantes de paper_ctx y el camino recortado a la fecha de T137, control_aleatorio tiene que dar exactamente lo que T137 publicó. Si no, el camino de T139 no es el medido y nada de lo demás vale."
+ },
+ "control": {
+  "strategy": "control_aleatorio",
+  "timeframes": ["1h", "4h"],
+  "null": "retornos_reales_barajados",
+  "surrogates": 20,
+  "bars": 12000,
+  "block_minutes": 1,
+  "max_ideas": 3000,
+  "alpha": 0.05,
+  "null_quantile": 0.95,
+  "rule": "Como T134 y T137: se barajan los retornos reales de 1 min del tramo anterior a 2023 y se rehace el camino de 15 m. Las entradas al azar usan la geometría relativa de las ideas de cada clave y su mismo n, con tope de 3 000. Las 12 000 velas de 15 m (125 días) dan tiempo a cerrar a las 24 velas de H5. control_aleatorio no puede destacar sobre sus sustitutas: p ≥ alpha, una cola."
+ },
+ "baseline": {
+  "families": ["indicadores", "base", "control"],
+  "timeframes": ["1h", "4h"],
+  "rule": "Línea base de solo lectura antes de 2023, sin escribir p en el registro: si el catálogo que solo pide velas sale con bruto claramente positivo ahí, ese periodo era más fácil, y el informe lo dice."
+ },
+ "reading_rule": {
+  "min_side_trades": 20,
+  "cost_stress": 1.5,
+  "rule": "Una clave sigue a la fase en vivo si en la lectura oficial cumple las cinco: (1) V1, V2, V3 con Holm, V4 y V6, y V5 no falla; (2) bruto equilibrado (media simple del bruto de largos y de cortos, con ≥ 20 operaciones por lado) mayor que su costo medio; (3) R neto > 0 con los costos × 1,5; (4) bruto mayor que el p95 de sus sustitutas, con el control en verde; (5) bruto ≥ 0 en el banco. Una clave sin V1 pero con bruto equilibrado > costo queda en observación hasta la fecha límite. Seguir no es adoptar: nada entra en los perfiles."
+ },
+ "stop_rule": {
+  "binding": true,
+  "P0": "Sin cobertura: si falla el tramo limpio, parar.",
+  "P1": "Ninguna clave sigue ni queda en observación: parar. No hay segunda ronda.",
+  "P2": "Una clave que siguió es claramente negativa en vivo (R + 1·EE < 0 con n ≥ 20) o su bruto en vivo es < 0 con n ≥ 20: se retira. Sin claves vivas, parar.",
+  "P3": "En la fecha límite sin ninguna VALIDADA: parar.",
+  "means": "Parar es no abrir más tareas de búsqueda de entradas direccionales con estos datos. No prueba que no exista ventaja: prueba que no la hay por encima de lo detectable. La regla es vinculante por decisión del usuario (2026-11-06)."
+ },
+ "not_changed": "No cambian validation_v1, los perfiles, las salidas en vivo ni el catálogo. Estas versiones no generan ideas en vivo y no se escribe en data/: nada altera la corrida de T31.",
+ "notes": [
+  "Decisiones del usuario, 2026-11-06, «lo recomendado»: se abre la ronda, con H5 en 1 d, parada vinculante a 6 meses y Holm sobre toda la familia, sin validation_v2.",
+  "Antes de 2023 está limpio para el proyecto, no para el mundo: la trayectoria es conocida y parte de la literatura citada en la ficha cubre esos años. Por eso VALIDADA exige además el tramo en vivo.",
+  "El detalle estricto de H1 se fijó sin mirar datos: la tasa de funding suele quedarse en su valor base, y con ≥ los empates contarían como extremos.",
+  "La huella de cada versión cubre este pre-registro, el código de las reglas y la mecánica del marco. Corregir un defecto cambia la huella, no la clave."
+ ]
+}
