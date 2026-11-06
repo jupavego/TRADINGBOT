@@ -20,6 +20,7 @@ from pathlib import Path
 from eim.execution.service import CLOSED, LiveTrade
 from eim.forecast.calibration import evaluate_forecast, summarize
 from eim.operation.alerts import DIVERGENCE, Alert
+from eim.operation.distortions import overlapping
 from eim.risk.inputs import _week0
 from eim.risk.models import RiskDecision
 
@@ -167,6 +168,7 @@ def compose(*, t0: int, t1: int, mode: str, symbols: tuple[str, ...], trades: li
         "equity": equity_stats(equity), "backtest": base,
         "deviations": deviations(live, base, weeks), "calibration": calib,
         "incidents": inc, "risk": vetoes(decisions), "hft_qc": hft_qc or {},
+        "distortions": overlapping(t0, t1),
         "usage": usage or [],
         "acceptance": {"recon_unresolved": len(inc["recon_unresolved"]),
                        "weeks_operated": round(weeks, 2),

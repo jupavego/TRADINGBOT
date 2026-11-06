@@ -68,8 +68,19 @@ def render_md(rep: dict) -> str:
               f"{risk['n_decisions']} decisiones registradas, {risk['n_vetoed']} vetadas. "
               "Motivos más frecuentes: " +
               (", ".join(f"{r} ({n})" for r, n in risk["top_reasons"]) or "—") + "."]
-    return "\n".join(lines + _hft_lines(rep.get("hft_qc") or {})
+    return "\n".join(lines + _distortion_lines(rep.get("distortions") or [])
+                     + _hft_lines(rep.get("hft_qc") or {})
                      + _usage_lines(rep.get("usage") or [])) + "\n"
+
+
+def _distortion_lines(known: list[dict]) -> list[str]:
+    if not known:
+        return []
+    out = ["", "## Distorsiones conocidas de los libros", ""]
+    for d in known:
+        when = f"desde {_d(d['from'])}" + (f" hasta {_d(d['to'])}" if d["to"] else ", sin resolver")
+        out.append(f"- **{d['title']}**, {when}. {d['detail']} Evidencia: `{d['ref']}`.")
+    return out
 
 
 def _hft_lines(hft: dict) -> list[str]:

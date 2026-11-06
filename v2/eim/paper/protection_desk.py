@@ -67,15 +67,17 @@ class DeskProtection:
         self._journals[symbol] = j
         return j.guards
 
-    def _sync_protection(self, v) -> None:
-        """Pone al día el diario tras recalcular `v`; nunca tumba la vista."""
+    def _sync_protection(self, v, fine=None) -> None:
+        """Pone al día el diario tras recalcular `v` con las velas de 1 min `fine`; nunca tumba la
+        vista."""
         now = now_ms()
         j = self._journals.pop(v.symbol, None)
         res = None
         if j is not None:
             try:
                 res = run_pass(self.pstore, j, v.books, self.ep, now,
-                               startup=v.symbol not in self._prot_started, seen=self._prot_seen)
+                               startup=v.symbol not in self._prot_started, seen=self._prot_seen,
+                               fine=fine)
                 self._prot_started.add(v.symbol)
                 self.protection_error = ""
             except Exception as exc:  # noqa: BLE001
@@ -93,6 +95,7 @@ class DeskProtection:
         return {"verified": True, "error": "", "journal": "paper_protection",
                 "first_ms": res.first_ms, "written": len(res.rows),
                 "open": len(res.open_ids - set(res.held)), "held": dict(res.held),
+                "waiting_fine": sorted(res.waiting),
                 "n_inconsistent": len(res.held),
                 "inconsistent": [{"op_id": k, "profile": (split(k) or ("",))[0], "why": w}
                                  for k, w in sorted(res.held.items())],

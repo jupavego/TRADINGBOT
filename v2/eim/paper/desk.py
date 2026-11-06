@@ -195,7 +195,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         v.books ={p.id: run_profile(p, v.outcomes, learner, mmr, sim) for p in self.profiles}
         self._record_ledger(v)
         self._emit_decisions(v)
-        self._sync_protection(v)
+        self._sync_protection(v, fine)
         v.summary = self._payload(v, by_tf, infos, learner, path.end or None,
                                   pc[-1].c if pc else None, n_ideas=len(ideas))
         self._audit(v, v.summary)
