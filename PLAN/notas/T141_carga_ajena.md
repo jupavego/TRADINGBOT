@@ -9,7 +9,7 @@ Salvo que se diga otra cosa, las horas son UTC y la CPU es % del equipo entero: 
 1. **Quién.** Cuatro de los cinco bloqueos coinciden con scripts de `OPERACION/PROTOTIPO` lanzados desde sesiones de Claude, con 4 a 7 procesos en un equipo de 4 núcleos, en prioridad normal y fuera de la cola. El quinto, el reinicio de las 04:14, fue memoria acumulada de Claude, Chrome y WebView, sin un culpable único. **Ningún bloqueo tuvo un trabajo de la cola en marcha.**
 2. **Hallazgo que T126 no vio: todo el EIM, captura incluida, corre con prioridad de memoria 2 y de E/S baja.** Los programas del usuario tienen 5 y normal. T126 ajustó la clase de CPU y dejó esto como estaba. Explica por qué la API pierde casi toda su RAM mientras Chrome y Claude conservan la suya.
 3. **La CPU llena no ha dañado a la captura. La presión de memoria sí.** Con el equipo al 100 % de CPU y memoria de sobra, todas las horas salieron completas. Con presión de memoria, la captura bajó de 132 MB a 18–40 MB, su cola llegó a 5 662 mensajes y hubo 3 horas incompletas. La prioridad ABOVE_NORMAL de T126 hace su trabajo; lo que falta es protegerla en memoria.
-4. **Los 7 min de arranque son falta de CPU.** El arranque hace el mismo trabajo, 23–37 núcleo-segundos, pero lo recibe a menos del 9 % de un núcleo, frente a más del 100 % normal.
+4. **Los 7 min de arranque son falta de CPU.** El arranque hace el mismo trabajo, 23–37 núcleo-segundos, pero lo recibe a menos del 9 % de un núcleo, frente al 19–70 % de los arranques normales.
 5. **El aviso temprano ya está hecho.** Repasado sobre estos días, habría avisado de los 3 reinicios entre 11 y 45 min antes de los 900 s.
 6. **Mi recomendación:** empezar por una regla para el trabajo pesado (◆A), que no toca ninguna prioridad y evita 4 de los 5 bloqueos. Después, subir la prioridad de memoria de la captura (◆B). Subir la API solo después de eso: hacerlo antes dejaría a la captura como la primera en perder memoria.
 
@@ -62,15 +62,15 @@ Windows quita primero las páginas de prioridad baja. **Origen probable:** las t
 
 Mientras arranca, la API cuenta como hija del vigilante, así que su CPU se puede medir. Incluye los primeros 30 s tras arrancar.
 
-| Lanzado (UTC) | Duración | CPU recibida | Reparto | CPU equipo | Memoria compr. |
+| Lanzado (UTC) | Duración | CPU recibida | Reparto (sobre duración + 30 s) | CPU equipo | Memoria compr. |
 |---|---|---|---|---|---|
-| 11-02 23:13 | 17 s | 31 núcleo-s | 184 % de un núcleo | 58 % | 18 GB |
-| 11-06 13:51 | 19 s | 34 núcleo-s | 182 % | 65 % | 19 GB |
-| 11-03 16:08 | 22 s | 25 núcleo-s | 114 % | 68 % | 15 GB |
-| 11-05 04:14 | 47 s | 47 núcleo-s | 99 % | 67 % | 35 GB |
-| 11-05 08:13 | 72 s | 19 núcleo-s | 27 % | 78 % | 8 GB |
-| **11-06 01:41** | **428 s** | **37 núcleo-s** | **8,7 %** | **98 %** | 31 GB |
-| **11-05 07:12** | **489 s** | **23 núcleo-s** | **4,6 %** | **100 %** | 47 GB |
+| 11-02 23:13 | 17 s | 31 núcleo-s | 66 % de un núcleo | 58 % | 18 GB |
+| 11-06 13:51 | 19 s | 34 núcleo-s | 70 % | 65 % | 19 GB |
+| 11-03 16:08 | 22 s | 25 núcleo-s | 48 % | 68 % | 15 GB |
+| 11-05 04:14 | 47 s | 47 núcleo-s | 61 % | 67 % | 35 GB |
+| 11-05 08:13 | 72 s | 19 núcleo-s | 19 % | 78 % | 8 GB |
+| **11-06 01:41** | **428 s** | **37 núcleo-s** | **8,1 %** | **98 %** | 31 GB |
+| **11-05 07:12** | **489 s** | **23 núcleo-s** | **4,4 %** | **100 %** | 47 GB |
 
 (Falta el arranque del 11-03 15:57, de 71 s, sin datos de CPU.)
 
@@ -100,7 +100,7 @@ Lo vigila el registro de consumo, porque cuando hace falta avisar la API es la q
 |---|---|---|
 | Memoria comprometida ≥ 36 GB | Por encima, los 2 tramos vistos acabaron en bloqueo; con 32 GB ya aparecían tramos sin él | Es lo que daña a la captura |
 | RAM de la API ≤ 200 MB | Percentil 1 de estos días: 184 MB | Windows ya se la ha quitado |
-| CPU ≥ 95 % y API ≤ 0,3 % | Con 0,3 % avisa antes que con 0,1 %, sin más falsas alarmas | El único que ve el caso de las 01:41 |
+| CPU ≥ 95 % y API ≤ 0,3 % | Con 0,1 % solo vería 1 de los 5 bloqueos; con 0,3 %, 4 de 5, a cambio de 1 tramo sin ciclo lento | El único que ve el caso de las 01:41 |
 | Latido parado ≥ 300 s | Solo 5 pausas tan largas en estos días, todas bloqueos | Última red; no se pudo repasar, porque el latido no se guardaba |
 
 **Repasado con el código real sobre estos 4,6 días:**
@@ -112,7 +112,7 @@ Lo vigila el registro de consumo, porque cuando hace falta avisar la API es la q
 | Reinicio 11-06 01:41 | 01:24:40, antes de que el latido se parara | **967 s** |
 | Ciclos de más de 120 s | 8 de 10 | Los dos sin aviso duraron 131 y 146 s |
 
-Serían **9 avisos en 4,6 días (1,9 al día)**. Cuatro de los 11 tramos no tuvieron bloqueo cerca y uno más vino justo tras un reinicio; en los 5 la API bajó de 140 MB y la captura de 88 MB. Uno de ellos es el de T136 del 11-04. No los cuento como falsas alarmas, pero tampoco anunciaron un reinicio: si molestan, se suben los umbrales.
+Serían **11 avisos en 4,6 días (2,4 al día)**, uno por tramo. Cuatro de los 11 tramos no tuvieron bloqueo cerca y uno más vino justo tras un reinicio; en los 5 la API bajó de 140 MB y la captura de 88 MB. Uno de ellos es el de T136 del 11-04. No los cuento como falsas alarmas, pero tampoco anunciaron un reinicio: si molestan, se suben los umbrales.
 
 **Canales:** notificación de Windows, con el programa que más carga, y registro de operación y observatorio, solo con las causas. Las órdenes se quedan en `data/usage`, que no viaja en las copias (`continuity/inventory.py`).
 
@@ -156,7 +156,7 @@ python -m eim.operation.usage incidents --days 7
   ```
   No limita ni cierra ningún programa del usuario. Es una regla para lo que se lanza desde las sesiones.
 - **◆B y ◆C** se pueden aplicar **en marcha, sin reiniciar**, así que no cortan la racha. En un proceso de prueba, el cambio llegó a sus hilos y se revirtió sin problema, y hoy Windows da permiso para hacerlo sobre la captura y la API. Tras un apagado, los servicios volverían a 2 hasta llevarlo a `priority.apply_role`, que es un cambio de código aparte. **No se ha tocado ningún servicio.**
-- **◆D** es una línea en `priority.ROLES` más un reinicio de la API, y antes hay que confirmar qué hijos lanza la API, porque heredarían la clase normal.
+- **◆D** es añadir un nivel que dé NORMAL en `priority.WINDOWS_CLASS`, asignárselo a la API en `ROLES` y reiniciarla, y antes hay que confirmar qué hijos lanza la API, porque heredarían la clase normal.
 
 **Mi recomendación:**
 

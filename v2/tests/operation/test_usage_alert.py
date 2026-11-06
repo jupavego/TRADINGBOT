@@ -66,7 +66,7 @@ def test_a_single_clean_sample_does_not_close_the_episode_nor_two_bad_ones_open_
     assert len(got) == 1 and w.active
 
 
-def test_does_not_repeat_within_half_an_hour_and_does_repeat_after():
+def test_every_episode_warns_even_soon_after_a_resolved_one():
     got = []
     w = usage_alert.EarlyWarning([got.append])
     t = 0
@@ -83,10 +83,8 @@ def test_does_not_repeat_within_half_an_hour_and_does_repeat_after():
 
     episode(0)                                              # aviso y resuelta
     assert len(got) == 2
-    episode(0)                                              # a los pocos minutos: en silencio
-    assert len(got) == 2 and not w.active
-    episode(120)                                            # una hora después: otra vez
-    assert len(got) == 4
+    episode(0)                                              # a los pocos minutos: 5-nov 04:03
+    assert len(got) == 4 and not got[2].resolved and got[3].resolved and not w.active
 
 
 def test_the_culprit_goes_to_the_toast_but_not_to_what_travels():
@@ -100,6 +98,15 @@ def test_the_culprit_goes_to_the_toast_but_not_to_what_travels():
     assert "23_modelo" in shown[0].detail and "PROTOTIPO" in shown[0].detail
     assert "23_modelo" not in logged[0].detail and "PROTOTIPO" not in logged[0].detail
     assert "23_modelo" not in a.detail
+
+
+def test_culprit_follows_the_kind_of_pressure():
+    small = {"pid": 7, "name": "node.exe", "n": 1, "cpu": 6.0, "ram_mb": 300.0,
+             "commit_mb": 400.0, "cmd": "node vite.js", "cwd": None}
+    assert usage_alert.culprit(sample(commit=40_000, foreign=[small])).startswith("chrome.exe")
+    assert usage_alert.culprit(sample(foreign=[{**small, "cpu": 60.0}])).startswith("node vite.js")
+    big = {**small, "name": "chrome.exe", "commit_mb": 100.0, "cmd": "chrome.exe --x"}
+    assert usage_alert.culprit(sample(commit=40_000, foreign=[big])).startswith("chrome.exe --x")
 
 
 def test_culprit_falls_back_to_the_name_when_there_is_no_order():

@@ -37,6 +37,9 @@ def by_cpu(values):
     ("python get.py https://user:clave@host.tld/ruta?firma=abc&x=1 --y",
      "python get.py https://host.tld/ruta --y"),
     ("python run.py sk0123456789abcdef0123456789abcdef0123", "python run.py ***"),
+    ("python tool.py --token:abc123 --x 1", "python tool.py --token:*** --x 1"),
+    ("mysql -u yo -p hunter2 --x 1", "mysql -u yo -p *** --x 1"),
+    ("python auth_check.py --procesos 7", "python auth_check.py --procesos 7"),
 ])
 def test_clean_command_drops_paths_inline_code_and_secrets(raw, want):
     assert " ".join(clean_command(raw).split()) == " ".join(want.split())
@@ -98,6 +101,27 @@ def test_identifier_reads_each_process_once_and_forgets_the_dead():
     assert ident.identify({}, {}, cpu) == []                        # terminó: se olvida
     reborn = {1: proc(1, 900, born=T0 - 5)}                         # mismo PID, otro proceso
     assert ident.identify(reborn, {}, cpu)[0]["cmd"] and calls == [1, 1]
+
+
+def test_a_failed_read_is_retried_but_a_good_one_is_not():
+    answers = iter([None, "python tarde.py"])
+    calls = []
+
+    def command_line(pid):
+        calls.append(pid)
+        return next(answers)
+
+    ident = Identifier(SimpleNamespace(command_line=command_line, working_dir=lambda pid: None))
+    procs, cpu = {1: proc(1, 900)}, by_cpu({1: 50.0})
+    assert ident.identify(procs, {}, cpu)[0]["cmd"] is None
+    assert ident.identify(procs, {}, cpu)[0]["cmd"] == "python tarde.py"
+    assert ident.identify(procs, {}, cpu)[0]["cmd"] == "python tarde.py" and len(calls) == 2
+
+
+def test_python_under_node_is_its_own_tree():
+    procs = {1: proc(1, 900, "node.exe"), 2: proc(2, 1, born=T0 - 60), 3: proc(3, 2, born=T0 - 50)}
+    t = trees(procs, {}, by_cpu({2: 10.0, 3: 30.0}))
+    assert [(x["pid"], x["name"], x["n"]) for x in t] == [(2, "python.exe", 2)]
 
 
 def test_identifier_without_permission_leaves_it_unnamed_but_measured():

@@ -79,6 +79,12 @@ def test_cross_says_who_was_spending_and_what_happened_to_the_api():
     assert f["ram_max_mb"] == 2300.0 and f["cwd"] == "C:\\PROTOTIPO"
 
 
+def test_hard_faults_survive_an_api_restart_inside_the_window():
+    samples = [usage_sample(BASE + i * 30_000, 90.0, 500.0, faults=f)
+               for i, f in enumerate((1000, 1500, 20, 120))]
+    assert usage_incidents.cross(samples, BASE - 1, BASE + 100_000)["api"]["hard_faults"] == 600
+
+
 def test_cross_without_samples_says_so_and_a_short_stretch_looks_around():
     assert usage_incidents.cross([], BASE, BASE + 1) == {"samples": 0}
     near = [usage_sample(BASE + 30_000, 90.0, 800.0)]

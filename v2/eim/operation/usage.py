@@ -253,13 +253,15 @@ def main(argv: list[str] | None = None) -> int:
     i = sub.add_parser("incidents", help="ciclos lentos y reinicios, cruzados con el consumo")
     i.add_argument("--data-dir", default="data")
     i.add_argument("--days", type=int, default=7)
-    i.add_argument("--slow", type=float, default=120.0, help="segundos desde los que es lento")
+    i.add_argument("--slow", type=float, default=None,
+                   help="segundos desde los que es lento (por defecto, 120)")
     a = ap.parse_args(argv)
     if a.cmd == "run":
         return run(Path(a.data_dir), a.every, a.keep_days, a.once)
     from eim.operation import usage_incidents, usage_summary
 
-    out = (usage_incidents.recent(Path(a.data_dir), a.days, time.time(), a.slow)
+    out = (usage_incidents.recent(Path(a.data_dir), a.days, time.time(),
+                                  usage_incidents.SLOW_S if a.slow is None else a.slow)
            if a.cmd == "incidents" else
            usage_summary.recent(Path(a.data_dir), a.days, a.symbol, time.time()))
     print(json.dumps(out, ensure_ascii=False, indent=1))

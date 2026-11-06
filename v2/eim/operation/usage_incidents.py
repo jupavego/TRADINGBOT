@@ -128,7 +128,8 @@ def cross(samples: list[dict], t0: int, t1: int) -> dict:
         "api": {"ram_first_mb": api[0]["ram_mb"], "ram_min_mb": min(g["ram_mb"] for g in api),
                 "commit_mb": max(g["commit_mb"] for g in api),
                 "cpu_mean": _mean([g["cpu"] for g in api]), "prio": max(g["prio"] for g in api),
-                "hard_faults": max(0, faults[-1] - faults[0]) if len(faults) > 1 else None}
+                "hard_faults": sum(max(0, b - a) for a, b in zip(faults, faults[1:], strict=False))
+                               if len(faults) > 1 else None}
                if api else None,
         "capture": {"ram_min_mb": min(g["ram_mb"] for g in cap), "queue_max": max(queue)}
                    if cap else None,

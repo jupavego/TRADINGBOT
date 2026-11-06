@@ -30,8 +30,9 @@ CMD_MAX, CWD_MAX = 160, 80
 _FIRST = re.compile(r'^\s*(?:"([^"]+)"|(\S+))')
 _INLINE = re.compile(r"\s(-c|-e|--eval)\s.*$", re.S)   # código en línea: se queda fuera entero
 _SECRET = re.compile(
-    r"(?i)([\w-]*(?:token|secret|passw(?:or)?d|pwd|api[-_]?key|auth|credential|cookie|bearer)"
-    r"[\w-]*)(=|\s+)(\"[^\"]*\"|'[^']*'|\S+)")
+    r"(?i)([\w-]*(?:token|secret|pass(?:w(?:or)?d)?|pwd|api[-_]?key|auth|credential|cookie|bearer)"
+    r"[\w-]*)(=|:|\s+)(\"[^\"]*\"|'[^']*'|\S+)")
+_SHORT_PASSWORD = re.compile(r"(\s-p\s+)\S+")
 _URL = re.compile(r"(?i)\b([a-z][a-z0-9+.-]*://)(?:[^/\s@]+@)?([^/\s?#]+)([^\s?#]*)[^\s]*")
 _OPAQUE = re.compile(r"\b[A-Za-z0-9+_-]{32,}={0,2}")   # claves y fichas pegadas sin nombre
 
@@ -45,7 +46,7 @@ def clean_command(cmd: str | None, limit: int = CMD_MAX) -> str | None:
     if m:
         cmd = ntpath.basename(m.group(1) or m.group(2)) + cmd[m.end():]
     cmd = _INLINE.sub(r" \1 …", cmd)
-    cmd = _SECRET.sub(r"\1\2***", cmd)
+    cmd = _SHORT_PASSWORD.sub(r"\1***", _SECRET.sub(r"\1\2***", cmd))
     cmd = _URL.sub(r"\1\2\3", cmd)
     cmd = " ".join(_OPAQUE.sub("***", cmd).split())
     return cmd if len(cmd) <= limit else cmd[:limit - 1] + "…"
@@ -67,12 +68,13 @@ def _mb(b: float) -> float:
 def trees(procs: Mapping[int, Proc], roles: Mapping[int, str],
           cpu_of: Callable[[Proc], float]) -> list[dict]:
     """Árboles de procesos ajenos que pasan del umbral, de más a menos CPU. La raíz es el
-    antepasado ajeno e identificable más lejano (el que da nombre al conjunto)."""
+    antepasado ajeno más lejano con el mismo programa: un Python lanzado por node o por Blender
+    es otro árbol, para que su orden no quede oculta tras la de su padre."""
     def root(p: Proc) -> Proc:
         seen = {p.pid}
         while ((up := procs.get(p.ppid)) is not None and up.pid not in seen
                and up.pid not in roles and up.created <= p.created
-               and up.name.lower() in IDENTIFY):
+               and up.name.lower() == p.name.lower()):
             seen.add(up.pid)
             p = up
         return p
@@ -98,7 +100,8 @@ def trees(procs: Mapping[int, Proc], roles: Mapping[int, str],
 
 class Identifier:
     """Añade la orden y la carpeta a cada árbol; recuerda lo leído mientras el proceso viva, así
-    que el coste es abrir cada proceso una vez, y solo los que pasan del umbral."""
+    que el coste es abrir cada proceso una vez, y solo los que pasan del umbral (como mucho
+    `MAX_TREES` intentos por muestra si Windows niega el permiso)."""
 
     def __init__(self, backend=usage_win) -> None:
         self.backend = backend
@@ -116,9 +119,10 @@ class Identifier:
         out = trees(procs, roles, cpu_of)
         for t in out:
             key = (t["pid"], procs[t["pid"]].created)
-            if key not in self._seen:
-                self._seen[key] = self._read(t["pid"])
-            t.update(self._seen[key])
+            known = self._seen.get(key) or self._read(t["pid"])
+            t.update(known)
+            if known["cmd"] or known["cwd"]:   # lo que no se pudo leer se reintenta en la siguiente
+                self._seen[key] = known
         self._seen = {k: v for k, v in self._seen.items()
                       if (p := procs.get(k[0])) is not None and p.created == k[1]}
         return out

@@ -4,7 +4,7 @@ Lo vigila el registro de consumo, no la API: cuando hace falta avisar, ella es l
 Los umbrales salen de 4,6 días de `data/usage` (2 al 6-nov; `PLAN/notas/T141_carga_ajena.md`).
 Repasados con este mismo código, los 3 reinicios «latido detenido» se habrían avisado 11, 45 y
 16 min antes de llegar a los 900 s, igual que 8 de los 10 ciclos de más de 120 s (los otros dos
-duraron 131 y 146 s). Son 9 avisos en esos días (1,9 al día). Los 5 tramos que no acabaron en un
+duraron 131 y 146 s). Son 11 avisos en esos días (2,4 al día). Los 5 tramos que no acabaron en un
 ciclo lento también fueron presión real, con la API por debajo de 140 MB y la captura de 88 MB.
 
 Cada condición cubre un caso que las otras no ven:
@@ -16,7 +16,8 @@ Cada condición cubre un caso que las otras no ven:
 - latido de la API parado ≥ 300 s: última red, por si aparece un patrón que aquí no se vio. No
   pudo repasarse sobre el pasado, porque el latido no se guardaba.
 
-Entra con 3 muestras seguidas y sale con 10 limpias. No repite el aviso antes de `REPEAT_S`.
+Entra con 3 muestras seguidas y sale con 10 limpias. Cada tramo avisa: silenciar los cercanos
+dejaba sin aviso el de las 04:03 del 5-nov, justo antes de un reinicio y tras un «resuelta».
 El registro de operación y el observatorio viajan en las copias, así que solo reciben las causas;
 la orden del programa culpable va solo a la notificación y a `data/usage` (T141, entregable 1).
 """
@@ -35,7 +36,7 @@ COMMIT_MB = 36_000
 API_RAM_MB = 200
 FULL_CPU, API_STARVED_CPU = 95.0, 0.3
 BEAT_AGE_S, BEAT_STALE_S = 300.0, 3600.0   # con más de 1 h, el motor está parado, no ahogado
-CONFIRM, CLEAR, REPEAT_S = 3, 10, 1800
+CONFIRM, CLEAR = 3, 10
 KEY = "carga_ajena"
 TITLE = "La API se está quedando sin equipo"
 COMPONENT = "operation.usage"
@@ -61,27 +62,33 @@ def causes(rec: Mapping) -> list[str]:
 
 
 def culprit(rec: Mapping) -> str:
-    """Quién carga más: el programa ajeno identificado o, si no hay, el nombre del que más gasta."""
-    if foreign := rec.get("foreign"):
-        t = foreign[0]
-        where = f" en {t['cwd']}" if t.get("cwd") else ""
-        return (f"{t.get('cmd') or t['name']}{where} ({t['n']} procesos, {t['cpu']:.0f} % de CPU, "
-                f"{t['ram_mb']:.0f} MB)")
-    if others := rec.get("others"):
-        t = max(others, key=lambda o: (o["cpu"], o["commit_mb"]))
-        return f"{t['name']} ({t['n']} procesos, {t['cpu']:.0f} % de CPU, {t['commit_mb']:.0f} MB)"
-    return "sin identificar"
+    """Quién carga más, por memoria si el problema es la memoria y si no por CPU. Si ese programa
+    tiene un árbol identificado, se da su orden y su carpeta."""
+    api = rec.get("roles", {}).get("api")
+    memory = ((rec["machine"].get("commit_mb") or 0) >= COMMIT_MB
+              or (api is not None and api["ram_mb"] <= API_RAM_MB))
+    key = "commit_mb" if memory else "cpu"
+    foreign = rec.get("foreign") or []
+    rows = [*rec.get("others", ()), *foreign]
+    if not rows:
+        return "sin identificar"
+    top = max(rows, key=lambda o: o.get(key, 0))
+    same = [t for t in foreign if t["name"].lower() == top["name"].lower()]
+    t = max(same, key=lambda o: o.get(key, 0)) if same else top
+    where = f" en {t['cwd']}" if t.get("cwd") else ""
+    size = t.get("commit_mb", t.get("ram_mb", 0))
+    return (f"{t.get('cmd') or t['name']}{where} ({t['n']} procesos, {t['cpu']:.0f} % de CPU, "
+            f"{size:.0f} MB)")
 
 
 class EarlyWarning:
-    """Avisa al entrar en la condición y otra vez al salir, si avisó al entrar."""
+    """Avisa al entrar en la condición y otra vez al salir."""
 
     def __init__(self, sinks: Iterable[Sink] = (), toast: Sink | None = None) -> None:
         self.sinks, self.toast = list(sinks), toast
         self.errors: list[str] = []
         self.active = False
-        self._hits, self._clear, self._last_ms = 0, 0, None
-        self._warned = False
+        self._hits, self._clear = 0, 0
 
     def _send(self, sink: Sink, a: Alert) -> None:
         try:
@@ -104,20 +111,15 @@ class EarlyWarning:
         now = rec["t"]
         if not self.active and self._hits >= CONFIRM:
             self.active = True
-            if self._last_ms is not None and now - self._last_ms < REPEAT_S * 1000:
-                return None                    # sigue siendo el mismo tramo de presión
-            self._last_ms, self._warned = now, True
             a = Alert(now, SERVICE, WARN, TITLE, "; ".join(why), KEY)
             self._emit(a, rec)
             return a
         if self.active and self._clear >= CLEAR:
             self.active = False
-            if self._warned:
-                self._warned = False
-                a = Alert(now, SERVICE, INFO, f"Resuelta: {TITLE}",
-                          "el equipo vuelve a dejar sitio a la API", KEY, resolved=True)
-                self._emit(a, rec)
-                return a
+            a = Alert(now, SERVICE, INFO, f"Resuelta: {TITLE}",
+                      "el equipo vuelve a dejar sitio a la API", KEY, resolved=True)
+            self._emit(a, rec)
+            return a
         return None
 
 
