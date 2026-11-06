@@ -734,3 +734,14 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** fusionar este PR. **Desplegar:** reiniciar vigilante y API (◆ permiso); la API sigue con el proceso de las 13:51 UTC y el fallo aún puede repetirse.
 - **En curso:** T135 (◐); T31, T45, T62, T104, T78, T116, T117, T127 y T128 sin cambios aquí.
 - **Siguiente paso:** el despliegue de T140 y después T142.
+## 2026-11-06 20:25 UTC · juanpablo-cpu · T142: desplegada y las 5 reconciliadas, con una sexta congelada
+- **Hecho, con permiso del usuario («Sí, los tres»):** PR #217 fusionado (`b1a0a11`), carpeta principal al día, reinicio de la API (solo la hija de `uvicorn`, a las 20:04:33 UTC) y las 5 reconciliadas a las 20:07 UTC con `--decision recalculo`. Cerradas en el diario al precio previsto.
+- **Efecto real en el capital realizado:** Moderado +17,79, Agresivo −147,51, PPP −13,14 USDT. 18 entradas nuevas en el libro fijo, marcadas `retro`. Antes de reconciliar, las 390 operaciones eran iguales con el código viejo y el nuevo.
+- **No previsto:** al bajar el capital de Agresivo, su única operación abierta (`15m:1793981700000:agente_technical`) quedó con otra cantidad (0,125 frente a 0,122) y se congeló a las 20:08 UTC. La nota no lo había previsto. El permiso cubría las 5, así que no se ha tocado.
+- **Coordinación:** la sesión de T140 esperó a la reconciliación para reiniciar vigilante y API; se le avisó de que al arrancar debe salir 1 alerta, no 5.
+- **Archivos:** `v2/eim/operation/distortions.py`, `v2/tests/operation/test_distortions.py`, `PLAN/notas/T142_posiciones_fantasma.md`, `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`.
+- **Pruebas:** comparación de libros antes y después por la API. Gate por la cola sobre T140 + T142 juntas: ver el PR.
+- **Abierto:** permiso para reconciliar la sexta (◆); hasta entonces T142 queda ◐. Comprobar «sin alertas al arrancar» cuando no quede ninguna congelada.
+- **En curso:** T142 (◐), T141 en su PR #216; T31, T45, T62, T78, T104, T116, T117, T127, T128 y T135 sin cambios aquí.
+- **Siguiente paso:** decisión del usuario sobre la sexta.
+

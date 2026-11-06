@@ -44,6 +44,7 @@ def test_report_section_says_what_where_and_until_when():
 def test_t142_starts_when_the_first_operation_froze():
     (d,) = distortions.KNOWN
     assert report._d(d.t0) == "2026-11-04 00:32 UTC" and d.machine == "juanpablo-cpu"
+    assert report._d(d.t1) == "2026-11-06 20:08 UTC"
 
 
 def test_t142_reaches_the_report_of_its_week_and_not_the_previous_one(tmp_path, monkeypatch):
