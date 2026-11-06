@@ -1,0 +1,108 @@
+{
+"description": "Intentos de T139: cuentan en Holm aunque se descarten. Solo se añaden archivos; este no se edita.",
+"task": "T139",
+"prereg": "prereg_t139_v1",
+"prereg_sha256": "f24f72bfc3d8cc928b7884f31550e74e9f4e3e5cf04bd27df2dbf29436510d16",
+"origin": "T139",
+"created": "2026-11-06T05:00:00Z",
+"windows": {
+"2023-01-01T00:00:00Z|2026-11-06T05:00:00Z": {
+"from": "2023-01-01T00:00:00Z",
+"to": "2026-11-06T05:00:00Z",
+"symbol": null,
+"note": "T27, T35 y T131–T137 miraron este tramo, incluida la reserva de T137: es ventana de ajuste de las 9 claves según la definición de T49."
+}
+},
+"attempts": [
+{
+"sid": "cascada_revierte@1h",
+"n": 1391,
+"fingerprint": "2c1c0407e0a6",
+"parent": null,
+"variant": "cascada_revierte",
+"windows": [
+"2023-01-01T00:00:00Z|2026-11-06T05:00:00Z"
+]
+},
+{
+"sid": "cascada_revierte@4h",
+"n": 1391,
+"fingerprint": "d178d3374257",
+"parent": null,
+"variant": "cascada_revierte",
+"windows": [
+"2023-01-01T00:00:00Z|2026-11-06T05:00:00Z"
+]
+},
+{
+"sid": "flujo_revierte@1h",
+"n": 1391,
+"fingerprint": "85624042ae01",
+"parent": null,
+"variant": "flujo_revierte",
+"windows": [
+"2023-01-01T00:00:00Z|2026-11-06T05:00:00Z"
+]
+},
+{
+"sid": "flujo_revierte@4h",
+"n": 1391,
+"fingerprint": "323855f4431b",
+"parent": null,
+"variant": "flujo_revierte",
+"windows": [
+"2023-01-01T00:00:00Z|2026-11-06T05:00:00Z"
+]
+},
+{
+"sid": "flujo_sigue@1h",
+"n": 1391,
+"fingerprint": "f9c8a9a89af1",
+"parent": null,
+"variant": "flujo_sigue",
+"windows": [
+"2023-01-01T00:00:00Z|2026-11-06T05:00:00Z"
+]
+},
+{
+"sid": "flujo_sigue@4h",
+"n": 1391,
+"fingerprint": "5b85159e8a4b",
+"parent": null,
+"variant": "flujo_sigue",
+"windows": [
+"2023-01-01T00:00:00Z|2026-11-06T05:00:00Z"
+]
+},
+{
+"sid": "funding_contra@1h",
+"n": 1391,
+"fingerprint": "3a48cfe78da0",
+"parent": null,
+"variant": "funding_contra",
+"windows": [
+"2023-01-01T00:00:00Z|2026-11-06T05:00:00Z"
+]
+},
+{
+"sid": "funding_contra@4h",
+"n": 1391,
+"fingerprint": "64c0250ee291",
+"parent": null,
+"variant": "funding_contra",
+"windows": [
+"2023-01-01T00:00:00Z|2026-11-06T05:00:00Z"
+]
+},
+{
+"sid": "momento_1d@1d",
+"n": 1391,
+"fingerprint": "2b9f93a59b6d",
+"parent": null,
+"variant": "momento_1d",
+"windows": [
+"2023-01-01T00:00:00Z|2026-11-06T05:00:00Z"
+]
+}
+]
+}
