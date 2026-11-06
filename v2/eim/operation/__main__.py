@@ -21,9 +21,11 @@ from pathlib import Path
 from eim.continuity.datastate import has_history
 from eim.data.local_api import DEFAULT_API, post_local
 from eim.observability.emit import configure
+from eim.operation.event_loop import LOOP_SPEC
 from eim.operation.notify import JsonLog
+from eim.operation.port_watch import listening
 from eim.operation.priority import apply_role
-from eim.operation.watchdog import Watchdog, instance_lock
+from eim.operation.watchdog import Watchdog, instance_lock, spawn_with_tail
 
 EMPTY_DATA = """NO SE ARRANCA: {data} no tiene historial (ni reports, ni paper, ni leaders.duckdb).
 Arrancar aquí crearía bases VACÍAS que parecerían el estado actual del proyecto.
@@ -35,6 +37,12 @@ Arrancar aquí crearía bases VACÍAS que parecerían el estado actual del proye
 
 def _ms(day: str) -> int:
     return int(datetime.strptime(day, "%Y-%m-%d").replace(tzinfo=UTC).timestamp() * 1000)
+
+
+def api_cmd(port: int) -> list[str]:
+    """La API bajo el vigilante, con el bucle que no pierde el puerto (T140)."""
+    return [sys.executable, "-m", "uvicorn", "eim.api.main:app", "--host", "127.0.0.1",
+            "--port", str(port), "--loop", LOOP_SPEC]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -61,8 +69,6 @@ def main(argv: list[str] | None = None) -> int:
         env = {**os.environ, "EIM_OPERATE": "1", "EIM_EXECUTION": a.execution,
                "EIM_OPERATE_TF": a.tf, "EIM_OPERATE_POLL_S": str(a.poll),
                "EIM_DATA_DIR": a.data_dir}
-        cmd = [sys.executable, "-m", "uvicorn", "eim.api.main:app", "--host", "127.0.0.1",
-               "--port", str(a.port)]
         root = Path(a.data_dir) / "operation"
         configure(process="watchdog", spool_dir=Path(a.data_dir) / "obs" / "spool")
         apply_role("watchdog")   # T126: nivel de prioridad del proceso
@@ -75,7 +81,10 @@ def main(argv: list[str] | None = None) -> int:
                   file=sys.stderr)
             return 4
         try:
-            Watchdog(cmd, env, root / "heartbeat.json", JsonLog(root / "logs", echo=True)).run()
+            Watchdog(api_cmd(a.port), env, root / "heartbeat.json",
+                     JsonLog(root / "logs", echo=True),
+                     spawn=lambda c, e: spawn_with_tail(c, e, stamp_stdout=True),
+                     port_probe=lambda: listening(a.port)).run()
         finally:
             lock.close()
         return 0

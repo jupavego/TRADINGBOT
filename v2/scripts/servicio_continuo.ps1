@@ -82,6 +82,21 @@ function Ocupado([string]$cerrojo) {
   try { $f.Lock(0, 1); $f.Unlock(0, 1); return $false } catch { return $true } finally { $f.Close() }
 }
 
+# T140: Start-Process reescribe el registro que redirige, y así se perdió la evidencia de cuántas
+# veces y desde cuándo se había quedado la API sin puerto. Se aparta el anterior con la hora de su
+# última escritura y se guardan los $guardar más recientes. Nunca impide lanzar el servicio.
+function Conservar([string]$ruta, [int]$guardar = 10) {
+  try {
+    if (-not (Test-Path -LiteralPath $ruta) -or (Get-Item -LiteralPath $ruta).Length -eq 0) { return }
+    $dir = Split-Path -Parent $ruta
+    $base = [IO.Path]::GetFileNameWithoutExtension($ruta)
+    $sello = (Get-Item -LiteralPath $ruta).LastWriteTimeUtc.ToString("yyyyMMdd-HHmmss")
+    Move-Item -LiteralPath $ruta (Join-Path $dir "$base.$sello.log") -Force
+    Get-ChildItem -LiteralPath $dir -Filter "$base.*.log" | Sort-Object Name -Descending |
+      Select-Object -Skip $guardar | Remove-Item -Force
+  } catch { Write-Warning "no se pudo conservar $ruta : $_" }
+}
+
 # LLM local para el agente `context` (Ollama, solo en 127.0.0.1): se arranca si está instalado y no
 # corre ya; el agente lo usa en segundo plano (no bloquea el ciclo) y sin él dice «sin datos».
 $ollama = if ($env:EIM_OLLAMA_EXE) { $env:EIM_OLLAMA_EXE } else { "E:\Ollama\ollama.exe" }
@@ -120,6 +135,8 @@ if (Escuchando $Puerto) {
   $argv = @("-m", "eim.operation", "run", "--execution", "paper", "--port", "$Puerto",
             "--data-dir", "`"$DataDir`"")
   if ($DatosNuevos) { $argv += "--allow-empty-data" }
+  Conservar (Join-Path $logs "vigilante.out.log")
+  Conservar (Join-Path $logs "vigilante.err.log")
   Start-Process -FilePath $py -ArgumentList $argv -WorkingDirectory $v2 -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $logs "vigilante.out.log") `
     -RedirectStandardError (Join-Path $logs "vigilante.err.log")

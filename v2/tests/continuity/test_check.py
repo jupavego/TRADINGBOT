@@ -105,3 +105,49 @@ def test_tasks_and_unpublished_code_are_reported(tmp_path, clone):
     texts = [t for _, t in _levels(r, "tareas")]
     assert any("1 hechas · 1 en curso (T02) · 1 pendientes" in t for t in texts)
     assert any("solo en este equipo" in t for lvl, t in _levels(r, "código") if lvl == C.WARN)
+
+
+def _operating(d, ago_s=0.0):
+    """Latido de la operación: reciente, como con la API viva o sin puerto."""
+    hb = d / "operation" / "heartbeat.json"
+    hb.parent.mkdir(parents=True, exist_ok=True)
+    now = int((datetime.now(UTC).timestamp() - ago_s) * 1000)
+    hb.write_text(json.dumps({"last_heartbeat": now}), encoding="utf-8")
+
+
+def test_a_service_stopped_minutes_ago_is_not_an_api_without_port(tmp_path, clone):
+    """Su latido sigue dentro de los 15 min de `LIVE_S`, pero ya no late: es una parada normal."""
+    d, _ = backup(tmp_path)
+    _operating(d, ago_s=300)
+    r = C.run(clone / "v2", d, tmp_path / "src" / "backups", network=False,
+              api_probe=lambda: pytest.fail("no hay API que mirar"))
+    assert not any("escucha" in t for _, t in _levels(r, "procesos"))
+
+
+def test_api_without_port_is_reported_despite_the_fresh_heartbeat(tmp_path, clone):
+    """T140: el 2026-11-06 esta comprobación decía «servicios con latido reciente» y nada más."""
+    d, _ = backup(tmp_path)
+    _operating(d)
+    r = C.run(clone / "v2", d, tmp_path / "src" / "backups", network=False,
+              api_probe=lambda: False)
+    [finding] = [f for f in r.findings if f.area == "procesos" and "NO escucha" in f.text]
+    assert finding.level == C.WARN and "RUNBOOK" in finding.action
+    assert r.level == C.WARN and "NO escucha" in C.render(r)
+
+
+def test_api_listening_and_unknown_are_told_apart(tmp_path, clone):
+    d, _ = backup(tmp_path)
+    _operating(d)
+    bk = tmp_path / "src" / "backups"
+    ok = C.run(clone / "v2", d, bk, network=False, api_probe=lambda: True)
+    assert any(lvl == C.OK and "API escuchando" in t for lvl, t in _levels(ok, "procesos"))
+    unknown = C.run(clone / "v2", d, bk, network=False, api_probe=lambda: None)
+    assert any(lvl == C.WARN and "no se pudo comprobar" in t
+               for lvl, t in _levels(unknown, "procesos"))
+
+
+def test_port_is_not_looked_at_when_the_operation_is_not_running(tmp_path, clone):
+    d, _ = backup(tmp_path)
+    r = C.run(clone / "v2", d, tmp_path / "src" / "backups", network=False,
+              api_probe=lambda: pytest.fail("sin operación no hay puerto que mirar"))
+    assert not any("escucha" in t for _, t in _levels(r, "procesos"))

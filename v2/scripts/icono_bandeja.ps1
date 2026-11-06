@@ -246,19 +246,32 @@ $icono.ContextMenuStrip = $menu
 $icono.Visible = $true
 $icono.add_MouseDoubleClick({ Start-Process $web })
 
+# T140: una API sin puerto no es una API parada. El latido sigue al dia, nadie escucha y el servicio
+# no se arregla con "Arrancar": lo reinicia el vigilante (RUNBOOK 16). La operacion late cada minuto:
+# con un latido mas viejo que 3 min puede estar parada de verdad, y entonces no se dice nada de esto.
+function ApiSinPuerto {
+  try {
+    if (Get-NetTCPConnection -LocalPort $Puerto -State Listen -ErrorAction SilentlyContinue) { return $false }
+    $latido = Join-Path $v2 "data\operation\heartbeat.json"
+    return (Get-Item -LiteralPath $latido).LastWriteTimeUtc -gt [DateTime]::UtcNow.AddMinutes(-3)
+  } catch { return $false }
+}
+
 $anterior = $null
 function Revisar {
-  $vivo = $false; $detalle = "sin respuesta"
+  $vivo = $false; $detalle = "sin respuesta"; $sinPuerto = $false
   try {
     $h = Invoke-RestMethod $api -TimeoutSec 4
     $vivo = $true
     $op = if ($h.operation -eq "apagado") { "operacion apagada" } else { "operando" }
     $detalle = "$($h.mode) - $op - $($h.agents) agentes"
-  } catch { }
+  } catch { $sinPuerto = ApiSinPuerto }
+  if ($sinPuerto) { $detalle = "servicio vivo, pero la API no escucha (RUNBOOK 16)" }
 
   $icono.Icon = if ($vivo) { $icoVivo } else { $icoMuerto }
   # NotifyIcon.Text no admite mas de 63 caracteres.
-  $t = if ($vivo) { "EIM activo - $detalle" } else { "EIM detenido - la API no responde" }
+  $t = if ($vivo) { "EIM activo - $detalle" } elseif ($sinPuerto) { "EIM sin puerto - servicio vivo, la API no escucha" }
+       else { "EIM detenido - la API no responde" }
   if ($t.Length -gt 63) { $t = $t.Substring(0, 60) + "..." }
   $icono.Text = $t
   $mEstado.Text = $t
