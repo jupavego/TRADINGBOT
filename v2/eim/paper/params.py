@@ -5,9 +5,10 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 from eim.backtest.params import CostParams
+from eim.paper.adaptive_params import AdaptiveParams
 from eim.paper.caps import CapParams
 from eim.paper.ladder_params import SYMBOL_SPECS, LadderParams, SymbolSpec, spec_for  # noqa: F401
 
@@ -121,8 +122,10 @@ class ProfileParams(BaseModel):
     # ni tiempo; se simula en el libro porque los escalones dependen de la cantidad en USDT). Desde
     # T109 los cuatro perfiles salen con "ladder"; el modo sigue siendo un parámetro para poder
     # medir cada salida por separado (T111) y para la elección dinámica de ◆1 (T113/T114).
-    exit_mode: Literal["tp", "ladder"] = "tp"
+    # T135: "adaptativo" lleva al libro una política de T132 (`adaptive.py`). Ningún perfil lo usa.
+    exit_mode: Literal["tp", "ladder", "adaptativo"] = "tp"
     ladder: LadderParams | None = None
+    adaptive: AdaptiveParams | None = None
     symbols: tuple[str, ...] | None = None   # None = todos los símbolos de la mesa
     feedback: FeedbackParams = FeedbackParams()
     caps: CapParams = CapParams()    # topes de riesgo (apagados por defecto)
@@ -131,10 +134,38 @@ class ProfileParams(BaseModel):
     def _coherent(self) -> ProfileParams:
         if self.exit_mode == "ladder" and self.ladder is None:
             raise ValueError(f"{self.id}: exit_mode 'ladder' exige parámetros de escalera")
-        if self.ladder is not None:
+        if (self.exit_mode == "adaptativo") != (self.adaptive is not None):
+            raise ValueError(f"{self.id}: exit_mode 'adaptativo' y `adaptive` van juntos: una "
+                             "política sin su modo, o el modo sin política, no significa nada")
+        if self.adaptive is not None and self.ladder is not None:
+            raise ValueError(f"{self.id}: una sola salida por perfil (escalera o adaptativa)")
+        if self.ladder is not None or self.adaptive is not None:
             for s in self.symbols or ():
                 spec_for(s)          # falla aquí, al construir el perfil, no al operar
         return self
+
+    @model_serializer(mode="wrap")
+    def _without_unused_exit(self, handler):
+        """Sin salida adaptativa, `adaptive` no aparece en el volcado.
+
+        `params_fingerprint` y el Observatorio firman este volcado: con un `"adaptive": null` nuevo
+        cambiaría la versión de los cuatro perfiles sin que hubiera cambiado nada en ellos.
+        """
+        data = handler(self)
+        if data.get("adaptive") is None:
+            data.pop("adaptive", None)
+        return data
+
+    @property
+    def stop_driven(self) -> bool:
+        """¿Gestiona la posición el stop de su salida (escalera o adaptativa), y no la sombra?"""
+        return self.exit_mode != "tp"
+
+    @property
+    def fine_tf(self) -> str | None:
+        """Marco de las velas finas que este perfil necesita, si necesita alguno."""
+        src = self.ladder or self.adaptive
+        return src.fine_tf if src is not None else None
 
 
 # Escalera por perfil (T108). Los umbrales van en R (◆6 de T106) porque en USDT los tres perfiles

@@ -119,8 +119,8 @@ class DeskService:
 
     def _sync(self, sym: str) -> None:
         now = now_ms()
-        fine = tuple(dict.fromkeys(p.ladder.fine_tf for p in self.profiles
-                                   if p.ladder and sym in (p.symbols or (sym,))))
+        fine = tuple(dict.fromkeys(p.fine_tf for p in self.profiles
+                                   if p.fine_tf and sym in (p.symbols or (sym,))))
         for tf in dict.fromkeys((*self.tfs, self.ep.path_tf, *fine)):
             b = self.store.bounds(sym, tf)
             back = FINE_BACKFILL_MS if tf in fine else (WARMUP_BARS + LIVE_BARS) * tf_ms(tf)

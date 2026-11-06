@@ -3,6 +3,11 @@ import { base } from './api'
 import { bogIso } from './tz'
 
 export const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
+/** Fases de la salida adaptativa (T135, §4.1 de T129). */
+const EXIT_PHASE: Record<string, string> = {
+  riesgo_inicial: 'Riesgo inicial', supervivencia: 'Supervivencia', equilibrio_mas: 'Equilibrio+', arrastre: 'Arrastre',
+}
+export const phaseLabel = (p: string): string => EXIT_PHASE[p] ?? p
 export const nf = (x: number, d = 2): string =>
   x.toLocaleString('es-CO', { minimumFractionDigits: d, maximumFractionDigits: d })
 const sg = (x: number): string => (x > 0 ? '+' : x < 0 ? '−' : '')
@@ -55,7 +60,7 @@ export const CAT_LABEL: Record<string, string> = {
 }
 export const REASON: Record<string, string> = {
   TP: 'Take profit', SL: 'Stop loss', SLD: 'SL dinámico (escalón)', BE: 'Break-even +', TIEMPO: 'Por tiempo',
-  LIQUIDACION: 'Liquidación (margen perdido)', SALVAGUARDA: 'Salvaguarda (kill-switch)', NO_LLENADA: 'No llenada',
+  HTF: 'Marco mayor invertido', LIQUIDACION: 'Liquidación (margen perdido)', SALVAGUARDA: 'Salvaguarda (kill-switch)', NO_LLENADA: 'No llenada',
   OBJETIVO_SIN_LLENAR: 'Objetivo sin llenar', GEOMETRIA: 'Precio ya fuera', '': '—',
 }
 export const STATUS: Record<string, string> = {

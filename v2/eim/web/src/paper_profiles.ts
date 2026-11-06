@@ -1,4 +1,5 @@
 /** Pestaña «Perfiles»: reglas de cada perfil y qué estrategias le dan o le quitan dinero. */
+import { adaptivePanel } from './paper_adaptive'
 import { esc, nf, pct, pct0, usd, utc } from './paper_fmt'
 import { protectionPanel } from './paper_protect'
 import type { LadderStats, PaperSummary, ProfileView } from './paper_types'
@@ -22,7 +23,8 @@ export function profilesTab(v: PaperSummary, price: number | null = null): strin
     row('R:B mínimo', (p) => nf(num(p, 'min_rr'))) +
     row('A favor de la síntesis', (p) => (p.params.follow_synthesis ? 'obligatorio' : 'no')) +
     row('Cobertura (largo y corto)', (p) => (p.params.allow_hedge ? 'sí' : 'no')) +
-    row('Salida', (p) => (p.params.exit_mode === 'ladder' ? 'SL por escalones, sin TP ni tiempo' : 'SL / TP / BE+ / tiempo')) +
+    row('Salida', (p) => (p.adaptive ? `adaptativa ${esc(p.adaptive.policy)}, sin TP`
+      : p.params.exit_mode === 'ladder' ? 'SL por escalones, sin TP ni tiempo' : 'SL / TP / BE+ / tiempo')) +
     row('Familias', fams) +
     row('Muestra para decidir', (p) => `${fb(p, 'n_min')} operaciones`) +
     row('Peso (mín.–máx.)', (p) => `${nf(fb(p, 'w_min'))}–${nf(fb(p, 'w_max'))} · ganancia ${nf(fb(p, 'gain'), 1)}`) +
@@ -45,7 +47,7 @@ export function profilesTab(v: PaperSummary, price: number | null = null): strin
     '</tbody></table>'
   return `<div class="pp-two"><section class="pp-scroll"><h4 class="sh">Reglas</h4>${rules}</section>` +
     `<section class="pp-scroll"><h4 class="sh">Resultado</h4>${res}</section></div>` +
-    protectionPanel(v, price) + ladderPanel(ps) +
+    protectionPanel(v, price) + adaptivePanel(v, price) + ladderPanel(ps) +
     `<p class="muted pp-note">Los perfiles reciben las mismas ideas; cambian el filtro, el tamaño y cuánto confían en lo aprendido. ` +
     `${esc(v.sources.costs)}. Funding: ${esc(v.sources.funding)}. El tamaño usa el capital realizado en el momento de la señal. ` +
     `Capital y rentabilidad salen de la MISMA base (equity = saldo realizado + flotante); «Saldo realizado» es solo lo cerrado. ` +
