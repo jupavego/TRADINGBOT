@@ -86,7 +86,7 @@ La API corre con prioridad 6 (por debajo de lo normal, T126) y esos procesos con
 
 ## 5. El reinicio (2026-11-06, con permiso del usuario)
 
-Se esperó a que terminara el gate de T139 y a que acabara un ciclo, y se detuvo solo el proceso hijo de `uvicorn` (`Stop-Process -Id <pid> -Force`). No se trajo código nuevo: la carpeta principal sigue en `d1921eb`.
+Se esperó a que terminara el gate de T139 y a que acabara un ciclo, y se detuvo solo el proceso hijo de `uvicorn` (`Stop-Process -Id <pid> -Force`). No se trajo código nuevo: la carpeta principal seguía en `d1921eb`. A las 14:37 UTC, ya con la API en marcha, la carpeta pasó a `b935cde`, que trae T135, sin que esta sesión lo pidiera. La API no lo cargó (`/v2/health`, `/v2/paper` y los ciclos siguieron bien, sin errores en su registro) y lo recogerá en su próximo reinicio, con el motor apagado.
 
 | UTC | Hecho |
 |---|---|
