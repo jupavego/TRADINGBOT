@@ -1,7 +1,7 @@
 # T139 — Una ronda de hipótesis de entrada, por la puerta de T49
 
 **Modo: SIMULADO. Nada de esta tarea habilita dinero real ni cambia lo que abren los perfiles.**
-Fase 23. Pre-registro `v2/eim/validation/prereg/prereg_t139_v1.json` (commit `3d396f7`, anterior a la descarga y a todo cálculo); informe `v2/reports/t139_entradas.{md,json,csv}`, calculado con `0d04ab3`. Reproducible con tres órdenes, unos 25 minutos en total:
+Fase 23. Pre-registro `v2/eim/validation/prereg/prereg_t139_v1.json` (commit `3d396f7`, anterior a la descarga y a todo cálculo); informe `v2/reports/t139_entradas.{md,json,csv}`, calculado con `0d04ab3`. Reproducible con tres órdenes: la descarga, cerca de una hora, y unos 13 minutos cada etapa:
 
 ```
 python scripts/t131_history.py --out backups/t139_banco --from 2019-09-01 --paper backups/t131_banco/paper.duckdb
@@ -27,7 +27,7 @@ Parar no prueba que no exista ventaja. Prueba que no la hay por encima de lo det
 | `cascada_revierte@4h` | 266 | −0,010 | +0,059 | 0,236 | +0,053 | 0,069 | +0,037 (390) |
 | `momento_1d@1d` | 121 | +0,048 | +0,115 | 0,350 | +0,088 | 0,066 | +0,045 (151) |
 
-Ocho de nueve están lejos: entre la mitad del mínimo y por debajo de cero. El control no destaca sobre sus sustitutas en 1 h (p = 1,00) ni en 4 h (p = 0,43).
+Ocho de nueve están lejos: como mucho un tercio del mínimo, y dos con bruto negativo. El control no destaca sobre sus sustitutas en 1 h (p = 1,00) ni en 4 h (p = 0,43).
 
 ## 2. La clave que hay que mirar: `flujo_sigue@4h`
 
