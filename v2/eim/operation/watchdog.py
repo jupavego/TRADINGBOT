@@ -1,9 +1,10 @@
 """Vigilante de proceso: lanza la API con el servicio de operación y la relanza si cae.
 
-Reinicia cuando el proceso termina o cuando el latido (`heartbeat.json`) no avanza en
-`stale_s` (proceso colgado). Espera creciente entre reinicios (se reinicia la cuenta si el
-proceso aguantó más de `healthy_s`). Cada reinicio queda en el registro estructurado y se
-avisa por notificación local. También vigila el servicio de líderes (`eim.leaders supervise`).
+Reinicia cuando el proceso termina, cuando el latido (`heartbeat.json`) no avanza en `stale_s`
+(proceso colgado) o, si se le da una sonda, cuando el puerto deja de escuchar (T140). Espera
+creciente entre reinicios (se reinicia la cuenta si el proceso aguantó más de `healthy_s`). Cada
+reinicio queda en el registro estructurado y se avisa por notificación local. También vigila el
+servicio de líderes (`eim.leaders supervise`).
 """
 
 from __future__ import annotations
@@ -15,12 +16,14 @@ import threading
 import time
 from collections import deque
 from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import IO
 
 from eim.observability import hooks_service
 from eim.operation.alerts import CRITICAL, SERVICE, Alert
 from eim.operation.notify import JsonLog, WindowsToast
+from eim.operation.port_watch import GRACE_S, LOST_S, PortWatch, Probe
 
 
 def heartbeat_t(path: Path) -> int | None:
@@ -71,21 +74,38 @@ def instance_lock(path: Path) -> IO[bytes] | None:
     return f
 
 
-def spawn_with_tail(cmd: list[str], env: dict[str, str], keep: int = 30) -> subprocess.Popen:
-    """Lanza `cmd` copiando su stderr a la del vigilante (sin cambiar lo que ya se ve) y guarda
-    las últimas `keep` líneas en `proc.tail`: si el proceso cae a los segundos, el motivo queda en
-    el registro (antes se perdía y el bucle de reinicios del 20-oct no dejó rastro)."""
-    proc = subprocess.Popen(cmd, env=env, stderr=subprocess.PIPE,  # noqa: S603
-                            text=True, encoding="utf-8", errors="replace")
+def _pump(source: IO[str], stream: str, tail: deque | None = None) -> None:
+    """Copia cada línea a `sys.<stream>` con su hora UTC. Sin ella, el 2026-11-06 no se pudo fechar
+    el fallo del socket (T140). Nunca deja de leer aunque no pueda escribir: si este hilo muriera,
+    la tubería se llenaría y el servicio se quedaría parado al escribir en ella."""
+    for line in source:
+        if tail is not None:
+            tail.append(line.rstrip())
+        try:
+            out = getattr(sys, stream)
+            out.write(f"{datetime.now(UTC):%Y-%m-%dT%H:%M:%SZ} {line}")
+            out.flush()
+        except (OSError, ValueError):      # `UnicodeEncodeError` es un `ValueError`
+            pass
+
+
+def spawn_with_tail(cmd: list[str], env: dict[str, str], keep: int = 30,
+                    stamp_stdout: bool = False) -> subprocess.Popen:
+    """Lanza `cmd` copiando su stderr a la del vigilante, con hora, y guarda las últimas `keep`
+    líneas en `proc.tail`: si el proceso cae a los segundos, el motivo queda en el registro (antes
+    se perdía y el bucle de reinicios del 20-oct no dejó rastro).
+
+    La salida estándar sigue heredada salvo con `stamp_stdout`, que es solo para la API (fechar sus
+    peticiones): una tubería ata al hijo al hilo que la lee, y la captura no debe depender de eso.
+    """
+    proc = subprocess.Popen(cmd, env=env,  # noqa: S603
+                            stdout=subprocess.PIPE if stamp_stdout else None,
+                            stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
     proc.tail = deque(maxlen=keep)  # type: ignore[attr-defined]
-
-    def pump() -> None:
-        for line in proc.stderr:  # type: ignore[union-attr]
-            proc.tail.append(line.rstrip())  # type: ignore[attr-defined]
-            sys.stderr.write(line)
-            sys.stderr.flush()
-
-    threading.Thread(target=pump, daemon=True).start()
+    threading.Thread(target=_pump, args=(proc.stderr, "stderr", proc.tail),  # type: ignore[attr-defined]
+                     daemon=True).start()
+    if stamp_stdout:
+        threading.Thread(target=_pump, args=(proc.stdout, "stdout"), daemon=True).start()
     return proc
 
 
@@ -96,20 +116,32 @@ class Watchdog:
                  clock: Callable[[], float] = time.time,
                  sleep: Callable[[float], None] = time.sleep,
                  notify: Callable[[Alert], None] | None = None,
-                 title: str = "Servicio reiniciado") -> None:
+                 title: str = "Servicio reiniciado", port_probe: Probe | None = None,
+                 port_grace_s: float = GRACE_S, port_lost_s: float = LOST_S) -> None:
         self.cmd, self.env, self.hb, self.log, self.title = cmd, env, heartbeat, log, title
         self.stale_s, self.check_s = stale_s, check_s
         self.max_backoff_s, self.healthy_s = max_backoff_s, healthy_s
         self._spawn = spawn or spawn_with_tail
         self._clock, self._sleep = clock, sleep
         self._notify = notify if notify is not None else WindowsToast()
+        self.port_probe, self.port_grace_s, self.port_lost_s = port_probe, port_grace_s, port_lost_s
         self.restarts = 0
 
+    def _stop(self, proc) -> None:
+        proc.terminate()
+        try:
+            proc.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+
     def _watch(self, proc) -> str:
-        """Bloquea hasta que el proceso muere o se cuelga; devuelve el motivo. Una lectura fallida
-        del latido (archivo reemplazándose en Windows) no lo «detiene»: vale el último leído
-        (T42-12: antes volvía al arranque y reiniciaba con un falso «latido detenido»)."""
+        """Bloquea hasta que el proceso muere, se cuelga o pierde el puerto; devuelve el motivo. Una
+        lectura fallida del latido (archivo reemplazándose en Windows) no lo «detiene»: vale el
+        último leído (T42-12: antes volvía al arranque y reiniciaba con un falso «latido
+        detenido»). Sin `port_probe`, el puerto no se mira: hay servicios que no tienen."""
         last = self._clock()
+        port = (PortWatch(self.port_probe, self.port_grace_s, self.port_lost_s, self._clock)
+                if self.port_probe is not None else None)
         while True:
             self._sleep(self.check_s)
             rc = proc.poll()
@@ -118,12 +150,11 @@ class Watchdog:
             if (hb := heartbeat_t(self.hb)) is not None:
                 last = max(last, hb / 1000)
             if self._clock() - last > self.stale_s:
-                proc.terminate()
-                try:
-                    proc.wait(timeout=30)
-                except subprocess.TimeoutExpired:
-                    proc.kill()
+                self._stop(proc)
                 return f"latido detenido {self._clock() - last:.0f} s"
+            if port is not None and (why := port.check()):
+                self._stop(proc)
+                return why
 
     def run(self, max_starts: int | None = None) -> None:
         fails, n = 0, 0
