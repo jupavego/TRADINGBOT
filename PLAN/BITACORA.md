@@ -853,3 +853,4 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Comprobado:** en el 8765, publicado desde la rama. Quedan 16 completos arriba y 8 por terminar abajo, todos con algo en curso, listo o en espera. Sin errores de consola.
 - **Archivos:** `PLAN/roadmap.html`, `PLAN/BITACORA.md`.
 - **Pruebas:** `tests/plan` y `tests/continuity` en verde.
+- **Ajuste pedido a mitad de tarea:** se quita la tarjeta «Listas para empezar». Arriba queda solo «Avance general», a todo el ancho, y bajo él los capítulos completos. Comprobado en el 8765: una sola tarjeta arriba y ningún error de consola.
