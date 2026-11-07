@@ -2,7 +2,7 @@
 
 Hecho desde `juanpablo-cpu`, solo leyendo: copia `v2/backups/eim_20261106-000006`, velas de `data/candles`, trades de `data/micro_hft/trades` y registro `data/obs/spool`. No se escribió en `data/paper.duckdb`.
 
-**Lo medido llega hasta 2026-11-06 00:00 UTC**, el corte de esa copia. Las 5 siguen congeladas: en la API, a las 18:51 UTC, había las mismas 5 y ninguna nueva. El efecto sigue creciendo hasta reconciliarlas.
+**Ya no queda ninguna congelada.** Las 5 se reconciliaron a las 20:07 UTC del 2026-11-06 y una sexta, que esa reconciliación congeló y §4 no había previsto, a las 02:33 UTC del 2026-11-07, todas con permiso del usuario. El efecto real está en §5. §1 a §4 se escribieron antes, con la medida hasta las 00:00 UTC de esa copia.
 
 ## Resumen
 
@@ -107,3 +107,46 @@ Igual para las otras 4. **Qué cambiará:** los tres libros se recalculan desde 
 
 2. **Reiniciar la API** para cargar el arreglo. Sin ello pueden congelarse más.
 3. **Al reconciliar:** poner `t1` en `distortions.py`, repetir la medida con la copia de ese día y actualizar las cifras.
+
+## 5. Lo que pasó al desplegar y reconciliar (2026-11-06, con permiso del usuario)
+
+| UTC | Hecho |
+|---|---|
+| 20:03:59 | PR #217 fusionado (`b1a0a11`), por detrás de T140 (#215) |
+| 20:04:33 | Se detiene solo la hija de `uvicorn`; el vigilante la relanza. Puerto y `/v2/health` a los 61 s, `/v2/paper` a los 134 s |
+| 20:07:00 | Foto antes de reconciliar: 390 operaciones, **las mismas que con el código viejo**, con el mismo PnL. El despliegue no cambió los libros |
+| 20:07:28 → 20:07:36 | Las 5 reconciliadas con `--decision recalculo` |
+| 20:08:25 | Pasada siguiente: las 5 cerradas en el diario, al precio de §1 y sus 5 alertas resueltas. **Se congela una sexta** |
+| 22:02 (11-06) | El precio toca el stop de la sexta (máximo 76 182,5). Sigue abierta, porque una congelada no se cierra sola |
+| 02:33 (11-07) | La sexta, reconciliada con permiso del usuario. El permiso llegó antes, pero la sesión se cortó y se hizo al retomarla |
+| 02:34:12 | Pasada siguiente: la sexta cerrada en el diario y su alerta resuelta. **0 congeladas y 0 alertas de protección activas** |
+
+**Efecto medido en los libros reales,** comparando las fotos de antes y después por la API. Es mejor que §2, porque incluye lo decidido hasta las 20:07 UTC:
+
+| Perfil | Capital realizado antes → después | Cambio | Con flotante, antes → después |
+|---|---|---|---|
+| Moderado | 9 290,59 → 9 308,38 | **+17,79** | 9 121,47 → 9 308,38 |
+| Agresivo | 8 206,27 → 8 058,76 | **−147,51** | 8 304,34 → 7 987,96 |
+| PPP | 9 616,76 → 9 603,62 | **−13,14** | 9 691,63 → 9 603,62 |
+| Conservador | 9 839,97 → 9 839,97 | 0 | igual |
+| **Total** | | **−142,86** | |
+
+- **El cambio se compone de:** +22,22 de los 5 cierres, −164,53 de 18 entradas que antes no estaban y −0,56 de 24 operaciones que cambian de tamaño (21 de Agresivo y 3 de Moderado).
+- **Las 18 entradas** son 7 de Moderado, 7 de Agresivo y 4 de PPP. Agresivo gana 2 respecto a §2 por lo decidido tras el corte. Ninguna operación desaparece.
+- **El flotante cambia mucho más que el capital,** porque desaparece el de las posiciones fantasma: en Agresivo, +147,81 de su corto.
+- **Libro fijo:** de 300 a 318 filas de perfil en BTCUSDT, y las 18 nuevas van marcadas `retro`. **Para T31 esas 18 no son operaciones que se vivieran en su momento: se decidieron al recalcular.** Hay que leerlas así. Las 24 que cambian de tamaño conservan su fila original y salen en la conciliación con otro PnL.
+
+**La sexta operación:** `agresivo|BTCUSDT|BTCUSDT:15m:1793981700000:agente_technical`, corto abierto el 2026-11-06 a las 16:15 UTC a 75 504,34, con stop inicial en 76 159,55 y escalón 0.
+
+- **Por qué:** es una cascada que §4 no vio. Reconciliar bajó el capital de Agresivo, así que esta posición, ya abierta, se recalcula con 0,122 BTC frente a los 0,125 guardados. `ladder_floor.mismatch` la retiene por no cuadrar («cantidad guardada 0.125 ≠ recalculada 0.122»). La salvaguarda hace lo que debe. **No es el escalón prematuro** y no toca `_never_lower`.
+- **Efecto:** como cualquier congelada, no se cierra sola aunque el precio toque su stop.
+- **Por qué solo una:** era la única operación del diario que seguía abierta al reconciliar.
+- **Resultado:** cerró en su stop, 76 159,55, con **−93,75 USDT (−1,17 R)**. El camino de 15 m fecha el cierre a las 22:15 UTC, al terminar la vela en que se tocó.
+- **Coste de esperar:** la pérdida estuvo fuera del capital de Agresivo 4 h 18 min. Ninguna decisión de ese rato cambió: la foto de antes y la de después solo difieren en esta operación.
+- **A diferencia de las 18 de arriba, esta sí se vivió en su momento,** aunque en el libro fijo salga como `retro` porque se grabó más de 2 h después de cerrar.
+- **Sin más cascadas:** `agente_ema`, la otra abierta, se dimensionó a las 17:45 UTC, antes de este cierre, y conserva su cantidad.
+
+**Capital realizado de Agresivo en total:** 8 206,27 → 7 965,01 (−241,26). De eso, −147,51 por las 5 y sus entradas no tomadas y −93,75 por la sexta.
+
+**«Sin alertas al arrancar» comprobado:** la sesión de T140 reinició el vigilante y la API a las 02:35:48 UTC, para desplegarla (`--loop …selector_loop`). A las 02:37:08 `/v2/paper` respondía con 0 congeladas, sin recuperaciones, 0 alertas desde el arranque y ninguna activa; el capital de los 4 perfiles, igual que antes del reinicio. El gate completo de T140 y T142 juntas salió verde: `gate-t142-cierre`, rc 0, 3 129 pasadas, 8 omitidas, 0 fallos, 1 100 s, sin pausas.
+

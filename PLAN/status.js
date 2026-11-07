@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-06T21:46:41",
+ "generated": "2026-11-06T21:46:18",
  "tasks": [
   {
    "id": "T01",
@@ -1783,8 +1783,8 @@ window.EIM_STATUS = {
     "T126",
     "T127"
    ],
-   "state": "progress",
-   "notes": "Código e informe hechos (2026-11-06): el registro identifica a los ajenos (`usage_foreign.py`), `usage incidents` cruza cada bloqueo y `usage_alert.py` avisa con umbrales medidos. **Informe `PLAN/notas/T141_carga_ajena.md`:** 4 de 5 bloqueos coinciden con scripts de `OPERACION/PROTOTIPO` con 4–7 procesos; la cola no estuvo en ninguno; todo el EIM, captura incluida, corre con prioridad de memoria 2 y E/S baja. **Decidido por el usuario: ◆A y ◆B.** ◆A, regla en `~/.claude/CLAUDE.md`. ◆B, memoria y E/S de los recolectores a 5 y normal, aplicadas en marcha a las 20:01:48 UTC, sin reiniciar, y fijadas en `apply_role` (`priority_memory.py`); la API no cambia. Auditada la captura hasta el 7-nov 02:44 UTC: racha de 11 h y ningún bloqueo. Falta: fusionar, reiniciar el registro de consumo (pide permiso) y medir 3 días, hasta el 2026-11-10 si es hoy.",
+   "state": "pending",
+   "notes": "Abierta el 2026-11-06: 3 reinicios «latido detenido» en 46 h con el equipo saturado por `python.exe` ajenos sin identificar. Es calibración: medir antes de decidir (◆). Ficha `PLAN/T141.md`.",
    "effort": "medio",
    "phase": 21,
    "goal": "Saber qué satura el equipo y evitar que eso pare la API. Hubo tres reinicios «latido detenido» en 46 h (2026-11-05 04:14 y 07:12, 2026-11-06 01:41), sin ninguno en los días anteriores desde el 30-oct. En todos el equipo estaba bajo presión, con `python.exe` ajenos en prioridad normal mientras la API, en prioridad baja, perdía casi toda su RAM. La evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §2."
@@ -1796,8 +1796,8 @@ window.EIM_STATUS = {
     "T110",
     "T130"
    ],
-   "state": "progress",
-   "notes": "2026-11-06, `juanpablo-cpu`: las 5 comprobadas con velas de 1 min y trades (falsos positivos, +22,22 USDT, ya en el libro fijo) y efecto medido hasta 2026-11-06 00:00 UTC: 16 entradas no tomadas, −167,10 USDT en total (nota `PLAN/notas/T142_posiciones_fantasma.md`, y en el informe de T31). Causa arreglada en `v2/eim/paper/protection_settle.py`, `_never_lower` intacto, huellas idénticas a `main`. **Falta, con permiso del usuario (◆): fusionar, reiniciar la API y reconciliar las 5.** Hasta entonces siguen congeladas.",
+   "state": "done",
+   "notes": "2026-11-07, `juanpablo-cpu`: causa arreglada y desplegada (`v2/eim/paper/protection_settle.py`, PR #217, `_never_lower` intacto, huellas idénticas a `main`). **0 congeladas y sin alertas al arrancar** (comprobado en el arranque de las 02:35 UTC): las 5 reconciliadas el 2026-11-06 a las 20:07 UTC y una sexta, que esa reconciliación congeló, el 2026-11-07 a las 02:33 UTC, con permiso del usuario. Capital realizado: Moderado +17,79, Agresivo −241,26, PPP −13,14 USDT, con 18 filas `retro` en el libro fijo que no se vivieron en su momento (nota `PLAN/notas/T142_posiciones_fantasma.md` §5, y en el informe de T31). Gate verde por la cola con T140.",
    "effort": "medio",
    "phase": 21,
    "goal": "Sacar de los libros las 5 operaciones congeladas desde el 2026-11-04 y evitar que se creen más. Se guarda un escalón al cierre de la vela de 15 m sin tener aún sus velas de 1 m. Cuando llegan, el recálculo ve la operación cerrada por debajo de ese stop, `_never_lower` la congela y, congelada, **no se cierra sola**. T130 arregló la mitad de este caso (`ladder_floor.early`), y su propia documentación avisa de la otra mitad. La evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §3 y `PLAN/notas/T130_anexo_falso_inconsistente.md`."
