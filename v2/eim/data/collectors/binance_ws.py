@@ -21,7 +21,7 @@ import httpx
 from eim.data.collectors.book import LocalBook
 from eim.data.collectors.health import HEARTBEAT_EVERY_S, micro_dir, sfx, write_heartbeat
 from eim.data.collectors.writer import HourlyWriter
-from eim.observability import hooks_service
+from eim.observability import hooks_service, queues
 from eim.observability.emit import configure
 from eim.operation.priority import apply_role
 from eim.operation.watchdog import instance_lock
@@ -114,7 +114,8 @@ async def _stream(col: Collector, url: str, stop: asyncio.Event, on_open, after=
     backoff = 1.0
     while not stop.is_set():
         try:
-            async with websockets.connect(url, ping_interval=20, open_timeout=15) as ws:
+            async with websockets.connect(url, ping_interval=20, open_timeout=15,
+                                          max_queue=queues.WS_MAX_QUEUE) as ws:
                 backoff = 1.0
                 on_open()
                 async for raw in ws:

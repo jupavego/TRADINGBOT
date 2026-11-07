@@ -17,7 +17,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
-from eim.api import obs_trace
+from eim.api import obs_queues, obs_trace
 from eim.api.reports_db import ReportStore
 from eim.observability import catalog
 from eim.observability import thresholds as T
@@ -190,6 +190,7 @@ def build_obs_router(store: ObsStore, indexer: Indexer,
             partial=bool(dec) and not evs)   # eventos crudos ya purgados: queda el resumen
 
     obs_trace.register(r, store, envelope, with_refs, reports_conn)
+    obs_queues.register(r, store, envelope)   # T123: colas entre etapas
 
     @r.get("/health")
     def health() -> dict:

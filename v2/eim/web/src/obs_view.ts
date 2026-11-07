@@ -2,6 +2,7 @@
  * vive en la mesa, justo debajo del Río de decisión (ya no es una pantalla aparte): consulta el
  * observatorio solo mientras está a la vista (pestaña visible y sección en pantalla). */
 import { detailHtml } from './obs_detail'
+import { queueHtml, queuesSummary } from './obs_queues'
 import { compState, routeHtml, stageSentence, stageSvg } from './obs_graph'
 import { glossarize, legendHtml, markTour, tourHtml, TOUR, tourSeen } from './obs_legend'
 import { pulseNew, Story } from './obs_story'
@@ -206,7 +207,8 @@ export class ObsView {
     const bad = d.comps.filter((c) => ['error', 'degradado', 'obsoleto', 'sin_datos'].includes(compState(d, c)))
     // en la mesa (T122) las listas empiezan plegadas y conservan lo que el usuario abre entre sondeos
     const was = [...this.q('todo').querySelectorAll('details')].map((x) => (x.open ? ' open' : ''))
-    const [o1, o2, o3] = [was[0] ?? '', was[1] ?? '', was[2] ?? '']
+    const [o1, o2, o3, o4] = [was[0] ?? '', was[1] ?? '', was[2] ?? '', was[3] ?? '']
+    const qs = d.queues ?? [], qsum = queuesSummary(qs)
     this.q('todo').innerHTML = `
       <details${o1}><summary>Qué requiere atención (${bad.length})</summary><ul class="obs-ul">${bad.slice(0, 12).map((c) => `<li><button class="obs-link" data-goto="${esc(c.id)}">${esc(c.title_es)}</button>
         <small>${STATE_ICON[compState(d, c)]} ${STATE_LABEL[compState(d, c)]}</small></li>`).join('') || '<li class="muted">Nada: todo lo construido reporta al día.</li>'}</ul></details>
@@ -215,7 +217,9 @@ export class ObsView {
       <details${o3}><summary>Desvíos entre lo declarado y lo observado (${dev.undeclared.length + dev.unseen.length})</summary><ul class="obs-ul">
         ${dev.undeclared.map((e) => `<li>Vista y no declarada: ${esc(e.source)} → ${esc(e.target)}</li>`).join('')}
         ${dev.unseen.slice(0, 10).map((e) => `<li>Declarada y nunca vista: ${esc(e.source)} → ${esc(e.target)}</li>`).join('')}
-        ${dev.undeclared.length + dev.unseen.length ? '' : '<li class="muted">Ninguno detectado con las trazas disponibles.</li>'}</ul></details>`
+        ${dev.undeclared.length + dev.unseen.length ? '' : '<li class="muted">Ninguno detectado con las trazas disponibles.</li>'}</ul></details>
+      <details${o4} data-x="queues"><summary>Colas entre etapas (${d.queues ? `${qsum.drops} con descartes · ${qsum.missing} sin informe` : 'sin respuesta'})</summary>
+        <ul class="obs-ul">${qs.map(queueHtml).join('') || '<li class="muted">El observatorio no devolvió las colas.</li>'}</ul></details>`
   }
 
   // --- recorrido guiado ---

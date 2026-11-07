@@ -1,4 +1,5 @@
 /** Tipos, estados y peticiones del Observatorio (T75). Todo sale de `/v2/obs/*` (solo lectura). */
+import type { ObsQueue } from './obs_queues'
 import { base } from './api'
 
 export type ObsState = 'ok' | 'degradado' | 'error' | 'obsoleto' | 'pausado' | 'sin_datos' | 'planeado'
@@ -28,6 +29,7 @@ export interface ObsEvent {
 export interface ObsData {
   comps: ObsComp[]; graph: ObsGraph; health: ObsHealth | null
   paused: Set<string>; recent: Map<string, ObsEvent[]>; failed: boolean
+  queues: ObsQueue[] | null            // T123: colas entre etapas (null si no responde)
 }
 
 export const STATE_LABEL: Record<ObsState, string> = {
@@ -73,21 +75,22 @@ export const getObs = get
 /** Carga todo; si el observatorio falla devuelve `failed: true` y los estados caen a «sin datos». */
 export async function loadObs(signal?: AbortSignal): Promise<ObsData | null> {
   try {
-    const [c, graph, health, hb] = await Promise.all([
+    const [c, graph, health, hb, qs] = await Promise.all([
       get<{ items: ObsComp[] }>('components', signal), get<ObsGraph>('graph', signal),
       get<ObsHealth>('health', signal).catch(() => null),
-      get<{ items: ObsEvent[] }>('events?kind=heartbeat&limit=300', signal).catch(() => ({ items: [] as ObsEvent[] }))])
+      get<{ items: ObsEvent[] }>('events?kind=heartbeat&limit=300', signal).catch(() => ({ items: [] as ObsEvent[] })),
+      get<{ items: ObsQueue[] }>('queues', signal).catch(() => null)])
     const seen = new Set<string>(), paused = new Set<string>()
     for (const e of hb.items) {           // más reciente primero
-      if (seen.has(e.component_id)) continue
+      if (seen.has(e.component_id) || e.detail?.queue) continue   // los informes de colas no son latidos
       seen.add(e.component_id)
       if (['pausado', 'paused'].includes(String(e.detail?.state))) paused.add(e.component_id)
     }
     const lag = graph.index_lag_s
     const failed = health !== null && !health.ok && lag !== null && lag > 120
-    return { comps: c.items, graph, health, paused, recent: new Map(), failed }
+    return { comps: c.items, graph, health, paused, recent: new Map(), failed, queues: qs?.items ?? null }
   } catch (e) {
     if ((e as Error).name === 'AbortError') return null
-    return { comps: [], graph: null as unknown as ObsGraph, health: null, paused: new Set(), recent: new Map(), failed: true }
+    return { comps: [], graph: null as unknown as ObsGraph, health: null, paused: new Set(), recent: new Map(), failed: true, queues: null }
   }
 }

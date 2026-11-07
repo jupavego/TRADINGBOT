@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import threading
 import time
 
 import pytest
 
 from eim.agents.registry import AgentRegistry, default_registry
-from eim.agents.runner import run_agents
+from eim.agents.runner import call_with_deadline, run_agents, stuck_for
 from eim.core import AgentReport, Candle, MarketSnapshot
 
 
@@ -97,3 +98,75 @@ def test_new_agents_registered_and_run():
     by_id = {r.agent_id: r for r in reps}
     assert {i: by_id[i].status for i in NO_DATA} == dict.fromkeys(NO_DATA, "no_data")
     assert by_id["elliott"].status == "ok"
+
+
+# --- T123: plazo común, sin hilos acumulados y llamadas con plazo -----------------------------
+
+class _Hung:
+    """Agente que se cuelga hasta que se abra su compuerta."""
+
+    version, requires = "1.0.0", {"candles"}
+
+    def __init__(self, id_: str, gate: threading.Event) -> None:
+        self.id, self.gate = id_, gate
+
+    def run(self, snapshot):
+        self.gate.wait(10)
+        return _Good().run(snapshot)
+
+
+def _threads(prefix: str) -> int:
+    return sum(1 for t in threading.enumerate() if t.name.startswith(prefix) and t.is_alive())
+
+
+@pytest.mark.perf
+def test_deadline_is_common_to_all_agents_not_one_per_agent():
+    gate = threading.Event()
+    hung = [_Hung(f"hung{i}", gate) for i in range(4)]
+    try:
+        t0 = time.monotonic()
+        reps = run_agents([*hung, _Good()], _snap(), timeout=0.3)
+        took = time.monotonic() - t0
+    finally:
+        gate.set()
+    assert [r.status for r in reps] == ["degraded"] * 4 + ["ok"]
+    assert took < 0.9, f"4 agentes colgados con plazo 0,3 s tardaron {took:.2f} s (en serie: 1,2)"
+
+
+def test_a_hung_agent_keeps_one_thread_and_degrades_only_itself():
+    gate = threading.Event()
+    hung, snap = _Hung("colgado", gate), _snap()
+    before = _threads("eim-agent-colgado")
+    try:
+        first = run_agents([hung, _Good()], snap, timeout=0.05)
+        later = [run_agents([hung, _Good()], snap, timeout=0.05) for _ in range(5)]
+        assert _threads("eim-agent-colgado") - before == 1      # no uno por vela
+    finally:
+        gate.set()
+    assert "timeout" in first[0].warnings[0] and first[1].status == "ok"
+    for reps in later:
+        assert reps[0].status == "degraded" and "sigue colgado" in reps[0].warnings[0]
+        assert reps[1].status == "ok"                           # el resto no se entera
+    for _ in range(200):                                        # suelto: vuelve a correr
+        if stuck_for(("agent", "colgado", "1.0.0", "X", "1h")) is None:
+            break
+        time.sleep(0.01)
+    assert run_agents([hung], snap, timeout=1.0)[0].status == "ok"
+
+
+def test_call_with_deadline_ok_error_timeout_and_busy():
+    assert call_with_deadline(("t", 1), lambda: 7, 1.0) == ("ok", 7)
+    with pytest.raises(ZeroDivisionError):
+        call_with_deadline(("t", 2), lambda: 1 / 0, 1.0)
+    gate = threading.Event()
+    try:
+        assert call_with_deadline(("t", 3), lambda: gate.wait(10), 0.05) == ("timeout", None)
+        st, age = call_with_deadline(("t", 3), lambda: 1, 0.05)
+        assert st == "busy" and age >= 0                        # no lanza un segundo hilo
+    finally:
+        gate.set()
+    for _ in range(200):
+        if stuck_for(("t", 3)) is None:
+            break
+        time.sleep(0.01)
+    assert call_with_deadline(("t", 3), lambda: 1, 1.0) == ("ok", 1)

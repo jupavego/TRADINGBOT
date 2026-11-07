@@ -1,4 +1,9 @@
-"""Escritor Parquet por hora: `root/micro/<kind>/symbol=S/date=D/hour=HH/part-*.parquet`."""
+"""Escritor Parquet por hora: `root/micro/<kind>/symbol=S/date=D/hour=HH/part-*.parquet`.
+
+Frontera `micro.escritor` (T123): el búfer vuelca a las `flush_rows` filas o cada `flush_secs`, y
+la escritura es síncrona (el productor espera al disco). Las filas que un fallo de escritura deja
+fuera se cuentan antes de propagar el error.
+"""
 
 from __future__ import annotations
 
@@ -7,7 +12,7 @@ from pathlib import Path
 
 import duckdb
 
-from eim.observability import hooks_service
+from eim.observability import hooks_service, queues
 
 SCHEMAS = {
     "trades": "t BIGINT, id BIGINT, p DOUBLE, q DOUBLE, maker BOOLEAN",  # maker = vendedor agresor
@@ -35,6 +40,7 @@ class HourlyWriter:
         self.buf: list[tuple] = []
         self._last = time.monotonic()
         self._seq = 0
+        self._done = 0          # filas ya escritas del volcado en curso
 
     def add(self, row: tuple) -> None:
         self.buf.append(row)
@@ -49,6 +55,18 @@ class HourlyWriter:
         for row in self.buf:
             by_hour.setdefault(row[0] // 3_600_000, []).append(row)
         n_rows, self.buf = len(self.buf), []
+        g = queues.gauge("micro.escritor")
+        g.seen(n_rows)
+        try:
+            self._write(by_hour)
+        except Exception as e:
+            g.drop(n_rows - self._done, f"{self.base.parent.name}: {type(e).__name__}: {e}")
+            raise
+        hooks_service.beat("data.micro_collector", min_interval_s=60,
+                           detail={"kind": self.base.parent.name, "rows": n_rows})
+
+    def _write(self, by_hour: dict[int, list[tuple]]) -> None:
+        self._done = 0
         for hour, rows in by_hour.items():
             tm = time.gmtime(hour * 3600)
             d = self.base / time.strftime("date=%Y-%m-%d", tm) / f"hour={tm.tm_hour:02d}"
@@ -62,5 +80,4 @@ class HourlyWriter:
             con.execute(f"COPY x TO {_lit(tmp)} (FORMAT PARQUET, COMPRESSION ZSTD)")
             tmp.replace(f)
             con.close()
-        hooks_service.beat("data.micro_collector", min_interval_s=60,
-                           detail={"kind": self.base.parent.name, "rows": n_rows})
+            self._done += len(rows)

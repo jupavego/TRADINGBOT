@@ -19,7 +19,7 @@ from pathlib import Path
 
 from eim.data.collectors.health import micro_dir, sfx
 from eim.data.collectors.writer import HourlyWriter
-from eim.observability import hooks_service
+from eim.observability import hooks_service, queues
 from eim.observability.emit import configure
 from eim.operation.priority import apply_role
 from eim.operation.watchdog import instance_lock
@@ -120,7 +120,8 @@ async def _stream(col: LiqCollector, venue: str, stop: asyncio.Event) -> None:
     backoff = 1.0
     while not stop.is_set():
         try:
-            async with websockets.connect(url, ping_interval=20, open_timeout=15) as ws:
+            async with websockets.connect(url, ping_interval=20, open_timeout=15,
+                                          max_queue=queues.WS_MAX_QUEUE) as ws:
                 sub = _subscribe(venue, col.symbol)
                 if sub:
                     await ws.send(json.dumps(sub))
