@@ -14,6 +14,10 @@ EIM, para que el equipo siga respondiendo; lo pesado, al fondo.
 | `service`  | BELOW_NORMAL     | API, líderes, vigilantes, registro de consumo (T127)          |
 | `batch`    | IDLE             | mantenimiento (auditoría, compactación, poda), gate, copias, LLM |
 
+La clase de CPU no lo es todo: lo que nace de una tarea programada hereda además memoria 2 y E/S
+baja. Los recolectores suben también esas dos al arrancar, porque es la memoria lo que ha dañado a
+la captura, y los demás se quedan como están (`priority_memory.py`, T141).
+
 Dentro de un servicio, un hilo dedicado a trabajo de fondo baja al nivel `batch` con
 `lower_thread` (T128: los ganchos del bróker en la API): THREAD_PRIORITY_LOWEST en un proceso
 BELOW_NORMAL queda en 4, a la par de los trabajos IDLE y por debajo del resto del servicio.
@@ -41,7 +45,7 @@ import sys
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 
-from eim.operation import proc_access
+from eim.operation import priority_memory, proc_access
 
 ENV = "EIM_PRIORITY"
 WINDOWS_CLASS = {"realtime": 0x8000, "service": 0x4000, "batch": 0x40}
@@ -110,6 +114,8 @@ def apply_role(role: str, env: Mapping[str, str] | None = None) -> str | None:
         return None
     proc_access.open_to_user()
     tier = ROLES.get(role)
+    if tier == "realtime":
+        priority_memory.raise_normal()     # T141: también la memoria y la E/S
     return tier if tier is not None and set_tier(tier) else None
 
 
