@@ -132,34 +132,6 @@ code{background:var(--block-bg);padding:1px 6px;border-radius:5px;font-size:12.5
 </div>
 
 <script>
-var PHASES=[
- {n:0,name:"Cimientos",ids:["T01","T02","T03","T04"]},
- {n:1,name:"Agentes",ids:["T05","T06","T07"]},
- {n:2,name:"API y UI base",ids:["T08","T09","T10","T11"]},
- {n:3,name:"Niveles y plan",ids:["T12","T13","T14","T15"]},
- {n:4,name:"Proyección (3 escenarios)",ids:["T16","T17","T18","T19"]},
- {n:5,name:"Inteligencia",ids:["T20","T21","T22","T23","T24"]},
- {n:6,name:"Validación",ids:["T25","T26","T27","T28"]},
- {n:7,name:"Operación",ids:["T29","T30","T31","T32","T47","T48"]},
- {n:8,name:"Agentes adicionales",ids:["T33","T34","T35","T36","T37","T38","T39","T40","T41","T42","T43","T44"]},
- {n:9,name:"Carriles de ejecución",ids:["T45","T46"]},
- {n:10,name:"Sugerencias validadas",ids:["T49","T50","T51"]},
- {n:11,name:"Biblioteca de trading",ids:["T52","T53","T54","T55"]},
- {n:12,name:"Escuadrón de bots",ids:["T56","T57","T58","T59","T60"]},
- {n:13,name:"Experiencia compartida",ids:["T61"]},
- {n:14,name:"Motores locales e inteligencia audiovisual",ids:["T62","T63","T64","T65","T66","T67","T68","T69","T70","T71"]},
- {n:15,name:"Observatorio (mapa visual del sistema)",ids:["T72","T73","T74","T75","T76"]},
- {n:16,name:"Agente HFT (microestructura de futuros)",ids:["T104","T77","T78","T79","T80","T81","T82","T83","T84","T85","T86"]},
- {n:17,name:"Plataforma multiactivo (escáner global)",ids:["T87","T88","T89","T90","T91","T92","T93","T94","T95","T96","T97","T98","T99","T100","T101","T102","T103"]}
-,
- {n:18,name:"Protección progresiva de ganancias (3 perfiles)",ids:["T105","T106","T107","T108","T109","T110","T111","T112"]},
- {n:19,name:"Orquestación y autoridad única",ids:["T113","T114"]}
-,
- {n:20,name:"Estabilización e integración",ids:["T115","T116","T117","T118","T119","T120","T121","T122","T123","T124","T125"]},
- {n:21,name:"Capacidad del equipo y procesos largos",ids:["T126","T127","T128","T138","T140","T141","T142"]},
- {n:22,name:"Gestión dinámica del riesgo de la posición",ids:["T129","T130","T131","T132","T133","T134","T135","T136"]},
- {n:23,name:"La entrada: stop, costo y R bruto",ids:["T137","T139"]}
-];
 var GATES={T142:"¿Se reconcilian las 5 operaciones congeladas con el recálculo?",T141:"¿Qué prioridad lleva la API y qué se hace con la carga ajena?",T139:"¿Sigue alguna clave o se para la búsqueda de entradas?",T138:"¿Se juzga mark por su cadencia y se recalculan las horas pasadas?",T134:"¿Qué salida y qué tamaño adoptan los perfiles?",T128:"¿Qué historial de líderes se conserva y qué restos de data/ se borran?",T106:"¿Alcance de la protección progresiva en los tres perfiles?",T111:"¿Se adopta la protección progresiva o se archiva?",T113:"¿Algún orquestador aporta algo que el propio no cubra?",T52:"¿Las fichas de los libros son fieles?",T54:"¿Alguna regla de los libros se sostiene en BTC?",T10:"¿La interfaz sirve?",T19:"¿Probabilidades calibradas?",T27:"¿Hay ventaja estadística?",T31:"¿Pasamos a dinero real?",T33:"¿Qué fuente y alcance de copy trading aprobamos?",T49:"¿Alguna estrategia supera la validación?",T56:"¿Qué bots entran y con qué licencia?",T59:"¿Qué bots votan, informan o son publicables?",T62:"¿Qué motores locales entran y qué postura frente a YouTube?",T66:"¿La lectura visual es suficientemente fiel?",T69:"¿Algún analista supera el azar?",T70:"¿El agente de video vota o solo informa?",T75:"¿Entiendes el mapa del sistema sin ayuda?",T77:"¿Alcance, criterios y presupuesto de latencia HFT?",T80:"¿El techo HFT supera los costos?",T84:"¿Alguna estrategia HFT supera la validación?",T85:"¿El agente HFT pasa a testnet funcional?",T87:"¿Alcance, horizontes, datos y orden de clases multiactivo?",T88:"¿Qué repos y proveedores de datos entran?",T95:"¿El escáner supera el azar?",T97:"¿La primera clase nueva sigue?",T100:"¿Qué producto de renta fija u opciones merece clase?",T101:"¿Qué agentes funcionan en qué clase?",T103:"¿Qué intermediario de papel?"};
 var MILES=[
  {id:"T09",t:"Gráfico en vivo",s:"Velas reales en tiempo real"},
@@ -225,7 +197,7 @@ function render(){
     if(!on&&firstOpen<0)firstOpen=i;
     return {x:x,on:on}}).map(function(o,i){
       return '<div class="ms'+(o.on?" on":"")+(i===firstOpen?" cur":"")+'"><div class="dot">'+(o.on?"✓":"")+'</div><b>'+o.x.t+'</b><small>'+o.x.s+' · '+o.x.id+'</small></div>'}).join("");
-  document.getElementById("phases").innerHTML=PHASES.map(function(p){
+  document.getElementById("phases").innerHTML=(data.phases||[]).map(function(p){
     var ts=p.ids.map(function(i){return m[i]}).filter(Boolean),d=ts.filter(function(t){return t.view==="done"}).length;
     return '<div class="ph'+(d===ts.length&&ts.length?" full":"")+'"><header><div class="n">'+p.n+'</div><h3>'+p.name+'</h3><span class="cnt">'+d+"/"+ts.length+'</span></header><div class="pb"><span style="width:'+(ts.length?d/ts.length*100:0)+'%"></span></div>'+
     ts.map(function(t){

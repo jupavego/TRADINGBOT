@@ -4,10 +4,12 @@ Para el colaborador que vuelve después de una pausa (días o semanas) y se encu
 commits nuevos. Objetivo: **respaldar primero** su versión local (datos de operación, trabajo sin
 confirmar, configuración) y **después** actualizar, sin perder historial ni experiencia.
 
-No es lo mismo que `MIGRACION_EQUIPO.md` (trasladar todo a otro equipo) ni que `ONBOARDING.md`
-(primera instalación). Aquí el equipo sigue siendo el mismo: solo cambia el código.
+No es lo mismo que `v2/docs/MIGRACION_EQUIPO.md` (trasladar todo a otro equipo; para alternar
+equipos sin disco externo, `v2/docs/CONTINUIDAD.md`) ni que `ONBOARDING.md` en la raíz del repo
+(primera instalación, flujo de ramas y PR). Aquí el equipo sigue siendo el mismo: solo cambia el
+código. Lo que ya explican esas guías no se repite aquí.
 
-Resumen: un comando respalda y actualiza.
+Resumen: un comando, desde la raíz del repo, respalda y actualiza.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File v2\scripts\actualizar_colaborador.ps1
@@ -52,18 +54,22 @@ Si algo sale mal después, se vuelve atrás con `v2\scripts\importar_equipo.ps1 
 3. Hace el respaldo de §1.
 4. Actualiza: `git pull --ff-only`. Si hay trabajo sin confirmar **se detiene** (ya respaldado) para
    que decidas: confirmarlo en una rama y subirlo, o repetir con `-Forzar`.
-5. Reinstala dependencias: `requirements-lock.txt`, `pip install -e ".[dev]"` y `npm ci`.
+5. Reinstala dependencias en `v2\.venv` (lo crea si falta): `pip install -r requirements-lock.txt`,
+   `pip install -e . --no-deps` (las herramientas de `[dev]` ya vienen en el lock) y `npm ci`.
 6. Corre el gate (`-SinGate` lo salta).
 
 ## 3. Dependencias: por qué hay que reinstalar (no es opcional)
 
-- **`scipy` es dependencia obligatoria** desde esta semana (`agents/regime/bocpd.py`). Sin ella la
-  API no arranca.
-- `requirements-lock.txt` quedó **re-fijado** a las versiones probadas: algunos paquetes *bajan* de
-  versión (por ejemplo `fastapi`). Es intencionado; no lo "arregles" subiéndolos.
-- Extras opcionales: `[library]` (T52: `pypdf`, `pytesseract`, `Pillow`) solo si trabajas la
-  biblioteca; `[kronos]` sigue siendo pesado y opcional.
+- **`scipy` es dependencia obligatoria** desde el 2026-10-22 (`agents/regime/bocpd.py`). Sin ella
+  la API no arranca.
+- `requirements-lock.txt` quedó **re-fijado** el 2026-10-21 a las versiones probadas: algunos
+  paquetes *bajan* de versión (`fastapi`, `numpy`, `pandas`, `pillow`…). Es intencionado; no lo
+  "arregles" subiéndolos. Cómo se actualiza: `OPERACION.md` §5.
+- Extras opcionales: `[library]` (T52: `pypdf`, `pytesseract`, `Pillow`, ya incluidos en el lock)
+  solo si trabajas la biblioteca; `[kronos]` sigue siendo pesado y opcional, y `[video]`/`[localai]`
+  van en un entorno aparte (`OPERACION.md` §7). Detalle de la instalación: `ONBOARDING.md` §3.
 - `npm ci` (no `npm install`): respeta `package-lock.json`.
+- Variables `EIM_*` nuevas, con su defecto: `OPERACION.md` §2 (ninguna es obligatoria).
 
 ## 4. Tus datos y tu experiencia: qué sobrevive
 
@@ -105,6 +111,7 @@ evidencia. Usa un `--machine` **distinto** del otro colaborador o los historiale
 
 ```powershell
 cd v2
+.venv\Scripts\Activate.ps1      # el python del sistema no tiene las dependencias
 python -m ruff check eim tests
 python -m pytest -q
 ```
@@ -124,19 +131,26 @@ Antes de dar por mala la actualización, descarta las causas conocidas:
 | `ModuleNotFoundError: scipy` (o `eim`) | Entorno virtual sin reinstalar | Repetir el paso 5 del script con el entorno activo |
 | Falla una prueba `perf` (mide tiempo de reloj contra un umbral fijo) | Una regresión de rendimiento real (desde 2026-11-02 se miden en prioridad NORMAL y con la mediana de 3 rondas, así que la carga del equipo ya no basta para tumbarlas) | El mensaje trae la cifra medida (p50/p95/p99/máx). Aíslala con `python -m pytest -q -m perf` y repite; para seguir diagnosticando lo demás, `-m "not perf"`. **No subas el umbral**: es requisito de su tarea |
 | Falla al leer `PLAN/roadmap.html` | Falta regenerarlo | `python PLAN\build_roadmap.py` |
+| Falla `tests/docs/test_env_vars.py` o `tests/plan/test_build_roadmap.py` | Una variable `EIM_*` nueva sin fila en `OPERACION.md` §2, o un `PLAN/Txx.md` sin `Fase N` en su segunda línea (o una fase sin fila en `PLAN/00_MASTER.md`) | Añadir la fila o la cabecera que nombra el mensaje (T121) |
+| Falla `tests/repo/test_hygiene.py` | Hay en el árbol algo que `git add -A` subiría: una base `.duckdb`, un `.env`, un volcado de variables o una clave en claro (p. ej. un paquete de traslado en una carpeta que no está en `.gitignore`) | Moverlo fuera del repo o ignorarlo; el mensaje dice qué archivo |
 
 Si falla otra cosa, no lo arregles en `main`: abre rama y PR como siempre (`ONBOARDING.md` §6).
 
 ## 6. Arrancar y comprobar
 
-Primero (T125): `python -m eim.continuity check` desde `v2/`. Dice si el código y los datos de
-este equipo están al día frente a GitHub y a la copia externa, y bloquea si no lo están
-(`docs/CONTINUIDAD.md`).
+Primero (T125): `python -m eim.continuity check` desde `v2/` y con el entorno activo
+(`.venv\Scripts\Activate.ps1`). Dice si el código y los datos de este equipo están al día frente a
+GitHub y a la copia externa, y bloquea si no lo están (`docs/CONTINUIDAD.md`).
+
+Si este equipo corre el servicio continuo (el script lo detuvo en §2), vuelve a lanzarlo con el
+icono del escritorio o con `powershell -ExecutionPolicy Bypass -File v2\scripts\servicio_continuo.ps1 -ConWeb`
+(API en papel, bróker simulado, líderes e interfaz) y no lances las dos órdenes de abajo: chocarían
+en el puerto 8000. Si no, en dos terminales:
 
 ```powershell
-# API (desde v2/)
+# API (desde v2/, con el entorno activo)
 python -m uvicorn eim.api.main:app --port 8000 --reload
-# Web
+# Web (desde la raíz del repo)
 cd v2\eim\web; npm run dev
 ```
 
@@ -150,7 +164,8 @@ cd v2\eim\web; npm run dev
 
 ## 7. Qué cambió mientras estabas fuera
 
-Resumen por temas, con lo que hay que calibrar o integrar:
-`PLAN/notas/CAMBIOS_2026-10-15_a_2026-10-22.md`.
+Estado actual del proyecto (qué corre, qué está en curso y su siguiente paso):
+`PLAN/ESTADO_PROYECTO.md`; sesión a sesión, las últimas entradas de `PLAN/BITACORA.md`. Resumen
+por temas de la semana del 15 al 22 de octubre: `PLAN/notas/CAMBIOS_2026-10-15_a_2026-10-22.md`.
 
 Antes de tomar tarea: `PLAN/STATUS.md` (reclama la tarea ☐ → ◐ con tu nombre) y `PLAN/BACKLOG.md`.

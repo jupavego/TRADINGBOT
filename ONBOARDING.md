@@ -28,8 +28,13 @@ Notas para Windows:
 > ¿Vuelves tras una pausa de días o semanas, con el repo ya instalado? No sigas esta guía: usa
 > `v2/docs/RETOMAR_COLABORADOR.md` y `v2/scripts/actualizar_colaborador.ps1`, que **respalda primero**
 > tus datos de operación, tu trabajo sin confirmar y tu configuración, y después actualiza, reinstala
-> dependencias y corre el gate. Qué cambió mientras no estabas:
+> dependencias y corre el gate. Qué cambió mientras no estabas: `PLAN/ESTADO_PROYECTO.md` (estado
+> actual), las últimas entradas de `PLAN/BITACORA.md` y, para la semana del 15 al 22 de octubre,
 > `PLAN/notas/CAMBIOS_2026-10-15_a_2026-10-22.md`.
+>
+> Las tres guías no se repiten: **instalar** es esta, **cambiar de equipo** es
+> `v2/docs/MIGRACION_EQUIPO.md` (o `v2/docs/CONTINUIDAD.md` para alternar equipos sin disco
+> externo) y **volver tras una pausa** es `v2/docs/RETOMAR_COLABORADOR.md`.
 
 ## 2. Acceso a GitHub
 
@@ -61,7 +66,11 @@ python -m pip install -U pip
 python -m pip install -e ".[dev]"
 ```
 
-`[dev]` instala `pytest`, `ruff` y `pyright`. El extra `[kronos]` (torch, etc.) es **opcional y pesado**: instálalo solo si tu tarea trabaja con el motor Kronos (`pip install -e ".[dev,kronos]"`).
+`[dev]` instala `pytest`, `ruff` y `pyright`. Sobre las dependencias:
+
+- **`scipy` es obligatoria** (`agents/regime/bocpd.py`): la instala `pip install -e .`, y sin ella la API no arranca.
+- **`requirements-lock.txt` fija las versiones con las que pasa el gate.** Algunas están por debajo de la última **a propósito** (el re-fijado del 2026-10-21 bajó `fastapi`, `numpy`, `pandas` y `pillow`): no las subas al instalar. Para el entorno exacto, el que montan `preparar_equipo.ps1` y `actualizar_colaborador.ps1`: `python -m pip install -r requirements-lock.txt && python -m pip install -e . --no-deps`. El lock ya trae las herramientas de `[dev]` y las de `[library]`. Cómo y cuándo se actualiza: `v2/docs/OPERACION.md` §5.
+- **Extras opcionales.** `[library]` (T52: `pypdf`, `pytesseract`, `Pillow`; el OCR pide además el programa Tesseract), solo si trabajas la biblioteca. `[kronos]` (torch, etc.) es **pesado**: solo si tu tarea usa el motor Kronos (`pip install -e ".[dev,kronos]"`). `[video]` y `[localai]` van en un entorno aparte, fuera del repo (`v2/docs/OPERACION.md` §7).
 
 **Frontend (Node)**:
 
