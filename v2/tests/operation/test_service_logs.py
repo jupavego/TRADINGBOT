@@ -102,6 +102,17 @@ def test_the_scripts_still_parse(name):
     """Los editados en T140 llevan BOM: sin él, PowerShell 5.1 estropea los acentos."""
     path = SCRIPTS / name
     assert path.read_bytes().startswith(b"\xef\xbb\xbf")
+    _assert_parses(path)
+
+
+def test_the_weekly_ab_script_parses_and_stays_in_ascii():
+    """T135: sin BOM y sin acentos, para que PowerShell 5.1 no estropee nada."""
+    path = SCRIPTS / "t135_ab_semanal.ps1"
+    assert path.read_bytes().isascii()
+    _assert_parses(path)
+
+
+def _assert_parses(path: Path) -> None:
     probe = ("$e = $null; [void][System.Management.Automation.Language.Parser]::ParseFile("
              f"'{path}', [ref]$null, [ref]$e); $e.Count")
     out = subprocess.run(["powershell", "-NoProfile", "-Command", probe],  # noqa: S603, S607
