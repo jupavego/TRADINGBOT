@@ -817,3 +817,17 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** mirar el primer informe el 2026-11-09 y su línea en el registro. Veredicto como pronto el 2026-12-06.
 - **En curso:** T135 (◐); T31 (→ 2026-11-27), T45, T62, T104, T78, T116, T117, T127 y T128 sin cambios aquí.
 - **Siguiente paso:** nada en T135 hasta el veredicto. Las cifras semanales son provisionales.
+
+## 2026-11-07 15:00 UTC · juanpablo-cpu · Decisiones delegadas: T62 y T117 cerradas, ◆ de T128 resuelta, T45 aparcada
+- **Pedido:** el usuario delegó en Claude las cuatro tareas que la página «Vigía de tareas EIM» marcaba en rojo por esperar su decisión: T45, T62, T117 y el permiso de T128.
+- **Hecho:**
+  - **T62 ☑:** postura frente a YouTube = cumplir sus Términos (`v2/docs/SEGURIDAD.md`); equipo de referencia `juanpablo-cpu`.
+  - **T117 ☑:** 4 692 conflictos revisados en la copia `eim_20261107-000047` (nota §8); se conserva lo local. T61 sin ◆.
+  - **T128:** validación sin el recolector viejo. 38 de 39 velas de 1 h y 239 de 242 de 15 min idénticas, y donde difieren tiene más la captura (`PLAN/notas/T128_validacion_fuente.md`).
+  - **T45:** aparcada hasta que haya claves de testnet.
+  - Página del móvil: reglas actualizadas en `C:\Users\jo\.claude\eim-vigia\estado_tareas.py`, fuera del repo.
+- **Archivos:** `PLAN/{STATUS,ESTADO_PROYECTO,BACKLOG,BITACORA}.md`, `PLAN/notas/{T117_primera_mezcla,T62_auditoria,T128_validacion_fuente}.md`, `v2/docs/SEGURIDAD.md`, `v2/scripts/t128_validar_fuente.py`.
+- **Pruebas:** gate por la cola (resultado en el PR). Las lecturas fueron de solo lectura, en prioridad `batch` y sobre copias o Parquet ya cerrados. Nada del vivo se tocó.
+- **Abierto:** en T128, la semana de `leaders.duckdb` (→ 2026-11-09 23:13 UTC; hoy pesa 2 676 MB frente a 1 267 MB) y la alerta «sin latido» de liquidaciones con el proceso vivo.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T127, T128, T135 y T141.
+- **Siguiente paso:** fusionar el PR y traer `main` a la carpeta principal (solo documentos y un script, sin reinicio).

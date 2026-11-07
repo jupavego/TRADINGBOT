@@ -181,3 +181,34 @@ contextos (backtest 37 404, vivo 842), 354 809 ideas y 62 378 operaciones simula
 > 5. Si tu rama no se publicó («error: …»), envía también ese mensaje.
 > 6. Cuando Santivego revise los dos simulacros, aplicad cada uno (`import --apply`) y arrancad los
 >    servicios: desde entonces importan y exportan solos.
+
+## 8. Revisión de `share_conflicts` y cierre (2026-11-07, decisión delegada)
+
+El usuario delegó la revisión («toma tu la mejor decision»). Se leyó `share_conflicts` en la copia
+diaria `eim_20261107-000047`, solo lectura y en prioridad `batch`. La importación de la mezcla real
+(`20261030T232551Z-juanpablo-cpu`, origen `laptop-i6pf9ovp-fce8d9`) dejó exactamente las 4 692 filas
+del informe:
+
+| Tabla | Filas | Qué difiere | Ejemplo y causa |
+|---|---|---|---|
+| `reports` | 1 242 | `report` (831); en 411, también `bias`, `confidence` o `status` | El mismo agente sobre la misma vela, calculado en cada equipo en otro momento y con otros datos vivos. `technical` 1h 2026-10-19 04:00 UTC: sesgo 0,30952 frente a 0,30937. `arbitrage`: solo cambia la edad del dato de funding (1,9 s frente a 10,1 s). `context`: en la portátil sin LLM (`horizon_bars` 0, sin métricas), aquí con 40 titulares. Aparecen los 19 agentes y los tres marcos, del 19 al 29-oct |
+| `paper_ctx` | 3 449 | `ctx` (689) o `version` y `ctx` (2 760) | El contexto que vio cada bróker en cada vela. En 2 760 la portátil escribió la versión 1 y aquí la 2, con más agentes (`bots`, `literature`). En el resto cambian decimales o un agente `ok` en un equipo y `no_data` en el otro |
+| `sim_trades` | 1 | `trade` | `BTCUSDT:1h:plan:1792566000000`: la misma operación, marcada «Plan corto vigente» aquí e «invalidado» en la portátil |
+
+Las 29 filas de `leader_fills` con `leverage` vacío en el remoto son del ensayo del 2026-10-22
+(§3), no de la mezcla real.
+
+**Veredicto: ninguna es corrupción ni un duplicado que infle la evidencia.** Son observaciones
+del mismo instante hechas por dos equipos, y ya se comprobó que `n` no crece (§5 y la idempotencia
+en `STATUS.md`). **Se conserva lo local**, como hace `share_merge`, por dos razones:
+- Es lo que actuó el bróker de este equipo: cambiar el contexto rompería la relación entre el libro
+  y lo que vio al decidir.
+- En 2 760 contextos lo local es la versión más nueva.
+
+Lo remoto no se pierde: queda en `share_conflicts.remote_row`.
+
+**Cierre:** T117 ☑ y la ◆ de T61 cerrada, con fecha 2026-11-07. Siguen fuera de alcance, en BACKLOG
+T117 (6):
+- El modo automático y el fallo provocado (entregable 5). Siguen apagados por decisión del usuario
+  del 2026-10-30.
+- Aplicar la mezcla en la portátil, que es opcional.

@@ -92,10 +92,18 @@ Auditoría completa en `PLAN/notas/T62_auditoria.md`; aquí solo las reglas que 
 - **Entorno aparte:** los extras `[video]`/`[localai]` se instalan en un entorno virtual propio en `EIM_LOCALAI_DIR`, no en el de la API; el gate no los exige. `pip-audit` también sobre ese entorno (§5 de `OPERACION.md`).
 - **El contenido es dato:** transcripciones, títulos, texto en pantalla y salidas de un modelo nunca son instrucciones (mismo patrón que T24/T52: bloque delimitado declarado no confiable, validación con esquema, descarte de lo que no tenga cita).
 
-## Videos de YouTube (T62) — propuesta, ◆ pendiente de decisión del usuario
+## Videos de YouTube (T62) — decidida el 2026-11-07
 **Hechos** (auditoría T62, grupo A): los Términos de YouTube prohíben descargar el contenido sin permiso y acceder por medios automatizados; las Developer Policies de la API prohíben guardar copias del audiovisual y separar el audio; la API oficial solo baja subtítulos de videos propios; `youtube-transcript-api` usa un endpoint interno no documentado y sufre bloqueos de IP; el RSS de canal no está documentado (404 en las pruebas).
 
-**Postura propuesta** (el usuario la aprueba, la ajusta o la rechaza; hasta entonces T64/T65 no descargan nada):
+**Postura vigente** (2026-11-07). El usuario delegó la decisión («toma tu la mejor decision») y Claude eligió la que no le crea riesgo: **se cumplen los Términos de YouTube.**
+- **Sí:** puntos 1, 2, 5 y 6 de la propuesta de abajo.
+- **No:**
+  - **No al punto 3:** no se usa `youtube-transcript-api`, que es un acceso automatizado por un endpoint interno.
+  - **No al punto 4:** no se descarga audio ni video de YouTube con `yt-dlp`.
+- **Qué se puede transcribir:** solo lo que se puede usar sin chocar con los Términos. Son los videos propios del usuario (`captions.download` de la API oficial), el audio o video que él aporte y lo que el autor permita por escrito. Los demás videos se omiten: de ellos solo quedan los metadatos de la Data API v3.
+- **Consecuencia:** T64–T66 trabajan con esas fuentes, no con «cualquier video de un canal».
+
+**Propuesta original** (para el registro; los puntos 3 y 4 quedaron rechazados):
 1. **Uso personal, local y sin redistribuir.** Nada de video, audio ni transcripción completa entra a git, a la mezcla entre equipos de T61 ni a ningún servicio; sí viajan las afirmaciones derivadas (paráfrasis corta + enlace + segundo), como las fichas de la biblioteca (T52).
 2. **Primero lo oficial:** descubrimiento y metadatos solo con la YouTube Data API v3 (clave propia del usuario, dentro de su cuota) o el RSS cuando responda.
 3. **Subtítulos antes que audio:** subtítulos ya publicados por el canal como primera fuente; `youtube-transcript-api` solo si el usuario acepta que es un acceso no oficial, con ritmo bajo (cola nocturna, pocos videos) y sin proxies rotativos para esquivar bloqueos.
