@@ -854,3 +854,4 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `PLAN/roadmap.html`, `PLAN/BITACORA.md`.
 - **Pruebas:** `tests/plan` y `tests/continuity` en verde.
 - **Ajuste pedido a mitad de tarea:** se quita la tarjeta «Listas para empezar». Arriba queda solo «Avance general», a todo el ancho, y bajo él los capítulos completos. Comprobado en el 8765: una sola tarjeta arriba y ningún error de consola.
+- **Segundo ajuste:** la línea de tiempo de hitos sube encima de «Capítulos completos». Orden final: avance general, hitos, capítulos completos, capítulos por terminar. Comprobado en el 8765, sin errores de consola.
