@@ -857,3 +857,14 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** BACKLOG T121 (1)–(4): la columna «Tareas» de `00_MASTER.md` sigue a mano, `python-binance` falta en el lock, `ONBOARDING` §6.3 llama generado a `roadmap.html`, y hay líneas largas viejas en `build_roadmap.py`. No se pudo seguir `RETOMAR_COLABORADOR.md` de punta a punta: pararía los servicios de T31 y T78. Se revisó paso a paso contra `actualizar_colaborador.ps1` y `servicio_continuo.ps1`, y la interfaz con precio en vivo que da como resultado es la que ya sirve este equipo.
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T127, T128, T135 y T141.
 - **Siguiente paso:** fusionar el PR y traer `main` a la carpeta principal (documentos, pruebas y el script del tablero; sin reinicio de servicios).
+## 2026-11-07 15:45 UTC · juanpablo-cpu · Hoja de ruta: capítulos completos arriba
+- **Pedido del usuario:** poner los capítulos ya completos arriba, bajo el avance general, para leer mejor los que tienen tareas en curso o en espera al desplegarlos.
+- **Hecho (`PLAN/roadmap.html`):**
+  - Sección «Capítulos completos · N» entre las tarjetas de arriba y los hitos, con tarjetas compactas que se pueden desplegar.
+  - Debajo, «Capítulos por terminar · N» con su resumen. «Desplegar todos» y «Plegar todos» actúan solo sobre esta sección.
+  - Un capítulo pasa solo de una sección a otra en cuanto se completa: `full` = todas sus tareas hechas.
+- **Comprobado:** en el 8765, publicado desde la rama. Quedan 16 completos arriba y 8 por terminar abajo, todos con algo en curso, listo o en espera. Sin errores de consola.
+- **Archivos:** `PLAN/roadmap.html`, `PLAN/BITACORA.md`.
+- **Pruebas:** `tests/plan` y `tests/continuity` en verde.
+- **Ajuste pedido a mitad de tarea:** se quita la tarjeta «Listas para empezar». Arriba queda solo «Avance general», a todo el ancho, y bajo él los capítulos completos. Comprobado en el 8765: una sola tarjeta arriba y ningún error de consola.
+- **Segundo ajuste:** la línea de tiempo de hitos sube encima de «Capítulos completos». Orden final: avance general, hitos, capítulos completos, capítulos por terminar. Comprobado en el 8765, sin errores de consola.
