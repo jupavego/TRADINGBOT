@@ -753,3 +753,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** PR #218, a la espera de permiso para fusionar: solo lleva la distorsión cerrada y documentos.
 - **En curso:** T141 en su PR #216, que ahora tiene conflictos; T31, T45, T62, T78, T104, T116, T117, T127, T128 y T135 sin cambios aquí.
 - **Siguiente paso:** fusionar #218 con permiso del usuario y traerlo a la carpeta principal; no hace falta reiniciar para esto hasta el próximo arranque, porque el texto del informe se carga al arrancar.
+
+## 2026-11-07 02:45 UTC · juanpablo-cpu · T140 desplegada
+- **Hecho:** vigilante y API reiniciados con permiso del usuario, a las 02:35–02:36 UTC, tras esperar a que T142 acabara de reconciliar y a un gate de T141. El puerto volvió a escuchar a los 42 s, con `--loop eim.operation.event_loop:selector_loop`. Detalle en `PLAN/notas/T140_api_sin_puerto.md` §7.
+- **Comprobado:** 2 ciclos correctos con el mismo capital, WebSocket con ticks, 0 alertas de protección al arrancar, los otros 15 procesos con los mismos PID y `continuity check` dice que la API escucha. Registros anteriores conservados y los nuevos con hora.
+- **Tropiezos:** la comprobación previa del despliegue traía `main` aunque no parara nada, y así entró T142 en la carpeta antes de saberlo; T142 reinició la API por su cuenta y con permiso a las 20:04 UTC, justo entonces. Después, mi sesión se cortó esperando un gate y el reinicio se retrasó 6 h. En ese tiempo la API siguió sin protección, sin que pasara nada.
+- **Archivos:** `PLAN/{STATUS,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`, `PLAN/notas/T140_api_sin_puerto.md` §7, `v2/docs/RUNBOOK.md`. Sin código, así que no se repitió el gate.
+- **Abierto:** leer la hora 02 de la captura, la del reinicio. Vigilar la API con Selector unos días.
+- **En curso:** T31 (→ 2026-11-27), T45, T62, T104, T78, T116, T117, T127 y T128 sin cambios aquí.
+- **Siguiente paso:** los PR #218 (T142) y #216 (T141) siguen abiertos en sus sesiones.
