@@ -808,3 +808,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** ◆ la tarea semanal de los lunes, que pide permiso. Sin ella, la pasada se lanza a mano.
 - **En curso:** T135 (◐); T31 (→ 2026-11-27), T45, T62, T104, T78, T116, T117, T127 y T128 sin cambios aquí.
 - **Siguiente paso:** primera pasada a partir del 2026-11-09 y veredicto como pronto el 2026-12-06.
+
+## 2026-11-07 04:05 UTC · juanpablo-cpu · T135: tarea semanal del A/B instalada
+- **Hecho:** PR #221 fusionado y carpeta principal al día; solo entraron archivos nuevos que nada del vivo importa, así que no hizo falta reiniciar. Con permiso del usuario, tarea «EIM - informe semanal A-B M8 (T135)»: lunes 02:30 UTC, primera el 2026-11-09. Corre con la sesión del usuario iniciada y se pone al día si se perdió la hora.
+- **Comprobado:** pasada completa con `v2\scripts\t135_ab_semanal.ps1`: copia actualizada, cobertura 100 %, informe EN CURSO con 0 ideas y su línea en el registro. Ese informe es anterior al inicio y no cuenta. La tarea programada en sí aún no se ha disparado.
+- **Captura T78:** la hora 03, la de `gate-t135-m8`, aún no tenía QC. La racha iba en 12 h, con la hora 02 como última auditada.
+- **Archivos:** `PLAN/{ESTADO_PROYECTO,BITACORA}.md`, `PLAN/notas/T135_ab_m8.md`. Sin código.
+- **Abierto:** mirar el primer informe el 2026-11-09 y su línea en el registro. Veredicto como pronto el 2026-12-06.
+- **En curso:** T135 (◐); T31 (→ 2026-11-27), T45, T62, T104, T78, T116, T117, T127 y T128 sin cambios aquí.
+- **Siguiente paso:** nada en T135 hasta el veredicto. Las cifras semanales son provisionales.
