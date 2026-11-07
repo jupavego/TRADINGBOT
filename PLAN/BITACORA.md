@@ -831,3 +831,15 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** en T128, la semana de `leaders.duckdb` (→ 2026-11-09 23:13 UTC; hoy pesa 2 676 MB frente a 1 267 MB) y la alerta «sin latido» de liquidaciones con el proceso vivo.
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T127, T128, T135 y T141.
 - **Siguiente paso:** fusionar el PR y traer `main` a la carpeta principal (solo documentos y un script, sin reinicio).
+
+## 2026-11-07 15:25 UTC · juanpablo-cpu · Hoja de ruta con capítulos desplegables
+- **Pedido del usuario:** que cada capítulo (fase) de `PLAN/roadmap.html` se pueda desplegar y que las tareas no se vean salvo al desplegarlo.
+- **Hecho:**
+  - Cada fase arranca plegada. Su cabecera es un botón (`aria-expanded`) con número, nombre, hechas/total y una flecha; debajo quedan la barra de avance y un resumen («Completo», «N en curso», «N listas», «N en espera»).
+  - «Desplegar todos» y «Plegar todos» sobre la cuadrícula.
+  - Lo desplegado se recuerda en el navegador (`localStorage`, `eim-phases-open`) y sobrevive al refresco de cada 4 s.
+  - `PHASES` no cambia, así que `orphans()` de `build_roadmap.py` sigue igual.
+- **Comprobado:** en http://127.0.0.1:8765/roadmap.html (publicado desde la rama). Al cargar: 24 fases y 0 tareas visibles. Al pulsar una se ven sus tareas, y sigue abierta tras `render()`. «Desplegar todos» muestra las 142 tareas y «Plegar todos», ninguna. Sin errores de consola.
+- **Archivos:** `PLAN/roadmap.html`, `PLAN/BITACORA.md`.
+- **Pruebas:** `tests/plan` y `tests/continuity` en verde. No hay código de `eim/`.
+- **Siguiente paso:** fusionar el PR.
