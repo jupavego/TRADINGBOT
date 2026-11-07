@@ -740,8 +740,16 @@ más reciente por fecha y su siguiente paso. Formato:
 - **No previsto:** al bajar el capital de Agresivo, su única operación abierta (`15m:1793981700000:agente_technical`) quedó con otra cantidad (0,125 frente a 0,122) y se congeló a las 20:08 UTC. La nota no lo había previsto. El permiso cubría las 5, así que no se ha tocado.
 - **Coordinación:** la sesión de T140 esperó a la reconciliación para reiniciar vigilante y API; se le avisó de que al arrancar debe salir 1 alerta, no 5.
 - **Archivos:** `v2/eim/operation/distortions.py`, `v2/tests/operation/test_distortions.py`, `PLAN/notas/T142_posiciones_fantasma.md`, `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`.
-- **Pruebas:** comparación de libros antes y después por la API. Gate por la cola sobre T140 + T142 juntas: ver el PR.
+- **Pruebas:** comparación de libros antes y después por la API. Gate por la cola sobre T140 + T142 juntas: `gate-t142-cierre`, rc 0, 3 129 pasadas, 8 omitidas, 0 fallos, 1 100 s, sin pausas.
 - **Abierto:** permiso para reconciliar la sexta (◆); hasta entonces T142 queda ◐. Comprobar «sin alertas al arrancar» cuando no quede ninguna congelada.
 - **En curso:** T142 (◐), T141 en su PR #216; T31, T45, T62, T78, T104, T116, T117, T127, T128 y T135 sin cambios aquí.
 - **Siguiente paso:** decisión del usuario sobre la sexta.
+## 2026-11-07 02:40 UTC · juanpablo-cpu · T142: la sexta reconciliada, 0 congeladas
+- **Hecho:** con permiso del usuario, reconciliada `agresivo|BTCUSDT|BTCUSDT:15m:1793981700000:agente_technical` a las 02:33 UTC. **0 congeladas y 0 alertas de protección activas.** Cerró en su stop, 76 159,55, con −93,75 USDT (−1,17 R). La foto de antes y la de después solo difieren en esta operación: sin más cascadas.
+- **Mientras esperaba:** el precio tocó su stop el 2026-11-06 a las 22:02 UTC y siguió abierta. El permiso llegó antes, pero la sesión se cortó y el usuario pidió repetirlo; se comprobó el estado y solo entonces se reconcilió.
+- **Archivos:** `v2/eim/operation/distortions.py`, `v2/tests/operation/test_distortions.py`, `PLAN/notas/T142_posiciones_fantasma.md`, `PLAN/{T31,STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`.
+- **Pruebas:** tras el gate combinado solo cambiaron un texto y `t1` de `distortions.py` y documentos: `ruff` limpio y `tests/operation/test_distortions.py`.
+- **Abierto:** T140 está en `main` pero sin desplegar: el vigilante sigue siendo el del 2026-11-05. Su sesión tiene el aviso de que ya puede reiniciar; ese arranque es la comprobación que falta de «sin alertas al arrancar». Sigue abierto el PR #218, a la espera de permiso para fusionar.
+- **En curso:** T142 (◐), T141 en su PR #216, que ahora tiene conflictos; T31, T45, T62, T78, T104, T116, T117, T127, T128 y T135 sin cambios aquí.
+- **Siguiente paso:** fusionar #218 con permiso del usuario y, tras el reinicio de T140, marcar T142 ☑.
 

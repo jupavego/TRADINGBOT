@@ -2,7 +2,7 @@
 
 Hecho desde `juanpablo-cpu`, solo leyendo: copia `v2/backups/eim_20261106-000006`, velas de `data/candles`, trades de `data/micro_hft/trades` y registro `data/obs/spool`. No se escribió en `data/paper.duckdb`.
 
-**Ya reconciliadas, con permiso del usuario, a las 20:07 UTC del 2026-11-06.** El efecto real está en §5. §1 a §4 se escribieron antes, con la medida hasta las 00:00 UTC de esa copia. **Al reconciliar se congeló una sexta operación, que §4 no había previsto** (§5).
+**Ya no queda ninguna congelada.** Las 5 se reconciliaron a las 20:07 UTC del 2026-11-06 y una sexta, que esa reconciliación congeló y §4 no había previsto, a las 02:33 UTC del 2026-11-07, todas con permiso del usuario. El efecto real está en §5. §1 a §4 se escribieron antes, con la medida hasta las 00:00 UTC de esa copia.
 
 ## Resumen
 
@@ -116,7 +116,10 @@ Igual para las otras 4. **Qué cambiará:** los tres libros se recalculan desde 
 | 20:04:33 | Se detiene solo la hija de `uvicorn`; el vigilante la relanza. Puerto y `/v2/health` a los 61 s, `/v2/paper` a los 134 s |
 | 20:07:00 | Foto antes de reconciliar: 390 operaciones, **las mismas que con el código viejo**, con el mismo PnL. El despliegue no cambió los libros |
 | 20:07:28 → 20:07:36 | Las 5 reconciliadas con `--decision recalculo` |
-| 20:08:25 | Pasada siguiente: las 5 cerradas en el diario, al precio de §1. **Se congela una sexta** |
+| 20:08:25 | Pasada siguiente: las 5 cerradas en el diario, al precio de §1 y sus 5 alertas resueltas. **Se congela una sexta** |
+| 22:02 (11-06) | El precio toca el stop de la sexta (máximo 76 182,5). Sigue abierta, porque una congelada no se cierra sola |
+| 02:33 (11-07) | La sexta, reconciliada con permiso del usuario. El permiso llegó antes, pero la sesión se cortó y se hizo al retomarla |
+| 02:34:12 | Pasada siguiente: la sexta cerrada en el diario y su alerta resuelta. **0 congeladas y 0 alertas de protección activas** |
 
 **Efecto medido en los libros reales,** comparando las fotos de antes y después por la API. Es mejor que §2, porque incluye lo decidido hasta las 20:07 UTC:
 
@@ -138,4 +141,12 @@ Igual para las otras 4. **Qué cambiará:** los tres libros se recalculan desde 
 - **Por qué:** es una cascada que §4 no vio. Reconciliar bajó el capital de Agresivo, así que esta posición, ya abierta, se recalcula con 0,122 BTC frente a los 0,125 guardados. `ladder_floor.mismatch` la retiene por no cuadrar («cantidad guardada 0.125 ≠ recalculada 0.122»). La salvaguarda hace lo que debe. **No es el escalón prematuro** y no toca `_never_lower`.
 - **Efecto:** como cualquier congelada, no se cierra sola aunque el precio toque su stop.
 - **Por qué solo una:** era la única operación del diario que seguía abierta al reconciliar.
+- **Resultado:** cerró en su stop, 76 159,55, con **−93,75 USDT (−1,17 R)**. El camino de 15 m fecha el cierre a las 22:15 UTC, al terminar la vela en que se tocó.
+- **Coste de esperar:** la pérdida estuvo fuera del capital de Agresivo 4 h 18 min. Ninguna decisión de ese rato cambió: la foto de antes y la de después solo difieren en esta operación.
+- **A diferencia de las 18 de arriba, esta sí se vivió en su momento,** aunque en el libro fijo salga como `retro` porque se grabó más de 2 h después de cerrar.
+- **Sin más cascadas:** `agente_ema`, la otra abierta, se dimensionó a las 17:45 UTC, antes de este cierre, y conserva su cantidad.
+
+**Capital realizado de Agresivo en total:** 8 206,27 → 7 965,01 (−241,26). De eso, −147,51 por las 5 y sus entradas no tomadas y −93,75 por la sexta.
+
+**Queda por comprobar:** «sin alertas al arrancar», en el reinicio que despliega T140. El gate completo de T140 y T142 juntas salió verde: `gate-t142-cierre`, rc 0, 3 129 pasadas, 8 omitidas, 0 fallos, 1 100 s, sin pausas.
 
