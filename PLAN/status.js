@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-07T10:27:45",
+ "generated": "2026-11-07T11:12:19",
  "phases": [
   {
    "n": 0,
@@ -1818,8 +1818,8 @@ window.EIM_STATUS = {
    "id": "T121",
    "title": "Documentación, variables y tablero al día",
    "deps": [],
-   "state": "progress",
-   "notes": "En curso (2026-11-07, `juanpablo-cpu`)",
+   "state": "done",
+   "notes": "2026-11-07: `v2/docs/OPERACION.md` §2 nombra las 73 `EIM_*` del código (faltaban 18; 9 más abreviadas) y `tests/docs/test_env_vars.py` lo exige en los dos sentidos. Fases del tablero desde la cabecera `Fase N` de cada `Txx.md` + tabla de `00_MASTER.md` (`build_roadmap.py` → `status.js`; falla si una tarea no declara fase; `roadmap.html` sin `var PHASES`). `tests/repo/test_hygiene.py`: ni `.duckdb`, ni `.env`/volcados, ni claves en claro en lo que subiría `git add -A`. `scipy`, lock y extras en `ONBOARDING` §3 y `RETOMAR` §3; guías enlazadas desde `CLAUDE.md`. Gate 3 225 pasadas, 0 fallos",
    "effort": "bajo",
    "phase": 20,
    "goal": "Que quien vuelva (o quien llegue) no descubra el sistema a golpes: variables documentadas, dependencias nuevas dichas, tablero que dibuja todas las tareas y ningún paquete con claves suelto en el repositorio. Detalle en `PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §G."
