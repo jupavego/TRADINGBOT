@@ -148,5 +148,5 @@ Igual para las otras 4. **Qué cambiará:** los tres libros se recalculan desde 
 
 **Capital realizado de Agresivo en total:** 8 206,27 → 7 965,01 (−241,26). De eso, −147,51 por las 5 y sus entradas no tomadas y −93,75 por la sexta.
 
-**«Sin alertas al arrancar» comprobado:** la sesión de T140 reinició vigilante y API a las 02:35:50 UTC. A las 02:37:08 `/v2/paper` respondía con 0 congeladas, sin recuperaciones, 0 alertas desde el arranque y ninguna activa; el capital de los 4 perfiles, igual que antes del reinicio. El gate completo de T140 y T142 juntas salió verde: `gate-t142-cierre`, rc 0, 3 129 pasadas, 8 omitidas, 0 fallos, 1 100 s, sin pausas.
+**«Sin alertas al arrancar» comprobado:** el vigilante y la API se reiniciaron a las 02:35:50 UTC, ya con T140 (`--loop …selector_loop`). A las 02:37:08 `/v2/paper` respondía con 0 congeladas, sin recuperaciones, 0 alertas desde el arranque y ninguna activa; el capital de los 4 perfiles, igual que antes del reinicio. El gate completo de T140 y T142 juntas salió verde: `gate-t142-cierre`, rc 0, 3 129 pasadas, 8 omitidas, 0 fallos, 1 100 s, sin pausas.
 

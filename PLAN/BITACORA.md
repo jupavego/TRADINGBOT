@@ -749,7 +749,7 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Mientras esperaba:** el precio tocó su stop el 2026-11-06 a las 22:02 UTC y siguió abierta. El permiso llegó antes, pero la sesión se cortó y el usuario pidió repetirlo; se comprobó el estado y solo entonces se reconcilió.
 - **Archivos:** `v2/eim/operation/distortions.py`, `v2/tests/operation/test_distortions.py`, `PLAN/notas/T142_posiciones_fantasma.md`, `PLAN/{T31,STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`.
 - **Pruebas:** tras el gate combinado solo cambiaron un texto y `t1` de `distortions.py` y documentos: `ruff` limpio y `tests/operation/test_distortions.py`.
-- **«Sin alertas al arrancar», comprobado:** la sesión de T140 reinició vigilante y API a las 02:35:50 UTC, ya con el bucle nuevo. A las 02:37:08 `/v2/paper` respondía con 0 congeladas, sin recuperaciones, 0 alertas desde el arranque y ninguna activa, y con el mismo capital en los 4 perfiles. T142 ☑.
+- **«Sin alertas al arrancar», comprobado:** el vigilante y la API se reiniciaron a las 02:35:50 UTC, ya con el bucle nuevo de T140. A las 02:37:08 `/v2/paper` respondía con 0 congeladas, sin recuperaciones, 0 alertas desde el arranque y ninguna activa, y con el mismo capital en los 4 perfiles. T142 ☑.
 - **Abierto:** PR #218, a la espera de permiso para fusionar: solo lleva la distorsión cerrada y documentos.
 - **En curso:** T141 en su PR #216, que ahora tiene conflictos; T31, T45, T62, T78, T104, T116, T117, T127, T128 y T135 sin cambios aquí.
 - **Siguiente paso:** fusionar #218 con permiso del usuario y traerlo a la carpeta principal; no hace falta reiniciar para esto hasta el próximo arranque, porque el texto del informe se carga al arrancar.
