@@ -788,3 +788,11 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** fusionar el PR #216 y reiniciar el registro de consumo, con permiso del usuario. ◆C, ◆D y ◆E sin decidir.
 - **En curso:** T31, T45, T62, T78, T104, T116, T117, T127, T128, T135, T141, T142.
 - **Siguiente paso:** con el registro reiniciado, `python -m eim.operation.usage incidents --days 7` hasta el 2026-11-10.
+## 2026-11-07 03:10 UTC · juanpablo-cpu · T141 desplegada: el registro ya nombra a los procesos
+- **Hecho, con permiso del usuario:** PR #216 fusionado a las 03:00:21 UTC y carpeta principal en `85f02f5`. Se detuvo solo el registro de consumo (PID 7368) a las 03:00:45 y se volvió a lanzar la tarea programada, que solo completa lo que falta: nació a las 03:00:50 (PID 30816), en la sesión 1, con prioridad 6, memoria 2 y E/S baja como antes. La captura, la API y los demás servicios conservaron sus PID.
+- **Comprobado en el servicio real:** un proceso de prueba de 350 MB salió en `data/usage` con su orden (`python.exe -I prueba_t141.py --procesos 1 --token ***`) y su carpeta; la clave falsa no quedó ni allí ni en el registro de operación. Las muestras traen `api_beat_age_s` y `faults`, cada 30 s, sin errores en `consumo.err.log`. Captura en el arranque de siempre, cola 0 y sin descartes; recolectores aún en memoria 5 y E/S normal.
+- **Archivos:** `PLAN/notas/T141_carga_ajena.md`, `PLAN/{STATUS,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/{roadmap.html,status.js}`. Sin cambios de código.
+- **Pruebas:** no aplica, son documentos; lo probado es el servicio desplegado (arriba). Sin notificación real ni prueba desde la sesión 0.
+- **Abierto:** medir hasta el 2026-11-10 03:00 UTC y cerrar T141. La mejora de ◆B sigue sin demostrarse. ◆C, ◆D y ◆E sin decidir.
+- **En curso:** T31, T45, T62, T78, T104, T116, T117, T127, T128, T135, T141.
+- **Siguiente paso:** a partir del 2026-11-10 03:00 UTC, `python -m eim.operation.usage incidents --days 7` y completar el informe, nombrando los procesos de cada bloqueo o diciendo que no los hubo.
