@@ -796,3 +796,14 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** medir hasta el 2026-11-10 03:00 UTC y cerrar T141. La mejora de ◆B sigue sin demostrarse. ◆C, ◆D y ◆E sin decidir.
 - **En curso:** T31, T45, T62, T78, T104, T116, T117, T127, T128, T135, T141.
 - **Siguiente paso:** a partir del 2026-11-10 03:00 UTC, `python -m eim.operation.usage incidents --days 7` y completar el informe, nombrando los procesos de cada bloqueo o diciendo que no los hubo.
+
+## 2026-11-07 03:45 UTC · juanpablo-cpu · T135 reabierta: A/B de M8 congelado, empieza el 2026-11-08
+- **Hecho:** el usuario pidió reabrir T135 midiendo M8. Se congeló un A/B prospectivo emparejado: tabla de 42 estrategia@marco, inicio 2026-11-08 00:00 UTC y mínimos de 4 semanas, 315 operaciones y 21 días. Sin adoptar nada.
+- **Cambio de diseño:** se había hablado de un perfil aparte, y se descartó al leer §5.4: el criterio 7 compara con T134, que midió otra población. Un perfil tampoco era necesario y tocaba T31. El A/B corre sobre una copia, sin reiniciar nada.
+- **Comprobado:** reproduce T134 hasta el último decimal (E[R] −0,10448885991888382, n 29 841). La potencia por día da 21 días y un efecto detectable de 0,042 R con 28. La cadena corrió con datos reales en un ensayo que **no cuenta** como resultado.
+- **Revisión de código:** 10 hallazgos, 8 corregidos, entre ellos el veredicto, que se podía cambiar con solo seguir corriendo, y la mecánica sin fijar. Los otros 2, en BACKLOG T135. Por eso se congeló de nuevo: el primer archivo nunca se confirmó ni contó ninguna idea.
+- **Captura T78:** la hora 02 de hoy, la del reinicio de T140, salió completa (libro útil 1,0).
+- **Archivos:** `v2/eim/paper/exits/ab_live.py`, `v2/eim/paper/exits/versions/t135_ab_m8_v1.json`, `v2/scripts/t135_ab_m8.py`, `v2/scripts/t135_ab_semanal.ps1`, `v2/reports/t135_regress.json`, `v2/tests/paper/exits/test_ab_live.py`, `v2/tests/operation/test_service_logs.py`, `PLAN/notas/{T135_ab_m8,T135_motor}.md`, `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`.
+- **Abierto:** ◆ la tarea semanal de los lunes, que pide permiso. Sin ella, la pasada se lanza a mano.
+- **En curso:** T135 (◐); T31 (→ 2026-11-27), T45, T62, T104, T78, T116, T117, T127 y T128 sin cambios aquí.
+- **Siguiente paso:** primera pasada a partir del 2026-11-09 y veredicto como pronto el 2026-12-06.

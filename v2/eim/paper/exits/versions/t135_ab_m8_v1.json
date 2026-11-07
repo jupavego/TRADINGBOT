@@ -1,0 +1,303 @@
+{
+  "base": "M0 first_r=0.1",
+  "candidate": "M8 q=0.95",
+  "commit": "0e22d9c",
+  "data": "copia reconstruida con scripts/t131_history.py",
+  "decision_timeframes": [
+    "1h",
+    "4h"
+  ],
+  "fingerprint": "bbf0722b2dc49de4723b11c233263e48cf2bc716a7a3827c1857e59fc0383738",
+  "fit_cutoff_iso": "2026-11-07T03:00+00:00",
+  "level": 0.95,
+  "mechanics": {
+    "exec": {
+      "1h": {
+        "be": {
+          "cover_costs": true,
+          "est_cost_frac": 0.0016,
+          "lock_r": 0.1,
+          "trigger_r": 1.0
+        },
+        "cooldown_bars": 1,
+        "costs": {
+          "funding_interval_ms": 28800000,
+          "maker_fee": 0.0002,
+          "mmr": 0.005,
+          "slip_base_bps": 1.0,
+          "slip_cap_bps": 100.0,
+          "slip_entry_base_bps": 0.1,
+          "slip_entry_vol_k": 0.0,
+          "slip_impact_k": 5.0,
+          "slip_vol_k": 0.1,
+          "taker_fee": 0.0005
+        },
+        "funding_8h_assumed": 0.0001,
+        "min_risk_frac": 0.001,
+        "path_tf": "15m"
+      },
+      "4h": {
+        "be": {
+          "cover_costs": true,
+          "est_cost_frac": 0.0016,
+          "lock_r": 0.1,
+          "trigger_r": 1.0
+        },
+        "cooldown_bars": 1,
+        "costs": {
+          "funding_interval_ms": 28800000,
+          "maker_fee": 0.0002,
+          "mmr": 0.005,
+          "slip_base_bps": 1.0,
+          "slip_cap_bps": 100.0,
+          "slip_entry_base_bps": 0.1,
+          "slip_entry_vol_k": 0.0,
+          "slip_impact_k": 5.0,
+          "slip_vol_k": 0.1,
+          "taker_fee": 0.0005
+        },
+        "funding_8h_assumed": 0.0001,
+        "min_risk_frac": 0.001,
+        "path_tf": "15m"
+      }
+    },
+    "ladder": {
+      "basis": "r",
+      "be_with_ladder": true,
+      "brake": false,
+      "fine_tf": "1m",
+      "first_r": 0.1,
+      "first_usdt": 10.0,
+      "fixed_take_profit": false,
+      "funding_reserve": 1,
+      "max_consec_losses": 4,
+      "max_drawdown": 0.08,
+      "max_weight": 1.5,
+      "min_target_vs_first": 1.0,
+      "one_per_bar": false,
+      "pause_hours": 24.0,
+      "real_money": false,
+      "slip_lookback": 4,
+      "step_r": 0.05,
+      "step_usdt": 5.0,
+      "time_exit": false
+    }
+  },
+  "min_detectable_r_at_min_weeks_by_day": 0.04230942903847102,
+  "min_weeks": 4,
+  "mode": "SIMULADO",
+  "plan": {
+    "alpha": 0.05,
+    "base": "M0 first_r=0.1",
+    "candidate": "M8 q=0.95",
+    "effect_r": 0.04933457079479972,
+    "fingerprint": "851a56db0dee908ce640151cf2f81fbe53e3a433fb4096b3229d9b1a61c244fd",
+    "min_detectable_r_at_min_weeks": 0.025079988894071842,
+    "min_detectable_r_at_required_n": 0.049276386211773895,
+    "min_weeks": 4,
+    "one_sided": true,
+    "power": 0.8,
+    "required_n": 315,
+    "sd_paired_r": 0.3517305204407376,
+    "source": "reports\\exits_ab.json · σ emparejada de T134 y cierres de las últimas 4 semanas",
+    "trades_per_week": 304.0,
+    "weeks": 4
+  },
+  "prereg": "prereg_t131_v3",
+  "reps": 5000,
+  "required_days": 21,
+  "required_n": 315,
+  "rule": "Sin veredicto hasta cumplir a la vez las semanas, las operaciones y los días mínimos. Entonces PASA si ΔE[R] > 0 y su IC 95 % por bloques de día contiene la estimación de T134; si no, NO PASA. El veredicto es el del primer informe con los mínimos cumplidos y no se revisa. Si cambian los costos o la escalera, no hay veredicto. Pasar no adopta nada: M8 falló los criterios 2, 4 y 5 en T134.",
+  "sd_daily_r": 0.09003929951282219,
+  "seed": 131,
+  "sigma_ratio": "parkinson",
+  "sigma_stop": "atr14",
+  "start": 1794096000000,
+  "start_iso": "2026-11-08T00:00+00:00",
+  "symbol": "BTCUSDT",
+  "t134": {
+    "delta": 0.04933457079479972,
+    "expectancy_candidate": -0.10448885991888382,
+    "n": 29841,
+    "report": "reports\\exits_ab.json"
+  },
+  "table": {
+    "fold": 0,
+    "min_trades": 30,
+    "n_fit": 13402,
+    "n_winners": 6494,
+    "quantile": 0.95,
+    "reference": "M1 be=1/0.1",
+    "sids": {
+      "agente_ema@1h": {
+        "mae_sigma": 4.343,
+        "n": 410
+      },
+      "agente_ema@4h": {
+        "mae_sigma": 7.0561,
+        "n": 67
+      },
+      "agente_levels@1h": {
+        "mae_sigma": 4.2213,
+        "n": 397
+      },
+      "agente_levels@4h": {
+        "mae_sigma": 7.4131,
+        "n": 71
+      },
+      "agente_price_action@1h": {
+        "mae_sigma": 4.2178,
+        "n": 449
+      },
+      "agente_price_action@4h": {
+        "mae_sigma": 6.6193,
+        "n": 67
+      },
+      "agente_structure@1h": {
+        "mae_sigma": 4.4784,
+        "n": 180
+      },
+      "agente_structure@4h": {
+        "mae_sigma": 5.6072,
+        "n": 42
+      },
+      "agente_technical@1h": {
+        "mae_sigma": 4.3097,
+        "n": 32
+      },
+      "agente_vwap@1h": {
+        "mae_sigma": 4.2466,
+        "n": 88
+      },
+      "agente_vwap@4h": {
+        "mae_sigma": 6.5037,
+        "n": 40
+      },
+      "base_retroceso@1h": {
+        "mae_sigma": 5.6496,
+        "n": 276
+      },
+      "base_retroceso@4h": {
+        "mae_sigma": 11.4881,
+        "n": 48
+      },
+      "base_tendencia@1h": {
+        "mae_sigma": 5.5967,
+        "n": 327
+      },
+      "base_tendencia@4h": {
+        "mae_sigma": 10.0949,
+        "n": 50
+      },
+      "consenso_fuerte@1h": {
+        "mae_sigma": 3.3575,
+        "n": 282
+      },
+      "consenso_fuerte@4h": {
+        "mae_sigma": 6.2626,
+        "n": 50
+      },
+      "consenso_sintesis@1h": {
+        "mae_sigma": 4.2488,
+        "n": 356
+      },
+      "consenso_sintesis@4h": {
+        "mae_sigma": 6.5441,
+        "n": 56
+      },
+      "contra_sintesis@1h": {
+        "mae_sigma": 4.1329,
+        "n": 375
+      },
+      "contra_sintesis@4h": {
+        "mae_sigma": 8.0218,
+        "n": 65
+      },
+      "escenario_dominante@1h": {
+        "mae_sigma": 3.1976,
+        "n": 43
+      },
+      "escenario_rango@1h": {
+        "mae_sigma": 2.3379,
+        "n": 92
+      },
+      "ind_bb_reversion@1h": {
+        "mae_sigma": 4.0206,
+        "n": 226
+      },
+      "ind_bb_reversion@4h": {
+        "mae_sigma": 6.3745,
+        "n": 41
+      },
+      "ind_bb_ruptura@1h": {
+        "mae_sigma": 3.8061,
+        "n": 203
+      },
+      "ind_bb_ruptura@4h": {
+        "mae_sigma": 6.5294,
+        "n": 31
+      },
+      "ind_cruce_ema@1h": {
+        "mae_sigma": 4.3541,
+        "n": 89
+      },
+      "ind_donchian@1h": {
+        "mae_sigma": 5.3654,
+        "n": 159
+      },
+      "ind_macd@1h": {
+        "mae_sigma": 3.5906,
+        "n": 127
+      },
+      "ind_rsi@1h": {
+        "mae_sigma": 3.2933,
+        "n": 113
+      },
+      "ind_supertrend@1h": {
+        "mae_sigma": 3.8957,
+        "n": 80
+      },
+      "plan_tp1@1h": {
+        "mae_sigma": 4.9605,
+        "n": 91
+      },
+      "plan_tp2@1h": {
+        "mae_sigma": 3.5729,
+        "n": 51
+      },
+      "ppp_tendencia@1h": {
+        "mae_sigma": 5.4581,
+        "n": 39
+      },
+      "sugerencia_1@1h": {
+        "mae_sigma": 6.3292,
+        "n": 247
+      },
+      "sugerencia_1@4h": {
+        "mae_sigma": 8.4566,
+        "n": 88
+      },
+      "sugerencia_2@1h": {
+        "mae_sigma": 5.5992,
+        "n": 229
+      },
+      "sugerencia_2@4h": {
+        "mae_sigma": 8.5015,
+        "n": 73
+      },
+      "sugerencia_3@1h": {
+        "mae_sigma": 5.575,
+        "n": 208
+      },
+      "sugerencia_3@4h": {
+        "mae_sigma": 10.0211,
+        "n": 66
+      },
+      "sugerencia_alineada@1h": {
+        "mae_sigma": 6.0998,
+        "n": 125
+      }
+    }
+  },
+  "version": "t135_ab_m8_v1"
+}

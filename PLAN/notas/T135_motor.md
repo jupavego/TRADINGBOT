@@ -1,5 +1,7 @@
 # T135 — Motor de gestión de la posición: construido y apagado
 
+**Actualización (2026-11-07):** el usuario reabrió T135 para medir M8, y eso va aparte del motor, que sigue apagado: `PLAN/notas/T135_ab_m8.md`.
+
 **Estado:** ◐. El motor está hecho y probado (entregables 1 a 4 y el cálculo de potencia del 5). **El A/B no ha empezado y no puede empezar:** no hay ninguna salida aprobada que comparar.
 
 ## Por qué se hizo sin salida aprobada

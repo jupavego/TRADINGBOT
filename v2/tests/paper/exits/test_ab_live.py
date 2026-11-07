@@ -76,7 +76,7 @@ def test_a_frozen_plan_cannot_be_rewritten_with_other_values(tmp_path):
 
 
 def test_the_published_plan_is_intact_and_says_what_was_agreed():
-    """El pre-registro de verdad. Si alguien lo edita, esto falla: cambiarlo es una versión nueva."""
+    """El pre-registro de verdad. Si alguien lo edita, esto falla: un cambio es otra versión."""
     f = ab_live.load_frozen(FROZEN)
     assert f["candidate"] == "M8 q=0.95" and f["base"] == "M0 first_r=0.1"
     assert f["mode"] == "SIMULADO" and f["start_iso"].startswith("2026-11-08T00:00")
