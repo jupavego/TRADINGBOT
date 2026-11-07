@@ -855,3 +855,17 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** `tests/plan` y `tests/continuity` en verde.
 - **Ajuste pedido a mitad de tarea:** se quita la tarjeta «Listas para empezar». Arriba queda solo «Avance general», a todo el ancho, y bajo él los capítulos completos. Comprobado en el 8765: una sola tarjeta arriba y ningún error de consola.
 - **Segundo ajuste:** la línea de tiempo de hitos sube encima de «Capítulos completos». Orden final: avance general, hitos, capítulos completos, capítulos por terminar. Comprobado en el 8765, sin errores de consola.
+
+## 2026-11-07 15:50 UTC · juanpablo-cpu · Bróker simulado: «Capital por perfil» legible y a lo ancho
+- **Pedido del usuario:** el gráfico «Capital por perfil» no se leía (los nombres de los perfiles tapaban las curvas). Pasarlo a horizontal y ponerlo encima de «Velas · operaciones del perfil».
+- **Hecho (`v2/eim/web/src/`):**
+  - `paper_template.ts` y `paper.css`: el gráfico sale de la columna lateral y pasa a un panel propio a todo el ancho, entre las tarjetas de perfil y las velas. Las curvas van a la izquierda (270 px de alto) y la leyenda en columna a la derecha. Por debajo de 900 px se apila y la leyenda queda en 2 columnas. «Cuenta» se queda junto a las velas.
+  - `paper_chart.ts` (`EquityChart`): las curvas ya no llevan el nombre del perfil; el eje muestra solo el último valor. La leyenda dice nombre, capital y % frente al capital inicial, con una línea punteada en el capital inicial. Al pasar el cursor por un perfil se resalta su curva y se atenúan las demás. Con un clic se oculta o se muestra, y el eje se reescala (siempre queda una curva visible).
+  - Correcciones de paso:
+    - El cursor sobre el gráfico daba a cada curva su valor actual cuando no tenía un punto en ese instante. Ahora da el último valor conocido hasta esa hora.
+    - Al cambiar el tamaño de la ventana, el tramo se quedaba arrinconado hasta el siguiente refresco (`lockVisibleTimeRangeOnResize`).
+    - Si cambia el conjunto de perfiles, se quitan las curvas que sobran.
+- **Comprobado:** con un Vite temporal del worktree (5174) contra la API en marcha. Las cifras coinciden con la cuenta (Conservador 9.839,97 · −1,60 %). En 2026-10-28 15:00 COT los cuatro valores de la leyenda coinciden con la curva cruda de `/v2/paper`. Ocultar Agresivo separa las otras tres curvas. Se revisó a 1440 px y a 375 px, sin desbordes horizontales. Se corrigió un error de consola de la primera versión: la leyenda se pintaba antes de que llegaran los datos.
+- **Archivos:** `v2/eim/web/src/{paper_template.ts,paper.css,paper_chart.ts}`, `PLAN/BITACORA.md`.
+- **Pruebas:** `tsc --noEmit` y `ruff` en verde. El gate de pytest se corrió por la cola; su resultado va en el PR. No hay código Python.
+- **Siguiente paso:** fusionar el PR y traer `main` a la carpeta principal. El Vite del usuario (5173) recarga solo.
