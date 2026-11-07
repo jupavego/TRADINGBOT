@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-06T21:36:05",
+ "generated": "2026-11-06T21:37:49",
  "tasks": [
   {
    "id": "T01",
@@ -1796,8 +1796,8 @@ window.EIM_STATUS = {
     "T110",
     "T130"
    ],
-   "state": "progress",
-   "notes": "2026-11-07, `juanpablo-cpu`: causa arreglada y desplegada (`v2/eim/paper/protection_settle.py`, PR #217, `_never_lower` intacto, huellas idénticas a `main`). **0 congeladas:** las 5 reconciliadas el 2026-11-06 a las 20:07 UTC y una sexta, que esa reconciliación congeló, el 2026-11-07 a las 02:33 UTC, con permiso del usuario. Capital realizado: Moderado +17,79, Agresivo −241,26, PPP −13,14 USDT (nota `PLAN/notas/T142_posiciones_fantasma.md` §5, y en el informe de T31). Gate verde por la cola con T140. **Solo falta comprobar «sin alertas al arrancar» en el reinicio que despliega T140.**",
+   "state": "done",
+   "notes": "2026-11-07, `juanpablo-cpu`: causa arreglada y desplegada (`v2/eim/paper/protection_settle.py`, PR #217, `_never_lower` intacto, huellas idénticas a `main`). **0 congeladas y sin alertas al arrancar** (comprobado en el arranque de las 02:35 UTC): las 5 reconciliadas el 2026-11-06 a las 20:07 UTC y una sexta, que esa reconciliación congeló, el 2026-11-07 a las 02:33 UTC, con permiso del usuario. Capital realizado: Moderado +17,79, Agresivo −241,26, PPP −13,14 USDT, con 18 filas `retro` en el libro fijo que no se vivieron en su momento (nota `PLAN/notas/T142_posiciones_fantasma.md` §5, y en el informe de T31). Gate verde por la cola con T140.",
    "effort": "medio",
    "phase": 21,
    "goal": "Sacar de los libros las 5 operaciones congeladas desde el 2026-11-04 y evitar que se creen más. Se guarda un escalón al cierre de la vela de 15 m sin tener aún sus velas de 1 m. Cuando llegan, el recálculo ve la operación cerrada por debajo de ese stop, `_never_lower` la congela y, congelada, **no se cierra sola**. T130 arregló la mitad de este caso (`ladder_floor.early`), y su propia documentación avisa de la otra mitad. La evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §3 y `PLAN/notas/T130_anexo_falso_inconsistente.md`."
