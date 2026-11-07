@@ -843,3 +843,13 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `PLAN/roadmap.html`, `PLAN/BITACORA.md`.
 - **Pruebas:** `tests/plan` y `tests/continuity` en verde. No hay código de `eim/`.
 - **Siguiente paso:** fusionar el PR.
+
+## 2026-11-07 15:45 UTC · juanpablo-cpu · Hoja de ruta: capítulos completos arriba
+- **Pedido del usuario:** poner los capítulos ya completos arriba, bajo el avance general, para leer mejor los que tienen tareas en curso o en espera al desplegarlos.
+- **Hecho (`PLAN/roadmap.html`):**
+  - Sección «Capítulos completos · N» entre las tarjetas de arriba y los hitos, con tarjetas compactas que se pueden desplegar.
+  - Debajo, «Capítulos por terminar · N» con su resumen. «Desplegar todos» y «Plegar todos» actúan solo sobre esta sección.
+  - Un capítulo pasa solo de una sección a otra en cuanto se completa: `full` = todas sus tareas hechas.
+- **Comprobado:** en el 8765, publicado desde la rama. Quedan 16 completos arriba y 8 por terminar abajo, todos con algo en curso, listo o en espera. Sin errores de consola.
+- **Archivos:** `PLAN/roadmap.html`, `PLAN/BITACORA.md`.
+- **Pruebas:** `tests/plan` y `tests/continuity` en verde.

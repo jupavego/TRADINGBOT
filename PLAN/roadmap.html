@@ -63,6 +63,12 @@ button:hover{background:var(--card)}
 .phbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
 .phbar h2{font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--tx2);margin:0 auto 0 0;text-transform:uppercase}
 .phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;align-items:start}
+.donesec{margin:0 0 22px}
+.phases-done{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.phases-done .ph{padding:10px 12px 6px}
+.phases-done .ph h3{font-size:14px;margin-bottom:6px}
+.phases-done .pb{margin-bottom:4px}
+.phases-done .phs{display:none}
 .ph{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 10px}
 .ph.open{border-color:var(--line2)}
 .phh{display:flex;align-items:center;gap:10px;width:100%;margin:0;padding:0;border:0;border-radius:8px;background:transparent;text-align:left;cursor:pointer}
@@ -140,9 +146,14 @@ code{background:var(--block-bg);padding:1px 6px;border-radius:5px;font-size:12.5
     </div>
   </div>
 
+  <section class="donesec" id="done-wrap" hidden>
+    <div class="phbar"><h2>Capítulos completos · <span id="done-count">0</span></h2></div>
+    <div class="phases phases-done" id="phases-done"></div>
+  </section>
+
   <div class="miles" id="miles"></div>
   <div class="phbar">
-    <h2>Capítulos</h2>
+    <h2>Capítulos por terminar · <span id="rest-count">0</span></h2>
     <button type="button" id="ph-all-open">Desplegar todos</button>
     <button type="button" id="ph-all-close">Plegar todos</button>
   </div>
@@ -253,8 +264,21 @@ function render(){
     if(!on&&firstOpen<0)firstOpen=i;
     return {x:x,on:on}}).map(function(o,i){
       return '<div class="ms'+(o.on?" on":"")+(i===firstOpen?" cur":"")+'"><div class="dot">'+(o.on?"✓":"")+'</div><b>'+o.x.t+'</b><small>'+o.x.s+' · '+o.x.id+'</small></div>'}).join("");
-  document.getElementById("phases").innerHTML=PHASES.map(function(p){
+  // los capítulos completos van arriba, bajo el avance general; abajo, los que tienen algo por hacer
+  var cards=PHASES.map(function(p){
     var ts=p.ids.map(function(i){return m[i]}).filter(Boolean),d=ts.filter(function(t){return t.view==="done"}).length;
+    return {full:ts.length>0&&d===ts.length,html:phaseCard(p,m,ts,d)};
+  });
+  var done=cards.filter(function(c){return c.full}),rest=cards.filter(function(c){return !c.full});
+  document.getElementById("phases-done").innerHTML=done.map(function(c){return c.html}).join("");
+  document.getElementById("done-count").textContent=done.length;
+  document.getElementById("done-wrap").hidden=!done.length;
+  document.getElementById("phases").innerHTML=rest.map(function(c){return c.html}).join("");
+  document.getElementById("rest-count").textContent=rest.length;
+  var gen=new Date(data.generated),age=(Date.now()-gen.getTime())/60000;
+  document.getElementById("upd").textContent="Actualizado "+gen.toLocaleString("es-CO",{dateStyle:"short",timeStyle:"short"});
+}
+function phaseCard(p,m,ts,d){
     var k=function(v){return ts.filter(function(t){return t.view===v}).length};
     var open=!!PHOPEN[p.n];
     var sum=(d===ts.length&&ts.length?'<span class="tag done">Completo</span>':"")+
@@ -270,16 +294,14 @@ function render(){
       var deps=t.deps.length?t.deps.map(function(d){var s=m[d]?m[d].view:"";return '<span class="chip '+s+'">'+d+'</span>'}).join(""):'<span class="chip">sin dependencias</span>';
       return '<div class="t '+t.view+(OPEN[t.id]?" open":"")+'" data-id="'+t.id+'"><div class="tr"><span class="st '+t.view+'">'+icon(t.view)+'</span><span class="tid">'+t.id+'</span><span class="tt">'+esc(t.title)+'</span>'+gate+tag+'</div><div class="det">'+
         (t.goal?'<p>'+esc(t.goal)+'</p>':"")+'<div class="chips">Depende de: '+deps+'</div>'+(t.effort?'<p>Esfuerzo: '+esc(t.effort)+'</p>':"")+(GATES[t.id]?'<p style="color:var(--gate)">Decisión: '+esc(GATES[t.id])+'</p>':"")+(t.notes?'<p>Cierre: '+esc(t.notes)+'</p>':"")+
-        '<div class="cmd"><code>Ejecuta PLAN/'+t.id+'.md</code><button type="button" data-copy="Ejecuta PLAN/'+t.id+'.md">Copiar</button></div></div></div>'}).join("")+'</div></section>'}).join("");
-  var gen=new Date(data.generated),age=(Date.now()-gen.getTime())/60000;
-  document.getElementById("upd").textContent="Actualizado "+gen.toLocaleString("es-CO",{dateStyle:"short",timeStyle:"short"});
+        '<div class="cmd"><code>Ejecuta PLAN/'+t.id+'.md</code><button type="button" data-copy="Ejecuta PLAN/'+t.id+'.md">Copiar</button></div></div></div>'}).join("")+'</div></section>';
 }
 document.addEventListener("click",function(e){
   var b=e.target.closest("[data-copy]");if(b){copy(b.getAttribute("data-copy"),b);return}
   var h=e.target.closest(".phh");if(h){var ph=h.closest(".ph");setPh(ph,!ph.classList.contains("open"));savePh();return}
   if(e.target.closest("#ph-all-open,#ph-all-close")){
     var all=e.target.closest("#ph-all-open")!==null;
-    document.querySelectorAll(".ph").forEach(function(el){setPh(el,all)});savePh();return;
+    document.querySelectorAll("#phases .ph").forEach(function(el){setPh(el,all)});savePh();return;
   }
   var t=e.target.closest(".t");if(t&&!e.target.closest(".det")){var id=t.getAttribute("data-id");OPEN[id]=!OPEN[id];t.classList.toggle("open")}
 });
