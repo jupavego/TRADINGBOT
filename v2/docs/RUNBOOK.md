@@ -311,6 +311,7 @@ la línea de órdenes de la API). Solo para esos dos, y luego lanza lo que falte
 powershell -ExecutionPolicy Bypass -File scripts\detener_servicio.ps1 -SoloCon "--port 8000"
 powershell -ExecutionPolicy Bypass -File scripts\servicio_continuo.ps1 -ConWeb
 ```
+Desde una sesión de Claude: relanzar con `Start-ScheduledTask "EIM - servicio continuo (broker simulado)"`, porque lo lanzado desde su terminal puede morir al acabar la llamada; y parar desde un archivo `.ps1`, porque `detener_servicio.ps1` también mira los `powershell.exe` y no debe encontrar sus patrones en la línea de órdenes de quien lo llama.
 
 **La causa y la reproducción:** en Windows, `ProactorEventLoop` cierra el socket de escucha para
 siempre cuando falla un `accept` (`WinError 64`), y basta con que un cliente corte con RST mientras
