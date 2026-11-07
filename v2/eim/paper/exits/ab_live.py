@@ -32,6 +32,8 @@ from eim.paper.exits import bench, grid, power, stats, winners_mae
 from eim.paper.exits import walkforward as wf
 from eim.paper.exits.prereg import Prereg
 from eim.paper.ideas import Idea
+from eim.paper.params import ExecParams, LadderParams
+from eim.paper.versioning import exec_fingerprint
 from eim.validation.stats import rng_for
 
 CANDIDATE = "M8 q=0.95"
@@ -59,8 +61,15 @@ def fit_table(ref_trades: Sequence[bench.BenchTrade], ratio_of: Callable, cutoff
                                 min_trades=pr.winners_mae.min_trades)
 
 
+def mechanics_of(ep: ExecParams, ladder: LadderParams, timeframes: Sequence[str]) -> dict:
+    """Costos y escalera con los que se mide, en JSON: si cambian, ya es otra medición."""
+    raw = {"exec": {tf: exec_fingerprint(ep, tf) for tf in timeframes},
+           "ladder": ladder.model_dump()}
+    return json.loads(json.dumps(raw, sort_keys=True, default=str))
+
+
 def freeze(table: winners_mae.WinnersMae, *, start: int, cutoff: int, plan: dict, sd_daily: float,
-           t134: dict, pr: Prereg, commit: str, data_note: str) -> dict:
+           t134: dict, pr: Prereg, commit: str, data_note: str, mechanics: dict) -> dict:
     """El pre-registro del A/B. Exige que el ajuste termine antes de la primera idea que cuenta."""
     if cutoff > start:
         raise ValueError("la tabla no puede usar datos posteriores al inicio del A/B")
@@ -70,7 +79,7 @@ def freeze(table: winners_mae.WinnersMae, *, start: int, cutoff: int, plan: dict
             "prereg": pr.version, "commit": commit, "mode": "SIMULADO", "data": data_note,
             "start": start, "start_iso": wf.iso(start), "fit_cutoff_iso": wf.iso(cutoff),
             "decision_timeframes": list(pr.design.decision_timeframes),
-            "sigma_stop": STOP_SIGMA, "sigma_ratio": RATIO_SIGMA,
+            "sigma_stop": STOP_SIGMA, "sigma_ratio": RATIO_SIGMA, "mechanics": mechanics,
             "table": table.to_json(), "t134": t134, "plan": plan,
             "sd_daily_r": sd_daily, "required_days": days,
             "min_detectable_r_at_min_weeks_by_day": power.min_detectable(
@@ -78,8 +87,10 @@ def freeze(table: winners_mae.WinnersMae, *, start: int, cutoff: int, plan: dict
             "min_weeks": power.MIN_WEEKS, "required_n": plan["required_n"],
             "rule": ("Sin veredicto hasta cumplir a la vez las semanas, las operaciones y los "
                      "días mínimos. Entonces PASA si ΔE[R] > 0 y su IC 95 % por bloques de día "
-                     "contiene la estimación de T134; si no, NO PASA. Pasar no adopta nada: M8 "
-                     "falló los criterios 2, 4 y 5 en T134."),
+                     "contiene la estimación de T134; si no, NO PASA. El veredicto es el del "
+                     "primer informe con los mínimos cumplidos y no se revisa. Si cambian los "
+                     "costos o la escalera, no hay veredicto. Pasar no adopta nada: M8 falló los "
+                     "criterios 2, 4 y 5 en T134."),
             "seed": pr.seed, "reps": pr.bootstrap.reps, "level": pr.bootstrap.level}
     return {**body, "fingerprint": power.fingerprint(body)}
 
@@ -123,7 +134,7 @@ def _mean(xs: Sequence[float]) -> float | None:
     return float(np.mean(xs)) if len(xs) else None
 
 
-def evaluate(b: bench.Bench, frozen: dict, last_t: int) -> dict:
+def evaluate(b: bench.Bench, frozen: dict, last_t: int, mechanics: dict | None = None) -> dict:
     """Lo medido hasta `last_t`, la última vela de la copia. Solo cuenta lo que cerraron las dos."""
     rows = b.paired()
     base, cand = [r.by_policy[BASE] for r in rows], [r.by_policy[CANDIDATE] for r in rows]
@@ -142,11 +153,15 @@ def evaluate(b: bench.Bench, frozen: dict, last_t: int) -> dict:
             "gross_r_candidate": _mean([t.gross_r for t in cand]),
             "cost_r_base": _mean([t.cost_r for t in base]),
             "cost_r_candidate": _mean([t.cost_r for t in cand]),
-            "moved_sl": moved}
+            "moved_sl": moved,
+            "mechanics_changed": mechanics is not None and mechanics != frozen["mechanics"]}
 
 
 def verdict(ev: dict, frozen: dict) -> dict:
     """La regla congelada. Mientras falte un mínimo, EN CURSO: si faltan datos, se alarga."""
+    if ev.get("mechanics_changed"):
+        return {"state": RUNNING, "why": ("la mecánica ya no es la congelada: mezclaría dos "
+                                          "mediciones, y seguir exige una versión nueva")}
     missing = []
     if ev["weeks"] < frozen["min_weeks"]:
         missing.append(f"{ev['weeks']:.1f} de {frozen['min_weeks']} semanas")
@@ -172,13 +187,26 @@ def verdict(ev: dict, frozen: dict) -> dict:
                                    f"la estimación de T134 ({ref:+.4f}){weak}")}
 
 
+def settled(v: dict, ev: dict, path: str | Path) -> dict:
+    """El primer veredicto queda escrito y ya no cambia: si no, bastaría con seguir hasta pasar."""
+    p = Path(path)
+    if p.exists():
+        return json.loads(p.read_text(encoding="utf-8"))
+    if v["state"] == RUNNING:
+        return v
+    first = {**v, "at": ev.get("last_iso"), "n": ev["n"], "delta": ev["delta"], "ci": ev["ci"]}
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(first, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    return first
+
+
 def _r(x: float | None) -> str:
     return "sin dato" if x is None or not math.isfinite(x) else f"{x:+.4f} R"
 
 
-def render(ev: dict, frozen: dict, coverage: str = "") -> str:
+def render(ev: dict, frozen: dict, coverage: str = "", v: dict | None = None) -> str:
     """Informe semanal. Mientras no haya veredicto, las cifras son provisionales y se dice."""
-    v = verdict(ev, frozen)
+    v = v or verdict(ev, frozen)
     lo, hi = ev["ci"]
     out = [f"# T135 — A/B de {frozen['candidate']} frente a {frozen['base']}", "",
            f"**Modo: {frozen['mode']}.** Copia con velas hasta {ev['last_iso']}. Pre-registro "
@@ -188,6 +216,9 @@ def render(ev: dict, frozen: dict, coverage: str = "") -> str:
     if v["state"] == RUNNING:
         out += ["Las cifras son provisionales. **No se decide con ellas:** parar en una semana que "
                 "salga bien es ajustar el resultado.", ""]
+    elif v.get("at") != ev.get("last_iso"):
+        out += [f"El veredicto se fijó con los datos hasta {v.get('at')} y no se revisa. Las "
+                "cifras de abajo son posteriores y solo descriptivas.", ""]
     out += ["| Medida | Valor |", "|---|---|",
             f"| Operaciones emparejadas (mínimo {frozen['required_n']}) | {ev['n']} |",
             f"| Días con operaciones (mínimo {frozen['required_days']}) | {ev['days']} |",

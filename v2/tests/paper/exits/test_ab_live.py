@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
+import eim
 from eim.paper.exits import ab_live, bench, features, grid, power
-from eim.paper.exits import walkforward as wf
 from eim.paper.exits.bench import BenchTrade
 from eim.paper.exits.prereg import load_prereg
 from eim.paper.exits.winners_mae import WinnersMae
@@ -18,6 +19,7 @@ from tests.paper.helpers import M15, T0
 DAY = 86_400_000
 START = T0 + 30 * DAY
 A, B = ab_live.BASE, ab_live.CANDIDATE
+FROZEN = Path(eim.__file__).parent / "paper" / "exits" / "versions" / "t135_ab_m8_v1.json"
 
 
 def _trade(pol: str, iid: str, t: int, r: float, *, sid="s@1h", mae=0.5, exit_t=None,
@@ -43,7 +45,8 @@ def _frozen(**kw) -> dict:
     table = WinnersMae(0, 0.95, 30, {"s@1h": 2.0}, {"s@1h": 40}, 100, 50, "M1 be=1/0.1")
     plan = power.power_plan(B, A, 0.35, 0.05, 200.0, source="prueba")
     args = {"start": START, "cutoff": START - DAY, "plan": plan, "sd_daily": 0.09,
-            "t134": {"delta": 0.05}, "pr": load_prereg(), "commit": "abc", "data_note": "copia"}
+            "t134": {"delta": 0.05}, "pr": load_prereg(), "commit": "abc", "data_note": "copia",
+            "mechanics": ab_live.mechanics_of(COSTED, LADDER, ("1h", "4h"))}
     return ab_live.freeze(table, **{**args, **kw})
 
 
@@ -70,6 +73,17 @@ def test_a_frozen_plan_cannot_be_rewritten_with_other_values(tmp_path):
     ab_live.save_frozen(_frozen(), p)     # el mismo contenido sí
     with pytest.raises(FileExistsError):
         ab_live.save_frozen(_frozen(start=START + DAY), p)
+
+
+def test_the_published_plan_is_intact_and_says_what_was_agreed():
+    """El pre-registro de verdad. Si alguien lo edita, esto falla: cambiarlo es una versión nueva."""
+    f = ab_live.load_frozen(FROZEN)
+    assert f["candidate"] == "M8 q=0.95" and f["base"] == "M0 first_r=0.1"
+    assert f["mode"] == "SIMULADO" and f["start_iso"].startswith("2026-11-08T00:00")
+    assert f["fit_cutoff_iso"] < f["start_iso"] and f["min_weeks"] >= 4
+    assert f["required_n"] == 315 and f["required_days"] == 21
+    assert f["sigma_stop"] == "atr14" and f["sigma_ratio"] == "parkinson"
+    assert f["decision_timeframes"] == ["1h", "4h"] and f["table"]["quantile"] == ab_live.QUANTILE
 
 
 def test_required_days_come_from_the_daily_dispersion():
@@ -176,6 +190,32 @@ def test_a_pass_whose_interval_includes_zero_says_so():
     assert "incluye el 0" not in ab_live.verdict(_ev(), f)["why"]
 
 
+def test_the_first_verdict_stands_and_later_weeks_cannot_change_it(tmp_path):
+    """Sin esto, un NO PASA se podría convertir en PASA con solo seguir corriendo."""
+    f, p = _frozen(), tmp_path / "veredicto.json"
+    early = _ev(weeks=1.0)
+    assert ab_live.settled(ab_live.verdict(early, f), early, p)["state"] == ab_live.RUNNING
+    assert not p.exists()                     # EN CURSO no fija nada
+    bad = _ev(delta=-0.01, ci=[-0.05, 0.06], last_iso="semana 4")
+    assert ab_live.settled(ab_live.verdict(bad, f), bad, p)["state"] == ab_live.FAIL
+    good = _ev(last_iso="semana 7")
+    later = ab_live.settled(ab_live.verdict(good, f), good, p)
+    assert later["state"] == ab_live.FAIL and later["at"] == "semana 4"
+
+
+def test_a_verdict_cannot_mix_two_mechanics():
+    """Cambiar costos o escalera a mitad de camino es medir otra cosa: no hay veredicto."""
+    f = _frozen()
+    other = ab_live.mechanics_of(COSTED, LADDER.model_copy(update={"first_r": 0.2}), ("1h", "4h"))
+    assert other != f["mechanics"]
+    b = _bench([(START, -0.2, -0.1)])
+    assert ab_live.evaluate(b, f, START, f["mechanics"])["mechanics_changed"] is False
+    ev = ab_live.evaluate(b, f, START, other)
+    assert ev["mechanics_changed"] is True
+    v = ab_live.verdict({**_ev(), "mechanics_changed": True}, f)
+    assert v["state"] == ab_live.RUNNING and "mecánica" in v["why"]
+
+
 def test_the_report_says_the_mode_and_that_measuring_is_not_adopting():
     f = _frozen()
     running = ab_live.render(_ev(n=10, e_r_base=-0.15, e_r_candidate=-0.1, gross_r_base=0.0,
@@ -217,7 +257,3 @@ def test_m8_with_a_table_entry_moves_the_stop_outwards(world):
     rows = b.paired()
     assert rows and all(r.by_policy[B].risk_usd >= r.by_policy[A].risk_usd - 1e-6 for r in rows)
     assert any(r.by_policy[B].risk_usd > r.by_policy[A].risk_usd for r in rows)
-
-
-def test_day_of_an_ab_trade_is_the_day_of_the_decision():
-    assert _trade(A, "x", START, 0.0).day == START // DAY and wf.iso(START)

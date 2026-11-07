@@ -9,6 +9,9 @@
   3. Calcula el informe, tambien por la cola. Mientras no se cumplan los minimos del pre-registro,
      el estado es EN CURSO y las cifras son provisionales.
 
+  Cada pasada deja una linea en data\operation\logs\t135_ab_semanal.log, tambien si falla. La salida
+  de cada trabajo queda en data\jobs\out\.
+
   -Instalar registra la tarea semanal (lunes, 02:30 UTC); -Quitar la borra.
 
 .EXAMPLE
@@ -22,6 +25,12 @@ $py = Join-Path $v2 ".venv\Scripts\python.exe"
 $datos = Join-Path $v2 "data"
 $copia = Join-Path $v2 "backups\t135_ab"
 $tarea = "EIM - informe semanal A-B M8 (T135)"
+$registro = Join-Path $datos "operation\logs\t135_ab_semanal.log"
+
+function Anota([string]$texto) {
+  $ahora = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+  Add-Content -LiteralPath $registro -Value "$ahora $texto" -Encoding UTF8
+}
 
 if ($Quitar) {
   Unregister-ScheduledTask -TaskName $tarea -Confirm:$false
@@ -42,18 +51,22 @@ if ($Instalar) {
   exit 0
 }
 
-$ultima = Get-ChildItem (Join-Path $v2 "backups") -Directory -Filter "eim_*" |
-  Where-Object { Test-Path (Join-Path $_.FullName "paper.duckdb") } |
-  Sort-Object Name -Descending | Select-Object -First 1
-if (-not $ultima) { Write-Error "no hay copia de seguridad con paper.duckdb" }
-Copy-Item (Join-Path $ultima.FullName "paper.duckdb") (Join-Path $copia "paper.duckdb") -Force
-Write-Host "contextos de $($ultima.Name)"
-
 function Cola([string]$nombre, [int]$ram, [string[]]$orden) {
   & $py -m eim.operation.jobs --data-dir $datos submit --name $nombre --cwd $v2 --min-ram-mb $ram -- $py @orden
-  if ($LASTEXITCODE -ne 0) { Write-Error "$nombre termino con codigo $LASTEXITCODE" }
+  if ($LASTEXITCODE -ne 0) { throw "$nombre termino con codigo $LASTEXITCODE" }
 }
 
-Cola "t135-historia" 1000 @("scripts/t131_history.py", "--out", $copia, "--from", "2023-01-01",
-                            "--backups", (Join-Path $v2 "backups"))
-Cola "t135-informe" 2500 @("scripts/t135_ab_m8.py", "report", "--data", $copia)
+try {
+  $ultima = Get-ChildItem (Join-Path $v2 "backups") -Directory -Filter "eim_*" |
+    Where-Object { Test-Path (Join-Path $_.FullName "paper.duckdb") } |
+    Sort-Object Name -Descending | Select-Object -First 1
+  if (-not $ultima) { throw "no hay copia de seguridad con paper.duckdb" }
+  Copy-Item (Join-Path $ultima.FullName "paper.duckdb") (Join-Path $copia "paper.duckdb") -Force
+  Cola "t135-historia" 1000 @("scripts/t131_history.py", "--out", $copia, "--from", "2023-01-01",
+                              "--backups", (Join-Path $v2 "backups"))
+  Cola "t135-informe" 2500 @("scripts/t135_ab_m8.py", "report", "--data", $copia)
+  Anota "bien: contextos de $($ultima.Name)"
+} catch {
+  Anota "FALLO: $_"
+  exit 1
+}

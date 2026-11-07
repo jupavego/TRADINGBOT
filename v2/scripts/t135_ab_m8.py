@@ -53,8 +53,8 @@ def _fine(store: Store, sym: str, tf: str) -> PricePath | None:
 class World:
     """La copia abierta: ideas, caminos, rasgos y contexto, como los monta T134."""
 
-    def __init__(self, data: Path) -> None:
-        self.pr = load_prereg()
+    def __init__(self, data: Path, prereg: str | None = None) -> None:
+        self.pr = load_prereg(prereg) if prereg else load_prereg()
         sym = self.pr.symbol
         store, ps = Store(data), PaperStore(data / "paper.duckdb")
         self.desk = PaperDesk(store, ps, profiles=())
@@ -102,8 +102,28 @@ class World:
 
 
 def _refuse_live(data: Path) -> None:
-    if data.resolve() == Path("data").resolve():
+    """El almacén vivo se reconoce por su latido, no por la ruta: puede llegar con otra."""
+    if data.resolve() == Path("data").resolve() or (data / "operation/heartbeat.json").exists():
         raise SystemExit("no se corre sobre el almacén vivo: usa una copia")
+
+
+def _mechanics(w: World) -> dict:
+    return ab_live.mechanics_of(w.desk.ep, w.ladder, w.pr.design.decision_timeframes)
+
+
+def _coverage(data: Path, last: int, ideas: int) -> str:
+    """Fuente y cobertura reales de la copia. Sin el archivo, se dice: nada se da por cubierto."""
+    src = data / "cobertura.json"
+    if not src.exists():
+        series = "**sin `cobertura.json`: la cobertura no está comprobada**"
+    else:
+        cov = json.loads(src.read_text(encoding="utf-8"))
+        series = "; ".join(
+            f"{tf} {v['coverage'] * 100:.2f} %, {v['gaps']} huecos"
+            for tf, v in cov["coverage"].items() if v.get("coverage") is not None)
+        series = f"{cov.get('provider', 'proveedor sin dato')}: {series}"
+    return (f"copia `{data}`, velas hasta {wf.iso(last)}; {series}; {ideas} ideas desde el inicio. "
+            f"Commit {_commit()}.")
 
 
 def _sd_daily(diffs: list[tuple[int, float]]) -> float:
@@ -189,9 +209,13 @@ def _freeze(a) -> int:
     embargo = wf.embargo_for(trades, feature_ms=int(pr.design.embargo_feature_hours * 3_600_000),
                              q=pr.design.embargo_quantile)
     table = ab_live.fit_table(trades, w.ratio_of(), cutoff, embargo, pr)
-    recent = [i for i in w.ideas if i.t >= cutoff - RATE_WEEKS * ab_live.WEEK_MS]
+    # Las que cierran, no todas las ideas: las límite que no se llenan nunca se emparejan.
+    recent = [t for t in trades if t.t >= cutoff - RATE_WEEKS * ab_live.WEEK_MS]
     rate = len(recent) / RATE_WEEKS
-    src = f"{T134_REPORT} · σ emparejada de T134 y ritmo de las últimas {RATE_WEEKS} semanas"
+    src = f"{T134_REPORT} · σ emparejada de T134 y cierres de las últimas {RATE_WEEKS} semanas"
+    commit = _commit()
+    if not commit:
+        raise SystemExit("sin commit no se congela: no se sabría con qué código se fijó")
     plan = power.power_plan(ab_live.CANDIDATE, ab_live.BASE, reg["sd_paired"], reg["delta"], rate,
                             source=src)
     frozen = ab_live.freeze(table, start=start, cutoff=cutoff, plan=plan,
@@ -199,14 +223,15 @@ def _freeze(a) -> int:
                             t134={"delta": reg["delta"], "n": reg["got"]["n_m8"],
                                   "expectancy_candidate": reg["got"]["expectancy_m8"],
                                   "report": str(T134_REPORT)},
-                            pr=pr, commit=_commit(),
+                            pr=pr, commit=commit, mechanics=_mechanics(w),
                             data_note="copia reconstruida con scripts/t131_history.py")
     path = ab_live.save_frozen(frozen, a.out)
     print(json.dumps({k: frozen[k] for k in ("start_iso", "fit_cutoff_iso", "required_n",
                                              "required_days", "sd_daily_r", "fingerprint")},
                      indent=1), flush=True)
     print(f"tabla: {len(frozen['table']['sids'])} estrategia@marco; {table.n_fit} operaciones de "
-          f"ajuste, {table.n_winners} ganadoras. Ritmo {rate:.0f} ideas/semana. Guardado en {path}")
+          f"ajuste, {table.n_winners} ganadoras. Ritmo {rate:.0f} cierres/semana. "
+          f"Guardado en {path}")
     return 0
 
 
@@ -214,25 +239,22 @@ def report(a) -> int:
     data = Path(a.data)
     _refuse_live(data)
     frozen = ab_live.load_frozen(a.frozen)
-    w = World(data)
+    w = World(data, frozen["prereg"])
     ideas = ab_live.counted_ideas(w.ideas, frozen)
     of = ab_live.quantile_of(frozen)
     base, cand = ab_live.pick(w.variants(lambda q: of if q == ab_live.QUANTILE else None))
     b = bench.run(ideas, [base.policy, cand.policy], w.ctx, w.pr.risk_usd)
     last = int(w.path.t[-1])
-    ev = ab_live.evaluate(b, frozen, last)
-    cover = (f"velas de {w.pr.design.path_timeframe} y {w.pr.design.fine_timeframe} de la copia "
-             f"`{data}`, hasta {wf.iso(last)}; {len(ideas)} ideas desde el inicio. "
-             f"Commit {_commit()}.")
-    md = ab_live.render(ev, frozen, cover)
+    ev = ab_live.evaluate(b, frozen, last, _mechanics(w))
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
+    v = ab_live.settled(ab_live.verdict(ev, frozen), ev, out / "veredicto.json")
+    md = ab_live.render(ev, frozen, _coverage(data, last, len(ideas)), v)
     stamp = datetime.now(UTC).strftime("%Y-%m-%d")
     (out / f"semana_{stamp}.md").write_text(md, encoding="utf-8")
     (out / f"semana_{stamp}.json").write_text(
-        json.dumps({"evaluation": ev, "verdict": ab_live.verdict(ev, frozen),
-                    "frozen": frozen["fingerprint"]}, indent=1, sort_keys=True, default=str) + "\n",
-        encoding="utf-8")
+        json.dumps({"evaluation": ev, "verdict": v, "frozen": frozen["fingerprint"]},
+                   indent=1, sort_keys=True, default=str) + "\n", encoding="utf-8")
     print(md, flush=True)
     return 0
 
