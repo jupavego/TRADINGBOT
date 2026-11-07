@@ -2,7 +2,9 @@
 
 > Para trabajar alternando entre equipos sin disco externo (copia completa en GitHub privado,
 > comprobación de arranque, unión de experiencia): `docs/CONTINUIDAD.md` (T125). Este documento
-> sigue valiendo para un traslado en frío con el paquete en un disco propio.
+> sigue valiendo para un traslado en frío con el paquete en un disco propio. Primera instalación
+> de un colaborador: `ONBOARDING.md` (raíz); volver tras una pausa en el mismo equipo:
+> `docs/RETOMAR_COLABORADOR.md`.
 
 Objetivo: que el equipo nuevo quede operando con el mismo código, las mismas versiones y el mismo
 estado de operación, sin arrastrar basura. Lo que está en Git viaja con `git clone`; lo que **no**

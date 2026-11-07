@@ -36,33 +36,57 @@ Entorno idéntico al probado: `python -m pip install -r requirements-lock.txt &&
 `eim/api/security.py` rechazará a los clientes remotos (403) y los `Host` ajenos (400).
 
 ## 2. Variables de entorno
+Todas son opcionales: sin ninguna, el sistema arranca en modo Análisis con los defectos de la tabla.
+La tabla nombra **cada** variable `EIM_*` que lee el código (`eim/`, `scripts/` y las opcionales de
+las pruebas en `tests/opt_in.py`); `tests/docs/test_env_vars.py` falla en el gate si aparece una
+que no esté aquí. Al añadir una variable, añade su fila con el nombre completo.
+
 | Variable | Defecto | Uso |
 |---|---|---|
 | `EIM_DATA_DIR` | `data` | Almacén (parquet, DuckDB, estado) |
+| `EIM_REPORTS_DB` | `EIM_DATA_DIR/reports.duckdb` | Ruta de la base de reportes, si se quiere fuera de la carpeta de datos |
+| `EIM_DUCKDB_MEMORY`, `EIM_DUCKDB_THREADS` | `1GB`, `2` | Tope de memoria e hilos de cada conexión DuckDB persistente (`eim/data/duck.py`); lo que no cabe se derrama a disco en vez de morir con `Out of Memory`. En `juanpablo-cpu` está en `2GB` por la copia en caliente de `leaders.duckdb` (`PLAN/ESTADO_PROYECTO.md` §3) |
 | `EIM_EXECUTION` | `off` | `paper` / `testnet` |
 | `EIM_OPERATE`, `EIM_OPERATE_TF`, `EIM_OPERATE_POLL_S` | `0`, `1h`, `60` | Servicio continuo (lo fija `eim.operation run`) |
+| `EIM_OPERATE_EXTRA_TFS` | `4h` | Marcos que el servicio continuo analiza además de `EIM_OPERATE_TF`, separados por comas; vacía (`""`) los quita |
+| `EIM_OPERATION_REPORTS` | `reports/operation` | Carpeta de los informes semanales de la operación (T31) |
+| `EIM_EDGE_RESULTS` | `reports/edge/edge_results.json` | Resultados de la puerta de edge (T27) que la API lee para el informe del periodo |
 | `EIM_BACKUP_DIR`, `EIM_BACKUP_KEEP` | `backups`, `14` | Copias; se conservan las N completas más recientes (§3) |
 | `EIM_ALLOWED_HOSTS` | `127.0.0.1,localhost,::1` | Cabeceras `Host` aceptadas |
 | `EIM_API_TOKEN` | — | Sin él, ningún cliente remoto entra. Con él: `Authorization: Bearer <token>`; en WebSocket, subprotocolo `eim-token.<token>` (los navegadores no admiten cabeceras ahí) |
 | `EIM_CORS_ORIGINS` | `http://127.0.0.1:5173,http://localhost:5173` | Orígenes del navegador (también para el WebSocket) |
-| `EIM_TESTNET_API_KEY` / `_SECRET` / `_URL` | — | Solo testnet; el broker bloquea cualquier otro host |
+| `EIM_WS_URL` | `wss://fstream.binance.com/market/ws` | Flujo de velas en vivo; si la red bloquea Binance Futures, `wss://stream.binance.com:9443/ws` (spot) |
+| `EIM_HEARTBEAT_S`, `EIM_SNAPSHOT_BARS`, `EIM_AUTO_HISTORY`, `EIM_RECON_S` | `15`, `500`, `1`, `30` | Latido del WebSocket de la interfaz (s), velas por instantánea de análisis, relleno automático de historia al arrancar (`0` lo apaga) y segundos entre reconciliaciones con el bróker |
+| `EIM_TESTNET_API_KEY`, `EIM_TESTNET_API_SECRET` | — | Claves de la testnet de futuros. Solo testnet y sin permiso de retiro |
+| `EIM_TESTNET_URL`, `EIM_TESTNET_WS_API_URL` | `https://testnet.binancefuture.com`, `wss://testnet.binancefuture.com/ws-fapi/v1` | REST y API WebSocket de la testnet de futuros; el bróker rechaza cualquier host que no sea de testnet (en REST también vale `demo-fapi.binance.com`) |
 | `EIM_CALENDAR`, `EIM_CALENDAR_S` | `1`, `21600` | Calendario económico (Fed/BLS/BEA): consulta al arrancar y cada 6 h en `data/calendar/` (T36). `0` lo apaga |
 | `EIM_OBS` | `on` | Observatorio (T72): `off` apaga la emisión de eventos (JSONL en `data/obs/spool/`). Emitir nunca rompe ni frena el ciclo; los descartes se cuentan. T73: la API indexa esos JSONL cada 5 s en `data/obs/obs.duckdb` (derivado, entra en la copia diaria, no viaja entre equipos) y lo sirve en solo lectura en `/v2/obs/*`; estado y retraso en `/v2/obs/health`. Retención: spool 7 d, eventos 30 d, `runs`/`decisiones` 180 d. Si se pierde la base, se reconstruye indexando el spool |
 | `EIM_ARBITRAGE`, `EIM_ARBITRAGE_S` | `1`, `60` | Escáner de arbitraje Binance (REST público, solo lectura): fotografía cada minuto en `data/arbitrage/` (últimas 20; cada 10 s con `EIM_ARB_EXECUTION=testnet`, T128), pestaña «Arbitraje» y mensaje WS `arbitrage` (T39). `0` lo apaga. Modo Análisis: no ejecuta |
 | `EIM_ARB_ASSETS`, `EIM_ARB_TRI_ASSETS` | `BTC`, `USDT,BTC,BNB,SOL,XRP` | Foco actual (T122, 2026-10-22: solo BTC): activos del escáner de arbitraje (funding, base, perpetuos relacionados) y de sus ciclos triangulares; sin ETH. `BTC,ETH` lo devuelve |
 | `EIM_ARB_EXECUTION`, `EIM_ARB_EXEC_S` | `off`, `60` | `testnet`: ejecución automática de arbitraje (T45) en spot testnet + futuros testnet con la fotografía del escáner; ciclo cada N s. Riesgo `eim/risk/versions/risk_arb_v1.json` (cuenta total: margen y exposición de toda la cuenta de futuros; kill-switch compartido) |
-| `EIM_SPOT_TESTNET_API_KEY` / `_SECRET` / `_URL` | — (usa las de futuros) | Clave de la testnet spot (`testnet.binance.vision`); en la cuenta demo de Binance la de futuros vale para ambas. Sin permiso de retiro |
+| `EIM_SPOT_TESTNET_API_KEY`, `EIM_SPOT_TESTNET_API_SECRET` | — (usa las de futuros) | Clave de la testnet spot; en la cuenta demo de Binance la de futuros vale para ambas. Sin permiso de retiro |
+| `EIM_SPOT_TESTNET_URL` | `https://testnet.binance.vision` | REST de la testnet spot (también vale `demo-api.binance.com`); otro host se rechaza |
 | `EIM_ARB_ALERT_SCORE`, `EIM_ARB_ALERT_S` | `3`, `60` | Alerta de arbitraje: puntuación del selector ≥ umbral (pb/día ajustados por riesgo) sostenida N segundos de escaneos seguidos (T39) |
 | `EIM_VAL_ATTEMPTS` | `1` | La API da de alta en el registro de T49 los intentos de `eim/validation/attempts_t137.json` (T137). Nacen retirados y solo hacen más exigente Holm; no cambian lo que abren los perfiles |
 | `EIM_PAPER`, `EIM_PAPER_S` | `1`, `60` | Bróker simulado (T47/T48): cada ciclo trae velas de 15 m/1 h/4 h y funding de BTCUSDT y analiza las velas cerradas nuevas de los tres marcos → `data/paper.duckdb`. Tras cada ciclo, sus ganchos (validación al cierre de 4 h, libro fijo cada hora, puntuación de bots, setups) corren en su propio hilo a nivel batch y laten como `paper.hooks`; el ciclo no los espera (T128; estado en `/v2/paper` → `live.hooks`). `0` lo apaga. Siempre SIMULADO |
-| `EIM_SHARED_DIR`, `EIM_MACHINE`, `EIM_SHARE_*` | — | Experiencia compartida entre equipos (T61, §3.1): carpeta de nube compartida, alias único de esta máquina y cadencias del modo automático (también `python -m eim.data.share setup`) |
+| `EIM_COPY_SIM` | `tracked` | Copia simulada de líderes en el servicio de líderes (T42): `tracked` copia a todos los capturados como medición, `approved` solo a los aprobados por el scorecard, `off` la apaga |
+| `EIM_SHARED_DIR`, `EIM_SHARE_GIT_URL`, `EIM_MACHINE` | — | Experiencia compartida entre equipos (T61, §3.1): carpeta de nube compartida o repo git de transporte, y alias único de esta máquina (también `python -m eim.data.share setup`) |
+| `EIM_SHARE_AUTO`, `EIM_SHARE_IMPORT_S`, `EIM_SHARE_EXPORT_S`, `EIM_SHARE_KEEP` | `1`, `3600`, `21600`, `3` | Modo automático de la experiencia compartida (solo si hay carpeta o repo configurados): `0` lo apaga; cadencias de importación y exportación (s) y exportaciones propias que se conservan por tipo |
 | `EIM_OFFSITE_REPO`, `EIM_OFFSITE_KEEP` | `Santivego/eim-shared-data`, `7` | Copia externa (T125, `docs/CONTINUIDAD.md`): repo privado de GitHub cuyas versiones guardan las copias completas, y cuántas conserva cada equipo |
+| `EIM_PRIORITY` | apagada | `on`: cada servicio fija al arrancar la prioridad de su papel (recolectores, servicios, mantenimiento; T126, `eim/operation/priority.py`). La pone `scripts/servicio_continuo.ps1`; las pruebas y las órdenes a mano no cambian de prioridad |
+| `EIM_NOTIFY` | `1` | Avisos de escritorio de Windows desde `eim/operation/notify.py`; `0` los apaga. `servicio_continuo.ps1` la pone en `0` porque los avisos salen por el icono de la bandeja |
 | `EIM_FRED_API_KEY` | — | Opcional (gratuita): valores real/anterior/revisado de IPC, NFP, PCE, PIB, IPP desde FRED. Sin ella los eventos salen sin valores |
 | `EIM_LOCALAI_DIR` | — (el banco usa `data/localai`) | Motores de IA locales (T62, §7): carpeta **fuera del repo y en disco local** (no en una unidad de red) con el entorno aparte (`venv`), los binarios y los pesos. En la portátil de referencia `E:\eim-localai` (C: tiene 6 GB libres) |
 | `EIM_LLAMACPP_SERVER`, `EIM_WHISPERCPP` | `EIM_LOCALAI_DIR\llama.cpp\llama-server.exe`, `…\whisper.cpp\whisper-cli.exe` | Binarios de llama.cpp y whisper.cpp para el banco de T62 (opcionales) |
-| `EIM_OLLAMA_EXE`, `EIM_CONTEXT_LLM`, `EIM_LOCAL_LLM_HOST`, `EIM_LOCAL_LLM_MODEL` | `E:\Ollama\ollama.exe`, —, `http://127.0.0.1:11434`, `qwen3:4b` | Ollama que lanza `servicio_continuo.ps1`; `EIM_CONTEXT_LLM=local` pone el agente de contexto sobre Ollama (T24); servidor y modelo del LLM local |
+| `EIM_OLLAMA_EXE` | — (`servicio_continuo.ps1` prueba `E:\Ollama\ollama.exe`) | Ollama que lanza `servicio_continuo.ps1` si existe; definida y sin acceso, la API lo avisa («LLM local no disponible», T128) |
+| `EIM_CONTEXT_LLM` | — (`local` si el script lanzó Ollama) | `local` pone el agente de contexto sobre el LLM local (T24); sin ella, el contexto usa `ANTHROPIC_API_KEY` si existe o queda «sin datos» |
+| `EIM_LOCAL_LLM_HOST`, `EIM_LOCAL_LLM_MODEL` | `http://127.0.0.1:11434`, `qwen3:4b` | Servidor y modelo del LLM local (contexto y banco de T62) |
 | `EIM_LIBRARY_DIR`, `EIM_LIBRARY_INDEX`, `EIM_TESSERACT` | `data/library/books`, `data/library/index`, autodetección | Biblioteca de trading (T52): carpeta de los libros del usuario (fuera del repo), índice local (catálogo, texto por página, caché de OCR) y ruta de `tesseract.exe` si no está en el PATH |
-| `EIM_WS_URL`, `EIM_HEARTBEAT_S`, `EIM_SNAPSHOT_BARS`, `EIM_AUTO_HISTORY`, `EIM_RECON_S` | ver `eim/api/config.py` | |
+| `EIM_LIBRARY_LLM` | apagada | `1` (con `ANTHROPIC_API_KEY`) enciende las preguntas a la biblioteca con Claude (`python -m eim.library ask`); solo informa |
+| `EIM_BOT_FREQTRADE_PY`, `EIM_BOT_FREQTRADE_ENGINE` | — | Escuadrón de bots (`docs/BOTS.md`): intérprete del entorno aparte de Freqtrade y versión fijada del motor (p. ej. `2026.9`; si la instalada difiere, la salida se rechaza). Sin ellas, los bots de Freqtrade no producen posturas |
+| `EIM_BOT_NFI_DIR` | `data/bots/nostalgia-for-infinity` | Checkout de NostalgiaForInfinity en el SHA de su ficha (solo relleno histórico) |
+| `EIM_BOT_PASSIVBOT_PY`, `EIM_BOT_PASSIVBOT_DIR` | — | Carril de simulación de Passivbot (`python -m eim.bots.sim_lane`): intérprete de su entorno y checkout en el SHA de la ficha; sin ellas no corre |
+| `EIM_BOT_FREQTRADE_DIR`, `EIM_LEGACY_DIR` | —, `legacy/F7` | Solo pruebas opcionales (`tests/opt_in.py`): checkout de Freqtrade para la prueba con el motor real, y copia del legado para la comprobación de sensibilidad de la regresión |
 
 ## 3. Copias de seguridad
 Qué se copia (`eim/data/backup.py`, T32 + T115): **las tres bases con historial** —`reports.duckdb`

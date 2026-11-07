@@ -1,6 +1,9 @@
 """Genera PLAN/status.js a partir de PLAN/STATUS.md y de la cabecera de cada Txx.md.
 
 Uso:  python PLAN/build_roadmap.py [--no-publish]
+Las fases del tablero salen del plan (T121): cada tarea va a la fase que declara la segunda línea de
+su Txx.md («Fase N · …»), en el orden de STATUS.md, y el nombre de la fase es el de su fila en la
+tabla «Fases y orden» de 00_MASTER.md. Si una tarea no declara fase, falla (código 1) sin escribir.
 Si el plan no cambió, no reescribe status.js (así `git pull` no se bloquea por la marca de hora).
 Además publica roadmap.html y status.js en la carpeta viva que sirve el acceso directo del escritorio,
 salvo desde una rama que no contiene `origin/main` (pisaría la hoja de ruta con estados viejos).
@@ -17,6 +20,7 @@ from pathlib import Path
 PLAN = Path(__file__).resolve().parent
 STATE = {"☐": "pending", "◐": "progress", "☑": "done"}
 ROW = re.compile(r"^\|\s*(T\d+)\s*\|(.+?)\|(.*?)\|\s*([☐◐☑])\s*\|(.*)\|\s*$")
+PHASE_ROW = re.compile(r"^\|\s*(\d+)\s+([^|]+?)\s*\|")      # «| 20 Estabilización … | T115… |»
 
 
 def head_info(task_id: str) -> dict:
@@ -39,13 +43,47 @@ def head_info(task_id: str) -> dict:
     return info
 
 
-def orphans(tasks: list) -> list[str]:
-    """Tareas que `PHASES` de roadmap.html no dibuja (la lista de fases es manual)."""
+def phase_names() -> dict[int, str]:
+    """Número → nombre, de la tabla «Fases y orden» de 00_MASTER.md (vacío si no existe)."""
+    f = PLAN / "00_MASTER.md"
+    if not f.exists():
+        return {}
+    text = f.read_text(encoding="utf-8")
+    start = text.find("## Fases y orden")
+    if start < 0:
+        return {}
+    end = text.find("\n## ", start + 1)
+    names: dict[int, str] = {}
+    for ln in text[start:end if end > 0 else None].splitlines():
+        if m := PHASE_ROW.match(ln):
+            names.setdefault(int(m.group(1)), m.group(2).strip())
+    return names
+
+
+def build_phases(tasks: list) -> tuple[list, list[int]]:
+    """Fases del tablero (por número; tareas en orden de STATUS.md) y las que no tienen nombre."""
+    names, by_phase = phase_names(), {}
+    for t in tasks:
+        by_phase.setdefault(t["phase"], []).append(t["id"])
+    phases = [{"n": n, "name": names.get(n, f"Fase {n}"), "ids": by_phase[n]}
+              for n in sorted(by_phase)]
+    return phases, [n for n in sorted(by_phase) if n not in names]
+
+
+def orphans(tasks: list, phases: list) -> list[str]:
+    """Red: tareas que el tablero no dibujaría.
+
+    Las fases generadas cubren todas las tareas por construcción. Si roadmap.html vuelve a traer
+    una lista a mano (`var PHASES=`, p. ej. al resolver un conflicto con una rama vieja), la página
+    dibuja esa y no la de status.js: entonces se mira esa lista.
+    """
+    drawn = {i for p in phases for i in p["ids"]}
     page = PLAN / "roadmap.html"
-    if not page.exists():            # un PLAN sin tablero (p. ej. los tests) no tiene huérfanas
-        return []
-    html = page.read_text(encoding="utf-8")
-    drawn = set(re.findall(r'"(T\d+)"', html[html.find("var PHASES="):html.find("var GATES=")]))
+    if page.exists():
+        html = page.read_text(encoding="utf-8")
+        if "var PHASES=" in html:
+            drawn = set(re.findall(r'"(T\d+)"', html[html.find("var PHASES="):
+                                                     html.find("var GATES=")]))
     return [t["id"] for t in tasks if t["id"] not in drawn]
 
 
@@ -99,11 +137,12 @@ def publish(tasks: list) -> None:
     print(f"roadmap vivo publicado en {dest}")
 
 
-def previous_tasks(path: Path) -> list | None:
-    """Tareas del status.js actual (None si no existe o no se puede leer)."""
+def previous_plan(path: Path) -> tuple[list, list] | None:
+    """Tareas y fases del status.js actual (None si no existe, no se lee o es anterior a T121)."""
     try:
         text = path.read_text(encoding="utf-8")
-        return json.loads(text.split("=", 1)[1].rstrip().removesuffix(";"))["tasks"]
+        payload = json.loads(text.split("=", 1)[1].rstrip().removesuffix(";"))
+        return payload["tasks"], payload["phases"]
     except (OSError, ValueError, KeyError, IndexError):
         return None
 
@@ -125,19 +164,29 @@ def main() -> int:
         }
         t.update(head_info(tid))
         tasks.append(t)
+    if undeclared := [t["id"] for t in tasks if "phase" not in t]:
+        print("ERROR: " + ", ".join(undeclared) + " no declaran fase: la segunda línea de su "
+              "PLAN/Txx.md debe empezar por «Fase N · …» (o falta el archivo). El tablero no "
+              "sabría dónde dibujarlas; status.js no se toca", file=sys.stderr)
+        return 1
+    phases, unnamed = build_phases(tasks)
     out = PLAN / "status.js"
     done = sum(t["state"] == "done" for t in tasks)
-    if previous_tasks(out) == tasks:
+    if previous_plan(out) == (tasks, phases):
         # Sin cambios en el plan: no se reescribe. La marca de hora cambiaría en cada ejecución,
         # dejaría el archivo versionado siempre «modificado» y bloquearía `git pull`.
         print(f"status.js sin cambios: {len(tasks)} tareas, {done} hechas")
     else:
-        payload = {"generated": datetime.now().isoformat(timespec="seconds"), "tasks": tasks}
+        payload = {"generated": datetime.now().isoformat(timespec="seconds"), "phases": phases,
+                   "tasks": tasks}
         out.write_text("window.EIM_STATUS = " + json.dumps(payload, ensure_ascii=False, indent=1) + ";\n", encoding="utf-8")
-        print(f"status.js: {len(tasks)} tareas, {done} hechas")
-    if lost := orphans(tasks):
-        print("AVISO: ninguna fase de roadmap.html dibuja " + ", ".join(lost)
-              + " (añádelas a var PHASES o no se verán)")
+        print(f"status.js: {len(tasks)} tareas, {done} hechas, {len(phases)} fases")
+    if unnamed:
+        print("AVISO: sin nombre en la tabla «Fases y orden» de 00_MASTER.md la fase "
+              + ", ".join(map(str, unnamed)) + " (se dibuja como «Fase N»; añade su fila)")
+    if lost := orphans(tasks, phases):
+        print("AVISO: el tablero no dibuja " + ", ".join(lost) + " (¿roadmap.html trae otra vez "
+              "una lista `var PHASES` a mano? Quítala: las fases salen de status.js)")
     if "--no-publish" not in sys.argv:
         publish(tasks)
     return 0

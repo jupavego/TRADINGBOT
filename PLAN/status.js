@@ -1,5 +1,293 @@
 window.EIM_STATUS = {
- "generated": "2026-11-07T09:42:27",
+ "generated": "2026-11-07T11:12:19",
+ "phases": [
+  {
+   "n": 0,
+   "name": "Cimientos",
+   "ids": [
+    "T01",
+    "T02",
+    "T03",
+    "T04"
+   ]
+  },
+  {
+   "n": 1,
+   "name": "Agentes",
+   "ids": [
+    "T05",
+    "T06",
+    "T07"
+   ]
+  },
+  {
+   "n": 2,
+   "name": "API + UI base",
+   "ids": [
+    "T08",
+    "T09",
+    "T10",
+    "T11"
+   ]
+  },
+  {
+   "n": 3,
+   "name": "Niveles y plan",
+   "ids": [
+    "T12",
+    "T13",
+    "T14",
+    "T15"
+   ]
+  },
+  {
+   "n": 4,
+   "name": "Proyección",
+   "ids": [
+    "T16",
+    "T17",
+    "T18",
+    "T19"
+   ]
+  },
+  {
+   "n": 5,
+   "name": "Inteligencia",
+   "ids": [
+    "T20",
+    "T21",
+    "T22",
+    "T23",
+    "T24"
+   ]
+  },
+  {
+   "n": 6,
+   "name": "Validación",
+   "ids": [
+    "T25",
+    "T26",
+    "T27",
+    "T28"
+   ]
+  },
+  {
+   "n": 7,
+   "name": "Operación",
+   "ids": [
+    "T29",
+    "T30",
+    "T31",
+    "T32",
+    "T47",
+    "T48"
+   ]
+  },
+  {
+   "n": 8,
+   "name": "Agentes adicionales",
+   "ids": [
+    "T33",
+    "T34",
+    "T35",
+    "T36",
+    "T37",
+    "T38",
+    "T39",
+    "T40",
+    "T41",
+    "T42",
+    "T43",
+    "T44"
+   ]
+  },
+  {
+   "n": 9,
+   "name": "Carriles de ejecución",
+   "ids": [
+    "T45",
+    "T46"
+   ]
+  },
+  {
+   "n": 10,
+   "name": "Sugerencias validadas",
+   "ids": [
+    "T49",
+    "T50",
+    "T51"
+   ]
+  },
+  {
+   "n": 11,
+   "name": "Biblioteca de trading",
+   "ids": [
+    "T52",
+    "T53",
+    "T54",
+    "T55"
+   ]
+  },
+  {
+   "n": 12,
+   "name": "Escuadrón de bots",
+   "ids": [
+    "T56",
+    "T57",
+    "T58",
+    "T59",
+    "T60"
+   ]
+  },
+  {
+   "n": 13,
+   "name": "Experiencia compartida",
+   "ids": [
+    "T61"
+   ]
+  },
+  {
+   "n": 14,
+   "name": "Motores locales e inteligencia audiovisual",
+   "ids": [
+    "T62",
+    "T63",
+    "T64",
+    "T65",
+    "T66",
+    "T67",
+    "T68",
+    "T69",
+    "T70",
+    "T71"
+   ]
+  },
+  {
+   "n": 15,
+   "name": "Observatorio (mapa visual del sistema)",
+   "ids": [
+    "T72",
+    "T73",
+    "T74",
+    "T75",
+    "T76"
+   ]
+  },
+  {
+   "n": 16,
+   "name": "Agente HFT (microestructura de futuros BTC)",
+   "ids": [
+    "T104",
+    "T77",
+    "T78",
+    "T79",
+    "T80",
+    "T81",
+    "T82",
+    "T83",
+    "T84",
+    "T85",
+    "T86"
+   ]
+  },
+  {
+   "n": 17,
+   "name": "Plataforma multiactivo (escáner global)",
+   "ids": [
+    "T87",
+    "T88",
+    "T89",
+    "T90",
+    "T91",
+    "T92",
+    "T93",
+    "T94",
+    "T95",
+    "T96",
+    "T97",
+    "T98",
+    "T99",
+    "T100",
+    "T101",
+    "T102",
+    "T103"
+   ]
+  },
+  {
+   "n": 18,
+   "name": "Protección progresiva de ganancias",
+   "ids": [
+    "T105",
+    "T106",
+    "T107",
+    "T108",
+    "T109",
+    "T110",
+    "T111",
+    "T112"
+   ]
+  },
+  {
+   "n": 19,
+   "name": "Orquestación y autoridad única",
+   "ids": [
+    "T113",
+    "T114"
+   ]
+  },
+  {
+   "n": 20,
+   "name": "Estabilización e integración",
+   "ids": [
+    "T115",
+    "T116",
+    "T117",
+    "T118",
+    "T119",
+    "T120",
+    "T121",
+    "T122",
+    "T123",
+    "T124",
+    "T125"
+   ]
+  },
+  {
+   "n": 21,
+   "name": "Capacidad del equipo y procesos largos",
+   "ids": [
+    "T126",
+    "T127",
+    "T128",
+    "T138",
+    "T140",
+    "T141",
+    "T142"
+   ]
+  },
+  {
+   "n": 22,
+   "name": "Gestión dinámica del riesgo de la posición",
+   "ids": [
+    "T129",
+    "T130",
+    "T131",
+    "T132",
+    "T133",
+    "T134",
+    "T135",
+    "T136"
+   ]
+  },
+  {
+   "n": 23,
+   "name": "La entrada",
+   "ids": [
+    "T137",
+    "T139"
+   ]
+  }
+ ],
  "tasks": [
   {
    "id": "T01",
@@ -1530,8 +1818,8 @@ window.EIM_STATUS = {
    "id": "T121",
    "title": "Documentación, variables y tablero al día",
    "deps": [],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "2026-11-07: `v2/docs/OPERACION.md` §2 nombra las 73 `EIM_*` del código (faltaban 18; 9 más abreviadas) y `tests/docs/test_env_vars.py` lo exige en los dos sentidos. Fases del tablero desde la cabecera `Fase N` de cada `Txx.md` + tabla de `00_MASTER.md` (`build_roadmap.py` → `status.js`; falla si una tarea no declara fase; `roadmap.html` sin `var PHASES`). `tests/repo/test_hygiene.py`: ni `.duckdb`, ni `.env`/volcados, ni claves en claro en lo que subiría `git add -A`. `scipy`, lock y extras en `ONBOARDING` §3 y `RETOMAR` §3; guías enlazadas desde `CLAUDE.md`. Gate 3 225 pasadas, 0 fallos",
    "effort": "bajo",
    "phase": 20,
    "goal": "Que quien vuelva (o quien llegue) no descubra el sistema a golpes: variables documentadas, dependencias nuevas dichas, tablero que dibuja todas las tareas y ningún paquete con claves suelto en el repositorio. Detalle en `PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §G."
