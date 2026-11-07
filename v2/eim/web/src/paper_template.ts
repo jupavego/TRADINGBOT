@@ -25,6 +25,13 @@ export const TEMPLATE = `
 <div class="pp-livebar" data-x="live" aria-live="polite"></div>
 <section class="pp-balance" data-x="bal" aria-label="Balance de operaciones ganadas y perdidas"></section>
 <div class="pp-cards" data-x="cards" role="tablist" aria-label="Perfiles"></div>
+<section class="pp-eqbox" aria-label="Capital por perfil">
+  <div class="pp-eq-h"><h4 class="sh">Capital por perfil</h4>
+    <small class="muted">capital realizado + no realizado (USDT) · % frente al capital inicial (línea punteada) ·
+      pasa el cursor por un perfil para resaltar su curva; clic para ocultarla o mostrarla</small></div>
+  <div class="pp-eqrow"><div class="pp-eq" data-x="eq"></div>
+    <div class="pp-eqleg" data-x="eqleg" role="group" aria-label="Perfiles del gráfico de capital"></div></div>
+</section>
 <div class="pp-grid">
   <section class="pp-chart"><div class="pp-chart-h"><h4 class="sh">Velas · operaciones del perfil</h4>
     <div class="seg" data-x="ctf" role="group" aria-label="Temporalidad del gráfico">${CHART_TFS.map((t) => `<button type="button" data-ctf="${t}">${t}</button>`).join('')}</div>
@@ -32,7 +39,6 @@ export const TEMPLATE = `
     <div class="pp-pc" data-x="pc"></div></section>
   <aside class="pp-side">
     <div class="pp-acct" data-x="acct"></div>
-    <h4 class="sh">Capital por perfil</h4><div class="pp-eqleg" data-x="eqleg"></div><div class="pp-eq" data-x="eq"></div>
   </aside>
 </div>
 <p class="alert" data-x="msg" role="status" hidden></p>
