@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from fastapi import HTTPException
 
 from eim.agents.registry import AgentRegistry
-from eim.agents.runner import run_agents
+from eim.agents.runner import call_with_deadline, run_agents
 from eim.api.reports_db import ReportStore
 from eim.api.risk import RiskDesk
 from eim.core import Candle
@@ -49,6 +49,7 @@ class OperationParams:
     history_bars: int = 1000              # historia mínima que se mantiene sincronizada
     snapshot_bars: int = 500
     agent_timeout_s: float = 30.0
+    forecast_timeout_s: float = 60.0      # T123: un pronóstico colgado no para el ciclo
     max_catchup_ms: int = 7 * DAY_MS      # tras una caída larga no se reproduce más que esto
     disconnect_alert_ms: int = 120_000
     drawdown_warn: float = 0.05           # aviso; el kill-switch actúa en risk_v2 (15 %)
@@ -198,7 +199,12 @@ class OperationCycle:
             self.reports.save(sym, tf, reps)
             if self.forecaster is not None:
                 try:
-                    self.forecaster.run(sym, tf)
+                    st, _ = call_with_deadline(("forecast", sym, tf),
+                                               lambda: self.forecaster.run(sym, tf),
+                                               self.p.forecast_timeout_s)
+                    if st != "ok":   # timeout o aún colgado: se salta, la decisión sigue
+                        raise TimeoutError(f"pronóstico sin respuesta ({st}, plazo "
+                                           f"{self.p.forecast_timeout_s:g} s)")
                 except Exception as e:  # noqa: BLE001 - el pronóstico no frena la operación
                     self.log.write("pronostico_fallido", "warn", symbol=sym, error=str(e))
                     hooks_service.service_error("forecast.engine", e, mode=self.desk.mode)

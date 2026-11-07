@@ -9,6 +9,7 @@ Las filas se convierten por columnas (pandas → DuckDB): ~30 veces más rápido
 
 from __future__ import annotations
 
+import threading
 import time
 from collections import Counter, deque
 from collections.abc import Callable
@@ -70,6 +71,8 @@ class HftStore:
         self.rows_written: Counter[str] = Counter()
         self.errors = 0
         self.last_error = ""
+        self._rows_lock = threading.Lock()
+        self._pending_rows = 0       # T123: filas entregadas al escritor y aún sin escribir
 
     def add(self, kind: str, hour: int, row: tuple) -> None:
         buf = self.bufs.setdefault((kind, hour), [])
@@ -85,6 +88,15 @@ class HftStore:
         self._last = self._clock()
         for key in [k for k, v in self.bufs.items() if v]:
             self._submit(key)
+
+    def pending(self) -> int:
+        """Volcados sin terminar, sin tocar la cola (se puede leer desde otro hilo)."""
+        return sum(1 for f in list(self._futs) if not f.done())
+
+    @property
+    def pending_rows(self) -> int:
+        """Filas en manos del escritor sin escribir: lo que acota `hft.escritor` (T123)."""
+        return self._pending_rows
 
     @property
     def backlog(self) -> int:
@@ -103,9 +115,11 @@ class HftStore:
         if self._pool is None:
             self._write(key, rows)
         else:
-            self._futs.append(self._pool.submit(self._write, key, rows))
+            with self._rows_lock:
+                self._pending_rows += len(rows)
+            self._futs.append(self._pool.submit(self._write, key, rows, True))
 
-    def _write(self, key: tuple[str, int], rows: list[tuple]) -> None:
+    def _write(self, key: tuple[str, int], rows: list[tuple], queued: bool = False) -> None:
         kind, hour = key
         try:
             write_rows(self.root, kind, self.symbol, hour, rows)
@@ -116,6 +130,10 @@ class HftStore:
             self.errors += 1
             self.last_error = f"{kind}: {type(e).__name__}: {e}"[:300]
             hooks_service.service_error(COMPONENT, e, detail={"kind": kind, "rows": len(rows)})
+        finally:
+            if queued:
+                with self._rows_lock:
+                    self._pending_rows -= len(rows)
 
 
 def hour_of(recv_ns: int) -> int:

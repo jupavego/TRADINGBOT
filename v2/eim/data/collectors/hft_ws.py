@@ -31,7 +31,7 @@ from eim.data.collectors.hft_clock import RecvClock
 from eim.data.collectors.hft_schema import AREA
 from eim.data.collectors.hft_writer import COMPONENT, HftStore
 from eim.data.collectors.micro_feed import MicroFeed
-from eim.observability import hooks_service
+from eim.observability import hooks_service, queues
 from eim.observability.emit import configure
 from eim.operation.priority import apply_role
 from eim.operation.watchdog import instance_lock
@@ -41,7 +41,8 @@ WS = {"depth": "wss://fstream.binance.com/public/stream?streams={s}@depth@100ms"
       "market": "wss://fstream.binance.com/market/stream?streams={s}@aggTrade/{s}@markPrice@1s/"
                 "{s}@forceOrder"}
 REST = "https://fapi.binance.com/fapi/v1/depth"
-QUEUE_MAX = 50_000            # ~40 s de ráfaga de bookTicker; más sería memoria sin límite
+QUEUE_MAX = queues.capacity("hft.recepcion")   # ~40 s de ráfaga de bookTicker (T123)
+WRITE_BACKLOG_MAX = queues.capacity("hft.escritor")   # filas sin escribir antes de frenar
 CHECK_EVERY_S = 300.0         # snapshot de verificación (peso 20 de 2 400/min)
 SYNC_MIN_GAP_S = 1.0          # espera mínima entre snapshots de sincronía (crece si fallan)
 RECONNECT_S = 1.0             # primera espera tras un corte (se duplica hasta 60 s)
@@ -59,11 +60,12 @@ class Inbox:
     """Cola acotada entre recepción y proceso. Lleno ⇒ el mensaje se descarta y, en cuanto hay
     sitio, entra una marca `overflow` con cuántos y entre qué instantes."""
 
-    def __init__(self, maxsize: int = QUEUE_MAX) -> None:
+    def __init__(self, maxsize: int = QUEUE_MAX, gauge: queues.Gauge | None = None) -> None:
         self.q: asyncio.Queue = asyncio.Queue(maxsize)
         self.drops: dict[str, list[int]] = {}
         self.dropped = 0
         self.max_seen = 0
+        self.gauge = gauge or queues.gauge("hft.recepcion", probe=self.q.qsize)
 
     def offer(self, conn: str, item: tuple, recv: int, mono: int) -> bool:
         if conn in self.drops and self.q.maxsize - self.q.qsize() >= 2:
@@ -76,8 +78,12 @@ class Inbox:
             d[0] += 1
             d[2] = recv
             self.dropped += 1
+            self.gauge.drop(1, f"{conn}: cola llena ({self.q.maxsize})")
             return False
-        self.max_seen = max(self.max_seen, self.q.qsize())
+        n = self.q.qsize()
+        if n > self.max_seen:
+            self.max_seen = n
+            self.gauge.seen(n)
         return True
 
 
@@ -91,7 +97,8 @@ async def reader(name: str, url: str, inbox: Inbox, clock: RecvClock, stop: asyn
     while not stop.is_set():
         err = "cerrada por el servidor"
         try:
-            async with connect(url, ping_interval=20, open_timeout=15, max_size=2**23) as ws:
+            async with connect(url, ping_interval=20, open_timeout=15, max_size=2**23,
+                               max_queue=queues.WS_MAX_QUEUE) as ws:
                 backoff = RECONNECT_S
                 inbox.offer(name, ("open", name), *clock.now())
                 async for raw in ws:
@@ -108,9 +115,19 @@ async def reader(name: str, url: str, inbox: Inbox, clock: RecvClock, stop: asyn
         backoff = min(backoff * 2, 60.0)
 
 
+async def _hold(store: HftStore, stop: asyncio.Event, gauge: queues.Gauge) -> None:
+    """Disco lento (T123): espera a que bajen los volcados pendientes; la recepción sigue y, si
+    la cola se llena, descarta con marca. Así la memoria del escritor queda acotada."""
+    t0, rows, n = time.monotonic(), store.pending_rows, store.pending()
+    while store.pending_rows >= WRITE_BACKLOG_MAX and not stop.is_set():
+        await asyncio.sleep(0.05)
+    gauge.hold(time.monotonic() - t0, f"disco lento: {rows} filas en {n} volcados sin escribir")
+
+
 async def consumer(inbox: Inbox, cap: HftCapture, store: HftStore, stop: asyncio.Event) -> None:
     """Procesa la cola en orden; cede el bucle cada 64 mensajes para que la recepción selle."""
     n = 0
+    wg = queues.gauge("hft.escritor", probe=lambda: store.pending_rows)
     while not (stop.is_set() and inbox.q.empty()):
         try:
             item = await asyncio.wait_for(inbox.q.get(), timeout=1.0)
@@ -126,6 +143,8 @@ async def consumer(inbox: Inbox, cap: HftCapture, store: HftStore, stop: asyncio
         if n % 64 == 0:
             store.maybe_flush()
             await asyncio.sleep(0)
+        if store.pending_rows >= WRITE_BACKLOG_MAX:
+            await _hold(store, stop, wg)
 
 
 async def snapshots(cap: HftCapture, inbox: Inbox, http, clock: RecvClock, stop: asyncio.Event,

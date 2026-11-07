@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-07T11:12:19",
+ "generated": "2026-11-07T16:34:34",
  "phases": [
   {
    "n": 0,
@@ -1845,8 +1845,8 @@ window.EIM_STATUS = {
     "T23",
     "T72"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "**Hecha 2026-11-07, sin desplegar.** Inventario y políticas en `PLAN/notas/T123_colas.md`; registro de fronteras `v2/eim/observability/queues.py` (tope, política, contadores por proceso → pieza `observability.queues`, `GET /v2/obs/queues`, «Mapa del sistema» → «Colas entre etapas»). Corregido: escritor HFT sin tope (frena a 200 000 filas), plazo de agentes en serie y un hilo colgado por vela (ahora plazo común y uno por agente y canal), pronóstico sin plazo (60 s), difusor que esperaba al análisis (buzón de 1). Productor 10×: 225 MB plana frente a 718 MB y subiendo; descartes exactos. Pruebas: `tests/observability/test_queues_bounded.py`, `tests/data/test_backpressure_load.py` y otras 4. ◆ Desplegar tras la hora 2026-11-09T14 de T78.",
    "effort": "medio",
    "phase": 20,
    "goal": "Que una etapa lenta o un proveedor que inunda no puedan tumbar el bucle entero. Hoy la tubería viva (recolectores → instantánea → agentes → síntesis → plan) no declara límites entre etapas: si `aggTrade`/`depth` llegan más rápido de lo que se escribe, o un agente tarda, el efecto se propaga hacia arriba y la memoria crece sin tope en un equipo de 7,9 GB. Idea tomada de Firedancer (Jump): etapas aisladas, cola acotada en cada frontera y política de contrapresión declarada, nunca implícita. No se copia código ni se añade dependencia."
