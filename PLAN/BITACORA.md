@@ -734,6 +734,25 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** fusionar este PR. **Desplegar:** reiniciar vigilante y API (◆ permiso); la API sigue con el proceso de las 13:51 UTC y el fallo aún puede repetirse.
 - **En curso:** T135 (◐); T31, T45, T62, T104, T78, T116, T117, T127 y T128 sin cambios aquí.
 - **Siguiente paso:** el despliegue de T140 y después T142.
+## 2026-11-06 20:25 UTC · juanpablo-cpu · T142: desplegada y las 5 reconciliadas, con una sexta congelada
+- **Hecho, con permiso del usuario («Sí, los tres»):** PR #217 fusionado (`b1a0a11`), carpeta principal al día, reinicio de la API (solo la hija de `uvicorn`, a las 20:04:33 UTC) y las 5 reconciliadas a las 20:07 UTC con `--decision recalculo`. Cerradas en el diario al precio previsto.
+- **Efecto real en el capital realizado:** Moderado +17,79, Agresivo −147,51, PPP −13,14 USDT. 18 entradas nuevas en el libro fijo, marcadas `retro`. Antes de reconciliar, las 390 operaciones eran iguales con el código viejo y el nuevo.
+- **No previsto:** al bajar el capital de Agresivo, su única operación abierta (`15m:1793981700000:agente_technical`) quedó con otra cantidad (0,125 frente a 0,122) y se congeló a las 20:08 UTC. La nota no lo había previsto. El permiso cubría las 5, así que no se ha tocado.
+- **Coordinación:** la sesión de T140 esperó a la reconciliación para reiniciar vigilante y API; se le avisó de que al arrancar debe salir 1 alerta, no 5.
+- **Archivos:** `v2/eim/operation/distortions.py`, `v2/tests/operation/test_distortions.py`, `PLAN/notas/T142_posiciones_fantasma.md`, `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`.
+- **Pruebas:** comparación de libros antes y después por la API. Gate por la cola sobre T140 + T142 juntas: `gate-t142-cierre`, rc 0, 3 129 pasadas, 8 omitidas, 0 fallos, 1 100 s, sin pausas.
+- **Abierto:** permiso para reconciliar la sexta (◆); hasta entonces T142 queda ◐. Comprobar «sin alertas al arrancar» cuando no quede ninguna congelada.
+- **En curso:** T142 (◐), T141 en su PR #216; T31, T45, T62, T78, T104, T116, T117, T127, T128 y T135 sin cambios aquí.
+- **Siguiente paso:** decisión del usuario sobre la sexta.
+## 2026-11-07 02:40 UTC · juanpablo-cpu · T142: la sexta reconciliada, 0 congeladas
+- **Hecho:** con permiso del usuario, reconciliada `agresivo|BTCUSDT|BTCUSDT:15m:1793981700000:agente_technical` a las 02:33 UTC. **0 congeladas y 0 alertas de protección activas.** Cerró en su stop, 76 159,55, con −93,75 USDT (−1,17 R). La foto de antes y la de después solo difieren en esta operación: sin más cascadas.
+- **Mientras esperaba:** el precio tocó su stop el 2026-11-06 a las 22:02 UTC y siguió abierta. El permiso llegó antes, pero la sesión se cortó y el usuario pidió repetirlo; se comprobó el estado y solo entonces se reconcilió.
+- **Archivos:** `v2/eim/operation/distortions.py`, `v2/tests/operation/test_distortions.py`, `PLAN/notas/T142_posiciones_fantasma.md`, `PLAN/{T31,STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`.
+- **Pruebas:** tras el gate combinado solo cambiaron un texto y `t1` de `distortions.py` y documentos: `ruff` limpio y `tests/operation/test_distortions.py`.
+- **«Sin alertas al arrancar», comprobado:** la sesión de T140 reinició el vigilante y la API a las 02:35:48 UTC, para desplegarla. A las 02:37:08 `/v2/paper` respondía con 0 congeladas, sin recuperaciones, 0 alertas desde el arranque y ninguna activa, y con el mismo capital en los 4 perfiles. T142 ☑.
+- **Abierto:** PR #218, a la espera de permiso para fusionar: solo lleva la distorsión cerrada y documentos.
+- **En curso:** T141 en su PR #216, que ahora tiene conflictos; T31, T45, T62, T78, T104, T116, T117, T127, T128 y T135 sin cambios aquí.
+- **Siguiente paso:** fusionar #218 con permiso del usuario y traerlo a la carpeta principal; no hace falta reiniciar para esto hasta el próximo arranque, porque el texto del informe se carga al arrancar.
 
 ## 2026-11-07 02:45 UTC · juanpablo-cpu · T140 desplegada
 - **Hecho:** vigilante y API reiniciados con permiso del usuario, a las 02:35–02:36 UTC, tras esperar a que T142 acabara de reconciliar y a un gate de T141. El puerto volvió a escuchar a los 42 s, con `--loop eim.operation.event_loop:selector_loop`. Detalle en `PLAN/notas/T140_api_sin_puerto.md` §7.

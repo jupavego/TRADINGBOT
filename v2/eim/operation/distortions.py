@@ -26,17 +26,18 @@ KNOWN: tuple[Distortion, ...] = (
     Distortion(
         machine="juanpablo-cpu",
         t0=1_793_752_329_000,        # 2026-11-04 00:32:09 UTC, la primera fila «inconsistente»
-        t1=None,
+        t1=1_794_018_852_000,        # 2026-11-07 02:34:12 UTC, 0 congeladas tras reconciliar
         title="5 posiciones fantasma en Agresivo, Moderado y PPP (T142)",
         detail=("Congeladas por un escalón guardado antes de tener las velas de 1 min, siguieron "
-                "abiertas en los libros aunque el recálculo las ve cerradas. Medido hasta "
-                "2026-11-06 00:00 UTC, frente a los mismos libros sin congelar: Moderado +17,30 "
-                "USDT (7 entradas no tomadas), Agresivo −171,26 (5) y PPP −13,14 (4); en total "
-                "−167,10 USDT. Sus 5 cierres (+22,22 USDT) ya están en el libro fijo: lo que le "
-                "falta son las 16 entradas no tomadas (−189,32 USDT, incluido el efecto en el "
-                "tamaño de las demás). Hasta reconciliarlas, Agresivo y PPP salen mejor y Moderado "
-                "peor de lo que habrían salido. Es una medida sobre el recálculo, no un resultado "
-                "operado, y crece mientras sigan congeladas."),
+                "abiertas en los libros aunque el recálculo las veía cerradas. Al reconciliarlas, "
+                "el capital realizado cambió: Moderado +17,79 USDT, Agresivo −147,51 y PPP −13,14; "
+                "en total −142,86. De ello, +22,22 son sus 5 cierres y −164,53 son 18 entradas "
+                "que no se tomaron mientras duró. Esas 18 están en el libro fijo marcadas `retro`: "
+                "se decidieron al recalcular y no son operaciones vividas en su momento. Es una "
+                "medida sobre el recálculo, no un resultado operado. Reconciliar congeló una sexta "
+                "en Agresivo porque su cantidad dejó de cuadrar. Esa sí se vivió: tocó su stop el "
+                "2026-11-06 a las 22:02 UTC y su pérdida (−93,75 USDT) quedó fuera del capital "
+                "hasta reconciliarla, a las 02:33 UTC del día siguiente."),
         ref="PLAN/notas/T142_posiciones_fantasma.md"),
 )
 
