@@ -18,11 +18,13 @@ from eim.operation.alerts import CRITICAL, INFO, PROTECTION, WARN, Alert, Condit
 from eim.paper import protection
 from eim.paper.generate import now_ms
 from eim.paper.protection import Journal, op_key, split
+from eim.paper.protection_settle import HOLE_WAIT_MS
 from eim.paper.protection_sync import PassResult, reconcile, run_pass
 
 COMPONENT = "paper.broker"
 HELD_KEY, JOURNAL_KEY, RECOVERED_KEY = ("proteccion_inconsistente", "proteccion_diario",
                                         "proteccion_recuperada")
+WAITING_KEY = "proteccion_espera_1m"
 _EVENT_STATUS = {"recuperacion": "degraded", "inconsistente": "error"}
 
 
@@ -67,22 +69,24 @@ class DeskProtection:
         self._journals[symbol] = j
         return j.guards
 
-    def _sync_protection(self, v) -> None:
-        """Pone al día el diario tras recalcular `v`; nunca tumba la vista."""
+    def _sync_protection(self, v, fine=None) -> None:
+        """Pone al día el diario tras recalcular `v` con las velas de 1 min `fine`; nunca tumba la
+        vista."""
         now = now_ms()
         j = self._journals.pop(v.symbol, None)
         res = None
         if j is not None:
             try:
                 res = run_pass(self.pstore, j, v.books, self.ep, now,
-                               startup=v.symbol not in self._prot_started, seen=self._prot_seen)
+                               startup=v.symbol not in self._prot_started, seen=self._prot_seen,
+                               fine=fine)
                 self._prot_started.add(v.symbol)
                 self.protection_error = ""
             except Exception as exc:  # noqa: BLE001
                 self.protection_error = f"{type(exc).__name__}: {exc}"
         v.protection = self._state(v, res)
         try:
-            self._notify(v.symbol, res, now)
+            self._notify(v.symbol, res, now, fine)
         except Exception as exc:  # noqa: BLE001 - un aviso roto no tumba la vista
             self.protection_error = f"avisos: {type(exc).__name__}: {exc}"
 
@@ -93,12 +97,13 @@ class DeskProtection:
         return {"verified": True, "error": "", "journal": "paper_protection",
                 "first_ms": res.first_ms, "written": len(res.rows),
                 "open": len(res.open_ids - set(res.held)), "held": dict(res.held),
+                "waiting_fine": sorted(res.waiting),
                 "n_inconsistent": len(res.held),
                 "inconsistent": [{"op_id": k, "profile": (split(k) or ("",))[0], "why": w}
                                  for k, w in sorted(res.held.items())],
                 "recovered": res.recovered, "ahead": res.ahead}
 
-    def _notify(self, symbol: str, res: PassResult | None, now: int) -> None:
+    def _notify(self, symbol: str, res: PassResult | None, now: int, fine=None) -> None:
         a = self.alerts
         if res is not None:
             for row in res.rows:
@@ -129,6 +134,11 @@ class DeskProtection:
                          f"{r['to_level']} y lo guardado en el {r['from_level']}; se adopta el "
                          f"recálculo (el mayor) y se registran {r['changes']} cambio(s)",
                          f"{RECOVERED_KEY}:{r['op_id']}"))
+        conds.append(Condition(
+            f"{WAITING_KEY}:{symbol}", PROTECTION,
+            bool(res.waiting) and fine is not None and now - fine.end > HOLE_WAIT_MS, WARN,
+            f"Diario de protección a la espera de velas de 1 min ({symbol})",
+            f"{len(res.waiting)} operación(es) sin guardar: la cola de 1 min no avanza (T142)"))
         for op_id, why in sorted(res.held.items()):
             conds.append(_held_condition(op_id, True, why))
         for key in _active(a):

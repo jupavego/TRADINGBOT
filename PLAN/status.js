@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-06T15:04:51",
+ "generated": "2026-11-06T21:39:07",
  "tasks": [
   {
    "id": "T01",
@@ -1771,7 +1771,7 @@ window.EIM_STATUS = {
     "T127"
    ],
    "state": "done",
-   "notes": "**Hecha (2026-11-06), sin fusionar ni desplegar** (rama `claude/t140-puerto`; desplegar exige reiniciar vigilante y API, `RUNBOOK.md` §16). Informe en `PLAN/notas/T140_api_sin_puerto.md` §6. **Reproducido:** con el bucle bloqueado y un cliente que corta con RST, `ProactorEventLoop` cierra el socket; con `SelectorEventLoop` sobrevive, y se adopta (`eim/operation/event_loop.py`, `python -m eim.operation.accept_check`). **Vigilante:** reinicia tras 2 min sin escuchar, o 20 min si no llegó a abrirse (`eim/operation/port_watch.py`), mirando la tabla de puertos en vez de conectarse. **Registros** con hora y conservados entre arranques. **`continuity check` y el icono** dicen si hay puerto. Ensayado con la API real en otro puerto. Gate por la cola (`gate-t140`): `ruff` limpio, **3 042 pasadas, 8 omitidas, 0 fallos** en 1 166 s, una pausa de 125 s. Antes: Abierta el 2026-11-06 tras diagnosticar más de 11 h sin puerto con el proceso «sano»: `asyncio` cierra el socket de escucha al fallar un `accept` (`WinError 64`) y el vigilante solo mira el latido. Ficha `PLAN/T140.md`, diagnóstico `PLAN/notas/T140_api_sin_puerto.md`.",
+   "notes": "**Hecha (2026-11-06) y desplegada (2026-11-07 02:36 UTC, PR #215).** Informe en `PLAN/notas/T140_api_sin_puerto.md` §6. **Reproducido:** con el bucle bloqueado y un cliente que corta con RST, `ProactorEventLoop` cierra el socket; con `SelectorEventLoop` sobrevive, y se adopta (`eim/operation/event_loop.py`, `python -m eim.operation.accept_check`). **Vigilante:** reinicia tras 2 min sin escuchar, o 20 min si no llegó a abrirse (`eim/operation/port_watch.py`), mirando la tabla de puertos en vez de conectarse. **Registros** con hora y conservados entre arranques. **`continuity check` y el icono** dicen si hay puerto. Ensayado con la API real en otro puerto. Gate por la cola (`gate-t140`): `ruff` limpio, **3 042 pasadas, 8 omitidas, 0 fallos** en 1 166 s, una pausa de 125 s. Antes: Abierta el 2026-11-06 tras diagnosticar más de 11 h sin puerto con el proceso «sano»: `asyncio` cierra el socket de escucha al fallar un `accept` (`WinError 64`) y el vigilante solo mira el latido. Ficha `PLAN/T140.md`, diagnóstico `PLAN/notas/T140_api_sin_puerto.md`.",
    "effort": "medio",
    "phase": 21,
    "goal": "Que una API sin puerto se detecte y se recupere sola en minutos. El 2026-11-06 estuvo más de 11 horas sorda con el proceso «sano»: `asyncio` cerró el socket de escucha tras un `WinError 64`, el latido siguió al día y ni el vigilante ni `continuity check` lo vieron. El diagnóstico con la evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §1."
@@ -1783,8 +1783,8 @@ window.EIM_STATUS = {
     "T126",
     "T127"
    ],
-   "state": "progress",
-   "notes": "Código e informe hechos (2026-11-06): el registro identifica a los ajenos (`usage_foreign.py`), `usage incidents` cruza cada bloqueo y `usage_alert.py` avisa con umbrales medidos. **Informe `PLAN/notas/T141_carga_ajena.md`:** 4 de 5 bloqueos coinciden con scripts de `OPERACION/PROTOTIPO` con 4–7 procesos; la cola no estuvo en ninguno; todo el EIM, captura incluida, corre con prioridad de memoria 2 y E/S baja. **Decidido por el usuario: ◆A y ◆B.** ◆A, regla en `~/.claude/CLAUDE.md`. ◆B, memoria y E/S de los recolectores a 5 y normal, aplicadas en marcha a las 20:01:48 UTC, sin reiniciar, y fijadas en `apply_role` (`priority_memory.py`); la API no cambia. Falta: fusionar, reiniciar el registro de consumo (pide permiso) y medir 3 días, hasta el 2026-11-10 si es hoy.",
+   "state": "pending",
+   "notes": "Abierta el 2026-11-06: 3 reinicios «latido detenido» en 46 h con el equipo saturado por `python.exe` ajenos sin identificar. Es calibración: medir antes de decidir (◆). Ficha `PLAN/T141.md`.",
    "effort": "medio",
    "phase": 21,
    "goal": "Saber qué satura el equipo y evitar que eso pare la API. Hubo tres reinicios «latido detenido» en 46 h (2026-11-05 04:14 y 07:12, 2026-11-06 01:41), sin ninguno en los días anteriores desde el 30-oct. En todos el equipo estaba bajo presión, con `python.exe` ajenos en prioridad normal mientras la API, en prioridad baja, perdía casi toda su RAM. La evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §2."
@@ -1796,8 +1796,8 @@ window.EIM_STATUS = {
     "T110",
     "T130"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-06: 5 operaciones de Agresivo, Moderado y PPP congeladas desde el 2026-11-04 repiten el patrón del falso positivo del 31-oct, que T130 no eliminó del todo. Siguen abiertas en los libros de T31; efecto sin medir. Reconciliarlas pide permiso (◆). Ficha `PLAN/T142.md`.",
+   "state": "progress",
+   "notes": "2026-11-06, `juanpablo-cpu`: las 5 comprobadas con velas de 1 min y trades (falsos positivos, +22,22 USDT, ya en el libro fijo) y efecto medido hasta 2026-11-06 00:00 UTC: 16 entradas no tomadas, −167,10 USDT en total (nota `PLAN/notas/T142_posiciones_fantasma.md`, y en el informe de T31). Causa arreglada en `v2/eim/paper/protection_settle.py`, `_never_lower` intacto, huellas idénticas a `main`. **Falta, con permiso del usuario (◆): fusionar, reiniciar la API y reconciliar las 5.** Hasta entonces siguen congeladas.",
    "effort": "medio",
    "phase": 21,
    "goal": "Sacar de los libros las 5 operaciones congeladas desde el 2026-11-04 y evitar que se creen más. Se guarda un escalón al cierre de la vela de 15 m sin tener aún sus velas de 1 m. Cuando llegan, el recálculo ve la operación cerrada por debajo de ese stop, `_never_lower` la congela y, congelada, **no se cierra sola**. T130 arregló la mitad de este caso (`ladder_floor.early`), y su propia documentación avisa de la otra mitad. La evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §3 y `PLAN/notas/T130_anexo_falso_inconsistente.md`."

@@ -22,12 +22,16 @@ Salvo que se diga otra cosa, las horas son UTC y la CPU es % del equipo entero: 
 
 | | Antes (19:58 UTC) | Después |
 |---|---|---|
-| Racha T78 (`hft_ops --streak`) | 4 h, desde 2026-11-06T15; mejor racha, 23 h | @@RACHA@@ |
-| Última hora | T18 completa | @@HORA@@ |
-| Latido y cola | cola 1, sin descartes, mismo arranque | a los 8 s: cola 1, sin descartes, mismo arranque. @@COLA@@ |
-| Horas incompletas del día (`usage summary`) | 00, 06, 07 y 14 | @@INCOMPLETAS@@ |
+| Racha T78 (`hft_ops --streak`) | 4 h, desde 2026-11-06T15; mejor racha, 23 h | 11 h, de 2026-11-06T15 a 2026-11-07T01, leída a las 02:44 UTC |
+| Última hora | T18 completa | T20 a T01, todas completas |
+| Latido y cola | cola 1, sin descartes, mismo arranque | a los 8 s: cola 1, sin descartes, mismo arranque. En las 6 h 43 min siguientes: cola máxima 100, ninguna muestra por encima de 1 000, sin descartes. |
+| Horas incompletas del día (`usage summary`) | 00, 06, 07 y 14 | las mismas 4; ninguna desde el cambio |
 
-**Lo que esto no prueba:** una hora tranquila solo dice que el cambio no estorba. La mejora se verá en el próximo episodio de presión de memoria, si la captura conserva sus ~150 MB en vez de bajar a 18–40 MB, y se lee con `python -m eim.operation.usage incidents --days 7`.
+**Desde el cambio hasta las 02:44 UTC del 7-nov:** ningún ciclo de 120 s o más ni reinicio por latido, y el aviso no habría saltado. La API tuvo un reinicio por salida a las 20:04 y el despliegue de T140 a las 02:36, ninguno por carga.
+
+**Primera prueba de ◆A:** `24_facetas_radio.py`, el script que el 6-nov corrió con `--procesos 7` justo cuando la API cayó a 10 MB, fue por la cola con `--procesos 2` (01:54–02:14). La cola lo pausó dos veces por tener menos de 1 GB libre.
+
+**Primera prueba de ◆B, y no es limpia:** en ese tramo, con hasta 480 MB libres y 31 GB comprometidos, la captura conservó 136 MB, con cola máxima 4. En un tramo parecido del 6-nov (473 MB libres) bajó a 72 MB. Pero esta vez la API, que sigue en memoria 2, tampoco cayó (790 MB frente a 10 MB), así que la presión fue menor. **La mejora de ◆B sigue sin demostrarse:** hará falta un episodio en el que la API caiga y la captura no, y se lee con `python -m eim.operation.usage incidents --days 7`.
 
 ## Resumen
 
