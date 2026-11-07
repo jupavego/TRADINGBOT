@@ -16,7 +16,7 @@ Salvo que se diga otra cosa, las horas son UTC y la CPU es % del equipo entero: 
 | `liq_collector` (PID 17348, 12 hilos) | memoria 2, E/S baja | **memoria 5, E/S normal**, en todos sus hilos |
 | API (PID 13376) y el resto de los servicios | memoria 2, E/S baja | sin cambios |
 
-**Se queda fijo:** desde este PR, `priority.apply_role` sube a los recolectores al arrancar. Hasta que se fusione y se reinicien, un reinicio de la captura la devolvería a 2.
+**Se queda fijo:** `priority.apply_role`, ya en `main`, sube a los recolectores cuando arrancan. La captura sigue en el arranque del 5-nov, con el cambio hecho en marcha, y lo conservará si se reinicia.
 
 **Auditoría de la captura:**
 
@@ -155,15 +155,15 @@ Serían **11 avisos en 4,6 días (2,4 al día)**, uno por tramo. Cuatro de los 1
 
 **Lo que ya se puede leer:** los 3 reinicios y los ciclos lentos de esta ventana, en §1 a §5.
 
-**Lo que depende de reiniciar el registro de consumo:** el código nuevo solo se carga cuando se fusione este PR y se reinicie ese servicio, cosa que pide permiso, aunque no toca la captura. Desde ese momento, cada bloqueo saldrá con su orden y su carpeta:
+**Desplegado:** PR #216 fusionado y registro de consumo reiniciado a las 03:00:50 UTC del 7-nov, solo ese servicio; la captura y la API conservaron sus PID. Se comprobó con un proceso de prueba de 350 MB: salió con su orden y su carpeta, con la clave falsa de sus argumentos oculta y sin rastro en el registro de operación. Desde ahora, cada bloqueo sale con su orden y su carpeta:
 
 ```bash
 python -m eim.operation.usage incidents --days 7
 ```
 
-**Ventana propuesta:** 3 días desde ese reinicio. Si es hoy, **hasta el 2026-11-10**, lo que además cubre el final de la racha de T78. Esa racha se rompió en la hora 14 del 6-nov y va desde la 15, así que se cumple como pronto al cerrar la hora 2026-11-09T14 UTC. Si en esa ventana no hay bloqueos, se dirá que no los hubo. La medición también deja `faults`, para separar por fin memoria y CPU en un caso como el de las 04:14.
+**Ventana:** **hasta el 2026-11-10 03:00 UTC**, lo que además cubre el final de la racha de T78. Esa racha se rompió en la hora 14 del 6-nov y va desde la 15, así que se cumple como pronto al cerrar la hora 2026-11-09T14 UTC. Si en esa ventana no hay bloqueos, se dirá que no los hubo. La medición también deja `faults`, para separar por fin memoria y CPU en un caso como el de las 04:14.
 
-**Sin comprobar:** leer las órdenes desde la sesión 0, donde no se ha probado; hoy los servicios corren en la sesión 1. Si falla, el árbol queda medido y sin nombre, sin más daño.
+**Sin comprobar:** una notificación real en pantalla, y leer las órdenes desde la sesión 0, donde no se ha probado; hoy los servicios corren en la sesión 1. Si falla, el árbol queda medido y sin nombre, sin más daño.
 
 ## 7. Opciones para decidir (◆)
 
