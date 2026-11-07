@@ -8,7 +8,7 @@ from collections.abc import AsyncIterator
 from typing import Protocol
 
 from eim.core import Candle
-from eim.observability import hooks_service
+from eim.observability import hooks_service, queues
 
 
 class LiveEvent(dict):
@@ -54,7 +54,8 @@ class BinanceKlineSource:
         backoff, was_down = 1.0, False
         while True:
             try:
-                async with websockets.connect(url, ping_interval=20, open_timeout=10) as ws:
+                async with websockets.connect(url, ping_interval=20, open_timeout=10,
+                                              max_queue=queues.WS_MAX_QUEUE) as ws:
                     backoff = 1.0
                     yield LiveEvent(type="status", state="up", detail="conectado")
                     if was_down:

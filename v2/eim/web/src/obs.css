@@ -84,3 +84,5 @@
 @media (max-width: 1100px) { .obs-body { grid-template-columns: 1fr; } }
 @media (max-width: 900px) { .obs { margin: 12px; } }
 @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+/* T123: colas entre etapas */
+.obs-q { margin-bottom: 6px; } .obs-q-drop > b { color: var(--warn, #b7791f); }

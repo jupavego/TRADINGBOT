@@ -52,15 +52,18 @@ class _Emitter:
         self.q: queue.Queue[tuple[int, str]] = queue.Queue(maxsize=qsize)
         self.pid = os.getpid()
         self.emitted = self.written = self.dropped = self.errors = 0
+        self.max_queued, self.last_cause, self.since_ms = 0, "", int(time.time() * 1000)  # T123
         self._lock = threading.Lock()
         self._thread: threading.Thread | None = None
         self._busy = False
         self._fh = None
         self._fh_path: Path | None = None
 
-    def _count(self, field: str, n: int = 1) -> None:
+    def _count(self, field: str, n: int = 1, cause: str | None = None) -> None:
         with self._lock:
             setattr(self, field, getattr(self, field) + n)
+            if cause:
+                self.last_cause = cause
 
     def start(self) -> None:
         if self._thread is None or not self._thread.is_alive():
@@ -71,10 +74,11 @@ class _Emitter:
         self.start()
         try:
             self.q.put_nowait((ts, line))
-            return True
         except queue.Full:
-            self._count("dropped")
+            self._count("dropped", cause="cola llena")
             return False
+        self.max_queued = max(self.max_queued, self.q.qsize())
+        return True
 
     def _path_for(self, ts_ms: int) -> Path:
         day = time.strftime("%Y%m%d", time.gmtime(ts_ms / 1000))
@@ -96,15 +100,14 @@ class _Emitter:
                 self._count("written", len(lines))
             except Exception:  # disco lleno, permiso denegado, ruta inválida…
                 self._close()
-                self._count("dropped", len(lines))
+                self._count("dropped", len(lines), cause="no se pudo escribir el spool")
                 self._count("errors")
 
     def _close(self) -> None:
         if self._fh is not None:
             with contextlib.suppress(Exception):
                 self._fh.close()
-        self._fh = None
-        self._fh_path = None
+        self._fh = self._fh_path = None
 
     def _run(self) -> None:
         while True:
@@ -128,9 +131,7 @@ class _Emitter:
 
     def flush(self, timeout: float) -> bool:
         end = time.monotonic() + timeout
-        while time.monotonic() < end:
-            if self.q.unfinished_tasks == 0:
-                return True
+        while self.q.unfinished_tasks and time.monotonic() < end:
             time.sleep(0.005)
         return self.q.unfinished_tasks == 0
 
@@ -179,7 +180,8 @@ def stats() -> dict[str, Any]:
     em = _em()
     return {"enabled": em.enabled, "emitted": em.emitted, "written": em.written,
             "dropped": em.dropped, "errors": em.errors, "queued": em.q.qsize(),
-            "process": em.process, "spool": str(em.spool)}
+            "capacity": em.q.maxsize, "max_queued": em.max_queued, "last_cause": em.last_cause,
+            "since_ms": em.since_ms, "process": em.process, "spool": str(em.spool)}
 
 
 def flush(timeout: float = 2.0) -> bool:
@@ -237,7 +239,7 @@ def emit(kind: EventKind, component_id: str, *, status: Status = "ok",
         return em.put(ts, ev.model_dump_json())
     except Exception:  # evento inválido u otro fallo: se descarta y se cuenta
         with contextlib.suppress(Exception):
-            _em()._count("dropped")
+            _em()._count("dropped", cause="evento inválido")
         return False
 
 

@@ -1,5 +1,6 @@
 /** Nivel 3 (T75): panel de detalle de un componente y «En palabras simples» con plantillas. */
 import { neighbours, compState } from './obs_graph'
+import { queueHtml } from './obs_queues'
 import { ago, esc, getObs, STATE_ICON, STATE_LABEL, type ObsComp, type ObsData, type ObsEvent } from './obs_types'
 
 const biasWord = (b: number): string =>
@@ -58,6 +59,7 @@ export async function detailHtml(d: ObsData, id: string, signal?: AbortSignal): 
     <h4>De quién depende</h4><ul class="obs-ul">${nb.from.map((x) => li(x.c, x.artifact, d)).join('') || '<li class="muted">De nadie (es una fuente).</li>'}</ul>
     <h4>A quién afecta</h4><ul class="obs-ul">${nb.to.map((x) => li(x.c, x.artifact, d)).join('') || '<li class="muted">A nadie más (es un destino).</li>'}</ul>
     ${refs.length ? `<h4>Últimas entradas y salidas <small class="muted">(referencias)</small></h4><ul class="obs-ul">${refs.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
+    ${(() => { const qs = (d.queues ?? []).filter((q) => q.component_id === id); return qs.length ? `<h4>Colas de esta pieza <small class="muted">(lo que espera entre etapas y lo descartado)</small></h4><ul class="obs-ul">${qs.map(queueHtml).join('')}</ul>` : '' })()}
     ${errs.length ? `<h4>Últimos errores</h4><ul class="obs-ul">${errs.map((r) => `<li>${ago(r.started_ms)} · ${esc(r.error ?? 'sin mensaje')}</li>`).join('')}</ul>` : ''}
     <p class="obs-links">${trace ? `<button class="obs-link" data-open-trace="${esc(trace)}" title="Ver qué ocurrió con esa vela, paso a paso">Ver su traza completa</button>` : ''}
       ${c.kind === 'agent' ? '<small class="muted">Su tarjeta está en la mesa, pestaña «Escenarios».</small>' : ''}</p>`
