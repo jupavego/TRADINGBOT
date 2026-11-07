@@ -1,6 +1,6 @@
-/** Cabecera del bróker simulado: servicio en vivo por marco, tarjetas de perfil y cuenta. */
-import { PROFILE_VAR } from './paper_chart'
-import { dur, esc, hm, nf, pct, pct0, usd, utc } from './paper_fmt'
+/** Cabecera del bróker simulado: servicio en vivo por marco y cuenta (los perfiles se eligen en la
+ * leyenda de «Capital por perfil», `paper_eqleg`). */
+import { dur, esc, hm, nf, pct, usd, utc } from './paper_fmt'
 import type { Job, PaperSummary, ProfileView } from './paper_types'
 
 const TF_MS: Record<string, number> = { '15m': 900_000, '1h': 3_600_000, '4h': 14_400_000 }
@@ -49,19 +49,6 @@ export function jobHtml(j: Job): string {
   }
   if (j.state === 'error') return `<span class="down">error: ${esc(j.error)}</span>`
   return j.state === 'terminado' ? `<span class="muted">último: +${j.saved} velas</span>` : ''
-}
-
-export function cardsHtml(v: PaperSummary, profile: string): string {
-  return v.profiles.map((p) => {
-    const ret = p.return_pct
-    const ops = `${p.n_closed} ops${p.counts?.liquidations ? ` · ${p.counts.liquidations} liquidadas` : ''}`
-    return `<button class="pp-card" role="tab" data-prof="${p.id}" aria-selected="${p.id === profile}" style="--pc:var(${PROFILE_VAR[p.id] ?? '--accent'})">` +
-      `<span class="pp-card-h"><i></i>${esc(p.name)}${p.exhausted ? ' <span class="pp-live down" title="Capital agotado: no abre más posiciones">agotada</span>' : ''}</span>` +
-      `<b class="num" title="Capital = saldo realizado + PnL no realizado">${nf(p.equity)} <small>USDT</small></b>` +
-      `<span class="num ${ret > 0 ? 'up' : ret < 0 ? 'down' : ''}" title="Rentabilidad sobre el capital (equity) frente al capital inicial">${pct(ret)}</span>` +
-      `<small class="muted">${ops} · acierto ${pct0(p.win_rate)} · PF ${p.pf === null ? '—' : nf(p.pf)} · <span title="Máximo descenso de la curva de capital (equity), todo el periodo">DD máx. ${pct0(p.max_dd_pct)}</span></small>` +
-      `<small class="muted">${p.positions.length} abiertas · ${p.orders.length} órdenes · riesgo ${nf(Number(p.params.risk_pct) * 100, 1)} % · hasta ${p.params.max_leverage}x</small></button>`
-  }).join('')
 }
 
 export function acctHtml(p: ProfileView): string {

@@ -5,7 +5,7 @@ import { balanceView } from './paper_balance'
 import { EquityChart, PaperPriceChart } from './paper_chart'
 import { esc, getPaper, PaperError, postPaper, px, usd } from './paper_fmt'
 import { scopeHtml } from './paper_audit'
-import { acctHtml, cardsHtml, covText, jobHtml, liveStrip } from './paper_head'
+import { acctHtml, covText, jobHtml, liveStrip } from './paper_head'
 import { PaperJournal } from './paper_journal'
 import { PaperLearn } from './paper_learn'
 import { PaperLedger } from './paper_ledger'
@@ -168,10 +168,9 @@ export class PaperView {
     this.q('live').innerHTML = liveStrip(v)
     this.paintJob(v.job)
     this.q('bal').innerHTML = balanceView(v, this.bal)
-    this.q('cards').innerHTML = cardsHtml(v, this.profile)
     const pv = this.prof()
     this.q('acct').innerHTML = pv ? acctHtml(pv) : ''
-    this.eq!.set(v.profiles)
+    this.eq!.set(v.profiles, this.profile)   // la leyenda del capital es también el selector de perfil
     this.paintChart()
     this.paintTab()
   }
@@ -234,7 +233,7 @@ export class PaperView {
     const bal = t.closest<HTMLElement>('[data-bal]')
     if (bal && this.v) { this.bal = bal.dataset.bal!; this.save(); this.q('bal').innerHTML = balanceView(this.v, this.bal); return }
     const card = t.closest<HTMLElement>('[data-prof]')
-    if (card) { this.profile = card.dataset.prof!; this.focus = null; this.save(); void this.reload(); return }
+    if (card) { this.profile = card.dataset.prof!; this.focus = null; this.save(); this.eq!.select(this.profile); void this.reload(); return }
     const tab = t.closest<HTMLElement>('.pp-tabs button')
     if (tab) { this.tab = tab.dataset.t!; this.save(); this.markTabs(); this.paintTab(); return }
     const ctf = t.closest<HTMLElement>('[data-ctf]')
