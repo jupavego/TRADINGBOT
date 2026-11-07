@@ -155,3 +155,27 @@ Otra sesión lo reprodujo por su cuenta, sin ver este código, con 3 rondas por 
 | 14:57:16–14:57:36 | `mark`: 20,2 s | El ensayo de arriba, a prioridad IDLE, con la CPU alrededor del 60 % |
 
 `bbo` perdió ≈ 53 s frente a los 36 que admite el 0,99. Sin la tanda de las 14:39–14:40 habría perdido unos 39 s: tan cerca del límite que no se puede decir que la hora se hubiera perdido igualmente. **Consecuencia práctica:** con una racha en juego, crear un worktree también es trabajo pesado (BACKLOG T140 (7)). La cola además pausó `gate-t140` a las 15:14 por «2 huecos nuevos», pero la hora 15 salió completa (libro útil 99,5 %) y la racha cuenta desde ella.
+
+## 7. Despliegue (2026-11-07, con permiso del usuario)
+
+Se paró solo el vigilante de la API y la API, y se relanzaron con la tarea «EIM - servicio continuo (broker simulado)». La carpeta principal estaba en `b1a0a11`, así que entraron a la vez T135 (apagado), T139 y T142; la API ya cargaba T142 desde el reinicio de las 20:04 UTC. Se esperó a que T142 acabara de reconciliar y a que terminara un ciclo.
+
+| UTC | Hecho |
+|---|---|
+| 02:35:40 | Parada, justo tras un ciclo |
+| 02:35:48 | Lanzada la tarea |
+| 02:35:52 | `proceso_lanzado`, con `--loop eim.operation.event_loop:selector_loop` |
+| 02:36:17 | `servicio_iniciado` |
+| 02:36:20 | Puerto en escucha, 42 s después de parar |
+| 02:37:08 | Primer 200 de `/v2/paper`; antes, 503 mientras calculaba la primera vista |
+
+**Comprobado:**
+- **API:** `/v2/health`, WebSocket con ticks y 2 ciclos correctos con reconciliación bien y el mismo capital (9 720,05).
+- **Alertas:** 0 de protección al arrancar, durante 94 s. El diario queda en 178 cerradas y 1 abierta.
+- **El resto de servicios:** los mismos 15 procesos, con los mismos PID; la captura siguió escribiendo.
+- **Registros:** los anteriores quedaron en `vigilante.err.20261107-023127.log` (12 021 bytes) y `vigilante.out.20261107-023529.log` (742 809 bytes), y los nuevos llevan hora.
+- **`continuity check`:** «API escuchando en 127.0.0.1:8000».
+
+**Sin comprobar en vivo:** que el vigilante reinicie de verdad si el puerto se pierde. Se probó con un hijo real en las pruebas, pero aquí no se puede provocar sin tumbar la API. Tampoco hay aún horas seguidas con Selector, ni el resultado de la hora 02 de la captura.
+
+**Lo que no cambia hasta su próximo arranque:** los vigilantes de la captura y de los líderes (la hora en su stderr) y el icono de la bandeja (el aviso «sin puerto»).

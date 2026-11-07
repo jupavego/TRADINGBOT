@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-06T15:00:21",
+ "generated": "2026-11-06T21:39:07",
  "tasks": [
   {
    "id": "T01",
@@ -1771,7 +1771,7 @@ window.EIM_STATUS = {
     "T127"
    ],
    "state": "done",
-   "notes": "**Hecha (2026-11-06), sin fusionar ni desplegar** (rama `claude/t140-puerto`; desplegar exige reiniciar vigilante y API, `RUNBOOK.md` §16). Informe en `PLAN/notas/T140_api_sin_puerto.md` §6. **Reproducido:** con el bucle bloqueado y un cliente que corta con RST, `ProactorEventLoop` cierra el socket; con `SelectorEventLoop` sobrevive, y se adopta (`eim/operation/event_loop.py`, `python -m eim.operation.accept_check`). **Vigilante:** reinicia tras 2 min sin escuchar, o 20 min si no llegó a abrirse (`eim/operation/port_watch.py`), mirando la tabla de puertos en vez de conectarse. **Registros** con hora y conservados entre arranques. **`continuity check` y el icono** dicen si hay puerto. Ensayado con la API real en otro puerto. Gate por la cola (`gate-t140`): `ruff` limpio, **3 042 pasadas, 8 omitidas, 0 fallos** en 1 166 s, una pausa de 125 s. Antes: Abierta el 2026-11-06 tras diagnosticar más de 11 h sin puerto con el proceso «sano»: `asyncio` cierra el socket de escucha al fallar un `accept` (`WinError 64`) y el vigilante solo mira el latido. Ficha `PLAN/T140.md`, diagnóstico `PLAN/notas/T140_api_sin_puerto.md`.",
+   "notes": "**Hecha (2026-11-06) y desplegada (2026-11-07 02:36 UTC, PR #215).** Informe en `PLAN/notas/T140_api_sin_puerto.md` §6. **Reproducido:** con el bucle bloqueado y un cliente que corta con RST, `ProactorEventLoop` cierra el socket; con `SelectorEventLoop` sobrevive, y se adopta (`eim/operation/event_loop.py`, `python -m eim.operation.accept_check`). **Vigilante:** reinicia tras 2 min sin escuchar, o 20 min si no llegó a abrirse (`eim/operation/port_watch.py`), mirando la tabla de puertos en vez de conectarse. **Registros** con hora y conservados entre arranques. **`continuity check` y el icono** dicen si hay puerto. Ensayado con la API real en otro puerto. Gate por la cola (`gate-t140`): `ruff` limpio, **3 042 pasadas, 8 omitidas, 0 fallos** en 1 166 s, una pausa de 125 s. Antes: Abierta el 2026-11-06 tras diagnosticar más de 11 h sin puerto con el proceso «sano»: `asyncio` cierra el socket de escucha al fallar un `accept` (`WinError 64`) y el vigilante solo mira el latido. Ficha `PLAN/T140.md`, diagnóstico `PLAN/notas/T140_api_sin_puerto.md`.",
    "effort": "medio",
    "phase": 21,
    "goal": "Que una API sin puerto se detecte y se recupere sola en minutos. El 2026-11-06 estuvo más de 11 horas sorda con el proceso «sano»: `asyncio` cerró el socket de escucha tras un `WinError 64`, el latido siguió al día y ni el vigilante ni `continuity check` lo vieron. El diagnóstico con la evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §1."
