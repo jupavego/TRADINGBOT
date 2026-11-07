@@ -4,8 +4,9 @@ import {
   type Time, type UTCTimestamp,
 } from 'lightweight-charts'
 import { PriceChart } from './chart'
+import { legendFill, legendItem } from './paper_eqleg'
 import { cssVar } from './theme'
-import { esc, nf, pct, phaseLabel, rr, side, tone, utc } from './paper_fmt'
+import { nf, pct, phaseLabel, rr, side, tone, utc } from './paper_fmt'
 import type { PaperTrade, Position, ProfileView } from './paper_types'
 import { chartTimeLocale } from './tz'
 
@@ -65,8 +66,9 @@ export class PaperPriceChart {
 }
 
 /** Curvas de capital de todos los perfiles en un solo eje (USDT). Las curvas no llevan el nombre encima
- * (tapaba las líneas): el eje muestra solo el último valor y la leyenda lateral da nombre, valor y cambio
- * frente al capital inicial. Cursor sobre un perfil → resalta su curva; clic → la oculta o la muestra. */
+ * (tapaba las líneas): el eje muestra solo el último valor y la leyenda lateral da nombre, valor, cambio
+ * frente al capital inicial y las métricas de cada cuenta (`paper_eqleg`). Cursor sobre un perfil →
+ * resalta su curva; clic → lo elige; clic en su línea de color → oculta o muestra la curva. */
 export class EquityChart {
   private chart: IChartApi
   private series = new Map<string, ISeriesApi<'Line'>>()
@@ -75,8 +77,9 @@ export class EquityChart {
   private last = new Map<string, number>()
   private hidden = new Set<string>()
   private hot: string | null = null
+  private selected: string | null = null
   private base: { s: ISeriesApi<'Line'>; line: IPriceLine }[] = []
-  private items = new Map<string, HTMLButtonElement>()
+  private items = new Map<string, HTMLElement>()
 
   constructor(el: HTMLElement, private legend: HTMLElement) {
     this.chart = createChart(el, {
@@ -99,7 +102,10 @@ export class EquityChart {
       this.paintLegend(vals, p.time !== undefined ? Number(p.time) * 1000 : null)
     })
     const pick = (e: Event): string | null => (e.target as HTMLElement).closest<HTMLElement>('[data-eq]')?.dataset.eq ?? null
-    legend.addEventListener('click', (e) => { const id = pick(e); if (id) this.toggle(id) })
+    legend.addEventListener('click', (e) => {
+      const id = pick(e)
+      if (id && (e.target as HTMLElement).closest('[data-eqv]')) this.toggle(id) // el resto del perfil lo elige (PaperView)
+    })
     legend.addEventListener('mouseover', (e) => this.setHot(pick(e)))
     legend.addEventListener('focusin', (e) => this.setHot(pick(e)))
     legend.addEventListener('mouseleave', () => this.setHot(null))
@@ -107,7 +113,7 @@ export class EquityChart {
     this.applyColors()
   }
 
-  set(profiles: ProfileView[]): void {
+  set(profiles: ProfileView[], selected: string): void {
     const ids = new Set(profiles.map((p) => p.id))
     this.clearBase()
     for (const [id, s] of this.series) {
@@ -130,7 +136,16 @@ export class EquityChart {
     }
     this.style()
     this.chart.timeScale().fitContent()
+    this.ensureItems()
+    for (const p of profiles) legendFill(this.items.get(p.id)!, p)
+    this.select(selected)
     this.paintLegend(this.last, null)
+  }
+
+  /** Marca el perfil elegido (sus velas, cuenta y pestañas son las que se ven debajo). */
+  select(id: string): void {
+    this.selected = id
+    this.marks()
   }
 
   /** Oculta o muestra una curva; siempre queda al menos una a la vista. */
@@ -177,16 +192,18 @@ export class EquityChart {
   /** Crea los botones de la leyenda solo cuando cambian los perfiles (conserva el foco entre refrescos). */
   private ensureItems(): void {
     if ([...this.items.keys()].join() === [...this.names.keys()].join()) return
-    this.legend.innerHTML = [...this.names].map(([id, name]) =>
-      `<button type="button" class="pp-eqi" data-eq="${esc(id)}" style="--pc:var(${PROFILE_VAR[id] ?? '--accent'})"` +
-      ` title="${esc(name)} · clic para ocultar o mostrar su curva"><i></i><span>${esc(name)}</span>` +
-      '<b class="num"></b><small class="num"></small></button>').join('') + '<small class="muted pp-eqt"></small>'
-    this.items = new Map([...this.legend.querySelectorAll<HTMLButtonElement>('[data-eq]')].map((b) => [b.dataset.eq!, b]))
+    this.legend.innerHTML = [...this.names].map(([id, name]) => legendItem(id, name, PROFILE_VAR[id] ?? '--accent')).join('') +
+      '<small class="muted pp-eqt"></small>'
+    this.items = new Map([...this.legend.querySelectorAll<HTMLElement>('[data-eq]')].map((b) => [b.dataset.eq!, b]))
   }
 
   private marks(): void {
     for (const [id, b] of this.items) {
-      b.setAttribute('aria-pressed', String(!this.hidden.has(id)))
+      const on = !this.hidden.has(id)
+      b.querySelector('[data-eqv]')!.setAttribute('aria-pressed', String(on))
+      b.querySelector('[data-prof]')!.setAttribute('aria-current', String(this.selected === id))
+      b.dataset.off = String(!on)
+      b.dataset.sel = String(this.selected === id)
       b.dataset.hot = String(this.hot === id)
     }
   }
@@ -197,8 +214,8 @@ export class EquityChart {
     for (const [id, b] of this.items) {
       const v = vals.get(id) ?? NaN, ini = this.initial.get(id) ?? NaN
       const d = Number.isFinite(v) && ini > 0 ? v / ini - 1 : null
-      b.querySelector('b')!.textContent = Number.isFinite(v) ? nf(v) : '—'
-      const s = b.querySelector('small')!
+      b.querySelector('[data-v]')!.textContent = Number.isFinite(v) ? nf(v) : '—'
+      const s = b.querySelector('[data-d]')!
       s.textContent = pct(d)
       s.className = `num ${tone(d)}`
     }

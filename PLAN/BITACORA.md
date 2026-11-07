@@ -884,6 +884,17 @@ más reciente por fecha y su siguiente paso. Formato:
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T127, T128, T135 y T141.
 - **Siguiente paso:** fusionar el PR y traer `main` a la carpeta principal (documentos, pruebas y el script del tablero; sin reinicio de servicios).
 
+## 2026-11-07 20:45 UTC · juanpablo-cpu · Bróker simulado: métricas de perfil en la leyenda de «Capital por perfil»
+- **Pedido del usuario:** llevar las métricas de cada tarjeta de perfil (ops, acierto, PF, DD máx., abiertas, órdenes, riesgo, apalancamiento) a los perfiles de la leyenda de «Capital por perfil», en forma compacta. Elegido por el usuario: quitar las tarjetas y que la leyenda sea el selector de perfil.
+- **Hecho (`v2/eim/web/src/`):**
+  - `paper_eqleg.ts` (nuevo): cada perfil de la leyenda tiene dos botones. El grande lo elige (velas, cuenta y pestañas lo siguen, como hacían las tarjetas) y muestra nombre (con «agotada» si aplica), capital, % frente al capital inicial y las métricas en dos líneas. La línea de color oculta o muestra su curva. Cada dato va en un bloque que no se parte al saltar de línea.
+  - `paper_chart.ts` (`EquityChart`): `set(perfiles, elegido)` rellena las métricas y marca el elegido (`select`, también al instante del clic). El clic solo oculta la curva si es sobre la línea de color.
+  - `paper_template.ts`, `paper_view.ts`, `paper_head.ts`: fuera las tarjetas (`cardsHtml`) y su franja. El texto de ayuda del panel explica los dos clics.
+  - `paper.css`: fuera las reglas `.pp-card*`. La leyenda pasa a 300 px. El elegido lleva contorno de su color, el resaltado un fondo tenue y el oculto va atenuado y tachado. La curva toma el alto de la leyenda (`contain: size`, mínimo 270 px) y por debajo de 900 px sigue apilada con la leyenda en 2 columnas.
+- **Comprobado:** con un Vite temporal del worktree (5174) contra la API en marcha. Las cifras de la leyenda son las de las tarjetas (Moderado 9.308,38 · −6,92 % · 158 ops · acierto 80 % · PF 0,32 · DD máx. 8 %). Clic en Agresivo → «Cuenta · Agresivo» y su contorno verde. La línea de Conservador oculta su curva y lo atenúa. A 1024 px cada perfil ocupa 83 px y la curva crece a 372 px. A 375 px no hay desborde horizontal. Ningún error de consola. `tsc` y `vite build` limpios.
+- **Pruebas:** gate completo por la cola (`gate-capital-leyenda`, IDLE, 1 306 s, sin pausas): **3 225 pasadas, 8 omitidas, 0 fallos**; ruff limpio. No hay pruebas de la web (solo `tsc`).
+- **Siguiente paso:** fusionar el PR y traer `main` a la carpeta principal (solo web; sin reinicio de servicios).
+
 ## 2026-11-07 21:30 UTC · juanpablo-cpu · T123: colas acotadas, ninguna etapa arrastra al resto
 - **Pedido del usuario:** «Ejecuta PLAN/T123.md».
 - **Inventario primero** (`PLAN/notas/T123_colas.md` §1): 15 fronteras de la tubería, con la cola que las separa, su tamaño real y qué pasa al llenarse. Cuatro fallos reales: (1) el escritor de la captura HFT tenía una cola **sin tope** (con el disco lento la memoria crecía sin límite); (2) el ejecutor de agentes esperaba el plazo **agente por agente** (k colgados = k × 30 s, contra su propio docstring) y dejaba **un hilo nuevo por vela** por cada agente colgado, hilos que además impedían cerrar el proceso; (3) el **pronóstico no tenía plazo** ni en la API ni en el ciclo: uno colgado paraba decisiones, reconciliación y kill-switch; (4) el difusor de la API **esperaba al análisis** de cada cierre, y durante ese rato la pantalla no veía el precio. Además, descartes que no se contaban (pantallas lentas, filas de un volcado fallido).
