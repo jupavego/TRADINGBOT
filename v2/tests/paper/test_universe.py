@@ -52,6 +52,13 @@ def test_perfil_desconocido_se_cuenta_aparte() -> None:
     assert universe.counts_as_result(row(profile="experimento")).code == "perfil_desconocido"
 
 
+def test_una_fila_que_no_declara_retro_no_cuenta() -> None:
+    """Sin esa columna no se puede saber si se vivió: lo que no se declara, no suma."""
+    sin = {k: v for k, v in row().items() if k != "retro"}
+    assert universe.counts_as_result(sin).code == "sin_declarar"
+    assert accounting.figures([sin])["n"] == 0
+
+
 def test_sin_cierre_ni_resultado_no_cuenta() -> None:
     assert universe.counts_as_result(row(exit_t=None)).code == "abierta"
     assert universe.counts_as_result(row(r=None)).code == "sin_resultado"

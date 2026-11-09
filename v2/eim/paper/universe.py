@@ -69,6 +69,8 @@ EXCLUSIONS: dict[str, str] = {
     "retro": "registrada más de 2 h después de su cierre (`retro`): nadie la vivió entonces",
     "sin_resultado": "cerrada sin resultado calculable (`r` o `pnl_usdt` ausentes)",
     "abierta": "todavía abierta: no tiene cierre",
+    "sin_declarar": "la fila no declara si es `retro`: sin esa columna no se puede saber si se "
+                    "vivió, y lo que no se declara no cuenta",
     OPERATION_VIEW: "carril de ejecución del servicio: vista declarada, no cifra oficial",
 }
 
@@ -113,7 +115,7 @@ def _num(x: object) -> float | None:
         return None
 
 
-def _flag(x: object) -> bool:
+def flag(x: object) -> bool:
     """Booleano tolerante: `True`/`'true'`/`'True'`/`1` son verdad; `''` y None, falso."""
     if isinstance(x, bool):
         return x
@@ -126,16 +128,16 @@ def _flag(x: object) -> bool:
 
 def is_retro(row: Mapping) -> bool:
     """La fila la trajo el estreno del libro o un recálculo, no el momento en que se cerró."""
-    return _flag(row.get("retro"))
+    return flag(row.get("retro"))
 
 
 def counts_as_result(row: Mapping, profiles: Sequence[str] = PROFILES) -> Verdict:
     """La ÚNICA respuesta a «¿esta operación cuenta como resultado?».
 
     `row` es una fila del libro fijo (`eim.paper.ledger.COLS`) o cualquier diccionario que declare
-    esas mismas claves; lo que no se declara no cuenta, en vez de colarse por omisión. Las filas
-    del carril de operación llegan con `lane = corrida_operacion` (`weekly.as_rows`) y quedan
-    fuera de la cifra oficial por su propio motivo, declarado.
+    esas mismas claves; lo que no se declara no cuenta, en vez de colarse por omisión (una fila
+    sin columna `retro` no puede saberse vivida, así que queda fuera). Una fila que venga de otro
+    carril lo dice con `lane`, y entonces queda fuera por su propio motivo, declarado.
     """
     if (lane := row.get("lane")) and lane != OFFICIAL:
         return Verdict(False, str(lane) if lane in EXCLUSIONS else OPERATION_VIEW)
@@ -148,6 +150,8 @@ def counts_as_result(row: Mapping, profiles: Sequence[str] = PROFILES) -> Verdic
         return Verdict(False, "perfil_desconocido")
     if (w := _num(row.get("weight"))) is None or w <= 0:
         return Verdict(False, "sin_peso")
+    if "retro" not in row:
+        return Verdict(False, "sin_declarar")
     if is_retro(row):
         return Verdict(False, "retro")
     if _num(row.get("exit_t")) is None:

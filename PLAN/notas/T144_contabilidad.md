@@ -75,6 +75,17 @@ API (`grep` sobre `eim/`).
   ya publicado (o un archivo aparte si la semana aún no tiene informe) y escribe las cifras en
   JSON. Repetirlo reemplaza solo ese bloque.
 
+### Lo que cambió la revisión de código (`code-review`, medio)
+1. **La comparación con el backtest mezclaba símbolos.** La línea del universo oficial comparaba
+   el agregado del libro contra la esperanza del **primer** símbolo con línea base. El universo es
+   el libro, que puede cubrir varios símbolos, y T27 tiene una esperanza por símbolo: ahora la
+   cifra declara qué símbolos incluye y **solo compara cuando hay uno**; con más de uno lo dice y
+   no compara.
+2. **Una fila que no declara `retro` ya no cuenta** (código `sin_declarar`). Antes, un diccionario
+   sin esa columna pasaba como «vivido» por omisión, que es justo el agujero que T144 cierra.
+3. **El recuento de entradas de suelo reimplementaba la lectura del booleano**; ahora usa la misma
+   (`universe.flag`) que el resto de la regla.
+
 ### Movido de sitio
 `fee_rate` y `hft_qc` pasaron de `operation/supervisor.py` a `operation/report.py` (son material
 del informe, no del servicio) para que el supervisor siguiera cabiendo en 300 líneas.

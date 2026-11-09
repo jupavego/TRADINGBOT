@@ -110,18 +110,7 @@ def _repro(edge: dict, asset: dict) -> str:
 def deviations(live: dict, base: dict, weeks: float, off: dict | None = None) -> list[str]:
     out: list[str] = []
     if off and off.get("n"):
-        # T144: la comparación que decide se hace con el universo oficial; la del carril de
-        # operación se sigue publicando debajo, dicho lo que es.
-        exp = next((b["expectancy_r"] for b in base.values() if b.get("expectancy_r") is not None),
-                   None)
-        ci = off.get("ci95")
-        inside = ci is not None and exp is not None and ci[0] <= exp <= ci[1]
-        tag = (f"no concluyente (n < {MIN_TRADES})" if off["n"] < MIN_TRADES else
-               "compatible con el backtest" if inside else "DIFERENTE del backtest")
-        out.append(f"UNIVERSO OFICIAL: R medio {off['mean_r']:+.2f} (n={off['n']} de "
-                   f"{off['tally']['n_total']} operaciones del libro en el tramo)"
-                   + (f" vs {exp:+.2f} en backtest → {tag}." if exp is not None
-                      else " (sin backtest con el que comparar)."))
+        out.append(_official_deviation(off, base))
     for s, b in base.items():
         st = live.get(s, {})
         n, mean = st.get("n_with_result", 0), st.get("mean_r")
@@ -141,6 +130,30 @@ def deviations(live: dict, base: dict, weeks: float, off: dict | None = None) ->
         out.append(f"vista (corrida de operación) {s}: R medio {mean:+.2f} (n={n}) vs "
                    f"{b['expectancy_r']:+.2f} en backtest → {tag}.")
     return out
+
+
+def _official_deviation(off: dict, base: dict) -> str:
+    """La comparación que decide: universo oficial frente al backtest, sin mezclar símbolos.
+
+    El universo oficial es el LIBRO, que puede cubrir varios símbolos, mientras el backtest de
+    T27 tiene una esperanza por símbolo. Comparar un agregado de dos símbolos contra la línea de
+    uno sería inventar la comparación: cuando hay más de uno, se dice y no se compara.
+    """
+    syms = [s for s in off.get("symbols") or [] if s]
+    head = (f"UNIVERSO OFICIAL ({', '.join(syms) or 'sin símbolo'}): R medio "
+            f"{off['mean_r']:+.2f} (n={off['n']} de {off['tally']['n_total']} operaciones del "
+            f"libro en el tramo)")
+    if len(syms) != 1:
+        return (f"{head}; cubre {len(syms)} símbolos y el backtest de T27 tiene una esperanza por "
+                "símbolo: no se compara para no mezclar líneas base.")
+    b = base.get(syms[0])
+    if not b or b.get("expectancy_r") is None:
+        return f"{head}; sin backtest de {syms[0]} con el que comparar."
+    exp, ci = b["expectancy_r"], off.get("ci95")
+    inside = ci is not None and ci[0] <= exp <= ci[1]
+    tag = (f"no concluyente (n < {MIN_TRADES})" if off["n"] < MIN_TRADES else
+           "compatible con el backtest" if inside else "DIFERENTE del backtest")
+    return f"{head} vs {exp:+.2f} en backtest de {syms[0]} → {tag}."
 
 
 def official(book_rows: Iterable[dict] | None, t0: int, t1: int) -> dict:

@@ -143,6 +143,8 @@ def official_lines(rep: dict) -> list[str]:
                f"({_f(dd.get('pct'), '{:.2%}')}); base: {dd.get('base', '—')}.")
     out.append(f"Entradas de suelo incluidas (`floor_trade`): {off.get('floor_trades', 0)} de "
                f"{off.get('n', 0)}; las abrió el mínimo de apertura, no una señal.")
+    out.append("Símbolos dentro de la cifra oficial: "
+               + (", ".join(off.get("symbols") or []) or "ninguno") + ".")
     out.append(f"Huella de lo contado: `{off.get('counted_digest', '—')}` — identifica exactamente "
                "qué operaciones entraron, para cuadrarlo contra el libro "
                "(`GET /v2/paper/accounting`).")

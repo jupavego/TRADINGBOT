@@ -20,6 +20,7 @@ from eim.paper.universe import (
     PROFILES,
     counts_as_result,
     declaration,
+    flag,
     is_retro,
     result_rows,
     tally,
@@ -88,7 +89,8 @@ def figures(rows: Iterable[Mapping], profiles: Sequence[str] = PROFILES) -> dict
                  "retro_excluded": _retro_block(rows)}
     if not kept:
         out.update(win_rate=None, mean_r=None, ci95=None, total_r=None, pnl_usdt=None,
-                   dd=_dd([]), by_profile={}, floor_trades=0, from_t=None, to_t=None)
+                   dd=_dd([]), by_profile={}, floor_trades=0, from_t=None, to_t=None,
+                   symbols=[])
         return out
     rs = [_f(r, "r") for r in kept]
     n = len(rs)
@@ -103,9 +105,10 @@ def figures(rows: Iterable[Mapping], profiles: Sequence[str] = PROFILES) -> dict
         fees=sum(_f(r, "fees") for r in kept), slip=sum(_f(r, "slip") for r in kept),
         funding=sum(_f(r, "funding") for r in kept),
         best=max(_f(r, "pnl_usdt") for r in kept), worst=min(_f(r, "pnl_usdt") for r in kept),
-        dd=_dd(kept), floor_trades=sum(1 for r in kept if str(r.get("floor_trade")).lower()
-                                       in ("true", "1")),
+        dd=_dd(kept), floor_trades=sum(1 for r in kept if flag(r.get("floor_trade"))),
         by_profile=_by_profile(kept), from_t=int(min(exits)), to_t=int(max(exits)),
+        # el universo es el LIBRO, no un símbolo: se declara cuáles entraron en la cifra
+        symbols=sorted({str(r.get("symbol") or "") for r in kept}),
     )
     return out
 
