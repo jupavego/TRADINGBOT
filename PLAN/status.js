@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-09T04:54:08",
+ "generated": "2026-11-09T05:20:02",
  "phases": [
   {
    "n": 0,
@@ -2108,8 +2108,8 @@ window.EIM_STATUS = {
     "T136",
     "T137"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-09 desde `PLAN/notas/diagnostico_rentabilidad_2026-11-09.md` §3. La fricción del libro vivido (1 630,1 USDT) es **mayor que la pérdida neta** (−1 438,5): 14,1 pb del nocional con el SL a 1,21 % = **0,125 R por operación**. Baja a ~0,06 R encendiendo `risk_includes_costs` (T136 §1: hoy se arriesga ×1,1734 de lo declarado), midiendo maker frente a taker antes de adoptarlo (256 de 411 entradas son `market`) y retirando 15 m mientras su costo siga en 0,157 R. **No crea ventaja: deja de destruirla.** ◆ del usuario antes de tocar perfiles y antes de desplegar durante T31.",
+   "state": "progress",
+   "notes": "Abierta el 2026-11-09 desde `PLAN/notas/diagnostico_rentabilidad_2026-11-09.md` §3. La fricción del libro vivido (1 630,1 USDT) es **mayor que la pérdida neta** (−1 438,5): 14,1 pb del nocional con el SL a 1,21 % = **0,125 R por operación**. Baja a ~0,06 R encendiendo `risk_includes_costs` (T136 §1: hoy se arriesga ×1,1734 de lo declarado), midiendo maker frente a taker antes de adoptarlo (256 de 411 entradas son `market`) y retirando 15 m mientras su costo siga en 0,157 R. **No crea ventaja: deja de destruirla.** ◆ del usuario antes de tocar perfiles y antes de desplegar durante T31. **En curso (2026-11-09): entregable 1 en marcha.** Pre-registro en `PLAN/notas/T143_preregistro_maker.md` (commit propio, anterior a todo cálculo); medición en `eim/paper/maker_ab.py` + `scripts/t143_maker.py`, 21 pruebas. Dos correcciones de contabilidad posteriores al pre-registro y las dos **en contra** de maker: denominador común (el riesgo planeado `|entry − SL|`, porque el realizado infla el R de una límite que entra mejor) y **estrés de cola** (el motor llena si la vela *toca* el nivel; se exige que el precio **pase**, porque medir fills de verdad es T79). Entregables 2–5 esperan la ◆ del usuario.",
    "effort": "medio",
    "phase": 24,
    "goal": "Bajar el costo por operación de 0,125 R a ~0,06 R sin tocar la entrada ni la salida, encendiendo lo que T136 ya midió y apagando el marco donde el costo se come el riesgo. No crea ventaja: deja de destruirla."
