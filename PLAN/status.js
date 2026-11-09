@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-09T11:45:35",
+ "generated": "2026-11-09T18:00:48",
  "phases": [
   {
    "n": 0,
@@ -2123,8 +2123,8 @@ window.EIM_STATUS = {
     "T118",
     "T142"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-09 desde la misma nota, §6. Los informes de T31 ven **1, 0 y 1** operación con resultado en W43–W45; el libro de perfiles cierra **43, 30, 118 y 23** con peso. Solo 45 de 411 llevan `floor_trade` y **197 de 411 son `retro`** (T142), que nadie vivió y hoy siguen dentro. Una sola función declara qué cuenta, las `retro` salen de toda cifra de resultado y una prueba de cuadre falla si los dos totales no coinciden. ◆: cuál es el universo oficial de T31.",
+   "state": "done",
+   "notes": "Hecha (2026-11-09). **◆ del usuario: el universo oficial de T31 es el libro de los cuatro perfiles sin las `retro`**, y la corrida de operación queda como vista declarada dentro de él. `eim/paper/universe.py` es la ÚNICA función que responde «¿cuenta como resultado?», con la regla escrita (alcance, origen, perfil, peso, `retro`, cierre, entradas de suelo) y el recuento declarado; `eim/paper/accounting.py` calcula las cifras SOLO sobre lo que cuenta, deja las `retro` aparte con el dinero que no suman y publica `counted_digest`, la huella de qué operaciones entraron. Pasan por ahí el informe semanal (que ahora publica `official` + `operation_view` y declara universo y recuento en su propia tabla; sin libro lo dice y no publica cifra oficial), el panel, `/v2/paper/ledger(.csv)` —cada fila con su veredicto—, la nueva `GET /v2/paper/accounting` y el escuadrón (que declara que puntúa en SOMBRA). **Ninguna cifra de resultado incluye `retro`**: 197 de 421 filas del libro lo son (no solo las 19 de T142: 178 las trajo el estreno y la puesta al día del libro, del 21 al 30 de octubre). **W43–W46 reexpresadas y publicadas** sin borrar lo anterior (`python -m eim.operation.restate`, bloque delimitado + `semana_*_t144.json`): 43 de 161, 30 de 87, 118 de 140 y 33 de 33, frente a las 1, 0 y 1 que veía el informe. Pruebas: la regla caso a caso, una **guardia** que falla si alguien publica sin la función o lee `retro` por su cuenta (AST), y el **cuadre con las 421 filas reales de W43–W46**, que nombra la operación cuando falta o sobra. `tsc` limpio y panel verificado en el navegador. Gate verde por la cola (`gate-t144b`: 3 323 pasadas, 8 omitidas, 0 fallos). Nota `PLAN/notas/T144_contabilidad.md`; BACKLOG T144 (1)–(4).",
    "effort": "medio",
    "phase": 24,
    "goal": "Que exista una sola definición, declarada, de qué operaciones cuentan como resultado, para que la decisión de dinero real no se tome con 1 operación por semana mientras el libro cierra 118."
