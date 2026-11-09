@@ -20,6 +20,7 @@ from collections.abc import Callable
 from dataclasses import asdict, replace
 
 from eim.core import Mode
+from eim.core.fees import USDM_MAKER, USDM_TAKER
 from eim.execution.broker import (
     CANCELED,
     EXPIRED,
@@ -41,10 +42,17 @@ from eim.execution.broker import (
 class SimBroker:
     mode = Mode.SIMULADO
 
-    def __init__(self, balance: float = 10_000.0, fee_rate: float = 0.0004,
+    def __init__(self, balance: float = 10_000.0, fee_rate: float = USDM_TAKER,
                  step: float = 0.001, tick: float = 0.1, min_qty: float = 0.001,
-                 fill_cap: float | None = None, min_notional: float = 0.0) -> None:
+                 fill_cap: float | None = None, min_notional: float = 0.0,
+                 maker_fee: float | None = None) -> None:
+        # T143: `fee_rate` es la de TOMADOR y `maker_fee` la de creador, las dos de
+        # `eim.core.fees`. Antes había una sola, 4 pb, un punto básico por debajo de la tarifa
+        # verificada y la misma para los dos papeles: el libro vivo cobraba de menos y no podía
+        # reflejar el ahorro de una entrada límite, que es lo que T143 adoptó.
         self.balance, self.fee_rate = balance, fee_rate
+        self.maker_fee = USDM_MAKER if maker_fee is None else maker_fee
+        self._rests: dict[str, bool] = {}     # la orden esperó en el libro → paga de creador
         self.step, self.tick, self.min_qty, self.fill_cap = step, tick, min_qty, fill_cap
         self.min_notional = min_notional
         self.on_update: Callable[[OrderState, OrderState | None], None] | None = None
@@ -106,6 +114,11 @@ class SimBroker:
                        exchange_id=str(self._seq))
         self._put(o)
         self._limit_px[spec.client_id] = spec.price
+        # Paga de creador la LÍMITE que al llegar NO cruza: se queda esperando en el libro. La
+        # que cruza al instante, la de mercado y la condicional al dispararse pagan de tomador.
+        # Es la misma condición con la que arriba se rechaza una `GTX` que casaría al instante.
+        self._rests[spec.client_id] = bool(
+            spec.kind == LIMIT and (px - (spec.price or 0)) * spec.side > 0)
         self._match(o)
         last = self._orders[spec.client_id]
         if spec.kind == LIMIT and spec.tif == "IOC" and last.is_open:
@@ -196,14 +209,19 @@ class SimBroker:
         if q <= 0:
             self._put(replace(o, status=EXPIRED))
             return
-        self._fill(o.symbol, o.side, q, fill_px)
+        self._fill(o.symbol, o.side, q, fill_px, maker=self._rests.get(o.client_id, False))
         filled = o.filled + q
         avg = ((o.avg_price or 0) * o.filled + fill_px * q) / filled
         done = filled >= (o.qty or 0) - 1e-12
         self._put(replace(o, filled=round(filled, 10), avg_price=avg,
                           status=FILLED if done else PARTIAL))
 
-    def _fill(self, symbol: str, side: int, q: float, px: float) -> None:
+    def fee_rate_for(self, client_id: str) -> float:
+        """Tarifa que paga esa orden: de creador si esperó en el libro, de tomador si no."""
+        return self.maker_fee if self._rests.get(client_id) else self.fee_rate
+
+    def _fill(self, symbol: str, side: int, q: float, px: float,
+              maker: bool = False) -> None:
         cur, entry = self._pos.get(symbol, (0.0, None))
         new = round(cur + side * q, 10)
         if cur * side >= 0:                           # abre o aumenta
@@ -212,5 +230,5 @@ class SimBroker:
             self.balance += (px - (entry or px)) * min(q, abs(cur)) * (1 if cur > 0 else -1)
             if new == 0:
                 entry = None
-        self.balance -= px * q * self.fee_rate
+        self.balance -= px * q * (self.maker_fee if maker else self.fee_rate)
         self._pos[symbol] = (new, entry)

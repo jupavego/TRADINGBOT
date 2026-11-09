@@ -122,9 +122,11 @@ def test_policy_cuts_the_size_by_the_gradual_brake():
 def test_policy_sizing_with_costs_included_risks_exactly_what_it_declares():
     """Integración de T136 (1): el riesgo realizado al SL pasa a ser el declarado."""
     outs = [closed(-1.0, 0, strategy="s0")]
-    sin = run_profile(MOD, outs, Learner(outs), 0.005)
-    con = run_profile(MOD.model_copy(update={"risk_includes_costs": True}), outs,
+    # Desde T143 (2) el perfil ya presupuesta el costo, así que el que hay que pedir a mano es el
+    # de antes: así la prueba sigue comparando las dos contabilidades con el mismo código.
+    sin = run_profile(MOD.model_copy(update={"risk_includes_costs": False}), outs,
                       Learner(outs), 0.005)
+    con = run_profile(MOD, outs, Learner(outs), 0.005)
     a, b = sin.trades[0], con.trades[0]
     cost_r = rb.cost_r(a["fill"], a["sl"], MOD.est_cost_frac)
     assert b["qty"] == pytest.approx(a["qty"] / (1 + cost_r))

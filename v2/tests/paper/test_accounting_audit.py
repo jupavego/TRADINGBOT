@@ -39,14 +39,26 @@ def test_el_hueco_que_atraviesa_la_liquidacion_se_cierra_como_liquidacion():
     st = run_profile(AGR, outs, Learner(outs), 0.004)
     assert len(st.trades) == 3
     assert [t["reason"] for t in st.trades] == ["LIQUIDACION"] * 3
-    assert st.equity == 7_000.0 and st.used == 0.0           # antes: −19.970 USDT
+    # 7.413,79 y no 7.000: con el costo dentro del presupuesto la cantidad es menor, así que la
+    # liquidación se lleva menos capital. Lo que la prueba vigila es que no quede en negativo
+    # (antes: −19.970 USDT) y que no quede margen ocupado.
+    assert st.equity == pytest.approx(7_413.79, abs=0.01)
+    assert st.used == pytest.approx(0.0, abs=1e-9)   # con las cantidades nuevas queda residuo
+    assert st.equity > 0
     liq = liq_price(1, 100.0, st.trades[0]["leverage"], 0.004)
     for t in st.trades:
-        assert t["liq"] == liq > 0.10 and t["pnl"] == -t["margin"] == -1_000.0
+        # La liquidación se lleva el margen entero: esa es la propiedad. El margen ya no son
+        # 1.000 USDT sino 862,07 porque el tamaño baja al presupuestar el costo (T143 (2)): con
+        # el SL al 1 % del precio el costo son 0,16 R, y 1.000 / 1,16 = 862,07.
+        assert t["liq"] == liq > 0.10
+        assert t["pnl"] == -t["margin"] == pytest.approx(-862.07, abs=0.01)
         assert t["pnl_path"] < t["pnl"] and t["reason_path"] == "SL"   # el hueco pedía −9.990
-    assert max_dd_pct(st.curve) == 0.3                        # antes: 2,997
+    # 0,2586 y no 0,3: tres liquidaciones de 862,07 en vez de 1.000 (T143 (2)). Lo que la prueba
+    # vigila es que la caída se mida sobre el capital y no dé el 2,997 de antes de la corrección.
+    assert max_dd_pct(st.curve) == pytest.approx(0.2586, abs=1e-4)
     sm = profile_summary(st, Learner(outs), [], T0 + 9 * H1, 0.004)
-    assert sm["max_dd_pct"] == 0.3 and sm["return_pct"] == pytest.approx(-0.3)
+    assert sm["max_dd_pct"] == pytest.approx(0.2586, abs=1e-4)
+    assert sm["return_pct"] == pytest.approx(-0.2586, abs=1e-4)
     assert sm["counts"]["liquidations"] == 3 and sm["dd"]["base"] == "equity"
 
 
@@ -58,7 +70,9 @@ def test_el_freno_por_drawdown_frena_entradas_pero_nadie_cierra():
                       None, None, gross=-0.01, r=-0.5, mark=99.0)
     outs = [abierta, *(_blowup(k) for k in range(3)), _blowup(9, T0 + 10 * H1)]
     st = run_profile(AGR, outs, Learner(outs), 0.004)
-    assert len(st.trades) == 2 and st.equity == 8_000.0   # la abierta ocupa cupo de riesgo
+    # 8.275,86 y no 8.000 por lo mismo: el tamaño baja al presupuestar el costo (T143 (2)).
+    assert len(st.trades) == 2                            # la abierta ocupa cupo de riesgo
+    assert st.equity == pytest.approx(8_275.86, abs=0.01)
     tardia = [e["text"] for e in st.events if e["cat"] == "rechazada" and e["idea"] == "s9:0"]
     assert len(tardia) == 1 and tardia[0].startswith("freno por drawdown")
     assert st.brake.activations == 1

@@ -98,11 +98,15 @@ class ProfileParams(BaseModel):
     # > 0,3 R → −0,63 R/op. En 15 m el costo medio era 0,48 R por operación.
     est_cost_frac: float = 0.0016
     max_cost_r: float = 0.2
-    # T136 (1): si el riesgo presupuestado incluye el costo de ida y vuelta. Hoy NO, y por eso un
-    # perfil que dice arriesgar `risk_pct` arriesga de hecho `risk_pct · (1 + costo en R)` cuando
-    # salta el SL inicial (0,167 R de media en el banco de T131 → ≈ 17 % de más). Encenderlo
-    # reduce el tamaño de TODAS las entradas, así que cambiaría una corrida en marcha (T31) y es
-    # decisión ◆ del usuario; el informe de T136 mide lo que haría.
+    # T136 (1) / T143 (2): el riesgo presupuestado incluye el costo de ida y vuelta, así que la
+    # pérdida al SL inicial es exactamente `risk_pct` del capital. Sin esto, quien declara 1 %
+    # arriesga `1 % · (1 + costo en R)` —0,1734 R de media en el banco de T131, ≈ 17 % de más—, y
+    # un riesgo declarado que no es el real hace que todos los topes (`caps`, apalancamiento,
+    # colchón de liquidación) midan otra cosa. La corrección es **por operación**
+    # (`risk_budget.budget_distance`), no un multiplicador plano: con el stop lejos apenas encoge
+    # la cantidad y con el stop pegado la encoge mucho. Los cuatro perfiles lo llevan encendido
+    # desde T143; sigue siendo un campo para poder medir las dos contabilidades con el mismo
+    # código (el informe de T136 lo hace).
     risk_includes_costs: bool = False
     require_htf: bool = False        # exige ir a favor de la tendencia del marco mayor
     min_risk_fill: float = 0.25      # si el margen no alcanza para ≥ 25 % del riesgo: rechazo
@@ -197,7 +201,7 @@ PROFILES: tuple[ProfileParams, ...] = (
                     "hasta 3x. Mantiene al menos 1 posición abierta y 1 orden pendiente (riesgo "
                     "reducido). Sale solo por su stop: inicial o dinámico por escalones.",
         risk_pct=0.005, max_leverage=3, max_open=3, min_conf=0.3, min_rr=1.5,
-        min_open=1, min_pending=1,
+        min_open=1, min_pending=1, risk_includes_costs=True,
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
                             "base"}),
         allow_hedge=False, follow_synthesis=True, max_cost_r=0.12, require_htf=True,
@@ -213,7 +217,7 @@ PROFILES: tuple[ProfileParams, ...] = (
                     "dirección y freno de entradas si cae 5 % desde el máximo. Sale solo por su "
                     "stop: inicial o dinámico por escalones.",
         risk_pct=0.01, max_leverage=5, max_open=6, min_conf=0.15, min_rr=1.3,
-        min_open=2, min_pending=1,
+        min_open=2, min_pending=1, risk_includes_costs=True,
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
                             "base"}),
         allow_hedge=True, follow_synthesis=False, max_cost_r=0.15, require_htf=True,
@@ -227,7 +231,7 @@ PROFILES: tuple[ProfileParams, ...] = (
                     "del 3 % por dirección y freno de entradas si cae 5 % desde el máximo. Sale "
                     "solo por su stop: inicial o dinámico por escalones.",
         risk_pct=0.02, max_leverage=10, max_open=10, min_conf=0.0, min_rr=1.1,
-        min_open=3, min_pending=2,
+        min_open=3, min_pending=2, risk_includes_costs=True,
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
                             "base", "contrarias"}),
         allow_hedge=True, follow_synthesis=False, max_cost_r=0.2, require_htf=True,
@@ -246,6 +250,7 @@ PROFILES = PROFILES + (
                     "Sin TP final ni cierre por tiempo: cierra solo al tocar el SL vigente. "
                     "A favor de la síntesis y de la tendencia mayor; hasta 2 posiciones, 5x.",
         risk_pct=0.005, max_leverage=5, max_open=2, min_conf=0.3, min_rr=1.3,
+        risk_includes_costs=True,
         families=frozenset({"consenso", "sugerencias", "escenarios", "agentes", "indicadores",
                             "ppp"}),
         allow_hedge=False, follow_synthesis=True, max_cost_r=0.15, require_htf=True,
