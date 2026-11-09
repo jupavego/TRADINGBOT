@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-08T23:08:32",
+ "generated": "2026-11-09T04:54:08",
  "phases": [
   {
    "n": 0,
@@ -285,6 +285,16 @@ window.EIM_STATUS = {
    "ids": [
     "T137",
     "T139"
+   ]
+  },
+  {
+   "n": 24,
+   "name": "Dejar de perder y elegir la clase de ventaja",
+   "ids": [
+    "T143",
+    "T144",
+    "T145",
+    "T146"
    ]
   }
  ],
@@ -2089,6 +2099,63 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 21,
    "goal": "Sacar de los libros las 5 operaciones congeladas desde el 2026-11-04 y evitar que se creen más. Se guarda un escalón al cierre de la vela de 15 m sin tener aún sus velas de 1 m. Cuando llegan, el recálculo ve la operación cerrada por debajo de ese stop, `_never_lower` la congela y, congelada, **no se cierra sola**. T130 arregló la mitad de este caso (`ladder_floor.early`), y su propia documentación avisa de la otra mitad. La evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §3 y `PLAN/notas/T130_anexo_falso_inconsistente.md`."
+  },
+  {
+   "id": "T143",
+   "title": "Dejar de pagar por nada: entradas maker, riesgo con costo y el marco de 15 m",
+   "deps": [
+    "T130",
+    "T136",
+    "T137"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-09 desde `PLAN/notas/diagnostico_rentabilidad_2026-11-09.md` §3. La fricción del libro vivido (1 630,1 USDT) es **mayor que la pérdida neta** (−1 438,5): 14,1 pb del nocional con el SL a 1,21 % = **0,125 R por operación**. Baja a ~0,06 R encendiendo `risk_includes_costs` (T136 §1: hoy se arriesga ×1,1734 de lo declarado), midiendo maker frente a taker antes de adoptarlo (256 de 411 entradas son `market`) y retirando 15 m mientras su costo siga en 0,157 R. **No crea ventaja: deja de destruirla.** ◆ del usuario antes de tocar perfiles y antes de desplegar durante T31.",
+   "effort": "medio",
+   "phase": 24,
+   "goal": "Bajar el costo por operación de 0,125 R a ~0,06 R sin tocar la entrada ni la salida, encendiendo lo que T136 ya midió y apagando el marco donde el costo se come el riesgo. No crea ventaja: deja de destruirla."
+  },
+  {
+   "id": "T144",
+   "title": "Una sola contabilidad: el informe semanal y el libro cuentan lo mismo",
+   "deps": [
+    "T107",
+    "T118",
+    "T142"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-09 desde la misma nota, §6. Los informes de T31 ven **1, 0 y 1** operación con resultado en W43–W45; el libro de perfiles cierra **43, 30, 118 y 23** con peso. Solo 45 de 411 llevan `floor_trade` y **197 de 411 son `retro`** (T142), que nadie vivió y hoy siguen dentro. Una sola función declara qué cuenta, las `retro` salen de toda cifra de resultado y una prueba de cuadre falla si los dos totales no coinciden. ◆: cuál es el universo oficial de T31.",
+   "effort": "medio",
+   "phase": 24,
+   "goal": "Que exista una sola definición, declarada, de qué operaciones cuentan como resultado, para que la decisión de dinero real no se tome con 1 operación por semana mientras el libro cierra 118."
+  },
+  {
+   "id": "T145",
+   "title": "◆ Qué clase de ventaja se persigue, con la aritmética delante",
+   "deps": [
+    "T27",
+    "T49",
+    "T139"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-09 desde la misma nota, §7. Resuelve la ◆ que T139 dejó anotada en `ESTADO_PROYECTO.md` §0. **Solo informe, no construye nada**: compara en una tabla el costo a superar (0,125 R hoy, ~0,06 R tras T143) con la ventaja alcanzable ya medida de cuatro clases —microestructura propia (T78–T86, captura al 86,8 %), arbitraje/funding, market making pasivo (maker 2 pb frente a taker 5 pb) y solo análisis—, con hipótesis nula, intentos que añade a Holm (familia 841) y tiempo hasta veredicto. Se elige **una**. «Solo análisis» es un resultado válido.",
+   "effort": "medio",
+   "phase": 24,
+   "goal": "Resolver la ◆ que T139 dejó abierta —para qué sirve el sistema una vez cerrada la búsqueda de entradas direccionales— comparando, por clase de ventaja, el costo que hay que superar frente a la ventaja que esa clase puede dar de forma realista."
+  },
+  {
+   "id": "T146",
+   "title": "La síntesis no puede sumar cinco veces el mismo voto",
+   "deps": [
+    "T20",
+    "T44",
+    "T120",
+    "T145"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-09 desde la misma nota, §4.1. **Solo si T145 mantiene viva una línea direccional.** En el panel de T44, **6 de 14 agentes están al 100 % `no_data`** y `technical` al 100 % `degraded`; los que votan correlacionan **0,44–0,68** entre sí. No hay comité de 14: hay un seguidor de tendencia votando cinco veces, con una confianza mayor que la información que tiene detrás. Entregables: sin datos no se vota, cobertura publicada, penalización por correlación verificable y **votos efectivos** (con ρ 0,6 y cinco votantes, ~1,8). Se adopta aunque no mejore la esperanza.",
+   "effort": "medio",
+   "phase": 24,
+   "goal": "Que la síntesis deje de agregar el mismo error varias veces: los agentes que nunca tienen datos salen del voto o se alimentan, y la penalización por correlación se aplica de verdad y se puede verificar."
   }
  ]
 };
