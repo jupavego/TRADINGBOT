@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 from eim.backtest.params import ZERO_COSTS
@@ -148,6 +149,17 @@ def test_paired_delta_es_emparejado():
     d = ab.paired_delta(tk, mk, draws=500)
     assert d["delta"] == pytest.approx(0.2)
     assert d["lo"] == pytest.approx(0.2) and d["hi"] == pytest.approx(0.2)
+
+
+def test_paired_delta_por_tandas_da_lo_mismo_que_de_una_vez(monkeypatch):
+    """El bootstrap se saca por tandas para no pedir 8,4 GiB: el resultado no debe moverse."""
+    rs = np.random.default_rng(7).normal(size=400)
+    tk = [leg(0.0) for _ in rs]
+    mk = [leg(float(x)) for x in rs]
+    de_una = ab.paired_delta(tk, mk, draws=300)
+    monkeypatch.setattr(ab, "CELLS", 1)          # una fila por tanda: el caso extremo
+    por_tandas = ab.paired_delta(tk, mk, draws=300)
+    assert por_tandas == de_una
 
 
 def test_paired_delta_con_ruido_devuelve_un_ic_que_abarca_cero():

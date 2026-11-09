@@ -150,19 +150,32 @@ def _reasons(legs: Sequence[Leg]) -> dict[str, int]:
     return dict(sorted(out.items(), key=lambda kv: -kv[1]))
 
 
+CELLS = 4_000_000     # celdas por tanda del bootstrap: acota la RAM sin cambiar el resultado
+
+
 def paired_delta(taker: Sequence[Leg], maker: Sequence[Leg], seed: int = 143,
                  draws: int = 5000) -> dict:
     """ΔE[R] neto por intento (maker − taker) con IC95 % bootstrap **emparejado**.
 
     Emparejado porque las dos muestras son las mismas decisiones: lo que se remuestrea es la
     diferencia por idea, no cada brazo por su lado. Usa el denominador común (`net_p`).
+
+    Las remuestras salen **por tandas**. La matriz entera (`draws` × `n`) pide 8,4 GiB de
+    índices y otros tantos al indexar con n = 224 814: más de lo que tiene el equipo, así que
+    pedirla completa clavaba el trabajo contra la guarda de RAM de la cola. Por tandas el pico
+    baja a decenas de MB y, como PCG64 llena fila a fila, el flujo de azar es el mismo: las
+    cifras no cambian (lo fija `test_paired_delta_por_tandas_da_lo_mismo`).
     """
     d = np.array([m.net_p - t.net_p for t, m in zip(taker, maker, strict=True)], dtype=float)
     n = len(d)
     if n < 2:
         return {"delta": 0.0, "lo": 0.0, "hi": 0.0, "n": n, "se": 0.0}
     rng = np.random.default_rng(seed)
-    means = d[rng.integers(0, n, size=(draws, n))].mean(axis=1)
+    means = np.empty(draws, dtype=float)
+    step = max(1, CELLS // n)
+    for i in range(0, draws, step):
+        k = min(step, draws - i)
+        means[i:i + k] = d[rng.integers(0, n, size=(k, n))].mean(axis=1)
     lo, hi = (float(x) for x in np.percentile(means, [2.5, 97.5]))
     return {"delta": float(d.mean()), "lo": lo, "hi": hi, "n": n,
             "se": float(d.std(ddof=1) / np.sqrt(n))}
