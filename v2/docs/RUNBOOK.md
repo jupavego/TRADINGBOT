@@ -358,3 +358,36 @@ python -m eim.data.collectors.hft_ops --root data --requalify 2026-10-28T23 --ap
 ```
 
 Sin `--apply` solo dice qué cambiaría. Al reiniciar el vigilante deja de hacer falta.
+
+## 18. El vigilante del conjunto, parche provisional (T148)
+
+El 2026-11-09 los cinco servicios estuvieron parados 5 h 26 min sin que nada los levantara
+(`PLAN/notas/T148_apagon_2026-11-09.md`). Hasta que esté el entregable 1 de T148, hay una tarea
+programada que cubre lo peor:
+
+```
+EIM - vigilante del conjunto (T148)
+```
+
+Cada **10 minutos** corre `v2\scripts\servicio_continuo.ps1` **sin `-ConWeb`**: solo los servicios
+de datos, no la interfaz. El script es idempotente, así que con todo en pie no hace nada y no
+duplica. Comprobar que está y cuándo corrió:
+
+```
+powershell -Command "Get-ScheduledTaskInfo -TaskName 'EIM - vigilante del conjunto (T148)'"
+```
+
+`LastTaskResult` 0 es correcto. Quitarla:
+
+```
+powershell -Command "Unregister-ScheduledTask -TaskName 'EIM - vigilante del conjunto (T148)' -Confirm:$false"
+```
+
+**Lo que este parche NO hace**, y sí hará T148: no avisa a nadie, no deja constancia de cuánto
+estuvo caído cada servicio, no tiene tope de intentos si el arranque falla, y **no está en
+`instalar_inicio_automatico.ps1`**, así que un equipo nuevo no la tendría. Tampoco corre con la
+sesión de Windows cerrada: para eso está la tarea `EIM - servicio continuo al encender`.
+
+**No confundir con un apagón previsto.** Las horas de un apagón imprevisto **no se declaran** como
+mantenimiento (§17): ese mecanismo es para cortes que se deciden antes.
+

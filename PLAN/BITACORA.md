@@ -1021,3 +1021,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** ninguna nueva; solo lectura de registros, del QC real y de los eventos de Windows. Las horas del apagón **no se declararon** como mantenimiento, a propósito.
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T127, T128, T135 y T141.
 - **Siguiente paso:** ejecutar T148 (empieza por el entregable 1, el vigilante del conjunto) y cerrar T141 diciendo que su medición tiene el hueco del apagón.
+
+## 2026-11-09 23:45 UTC · juanpablo-cpu · Parche provisional del vigilante del conjunto
+- **Pedido del usuario:** «Sí, instálalo», sobre el parche de diez minutos para no pasar la noche con el agujero de T148 abierto.
+- **Hecho:** tarea programada `EIM - vigilante del conjunto (T148)`, cada **10 min**, que corre `v2\scripts\servicio_continuo.ps1` **sin `-ConWeb`** (solo los servicios de datos, como recomienda la ◆2 de la ficha). Ajustes copiados de `instalar_inicio_automatico.ps1` (arranca con batería, `StartWhenAvailable`), más `MultipleInstances IgnoreNew` y un tope de ejecución de 10 min para que una pasada colgada no tape la siguiente. Repetición de 3 650 días.
+- **Probado, no supuesto.** (1) Con los 18 procesos en pie, la tarea no duplicó nada: 18 antes y 18 después. (2) Se mató el servidor de la hoja de ruta del 8765 (comprobado caído) y la tarea lo volvió a levantar: **200**, `LastTaskResult` 0, siguiente pasada a las 23:47:47 UTC. Se eligió ese servicio a propósito: es el único cuya muerte no cuesta ningún dato.
+- **Lo que el parche NO hace**, y sí hará el entregable 1 de T148: no avisa a nadie, no deja constancia de cuánto estuvo caído cada servicio, no tiene tope de intentos ni espera creciente si el arranque falla, y **no está en `instalar_inicio_automatico.ps1`**, así que un equipo nuevo no la tendría. Tampoco cubre la sesión de Windows cerrada: para eso sigue estando `EIM - servicio continuo al encender`.
+- **Archivos:** `v2/docs/RUNBOOK.md` (§18 nueva), `PLAN/{STATUS,BITACORA}.md`. Sin cambios de código: la tarea vive en el programador de Windows, no en el repo, y por eso queda documentada.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T127, T128, T135 y T141.
+- **Siguiente paso:** ejecutar T148, que sustituye este parche por el vigilante de verdad.
