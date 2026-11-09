@@ -10,6 +10,7 @@ from eim.backtest.engine import BacktestResult
 from eim.backtest.metrics import compute_metrics, cost_breakdown
 from eim.backtest.params import BacktestParams
 from eim.core import Candle
+from eim.repro.stamp import markdown_line
 
 DEFAULT_DIR = Path("reports/backtest")
 
@@ -20,6 +21,14 @@ def data_hash(candles: list[Candle], funding: list[tuple[int, float]] | None) ->
         h.update(f"{c.t},{c.o},{c.h},{c.l},{c.c},{c.v};".encode())
     for t, r in funding or []:
         h.update(f"f{t},{r};".encode())
+    return h.hexdigest()[:16]
+
+
+def trades_hash(trades: list) -> str:
+    """Huella de las operaciones (entrada, salida, lado, motivo, neto): 16 hex (T124)."""
+    h = hashlib.sha256()
+    for t in trades:
+        h.update(f"{t.entry_t},{t.exit_t},{t.side},{t.reason},{t.net_pnl!r};".encode())
     return h.hexdigest()[:16]
 
 
@@ -43,6 +52,18 @@ def pool(results: list[BacktestResult], initial_equity: float) -> BacktestResult
                 stats[k] = stats.get(k, 0) + v
     stats["final_equity"] = eq[-1] if eq else initial_equity
     return BacktestResult(trades=trades, equity_t=t, equity=eq, stats=stats)
+
+
+FIGURES = ("total_return", "sharpe", "max_drawdown", "expectancy_r", "win_rate", "profit_factor",
+           "n_trades")
+
+
+def figures(windows: list[tuple[dict, BacktestResult]], params: BacktestParams) -> dict:
+    """Cifras comparables del agregado (T124): las mismas al producir y al `repetir`."""
+    pooled = pool([r for _, r in windows], params.initial_equity)
+    m = compute_metrics(pooled, params.initial_equity, params.bars_per_year, n_boot=0)
+    return {**{k: m.get(k) for k in FIGURES}, "n_windows": len(windows),
+            "trades_hash": trades_hash(pooled.trades)}
 
 
 def build_report(
@@ -94,7 +115,7 @@ def to_markdown(rep: dict) -> str:
     L = [f"# Backtest {meta.get('symbol', '')} {meta.get('timeframe', '')} (SIMULADO)", "",
          f"Datos: {meta['n_candles']} velas, hash `{meta['data_hash']}`, "
          f"{meta['funding_points']} puntos de funding. Ventanas fuera de muestra: "
-         f"{len(rep['windows'])}.", "",
+         f"{len(rep['windows'])}.", "", markdown_line(meta.get("reproducibility")), "",
          "## Resultado (ventanas encadenadas)", "",
          "| Métrica | Valor | IC 95 % |", "|---|---|---|",
          f"| Retorno total | {_f(m['total_return'] * 100)} % | |",

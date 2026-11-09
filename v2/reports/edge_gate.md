@@ -170,3 +170,26 @@ usuario (2026-10-13): acepta el NO PASA.** T29 no se inicia; se vuelve a las hip
   resultado es negativo con margen amplio, no hay riesgo de que esto haya inflado un «PASA».
 - **Calibración de escenarios** solo en BTC y en los últimos ≈14 meses; el motor de proyección
   es la línea base GARCH (Kronos sin evaluar).
+
+## 6. Reproducibilidad (T124, 2026-11-09)
+
+Esta puerta se produjo antes de T124 y **no fijó sus datos**: `edge_results.json` no declara
+instantánea, así que sus cifras salen como **no reproducibles** en el informe semanal. El
+2026-11-09, en `juanpablo-cpu`, se adoptaron a posteriori las 7 ventanas de BTCUSDT. Para cada una
+se tomó una instantánea congelada con las 500 velas de contexto más la ventana: 4 880 velas sin
+huecos y 610 de funding, de `backups/t131_banco` (fuente `binance-futures`). Se adoptaron con
+`python -m eim.repro adoptar-t27 --store backups/t131_banco --asset BTCUSDT` y luego se
+recalcularon con `python -m eim.repro repetir`, con el código de hoy:
+
+- **7 de 7 ventanas se repiten exactamente**: las 6 cifras de cada una (Sharpe, retorno, drawdown,
+  operaciones, R esperado, Sharpe de comprar y mantener) más sus fechas, bit a bit.
+- Desde entonces el modelo de costos ganó dos parámetros (`slip_entry_base_bps` y
+  `slip_entry_vol_k`, el deslizamiento de entrada del bróker simulado). `repetir` lo detecta y
+  comprueba que con los valores vigentes la cifra no cambia.
+- Contraprueba sobre una copia del almacén: con el cierre de la vela 2023-03-04 16:00 UTC
+  alterado a mano (22 314,7 → 22 307,95), `repetir` dice **NO SE REPITE · causa: DATOS**. Señala
+  esa vela como «sin anotar» y muestra que cambia el Sharpe de comprar y mantener de la ventana 1.
+
+El veredicto **NO PASA** no cambia. ETHUSDT no se adoptó: este equipo no tiene su historia 1h
+desde 2023. Las corridas nuevas de `eim.calibration.gate_cli` leen de una instantánea congelada
+y registran cada ventana con su `result_id`.

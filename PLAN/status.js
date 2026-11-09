@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-07T16:34:34",
+ "generated": "2026-11-08T23:08:32",
  "phases": [
   {
    "n": 0,
@@ -1858,8 +1858,8 @@ window.EIM_STATUS = {
     "T03",
     "T27"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "**Hecha (2026-11-09, `juanpablo-cpu`), sin desplegar.** `v2/eim/data/{snapshots,snapshot_view,revisions,results}.py`: tabla `data_snapshots` inmutable (id del contenido, copia congelada o ligera) en `data/snapshots/`, registro de revisiones del almacén (antes/después) y resultados con instantánea, huella del código y parámetros. Puerta de edge, `backtest.cli` y `calibration.cli` calculan desde la instantánea (`SnapshotView`, que lanza `LookaheadError` si se pide una vela posterior); la puntuación de bots fija lo leído en instantáneas ligeras. Sin instantánea, el informe y la interfaz dicen «No reproducible» (escuadrón, «Backtest / VRM», informe semanal). `python -m eim.repro repetir` separa datos, código y parámetros: **las 7 ventanas de BTC de T27, adoptadas desde `backups/t131_banco`, se repiten exactas** y una vela alterada a mano da «causa: DATOS». Por qué no ArcticDB (BSL 1.1): `v2/docs/OPERACION.md` §4. Gate 3 282/0. BACKLOG T124 (1)–(6).",
    "effort": "medio",
    "phase": 20,
    "goal": "Un número de backtest, de calibración o de la puerta de edge que no se puede volver a producir no es un número. El almacén se rellena y se corrige con el tiempo (Binance revisa y completa velas, los recolectores compactan), y hoy nada fija **qué datos vio** un resultado: si la cifra cambia no se sabe si cambió el código, los parámetros o los datos. Idea tomada de ArcticDB (Man Group), implementada sobre DuckDB: ArcticDB está bajo Business Source License 1.1 y su documentación limita el uso gratuito a no comercial, personal o académico, así que **no se instala**."
