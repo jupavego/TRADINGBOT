@@ -6,6 +6,8 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
+from eim.repro.stamp import markdown_line
+
 REPORTS = Path(__file__).resolve().parents[2] / "reports"
 MARK = {True: "✔", False: "✘", None: "…"}
 
@@ -62,6 +64,7 @@ def render(p: dict) -> str:
         f"intentos en la familia de Holm: {p['attempts_total']} (cada versión de cada bot, "
         "también las retiradas, más un control aleatorio por cada una).\n",
         *_source(p.get("measured_on")),
+        markdown_line(p.get("reproducibility")) + "\n",
         "## Respuesta corta\n",
         f"- **Votan**: {', '.join(s['votan']) or 'ninguno'}",
         f"- **Solo informan**: {', '.join(s['informan']) or 'ninguno'}",

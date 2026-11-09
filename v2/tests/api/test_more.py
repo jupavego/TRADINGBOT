@@ -70,6 +70,7 @@ def test_backtest_endpoint(client):
     j = client.get("/v2/more/backtest", params={"candles": 1000, "horizon": 6}).json()
     assert j["total_evaluated"] > 0 and j["source"] == "test"
     assert j["acceptance_criteria"]["criteria"]["CA-009"]["status"] == "NO_EVALUADO"
+    assert j["reproducibility"]["reproducible"] is False and j["reproducibility"]["why"]  # T124
     assert client.get("/v2/more/backtest", params={"symbol": "BTCUSDT"}).status_code == 400
 
 

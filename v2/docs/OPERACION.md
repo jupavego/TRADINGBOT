@@ -333,6 +333,63 @@ Los libros y el índice no se versionan ni se suben a ningún servicio; el texto
   (y de las de sus ancestros): ninguna versión se valida con los datos con que se ajustó; 4) se
   publica solo si T49 la valida, y el seguimiento vuelve a medirla.
 
+### Instantáneas de datos y `repetir` (T124)
+Un número que no se puede volver a producir no es un número. El almacén se rellena y se corrige
+con el tiempo, así que cada resultado dice **qué datos vio**, además de con qué código y con qué
+parámetros:
+- **Instantánea** (`eim/data/snapshots.py`, tabla `data_snapshots` de `data/snapshots/snapshots.duckdb`):
+  una serie (velas de un símbolo y marco, más su funding) cortada en `[inicio, fin)`. Solo entran
+  velas cerradas a `fin`. Guarda el rango, el nº de velas y huecos, el hash del contenido, el
+  momento de creación, el proveedor y la versión del formato. El id sale del contenido y nunca se
+  reescribe: con otros datos sale otra instantánea. **Congelada** = con copia Parquet en
+  `data/snapshots/frozen/<id>/`. **Ligera** = solo identidad y hash; la usa la puntuación de bots,
+  que se recalcula cada 4 h.
+- **Resultados** (`eim/data/results.py`, tablas `data_results` y `repro_checks`): la puerta de edge
+  (cada ventana), `eim.backtest.cli`, `eim.calibration.cli` y la puntuación de bots registran sus
+  cifras con los ids de sus instantáneas, la huella del código (commit y hash de `eim/*.py`) y los
+  parámetros. Los tres primeros **calculan desde la instantánea** (`SnapshotView`), no desde el
+  almacén, y el id va al JSON y al informe. Un resultado sin instantánea dice **«No reproducible
+  (T124)»** en el informe y en la interfaz: en la tabla del escuadrón y en «Backtest / VRM», que
+  calcula a la carta sobre el almacén vivo.
+- **Revisiones** (`eim/data/revisions.py`): si una escritura cambia una vela o un funding ya
+  guardados, queda anotado en `data/snapshots/revisions/AAAAMMDD.<pid>.jsonl` (antes, después, momento,
+  fuente). Rellenar un hueco o volver a escribir lo mismo no cuenta como revisión. Anotar nunca
+  tumba la escritura.
+- **Freno al lookahead**: `SnapshotView` corta en su fecha. Pedir una vela posterior lanza
+  `LookaheadError` y pedir otra serie o algo anterior al inicio lanza `SnapshotScopeError`, así que
+  nunca se devuelve en silencio menos de lo pedido.
+
+```bash
+python -m eim.repro resultados                       # qué hay registrado y su último repetir
+python -m eim.repro repetir rs_65d0ef5e25bb262a      # 0 = se repite, 1 = no (con causa), 2 = error
+python -m eim.repro revisiones --dias 30             # velas cambiadas e instantáneas/resultados afectados
+python -m eim.repro instantanea --symbol BTCUSDT --tf 1h --desde 2026-01-01   # fijar una serie a mano
+python -m eim.repro adoptar-t27 --store backups/t131_banco --asset BTCUSDT    # ventanas de T27, a posteriori
+```
+`repetir` recalcula con los datos de la instantánea, los parámetros grabados y el código de hoy, y
+separa las causas cambiando un factor cada vez:
+- **código**: esa base ya no da la cifra;
+- **datos**: la copia congelada ya no da su hash, o el almacén ya no tiene lo que fijó la instantánea
+  y con lo que tiene la cifra cambia. Las velas distintas se cuentan como anotadas o sin anotar
+  (estas últimas, cambios hechos por fuera del sistema);
+- **parámetros**: los vigentes no son los grabados y con ellos la cifra cambia.
+
+Si el almacén cambió pero la cifra no, se avisa y no cuenta como causa. La calibración y la
+puntuación de bots solo comprueban los datos, sin recalcular: la calibración tarda horas y la
+puntuación lee bases que la API tiene abiertas (BACKLOG T124). Recalcular una ventana de T27 tarda
+unos 90 s: lánzalo por la cola de trabajos.
+
+**Por qué no ArcticDB.** La idea (versiones inmutables de series, instantáneas con nombre) viene de
+ArcticDB (Man Group), pero **no se instala bajo ninguna forma**: está bajo Business Source License
+1.1, y su documentación limita el uso gratuito a fines no comerciales, personales o académicos. El
+EIM es un sistema de trading, así que esto se hizo sobre DuckDB + Parquet, que ya estaban. No
+volver a proponerlo salvo que cambie su licencia.
+
+**Límites.** `data/snapshots/` todavía no entra en la copia diaria: reorganizar las copias es T115
+(BACKLOG T124). Una instantánea ligera detecta el cambio pero no reconstruye la cifra vieja. En la
+API la huella del código es la del arranque: el código que de verdad corre, aunque luego se traiga
+`main`.
+
 ## 5. Dependencias: política de actualización
 - **Rangos** en `pyproject.toml` / `package.json`; **versiones probadas** en `requirements-lock.txt` y
   `eim/web/package-lock.json`.

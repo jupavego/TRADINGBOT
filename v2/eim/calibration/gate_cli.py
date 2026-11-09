@@ -5,6 +5,10 @@
 Evalúa los parámetros VIGENTES (no calibra nada) en ventanas disjuntas, contra comprar y
 mantener y contra entrada aleatoria con el mismo riesgo; añade la calibración de escenarios
 (backfill T19 con orígenes sin solape). El veredicto lo redacta el informe `reports/edge_gate.md`.
+
+T124: cada activo se lee de una instantánea congelada (`eim/data/snapshots.py`) y cada ventana se
+registra como resultado (`edge_window`) con su id, la huella del código y sus parámetros, así que
+`python -m eim.repro repetir <id>` la recalcula y dice qué cambió si ya no coincide.
 """
 
 from __future__ import annotations
@@ -29,14 +33,42 @@ from eim.backtest.edge import (
 from eim.backtest.engine import BacktestResult, run_backtest
 from eim.backtest.metrics import _sharpe, compute_metrics
 from eim.backtest.params import BacktestParams
-from eim.backtest.report import data_hash, pool
+from eim.backtest.report import data_hash, pool, trades_hash
 from eim.backtest.strategy import PlanStrategy, Strategy
 from eim.calibration.cli import load_series
 from eim.calibration.evaluate import Series
 from eim.calibration.space import build, defaults
+from eim.data.results import ResultStore
+from eim.data.snapshots import SnapshotStore
 from eim.data.store import Store
+from eim.repro.code import fingerprint
 
 OUT = Path("reports/edge")
+FIGURES = ("from_t", "to_t", "sharpe", "total_return", "max_drawdown", "n_trades", "expectancy_r",
+           "bh_sharpe", "trades_hash")
+
+
+def gate_backtest() -> BacktestParams:
+    """Parámetros de backtest de la puerta: los mismos para medir y para `repetir`."""
+    return BacktestParams(eval_step=6)
+
+
+def plan_strategy(s: Series, values: dict) -> PlanStrategy:
+    plan, synth, tp = build(values)
+    return PlanStrategy(PlanAgent(plan, synth, raw=s.cache), tp)
+
+
+def window_figures(s: Series, w: tuple[int, int], res: BacktestResult,
+                   bt: BacktestParams) -> dict:
+    """Cifras de una ventana, iguales en la puerta y en `repetir`."""
+    a, b = w
+    mw = compute_metrics(res, bt.initial_equity, bt.bars_per_year, n_boot=0)
+    return {"from_t": s.candles[a].t, "to_t": s.candles[b - 1].t,
+            "sharpe": mw["sharpe"], "total_return": mw["total_return"],
+            "max_drawdown": mw["max_drawdown"], "n_trades": mw["n_trades"],
+            "expectancy_r": mw["expectancy_r"],
+            "bh_sharpe": _sharpe(buy_hold_returns(s.candles, a, b), bt.bars_per_year),
+            "trades_hash": trades_hash(res.trades)}
 
 
 def windows_for(ref: Series, s: Series, start: int, size: int) -> list[tuple[int, int]]:
@@ -71,10 +103,9 @@ def gross_r(trades: list) -> np.ndarray:
 
 def analyze(s: Series, wins: list[tuple[int, int]], bt: BacktestParams, n_null: int,
             seed: int, log) -> dict:
-    plan, synth, tp = build(defaults())
     results, decs = [], []
     for w in wins:
-        rec = RecordingStrategy(PlanStrategy(PlanAgent(plan, synth, raw=s.cache), tp))
+        rec = RecordingStrategy(plan_strategy(s, defaults()))
         res = run(s, w, rec, bt)
         rep = run(s, w, ReplayStrategy(rec.decisions), bt)        # control de fidelidad
         assert [t.entry_t for t in rep.trades] == [t.entry_t for t in res.trades]
@@ -86,14 +117,7 @@ def analyze(s: Series, wins: list[tuple[int, int]], bt: BacktestParams, n_null: 
     r_s = _returns(pooled)
     r_bh = np.concatenate([buy_hold_returns(s.candles, a, b) for a, b in wins])[1:]
     p_bh, ci_bh = sharpe_diff_pvalue(r_s, r_bh, ppy, seed=seed)
-    per_w = []
-    for (a, b), res in zip(wins, results, strict=True):
-        mw = compute_metrics(res, bt.initial_equity, ppy, n_boot=0)
-        per_w.append({"from_t": s.candles[a].t, "to_t": s.candles[b - 1].t,
-                      "sharpe": mw["sharpe"], "total_return": mw["total_return"],
-                      "max_drawdown": mw["max_drawdown"], "n_trades": mw["n_trades"],
-                      "expectancy_r": mw["expectancy_r"],
-                      "bh_sharpe": _sharpe(buy_hold_returns(s.candles, a, b), ppy)})
+    per_w = [window_figures(s, w, res, bt) for w, res in zip(wins, results, strict=True)]
     rng = np.random.default_rng(seed)
     null_sh, null_er, null_gr = [], [], []
     t0 = time.time()
@@ -163,19 +187,26 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--fc-origins", type=int, default=400)
     ap.add_argument("--out", default=str(OUT))
+    ap.add_argument("--root", default=None,
+                    help="carpeta de instantáneas y resultados (T124); por defecto, --store")
     a = ap.parse_args(argv)
-    bt = BacktestParams(eval_step=6)
+    bt = gate_backtest()
     store, cdir = Store(a.store), Path("reports/calibration/cache")
-    loaded = [load_series(store, sym, a.tf, bt.lookback, cdir) for sym in a.symbols]
+    root = a.root or a.store
+    snaps = {sym: SnapshotStore(root).create(store, sym, a.tf, origin="gate_cli")
+             for sym in a.symbols}           # se mide sobre la instantánea, no sobre el almacén
+    loaded = [load_series(snaps[sym].view(), sym, a.tf, bt.lookback, cdir) for sym in a.symbols]
     series = [x[0] for x in loaded]
     out: dict = {"meta": {"mode": "SIMULADO", "timeframe": a.tf, "window": a.window,
                           "params": defaults(), "backtest": bt.model_dump(),
-                          "seed": a.seed}, "assets": {}}
+                          "seed": a.seed, "code": fingerprint(), "reproducible": True},
+                 "assets": {}}
     for s in series:
         wins = windows_for(series[0], s, max(a.start, bt.lookback), a.window)
         print(f"{s.symbol}: {len(wins)} ventanas", flush=True)
         out["assets"][s.symbol] = analyze(s, wins, bt, a.null, a.seed,
                                           lambda m: print(m, flush=True))
+        out["assets"][s.symbol]["snapshot"] = snaps[s.symbol].info.as_dict()
     for s, path in loaded:
         s.cache.save(path)          # reutilizable en corridas posteriores
     fam = {}
@@ -189,8 +220,20 @@ def main(argv: list[str] | None = None) -> None:
         out["scenarios"] = scenario_calibration(series[0], 25, a.fc_origins)
     Path(a.out).mkdir(parents=True, exist_ok=True)
     p = Path(a.out) / "edge_results.json"
+    register_windows(ResultStore(root), out, snaps, a.tf, str(p))
     p.write_text(json.dumps(out, indent=1, default=str), encoding="utf-8")
     print(p)
+
+
+def register_windows(results: ResultStore, out: dict, snaps: dict, tf: str, report: str) -> None:
+    """Cada ventana, un resultado reproducible: su id queda en el JSON (`result_id`)."""
+    for sym, r in out["assets"].items():
+        for k, w in enumerate(r["windows"]):
+            params = {"symbol": sym, "timeframe": tf, "from_t": w["from_t"], "to_t": w["to_t"],
+                      "values": out["meta"]["params"], "backtest": out["meta"]["backtest"]}
+            w["result_id"] = results.register(
+                "edge_window", f"puerta de edge {sym} {tf} ventana {k + 1}", [snaps[sym].info.id],
+                params, out["meta"]["code"], {f: w[f] for f in FIGURES}, report).id
 
 
 if __name__ == "__main__":

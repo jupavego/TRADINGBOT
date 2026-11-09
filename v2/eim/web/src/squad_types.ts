@@ -31,6 +31,15 @@ export interface SquadBot {
 export interface SquadSupport { up: number; down: number; flat: number; total: number }
 
 /** De cuándo es la puntuación T59 que se muestra y cómo fue el último recálculo (T119). */
+/** Sello de reproducibilidad de un resultado (T124): ids de sus instantáneas o por qué no las hay. */
+export interface Reproducibility {
+  reproducible: boolean
+  why?: string
+  result_id?: string
+  repeat?: string
+  snapshots: { id: string; frozen: boolean; symbol: string; timeframe: string; source: string; coverage: { candles: number; gaps: number } }[]
+}
+
 export interface ScoreFreshness {
   state: 'vigente' | 'fallida' | 'vieja' | 'sin_medicion'
   reason: string
@@ -39,6 +48,7 @@ export interface ScoreFreshness {
   last_attempt: number | null
   last_ok: number | null
   stale_after_ms: number
+  reproducibility?: Reproducibility
 }
 
 /** Bot utilizable que este equipo no lanza en el ciclo (solo histórico, sin entorno, carril). */

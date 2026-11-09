@@ -18,6 +18,7 @@ import duckdb
 import numpy as np
 
 from eim.core import Candle
+from eim.data import revisions
 from eim.data.timeframes import tf_ms
 
 _CANDLE_SCHEMA = (
@@ -183,6 +184,7 @@ class Store:
             if rows:
                 con.executemany(f"INSERT INTO new VALUES ({', '.join('?' * len(rows[0]))})",
                                 rows)
+        revisions.capture(self, con, kind, symbol, timeframe, _CANDLE_COLS, source=source)
         return self._write_merged(con, d / HISTORY, "new", _CANDLE_COLS, source if not
                                   live.exists() else None)
 
@@ -266,6 +268,7 @@ class Store:
         if rows:
             ph = ", ".join("?" * len(rows[0]))
             con.executemany(f"INSERT INTO new VALUES ({ph})", rows)
+            revisions.capture(self, con, kind, symbol, timeframe, cols, source=source)  # T124
         live = self._write_merged(con, f, "new", cols, source)
         hist = f.parent / HISTORY
         return live + (int(con.execute(f"SELECT count(*) FROM {_rp(hist)}").fetchone()[0])

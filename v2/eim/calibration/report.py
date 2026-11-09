@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from eim.calibration.space import SPACE, build
+from eim.repro.stamp import markdown_line
 
 DEFAULT_DIR = Path("reports") / "calibration"
 VERSIONS_DIR = Path(__file__).parent / "versions"
@@ -26,6 +27,7 @@ def to_markdown(rep: dict) -> str:
     L = [f"# Calibración T26 — {m['symbol']} {m['timeframe']} (modo SIMULADO)", "",
          f"Datos: {m['source']} · {m['n_candles']} velas {_d(m['first_t'])}→{_d(m['last_t'])} · "
          f"hash `{m['data_hash']}` · control cruzado: {m.get('control') or 'ninguno'}", "",
+         markdown_line(m.get("reproducibility")), "",
          f"Objetivo por pliegue: {m['objective']}", "",
          f"**Decisión: {'ACEPTADOS' if dec['accepted'] else 'SE MANTIENEN LOS VALORES PREVIOS'}"
          f"** (gana en {dec['fold_wins']} de {len(res['folds'])} pliegues de prueba)."]

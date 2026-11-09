@@ -1,7 +1,7 @@
 import { fetchSquad } from './api'
 import { ago } from './obs_types'
 import { esc } from './panels'
-import type { OutOfCycleBot, ScoreFreshness, SquadBot, SquadDim, SquadPayload, SquadState, SquadSupport } from './squad_types'
+import type { OutOfCycleBot, Reproducibility, ScoreFreshness, SquadBot, SquadDim, SquadPayload, SquadState, SquadSupport } from './squad_types'
 import { bogIso } from './tz'
 
 const STATE: Record<SquadState, [string, string]> = {
@@ -17,15 +17,25 @@ const DIMS = ['rendimiento', 'evidencia', 'seguridad', 'operativa'] as const
 const stance = (x: number): string => (x > 0 ? 'alcista +1' : x < 0 ? 'bajista −1' : 'neutral 0')
 const cot = (t: number | null): string => (t == null ? '—' : bogIso(t).slice(0, 16).replace('T', ' ') + ' COT')
 
+/** Si la puntuación mostrada fijó sus datos (T124): ids de instantánea o «no reproducible». */
+export function reproLine(r: Reproducibility | undefined): string {
+  if (!r?.reproducible) {
+    return `<p class="muted meta" data-repro="no"><b>No reproducible</b> (T124): ${esc(r?.why ?? 'sin instantánea de datos')}.</p>`
+  }
+  const tip = r.snapshots.map((s) => `${s.id} · ${s.symbol} ${s.timeframe} · ${s.coverage.candles} velas, ${s.coverage.gaps} huecos · ${s.source}`).join(' | ')
+  return `<p class="muted meta" data-repro="si" title="${esc(tip)}">Reproducible (T124): datos fijados en ${r.snapshots.length} instantáneas · repetir con <code>${esc(r.repeat ?? '')}</code></p>`
+}
+
 /** De cuándo es la puntuación T59 y, si el recálculo falló o no avanza, por qué (T119). */
 export function freshness(f: ScoreFreshness | null, symbol: string | null): string {
   if (!f || f.state === 'sin_medicion') return `<p class="muted meta">Sin puntuación T59 todavía${f?.reason ? `: ${esc(f.reason)}` : ''}.</p>`
   const when = `datos hasta ${cot(f.asof)}, calculada ${ago(f.computed)}`
-  if (f.state === 'vigente') return `<p class="muted meta">Puntuación T59 medida en ${esc(symbol ?? '')}: ${when}.</p>`
+  const repro = reproLine(f.reproducibility)
+  if (f.state === 'vigente') return `<p class="muted meta">Puntuación T59 medida en ${esc(symbol ?? '')}: ${when}.</p>${repro}`
   const why = f.state === 'fallida'
     ? `El último recálculo (${cot(f.last_attempt)}) falló: ${esc(f.reason)}.`
     : `La puntuación no avanza: ${esc(f.reason)}.`
-  return `<p class="sq-warn" data-state="${f.state}" role="status">${why} Se muestra la medición anterior de ${esc(symbol ?? '')} (${when}); no es la actual.</p>`
+  return `<p class="sq-warn" data-state="${f.state}" role="status">${why} Se muestra la medición anterior de ${esc(symbol ?? '')} (${when}); no es la actual.</p>${repro}`
 }
 
 const offRow = (b: OutOfCycleBot): string =>

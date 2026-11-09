@@ -107,3 +107,32 @@ def test_scoring_accepts_per_timeframe_candles_and_paths():
     rows5 = [(s.model_copy(update={"timeframe": "5m", "bot_id": "x"}), cr) for s, cr in rows]
     _, got = attempts_of(rows5, {"5m": c5}, {"5m": Path(c5, (), 300_000)}, SYMBOL, None, None)
     assert got[0].ident.timeframe == "5m" and got[0].trades
+
+
+def test_scorecard_declares_its_light_snapshots_and_can_be_checked(scorer):
+    """T124: la puntuación fija lo que leyó (instantáneas ligeras) y se registra como resultado."""
+    from eim.data.snapshots import SnapshotStore
+    from eim.repro.replay import DATA_ONLY, repetir
+
+    out = scorer.compute(SYMBOL, scorer.now)
+    rep = out["reproducibility"]
+    assert rep["reproducible"] and rep["repeat"].endswith(rep["result_id"])
+    frames = {(s["timeframe"], s["frozen"]) for s in rep["snapshots"]}
+    assert ("1h", False) in frames and ("15m", False) in frames and ("-", False) in frames
+    root = scorer.store.root
+    assert {s["id"] for s in rep["snapshots"]} <= {i.id for i in SnapshotStore(root).list()}
+    assert scorer.freshness(out)["reproducibility"]["result_id"] == rep["result_id"]
+    assert "Reproducible (T124)" in render(out)
+    chk = repetir(root, rep["result_id"])
+    assert (chk.verdict, chk.causes, chk.exit_code) == (DATA_ONLY, [], 0)
+
+
+def test_scorecard_without_snapshots_says_not_reproducible(scorer):
+    scorer.snapshots = False
+    try:
+        out = scorer.compute(SYMBOL, scorer.now + 1)
+    finally:
+        scorer.snapshots = True
+    assert out["reproducibility"]["reproducible"] is False
+    assert "No reproducible" in render(out)
+

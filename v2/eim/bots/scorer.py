@@ -5,6 +5,8 @@ contextos del bróker y fichas del catálogo. Se recalcula al cierre de cada vel
 bróker, como la puerta de T49). El aporte marginal es caro (reconstruye el panel de agentes): lo
 mide el CLI (`scorecard_cli --marginal`) y el recálculo periódico reutiliza la última medición
 mientras la versión del bot no cambie. Siempre SIMULADO: no publica ni opera nada.
+T124: cada lectura queda fijada en una instantánea ligera y la tabla declara sus ids
+(`reproducibility`); sin ellos se declara no reproducible.
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ from collections.abc import Callable
 
 from eim.bots.card import BotCard, default_cards
 from eim.bots.marginal import Marginal
+from eim.bots.score_inputs import ScoreInputs
 from eim.bots.scorecard import score
 from eim.data.bots.scorestore import ScoreStore
 from eim.data.bots.simstore import SimRunStore
@@ -25,6 +28,8 @@ from eim.data.store import Store
 from eim.data.timeframes import tf_ms
 from eim.paper.engine import Path
 from eim.paper.generate import now_ms
+from eim.repro.code import fingerprint
+from eim.repro.stamp import stamp
 from eim.validation.criteria import Criteria, load_criteria
 
 log = logging.getLogger("eim.bots")
@@ -56,7 +61,8 @@ def freshness(shown: dict | None, now: int, last_attempt: int | None = None,
     else:
         state, reason = "vigente", ""
     return {"state": state, "reason": reason, "asof": asof, "computed": computed,
-            "last_attempt": last_attempt, "last_ok": last_ok, "stale_after_ms": STALE_MS}
+            "last_attempt": last_attempt, "last_ok": last_ok, "stale_after_ms": STALE_MS,
+            "reproducibility": shown.get("reproducibility") or stamp([], None)}
 
 
 def frames_read(rows: list, path: dict[str, Path], asof: int) -> list[dict]:
@@ -86,11 +92,14 @@ class BotScorer:
     def __init__(self, signals: BotSignalStore, scores: ScoreStore, store: Store,
                  pstore: PaperStore, sims: SimRunStore | None = None,
                  cards: dict[str, BotCard] | None = None, crit: Criteria | None = None,
-                 symbols: tuple[str, ...] = ("BTCUSDT",)) -> None:
+                 symbols: tuple[str, ...] = ("BTCUSDT",), snapshots: bool = True) -> None:
         self.signals, self.scores, self.store, self.pstore = signals, scores, store, pstore
         self.sims, self.crit = sims, crit or load_criteria()
         self.cards = cards if cards is not None else default_cards()
         self.symbols = symbols
+        self.snapshots = snapshots           # T124: fijar lo leído en instantáneas ligeras
+        if snapshots:
+            fingerprint()                    # huella del código con que arranca el proceso
         self.last_run: int | None = None
         self.last_ok: int | None = None      # último recálculo periódico que terminó bien
         self.error = ""                      # motivo del último recálculo fallido ("" si fue bien)
@@ -111,11 +120,11 @@ class BotScorer:
                     "error": "sin posturas guardadas de bots"}
         t0 = min(s.asof for s, _ in rows)
         tfs = sorted({s.timeframe for s, _ in rows})
-        candles = {tf: self.store.read_candles(symbol, tf, start=t0 - 600 * tf_ms(tf), end=now)
-                   for tf in tfs}
-        funding = self.store.read_series("funding", symbol, start=t0 - FUNDING_MS)
-        path = {tf: Path(self.store.read_candles(symbol, PATH_TF[tf], start=t0 - tf_ms("4h")),
-                         funding, tf_ms(PATH_TF[tf])) for tf in tfs}
+        inputs = ScoreInputs(self.store, symbol, now, self.snapshots)
+        candles = {tf: inputs.candles(tf, t0 - 600 * tf_ms(tf), end=now) for tf in tfs}
+        funding = inputs.funding(t0 - FUNDING_MS)
+        path = {tf: Path(inputs.candles(PATH_TF[tf], t0 - tf_ms("4h")), funding,
+                         tf_ms(PATH_TF[tf])) for tf in tfs}
         ends = [p.end for p in path.values() if p.end]
         asof = min(now, *ends) if ends else now
         marginals = marginals if marginals is not None else self._previous_marginals(symbol)
@@ -123,6 +132,7 @@ class BotScorer:
         out = score(rows, candles, path, symbol, self.crit, self.cards, asof,
                     regime_lookup(self.pstore, symbol), marginals, sim_runs=sims)
         out["frames"] = frames_read(rows, path, asof)
+        out["reproducibility"] = inputs.stamp(out, self.crit.version)
         self.scores.save(out, now)
         for fn in self.on_scored:
             fn(out)

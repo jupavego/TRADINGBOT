@@ -51,7 +51,11 @@ function renderBacktest(m: Json): string {
   }).join('')
   const na = Object.entries(m.not_evaluated as Record<string, string>)
     .map(([k, v]) => `<li><b>${esc(k)}</b>: ${esc(v)}</li>`).join('')
+  const repro = m.reproducibility?.reproducible
+    ? `Reproducible (T124): ${esc(m.reproducibility.repeat ?? '')}`
+    : `<b>No reproducible</b> (T124): ${esc(m.reproducibility?.why ?? 'sin instantánea de datos')}`
   return `<div class="msrc">${sourceLine(m.source, m.coverage)} · ${m.bars} velas · horizonte ${m.horizon}</div>
+  <p class="muted" data-repro="${m.reproducibility?.reproducible ? 'si' : 'no'}">${repro}.</p>
   <div class="kpi-row">
     <div class="kpi"><b>${fmt(m['MET-001_accuracy_global'])}%</b><span>MET-001 exactitud global</span></div>
     <div class="kpi"><b>${fmt(m['MET-004_calibration_error'], 4)}</b><span>MET-004 error de calibración</span></div>

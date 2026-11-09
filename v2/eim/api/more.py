@@ -27,6 +27,10 @@ from eim.data.providers.liquidations import BinanceLiquidations, LiquidationsUna
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
+from eim.repro.stamp import stamp
+
+VRM_WHY = ("cálculo a la carta sobre el almacén vivo, sin instantánea de datos; para una cifra "
+           "que se pueda repetir, python -m eim.backtest.cli")
 
 
 def jsonable(obj: Any) -> Any:
@@ -162,6 +166,7 @@ def build_more_router(store: Store, src: MoreSources | None = None,
         res["symbol"], res["timeframe"] = symbol, tf
         res["source"] = snap.sources.get("candles", "desconocida")
         res["coverage"] = {"start": _ts(snap.candles[0].t), "end": _ts(snap.candles[-1].t)}
+        res["reproducibility"] = stamp([], None, VRM_WHY)          # T124: se dice, no se calla
         return jsonable(res)
 
     @r.post("/bitacora")

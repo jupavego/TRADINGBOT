@@ -92,8 +92,17 @@ def backtest_baseline(edge: dict | None, symbols: Iterable[str]) -> dict:
                   if n else None,
                   "trades_per_week": n / weeks if weeks else None,
                   "max_drawdown": max(w["max_drawdown"] for w in ws),
-                  "source": "reports/edge/edge_results.json (T27, ventanas fuera de muestra)"}
+                  "source": "reports/edge/edge_results.json (T27, ventanas fuera de muestra); "
+                  + _repro(edge or {}, a)}
     return out
+
+
+def _repro(edge: dict, asset: dict) -> str:
+    """T124: si las ventanas fijaron sus datos, y si no, decirlo."""
+    snap = (asset.get("snapshot") or {}).get("id")
+    if edge.get("meta", {}).get("reproducible") and snap:
+        return f"reproducible (T124): instantánea {snap}"
+    return "no reproducible (T124): sin instantánea de datos"
 
 
 def deviations(live: dict, base: dict, weeks: float) -> list[str]:
