@@ -93,10 +93,19 @@ def _hft_lines(hft: dict) -> list[str]:
             out.append(f"- {s}: resumen de QC ilegible ({q['error']}).")
             continue
         chk = q["checks"]
+        w = q.get("t78_window") or {}
+        if w:
+            falta = "CUMPLE" if w["passed"] else f"faltan {w['remaining_h']} h"
+            att = w["attribution"]
+            out.append(
+                f"- {s}: **aceptación de T78 (ventana, T147): {w['best']['hours']} h de "
+                f"{w['need_h']}** · {falta}; horas perdidas por causa nuestra "
+                f"{att.get('nuestra', 0)}, ajena {att.get('ajena', 0)}.")
         out.append(
             f"- {s}: {q['hours_complete']}/{q['hours']} horas completas "
             f"({_f(q['pct_complete'], '{:.1%}')}), racha contigua más larga "
-            f"{q['longest_complete_streak_h']} h; verificaciones top-10 con el snapshot REST "
+            f"{q['longest_complete_streak_h']} h (T126, informativa); verificaciones top-10 "
+            f"con el snapshot REST "
             f"{chk['matched']}/{chk['comparable']} ({_f(chk['match_rate'], '{:.2%}')}); "
             f"huecos encontrados {q['holes_found']}, sin marcar {q['undetected']}; reinicios "
             f"{q['restarts']}; disco {_f(q['mb_per_day'], '{:.0f}')} MB/día "
