@@ -986,3 +986,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** la hoja de ruta viva **no se publica** porque la carpeta viva tiene las 146 tareas de la rama de la otra cuenta y esta tiene 143; se arregla cuando se fusione el PR #232. Queda por ver, al cerrar la hora 2026-11-09T16, que el QC la marque incompleta y la ventana la cuente como `maintenance_h` sin cortarse (es lo que prueba `test_el_mantenimiento_declarado_no_cuenta_ni_corta`, pero en vivo todavía no ha pasado).
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T127, T128, T135 y T141.
 - **Siguiente paso:** leer la ventana a partir de la hora 2026-11-10T07 UTC (`--window`): si aguanta, T78 se cumple ahí. T141 se cierra con `usage incidents --days 7` a partir del 2026-11-10 03:00 UTC.
+
+## 2026-11-09 17:15 UTC · juanpablo-cpu · T147: la hora declarada, comprobada en vivo
+- **Hecho:** al cerrar la hora 2026-11-09T16 (la declarada como mantenimiento para desplegar T123 y T124) se leyó su control de calidad y la ventana de T78. **El vigilante reiniciado escribe en versión 3**, así que el código de T147 está en vivo y deja de hacer falta recalificar antes de leer. La hora salió **completa a pesar del reinicio**: libro útil 99,08 %, 0 huecos sin detectar, top-10 12/12, 1 reinicio y 2 tramos; la única marca es el `sin_libro` del arranque. **La ventana no se cortó** y sigue en 58 h (2026-11-07T06 → 2026-11-09T15), faltan 14 h.
+- **Lo que NO quedó comprobado en vivo:** la otra mitad del mecanismo, una hora declarada que además salga incompleta. No hubo ninguna porque el reinicio no dañó la hora; sigue cubierta solo por `test_el_mantenimiento_declarado_no_cuenta_ni_corta`.
+- **◆ nueva, en BACKLOG T147 (5):** `_spans` salta toda hora declarada, también si sale completa, así que declarar la hora 16 costó una de las 72 que no hacía falta pagar. Contarla cuando cumple la regla por su cuenta, y saltarla solo si sale incompleta, es una condición y no afloja nada. Cambia la regla de aceptación de T78, así que es decisión del usuario.
+- **Archivos:** `PLAN/{STATUS,BACKLOG,BITACORA}.md`, `PLAN/status.js`. Sin cambios de código.
+- **Pruebas:** ninguna nueva; solo lectura de datos reales (`--window` y el JSON de la hora).
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T127, T128, T135, T141 y T144 (abierta en otra sesión).
+- **Siguiente paso:** leer `--window` a partir de la hora 2026-11-10T07 UTC: si el tramo aguanta, T78 se cumple ahí.
