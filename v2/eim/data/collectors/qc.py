@@ -9,9 +9,15 @@ REST. Después cruza cada hueco que encuentra con los tramos que el recolector M
 es un «hueco no detectado» (debe ser 0). Los tramos con hueco se marcan, no se arreglan.
 
 Una hora es **completa** si ≥ 99 % de sus segundos tienen libro utilizable (diffs recibidos y fuera
-de un tramo marcado), `bookTicker` y `markPrice` cubren ≥ 99 % y no hay huecos sin detectar. La
-cobertura de `markPrice` (1 Hz) se mide por su cadencia (`coverage_cadence`, T138), no por segundo
-de llegada; `coverage` se sigue informando igual en todos los flujos, pero en `mark` ya no decide.
+de un tramo marcado), no hay huecos sin detectar y ≥ 99 % de las verificaciones top-10 coinciden
+con el snapshot REST: las tres condiciones que pide §Aceptación de `PLAN/T78.md`, ni una más.
+
+**La cobertura de `bbo` y de `mark` informa, no decide (T147).** Hasta la versión 3 de QC también
+vetaban con un umbral del 99 % por flujo que el documento nunca pidió, y como miden presencia de
+mensajes por segundo —actividad del mercado y silencios del exchange, no nuestra captura— tiraban
+horas con libro útil al 99,9 %, top-10 al 100 % y cero huecos sin detectar. Siguen calculándose y
+publicándose igual, cadencia de `mark` incluida (`coverage_cadence`, T138). El veredicto de T78 se
+mide sobre una ventana, no hora a hora: `hft_window.py`.
 """
 
 from __future__ import annotations
@@ -28,8 +34,9 @@ from eim.data.collectors.hft_read import hour_label, read_hour, tail_row
 from eim.data.collectors.hft_schema import HOUR_NS, KINDS
 from eim.data.collectors.hft_writer import hour_dir
 
-QC_VERSION = 2                    # 2: `mark` se juzga por su cadencia (T138)
+QC_VERSION = 3                    # 2: `mark` por cadencia (T138) · 3: la regla del documento (T147)
 COVERAGE_MIN = 0.99
+MATCH_MIN = 0.99                  # coincidencia top-10 con el snapshot REST
 TOL_NS = 1_000_000_000            # holgura al casar un hueco con una marca del recolector
 # flujos de cadencia fija: (periodo nominal, intervalo entre llegadas a partir del cual hay hueco)
 CADENCE_NS = {"mark": (1_000_000_000, 1_500_000_000)}
@@ -166,11 +173,12 @@ def _unusable_seconds(gaps: pd.DataFrame, hour: int) -> np.ndarray:
     return mask
 
 
-def _complete(usable: float, undetected: int, streams: dict) -> bool:
-    """La regla de hora completa (ver la cabecera del módulo)."""
+def _complete(usable: float, undetected: int, match_rate: float | None) -> bool:
+    """La regla de hora completa (ver la cabecera del módulo): libro utilizable, ningún hueco sin
+    detectar y coincidencia top-10. `bbo` y `mark` no deciden (T147). Sin verificaciones
+    comparables (`match_rate` a None) la hora no se penaliza: no hay con qué desmentirla."""
     return bool(usable >= COVERAGE_MIN and not undetected
-                and streams["bbo"]["coverage"] >= COVERAGE_MIN
-                and streams["mark"]["coverage_cadence"] >= COVERAGE_MIN)
+                and (match_rate is None or match_rate >= MATCH_MIN))
 
 
 def qc_hour(hour: int, frames: dict[str, pd.DataFrame], tails: dict[str, dict | None],
@@ -191,15 +199,16 @@ def qc_hour(hour: int, frames: dict[str, pd.DataFrame], tails: dict[str, dict | 
     usable = float((depth_sec & ~_unusable_seconds(gaps, hour)).mean())
     comp = checks[checks["comparable"]] if not checks.empty else checks
     n_comp, n_ok = len(comp), int(comp["match"].sum()) if len(comp) else 0
+    match_rate = round(n_ok / n_comp, 4) if n_comp else None
     jumps = clock[clock["kind"] == "salto"] if not clock.empty else clock
     by_cause = gaps["cause"].value_counts().to_dict() if not gaps.empty else {}
     return {
         "version": QC_VERSION, "hour": hour_label(hour), "hour_index": hour,
         "generated_at": int(time.time() * 1000),
-        "complete": _complete(usable, len(missing), streams),
+        "complete": _complete(usable, len(missing), match_rate),
         "book_usable": round(usable, 4), "streams": streams,
         "checks": {"total": len(checks), "comparable": n_comp, "matched": n_ok,
-                   "match_rate": round(n_ok / n_comp, 4) if n_comp else None,
+                   "match_rate": match_rate,
                    "failures": [str(x) for x in comp.loc[~comp["match"], "detail"]][:MAX_LIST]
                    if n_comp else []},
         "holes": {"found": len(holes), "undetected": len(missing), "list": missing[:MAX_LIST]},
@@ -256,23 +265,28 @@ def load(root: str | Path, symbol: str, hour: int) -> dict | None:
 
 
 def requalify(root: str | Path, symbol: str, hour: int, write: bool = False) -> dict | None:
-    """Recalifica con la regla vigente una hora auditada por una versión anterior (T138).
+    """Recalifica con la regla vigente una hora auditada por una versión anterior (T138, T147).
 
-    Solo lee `mark`: el resto de la regla ya está en el JSON, así que no hay que traer `bbo` a
-    memoria. Conserva el veredicto original en `requalified`. None si ya está al día, si no tiene
-    JSON o si sus crudos de `mark` ya se podaron (entonces se queda como estaba)."""
+    No hace falta volver a leer los crudos: la regla de T147 se decide con lo que ya está en el
+    JSON (libro utilizable, huecos sin detectar y coincidencia top-10), así que recalifica también
+    las horas cuyos crudos ya se podaron. Si `mark` sigue en disco, aprovecha para rellenar su
+    `coverage_cadence` (T138), que desde T147 es informativa. Conserva el veredicto anterior en
+    `requalified`, así que se puede repetir sin perder el rastro. None si ya está al día o si la
+    hora no tiene JSON."""
     rep = load(root, symbol, hour)
     if rep is None or rep.get("version", 1) >= QC_VERSION:
         return None
-    df = read_hour(root, symbol, "mark", hour, "recv_ns")
-    if df.empty:
-        return None
-    rep["streams"]["mark"]["coverage_cadence"] = cadence_coverage(
-        df["recv_ns"].to_numpy(np.int64), hour, *CADENCE_NS["mark"])
+    mark = (rep.get("streams") or {}).get("mark")
+    if mark is not None and mark.get("coverage_cadence") is None:
+        df = read_hour(root, symbol, "mark", hour, "recv_ns")
+        if not df.empty:
+            mark["coverage_cadence"] = cadence_coverage(
+                df["recv_ns"].to_numpy(np.int64), hour, *CADENCE_NS["mark"])
     rep["requalified"] = {"from_version": rep.get("version", 1),
                           "complete_before": bool(rep["complete"]),
                           "at": int(time.time() * 1000)}
-    rep["complete"] = _complete(rep["book_usable"], rep["holes"]["undetected"], rep["streams"])
+    rep["complete"] = _complete(rep["book_usable"], rep["holes"]["undetected"],
+                                (rep.get("checks") or {}).get("match_rate"))
     rep["version"] = QC_VERSION
     if write:
         _save(root, symbol, hour, rep)

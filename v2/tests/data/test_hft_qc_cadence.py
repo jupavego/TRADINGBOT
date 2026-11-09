@@ -1,4 +1,9 @@
-"""T138: la cobertura de `mark` no depende de la fase de llegada; un hueco real se sigue viendo."""
+"""T138: la cobertura de `mark` no depende de la fase de llegada; un hueco real se sigue viendo.
+
+Desde T147 `mark` y `bbo` informan y no vetan: lo que decide la hora es el libro utilizable, que no
+haya huecos sin detectar y la coincidencia top-10 (§Aceptación de `PLAN/T78.md`). Lo que se mide
+aquí sigue igual; lo que cambia es que ya no tira la hora.
+"""
 from __future__ import annotations
 
 import json
@@ -82,26 +87,27 @@ def test_mark_sobre_el_limite_del_segundo_no_da_hora_incompleta(tmp_path):
     assert rep["version"] == qc.QC_VERSION
 
 
-def test_un_hueco_real_de_mark_sigue_rompiendo_la_hora_en_cualquier_fase(tmp_path):
-    corto = _at_boundary(lost=range(1000, 1030))
-    largo = _at_boundary(lost=range(1000, 1040))
-    full_hour(tmp_path / "corto", mark_at=corto)
-    full_hour(tmp_path / "largo", mark_at=largo)
+def test_un_hueco_real_de_mark_ya_no_rompe_la_hora_pero_se_sigue_viendo(tmp_path):
+    """T147: el hueco se mide y lo marca el recolector, pero `mark` no decide la hora."""
+    full_hour(tmp_path / "corto", mark_at=_at_boundary(lost=range(1000, 1030)))
+    full_hour(tmp_path / "largo", mark_at=_at_boundary(lost=range(1000, 1040)))
     ok = qc.run_hour(tmp_path / "corto", SYM, H)
     mal = qc.run_hour(tmp_path / "largo", SYM, H)
     assert ok["streams"]["mark"]["coverage_cadence"] >= 0.99 and ok["complete"]
-    assert mal["streams"]["mark"]["coverage_cadence"] < 0.99 and not mal["complete"]
-    assert mal["holes"]["undetected"] == 0                        # lo marcó el recolector
+    assert mal["streams"]["mark"]["coverage_cadence"] < 0.99      # el hueco se ve en la cifra
+    assert mal["complete"] and mal["holes"]["undetected"] == 0    # marcado, no escondido
 
 
-def test_bbo_y_libro_siguen_decidiendo(tmp_path):
+def test_deciden_el_libro_los_huecos_y_el_top_10_no_bbo_ni_mark(tmp_path):
+    """La regla de T147, condición por condición, y una hora real que antes se tiraba."""
+    assert qc._complete(1.0, 0, 1.0)
+    assert not qc._complete(0.98, 0, 1.0)                        # libro utilizable < 99 %
+    assert not qc._complete(1.0, 1, 1.0)                         # un hueco sin detectar
+    assert not qc._complete(1.0, 0, 0.98)                        # el top-10 no coincide
+    assert qc._complete(1.0, 0, None)                            # sin verificaciones, no penaliza
     full_hour(tmp_path, mark_at=_at_boundary())
     rep = qc.run_hour(tmp_path, SYM, H)
-    streams = {**rep["streams"], "bbo": {"coverage": 0.98}}
-    assert not qc._complete(1.0, 0, streams)
-    assert not qc._complete(0.98, 0, rep["streams"])
-    assert not qc._complete(1.0, 1, rep["streams"])
-    assert qc._complete(1.0, 0, rep["streams"])
+    assert rep["streams"]["mark"]["coverage"] < 0.85 and rep["complete"]
 
 
 def test_recalificar_sin_escribir_no_toca_el_json(tmp_path):
@@ -128,32 +134,40 @@ def test_recalificar_guarda_el_veredicto_original_y_es_idempotente(tmp_path):
     assert again == {"applied": True, "requalified": 0, "changed": []}
 
 
-def test_recalificar_no_salva_una_hora_con_hueco_real(tmp_path):
+def test_recalificar_aplica_la_regla_nueva_a_un_hueco_de_mark(tmp_path):
+    """La hora que la regla vieja tiraba por `mark` pasa a completa, y queda de dónde viene."""
     full_hour(tmp_path, mark_at=_at_boundary(lost=range(1000, 1040)))
     qc.run_hour(tmp_path, SYM, H)
     _downgrade(tmp_path)
     res = hft_ops.requalify(tmp_path, SYM, H, apply=True)
-    assert res["requalified"] == 1 and res["changed"] == []
-    assert not qc.load(tmp_path, SYM, H)["complete"]
+    assert res["requalified"] == 1 and [c["complete"] for c in res["changed"]] == [True]
+    saved = qc.load(tmp_path, SYM, H)
+    assert saved["complete"] and saved["requalified"]["complete_before"] is False
 
 
 def test_recalificar_respeta_lo_demas_de_la_regla(tmp_path):
+    """Lo que de verdad invalida la hora no lo salva ninguna recalificación."""
     full_hour(tmp_path, mark_at=_at_boundary())
     qc.run_hour(tmp_path, SYM, H)
-    rep = _downgrade(tmp_path)
-    rep["book_usable"] = 0.95                                     # el libro sí falló esa hora
-    qc.qc_path(tmp_path, SYM, H).write_text(json.dumps(rep), encoding="utf-8")
-    assert not qc.requalify(tmp_path, SYM, H)["complete"]
+    base = _downgrade(tmp_path)
+    for campo, valor in (("book_usable", 0.95), ("holes", {"found": 1, "undetected": 1}),
+                         ("checks", {"comparable": 100, "matched": 98, "match_rate": 0.98})):
+        rep = {**base, campo: valor}
+        qc.qc_path(tmp_path, SYM, H).write_text(json.dumps(rep), encoding="utf-8")
+        assert not qc.requalify(tmp_path, SYM, H)["complete"], campo
 
 
-def test_recalificar_sin_crudos_deja_la_hora_como_estaba(tmp_path):
+def test_recalificar_funciona_sin_crudos(tmp_path):
+    """T147: la regla se decide con lo que ya está en el JSON, así que una hora podada también."""
     full_hour(tmp_path, mark_at=_at_boundary())
     qc.run_hour(tmp_path, SYM, H)
     _downgrade(tmp_path)
     for part in hour_dir(tmp_path, "mark", SYM, H).glob("*.parquet"):
         part.unlink()
-    assert qc.requalify(tmp_path, SYM, H) is None
-    assert qc.load(tmp_path, SYM, H)["version"] == 1
+    rep = qc.requalify(tmp_path, SYM, H, write=True)
+    assert rep["complete"] and rep["version"] == qc.QC_VERSION
+    assert "coverage_cadence" not in rep["streams"]["mark"]        # sin crudos no se rellena
+    assert qc.load(tmp_path, SYM, H)["version"] == qc.QC_VERSION
 
 
 def test_la_racha_cuenta_las_horas_recalificadas(tmp_path, capsys):

@@ -320,3 +320,41 @@ el bucle está ocupado. Por eso la API corre con `SelectorEventLoop` desde T140
 puerto efímero, sin tocar los servicios. Para volver al bucle anterior basta con quitar `--loop` de
 `api_cmd` (`eim/operation/__main__.py`) y reiniciar vigilante y API; la vigilancia del puerto sigue
 funcionando igual.
+
+## 17. Leer la aceptación de T78 y desplegar sin perder la corrida (T147)
+
+**Leer el veredicto** (solo lectura; no audita, no compacta y no toca la captura):
+
+```
+python -m eim.data.collectors.hft_ops --root data --window
+```
+
+Da la mejor ventana (`best`, la que decide), la que sigue viva (`current`, con `remaining_h`) y el
+reparto de las horas incompletas entre `nuestra`, `ajena`, `mantenimiento` y `sin causa`. T78 se
+cumple con ≥ 72 h contiguas, ≥ 99 % de horas completas, 0 huecos sin detectar y ≥ 99 % de top-10.
+`--streak` sigue dando la racha de horas seguidas de T126, ya solo como lectura informativa: una
+hora al 98,x % la mandaba a cero. Las dos lecturas van también en
+`data/micro_hft/qc/symbol=BTCUSDT/summary.json` (`t78_window` y `t78_streak`).
+
+**Antes de un despliegue que reinicie la captura**, declarar sus horas: no cuentan ni cortan la
+ventana, así que desplegar deja de costar la corrida.
+
+```
+python -m eim.data.collectors.hft_ops --root data --maintenance 2026-11-10T03 2026-11-10T03 --nota "despliegue de T123 y T124"
+```
+
+Las horas van en UTC y ambas se incluyen; declarar el mismo tramo dos veces no lo duplica. Queda en
+`data/micro_hft/qc/symbol=BTCUSDT/maintenance.json`, que no es un JSON de QC: nada se recalifica ni
+se borra, solo se dice que esas horas eran conocidas. Declarar un tramo que ya pasó vale, pero deja
+rastro de cuándo se declaró (`at`): hacerlo después de un corte imprevisto para salvar una ventana
+es falsearla.
+
+**Si el vigilante aún corre con código viejo**, sus JSON salen en la versión anterior y el veredicto
+se queda corto. Recalificar es seguro (conserva el veredicto anterior en `requalified`) y no
+necesita los crudos:
+
+```
+python -m eim.data.collectors.hft_ops --root data --requalify 2026-10-28T23 --apply
+```
+
+Sin `--apply` solo dice qué cambiaría. Al reiniciar el vigilante deja de hacer falta.
