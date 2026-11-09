@@ -181,6 +181,25 @@ def paired_delta(taker: Sequence[Leg], maker: Sequence[Leg], seed: int = 143,
             "se": float(d.std(ddof=1) / np.sqrt(n))}
 
 
+def delta_split(taker: dict, maker: dict, delta: dict) -> dict:
+    """Parte ΔE[R] en lo que viene de **no operar** y lo que viene de ahorrar ejecución.
+
+    Una orden que no se llena aporta R = 0, y el intento medio pierde dinero: **abstenerse sube
+    E[R] por sí solo**, sin ahorrar un céntimo de comisión. Sin separar las dos cosas, un brazo
+    maker que se llena menos parece mejor justo por operar menos, y el estrés de cola (que baja el
+    llenado a propósito) se leería al revés de como fue diseñado.
+
+    La parte de no operar es `(llenado_taker − llenado_maker) × (−E[R] por llenada del taker)`: las
+    decisiones que un brazo ejecutó y el otro no, valoradas a lo que de media cuesta ejecutarlas.
+    """
+    gap = (taker["llenado_pct"] - maker["llenado_pct"]) / 100.0
+    no_trade = gap * (-taker["neto_r_llenada"])
+    total = delta["delta"]
+    return {"total": total, "no_operar": no_trade, "ejecucion": total - no_trade,
+            "no_operar_pct": (100.0 * no_trade / total) if total else None,
+            "llenado_menos_pp": 100.0 * gap}
+
+
 def verdict(taker: dict, maker: dict, delta: dict, stable: bool,
             min_cost_drop: float = 0.04) -> dict:
     """El criterio de §4 del pre-registro, aplicado tal cual y sin margen de interpretación."""

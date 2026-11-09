@@ -93,15 +93,31 @@ def live_cross(ledger: FsPath) -> dict:
     return out
 
 
+def render_only(out: FsPath) -> int:
+    """Rehace el informe desde el `.json` guardado: las cifras son las mismas, sin recalcular."""
+    res = json.loads(out.with_suffix(".json").read_text(encoding="utf-8"))
+    out.with_suffix(".md").write_text(rep.render(res), encoding="utf-8")
+    rep.write_csv(out.with_suffix(".csv"), res)
+    print(f"reescrito {out.with_suffix('.md')} desde {out.with_suffix('.json')}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--data", required=True)
+    ap.add_argument("--data", default="", help="banco a medir (no hace falta con --render-only)")
     ap.add_argument("--out", default="reports/t143_maker")
     ap.add_argument("--ledger", default="")
     ap.add_argument("--symbol", default="BTCUSDT")
     ap.add_argument("--limit", type=int, default=0, help="solo las N primeras ideas (humo)")
+    ap.add_argument("--render-only", action="store_true",
+                    help="rehace el .md y el .csv desde el .json ya calculado, sin simular")
     a = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if a.render_only:
+        return render_only(FsPath(a.out))
+    if not a.data:
+        print("hace falta --data (el banco a medir)")
+        return 2
     data = FsPath(a.data)
     if data.resolve() == FsPath("data").resolve():
         print("no se corre sobre el almacen vivo")

@@ -1,0 +1,422 @@
+{
+  "prereg": "PLAN/notas/T143_preregistro_maker.md",
+  "prereg_commit": "97f8174",
+  "symbol": "BTCUSDT",
+  "generado": "2026-11-09T16:46:19+00:00",
+  "segundos": 334.6,
+  "ideas_total": 422043,
+  "ideas_mercado": 224889,
+  "ideas_limite_nativas": 197154,
+  "marcos": [
+    "15m",
+    "1h",
+    "4h"
+  ],
+  "banco": "C:/Users/jo/Desktop/JP/TRADINGBOT/v2/backups/t131_banco",
+  "path_tf": "15m",
+  "costos": {
+    "taker_fee": 0.0005,
+    "maker_fee": 0.0002,
+    "slip_base_bps": 1.0,
+    "slip_vol_k": 0.1,
+    "slip_impact_k": 5.0,
+    "slip_cap_bps": 100.0,
+    "slip_entry_base_bps": 0.1,
+    "slip_entry_vol_k": 0.0,
+    "funding_interval_ms": 28800000,
+    "mmr": 0.005
+  },
+  "decide_bars": 1.0,
+  "grid": {
+    "0.5": {
+      "bars": 0.5,
+      "taker": {
+        "intentos": 224814,
+        "llenadas": 224437,
+        "llenado_pct": 99.83230581725337,
+        "no_llenada": 0,
+        "objetivo_sin_llenar": 0,
+        "neto_r": -0.19251159233367726,
+        "bruto_r": -0.0012794241616680799,
+        "costo_r": 0.19123216817200914,
+        "comision_r": 0.12785127519356884,
+        "desliz_r": 0.06252584646855511,
+        "funding_r": 0.0008550465098852106,
+        "neto_r_realizado": -0.1921622181326698,
+        "riesgo_medio": 0.010512465024021929,
+        "neto_r_llenada": -0.19283496535287548,
+        "costo_r_llenada": 0.19155339206735994,
+        "acierto_pct": 46.903139856619006,
+        "pf": 0.6801367893718756,
+        "salidas": {
+          "SL": 105191,
+          "TP": 53373,
+          "BE": 45099,
+          "TIEMPO": 20774,
+          "GEOMETRIA": 377
+        }
+      },
+      "maker": {
+        "intentos": 224814,
+        "llenadas": 223643,
+        "llenado_pct": 99.47912496552706,
+        "no_llenada": 752,
+        "objetivo_sin_llenar": 27,
+        "neto_r": -0.15036416351940596,
+        "bruto_r": -0.0024670341243994832,
+        "costo_r": 0.1478971293950065,
+        "comision_r": 0.08606631159122073,
+        "desliz_r": 0.06097790272387056,
+        "funding_r": 0.0008529150799151997,
+        "neto_r_realizado": -0.15036416351940596,
+        "riesgo_medio": 0.01050677687119274,
+        "neto_r_llenada": -0.1511514738107239,
+        "costo_r_llenada": 0.14867152223771363,
+        "acierto_pct": 47.434080208188945,
+        "pf": 0.739535594834395,
+        "salidas": {
+          "SL": 105128,
+          "TP": 53050,
+          "BE": 44769,
+          "TIEMPO": 20696,
+          "NO_LLENADA": 752,
+          "GEOMETRIA": 392,
+          "OBJETIVO_SIN_LLENAR": 27
+        }
+      },
+      "delta": {
+        "delta": 0.0421474288142713,
+        "lo": 0.04163834018899899,
+        "hi": 0.04270611498273376,
+        "n": 224814,
+        "se": 0.0002710999589123774
+      },
+      "descartadas": 75
+    },
+    "1": {
+      "bars": 1.0,
+      "taker": {
+        "intentos": 224814,
+        "llenadas": 224437,
+        "llenado_pct": 99.83230581725337,
+        "no_llenada": 0,
+        "objetivo_sin_llenar": 0,
+        "neto_r": -0.19251159233367726,
+        "bruto_r": -0.0012794241616680799,
+        "costo_r": 0.19123216817200914,
+        "comision_r": 0.12785127519356884,
+        "desliz_r": 0.06252584646855511,
+        "funding_r": 0.0008550465098852106,
+        "neto_r_realizado": -0.1921622181326698,
+        "riesgo_medio": 0.010512465024021929,
+        "neto_r_llenada": -0.19283496535287548,
+        "costo_r_llenada": 0.19155339206735994,
+        "acierto_pct": 46.903139856619006,
+        "pf": 0.6801367893718756,
+        "salidas": {
+          "SL": 105191,
+          "TP": 53373,
+          "BE": 45099,
+          "TIEMPO": 20774,
+          "GEOMETRIA": 377
+        }
+      },
+      "maker": {
+        "intentos": 224814,
+        "llenadas": 223870,
+        "llenado_pct": 99.5800973248997,
+        "no_llenada": 502,
+        "objetivo_sin_llenar": 50,
+        "neto_r": -0.15031077523512332,
+        "bruto_r": -0.0022909337102057477,
+        "costo_r": 0.14801984152491754,
+        "comision_r": 0.0861371588156482,
+        "desliz_r": 0.06103020377615514,
+        "funding_r": 0.0008524789331142367,
+        "neto_r_realizado": -0.15031077523512332,
+        "riesgo_medio": 0.010507380817528113,
+        "neto_r_llenada": -0.1509445956300934,
+        "costo_r_llenada": 0.14864400166428204,
+        "acierto_pct": 47.44360566400143,
+        "pf": 0.7398234323500447,
+        "salidas": {
+          "SL": 105212,
+          "TP": 53105,
+          "BE": 44839,
+          "TIEMPO": 20714,
+          "NO_LLENADA": 502,
+          "GEOMETRIA": 392,
+          "OBJETIVO_SIN_LLENAR": 50
+        }
+      },
+      "delta": {
+        "delta": 0.04220081709855396,
+        "lo": 0.04170778810763998,
+        "hi": 0.04273999960239594,
+        "n": 224814,
+        "se": 0.00026150037473258856
+      },
+      "descartadas": 75
+    },
+    "2": {
+      "bars": 2.0,
+      "taker": {
+        "intentos": 224814,
+        "llenadas": 224437,
+        "llenado_pct": 99.83230581725337,
+        "no_llenada": 0,
+        "objetivo_sin_llenar": 0,
+        "neto_r": -0.19251159233367726,
+        "bruto_r": -0.0012794241616680799,
+        "costo_r": 0.19123216817200914,
+        "comision_r": 0.12785127519356884,
+        "desliz_r": 0.06252584646855511,
+        "funding_r": 0.0008550465098852106,
+        "neto_r_realizado": -0.1921622181326698,
+        "riesgo_medio": 0.010512465024021929,
+        "neto_r_llenada": -0.19283496535287548,
+        "costo_r_llenada": 0.19155339206735994,
+        "acierto_pct": 46.903139856619006,
+        "pf": 0.6801367893718756,
+        "salidas": {
+          "SL": 105191,
+          "TP": 53373,
+          "BE": 45099,
+          "TIEMPO": 20774,
+          "GEOMETRIA": 377
+        }
+      },
+      "maker": {
+        "intentos": 224814,
+        "llenadas": 224029,
+        "llenado_pct": 99.65082245767613,
+        "no_llenada": 308,
+        "objetivo_sin_llenar": 84,
+        "neto_r": -0.1506293656906423,
+        "bruto_r": -0.002487305163542116,
+        "costo_r": 0.14814206052710022,
+        "comision_r": 0.08620552885787264,
+        "desliz_r": 0.06108260035696908,
+        "funding_r": 0.0008539313122585071,
+        "neto_r_realizado": -0.1506293656906423,
+        "riesgo_medio": 0.010506375103526236,
+        "neto_r_llenada": -0.15115717259094166,
+        "costo_r_llenada": 0.14866115188363788,
+        "acierto_pct": 47.43448392841998,
+        "pf": 0.7395081028932804,
+        "salidas": {
+          "SL": 105308,
+          "TP": 53130,
+          "BE": 44865,
+          "TIEMPO": 20726,
+          "GEOMETRIA": 393,
+          "NO_LLENADA": 308,
+          "OBJETIVO_SIN_LLENAR": 84
+        }
+      },
+      "delta": {
+        "delta": 0.04188222664303491,
+        "lo": 0.041407806149741204,
+        "hi": 0.042403048354112405,
+        "n": 224814,
+        "se": 0.00025583998373981167
+      },
+      "descartadas": 75
+    }
+  },
+  "por_anio": {
+    "2023": {
+      "n": 48459,
+      "delta": 0.03884616160840618
+    },
+    "2024": {
+      "n": 52604,
+      "delta": 0.030500792169753845
+    },
+    "2025": {
+      "n": 49671,
+      "delta": 0.0387738322570938
+    },
+    "2026": {
+      "n": 74080,
+      "delta": 0.055001210265560437
+    }
+  },
+  "estable": true,
+  "veredicto": {
+    "costo_baja_r": 0.0432123266470916,
+    "c1_costo": true,
+    "c2_neto": true,
+    "c3_estable": true,
+    "adopta": true,
+    "motivo": "el costo baja 0.0432 R, el neto por intento mejora +0.0422 R con IC95 % [+0.0417, +0.0427] y el signo aguanta los tres plazos y los años"
+  },
+  "estres": {
+    "1": {
+      "through_bps": 1.0,
+      "maker": {
+        "intentos": 224814,
+        "llenadas": 212911,
+        "llenado_pct": 94.70540090919604,
+        "no_llenada": 10736,
+        "objetivo_sin_llenar": 704,
+        "neto_r": -0.15094351290431357,
+        "bruto_r": -0.01200164645412717,
+        "costo_r": 0.13894186645018644,
+        "comision_r": 0.07991518609850311,
+        "desliz_r": 0.058240106580213655,
+        "funding_r": 0.0007865737714696654,
+        "neto_r_realizado": -0.1538815652187437,
+        "riesgo_medio": 0.01055172728523549,
+        "neto_r_llenada": -0.15938215925936355,
+        "costo_r_llenada": 0.1467095488919418,
+        "acierto_pct": 46.94027081738379,
+        "pf": 0.7242854516386893,
+        "salidas": {
+          "SL": 101312,
+          "TP": 48600,
+          "BE": 43565,
+          "TIEMPO": 19434,
+          "NO_LLENADA": 10736,
+          "OBJETIVO_SIN_LLENAR": 704,
+          "GEOMETRIA": 463
+        }
+      },
+      "delta": {
+        "delta": 0.041568079429363664,
+        "lo": 0.04020996610395214,
+        "hi": 0.042923077954418264,
+        "n": 224814,
+        "se": 0.0007014603408982341
+      },
+      "descartadas": 75,
+      "veredicto": {
+        "costo_baja_r": 0.052290301721822696,
+        "c1_costo": true,
+        "c2_neto": true,
+        "c3_estable": true,
+        "adopta": true,
+        "motivo": "el costo baja 0.0523 R, el neto por intento mejora +0.0416 R con IC95 % [+0.0402, +0.0429] y el signo aguanta los tres plazos y los años"
+      }
+    },
+    "5": {
+      "through_bps": 5.0,
+      "maker": {
+        "intentos": 224811,
+        "llenadas": 190886,
+        "llenado_pct": 84.90954624106472,
+        "no_llenada": 31583,
+        "objetivo_sin_llenar": 1526,
+        "neto_r": -0.12532780187092968,
+        "bruto_r": -0.004615806411267252,
+        "costo_r": 0.12071199545966244,
+        "comision_r": 0.06777000809564643,
+        "desliz_r": 0.052200397935814144,
+        "funding_r": 0.0007415894282018466,
+        "neto_r_realizado": -0.13704032831425686,
+        "riesgo_medio": 0.010473422460791372,
+        "neto_r_llenada": -0.14760154472515308,
+        "costo_r_llenada": 0.14216539930263178,
+        "acierto_pct": 47.199375543518116,
+        "pf": 0.7304487413732567,
+        "salidas": {
+          "SL": 91026,
+          "BE": 43674,
+          "TP": 39805,
+          "NO_LLENADA": 31583,
+          "TIEMPO": 16381,
+          "OBJETIVO_SIN_LLENAR": 1526,
+          "GEOMETRIA": 816
+        }
+      },
+      "delta": {
+        "delta": 0.06718752268801019,
+        "lo": 0.06484363486176753,
+        "hi": 0.06951870569252602,
+        "n": 224811,
+        "se": 0.0011910114507843999
+      },
+      "descartadas": 78,
+      "veredicto": {
+        "costo_baja_r": 0.07052002632695853,
+        "c1_costo": true,
+        "c2_neto": true,
+        "c3_estable": true,
+        "adopta": true,
+        "motivo": "el costo baja 0.0705 R, el neto por intento mejora +0.0672 R con IC95 % [+0.0648, +0.0695] y el signo aguanta los tres plazos y los años"
+      }
+    }
+  },
+  "sombra": {
+    "taker": {
+      "intentos": 42535,
+      "llenadas": 42410,
+      "llenado_pct": 99.7061243681674,
+      "no_llenada": 0,
+      "objetivo_sin_llenar": 0,
+      "neto_r": -0.20819193754327905,
+      "bruto_r": -0.008475272440392189,
+      "costo_r": 0.19971666510288683,
+      "comision_r": 0.13357945409300648,
+      "desliz_r": 0.06564257549476304,
+      "funding_r": 0.000494635515117301,
+      "neto_r_realizado": -0.20778837017123594,
+      "riesgo_medio": 0.010097957234222864,
+      "neto_r_llenada": -0.20880556622031066,
+      "costo_r_llenada": 0.20030531360884912,
+      "acierto_pct": 47.234142890827634,
+      "pf": 0.6618623639436509,
+      "salidas": {
+        "SL": 20399,
+        "TP": 10075,
+        "BE": 9165,
+        "TIEMPO": 2771,
+        "GEOMETRIA": 118,
+        "ABIERTA": 7
+      }
+    },
+    "maker": {
+      "intentos": 42521,
+      "llenadas": 42288,
+      "llenado_pct": 99.45203546482914,
+      "no_llenada": 93,
+      "objetivo_sin_llenar": 16,
+      "neto_r": -0.1651320548116196,
+      "bruto_r": -0.010489233303698133,
+      "costo_r": 0.15464282150792147,
+      "comision_r": 0.09007116384673809,
+      "desliz_r": 0.06408153530010571,
+      "funding_r": 0.0004901223610776459,
+      "neto_r_realizado": -0.1651320548116196,
+      "riesgo_medio": 0.010091786175096104,
+      "neto_r_llenada": -0.1660419055676522,
+      "costo_r_llenada": 0.15549487829498507,
+      "acierto_pct": 47.6068861142641,
+      "pf": 0.7210876965627998,
+      "salidas": {
+        "SL": 20446,
+        "TP": 10027,
+        "BE": 9048,
+        "TIEMPO": 2767,
+        "GEOMETRIA": 117,
+        "NO_LLENADA": 93,
+        "OBJETIVO_SIN_LLENAR": 16,
+        "ABIERTA": 7
+      }
+    }
+  },
+  "libro_vivo": {
+    "market": {
+      "n": 136,
+      "neto_r": -0.1607431709964173,
+      "acierto_pct": 71.32352941176471,
+      "costo_r": 0.13685429982557173
+    },
+    "limit": {
+      "n": 78,
+      "neto_r": -0.07292920430074853,
+      "acierto_pct": 57.69230769230769,
+      "costo_r": 0.10445403838522196
+    }
+  }
+}

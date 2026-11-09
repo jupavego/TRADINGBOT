@@ -5,6 +5,8 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
+from eim.paper import maker_ab as ab
+
 
 def _s(x: float | None, d: int = 4) -> str:
     """Con signo, para diferencias y para R que puede ser negativo."""
@@ -40,10 +42,23 @@ def _head(r: dict) -> list[str]:
     ]
 
 
+def _split_line(sp: dict) -> str:
+    """Lee la descomposición: si no operar explica poco, el veredicto es ahorro de verdad."""
+    pct = sp["no_operar_pct"]
+    if pct is None:
+        return "El total es 0, así que no hay nada que repartir."
+    if pct < 10:
+        return (f"Al plazo que decide, no operar solo aporta el {pct:.0f} % del total: "
+                "**el veredicto es ahorro de comisión, no abstención**.")
+    return (f"Al plazo que decide, no operar aporta el {pct:.0f} % del total: **buena parte de "
+            "la mejora es simplemente operar menos**, que no es lo que se estaba midiendo.")
+
+
 def render(r: dict) -> str:
     v, dec = r["veredicto"], r["grid"][f"{r['decide_bars']:g}"]
     tk, mk = dec["taker"], dec["maker"]
     d = dec["delta"]
+    sp = ab.delta_split(tk, mk, d)
     out = _head(r)
     out += [
         "## 1. Veredicto",
@@ -86,6 +101,19 @@ def render(r: dict) -> str:
         f"emparejado [{_s(d['lo'])}, {_s(d['hi'])}], n = {d['n']}."
         + ("  \n**El intervalo incluye 0: la diferencia no es distinguible del ruido.**"
            if d["lo"] <= 0 <= d["hi"] else ""),
+        "",
+        "### Cuánto de esto es ahorro y cuánto es no operar",
+        "",
+        "Abstenerse sube E[R] por sí solo: una orden que no se llena aporta R = 0 y el intento "
+        "medio pierde. Hay que separarlo del ahorro de ejecución, o el brazo que opera menos "
+        "parece mejor por el motivo equivocado.",
+        "",
+        f"| De dónde sale el {_s(sp['total'])} R | R |",
+        "|---|--:|",
+        f"| Ahorro de ejecución (lo que se persigue) | {_s(sp['ejecucion'])} |",
+        f"| No operar ({sp['llenado_menos_pp']:.2f} pp menos de llenado) | {_s(sp['no_operar'])} |",
+        "",
+        _split_line(sp),
         "",
         "### Cuánto de esto era el denominador",
         "",
@@ -140,8 +168,14 @@ def _stress_line(r: dict) -> str:
         return ""
     bad = [k for k, s in st.items() if not s["veredicto"]["adopta"]]
     if not bad:
+        tk = r["grid"][f"{r['decide_bars']:g}"]["taker"]
+        hard = min(st.values(), key=lambda s: s["maker"]["llenado_pct"])
+        sp = ab.delta_split(tk, hard["maker"], hard["delta"])
         return ("**El veredicto aguanta el estrés de cola** en todos los niveles probados (§5): "
-                "exigir que el precio pase del nivel no lo cambia.")
+                "exigir que el precio pase del nivel no lo cambia. Al nivel más duro "
+                f"({hard['through_bps']:g} pb, {hard['maker']['llenado_pct']:.1f} % de llenado) el "
+                f"ahorro de ejecución sigue siendo {_s(sp['ejecucion'])} R una vez descontado lo "
+                "que aporta no operar, que es la comparación que vale.")
     return (f"**El veredicto NO aguanta el estrés de cola** a {', '.join(bad)} pb (§5): si la "
             "orden solo se llena cuando el precio pasa del nivel, deja de cumplir el criterio. "
             "**Esto manda sobre §1**: el llenado del motor es optimista por construcción.")
@@ -157,12 +191,19 @@ def _stress_section(r: dict) -> list[str]:
            "medir eso de verdad es T79, y hasta entonces la hipótesis del motor es la optimista. "
            "Aquí se exige que el nivel se pase en `n` puntos básicos. **Solo puede empeorar a "
            "maker**, y por eso se añade aunque no estuviera en el pre-registro.", "",
-           "| Paso exigido | Llenado | Costo R maker | ΔE[R] neto | IC95 % | ¿Adopta? |",
-           "|---|--:|--:|--:|---|---|"]
+           "La columna **de no operar** separa lo que ΔE[R] gana por abstenerse de lo que "
+           "gana por ahorrar ejecución: bajar el llenado sube E[R] por sí solo, porque el intento "
+           "medio pierde. **Lo que valida el estrés es la columna de ejecución**, no el total.", "",
+           "| Paso exigido | Llenado | Costo R maker | ΔE[R] neto | de no operar | de ejecución "
+           "| IC95 % | ¿Adopta? |",
+           "|---|--:|--:|--:|--:|--:|---|---|"]
+    tk = r["grid"][f"{r['decide_bars']:g}"]["taker"]
     for k, s in st.items():
-        d = s["delta"]
+        d, sp = s["delta"], ab.delta_split(tk, s["maker"], s["delta"])
+        pct = "" if sp["no_operar_pct"] is None else f" ({sp['no_operar_pct']:.0f} %)"
         out.append(f"| {k} pb | {s['maker']['llenado_pct']:.1f} % | "
                    f"{_f(s['maker']['costo_r'])} | {_s(d['delta'])} | "
+                   f"{_s(sp['no_operar'])}{pct} | {_s(sp['ejecucion'])} | "
                    f"[{_s(d['lo'])}, {_s(d['hi'])}] | "
                    f"{'sí' if s['veredicto']['adopta'] else '**no**'} |")
     return out
@@ -209,6 +250,11 @@ def _limits(r: dict) -> list[str]:
         f"- **El camino de precios es de {r['path_tf']}.** Dentro de una vela no se sabe el orden "
         "de los extremos, así que el llenado es el que el motor supone, igual en los dos brazos.",
         "- **No mide ventaja.** Si el bruto se mueve, no es porque se prediga mejor.",
+        "- **El modelo supone que entrar a mercado casi no desliza** "
+        f"({r['costos']['slip_entry_base_bps']:g} pb de base y sin término de volatilidad, frente "
+        f"a {r['costos']['slip_base_bps']:g} pb más volatilidad al salir), así que todo el ahorro "
+        "que se mide es de **comisión**. Si entrar desliza más de lo supuesto, esta medición "
+        "**subestima** a maker: el sesgo va a favor del veredicto, no en contra.",
         "- **Adoptar maker cambia la huella de versión** de todas las estrategias afectadas "
         "(`versioning.py`) y reinicia la cuenta de operaciones en vivo de V5. Es ◆ del usuario.",
         "",

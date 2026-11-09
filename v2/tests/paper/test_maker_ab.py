@@ -169,6 +169,40 @@ def test_paired_delta_con_ruido_devuelve_un_ic_que_abarca_cero():
     assert d["lo"] <= 0.0 <= d["hi"]
 
 
+def test_delta_split_separa_el_ahorro_de_la_abstencion():
+    """Si el brazo maker se llena menos, parte de su ventaja es solo no haber operado."""
+    tk = {"llenado_pct": 100.0, "neto_r_llenada": -0.20}
+    mk = {"llenado_pct": 90.0}
+    sp = ab.delta_split(tk, mk, {"delta": 0.05})
+    assert sp["no_operar"] == pytest.approx(0.02)        # 10 % de los intentos × 0,20 R evitados
+    assert sp["ejecucion"] == pytest.approx(0.03)
+    assert sp["no_operar_pct"] == pytest.approx(40.0)
+    assert sp["llenado_menos_pp"] == pytest.approx(10.0)
+
+
+def test_delta_split_no_reparte_nada_si_los_dos_brazos_se_llenan_igual():
+    tk = {"llenado_pct": 99.5, "neto_r_llenada": -0.20}
+    mk = {"llenado_pct": 99.5}
+    sp = ab.delta_split(tk, mk, {"delta": 0.04})
+    assert sp["no_operar"] == pytest.approx(0.0)
+    assert sp["ejecucion"] == pytest.approx(0.04)
+
+
+def test_delta_split_con_un_brazo_ganador_no_premia_abstenerse():
+    """Con E[R] por llenada positivo, dejar de operar RESTA: el signo debe invertirse."""
+    tk = {"llenado_pct": 100.0, "neto_r_llenada": +0.30}
+    mk = {"llenado_pct": 80.0}
+    sp = ab.delta_split(tk, mk, {"delta": 0.0})
+    assert sp["no_operar"] == pytest.approx(-0.06)
+    assert sp["ejecucion"] == pytest.approx(+0.06)
+
+
+def test_delta_split_con_total_cero_no_divide_por_cero():
+    sp = ab.delta_split({"llenado_pct": 100.0, "neto_r_llenada": -0.2},
+                        {"llenado_pct": 100.0}, {"delta": 0.0})
+    assert sp["no_operar_pct"] is None
+
+
 def _arms(costo_tk: float, costo_mk: float):
     return {"costo_r": costo_tk}, {"costo_r": costo_mk}
 
