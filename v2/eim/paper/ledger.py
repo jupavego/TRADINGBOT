@@ -125,6 +125,21 @@ def query(pstore: PaperStore, symbol: str | None = None, scope: str | None = Non
     return [dict(zip(cols, r, strict=True)) for r in pstore.execute(sql, [*params, limit])]
 
 
+def window_rows(pstore: PaperStore, t0: int, t1: int,
+                scope: str | None = "perfil") -> list[dict]:
+    """Filas cerradas en `[t0, t1)`, para la contabilidad oficial de un tramo (T144).
+
+    Sin límite: una cifra de resultado no puede salir de «las más recientes». El universo lo
+    decide `eim.paper.universe`, no esta consulta: aquí entran también las `retro` y las de otros
+    perfiles para que el recuento pueda declarar qué queda fuera y por qué.
+    """
+    cols = [c for c in COLS if c != "payload"]
+    sql = (f"SELECT {', '.join(cols)} FROM paper_ledger WHERE exit_t >= ? AND exit_t < ?"
+           + (" AND scope = ?" if scope else "") + " ORDER BY exit_t, ledger_id")
+    params: list = [t0, t1, *([scope] if scope else [])]
+    return [dict(zip(cols, r, strict=True)) for r in pstore.execute(sql, params)]
+
+
 def counts(pstore: PaperStore) -> dict[str, int]:
     rows = pstore.execute("SELECT scope, symbol, count(*) FROM paper_ledger GROUP BY 1, 2")
     return {f"{s}:{sym}": int(n) for s, sym, n in rows}
