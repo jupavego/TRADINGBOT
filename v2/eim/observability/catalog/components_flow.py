@@ -274,6 +274,10 @@ VALIDATION: tuple[Component, ...] = (
       "Responde preguntas con fichas y pasajes citados usando un modelo de lenguaje que solo "
       "informa; apagada por defecto y sin fuente válida el punto se descarta.",
       consumes=(("library.cards", "library_card"),), produces=("answer",)),
+    c("localai.engines", "localai", "analisis", "engine", "localai", "T63", "Motores de IA locales",
+      "Una sola puerta a los modelos locales (texto, voz, OCR, imagen): un modelo a la vez, se "
+      "aplaza si falta memoria y cada uso queda registrado con modelo y huella de pesos. Solo "
+      "informa; hoy nadie lo usa todavía.", produces=("local_inference",)),
     c("operation.experience_sync", "operation", "validacion", "service", "api", "T61",
       "Experiencia compartida", "Une los historiales de varios equipos: cada máquina exporta lo suyo a una carpeta compartida e importa lo ajeno sin duplicar, con simulacro y copia previa. Nunca viajan claves.",
       cadence="a demanda (o cada hora si está automático)",

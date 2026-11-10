@@ -15,9 +15,6 @@ PLANNED: tuple[Component, ...] = (
       "Copia en testnet", "Replicará a los líderes aprobados en la testnet con un asignador de "
       "capital y la puerta de riesgo. Aún no existe.", consumes=(("leaders.copy_sim", "copy_trade"),),
       produces=("fill",), **_P),
-    c("localai.engines", "localai", "analisis", "engine", "localai", "T63", "Motores de IA locales",
-      "Capa que decidirá qué modelos locales caben en este equipo y dejará traza de cada uso. "
-      "Aún no existe.", produces=("local_inference",), **_P),
     # T64: construido (solo con EIM_VIDEO=1; latido en data/video/heartbeat.json, aún sin
     # eventos del observatorio: sin evento nunca es «sin datos», no alerta; BACKLOG T64 (4))
     c("video.watcher", "video", "datos", "service", "video", "T64", "Vigilancia de canales",

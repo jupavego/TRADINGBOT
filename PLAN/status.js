@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T10:57:22",
+ "generated": "2026-11-10T11:07:25",
  "phases": [
   {
    "n": 0,
@@ -1093,8 +1093,8 @@ window.EIM_STATUS = {
     "T62",
     "T05"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**Capa hecha (2026-11-10, rama `claude/t63-localai`)**: `v2/eim/localai/` = fachada `LocalAI` (LLM, visión, ASR, OCR, embeddings) → `EngineResult` con procedencia (motor, modelo, SHA de pesos, parámetros, huella de entrada, tiempo, RAM pico, llamador); nunca lanza ni inventa (`degraded`/`no_data` con motivo). Backends Ollama y llama.cpp (solo 127.0.0.1), faster-whisper, RapidOCR y Claude API (opcional, apagada); selección solo por `EIM_LOCALAI_*` (todo `off`); solo modelos de la lista de T62 con pesos verificados por hash (`catalog.py`, `pins.json`). Gestor de recursos: un modelo a la vez, RAM por etapa de T62 + 1 GB o se aplaza, tope por llamada, cola con prioridad, 1 reintento, presupuesto de cómputo. JSON validado con 1 reparación; contenido externo como dato. Registro `localai_calls` + `python -m eim.localai summary` (sin rentabilidad); motor simulado `fake.py`; 34 pruebas en `tests/localai/`. Docs: `CONTRATOS.md` (Fase 14), `ARQUITECTURA`, `SEGURIDAD`, `OPERACION` §2 y §7; `servicio_continuo.ps1` lanza Ollama con `OLLAMA_NO_CLOUD=1` y `OLLAMA_HOST=127.0.0.1:11434`. **Prueba real (por la cola, `v2/reports/localai/smoke_juanpablo-cpu.json`)**: OCR válido con SHA, 6,8 s y 164 MB de pico (tope T62 450); ASR aplazado sin cargar (3,25 GB libres < 2,6 + 1 GB); LLM y embeddings «caído» con motivo (Ollama apagado). **Falta para ☑**: la prueba manual completa (transcribir 1 min, JSON de un párrafo, embeddings) con ≥ 5,5 GB libres y Ollama en marcha (`OPERACION.md` §7).",
    "effort": "alto",
    "phase": 14,
    "goal": "Construir **una sola capa** (`eim/localai/`) por la que cualquier parte del proyecto use motores de IA de código abierto en local: LLM de texto, ASR, OCR, visión-lenguaje y embeddings. Es el concepto nuevo del plan: el motor es intercambiable, medible y auditable, y nunca decide por sí mismo (los LLM solo informan, `CLAUDE.md`)."
