@@ -54,6 +54,8 @@ def test_collector_state_api_and_alerts_share_labels(tmp_path):
     app.include_router(build_micro_router(tmp_path, clock=lambda: NOW))
     body = TestClient(app).get("/v2/micro/status").json()
     assert body["state"] == "capturando" and body["label"] == health.LABELS["capturando"]
+    light = TestClient(app).get("/v2/micro/status?disk=false").json()
+    assert body["disk"] and light["disk"] is None
 
 
 def test_low_disk_is_its_own_state(tmp_path):

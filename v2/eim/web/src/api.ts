@@ -53,7 +53,7 @@ export const fetchReports = (
 
 /** Estado del recolector de microestructura (T120): la misma tabla que el vigilante y el RUNBOOK. */
 export const fetchMicroStatus = (symbol: string, signal?: AbortSignal): Promise<CollectorState> =>
-  getJson(`/v2/micro/status?symbol=${symbol}`, signal)
+  getJson(`/v2/micro/status?symbol=${symbol}&disk=false`, signal)
 
 export const fetchOverlays = (symbol: string, tf: string, signal?: AbortSignal): Promise<Overlay[]> =>
   getJson(`/v2/overlays?symbol=${symbol}&tf=${tf}`, signal)
