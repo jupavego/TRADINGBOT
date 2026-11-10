@@ -1146,3 +1146,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `PLAN/{STATUS,ESTADO_PROYECTO,BITACORA}.md`. Sin cambios de código; el gate no aplica.
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
 - **Siguiente paso:** ver en la próxima intervención real del vigilante que levanta el conjunto y lo avisa; T149 cuando el usuario la priorice.
+
+## 2026-11-10 07:00 UTC · juanpablo-cpu · T120 desplegada
+- **Pedido del usuario:** «Sí, despliégala» y, tras bloquearse la fusión automática, «Fusiónalo tú».
+- **Hecho:** PR #249 fusionado (`36c3acc`) y traído a la carpeta principal. Hora 2026-11-10T06 declarada como mantenimiento para T78 (`hft_ops --maintenance … --nota "despliegue de T120"`). `detener_servicio.ps1 -Todo` a las 06:49:13 UTC y `servicio_continuo.ps1 -ConWeb`; servicios arriba a las 06:49:35.
+- **Comprobado:** `/v2/health` trae `checkout` y `components`; API, líderes y captura HFT declaran `C:\Users\jo\Desktop\JP\TRADINGBOT\v2` y arranque 06:49 UTC. `components` sale con código 0 (nada ajeno). `/v2/micro/status?disk=false` dice `capturando` con `label` y `age_s`. Web (5173) y hoja de ruta (8765) responden; Ollama no existe en este equipo (BACKLOG T120 (3)).
+- **Visto:** `components` mostraba el bróker simulado y el registro de consumo como «código anterior a T120», cuando el bróker corre dentro de la API y el registro no tiene archivo de latido. Corregido en la rama `claude/t120-componentes` (pruebas de zona: 126 pasadas, ruff limpio); el CLI ya lo dice bien y `/v2/health` lo dirá al siguiente reinicio de la API.
+- **Siguiente paso:** comprobar al cerrar la vela de las 07:00 UTC que Contexto dice «sin motor de contexto».

@@ -18,6 +18,11 @@ from pathlib import Path
 from eim.operation.fleet_watch import BEATS, DOWN_S, USAGE, ages
 from eim.operation.origin import CHECKOUT, same_checkout
 
+BROKER = "bróker simulado"
+# Por qué un servicio no declara su checkout aunque el código sea nuevo (no es «código anterior»).
+NOTES = {USAGE: "sin archivo de latido: la señal es su última muestra",
+         BROKER: "corre dentro de la API"}
+
 
 def _beat(path: Path) -> dict:
     try:
@@ -41,7 +46,11 @@ def components(data_dir: str | Path, now_s: float | None = None,
         out.append({"name": name, "alive": age is not None and age < down_s, "age_s": age,
                     "pid": d.get("pid"),
                     "started_at": d.get("proc_started_at") or d.get("started_at"),
-                    "checkout": d.get("checkout")})
+                    "checkout": d.get("checkout"), "note": NOTES.get(name, "")})
+    api = next((r for r in out if r["name"] == "API"), None)
+    for r in out:     # el bróker corre dentro de la API: su origen es el de ella
+        if r["name"] == BROKER and api and r["alive"] and api["alive"] and not r["checkout"]:
+            r.update(checkout=api["checkout"], started_at=api["started_at"], pid=api["pid"])
     return out
 
 
@@ -55,7 +64,7 @@ def _fmt(r: dict, now_s: float) -> str:
     age = "nunca" if r["age_s"] is None else f"latido hace {r['age_s']:.0f} s"
     since = ("" if not r["started_at"] else
              f", desde {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(r['started_at'] / 1000))}")
-    where = r["checkout"] or "checkout sin declarar (código anterior a T120)"
+    where = r["checkout"] or r.get("note") or "checkout sin declarar (código anterior a T120)"
     return f"  {'VIVO ' if r['alive'] else 'CAÍDO'}  {r['name']}: {age}{since} · {where}"
 
 
