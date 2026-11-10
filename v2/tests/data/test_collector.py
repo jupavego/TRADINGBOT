@@ -4,6 +4,7 @@ from __future__ import annotations
 from eim.data.collectors.binance_ws import WS_DEPTH, WS_TRADES, Collector
 from eim.data.collectors.book import LocalBook
 from eim.data.collectors.liq_ws import WS as LIQ_WS
+from eim.data.collectors.writer import HourlyWriter
 from eim.data.micro import read_micro
 
 H = 3_600_000
@@ -77,6 +78,24 @@ def test_colector_registra_hueco_pide_snapshot_y_agrega(tmp_path):
     # OFI entre las dos muestras: el bid subió su tamaño 6→8 (+2) sin cambio en ask
     assert b.ofi == 2.0
     assert book is not None and book.bids[0] == (99.0, 8.0)
+
+
+def test_reconexion_de_liquidaciones_no_es_hueco_del_flujo(tmp_path):
+    """T150 (BACKLOG T120 (2)): `liq_ws` apunta sus reconexiones en `micro/gaps` como
+    `liq:<venue>`; no pierden trades ni fotos del libro, así que la vela sigue completa."""
+    c = Collector(tmp_path, "ETHUSDT", top_every_ms=0)
+    c.load_snapshot(SNAP)
+    c.on_message({"data": _ev(95, 105, 94, [("99", "6")], [("101", "4")], T0 + 1000)})
+    c.on_message(_tr(1, "2", T0 + 2100, False))
+    c.flush()
+    liq = HourlyWriter(tmp_path, "gaps", "ETHUSDT")
+    liq.add((T0 + 1500, "liq:bybit", "ConnectionClosedError"))
+    liq.flush()
+    assert read_micro(tmp_path, "ETHUSDT", T0, H, 1)[0][0].complete is True
+    ws = HourlyWriter(tmp_path, "gaps", "ETHUSDT")
+    ws.add((T0 + 1600, "ws", "ConnectionClosedError"))   # la del flujo propio sí cuenta
+    ws.flush()
+    assert read_micro(tmp_path, "ETHUSDT", T0, H, 1)[0][0].complete is False
 
 
 def test_sin_recoleccion_no_hay_micro(tmp_path):

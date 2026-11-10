@@ -315,7 +315,8 @@ def create_app(
     def get_synthesis(symbol: str = "ETHUSDT", tf: str = "1h") -> dict:
         """Síntesis real (T20); `synthesis` es null si ningún agente aporta."""
         _check(symbol, tf)
-        return {"synthesis": synthesis_of(reports.latest(symbol, tf), [a.id for a in reg.latest()])}
+        return {"synthesis": synthesis_of(reports.latest(symbol, tf), [a.id for a in reg.latest()],
+                                          reports, symbol, tf)}
 
     @app.get("/v2/overlays")
     def overlays(symbol: str = "ETHUSDT", tf: str = "1h") -> list[dict]:

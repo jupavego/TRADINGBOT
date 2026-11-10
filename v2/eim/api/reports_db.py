@@ -88,6 +88,20 @@ class ReportStore:
             rows = self._con.execute(q, [symbol, timeframe, asof]).fetchall()
         return [AgentReport.model_validate_json(r[0]) for r in rows]
 
+    def history(self, symbol: str, timeframe: str, bars: int,
+                end: int | None = None) -> list[tuple[int, str, float, float, str]]:
+        """(asof, agente, sesgo, confianza, estado) de los últimos `bars` instantes con reportes
+        (≤ `end` si se da), la versión más reciente de cada agente. Solo columnas: sin JSON."""
+        cut, params = ("AND asof_ms <= ?", [end]) if end is not None else ("", [])
+        q = ("WITH t AS (SELECT DISTINCT asof_ms FROM reports WHERE symbol = ? AND timeframe = ? "
+             f"{cut} ORDER BY asof_ms DESC LIMIT {int(bars)}) "
+             "SELECT r.asof_ms, r.agent_id, r.bias, r.confidence, r.status FROM reports r "
+             "JOIN t USING (asof_ms) WHERE r.symbol = ? AND r.timeframe = ? QUALIFY row_number() "
+             "OVER (PARTITION BY r.agent_id, r.asof_ms ORDER BY r.version DESC) = 1")
+        with self._lock:
+            rows = self._con.execute(q, [symbol, timeframe, *params, symbol, timeframe]).fetchall()
+        return [(int(a), str(g), float(b), float(c), str(st)) for a, g, b, c, st in rows]
+
     def asofs(self, symbol: str, timeframe: str, limit: int = 2000) -> list[int]:
         """Instantes distintos con reportes, ascendentes (los últimos `limit`)."""
         with self._lock:

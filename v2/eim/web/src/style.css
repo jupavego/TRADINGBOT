@@ -323,6 +323,7 @@ td[data-sign="-1"] { color: var(--down); }
 
 /* Tooltips del río: aporte del agente y resumen de la síntesis (esfera central) */
 .tip-share { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-bottom: 6px; font-size: 12.5px; }
+.tip-cov { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; margin-bottom: 6px; font-size: 12px; }
 .tbar { display: inline-block; position: relative; width: 90px; height: 6px; border-radius: 3px; background: var(--grid); vertical-align: middle; overflow: hidden; }
 .tbar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
 .tip-sh td:nth-child(2) { width: 45%; }

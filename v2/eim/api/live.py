@@ -17,6 +17,7 @@ from eim.agents.registry import AgentRegistry
 from eim.agents.runner import call_with_deadline, run_agents
 from eim.api.reports_db import ReportStore
 from eim.api.sources import LiveSource
+from eim.api.synthesis_live import published_synthesis
 from eim.core import AgentReport, Candle
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
@@ -27,7 +28,13 @@ from eim.observability.events import trace_for
 from eim.synthesis import synthesize
 
 
-def synthesis_of(reports: list[AgentReport], expected: list[str] | None = None) -> dict | None:
+def synthesis_of(reports: list[AgentReport], expected: list[str] | None = None,
+                 store: ReportStore | None = None, symbol: str = "",
+                 timeframe: str = "") -> dict | None:
+    """Síntesis para el panel: v2 (T150, con cobertura y correlación en vivo) si hay almacén;
+    v1 solo donde no lo hay (pruebas y llamadas sin historial)."""
+    if store is not None:
+        return published_synthesis(store, symbol, timeframe, reports, expected)
     syn = synthesize(reports, expected=expected)
     return syn.model_dump() if syn else None
 
@@ -185,7 +192,9 @@ class Hub:
             "type": "reports", "symbol": ch.symbol, "timeframe": ch.timeframe,
             "asof": candle.t + tf_ms(ch.timeframe),
             "reports": [r.model_dump() for r in reports], "overlays": overlays_of(reports),
-            "synthesis": synthesis_of(reports, [a.id for a in self._registry.latest()]),
+            "synthesis": await asyncio.to_thread(
+                synthesis_of, reports, [a.id for a in self._registry.latest()], self._reports,
+                ch.symbol, ch.timeframe),
         })
         await self._emit_forecast(ch, candle.t + tf_ms(ch.timeframe))
         hooks_service.beat("api.hub", detail={"symbol": ch.symbol, "tf": ch.timeframe})

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T08:07:40",
+ "generated": "2026-11-10T11:01:04",
  "phases": [
   {
    "n": 0,
@@ -2214,8 +2214,8 @@ window.EIM_STATUS = {
     "T145",
     "T146"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-10 desde BACKLOG T145 (1), por decisión delegada del usuario. **Modo análisis**: no toca riesgo, ejecución, T31 ni T143. Lo de T146 para el panel: sin datos no se vota (ventana en vivo), cobertura publicada, penalización por correlación verificable y **votos efectivos**; en vez de la esperanza en R, se mide la **calibración** de la confianza (Brier y fiabilidad) y se adopta aunque no mejore. Prerrequisito: BACKLOG T120 (2), los falsos huecos de `microstructure`. ◆ qué se hace con los agentes sin datos.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-10), sin desplegar.** El panel publica la síntesis v2 (`eim/synthesis/evidence.py`, `api/synthesis_live.py`): sin datos en 48 velas no se vota, cobertura y fuente por agente, confianza × √(N_eff/N) con la ρ de las últimas 200 velas y votos efectivos a la vista (en vivo, ~1,9 de 6–7 votantes). Bróker simulado, plan y T49 siguen con v1. Falso hueco de `microstructure`: eran las reconexiones de `liq_ws` (38,9 % → 25,2 % en 1 h). **Calibración desfavorable para las dos** (`v2/reports/t150_calibracion.md`): acierto direccional 46,1 % a 24 h en el banco y confianza sin información; v2 adoptada igual. ◆: `seasonality` y `liquidations` informativos, `smart_money` retirado del voto del panel. Gate por la cola: 3 457 pasadas, 8 omitidas, 0 fallos. Nota `PLAN/notas/T150_sintesis.md`. Antes: Abierta el 2026-11-10 desde BACKLOG T145 (1), por decisión delegada del usuario. **Modo análisis**: no toca riesgo, ejecución, T31 ni T143. Lo de T146 para el panel: sin datos no se vota (ventana en vivo), cobertura publicada, penalización por correlación verificable y **votos efectivos**; en vez de la esperanza en R, se mide la **calibración** de la confianza (Brier y fiabilidad) y se adopta aunque no mejore. Prerrequisito: BACKLOG T120 (2), los falsos huecos de `microstructure`. ◆ qué se hace con los agentes sin datos.",
    "effort": "medio",
    "phase": 24
   }

@@ -79,7 +79,41 @@ export interface Synthesis {
   contributions: Record<string, number>
   thesis: string
   weights?: Record<string, number> // peso efectivo (× correlación); 0 = a la vista, sin voto
-  factors?: Record<string, number> // factores aplicados a la confianza: desacuerdo, evento
+  factors?: Record<string, number> // factores aplicados a la confianza: desacuerdo, evento, correlacion
+  // T150 (síntesis v2 del panel): cuánto sabe la síntesis
+  method?: 'v1' | 'v2'
+  voters?: number | null
+  effective_votes?: number | null // votos independientes equivalentes (N_eff con la ρ vigente)
+  rho_mean?: number | null
+  coverage?: Record<string, AgentCoverage>
+  blocked?: string[] // sin voto por falta de datos en la ventana en vivo
+  informative?: string[] // ◆ T150: se muestran, nunca votan en el panel
+  window?: SynthesisWindow
+}
+
+/** Cobertura de un agente en la ventana en vivo (T150). */
+export interface AgentCoverage {
+  state: 'ok' | 'degraded' | 'no_data'
+  ok: number
+  degraded: number
+  no_data: number
+  window_bars: number
+  bad_fraction: number
+  votes: boolean
+  short: boolean
+  reason: string
+  source: string
+}
+
+export interface SynthesisWindow {
+  coverage_bars: number
+  max_bad: number
+  corr_bars: number
+  rho_prior: number
+  measured_pairs: number
+  from: number | null
+  to: number | null
+  source: string
 }
 
 /** Operación del libro simulado (siempre mode=SIMULADO). Tiempos en ms. */

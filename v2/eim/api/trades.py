@@ -80,7 +80,7 @@ def build_trades_router(store: Store, reports: ReportStore) -> APIRouter:
         return {
             "asof": asof, "mode": MODE, "candles": [c.model_dump() for c in candles],
             "reports": [r.model_dump() for r in rs], "overlays": overlays_of(rs),
-            "synthesis": synthesis_of(rs),
+            "synthesis": synthesis_of(rs, None, reports, symbol, tf),
             "trades": [t.to_json() for t in view],
         }
 
