@@ -107,6 +107,7 @@ Auditoría completa en `PLAN/notas/T62_auditoria.md`; aquí solo las reglas que 
   - **No al punto 3:** no se usa `youtube-transcript-api`, que es un acceso automatizado por un endpoint interno.
   - **No al punto 4:** no se descarga audio ni video de YouTube con `yt-dlp`.
 - **Qué se puede transcribir:** solo lo que se puede usar sin chocar con los Términos. Son los videos propios del usuario (`captions.download` de la API oficial), el audio o video que él aporte y lo que el autor permita por escrito. Los demás videos se omiten: de ellos solo quedan los metadatos de la Data API v3.
+- **La clave de la Data API** (T64, 2026-11-10) vive fuera del repo, en `~/.eim/youtube_api_key.txt` (o en `EIM_YOUTUBE_API_KEY`). Restringida a YouTube Data API v3, sin permisos de cuenta; no viaja en la copia entre equipos: cada equipo crea la suya. Nunca en el chat ni en capturas.
 - **Consecuencia:** T64–T66 trabajan con esas fuentes, no con «cualquier video de un canal».
 
 **Propuesta original** (para el registro; los puntos 3 y 4 quedaron rechazados):

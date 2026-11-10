@@ -1,0 +1,9 @@
+{"kind": "youtube#playlistItemListResponse", "pageInfo": {"totalResults": 6, "resultsPerPage": 50},
+ "items": [
+  {"contentDetails": {"videoId": "vidBTC00001", "videoPublishedAt": "2026-11-09T14:00:00Z"}},
+  {"contentDetails": {"videoId": "vidETH00002", "videoPublishedAt": "2026-11-09T10:00:00Z"}},
+  {"contentDetails": {"videoId": "vidFED00003", "videoPublishedAt": "2026-11-08T18:00:00Z"}},
+  {"contentDetails": {"videoId": "vidSHORT004", "videoPublishedAt": "2026-11-08T12:00:00Z"}},
+  {"contentDetails": {"videoId": "vidCOOK0005", "videoPublishedAt": "2026-11-07T12:00:00Z"}},
+  {"contentDetails": {"videoId": "vidOLD00006", "videoPublishedAt": "2026-10-01T12:00:00Z"}}
+ ]}

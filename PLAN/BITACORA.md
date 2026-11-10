@@ -1190,3 +1190,27 @@ más reciente por fecha y su siguiente paso. Formato:
 - **En curso:** T31, T45 (aparcada), T63, T78, T104, T116, T128, T135 y T143.
 - **Siguiente paso:** con memoria libre y Ollama arrancado (`OPERACION.md` §7), `python -m eim.localai smoke` por la cola con `--set` para los cuatro motores; si todo sale `ok` bajo los topes de T62, ☑ T63 y sigue T65/T66.
 
+## 2026-11-10 · juanpablo-cpu · T64: catálogo y cola de video
+- **Pedido:** «Ejecuta PLAN/T64.md».
+- **Hecho:** lista de vigilancia versionada (`v2/eim/video/{watchlist,models,relevance}.py`, `versions/watchlist_v1.json`), descubrimiento por la Data API v3 con presupuesto de cuota, catálogo point-in-time `data/video.duckdb`, puntuación con desglose y tope diario, respaldo histórico, CLI y servicio opcional `EIM_VIDEO=1` con latido (`v2/eim/data/video/{discover,parse,catalog,pipeline,service}.py`). La postura de T62 manda: nada se descarga, el RSS queda apagado (404) y solo entran a la cola los canales con permiso de transcripción.
+- **Archivos:** lo anterior + `v2/tests/video/` (36 pruebas), `v2/tests/fixtures/video/`, `v2/tests/test_param_versions.py` (hash de la lista), `v2/eim/operation/priority.py` (papel `video` en batch), `v2/scripts/servicio_continuo.ps1`, `v2/docs/{OPERACION,ALMACENAMIENTO}.md`, `PLAN/{STATUS,BACKLOG,BITACORA}.md`.
+- **Pruebas:** `tests/video` 36/36; gate completo por la cola (20 min, sin pausas): todo verde salvo `tests/observability/test_catalog.py::test_built_vs_planned_matches_status_md`, porque `video.watcher` seguía «planeado". Pasa a construido en `components_planned.py` y las zonas afectadas (observatorio, video, versiones, prioridad) dan 172/172. Ruff limpio. CLI real sin clave: cada canal sale con «sin fuente», el latido dice `sin_fuente` y nada se cae.
+- **Abierto:** aceptación con canales reales (falta `EIM_YOUTUBE_API_KEY`), lista definitiva y permisos (BACKLOG T64). T64 queda ◐.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
+- **Siguiente paso:** con la clave del usuario, `python -m eim.video discover` y `backfill` sobre la lista y declarar la cobertura; después T65 solo sobre material con permiso.
+
+## 2026-11-10 15:40 UTC · juanpablo-cpu · T64: aceptación con canales reales y cierre
+- **Pedido:** abrir el PR (#254) y luego, con la clave nueva del usuario en `TRADINGBOT\EIM_YOUTUBE_API_KEY.txt`, terminar la aceptación.
+- **Hecho:** el archivo de la clave estaba en la carpeta del repo y git no lo ignoraba: añadido `EIM_YOUTUBE_API_KEY*` a `.git/info/exclude` (local, no se sube). La clave se cargó solo en el entorno de cada orden, sin mostrarla. Dos `discover` sobre `v2/data/video.duckdb`: 4/4 canales ok, 200 videos, 0 duplicados. `backfill --since 2026-10-01`: 2127 videos; cobertura declarada en STATUS. Cuota usada: 116 de 2000.
+- **Visto:** la cola oficial no admite nada porque ningún canal tiene permiso de transcripción (postura T62). El tope diario se comprobó con los videos reales en una copia simulada con permiso: 30 admitidos, 3,997 de 4 h. El usuario había pegado la primera clave en una captura; la regeneró a petición.
+- **Archivos:** `PLAN/{STATUS,BACKLOG,BITACORA}.md`, `PLAN/status.js`. Sin cambios de código.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
+- **Siguiente paso:** fusionar #254; decidir la lista definitiva y los permisos (`watchlist_v2`) y cómo lee la clave el servicio (BACKLOG T64 (2), (7)).
+
+## 2026-11-10 15:50 UTC · juanpablo-cpu · T64: clave fuera del repo y lista v2
+- **Pedido:** «toma tu la mejor decision» sobre lo que quedó abierto (lista definitiva y cómo lee la clave el servicio).
+- **Decidido y hecho:** (1) la clave se movió de `TRADINGBOT\EIM_YOUTUBE_API_KEY.txt` a `~/.eim/youtube_api_key.txt`, sin leerla; `eim/data/video/discover.load_key` usa `EIM_YOUTUBE_API_KEY` y, si falta, ese archivo (o `EIM_YOUTUBE_API_KEY_FILE`). Fuera del repo no puede acabar en git ni en la copia entre equipos, y el servicio no depende de una variable de usuario. (2) `watchlist_v2` (vigente): mismos 4 canales, ids comprobados, ninguno con permiso (la elección de canales solo afecta al catálogo de metadatos mientras rija T62) y respaldo de 40 páginas. No se añadieron canales nuevos sin comprobarlos.
+- **Comprobado:** `discover` y `backfill --since 2026-10-01` sin la variable, leyendo el archivo: 4/4 ok, 3173 videos, un título editado de Bloomberg guardado como fila nueva, 274 unidades en el día.
+- **Archivos:** `v2/eim/data/video/{discover,service}.py`, `v2/eim/video/{watchlist.py,versions/watchlist_v2.json}`, `v2/tests/video/*`, `v2/tests/test_param_versions.py`, `v2/docs/{OPERACION,SEGURIDAD}.md`, `PLAN/{STATUS,BACKLOG,BITACORA}.md`.
+- **Pruebas:** zonas de video, versiones, observatorio y prioridad en verde; ruff limpio.
+- **Siguiente paso:** fusionar #254 (lo aprueba el usuario); activar `EIM_VIDEO=1` solo después de fusionar.

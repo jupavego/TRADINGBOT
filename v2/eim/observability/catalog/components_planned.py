@@ -15,9 +15,12 @@ PLANNED: tuple[Component, ...] = (
       "Copia en testnet", "Replicará a los líderes aprobados en la testnet con un asignador de "
       "capital y la puerta de riesgo. Aún no existe.", consumes=(("leaders.copy_sim", "copy_trade"),),
       produces=("fill",), **_P),
+    # T64: construido (solo con EIM_VIDEO=1; latido en data/video/heartbeat.json, aún sin
+    # eventos del observatorio: sin evento nunca es «sin datos», no alerta; BACKLOG T64 (4))
     c("video.watcher", "video", "datos", "service", "video", "T64", "Vigilancia de canales",
-      "Vigilará canales de YouTube elegidos y ordenará los videos por relevancia. "
-      "Aún no existe.", cadence="cada hora", cadence_s=3600, produces=("video_queue",), **_P),
+      "Vigila canales de YouTube elegidos (solo metadatos, Data API v3) y ordena los videos "
+      "por relevancia con un tope diario. Opcional: solo corre con EIM_VIDEO=1.",
+      cadence="cada hora", cadence_s=3600, produces=("video_queue",)),
     c("video.transcribe", "video", "datos", "service", "video", "T65", "Transcripción",
       "Obtendrá el texto del video con marcas de tiempo, subtítulos primero y voz local si "
       "faltan. Aún no existe.", consumes=(("video.watcher", "video_queue"),),

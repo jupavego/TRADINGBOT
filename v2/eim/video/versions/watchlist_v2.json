@@ -1,0 +1,143 @@
+{
+  "version": "v2",
+  "created": "2026-11-10",
+  "note": "Lista vigente (T64, 2026-11-10, decision delegada por el usuario): los 4 canales de v1, con ids comprobados contra la Data API v3. Ninguno tiene permiso de transcripcion (postura T62): solo se catalogan metadatos para evaluar pronosticos (T69); a la cola solo entra un canal propio o con permiso escrito. backfill_max_pages sube de 20 a 40 para cubrir ~6 semanas de Bloomberg y CNBC.",
+  "languages": [
+    "es",
+    "en"
+  ],
+  "duration_min_s": 180,
+  "duration_max_s": 10800,
+  "freshness_half_life_h": 72,
+  "threshold": 0.35,
+  "weights": {
+    "topic": 0.5,
+    "freshness": 0.25,
+    "priority": 0.25
+  },
+  "budget": {
+    "compute_hours_per_day": 4.0,
+    "compute_ratio": 0.3,
+    "quota_units_per_day": 2000,
+    "max_pages_per_channel": 1,
+    "backfill_max_pages": 40
+  },
+  "rss_enabled": false,
+  "topics": [
+    {
+      "name": "btc",
+      "kind": "asset",
+      "asset": "BTC",
+      "weight": 0.6,
+      "keywords": [
+        "bitcoin",
+        "btc",
+        "halving",
+        "bitcoin etf"
+      ]
+    },
+    {
+      "name": "eth",
+      "kind": "asset",
+      "asset": "ETH",
+      "weight": 0.6,
+      "keywords": [
+        "ethereum",
+        "eth",
+        "ether"
+      ]
+    },
+    {
+      "name": "fed",
+      "kind": "macro",
+      "weight": 0.5,
+      "keywords": [
+        "fed",
+        "federal reserve",
+        "reserva federal",
+        "fomc",
+        "powell"
+      ]
+    },
+    {
+      "name": "inflacion",
+      "kind": "macro",
+      "weight": 0.4,
+      "keywords": [
+        "inflation",
+        "inflacion",
+        "cpi",
+        "ipc",
+        "pce"
+      ]
+    },
+    {
+      "name": "tasas",
+      "kind": "macro",
+      "weight": 0.4,
+      "keywords": [
+        "interest rates",
+        "tasas de interes",
+        "rate cut",
+        "rate hike",
+        "recorte de tasas",
+        "bond yields",
+        "treasury yields"
+      ]
+    },
+    {
+      "name": "liquidez",
+      "kind": "macro",
+      "weight": 0.4,
+      "keywords": [
+        "liquidity",
+        "liquidez",
+        "m2",
+        "balance sheet",
+        "quantitative tightening"
+      ]
+    }
+  ],
+  "channels": [
+    {
+      "channel_id": "UCIALMKvObZNtJ6AmdCLP7Lg",
+      "name": "Bloomberg Television",
+      "priority": 3,
+      "languages": [
+        "en"
+      ],
+      "permission": "ninguno",
+      "verified": true
+    },
+    {
+      "channel_id": "UCrp_UI8XtuYfpiqluWLD7Lw",
+      "name": "CNBC Television",
+      "priority": 3,
+      "languages": [
+        "en"
+      ],
+      "permission": "ninguno",
+      "verified": true
+    },
+    {
+      "channel_id": "UCqK_GSMbpiV8spgD3ZGloSw",
+      "name": "Coin Bureau",
+      "priority": 4,
+      "languages": [
+        "en"
+      ],
+      "permission": "ninguno",
+      "verified": true
+    },
+    {
+      "channel_id": "UCRvqjQPSeaWn-uEx-w0XOIg",
+      "name": "Benjamin Cowen",
+      "priority": 4,
+      "languages": [
+        "en"
+      ],
+      "permission": "ninguno",
+      "verified": true
+    }
+  ]
+}
