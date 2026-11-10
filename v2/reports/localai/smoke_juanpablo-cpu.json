@@ -1,0 +1,61 @@
+[
+  {
+    "prueba": "transcribir",
+    "estado": "no_data",
+    "resultado": "deferred",
+    "motivo": "RAM libre 3254 MB < 2600 MB del modelo + 1024 MB de margen: la etapa se aplaza",
+    "motor": "faster-whisper",
+    "modelo": "small",
+    "sha_pesos": "3e305921506d8872816023e4c273e75d2419fb89b24da97b4fe7bce14170d671",
+    "segundos": 0.0,
+    "ram_pico_mb": null,
+    "ram_medida_t62_mb": 2600,
+    "avisos": [],
+    "segmentos": 0,
+    "texto": ""
+  },
+  {
+    "prueba": "leer fotograma",
+    "estado": "ok",
+    "resultado": "valid",
+    "motivo": "",
+    "motor": "rapidocr",
+    "modelo": "rapidocr-3.10.0",
+    "sha_pesos": "59abd749e6532929f0c2f56061d76363f66aeeb41c8dc8eb4ef2d2932bcc3f8b",
+    "segundos": 6.797,
+    "ram_pico_mb": 163.9,
+    "ram_medida_t62_mb": 450,
+    "avisos": [],
+    "texto": "SOLUSDT·1H·BINANCE | 139,38 | 137,79 | Soporte | 134,00 | 133,35 | 128,92 | 124,49 | 120,05"
+  },
+  {
+    "prueba": "JSON de un párrafo",
+    "estado": "no_data",
+    "resultado": "down",
+    "motivo": "ollama no responde: Ollama no responde en http://127.0.0.1:11434/api/tags",
+    "motor": "ollama",
+    "modelo": "qwen3:4b-instruct",
+    "sha_pesos": null,
+    "segundos": 0.0,
+    "ram_pico_mb": null,
+    "ram_medida_t62_mb": 4500,
+    "avisos": [
+      "el dato externo contiene un posible intento de inyección (2 patrón(es)); se trató como dato"
+    ],
+    "salida": null
+  },
+  {
+    "prueba": "embeddings",
+    "estado": "no_data",
+    "resultado": "down",
+    "motivo": "ollama no responde: Ollama no responde en http://127.0.0.1:11434/api/tags",
+    "motor": "ollama",
+    "modelo": "qwen3-embedding:0.6b",
+    "sha_pesos": null,
+    "segundos": 0.0,
+    "ram_pico_mb": null,
+    "ram_medida_t62_mb": 2500,
+    "avisos": [],
+    "dims": null
+  }
+]

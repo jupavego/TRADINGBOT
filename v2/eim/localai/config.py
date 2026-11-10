@@ -43,7 +43,13 @@ CHOICES = {
 }
 DEFAULT_MODEL = {"llm": "qwen3:4b-instruct", "vision": "qwen3-vl:2b-instruct-q4_K_M",
                  "asr": "small", "ocr": "rapidocr-3.10.0", "embed": "qwen3-embedding:0.6b"}
-_VAR = {"llm": "LLM", "vision": "VISION", "asr": "ASR", "ocr": "OCR", "embed": "EMBED"}
+# etapa → (variable del motor, variable del modelo); literales para que el test de documentación
+# (`tests/docs/test_env_vars.py`) las encuentre
+_VAR = {"llm": ("EIM_LOCALAI_LLM", "EIM_LOCALAI_LLM_MODEL"),
+        "vision": ("EIM_LOCALAI_VISION", "EIM_LOCALAI_VISION_MODEL"),
+        "asr": ("EIM_LOCALAI_ASR", "EIM_LOCALAI_ASR_MODEL"),
+        "ocr": ("EIM_LOCALAI_OCR", "EIM_LOCALAI_OCR_MODEL"),
+        "embed": ("EIM_LOCALAI_EMBED", "EIM_LOCALAI_EMBED_MODEL")}
 
 
 def loopback_url(url: str) -> str:
@@ -83,13 +89,13 @@ class LocalAIConfig:
     def from_env(cls, env: Mapping[str, str] | None = None) -> LocalAIConfig:
         env = os.environ if env is None else env
         backends, models, problems = {}, {}, []
-        for kind, var in _VAR.items():
-            val = env.get(f"EIM_LOCALAI_{var}", "off").strip().lower() or "off"
+        for kind, (var, model_var) in _VAR.items():
+            val = env.get(var, "off").strip().lower() or "off"
             if val not in CHOICES[kind]:
-                problems.append(f"EIM_LOCALAI_{var}={val} no es un motor válido para {kind}")
+                problems.append(f"{var}={val} no es un motor válido para {kind}")
                 val = "off"
             backends[kind] = val
-            models[kind] = env.get(f"EIM_LOCALAI_{var}_MODEL", "").strip() or DEFAULT_MODEL[kind]
+            models[kind] = env.get(model_var, "").strip() or DEFAULT_MODEL[kind]
         data_dir = Path(env.get("EIM_DATA_DIR", "data"))
         return cls(
             backends=backends, models=models,

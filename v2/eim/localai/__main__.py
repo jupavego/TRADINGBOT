@@ -8,7 +8,7 @@
 
 `smoke` es trabajo pesado (carga modelos de 0,5–4,5 GB): lanzarlo por la cola de trabajos
 (`python -m eim.operation.jobs submit --min-ram-mb 5500 -- ...`); la cola no hereda el
-entorno, así que la configuración va con `--set EIM_LOCALAI_X=valor`.
+entorno, así que la configuración va con `--set VARIABLE=valor`.
 """
 
 from __future__ import annotations
@@ -103,7 +103,7 @@ def main(argv: list[str] | None = None) -> int:
     m.add_argument("--image", type=Path)
     m.add_argument("--report", type=Path)
     for sp in sub.choices.values():
-        sp.add_argument("--set", action="append", default=[], metavar="EIM_LOCALAI_X=valor",
+        sp.add_argument("--set", action="append", default=[], metavar="VARIABLE=valor",
                         help="EIM_LOCALAI_* para esta orden (la cola no hereda el entorno)")
     a = ap.parse_args(argv)
     env = dict(os.environ)
