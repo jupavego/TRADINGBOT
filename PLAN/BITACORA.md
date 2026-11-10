@@ -1058,3 +1058,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** ninguna nueva; solo lectura del QC, de la cola y del registro de consumo. Gate no relanzado (sin código); el último completo por la cola fue el de T144 (3 323 pasadas, 0 fallos).
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T141.
 - **Siguiente paso:** T148 (vigilante del conjunto) y cerrar T141 tras su medición del 2026-11-10 03:00 UTC.
+
+## 2026-11-10 04:00 UTC · juanpablo-cpu · T143: corrida aparte desde ya y automejora acotada
+- **Pedido del usuario:** «hagamos lo más recomendado» (T31 intacta) y «que todo vaya quedando ajustado desde ya», con adaptaciones según lo que midan la automejora y los orquestadores. ◆ por pregunta: **corrida aparte ya** y **automejora solo de costo y riesgo**.
+- **Hecho:** los valores por defecto vuelven a ser los de T31: `ExecParams` sin entrada maker y con la puerta de marcos apagada (`None`), `PROFILES` sin riesgo con costo y `SimBroker` a 4 pb (`fees.T31_TAKER`). T143 pasa a `eim/paper/t143_config.py` (`EXEC_T143`, `PROFILES_T143`, `AUTO_ADAPT`). Nueva mesa variante `eim/paper/variant.py`: reutiliza los contextos de la principal (no corre agentes), escribe en `data/paper_t143.duckdb` (que entra en la copia) y no registra intentos de validación, no emite al Observatorio ni a `op_alerts` y no late como `paper.broker`. Rutas de solo lectura `eim/api/paper_variant.py` y variable `EIM_PAPER_VARIANTS` (vacía por defecto).
+- **Gate anterior:** 7 fallos, todos por los dos motivos que esto corrige: el costo semanal no usaba la regla única de `retro` de T144, y la entrada maker se aplicaba a todo el catálogo, incluido T139. Las pruebas que daban por encendido el riesgo con costo volvieron a su versión de `main`, y su aceptación ahora recorre `PROFILES_T143`.
+- **Archivos:** `v2/eim/paper/{t143_config,variant,cost_ledger,cost_whatif,tf_gate,params}.py`, `v2/eim/api/{paper_variant,main,config}.py`, `v2/eim/execution/sim_broker.py`, `v2/eim/core/fees.py`, `v2/eim/web/src/{paper_cost,paper_types}.ts`, `v2/tests/paper/test_variant.py` y otras, `v2/docs/OPERACION.md`, `PLAN/{T143,STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`.
+- **Pruebas:** 349 pasadas en las suites tocadas (paper, execution, api, validation T139), ruff y tsc limpios. Gate completo por la cola: ver STATUS.
+- **Abierto:** desplegar (encender `EIM_PAPER_VARIANTS=t143` y reiniciar la API, con permiso y midiendo la RAM) y, al cerrar T31, comparar las dos corridas.
+- **Siguiente paso:** gate completo, PR y despliegue.

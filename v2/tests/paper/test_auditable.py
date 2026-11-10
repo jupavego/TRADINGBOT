@@ -17,7 +17,6 @@ from eim.data.paper_store import PaperStore
 from eim.data.store import Store
 from eim.paper import ledger, snapshot
 from eim.paper.desk import PaperDesk
-from eim.paper.params import ExecParams
 from eim.paper.view_scope import scope_of
 from tests.local_client import LocalClient
 from tests.paper.test_strategies import ctx_for, walk
@@ -36,11 +35,7 @@ def desk(tmp_path):
     ps = PaperStore(tmp_path / "p.duckdb")
     for c in cs[450:500]:
         ps.save(SYM, "1h", ctx_for(c), "backtest", 0)
-    # El paseo sintético tiene los stops muy pegados: su costo medido en 1 h es 0,199 R y la
-    # puerta de marcos de T143 (3) lo dejaría sin operar, que es lo que debe hacer. Esta prueba
-    # es de instantáneas, no de la puerta, así que la abre para aislar lo que mide. La puerta
-    # tiene sus propias pruebas en `test_tf_gate.py`.
-    d = PaperDesk(st, ps, exec_params=ExecParams(tf_max_cost_r=1.0))
+    d = PaperDesk(st, ps)
     d.cs = cs
     yield d
     ps.close()

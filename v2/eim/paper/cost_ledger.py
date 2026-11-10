@@ -16,15 +16,15 @@ from __future__ import annotations
 import statistics
 from collections.abc import Iterable, Sequence
 
-SOURCE = ("libro fijo `paper_ledger` · operaciones de perfil, sin `retro` · R = costo / "
-          "(|pnl| / |r|), método del diagnóstico de la fase 24")
-_COLS = ("exit_t", "profile", "symbol", "timeframe", "kind", "pnl_usdt", "r", "notional", "fees",
-         "slip", "funding", "retro", "scope")
+from eim.paper import universe
+
+SOURCE = ("libro fijo `paper_ledger` · universo oficial de T144 (perfiles, vivas, con peso, sin "
+          "`retro`) · R = costo / (|pnl| / |r|), método del diagnóstico de la fase 24")
 RECENT = 10
 
 
 def _f(x) -> float:
-    return float(x) if x is not None else 0.0
+    return float(x) if x not in (None, "") else 0.0
 
 
 def trade_cost(row: dict) -> dict:
@@ -32,7 +32,7 @@ def trade_cost(row: dict) -> dict:
     usdt = _f(row.get("fees")) + _f(row.get("slip")) + _f(row.get("funding"))
     pnl, r, notional = _f(row.get("pnl_usdt")), _f(row.get("r")), _f(row.get("notional"))
     risk = abs(pnl) / abs(r) if pnl and r else None
-    return {"exit_t": row.get("exit_t"), "profile": row.get("profile"),
+    return {"exit_t": int(_f(row.get("exit_t"))), "profile": row.get("profile"),
             "symbol": row.get("symbol"), "timeframe": row.get("timeframe"),
             "kind": row.get("kind"), "cost_usdt": usdt,
             "cost_bps": usdt / notional * 1e4 if notional else None,
@@ -40,9 +40,8 @@ def trade_cost(row: dict) -> dict:
 
 
 def lived(rows: Iterable[dict]) -> list[dict]:
-    """Las operaciones vividas: de perfil y sin `retro`."""
-    return [r for r in rows if r.get("scope") == "perfil"
-            and str(r.get("retro")).lower() not in ("true", "1")]   # bool de DuckDB o texto del CSV
+    """Las operaciones que cuentan como resultado: la regla única de `eim.paper.universe` (T144)."""
+    return list(universe.result_rows(rows))
 
 
 def _block(cs: Sequence[dict]) -> dict:
@@ -67,8 +66,8 @@ def summarize(rows: Iterable[dict], t0: int | None = None, t1: int | None = None
     solo la media. `n_r < n` dice cuántas no tienen el riesgo reconstruible.
     """
     sel = [r for r in lived(rows)
-           if (t0 is None or (r.get("exit_t") or 0) >= t0)
-           and (t1 is None or (r.get("exit_t") or 0) < t1)]
+           if (t0 is None or _f(r.get("exit_t")) >= t0)
+           and (t1 is None or _f(r.get("exit_t")) < t1)]
     cs = sorted((trade_cost(r) for r in sel), key=lambda c: c["exit_t"] or 0)
     return {"source": SOURCE, "from": t0, "to": t1, "all": _block(cs),
             "by_timeframe": _group(cs, "timeframe"), "by_kind": _group(cs, "kind"),

@@ -7,12 +7,14 @@ import json
 import pytest
 
 from eim.paper.cost_whatif import apply, base, compare, shadow
+from eim.paper.universe import PROFILES
 
 FEES = json.dumps({"taker_fee": 0.0005, "maker_fee": 0.0002})
 
 
 def row(**kw) -> dict:
-    b = {"scope": "perfil", "retro": "False", "timeframe": "1h", "kind": "market",
+    b = {"scope": "perfil", "retro": "False", "timeframe": "1h", "origin": "vivo", "weight": "1",
+         "profile": PROFILES[0], "exit_t": "1000", "kind": "market",
          "pnl_usdt": "-10", "r": "-1", "notional": "1000", "fees": "1.0", "slip": "0.2",
          "funding": "0", "cost_params": FEES}
     return {**b, **kw}

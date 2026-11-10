@@ -9,9 +9,10 @@ import pytest
 from eim.paper import tf_gate as g
 from eim.paper.engine import Outcome
 from eim.paper.params import ExecParams
+from eim.paper.t143_config import EXEC_T143
 from tests.paper.helpers import T0, idea
 
-EP = ExecParams()
+EP = EXEC_T143          # la puerta está encendida en la corrida aparte; T31 la tiene apagada
 TFS = EP.timeframes
 MAX, MIN_N = EP.tf_max_cost_r, EP.tf_cost_min_n
 
@@ -100,3 +101,9 @@ def test_el_umbral_sale_de_la_configuracion_no_del_codigo():
     assert g.admitted(TFS, {}, suelto.tf_max_cost_r, suelto.tf_cost_min_n) == TFS
     severo = ExecParams(tf_max_cost_r=0.10)
     assert g.admitted(TFS, {}, severo.tf_max_cost_r, severo.tf_cost_min_n) == ("4h",)
+
+
+def test_con_la_configuracion_de_t31_la_puerta_esta_apagada():
+    """Los valores por defecto son T31 hasta su cierre (◆ 2026-11-10): ningún marco se cierra."""
+    rows, tradable = g.gate(("15m", "1h", "4h"), [out("15m", 0.9)] * 60, ExecParams())
+    assert all(r["admitted"] for r in rows) and len(tradable) == 60

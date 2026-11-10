@@ -11,11 +11,12 @@ function row(label: string, b: CostBlock): string {
 }
 
 function gate(c: CostPanel): string {
-  if (!c.timeframes?.length) return ''
+  const th = c.timeframes?.[0]?.max_cost_r ?? null
+  if (th === null) return ''   // puerta apagada (configuración de T31)
   const xs = c.timeframes.map((t) =>
     `<li data-k="${t.admitted ? 'win' : 'loss'}"><b>${esc(t.timeframe)}</b> ${t.admitted ? 'opera' : 'no opera'} · ` +
-    `costo ${r3(t.cost_r)} frente a un umbral de ${nf(t.max_cost_r, 2)} R <small class="muted">(${esc(t.source)})</small></li>`).join('')
-  return `<p class="muted">Marcos: el que cuesta ${nf(c.timeframes[0].max_cost_r, 2)} R o más no opera en los perfiles; la sombra lo sigue midiendo y vuelve solo si abarata.</p>` +
+    `costo ${r3(t.cost_r)} frente a un umbral de ${nf(th, 2)} R <small class="muted">(${esc(t.source)})</small></li>`).join('')
+  return `<p class="muted">Marcos: el que cuesta ${nf(th, 2)} R o más no opera en los perfiles; la sombra lo sigue midiendo y vuelve solo si abarata.</p>` +
     `<ul class="pp-bal-fb">${xs}</ul>`
 }
 

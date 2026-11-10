@@ -8,10 +8,13 @@ from eim.operation.report_costs import cost_lines
 from eim.paper import cost_ledger as cl
 from eim.paper import tf_gate
 from eim.paper.params import ExecParams
+from eim.paper.t143_config import EXEC_T143
+from eim.paper.universe import PROFILES
 
 
 def row(**kw) -> dict:
-    base = {"scope": "perfil", "profile": "p1", "symbol": "BTCUSDT", "timeframe": "1h",
+    base = {"scope": "perfil", "profile": PROFILES[0], "origin": "vivo", "weight": 1.0,
+            "symbol": "BTCUSDT", "timeframe": "1h",
             "kind": "market", "exit_t": 1_000, "pnl_usdt": -10.0, "r": -1.0, "notional": 1_000.0,
             "fees": 0.7, "slip": 0.3, "funding": 0.0, "retro": False}
     return {**base, **kw}
@@ -44,9 +47,9 @@ def test_ventana_y_grupos_por_marco_y_tipo():
 
 
 def test_lleva_su_source_y_las_ultimas_primero():
-    s = cl.summarize([row(exit_t=1), row(exit_t=2, profile="p2")])
+    s = cl.summarize([row(exit_t=1), row(exit_t=2, profile=PROFILES[1])])
     assert "paper_ledger" in s["source"]
-    assert s["recent"][0]["profile"] == "p2"
+    assert s["recent"][0]["profile"] == PROFILES[1]
 
 
 def test_el_informe_semanal_trae_la_seccion_aunque_no_haya_operaciones():
@@ -58,7 +61,8 @@ def test_el_informe_semanal_trae_la_seccion_aunque_no_haya_operaciones():
 def test_arranque_falla_con_umbral_no_positivo_y_registra_los_marcos():
     with pytest.raises(ValueError):
         tf_gate.check(ExecParams(tf_max_cost_r=0.0))
-    lines = tf_gate.check(ExecParams())
+    assert all("apagada" in x for x in tf_gate.check(ExecParams()))   # T31: puerta apagada
+    lines = tf_gate.check(EXEC_T143)
     assert any(x.startswith("15m:") and "no opera" in x for x in lines)
     assert any(x.startswith("4h:") and "→ opera" in x for x in lines)
 
@@ -74,5 +78,5 @@ def test_puerta_que_cierra_todos_los_marcos_avisa(caplog):
     from tests.paper.test_tf_gate import out
     outs = [out(tf, 0.5) for tf in ("15m", "1h", "4h") for _ in range(60)]
     with caplog.at_level(logging.WARNING, logger="eim.paper.tf_gate"):
-        rows, tradable = tf_gate.gate(("15m", "1h", "4h"), outs, ExecParams())
+        rows, tradable = tf_gate.gate(("15m", "1h", "4h"), outs, EXEC_T143)
     assert tradable == [] and "ningún marco opera" in caplog.text

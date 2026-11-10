@@ -20,7 +20,7 @@ from collections.abc import Callable
 from dataclasses import asdict, replace
 
 from eim.core import Mode
-from eim.core.fees import USDM_MAKER, USDM_TAKER
+from eim.core.fees import T31_TAKER
 from eim.execution.broker import (
     CANCELED,
     EXPIRED,
@@ -42,16 +42,17 @@ from eim.execution.broker import (
 class SimBroker:
     mode = Mode.SIMULADO
 
-    def __init__(self, balance: float = 10_000.0, fee_rate: float = USDM_TAKER,
+    def __init__(self, balance: float = 10_000.0, fee_rate: float = T31_TAKER,
                  step: float = 0.001, tick: float = 0.1, min_qty: float = 0.001,
                  fill_cap: float | None = None, min_notional: float = 0.0,
                  maker_fee: float | None = None) -> None:
-        # T143: `fee_rate` es la de TOMADOR y `maker_fee` la de creador, las dos de
-        # `eim.core.fees`. Antes había una sola, 4 pb, un punto básico por debajo de la tarifa
-        # verificada y la misma para los dos papeles: el libro vivo cobraba de menos y no podía
-        # reflejar el ahorro de una entrada límite, que es lo que T143 adoptó.
+        # T143: `fee_rate` es la de TOMADOR y `maker_fee` la de creador. La tarifa verificada es
+        # la de `eim.core.fees` (5 pb / 2 pb), pero el carril de T31 corre con 4 pb para los dos
+        # papeles desde su arranque y **no cambia hasta su cierre** (◆ 2026-11-10): sin
+        # `maker_fee`, la de creador es la misma que la de tomador, como antes. Al cerrar T31 se
+        # pasa a `USDM_TAKER`/`USDM_MAKER` (BACKLOG T143).
         self.balance, self.fee_rate = balance, fee_rate
-        self.maker_fee = USDM_MAKER if maker_fee is None else maker_fee
+        self.maker_fee = fee_rate if maker_fee is None else maker_fee
         self._rests: dict[str, bool] = {}     # la orden esperó en el libro → paga de creador
         self.step, self.tick, self.min_qty, self.fill_cap = step, tick, min_qty, fill_cap
         self.min_notional = min_notional

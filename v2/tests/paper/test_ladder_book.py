@@ -48,10 +48,7 @@ def test_entry_sizing_and_ladder_close_in_book():
     st = build(UP)
     (t,) = st.trades
     assert t["reason"] == "SLD" and t["tp"] is None and st.violations == []
-    # 50 USDT de riesgo / (1 400 de distancia al SL + 112 de costo de ida y vuelta), al paso de
-    # 0,001. Desde T143 (2) el costo entra en el presupuesto, así que son 0,033 y no los 0,035 de
-    # antes: con 0,035 la pérdida al SL habría sido 53 USDT, no los 50 que el perfil declara.
-    assert t["qty"] == pytest.approx(0.033)
+    assert t["qty"] == pytest.approx(0.035)          # 50 USDT de riesgo / 1 400, al paso de 0,001
     assert t["pnl"] == pytest.approx(t["qty"] * (t["exit"] - t["fill"]))
     assert t["pnl"] > 10 and t["ladder"]["level"] >= 2
     assert st.equity == pytest.approx(10_000 + t["pnl"])
@@ -95,10 +92,7 @@ def test_vetoes_unviable_and_duplicates():
 def test_no_size_up_after_loss():
     losing = [(E, E + 20, E - 1500, E - 1450)]
     st = build(losing)
-    # −46,2 y no −49,0: desde T143 el riesgo presupuestado incluye el costo de ida y vuelta, así
-    # que la cantidad es menor y la pérdida al SL se queda en el riesgo declarado (con el SL al
-    # 3 % del precio, el costo son 0,053 R, de ahí el ≈ 5,7 % menos).
-    assert st.trades[0]["reason"] == "SL" and st.trades[0]["pnl"] == pytest.approx(-46.2, abs=1)
+    assert st.trades[0]["reason"] == "SL" and st.trades[0]["pnl"] == pytest.approx(-49.0, abs=1)
     assert st.trades[0]["weight"] == 1.0
 
 

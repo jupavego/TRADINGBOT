@@ -40,30 +40,9 @@ def test_including_costs_only_reduces_the_quantity():
     assert con / sin == pytest.approx(1 / (1 + rb.cost_r(entry, sl, frac)))
 
 
-def test_every_profile_budgets_the_cost():
-    """T143 (2): parte integral del sistema, no un interruptor. Los cuatro lo llevan."""
-    assert all(p.risk_includes_costs for p in PROFILES)
-
-
-def test_no_profile_risks_more_than_it_declares():
-    """La prueba que pide la aceptación de T143: si un perfil se pasa de su riesgo, falla.
-
-    Se recorre cada perfil con varias geometrías de stop —de 0,3 % a 4 % del precio, que es el
-    rango real del banco— y se exige que la pérdida al SL inicial sea **exactamente** el riesgo
-    declarado. Sin presupuestar el costo, la de 0,3 % se pasaría un 53 %.
-    """
-    equity = 10_000.0
-    for prof in PROFILES:
-        declared = equity * prof.risk_pct
-        for stop_frac in (0.003, 0.005, 0.0121, 0.02, 0.04):
-            entry = 50_000.0
-            sl = entry * (1 - stop_frac)
-            real = rb.loss_at_stop(declared, entry, sl, prof.est_cost_frac,
-                                   prof.risk_includes_costs)
-            assert real == pytest.approx(declared, rel=1e-9), (
-                f"{prof.id} con SL al {stop_frac:.2%}: pierde {real:.2f} y declara {declared:.2f}")
-            sin = rb.loss_at_stop(declared, entry, sl, prof.est_cost_frac, False)
-            assert sin > declared        # es lo que pasaba antes de T143
+def test_off_by_default_in_every_profile():
+    """Encenderlo cambia el tamaño de una corrida en marcha: es decisión ◆ del usuario."""
+    assert all(not p.risk_includes_costs for p in PROFILES)
 
 
 def test_sizing_with_costs_off_is_bit_for_bit_what_the_policy_did():
@@ -77,3 +56,24 @@ def test_overrun_grows_as_the_stop_gets_closer():
     tight = rb.overrun(50_000.0, 49_750.0, frac)       # SL al 0,5 %
     assert tight > wide > 0
     assert tight == pytest.approx(frac / 0.005)
+
+
+def test_t143_no_profile_risks_more_than_it_declares():
+    """Aceptación de T143 (2), en la corrida aparte: la pérdida al SL inicial es la declarada.
+
+    Cada perfil de `PROFILES_T143` con stops del 0,3 % al 4 % del precio (el rango real del banco).
+    Sin presupuestar el costo, el de 0,3 % se pasaría un 53 %. Los perfiles de T31 lo siguen
+    teniendo apagado hasta su cierre (prueba anterior).
+    """
+    from eim.paper.t143_config import PROFILES_T143
+    equity = 10_000.0
+    for prof in PROFILES_T143:
+        assert prof.risk_includes_costs
+        declared = equity * prof.risk_pct
+        for stop_frac in (0.003, 0.005, 0.0121, 0.02, 0.04):
+            entry = 50_000.0
+            sl = entry * (1 - stop_frac)
+            real = rb.loss_at_stop(declared, entry, sl, prof.est_cost_frac, True)
+            assert real == pytest.approx(declared, rel=1e-9), (
+                f"{prof.id} con SL al {stop_frac:.2%}: pierde {real:.2f} y declara {declared:.2f}")
+            assert rb.loss_at_stop(declared, entry, sl, prof.est_cost_frac, False) > declared

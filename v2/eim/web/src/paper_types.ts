@@ -245,5 +245,5 @@ export interface CostBlock {
 export interface CostPanel {
   source: string; all: CostBlock; by_timeframe: Record<string, CostBlock>; by_kind: Record<string, CostBlock>
   recent: { exit_t: number; profile: string; timeframe: string; kind: string; cost_usdt: number; cost_bps: number | null; cost_r: number | null }[]
-  timeframes: { timeframe: string; cost_r: number | null; source: string; max_cost_r: number; admitted: boolean }[]
+  timeframes: { timeframe: string; cost_r: number | null; source: string; max_cost_r: number | null; admitted: boolean }[]
 }

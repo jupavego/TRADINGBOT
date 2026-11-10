@@ -23,6 +23,8 @@ import json
 import statistics
 from collections.abc import Iterable, Sequence
 
+from eim.paper import universe
+
 STEPS = ("antes", "sin_15m", "sin_15m_maker", "sin_15m_maker_riesgo")
 LABELS = {"antes": "Antes (vivido)", "sin_15m": "1 · sin 15 m",
           "sin_15m_maker": "2 · + entrada maker en 1 h y 4 h",
@@ -75,8 +77,7 @@ def _summ(xs: list[dict]) -> dict:
 
 def compare(rows: Iterable[dict], maker_tfs: Sequence[str] = ("1h", "4h")) -> dict:
     """Resumen por paso y por marco. `excluded` = vividas sin riesgo reconstruible."""
-    lived = [r for r in rows
-             if r.get("scope") == "perfil" and str(r.get("retro")).lower() != "true"]
+    lived = universe.result_rows(rows)      # la regla única de T144
     bs = [b for b in (base(r) for r in lived) if b is not None]
     out: dict = {"lived": len(lived), "excluded": len(lived) - len(bs), "steps": {}}
     for s in STEPS:
@@ -96,7 +97,7 @@ def shadow(rows: Iterable[dict]) -> dict[str, dict]:
     """
     out: dict[str, dict] = {}
     sel = [r for r in rows if r.get("scope") == "sombra" and r.get("r") not in (None, "")
-           and str(r.get("retro")).lower() != "true"]
+           and not universe.is_retro(r)]
     for tf in sorted({r.get("timeframe") for r in sel}):
         xs = [float(r["r"]) for r in sel if r.get("timeframe") == tf]
         se = statistics.stdev(xs) / len(xs) ** 0.5 if len(xs) > 1 else None

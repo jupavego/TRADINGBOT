@@ -6,7 +6,6 @@ from dataclasses import replace
 
 import pytest
 
-from eim.paper import risk_budget as rb
 from eim.paper.book import leverage_for, liq_price, run_profile
 from eim.paper.engine import Outcome
 from eim.paper.feedback import Learner, judge, strategy_stats
@@ -65,15 +64,7 @@ def test_profile_sizing_and_pnl_consistent_with_r():
     st = run_profile(MOD, [o], Learner([o]), mmr=0.004)
     tr = st.trades[0]
     risk_usd = MOD.initial_equity * MOD.risk_pct * MOD.feedback.observe_w
-    # Desde T143 (2) el riesgo declarado es la pérdida REAL al SL: distancia más costo. Así que
-    # 1 R de PRECIO (la distancia al stop) ya no es el riesgo declarado entero, sino su parte de
-    # distancia. La propiedad que importa sigue en pie y se comprueba abajo: lo que se juega hasta
-    # el SL es exactamente `risk_usd`.
-    dist = abs(tr["fill"] - tr["sl"])
-    assert tr["qty"] * rb.budget_distance(tr["fill"], tr["sl"], MOD.est_cost_frac) == (
-        pytest.approx(risk_usd, rel=1e-6))
-    assert tr["pnl"] == pytest.approx(2.0 * tr["qty"] * dist)
-    assert tr["pnl"] < 2.0 * risk_usd                 # el costo reservado no se gana
+    assert tr["pnl"] == pytest.approx(2.0 * risk_usd)
     assert st.equity == pytest.approx(MOD.initial_equity + tr["pnl"])
     lev = tr["leverage"]
     assert 1 <= lev <= MOD.max_leverage
@@ -105,10 +96,7 @@ def test_min_open_floor_takes_soft_vetoes_only():
     assert "mínimo" in st.events[0]["text"] and st.events[0]["floor"]
     tr = st.trades[0]
     assert tr["floor"] and tr["weight"] == CONS.floor_weight
-    risk_usd = CONS.initial_equity * CONS.risk_pct * CONS.floor_weight
-    assert tr["qty"] * rb.budget_distance(tr["fill"], tr["sl"], CONS.est_cost_frac) == (
-        pytest.approx(risk_usd, rel=1e-6))          # el riesgo reducido, costo incluido (T143)
-    assert tr["pnl"] == pytest.approx(tr["qty"] * abs(tr["fill"] - tr["sl"]))
+    assert tr["pnl"] == pytest.approx(CONS.initial_equity * CONS.risk_pct * CONS.floor_weight)
     hard = replace(o, idea=replace(o.idea, htf=-1))                  # contra la tendencia mayor
     assert not run_profile(CONS, [hard], Learner([]), mmr=0.004).trades
     limit = replace(o, idea=replace(o.idea, kind="limit", fill_ms=H1))

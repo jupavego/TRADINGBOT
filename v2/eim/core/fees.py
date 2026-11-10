@@ -30,3 +30,8 @@ FEE_SOURCE = ("tabla pública Binance (VIP 0 verificado 2026-10-15; otros nivele
 
 #: Tarifa con la que opera el sistema mientras no se lea la real de la cuenta.
 USDM_MAKER, USDM_TAKER = USDM_FEES[0]
+
+#: Tarifa única con la que corre el carril de operación de T31 desde su arranque (4 pb, sin
+#: distinguir creador y tomador). Se conserva hasta su cierre para no cambiar lo que mide (◆ del
+#: usuario, 2026-11-10); después `SimBroker` pasa a `USDM_TAKER`/`USDM_MAKER`.
+T31_TAKER = 0.0004

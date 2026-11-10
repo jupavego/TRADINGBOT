@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-from eim.paper import risk_budget as rb
 from eim.paper.book import run_profile
 from eim.paper.caps import Brake, CapParams, fit_risk
 from eim.paper.engine import Outcome
@@ -45,11 +44,7 @@ def test_direction_cap_scales_then_rejects():
     capped = run_profile(MOD.model_copy(update={"caps": CapParams(max_dir_risk=0.004)}),
                          outs, Learner(outs), 0.005)
     assert len(capped.trades) == 2                              # la tercera ya no cabe
-    # El tope consume su presupuesto entero, y desde T143 (2) el presupuesto es la pérdida REAL
-    # al SL: distancia más costo de ida y vuelta. Medido solo con la distancia saldrían 37,04 de
-    # los 40, porque los 2,96 que faltan son el costo que el tope ya está reservando.
-    risks = sorted(t["qty"] * rb.budget_distance(t["fill"], t["sl"], MOD.est_cost_frac)
-                   for t in capped.trades)
+    risks = sorted(t["qty"] * abs(t["fill"] - t["sl"]) for t in capped.trades)
     assert sum(risks) == pytest.approx(10_000 * 0.004, rel=1e-6)
     assert any("tope de riesgo" in e["text"] for e in capped.events if e["cat"] == "rechazada")
 

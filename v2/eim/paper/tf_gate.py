@@ -59,19 +59,21 @@ def reference(tf: str, measured: Mapping[str, tuple[float, int]],
 
 
 def admitted(tfs: Sequence[str], measured: Mapping[str, tuple[float, int]],
-             max_cost_r: float, min_n: int) -> tuple[str, ...]:
+             max_cost_r: float | None, min_n: int) -> tuple[str, ...]:
     """Marcos en los que los perfiles pueden operar. La sombra no se filtra nunca."""
     return tuple(tf for tf in tfs if not _blocked(tf, measured, max_cost_r, min_n))
 
 
 def _blocked(tf: str, measured: Mapping[str, tuple[float, int]],
-             max_cost_r: float, min_n: int) -> bool:
+             max_cost_r: float | None, min_n: int) -> bool:
+    if max_cost_r is None:          # puerta apagada (configuración de T31)
+        return False
     c, _ = reference(tf, measured, min_n)
     return c is not None and c >= max_cost_r
 
 
 def report(tfs: Sequence[str], measured: Mapping[str, tuple[float, int]],
-           max_cost_r: float, min_n: int) -> list[dict]:
+           max_cost_r: float | None, min_n: int) -> list[dict]:
     """Una fila por marco para el panel y la auditoría: costo, procedencia y si opera."""
     out = []
     for tf in tfs:
@@ -81,9 +83,11 @@ def report(tfs: Sequence[str], measured: Mapping[str, tuple[float, int]],
     return out
 
 
-def why(tf: str, measured: Mapping[str, tuple[float, int]], max_cost_r: float,
+def why(tf: str, measured: Mapping[str, tuple[float, int]], max_cost_r: float | None,
         min_n: int) -> str:
     """Motivo en una línea, para el registro del arranque."""
+    if max_cost_r is None:
+        return f"{tf}: puerta de costo apagada, opera"
     c, src = reference(tf, measured, min_n)
     if c is None:
         return f"{tf}: sin medición de costo, opera"
@@ -109,10 +113,11 @@ def gate(tfs: Sequence[str], outcomes: Sequence[Outcome], ep) -> tuple[list[dict
 def check(ep) -> tuple[str, ...]:
     """Comprobación de arranque: umbral válido y, en el registro, qué marcos operan y por qué.
 
-    Falla fuerte con un umbral que no es positivo (todo marco quedaría fuera sin que nadie lo
+    Sin umbral (`None`) la puerta está apagada y todo marco opera. Falla fuerte con un umbral que
+    no es positivo (todo marco quedaría fuera sin que nadie lo
     decidiera) o una muestra mínima menor que 1. Devuelve las líneas registradas.
     """
-    if not ep.tf_max_cost_r > 0:
+    if ep.tf_max_cost_r is not None and not ep.tf_max_cost_r > 0:
         raise ValueError(f"tf_max_cost_r debe ser > 0 (es {ep.tf_max_cost_r})")
     if ep.tf_cost_min_n < 1:
         raise ValueError(f"tf_cost_min_n debe ser ≥ 1 (es {ep.tf_cost_min_n})")
