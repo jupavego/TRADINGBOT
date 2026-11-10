@@ -1213,3 +1213,4 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `v2/eim/data/video/{discover,service}.py`, `v2/eim/video/{watchlist.py,versions/watchlist_v2.json}`, `v2/tests/video/*`, `v2/tests/test_param_versions.py`, `v2/docs/{OPERACION,SEGURIDAD}.md`, `PLAN/{STATUS,BACKLOG,BITACORA}.md`.
 - **Pruebas:** zonas de video, versiones, observatorio y prioridad en verde; ruff limpio.
 - **Siguiente paso:** fusionar #254 (lo aprueba el usuario); activar `EIM_VIDEO=1` solo después de fusionar.
+- **Después (decisión delegada, «toma tú la mejor decisión»):** PR #256. El arreglo de huecos queda detrás de `EIM_MICRO_IGNORE_LIQ_GAPS=1` (apagado, documentado en `docs/OPERACION.md` §2) para no cambiar T31 antes de su cierre; se enciende entonces (BACKLOG T150 (6)). La v2 del panel no toca el bróker y entra en el próximo reinicio de la API.

@@ -14,6 +14,8 @@ No eran los silencios de `depth`: `HFT_GAP_SQL` ya los excluía. **El recolector
 
 Reproduce exacto el 38 %/69 % de T120. Lo que queda entre la segunda y la tercera fila son reconexiones **reales** del recolector viejo de T23 (flujo `ws`, 21-oct → 2-nov), cuando era la fuente: se dejan, y salen solas de la ventana. Arreglo: `eim/data/micro.py::OLD_GAP_SQL` (la lectura ignora `liq:*`); prueba `tests/data/test_collector.py::test_reconexion_de_liquidaciones_no_es_hueco_del_flujo`. El escritor sigue mezclando tablas (BACKLOG T150 (4)).
 
+**Despliegue (decisión delegada por el usuario, 2026-11-10):** lo que lee el agente también lo lee el bróker simulado, y T31 no cambia hasta su cierre (◆ de T143). Por eso el arreglo queda **detrás de `EIM_MICRO_IGNORE_LIQ_GAPS=1`, apagado por defecto**, y se enciende al cerrar T31 (≥ 2026-11-27; BACKLOG T150 (6)). Con eso, la síntesis v2 del panel no cambia nada que lea el bróker y puede entrar en cualquier reinicio. Mientras tanto, `microstructure` seguirá sin voto en el panel por «degradado».
+
 Aviso: en 4 h el agente seguirá «degradado» un tiempo (48 % > `max_incomplete` 0,3), porque su ventana de 500 velas abarca toda la captura y arrastra esos huecos reales de octubre.
 
 ## 2. Entregables 1–4: la síntesis v2
