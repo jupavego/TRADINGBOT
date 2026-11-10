@@ -107,3 +107,21 @@ def test_con_la_configuracion_de_t31_la_puerta_esta_apagada():
     """Los valores por defecto son T31 hasta su cierre (◆ 2026-11-10): ningún marco se cierra."""
     rows, tradable = g.gate(("15m", "1h", "4h"), [out("15m", 0.9)] * 60, ExecParams())
     assert all(r["admitted"] for r in rows) and len(tradable) == 60
+
+
+# --- T143 (4): la puerta mide lo que los perfiles pueden tomar ------------------------------------
+
+def test_lo_que_ningun_perfil_tomaria_no_cuenta_en_el_costo():
+    """Stop al 2 % (costo estimado 0,08 R): tomable. Stop al 0,2 % (0,8 R): ningún perfil lo toma.
+
+    Con toda la sombra, 1 h saldría por las de stop pegado; midiendo lo tomable, se queda.
+    """
+    from eim.paper.t143_config import PROFILES_T143
+    ancho = [out("1h", 0.10) for _ in range(60)]
+    pegado = [Outcome(replace(idea(sl=99.8), timeframe="1h"), "CERRADA", "SL", T0, 100.0, T0 + 1,
+                      99.8, fee_in=0.5 * 0.2, fee_out=0.5 * 0.2) for _ in range(60)]
+    todo, _ = g.gate(("1h",), ancho + pegado, EP)
+    assert todo[0]["admitted"] is False                     # media de toda la sombra ≥ 0,15
+    tomable, _ = g.gate(("1h",), ancho + pegado, EP, PROFILES_T143)
+    assert tomable[0]["admitted"] is True and tomable[0]["cost_r"] == pytest.approx(0.10)
+    assert len(g.takeable(pegado, PROFILES_T143)) == 0

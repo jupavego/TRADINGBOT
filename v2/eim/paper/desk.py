@@ -196,7 +196,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
             self.store.read_candles(symbol, htf, start=t0 - 60 * tf_ms(htf)), (), tf_ms(htf)))
         sim = LadderSim(path, self.ep, fine, guards=self._guards(symbol), exits=exits)
         # T143 (3): el marco caro no opera; la sombra y el aprendizaje los siguen viendo todos.
-        v.tf_cost, tradable = tf_gate.gate(self.tfs, v.outcomes, self.ep)
+        v.tf_cost, tradable = tf_gate.gate(self.tfs, v.outcomes, self.ep, self.profiles)
         v.books ={p.id: run_profile(p, tradable, learner, mmr, sim) for p in self.profiles}
         self._record_ledger(v)
         self._emit_decisions(v)
