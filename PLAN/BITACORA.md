@@ -1122,3 +1122,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** punto ciego de los apagones del 9-nov (5 h 26 min) y del 10-nov (5 min), sin muestras; lo cubre T148 al desplegarse. Siguen en BACKLOG T141 los puntos (1) a (6).
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
 - **Siguiente paso:** desplegar T148; T149 cuando el usuario la priorice.
+
+## 2026-11-10 05:00 UTC · juanpablo-cpu · T143: la puerta mide lo tomable, y 15 m vuelve
+- **Pedido del usuario:** «Sí, ajústala», sobre medir la puerta de marcos solo con lo que los perfiles pueden tomar.
+- **Hecho:** `tf_gate.takeable` filtra la sombra con el mismo costo estimado del veto `max_cost_r` de cada perfil; prueba nueva. Gate completo por la cola verde (`20261110-042504-t143-puerta-gate-0394`, rc 0, una pausa). PR #246 fusionado y la operación en papel reiniciada a las 04:53:42 UTC (sin `-Todo`, la captura siguió).
+- **Resultado en vivo:** en `t143` operan los tres marcos (15 m 0,127 R con n = 189; 1 h 0,108 R; 4 h 0,082 R). Sobre lo tomable, 15 m ya no cruza 0,15 R. T31 sin cambios (puerta apagada). La API quedó en ~2,4 GB.
+- **Abierto:** 15 m sigue siendo el peor marco en neto de sombra (−0,344 R), pero eso es ventaja, no costo, y la regla de automejora del usuario no deja que la puerta lo juzgue. Si se quiere sacar por resultado, tiene que pasar por un pre-registro.
+- **Siguiente paso:** al cerrar T31 (≥ 2026-11-27), comparar las dos corridas con la contabilidad de T144.
