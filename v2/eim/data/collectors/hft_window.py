@@ -14,9 +14,10 @@ Aquí se mide lo que el documento dice:
   también, salvo mantenimiento. A diferencia de la racha, no vuelve a cero con un tropiezo.
 - **Mantenimiento declarado** (`declare_maint`): las horas de un despliegue anunciado no cuentan ni
   rompen la contigüidad, así que desplegar ya no cuesta la corrida (T123/T124).
-- **Atribución** (`attribute`): cada hora incompleta queda en «nuestra» (reinicio, cola llena,
-  salto de reloj, proceso caído) o «ajena» (silencio o desconexión del exchange). Solo la primera
-  es deuda del equipo y materia de la fase 21.
+- **Atribución** (`hft_attrib.py`): cada hora incompleta queda en «nuestra» (reinicio, cola llena,
+  salto de reloj, proceso caído, tiempo perdido que nadie marcó) o «ajena» (silencio o
+  desconexión del exchange). Solo la primera es deuda del equipo y materia de la fase 21. La regla
+  se afinó en T148 E3, porque un proceso muerto se parecía por dentro a un exchange callado.
 - **Racha** (`streak`, T126): se conserva como lectura informativa durante la transición.
 
 `book_usable_pct` (cobertura agregada del tramo) y `worst_hour` se **informan, no deciden**: la
@@ -26,81 +27,25 @@ otra decisión del usuario.
 
 from __future__ import annotations
 
-import json
-import time
-from pathlib import Path
+from collections.abc import Container
 
+from eim.data.collectors.hft_attrib import (  # noqa: F401 - API estable: hft_window.<lo de antes>
+    OUR_CAUSES,
+    THEIR_CAUSES,
+    attribute,
+    declare_maint,
+    is_maint,
+    load_maint,
+    maint_path,
+    unmarked_s,
+    why,
+)
 from eim.data.collectors.hft_read import hour_label
-from eim.data.collectors.hft_schema import AREA
 
 NEED_H = 72
 MATCH_MIN = 0.99
 HOURS_MIN = 0.99
 MAX_LIST = 24
-OUR_CAUSES = ("cola_llena",)
-THEIR_CAUSES = ("silencio", "desconexion", "secuencia", "sin_libro")
-
-
-# --------------------------------------------------------------------------- mantenimiento (E4)
-
-def maint_path(root: str | Path, symbol: str) -> Path:
-    return Path(root) / AREA / "qc" / f"symbol={symbol}" / "maintenance.json"
-
-
-def load_maint(root: str | Path, symbol: str) -> list[dict]:
-    """Tramos de mantenimiento declarados (lista vacía si no hay archivo o está roto)."""
-    try:
-        d = json.loads(maint_path(root, symbol).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return []
-    ws = d.get("windows") if isinstance(d, dict) else None
-    return [w for w in ws if "from_h" in w and "to_h" in w] if isinstance(ws, list) else []
-
-
-def declare_maint(root: str | Path, symbol: str, h0: int, h1: int, note: str,
-                  now_s: float | None = None) -> dict:
-    """Declara [h0, h1] (horas UTC, ambas incluidas) como mantenimiento conocido.
-
-    Idempotente por tramo: declarar el mismo dos veces lo deja una sola vez. Solo escribe el
-    archivo de mantenimiento; no toca ningún JSON de QC ni la captura."""
-    if h1 < h0:
-        raise ValueError("la hora final del mantenimiento es anterior a la inicial")
-    w = {"from": hour_label(h0), "to": hour_label(h1), "from_h": h0, "to_h": h1,
-         "hours": h1 - h0 + 1, "note": str(note)[:300],
-         "at": int((now_s if now_s is not None else time.time()) * 1000)}
-    ws = [x for x in load_maint(root, symbol) if (x["from_h"], x["to_h"]) != (h0, h1)]
-    ws.append(w)
-    ws.sort(key=lambda x: x["from_h"])
-    p = maint_path(root, symbol)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    tmp = p.with_suffix(".tmp")
-    tmp.write_text(json.dumps({"symbol": symbol, "windows": ws}, ensure_ascii=False, indent=1),
-                   encoding="utf-8")
-    tmp.replace(p)
-    return {"declared": w, "windows": len(ws)}
-
-
-def is_maint(hour: int, maint: list[dict]) -> bool:
-    return any(w["from_h"] <= hour <= w["to_h"] for w in maint)
-
-
-# --------------------------------------------------------------------------- atribución (E3)
-
-def attribute(rep: dict | None, hour: int, maint: list[dict] | None = None) -> str:
-    """De quién es una hora incompleta: «mantenimiento», «nuestra», «ajena» o «sin causa».
-
-    `rep` a None = la hora no tiene QC (proceso caído), que es deuda nuestra salvo mantenimiento."""
-    if maint and is_maint(hour, maint):
-        return "mantenimiento"
-    if rep is None:
-        return "nuestra"
-    causes = (rep.get("gaps_marked") or {}).get("by_cause") or {}
-    ours = (rep.get("restarts") or 0) or (rep.get("runs") or 1) > 1 \
-        or (rep.get("overflow_dropped") or 0) or ((rep.get("clock") or {}).get("jumps") or 0) \
-        or any(causes.get(c) for c in OUR_CAUSES)
-    if ours:
-        return "nuestra"
-    return "ajena" if any(causes.get(c) for c in THEIR_CAUSES) else "sin causa"
 
 
 # --------------------------------------------------------------------------- ventana (E2)
@@ -166,7 +111,8 @@ _EMPTY = {"hours": 0, "first_hour": None, "last_hour": None, "hours_complete": 0
           "worst_hour": None, "maintenance_h": 0, "incomplete": []}
 
 
-def _win_info(span: list[dict], i: int, j: int, maint: list[dict]) -> dict:
+def _win_info(span: list[dict], i: int, j: int, maint: list[dict],
+              blind: Container[int] | None = None) -> dict:
     run = span[i:j]
     if not run:
         return dict(_EMPTY)
@@ -176,7 +122,8 @@ def _win_info(span: list[dict], i: int, j: int, maint: list[dict]) -> dict:
     usable = [r["book_usable"] for r in run if r.get("book_usable") is not None]
     worst = min((r for r in run if r.get("book_usable") is not None),
                 key=lambda r: r["book_usable"], default=None)
-    inc = [{"hour": r["hour"], "causa": attribute(r, r["hour_index"], maint),
+    inc = [{"hour": r["hour"], "causa": attribute(r, r["hour_index"], maint, blind),
+            "motivo": why(r, r["hour_index"], maint, blind),
             "book_usable": r.get("book_usable")} for r in run if not r["complete"]]
     return {
         "hours": len(run), "first_hour": run[0]["hour"], "last_hour": run[-1]["hour"],
@@ -192,12 +139,14 @@ def _win_info(span: list[dict], i: int, j: int, maint: list[dict]) -> dict:
 
 
 def window(reps: list[dict], fresh_h: int, maint: list[dict] | None = None,
-           since_h: int | None = None, need_h: int = NEED_H) -> dict:
+           since_h: int | None = None, need_h: int = NEED_H,
+           blind_hours: Container[int] | None = None) -> dict:
     """Veredicto de T78 por ventana (T147). `fresh_h`: hora desde la que una ventana sigue viva.
 
     `best` decide; `current` es la ventana viva (la que acaba en la última hora auditada), para ver
     lo que falta. `attribution` reparte TODAS las horas incompletas del tramo leído, no solo las de
-    la ventana, porque es lo que dice de quién es la deuda."""
+    la ventana, porque es lo que dice de quién es la deuda. `blind_hours`: las horas que el
+    registro de consumo no vio (T148 E2), que la atribución cuenta como nuestras."""
     maint = maint or []
     out = {"rule": "ventana (T147)", "need_h": need_h, "hours_min": HOURS_MIN,
            "match_min": MATCH_MIN,
@@ -221,10 +170,10 @@ def window(reps: list[dict], fresh_h: int, maint: list[dict] | None = None,
         r = by_hour.get(h)
         if r is not None and r["complete"]:
             continue
-        k = attribute(r, h, maint)
+        k = attribute(r, h, maint, blind_hours)
         att[k] = att.get(k, 0) + 1
-    top = _win_info(best_span, best[0], best[1], maint)
-    now = _win_info(cur_span, cur[0], cur[1], maint)
+    top = _win_info(best_span, best[0], best[1], maint, blind_hours)
+    now = _win_info(cur_span, cur[0], cur[1], maint, blind_hours)
     passed = top["hours"] >= need_h
     return {**out, "best": top, "current": now,
             "remaining_h": 0 if passed else max(0, need_h - now["hours"]), "passed": passed,

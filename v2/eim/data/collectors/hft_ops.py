@@ -22,6 +22,9 @@ Lo llama el vigilante (`hft_supervise`) cada 10 min; también a mano:
   despliegue; no cuentan ni rompen la ventana, así que desplegar ya no cuesta la corrida.
 - **Recalificar** (T138, T147; `--requalify DESDE [--apply]`): aplica la regla vigente a los JSON
   de versiones anteriores. Corre aparte, sin reiniciar la captura ni el vigilante.
+- **Horas ciegas del registro de consumo** (T148): `blind_hours` lee los huecos de `data/usage/`
+  (`eim.operation.usage_gaps`) y se los pasa a la atribución, que cuenta como nuestras las horas
+  que el registro de consumo tampoco vio. Si falta esa carpeta, no se inventa nada: conjunto vacío.
 """
 
 from __future__ import annotations
@@ -36,6 +39,8 @@ from eim.data.collectors.compact import compact_dir
 from eim.data.collectors.hft_read import hour_label, hours_with_data, parse_hour
 from eim.data.collectors.hft_schema import AREA, KINDS
 from eim.data.collectors.hft_writer import hour_dir
+from eim.operation import usage_gaps
+from eim.operation.usage_summary import days_between, load_day
 
 KEEP_DAYS = 45
 QC_MARGIN_S = 300
@@ -171,6 +176,21 @@ def qc_reports(root: str | Path, symbol: str, since_h: int | None = None) -> lis
     return [r for h in sorted(hours) if (r := qc.load(root, symbol, h)) is not None]
 
 
+def blind_hours(root: str | Path, now_s: float, days: int = 45) -> set[int]:
+    """Horas que el registro de consumo no vio, por sus propios huecos (T148 E2+E3).
+
+    Nunca lanza: sin `data/usage/` (otro equipo, registro no instalado) devuelve un conjunto
+    vacío, y entonces la atribución se queda con las demás señales."""
+    try:
+        now_ms = int(now_s * 1000)
+        day_list = days_between(now_ms - (days - 1) * 86_400_000, now_ms + 1)
+        samples = sorted((r for d in day_list for r in load_day(Path(root), d)),
+                         key=lambda r: r["t"])
+        return usage_gaps.blind_hours(usage_gaps.gaps(samples, now_ms))
+    except Exception:  # noqa: BLE001 - una atribución sin esta señal es peor, no imposible
+        return set()
+
+
 def streak(root: str | Path, symbol: str, now_s: float, since_h: int | None = None,
            need_h: int = T78_NEED_H) -> dict:
     """Racha de horas completas seguidas (T126), informativa desde T147: `hft_window.streak`."""
@@ -182,7 +202,8 @@ def window(root: str | Path, symbol: str, now_s: float, since_h: int | None = No
            need_h: int = T78_NEED_H) -> dict:
     """Veredicto de T78 por ventana (T147): `hft_window.window` sobre los JSON de QC."""
     return hft_window.window(qc_reports(root, symbol, since_h), last_auditable(now_s) - 1,
-                             hft_window.load_maint(root, symbol), since_h, need_h)
+                             hft_window.load_maint(root, symbol), since_h, need_h,
+                             blind_hours(root, now_s))
 
 
 def requalify(root: str | Path, symbol: str, since_h: int | None = None,
@@ -225,7 +246,8 @@ def week_summary(root: str | Path, symbol: str, t0_ms: int, t1_ms: int) -> dict 
     return {"symbol": symbol, **aggregate(reps, missing), "mb_per_day": disk["mb_per_day_total"],
             "projection_30d_gb": round(disk["mb_per_day_total"] * 30 / 1000, 2),
             "t78_window": hft_window.window(reps, last_auditable(now_s) - 1,
-                                            hft_window.load_maint(root, symbol))}
+                                            hft_window.load_maint(root, symbol),
+                                            blind_hours=blind_hours(root, now_s))}
 
 
 def maintain(root: str | Path, symbol: str, now_s: float, keep_days: int = KEEP_DAYS) -> dict:
