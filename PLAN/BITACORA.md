@@ -1101,3 +1101,11 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** nueva semana de medición de `leaders.duckdb` hasta el 2026-11-17 02:29 UTC; comprobar que la primera poda en marcha (a los 30 min) y, cuando toque, la salida para compactar funcionan solas. Por qué la tarea del vigilante del conjunto no levantó los líderes queda para T148.
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T141.
 - **Siguiente paso:** T148 y, el 2026-11-17, cerrar T128 con la medición.
+
+## 2026-11-10 04:25 UTC · juanpablo-cpu · T143 desplegada como corrida aparte
+- **Pedido del usuario:** «Sí, despliégala».
+- **Hecho:** PR #243 fusionado (`0d84326`) y `main` traído a la carpeta principal. `EIM_PAPER_VARIANTS=t143` fijada como variable de usuario (`servicio_continuo.ps1` copia las `EIM_*`). `detener_servicio.ps1` sin `-Todo` (04:17:26 UTC: vigilante, API, líderes e interfaz; la captura siguió, así que no se declaró mantenimiento) y `servicio_continuo.ps1 -ConWeb`. Las dos vistas respondieron 200 a las 04:19:47.
+- **Comprobado:** T31 sin cambios: la puerta está apagada y opera en los tres marcos. En `t143`, la sombra mide 15 m a 0,387 R y 1 h a 0,159 R (los dos fuera) y 4 h a 0,083 R (opera). La API pasó de 1 933 a 2 433 MB, con 3,9 GB libres. `data/paper_t143.duckdb` creada y latido `heartbeat_t143.json` al día.
+- **Visto:** 1 h sale por el costo de toda la sombra (0,159 R), aunque en el libro vivido de perfiles costaba 0,127 R. Anotado en BACKLOG T143 (4) para decidirlo con el usuario.
+- **En curso:** T31 (hasta el 2026-11-27), T143 en su corrida aparte, T78, T104, T116, T128, T135 y T141.
+- **Siguiente paso:** al cerrar T31, comparar las dos corridas con la contabilidad de T144.
