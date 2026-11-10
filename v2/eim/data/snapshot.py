@@ -14,6 +14,28 @@ from eim.data.micro import read_micro
 from eim.data.store import Store
 from eim.data.timeframes import TF_MS, tf_ms
 
+HOUR_MS = 3_600_000
+
+
+def _level_series(store: Store, kind: str, symbol: str, timeframe: str, lo: int, end: int,
+                  sources: dict, coverage: dict) -> list | None:
+    """Serie de nivel (OI, long/short, basis) del marco; si el marco no tiene y es múltiplo de 1 h,
+    los puntos de 1 h que caen en su frontera (T120: el ciclo solo sincroniza 1 h y en 4 h
+    `derivatives` salía siempre «sin datos»). Son niveles, no sumas: muestrear no inventa nada, y
+    `sources` lo dice. Nunca se rellena hacia abajo (15 m sigue sin dato)."""
+    step = tf_ms(timeframe)
+    rows = store.read_series(kind, symbol, timeframe, start=lo, end=end) or None
+    src_tf = timeframe
+    if rows is None and step > HOUR_MS and step % HOUR_MS == 0:
+        rows = [r for r in store.read_series(kind, symbol, "1h", start=lo, end=end)
+                if r[0] % step == 0] or None
+        src_tf = "1h"
+    if rows:
+        src = store.source(kind, symbol, src_tf) or "desconocida"
+        sources[kind] = src if src_tf == timeframe else f"{src} (muestreo de 1h)"
+        coverage[kind] = (rows[0][0], rows[-1][0])
+    return rows
+
 
 def build_snapshot(
     store: Store, symbol: str, timeframe: str, n: int, asof: int | None = None
@@ -40,14 +62,11 @@ def build_snapshot(
         coverage["candles"] = (lo, hi)
         end = min(asof, hi + step)
         funding = store.read_series("funding", symbol, start=lo, end=end) or None
-        oi = store.read_series("open_interest", symbol, timeframe, start=lo, end=end) or None
-        ls = store.read_series("long_short_ratio", symbol, timeframe, start=lo, end=end) or None
-        basis = store.read_series("basis", symbol, timeframe, start=lo, end=end) or None
-        for name, series, tf in (("funding", funding, "-"), ("open_interest", oi, timeframe),
-                                 ("long_short_ratio", ls, timeframe), ("basis", basis, timeframe)):
-            if series:
-                sources[name] = store.source(name, symbol, tf) or "desconocida"
-                coverage[name] = (series[0][0], series[-1][0])
+        if funding:
+            sources["funding"] = store.source("funding", symbol, "-") or "desconocida"
+            coverage["funding"] = (funding[0][0], funding[-1][0])
+        oi, ls, basis = (_level_series(store, k, symbol, timeframe, lo, end, sources, coverage)
+                         for k in ("open_interest", "long_short_ratio", "basis"))
         bars, book = read_micro(store.root, symbol, lo, step, (hi - lo) // step + 1)
         if bars:
             micro = bars

@@ -1,4 +1,4 @@
-import { degradedLabel, noDataLabel } from './no_data_label'
+import { collectorLabel, degradedLabel, noDataLabel } from './no_data_label'
 import { orb } from './agent_orbs'
 import { filterBar, type Filter, loadFilter, matches, roleTag, saveFilter, votes } from './agent_roles'
 import type { ArbPayload } from './arb_types'
@@ -83,7 +83,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   const rows: Row[] = ids.map((id) => {
     const r = byId.get(id)
     const live = !!r && r.status !== 'no_data'
-    return { id, bias: live ? r!.bias : 0, conf: live ? r!.confidence : 0, live, votes: votes(id, infos, synthesis), why: live ? '' : noDataLabel(r?.warnings), deg: live ? degradedLabel(r!.status, r!.warnings) : '' }
+    return { id, bias: live ? r!.bias : 0, conf: live ? r!.confidence : 0, live, votes: votes(id, infos, synthesis), why: live ? '' : collectorLabel(id) || noDataLabel(r?.warnings), deg: live ? collectorLabel(id) || degradedLabel(r!.status, r!.warnings) : '' }
   }).sort((a, b) => b.bias - a.bias)
   const n = rows.length
   const showSat = filter === 'todos' || filter === 'carril'
