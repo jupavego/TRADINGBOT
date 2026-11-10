@@ -117,7 +117,9 @@ class Watchdog:
                  sleep: Callable[[float], None] = time.sleep,
                  notify: Callable[[Alert], None] | None = None,
                  title: str = "Servicio reiniciado", port_probe: Probe | None = None,
-                 port_grace_s: float = GRACE_S, port_lost_s: float = LOST_S) -> None:
+                 port_grace_s: float = GRACE_S, port_lost_s: float = LOST_S,
+                 planned_rc: int | None = None,
+                 on_planned: Callable[[], None] | None = None) -> None:
         self.cmd, self.env, self.hb, self.log, self.title = cmd, env, heartbeat, log, title
         self.stale_s, self.check_s = stale_s, check_s
         self.max_backoff_s, self.healthy_s = max_backoff_s, healthy_s
@@ -126,6 +128,10 @@ class Watchdog:
         self._notify = notify if notify is not None else WindowsToast()
         self.port_probe, self.port_grace_s, self.port_lost_s = port_probe, port_grace_s, port_lost_s
         self.restarts = 0
+        # Salida pedida por el propio servicio (T128: compactar la base): no es una caída, no
+        # avisa ni espera; se hace `on_planned` y se relanza.
+        self.planned_rc, self.on_planned, self.planned = planned_rc, on_planned, 0
+        self.last_rc: int | None = None
 
     def _stop(self, proc) -> None:
         proc.terminate()
@@ -146,6 +152,7 @@ class Watchdog:
             self._sleep(self.check_s)
             rc = proc.poll()
             if rc is not None:
+                self.last_rc = rc
                 return f"el proceso terminó (código {rc})"
             if (hb := heartbeat_t(self.hb)) is not None:
                 last = max(last, hb / 1000)
@@ -156,11 +163,22 @@ class Watchdog:
                 self._stop(proc)
                 return why
 
+    def _planned_restart(self) -> None:
+        self.planned += 1
+        self.log.write("reinicio_planificado", code=self.last_rc, veces=self.planned)
+        if self.on_planned is None:
+            return
+        try:
+            self.on_planned()
+        except Exception as exc:  # noqa: BLE001 - el mantenimiento nunca impide relanzar
+            self.log.write("mantenimiento_fallido", "error", error=f"{type(exc).__name__}: {exc}")
+
     def run(self, max_starts: int | None = None) -> None:
         fails, n = 0, 0
         while max_starts is None or n < max_starts:
             n += 1
             t0 = self._clock()
+            self.last_rc = None
             self.log.write("proceso_lanzado", cmd=" ".join(self.cmd), intento=n)
             proc = self._spawn(self.cmd, self.env)
             try:
@@ -169,6 +187,9 @@ class Watchdog:
                 proc.terminate()
                 self.log.write("vigilante_detenido", reason="interrupción del usuario")
                 return
+            if self.planned_rc is not None and self.last_rc == self.planned_rc:
+                self._planned_restart()
+                continue
             fails = 0 if self._clock() - t0 >= self.healthy_s else fails + 1
             wait = min(self.max_backoff_s, 5.0 * 2 ** fails)
             self.restarts += 1

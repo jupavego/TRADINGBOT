@@ -5,6 +5,8 @@
   parámetros y versión de formato se plegó.
 - `leader_archive_trips`: cada viaje archivado con todos sus campos y su seguidor plegado
   (`f_*`; los deslizamientos por pata, en una lista de DOUBLE). Sin pickle: columnas y JSON.
+  El viaje que seguía abierto en el corte (`SymbolBase.open`) va con `seq = -1` y se reescribe
+  en cada poda; no cuenta en `n_trips`. Un archivo de antes no tiene esa fila: sigue valiendo.
 
 Las escribe la poda (`leader_prune.py`) en la misma transacción que borra el detalle; las lee
 la evaluación (`leader_fold_io.py`) con el mismo cursor que las ejecuciones. No viajan en la
@@ -25,6 +27,7 @@ from eim.copytrading.trip_fold import FoldTrip, SymbolBase
 
 VERSION = 1
 CHUNK = 5_000
+OPEN_SEQ = -1  # el viaje abierto en el corte
 ARCHIVE_DDL = """
 CREATE TABLE IF NOT EXISTS leader_archive (
     leader_id VARCHAR, symbol VARCHAR, cut_t BIGINT, prev DOUBLE, n BIGINT, taker_x BIGINT,
@@ -81,11 +84,15 @@ def load(cur, lid: str, p: ScoreParams) -> dict[str, SymbolBase]:
     if not heads:
         return {}
     trips: dict[str, list[FoldTrip]] = defaultdict(list)
-    cur.execute(f"SELECT symbol, {_TRIP_COLS}, {_F_COLS} FROM leader_archive_trips WHERE "
+    opened: dict[str, FoldTrip] = {}
+    cur.execute(f"SELECT symbol, seq, {_TRIP_COLS}, {_F_COLS} FROM leader_archive_trips WHERE "
                 "leader_id = ? ORDER BY symbol, seq", [lid])
     while batch := cur.fetchmany(CHUNK):
         for r in batch:
-            trips[r[0]].append(_trip(r[0], r[1:]))
+            if r[1] == OPEN_SEQ:
+                opened[r[0]] = _trip(r[0], r[2:])
+            else:
+                trips[r[0]].append(_trip(r[0], r[2:]))
     out, want = {}, params_of(p)
     for sym, cut_t, prev, n, tx, tn, lat, n_trips, params, version in heads:
         if version != VERSION:
@@ -96,7 +103,7 @@ def load(cur, lid: str, p: ScoreParams) -> dict[str, SymbolBase]:
             log.warning("archivo de %s/%s plegado con otros parámetros: %s", lid, sym, params)
         out[sym] = SymbolBase(sym, cut_t, prev, trips[sym], n, (tx, tn),
                               {ch: {int(ms): k for ms, k in h}
-                               for ch, h in json.loads(lat).items()})
+                               for ch, h in json.loads(lat).items()}, opened.get(sym))
     return out
 
 
@@ -109,16 +116,21 @@ def _row(lid: str, seq: int, tr: FoldTrip) -> tuple:
 def save(cur, lid: str, old: SymbolBase | None, new: SymbolBase, p: ScoreParams, now: int,
          chunk: int = 200) -> int:
     """Escribe la base nueva (solo los viajes que no estaban en `old`) dentro de la transacción
-    abierta en `cur`. Devuelve los viajes añadidos."""
+    abierta en `cur`. Devuelve los viajes cerrados añadidos (el abierto se reescribe aparte)."""
     lat = {ch: sorted(h.items()) for ch, h in sorted(new.latency.items())}
     cur.execute("INSERT OR REPLACE INTO leader_archive VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                 [lid, new.symbol, new.cut_t, new.prev, new.n, new.taker[0], new.taker[1],
                  json.dumps(lat), len(new.trips), json.dumps(params_of(p)), VERSION, now])
     start = len(old.trips) if old is not None else 0
     rows = [_row(lid, start + i, tr) for i, tr in enumerate(new.trips[start:])]
+    added = len(rows)
+    cur.execute("DELETE FROM leader_archive_trips WHERE leader_id = ? AND symbol = ? AND seq = ?",
+                [lid, new.symbol, OPEN_SEQ])
+    if new.open is not None:
+        rows.append(_row(lid, OPEN_SEQ, new.open))
     one = "(" + ", ".join("?" * len(rows[0])) + ")" if rows else ""
     for k in range(0, len(rows), chunk):
         part = rows[k:k + chunk]
         cur.execute(f"INSERT INTO leader_archive_trips ({_ALL_COLS}) VALUES "
                     + ", ".join([one] * len(part)), [x for r in part for x in r])
-    return len(rows)
+    return added

@@ -241,3 +241,35 @@ def test_watchdog_logs_stderr_tail_of_crashed_process(tmp_path):
     rec = [json.loads(line) for f in (tmp_path / "logs").glob("*.jsonl")
            for line in f.read_text(encoding="utf-8").splitlines()]
     assert any("puerto ocupado" in r.get("stderr_tail", "") for r in rec)
+
+
+def test_a_planned_exit_runs_the_maintenance_and_relaunches_without_alarm(tmp_path):
+    """T128: el servicio de líderes sale con su código para que se compacte la base; el
+    vigilante no lo cuenta como caída, no avisa ni espera, y un fallo del mantenimiento no
+    impide relanzar."""
+    import json
+
+    class Proc:
+        def __init__(self, rc):
+            self.rc, self.tail = rc, []
+
+        def poll(self):
+            return self.rc
+
+    procs, done, toasts, sleeps = [Proc(75), Proc(75), Proc(1)], [], [], []
+
+    def maintain():
+        done.append(1)
+        if len(done) == 2:
+            raise RuntimeError("base en uso")
+
+    log = JsonLog(tmp_path / "logs", lambda: 1)
+    wd = Watchdog(["x"], {}, tmp_path / "hb.json", log, check_s=0,
+                  spawn=lambda c, e: procs.pop(0), notify=toasts.append, sleep=sleeps.append,
+                  planned_rc=75, on_planned=maintain)
+    wd.run(max_starts=3)
+    assert len(done) == 2 and wd.planned == 2 and wd.restarts == 1 and len(toasts) == 1
+    rec = [json.loads(line)["event"] for f in (tmp_path / "logs").glob("*.jsonl")
+           for line in f.read_text(encoding="utf-8").splitlines()]
+    assert rec.count("reinicio_planificado") == 2 and "mantenimiento_fallido" in rec
+    assert rec.count("proceso_reiniciado") == 1
