@@ -43,6 +43,7 @@ Rutas relativas a `v2/` salvo indicación. Tamaños y filas medidos en `laptop-i
 | `data/paper.duckdb` | Bróker simulado: contextos por vela, ideas, operaciones con entrada/salida/SL/TP y costos, validación (intentos, ventanas, veredictos), sugerencias, protección, instantáneas del panel | 91 MB · 12 tablas · 49 066 filas | crítica | copia diaria + copia externa; experiencia (`paper_ctx`, `val_versions`, `val_windows`) |
 | `data/leaders.duckdb` | Capturas en vivo de líderes de Hyperliquid y copia simulada (**irrepetibles**: el exchange solo sirve las 10 000 ejecuciones más recientes). De los rechazados, 7 días de detalle y lo anterior archivado ya plegado (`leader_archive*`, T128) | 1 125 MB · 12 tablas · 5,17 M filas | crítica | copia diaria + copia externa; experiencia (`leader_*` salvo el archivo, `copy_journal`) |
 | `data/obs/obs.duckdb` | Observatorio (derivado del spool JSONL) | 10 tablas · 894 k filas | media | copia diaria + externa; reconstruible |
+| `data/video.duckdb` | Catálogo de video T64: canales, metadatos point-in-time de videos de YouTube (sin audio ni video), cola de relevancia, consultas y cuota de la Data API | pequeño | baja | aún no entra en la copia diaria (BACKLOG T64); se rehace con `python -m eim.video backfill` salvo `first_seen_at` |
 
 Las operaciones simuladas conservan sus registros originales (no resúmenes): entrada, salida,
 precios, horas UTC, SL/TP vigentes, costos y motivo de cierre están en `paper.duckdb` y
