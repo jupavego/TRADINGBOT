@@ -359,35 +359,65 @@ python -m eim.data.collectors.hft_ops --root data --requalify 2026-10-28T23 --ap
 
 Sin `--apply` solo dice qué cambiaría. Al reiniciar el vigilante deja de hacer falta.
 
-## 18. El vigilante del conjunto, parche provisional (T148)
+## 18. Apagón del conjunto: el vigilante, cómo se lee y de quién es la hora (T148)
 
-El 2026-11-09 los cinco servicios estuvieron parados 5 h 26 min sin que nada los levantara
-(`PLAN/notas/T148_apagon_2026-11-09.md`). Hasta que esté el entregable 1 de T148, hay una tarea
-programada que cubre lo peor:
+El 2026-11-09 los cinco servicios estuvieron parados **5 h 26 min** sin que nada los levantara, y el
+2026-11-10 a las 00:33:49 UTC volvió a pasar (esa vez el parche provisional los levantó en ~5 min).
+Ninguno de los dos tiene causa atribuible (`PLAN/notas/T148_apagon_2026-11-09.md`). Los vigilantes
+de siempre solo relanzan a sus hijos; si mueren ellos, solo queda este.
+
+**Qué hace.** La tarea programada `EIM - vigilante del conjunto` corre cada **5 min**
+`v2\scripts\vigilante_conjunto.ps1` → `python -m eim.operation.fleet_watch check`. Mira los cinco
+latidos (`operation/`, `paper/`, `leaders/`, `micro_hft/heartbeat.json` y la última muestra de
+`data/usage/`) y, si alguno lleva **10 min** sin señal, corre `servicio_continuo.ps1` **sin
+`-ConWeb`** (solo los servicios de datos; decisión del usuario). Si el arranque falla: hasta **4
+intentos** con espera creciente (0, 5, 15 y 30 min) y, agotados, aviso crítico y **6 h** sin volver a
+probar: un arranque roto no se arregla repitiéndolo. Avisa (registro de operación + notificación
+de Windows) al levantar, al fallar, al rendirse y al volver.
+
+**Instalarlo** (desde la carpeta principal, en `main`; retira el parche provisional
+`EIM - vigilante del conjunto (T148)` si sigue registrado):
 
 ```
-EIM - vigilante del conjunto (T148)
+powershell -ExecutionPolicy Bypass -File v2\scripts\instalar_inicio_automatico.ps1 -Vigilante
 ```
 
-Cada **10 minutos** corre `v2\scripts\servicio_continuo.ps1` **sin `-ConWeb`**: solo los servicios
-de datos, no la interfaz. El script es idempotente, así que con todo en pie no hace nada y no
-duplica. Comprobar que está y cuándo corrió:
+**Comprobar que está instalado y vivo:**
 
 ```
-powershell -Command "Get-ScheduledTaskInfo -TaskName 'EIM - vigilante del conjunto (T148)'"
+powershell -Command "Get-ScheduledTaskInfo -TaskName 'EIM - vigilante del conjunto'"
+python -m eim.operation.fleet_watch status --data-dir data
 ```
 
-`LastTaskResult` 0 es correcto. Quitarla:
+`LastRunTime` de hace menos de 5 min y `LastTaskResult` 0 = vivo y todo en pie (1 = sigue caído y
+hay que mirarlo; 267009 = la pasada estaba corriendo). `status` da la edad de cada latido y el
+estado entre pasadas (`data/operation/fleet_watch.json`: intentos, desde cuándo está caído, si se
+rindió). Cada pasada deja una línea en `data/operation/logs/fleet_watch.out.log`, y cada
+intervención un evento `conjunto_levantar` / `conjunto_recuperado` / `conjunto_rendirse` en
+`op-*.jsonl`. Probarlo sin levantar nada: `vigilante_conjunto.ps1 -DryRun`.
+
+**Si se rindió** (aviso «El EIM sigue caído y hay que mirarlo a mano»): leer `detail` en el último
+`conjunto_levantar` (las últimas líneas de `servicio_continuo.ps1`), arreglar y arrancar a mano con
+`servicio_continuo.ps1`; la siguiente pasada ve los latidos, avisa «Resuelta» y olvida los intentos.
+Quitar la tarea: el mismo instalador con `-Vigilante -Quitar`. Para parar el EIM a propósito más
+de 10 min, quitarla antes o el vigilante lo volverá a levantar (`detener_servicio.ps1` no la toca).
+
+**Leer un apagón en `usage incidents`.** El registro de consumo muere con los demás, así que un
+apagón se declara por su **ausencia**: un hueco de ≥ 240 s entre muestras sale como
+`apagon_registro`, con `dur_s` y `edges.last_before` / `edges.first_after` (cómo estaba el equipo
+justo antes y justo después; `first_after` a null = sigue callado). `usage summary` da por día
+`coverage` (fracción del día realmente medida), `blind_s` y la lista `gaps`: un día con
+`coverage` 0,77 no está medido entero.
 
 ```
-powershell -Command "Unregister-ScheduledTask -TaskName 'EIM - vigilante del conjunto (T148)' -Confirm:$false"
+python -m eim.operation.usage incidents --days 2 --data-dir data
+python -m eim.operation.usage summary --days 2 --data-dir data
 ```
 
-**Lo que este parche NO hace**, y sí hará T148: no avisa a nadie, no deja constancia de cuánto
-estuvo caído cada servicio, no tiene tope de intentos si el arranque falla, y **no está en
-`instalar_inicio_automatico.ps1`**, así que un equipo nuevo no la tendría. Tampoco corre con la
-sesión de Windows cerrada: para eso está la tarea `EIM - servicio continuo al encender`.
+**De quién es la hora.** Una hora de captura incompleta es **nuestra**, aunque sus últimas marcas
+digan `silencio`, si tiene **≥ 120 s perdidos que ningún tramo marcado explica** (el proceso murió y
+nadie anotó nada), si cae en un hueco del registro de consumo o si no tiene JSON de QC. Lo lee
+`hft_ops --window` (`attribution`, y `motivo` en cada hora incompleta de la ventana).
 
-**No confundir con un apagón previsto.** Las horas de un apagón imprevisto **no se declaran** como
-mantenimiento (§17): ese mecanismo es para cortes que se deciden antes.
-
+**Las horas de un apagón NO se declaran como mantenimiento** (§17). El mantenimiento es para cortes
+previstos y decididos antes; declarar uno imprevisto a posteriori es falsear la ventana de T78.
