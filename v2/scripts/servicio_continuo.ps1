@@ -298,5 +298,14 @@ if ((Get-Process -Id $PID).SessionId -ne 0) {
     ("`"" + (Join-Path $PSScriptRoot "icono_bandeja.ps1") + "`"")) -WindowStyle Hidden
 }
 
+# T120: arranque comprobable. Lo que ya corría se adopta solo si corre desde ESTA carpeta; si un
+# latido dice otro checkout (un worktree, una copia vieja) se avisa claro y no se lanza encima un
+# duplicado. Los que acaban de lanzarse tardan ~1 min en dar su primer latido.
+Push-Location $v2
+try { & $py -m eim.operation.components --data-dir "$DataDir" --expect "$v2" } finally { Pop-Location }
+if ($LASTEXITCODE -eq 3) {
+  Write-Warning "Hay servicios corriendo desde otra carpeta (ver AVISO arriba): esta carpeta no los adopta. Detenlos con detener_servicio.ps1 -Todo y vuelve a lanzar este script."
+}
+
 Write-Host "Registros: $logs · latido del bróker: $(Join-Path $DataDir 'paper\heartbeat.json') · latido de líderes: $(Join-Path $DataDir 'leaders\heartbeat.json')"
 try { $turno.ReleaseMutex() } catch { }

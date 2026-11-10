@@ -6,7 +6,9 @@ Un solo vigilante por carpeta de datos (cerrojo `micro/supervisor.lock`); relanz
 `eim.data.collectors.binance_ws` si muere o si su latido (`micro/heartbeat.json`) se detiene, con
 espera creciente. Cada minuto comprueba salud y disco y avisa en local (registro + notificación);
 cada hora poda los diffs de profundidad más viejos que `--depth-keep-days`. Un fallo de ese
-mantenimiento se registra (`mantenimiento_fallido`) sin detener la vigilancia. Solo datos públicos.
+mantenimiento se registra (`mantenimiento_fallido`) sin detener la vigilancia. Si la unidad de datos
+desaparece (T120), detiene el recolector con un aviso (`en_pausa`) y lo relanza solo al volver
+(`reanudado`), sin contar reinicios ni dejar trazas. Solo datos públicos.
 """
 
 from __future__ import annotations
@@ -56,6 +58,8 @@ class Maintenance:
                 self._safe("poda", now, self.prune)
 
     def prune(self, now: float) -> None:
+        if health.drive_missing(self.root):    # T120: sin unidad no hay nada que podar ni medir
+            return
         n = health.prune_depth(self.root, self.keep_days, now)
         if n:
             self.log.write("poda_profundidad", dias_borrados=n, conserva_dias=self.keep_days)
@@ -119,7 +123,8 @@ def supervise(root: str | Path, symbol: str, keep_days: int = health.DEPTH_KEEP_
         log.write("vigilante_iniciado", symbol=symbol.upper(), arranque_ms=int(time.time() * 1000))
         make_watchdog(cmd, dict(os.environ), mdir / health.hb_name(symbol), log,
                       stale_s=health.STALE_S, check_s=15.0, sleep=sleep,
-                      title=f"{label}: recolector reiniciado").run()
+                      title=f"{label}: recolector reiniciado",
+                      hold=lambda: health.drive_missing(root)).run()
         return f"vigilante de {label.lower()} detenido"
     finally:
         lock.close()

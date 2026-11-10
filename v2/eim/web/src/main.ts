@@ -9,7 +9,7 @@ import { SquadPanel } from './squad_ui'
 import './paper.css'
 import './obs.css'
 import './obs_trace.css'
-import { fetchAgents, fetchAsofs, fetchJournal, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, symbolPicker, TIMEFRAMES, type StreamHandle } from './api'
+import { fetchAgents, fetchAsofs, fetchJournal, fetchMicroStatus, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, symbolPicker, TIMEFRAMES, type StreamHandle } from './api'
 import { PriceChart } from './chart'
 import { refreshArbitrage, renderRiver } from './river'
 import { latestPerAgent, renderJournal } from './panels'
@@ -29,6 +29,7 @@ import { LeadersPanel } from './leaders_ui'
 import { PaperView } from './paper_view'
 import { ObsView } from './obs_view'
 import { setCalendarClock } from './event_clock'
+import { setCollectorState } from './no_data_label'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
 import { bogIso } from './tz'
 
@@ -122,6 +123,11 @@ async function loadAgents(signal: AbortSignal): Promise<void> {
       fetchSynthesis(symbol, tf, signal),
     ])
     infos = i; journal = r; latest = latestPerAgent(r); synthesis = s.synthesis
+    // T120: el estado del recolector manda sobre el motivo del agente (sin él, no se inventa nada)
+    setCollectorState('microstructure', await fetchMicroStatus(symbol, signal).catch((e) => {
+      if ((e as Error).name === 'AbortError') throw e
+      return null
+    }))
   } catch (e) {
     if ((e as Error).name === 'AbortError') return
     infos = []; latest = []; journal = []; synthesis = null

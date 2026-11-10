@@ -144,6 +144,17 @@ class CachedContextAnalyzer:
                 self._last = (self._clock(), out)
         return out
 
+    def problem(self) -> str | None:
+        """Por qué no hay resultado ahora (T120), con el prefijo que distingue la esfera: el motor
+        no responde (`motor de contexto caído`) o aún calcula el primero (`... calculando`)."""
+        with self._lock:
+            busy = self._busy is not None
+        if inner := getattr(self.inner, "last_problem", None):
+            return f"motor de contexto caído: {inner}"
+        if busy:
+            return "motor de contexto calculando: el primer análisis tarda minutos en CPU"
+        return None
+
     def _bg(self, key: tuple[str, ...], items: list[NewsItem]) -> None:
         try:
             self._compute(key, items)

@@ -62,6 +62,9 @@ class WindowsToast:
         self._spawn(["powershell", "-NoProfile", "-NonInteractive", "-EncodedCommand", code])
 
 
+PENDING_MAX = 1000
+
+
 class JsonLog:
     """Registro estructurado: un archivo JSONL por día UTC en `root` (rotación natural)."""
 
@@ -71,6 +74,7 @@ class JsonLog:
         self._clock = clock or (lambda: int(time.time() * 1000))
         self._lock = threading.Lock()
         self._echo = echo
+        self._pending: list[tuple[Path, str]] = []
 
     def path_for(self, t: int) -> Path:
         return self.root / f"op-{time.strftime('%Y-%m-%d', time.gmtime(t / 1000))}.jsonl"
@@ -81,9 +85,19 @@ class JsonLog:
                "level": level, "event": event, **fields}
         line = json.dumps(row, ensure_ascii=False, default=str)
         with self._lock:
-            self.root.mkdir(parents=True, exist_ok=True)
-            with self.path_for(t).open("a", encoding="utf-8") as f:
-                f.write(line + "\n")
+            # T120: si la unidad del registro desaparece, las líneas esperan en memoria (las
+            # últimas `PENDING_MAX`) y se escriben al volver: ni traza ni hueco en el registro.
+            self._pending.append((self.path_for(t), line))
+            del self._pending[:-PENDING_MAX]
+            try:
+                self.root.mkdir(parents=True, exist_ok=True)
+                while self._pending:
+                    path, pending = self._pending[0]
+                    with path.open("a", encoding="utf-8") as f:
+                        f.write(pending + "\n")
+                    self._pending.pop(0)
+            except OSError:
+                pass
         if self._echo:
             print(line, flush=True)
         return row

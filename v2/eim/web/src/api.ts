@@ -1,3 +1,4 @@
+import type { CollectorState } from './no_data_label'
 import type { SquadPayload } from './squad_types'
 import type { CopyPayload } from './copy_view'
 import type { AgentInfo, Overlay, AgentReport, Snapshot, StreamMsg, Decision, Trade, Replay, ForecastSet, Synthesis } from './types'
@@ -49,6 +50,10 @@ export const fetchReports = (
   symbol: string, tf: string, limit = 100, signal?: AbortSignal,
 ): Promise<AgentReport[]> =>
   getJson(`/v2/reports?symbol=${symbol}&tf=${tf}&limit=${limit}`, signal)
+
+/** Estado del recolector de microestructura (T120): la misma tabla que el vigilante y el RUNBOOK. */
+export const fetchMicroStatus = (symbol: string, signal?: AbortSignal): Promise<CollectorState> =>
+  getJson(`/v2/micro/status?symbol=${symbol}&disk=false`, signal)
 
 export const fetchOverlays = (symbol: string, tf: string, signal?: AbortSignal): Promise<Overlay[]> =>
   getJson(`/v2/overlays?symbol=${symbol}&tf=${tf}`, signal)

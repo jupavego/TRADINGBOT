@@ -26,6 +26,11 @@ from eim.agents.context.params import ContextParams
 from eim.agents.context.schema import ContextOutput
 from eim.core import AgentReport, MarketSnapshot, NewsItem
 
+# T120: prefijos de motivo que la esfera distingue (`web/src/no_data_label.ts`).
+NO_ENGINE = "sin motor de contexto"
+ENGINE_BUSY = "motor de contexto calculando"
+ENGINE_DOWN = "motor de contexto caído"
+
 Analyzer = Callable[[list[NewsItem]], "ContextOutput | dict[str, Any] | None"]
 _CTRL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f​-‏‪-‮]")
 
@@ -65,21 +70,24 @@ class ContextAgent:
     def run(self, snapshot: MarketSnapshot) -> AgentReport:
         p = self.params
         warnings: list[str] = []
-        if self.analyzer is None:
-            return self._no_data(snapshot, warnings, self.unavailable
-                                 or "sin analizador LLM configurado (clave/red no disponibles)")
+        if self.analyzer is None:   # T120: falta el motor, no las noticias
+            return self._no_data(snapshot, warnings, f"{NO_ENGINE}: " + (
+                self.unavailable or "ni Ollama (EIM_CONTEXT_LLM=local) ni ANTHROPIC_API_KEY en "
+                "este equipo; no es falta de noticias"))
         items = self._clean(snapshot, warnings)
         if len(items) < p.min_headlines:
             return self._no_data(snapshot, warnings,
                                  f"titulares insuficientes ({len(items)}/{p.min_headlines})")
         try:
             raw = self.analyzer(items)
-            if raw is None:
-                raise ValueError("el analizador no devolvió resultado")
+            if raw is None:   # T120: el analizador dice si calcula aún o si el motor no responde
+                problem = getattr(self.analyzer, "problem", None)
+                why = problem() if callable(problem) else None
+                return self._no_data(snapshot, warnings, why or f"{ENGINE_DOWN}: sin respuesta")
             out = raw if isinstance(raw, ContextOutput) else ContextOutput.model_validate(raw)
         except (ValidationError, ValueError, OSError, RuntimeError) as e:
             return self._no_data(snapshot, warnings,
-                                 f"LLM no disponible o salida inválida: {type(e).__name__}")
+                                 f"{ENGINE_DOWN}: salida inválida o error ({type(e).__name__})")
 
         by_id = {n.id: n for n in items}
         claims = [c for c in out.catalizadores if c.fuente in by_id]
@@ -92,7 +100,8 @@ class ContextAgent:
             warnings.append("riesgo de evento alto: se recomienda pausa por evento")
         status = "ok" if len(claims) >= p.min_valid_claims else "degraded"
         if status == "degraded":
-            warnings.append("sin catalizadores con fuente válida: contexto no verificable")
+            warnings.append("sin catalizadores con fuente válida: el motor respondió, pero ningún "
+                            "titular sostiene un catalizador citable (no es el motor caído)")
         conf = min(p.max_confidence, len(sources) / len(items) + 0.2) if sources else 0.0
         return AgentReport(
             agent_id=self.id, version=self.version, asof=snapshot.asof,

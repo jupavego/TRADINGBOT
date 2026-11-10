@@ -57,7 +57,9 @@ from eim.data.timeframes import SYMBOLS, TF_MS
 from eim.data.validation_store import ValidationStore
 from eim.observability.emit import configure
 from eim.operation.alerts import AlertCenter
+from eim.operation.components import components
 from eim.operation.cycle import OperationParams
+from eim.operation.origin import CHECKOUT, STARTED_MS
 from eim.operation.priority import apply_role
 from eim.operation.supervisor import Operation, Supervisor
 from eim.operation.task_watch import watch_supervisor
@@ -264,9 +266,12 @@ def create_app(
 
     @app.get("/v2/health")
     def health() -> dict:
+        # T120: qué componentes están vivos, desde qué checkout y desde cuándo (y el de la API)
         return {"status": "ok", "version": API_VERSION, "now": int(time.time() * 1000),
                 "agents": len(reg.ids()), "live_source": src.name, "mode": runtime.mode.value,
-                "operation": op.status["state"] if op is not None else "apagado"}
+                "operation": op.status["state"] if op is not None else "apagado",
+                "checkout": CHECKOUT, "started_at": STARTED_MS,
+                "components": components(cfg.data_dir)}
 
     @app.get("/v2/snapshot")
     def snapshot(symbol: str = "ETHUSDT", tf: str = "1h", n: int = Query(500, ge=1, le=5000)):
