@@ -210,3 +210,61 @@ def test_copy_replay_starts_after_the_last_cut(tmp_path):
     assert [f.kind for f in res.engine.fills] == ["open", "close", "open", "close"]
     assert any("podado" in w for w in res.warnings)
     store.close()
+
+
+def test_a_leader_that_never_goes_flat_is_pruned_and_scores_the_same(tmp_path):
+    """El caso que dejó crecer la base del 3 al 10 de noviembre: con una posición siempre abierta
+    la poda no cortaba nunca. Ahora corta, archiva el viaje abierto y la evaluación no cambia."""
+    from types import SimpleNamespace
+    fills, pos = [], 0.0
+    for i in range(400):
+        nxt = 1.0 + (i * 7919 % 5)  # 1..5: nunca plana
+        fills.append(H.fill("BTC", pos, nxt, 60_000.0 + (i % 17) * 3, H.T0 + i * 60_000, i + 1,
+                            fee=0.5))
+        pos = nxt
+    q = H.quotes(fills)
+    s = SimpleNamespace(fills=fills, quotes=[(x.follow_at, x) for x in q.values()], funding=[])
+    end = H.T0 + 400 * 60_000
+    ref, store, cache = _store(tmp_path / "ref"), _store(tmp_path / "pod"), EvalCache(P)
+    _feed(ref, s, H.T0 - 1, end)
+    _feed(store, s, H.T0 - 1, end)
+    got = prune(store, end, P, keep_ms=KEEP, max_rows=50)[H.LID]
+    assert got.fills > 0.85 * len(fills) and got.quotes > 0.85 * len(fills)
+    (opened,) = store.query("SELECT side, pos FROM leader_archive_trips WHERE seq = -1")
+    assert opened[0] == "long" and opened[1] > 0
+    _check(ref, store, cache, end)
+    assert evaluate(store, end, P, record=False, cache=EvalCache(P)).model_dump() == \
+        evaluate(ref, end, P, record=False).model_dump()
+    assert prune(store, end, P, keep_ms=KEEP) == {}  # nada nuevo
+    assert store.query("SELECT count(*) FROM leader_archive_trips WHERE seq = -1") == [(1,)]
+
+
+def test_service_asks_to_compact_after_pruning_only_when_it_pays(tmp_path, monkeypatch):
+    """T128: con la base abierta DuckDB no encoge el archivo; si la poda deja más del 30 %
+    libre, el servicio para su bucle y marca la salida para que el vigilante compacte."""
+    from eim.data import leader_service as svc_mod
+    s = stream(n=300, seed=13)
+    store = _store(tmp_path)
+    _feed(store, s, H.T0 - 1, s.end)
+    now = s.end + KEEP_MS
+    store.save_portfolio(H.LID, now, [])
+    svc = LeaderService(store, FakeInfo([]), [], root=tmp_path, clock=lambda: now,
+                        quote_coins=[], first_prune_s=0.0)
+    svc._stop = asyncio.Event()
+    assert svc_mod.free_share(store) is None  # base pequeña: no compensa
+    monkeypatch.setattr(svc_mod, "free_share", lambda st: 0.42)
+    asyncio.run(svc._safe("tareas extra", svc.extra_jobs()))
+    assert svc.compact_wanted and svc._stop.is_set() and not svc.errors
+    assert svc_mod.free_share(store) == 0.42
+    assert svc_mod.COMPACT_EXIT not in (0, 1)
+    store.close()
+
+
+def test_free_share_follows_the_compact_thresholds(tmp_path):
+    from eim.data.leader_service import free_share
+    store = _store(tmp_path)
+    store.query("CHECKPOINT")  # una base recién creada aún no tiene bloques en el archivo
+    assert free_share(store, min_free=0.0, min_bytes=0) is not None
+    assert free_share(store, min_free=1.01, min_bytes=0) is None
+    assert free_share(store, min_free=0.0, min_bytes=2**40) is None
+    store.close()

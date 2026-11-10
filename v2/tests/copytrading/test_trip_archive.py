@@ -1,6 +1,7 @@
 """Archivo de lo viejo de un líder (T128, puro): arrancar el plegado desde lo archivado y
 aplicar solo lo posterior da lo mismo que `build_trips` + `copy_stats` sobre todo el
-historial, corte donde se corte; y solo se corta con la posición plana y todo definitivo."""
+historial, corte donde se corte; se corta con la posición abierta o no (el viaje abierto se
+archiva plegado), pero solo con todo definitivo."""
 
 from __future__ import annotations
 
@@ -55,12 +56,15 @@ def test_resuming_from_the_archive_equals_the_full_history_at_any_cut():
     trips = build_trips(s.fills, s.funding, P.avg_down_tol)
     start = H.T0 + 40 * 60_000
     want = copy_stats(forward_trips(trips, start), s.fills, quotes, P)
-    archived = 0
+    archived, opened = 0, 0
     for frac in (0.1, 0.35, 0.6, 0.9, 1.0):
         limit = H.T0 + int((s.end - H.T0) * frac)
         bases = _bases(rows, limit, s.end)
-        for b in bases.values():  # cada corte deja la moneda plana y sin patas pendientes
-            assert b.cut_t <= limit and abs(b.prev) < 1e-9 and all(not tr.legs for tr in b.trips)
+        for b in bases.values():  # cada corte deja todo plegado: ninguna pata pendiente
+            assert b.cut_t <= limit and all(not tr.legs for tr in b.trips)
+            assert (b.open is None) == (abs(b.prev) < 1e-9)
+            assert b.open is None or not b.open.legs
+            opened += b.open is not None
         archived = max(archived, sum(b.n for b in bases.values()))
         fold = _resumed(rows, bases, s.end)
         got_trips = fold.trips(s.funding)
@@ -69,6 +73,7 @@ def test_resuming_from_the_archive_equals_the_full_history_at_any_cut():
         got = fold.copy_stats(forward_trips(got_trips, start))
         assert got.model_dump() == want.model_dump(), frac
     assert archived > 0.8 * len(rows)
+    assert opened  # la prueba pasa también por cortes con la posición abierta
 
 
 def test_batches_reach_the_same_archive_as_one_pass():
@@ -84,7 +89,7 @@ def test_batches_reach_the_same_archive_as_one_pass():
         _same_trips(a.trips, b.trips)
 
 
-def test_only_cuts_flat_and_final():
+def test_cuts_with_an_open_position_but_only_final():
     op = H.fill("BTC", 0.0, 2.0, 100.0, H.T0, 1)
     up = H.fill("BTC", 2.0, 3.0, 101.0, H.T0 + 1_000, 2)
     cl = H.fill("BTC", 3.0, 0.0, 102.0, H.T0 + 2_000, 3, pnl=5.0)
@@ -92,11 +97,37 @@ def test_only_cuts_flat_and_final():
     quotes = H.quotes([op, up, cl, op2])
     rows = [_row(f, quotes[(f.tid, f.oid)]) for f in (op, up, cl, op2)]
     base = advance(None, "BTC", rows, H.T0, P)
-    assert base.cut_t == cl.t and base.prev == 0.0 and len(base.trips) == 1  # no en la abierta
-    assert base.trips[0].follow.quoted == 3 and base.n == 3
-    bare = [_row(f) for f in (op, up, cl)]  # sin cotización y aún podría llegar: no se corta
-    assert advance(None, "BTC", bare, cl.observed_at - 1, P) is None
+    assert base.cut_t == op2.t and base.prev == -1.0 and len(base.trips) == 1
+    assert base.open.side == "short" and base.open.follow.quoted == 1 and not base.open.legs
+    assert base.trips[0].follow.quoted == 3 and base.n == 4
+    bare = [_row(f) for f in (op, up, cl)]  # sin cotización: la del cierre aún podría llegar
+    got = advance(None, "BTC", bare, cl.observed_at - 1, P)
+    assert got.cut_t == up.t and got.open.follow.ok is False and got.n == 2  # no en el cierre
+    assert advance(None, "BTC", bare[:1], op.observed_at - 1, P) is None  # nada definitivo
     assert advance(None, "BTC", bare, cl.observed_at, P).cut_t == cl.t  # ya no llegará
+
+
+def test_a_leader_that_never_goes_flat_is_archived_and_resumes_the_same():
+    """El caso que dejaba crecer la base: la posición nunca vuelve a cero."""
+    fills, pos = [], 0.0
+    for i in range(300):
+        nxt = 1.0 + (i * 7919 % 5)  # 1..5, nunca 0
+        fills.append(H.fill("BTC", pos, nxt, 100.0 + (i % 13) * 0.5, H.T0 + i * 1_000, i + 1))
+        pos = nxt
+    quotes = H.quotes(fills)
+    rows = _sorted_rows(fills, quotes)
+    end = H.T0 + 400_000
+    trips = build_trips(fills, [], P.avg_down_tol)
+    for frac in (0.2, 0.5, 0.95):
+        limit = H.T0 + int(300_000 * frac)
+        bases = _bases(rows, limit, end, max_rows=37)
+        b = bases["BTC"]
+        assert b.open is not None and b.cut_t > H.T0 + int(300_000 * frac) - 2_000
+        fold = _resumed(rows, bases, end)
+        _same_trips(trips, fold.trips([]))
+        assert fold.n == len(rows)
+        assert fold.copy_stats(fold.trips([])).model_dump() == copy_stats(
+            trips, fills, quotes, P).model_dump()
 
 
 def test_counts_match_the_fold():

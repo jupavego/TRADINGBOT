@@ -1067,3 +1067,28 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** 349 pasadas en las suites tocadas (paper, execution, api, validation T139), ruff y tsc limpios. Gate completo por la cola: ver STATUS.
 - **Abierto:** desplegar (encender `EIM_PAPER_VARIANTS=t143` y reiniciar la API, con permiso y midiendo la RAM) y, al cerrar T31, comparar las dos corridas.
 - **Siguiente paso:** gate completo, PR y despliegue.
+## 2026-11-10 01:45 UTC · juanpablo-cpu · T128: la base de líderes seguía creciendo; poda por fecha y compactado en marcha
+- **Pedido del usuario:** «Sí, revisa T128» al terminar su semana de medición, y «Sí, arréglala» sobre la retención de líderes.
+- **Revisión:** la base NO quedó acotada. Copias de cada noche: datos de 1 172 a 1 781 MB del 3 al 10-nov (≈ 87 MB/día, todo de los 22 rechazados), archivo vivo en 2 764 MB. La poda solo cortaba con la posición plana: un líder que nunca la cierra no se podaba. Fuente nueva de microestructura y alertas «sin latido» (ninguna el 8-nov) cumplen; la CPU en reposo no tiene vara común con T126.
+- **Hecho (rama `claude/t128-retencion`):** corte por fecha con el viaje abierto archivado ya plegado (`SymbolBase.open`, fila `seq = -1` sin cambiar el esquema; la marca por grupo no copia los deslizamientos para no volverse cuadrática); compactado con el servicio en marcha (tras la poda, con > 30 % libre, sale con el código 75 y el vigilante compacta y relanza sin tratarlo como caída ni avisar). `leader_recon` (6 MB) no necesita retención; `leader_positions` se deja entera porque la leen la evaluación y la copia simulada (BACKLOG T128 (1)).
+- **Medido sobre una copia de la base del 10-nov** (por la cola, 8 min): ejecuciones 4 540 936 → 2 399 373, 81 viajes abiertos archivados, detalle de los rechazados desde el 2-nov, **tablero idéntico** y base compactada 1 781 → 1 205 MB. Nota `PLAN/notas/T128_retencion.md`.
+- **Archivos:** `v2/eim/copytrading/{trip_archive,trip_fold}.py`, `v2/eim/data/{leader_archive,leader_prune,leader_service}.py`, `v2/eim/leaders/cli.py`, `v2/eim/operation/watchdog.py`, `v2/tests/copytrading/test_trip_archive.py`, `v2/tests/data/test_leader_prune.py`, `v2/tests/leaders/test_cli.py`, `v2/tests/operation/test_units.py`, `PLAN/notas/T128_retencion.md`, `PLAN/{STATUS,BACKLOG,BITACORA}.md`.
+- **Pruebas:** 5 nuevas o reescritas (líder que nunca queda plano: pura y en la base, con tablero igual; corte con posición abierta solo con todo definitivo; salida para compactar solo cuando compensa; reinicio planificado del vigilante sin aviso y con fallo del mantenimiento). `ruff` limpio y **gate completo por la cola** (`gate-t128-retencion`, 1 380 s, sin pausas): **3 328 pasadas, 8 omitidas, 0 fallos**.
+- **Abierto:** ◆ desplegar (reiniciar el servicio de líderes, ~5 min sin capturar líderes; no toca la captura HFT) y medir otra semana; definir la vara de la CPU en reposo (BACKLOG T128 (2)).
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T141.
+- **Siguiente paso:** fusionar, desplegar y abrir la nueva semana de medición de T128.
+## 2026-11-10 02:00 UTC · juanpablo-cpu · T145: informe de clase de ventaja (◆ pendiente)
+- **Pedido del usuario:** «atácalos», sobre lo que faltaba de T143 y T145.
+- **Hecho:** regla de lectura versionada antes de la tabla (`613cd99`). Luego la tabla de las cuatro clases con sus seis puntos, todo desde informes ya versionados (`hft_cost_bound`, `hft_latency`, `arbitrage_edge`, `edge_gate`, `t139_entradas`). Resultado: no entra ninguna de A, B ni C. B es el único neto positivo medido, pero no llega a un veredicto en vivo en 6 meses. C es imposible en VIP 0: maker paga 2 pb y el diferencial es de 1 tick, lo que corrige el enunciado de T145. Recomendación: **D, solo análisis**.
+- **Archivos:** `v2/reports/t145_clase_de_ventaja.md`, `PLAN/notas/T145_clase_de_ventaja.md`, `PLAN/{STATUS,ESTADO_PROYECTO,BITACORA}.md`. Sin cambios de código.
+- **Pruebas:** ninguna; solo lectura. El gate no aplica: no hay código.
+- **Abierto:** la ◆ del usuario (A, B, C o D; T31; publicar el diagnóstico en la interfaz). Al resolverla, T145 pasa a ☑, ESTADO §0 deja de listar la ◆ de T139 y T146 sale de la fase.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135, T141, T143 y T145.
+- **Siguiente paso:** decisión del usuario sobre T145; revisión y PR de T143.
+
+## 2026-11-10 03:00 UTC · juanpablo-cpu · T145 cerrada: D, solo análisis
+- **Pedido del usuario:** «D, solo análisis», como respuesta a la ◆ de T145.
+- **Hecho:** T145 ☑. La decisión queda escrita en ESTADO §0, que da por resuelta la ◆ que T139 dejó abierta. T146 pierde su condición y pasa al BACKLOG. En BACKLOG T145 quedan el disparador de B, la revisión de A en 2027-10 y publicar el diagnóstico en «Operaciones sugeridas».
+- **Archivos:** `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/notas/T145_clase_de_ventaja.md`, `v2/reports/t145_clase_de_ventaja.md`. Sin cambios de código.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135, T141 y T143 (falta la ◆ de despliegue).
+- **Siguiente paso:** la ◆ de despliegue de T143 y el gate completo de su rama.

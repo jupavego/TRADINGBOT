@@ -10,7 +10,10 @@
 - Copia simulada en vivo (T42, `copy_mode` ≠ `off`): una subcuenta virtual por líder con
   las mismas ejecuciones, cotizaciones, marcas y reconciliaciones (`copy_live.py`).
 - Poda diaria de los rechazados (T128, `leader_prune.py`): 7 días de detalle y lo anterior
-  archivado ya plegado; la evaluación da las mismas cifras y la base deja de crecer.
+  archivado ya plegado; la evaluación da las mismas cifras y la base deja de crecer. Si tras
+  la poda más del 30 % de la base está libre, el servicio sale con `COMPACT_EXIT` y el vigilante
+  la compacta y lo relanza (DuckDB no encoge el archivo con la base abierta: antes solo se
+  compactaba al arrancar el vigilante, y del 5 al 10 de noviembre pasó de 1,4 a 2,8 GB).
 - Latido en `data/leaders/heartbeat.json` (como mucho cada `HEARTBEAT_EVERY_S`) cada vez que
   termina una tarea, bien o mal: el vigilante de proceso (`python -m eim.leaders supervise`)
   relanza el servicio si nada termina en 15 min. Por tarea y no por vuelta del bucle: tras un
@@ -32,6 +35,7 @@ from eim.copytrading.copy_params import CopyParams
 from eim.copytrading.copy_risk import copy_config
 from eim.core.leaders import Leader
 from eim.data.copy_live import CopyLive
+from eim.data.duck_compact import MIN_BYTES, MIN_FREE
 from eim.data.hl_market import exchange_spec
 from eim.data.leader_board import BoardStore
 from eim.data.leader_eval import evaluate, refresh_portfolios
@@ -54,9 +58,21 @@ DAY_MS = 86_400_000
 HEARTBEAT_EVERY_S = 30.0
 HEARTBEAT = "heartbeat.json"
 PRUNE_EVERY_S = 86_400.0
+COMPACT_EXIT = 75  # salida pedida para compactar (`Watchdog.planned_rc`)
 FIRST_PRUNE_S = 1_800.0  # tras el arranque: relleno y primera evaluación ya hechos
 
 log = logging.getLogger(__name__)
+
+
+def free_share(store: LeaderStore, min_free: float = MIN_FREE,
+               min_bytes: int = MIN_BYTES) -> float | None:
+    """Parte libre de la base si compensa compactarla (las mismas reglas que `compact`); None
+    si no. Con la base abierta: lee los bloques sin forzar un volcado."""
+    total, free, size = store.query("SELECT total_blocks, free_blocks, block_size "
+                                    "FROM pragma_database_size()")[0]
+    if not total or total * size < min_bytes or free / total < min_free:
+        return None
+    return free / total
 
 
 class LeaderService(LeaderWatch):
@@ -80,6 +96,8 @@ class LeaderService(LeaderWatch):
         self._next = {"score": start + first_score_s, "portfolio": start, "heartbeat": start,
                       "prune": start + first_prune_s}
         self.boards_saved = 0
+        self.compact_wanted = False   # T128: la poda pidió salir para compactar
+        self._stop: asyncio.Event | None = None
         self.share = None             # T61: `ShareAgent` (lo asigna la CLI `run` si hay nube)
         self._snap_task: asyncio.Task | None = None       # instantánea a pedido en curso
         self.copy: CopyLive | None = None
@@ -259,8 +277,16 @@ class LeaderService(LeaderWatch):
                       "origins": sum(x.origins for x in got.values())}
             log.info("poda de rechazados: %s", detail)
             hooks_service.service_event("leaders.service", "poda de rechazados", detail=detail)
+        free = await asyncio.to_thread(free_share, self.store)
+        if free is not None and self._stop is not None:
+            self.compact_wanted = True
+            log.info("base con %.0f %% libre: sale para compactar", free * 100)
+            hooks_service.service_event("leaders.service", "sale para compactar",
+                                        detail={"free": round(free, 3)})
+            self._stop.set()
 
     async def run(self, stop: asyncio.Event, minutes: float | None = None) -> None:
+        self._stop = stop
         self.heartbeat()
         await super().run(stop, minutes)
         await self._safe("evaluación final", self.score_now())

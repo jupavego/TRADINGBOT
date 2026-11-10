@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from array import array
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import NamedTuple
 
 from eim.copytrading.copyability import CopyStats, TripFollow, finish, latency_stats
@@ -85,8 +85,9 @@ class FoldTrip(Trip):
 
 @dataclass
 class SymbolBase:
-    """Lo archivado de una moneda (T128): sus viajes plegados hasta `cut_t`, instante tras el que
-    la posición quedó plana y sin patas en espera, y las cuentas de esas ejecuciones."""
+    """Lo archivado de una moneda (T128): sus viajes plegados hasta `cut_t`, instante sin patas
+    en espera, y las cuentas de esas ejecuciones. Si la posición seguía abierta en `cut_t`, su
+    viaje va en `open`, ya plegado y sin patas (la evaluación lo sigue desde ahí)."""
 
     symbol: str
     cut_t: int
@@ -95,12 +96,21 @@ class SymbolBase:
     n: int = 0
     taker: tuple[int, int] = (0, 0)  # como `LeaderFold.taker`
     latency: dict[str, dict[int, int]] = field(default_factory=dict)  # canal → {ms: veces}
+    open: FoldTrip | None = None  # viaje abierto en `cut_t` (T128, corte por fecha)
 
 
 @dataclass
 class _Sym:
     trips: SymbolTrips
     pending: dict[int, FoldTrip] = field(default_factory=dict)  # id → viaje con patas en espera
+
+
+def fresh(tr: FoldTrip | None) -> FoldTrip | None:
+    """Copia de un viaje plegado sin patas que se puede seguir alimentando sin tocar el original
+    (lo archivado se reutiliza en cada `rebuild`)."""
+    if tr is None:
+        return None
+    return replace(tr, legs=[], follow=tr.follow.copy())
 
 
 class LeaderFold:
@@ -188,6 +198,7 @@ class LeaderFold:
         if base is not None:  # como si acabara de aplicar lo archivado
             s.trips.done = list(base.trips)
             s.trips.prev, s.trips.last_t = base.prev, base.cut_t
+            s.trips.cur = fresh(base.open)
         return s
 
     def _quote(self, f: FillRow) -> Quote | None:
