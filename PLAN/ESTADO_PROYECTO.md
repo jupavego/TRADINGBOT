@@ -38,6 +38,8 @@ El usuario sigue con **otra cuenta de Claude en este mismo PC**. Las sesiones de
 
 **Fase 24, abierta y sin empezar:** **T143** (fricción: maker medido antes de adoptarse, `risk_includes_costs` y retirada de 15 m) ‖ **T144** (una sola contabilidad declarada) → **T145 ◆** (qué clase de ventaja se persigue: microestructura propia, arbitraje/funding, market making pasivo o solo análisis; se elige **una**, y «solo análisis» es un resultado válido) → **T146** (la síntesis deja de sumar cinco veces el mismo voto, solo si T145 deja línea direccional). **T145 resuelve la ◆ que T139 dejó anotada arriba.** La fase no reabre la búsqueda de entradas (T139 P1 es vinculante) ni adopta salidas nuevas (T134 rechazó 87 de 87), no habilita dinero real y **no cambió nada de código**: no hay despliegue pendiente por esto. T143 no se despliega mientras T31 cuente semanas sin ◆ del usuario.
 
+**T145 (2026-11-10): informe hecho, ◆ pendiente del usuario.** `v2/reports/t145_clase_de_ventaja.md`, con la regla de lectura en un commit anterior a la tabla. Ninguna de A (microestructura: sin ventaja medida y sin un año de historia propia hasta 2027-10), B (arbitraje y funding: el único neto positivo medido, carry +102,5 pb por operación, pero V5 en vivo tardaría ~2,5 años y los últimos 12 meses rinden +1,17 % anual) ni C (market making: en VIP 0 maker **paga** 2 pb y el diferencial es de 1 tick, 0,0123 pb) cumple la regla. **Recomendación: D, solo análisis.** T31 sigue; B queda como información con disparador (funding ≥ 4 % anual en 12 meses móviles); A se congela en la captura; C se archiva; T146 pierde su condición. **Esta ◆ sustituye a la que T139 dejó abierta arriba en cuanto el usuario elija.**
+
 ## 1. Qué corre y dónde
 
 | Equipo | Identidad | Qué tiene | Verificado |
