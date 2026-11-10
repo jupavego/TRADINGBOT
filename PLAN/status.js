@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-09T23:20:35",
+ "generated": "2026-11-09T23:37:03",
  "phases": [
   {
    "n": 0,
@@ -264,7 +264,8 @@ window.EIM_STATUS = {
     "T141",
     "T142",
     "T147",
-    "T148"
+    "T148",
+    "T149"
    ]
   },
   {
@@ -2083,8 +2084,8 @@ window.EIM_STATUS = {
     "T126",
     "T127"
    ],
-   "state": "progress",
-   "notes": "Código e informe hechos (2026-11-06): el registro identifica a los ajenos (`usage_foreign.py`), `usage incidents` cruza cada bloqueo y `usage_alert.py` avisa con umbrales medidos. **Informe `PLAN/notas/T141_carga_ajena.md`:** 4 de 5 bloqueos coinciden con scripts de `OPERACION/PROTOTIPO` con 4–7 procesos; la cola no estuvo en ninguno; todo el EIM, captura incluida, corre con prioridad de memoria 2 y E/S baja. **Decidido por el usuario: ◆A y ◆B.** ◆A, regla en `~/.claude/CLAUDE.md`. ◆B, memoria y E/S de los recolectores a 5 y normal, aplicadas en marcha a las 20:01:48 UTC, sin reiniciar, y fijadas en `apply_role` (`priority_memory.py`); la API no cambia. Auditada la captura hasta el 7-nov 02:44 UTC: racha de 11 h y ningún bloqueo. **Desplegado:** PR #216 fusionado y registro de consumo reiniciado a las 03:00:50 UTC del 7-nov. Falta medir hasta el 2026-11-10 03:00 UTC con `python -m eim.operation.usage incidents --days 7`, y cerrar. **Aviso para el cierre (T148):** el apagón del 2026-11-09 dejó un hueco de 5 h 26 min en `data/usage/`, y `usage incidents` da **cero incidentes** después de las 17:00 porque el registro murió con los demás. La medición de 7 días ya no cubre el día completo: al cerrar hay que decirlo, y el punto ciego lo arregla el entregable 2 de T148.",
+   "state": "done",
+   "notes": "**☑ 2026-11-10.** Código: el registro identifica a los ajenos (`usage_foreign.py`), `usage incidents` cruza cada bloqueo y `usage_alert.py` avisa con umbrales medidos. Decididas por el usuario ◆A (regla en `~/.claude/CLAUDE.md`) y ◆B (recolectores en memoria 5 y E/S normal, fijado en `apply_role`). **Ventana medida del 7-nov 03:00 al 10-nov 03:00 UTC (nota `PLAN/notas/T141_carga_ajena.md` §8):** 0 reinicios por latido, 0 arranques lentos y 0 salidas (antes, 3, 2 y 3). ◆B demostrada: en 3 episodios la API bajó a 40–125 MB y la captura conservó 135–190 MB, sin perder ninguna hora. Los 12 ciclos lentos tienen culpable: 7, el `ng serve` de `RECUAPP`; 5, el trabajo de la cola `t143-maker`, que pausado retuvo 6–8 GB durante 5 h 39 min (mal atribuido al `submit` que aloja el ejecutor) → **T149**. ◆C, ◆D y ◆E no se aplican. **Punto ciego:** el registro no tomó muestras durante los apagones del 9-nov (5 h 26 min) y del 10-nov (5 min); lo arregla T148 al desplegarse.",
    "effort": "medio",
    "phase": 21,
    "goal": "Saber qué satura el equipo y evitar que eso pare la API. Hubo tres reinicios «latido detenido» en 46 h (2026-11-05 04:14 y 07:12, 2026-11-06 01:41), sin ninguno en los días anteriores desde el 30-oct. En todos el equipo estaba bajo presión, con `python.exe` ajenos en prioridad normal mientras la API, en prioridad baja, perdía casi toda su RAM. La evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §2."
@@ -2188,6 +2189,19 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 21,
    "goal": "Que el equipo no pueda quedarse 5 horas sin captura sin que nada lo note, lo apunte ni lo atribuya."
+  },
+  {
+   "id": "T149",
+   "title": "Que un trabajo pausado de la cola no retenga la memoria que lo pausa",
+   "deps": [
+    "T127",
+    "T141"
+   ],
+   "state": "pending",
+   "notes": "Abierta al cerrar T141 (2026-11-10). El 9-nov, `t143-maker` se pausó 32 veces por «RAM libre < 1 GB» con 6–8 GB propios: cada 900 s se reanudaba por fuerza y se volvía a pausar a los 5 s, durante 5 h 39 min, y la API cayó a 125 MB. Relanzado con el equipo libre, tardó 350 s. Además, `usage incidents` lo atribuyó al `submit` que hacía de ejecutor. Ficha `PLAN/T149.md`.",
+   "effort": "bajo-medio",
+   "phase": 21,
+   "goal": "Que la cola deje de retener la memoria del equipo con un trabajo pausado, y que `usage incidents` nombre el trabajo que de verdad corre, no el `submit` que hace de ejecutor."
   }
  ]
 };
