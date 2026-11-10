@@ -167,6 +167,27 @@ export interface PaperSummary {
   scope?: ViewScope | null
   /** T143 (4): costo vivido del libro fijo y puerta de marcos por costo. */
   cost?: CostPanel
+  /** T144: cifras del universo OFICIAL (libro de perfiles sin `retro`), con su regla y recuento. */
+  accounting?: Accounting | null
+}
+
+/** T144: el universo oficial de la contabilidad y lo que queda fuera, declarado por la API. */
+export interface Accounting {
+  ok?: boolean; error?: string
+  declaration: {
+    universe: string; label: string; decided: string; source: string
+    rule: { dimension: string; regla: string }[]; exclusions: Record<string, string>
+    profiles: string[]
+  }
+  tally?: {
+    universe: string; n_total: number; n_counted: number
+    excluded: Record<string, number>; excluded_why: Record<string, string>; retro: number
+  }
+  n?: number; win_rate?: number | null; mean_r?: number | null; total_r?: number | null
+  pnl_usdt?: number | null; floor_trades?: number; from_t?: number | null; to_t?: number | null
+  dd?: { usdt: number; base_usdt: number | null; pct: number | null; base: string }
+  retro_excluded?: { n: number; pnl_excluded: number; total_r_excluded: number; why: string }
+  by_profile?: Record<string, { n: number; pnl_usdt: number; total_r: number; win_rate: number | null; mean_r: number | null }>
 }
 
 /** Respuesta de `/v2/paper/trades`: la lista puede ser solo las más recientes de `total`. */

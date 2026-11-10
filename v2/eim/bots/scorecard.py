@@ -22,6 +22,7 @@ from eim.bots.health import assess
 from eim.bots.marginal import Marginal
 from eim.bots.shadow import BotId, RegimeAt, identities, shadow_trades
 from eim.core import BotSignal, Candle
+from eim.paper import universe
 from eim.paper.engine import Path
 from eim.paper.params import ExecParams
 from eim.validation.criteria import Criteria
@@ -180,6 +181,12 @@ def score(rows: Sequence[tuple[BotSignal, int]],
     states = Counter(c["state"] for c in concepts)
     return {
         "task": "T59", "mode": "SIMULADO", "symbol": symbol, "asof": asof,
+        # T144: el escuadrón puntúa en SOMBRA (ideas sin peso ni dinero), así que sus cifras no
+        # son resultado del universo oficial y lo dice aquí en vez de dejarlo a la interpretación.
+        "universe": {"id": universe.SHADOW, "counts_as_result": False,
+                     "why": universe.EXCLUSIONS[universe.SHADOW],
+                     "official": universe.OFFICIAL,
+                     "official_label": universe.UNIVERSE_LABEL},
         "criteria": {"version": crit.version, "sha256": crit.sha256},
         "attempts_total": n_att, "windows_note": NOTE_WINDOWS,
         "bots": concepts, "attempts": attempts,

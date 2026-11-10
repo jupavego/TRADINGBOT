@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import threading
-
 import pytest
 
 from eim.operation.report_costs import cost_lines
@@ -49,19 +47,6 @@ def test_lleva_su_source_y_las_ultimas_primero():
     s = cl.summarize([row(exit_t=1), row(exit_t=2, profile="p2")])
     assert "paper_ledger" in s["source"]
     assert s["recent"][0]["profile"] == "p2"
-
-
-def test_from_connection_lee_el_libro_y_sin_libro_dice_por_que():
-    import duckdb
-    con = duckdb.connect()
-    con.execute("CREATE TABLE paper_ledger (exit_t BIGINT, profile VARCHAR, symbol VARCHAR, "
-                "timeframe VARCHAR, kind VARCHAR, pnl_usdt DOUBLE, r DOUBLE, notional DOUBLE, "
-                "fees DOUBLE, slip DOUBLE, funding DOUBLE, retro BOOLEAN, scope VARCHAR)")
-    con.execute("INSERT INTO paper_ledger VALUES (1, 'p1', 'BTCUSDT', '1h', 'market', -10, -1, "
-                "1000, 0.7, 0.3, 0, false, 'perfil')")
-    s = cl.from_connection((con, threading.Lock()))
-    assert s["all"]["n"] == 1
-    assert "error" in cl.from_connection(None)
 
 
 def test_el_informe_semanal_trae_la_seccion_aunque_no_haya_operaciones():

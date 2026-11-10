@@ -17,21 +17,60 @@
   una consola de administrador. La tarea de inicio de sesión se conserva: al entrar, completa lo
   que falte y pone el icono de la bandeja (el script espera a la otra y no duplica nada).
 
+  -Vigilante (T148) registra la tercera tarea, «EIM - vigilante del conjunto», que es la que
+  faltaba: las otras dos solo saltan al encender y al iniciar sesión, así que con Windows ya
+  encendido y la sesión abierta nadie vuelve a mirar. El 2026-11-09 los cinco servicios estuvieron
+  parados 5 h 26 min por eso (`PLAN/notas/T148_apagon_2026-11-09.md`). Esta corre cada 5 min con
+  disparador repetido, comprueba los cinco latidos y levanta los servicios de datos si falta
+  alguno desde hace 10 min (`vigilante_conjunto.ps1` → `eim/operation/fleet_watch.py`: tope de
+  intentos, espera creciente y aviso al usuario). Solo para el usuario actual, sin administrador;
+  al registrarla se quita el parche provisional «EIM - vigilante del conjunto (T148)», que hacía
+  lo mismo a ciegas y sin tope de intentos.
+
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File v2\scripts\instalar_inicio_automatico.ps1
   powershell -ExecutionPolicy Bypass -File v2\scripts\instalar_inicio_automatico.ps1 -Quitar
   powershell -ExecutionPolicy Bypass -File v2\scripts\instalar_inicio_automatico.ps1 -AlEncender
   powershell -ExecutionPolicy Bypass -File v2\scripts\instalar_inicio_automatico.ps1 -AlEncender -Quitar
+  powershell -ExecutionPolicy Bypass -File v2\scripts\instalar_inicio_automatico.ps1 -Vigilante
+  powershell -ExecutionPolicy Bypass -File v2\scripts\instalar_inicio_automatico.ps1 -Vigilante -Quitar
 #>
-param([switch]$Quitar, [switch]$AlEncender)
+param([switch]$Quitar, [switch]$AlEncender, [switch]$Vigilante)
 $ErrorActionPreference = "Stop"
 $nombre = "EIM - servicio continuo (broker simulado)"
 $nombreEncender = "EIM - servicio continuo al encender"
+$nombreVigilante = "EIM - vigilante del conjunto"
+$parcheT148 = "EIM - vigilante del conjunto (T148)"
 if ($AlEncender) { $nombre = $nombreEncender }
+if ($Vigilante) { $nombre = $nombreVigilante }
 
 if ($Quitar) {
   Unregister-ScheduledTask -TaskName $nombre -Confirm:$false
   Write-Host "Tarea quitada: $nombre"
+  return
+}
+
+if ($Vigilante) {
+  # Cada 5 min, sin fin, desde dentro de un minuto: con `-Once` + repetición el disparador
+  # salta aunque Windows ya esté encendido y la sesión abierta, que es justo lo que faltaba.
+  # IgnoreNew: si una pasada se alarga (un arranque tarda minutos), la siguiente no se encima.
+  $guion = Join-Path $PSScriptRoot "vigilante_conjunto.ps1"
+  $accionV = New-ScheduledTaskAction -Execute "powershell.exe" `
+    -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$guion`""
+  $disparoV = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) `
+    -RepetitionInterval (New-TimeSpan -Minutes 5)
+  $ajustesV = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+    -StartWhenAvailable -MultipleInstances IgnoreNew `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 20)
+  Register-ScheduledTask -TaskName $nombreVigilante -Action $accionV -Trigger $disparoV `
+    -Settings $ajustesV -Force `
+    -Description "Comprueba cada 5 min los cinco latidos del EIM y levanta los servicios de datos si falta alguno desde hace 10 min (T148). Tope de intentos, espera creciente y aviso al usuario." |
+    Out-Null
+  Write-Host "Tarea registrada: '$nombreVigilante' (cada 5 min, levanta tras 10 min sin latido)."
+  if (Get-ScheduledTask -TaskName $parcheT148 -ErrorAction SilentlyContinue) {
+    Unregister-ScheduledTask -TaskName $parcheT148 -Confirm:$false
+    Write-Host "Parche provisional retirado: '$parcheT148' (lo sustituye la tarea de arriba)."
+  }
   return
 }
 

@@ -21,9 +21,7 @@ from eim.api.forecast import DEFAULT_HORIZON
 from eim.api.forecast_db import ForecastStore
 from eim.api.risk import RiskDesk
 from eim.data import backup
-from eim.data.collectors import hft_ops
 from eim.data.collectors.compact import compact_closed
-from eim.execution.sim_broker import SimBroker
 from eim.observability import hooks_service
 from eim.operation import report as report_io
 from eim.operation import state, usage_summary, weekly
@@ -43,7 +41,6 @@ from eim.operation.cycle import CycleResult, OperationCycle, OperationParams
 from eim.operation.equity import EquityBook
 from eim.operation.notify import JsonLog, WindowsToast
 from eim.operation.watchdog import write_heartbeat
-from eim.paper import cost_ledger
 
 FAILS_BEFORE_ALERT = 3
 BACKUP_RETRY_MS = 3_600_000
@@ -61,12 +58,14 @@ class Operation:
                  forecaster=None, bots=None, sinks: Iterable[Sink] | None = None,
                  backup_dir: Path | None = None, backup_keep: int = 14,
                  extra_dbs: dict | None = None, backup_in_thread: bool = False,
+                 book_rows: Callable[[int, int], list[dict]] | None = None,
                  clock: Callable[[], int] = _now) -> None:
         con, lock = reports.connection
         rt = desk.rt
         self.mode = desk.mode.value
         self.desk, self.store, self.params, self.clock = desk, store, params, clock
         self.reports_dir, self.edge_path = reports_dir, edge_path
+        self.book_rows = book_rows       # T144: libro fijo = universo OFICIAL del informe
         self.root = data_dir / "operation"
         self.data_dir, self.backup_dir, self.backup_keep = data_dir, backup_dir, backup_keep
         self._db = (con, lock)
@@ -98,6 +97,7 @@ class Operation:
         self.log.write("servicio_iniciado", mode=self.mode, trades=len(rt.svc.trades)
                        if rt.svc else 0, cursors=self.cursors.to_json())
 
+    # --- un paso (bloqueante: corre en un hilo) ----------------------------
     def step(self) -> CycleResult:
         with self._step_lock:       # una copia a demanda nunca ve un ciclo a medias
             now = self.clock()
@@ -134,10 +134,7 @@ class Operation:
                 "last_heartbeat", "pid", "state", "mode", "cycles", "consecutive_failures")}):
             self.log.write("latido_fallido", "warn", error=f"{type(err).__name__}: {err}")
 
-    def fee_rate(self) -> float:
-        svc = self.desk.rt.svc
-        return svc.broker.fee_rate if svc and isinstance(svc.broker, SimBroker) else 0.0005
-
+    # --- informes -----------------------------------------------------------
     def compose(self, t0: int, t1: int) -> dict:
         rt, tf, h = self.desk.rt, self.params.timeframe, DEFAULT_HORIZON
         calib = {}
@@ -147,25 +144,26 @@ class Operation:
             calib[s] = weekly.calibration(fcs, closes, h)
         return weekly.compose(
             t0=t0, t1=t1, mode=self.mode, symbols=self.params.symbols,
-            trades=list(rt.svc.trades.values()) if rt.svc else [], fee_rate=self.fee_rate(),
+            trades=list(rt.svc.trades.values()) if rt.svc else [],
+            fee_rate=report_io.fee_rate(rt.svc),
             equity=self.book.series(t0, t1) if self.book else [],
             alerts=self.alerts.recent(t0, t1, 1000), active_alerts=self.alerts.active,
             decisions=self.desk.journal.recent(t0, t1, limit=5000),
             edge=weekly.load_edge(self.edge_path), calib=calib,
-            started_at=self.cursors.started_at, hft_qc=self.hft_qc(t0, t1), data_dir=self.data_dir,
+            started_at=self.cursors.started_at, data_dir=self.data_dir,
+            hft_qc=report_io.hft_qc(self.data_dir, self.params.symbols, t0, t1),
             usage=usage_summary.for_report(self.data_dir, t0, t1, self.params.symbols),
-            paper_costs=cost_ledger.from_connection(self.extra_dbs.get("paper.duckdb"), t0, t1))
+            book_rows=self._book_rows(t0, t1))
 
-    def hft_qc(self, t0: int, t1: int) -> dict[str, dict]:
-        """Resumen del control de calidad de la captura HFT (T78) por símbolo, si la hay."""
-        out = {}
-        for s in self.params.symbols:
-            try:
-                if (q := hft_ops.week_summary(self.data_dir, s, t0, t1)) is not None:
-                    out[s] = q
-            except Exception as e:  # noqa: BLE001 - un QC ilegible no impide el informe
-                out[s] = {"error": f"{type(e).__name__}: {e}"}
-        return out
+    def _book_rows(self, t0: int, t1: int) -> list[dict] | None:
+        """Las filas del libro del tramo; None si no se pueden leer (el informe lo declara)."""
+        if self.book_rows is None:
+            return None
+        try:
+            return self.book_rows(t0, t1)
+        except Exception as e:  # noqa: BLE001 - un libro ilegible no impide el informe
+            self.log.write("libro_informe_error", "warn", error=f"{type(e).__name__}: {e}")
+            return None
 
     def write_report(self, t0: int, t1: int, name: str | None = None) -> dict:
         rep = self.compose(t0, t1)

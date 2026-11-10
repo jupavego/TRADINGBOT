@@ -320,3 +320,104 @@ el bucle está ocupado. Por eso la API corre con `SelectorEventLoop` desde T140
 puerto efímero, sin tocar los servicios. Para volver al bucle anterior basta con quitar `--loop` de
 `api_cmd` (`eim/operation/__main__.py`) y reiniciar vigilante y API; la vigilancia del puerto sigue
 funcionando igual.
+
+## 17. Leer la aceptación de T78 y desplegar sin perder la corrida (T147)
+
+**Leer el veredicto** (solo lectura; no audita, no compacta y no toca la captura):
+
+```
+python -m eim.data.collectors.hft_ops --root data --window
+```
+
+Da la mejor ventana (`best`, la que decide), la que sigue viva (`current`, con `remaining_h`) y el
+reparto de las horas incompletas entre `nuestra`, `ajena`, `mantenimiento` y `sin causa`. T78 se
+cumple con ≥ 72 h contiguas, ≥ 99 % de horas completas, 0 huecos sin detectar y ≥ 99 % de top-10.
+`--streak` sigue dando la racha de horas seguidas de T126, ya solo como lectura informativa: una
+hora al 98,x % la mandaba a cero. Las dos lecturas van también en
+`data/micro_hft/qc/symbol=BTCUSDT/summary.json` (`t78_window` y `t78_streak`).
+
+**Antes de un despliegue que reinicie la captura**, declarar sus horas: no cuentan ni cortan la
+ventana, así que desplegar deja de costar la corrida.
+
+```
+python -m eim.data.collectors.hft_ops --root data --maintenance 2026-11-10T03 2026-11-10T03 --nota "despliegue de T123 y T124"
+```
+
+Las horas van en UTC y ambas se incluyen; declarar el mismo tramo dos veces no lo duplica. Queda en
+`data/micro_hft/qc/symbol=BTCUSDT/maintenance.json`, que no es un JSON de QC: nada se recalifica ni
+se borra, solo se dice que esas horas eran conocidas. Declarar un tramo que ya pasó vale, pero deja
+rastro de cuándo se declaró (`at`): hacerlo después de un corte imprevisto para salvar una ventana
+es falsearla.
+
+**Si el vigilante aún corre con código viejo**, sus JSON salen en la versión anterior y el veredicto
+se queda corto. Recalificar es seguro (conserva el veredicto anterior en `requalified`) y no
+necesita los crudos:
+
+```
+python -m eim.data.collectors.hft_ops --root data --requalify 2026-10-28T23 --apply
+```
+
+Sin `--apply` solo dice qué cambiaría. Al reiniciar el vigilante deja de hacer falta.
+
+## 18. Apagón del conjunto: el vigilante, cómo se lee y de quién es la hora (T148)
+
+El 2026-11-09 los cinco servicios estuvieron parados **5 h 26 min** sin que nada los levantara, y el
+2026-11-10 a las 00:33:49 UTC volvió a pasar (esa vez el parche provisional los levantó en ~5 min).
+Ninguno de los dos tiene causa atribuible (`PLAN/notas/T148_apagon_2026-11-09.md`). Los vigilantes
+de siempre solo relanzan a sus hijos; si mueren ellos, solo queda este.
+
+**Qué hace.** La tarea programada `EIM - vigilante del conjunto` corre cada **5 min**
+`v2\scripts\vigilante_conjunto.ps1` → `python -m eim.operation.fleet_watch check`. Mira los cinco
+latidos (`operation/`, `paper/`, `leaders/`, `micro_hft/heartbeat.json` y la última muestra de
+`data/usage/`) y, si alguno lleva **10 min** sin señal, corre `servicio_continuo.ps1` **sin
+`-ConWeb`** (solo los servicios de datos; decisión del usuario). Si el arranque falla: hasta **4
+intentos** con espera creciente (0, 5, 15 y 30 min) y, agotados, aviso crítico y **6 h** sin volver a
+probar: un arranque roto no se arregla repitiéndolo. Avisa (registro de operación + notificación
+de Windows) al levantar, al fallar, al rendirse y al volver.
+
+**Instalarlo** (desde la carpeta principal, en `main`; retira el parche provisional
+`EIM - vigilante del conjunto (T148)` si sigue registrado):
+
+```
+powershell -ExecutionPolicy Bypass -File v2\scripts\instalar_inicio_automatico.ps1 -Vigilante
+```
+
+**Comprobar que está instalado y vivo:**
+
+```
+powershell -Command "Get-ScheduledTaskInfo -TaskName 'EIM - vigilante del conjunto'"
+python -m eim.operation.fleet_watch status --data-dir data
+```
+
+`LastRunTime` de hace menos de 5 min y `LastTaskResult` 0 = vivo y todo en pie (1 = sigue caído y
+hay que mirarlo; 267009 = la pasada estaba corriendo). `status` da la edad de cada latido y el
+estado entre pasadas (`data/operation/fleet_watch.json`: intentos, desde cuándo está caído, si se
+rindió). Cada pasada deja una línea en `data/operation/logs/fleet_watch.out.log`, y cada
+intervención un evento `conjunto_levantar` / `conjunto_recuperado` / `conjunto_rendirse` en
+`op-*.jsonl`. Probarlo sin levantar nada: `vigilante_conjunto.ps1 -DryRun`.
+
+**Si se rindió** (aviso «El EIM sigue caído y hay que mirarlo a mano»): leer `detail` en el último
+`conjunto_levantar` (las últimas líneas de `servicio_continuo.ps1`), arreglar y arrancar a mano con
+`servicio_continuo.ps1`; la siguiente pasada ve los latidos, avisa «Resuelta» y olvida los intentos.
+Quitar la tarea: el mismo instalador con `-Vigilante -Quitar`. Para parar el EIM a propósito más
+de 10 min, quitarla antes o el vigilante lo volverá a levantar (`detener_servicio.ps1` no la toca).
+
+**Leer un apagón en `usage incidents`.** El registro de consumo muere con los demás, así que un
+apagón se declara por su **ausencia**: un hueco de ≥ 240 s entre muestras sale como
+`apagon_registro`, con `dur_s` y `edges.last_before` / `edges.first_after` (cómo estaba el equipo
+justo antes y justo después; `first_after` a null = sigue callado). `usage summary` da por día
+`coverage` (fracción del día realmente medida), `blind_s` y la lista `gaps`: un día con
+`coverage` 0,77 no está medido entero.
+
+```
+python -m eim.operation.usage incidents --days 2 --data-dir data
+python -m eim.operation.usage summary --days 2 --data-dir data
+```
+
+**De quién es la hora.** Una hora de captura incompleta es **nuestra**, aunque sus últimas marcas
+digan `silencio`, si tiene **≥ 120 s perdidos que ningún tramo marcado explica** (el proceso murió y
+nadie anotó nada), si cae en un hueco del registro de consumo o si no tiene JSON de QC. Lo lee
+`hft_ops --window` (`attribution`, y `motivo` en cada hora incompleta de la ventana).
+
+**Las horas de un apagón NO se declaran como mantenimiento** (§17). El mantenimiento es para cortes
+previstos y decididos antes; declarar uno imprevisto a posteriori es falsear la ventana de T78.

@@ -7,8 +7,8 @@ no tienen tamaño), sin las `retro` (T142: nadie las vivió), y el riesgo de cad
 `|pnl_usdt| / |r|`, que es lo que ese perfil arriesgaba de verdad. Una operación con `pnl_usdt` o
 `r` en 0 no permite saber su riesgo: cuenta en USDT pero no en R, y se dice cuántas son.
 
-Lo usan el panel (resumen de la mesa) y el informe semanal de T31. Puro salvo `from_connection`,
-que solo lee.
+Lo usan el panel (resumen de la mesa) y el informe semanal de T31, este con las mismas filas del
+libro que la contabilidad oficial de T144. Puro.
 """
 
 from __future__ import annotations
@@ -74,16 +74,3 @@ def summarize(rows: Iterable[dict], t0: int | None = None, t1: int | None = None
             "by_timeframe": _group(cs, "timeframe"), "by_kind": _group(cs, "kind"),
             "recent": cs[-RECENT:][::-1]}
 
-
-def from_connection(conn_lock, t0: int | None = None, t1: int | None = None) -> dict:
-    """Lee el libro de una base abierta (`(con, lock)`) y resume. Sin libro: dice por qué."""
-    if conn_lock is None:
-        return {"source": SOURCE, "error": "sin libro simulado abierto en este proceso"}
-    con, lock = conn_lock
-    try:
-        with lock:
-            got = con.execute(f"SELECT {', '.join(_COLS)} FROM paper_ledger "
-                              "WHERE scope = 'perfil'").fetchall()
-    except Exception as e:  # noqa: BLE001 - un libro ilegible no impide el informe
-        return {"source": SOURCE, "error": f"{type(e).__name__}: {e}"}
-    return summarize([dict(zip(_COLS, g, strict=True)) for g in got], t0, t1)

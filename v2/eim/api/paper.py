@@ -15,7 +15,7 @@ from fastapi import APIRouter, Header, HTTPException, Query, Response
 
 from eim.api.execution import confirm
 from eim.data.timeframes import SYMBOLS
-from eim.paper import ledger, protection, snapshot
+from eim.paper import accounting, ledger, protection, snapshot, universe
 from eim.paper.desk import PaperDesk, View
 from eim.paper.exit_quality import desk_exit_quality
 from eim.paper.live_feed import live_feed
@@ -133,9 +133,30 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
         A diferencia de `/trades`, no se recalcula al cambiar reglas o costos."""
         if symbol is not None:
             _check(symbol)
+        rows = ledger.query(desk.pstore, symbol, scope, profile, limit)
+        # T144: el libro también declara el universo oficial y su recuento; cada fila lleva por
+        # qué cuenta o por qué no, así que nadie tiene que deducirlo (ni excluir `retro` a mano).
         return {"mode": "SIMULADO", "counts": ledger.counts(desk.pstore),
+                "error": desk.ledger_error, "universe": universe.declaration(),
+                "tally": universe.tally(rows),
+                "rows": [{**r, "counts_as_result": universe.counts_as_result(r).to_json()}
+                         for r in rows]}
+
+    @router.get("/accounting")
+    def official_accounting(symbol: str | None = None, from_t: int | None = None,
+                            to_t: int | None = None) -> dict:
+        """Cifras de resultado del universo OFICIAL de T31 (T144): solo lo que cuenta.
+
+        Una sola función decide qué entra (`eim.paper.universe.counts_as_result`) y la respuesta
+        lleva la regla escrita, el recuento (cuántas existen, cuántas cuentan, por qué quedan
+        fuera las demás) y las `retro` aparte con su etiqueta. Sin `from_t`/`to_t`, todo el libro.
+        """
+        if symbol is not None:
+            _check(symbol)
+        t0, t1 = from_t or 0, to_t or 2 ** 62
+        return {"mode": "SIMULADO", "symbol": symbol, "from_t": from_t, "to_t": to_t,
                 "error": desk.ledger_error,
-                "rows": ledger.query(desk.pstore, symbol, scope, profile, limit)}
+                **accounting.from_store(desk.pstore, symbol, t0, t1)}
 
     @router.get("/ledger.csv")
     def ledger_csv(symbol: str | None = None,
@@ -146,9 +167,15 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
             _check(symbol)
         rows = ledger.query(desk.pstore, symbol, scope, profile, 1_000_000)
         buf = io.StringIO()
-        w = csv.DictWriter(buf, fieldnames=[c for c in ledger.COLS if c != "payload"])
+        # T144: la exportación lleva el veredicto del universo oficial para que un análisis
+        # externo no tenga que deducirlo ni excluir las `retro` a mano.
+        cols = [c for c in ledger.COLS if c != "payload"] + ["counts_as_result", "exclusion"]
+        w = csv.DictWriter(buf, fieldnames=cols)
         w.writeheader()
-        w.writerows(rows)
+        for r in rows:
+            v = universe.counts_as_result(r)
+            w.writerow({**r, "counts_as_result": v.counts,
+                        "exclusion": "" if v.counts else v.code})
         return Response(buf.getvalue(), media_type="text/csv; charset=utf-8",
                         headers={"Content-Disposition": "attachment; filename=paper_ledger.csv"})
 

@@ -6,6 +6,7 @@ import { EquityChart, PaperPriceChart } from './paper_chart'
 import { esc, getPaper, PaperError, postPaper, px, usd } from './paper_fmt'
 import { scopeHtml } from './paper_audit'
 import { acctHtml, covText, jobHtml, liveStrip } from './paper_head'
+import { universeHtml } from './paper_universe'
 import { PaperJournal } from './paper_journal'
 import { PaperLearn } from './paper_learn'
 import { PaperLedger } from './paper_ledger'
@@ -164,7 +165,7 @@ export class PaperView {
   private paintAll(): void {
     const v = this.v!
     this.q('cov').textContent = covText(v)
-    this.q('scope').innerHTML = scopeHtml(v)
+    this.q('scope').innerHTML = scopeHtml(v) + universeHtml(v.accounting)
     this.q('live').innerHTML = liveStrip(v)
     this.paintJob(v.job)
     this.q('bal').innerHTML = balanceView(v, this.bal)

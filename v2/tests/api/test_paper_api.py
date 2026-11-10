@@ -11,6 +11,7 @@ from eim.api.main import create_app
 from eim.core import Candle
 from eim.data.paper_store import PaperStore
 from eim.data.store import Store
+from eim.paper import universe
 from eim.paper.generate import CtxGenerator
 from tests.local_client import LocalClient
 from tests.paper.helpers import H1, M15
@@ -173,6 +174,31 @@ def test_ledger_routes_expose_the_fixed_log_and_csv(client):
     r = client.get("/v2/paper/ledger.csv?symbol=BTCUSDT")
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv")
     assert r.text.splitlines()[0].startswith("ledger_id,scope,profile,symbol")
+    # T144: la exportación lleva el veredicto, para no excluir las `retro` a mano fuera
+    assert r.text.splitlines()[0].endswith("counts_as_result,exclusion")
+
+
+def test_ledger_and_panel_declare_the_official_universe(client):
+    """T144: el libro, el panel y la ruta de contabilidad dicen qué cuenta y qué queda fuera."""
+    j = client.get("/v2/paper/ledger?symbol=BTCUSDT&limit=5").json()
+    assert j["universe"] == universe.declaration()
+    assert j["tally"]["universe"] == universe.OFFICIAL
+    assert all("counts_as_result" in r for r in j["rows"])
+    # ninguna fila `retro` cuenta nunca como resultado, venga de donde venga
+    assert all(not r["counts_as_result"]["counts"] for r in j["rows"] if r["retro"])
+
+    a = client.get("/v2/paper/accounting?symbol=BTCUSDT").json()
+    assert a["mode"] == "SIMULADO" and a["ok"] is True
+    assert a["declaration"]["universe"] == universe.OFFICIAL
+    assert a["tally"]["n_counted"] <= a["tally"]["n_total"]
+    assert a["tally"]["excluded"].get("retro", 0) <= a["retro_excluded"]["n"]
+    assert a["n"] == a["tally"]["n_counted"]
+    assert "counted_digest" in a
+    assert client.get("/v2/paper/accounting?symbol=NOPE").status_code == 400
+
+    v = client.get("/v2/paper?symbol=BTCUSDT").json()
+    assert v["accounting"]["ok"] is True
+    assert v["accounting"]["declaration"]["universe"] == universe.OFFICIAL
 
 
 def test_protection_journal_routes(client):

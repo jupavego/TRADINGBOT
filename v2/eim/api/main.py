@@ -60,6 +60,7 @@ from eim.operation.cycle import OperationParams
 from eim.operation.priority import apply_role
 from eim.operation.supervisor import Operation, Supervisor
 from eim.operation.task_watch import watch_supervisor
+from eim.paper import ledger as paper_ledger
 from eim.paper.desk import PaperDesk
 from eim.risk import global_kill_switch, load_config
 from eim.suggestions.tracker import Tracker
@@ -122,7 +123,9 @@ def create_app(
                        data_dir=cfg.data_dir, reports_dir=cfg.operation_reports,
                        edge_path=cfg.edge_results, forecaster=forecaster, bots=bots,
                        backup_dir=cfg.backup_dir, backup_keep=cfg.backup_keep,
-                       extra_dbs=backup_dbs, backup_in_thread=source is None)
+                       extra_dbs=backup_dbs, backup_in_thread=source is None,
+                       # T144: universo oficial del informe = libro fijo de los perfiles
+                       book_rows=lambda t0, t1: paper_ledger.window_rows(paper_store, t0, t1))
 
     # T36: solo en vivo (con fuente inyectada —tests— no hay red).
     calendar = (CalendarSync(cfg.data_dir, interval_s=cfg.calendar_interval_s)

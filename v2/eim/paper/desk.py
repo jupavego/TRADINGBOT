@@ -15,7 +15,7 @@ from eim.data.providers.base import Provider
 from eim.data.store import Store
 from eim.data.timeframes import FOCUS, tf_ms
 from eim.operation.priority import lower_thread
-from eim.paper import cost_ledger, ledger, tf_gate
+from eim.paper import accounting, cost_ledger, ledger, tf_gate
 from eim.paper.adaptive import policies_for
 from eim.paper.authority_obs import DecisionEmitter
 from eim.paper.balance import balance
@@ -292,6 +292,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
             "insights": insights(rows, fams, profiles, cov["origins"]),
             "balance": balance({pid: b.trades for pid, b in v.books.items()},
                                {i["id"]: i["name"] for i in infos}, now, self.tfs),
+            "accounting": accounting.from_store(self.pstore, v.symbol),   # T144: universo
             "job": self.job.to_json(), "live": self.live_status(), "protection": v.protection,
             # T143 (4): costo vivido del libro fijo y puerta de marcos, cada uno con su `source`
             "cost": {**self._cost(v.symbol), "timeframes": v.tf_cost},

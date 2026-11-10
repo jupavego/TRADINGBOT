@@ -12,12 +12,19 @@ Lo llama el vigilante (`hft_supervise`) cada 10 min; también a mano:
 - **Resumen** (`micro_hft/qc/symbol=S/summary.json`): horas completas, coincidencia top-10, huecos
   no detectados, racha contigua más larga, MB/día y proyección a 30 días. Va al informe semanal y a
   la copia diaria; los crudos no.
-- **Aceptación de T78 por racha** (T126, `t78_streak` del resumen o `--streak`): no hace falta
-  «abrir una ventana» de 72 h; la captura sigue y T78 se cumple en cuanto haya 72 horas completas
-  SEGUIDAS (una hora incompleta o sin auditar la corta) con ≥ 99 % de coincidencia top-10 y ningún
-  hueco sin detectar. Lee solo los JSON de QC, que se conservan aunque se poden los crudos.
-- **Recalificar** (T138, `--requalify DESDE [--apply]`): aplica la regla vigente a los JSON de
-  versiones anteriores leyendo solo `mark`. Corre aparte, sin reiniciar la captura ni el vigilante.
+- **Aceptación de T78 por ventana** (T147, `t78_window` del resumen o `--window`): el tramo
+  contiguo más largo con ≥ 99 % de horas completas, 0 huecos sin detectar y ≥ 99 % de coincidencia
+  top-10, que es lo que pide §Aceptación de `PLAN/T78.md`. La racha de 72 horas seguidas (T126)
+  sigue en `t78_streak` y en `--streak`, ya solo como lectura informativa: una hora al 98,x %
+  la reiniciaba. La regla vive en `hft_window.py`; aquí solo se leen los JSON de QC, que se
+  conservan aunque se poden los crudos.
+- **Mantenimiento** (T147, `--maintenance DESDE HASTA --nota "…"`): declara las horas de un
+  despliegue; no cuentan ni rompen la ventana, así que desplegar ya no cuesta la corrida.
+- **Recalificar** (T138, T147; `--requalify DESDE [--apply]`): aplica la regla vigente a los JSON
+  de versiones anteriores. Corre aparte, sin reiniciar la captura ni el vigilante.
+- **Horas ciegas del registro de consumo** (T148): `blind_hours` lee los huecos de `data/usage/`
+  (`eim.operation.usage_gaps`) y se los pasa a la atribución, que cuenta como nuestras las horas
+  que el registro de consumo tampoco vio. Si falta esa carpeta, no se inventa nada: conjunto vacío.
 """
 
 from __future__ import annotations
@@ -27,19 +34,21 @@ import json
 import time
 from pathlib import Path
 
-from eim.data.collectors import health, qc
+from eim.data.collectors import health, hft_window, qc
 from eim.data.collectors.compact import compact_dir
 from eim.data.collectors.hft_read import hour_label, hours_with_data, parse_hour
 from eim.data.collectors.hft_schema import AREA, KINDS
 from eim.data.collectors.hft_writer import hour_dir
+from eim.operation import usage_gaps
+from eim.operation.usage_summary import days_between, load_day
 
 KEEP_DAYS = 45
 QC_MARGIN_S = 300
 COMPACT_MARGIN_H = 2
 SUMMARY_HOURS = 72
 MAX_QC_PER_PASS = 24
-T78_NEED_H = 72
-T78_MATCH_MIN = 0.99
+T78_NEED_H = hft_window.NEED_H
+T78_MATCH_MIN = hft_window.MATCH_MIN
 LIST_KINDS = ("depth", "snap", "book")   # filas con listas de niveles: grupos de filas pequeños
 LIST_ROW_GROUP = 2048
 
@@ -124,7 +133,6 @@ def aggregate(reps: list[dict], missing: list[int] | None = None) -> dict:
                              + [hour_label(h) for h in missing])[-24:],
     }
 
-
 def last_auditable(now_s: float) -> int:
     """Última hora que ya debería tener su JSON de QC."""
     return int((now_s - QC_MARGIN_S) // 3600) - 1
@@ -152,7 +160,9 @@ def summarize(root: str | Path, symbol: str, now_s: float, hours: int = SUMMARY_
     out["disk"] = {**disk, "keep_days": keep_days,
                    "projection_30d_gb": round(disk["mb_per_day_total"] * 30 / 1000, 2),
                    "projection_keep_gb": round(disk["mb_per_day_total"] * keep_days / 1000, 2)}
-    out["t78_streak"] = streak(root, symbol, now_s, since_h=h1 - keep_days * 24)
+    since = h1 - keep_days * 24
+    out["t78_window"] = window(root, symbol, now_s, since_h=since)
+    out["t78_streak"] = streak(root, symbol, now_s, since_h=since)
     return out
 
 
@@ -166,46 +176,41 @@ def qc_reports(root: str | Path, symbol: str, since_h: int | None = None) -> lis
     return [r for h in sorted(hours) if (r := qc.load(root, symbol, h)) is not None]
 
 
-def _run_info(run: list[dict]) -> dict:
-    comp = sum(r["checks"]["comparable"] for r in run)
-    ok = sum(r["checks"]["matched"] for r in run)
-    return {"hours": len(run), "first_hour": run[0]["hour"] if run else None,
-            "last_hour": run[-1]["hour"] if run else None,
-            "match_rate": round(ok / comp, 4) if comp else None,
-            "undetected": sum(r["holes"]["undetected"] for r in run)}
+def blind_hours(root: str | Path, now_s: float, days: int = 45) -> set[int]:
+    """Horas que el registro de consumo no vio, por sus propios huecos (T148 E2+E3).
+
+    Nunca lanza: sin `data/usage/` (otro equipo, registro no instalado) devuelve un conjunto
+    vacío, y entonces la atribución se queda con las demás señales."""
+    try:
+        now_ms = int(now_s * 1000)
+        day_list = days_between(now_ms - (days - 1) * 86_400_000, now_ms + 1)
+        samples = sorted((r for d in day_list for r in load_day(Path(root), d)),
+                         key=lambda r: r["t"])
+        return usage_gaps.blind_hours(usage_gaps.gaps(samples, now_ms))
+    except Exception:  # noqa: BLE001 - una atribución sin esta señal es peor, no imposible
+        return set()
 
 
 def streak(root: str | Path, symbol: str, now_s: float, since_h: int | None = None,
            need_h: int = T78_NEED_H) -> dict:
-    """Racha de horas completas seguidas (T126): la mayor (`best`, decide T78) y la que sigue
-    viva (`current`: acaba en la última hora auditable, o en la anterior si su QC aún no
-    corrió), con las horas que le faltan para `need_h`."""
-    reps = qc_reports(root, symbol, since_h)
-    best, start, prev = (0, 0), 0, None
-    for i, r in enumerate(reps):
-        h = r["hour_index"]
-        if not r["complete"] or (prev is not None and h != prev + 1):
-            start = i + 1 if not r["complete"] else i
-        if r["complete"] and i + 1 - start > best[1] - best[0]:
-            best = (start, i + 1)
-        prev = h
-    last = reps[-1] if reps else None
-    fresh = last_auditable(now_s) - 1
-    alive = last is not None and last["complete"] and last["hour_index"] >= fresh
-    cur = _run_info(reps[start:] if alive else [])
-    top = _run_info(reps[best[0]:best[1]])
-    passed = (top["hours"] >= need_h and top["undetected"] == 0
-              and (top["match_rate"] or 0) >= T78_MATCH_MIN)
-    return {"need_h": need_h, "since": hour_label(since_h) if since_h is not None else None,
-            "audited_hours": len(reps), "best": top, "current": cur,
-            "remaining_h": 0 if passed else max(0, need_h - cur["hours"]), "passed": passed}
+    """Racha de horas completas seguidas (T126), informativa desde T147: `hft_window.streak`."""
+    return hft_window.streak(qc_reports(root, symbol, since_h), last_auditable(now_s) - 1,
+                             since_h, need_h)
+
+
+def window(root: str | Path, symbol: str, now_s: float, since_h: int | None = None,
+           need_h: int = T78_NEED_H) -> dict:
+    """Veredicto de T78 por ventana (T147): `hft_window.window` sobre los JSON de QC."""
+    return hft_window.window(qc_reports(root, symbol, since_h), last_auditable(now_s) - 1,
+                             hft_window.load_maint(root, symbol), since_h, need_h,
+                             blind_hours(root, now_s))
 
 
 def requalify(root: str | Path, symbol: str, since_h: int | None = None,
               apply: bool = False) -> dict:
-    """Recalifica los JSON de versiones anteriores desde `since_h` (T138). Sin `apply` no escribe
-    nada: solo dice qué horas cambiarían de veredicto. Se puede repetir: no vuelve a tocar las
-    horas al día, así que recoge también las que audite un vigilante aún sin reiniciar."""
+    """Recalifica los JSON de versiones anteriores desde `since_h` (T138, T147). Sin `apply` no
+    escribe nada: solo dice qué horas cambiarían de veredicto. Se puede repetir: no vuelve a tocar
+    las horas al día, así que recoge también las que audite un vigilante aún sin reiniciar."""
     done, changed = 0, []
     for h in [r["hour_index"] for r in qc_reports(root, symbol, since_h)]:
         rep = qc.requalify(root, symbol, h, write=apply)
@@ -213,10 +218,11 @@ def requalify(root: str | Path, symbol: str, since_h: int | None = None,
             continue
         done += 1
         if rep["complete"] != rep["requalified"]["complete_before"]:
-            m = rep["streams"]["mark"]
+            m = (rep.get("streams") or {}).get("mark") or {}
             changed.append({"hour": rep["hour"], "complete": rep["complete"],
-                            "coverage": m["coverage"], "coverage_cadence": m["coverage_cadence"],
-                            "book_usable": rep["book_usable"], "msgs": m["msgs"]})
+                            "coverage": m.get("coverage"),
+                            "coverage_cadence": m.get("coverage_cadence"),
+                            "book_usable": rep["book_usable"], "msgs": m.get("msgs")})
     return {"applied": apply, "requalified": done, "changed": changed}
 
 
@@ -236,8 +242,12 @@ def week_summary(root: str | Path, symbol: str, t0_ms: int, t1_ms: int) -> dict 
     if not reps:
         return None
     disk = health.disk_report(root, area=AREA, kinds=KINDS)
+    now_s = time.time()
     return {"symbol": symbol, **aggregate(reps, missing), "mb_per_day": disk["mb_per_day_total"],
-            "projection_30d_gb": round(disk["mb_per_day_total"] * 30 / 1000, 2)}
+            "projection_30d_gb": round(disk["mb_per_day_total"] * 30 / 1000, 2),
+            "t78_window": hft_window.window(reps, last_auditable(now_s) - 1,
+                                            hft_window.load_maint(root, symbol),
+                                            blind_hours=blind_hours(root, now_s))}
 
 
 def maintain(root: str | Path, symbol: str, now_s: float, keep_days: int = KEEP_DAYS) -> dict:
@@ -266,9 +276,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--root", default="data")
     ap.add_argument("--symbol", default="BTCUSDT")
     ap.add_argument("--keep-days", type=int, default=KEEP_DAYS)
+    ap.add_argument("--window", action="store_true",
+                    help="solo el veredicto de T78 por ventana (T147; no audita ni compacta)")
     ap.add_argument("--streak", action="store_true",
-                    help="solo la racha de T78 (lee los JSON de QC; no audita ni compacta)")
-    ap.add_argument("--since", help="hora UTC AAAA-MM-DDTHH desde la que cuenta la racha")
+                    help="solo la racha de T78 (T126, informativa; no audita ni compacta)")
+    ap.add_argument("--since", help="hora UTC AAAA-MM-DDTHH desde la que se cuenta")
+    ap.add_argument("--maintenance", nargs=2, metavar=("DESDE", "HASTA"),
+                    help="declara esas horas UTC AAAA-MM-DDTHH (ambas incluidas) como "
+                         "mantenimiento conocido: no cuentan ni rompen la ventana (T147)")
+    ap.add_argument("--nota", default="", help="con --maintenance, por qué se declara")
     ap.add_argument("--requalify", metavar="DESDE",
                     help="recalifica los JSON de QC antiguos desde esa hora UTC AAAA-MM-DDTHH "
                          "(T138); sin --apply solo lista lo que cambiaría")
@@ -278,10 +294,17 @@ def main(argv: list[str] | None = None) -> int:
         res = requalify(a.root, a.symbol, parse_hour(a.requalify), a.apply)
         print(json.dumps(res, ensure_ascii=False, indent=1))
         return 0
-    if a.streak:
+    if a.maintenance:
+        if not a.nota.strip():
+            ap.error("--maintenance exige --nota: queda en el registro de por qué no cuentan")
+        h0, h1 = (parse_hour(x) for x in a.maintenance)
+        res = hft_window.declare_maint(a.root, a.symbol, h0, h1, a.nota)
+        print(json.dumps(res, ensure_ascii=False, indent=1))
+        return 0
+    if a.window or a.streak:
         since = parse_hour(a.since) if a.since else None
-        rep = streak(a.root, a.symbol, time.time(), since)
-        print(json.dumps(rep, ensure_ascii=False, indent=1))
+        f = window if a.window else streak
+        print(json.dumps(f(a.root, a.symbol, time.time(), since), ensure_ascii=False, indent=1))
         return 0
     res = maintain(a.root, a.symbol, time.time(), a.keep_days)
     print(json.dumps({k: v for k, v in res.items() if k != "summary"}, ensure_ascii=False))
