@@ -162,6 +162,13 @@ def test_components_flag_a_service_running_from_another_checkout(tmp_path):
     assert not rows["líderes"]["alive"] and rows["líderes"]["checkout"] is None
     assert [r["name"] for r in comp.foreign(list(rows.values()), CHECKOUT)] == ["API"]
     assert comp.foreign(list(rows.values()), "C:/otro/worktree/v2") == []
+    # el bróker vive dentro de la API: hereda su origen; el registro de consumo no tiene latido
+    (tmp_path / "paper").mkdir()
+    (tmp_path / "paper" / "heartbeat.json").write_text(json.dumps({"last_tick": int(t * 1000)}),
+                                                       encoding="utf-8")
+    rows = {r["name"]: r for r in comp.components(tmp_path, t)}
+    assert rows[comp.BROKER]["checkout"] == "C:/otro/worktree/v2" and rows[comp.BROKER]["pid"] == 7
+    assert "sin archivo de latido" in rows[comp.USAGE]["note"]
 
 
 # --------------------------------------------------------------------- 5. contexto «degraded»

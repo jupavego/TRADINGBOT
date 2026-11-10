@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T01:38:32",
+ "generated": "2026-11-10T02:00:12",
  "phases": [
   {
    "n": 0,
@@ -1822,7 +1822,7 @@ window.EIM_STATUS = {
     "T23"
    ],
    "state": "done",
-   "notes": "**Hecha 2026-11-10, sin desplegar** (`PLAN/notas/T120_esferas.md`). Estado único del recolector en `health.LABELS` (vigilante, `/v2/micro/status`, esfera y RUNBOOK §19, comprobado por test); el vigilante se pausa si desaparece la unidad y se reanuda solo (probado con `subst`: una línea `en_pausa`, `reanudado` a los 60 s, 0 trazas, 0 reinicios); cada latido lleva `checkout` y `/v2/health` lista `components`; `servicio_continuo.ps1` avisa de lo que corre desde otra carpeta. Contexto distingue motor ausente/calculando/caído de «sin catalizadores»; ninguna esfera dice «sin datos» a secas; `derivatives` en 4 h toma el OI de 1 h. Diagnóstico repetible: `python -m eim.analytics.why_no_data`. Tests `tests/operation/test_t120_esferas.py`; gate por la cola verde (`20261110-061033-gate-t120-278c`, rc 0). ◆ Desplegar: pedir permiso.",
+   "notes": "**Hecha 2026-11-10, sin desplegar** (`PLAN/notas/T120_esferas.md`). Estado único del recolector en `health.LABELS` (vigilante, `/v2/micro/status`, esfera y RUNBOOK §19, comprobado por test); el vigilante se pausa si desaparece la unidad y se reanuda solo (probado con `subst`: una línea `en_pausa`, `reanudado` a los 60 s, 0 trazas, 0 reinicios); cada latido lleva `checkout` y `/v2/health` lista `components`; `servicio_continuo.ps1` avisa de lo que corre desde otra carpeta. Contexto distingue motor ausente/calculando/caído de «sin catalizadores»; ninguna esfera dice «sin datos» a secas; `derivatives` en 4 h toma el OI de 1 h. Diagnóstico repetible: `python -m eim.analytics.why_no_data`. Tests `tests/operation/test_t120_esferas.py`; gate por la cola verde (`20261110-061033-gate-t120-278c`, rc 0). **Desplegada 2026-11-10 06:49 UTC** (PR #249, `main @ 36c3acc`, hora 06 declarada para T78): API, líderes y captura HFT declaran la carpeta principal en `/v2/health`; microestructura `capturando`.",
    "effort": "medio",
    "phase": 20,
    "goal": "Que el estado que pinta cada esfera sea el estado real del sistema, en cualquier equipo, y que arrancar sea una sola cosa. Queda abierto el último tramo de T104 (≥ 24 h con captura y ≥ 7 días para la línea base marginal) y los pendientes de la auditoría de módulos: los servicios se habían lanzado desde un worktree en vez del checkout principal, el disco externo se desconecta y el contexto sale a veces `degraded` (`PLAN/notas/auditoria_modulos_2026-10-19.md`, `PLAN/notas/T104_diagnostico.md`)."

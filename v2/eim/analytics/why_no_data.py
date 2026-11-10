@@ -48,7 +48,7 @@ def component_lines(health: dict) -> list[str]:
                  time.strftime(" desde %Y-%m-%d %H:%M UTC", time.gmtime(c["started_at"] / 1000)))
         age = "nunca" if c.get("age_s") is None else f"latido hace {c['age_s']:.0f} s"
         out.append(f"  {'vivo ' if c.get('alive') else 'CAÍDO'} {c['name']}: {age}{since} · "
-                   f"{c.get('checkout') or 'checkout sin declarar'}")
+                   f"{c.get('checkout') or c.get('note') or 'checkout sin declarar'}")
     return out
 
 
