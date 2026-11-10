@@ -66,3 +66,14 @@ class Synthesis(Frozen):
     # 0 = a la vista pero sin voto) y factores aplicados a la confianza ("desacuerdo", "evento").
     weights: dict[str, float] = {}
     factors: dict[str, float] = {}
+    # T150 (aditivos): la síntesis que publica el panel (`method="v2"`) dice cuánto sabe:
+    # votantes, votos efectivos (N_eff con la ρ vigente), cobertura por agente con su fuente y la
+    # ventana en vivo, y quién no vota por falta de datos. v1 (bróker simulado) los deja vacíos.
+    method: str = "v1"
+    voters: int | None = None
+    effective_votes: float | None = None
+    rho_mean: float | None = None
+    coverage: dict[str, dict] = {}
+    blocked: list[str] = []
+    informative: list[str] = []      # ◆ T150: se muestran, nunca votan en el panel
+    window: dict = {}

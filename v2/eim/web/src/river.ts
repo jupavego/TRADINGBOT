@@ -6,7 +6,7 @@ import { agentName, esc } from './panels'
 import { core, hexPath, holoDefs, platform } from './river_holo'
 import { ARB_ID, arbSatellite, arbTip, SAT_R, setArbData } from './river_arb'
 import { animateSphere } from './river_sphere'
-import { agentTip, CORE_ID, coreTip, sg, THRESH, tint } from './river_tips'
+import { agentTip, CORE_ID, coreTip, sg, THRESH, tint, votesLine } from './river_tips'
 import { disagreeing, PCT_NOTE, upDown } from './synth'
 import { rememberOpenFamilies } from './technical_ui'
 import type { AgentInfo, AgentReport, Synthesis } from './types'
@@ -186,6 +186,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     `<text x="${CX}" y="${H - 34}" text-anchor="middle" class="rbig" style="fill:${mainCol}">${esc(verdict)}</text>` +
     `<text x="${CX}" y="${H - 12}" text-anchor="middle" class="rv">sesgo ${syn ? sg(b) : '—'} · confianza ${syn ? Math.round(syn.confidence * 100) : 0}% · ` +
     `acuerdo ${syn ? Math.round(syn.agreement * 100) : 0}% · ` +
+    (votesLine(syn, true) ? `${votesLine(syn, true)} · ` : '') +
     (filter === 'carril' ? 'arbitraje: carril propio, no suma a la síntesis'
       : `${live.length} de ${n} agentes con datos${filter === 'todos' ? '' : ' (filtro activo)'}`) + '</text>' +
     `</svg>${sphere}<div class="rcore${selected === CORE_ID ? ' sel' : ''}" data-id="${CORE_ID}" role="button" tabindex="0" ` +

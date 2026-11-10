@@ -9,6 +9,7 @@ Los huecos de ambas fuentes se suman: una vela con un hueco en cualquiera queda 
 from __future__ import annotations
 
 import json
+import os
 import time
 from bisect import bisect_right
 from pathlib import Path
@@ -29,6 +30,17 @@ HFT = "micro_hft"
 DAY_MS = 86_400_000
 # huecos de la captura que rompen el libro o pierden trades; un silencio no pierde nada
 HFT_GAP_SQL = "stream IN ('depth', 'trades') AND cause <> 'silencio'"
+# T150 (BACKLOG T120 (2)): el recolector de liquidaciones (`liq_ws`) apunta sus reconexiones en la
+# misma tabla `micro/gaps` con flujo `liq:<venue>`; no pierden ni un trade ni una foto del libro,
+# y contarlas dejaba «degradado por huecos» el 38 % de las velas de 1 h y el 67 % de las de 4 h.
+# Lo que lee el agente también lo lee el bróker simulado, y T31 no cambia hasta su cierre (◆ de
+# T143): el arreglo se enciende con EIM_MICRO_IGNORE_LIQ_GAPS=1 (apagado por defecto).
+OLD_GAP_SQL = "stream NOT LIKE 'liq:%'"
+IGNORE_LIQ_ENV = "EIM_MICRO_IGNORE_LIQ_GAPS"
+
+
+def _old_gap_filter() -> str:
+    return OLD_GAP_SQL if os.environ.get(IGNORE_LIQ_ENV, "") == "1" else "TRUE"
 
 
 def _hft_files(root: Path, kind: str, symbol: str, start: int, end: int) -> str | None:
@@ -42,12 +54,13 @@ def _hft_files(root: Path, kind: str, symbol: str, start: int, end: int) -> str 
     return "[" + ", ".join("'" + f.as_posix().replace("'", "''") + "'" for f in files) + "]"
 
 
-def _read(root: Path, kind: str, symbol: str, cols: str, start: int, end: int) -> list[tuple]:
+def _read(root: Path, kind: str, symbol: str, cols: str, start: int, end: int,
+          where: str = "TRUE") -> list[tuple]:
     g = _glob(root, kind, symbol)
     if g is None:
         return []
     q = (f"SELECT {cols} FROM read_parquet('{g}', hive_partitioning=false) "
-         f"WHERE t >= ? AND t < ? ORDER BY t")
+         f"WHERE t >= ? AND t < ? AND {where} ORDER BY t")
     return duckdb.connect().execute(q, [start, end]).fetchall()
 
 
@@ -162,8 +175,9 @@ def _read_tops(root: Path, symbol: str, start: int, end: int) -> list[tuple]:
 
 def _read_gaps(root: Path, symbol: str, start: int, end: int) -> list[tuple[int, int]]:
     """Tramos (ms) de hueco que tocan la ventana: los instantes de T23 y los tramos marcados de
-    la captura HFT."""
-    out = [(r[0], r[0]) for r in _read(root, "gaps", symbol, "t", start, end)]
+    la captura HFT. Con `EIM_MICRO_IGNORE_LIQ_GAPS=1`, las reconexiones del recolector de
+    liquidaciones no cuentan (`OLD_GAP_SQL`)."""
+    out = [(r[0], r[0]) for r in _read(root, "gaps", symbol, "t", start, end, _old_gap_filter())]
     if (files := _hft_files(root, "gaps", symbol, start - DAY_MS, end)) is not None:
         q = (f"SELECT start_ns // 1000000, end_ns // 1000000 FROM read_parquet({files}, "
              f"union_by_name=true, hive_partitioning=false) WHERE {HFT_GAP_SQL} "

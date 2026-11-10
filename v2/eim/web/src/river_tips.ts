@@ -46,7 +46,30 @@ const ev = (syn: Synthesis | null): string =>
   syn?.factors?.evento ? ` <b class="warn">Ahora: confianza ×${syn.factors.evento.toFixed(2)}.</b>` : ''
 
 /** Por qué un agente no vota, según su papel (T44); '' si vota. */
+/** «5 votantes ≈ 1,5 votos efectivos (ρ 0,60)» de la síntesis v2 (T150); '' en v1. */
+export function votesLine(syn: Synthesis | null, short = false): string {
+  if (!syn || syn.effective_votes == null || syn.voters == null) return ''
+  const rho = short || syn.rho_mean == null ? '' : ` (ρ medio ${syn.rho_mean.toFixed(2).replace('.', ',')})`
+  return `${syn.voters} votantes ≈ ${syn.effective_votes.toFixed(1).replace('.', ',')} votos efectivos${rho}`
+}
+
+/** Cobertura del agente en la ventana en vivo, con su fuente (T150). */
+export function coverageLine(id: string, syn: Synthesis | null): string {
+  const c = syn?.coverage?.[id]
+  if (!c) return ''
+  const w = syn?.window
+  return `<div class="tip-cov"><span class="chip" data-s="${esc(c.state)}">${esc(STATUS[c.state] ?? c.state)} en ${c.window_bars} velas</span>` +
+    `<span class="muted">${c.ok} con datos · ${c.degraded} degradadas · ${c.no_data} sin datos${c.votes ? '' : ' · <b>no vota</b>'}</span>` +
+    `<span class="muted">fuente: ${esc(c.source)}${w ? ` · ventana: ${esc(w.source)}` : ''}</span></div>`
+}
+
 export function whyNotVoting(id: string, infos: AgentInfo[], syn: Synthesis | null): string {
+  const cov = syn?.coverage?.[id]
+  if (syn?.informative?.includes(id)) {
+    return id === 'smart_money' ? 'Retirado del voto (T150): no aportó fuera de muestra y no tiene datos; se muestra como información.'
+      : 'Informativo (T150): se muestra, pero no vota en la síntesis del panel.'
+  }
+  if (cov && syn?.blocked?.includes(id)) return `No vota por falta de datos: ${cov.reason}.`
   const role = roleOf(id, infos)
   if (id === 'calendar') {
     return 'No suma al sesgo: en ventana de evento reduce la confianza de la síntesis (×0,75; ×0,5 con blackout) ' +
@@ -87,6 +110,7 @@ export function agentTip(r: AgentReport | undefined, id: string, syn: Synthesis 
     `<div class="tip-k"><span class="chip" data-s="${esc(r.status)}">${esc(STATUS[r.status] ?? r.status)}</span>` +
     `<b style="color:${tint(r.bias)}">${dir} ${sg(r.bias)}</b><span class="muted">confianza ${Math.round(r.confidence * 100)}% · ${r.horizon_bars} velas</span></div>` +
     `<div class="tip-share"><span class="muted">Aporte a la proyección</span>${share(id, syn, infos)}</div>` +
+    coverageLine(id, syn) +
     (ev ? `<ul class="ev">${ev}</ul>` : '') + (wn ? `<ul class="warn">${wn}</ul>` : '') +
     (r.agent_id === 'technical' ? technicalDetail(r.metrics) : r.agent_id === 'calendar' ? calendarDetail(r.metrics)
       : r.agent_id === 'arbitrage' ? arbDetail(r.metrics) : mt ? `<table class="metrics">${mt}</table>` : '') +
@@ -113,7 +137,8 @@ export function coreTip(syn: Synthesis | null, reports: AgentReport[], infos: Ag
   const mute = seen.filter((id) => !(id in syn.contributions) && whyNotVoting(id, infos, syn))
   const muted = mute.length ? '<p class="muted">No votan: ' + mute.map((id) =>
     `<span title="${esc(whyNotVoting(id, infos, syn))}">${esc(agentName(id))}</span>`).join(' · ') + '</p>' : ''
-  const F: Record<string, string> = { desacuerdo: 'desacuerdo', evento: 'ventana de evento (calendario)' }
+  const F: Record<string, string> = { desacuerdo: 'desacuerdo', evento: 'ventana de evento (calendario)', correlacion: 'correlación entre votantes' }
+  const vl = votesLine(syn)
   const fac = Object.entries(syn.factors ?? {})
   const facs = fac.length ? `<p class="tip-alert">Confianza ${fac.map(([k, v]) => `×${v.toFixed(2)} por ${esc(F[k] ?? k)}`).join(' · ')}</p>` : ''
   return head('Síntesis') +
@@ -121,6 +146,7 @@ export function coreTip(syn: Synthesis | null, reports: AgentReport[], infos: Ag
     (ud ? `<span><b style="color:var(--up)">▲ ${ud.up} %</b> / <b style="color:var(--down)">▼ ${ud.down} %</b></span>` : '') + '</div>' +
     `<div class="tip-k"><span>Confianza <b>${Math.round(syn.confidence * 100)} %</b></span>` +
     `<span>Acuerdo <b>${Math.round(syn.agreement * 100)} %</b></span></div>` +
+    (vl ? `<div class="tip-k"><span>${esc(vl)}</span><span class="muted">ventana ${syn.window?.coverage_bars ?? '—'} velas (cobertura) · ${syn.window?.corr_bars ?? '—'} (correlación)</span></div>` : '') +
     (dis ? '<p class="tip-alert">⚠ Los agentes se contradicen: ' +
       `<b>${dis.up.map(agentName).join(', ')}</b> (alcista) vs <b>${dis.down.map(agentName).join(', ')}</b> (bajista)</p>` : '') +
     facs + (syn.thesis ? `<p>${esc(syn.thesis)}</p>` : '') +

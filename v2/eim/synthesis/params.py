@@ -82,3 +82,35 @@ def role_of(agent_id: str, p: SynthesisParams | None = None) -> Role:
     if agent_id in p.excluded and agent_id in EXCLUDED_ROLES:
         return EXCLUDED_ROLES[agent_id]
     return "riesgo" if agent_id in p.excluded | NON_DIRECTIONAL else "direccional"
+
+
+class EvidenceParams(BaseModel):
+    """T150 — reglas declaradas de la síntesis que publica el panel (`method="v2"`).
+
+    Ventanas en velas del marco, contadas sobre los reportes guardados en vivo (no el tramo
+    histórico de T44). Nada de esto toca el bróker simulado: sus llamadas siguen en v1.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    # Entregable 1: un agente con más de `max_bad` de velas `no_data`/`degraded` (o ausente) en
+    # las últimas `coverage_bars` no vota (peso 0, fuera del denominador de la confianza).
+    coverage_bars: int = 48
+    max_bad: float = 0.5
+    # Con menos de `min_bars` velas guardadas la ventana no decide: vota según la vela actual
+    # (como v1) y la cobertura lo dice («ventana corta»).
+    min_bars: int = 12
+    # Entregable 3: ρ de Pearson del sesgo entre votantes sobre las últimas `corr_bars` velas en
+    # que ambos tienen datos (confianza > 0). Con menos de `corr_min_overlap` velas comunes o sin
+    # varianza, ρ = `rho_prior`: lo desconocido no se supone independiente (T44 midió 0,44–0,68).
+    corr_bars: int = 200
+    corr_min_overlap: int = 30
+    rho_prior: float = 0.5
+    # Confianza × (votos efectivos / votantes) ** `corr_exponent`: la precisión de una media de
+    # N votos con correlación ρ es la de N_eff independientes, y el error típico va con √N.
+    corr_exponent: float = 0.5
+    # ◆ de T150 (usuario, 2026-11-10, «lo recomendado»): se muestran pero nunca votan en el
+    # panel. `seasonality` y `liquidations`, informativos (Binance dejó de publicar liquidaciones
+    # en 2024); `smart_money`, retirado (T44: no aporta y no tiene datos). `calendar` ya no vota
+    # (modula la confianza). `microstructure` y `derivatives` votan solo con cobertura en vivo.
+    informative: frozenset[str] = frozenset({"seasonality", "liquidations", "smart_money"})

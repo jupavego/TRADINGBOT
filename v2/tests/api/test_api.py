@@ -104,6 +104,8 @@ def test_stream_ticks_then_reports_persisted(client):
         r["agent_id"] for r in rep["reports"]})
     assert syn is None or not ({"calendar", "arbitrage", "plan"} & set(syn["contributions"]))
     assert client.get("/v2/synthesis").json()["synthesis"] == syn
+    # T150: lo publicado es la síntesis v2, con votos efectivos y cobertura por agente
+    assert syn is None or (syn["method"] == "v2" and syn["coverage"] and syn["window"])
 
 
 def test_heartbeat_when_idle(client):
