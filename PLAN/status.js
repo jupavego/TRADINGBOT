@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T08:07:40",
+ "generated": "2026-11-10T09:44:17",
  "phases": [
   {
    "n": 0,
@@ -1105,8 +1105,8 @@ window.EIM_STATUS = {
    "deps": [
     "T62"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "progress",
+   "notes": "**Código hecho (2026-11-10, rama `claude/t64-video-catalogo`)**: lista versionada `v2/eim/video/versions/watchlist_v1.json` (pydantic inmutable, hash en cada fila; 4 canales de ejemplo **sin comprobar** y sin permiso), descubrimiento `v2/eim/data/video/discover.py` solo con la Data API v3 (`channels`→`playlistItems`→`videos`, 1 unidad por llamada, nunca `search`; presupuesto diario propio, `quotaExceeded` degrada sin caerse, reintentos, ritmo, errores por canal, clave redactada; RSS solo si la lista lo habilita: da 404), catálogo `data/video.duckdb` (`videos` point-in-time solo-añadir con `first_seen_at`, ediciones/borrados/re-publicaciones como filas nuevas; `video_queue`, `video_channels`, `video_fetches`, `video_quota`), puntuación pura `v2/eim/video/relevance.py` (tema · actualidad · prioridad con desglose; filtros con motivo; tope diario de horas de cómputo), CLI `python -m eim.video discover|backfill|queue|list|show|coverage|run` y servicio opcional `EIM_VIDEO=1` con latido `data/video/heartbeat.json`. Postura T62 aplicada: solo entra a la cola un canal con permiso de transcripción (`propio`/`escrito`); el resto queda «descartado: sin permiso». 36 pruebas en `tests/video/` (respuestas **escritas a mano** según la documentación: no había clave para grabarlas). **Falta**: la aceptación contra 3–5 canales reales necesita `EIM_YOUTUBE_API_KEY` del usuario (sin ella el catálogo queda vacío y el latido dice `sin_fuente`); cobertura real hoy: ninguna.",
    "effort": "medio",
    "phase": 14,
    "goal": "Saber **qué videos existen, cuáles importan y en qué orden procesarlos**, sin descargar nada pesado todavía. Descubrir → clasificar → puntuar → encolar; descargar es una decisión posterior y acotada por el presupuesto de T62."
