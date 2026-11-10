@@ -104,6 +104,9 @@ if (Test-Path $ollama) {
   if (Escuchando 11434) {
     Write-Host "Ollama ya corre en 127.0.0.1:11434: no se lanza otro."
   } else {
+    # T63 (BACKLOG T62 (1)): sin nube y solo en el bucle local; lo hereda el proceso lanzado
+    $env:OLLAMA_NO_CLOUD = "1"
+    $env:OLLAMA_HOST = "127.0.0.1:11434"
     $p = Start-Process -FilePath $ollama -ArgumentList "serve" -WindowStyle Hidden -PassThru `
       -RedirectStandardOutput (Join-Path $logs "ollama.out.log") `
       -RedirectStandardError (Join-Path $logs "ollama.err.log")
