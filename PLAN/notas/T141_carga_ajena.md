@@ -2,6 +2,8 @@
 
 Hecho desde `juanpablo-cpu`, solo leyendo: 4,6 días de `data/usage` (2-nov 03:38 a 6-nov 19:10 UTC, 12 534 muestras, con un hueco de 6,3 h el 3-nov), `data/operation/logs`, `data/jobs/log`, los JSON de QC de la captura y los registros locales de las sesiones de Claude. El informe se hizo sin cambiar ninguna prioridad ni reiniciar ningún servicio; los cambios se probaron antes en un proceso de prueba propio. Después el usuario decidió (abajo).
 
+**Cerrada el 2026-11-10 (§8):** en los 3 días medidos tras ◆A y ◆B no hubo ningún reinicio de la API, y ◆B quedó demostrada. Los 12 ciclos lentos tienen culpable: 7, el `ng serve` de `RECUAPP`; 5, un trabajo de la cola pausado que retenía 6–8 GB (pasa a T149).
+
 Salvo que se diga otra cosa, las horas son UTC y la CPU es % del equipo entero: con 4 núcleos, un núcleo lleno es el 25 %.
 
 ## Decisión del usuario (2026-11-06 ≈ 20:00 UTC): ◆A y ◆B
@@ -196,3 +198,36 @@ python -m eim.operation.usage incidents --days 7
 5. **◆E no, por ahora.** Solo si `usage incidents` llega a mostrar un trabajo de la cola en un bloqueo: saldrían con prioridad 4.
 
 **Un dato para el umbral de 900 s, sin cambiarlo:** los 3 reinicios saltaron entre 906 y 959 s, apenas pasado el límite. En el de las 01:41 el ciclo ya había terminado 129 s antes de que lo mataran, y el reinicio costó otros 7 min de arranque. Es un solo caso; queda en `BACKLOG.md`.
+
+## 8. Cierre (2026-11-10 04:30 UTC): la ventana medida
+
+Medido con `python -m eim.operation.usage incidents --days 7` y `usage summary --days 4`, del **2026-11-07 03:00 al 2026-11-10 03:00 UTC**. También se cruzaron `data/jobs/log/2026-11-09.jsonl` y las muestras crudas de `data/usage/2026-11-09.jsonl.gz`.
+
+**Lo que cambió con ◆A y ◆B:**
+
+| | 5–6 nov (antes) | Ventana medida |
+|---|---|---|
+| Reinicios por latido (≥ 900 s) | 3 | **0** |
+| Arranques lentos | 2 | **0** |
+| Reinicios por salida de la API | 3 (el último, 7-nov 02:47) | **0** |
+| Ciclos lentos (≥ 120 s) | 9 | 12, todos con culpable nombrado |
+
+**◆B, demostrada.** Hacía falta un episodio en el que la API cayera y la captura no (§ decisión). Hubo tres: el 7-nov a las 06 h la API bajó a 40 MB y la captura conservó 135 MB, con cola máxima 4; el 9-nov a las 07:31, 52 MB frente a 187 MB; y el 9-nov a las 12 h, 125 MB frente a 190 MB. **En ninguno de los 12 ciclos lentos se perdió una hora de captura.** Las horas incompletas de la ventana son la 7-nov 05 (saturada, antes del primer ciclo lento) y las del apagón (9-nov 17 y 23, 10-nov 00), que son de T148.
+
+**Quién estaba detrás de los 12 ciclos lentos:**
+
+1. **7 con el `ng serve` de `RECUAPP`**, que el usuario abre por su cuenta: 7-nov a las 06 y 08 h, 9-nov de 07:00 a 09:00. Eran 2 o 3 servidores de 0,9 a 1,4 GB cada uno, con la CPU entre el 70 y el 96 % y entre 130 y 400 MB libres. Limitarlos está fuera de alcance; son el caso de ◆C.
+2. **5 con un trabajo de la cola, `t143-maker`**, el 9-nov de 11 a 16 h. Era el caso que ◆E esperaba ver (§7). `usage incidents` lo nombra mal, como `submit --name gate-t143-final`. El `submit` que coge `runner.lock` se queda haciendo de ejecutor y vacía la cola entera (`jobs.py`), así que todo lo que corre después cuelga de su árbol. El gate terminó a las 10:38:14 y en ese mismo segundo arrancó `t143-maker`: el árbol pasó de 0,9 a 5,3 GB en un minuto y llegó a 7,9 GB.
+   - **La cola lo pausó 32 veces por «RAM libre < 1 GB», pero esa RAM la tenía él.** Al pausarlo no se libera memoria. A los 900 s (`MAX_PAUSE_S`) se reanuda por fuerza y vuelve a pausarse a los 5 s. Así estuvo 5 h 39 min, con la RAM libre entre 70 y 600 MB y la API cayendo a 125 MB.
+   - Se canceló a mano a las 16:17:36. Relanzado a las 16:40:42 con el equipo libre, **terminó en 350 s**.
+   - Es exactamente el riesgo anotado en ◆A («Un trabajo pausado conserva su memoria»). Pasa a **T149**.
+
+**Punto ciego:** el registro no tomó muestras del 9-nov 17:55:45 al 23:22:14 (5 h 26 min) ni del 10-nov 00:33:49 al 00:38:34. **En esos tramos no se puede afirmar que no hubo bloqueos.** Lo arregla T148, hecha y sin desplegar, que además los declara como `apagon_registro`.
+
+**Las ◆ que quedaban (§7):**
+
+- **◆C (API en memoria 5): no, por ahora.** Sin ella no ha habido ningún reinicio. Lo que queda son ciclos lentos sin consecuencia en la captura, y subirla le quitaría la memoria al usuario. Se reabre si vuelven los reinicios por latido.
+- **◆D (API a prioridad normal): no.** No hubo ningún bloqueo por CPU sin presión de memoria.
+- **◆E (pausar la cola si la API sufre): no tal cual.** El trabajo ya estaba pausado y el daño lo hacía su memoria retenida. Pausarlo más no habría ayudado. El arreglo de verdad es T149.
+
+**Sin comprobar:** una notificación real del aviso temprano en pantalla, y leer las órdenes desde la sesión 0 (BACKLOG T141 (3)).

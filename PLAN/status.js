@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-09T23:52:29",
+ "generated": "2026-11-09T23:37:03",
  "phases": [
   {
    "n": 0,
@@ -264,7 +264,8 @@ window.EIM_STATUS = {
     "T141",
     "T142",
     "T147",
-    "T148"
+    "T148",
+    "T149"
    ]
   },
   {
@@ -2083,8 +2084,8 @@ window.EIM_STATUS = {
     "T126",
     "T127"
    ],
-   "state": "progress",
-   "notes": "Código e informe hechos (2026-11-06): el registro identifica a los ajenos (`usage_foreign.py`), `usage incidents` cruza cada bloqueo y `usage_alert.py` avisa con umbrales medidos. **Informe `PLAN/notas/T141_carga_ajena.md`:** 4 de 5 bloqueos coinciden con scripts de `OPERACION/PROTOTIPO` con 4–7 procesos; la cola no estuvo en ninguno; todo el EIM, captura incluida, corre con prioridad de memoria 2 y E/S baja. **Decidido por el usuario: ◆A y ◆B.** ◆A, regla en `~/.claude/CLAUDE.md`. ◆B, memoria y E/S de los recolectores a 5 y normal, aplicadas en marcha a las 20:01:48 UTC, sin reiniciar, y fijadas en `apply_role` (`priority_memory.py`); la API no cambia. Auditada la captura hasta el 7-nov 02:44 UTC: racha de 11 h y ningún bloqueo. **Desplegado:** PR #216 fusionado y registro de consumo reiniciado a las 03:00:50 UTC del 7-nov. Falta medir hasta el 2026-11-10 03:00 UTC con `python -m eim.operation.usage incidents --days 7`, y cerrar. **Aviso para el cierre (T148):** el apagón del 2026-11-09 dejó un hueco de 5 h 26 min en `data/usage/`, y `usage incidents` da **cero incidentes** después de las 17:00 porque el registro murió con los demás. La medición de 7 días ya no cubre el día completo: al cerrar hay que decirlo, y el punto ciego lo arregla el entregable 2 de T148.",
+   "state": "done",
+   "notes": "**☑ 2026-11-10.** Código: el registro identifica a los ajenos (`usage_foreign.py`), `usage incidents` cruza cada bloqueo y `usage_alert.py` avisa con umbrales medidos. Decididas por el usuario ◆A (regla en `~/.claude/CLAUDE.md`) y ◆B (recolectores en memoria 5 y E/S normal, fijado en `apply_role`). **Ventana medida del 7-nov 03:00 al 10-nov 03:00 UTC (nota `PLAN/notas/T141_carga_ajena.md` §8):** 0 reinicios por latido, 0 arranques lentos y 0 salidas (antes, 3, 2 y 3). ◆B demostrada: en 3 episodios la API bajó a 40–125 MB y la captura conservó 135–190 MB, sin perder ninguna hora. Los 12 ciclos lentos tienen culpable: 7, el `ng serve` de `RECUAPP`; 5, el trabajo de la cola `t143-maker`, que pausado retuvo 6–8 GB durante 5 h 39 min (mal atribuido al `submit` que aloja el ejecutor) → **T149**. ◆C, ◆D y ◆E no se aplican. **Punto ciego:** el registro no tomó muestras durante los apagones del 9-nov (5 h 26 min) y del 10-nov (5 min); lo arregla T148 al desplegarse.",
    "effort": "medio",
    "phase": 21,
    "goal": "Saber qué satura el equipo y evitar que eso pare la API. Hubo tres reinicios «latido detenido» en 46 h (2026-11-05 04:14 y 07:12, 2026-11-06 01:41), sin ninguno en los días anteriores desde el 30-oct. En todos el equipo estaba bajo presión, con `python.exe` ajenos en prioridad normal mientras la API, en prioridad baja, perdía casi toda su RAM. La evidencia está en `PLAN/notas/T140_api_sin_puerto.md` §2."
@@ -2111,7 +2112,7 @@ window.EIM_STATUS = {
     "T137"
    ],
    "state": "progress",
-   "notes": "Abierta el 2026-11-09 desde `PLAN/notas/diagnostico_rentabilidad_2026-11-09.md` §3. La fricción del libro vivido (1 630,1 USDT) es **mayor que la pérdida neta** (−1 438,5): 14,1 pb del nocional con el SL a 1,21 % = **0,125 R por operación**. Baja a ~0,06 R encendiendo `risk_includes_costs` (T136 §1: hoy se arriesga ×1,1734 de lo declarado), midiendo maker frente a taker antes de adoptarlo (256 de 411 entradas son `market`) y retirando 15 m mientras su costo siga en 0,157 R. **No crea ventaja: deja de destruirla.** ◆ del usuario antes de tocar perfiles y antes de desplegar durante T31. **En curso (2026-11-09): entregable 1 en marcha.** Pre-registro en `PLAN/notas/T143_preregistro_maker.md` (commit propio, anterior a todo cálculo); medición en `eim/paper/maker_ab.py` + `scripts/t143_maker.py`, 21 pruebas. Dos correcciones de contabilidad posteriores al pre-registro y las dos **en contra** de maker: denominador común (el riesgo planeado ` **2026-11-10: los cinco entregables hechos en `claude/t143-maker`** (puerta de marcos `eim/paper/tf_gate.py`; costo vivido en el panel y en el informe semanal, `eim/paper/cost_ledger.py`; antes/después `reports/t143_antes_despues.md`: costo 0,123 → 0,083 R, E[R] neto −0,150 → −0,153 R, es decir, no crea ventaja). Revisión de código high hecha. **◆ 2026-11-10: T31 intacta hasta su cierre y T143 desde ya en una corrida aparte** (`EIM_PAPER_VARIANTS=t143`, `eim/paper/{t143_config,variant}.py`, base `data/paper_t143.duckdb`, rutas `GET /v2/paper/variant/t143`). Los valores por defecto vuelven a ser los de T31. La automejora sin intervención se limita a costo y riesgo (`AUTO_ADAPT`). Gate completo por la cola verde (`20261110-022744-t143-gate-2-5e44`, rc=0, 1 115 s, sin pausas). **Desplegada el 2026-11-10 a las 04:17 UTC** (PR #243; `EIM_PAPER_VARIANTS=t143` como variable de usuario; parada sin `-Todo`, así que la captura siguió). La API pasó de 1,9 a 2,4 GB. Primera vista: T31 sin cambios (los tres marcos operan); en `t143` la sombra mide 15 m a 0,387 R y 1 h a 0,159 R, **los dos fuera**, y 4 h opera a 0,083 R. Falta comparar al cerrar T31. **Ajuste 2026-11-10 (◆ del usuario):** la puerta mide el costo solo sobre lo que algún perfil aceptaría por su `max_cost_r` (`tf_gate.takeable`), no sobre toda la sombra. Gate verde por la cola (`20261110-042504-t143-puerta-gate-0394`, rc=0). |entry − SL|`, porque el realizado infla el R de una límite que entra mejor) y **estrés de cola** (el motor llena si la vela *toca* el nivel; se exige que el precio **pase**, porque medir fills de verdad es T79). Entregables 2–5 esperan la ◆ del usuario.",
+   "notes": "Abierta el 2026-11-09 desde `PLAN/notas/diagnostico_rentabilidad_2026-11-09.md` §3. La fricción del libro vivido (1 630,1 USDT) es **mayor que la pérdida neta** (−1 438,5): 14,1 pb del nocional con el SL a 1,21 % = **0,125 R por operación**. Baja a ~0,06 R encendiendo `risk_includes_costs` (T136 §1: hoy se arriesga ×1,1734 de lo declarado), midiendo maker frente a taker antes de adoptarlo (256 de 411 entradas son `market`) y retirando 15 m mientras su costo siga en 0,157 R. **No crea ventaja: deja de destruirla.** ◆ del usuario antes de tocar perfiles y antes de desplegar durante T31. **En curso (2026-11-09): entregable 1 en marcha.** Pre-registro en `PLAN/notas/T143_preregistro_maker.md` (commit propio, anterior a todo cálculo); medición en `eim/paper/maker_ab.py` + `scripts/t143_maker.py`, 21 pruebas. Dos correcciones de contabilidad posteriores al pre-registro y las dos **en contra** de maker: denominador común (el riesgo planeado ` **2026-11-10: los cinco entregables hechos en `claude/t143-maker`** (puerta de marcos `eim/paper/tf_gate.py`; costo vivido en el panel y en el informe semanal, `eim/paper/cost_ledger.py`; antes/después `reports/t143_antes_despues.md`: costo 0,123 → 0,083 R, E[R] neto −0,150 → −0,153 R, es decir, no crea ventaja). Revisión de código high hecha. **◆ 2026-11-10: T31 intacta hasta su cierre y T143 desde ya en una corrida aparte** (`EIM_PAPER_VARIANTS=t143`, `eim/paper/{t143_config,variant}.py`, base `data/paper_t143.duckdb`, rutas `GET /v2/paper/variant/t143`). Los valores por defecto vuelven a ser los de T31. La automejora sin intervención se limita a costo y riesgo (`AUTO_ADAPT`). Gate completo por la cola verde (`20261110-022744-t143-gate-2-5e44`, rc=0, 1 115 s, sin pausas). **Desplegada el 2026-11-10 a las 04:17 UTC** (PR #243; `EIM_PAPER_VARIANTS=t143` como variable de usuario; parada sin `-Todo`, así que la captura siguió). La API pasó de 1,9 a 2,4 GB. Primera vista: T31 sin cambios (los tres marcos operan); en `t143` la sombra mide 15 m a 0,387 R y 1 h a 0,159 R, **los dos fuera**, y 4 h opera a 0,083 R. Falta comparar al cerrar T31. |entry − SL|`, porque el realizado infla el R de una límite que entra mejor) y **estrés de cola** (el motor llena si la vela *toca* el nivel; se exige que el precio **pase**, porque medir fills de verdad es T79). Entregables 2–5 esperan la ◆ del usuario.",
    "effort": "medio",
    "phase": 24,
    "goal": "Bajar el costo por operación de 0,125 R a ~0,06 R sin tocar la entrada ni la salida, encendiendo lo que T136 ya midió y apagando el marco donde el costo se come el riesgo. No crea ventaja: deja de destruirla."
@@ -2188,6 +2189,19 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 21,
    "goal": "Que el equipo no pueda quedarse 5 horas sin captura sin que nada lo note, lo apunte ni lo atribuya."
+  },
+  {
+   "id": "T149",
+   "title": "Que un trabajo pausado de la cola no retenga la memoria que lo pausa",
+   "deps": [
+    "T127",
+    "T141"
+   ],
+   "state": "pending",
+   "notes": "Abierta al cerrar T141 (2026-11-10). El 9-nov, `t143-maker` se pausó 32 veces por «RAM libre < 1 GB» con 6–8 GB propios: cada 900 s se reanudaba por fuerza y se volvía a pausar a los 5 s, durante 5 h 39 min, y la API cayó a 125 MB. Relanzado con el equipo libre, tardó 350 s. Además, `usage incidents` lo atribuyó al `submit` que hacía de ejecutor. Ficha `PLAN/T149.md`.",
+   "effort": "bajo-medio",
+   "phase": 21,
+   "goal": "Que la cola deje de retener la memoria del equipo con un trabajo pausado, y que `usage incidents` nombre el trabajo que de verdad corre, no el `submit` que hace de ejecutor."
   }
  ]
 };
