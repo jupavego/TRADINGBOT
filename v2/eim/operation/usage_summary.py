@@ -10,12 +10,18 @@ recolector. Función pura de los archivos; no escribe nada.
 de verdad midiendo: el día menos sus huecos (`usage_gaps.py`) y menos lo que queda fuera de la
 primera y la última muestra. Así un día con 5 horas en blanco, como el 2026-11-09, no se lee como
 si estuviera medido; `blind_s` y `gaps` dicen cuánto y cuándo faltó.
+
+**CPU en reposo del EIM (T128).** `eim_cpu_median` es la vara común: la mediana de la CPU del EIM
+(suma de sus papeles) en las muestras del día. Los trabajos de la cola y los programas ajenos no
+tienen papel y no cuentan, y la mediana deja fuera los picos periódicos (validación de 4 h,
+puntuaciones), que ocupan menos de la mitad del día. La media (`eim_cpu_mean`) sí los incluye.
 """
 
 from __future__ import annotations
 
 import gzip
 import json
+import statistics
 from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -116,6 +122,7 @@ def day_summary(recs: list[dict], day: str, hft: dict[str, bool] | None = None,
                   "top": max(who, key=who.get) if who else None},
             ram_free_min_mb=min(r["machine"].get("ram_free_mb", 0) for r in recs),
             eim_cpu_mean=round(sum(r["eim"]["cpu"] for r in recs) / len(recs), 2),
+            eim_cpu_median=round(statistics.median(r["eim"]["cpu"] for r in recs), 2),
             roles_cpu_mean=_top(roles, len(recs), 8), others_cpu_mean=_top(others, len(recs), 5))
     out["saturated_hours"] = saturated
     lost = sorted(h for h, ok in (hft or {}).items() if not ok)

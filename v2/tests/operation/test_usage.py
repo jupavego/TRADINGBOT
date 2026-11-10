@@ -150,6 +150,18 @@ def test_day_summary_crosses_saturation_with_lost_hft_hours():
     assert "1 sin registro (15)" in md
 
 
+def test_idle_cpu_is_the_median_so_periodic_peaks_do_not_count():
+    """T128: la vara de la CPU en reposo del EIM es la mediana; los picos periódicos (validación,
+    puntuaciones) suben la media pero no el reposo."""
+    recs = [rec_at("10", i, 20.0) for i in range(100)]
+    for i, r in enumerate(recs):
+        r["eim"] = {"cpu": 40.0 if i % 10 == 0 else 6.0}       # un pico cada 5 min
+    d = usage_summary.day_summary(recs, "2026-11-02")
+    assert d["eim_cpu_median"] == 6.0 and d["eim_cpu_mean"] == 9.4
+    md = "\n".join(report._usage_lines([d]))
+    assert "EIM 9.4 % de media, 6.0 % en reposo" in md
+
+
 def test_summaries_read_the_qc_files_and_never_break_the_report(tmp_path, monkeypatch):
     qc = tmp_path / "micro_hft" / "qc" / "symbol=BTCUSDT" / "date=2026-11-02"
     qc.mkdir(parents=True)

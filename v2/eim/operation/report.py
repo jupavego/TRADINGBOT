@@ -232,7 +232,8 @@ def _usage_lines(days: list[dict]) -> list[str]:
             f"{ciego} CPU "
             f"del equipo media {c['mean']:.0f} % (p95 {c['p95']:.0f} %, máx. {c['max']:.0f} % "
             f"a las {p['ts'][11:16]} UTC, sobre todo {p['top'] or '—'}); RAM libre mín. "
-            f"{d['ram_free_min_mb'] / 1024:.1f} GB; EIM {d['eim_cpu_mean']:.1f} % de media "
+            f"{d['ram_free_min_mb'] / 1024:.1f} GB; EIM {d['eim_cpu_mean']:.1f} % de media"
+            f"{_f(d.get('eim_cpu_median'), ', {:.1f} % en reposo')} "
             f"({roles or '—'}). Horas saturadas: {', '.join(d['saturated_hours']) or 'ninguna'}; "
             f"{hft}.")
     return out
