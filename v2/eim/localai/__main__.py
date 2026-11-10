@@ -7,13 +7,15 @@
         # JSON de un párrafo y calcula embeddings; cada salida con modelo + SHA y RAM pico.
 
 `smoke` es trabajo pesado (carga modelos de 0,5–4,5 GB): lanzarlo por la cola de trabajos
-(`python -m eim.operation.jobs submit --min-ram-mb 5500 -- ...`).
+(`python -m eim.operation.jobs submit --min-ram-mb 5500 -- ...`); la cola no hereda el
+entorno, así que la configuración va con `--set EIM_LOCALAI_X=valor`.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -100,8 +102,17 @@ def main(argv: list[str] | None = None) -> int:
     m.add_argument("--audio", type=Path)
     m.add_argument("--image", type=Path)
     m.add_argument("--report", type=Path)
+    for sp in sub.choices.values():
+        sp.add_argument("--set", action="append", default=[], metavar="EIM_LOCALAI_X=valor",
+                        help="EIM_LOCALAI_* para esta orden (la cola no hereda el entorno)")
     a = ap.parse_args(argv)
-    ai = LocalAI.from_env()
+    env = dict(os.environ)
+    for kv in a.set:
+        k, _, v = kv.partition("=")
+        if not k.startswith("EIM_LOCALAI_"):
+            ap.error(f"--set solo admite variables EIM_LOCALAI_*: {k}")
+        env[k] = v
+    ai = LocalAI.from_env(env)
     try:
         if a.cmd == "check":
             return _check(ai)
