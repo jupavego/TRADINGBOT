@@ -1153,3 +1153,13 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Comprobado:** `/v2/health` trae `checkout` y `components`; API, líderes y captura HFT declaran `C:\Users\jo\Desktop\JP\TRADINGBOT\v2` y arranque 06:49 UTC. `components` sale con código 0 (nada ajeno). `/v2/micro/status?disk=false` dice `capturando` con `label` y `age_s`. Web (5173) y hoja de ruta (8765) responden; Ollama no existe en este equipo (BACKLOG T120 (3)).
 - **Visto:** `components` mostraba el bróker simulado y el registro de consumo como «código anterior a T120», cuando el bróker corre dentro de la API y el registro no tiene archivo de latido. Corregido en la rama `claude/t120-componentes` (pruebas de zona: 126 pasadas, ruff limpio); el CLI ya lo dice bien y `/v2/health` lo dirá al siguiente reinicio de la API.
 - **Siguiente paso:** comprobar al cerrar la vela de las 07:00 UTC que Contexto dice «sin motor de contexto».
+
+## 2026-11-10 08:00 UTC · juanpablo-cpu · T128: vara común para la CPU en reposo
+- **Pedido:** retomar T128 (sesión lanzada desde otra). Ramas `t128-despliegue`, `t128-lideres-b` y `t128-retencion` ya fusionadas en `main`; nada sin fusionar.
+- **Hecho:** BACKLOG T128 (2). `eim_cpu_median` en `usage_summary.day_summary` (mediana diaria de la CPU del EIM; la cola y los programas ajenos no tienen papel y no cuentan, la mediana deja fuera los picos periódicos) y en el informe semanal («X % en reposo»). Nota `PLAN/notas/T128_cpu_reposo.md`.
+- **Medido** con el registro de consumo: antes del despliegue del 2-nov, 21,2 % (el recolector viejo solo, 12,3 %); del 3 al 9-nov, 7,5 / 10,6 / 11,3 / 10,2 / 9,4 / 9,7 / 14,0 %. Criterio de CPU cumplido; el ~10 % de T126 era una foto de 60 s.
+- **Archivos:** `v2/eim/operation/{usage_summary,report}.py`, `v2/tests/operation/{test_usage,test_usage_foreign}.py`, `PLAN/notas/T128_cpu_reposo.md`, `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`.
+- **Pruebas:** gate completo por la cola (19 min, sin pausas): todo verde salvo `test_usage_foreign.py::test_windows_reads_the_command_line_and_folder_of_another_process` (T141), que fallaba 2 de cada 3 veces también aislada: leía la carpeta del hijo justo al nacer, sin esperar. Arreglada la prueba (espera a las dos lecturas): 5/5. Ruff limpio.
+- **Abierto:** semana de medición de `leaders.duckdb` hasta el 2026-11-17 02:29 UTC (única aceptación pendiente; T128 sigue ◐). BACKLOG T128 (1), retención de `leader_positions`, fuera de alcance. Sin despliegue: el cambio solo afecta a informes y entra con el próximo reinicio o al generar el informe semanal.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
+- **Siguiente paso:** el 2026-11-17, medir la base con las copias de cada noche y cerrar T128.

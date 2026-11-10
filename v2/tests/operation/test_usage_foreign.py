@@ -3,6 +3,7 @@
 import json
 import subprocess
 import sys
+import time
 from types import SimpleNamespace
 
 import pytest
@@ -144,13 +145,14 @@ def test_windows_reads_the_command_line_and_folder_of_another_process(tmp_path):
     script.write_text("import time\ntime.sleep(30)\n")
     child = subprocess.Popen([sys.executable, str(script), "--procesos", "7"], cwd=tmp_path)  # noqa: S603
     try:
-        cmd = None
-        for _ in range(50):                                 # justo al nacer aún no tiene bloque
+        cmd = cwd = None
+        for _ in range(100):                # justo al nacer aún no tiene bloque ni carpeta
             cmd = usage_win.command_line(child.pid)
-            if cmd:
+            cwd = usage_win.working_dir(child.pid)
+            if cmd and cwd:
                 break
+            time.sleep(0.05)
         assert "trabajo_pesado.py" in cmd and "--procesos 7" in cmd
-        cwd = usage_win.working_dir(child.pid)
         assert cwd.rstrip("\\").lower() == str(tmp_path).lower()
     finally:
         child.kill()
