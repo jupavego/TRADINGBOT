@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 
+from eim.data.leader_service import COMPACT_EXIT
 from eim.data.leader_store import LeaderStore
 from eim.leaders.cli import _supervise, main
 from eim.operation.watchdog import instance_lock
@@ -34,8 +35,9 @@ def test_supervise_needs_tracked_leaders_and_a_single_instance(tmp_path, capsys)
     got = []
 
     class FakeWatchdog:
-        def __init__(self, cmd, env, hb, log, title):
+        def __init__(self, cmd, env, hb, log, title, planned_rc=None, on_planned=None):
             got.append((cmd, hb, title))
+            assert planned_rc == COMPACT_EXIT and callable(on_planned)  # T128
 
         def run(self):
             assert instance_lock(tmp_path / "leaders" / "supervisor.lock") is None  # tomado

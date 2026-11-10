@@ -1,7 +1,8 @@
 """Poda de los líderes rechazados (T128, I/O): 7 días de detalle y lo anterior, archivado.
 
 Por cada líder `rejected` y moneda: pliega lo posterior al corte anterior hasta el último
-instante ≤ ahora − `keep_ms` en que la posición quedó plana (`trip_archive.advance`), guarda
+instante ≤ ahora − `keep_ms` sin patas en espera, con la posición abierta o no
+(`trip_archive.advance`; el viaje abierto se archiva plegado), guarda
 eso en `leader_archive*` y borra en la MISMA transacción sus ejecuciones (`leader_fills`, t ≤
 corte) y las cotizaciones del seguidor de esas ejecuciones (`leader_follow`). Lo lee y lo borra
 en una sola instantánea: lo que la captura escribe mientras tanto no se toca. Si la

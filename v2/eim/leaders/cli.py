@@ -39,7 +39,7 @@ from eim.data.leader_eval import evaluate, refresh_portfolios
 from eim.data.leader_prune import DAY_MS, KEEP_MS, prune
 from eim.data.leader_ranking import RankingUnavailable, discover_ranking
 from eim.data.leader_report import render, summary
-from eim.data.leader_service import HEARTBEAT, LeaderService
+from eim.data.leader_service import COMPACT_EXIT, HEARTBEAT, LeaderService
 from eim.data.leader_store import DB_NAME, LeaderStore
 from eim.data.providers.leaders import HyperliquidInfo, now_ms
 from eim.leaders import copy_cli
@@ -163,7 +163,8 @@ def _supervise(a: argparse.Namespace, make_watchdog=Watchdog) -> str:
         cmd = [sys.executable, "-m", "eim.leaders", "--root", str(a.root), "run",
                "--ws-max", str(a.ws_max)]
         make_watchdog(cmd, dict(os.environ), root / HEARTBEAT, JsonLog(root / "logs", echo=True),
-                      title="Líderes: servicio reiniciado").run()
+                      title="Líderes: servicio reiniciado", planned_rc=COMPACT_EXIT,
+                      on_planned=lambda: _compact(a.root)).run()
         return "vigilante de líderes detenido"
     finally:
         lock.close()
@@ -232,7 +233,7 @@ def main(argv: list[str] | None = None) -> int:
     finally:
         store.close()
     print(out)
-    return 0
+    return getattr(a, "exit_code", 0)  # `run` que pide compactar: COMPACT_EXIT
 
 
 def _dispatch(store: LeaderStore, a: argparse.Namespace) -> str:
@@ -278,6 +279,8 @@ def _dispatch(store: LeaderStore, a: argparse.Namespace) -> str:
             asyncio.run(watch.run(asyncio.Event(), a.minutes))
         except KeyboardInterrupt:
             pass
+        if watch.compact_wanted:  # T128: el vigilante compacta y relanza
+            a.exit_code = COMPACT_EXIT
         return render(summary(store, start))
     if a.cmd == "score":
         if a.portfolio:
