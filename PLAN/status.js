@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T02:00:12",
+ "generated": "2026-11-10T02:26:55",
  "phases": [
   {
    "n": 0,
@@ -2197,8 +2197,8 @@ window.EIM_STATUS = {
     "T127",
     "T141"
    ],
-   "state": "pending",
-   "notes": "Abierta al cerrar T141 (2026-11-10). El 9-nov, `t143-maker` se pausó 32 veces por «RAM libre < 1 GB» con 6–8 GB propios: cada 900 s se reanudaba por fuerza y se volvía a pausar a los 5 s, durante 5 h 39 min, y la API cayó a 125 MB. Relanzado con el equipo libre, tardó 350 s. Además, `usage incidents` lo atribuyó al `submit` que hacía de ejecutor. Ficha `PLAN/T149.md`.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-10).** ◆ del usuario: **cancelar y reencolar**. `eim/operation/jobs_memory.py`: si la RAM libre < 1 GB y sin el trabajo quedaría ≥ 1 GB (y él retiene ≥ 512 MB), se mata y vuelve al final de la cola pidiendo pico × 1,25 + 1 GB; nunca más de 2 pausas por memoria seguidas; reencola mientras aprende y falla con la cifra a pedir si deja de crecer o no cabe; 2 h de espera como mucho. Registro: memoria en cada pausa, `pico_ram_mb` al terminar y `pidio_menos_ram`. `eim/operation/usage_jobs.py`: `usage incidents` y el aviso temprano nombran el trabajo (nombre e id de `data/jobs/log`), no el `submit` ejecutor; sobre el 9-nov, los 5 ciclos lentos de 11 a 16 h salen como `t143-maker`. Pruebas `tests/operation/test_jobs_memory.py` (el 9-nov con monitor falso: 0 pausas y reencolado) y `test_usage_jobs.py`; `code-review` alto, 6 arreglos. Entra en vigor con cada `submit` desde código con T149, sin reiniciar servicios. Antes: abierta al cerrar T141 (2026-11-10). El 9-nov, `t143-maker` se pausó 32 veces por «RAM libre < 1 GB» con 6–8 GB propios: cada 900 s se reanudaba por fuerza y se volvía a pausar a los 5 s, durante 5 h 39 min, y la API cayó a 125 MB. Relanzado con el equipo libre, tardó 350 s. Además, `usage incidents` lo atribuyó al `submit` que hacía de ejecutor. Ficha `PLAN/T149.md`.",
    "effort": "bajo-medio",
    "phase": 21,
    "goal": "Que la cola deje de retener la memoria del equipo con un trabajo pausado, y que `usage incidents` nombre el trabajo que de verdad corre, no el `submit` que hace de ejecutor."

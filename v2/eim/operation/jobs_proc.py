@@ -125,6 +125,18 @@ class JobProcess:
             return [self.pid]
         return [int(p) for p in lst.ids[:lst.listed]]
 
+    def memory_mb(self) -> float:
+        """RAM física privada de todo el árbol del trabajo (T149). Pausado la conserva entera:
+        suspender no libera memoria. Fuera de Windows no se mide (0)."""
+        if not WIN:
+            return 0.0
+        from eim.operation import usage_win
+        try:
+            procs = usage_win.snapshot()
+        except OSError:
+            return 0.0
+        return round(sum(p.ram for pid in self.pids() if (p := procs.get(pid))) / (1 << 20), 1)
+
     def _each(self, fn: str) -> None:
         k = _k32()
         for pid in self.pids():
