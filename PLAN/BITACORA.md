@@ -1221,3 +1221,11 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Comprobado:** primera pasada `ok`, 4/4 canales, un borrado detectado, cuota del día 306 de 2000; el proceso real corre en prioridad Idle con ≈ 127 MB. La clave sale de `~/.eim/youtube_api_key.txt`.
 - **Abierto:** que la tarea al encender (sesión 0, S4U) vea `EIM_VIDEO` y el archivo de la clave se comprobará en el próximo reinicio; si no, el latido dirá `sin_fuente` o no habrá latido. Resto en BACKLOG T64 (1), (3)–(6).
 - **Siguiente paso:** tras el próximo reinicio, mirar `data/video/heartbeat.json`.
+
+## 2026-11-10 · juanpablo-cpu · T63 cerrada (decisión delegada)
+- **Pedido:** «esta tarea ya está cerrada, ¿falta algo?»; tras explicar que faltaba la prueba manual completa, «hazlo tú».
+- **Hecho:** T63 ◐→☑. La prueba manual con ASR, LLM y embeddings no cabe en `juanpablo-cpu` sin parar servicios (2,5 GB libres al comprobarlo; Ollama apagado) y la regla del equipo protege la captura, así que pasa a BACKLOG T63 (7) con la orden lista. Mismo criterio que el cierre de T62.
+- **Archivos:** `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, hoja de ruta regenerada. Sin cambios de código; el gate no aplica.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143.
+- **Siguiente paso:** T65/T66 (dependen de T63 y T64, ya hechas); antes de transcribir de verdad, BACKLOG T63 (7).
+
