@@ -6,7 +6,14 @@ import httpx
 import pytest
 
 from eim.data.video.catalog import VideoCatalog
-from eim.data.video.discover import QuotaGuard, SourceError, YouTubeApi
+from eim.data.video.discover import (
+    KEY_ENV,
+    KEY_FILE_ENV,
+    QuotaGuard,
+    SourceError,
+    YouTubeApi,
+    load_key,
+)
 from eim.data.video.parse import iso_duration_s, video_from_api, videos_from_rss
 from eim.data.video.pipeline import run_discover
 from eim.data.video.service import serve
@@ -75,7 +82,18 @@ def test_cli_list_and_show_explain_each_video(tmp_path, capsys):
 
 def test_service_without_key_degrades_and_beats(tmp_path, monkeypatch):
     monkeypatch.delenv("EIM_YOUTUBE_API_KEY", raising=False)
+    monkeypatch.setenv("EIM_YOUTUBE_API_KEY_FILE", str(tmp_path / "no_existe.txt"))
     assert serve(tmp_path, test_watchlist(), every_s=60, once=True) == 1
     beat = json.loads((tmp_path / "video" / "heartbeat.json").read_text(encoding="utf-8"))
     assert beat["state"] == "sin_fuente" and "EIM_YOUTUBE_API_KEY" in beat["error"]
-    assert beat["watchlist"] == "v1"
+    assert beat["watchlist"] == "v2"
+
+
+def test_key_comes_from_env_first_then_from_a_file_outside_the_repo(tmp_path):
+    f = tmp_path / "youtube_api_key.txt"
+    f.write_bytes(bytes([0xEF, 0xBB, 0xBF]) + b"clave-archivo" + bytes([13, 10]))   # BOM y CRLF
+    assert load_key({KEY_FILE_ENV: str(f)}) == "clave-archivo"
+    assert load_key({KEY_ENV: " clave-env ", KEY_FILE_ENV: str(f)}) == "clave-env"
+    assert load_key({KEY_FILE_ENV: str(tmp_path / "falta.txt")}) is None
+    (tmp_path / "vacio.txt").write_text("  ", encoding="utf-8")
+    assert load_key({KEY_FILE_ENV: str(tmp_path / "vacio.txt")}) is None

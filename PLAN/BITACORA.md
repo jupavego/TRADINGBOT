@@ -1197,3 +1197,11 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `PLAN/{STATUS,BACKLOG,BITACORA}.md`, `PLAN/status.js`. Sin cambios de código.
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
 - **Siguiente paso:** fusionar #254; decidir la lista definitiva y los permisos (`watchlist_v2`) y cómo lee la clave el servicio (BACKLOG T64 (2), (7)).
+
+## 2026-11-10 15:50 UTC · juanpablo-cpu · T64: clave fuera del repo y lista v2
+- **Pedido:** «toma tu la mejor decision» sobre lo que quedó abierto (lista definitiva y cómo lee la clave el servicio).
+- **Decidido y hecho:** (1) la clave se movió de `TRADINGBOT\EIM_YOUTUBE_API_KEY.txt` a `~/.eim/youtube_api_key.txt`, sin leerla; `eim/data/video/discover.load_key` usa `EIM_YOUTUBE_API_KEY` y, si falta, ese archivo (o `EIM_YOUTUBE_API_KEY_FILE`). Fuera del repo no puede acabar en git ni en la copia entre equipos, y el servicio no depende de una variable de usuario. (2) `watchlist_v2` (vigente): mismos 4 canales, ids comprobados, ninguno con permiso (la elección de canales solo afecta al catálogo de metadatos mientras rija T62) y respaldo de 40 páginas. No se añadieron canales nuevos sin comprobarlos.
+- **Comprobado:** `discover` y `backfill --since 2026-10-01` sin la variable, leyendo el archivo: 4/4 ok, 3173 videos, un título editado de Bloomberg guardado como fila nueva, 274 unidades en el día.
+- **Archivos:** `v2/eim/data/video/{discover,service}.py`, `v2/eim/video/{watchlist.py,versions/watchlist_v2.json}`, `v2/tests/video/*`, `v2/tests/test_param_versions.py`, `v2/docs/{OPERACION,SEGURIDAD}.md`, `PLAN/{STATUS,BACKLOG,BITACORA}.md`.
+- **Pruebas:** zonas de video, versiones, observatorio y prioridad en verde; ruff limpio.
+- **Siguiente paso:** fusionar #254 (lo aprueba el usuario); activar `EIM_VIDEO=1` solo después de fusionar.

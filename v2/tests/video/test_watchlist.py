@@ -7,14 +7,22 @@ from eim.video import watchlist as W
 
 
 def test_v1_loads_with_hash_and_is_frozen():
-    wl = W.load()
+    wl = W.load("watchlist_v1")
     assert wl.version == "v1" and len(wl.hash) == 64
     assert 3 <= len(wl.channels) <= 5
     assert all(c.permission == "ninguno" and not c.verified for c in wl.channels)
     assert {t.asset for t in wl.topics if t.asset} == {"BTC", "ETH"}
     with pytest.raises(ValidationError):
         wl.threshold = 0.1
-    assert W.load().hash == wl.hash
+    assert W.load("watchlist_v1").hash == wl.hash
+
+
+def test_v2_is_the_default_with_verified_ids_and_no_permission():
+    wl, v1 = W.load(), W.load("watchlist_v1")
+    assert wl.version == "v2" and wl.hash != v1.hash
+    assert [c.channel_id for c in wl.channels] == [c.channel_id for c in v1.channels]
+    assert all(c.verified and c.permission == "ninguno" for c in wl.channels)
+    assert wl.budget.backfill_max_pages == 40
 
 
 def test_invalid_lists_are_rejected():

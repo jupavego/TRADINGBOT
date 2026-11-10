@@ -8,8 +8,10 @@
 - **RSS de canal**: solo si la lista lo habilita (`rss_enabled`); en las pruebas de T62 respondió
   404 y no da duración ni idioma.
 
-Clave: `EIM_YOUTUBE_API_KEY` (del proyecto de Google del usuario). Nunca se registra: los errores
-se redactan sin URL ni parámetros. Reintentos con espera creciente ante 429/5xx/red, ritmo mínimo
+Clave (del proyecto de Google del usuario): la variable `EIM_YOUTUBE_API_KEY` o, si no existe, el
+archivo `EIM_YOUTUBE_API_KEY_FILE` (por defecto `~/.eim/youtube_api_key.txt`, **fuera del repo**:
+no puede acabar en git ni en la copia entre equipos). Nunca se registra: los errores se redactan
+sin URL ni parámetros. Reintentos con espera creciente ante 429/5xx/red, ritmo mínimo
 entre llamadas, y cada canal falla por su cuenta.
 """
 
@@ -17,8 +19,9 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import httpx
 
@@ -28,7 +31,23 @@ from eim.video.models import VideoMeta
 API = "https://www.googleapis.com/youtube/v3/"
 RSS = "https://www.youtube.com/feeds/videos.xml"
 KEY_ENV = "EIM_YOUTUBE_API_KEY"
+KEY_FILE_ENV = "EIM_YOUTUBE_API_KEY_FILE"
+DEFAULT_KEY_FILE = Path.home() / ".eim" / "youtube_api_key.txt"
 QUOTA_REASONS = {"quotaExceeded", "dailyLimitExceeded", "rateLimitExceeded"}
+
+
+def load_key(env: Mapping[str, str] | None = None) -> str | None:
+    """Clave de la variable o, si falta, del archivo; None si no hay ninguna (o es ilegible)."""
+    env = os.environ if env is None else env
+    key = env.get(KEY_ENV, "").strip()
+    if key:
+        return key
+    path = Path(env.get(KEY_FILE_ENV) or DEFAULT_KEY_FILE)
+    try:
+        key = path.read_text(encoding="utf-8-sig").strip()
+    except OSError:
+        return None
+    return key or None
 
 
 class QuotaExhausted(Exception):
@@ -66,7 +85,7 @@ class YouTubeApi:
 
     @classmethod
     def from_env(cls, quota: QuotaGuard, **kw) -> YouTubeApi | None:
-        key = os.environ.get(KEY_ENV, "").strip()
+        key = load_key()
         return cls(key, quota, **kw) if key else None
 
     def _get(self, endpoint: str, params: dict) -> dict:
@@ -195,8 +214,8 @@ def discover(channel_ids: list[str], api: YouTubeApi | None, rss: httpx.Client |
             except (SourceError, ValueError, SyntaxError) as exc:
                 out.append(ChannelResult(ch, "youtube_rss", False, error=str(exc)[:200]))
         else:
-            out.append(ChannelResult(ch, "ninguna", False,
-                                     error=f"sin fuente: define {KEY_ENV} (o habilita el RSS)"))
+            out.append(ChannelResult(ch, "ninguna", False, error=(
+                f"sin fuente: define {KEY_ENV} o crea ~/.eim/{DEFAULT_KEY_FILE.name}")))
     return out
 
 

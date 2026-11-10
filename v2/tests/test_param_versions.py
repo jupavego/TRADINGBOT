@@ -33,6 +33,8 @@ PUBLISHED = {
         "b7659f79ce4a6f031b564834ba09bf73dcd06c7d07127770bfcae82faff094a1",
     "video/versions/watchlist_v1.json":  # T64: canales, temas y presupuesto del catálogo
         "9fca832a728b60e1a37bbbde519508c52dcda9098886187c9277dc740082e838",
+    "video/versions/watchlist_v2.json":  # T64: los mismos canales, ids comprobados (vigente)
+        "d72cbfb232eb74fcd7ed1d52fbaecc3573e99ce566154dcb75b3da1943ae6641",
 }
 
 

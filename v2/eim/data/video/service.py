@@ -41,7 +41,8 @@ def one_pass(data_dir: Path, wl: Watchlist, now: int) -> dict:
     try:
         api, rss = sources(cat, wl, now)
         if api is None and rss is None:
-            return {"state": "sin_fuente", "error": "falta EIM_YOUTUBE_API_KEY"}
+            return {"state": "sin_fuente",
+                    "error": "falta EIM_YOUTUBE_API_KEY (variable o ~/.eim/youtube_api_key.txt)"}
         res = run_discover(cat, wl, now, api, rss)
     finally:
         cat.close()

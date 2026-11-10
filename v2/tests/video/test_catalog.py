@@ -48,7 +48,7 @@ def test_queue_states_and_reasons(cat):
     for r in q.values():
         assert r["state"] == "pendiente" or r["reasons"], "descarte sin motivo"
         assert {"tema", "actualidad", "prioridad", "filtros"} <= set(r["breakdown"])
-        assert r["wl_version"] == "v1" and r["wl_hash"] == wl.hash
+        assert r["wl_version"] == wl.version and r["wl_hash"] == wl.hash
 
 
 def test_queue_respects_daily_cap_and_permission(cat):

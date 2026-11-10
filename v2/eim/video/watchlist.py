@@ -14,7 +14,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 VERSIONS = Path(__file__).resolve().parent / "versions"
-DEFAULT = "watchlist_v1"
+DEFAULT = "watchlist_v2"
 
 Permission = Literal["ninguno", "propio", "escrito"]
 """Permiso para transcribir (T62): `propio` = canal del usuario (captions.download de la API
