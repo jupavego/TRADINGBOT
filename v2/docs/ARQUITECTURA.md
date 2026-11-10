@@ -47,6 +47,7 @@ Binance (REST/WS)  ──► data/ (proveedores + almacén parquet/DuckDB)
 | `analytics` | Bitácora de trading (exports de Binance) | |
 | `api` | FastAPI: `main.py` (fábrica `create_app`), routers por dominio, **`security.py`** | Solo local; POST con `X-EIM-Confirm` |
 | `web` | UI (Vite 6 + TypeScript + Lightweight Charts) | Muestra modo Análisis/Simulado/Testnet |
+| `localai` | Motores de IA locales (T63): fachada `LocalAI` con LLM, visión, ASR, OCR y embeddings; backends Ollama/llama.cpp (HTTP solo en 127.0.0.1), faster-whisper, RapidOCR y Claude API (opcional, apagada); gestor de recursos (un modelo a la vez, RAM por etapa de T62, tope por llamada, cola con prioridad, presupuesto de cómputo), guardas (JSON validado, 1 reparación, contenido externo como dato) y registro `localai_calls`; motor simulado `fake.py` para los tests; CLI `python -m eim.localai check\|summary\|smoke` | I/O de motores solo aquí y en `data/`: los agentes siguen puros; el motor solo informa, nunca decide; sin descargas en ejecución |
 | `observability` | Observatorio (T72): evento normalizado, `trace_for`, emisor a prueba de fallos (JSONL por proceso, sin escribir en la base), catálogo de componentes con textos llanos y umbrales; T73: `store`/`indexer`/`derive` (indexador único JSONL → `obs.duckdb`: eventos, runs, refs, decisiones; idempotente y con reanudación por offset), `bridge` (latidos, alertas y riesgo existentes como eventos, solo lectura) y API `/v2/obs/*` (`api/obs.py`, sin POST); T123: `queues` (registro de fronteras de la tubería con tope, política y contadores por proceso, servidos en `/v2/obs/queues`) | Observar no es operar; los agentes siguen puros (los instrumenta el corredor, T74) |
 
 Fuera del paquete: `v2/lab/` (experimentos archivados, p. ej. ESN de T28), `v2/reports/` (informes
@@ -61,6 +62,7 @@ de decisión versionados), `legacy/F7/` (código anterior, solo oráculo de regr
   reconciliaciones y huecos; T41: cartera (`portfolio`), precio del seguidor por ejecución y
   historial de veredictos. Base aparte porque el vigilante (`python -m eim.leaders run`) es su
   propio proceso escritor; la API y `build_snapshot` leen los tableros JSON de `data/leaders/`.
+- `data/localai/localai.duckdb` (T63): registro de salud de los motores locales (`localai_calls`, solo añadir). Base aparte: la escriben los trabajos de motores, abriendo y cerrando por llamada.
 - `data/kill_switch.json`: estado persistido del kill-switch.
 - `data/operation/`: latido, estado del servicio (libro simulado), registros JSONL por día.
 - `backups/`: copias (ver `docs/OPERACION.md`); fuera del disco, la copia externa de T125.

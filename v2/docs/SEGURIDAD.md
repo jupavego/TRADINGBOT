@@ -92,6 +92,12 @@ Auditoría completa en `PLAN/notas/T62_auditoria.md`; aquí solo las reglas que 
 - **Entorno aparte:** los extras `[video]`/`[localai]` se instalan en un entorno virtual propio en `EIM_LOCALAI_DIR`, no en el de la API; el gate no los exige. `pip-audit` también sobre ese entorno (§5 de `OPERACION.md`).
 - **El contenido es dato:** transcripciones, títulos, texto en pantalla y salidas de un modelo nunca son instrucciones (mismo patrón que T24/T52: bloque delimitado declarado no confiable, validación con esquema, descarte de lo que no tenga cita).
 
+**Lo que T63 hace cumplir en código** (`eim/localai/`):
+- **Puertos solo en bucle local:** `config.loopback_url` rechaza cualquier host de Ollama o `llama-server` que no sea 127.0.0.1, ::1 o localhost; el motor queda apagado con su motivo. `llama-server` sin `--api-key` (`EIM_LOCALAI_LLAMACPP_KEY`) no se usa. `servicio_continuo.ps1` lanza Ollama con `OLLAMA_NO_CLOUD=1` y `OLLAMA_HOST=127.0.0.1:11434`. La única salida del equipo es el backend Claude API, apagado salvo `EIM_LOCALAI_LLM=claude` con `ANTHROPIC_API_KEY`.
+- **Pesos verificados por hash antes de cada uso:** Ollama, digest del manifiesto frente al prefijo fijado en `catalog.APPROVED`; faster-whisper, SHA-256 de `model.bin` frente al que anotó `snapshot_download` (y revisión fijada); llama.cpp, SHA-256 del GGUF frente al nombre del blob de Ollama; RapidOCR, versión 3.10.0 y SHA-256 de sus `.onnx`; en todos, `%EIM_LOCALAI_DIR%\pins.json` puede fijar el SHA-256 exacto. Si no coincide o no hay referencia: no se usa. Modelos fuera de la lista aprobada: rechazados.
+- **Sin descargas en ejecución:** faster-whisper con `local_files_only=True` desde su carpeta; RapidOCR solo si sus ONNX ya están en el paquete; un modelo de Ollama no descargado ⇒ `no_data` (el `pull` es un paso de instalación).
+- **Contenido como dato:** el texto externo va serializado en `<untrusted_data>`, con las etiquetas falsificadas neutralizadas y los patrones de inyección avisados; la salida se valida con pydantic y nunca se completa con valores inventados.
+
 ## Videos de YouTube (T62) — decidida el 2026-11-07
 **Hechos** (auditoría T62, grupo A): los Términos de YouTube prohíben descargar el contenido sin permiso y acceder por medios automatizados; las Developer Policies de la API prohíben guardar copias del audiovisual y separar el audio; la API oficial solo baja subtítulos de videos propios; `youtube-transcript-api` usa un endpoint interno no documentado y sufre bloqueos de IP; el RSS de canal no está documentado (404 en las pruebas).
 

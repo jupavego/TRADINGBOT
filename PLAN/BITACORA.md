@@ -1189,6 +1189,15 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** despliegue (◆): el arreglo de huecos también cambia lo que lee el bróker simulado vía `microstructure`. BACKLOG T150 (1)–(5).
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
 - **Siguiente paso:** fusionar y decidir el despliegue de T150; BACKLOG T145 (2), decir en el panel por qué no hay operaciones validadas.
+## 2026-11-10 · juanpablo-cpu · T63 capa de motores locales (◐)
+- **Pedido:** «Ejecuta PLAN/T63.md».
+- **Hecho:** paquete `v2/eim/localai/`: interfaces (`engines.py`), resultados con procedencia (`results.py`), lista aprobada de T62 con pesos fijados y RAM por etapa (`catalog.py`), configuración solo por `EIM_LOCALAI_*` (`config.py`, todo apagado por defecto, hosts solo en 127.0.0.1), guardas (`guards.py`: contenido externo en `<untrusted_data>`, JSON validado y 1 reparación), gestor de recursos (`resources.py`: un modelo a la vez, aplazar si falta RAM, tope por llamada, cola con prioridad, presupuesto de cómputo), registro `localai_calls` con resumen de salud (`health.py`), fachada `LocalAI` (`facade.py`), backends Ollama, llama.cpp, faster-whisper, RapidOCR y Claude API (`backends/`), motor simulado (`fake.py`) y CLI `python -m eim.localai check|summary|smoke` (con `--set`, porque la cola no hereda el entorno). El componente `localai.engines` pasa a «construido» en el catálogo del observatorio. `servicio_continuo.ps1` lanza Ollama con `OLLAMA_NO_CLOUD=1` y `OLLAMA_HOST=127.0.0.1:11434` (BACKLOG T62 (1)).
+- **Archivos:** `v2/eim/localai/**`, `v2/tests/localai/{test_layer,test_backends}.py`, `v2/eim/observability/catalog/{components_flow,components_planned}.py`, `v2/tests/observability/test_catalog.py`, `v2/scripts/servicio_continuo.ps1`, `v2/docs/{ARQUITECTURA,SEGURIDAD,OPERACION}.md`, `v2/reports/localai/smoke_juanpablo-cpu.json`, `PLAN/{CONTRATOS,STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`.
+- **Pruebas:** 34 en `tests/localai/` (selección de backend, SHA en la salida y en el registro, aplazamiento por RAM y por presupuesto, reintento acotado, reparación única, esquema inválido ⇒ `degraded`, transcrito malicioso como dato, motor caído o colgado sin tumbar al llamador, cola con prioridad). Gate completo por la cola: el primero falló en 2 pruebas de documentación y catálogo (variables `_MODEL` sin fila, `localai` aún «planeado»), arregladas; la repetición, en este registro tras su resultado. Prueba real del OCR por la cola: válida con SHA y 164 MB de pico.
+- **Abierto:** la prueba manual completa con motores reales (ASR, LLM y embeddings) necesita ≥ 5,5 GB libres y Ollama en marcha; hoy el equipo tenía 2,2–3,3 GB libres. Fuera de alcance en BACKLOG T63 (1)–(6) (migrar el agente `context` es T71).
+- **En curso:** T31, T45 (aparcada), T63, T78, T104, T116, T128, T135 y T143.
+- **Siguiente paso:** con memoria libre y Ollama arrancado (`OPERACION.md` §7), `python -m eim.localai smoke` por la cola con `--set` para los cuatro motores; si todo sale `ok` bajo los topes de T62, ☑ T63 y sigue T65/T66.
+
 ## 2026-11-10 · juanpablo-cpu · T64: catálogo y cola de video
 - **Pedido:** «Ejecuta PLAN/T64.md».
 - **Hecho:** lista de vigilancia versionada (`v2/eim/video/{watchlist,models,relevance}.py`, `versions/watchlist_v1.json`), descubrimiento por la Data API v3 con presupuesto de cuota, catálogo point-in-time `data/video.duckdb`, puntuación con desglose y tope diario, respaldo histórico, CLI y servicio opcional `EIM_VIDEO=1` con latido (`v2/eim/data/video/{discover,parse,catalog,pipeline,service}.py`). La postura de T62 manda: nada se descarga, el RSS queda apagado (404) y solo entran a la cola los canales con permiso de transcripción.
@@ -1214,3 +1223,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** zonas de video, versiones, observatorio y prioridad en verde; ruff limpio.
 - **Siguiente paso:** fusionar #254 (lo aprueba el usuario); activar `EIM_VIDEO=1` solo después de fusionar.
 - **Después (decisión delegada, «toma tú la mejor decisión»):** PR #256. El arreglo de huecos queda detrás de `EIM_MICRO_IGNORE_LIQ_GAPS=1` (apagado, documentado en `docs/OPERACION.md` §2) para no cambiar T31 antes de su cierre; se enciende entonces (BACKLOG T150 (6)). La v2 del panel no toca el bróker y entra en el próximo reinicio de la API.
+
+## 2026-11-10 16:00 UTC · juanpablo-cpu · T64 fusionada y servicio de video activado
+- **Pedido:** «Sí, fusiónalo» y luego «Sí, actívalo».
+- **Hecho:** PR #254 fusionado (`3c90768`) y traído a la carpeta principal; hoja de ruta regenerada; worktree y rama de T64 borrados. `EIM_VIDEO=1` fijada como variable de usuario. Servicio lanzado a mano igual que lo hace `servicio_continuo.ps1` (oculto, `EIM_PRIORITY=on`), sin reiniciar los demás servicios.
+- **Comprobado:** primera pasada `ok`, 4/4 canales, un borrado detectado, cuota del día 306 de 2000; el proceso real corre en prioridad Idle con ≈ 127 MB. La clave sale de `~/.eim/youtube_api_key.txt`.
+- **Abierto:** que la tarea al encender (sesión 0, S4U) vea `EIM_VIDEO` y el archivo de la clave se comprobará en el próximo reinicio; si no, el latido dirá `sin_fuente` o no habrá latido. Resto en BACKLOG T64 (1), (3)–(6).
+- **Siguiente paso:** tras el próximo reinicio, mirar `data/video/heartbeat.json`.
