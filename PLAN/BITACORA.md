@@ -1171,3 +1171,11 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** semana de medición de `leaders.duckdb` hasta el 2026-11-17 02:29 UTC (única aceptación pendiente; T128 sigue ◐). BACKLOG T128 (1), retención de `leader_positions`, fuera de alcance. Sin despliegue: el cambio solo afecta a informes y entra con el próximo reinicio o al generar el informe semanal.
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
 - **Siguiente paso:** el 2026-11-17, medir la base con las copias de cada noche y cerrar T128.
+
+## 2026-11-10 · juanpablo-cpu · T146 cerrada sin hacer
+- **Pedido:** «Ejecuta PLAN/T146.md».
+- **Hecho:** paso 1 del plan de T146: confirmar con T145 si queda línea direccional. T145 se resolvió con **D, solo análisis** (◆ del usuario, 2026-11-10), y T146 dice que con B, C o D «no tiene objeto y se cierra sin hacerla». Marcada ☑ como cerrada sin hacer. Ningún entregable construido.
+- **Queda:** la mejora del análisis (sin datos no se vota, cobertura publicada, penalización por correlación y votos efectivos) sigue en BACKLOG T145 (1); antes de medir votos, revisar BACKLOG T120 (2), los huecos de `microstructure`.
+- **Archivos:** `PLAN/{STATUS,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js` (roadmap regenerado). Sin cambios de código; el gate no aplica.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
+- **Siguiente paso:** si el usuario quiere la mejora del análisis, abrirla como tarea propia desde BACKLOG T145 (1).

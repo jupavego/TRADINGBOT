@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T03:37:08",
+ "generated": "2026-11-10T08:03:18",
  "phases": [
   {
    "n": 0,
@@ -2154,8 +2154,8 @@ window.EIM_STATUS = {
     "T120",
     "T145"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-09 desde la misma nota, §4.1. **Solo si T145 mantiene viva una línea direccional.** En el panel de T44, **6 de 14 agentes están al 100 % `no_data`** y `technical` al 100 % `degraded`; los que votan correlacionan **0,44–0,68** entre sí. No hay comité de 14: hay un seguidor de tendencia votando cinco veces, con una confianza mayor que la información que tiene detrás. Entregables: sin datos no se vota, cobertura publicada, penalización por correlación verificable y **votos efectivos** (con ρ 0,6 y cinco votantes, ~1,8). Se adopta aunque no mejore la esperanza. **2026-11-10: sin condición.** T145 eligió D, así que no queda ninguna línea direccional que opere. Pasa al BACKLOG como mejora del análisis; no se ejecuta como tarea de fase.",
+   "state": "done",
+   "notes": "Abierta el 2026-11-09 desde la misma nota, §4.1. **Solo si T145 mantiene viva una línea direccional.** En el panel de T44, **6 de 14 agentes están al 100 % `no_data`** y `technical` al 100 % `degraded`; los que votan correlacionan **0,44–0,68** entre sí. No hay comité de 14: hay un seguidor de tendencia votando cinco veces, con una confianza mayor que la información que tiene detrás. Entregables: sin datos no se vota, cobertura publicada, penalización por correlación verificable y **votos efectivos** (con ρ 0,6 y cinco votantes, ~1,8). Se adopta aunque no mejore la esperanza. **2026-11-10: sin condición.** T145 eligió D, así que no queda ninguna línea direccional que opere. Pasa al BACKLOG como mejora del análisis; no se ejecuta como tarea de fase. **Cerrada sin hacer el 2026-11-10** (paso 1 de su plan: con B, C o D «no tiene objeto»). Sin código ni gate; la mejora del análisis sigue en BACKLOG T145 (1), con el aviso de BACKLOG T120 (2) sobre los huecos de `microstructure` antes de medir votos.",
    "effort": "medio",
    "phase": 24,
    "goal": "Que la síntesis deje de agregar el mismo error varias veces: los agentes que nunca tienen datos salen del voto o se alimentan, y la penalización por correlación se aplica de verdad y se puede verificar."
