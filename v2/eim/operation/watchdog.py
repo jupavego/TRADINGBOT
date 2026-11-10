@@ -23,6 +23,7 @@ from typing import IO
 from eim.observability import hooks_service
 from eim.operation.alerts import CRITICAL, SERVICE, Alert
 from eim.operation.notify import JsonLog, WindowsToast
+from eim.operation.origin import stamp
 from eim.operation.port_watch import GRACE_S, LOST_S, PortWatch, Probe
 
 
@@ -45,7 +46,7 @@ def write_heartbeat(path: Path, row: dict, attempts: int = 3, delay_s: float = 0
             sleep(delay_s)
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            tmp.write_text(json.dumps(row), encoding="utf-8")
+            tmp.write_text(json.dumps(stamp(row)), encoding="utf-8")
             tmp.replace(path)
             return None
         except OSError as e:
@@ -119,7 +120,8 @@ class Watchdog:
                  title: str = "Servicio reiniciado", port_probe: Probe | None = None,
                  port_grace_s: float = GRACE_S, port_lost_s: float = LOST_S,
                  planned_rc: int | None = None,
-                 on_planned: Callable[[], None] | None = None) -> None:
+                 on_planned: Callable[[], None] | None = None,
+                 hold: Callable[[], str | None] | None = None) -> None:
         self.cmd, self.env, self.hb, self.log, self.title = cmd, env, heartbeat, log, title
         self.stale_s, self.check_s = stale_s, check_s
         self.max_backoff_s, self.healthy_s = max_backoff_s, healthy_s
@@ -132,6 +134,9 @@ class Watchdog:
         # avisa ni espera; se hace `on_planned` y se relanza.
         self.planned_rc, self.on_planned, self.planned = planned_rc, on_planned, 0
         self.last_rc: int | None = None
+        # T120: mientras `hold()` dé un motivo (la unidad de datos no está), el proceso se detiene
+        # y no se relanza; no es una caída: ni espera creciente ni aviso de reinicio.
+        self.hold, self._held = hold, False
 
     def _stop(self, proc) -> None:
         proc.terminate()
@@ -153,6 +158,9 @@ class Watchdog:
             rc = proc.poll()
             if rc is not None:
                 self.last_rc = rc
+                if self.hold is not None and (why := self.hold()):
+                    self._held = True        # cayó porque se fue la unidad: no es una caída
+                    return why
                 return f"el proceso terminó (código {rc})"
             if (hb := heartbeat_t(self.hb)) is not None:
                 last = max(last, hb / 1000)
@@ -162,6 +170,23 @@ class Watchdog:
             if port is not None and (why := port.check()):
                 self._stop(proc)
                 return why
+            if self.hold is not None and (why := self.hold()):
+                self._stop(proc)
+                self._held = True
+                return why
+
+    def _wait_hold(self) -> None:
+        """Espera sin relanzar mientras `hold()` dé motivo; una línea al pausar y otra al volver."""
+        why = self.hold() if self.hold is not None else None
+        if not why:
+            return
+        t0 = self._clock()
+        self.log.write("en_pausa", "warn", reason=why)
+        hooks_service.service_event("operation.watchdog", "en pausa", status="error",
+                                    detail={"reason": why, "service": self.title})
+        while self.hold():
+            self._sleep(self.check_s)
+        self.log.write("reanudado", pausa_s=round(self._clock() - t0, 1))
 
     def _planned_restart(self) -> None:
         self.planned += 1
@@ -177,6 +202,7 @@ class Watchdog:
         fails, n = 0, 0
         while max_starts is None or n < max_starts:
             n += 1
+            self._wait_hold()
             t0 = self._clock()
             self.last_rc = None
             self.log.write("proceso_lanzado", cmd=" ".join(self.cmd), intento=n)
@@ -189,6 +215,9 @@ class Watchdog:
                 return
             if self.planned_rc is not None and self.last_rc == self.planned_rc:
                 self._planned_restart()
+                continue
+            if self._held:
+                self._held = False
                 continue
             fails = 0 if self._clock() - t0 >= self.healthy_s else fails + 1
             wait = min(self.max_backoff_s, 5.0 * 2 ** fails)

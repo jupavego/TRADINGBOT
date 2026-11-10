@@ -51,6 +51,7 @@ from eim.leaders.parse import is_perp
 from eim.observability import hooks_service
 from eim.operation.alerts import Alert
 from eim.operation.notify import JsonLog, WindowsToast
+from eim.operation.origin import stamp
 
 QUOTE_COINS_MAX = 60  # suscripciones `bbo` (el límite oficial por IP es 1000)
 PORTFOLIO_PER_TICK = 2  # `portfolio` pesa 20: dos por minuto no compiten con la captura
@@ -256,7 +257,7 @@ class LeaderService(LeaderWatch):
         try:
             self.boards.dir.mkdir(parents=True, exist_ok=True)
             tmp = self.boards.dir / (HEARTBEAT + ".tmp")
-            tmp.write_text(json.dumps(row), encoding="utf-8")
+            tmp.write_text(json.dumps(stamp(row)), encoding="utf-8")   # T120: con su checkout
             tmp.replace(self.boards.dir / HEARTBEAT)
         except OSError as exc:
             log.error("latido: %s", exc)

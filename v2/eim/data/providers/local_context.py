@@ -65,6 +65,7 @@ class LocalContextAnalyzer:
         self.model = model or os.environ.get("EIM_LOCAL_LLM_MODEL") or DEFAULT_MODEL
         self.client, self.timeout, self.num_predict = client, timeout, num_predict
         self.max_items = max_items  # CPU: menos titulares = prompt corto (los más recientes)
+        self.last_problem: str | None = None   # T120: por qué falló la última llamada
 
     def payload(self, items: list[NewsItem]) -> dict[str, Any]:
         items = items[: self.max_items]
@@ -94,11 +95,20 @@ class LocalContextAnalyzer:
             r = http.post(f"{self.host}/api/chat", json=self.payload(items))
             r.raise_for_status()
             out = json.loads(r.json()["message"]["content"])
-        except (httpx.HTTPError, ValueError, KeyError, TypeError):
+        except httpx.TransportError:
+            self.last_problem = f"Ollama no responde en {self.host} (¿apagado?)"
+            return None
+        except httpx.HTTPStatusError as e:
+            self.last_problem = (f"Ollama respondió {e.response.status_code} "
+                                 f"(¿modelo {self.model} sin descargar?)")
+            return None
+        except (ValueError, KeyError, TypeError):
+            self.last_problem = f"el modelo {self.model} devolvió una salida ilegible"
             return None
         finally:
             if self.client is None:
                 http.close()
+        self.last_problem = None if isinstance(out, dict) else "salida del modelo no es un objeto"
         return out if isinstance(out, dict) else None
 
     def available(self) -> bool:

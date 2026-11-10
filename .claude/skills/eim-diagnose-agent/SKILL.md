@@ -5,6 +5,8 @@ description: Diagnostica por qué un agente EIM sale «sin datos»/degradado y l
 
 # Diagnosticar un agente EIM sin datos (desde `v2/`)
 
+0. **Foto del equipo (T120), siempre primero:** `python -m eim.analytics.why_no_data --symbol BTCUSDT --tf 1h` (con la API en marcha). Da el motivo completo de cada agente, el estado del recolector (`health.LABELS`: unidad ausente · apagado · sin datos recientes · disco bajo · capturando) y qué servicios viven, desde qué checkout y desde cuándo. Qué significa cada etiqueta de la esfera: `docs/RUNBOOK.md` §19. Si el motivo ya lo explica (p. ej. «sin motor de contexto», «sin líderes aprobados»), no hay fallo que buscar: es configuración o acumulación.
+
 Cadena fija; no saltes eslabones, cada causa con evidencia (archivo:línea o salida real):
 1. **Qué pide el agente:** `eim/agents/<id>/agent.py` → campos del snapshot que lo llevan a `no_data_report` (y `requires`).
 2. **Quién llena ese campo:** `eim/data/snapshot.py::build_snapshot`. Campo que no aparece ahí = nunca llega en vivo (hubo casos: liquidaciones, titulares).

@@ -22,6 +22,7 @@ Comandos desde `v2/`. `API=http://127.0.0.1:8000`. Todo POST lleva `X-EIM-Confir
 | Protección del bróker simulado recuperada o en «estado inconsistente» | `proteccion` («Protección recuperada…», «…en estado inconsistente», «Diario de protección sin verificar») | §14 |
 | Carril HFT bloqueado, «cancelar todo», kill-switch HFT o 418 | `execution.hft` en el Observatorio (`bloqueo`, `cancelar_todo`, `cierre`, `kill`) | §15 |
 | La interfaz no carga, pero la operación sigue con latido | icono «EIM sin puerto», `puerto sin escuchar` en `proceso_reiniciado`, «la API NO escucha» en `continuity check` | §16 |
+| Una esfera sin datos / degradada, un recolector apagado, la unidad de datos desconectada, un servicio que corre desde otra carpeta | etiqueta de la esfera, `en_pausa` / `reanudado` en `micro*/logs`, `AVISO: … corre desde` | §19 |
 
 Dónde mirar: pestaña «Operación» de la UI · `GET $API/v2/operation` · registro
 `data/operation/logs/op-AAAA-MM-DD.jsonl` · tabla `op_alerts`.
@@ -421,3 +422,51 @@ nadie anotó nada), si cae en un hueco del registro de consumo o si no tiene JSO
 
 **Las horas de un apagón NO se declaran como mantenimiento** (§17). El mantenimiento es para cortes
 previstos y decididos antes; declarar uno imprevisto a posteriori es falsear la ventana de T78.
+
+## 19. Esferas «sin datos», estado de los recolectores y de dónde corre cada servicio (T120)
+
+**Estados de un recolector.** Una sola tabla (`eim/data/collectors/health.py::LABELS`): la usan el
+vigilante (avisos y registro), `GET $API/v2/micro/status` (campos `state`, `label`, `reason`,
+`age_s` = segundos desde el último latido) y la esfera, que muestra la etiqueta del recolector por
+encima de lo que diga el agente. Un test comprueba que esta tabla y la del código coinciden.
+
+| `state` | Etiqueta | Qué pasa | Qué hacer |
+|---|---|---|---|
+| `unidad_ausente` | unidad de datos ausente | La unidad donde vive la carpeta de datos no está (disco externo desconectado). El vigilante detiene el recolector, registra `en_pausa` una vez y espera. | Reconectar la unidad. Al volver se registra `reanudado` y la captura sigue sola, sin contar reinicios. |
+| `apagado` | recolector apagado | Sin latido o latido de más de 120 s. | `servicio_continuo.ps1` (no duplica). Si sigue, §6. |
+| `sin_flujo` | sin datos recientes | El proceso vive, pero no llegan mensajes de mercado hace más de 300 s (red, o WebSocket que conecta y no entrega). | Revisar la red; el recolector reconecta solo. §3. |
+| `disco_bajo` | disco bajo | Menos de 5 GB libres en la unidad de datos. | Liberar espacio; la profundidad cruda se poda a 30 días. |
+| `capturando` | capturando | Todo en orden. La esfera muestra entonces lo que diga el agente. | — |
+
+Lo que dice el **agente**, no el recolector: «acumulando n/24» (aún no hay velas suficientes: horas
+según el marco) y «degradado por huecos» (velas con huecos de secuencia por encima del umbral).
+
+**Motivos de las demás esferas** (`web/src/no_data_label.ts`; el detalle completo, al pulsar la esfera):
+
+| Etiqueta | Agente | Qué significa |
+|---|---|---|
+| sin motor de contexto | `context` | En este equipo no hay motor: ni Ollama (`EIM_CONTEXT_LLM=local`, que pone `servicio_continuo.ps1` si encuentra `ollama.exe`) ni `ANTHROPIC_API_KEY`. No es falta de noticias. |
+| motor calculando | `context` | El modelo local está haciendo su primer análisis (minutos en CPU). |
+| motor de contexto caído | `context` | El motor configurado no responde (Ollama apagado, modelo sin descargar) o devolvió una salida ilegible. |
+| sin catalizadores con fuente | `context` (degradado) | El motor respondió, pero ningún titular sostiene un catalizador citable. El motor está bien. |
+| sin líderes aprobados | `smart_money` | Ningún líder supera el scorecard de T41 (motivos en la pestaña «Líderes»). |
+| historia corta (n/m meses) | `seasonality` | El marco no tiene cierres mensuales suficientes (en 1 h la historia guardada es de semanas). |
+| sin open interest | `derivatives` | No hay serie de OI para el marco. En 4 h se usa la de 1 h muestreada en sus fronteras; en 15 m no hay. |
+| (primera frase del motivo) | cualquiera | Si un motivo no tiene etiqueta propia, se muestra su primera frase: nunca «sin datos» a secas. |
+
+**De dónde corre cada servicio.** Cada latido lleva `checkout` (la carpeta `v2/` del código que
+corre) y `proc_started_at`. `GET $API/v2/health` los lista en `components` (vivo, segundos desde el
+latido, PID, desde cuándo, checkout) junto con el `checkout` de la propia API. A mano:
+
+```
+python -m eim.operation.components --data-dir data --expect <carpeta v2 que debe mandar>
+```
+
+`servicio_continuo.ps1` lo corre al final: adopta lo que ya corre desde su carpeta y, si algo corre
+desde otra (un worktree), lo dice con `AVISO: … corre desde …` y no lanza un duplicado encima. Para
+que lo adopte: `detener_servicio.ps1 -Todo` y relanzar. «checkout sin declarar» = el servicio corre
+con código anterior a T120; se ve tras relanzarlo.
+
+**Diagnóstico repetible** de una esfera (skill `eim-diagnose-agent`): desde `v2/`,
+`python -m eim.analytics.why_no_data --symbol BTCUSDT --tf 1h` lista cada agente con su estado, su
+etiqueta y su motivo completo, más el estado de los recolectores y de los componentes.

@@ -8,9 +8,12 @@ mensajes recientes: red caída o WebSocket que conecta y no entrega) · `captura
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import time
 from pathlib import Path
+
+from eim.operation.origin import stamp
 
 HEARTBEAT = "heartbeat.json"
 HEARTBEAT_EVERY_S = 30.0
@@ -51,7 +54,7 @@ def write_heartbeat(root: str | Path, row: dict, symbol: str = DEFAULT_SYMBOL,
     try:
         d.mkdir(parents=True, exist_ok=True)
         tmp = d / (hb_name(symbol) + ".tmp")
-        tmp.write_text(json.dumps(row), encoding="utf-8")
+        tmp.write_text(json.dumps(stamp(row)), encoding="utf-8")
         tmp.replace(d / hb_name(symbol))
     except OSError:
         pass
@@ -79,6 +82,47 @@ def classify(hb: dict | None, now_ms: int, stale_s: float = STALE_S,
         return "sin_flujo", ("sin mensajes de mercado desde el arranque" if quiet is None
                              else f"sin mensajes de mercado hace {quiet:.0f} s")
     return "capturando", "ok"
+
+
+# T120: una sola fuente de verdad del estado de un recolector. Lo leen el vigilante (avisos), la
+# API (`GET /v2/micro/status`), la esfera (`web/src/no_data_label.ts::collectorLabel`) y el RUNBOOK
+# (§ «Estados de un recolector», que un test compara con esta tabla). El orden es de gravedad.
+LABELS = {
+    "unidad_ausente": "unidad de datos ausente",
+    "apagado": "recolector apagado",
+    "sin_flujo": "sin datos recientes",
+    "disco_bajo": "disco bajo",
+    "capturando": "capturando",
+}
+
+
+def drive_missing(root: str | Path) -> str | None:
+    """Motivo si la unidad donde vive `root` no está (disco externo desconectado), o None.
+
+    Solo la unidad: una carpeta de datos que aún no existe en una unidad presente es «nunca
+    arrancó», no «unidad ausente»."""
+    anchor = Path(os.path.abspath(root)).anchor   # sin `resolve()`: traduciría una unidad `subst`
+    try:
+        present = Path(anchor).exists()
+    except OSError:
+        present = False
+    return None if present else f"la unidad {anchor} no está conectada"
+
+
+def collector_state(root: str | Path, now_ms: int, symbol: str = DEFAULT_SYMBOL,
+                    area: str = "micro", free_gb_min: float = FREE_GB_MIN) -> dict:
+    """Estado, etiqueta, motivo y antigüedad (s del último latido) de un recolector."""
+    if why := drive_missing(root):
+        return {"state": "unidad_ausente", "label": LABELS["unidad_ausente"], "reason": why,
+                "age_s": None}
+    hb = read_heartbeat(root, symbol, area)
+    state, why = classify(hb, now_ms)
+    age = round((now_ms - int(hb.get("last_heartbeat", 0))) / 1000, 1) if hb else None
+    if state == "capturando":
+        free = disk_report(root, area=area, kinds=())["free_gb"]
+        if free is not None and free < free_gb_min:
+            state, why = "disco_bajo", f"{free:.1f} GB libres (mínimo {free_gb_min:.0f} GB)"
+    return {"state": state, "label": LABELS[state], "reason": why, "age_s": age}
 
 
 def disk_report(root: str | Path, now: float | None = None, area: str = "micro",
@@ -133,12 +177,14 @@ def problems(root: str | Path, now_ms: int, free_gb_min: float = FREE_GB_MIN,
              symbol: str = DEFAULT_SYMBOL, area: str = "micro",
              label: str = "Microestructura") -> list[str]:
     """Condiciones que merecen aviso local: recolector apagado/sin flujo o disco justo."""
+    if why := drive_missing(root):      # T120: un solo aviso claro, no apagado + disco + trazas
+        return [f"{label} {symbol.upper()} en pausa: {LABELS['unidad_ausente']} ({why})"]
     out = []
     hb = read_heartbeat(root, symbol, area)
     state, why = classify(hb, now_ms)
     young = hb and now_ms - int(hb.get("started_at", 0)) < GRACE_S * 1000
     if state != "capturando" and not (state == "sin_flujo" and young):
-        out.append(f"{label} {symbol.upper()} {state}: {why}")
+        out.append(f"{label} {symbol.upper()} {LABELS[state]}: {why}")
     free = disk_report(root, area=area, kinds=())["free_gb"]
     if free is not None and free < free_gb_min:
         out.append(f"Disco con {free:.1f} GB libres (mínimo {free_gb_min:.0f} GB) en {root}")
