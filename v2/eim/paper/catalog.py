@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 
 from eim.core import Candle
-from eim.paper.ideas import HOUR_MS, Idea, StrategyInfo, to_idea
+from eim.paper.ideas import HOUR_MS, Idea, StrategyInfo, to_idea, to_limit
 from eim.paper.params import ExecParams
 from eim.paper.strategies import CORE
 from eim.paper.strategies_ind import IND, Ind
@@ -29,6 +29,12 @@ def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str,
     cat = catalog or CATALOG
     cat = {k: v for k, v in cat.items() if v.runs_in(timeframe)}
     vers = {info.id: info.version(timeframe, exec_params) for info in cat.values()}
+    # T143 (1b): en los marcos adoptados la entrada a mercado se pide como orden límite al mismo
+    # precio. Es la MISMA conversión que midió `reports/t143_maker.md` (`maker_ab.to_limit`), no
+    # una reimplementación: lo que se despliega es exactamente lo que se midió.
+    ep = exec_params or ExecParams()
+    bars = ep.maker_entry_bars if timeframe in ep.maker_entry_timeframes else 0.0
+    maker = (lambda i: to_limit(i, bars)) if bars > 0 else (lambda i: i)
     ind = Ind(candles)
     out: list[Idea] = []
     for raw in sorted(ctxs, key=lambda c: c["t"]):
@@ -48,5 +54,5 @@ def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str,
                 continue
             idea = to_idea(info, d, ctx, symbol, origin, vers[info.id])
             if idea is not None:
-                out.append(idea)
+                out.append(maker(idea) if idea.kind == "market" else idea)
     return out

@@ -33,6 +33,20 @@ class ExecParams(BaseModel):
 
     costs: CostParams = CostParams()
     timeframes: tuple[str, ...] = ("15m", "1h", "4h")   # marcos de decisión (T48)
+    # T143 (3): puerta de marcos por costo. Un marco cuyo costo medio en R llegue a
+    # `tf_max_cost_r` deja de operar en los perfiles (la sombra sigue midiéndolo, así que vuelve
+    # solo si abarata). Con menos de `tf_cost_min_n` operaciones de sombra en ese marco se usa la
+    # medición de T136. Ver `eim/paper/tf_gate.py`. No entra en `exec_fingerprint`: no cambia el
+    # resultado de la sombra, solo quién opera con él.
+    tf_max_cost_r: float = 0.15
+    tf_cost_min_n: int = 50
+    # T143 (1b): la entrada a mercado pasa a orden límite al precio pedido, vigente
+    # `maker_entry_bars` velas: comisión de creador (2 pb) en vez de tomador (5 pb). Medido
+    # emparejado en `reports/t143_maker.md` (costo −0,0432 R, neto +0,0422 R [IC95 % +0,0417,
+    # +0,0427]) solo en 1 h y 4 h: el banco no tiene operaciones de 15 m. Entra en
+    # `exec_fingerprint`: cambia la sombra, así que la evidencia anterior no se mezcla.
+    maker_entry_timeframes: tuple[str, ...] = ("1h", "4h")
+    maker_entry_bars: float = 1.0
     path_tf: str = "15m"             # camino del precio para llenar y salir
     min_risk_frac: float = 0.001     # SL a menos de 0,1 % del precio = geometría inválida
     funding_8h_assumed: float = 0.0001   # solo donde falta el funding real

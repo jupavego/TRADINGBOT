@@ -1,5 +1,6 @@
 /** Balance superior del bróker simulado: ganadas frente a perdidas (ponderado de todos los perfiles). */
 import { PROFILE_VAR } from './paper_chart'
+import { costView } from './paper_cost'
 import { CAUSE, esc, nf, pct0, REASON, rr, usd } from './paper_fmt'
 import type { BalanceSummary, BalanceWindow, PaperSummary } from './paper_types'
 
@@ -74,5 +75,5 @@ export function balanceView(v: PaperSummary, period: string): string {
     `<div class="pp-chips">${chips}</div>` +
     '<small class="muted">Cada operación cerrada pesa igual · ganada = PnL neto &gt; 0 después de comisiones, deslizamiento y funding</small></div>' +
     `<div class="pp-bal-grid">${card('win', w, v)}${middle(w)}${card('loss', w, v)}</div>` +
-    `<ul class="pp-bal-fb">${fb}</ul>`
+    `<ul class="pp-bal-fb">${fb}</ul>` + costView(v.cost)
 }

@@ -19,29 +19,20 @@ brazo maker, porque sin ellas la medición se engaña sola:
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 
 import numpy as np
 
-from eim.data.timeframes import tf_ms
 from eim.paper.engine import Outcome, Path, simulate
-from eim.paper.ideas import Idea
+from eim.paper.ideas import Idea, to_limit  # noqa: F401 - se reexporta: la misma conversión
 from eim.paper.params import ExecParams
 
 RESOLVED = ("CERRADA", "CANCELADA", "RECHAZADA")
 
 
-def to_limit(idea: Idea, bars: float, through_bps: float = 0.0) -> Idea:
-    """La misma decisión, pedida como orden límite. Solo cambia cómo se entra.
-
-    `bars` es la vigencia en velas del marco de decisión. `through_bps` mueve el nivel pedido en
-    contra del llenado (abajo en largos, arriba en cortos): así la orden solo se llena si el precio
-    **pasa** del nivel, no si lo roza. El precio de llenado mejora en esos mismos puntos básicos,
-    un sesgo a favor del maker de orden 1e-4 R que se asume para no tocar el motor.
-    """
-    entry = idea.entry * (1 - idea.side * through_bps / 1e4)
-    return replace(idea, kind="limit", entry=entry,
-                   fill_ms=int(bars * tf_ms(idea.timeframe)))
+# `to_limit` se importa de `ideas.py`, donde vive junto a `Idea`: lo que esta medición compara y
+# lo que `catalog.generate_ideas` despliega son la misma función, no dos copias. `through_bps` (el
+# estrés de cola) solo lo usa esta medición; en producción va a 0.
 
 
 @dataclass(frozen=True)

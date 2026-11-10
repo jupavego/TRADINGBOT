@@ -43,6 +43,7 @@ from eim.operation.cycle import CycleResult, OperationCycle, OperationParams
 from eim.operation.equity import EquityBook
 from eim.operation.notify import JsonLog, WindowsToast
 from eim.operation.watchdog import write_heartbeat
+from eim.paper import cost_ledger
 
 FAILS_BEFORE_ALERT = 3
 BACKUP_RETRY_MS = 3_600_000
@@ -97,7 +98,6 @@ class Operation:
         self.log.write("servicio_iniciado", mode=self.mode, trades=len(rt.svc.trades)
                        if rt.svc else 0, cursors=self.cursors.to_json())
 
-    # --- un paso (bloqueante: corre en un hilo) ----------------------------
     def step(self) -> CycleResult:
         with self._step_lock:       # una copia a demanda nunca ve un ciclo a medias
             now = self.clock()
@@ -134,7 +134,6 @@ class Operation:
                 "last_heartbeat", "pid", "state", "mode", "cycles", "consecutive_failures")}):
             self.log.write("latido_fallido", "warn", error=f"{type(err).__name__}: {err}")
 
-    # --- informes -----------------------------------------------------------
     def fee_rate(self) -> float:
         svc = self.desk.rt.svc
         return svc.broker.fee_rate if svc and isinstance(svc.broker, SimBroker) else 0.0005
@@ -154,7 +153,8 @@ class Operation:
             decisions=self.desk.journal.recent(t0, t1, limit=5000),
             edge=weekly.load_edge(self.edge_path), calib=calib,
             started_at=self.cursors.started_at, hft_qc=self.hft_qc(t0, t1), data_dir=self.data_dir,
-            usage=usage_summary.for_report(self.data_dir, t0, t1, self.params.symbols))
+            usage=usage_summary.for_report(self.data_dir, t0, t1, self.params.symbols),
+            paper_costs=cost_ledger.from_connection(self.extra_dbs.get("paper.duckdb"), t0, t1))
 
     def hft_qc(self, t0: int, t1: int) -> dict[str, dict]:
         """Resumen del control de calidad de la captura HFT (T78) por símbolo, si la hay."""

@@ -139,6 +139,11 @@ def exec_fingerprint(ep: ExecParams, timeframe: str) -> dict:
         "be": ({"trigger_r": ep.be_trigger_r, "lock_r": ep.be_lock_r,
                 "cover_costs": ep.be_cover_costs, "est_cost_frac": ep.est_cost_frac}
                if be else None),
+        # T143 (1b): con entrada maker en este marco la sombra es otra (otra comisión y una
+        # entrada que puede no llenarse), así que es otra versión y la evidencia no se mezcla.
+        # Solo aparece donde se aplica: los marcos sin entrada maker conservan su huella.
+        **({"maker_entry_bars": ep.maker_entry_bars}
+           if timeframe in ep.maker_entry_timeframes and ep.maker_entry_bars > 0 else {}),
     }
 
 

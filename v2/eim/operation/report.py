@@ -6,6 +6,8 @@ import json
 import time
 from pathlib import Path
 
+from eim.operation.report_costs import cost_lines
+
 
 def _d(t: int | None) -> str:
     return "—" if t is None else time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(t / 1000))
@@ -70,7 +72,8 @@ def render_md(rep: dict) -> str:
               (", ".join(f"{r} ({n})" for r, n in risk["top_reasons"]) or "—") + "."]
     return "\n".join(lines + _distortion_lines(rep.get("distortions") or [])
                      + _hft_lines(rep.get("hft_qc") or {})
-                     + _usage_lines(rep.get("usage") or [])) + "\n"
+                     + _usage_lines(rep.get("usage") or [])
+                     + cost_lines(rep.get("paper_costs") or {})) + "\n"
 
 
 def _distortion_lines(known: list[dict]) -> list[str]:
