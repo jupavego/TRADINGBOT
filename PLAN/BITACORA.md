@@ -1214,3 +1214,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `v2/eim/data/video/{discover,service}.py`, `v2/eim/video/{watchlist.py,versions/watchlist_v2.json}`, `v2/tests/video/*`, `v2/tests/test_param_versions.py`, `v2/docs/{OPERACION,SEGURIDAD}.md`, `PLAN/{STATUS,BACKLOG,BITACORA}.md`.
 - **Pruebas:** zonas de video, versiones, observatorio y prioridad en verde; ruff limpio.
 - **Siguiente paso:** fusionar #254 (lo aprueba el usuario); activar `EIM_VIDEO=1` solo después de fusionar.
+
+## 2026-11-10 16:00 UTC · juanpablo-cpu · T64 fusionada y servicio de video activado
+- **Pedido:** «Sí, fusiónalo» y luego «Sí, actívalo».
+- **Hecho:** PR #254 fusionado (`3c90768`) y traído a la carpeta principal; hoja de ruta regenerada; worktree y rama de T64 borrados. `EIM_VIDEO=1` fijada como variable de usuario. Servicio lanzado a mano igual que lo hace `servicio_continuo.ps1` (oculto, `EIM_PRIORITY=on`), sin reiniciar los demás servicios.
+- **Comprobado:** primera pasada `ok`, 4/4 canales, un borrado detectado, cuota del día 306 de 2000; el proceso real corre en prioridad Idle con ≈ 127 MB. La clave sale de `~/.eim/youtube_api_key.txt`.
+- **Abierto:** que la tarea al encender (sesión 0, S4U) vea `EIM_VIDEO` y el archivo de la clave se comprobará en el próximo reinicio; si no, el latido dirá `sin_fuente` o no habrá latido. Resto en BACKLOG T64 (1), (3)–(6).
+- **Siguiente paso:** tras el próximo reinicio, mirar `data/video/heartbeat.json`.
