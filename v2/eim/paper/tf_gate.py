@@ -96,6 +96,11 @@ def gate(tfs: Sequence[str], outcomes: Sequence[Outcome], ep) -> tuple[list[dict
     """Filas del panel y operaciones que los perfiles pueden tomar. La sombra no se toca."""
     rows = report(tfs, cost_by_tf(outcomes), ep.tf_max_cost_r, ep.tf_cost_min_n)
     ok = {r["timeframe"] for r in rows if r["admitted"]}
+    if not ok and tfs:
+        # que no opere ningún marco es una decisión de la puerta, pero no puede pasar callada
+        _log.warning("puerta de marcos: ningún marco opera (%s)",
+                     "; ".join(f"{r['timeframe']} {r['cost_r']:.3f} R" for r in rows
+                               if r["cost_r"] is not None))
     if len(ok) == len(tfs):
         return rows, list(outcomes)
     return rows, [o for o in outcomes if o.idea.timeframe in ok]
@@ -113,5 +118,6 @@ def check(ep) -> tuple[str, ...]:
         raise ValueError(f"tf_cost_min_n debe ser ≥ 1 (es {ep.tf_cost_min_n})")
     lines = tuple(why(tf, {}, ep.tf_max_cost_r, ep.tf_cost_min_n) for tf in ep.timeframes)
     for line in lines:
-        _log.info("puerta de marcos (arranque): %s", line)
+        _log.info("puerta de marcos (arranque, línea base de T136; cada ciclo usa la sombra "
+                  "en cuanto tiene %d operaciones por marco): %s", ep.tf_cost_min_n, line)
     return lines

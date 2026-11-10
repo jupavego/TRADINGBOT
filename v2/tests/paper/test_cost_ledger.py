@@ -76,3 +76,18 @@ def test_arranque_falla_con_umbral_no_positivo_y_registra_los_marcos():
     lines = tf_gate.check(ExecParams())
     assert any(x.startswith("15m:") and "no opera" in x for x in lines)
     assert any(x.startswith("4h:") and "→ opera" in x for x in lines)
+
+
+def test_retro_en_texto_del_csv_tambien_sale():
+    s = cl.summarize([row(retro="False"), row(retro="True")])
+    assert s["all"]["n"] == 1
+
+
+def test_puerta_que_cierra_todos_los_marcos_avisa(caplog):
+    import logging
+
+    from tests.paper.test_tf_gate import out
+    outs = [out(tf, 0.5) for tf in ("15m", "1h", "4h") for _ in range(60)]
+    with caplog.at_level(logging.WARNING, logger="eim.paper.tf_gate"):
+        rows, tradable = tf_gate.gate(("15m", "1h", "4h"), outs, ExecParams())
+    assert tradable == [] and "ningún marco opera" in caplog.text

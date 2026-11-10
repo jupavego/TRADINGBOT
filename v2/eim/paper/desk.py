@@ -86,6 +86,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         self.loop_started: int | None = None    # el servicio arrancó (aunque falte el 1er ciclo)
         self.hooks = HookRunner()               # ganchos tras cada ciclo, en su hilo (T128)
         self._cache: dict[str, View] = {}
+        self._cost_cache: dict[str, tuple[int, dict]] = {}   # T143 (4): por filas del libro
         self._lock = threading.Lock()
         self._busy: dict[str, threading.Event] = {}    # recálculos en segundo plano en curso
         self._busy_lock = threading.Lock()
@@ -258,6 +259,15 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         cs = self.store.read_candles(symbol, htf, start=t0 - 4 * slow * bar)
         return HtfTrend(cs, bar, fast, slow).at
 
+    def _cost(self, symbol: str) -> dict:
+        """Costo vivido (T143 (4)); se relee el libro solo si cambió su número de filas."""
+        key = ledger.counts(self.pstore).get(f"perfil:{symbol}", 0)
+        hit = self._cost_cache.get(symbol)
+        if hit is None or hit[0] != key:
+            rows = ledger.query(self.pstore, symbol, "perfil", limit=max(key, 1))
+            hit = self._cost_cache[symbol] = (key, cost_ledger.summarize(rows))
+        return hit[1]
+
     def _payload(self, v: View, by_tf: dict[str, list[dict]], infos: list[dict],
                  learner: Learner, now: int | None, mark: float | None, n_ideas: int = 0) -> dict:
         mmr = MMR.get(v.symbol, 0.005)
@@ -284,7 +294,5 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
                                {i["id"]: i["name"] for i in infos}, now, self.tfs),
             "job": self.job.to_json(), "live": self.live_status(), "protection": v.protection,
             # T143 (4): costo vivido del libro fijo y puerta de marcos, cada uno con su `source`
-            "cost": {**cost_ledger.summarize(ledger.query(self.pstore, v.symbol, "perfil",
-                                                          limit=100_000)),
-                     "timeframes": v.tf_cost},
+            "cost": {**self._cost(v.symbol), "timeframes": v.tf_cost},
         }

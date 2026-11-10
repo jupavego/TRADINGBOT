@@ -41,7 +41,8 @@ def trade_cost(row: dict) -> dict:
 
 def lived(rows: Iterable[dict]) -> list[dict]:
     """Las operaciones vividas: de perfil y sin `retro`."""
-    return [r for r in rows if r.get("scope") == "perfil" and not r.get("retro")]
+    return [r for r in rows if r.get("scope") == "perfil"
+            and str(r.get("retro")).lower() not in ("true", "1")]   # bool de DuckDB o texto del CSV
 
 
 def _block(cs: Sequence[dict]) -> dict:
