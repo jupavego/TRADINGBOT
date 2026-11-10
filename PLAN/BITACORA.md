@@ -1109,3 +1109,16 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Visto:** 1 h sale por el costo de toda la sombra (0,159 R), aunque en el libro vivido de perfiles costaba 0,127 R. Anotado en BACKLOG T143 (4) para decidirlo con el usuario.
 - **En curso:** T31 (hasta el 2026-11-27), T143 en su corrida aparte, T78, T104, T116, T128, T135 y T141.
 - **Siguiente paso:** al cerrar T31, comparar las dos corridas con la contabilidad de T144.
+
+## 2026-11-10 04:45 UTC · juanpablo-cpu · T141 cerrada: la carga ajena ya no tumba la API
+- **Pedido del usuario:** «Sí, ciérrala», al preguntar si T141 estaba lista para cerrar.
+- **Hecho:** medida la ventana del 7-nov 03:00 al 10-nov 03:00 UTC con `usage incidents --days 7` y `usage summary --days 4`, cruzada con `data/jobs/log` y las muestras crudas del 9-nov.
+  - **0 reinicios por latido, 0 arranques lentos y 0 salidas de la API** (antes, 3, 2 y 3).
+  - **◆B demostrada:** en 3 episodios la API bajó a 40–125 MB y la captura conservó 135–190 MB, sin perder ninguna hora.
+  - **12 ciclos lentos, todos con culpable:** 7, el `ng serve` de `RECUAPP`; 5, `t143-maker`, que la cola pausó 32 veces por RAM baja mientras él mismo retenía 6–8 GB. Así estuvo 5 h 39 min; relanzado con el equipo libre, tardó 350 s. `usage incidents` lo nombró como el `submit` que hacía de ejecutor.
+  - ◆C, ◆D y ◆E no se aplican. Se abre **T149** (☐) para el bucle de pausas y la atribución.
+- **Archivos:** `PLAN/notas/T141_carga_ajena.md` (§8 y resumen arriba), `PLAN/T149.md`, `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`. Sin cambios de código.
+- **Pruebas:** ninguna; solo lectura de registros. El gate no aplica: no hay código.
+- **Abierto:** punto ciego de los apagones del 9-nov (5 h 26 min) y del 10-nov (5 min), sin muestras; lo cubre T148 al desplegarse. Siguen en BACKLOG T141 los puntos (1) a (6).
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
+- **Siguiente paso:** desplegar T148; T149 cuando el usuario la priorice.
