@@ -31,6 +31,8 @@ PUBLISHED = {
         "0a5b19962ded0d12dfdbccac0359f91c1bebf211ed891f7817c96667e01c30a8",
     "forecast/versions/lit_tilt_v1.json":  # T54: definición del ajuste bibliográfico (apagado)
         "b7659f79ce4a6f031b564834ba09bf73dcd06c7d07127770bfcae82faff094a1",
+    "video/versions/watchlist_v1.json":  # T64: canales, temas y presupuesto del catálogo
+        "9fca832a728b60e1a37bbbde519508c52dcda9098886187c9277dc740082e838",
 }
 
 

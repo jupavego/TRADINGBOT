@@ -1180,3 +1180,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
 - **Después, decisión delegada por el usuario («toma la mejor decisión tú»):** abierta **T150** (fase 24) desde BACKLOG T145 (1). Con D, el panel es el producto y publicar más confianza de la que hay es un defecto por sí mismo. Mismos entregables que T146 para el análisis, pero medidos por la calibración (Brier y fiabilidad) en lugar de la esperanza en R; prerrequisito BACKLOG T120 (2). Archivos: `PLAN/T150.md`, `PLAN/{STATUS,00_MASTER,BACKLOG}.md`.
 - **Siguiente paso:** T150, empezando por los falsos huecos de `microstructure`.
+
+## 2026-11-10 · juanpablo-cpu · T64: catálogo y cola de video
+- **Pedido:** «Ejecuta PLAN/T64.md».
+- **Hecho:** lista de vigilancia versionada (`v2/eim/video/{watchlist,models,relevance}.py`, `versions/watchlist_v1.json`), descubrimiento por la Data API v3 con presupuesto de cuota, catálogo point-in-time `data/video.duckdb`, puntuación con desglose y tope diario, respaldo histórico, CLI y servicio opcional `EIM_VIDEO=1` con latido (`v2/eim/data/video/{discover,parse,catalog,pipeline,service}.py`). La postura de T62 manda: nada se descarga, el RSS queda apagado (404) y solo entran a la cola los canales con permiso de transcripción.
+- **Archivos:** lo anterior + `v2/tests/video/` (36 pruebas), `v2/tests/fixtures/video/`, `v2/tests/test_param_versions.py` (hash de la lista), `v2/eim/operation/priority.py` (papel `video` en batch), `v2/scripts/servicio_continuo.ps1`, `v2/docs/{OPERACION,ALMACENAMIENTO}.md`, `PLAN/{STATUS,BACKLOG,BITACORA}.md`.
+- **Pruebas:** `tests/video` 36/36; gate completo por la cola (ver resultado en el PR); ruff limpio. CLI real sin clave: cada canal sale con «sin fuente», el latido dice `sin_fuente` y nada se cae.
+- **Abierto:** aceptación con canales reales (falta `EIM_YOUTUBE_API_KEY`), lista definitiva y permisos (BACKLOG T64). T64 queda ◐.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
+- **Siguiente paso:** con la clave del usuario, `python -m eim.video discover` y `backfill` sobre la lista y declarar la cobertura; después T65 solo sobre material con permiso.

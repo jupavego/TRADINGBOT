@@ -54,6 +54,7 @@ ROLES = {
     "collector": "realtime", "hft_collector": "realtime", "liq_collector": "realtime",
     "api": "service", "leaders": "service", "watchdog": "service",
     "micro_watchdog": "service", "hft_watchdog": "service", "usage": "service",
+    "video": "batch",   # T64: vigilancia de video, prescindible
 }
 INHERITED = ("service", "batch")           # niveles que Windows pasa a los hijos
 THREAD_LOWEST = -2                          # THREAD_PRIORITY_LOWEST

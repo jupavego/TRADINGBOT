@@ -231,6 +231,21 @@ foreach ($a in $activos) {
   }
 }
 
+# Vigilancia de video (T64, opcional): solo con EIM_VIDEO=1. Una pasada por hora a la YouTube
+# Data API v3 (solo metadatos; necesita EIM_YOUTUBE_API_KEY), catálogo en data\video.duckdb y
+# latido en data\video\heartbeat.json. Cerrojo data\video\service.lock: no se duplica.
+if ($env:EIM_VIDEO -eq "1") {
+  if (Ocupado (Join-Path $DataDir "video\service.lock")) {
+    Write-Host "El servicio de video ya corre: no se lanza otro."
+  } else {
+    Start-Process -FilePath $py -ArgumentList @("-m", "eim.video", "--data-dir", "`"$DataDir`"", "run") `
+      -WorkingDirectory $v2 -WindowStyle Hidden `
+      -RedirectStandardOutput (Join-Path $logs "video.out.log") `
+      -RedirectStandardError (Join-Path $logs "video.err.log") | Out-Null
+    Write-Host "Servicio de video lanzado (data\video.duckdb; latido en data\video)."
+  }
+}
+
 # Registro de consumo (T127): CPU, RAM y prioridad de cada proceso del EIM y del equipo cada
 # 30 s en data\usage\ (sin abrir los procesos: también ve los de la sesión 0).
 if (Ocupado (Join-Path $DataDir "usage\usage.lock")) {

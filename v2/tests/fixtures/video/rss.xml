@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <title>Canal de prueba</title>
+ <entry>
+  <id>yt:video:vidBTC00001</id>
+  <yt:videoId>vidBTC00001</yt:videoId>
+  <yt:channelId>UCtestAAAAAAAAAAAAAAAAAA</yt:channelId>
+  <title>Bitcoin: ¿qué viene tras la reunión de la Fed?</title>
+  <published>2026-11-09T14:00:00+00:00</published>
+  <media:group><media:description>Análisis de BTC y liquidez.</media:description></media:group>
+ </entry>
+</feed>
