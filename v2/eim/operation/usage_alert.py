@@ -26,9 +26,11 @@ from __future__ import annotations
 
 import dataclasses
 from collections.abc import Callable, Iterable, Mapping
+from datetime import UTC, datetime
 from pathlib import Path
 
 from eim.observability import hooks_service
+from eim.operation import usage_jobs
 from eim.operation.alerts import INFO, SERVICE, WARN, Alert
 from eim.operation.notify import JsonLog, WindowsToast
 
@@ -61,14 +63,19 @@ def causes(rec: Mapping) -> list[str]:
     return out
 
 
-def culprit(rec: Mapping) -> str:
+def _day(t_ms: int) -> str:
+    return datetime.fromtimestamp(t_ms / 1000, UTC).strftime("%Y-%m-%d")
+
+
+def culprit(rec: Mapping, runs: list[dict] | None = None) -> str:
     """Quién carga más, por memoria si el problema es la memoria y si no por CPU. Si ese programa
-    tiene un árbol identificado, se da su orden y su carpeta."""
+    tiene un árbol identificado, se da su orden y su carpeta; si el árbol es el ejecutor de la
+    cola, el trabajo que aloja (T149, `runs` de `usage_jobs.load_runs`)."""
     api = rec.get("roles", {}).get("api")
     memory = ((rec["machine"].get("commit_mb") or 0) >= COMMIT_MB
               or (api is not None and api["ram_mb"] <= API_RAM_MB))
     key = "commit_mb" if memory else "cpu"
-    foreign = rec.get("foreign") or []
+    foreign = [usage_jobs.relabel(t, runs or [], rec["t"]) for t in rec.get("foreign") or []]
     rows = [*rec.get("others", ()), *foreign]
     if not rows:
         return "sin identificar"
@@ -77,15 +84,19 @@ def culprit(rec: Mapping) -> str:
     t = max(same, key=lambda o: o.get(key, 0)) if same else top
     where = f" en {t['cwd']}" if t.get("cwd") else ""
     size = t.get("commit_mb", t.get("ram_mb", 0))
-    return (f"{t.get('cmd') or t['name']}{where} ({t['n']} procesos, {t['cpu']:.0f} % de CPU, "
+    what = t.get("cmd") or t["name"]
+    if t.get("job"):
+        what = f"trabajo de la cola «{t['job']}» ({what})"
+    return (f"{what}{where} ({t['n']} procesos, {t['cpu']:.0f} % de CPU, "
             f"{size:.0f} MB)")
 
 
 class EarlyWarning:
     """Avisa al entrar en la condición y otra vez al salir."""
 
-    def __init__(self, sinks: Iterable[Sink] = (), toast: Sink | None = None) -> None:
-        self.sinks, self.toast = list(sinks), toast
+    def __init__(self, sinks: Iterable[Sink] = (), toast: Sink | None = None,
+                 data_dir: Path | None = None) -> None:
+        self.sinks, self.toast, self.data_dir = list(sinks), toast, data_dir
         self.errors: list[str] = []
         self.active = False
         self._hits, self._clear = 0, 0
@@ -100,7 +111,9 @@ class EarlyWarning:
         for sink in self.sinks:
             self._send(sink, a)
         if self.toast is not None:
-            full = f"{a.detail}. Más carga: {culprit(rec)}" if not a.resolved else a.detail
+            runs = (usage_jobs.load_runs(self.data_dir, [_day(rec["t"])])
+                    if self.data_dir is not None and not a.resolved else None)
+            full = f"{a.detail}. Más carga: {culprit(rec, runs)}" if not a.resolved else a.detail
             self._send(self.toast, dataclasses.replace(a, detail=full))
 
     def update(self, rec: Mapping) -> Alert | None:
@@ -131,4 +144,4 @@ def observatory(a: Alert) -> None:
 def for_service(data_dir: Path) -> EarlyWarning:
     """El aviso del servicio: registro de operación, observatorio y notificación de Windows."""
     log = JsonLog(Path(data_dir) / "operation" / "logs")
-    return EarlyWarning([log.alert_sink, observatory], WindowsToast())
+    return EarlyWarning([log.alert_sink, observatory], WindowsToast(), data_dir)

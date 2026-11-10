@@ -1129,3 +1129,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Resultado en vivo:** en `t143` operan los tres marcos (15 m 0,127 R con n = 189; 1 h 0,108 R; 4 h 0,082 R). Sobre lo tomable, 15 m ya no cruza 0,15 R. T31 sin cambios (puerta apagada). La API quedó en 2,7 GB, con 3,8 GB libres.
 - **Abierto:** 15 m sigue siendo el peor marco en neto de sombra (−0,344 R), pero eso es ventaja, no costo, y la regla de automejora del usuario no deja que la puerta lo juzgue. Si se quiere sacar por resultado, tiene que pasar por un pre-registro.
 - **Siguiente paso:** al cerrar T31 (≥ 2026-11-27), comparar las dos corridas con la contabilidad de T144.
+
+## 2026-11-10 05:55 UTC · juanpablo-cpu · T149: la cola ya no retiene la memoria que la pausa
+- **Pedido del usuario:** «Ejecuta PLAN/T149.md». ◆ del entregable 1: **cancelar y reencolar** (frente a tope de memoria al lanzar o recortar el conjunto de trabajo al pausar).
+- **Hecho:** la cola mide la RAM privada del árbol del trabajo. Con RAM libre < 1 GB, si él retiene ≥ 512 MB y sin él quedaría ≥ 1 GB, se mata y vuelve al final de la cola pidiendo pico × 1,25 + 1 GB (espera como mucho 2 h); reencola mientras aprende y falla con la cifra a pedir si deja de crecer o no cabe. Nunca más de 2 pausas por memoria seguidas. Registro: memoria en cada pausa, `pico_ram_mb`, `reencolado_por_memoria`, `cancelado_por_memoria` y `pidio_menos_ram`. `usage incidents` y el aviso temprano nombran el trabajo de la cola (nombre e id de `data/jobs/log`), no el `submit` ejecutor: sobre el 9-nov, los 5 ciclos lentos de 11 a 16 h salen como `t143-maker`.
+- **Archivos:** `v2/eim/operation/{jobs,jobs_memory,jobs_monitor,jobs_proc,usage_jobs,usage_incidents,usage_alert}.py`, `v2/tests/operation/{test_jobs_memory,test_usage_jobs}.py`, `v2/docs/OPERACION.md`, `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/notas/T141_carga_ajena.md` §9.
+- **Pruebas:** reproducción del 9-nov con monitor falso (0 pausas, reencolado, sale del bucle) y presión ajena (2 pausas como mucho). `code-review` alto: 6 hallazgos arreglados (suelo de 1 GB en lo pedido, tope que aprende, espera acotada, duración total, muestreo cada 30 s, aviso temprano). Gate por la cola verde: `20261110-053021-gate-t149-30f4`, 3 437 pruebas, 0 fallos, 0 pausas, pico 917 MB.
+- **Abierto:** BACKLOG T149 (1)–(4).
+- **En curso:** sin cambios respecto a la entrada anterior.
+- **Siguiente paso:** fusionar; entra en vigor con cada `submit` desde código que lo lleve, sin reiniciar servicios.

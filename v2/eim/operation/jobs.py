@@ -11,11 +11,14 @@ espera su turno y toma el relevo si aquel muere. El trabajo corre en IDLE (`--ti
 BELOW_NORMAL (`service`), con todo su árbol en un objeto de Windows (`jobs_proc.py`).
 
 - **Admisión:** RAM libre ≥ 2 GB (o lo que pida `--min-ram-mb`), CPU del equipo ≤ 80 % y
-  ninguna presión en la captura.
+  ninguna presión en la captura. Si pide más RAM de la que tiene el equipo, falla sin esperar.
 - **Presión (pausa):** cola de la captura > 1 000 mensajes o escritura atrasada > 200, huecos o
   descartes nuevos, reinicio de la captura, o RAM libre < 1 GB.
 - **Reanudación:** tras 90 s sin presión. Si la presión dura más de 15 min con el trabajo
   pausado, no viene de él y se reanuda igual.
+- **Memoria propia (T149, `jobs_memory.py`):** si la RAM que falta la retiene el trabajo, pausarlo
+  no sirve: se mata y vuelve a la cola pidiendo su pico. El registro dice su memoria y si pidió
+  menos de la que usó.
 - No cuentan un latido de la captura de más de 2 min (captura parada, o sin captura en este
   equipo: no hay nada que proteger) ni la CPU: con el trabajo en IDLE el equipo siempre parece
   lleno.
@@ -26,14 +29,19 @@ BELOW_NORMAL (`service`), con todo su árbol en un objeto de Windows (`jobs_proc
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 import time
 from collections.abc import Callable
 from pathlib import Path
 
-from eim.data.collectors.health import STALE_S
-from eim.operation import usage_win
+from eim.operation import jobs_memory as mem
+from eim.operation.jobs_monitor import (  # noqa: F401 - reexportados: la cola se usa desde aquí
+    ADMIT_CPU,
+    ADMIT_RAM_MB,
+    LOW_RAM_MB,
+    Monitor,
+    capture_pressure,
+)
 from eim.operation.jobs_proc import JobProcess
 from eim.operation.jobs_store import (
     CANCELLED,
@@ -42,6 +50,7 @@ from eim.operation.jobs_store import (
     FINAL,
     INTERRUPTED,
     PAUSED,
+    PENDING,
     RUNNING,
     WAITING,
     Job,
@@ -49,97 +58,26 @@ from eim.operation.jobs_store import (
 )
 from eim.operation.watchdog import instance_lock
 
-ADMIT_RAM_MB, LOW_RAM_MB, ADMIT_CPU = 2048, 1024, 80.0
-QUEUE_MAX, BACKLOG_MAX = 1000, 200
 POLL_S, RESUME_AFTER_S, MAX_PAUSE_S = 5.0, 90.0, 900.0
+MEM_EVERY = 6                              # memoria del trabajo cada 30 s, o siempre si falta RAM
 
 
 def _say(msg: str) -> None:
     print(msg, file=sys.stderr, flush=True)
 
 
-def capture_pressure(hb: dict | None, prev: dict | None,
-                     now_s: float) -> tuple[list[str], dict | None]:
-    """Motivos de presión en la captura HFT según su latido, frente a la lectura anterior."""
-    if not hb or now_s - (hb.get("last_heartbeat") or 0) / 1000 > STALE_S:
-        return [], None
-    cur = {"run": hb.get("started_at"), "gaps": sum((hb.get("gaps") or {}).values()),
-           "dropped": (hb.get("dropped") or 0) + (hb.get("pending_dropped") or 0)}
-    out = []
-    if (q := hb.get("queue") or 0) > QUEUE_MAX:
-        out.append(f"cola de la captura en {q} mensajes")
-    if (b := hb.get("write_backlog") or 0) > BACKLOG_MAX:
-        out.append(f"escritura de la captura atrasada ({b})")
-    if prev is not None and prev["run"] != cur["run"]:
-        out.append("la captura se reinició")
-    elif prev is not None:
-        if cur["gaps"] > prev["gaps"]:
-            out.append(f"{cur['gaps'] - prev['gaps']} huecos nuevos en la captura")
-        if cur["dropped"] > prev["dropped"]:
-            out.append(f"{cur['dropped'] - prev['dropped']} mensajes descartados")
-    return out, cur
-
-
-def _ram_free_mb() -> int:
-    if usage_win.supported():
-        return int(usage_win.memory()["ram_free_mb"])
-    try:
-        for line in Path("/proc/meminfo").read_text().splitlines():
-            if line.startswith("MemAvailable:"):
-                return int(line.split()[1]) // 1024
-    except OSError:
-        pass
-    return 1 << 20                       # sin dato: la RAM no frena
-
-
-class _Cpu:
-    """CPU del equipo desde la llamada anterior (Windows; fuera, 0)."""
-
-    def __init__(self) -> None:
-        self.prev = usage_win.system_times() if usage_win.supported() else None
-
-    def __call__(self) -> float:
-        if self.prev is None:
-            return 0.0
-        busy, total = usage_win.system_times()
-        b0, t0 = self.prev
-        self.prev = (busy, total)
-        return 100 * (busy - b0) / (total - t0) if total > t0 else 0.0
-
-
-class Monitor:
-    def __init__(self, data_dir: Path, ram: Callable[[], int] = _ram_free_mb,
-                 cpu: Callable[[], float] | None = None) -> None:
-        self.hb = Path(data_dir) / "micro_hft" / "heartbeat.json"
-        self.ram, self.cpu = ram, cpu or _Cpu()
-        self.prev: dict | None = None
-
-    def pressure(self) -> list[str]:
-        try:
-            hb = json.loads(self.hb.read_text("utf-8"))
-        except (OSError, ValueError):
-            hb = None
-        out, self.prev = capture_pressure(hb, self.prev, time.time())
-        if (ram := self.ram()) < LOW_RAM_MB:
-            out.append(f"RAM libre {ram} MB")
-        return out
-
-    def admission(self, job: Job) -> list[str]:
-        out = self.pressure()
-        need = max(ADMIT_RAM_MB, job.min_ram_mb)
-        if (ram := self.ram()) < need and ram >= LOW_RAM_MB:
-            out.append(f"RAM libre {ram} MB (pide {need})")
-        if (cpu := self.cpu()) > ADMIT_CPU:
-            out.append(f"CPU del equipo al {cpu:.0f} %")
-        return out
-
-
 class Runner:
     def __init__(self, store: Store, monitor: Monitor, poll_s: float = POLL_S,
                  resume_after_s: float = RESUME_AFTER_S, max_pause_s: float = MAX_PAUSE_S,
-                 say: Callable[[str], None] = _say) -> None:
+                 say: Callable[[str], None] = _say, spawn: type[JobProcess] = JobProcess) -> None:
         self.store, self.monitor, self.poll_s = store, monitor, poll_s
         self.resume_after_s, self.max_pause_s, self.say = resume_after_s, max_pause_s, say
+        self.spawn = spawn
+        self.requeues: dict[str, int] = {}               # por trabajo, mientras viva el ejecutor
+        self.peaks: dict[str, float] = {}
+        self.stuck: dict[str, int] = {}                  # reencolados seguidos sin pedir más
+        self.deadline: dict[str, float] = {}             # tope de espera tras reencolarlo
+        self.asked: dict[str, int] = {}                  # lo que pidió al encolarlo
 
     def log(self, job: Job, what: str, **detail) -> None:
         self.store.save(job)
@@ -159,14 +97,28 @@ class Runner:
     def finish(self, job: Job, state: str, rc: int | None) -> None:
         job.state, job.rc, job.ended = state, rc, time.time()
         dur = round(job.ended - (job.started or job.ended), 1)
+        peak = self.peaks.get(job.id, 0.0)
         self.log(job, "termina", estado=state, rc=rc, dur_s=dur, pausas=job.pauses,
-                 pausado_s=round(job.paused_s, 1))
+                 pausado_s=round(job.paused_s, 1), pico_ram_mb=peak)
+        asked = self.asked.get(job.id, job.min_ram_mb)
+        if (hint := mem.over_asked(peak, asked, ADMIT_RAM_MB)) is not None:
+            self.log(job, "pidio_menos_ram", pidio_mb=asked, pico_ram_mb=peak,
+                     sugerido_mb=hint)
 
     def admit(self, job: Job) -> bool:
         last = None
+        if job.min_ram_mb > (total := self.monitor.ram_total()):
+            job.note = f"pide {job.min_ram_mb} MB de RAM y el equipo tiene {total}"
+            self.finish(job, FAILED, None)
+            return False
         while True:
             if self.store.cancelled(job):
                 self.finish(job, CANCELLED, None)
+                return False
+            if time.time() > self.deadline.get(job.id, float("inf")):
+                job.note = (f"sin margen para {job.min_ram_mb} MB en "
+                            f"{mem.REQUEUE_WAIT_S / 3600:.0f} h tras reencolarlo")
+                self.finish(job, FAILED, None)
                 return False
             if not (why := self.monitor.admission(job)):
                 return True
@@ -176,18 +128,24 @@ class Runner:
             time.sleep(self.poll_s)
 
     def run_one(self, job: Job) -> None:
+        self.asked.setdefault(job.id, job.min_ram_mb)
         if not self.admit(job):
             return
         try:
-            proc = JobProcess(job.cmd, Path(job.cwd), self.store.out_path(job), job.tier)
+            proc = self.spawn(job.cmd, Path(job.cwd), self.store.out_path(job), job.tier)
         except (OSError, ValueError) as e:
             job.note = f"{type(e).__name__}: {e}"
             self.finish(job, FAILED, None)
             return
-        job.state, job.started = RUNNING, time.time()
-        self.log(job, "arranca", pid=proc.pid, nivel=job.tier)
+        self.deadline.pop(job.id, None)
+        job.state, job.started = RUNNING, job.started or time.time()   # primera vez que arrancó
+        self.log(job, "arranca", pid=proc.pid, nivel=job.tier, pide_mb=job.min_ram_mb)
         try:
             rc = self.watch(job, proc)
+        except mem.Requeue as rq:
+            proc.kill()
+            self.requeue(job, rq)
+            return
         except BaseException:
             proc.kill()
             self.finish(job, INTERRUPTED, None)
@@ -197,20 +155,55 @@ class Runner:
         if rc is not None:
             self.finish(job, DONE if rc == 0 else FAILED, rc)
 
+    def requeue(self, job: Job, rq: mem.Requeue) -> None:
+        """Pausarlo no liberaba nada: muerto, vuelve a la cola pidiendo lo que de verdad usa."""
+        n = self.requeues[job.id] = self.requeues.get(job.id, 0) + 1
+        peak, asked = self.peaks.get(job.id, 0.0), self.asked.get(job.id, job.min_ram_mb)
+        need = mem.ask_for(peak, job.min_ram_mb)
+        # Muere a mitad de crecer: mientras pida más, aprende; sin crecer, el tope.
+        stuck = self.stuck[job.id] = 0 if need > job.min_ram_mb else self.stuck.get(job.id, 0) + 1
+        detail = {"motivo": rq.why, "ram_trabajo_mb": rq.job_ram_mb,
+                  "ram_libre_mb": rq.ram_free_mb, "pico_ram_mb": peak, "pidio_mb": asked}
+        total = self.monitor.ram_total()
+        if stuck >= mem.MAX_REQUEUES or need > total:
+            job.note = (f"cancelado {n} veces por retener la RAM que lo pausaba; pide "
+                        f"--min-ram-mb {need}" + (f" (el equipo tiene {total})"
+                                                  if need > total else ""))
+            self.log(job, "cancelado_por_memoria", **detail)
+            self.finish(job, FAILED, None)
+            return
+        job.state, job.min_ram_mb, job.created = PENDING, need, time.time()   # al final de la cola
+        self.deadline[job.id] = time.time() + mem.REQUEUE_WAIT_S
+        self.log(job, "reencolado_por_memoria", **detail, pide_mb=need, reencolado=n)
+
     def watch(self, job: Job, proc: JobProcess) -> int | None:
-        """Vigila el trabajo hasta que termina; None si se canceló."""
+        """Vigila el trabajo hasta que termina; None si se canceló. Lanza `Requeue` si pausarlo
+        no sirve porque la RAM que falta la retiene él (T149)."""
         paused_at = calm_since = None
+        guard, polls, own = mem.Guard(LOW_RAM_MB, self.resume_after_s), 0, 0.0
         while (rc := proc.poll()) is None:
             if self.store.cancelled(job):
                 proc.kill()
                 self.finish(job, CANCELLED, proc.poll())
                 return None
             why, now = self.monitor.pressure(), time.monotonic()
+            low, free = self.monitor.ram_low, self.monitor.ram_free
+            if low or polls % MEM_EVERY == 0:      # medirlo enumera todos los procesos
+                own = proc.memory_mb()
+            polls += 1
+            guard.observe(own, low, paused_at is not None, now)
+            self.peaks[job.id] = max(self.peaks.get(job.id, 0.0), guard.peak)
+            if low and (verdict := guard.verdict(free, own, paused_at is not None)):
+                if paused_at is not None:
+                    job.paused_s += now - paused_at
+                raise mem.Requeue(verdict, own, free)
             calm_since = None if why else (calm_since or now)
             if why and paused_at is None:
                 proc.suspend()
                 paused_at, job.state, job.pauses = now, PAUSED, job.pauses + 1
-                self.log(job, "pausa", motivos=", ".join(why))
+                if low:
+                    guard.paused_for_memory()
+                self.log(job, "pausa", motivos=", ".join(why), ram_trabajo_mb=own)
             elif paused_at is not None and (
                     (calm_since is not None and now - calm_since >= self.resume_after_s)
                     or now - paused_at >= self.max_pause_s):
