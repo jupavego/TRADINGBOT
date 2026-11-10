@@ -939,3 +939,13 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** T143, T144, T145 y T146, ninguna empezada. La ◆ de T145 es la que `ESTADO_PROYECTO.md` §0 tenía anotada como pendiente desde T139.
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T127, T128, T135 y T141.
 - **Siguiente paso:** fusionar el PR y traer `main` a la carpeta principal. **Sin despliegue ni reinicio de servicios:** esta sesión no cambió código. T143 no se puede desplegar mientras T31 cuente semanas sin ◆ del usuario.
+
+## 2026-11-10 02:30 UTC · juanpablo-cpu · T143: entregables 3, 4 y 5 y revisión
+- **Pedido del usuario:** «atácalos», sobre lo que faltaba de T143 y T145.
+- **Hecho:** retomado el entregable 3, que una sesión anterior dejó escrito sin commit: la puerta de marcos por costo (`tf_gate.py`), con comprobación al arrancar. Entregable 4: el costo vivido sale del libro fijo con el método del diagnóstico y se ve en el panel (bajo el balance, junto a la puerta de marcos) y en el informe semanal de T31 (sección «Costo medido»). Entregable 5: contrafactual sobre las 224 operaciones vividas.
+- **Resultado del 5:** el costo baja de 0,123 a 0,083 R (−33 %, no los ~0,06 estimados) y la esperanza neta **no mejora** (−0,150 → −0,153 R). En lo vivido, 15 m era el mejor marco (−0,048 ± 0,140, n = 64), pero la sombra, con 1 378 operaciones, lo pone como el peor (−0,344 ± 0,039): lo vivido es ruido y su salida se sostiene.
+- **Revisión de código (high):** 9 hallazgos. Corregidos 4 (la puerta avisa si cierra todos los marcos; el costo vivido se cachea por filas del libro; el filtro `retro` acepta el texto del CSV; el registro de arranque aclara que usa la línea base). Quedan para la ◆ los tres que cambian T31 al desplegar: el riesgo con costo encendido en los PROFILES por defecto, la puerta y maker sin versión de perfil, y SimBroker de 4 a 5 pb. También queda sin tocar que el riesgo con costo usa `est_cost_frac` fijo.
+- **Archivos:** `v2/eim/paper/{tf_gate,cost_ledger,cost_whatif,desk,summary,params,catalog,ideas,maker_ab,versioning}.py`, `v2/eim/operation/{report,report_costs,weekly,supervisor}.py`, `v2/eim/web/src/{paper_cost,paper_balance,paper_types}.ts`, `paper.css`, pruebas en `v2/tests/paper/`, `v2/scripts/t143_antes_despues.py` y `v2/reports/t143_antes_despues.{md,json}`.
+- **Pruebas:** ruff limpio, `tsc --noEmit` limpio, pruebas de paper y operation verdes. Gate completo por la cola: ver STATUS.
+- **Abierto:** la ◆ de despliegue (¿se fusiona ahora, cambiando T31, o en una corrida aparte o al cerrar T31?).
+- **Siguiente paso:** decisión del usuario sobre T143 y T145.
