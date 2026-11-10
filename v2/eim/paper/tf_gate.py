@@ -24,6 +24,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable, Mapping, Sequence
 
+from eim.paper import risk_budget
 from eim.paper.engine import Outcome
 
 _log = logging.getLogger(__name__)
@@ -96,9 +97,29 @@ def why(tf: str, measured: Mapping[str, tuple[float, int]], max_cost_r: float | 
     return f"{tf}: costo {c:.3f} R {rel} {max_cost_r:.3f} R umbral → {verb} · {src}"
 
 
-def gate(tfs: Sequence[str], outcomes: Sequence[Outcome], ep) -> tuple[list[dict], list[Outcome]]:
-    """Filas del panel y operaciones que los perfiles pueden tomar. La sombra no se toca."""
-    rows = report(tfs, cost_by_tf(outcomes), ep.tf_max_cost_r, ep.tf_cost_min_n)
+def takeable(outcomes: Iterable[Outcome], profiles: Sequence) -> list[Outcome]:
+    """Las de sombra que al menos un perfil aceptaría por costo (su veto `max_cost_r`).
+
+    La puerta tiene que medir el costo de lo que se va a operar, no el de toda la sombra: la
+    sombra incluye ideas con el stop tan pegado que ningún perfil las toma, y con ellas 1 h medía
+    0,159 R cuando en el libro vivido costaba 0,127 R (BACKLOG T143 (4), ◆ 2026-11-10). Se usa el
+    mismo costo estimado que el veto (`risk_budget.cost_r` con `est_cost_frac` de cada perfil).
+    """
+    if not profiles:
+        return list(outcomes)
+    return [o for o in outcomes
+            if any(risk_budget.cost_r(o.idea.entry, o.idea.sl, p.est_cost_frac) <= p.max_cost_r
+                   for p in profiles)]
+
+
+def gate(tfs: Sequence[str], outcomes: Sequence[Outcome], ep,
+         profiles: Sequence = ()) -> tuple[list[dict], list[Outcome]]:
+    """Filas del panel y operaciones que los perfiles pueden tomar. La sombra no se toca.
+
+    Con `profiles`, el costo se mide solo sobre lo que algún perfil aceptaría (`takeable`).
+    """
+    rows = report(tfs, cost_by_tf(takeable(outcomes, profiles)), ep.tf_max_cost_r,
+                  ep.tf_cost_min_n)
     ok = {r["timeframe"] for r in rows if r["admitted"]}
     if not ok and tfs:
         # que no opere ningún marco es una decisión de la puerta, pero no puede pasar callada
