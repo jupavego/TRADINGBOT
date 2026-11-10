@@ -1092,3 +1092,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/notas/T145_clase_de_ventaja.md`, `v2/reports/t145_clase_de_ventaja.md`. Sin cambios de código.
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135, T141 y T143 (falta la ◆ de despliegue).
 - **Siguiente paso:** la ◆ de despliegue de T143 y el gate completo de su rama.
+
+## 2026-11-10 02:35 UTC · juanpablo-cpu · T128 desplegada (poda por fecha y compactado en marcha)
+- **Pedido del usuario:** «Sí, fusiona y despliega» sobre el PR #241.
+- **Hecho:** PR #241 fusionado (`9bd7a6f`) y `main` traído a la carpeta principal. Parados solo los procesos de líderes (`detener_servicio.ps1 -SoloCon eim.leaders`, 02:20:42 UTC) y relanzados con `servicio_continuo.ps1`. La tarea `EIM - vigilante del conjunto` no los levantó en el primer intento (sin rastro en `lideres.*.log`); el lanzador directo sí.
+- **Medido al arrancar:** la poda en frío borró 2 172 148 ejecuciones (1,82 M de un solo líder de alta frecuencia) y 1,67 M cotizaciones; el compactado dejó la base en 1 206 MB desde 2 507 (33 s). Archivo vivo: 2 764 → 1 206 MB. La captura de líderes volvió a las 02:29 UTC (~8 min parada) y late; arrancando sin errores.
+- **Archivos:** `PLAN/{STATUS,BITACORA}.md`, `PLAN/status.js`. Sin cambios de código.
+- **Abierto:** nueva semana de medición de `leaders.duckdb` hasta el 2026-11-17 02:29 UTC; comprobar que la primera poda en marcha (a los 30 min) y, cuando toque, la salida para compactar funcionan solas. Por qué la tarea del vigilante del conjunto no levantó los líderes queda para T148.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T141.
+- **Siguiente paso:** T148 y, el 2026-11-17, cerrar T128 con la medición.
