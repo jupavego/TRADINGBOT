@@ -131,22 +131,29 @@ def test_timeout_is_degraded_and_the_queue_recovers():
     assert ai.llm.complete("x", Claims, caller="t").ok   # espera a que el hilo huérfano acabe
 
 
+def _until(cond, limit_s: float = 10.0) -> None:
+    end = time.monotonic() + limit_s
+    while not cond():
+        assert time.monotonic() < end, "la condición no llegó a tiempo"
+        time.sleep(0.005)
+
+
 def test_priority_queue_serves_lower_number_first():
     gate, order = threading.Event(), []
-    blocker = FakeBackend("llm", [lambda c: gate.wait(5) and GOOD])
+    blocker = FakeBackend("llm", [lambda c: gate.wait(10) and GOOD])
     ai = fake_localai(llm=blocker)
     first = threading.Thread(target=lambda: ai.llm.complete("x", Claims, caller="t"))
     first.start()
-    time.sleep(0.1)
+    _until(lambda: len(blocker.calls) == 1)          # la primera ocupa el motor
     blocker.script = [lambda c: order.append(c["user"]) or GOOD]
     late = threading.Thread(target=lambda: ai.llm.complete("baja", Claims, caller="t",
                                                            priority=9))
     late.start()
-    time.sleep(0.1)
+    _until(lambda: len(ai.res._heap) == 1)
     urgent = threading.Thread(target=lambda: ai.llm.complete("alta", Claims, caller="t",
                                                              priority=1))
     urgent.start()
-    time.sleep(0.1)
+    _until(lambda: len(ai.res._heap) == 2)
     gate.set()
     for t in (first, late, urgent):
         t.join(5)
