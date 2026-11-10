@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-09T20:21:13",
+ "generated": "2026-11-09T20:57:15",
  "phases": [
   {
    "n": 0,
@@ -2138,8 +2138,8 @@ window.EIM_STATUS = {
     "T49",
     "T139"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-09 desde la misma nota, §7. Resuelve la ◆ que T139 dejó anotada en `ESTADO_PROYECTO.md` §0. **Solo informe, no construye nada**: compara en una tabla el costo a superar (0,125 R hoy, ~0,06 R tras T143) con la ventaja alcanzable ya medida de cuatro clases —microestructura propia (T78–T86, captura al 86,8 %), arbitraje/funding, market making pasivo (maker 2 pb frente a taker 5 pb) y solo análisis—, con hipótesis nula, intentos que añade a Holm (familia 841) y tiempo hasta veredicto. Se elige **una**. «Solo análisis» es un resultado válido.",
+   "state": "done",
+   "notes": "Abierta el 2026-11-09 desde la misma nota, §7. Resuelve la ◆ que T139 dejó anotada en `ESTADO_PROYECTO.md` §0. **Solo informe, no construye nada**: compara en una tabla el costo a superar (0,125 R hoy, ~0,06 R tras T143) con la ventaja alcanzable ya medida de cuatro clases —microestructura propia (T78–T86, captura al 86,8 %), arbitraje/funding, market making pasivo (maker 2 pb frente a taker 5 pb) y solo análisis—, con hipótesis nula, intentos que añade a Holm (familia 841) y tiempo hasta veredicto. Se elige **una**. «Solo análisis» es un resultado válido. **2026-11-10: informe `v2/reports/t145_clase_de_ventaja.md` hecho (regla en `613cd99`, anterior a la tabla). Ninguna de A, B o C cumple la regla; recomendación D, solo análisis. Falta la ◆ del usuario.** **◆ resuelta por el usuario el 2026-11-10: D, solo análisis.** T31 sigue hasta cerrar sus semanas. B queda como información, con un disparador escrito: funding ≥ 4 % anual en 12 meses móviles → pre-registro nuevo. A se queda en la captura (T79–T86 sin empezar) y C se archiva.",
    "effort": "medio",
    "phase": 24,
    "goal": "Resolver la ◆ que T139 dejó abierta —para qué sirve el sistema una vez cerrada la búsqueda de entradas direccionales— comparando, por clase de ventaja, el costo que hay que superar frente a la ventaja que esa clase puede dar de forma realista."
@@ -2154,7 +2154,7 @@ window.EIM_STATUS = {
     "T145"
    ],
    "state": "pending",
-   "notes": "Abierta el 2026-11-09 desde la misma nota, §4.1. **Solo si T145 mantiene viva una línea direccional.** En el panel de T44, **6 de 14 agentes están al 100 % `no_data`** y `technical` al 100 % `degraded`; los que votan correlacionan **0,44–0,68** entre sí. No hay comité de 14: hay un seguidor de tendencia votando cinco veces, con una confianza mayor que la información que tiene detrás. Entregables: sin datos no se vota, cobertura publicada, penalización por correlación verificable y **votos efectivos** (con ρ 0,6 y cinco votantes, ~1,8). Se adopta aunque no mejore la esperanza.",
+   "notes": "Abierta el 2026-11-09 desde la misma nota, §4.1. **Solo si T145 mantiene viva una línea direccional.** En el panel de T44, **6 de 14 agentes están al 100 % `no_data`** y `technical` al 100 % `degraded`; los que votan correlacionan **0,44–0,68** entre sí. No hay comité de 14: hay un seguidor de tendencia votando cinco veces, con una confianza mayor que la información que tiene detrás. Entregables: sin datos no se vota, cobertura publicada, penalización por correlación verificable y **votos efectivos** (con ρ 0,6 y cinco votantes, ~1,8). Se adopta aunque no mejore la esperanza. **2026-11-10: sin condición.** T145 eligió D, así que no queda ninguna línea direccional que opere. Pasa al BACKLOG como mejora del análisis; no se ejecuta como tarea de fase.",
    "effort": "medio",
    "phase": 24,
    "goal": "Que la síntesis deje de agregar el mismo error varias veces: los agentes que nunca tienen datos salen del voto o se alimentan, y la penalización por correlación se aplica de verdad y se puede verificar."

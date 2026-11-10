@@ -1049,3 +1049,19 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** ninguna nueva; solo lectura del QC, de la cola y del registro de consumo. Gate no relanzado (sin código); el último completo por la cola fue el de T144 (3 323 pasadas, 0 fallos).
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T141.
 - **Siguiente paso:** T148 (vigilante del conjunto) y cerrar T141 tras su medición del 2026-11-10 03:00 UTC.
+
+## 2026-11-10 02:00 UTC · juanpablo-cpu · T145: informe de clase de ventaja (◆ pendiente)
+- **Pedido del usuario:** «atácalos», sobre lo que faltaba de T143 y T145.
+- **Hecho:** regla de lectura versionada antes de la tabla (`613cd99`). Luego la tabla de las cuatro clases con sus seis puntos, todo desde informes ya versionados (`hft_cost_bound`, `hft_latency`, `arbitrage_edge`, `edge_gate`, `t139_entradas`). Resultado: no entra ninguna de A, B ni C. B es el único neto positivo medido, pero no llega a un veredicto en vivo en 6 meses. C es imposible en VIP 0: maker paga 2 pb y el diferencial es de 1 tick, lo que corrige el enunciado de T145. Recomendación: **D, solo análisis**.
+- **Archivos:** `v2/reports/t145_clase_de_ventaja.md`, `PLAN/notas/T145_clase_de_ventaja.md`, `PLAN/{STATUS,ESTADO_PROYECTO,BITACORA}.md`. Sin cambios de código.
+- **Pruebas:** ninguna; solo lectura. El gate no aplica: no hay código.
+- **Abierto:** la ◆ del usuario (A, B, C o D; T31; publicar el diagnóstico en la interfaz). Al resolverla, T145 pasa a ☑, ESTADO §0 deja de listar la ◆ de T139 y T146 sale de la fase.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135, T141, T143 y T145.
+- **Siguiente paso:** decisión del usuario sobre T145; revisión y PR de T143.
+
+## 2026-11-10 03:00 UTC · juanpablo-cpu · T145 cerrada: D, solo análisis
+- **Pedido del usuario:** «D, solo análisis», como respuesta a la ◆ de T145.
+- **Hecho:** T145 ☑. La decisión queda escrita en ESTADO §0, que da por resuelta la ◆ que T139 dejó abierta. T146 pierde su condición y pasa al BACKLOG. En BACKLOG T145 quedan el disparador de B, la revisión de A en 2027-10 y publicar el diagnóstico en «Operaciones sugeridas».
+- **Archivos:** `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/notas/T145_clase_de_ventaja.md`, `v2/reports/t145_clase_de_ventaja.md`. Sin cambios de código.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135, T141 y T143 (falta la ◆ de despliegue).
+- **Siguiente paso:** la ◆ de despliegue de T143 y el gate completo de su rama.
