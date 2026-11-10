@@ -5,6 +5,11 @@ el resto por programa) y, sobre todo, las horas incompletas de la captura HFT: c
 coincidieron con el equipo saturado y cuáles no tienen registro (equipo apagado o registro
 caído). Una hora perdida sin saturación apunta a otra causa: red, reinicio o un fallo del
 recolector. Función pura de los archivos; no escribe nada.
+
+**Cobertura real, no muestras contadas (T148).** `coverage` mide el tramo que el registro estuvo
+de verdad midiendo: el día menos sus huecos (`usage_gaps.py`) y menos lo que queda fuera de la
+primera y la última muestra. Así un día con 5 horas en blanco, como el 2026-11-09, no se lee como
+si estuviera medido; `blind_s` y `gaps` dicen cuánto y cuándo faltó.
 """
 
 from __future__ import annotations
@@ -15,6 +20,7 @@ from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from eim.operation import usage_gaps
 from eim.operation.usage import EVERY_S, usage_dir
 
 SAT_CPU = 90.0       # % de CPU del equipo desde el que una muestra cuenta como saturada
@@ -65,10 +71,25 @@ def _top(sums: dict[str, float], n: int, k: int) -> dict[str, float]:
     return {name: round(v / n, 2) for name, v in sorted(sums.items(), key=lambda x: -x[1])[:k]}
 
 
+def day_ms(day: str) -> tuple[int, int]:
+    """Inicio y fin del día `AAAA-MM-DD` en milisegundos UTC."""
+    t0 = datetime.strptime(day, "%Y-%m-%d").replace(tzinfo=UTC)
+    return int(t0.timestamp() * 1000), int((t0 + timedelta(days=1)).timestamp() * 1000)
+
+
 def day_summary(recs: list[dict], day: str, hft: dict[str, bool] | None = None,
-                every_s: float = EVERY_S) -> dict:
-    out: dict = {"day": day, "samples": len(recs),
-                 "coverage": round(len(recs) * every_s / 86400, 3)}
+                every_s: float = EVERY_S, until_ms: int | None = None) -> dict:
+    """Resumen de un día. `until_ms` acorta el día en curso: lo que aún no ha llegado no es un
+    hueco del registro."""
+    t0, t1 = day_ms(day)
+    # Toda muestra trae `t`; si alguna solo trae `ts` (registros antiguos), se deduce de ahí.
+    timed = sorted(({**r, "t": r["t"]} if isinstance(r.get("t"), (int, float)) else
+                    {**r, "t": int(datetime.strptime(r["ts"], "%Y-%m-%dT%H:%M:%SZ")
+                                   .replace(tzinfo=UTC).timestamp() * 1000)}
+                    for r in recs), key=lambda r: r["t"])
+    cov = usage_gaps.coverage(timed, t0,
+                              min(t1, until_ms) if until_ms is not None else t1)
+    out: dict = {"day": day, "samples": len(recs), **cov}
     per_hour: dict[str, list[dict]] = defaultdict(list)
     for r in recs:
         per_hour[r["ts"][11:13]].append(r)
@@ -116,18 +137,19 @@ def days_between(t0_ms: int, t1_ms: int) -> list[str]:
     return out
 
 
-def summarize(data_dir: Path, days: list[str], symbol: str = "BTCUSDT") -> list[dict]:
+def summarize(data_dir: Path, days: list[str], symbol: str = "BTCUSDT",
+              until_ms: int | None = None) -> list[dict]:
     """Un resumen por día con registro de consumo o con horas de QC de la captura."""
     out = []
     for day in days:
         recs, hft = load_day(data_dir, day), hft_hours(data_dir, symbol, day)
         if recs or hft:
-            out.append(day_summary(recs, day, hft))
+            out.append(day_summary(recs, day, hft, until_ms=until_ms))
     return out
 
 
 def week_summary(data_dir: Path, t0_ms: int, t1_ms: int, symbol: str = "BTCUSDT") -> list[dict]:
-    return summarize(data_dir, days_between(t0_ms, t1_ms), symbol)
+    return summarize(data_dir, days_between(t0_ms, t1_ms), symbol, t1_ms)
 
 
 def for_report(data_dir: Path, t0_ms: int, t1_ms: int, symbols: tuple[str, ...]) -> list[dict]:

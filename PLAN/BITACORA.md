@@ -1031,6 +1031,15 @@ más reciente por fecha y su siguiente paso. Formato:
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T127, T128, T135 y T141.
 - **Siguiente paso:** ejecutar T148, que sustituye este parche por el vigilante de verdad.
 
+## 2026-11-10 01:00 UTC · juanpablo-cpu · T148 hecha: vigilante del conjunto, silencio del registro y atribución
+- **Pedido del usuario:** retomar T148 donde la dejó la sesión anterior, cortada por falta de créditos con los entregables 1, 2, 3 y 5 escritos y sin commit (◆ ya resueltas: cada 5 min, levantar tras 10 min sin latido, solo los cinco servicios de datos).
+- **Hecho:** revisado lo escrito y corregidos dos fallos: el vigilante contaba el tiempo caído desde que lo veía (en la primera pasada habría dicho «0 min») y el instalador programaba la primera pasada para la medianoche siguiente. Entregable 4 sobre los datos reales (88 horas incompletas: 59/28/1 → 67/21/0) y entregable 6 (RUNBOOK §18 reescrita).
+- **Segundo apagón en vivo**, a las 00:33:49 UTC, con la misma firma (bróker `ok`, API 200 y luego los cinco callados; 8765 y Vite vivos; nada en el registro de Windows). El parche provisional lo levantó a las 00:37:37 y a las 00:39 estaban los cinco en pie. Dejó en el registro de consumo un hueco de 284 s que el umbral de 300 s no veía: `GAP_S` queda en 240 s, medido sobre todo el registro. Nota §7–8.
+- **Archivos:** `v2/eim/operation/{fleet_watch,fleet_alert,usage_gaps}.py` (nuevos), `v2/eim/data/collectors/hft_attrib.py` (nuevo), `v2/eim/data/collectors/{hft_window,hft_ops}.py`, `v2/eim/operation/{usage_incidents,usage_summary,report}.py`, `v2/scripts/vigilante_conjunto.ps1` (nuevo), `v2/scripts/instalar_inicio_automatico.ps1` (`-Vigilante`), pruebas `v2/tests/operation/{test_fleet_watch,test_usage_gaps}.py`, `v2/tests/data/test_hft_attrib.py` y ajustes en `test_usage_incidents.py`; `v2/docs/RUNBOOK.md`, `PLAN/notas/T148_apagon_2026-11-09.md`, `PLAN/{STATUS,BITACORA,BACKLOG,ESTADO_PROYECTO}.md`.
+- **Pruebas:** gate completo por la cola (ver STATUS); servicios caídos simulados levantados y registrados, arranque fallando sin bucle (4 intentos y pausa de 6 h), calibración del umbral con los casos reales de 284 s y 182 s.
+- **Abierto:** fusionar e instalar con `v2\scripts\instalar_inicio_automatico.ps1 -Vigilante` desde la carpeta principal (retira el parche provisional); reiniciar el vigilante de la captura para que `summary.json` publique la atribución nueva. ◆ en `BACKLOG.md`: activar algún rastro (registro de bloques de script o auditoría de terminación) para que un tercer apagón sí deje causa.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T127, T128, T135 y T141.
+- **Siguiente paso:** instalar el vigilante tras la fusión y cerrar T141 diciendo que su medición tiene los dos huecos.
 ## 2026-11-10 00:45 UTC · juanpablo-cpu · Cierre de T127
 - **Pedido del usuario:** el vigía marcaba T127 al 100 %; «Sí, revisa y cierra» tras proponer revisar las horas de la captura que coincidían con trabajos de la cola.
 - **Hecho:** revisada la aceptación contra los datos reales de la ventana (2026-11-02 03:38 → 2026-11-09 03:38 UTC). El informe W45 trae los siete días del registro de consumo. Con el QC actual (ya recalificado por T147) hay 14 horas incompletas; 11 sin ningún trabajo de la cola en marcha. Las otras tres, muestra a muestra: **2-nov 22** fue la red (silencios en todos los flujos que siguieron con el gate congelado y corte del WebSocket de OKX a la vez); **3-nov 18**, un salto de la API de 784 a 1 369 MB en 90 s sobre un equipo con ~5 GB de programas ajenos, con el gate en 366 MB y congelado por la cola 2 s después de empezar el silencio de 299 s; **7-nov 05**, carga ajena (`node`, `claude`, `chrome`, 457 MB libres) 10 min después del último trabajo. **T127 ☑.**
@@ -1051,3 +1060,18 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** ◆ desplegar (reiniciar el servicio de líderes, ~5 min sin capturar líderes; no toca la captura HFT) y medir otra semana; definir la vara de la CPU en reposo (BACKLOG T128 (2)).
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T141.
 - **Siguiente paso:** fusionar, desplegar y abrir la nueva semana de medición de T128.
+## 2026-11-10 02:00 UTC · juanpablo-cpu · T145: informe de clase de ventaja (◆ pendiente)
+- **Pedido del usuario:** «atácalos», sobre lo que faltaba de T143 y T145.
+- **Hecho:** regla de lectura versionada antes de la tabla (`613cd99`). Luego la tabla de las cuatro clases con sus seis puntos, todo desde informes ya versionados (`hft_cost_bound`, `hft_latency`, `arbitrage_edge`, `edge_gate`, `t139_entradas`). Resultado: no entra ninguna de A, B ni C. B es el único neto positivo medido, pero no llega a un veredicto en vivo en 6 meses. C es imposible en VIP 0: maker paga 2 pb y el diferencial es de 1 tick, lo que corrige el enunciado de T145. Recomendación: **D, solo análisis**.
+- **Archivos:** `v2/reports/t145_clase_de_ventaja.md`, `PLAN/notas/T145_clase_de_ventaja.md`, `PLAN/{STATUS,ESTADO_PROYECTO,BITACORA}.md`. Sin cambios de código.
+- **Pruebas:** ninguna; solo lectura. El gate no aplica: no hay código.
+- **Abierto:** la ◆ del usuario (A, B, C o D; T31; publicar el diagnóstico en la interfaz). Al resolverla, T145 pasa a ☑, ESTADO §0 deja de listar la ◆ de T139 y T146 sale de la fase.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135, T141, T143 y T145.
+- **Siguiente paso:** decisión del usuario sobre T145; revisión y PR de T143.
+
+## 2026-11-10 03:00 UTC · juanpablo-cpu · T145 cerrada: D, solo análisis
+- **Pedido del usuario:** «D, solo análisis», como respuesta a la ◆ de T145.
+- **Hecho:** T145 ☑. La decisión queda escrita en ESTADO §0, que da por resuelta la ◆ que T139 dejó abierta. T146 pierde su condición y pasa al BACKLOG. En BACKLOG T145 quedan el disparador de B, la revisión de A en 2027-10 y publicar el diagnóstico en «Operaciones sugeridas».
+- **Archivos:** `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/notas/T145_clase_de_ventaja.md`, `v2/reports/t145_clase_de_ventaja.md`. Sin cambios de código.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135, T141 y T143 (falta la ◆ de despliegue).
+- **Siguiente paso:** la ◆ de despliegue de T143 y el gate completo de su rama.

@@ -106,6 +106,11 @@ def test_the_command_crosses_the_real_files_and_prints_json(tmp_path, capsys, mo
     monkeypatch.setattr(usage.time, "time", lambda: T0 + 4000)
     assert usage.main(["incidents", "--days", "2", "--data-dir", str(tmp_path)]) == 0
     out = json.loads(capsys.readouterr().out)
+    # Dos muestras a 1300 s una de otra, y la última 2500 s antes de «ahora»: son dos silencios del
+    # propio registro (T148 E2), el segundo todavía abierto. Se comprueban y se apartan.
+    gaps = [x for x in out if x["kind"] == "apagon_registro"]
+    assert [g["dur_s"] for g in gaps] == [1300, 2500] and gaps[1]["edges"]["first_after"] is None
+    out = [x for x in out if x["kind"] != "apagon_registro"]
     assert [x["kind"] for x in out] == ["ciclo_lento", "reinicio_latido", "arranque_lento",
                                         "reinicio_salida"]
     assert out[0]["dur_s"] == 400 and out[0]["api"]["ram_min_mb"] == 500.0

@@ -220,8 +220,14 @@ def _usage_lines(days: list[dict]) -> list[str]:
             continue
         c, p = d["cpu"], d["peak"]
         roles = ", ".join(f"{k} {v:.1f}" for k, v in list(d["roles_cpu_mean"].items())[:4])
+        # T148: la cobertura es la medida de verdad, no las muestras contadas; si el registro
+        # calló, se dice cuánto y cuándo, para que el día no se lea como si estuviera medido.
+        ciego = (f" **sin registro {d['blind_s'] / 3600:.2f} h** ("
+                 + ", ".join(f"{g['from'][11:16]}→{g['to'][11:16]} UTC" for g in d["gaps"][:3])
+                 + ");") if d.get("gaps") else ""
         out.append(
-            f"- {d['day']}: {d['samples']} muestras ({_f(d['coverage'], '{:.0%}')} del día); CPU "
+            f"- {d['day']}: {d['samples']} muestras ({_f(d['coverage'], '{:.0%}')} del día);"
+            f"{ciego} CPU "
             f"del equipo media {c['mean']:.0f} % (p95 {c['p95']:.0f} %, máx. {c['max']:.0f} % "
             f"a las {p['ts'][11:16]} UTC, sobre todo {p['top'] or '—'}); RAM libre mín. "
             f"{d['ram_free_min_mb'] / 1024:.1f} GB; EIM {d['eim_cpu_mean']:.1f} % de media "

@@ -6,6 +6,11 @@ una función pura de `data/usage` y `data/operation/logs`; no escribe nada.
 
     python -m eim.operation.usage incidents [--days 7] [--slow 120]
 
+**El silencio del propio registro también es un incidente (T148).** Todo lo de arriba sale del
+registro de operación, que no se escribe cuando el proceso está muerto: el apagón del 2026-11-09
+daba cero incidentes porque el que tomaba nota murió con los demás. Los huecos de `data/usage/` se
+declaran por su propia ausencia (`usage_gaps.py`) y entran aquí como `apagon_registro`.
+
 Las órdenes se quedan en local: esta salida se lee en pantalla y no va a ningún informe.
 """
 
@@ -18,6 +23,7 @@ from collections.abc import Iterable
 from datetime import UTC, datetime
 from pathlib import Path
 
+from eim.operation import usage_gaps
 from eim.operation.usage_summary import days_between, load_day
 
 SLOW_S = 120.0       # con mediana de 1,3 s y p99 de 29 s, un ciclo así ya no es normal
@@ -141,16 +147,22 @@ def _iso(ms: int) -> str:
     return datetime.fromtimestamp(ms / 1000, UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def report(data_dir: Path, days: list[str], slow_s: float = SLOW_S) -> list[dict]:
+def report(data_dir: Path, days: list[str], slow_s: float = SLOW_S,
+           until_ms: int | None = None) -> list[dict]:
+    """Los incidentes de los días pedidos, en orden. Con `until_ms`, un registro que calló y no
+    ha vuelto da además el apagón abierto hasta ese instante."""
     samples = [r for d in days for r in load_day(data_dir, d)]
     samples.sort(key=lambda r: r["t"])
-    return [{"kind": x["kind"], "from": _iso(x["t0"]), "to": _iso(x["t1"]),
-             "dur_s": round((x["t1"] - x["t0"]) / 1000), **({"detail": x["detail"]} if "detail" in x
-                                                            else {}),
-             **cross(samples, x["t0"], x["t1"])}
-            for x in find(load_ops(data_dir, days), slow_s)]
+    out = [{"kind": x["kind"], "from": _iso(x["t0"]), "to": _iso(x["t1"]),
+            "dur_s": round((x["t1"] - x["t0"]) / 1000), **({"detail": x["detail"]} if "detail" in x
+                                                           else {}),
+            **cross(samples, x["t0"], x["t1"])}
+           for x in find(load_ops(data_dir, days), slow_s)]
+    out += usage_gaps.as_incidents(usage_gaps.gaps(samples, until_ms))
+    return sorted(out, key=lambda r: r["from"])
 
 
 def recent(data_dir: Path, days: int, now_s: float, slow_s: float = SLOW_S) -> list[dict]:
     now_ms = int(now_s * 1000)
-    return report(data_dir, days_between(now_ms - (days - 1) * 86_400_000, now_ms + 1), slow_s)
+    return report(data_dir, days_between(now_ms - (days - 1) * 86_400_000, now_ms + 1), slow_s,
+                  now_ms)
