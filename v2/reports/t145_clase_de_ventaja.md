@@ -39,7 +39,9 @@ Todo sale de informes ya versionados; no se corrió nada nuevo. «Sin medir» cu
 - **C no entra, y es el resultado más claro.** El enunciado de T145 decía que maker «invierte el signo» de la fricción. **En VIP 0 no es así:** maker paga 2 pb en vez de 5, pero paga. Con un diferencial de 1 tick (0,0123 pb), cobrarlo nunca cubre 4 pb de comisión. C solo existe con reembolso de creador (programas de market making), y eso exige un volumen que no está al alcance.
 - **D entra.** No opera, no paga costo, no añade intentos y aprovecha lo que el sistema ya hace mejor.
 
-## 4. Recomendación (◆ del usuario)
+## 4. Recomendación y decisión
+
+**Decisión del usuario (2026-11-10): D, solo análisis**, tal como se recomendaba.
 
 **D: solo análisis.** Es lo que dicen las cifras con la regla escrita antes de mirarlas, no una derrota: T27 midió que comprar y mantener dio +188 % mientras la estrategia daba −70 %, y el sistema vale por medir con honestidad y decirlo.
 

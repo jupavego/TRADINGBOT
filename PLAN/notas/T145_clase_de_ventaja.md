@@ -11,5 +11,5 @@ Reunir en una sola tabla lo que ya estaba medido para las cuatro clases (A micro
 - **C**: en VIP 0 la comisión de creador **se paga** (2 pb) y el diferencial es de 1 tick (0,0123 pb): cobrarlo da 325 veces menos que la comisión → no entra. **Corrige el enunciado de T145**, que decía que maker «invierte el signo» de la fricción.
 - **D**: entra.
 
-## Recomendación (◆)
+## Recomendación (◆, resuelta el 2026-11-10: el usuario eligió D)
 **D, solo análisis.** T31 sigue hasta cerrar sus semanas. B queda como información, con un disparador escrito (funding ≥ 4 % anual en 12 meses móviles → nuevo pre-registro). A se congela en la captura. C se archiva. T146 pierde su condición y pasa al BACKLOG como mejora del análisis. Se publica el diagnóstico en «Operaciones sugeridas».
