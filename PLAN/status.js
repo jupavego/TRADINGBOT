@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T08:03:18",
+ "generated": "2026-11-10T08:07:40",
  "phases": [
   {
    "n": 0,
@@ -297,7 +297,8 @@ window.EIM_STATUS = {
     "T143",
     "T144",
     "T145",
-    "T146"
+    "T146",
+    "T150"
    ]
   }
  ],
@@ -2202,6 +2203,21 @@ window.EIM_STATUS = {
    "effort": "bajo-medio",
    "phase": 21,
    "goal": "Que la cola deje de retener la memoria del equipo con un trabajo pausado, y que `usage incidents` nombre el trabajo que de verdad corre, no el `submit` que hace de ejecutor."
+  },
+  {
+   "id": "T150",
+   "title": "Lo que publica la síntesis no puede decir más de lo que sabe (sucede a T146)",
+   "deps": [
+    "T20",
+    "T44",
+    "T120",
+    "T145",
+    "T146"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-10 desde BACKLOG T145 (1), por decisión delegada del usuario. **Modo análisis**: no toca riesgo, ejecución, T31 ni T143. Lo de T146 para el panel: sin datos no se vota (ventana en vivo), cobertura publicada, penalización por correlación verificable y **votos efectivos**; en vez de la esperanza en R, se mide la **calibración** de la confianza (Brier y fiabilidad) y se adopta aunque no mejore. Prerrequisito: BACKLOG T120 (2), los falsos huecos de `microstructure`. ◆ qué se hace con los agentes sin datos.",
+   "effort": "medio",
+   "phase": 24
   }
  ]
 };

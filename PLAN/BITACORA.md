@@ -1178,4 +1178,5 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Queda:** la mejora del análisis (sin datos no se vota, cobertura publicada, penalización por correlación y votos efectivos) sigue en BACKLOG T145 (1); antes de medir votos, revisar BACKLOG T120 (2), los huecos de `microstructure`.
 - **Archivos:** `PLAN/{STATUS,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js` (roadmap regenerado). Sin cambios de código; el gate no aplica.
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
-- **Siguiente paso:** si el usuario quiere la mejora del análisis, abrirla como tarea propia desde BACKLOG T145 (1).
+- **Después, decisión delegada por el usuario («toma la mejor decisión tú»):** abierta **T150** (fase 24) desde BACKLOG T145 (1). Con D, el panel es el producto y publicar más confianza de la que hay es un defecto por sí mismo. Mismos entregables que T146 para el análisis, pero medidos por la calibración (Brier y fiabilidad) en lugar de la esperanza en R; prerrequisito BACKLOG T120 (2). Archivos: `PLAN/T150.md`, `PLAN/{STATUS,00_MASTER,BACKLOG}.md`.
+- **Siguiente paso:** T150, empezando por los falsos huecos de `microstructure`.
