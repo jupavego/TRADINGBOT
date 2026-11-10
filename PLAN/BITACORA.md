@@ -1189,3 +1189,11 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** aceptación con canales reales (falta `EIM_YOUTUBE_API_KEY`), lista definitiva y permisos (BACKLOG T64). T64 queda ◐.
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
 - **Siguiente paso:** con la clave del usuario, `python -m eim.video discover` y `backfill` sobre la lista y declarar la cobertura; después T65 solo sobre material con permiso.
+
+## 2026-11-10 15:40 UTC · juanpablo-cpu · T64: aceptación con canales reales y cierre
+- **Pedido:** abrir el PR (#254) y luego, con la clave nueva del usuario en `TRADINGBOT\EIM_YOUTUBE_API_KEY.txt`, terminar la aceptación.
+- **Hecho:** el archivo de la clave estaba en la carpeta del repo y git no lo ignoraba: añadido `EIM_YOUTUBE_API_KEY*` a `.git/info/exclude` (local, no se sube). La clave se cargó solo en el entorno de cada orden, sin mostrarla. Dos `discover` sobre `v2/data/video.duckdb`: 4/4 canales ok, 200 videos, 0 duplicados. `backfill --since 2026-10-01`: 2127 videos; cobertura declarada en STATUS. Cuota usada: 116 de 2000.
+- **Visto:** la cola oficial no admite nada porque ningún canal tiene permiso de transcripción (postura T62). El tope diario se comprobó con los videos reales en una copia simulada con permiso: 30 admitidos, 3,997 de 4 h. El usuario había pegado la primera clave en una captura; la regeneró a petición.
+- **Archivos:** `PLAN/{STATUS,BACKLOG,BITACORA}.md`, `PLAN/status.js`. Sin cambios de código.
+- **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143 en su corrida aparte.
+- **Siguiente paso:** fusionar #254; decidir la lista definitiva y los permisos (`watchlist_v2`) y cómo lee la clave el servicio (BACKLOG T64 (2), (7)).
