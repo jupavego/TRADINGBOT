@@ -23,7 +23,7 @@ from collections.abc import Iterable
 from datetime import UTC, datetime
 from pathlib import Path
 
-from eim.operation import usage_gaps
+from eim.operation import usage_gaps, usage_jobs
 from eim.operation.usage_summary import days_between, load_day
 
 SLOW_S = 120.0       # con mediana de 1,3 s y p99 de 29 s, un ciclo así ya no es normal
@@ -84,19 +84,23 @@ def _group(rec: dict, name: str) -> dict:
     return rec.get("roles", {}).get(name) or {}
 
 
-def _who(window: list[dict]) -> dict:
-    """Quién gastaba: por nombre de programa y, si el registro lo guardó, por árbol con su orden."""
+def _who(window: list[dict], runs: list[dict] | None = None) -> dict:
+    """Quién gastaba: por nombre de programa y, si el registro lo guardó, por árbol con su orden.
+    El árbol de un ejecutor de la cola lleva el nombre del trabajo que alojaba (T149)."""
     cpu: dict[str, float] = defaultdict(float)
     commit: dict[str, float] = defaultdict(float)
-    trees: dict[int, dict] = {}
+    trees: dict[int | str, dict] = {}
     for r in window:
         for o in r.get("others", ()):
             cpu[o["name"]] += o["cpu"]
             commit[o["name"]] = max(commit[o["name"]], o["commit_mb"])
         for t in r.get("foreign", ()):
-            g = trees.setdefault(t["pid"], {"cmd": t.get("cmd"), "cwd": t.get("cwd"),
-                                            "name": t["name"], "n": 0, "cpu_max": 0.0,
-                                            "ram_max_mb": 0.0, "commit_max_mb": 0.0, "prio": 0})
+            t = usage_jobs.relabel(t, runs or [], r["t"])
+            g = trees.setdefault(t.get("job_id") or t["pid"], {
+                "cmd": t.get("cmd"), "cwd": t.get("cwd"), "name": t["name"], "n": 0,
+                "cpu_max": 0.0, "ram_max_mb": 0.0, "commit_max_mb": 0.0, "prio": 0,
+                **({"job": t["job"], "job_id": t["job_id"], "host_cmd": t.get("host_cmd")}
+                   if "job_id" in t else {})})
             g["n"] = max(g["n"], t["n"])
             g["cpu_max"] = max(g["cpu_max"], t["cpu"])
             g["ram_max_mb"] = max(g["ram_max_mb"], t["ram_mb"])
@@ -112,7 +116,7 @@ def _who(window: list[dict]) -> dict:
     }
 
 
-def cross(samples: list[dict], t0: int, t1: int) -> dict:
+def cross(samples: list[dict], t0: int, t1: int, runs: list[dict] | None = None) -> dict:
     """Estado del equipo en un tramo. Sin muestras no se inventa nada: `samples: 0`."""
     w = [r for r in samples if t0 <= r["t"] <= t1]
     if not w:                                  # un tramo más corto que el intervalo de muestreo
@@ -139,7 +143,7 @@ def cross(samples: list[dict], t0: int, t1: int) -> dict:
                if api else None,
         "capture": {"ram_min_mb": min(g["ram_mb"] for g in cap), "queue_max": max(queue)}
                    if cap else None,
-        **_who(w),
+        **_who(w, runs),
     }
 
 
@@ -153,10 +157,11 @@ def report(data_dir: Path, days: list[str], slow_s: float = SLOW_S,
     ha vuelto da además el apagón abierto hasta ese instante."""
     samples = [r for d in days for r in load_day(data_dir, d)]
     samples.sort(key=lambda r: r["t"])
+    runs = usage_jobs.load_runs(data_dir, days)
     out = [{"kind": x["kind"], "from": _iso(x["t0"]), "to": _iso(x["t1"]),
             "dur_s": round((x["t1"] - x["t0"]) / 1000), **({"detail": x["detail"]} if "detail" in x
                                                            else {}),
-            **cross(samples, x["t0"], x["t1"])}
+            **cross(samples, x["t0"], x["t1"], runs)}
            for x in find(load_ops(data_dir, days), slow_s)]
     out += usage_gaps.as_incidents(usage_gaps.gaps(samples, until_ms))
     return sorted(out, key=lambda r: r["from"])

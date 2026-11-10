@@ -231,3 +231,7 @@ Medido con `python -m eim.operation.usage incidents --days 7` y `usage summary -
 - **◆E (pausar la cola si la API sufre): no tal cual.** El trabajo ya estaba pausado y el daño lo hacía su memoria retenida. Pausarlo más no habría ayudado. El arreglo de verdad es T149.
 
 **Sin comprobar:** una notificación real del aviso temprano en pantalla, y leer las órdenes desde la sesión 0 (BACKLOG T141 (3)).
+
+## 9. Seguimiento: T149 (2026-11-10)
+
+El bucle de pausas y la atribución de §8 se arreglaron en T149. ◆ del usuario: **cancelar y reencolar**, frente a un tope de memoria al lanzar o recortar el conjunto de trabajo al pausar. La cola mide la RAM privada del árbol del trabajo; si sin él quedaría ≥ 1 GB libre, lo mata y lo vuelve a encolar pidiendo su pico × 1,25 + 1 GB. Con el registro del 9-nov, `t143-maker` habría salido a los ~65 s en lugar de 5 h 39 min, y habría vuelto a arrancar al haber ~9,7 GB libres. `usage incidents` sobre `data/usage/2026-11-09.jsonl.gz` nombra ya a `t143-maker` (`20261109-101924-t143-maker-86d7`) en los 5 ciclos lentos de 11 a 16 h.
