@@ -4,14 +4,17 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict
 
+from eim.core.fees import USDM_MAKER, USDM_TAKER
+
 
 class CostParams(BaseModel):
     """Costos de un perpetuo lineal USDT-M. Valores por defecto: tarifa regular de Binance."""
 
     model_config = ConfigDict(frozen=True)
 
-    taker_fee: float = 0.0005        # 5 pb: entrada a mercado, SL, salida por tiempo
-    maker_fee: float = 0.0002        # 2 pb: TP como orden límite
+    # Tarifa de `eim.core.fees`, la única del sistema (T143): VIP 0 USDⓈ-M verificado 2026-10-15.
+    taker_fee: float = USDM_TAKER    # 5 pb: entrada a mercado, SL, salida por tiempo
+    maker_fee: float = USDM_MAKER    # 2 pb: TP y entradas límite
     slip_base_bps: float = 1.0       # deslizamiento mínimo (spread/2)
     slip_vol_k: float = 0.10         # × rango relativo de la vela de ejecución (h−l)/o
     slip_impact_k: float = 5.0       # × (notional / notional negociado en la vela)

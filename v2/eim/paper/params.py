@@ -33,6 +33,22 @@ class ExecParams(BaseModel):
 
     costs: CostParams = CostParams()
     timeframes: tuple[str, ...] = ("15m", "1h", "4h")   # marcos de decisión (T48)
+    # T143 (3): puerta de marcos por costo. Un marco cuyo costo medio en R llegue a
+    # `tf_max_cost_r` deja de operar en los perfiles (la sombra sigue midiéndolo, así que vuelve
+    # solo si abarata). Con menos de `tf_cost_min_n` operaciones de sombra en ese marco se usa la
+    # medición de T136. Ver `eim/paper/tf_gate.py`. **Apagada por defecto (None)**: el valor por
+    # defecto es la configuración de T31, que no cambia hasta su cierre (◆ 2026-11-10); la corrida
+    # aparte de T143 la enciende (`eim/paper/t143_config.py`).
+    tf_max_cost_r: float | None = None
+    tf_cost_min_n: int = 50
+    # T143 (1b): la entrada a mercado pasa a orden límite al precio pedido, vigente
+    # `maker_entry_bars` velas: comisión de creador (2 pb) en vez de tomador (5 pb). Medido
+    # emparejado en `reports/t143_maker.md` (costo −0,0432 R, neto +0,0422 R [IC95 % +0,0417,
+    # +0,0427]) solo en 1 h y 4 h: el banco no tiene operaciones de 15 m. Entra en
+    # `exec_fingerprint`: cambia la sombra, así que la evidencia anterior no se mezcla. Vacío por
+    # defecto (T31 intacta); la corrida aparte de T143 pone ("1h", "4h").
+    maker_entry_timeframes: tuple[str, ...] = ()
+    maker_entry_bars: float = 1.0
     path_tf: str = "15m"             # camino del precio para llenar y salir
     min_risk_frac: float = 0.001     # SL a menos de 0,1 % del precio = geometría inválida
     funding_8h_assumed: float = 0.0001   # solo donde falta el funding real
@@ -98,11 +114,14 @@ class ProfileParams(BaseModel):
     # > 0,3 R → −0,63 R/op. En 15 m el costo medio era 0,48 R por operación.
     est_cost_frac: float = 0.0016
     max_cost_r: float = 0.2
-    # T136 (1): si el riesgo presupuestado incluye el costo de ida y vuelta. Hoy NO, y por eso un
-    # perfil que dice arriesgar `risk_pct` arriesga de hecho `risk_pct · (1 + costo en R)` cuando
-    # salta el SL inicial (0,167 R de media en el banco de T131 → ≈ 17 % de más). Encenderlo
-    # reduce el tamaño de TODAS las entradas, así que cambiaría una corrida en marcha (T31) y es
-    # decisión ◆ del usuario; el informe de T136 mide lo que haría.
+    # T136 (1) / T143 (2): el riesgo presupuestado incluye el costo de ida y vuelta, así que la
+    # pérdida al SL inicial es exactamente `risk_pct` del capital. Sin esto, quien declara 1 %
+    # arriesga `1 % · (1 + costo en R)` —0,1734 R de media en el banco de T131, ≈ 17 % de más—, y
+    # un riesgo declarado que no es el real hace que todos los topes (`caps`, apalancamiento,
+    # colchón de liquidación) midan otra cosa. La corrección es **por operación**
+    # (`risk_budget.budget_distance`), no un multiplicador plano: con el stop lejos apenas encoge
+    # la cantidad y con el stop pegado la encoge mucho. Apagado en los perfiles de T31 hasta su
+    # cierre (◆ 2026-11-10); encendido en la corrida aparte de T143 (`eim/paper/t143_config.py`).
     risk_includes_costs: bool = False
     require_htf: bool = False        # exige ir a favor de la tendencia del marco mayor
     min_risk_fill: float = 0.25      # si el margen no alcanza para ≥ 25 % del riesgo: rechazo

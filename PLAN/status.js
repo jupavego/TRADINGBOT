@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-09T21:30:07",
+ "generated": "2026-11-09T23:13:59",
  "phases": [
   {
    "n": 0,
@@ -2110,8 +2110,8 @@ window.EIM_STATUS = {
     "T136",
     "T137"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-09 desde `PLAN/notas/diagnostico_rentabilidad_2026-11-09.md` §3. La fricción del libro vivido (1 630,1 USDT) es **mayor que la pérdida neta** (−1 438,5): 14,1 pb del nocional con el SL a 1,21 % = **0,125 R por operación**. Baja a ~0,06 R encendiendo `risk_includes_costs` (T136 §1: hoy se arriesga ×1,1734 de lo declarado), midiendo maker frente a taker antes de adoptarlo (256 de 411 entradas son `market`) y retirando 15 m mientras su costo siga en 0,157 R. **No crea ventaja: deja de destruirla.** ◆ del usuario antes de tocar perfiles y antes de desplegar durante T31.",
+   "state": "progress",
+   "notes": "Abierta el 2026-11-09 desde `PLAN/notas/diagnostico_rentabilidad_2026-11-09.md` §3. La fricción del libro vivido (1 630,1 USDT) es **mayor que la pérdida neta** (−1 438,5): 14,1 pb del nocional con el SL a 1,21 % = **0,125 R por operación**. Baja a ~0,06 R encendiendo `risk_includes_costs` (T136 §1: hoy se arriesga ×1,1734 de lo declarado), midiendo maker frente a taker antes de adoptarlo (256 de 411 entradas son `market`) y retirando 15 m mientras su costo siga en 0,157 R. **No crea ventaja: deja de destruirla.** ◆ del usuario antes de tocar perfiles y antes de desplegar durante T31. **En curso (2026-11-09): entregable 1 en marcha.** Pre-registro en `PLAN/notas/T143_preregistro_maker.md` (commit propio, anterior a todo cálculo); medición en `eim/paper/maker_ab.py` + `scripts/t143_maker.py`, 21 pruebas. Dos correcciones de contabilidad posteriores al pre-registro y las dos **en contra** de maker: denominador común (el riesgo planeado ` **2026-11-10: los cinco entregables hechos en `claude/t143-maker`** (puerta de marcos `eim/paper/tf_gate.py`; costo vivido en el panel y en el informe semanal, `eim/paper/cost_ledger.py`; antes/después `reports/t143_antes_despues.md`: costo 0,123 → 0,083 R, E[R] neto −0,150 → −0,153 R, es decir, no crea ventaja). Revisión de código high hecha. **◆ 2026-11-10: T31 intacta hasta su cierre y T143 desde ya en una corrida aparte** (`EIM_PAPER_VARIANTS=t143`, `eim/paper/{t143_config,variant}.py`, base `data/paper_t143.duckdb`, rutas `GET /v2/paper/variant/t143`). Los valores por defecto vuelven a ser los de T31. La automejora sin intervención se limita a costo y riesgo (`AUTO_ADAPT`). Falta desplegar (encender la variable y reiniciar la API, con permiso) y comparar al cerrar T31. Gate completo por la cola verde (`20261110-022744-t143-gate-2-5e44`, rc=0, 1 115 s, sin pausas). |entry − SL|`, porque el realizado infla el R de una límite que entra mejor) y **estrés de cola** (el motor llena si la vela *toca* el nivel; se exige que el precio **pase**, porque medir fills de verdad es T79). Entregables 2–5 esperan la ◆ del usuario.",
    "effort": "medio",
    "phase": 24,
    "goal": "Bajar el costo por operación de 0,125 R a ~0,06 R sin tocar la entrada ni la salida, encendiendo lo que T136 ya midió y apagando el marco donde el costo se come el riesgo. No crea ventaja: deja de destruirla."

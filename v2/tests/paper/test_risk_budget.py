@@ -56,3 +56,24 @@ def test_overrun_grows_as_the_stop_gets_closer():
     tight = rb.overrun(50_000.0, 49_750.0, frac)       # SL al 0,5 %
     assert tight > wide > 0
     assert tight == pytest.approx(frac / 0.005)
+
+
+def test_t143_no_profile_risks_more_than_it_declares():
+    """Aceptación de T143 (2), en la corrida aparte: la pérdida al SL inicial es la declarada.
+
+    Cada perfil de `PROFILES_T143` con stops del 0,3 % al 4 % del precio (el rango real del banco).
+    Sin presupuestar el costo, el de 0,3 % se pasaría un 53 %. Los perfiles de T31 lo siguen
+    teniendo apagado hasta su cierre (prueba anterior).
+    """
+    from eim.paper.t143_config import PROFILES_T143
+    equity = 10_000.0
+    for prof in PROFILES_T143:
+        assert prof.risk_includes_costs
+        declared = equity * prof.risk_pct
+        for stop_frac in (0.003, 0.005, 0.0121, 0.02, 0.04):
+            entry = 50_000.0
+            sl = entry * (1 - stop_frac)
+            real = rb.loss_at_stop(declared, entry, sl, prof.est_cost_frac, True)
+            assert real == pytest.approx(declared, rel=1e-9), (
+                f"{prof.id} con SL al {stop_frac:.2%}: pierde {real:.2f} y declara {declared:.2f}")
+            assert rb.loss_at_stop(declared, entry, sl, prof.est_cost_frac, False) > declared

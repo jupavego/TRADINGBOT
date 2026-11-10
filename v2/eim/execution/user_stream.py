@@ -113,7 +113,8 @@ class SimUserStream:
             new.status, "NEW" if not same else new.status)
         t = self._clock()
         evs = [UserEvent("order", t, t, new.symbol, new, exec_type, max(dq, 0.0), last_px,
-                         dq * last_px * self.sim.fee_rate if last_px else 0.0, "USDT")]
+                         dq * last_px * self.sim.fee_rate_for(new.client_id)
+                         if last_px else 0.0, "USDT")]
         if dq > 0:
             pos = self.sim.position(new.symbol)
             evs.append(UserEvent("account", t, t, new.symbol, position=pos.qty,

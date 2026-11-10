@@ -6,10 +6,11 @@ from __future__ import annotations
 
 import math
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from eim.core.authority import TradeProposal
 from eim.core.mode import Mode
+from eim.data.timeframes import tf_ms
 from eim.paper.params import ExecParams
 from eim.paper.versioning import rules_fingerprint, version_of
 
@@ -137,6 +138,23 @@ def atr_draft(side: int, ctx: dict, sl_k: float, tp_k: float, conf: float,
     return Draft(side=side, sl=c - side * sl_k * a, tp=c + side * tp_k * a, conf=conf,
                  why=why + (f"SL {sl_k:g} ATR · TP {tp_k:g} ATR",), entry=c, hold_h=hold_h,
                  key=key)
+
+
+def to_limit(idea: Idea, bars: float, through_bps: float = 0.0) -> Idea:
+    """La misma decisión, pedida como orden límite. Solo cambia **cómo** se entra (T143).
+
+    `bars` es la vigencia en velas del marco de decisión: si el precio no vuelve al nivel en ese
+    plazo, la orden se cancela y no hay operación (eso no es gratis y el informe lo cuenta como
+    R = 0). `through_bps` mueve el nivel en contra del llenado —abajo en largos, arriba en
+    cortos— para exigir que el precio **pase** del nivel y no solo lo roce; lo usa el estrés de
+    cola de la medición, y en producción va a 0 porque medir fills de verdad es T79.
+
+    Vive aquí, junto a `Idea`, para que la conversión que se midió (`eim/paper/maker_ab.py`) y la
+    que se despliega (`catalog.generate_ideas`) sean literalmente la misma función.
+    """
+    entry = idea.entry * (1 - idea.side * through_bps / 1e4)
+    return replace(idea, kind="limit", entry=entry,
+                   fill_ms=int(bars * tf_ms(idea.timeframe)))
 
 
 def to_idea(info: StrategyInfo, d: Draft, ctx: dict, symbol: str, origin: str,

@@ -165,6 +165,8 @@ export interface PaperSummary {
   /** T118: instantánea guardada de esta vista (se vuelve a leer por su id) y su alcance. */
   snapshot?: { id: string | null; computed: number; error: string }
   scope?: ViewScope | null
+  /** T143 (4): costo vivido del libro fijo y puerta de marcos por costo. */
+  cost?: CostPanel
   /** T144: cifras del universo OFICIAL (libro de perfiles sin `retro`), con su regla y recuento. */
   accounting?: Accounting | null
 }
@@ -232,4 +234,16 @@ export interface LiveFeed {
   profiles: Record<string, { actions: Record<string, number>; taken: number; top_reasons: [string, number][] }>
   decisions: LiveDecision[]
   live: { last_tick: number | null; started: number | null; error: string }
+}
+
+/** T143 (4): costo de un grupo de operaciones vividas (libro fijo, perfiles, sin retro). */
+export interface CostBlock {
+  n: number; n_r: number; cost_usdt: number; cost_r_mean: number | null; cost_r_median: number | null
+  cost_r_sum: number | null; cost_bps_mean: number | null
+}
+
+export interface CostPanel {
+  source: string; all: CostBlock; by_timeframe: Record<string, CostBlock>; by_kind: Record<string, CostBlock>
+  recent: { exit_t: number; profile: string; timeframe: string; kind: string; cost_usdt: number; cost_bps: number | null; cost_r: number | null }[]
+  timeframes: { timeframe: string; cost_r: number | null; source: string; max_cost_r: number | null; admitted: boolean }[]
 }

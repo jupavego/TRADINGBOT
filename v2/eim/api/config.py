@@ -71,6 +71,7 @@ class Settings:
     arb_exec_interval_s: float = 60.0
     paper: bool = False         # T47: bróker simulado en vivo (1 por defecto en from_env)
     paper_poll_s: float = 60.0
+    paper_variants: tuple[str, ...] = ()   # T143: corridas aparte en papel (EIM_PAPER_VARIANTS)
     val_attempts: bool = False  # T137: da de alta los intentos versionados (1 en from_env)
     extra: dict[str, str] = field(default_factory=dict)
 
@@ -118,5 +119,6 @@ class Settings:
             arb_exec_interval_s=float(env.get("EIM_ARB_EXEC_S", d.arb_exec_interval_s)),
             paper=env.get("EIM_PAPER", "1") != "0",
             paper_poll_s=float(env.get("EIM_PAPER_S", d.paper_poll_s)),
+            paper_variants=tuple(_csv(env.get("EIM_PAPER_VARIANTS", "")) or ()),
             val_attempts=env.get("EIM_VAL_ATTEMPTS", "1") != "0",
         )

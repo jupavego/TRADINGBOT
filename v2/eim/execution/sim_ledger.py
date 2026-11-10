@@ -16,6 +16,7 @@ import threading
 from dataclasses import asdict, dataclass, replace
 
 from eim.core import AgentReport, Candle, Mode, Overlay
+from eim.core.fees import USDM_TAKER
 from eim.data.timeframes import tf_ms
 
 FUNDING_MS = 8 * 3_600_000
@@ -23,7 +24,7 @@ FUNDING_MS = 8 * 3_600_000
 
 @dataclass(frozen=True)
 class LedgerParams:
-    fee_rate: float = 0.0005          # taker por lado (supuesto)
+    fee_rate: float = USDM_TAKER      # taker por lado, de `eim.core.fees` (T143)
     funding_rate_8h: float = 0.0001   # constante (supuesto); largo paga, corto cobra
 
 

@@ -15,7 +15,7 @@ from eim.data.providers.base import Provider
 from eim.data.store import Store
 from eim.data.timeframes import FOCUS, tf_ms
 from eim.operation.priority import lower_thread
-from eim.paper import accounting, ledger
+from eim.paper import accounting, cost_ledger, ledger, tf_gate
 from eim.paper.adaptive import policies_for
 from eim.paper.authority_obs import DecisionEmitter
 from eim.paper.balance import balance
@@ -37,7 +37,7 @@ from eim.paper.params import (
 )
 from eim.paper.protection_desk import DeskProtection
 from eim.paper.service import WARMUP_BARS, DeskService, Job
-from eim.paper.summary import profile_summary
+from eim.paper.summary import coverage, profile_summary
 from eim.paper.trend import HtfTrend
 
 MMR = {"BTCUSDT": 0.004, "ETHUSDT": 0.005}     # tramo bajo de Binance (supuesto, = simulador)
@@ -57,6 +57,7 @@ class View:
     live_ctx: list[tuple[str, int]] = field(default_factory=list)   # velas decididas en vivo
     path: Path | None = None        # camino de 15 m usado en la sombra (T49: réplica contraria)
     protection: dict = field(default_factory=dict)   # pasada del diario de la protección (T110)
+    tf_cost: list[dict] = field(default_factory=list)  # costo por marco y si opera (T143 (3))
 
 
 def strategy_infos(tfs: tuple[str, ...]) -> list[dict]:
@@ -77,6 +78,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         self.profiles, self.provider = profiles, provider
         self.symbols, self.poll_s = symbols, poll_s
         check_profiles(self.profiles, self.symbols)   # T108: configuración inválida = no arranca
+        tf_gate.check(self.ep)                        # T143 (3): umbral de costo por marco
         self.gens = {tf: CtxGenerator(store, registry, tf) for tf in self.tfs}
         self.job = Job()
         self.live_error = ""
@@ -84,6 +86,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         self.loop_started: int | None = None    # el servicio arrancó (aunque falte el 1er ciclo)
         self.hooks = HookRunner()               # ganchos tras cada ciclo, en su hilo (T128)
         self._cache: dict[str, View] = {}
+        self._cost_cache: dict[str, tuple[int, dict]] = {}   # T143 (4): por filas del libro
         self._lock = threading.Lock()
         self._busy: dict[str, threading.Event] = {}    # recálculos en segundo plano en curso
         self._busy_lock = threading.Lock()
@@ -192,7 +195,9 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         exits = policies_for(self.profiles, symbol, path, fine, lambda: Path(
             self.store.read_candles(symbol, htf, start=t0 - 60 * tf_ms(htf)), (), tf_ms(htf)))
         sim = LadderSim(path, self.ep, fine, guards=self._guards(symbol), exits=exits)
-        v.books ={p.id: run_profile(p, v.outcomes, learner, mmr, sim) for p in self.profiles}
+        # T143 (3): el marco caro no opera; la sombra y el aprendizaje los siguen viendo todos.
+        v.tf_cost, tradable = tf_gate.gate(self.tfs, v.outcomes, self.ep)
+        v.books ={p.id: run_profile(p, tradable, learner, mmr, sim) for p in self.profiles}
         self._record_ledger(v)
         self._emit_decisions(v)
         self._sync_protection(v, fine)
@@ -254,22 +259,14 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         cs = self.store.read_candles(symbol, htf, start=t0 - 4 * slow * bar)
         return HtfTrend(cs, bar, fast, slow).at
 
-    def _coverage(self, symbol: str, by_tf: dict[str, list[dict]], n_ideas: int,
-                  n_sim: int) -> dict:
-        tfs = {}
-        for tf, ctxs in by_tf.items():
-            tfs[tf] = {"contexts": len(ctxs), "from": ctxs[0]["t"] if ctxs else None,
-                       "to": ctxs[-1]["t"] if ctxs else None,
-                       "origins": self.pstore.counts(symbol, tf)}
-        froms = [x["from"] for x in tfs.values() if x["from"]]
-        tos = [x["to"] for x in tfs.values() if x["to"]]
-        origins: dict[str, int] = {}
-        for x in tfs.values():
-            for k, n in x["origins"].items():
-                origins[k] = origins.get(k, 0) + n
-        return {"from": min(froms) if froms else None, "to": max(tos) if tos else None,
-                "contexts": sum(x["contexts"] for x in tfs.values()), "origins": origins,
-                "ideas": n_ideas, "simulated": n_sim, "timeframes": tfs}
+    def _cost(self, symbol: str) -> dict:
+        """Costo vivido (T143 (4)); se relee el libro solo si cambió su número de filas."""
+        key = ledger.counts(self.pstore).get(f"perfil:{symbol}", 0)
+        hit = self._cost_cache.get(symbol)
+        if hit is None or hit[0] != key:
+            rows = ledger.query(self.pstore, symbol, "perfil", limit=max(key, 1))
+            hit = self._cost_cache[symbol] = (key, cost_ledger.summarize(rows))
+        return hit[1]
 
     def _payload(self, v: View, by_tf: dict[str, list[dict]], infos: list[dict],
                  learner: Learner, now: int | None, mark: float | None, n_ideas: int = 0) -> dict:
@@ -281,7 +278,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         self.annotate_protection(v, profiles)
         rows = strategy_stats(v.outcomes, infos)
         fams = family_stats(rows)
-        cov = self._coverage(v.symbol, by_tf, n_ideas, len(v.outcomes))
+        cov = coverage(self.pstore, v.symbol, by_tf, n_ideas, len(v.outcomes))
         fund = self.store.read_series("funding", v.symbol, last=1)
         return {
             "mode": Mode.SIMULADO.value, "symbol": v.symbol, "timeframes": list(self.tfs),
@@ -297,4 +294,6 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
                                {i["id"]: i["name"] for i in infos}, now, self.tfs),
             "accounting": accounting.from_store(self.pstore, v.symbol),   # T144: universo
             "job": self.job.to_json(), "live": self.live_status(), "protection": v.protection,
+            # T143 (4): costo vivido del libro fijo y puerta de marcos, cada uno con su `source`
+            "cost": {**self._cost(v.symbol), "timeframes": v.tf_cost},
         }

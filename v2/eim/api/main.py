@@ -28,6 +28,7 @@ from eim.api.obs import build_obs_router, build_observatory
 from eim.api.operation import build_operation_router
 from eim.api.paper import build_paper_router
 from eim.api.paper_arb import build_paper_arb_router
+from eim.api.paper_variant import build_variant_router, make_variants
 from eim.api.reports_db import ReportStore
 from eim.api.risk import RiskDesk, build_risk_router
 from eim.api.security import BodyLimitMiddleware, LocalOnlyMiddleware, ws_token_subprotocol
@@ -153,6 +154,10 @@ def create_app(
                       provider=BinanceFutures() if source is None else None,
                       poll_s=cfg.paper_poll_s)
     paper.alerts = op.alerts if op is not None else AlertCenter(rcon, rlock)   # T110 → op_alerts
+    # T143: corridas aparte (misma decisión, otra ejecución), cada una con su base y su libro
+    variants = (make_variants(cfg.paper_variants, store, cfg.data_dir, paper_store, reg)
+                if source is None and cfg.paper else {})
+    backup_dbs.update({f"paper_{n}.duckdb": d.pstore.connection for n, d in variants.items()})
     # T49: puerta de validación por estrategia; se recalcula al cierre de cada vela de 4 h.
     validator = Validator(paper, ValidationStore(paper_store),
                           attempts=ATTEMPTS_DIR if cfg.val_attempts else None)
@@ -185,16 +190,21 @@ def create_app(
             if arb_sync is not None else None)
         paper_task = (asyncio.create_task(paper.loop())
                       if source is None and cfg.paper else None)
+        variant_tasks = [asyncio.create_task(d.loop()) for d in variants.values()]
         arb_exec_task = (asyncio.create_task(arb_loop(arb_rt))
                          if arb_rt.pilot is not None else None)
         share_task = asyncio.create_task(share_loop(share)) if share is not None else None
         obs_task = asyncio.create_task(obs_indexer.loop()) if source is None else None
         yield
-        for t in (task, cal_task, arb_task, paper_task, arb_exec_task, share_task, obs_task):
+        for t in (task, cal_task, arb_task, paper_task, arb_exec_task, share_task, obs_task,
+                  *variant_tasks):
             if t is not None:
                 t.cancel()
         paper.stop_backtest()
         paper.hooks.stop()
+        for d in variants.values():
+            d.hooks.stop()
+            d.pstore.close()
         await hub.close()
         reports.close()
         paper_store.close()
@@ -246,6 +256,7 @@ def create_app(
     app.include_router(build_leaders_router(app.state.leader_desk))
     app.include_router(build_micro_router(cfg.data_dir))
     app.include_router(build_paper_router(paper))
+    app.include_router(build_variant_router(variants))
     app.include_router(build_paper_arb_router(store, cfg.data_dir))  # T45: pruebas en papel
     app.state.paper = paper
     app.include_router(build_validation_router(validator))

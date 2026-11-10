@@ -940,6 +940,15 @@ más reciente por fecha y su siguiente paso. Formato:
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T127, T128, T135 y T141.
 - **Siguiente paso:** fusionar el PR y traer `main` a la carpeta principal. **Sin despliegue ni reinicio de servicios:** esta sesión no cambió código. T143 no se puede desplegar mientras T31 cuente semanas sin ◆ del usuario.
 
+## 2026-11-10 02:30 UTC · juanpablo-cpu · T143: entregables 3, 4 y 5 y revisión
+- **Pedido del usuario:** «atácalos», sobre lo que faltaba de T143 y T145.
+- **Hecho:** retomado el entregable 3, que una sesión anterior dejó escrito sin commit: la puerta de marcos por costo (`tf_gate.py`), con comprobación al arrancar. Entregable 4: el costo vivido sale del libro fijo con el método del diagnóstico y se ve en el panel (bajo el balance, junto a la puerta de marcos) y en el informe semanal de T31 (sección «Costo medido»). Entregable 5: contrafactual sobre las 224 operaciones vividas.
+- **Resultado del 5:** el costo baja de 0,123 a 0,083 R (−33 %, no los ~0,06 estimados) y la esperanza neta **no mejora** (−0,150 → −0,153 R). En lo vivido, 15 m era el mejor marco (−0,048 ± 0,140, n = 64), pero la sombra, con 1 378 operaciones, lo pone como el peor (−0,344 ± 0,039): lo vivido es ruido y su salida se sostiene.
+- **Revisión de código (high):** 9 hallazgos. Corregidos 4 (la puerta avisa si cierra todos los marcos; el costo vivido se cachea por filas del libro; el filtro `retro` acepta el texto del CSV; el registro de arranque aclara que usa la línea base). Quedan para la ◆ los tres que cambian T31 al desplegar: el riesgo con costo encendido en los PROFILES por defecto, la puerta y maker sin versión de perfil, y SimBroker de 4 a 5 pb. También queda sin tocar que el riesgo con costo usa `est_cost_frac` fijo.
+- **Archivos:** `v2/eim/paper/{tf_gate,cost_ledger,cost_whatif,desk,summary,params,catalog,ideas,maker_ab,versioning}.py`, `v2/eim/operation/{report,report_costs,weekly,supervisor}.py`, `v2/eim/web/src/{paper_cost,paper_balance,paper_types}.ts`, `paper.css`, pruebas en `v2/tests/paper/`, `v2/scripts/t143_antes_despues.py` y `v2/reports/t143_antes_despues.{md,json}`.
+- **Pruebas:** ruff limpio, `tsc --noEmit` limpio, pruebas de paper y operation verdes. Gate completo por la cola: ver STATUS.
+- **Abierto:** la ◆ de despliegue (¿se fusiona ahora, cambiando T31, o en una corrida aparte o al cerrar T31?).
+- **Siguiente paso:** decisión del usuario sobre T143 y T145.
 ## 2026-11-09 09:50 UTC · juanpablo-cpu · T147 abierta: por qué la puerta de T78 no se cierra
 - **Pedido del usuario:** ponerse al día del proyecto tras avanzar en otras cuentas y, al ver que T78 seguía corriendo cuando se había proyectado terminar «a más tardar el 7», averiguar si había una inconsistencia que estuviera deteniendo el avance de otras tareas. Luego: «Sí, escribe T147».
 - **Auditoría (solo lectura) de las 232 horas de QC en disco** (`data/micro_hft/qc/symbol=BTCUSDT`, 2026-10-28T23 → 2026-11-09T08). Hay inconsistencia, y es de medición, no de captura:
@@ -1050,6 +1059,14 @@ más reciente por fecha y su siguiente paso. Formato:
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T141.
 - **Siguiente paso:** T148 (vigilante del conjunto) y cerrar T141 tras su medición del 2026-11-10 03:00 UTC.
 
+## 2026-11-10 04:00 UTC · juanpablo-cpu · T143: corrida aparte desde ya y automejora acotada
+- **Pedido del usuario:** «hagamos lo más recomendado» (T31 intacta) y «que todo vaya quedando ajustado desde ya», con adaptaciones según lo que midan la automejora y los orquestadores. ◆ por pregunta: **corrida aparte ya** y **automejora solo de costo y riesgo**.
+- **Hecho:** los valores por defecto vuelven a ser los de T31: `ExecParams` sin entrada maker y con la puerta de marcos apagada (`None`), `PROFILES` sin riesgo con costo y `SimBroker` a 4 pb (`fees.T31_TAKER`). T143 pasa a `eim/paper/t143_config.py` (`EXEC_T143`, `PROFILES_T143`, `AUTO_ADAPT`). Nueva mesa variante `eim/paper/variant.py`: reutiliza los contextos de la principal (no corre agentes), escribe en `data/paper_t143.duckdb` (que entra en la copia) y no registra intentos de validación, no emite al Observatorio ni a `op_alerts` y no late como `paper.broker`. Rutas de solo lectura `eim/api/paper_variant.py` y variable `EIM_PAPER_VARIANTS` (vacía por defecto).
+- **Gate anterior:** 7 fallos, todos por los dos motivos que esto corrige: el costo semanal no usaba la regla única de `retro` de T144, y la entrada maker se aplicaba a todo el catálogo, incluido T139. Las pruebas que daban por encendido el riesgo con costo volvieron a su versión de `main`, y su aceptación ahora recorre `PROFILES_T143`.
+- **Archivos:** `v2/eim/paper/{t143_config,variant,cost_ledger,cost_whatif,tf_gate,params}.py`, `v2/eim/api/{paper_variant,main,config}.py`, `v2/eim/execution/sim_broker.py`, `v2/eim/core/fees.py`, `v2/eim/web/src/{paper_cost,paper_types}.ts`, `v2/tests/paper/test_variant.py` y otras, `v2/docs/OPERACION.md`, `PLAN/{T143,STATUS,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`.
+- **Pruebas:** 349 pasadas en las suites tocadas (paper, execution, api, validation T139), ruff y tsc limpios. Gate completo por la cola: ver STATUS.
+- **Abierto:** desplegar (encender `EIM_PAPER_VARIANTS=t143` y reiniciar la API, con permiso y midiendo la RAM) y, al cerrar T31, comparar las dos corridas.
+- **Siguiente paso:** gate completo, PR y despliegue.
 ## 2026-11-10 01:45 UTC · juanpablo-cpu · T128: la base de líderes seguía creciendo; poda por fecha y compactado en marcha
 - **Pedido del usuario:** «Sí, revisa T128» al terminar su semana de medición, y «Sí, arréglala» sobre la retención de líderes.
 - **Revisión:** la base NO quedó acotada. Copias de cada noche: datos de 1 172 a 1 781 MB del 3 al 10-nov (≈ 87 MB/día, todo de los 22 rechazados), archivo vivo en 2 764 MB. La poda solo cortaba con la posición plana: un líder que nunca la cierra no se podaba. Fuente nueva de microestructura y alertas «sin latido» (ninguna el 8-nov) cumplen; la CPU en reposo no tiene vara común con T126.

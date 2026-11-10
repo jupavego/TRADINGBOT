@@ -11,6 +11,12 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
+from eim.core.fees import (  # noqa: F401 - se reexportan: vivían aquí hasta T143
+    FEE_SOURCE,
+    SPOT_FEES,
+    USDM_FEES,
+    FeeTable,
+)
 from eim.core.market import Frozen
 
 MarketKind = Literal["spot", "usdm", "usdcm"]  # spot · futuros USDⓈ-M · futuros USDC-M
@@ -18,22 +24,9 @@ Side = Literal["buy", "sell"]
 Role = Literal["maker", "taker"]
 StrategyId = Literal["funding_carry", "basis", "triangular", "related_perps"]
 ScanStatus = Literal["ok", "degraded", "no_data"]
-FeeTable = dict[int, tuple[float, float]]  # nivel VIP → (maker, taker) en fracción
-
-# Tablas públicas de Binance. VIP 0 verificado el 2026-10-15 (spot 0,10 %/0,10 %;
-# USDⓈ-M 0,02 %/0,05 %); el resto son de referencia y deben confirmarse en la cuenta.
-SPOT_FEES: FeeTable = {
-    0: (0.0010, 0.0010), 1: (0.0009, 0.0010), 2: (0.0008, 0.0010), 3: (0.00042, 0.0006),
-    4: (0.00042, 0.00054), 5: (0.00036, 0.00048), 6: (0.0003, 0.00042),
-    7: (0.00024, 0.00036), 8: (0.00018, 0.0003), 9: (0.00012, 0.00024),
-}
-USDM_FEES: FeeTable = {
-    0: (0.0002, 0.0005), 1: (0.00016, 0.0004), 2: (0.00014, 0.00035), 3: (0.00012, 0.00032),
-    4: (0.0001, 0.0003), 5: (0.00008, 0.00027), 6: (0.00006, 0.00025),
-    7: (0.00004, 0.00022), 8: (0.00002, 0.0002), 9: (0.0, 0.00017),
-}
-FEE_SOURCE = ("tabla pública Binance (VIP 0 verificado 2026-10-15; otros niveles de referencia; "
-              "USDC-M sin verificar → igual que USDⓈ-M) · configurable")
+# Las tablas de comisiones viven desde T143 en `eim/core/fees.py`: las usan también el simulador
+# (`CostParams`) y el bróker del papel, y tres copias con tres valores distintos fue exactamente
+# el problema que T143 encontró. Se reexportan arriba para no romper a quien las importaba de aquí.
 
 
 class Fill(Frozen):

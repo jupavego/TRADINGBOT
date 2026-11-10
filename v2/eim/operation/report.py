@@ -13,6 +13,7 @@ from pathlib import Path
 
 from eim.data.collectors import hft_ops
 from eim.execution.sim_broker import SimBroker
+from eim.operation.report_costs import cost_lines
 
 
 def fee_rate(svc) -> float:
@@ -100,7 +101,8 @@ def render_md(rep: dict) -> str:
               (", ".join(f"{r} ({n})" for r, n in risk["top_reasons"]) or "—") + "."]
     return "\n".join(lines + _distortion_lines(rep.get("distortions") or [])
                      + _hft_lines(rep.get("hft_qc") or {})
-                     + _usage_lines(rep.get("usage") or [])) + "\n"
+                     + _usage_lines(rep.get("usage") or [])
+                     + cost_lines(rep.get("paper_costs") or {})) + "\n"
 
 
 def official_lines(rep: dict) -> list[str]:

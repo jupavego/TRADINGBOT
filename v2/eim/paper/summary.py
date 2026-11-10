@@ -147,3 +147,21 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
                      "criteria": {k: judge(rs, p.feedback).to_json()
                                   for k, rs in st.floor_r.items()}},
     }
+
+
+def coverage(pstore, symbol: str, by_tf: dict[str, list[dict]], n_ideas: int, n_sim: int) -> dict:
+    """Cobertura de contextos por marco y origen (antes `PaperDesk._coverage`)."""
+    tfs = {}
+    for tf, ctxs in by_tf.items():
+        tfs[tf] = {"contexts": len(ctxs), "from": ctxs[0]["t"] if ctxs else None,
+                   "to": ctxs[-1]["t"] if ctxs else None,
+                   "origins": pstore.counts(symbol, tf)}
+    froms = [x["from"] for x in tfs.values() if x["from"]]
+    tos = [x["to"] for x in tfs.values() if x["to"]]
+    origins: dict[str, int] = {}
+    for x in tfs.values():
+        for k, n in x["origins"].items():
+            origins[k] = origins.get(k, 0) + n
+    return {"from": min(froms) if froms else None, "to": max(tos) if tos else None,
+            "contexts": sum(x["contexts"] for x in tfs.values()), "origins": origins,
+            "ideas": n_ideas, "simulated": n_sim, "timeframes": tfs}
