@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T12:39:19",
+ "generated": "2026-11-11T15:24:08",
  "phases": [
   {
    "n": 0,
@@ -2427,8 +2427,8 @@ window.EIM_STATUS = {
     "T145",
     "T161"
    ],
-   "state": "pending",
-   "notes": "Misma investigación. La forma de la literatura que T139 no probó (cartera continua, no entradas con stop). ◆ si se gasta el intento de Holm.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-11). Veredicto: SIN POTENCIA; no se midió nada y no se gastó el intento de Holm (sigue en 841).** ◆ abierta por el usuario con la condición de calcular el MinTRL primero (BACKLOG T161 (3)). Puerta declarada en `PLAN/notas/T163_potencia.md` (commit `483915b`, anterior a toda cifra): una sola especificación —cartera continua de BTCUSDT, señal de 20/60/120 días, σ objetivo 30 % anual, tope 3×, rebalanceo los lunes, costos de T25 con funding de 8 h— y `S_min` = **0,70** de Sharpe neto anualizado (la mitad del único Sharpe fuera de muestra publicado, 1,41 en *majors* con sesgo de supervivencia admitido; y las cifras publicadas son multiactivo, esta es una sola pata). **Detectar 0,70 con potencia 0,80 exige 4 605 días (12,62 años) y hay 2 135 (5,85) en el tramo de evaluación, 2 494 (6,83) en toda la vida del instrumento**: falla por un factor 2,2, y el subtramo 2024–2026 (1 040 días) no detecta ni el 1,41 publicado (mínimo detectable 1,473). La potencia real para 0,70 es 51,9 % (32,2 % en 2024–2026): una moneda al aire. κ de Newey-West no es la causa (sin suelo 0,8397: los días se compensan, autocorrelación de retardo 1 −0,149). **Matiz para T136:** sin stops la σ objetivo sí controla la dispersión (32,9 % realizada frente al 30 % pedido), pero la cola se concentra (asimetría +4,6, curtosis 54 con el 12-M-2020 dentro). Código `eim/backtest/tsmom.py` + `tests/backtest/test_tsmom.py` (10 pruebas: causalidad, costos, funding, ruina, sin look-ahead) y `scripts/t163_tsmom.py`; informe `v2/reports/t163_tsmom.{md,json}`.",
    "effort": "medio",
    "phase": 26
   },

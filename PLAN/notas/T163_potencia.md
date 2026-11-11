@@ -57,9 +57,17 @@ del día `d+1`):
    precio): es la forma de rotación baja de la literatura, no un reajuste diario.
 5. **Costos (los de T25, `backtest/params.CostParams` por defecto, tarifa única de T143):**
    comisión **taker 5 pb** sobre el nocional negociado en cada rebalanceo más el deslizamiento de
-   `backtest/perp.slippage_frac` evaluado en la **vela de 1 h de la hora de ejecución** (base
-   0,1 pb de entrada, impacto por tamaño), y **funding cada 8 h** del banco sobre el nocional
-   mantenido, con el signo del motor de T25 (`side·qty·precio·tasa`, + = pagado).
+   `backtest/perp.slippage_frac` evaluado en la **vela de 1 h de la hora de ejecución**, y
+   **funding cada 8 h** del banco sobre el nocional mantenido, con el signo del motor de T25
+   (`side·qty·precio·tasa`, + = pagado).
+
+   > **Corrección del 2026-11-11, antes de ejecutar nada** (ninguna cifra calculada todavía; se
+   > declara igual que T134 y T166 declararon las suyas): la primera versión de este punto escribió
+   > «base 0,1 pb de entrada» entre paréntesis. Eso son los parámetros del bróker simulado
+   > (`slip_entry_base_bps`), que `slippage_frac` **no** usa. Lo que se usa es `slippage_frac` con
+   > los valores por defecto de `CostParams`, tal como los usa el motor de T25 tanto al entrar como
+   > al salir: **1 pb de base + 0,10 × rango relativo de la vela de 1 h + impacto por tamaño**, con
+   > tope de 100 pb. Es el modelo más caro de los dos y no se cambia después.
 6. **Capital:** 10 000 USDT (`BacktestParams.initial_equity`), margen aislado como el motor de
    T25. Retorno diario de la cartera = variación relativa del capital **neta** de comisión,
    deslizamiento y funding.
