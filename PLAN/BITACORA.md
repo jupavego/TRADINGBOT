@@ -1323,3 +1323,11 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** BACKLOG T165 (1)–(6). El DVOL no se muestra en la interfaz y `data/dvol/` no entra en la copia diaria. La adopción de A2 espera al cierre de T31 y va junto con la de M1 + ACI de T162.
 - **En curso:** nada.
 - **Siguiente paso:** T166 (régimen: saltos frente a HMM y BOCPD) sobre el banco de T133.
+
+## 2026-11-11 · T165: el DVOL entra en la copia diaria y el alcance se fija en BTC
+- **Hecho:** a pedido del usuario. (1) `data/dvol/` viaja en **toda** copia de seguridad, no solo con `--with-market`: va en su propia carpeta `dvol/` del `eim_*` y `restore` la devuelve a `data/dvol/`. Es redescargable, pero son ~0,9 MB frente a los ~90 MB de las velas y congelarla es lo que hace repetible la medición de T165 si Deribit recorta su historia. (2) **El alcance es BTC**: el colector pasa a `-Monedas "BTC"` por defecto (nació con `"BTC,ETH"`), ETHUSDT sale del siguiente paso de T165 y las 49 400 velas de ETH ya bajadas quedan guardadas sin refrescarse (borrables sin perder nada).
+- **Archivos:** `v2/eim/data/backup.py`, `v2/eim/data/backup_restore.py`, `v2/tests/data/test_backup.py`, `v2/scripts/dvol_colector.ps1`, `v2/docs/{OPERACION,ALMACENAMIENTO}.md`, `PLAN/{STATUS,BACKLOG,status.js}.md`.
+- **Pruebas:** dos nuevas en `test_backup.py` (el DVOL viaja sin `--with-market`; `restore` lo devuelve) y la lista de `test_restore` ampliada con `dvol/`; 38 en verde entre copia y DVOL. Gate completo por la cola.
+- **Abierto:** BACKLOG T165 (5) el panel, (7) la prueba que analice los `.ps1`; comprobar en la próxima subida que el DVOL viaja también en la copia externa.
+- **En curso:** nada.
+- **Siguiente paso:** T166 (régimen: saltos frente a HMM y BOCPD) sobre el banco de T133.

@@ -130,6 +130,9 @@ def restore(backup: Path, data_dir: Path,
             op.rename(op.with_name("operation" + suffix))
         copy_tree(state / "operation", op)
         restored.append("operation/")
+    if (backup / "dvol").exists():
+        copy_tree(backup / "dvol", data_dir / "dvol")
+        restored.append("dvol/")
     if (backup / "market").exists():
         copy_tree(backup / "market", data_dir)
         restored.append("market")
