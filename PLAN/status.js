@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T23:39:38",
+ "generated": "2026-11-11T00:06:42",
  "phases": [
   {
    "n": 0,
@@ -315,6 +315,30 @@ window.EIM_STATUS = {
    "ids": [
     "T159",
     "T160"
+   ]
+  },
+  {
+   "n": 26,
+   "name": "Rigor estadístico y volatilidad",
+   "ids": [
+    "T161",
+    "T162",
+    "T163",
+    "T164",
+    "T165",
+    "T166"
+   ]
+  },
+  {
+   "n": 27,
+   "name": "Cantera de perfiles por agente",
+   "ids": [
+    "T167",
+    "T168",
+    "T169",
+    "T170",
+    "T171",
+    "T172"
    ]
   }
  ],
@@ -2361,10 +2385,172 @@ window.EIM_STATUS = {
     "T150",
     "T159"
    ],
-   "state": "done",
-   "notes": "**Hecha (2026-11-11): ninguna pasa y la línea se cierra.** Pre-registro `PLAN/notas/T160_preregistro.md` (commit anterior al código y al resultado). Banco T131: M1 +0,0029 de Brier (p 0,24), M2 +0,0058 (p 0,096), ninguno pasa Holm; en vivo los dos empeoran (−0,012 y −0,003). En el banco el motor ya está casi calibrado (ECE 0,024): el «bull» sobrestimado de la auditoría es del régimen bajista de oct–nov. Informe `v2/reports/t160_recalibracion.md`.",
+   "state": "pending",
+   "notes": "Abierta el 2026-11-11 por la primera auditoría (T159): Brier skill −0,010, acierto direccional 40,7 %, «bull» sobrestimado 12 pp. **◆ resuelta (delegada):** se abre; familia de Holm propia de calibración con 2 intentos pre-registrados (no suma a la de trading); adopción no antes del cierre de T31.",
    "effort": "medio",
    "phase": 25
+  },
+  {
+   "id": "T161",
+   "title": "Potencia a priori y contraste SPA: cuánta historia hace falta y si la mejor entrada era suerte",
+   "deps": [
+    "T49",
+    "T137",
+    "T139",
+    "T145"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-10 desde la investigación de herramientas (`PLAN/notas/T161_investigacion_herramientas.md`). MinTRL, SPA/MCS con `arch`, bloque óptimo y Benjamini-Hochberg.",
+   "effort": "bajo",
+   "phase": 26
+  },
+  {
+   "id": "T162",
+   "title": "Cono de volatilidad: Log-HAR-RV y bandas con calibración conformal adaptativa",
+   "deps": [
+    "T16",
+    "T19",
+    "T160"
+   ],
+   "state": "pending",
+   "notes": "Misma investigación. HAR-RV al cono (hoy GARCH con α/β fijos), ACI, QLIKE/CRPS/PIT y MCS de motores; adopción no antes del cierre de T31.",
+   "effort": "medio",
+   "phase": 26
+  },
+  {
+   "id": "T163",
+   "title": "◆ Cartera de tendencia lenta (TSMOM) con volatilidad objetivo, pre-registrada",
+   "deps": [
+    "T25",
+    "T49",
+    "T145",
+    "T161"
+   ],
+   "state": "pending",
+   "notes": "Misma investigación. La forma de la literatura que T139 no probó (cartera continua, no entradas con stop). ◆ si se gasta el intento de Holm.",
+   "effort": "medio",
+   "phase": 26
+  },
+  {
+   "id": "T164",
+   "title": "◆ Carry de funding y momentum transversales sobre el universo de perpetuos",
+   "deps": [
+    "T93",
+    "T95",
+    "T145",
+    "T161"
+   ],
+   "state": "pending",
+   "notes": "Misma investigación. Extiende la clase B sin esperar al funding de BTC/ETH. Requiere T93.",
+   "effort": "medio",
+   "phase": 26
+  },
+  {
+   "id": "T165",
+   "title": "Volatilidad implícita de Deribit (DVOL) y prima de varianza como insumo de volatilidad",
+   "deps": [
+    "T03",
+    "T22",
+    "T162"
+   ],
+   "state": "pending",
+   "notes": "Misma investigación. API pública sin clave; entra solo si mejora el QLIKE sobre HAR.",
+   "effort": "bajo",
+   "phase": 26
+  },
+  {
+   "id": "T166",
+   "title": "Régimen: modelo de saltos estadístico frente a HMM y BOCPD",
+   "deps": [
+    "T22",
+    "T133",
+    "T161"
+   ],
+   "state": "pending",
+   "notes": "Misma investigación. Comparación en el banco de T133 antes de construir más de un modelo.",
+   "effort": "bajo",
+   "phase": 26
+  },
+  {
+   "id": "T167",
+   "title": "◆ Expedientes de la cantera: qué sabe cada agente y qué perfiles propios propone",
+   "deps": [
+    "T49",
+    "T145",
+    "T151",
+    "T157"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "medio",
+   "phase": 27
+  },
+  {
+   "id": "T168",
+   "title": "Motor de la cantera: prospectos nativos en un libro aparte del bróker simulado",
+   "deps": [
+    "T167",
+    "T49",
+    "T143"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "alto",
+   "phase": 27
+  },
+  {
+   "id": "T169",
+   "title": "Examen físico de los prospectos en la historia (sin mirar su rendimiento)",
+   "deps": [
+    "T168",
+    "T131",
+    "T161"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "medio",
+   "phase": 27
+  },
+  {
+   "id": "T170",
+   "title": "◆ Pre-registro cantera_v1 y arranque de la cantera hacia adelante",
+   "deps": [
+    "T167",
+    "T168",
+    "T169",
+    "T160",
+    "T161"
+   ],
+   "state": "pending",
+   "notes": "— (T160 sigue en una rama abierta)",
+   "effort": "medio",
+   "phase": 27
+  },
+  {
+   "id": "T171",
+   "title": "Panel «Cantera»: escalafón por agente, honesto con la muestra",
+   "deps": [
+    "T168",
+    "T170"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "medio",
+   "phase": 27
+  },
+  {
+   "id": "T172",
+   "title": "◆ Informe mensual de ojeo y retroalimentación (agentes, biblioteca, síntesis)",
+   "deps": [
+    "T170",
+    "T155",
+    "T157",
+    "T159"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "medio",
+   "phase": 27
   }
  ]
 };

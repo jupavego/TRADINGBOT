@@ -1270,3 +1270,17 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** 6 nuevas; gate por la cola.
 - **Siguiente paso:** fusionar #260 y el PR de T160.
 
+## 2026-11-11 · juanpablo-cpu · Fase 27 abierta: la cantera de perfiles por agente (T167–T172)
+- **Pedido:** un «criadero, guardería o casa de talentos» donde cada uno de los 19 agentes desarrolle sus propios perfiles de inversión desde sus datos y su teoría (no un algoritmo genérico), que operen en un campo de entrenamiento para ver cuáles podrían tener éxito, conjugado con lo aprendido y con la bibliografía.
+- **Visto:** hoy los agentes solo entran al bróker con la regla genérica `agente_{id}` (8 de 19, `paper/strategies_ind.py`) y el contexto solo guarda sesgo, confianza y estado: las variables propias (p. ej. las 44 FRM de `ema`) no llegan a ninguna estrategia.
+- **Hecho:** diseño en `PLAN/notas/T167_cantera.md` (reglas de la casa, escalafón guardería → cantera → promesa → primer equipo o baja, boceto de los 19 agentes con sus obras del catálogo T151, retroalimentación) y fichas T167–T172; fila de la fase 27 en `00_MASTER.md` y filas en `STATUS.md`. Sin código; el gate no aplica.
+- **Decisiones de diseño:** solo hacia adelante (la historia no asciende: la lectura limpia se gastó en T139), ≤ 4 prospectos por agente con hermano simple obligatorio («a empate asciende el simple»), parámetros canónicos sin optimizar, familia propia pre-registrada (precedente T160), miradas mensuales secuenciales, libro aparte sin tocar T31 y nada opera con D (T145).
+- **Abierto:** T160 y T161 (de las que dependen T169/T170) siguen en ramas sin fusionar; la fila de la fase 27 chocará con las de las fases 25 y 26 al fusionar.
+- **Siguiente paso:** T167 (expedientes) y su ◆: la lista de prospectos y el techo de la familia.
+- **Aclaración del usuario (misma sesión):** los perfiles operan de forma simulada e interna sobre el mercado real en vivo y se miden por la **rentabilidad** que dejan. Ajustado: cada prospecto tiene su propia cuenta simulada (mismo capital, 1 % de riesgo, costos reales) y la medida principal es su rentabilidad neta acumulada, comparada siempre con el perfil al azar y con comprar y mantener; el R queda como vara estadística interna (nota §3, T168, T170, T171, T172).
+## 2026-11-10 · Investigación de herramientas no exploradas → fase 26 (T161–T166)
+- **Hecho:** investigación en cinco líneas (datos alternativos, validación, modelos, estrategias, repos), cada una contrastada con `v2/eim` y `PLAN/` en el commit 61cbcd3. Conclusión: a EIM le faltan piezas de rigor y de volatilidad, no señales; casi nada crea ventaja. Se abren T161 (MinTRL + SPA), T162 (HAR-RV + ACI en el cono), T163 ◆ (TSMOM en cartera), T164 ◆ (carry y momentum transversales, tras T93), T165 (DVOL de Deribit) y T166 (régimen por saltos). Numeración comprobada en el remoto (T159 y T160 ya existían en ramas).
+- **Archivos:** `PLAN/T161–T166.md`, `PLAN/notas/T161_investigacion_herramientas.md` (informe completo con fuentes), `PLAN/{STATUS,00_MASTER,BACKLOG}.md`, `PLAN/status.js`.
+- **Pruebas:** no aplica (solo plan); hoja de ruta regenerada.
+- **Abierto:** BACKLOG T161 (1)–(3): licencia de data.binance.vision para T27, extra `hft` ausente en pyproject, pendientes menores. La fila de la fase 25 llega con la rama de T159/T160.
+- **Siguiente paso:** T161 primero (las demás usan su MinTRL y su SPA); T162 puede ir en paralelo pero no se adopta antes del cierre de T31 (2026-11-27).
