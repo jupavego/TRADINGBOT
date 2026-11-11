@@ -1261,3 +1261,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Hecho:** tarea de Claude `eim-auditoria-semanal` (domingo 22:00 local = lunes 03:00 UTC, modo Auto; solo abre PR si hay algo nuevo y no lo fusiona). ◆ de T160 resuelta: se abre, familia de Holm propia de calibración con 2 intentos pre-registrados, adopción no antes del cierre de T31.
 - **Archivos:** `PLAN/{T160,STATUS,ESTADO_PROYECTO,BACKLOG,BITACORA}.md`, `.claude/skills/eim-auditoria/SKILL.md`, hoja de ruta.
 - **Siguiente paso:** fusionar #260; T160 empieza por su pre-registro.
+
+## 2026-11-11 04:50 UTC · juanpablo-cpu · T160: recalibración de escenarios (cerrada, ninguna pasa)
+- **Pedido:** «Sí, empieza T160».
+- **Hecho:** pre-registro (`PLAN/notas/T160_preregistro.md`, commit `92f6e12`) antes del código (`eim/forecast/recal.py`, `recal_eval.py`, `scripts/t160_recalibracion.py`) y del resultado. Medición por la cola: 135 s, sin pausas.
+- **Visto:** M1 +0,0029 (p 0,24) y M2 +0,0058 (p 0,096) en el banco, ninguno pasa Holm; en vivo empeoran (−0,012 y −0,003). El motor ya está casi calibrado en 3,8 años (ECE 0,024); el «bull» de más en vivo es del régimen bajista.
+- **Archivos:** `v2/eim/forecast/{recal,recal_eval}.py`, `v2/scripts/t160_recalibracion.py`, `v2/tests/forecast/test_recal.py`, `v2/reports/t160_recalibracion.{md,json}`, `v2/eim/analytics/audit/levers.py`, skill `eim-auditoria`, `PLAN/{T160,STATUS,ESTADO_PROYECTO,BITACORA}.md`, hoja de ruta.
+- **Pruebas:** 6 nuevas; gate por la cola.
+- **Siguiente paso:** fusionar #260 y el PR de T160.
+

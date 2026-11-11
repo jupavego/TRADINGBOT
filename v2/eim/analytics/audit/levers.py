@@ -99,7 +99,8 @@ def calibration_opps(c: dict) -> list[dict]:
                         "Las probabilidades de escenario no superan a la caminata aleatoria",
                         f"Brier skill {c['brier_skill']:+.3f}, acierto direccional "
                         f"{d.get('accuracy', 0):.1%} (n={d.get('n', 0)}, efectiva "
-                        f"≈{c.get('n_effective', 0):.0f})", "T160 abierta (pre-registro; adopción tras T31)", "T160"))
+                        f"≈{c.get('n_effective', 0):.0f})",
+                        "cerrada (T160: ninguna recalibración pasó)", "T160"))
     mp, rf = c.get("mean_prob") or {}, c.get("realized_freq") or {}
     gaps = {s: mp[s] - rf[s] for s in mp if s in rf}
     if gaps:
@@ -107,7 +108,7 @@ def calibration_opps(c: dict) -> list[dict]:
         if abs(g) >= CALIB_BIAS:
             out.append(_opp(f"calib_sesgo_{s}", "calibración", f"Escenario «{s}» descalibrado",
                             f"probabilidad media {mp[s]:.1%} frente a frecuencia real "
-                            f"{rf[s]:.1%} ({g:+.1%})", "T160 abierta (pre-registro; adopción tras T31)",
+                            f"{rf[s]:.1%} ({g:+.1%})", "cerrada (T160: desvío de régimen, no del modelo)",
                             "T160"))
     return out
 

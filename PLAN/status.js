@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T23:31:16",
+ "generated": "2026-11-10T23:39:38",
  "phases": [
   {
    "n": 0,
@@ -2361,8 +2361,8 @@ window.EIM_STATUS = {
     "T150",
     "T159"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-11 por la primera auditoría (T159): Brier skill −0,010, acierto direccional 40,7 %, «bull» sobrestimado 12 pp. **◆ resuelta (delegada):** se abre; familia de Holm propia de calibración con 2 intentos pre-registrados (no suma a la de trading); adopción no antes del cierre de T31.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-11): ninguna pasa y la línea se cierra.** Pre-registro `PLAN/notas/T160_preregistro.md` (commit anterior al código y al resultado). Banco T131: M1 +0,0029 de Brier (p 0,24), M2 +0,0058 (p 0,096), ninguno pasa Holm; en vivo los dos empeoran (−0,012 y −0,003). En el banco el motor ya está casi calibrado (ECE 0,024): el «bull» sobrestimado de la auditoría es del régimen bajista de oct–nov. Informe `v2/reports/t160_recalibracion.md`.",
    "effort": "medio",
    "phase": 25
   }
