@@ -1,0 +1,35 @@
+{
+ "agent_id": "seasonality",
+ "agent_version": "1.0.0",
+ "status": "excluido",
+ "verified": "2026-11-11",
+ "theory": "Retorno medio por mes del año (matriz de cierres mensuales).",
+ "variables": [],
+ "history": {
+  "source": "velas",
+  "from": "2023-01-01",
+  "to": "2026-11-03",
+  "coverage": "≈ 46 cierres mensuales en el banco",
+  "exam": "no aplica"
+ },
+ "cadence": null,
+ "literature": [
+  {
+   "id": "heston_korajczyk_sadka_2010",
+   "concept": "intraday",
+   "stance": "apoya",
+   "consensus": "dividido (+0,47)"
+  }
+ ],
+ "prospects": [],
+ "exclusion_reason": "Verificado: no_data en el 100 % de los reportes de 1 h (con 500 velas no hay cierres mensuales) y una decisión al mes: ≈ 6 decisiones independientes en 6 meses. El boceto de §4 (hora del día, día de la semana) no es lo que el agente calcula: exigiría una versión nueva del agente (BACKLOG).",
+ "reserve": [
+  {
+   "id": "estac_hora_v2",
+   "rule": "sesgo por hora del día con ventana solo pasada (Heston-Korajczyk-Sadka)",
+   "why_not": "requiere `seasonality` 2.0 con variables intradía: versión nueva y ◆"
+  }
+ ],
+ "notes": [],
+ "performance_computed": false
+}

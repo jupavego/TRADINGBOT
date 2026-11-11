@@ -1,0 +1,206 @@
+{
+ "agent_id": "levels",
+ "agent_version": "1.0.0",
+ "status": "inscrito",
+ "verified": "2026-11-11",
+ "theory": "Los soportes y resistencias que se forman con pivotes repetidos frenan el precio; si se rompen con claridad, lo aceleran.",
+ "variables": [
+  {
+   "name": "metrics.dist_support",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "USDT hasta la zona de soporte más cercana"
+  },
+  {
+   "name": "metrics.dist_resistance",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.atr",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.zones[].touches",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.channel.state",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "INSIDE o roto"
+  },
+  {
+   "name": "metrics.channel.kind",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.channel_pos",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "posición dentro del canal, 0–1"
+  },
+  {
+   "name": "metrics.channel.r2",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.channel.slope_per_bar",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  }
+ ],
+ "history": {
+  "source": "banco T131 (v2/backups/t131_banco, binance-futures)",
+  "from": "2023-01-01",
+  "to": "2026-11-03",
+  "coverage": "100 % (0 huecos en 1m/15m/1h/4h)",
+  "exam": "banco_t131"
+ },
+ "cadence": {
+  "expected": "rebote: varias por semana; ruptura de canal: pocas al mes",
+  "basis": "|sesgo| ≥ 0,3 en el 65 % de los reportes (reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes)"
+ },
+ "literature": [
+  {
+   "id": "osler_2000_frbny",
+   "concept": "support_resistance",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "osler_2003",
+   "concept": "support_resistance",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "lo_mamaysky_wang_2000",
+   "concept": "chart_patterns",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  }
+ ],
+ "prospects": [
+  {
+   "id": "niveles_rebote",
+   "name": "Rebote en zona fuerte",
+   "role": "base",
+   "theory": "Las zonas tocadas varias veces frenan el precio (Osler 2000).",
+   "opposite_of": null,
+   "rule": "Largo a ≤ touch_atr ATR de una zona de soporte con ≥ min_touches toques; corto en espejo en resistencia.",
+   "variables": [
+    "metrics.dist_support",
+    "metrics.dist_resistance",
+    "metrics.atr",
+    "metrics.zones[].touches"
+   ],
+   "params": {
+    "touch_atr": {
+     "value": 0.5,
+     "source": "`agents/levels/params.py::channel_touch_atr` (heurística del agente, no calibrada)"
+    },
+    "min_touches": {
+     "value": 2,
+     "source": "definición mínima de nivel: dos toques (Osler 2000)"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "history_exam": "banco_t131",
+   "expected_cadence": "varias/semana",
+   "literature": [
+    "osler_2000_frbny"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "niveles_ruptura",
+   "name": "Ruptura confirmada de canal",
+   "role": "candidato",
+   "theory": "Teoría opuesta: tras el nivel se acumulan stops y la ruptura acelera (Osler 2003).",
+   "opposite_of": "niveles_rebote",
+   "rule": "Entra a favor cuando el canal pasa a roto con break_bars cierres fuera; sale si el precio vuelve dentro.",
+   "variables": [
+    "metrics.channel.state",
+    "metrics.channel.kind"
+   ],
+   "params": {
+    "break_bars": {
+     "value": 3,
+     "source": "`agents/levels/params.py` (definición de canal roto del agente, no calibrada)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "osler_2003"
+   ],
+   "horizon": "tres_dias"
+  },
+  {
+   "id": "niveles_canal_extremos",
+   "name": "Extremos del canal",
+   "role": "candidato",
+   "theory": "Dentro de un canal, el precio rebota en sus bordes.",
+   "opposite_of": null,
+   "rule": "Con el canal INSIDE: largo si channel_pos ≤ edge, corto si ≥ 1 − edge; objetivo la mitad del canal.",
+   "variables": [
+    "metrics.channel.state",
+    "metrics.channel_pos"
+   ],
+   "params": {
+    "edge": {
+     "value": 0.1,
+     "source": "decil extremo (convención)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "mean_target",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/semana",
+   "literature": [
+    "osler_2000_frbny"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "niveles_canal_tendencia",
+   "name": "Seguir un canal con pendiente",
+   "role": "candidato",
+   "theory": "Un canal inclinado y bien ajustado es una tendencia; se sigue su pendiente.",
+   "opposite_of": null,
+   "rule": "Con el canal INSIDE y r2 ≥ r2_min, entra en el signo de la pendiente; sale si el canal se rompe.",
+   "variables": [
+    "metrics.channel.state",
+    "metrics.channel.r2",
+    "metrics.channel.slope_per_bar"
+   ],
+   "params": {
+    "r2_min": {
+     "value": 0.5,
+     "source": "la mitad de la varianza explicada (convención)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "hurst_ooi_pedersen_2017"
+   ],
+   "horizon": "semanal"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [],
+ "performance_computed": false
+}

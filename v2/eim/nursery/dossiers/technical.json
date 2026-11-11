@@ -1,0 +1,240 @@
+{
+ "agent_id": "technical",
+ "agent_version": "0.1.0",
+ "status": "inscrito",
+ "verified": "2026-11-11",
+ "theory": "Una batería de indicadores clásicos por familias (tendencia, momentum, volatilidad, volumen, flujo) y su acuerdo entre marcos.",
+ "variables": [
+  {
+   "name": "metrics.frames.1h.bias",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "sesgo del marco de 1 h"
+  },
+  {
+   "name": "metrics.frames.4h.bias",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.frames.1d.bias",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.regime.label",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "tendencia / rango / mixto por ADX y ancho BB"
+  },
+  {
+   "name": "metrics.regime.adx",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.votes.RSI",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.families.tendencia",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "puntuación de la familia"
+  },
+  {
+   "name": "metrics.families.volumen",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "usa el volumen de la vela"
+  },
+  {
+   "name": "metrics.regime.width_pct",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "percentil del ancho de Bollinger"
+  }
+ ],
+ "history": {
+  "source": "banco T131 (v2/backups/t131_banco, binance-futures)",
+  "from": "2023-01-01",
+  "to": "2026-11-03",
+  "coverage": "100 % (0 huecos en 1m/15m/1h/4h)",
+  "exam": "banco_t131",
+  "note": "el marco 1d se obtiene agregando las velas de 4 h del banco"
+ },
+ "cadence": {
+  "expected": "acuerdo de marcos: algunas por semana; RSI en rango: pocas por semana; ruptura con volumen: varias al mes",
+  "basis": "|sesgo| ≥ 0,3 en el 28 % de los reportes (reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes); régimen «tendencia» visto con ADX 29,98 en el último"
+ },
+ "literature": [
+  {
+   "id": "hudson_urquhart_2021",
+   "concept": "technical_analysis",
+   "stance": "apoya",
+   "consensus": "dividido (+0,06)"
+  },
+  {
+   "id": "neely_rapach_tu_zhou_2014",
+   "concept": "technical_analysis",
+   "stance": "apoya",
+   "consensus": "dividido (+0,06)"
+  },
+  {
+   "id": "sullivan_timmermann_white_1999",
+   "concept": "technical_analysis",
+   "stance": "objeta",
+   "consensus": "dividido (+0,06)"
+  },
+  {
+   "id": "park_irwin_2007",
+   "concept": "technical_analysis",
+   "stance": "condiciona",
+   "consensus": "dividido (+0,06)"
+  },
+  {
+   "id": "blume_easley_ohara_1994",
+   "concept": "volume",
+   "stance": "apoya",
+   "consensus": "dividido (−0,46)"
+  },
+  {
+   "id": "cong_2023_wash",
+   "concept": "volume",
+   "stance": "objeta",
+   "consensus": "dividido (−0,46)"
+  },
+  {
+   "id": "chan_2013",
+   "concept": "mean_reversion",
+   "stance": "condiciona",
+   "consensus": "condicionado (0,00)"
+  }
+ ],
+ "prospects": [
+  {
+   "id": "tec_acuerdo_marcos",
+   "name": "Acuerdo de marcos",
+   "role": "base",
+   "theory": "Cuando 1 h, 4 h y 1 d leen lo mismo, la lectura es más fiable.",
+   "opposite_of": null,
+   "rule": "Largo si el sesgo de 1 h, 4 h y 1 d supera +mtf_neutral; corto en espejo. Sale cuando un marco deja de estar de acuerdo.",
+   "variables": [
+    "metrics.frames.1h.bias",
+    "metrics.frames.4h.bias",
+    "metrics.frames.1d.bias"
+   ],
+   "params": {
+    "mtf_neutral": {
+     "value": 0.1,
+     "source": "`agents/technical/params.py` (umbral de neutralidad del propio agente, no calibrado)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/semana",
+   "literature": [
+    "hudson_urquhart_2021",
+    "neely_rapach_tu_zhou_2014"
+   ],
+   "horizon": "tres_dias"
+  },
+  {
+   "id": "tec_rsi_rango",
+   "name": "RSI extremo en rango",
+   "role": "candidato",
+   "theory": "Teoría opuesta: en rango los osciladores extremos revierten.",
+   "opposite_of": "tec_acuerdo_marcos",
+   "rule": "Solo con ADX < adx_range: largo cuando el voto RSI sale de sobreventa (30), corto cuando sale de sobrecompra (70).",
+   "variables": [
+    "metrics.regime.adx",
+    "metrics.votes.RSI"
+   ],
+   "params": {
+    "rsi_levels": {
+     "value": "30/70",
+     "source": "Wilder (1978), New Concepts in Technical Trading Systems — canon, fuera del catálogo T151"
+    },
+    "adx_range": {
+     "value": 20,
+     "source": "Wilder (1978), New Concepts in Technical Trading Systems — canon, fuera del catálogo T151"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/semana",
+   "literature": [
+    "chan_2013",
+    "park_irwin_2007"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "tec_ruptura_volumen",
+   "name": "Tendencia confirmada por volumen",
+   "role": "candidato",
+   "theory": "La tendencia con volumen a favor lleva información (Blume-Easley-O'Hara).",
+   "opposite_of": null,
+   "rule": "Con ADX ≥ adx_trend, entra si las familias tendencia y volumen votan el mismo signo.",
+   "variables": [
+    "metrics.regime.adx",
+    "metrics.families.tendencia",
+    "metrics.families.volumen"
+   ],
+   "params": {
+    "adx_trend": {
+     "value": 25,
+     "source": "Wilder (1978), New Concepts in Technical Trading Systems — canon, fuera del catálogo T151"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "history_exam": "banco_t131",
+   "expected_cadence": "varias/mes",
+   "literature": [
+    "blume_easley_ohara_1994",
+    "cong_2023_wash"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "tec_compresion_bb",
+   "name": "Compresión de Bollinger → ruptura",
+   "role": "candidato",
+   "theory": "Tras una compresión de volatilidad, la expansión sigue a la familia de tendencia (squeeze de Bollinger).",
+   "opposite_of": null,
+   "rule": "Si el ancho de banda está en su percentil ≤ squeeze_pct y luego sale de él, entra en el signo de la familia tendencia.",
+   "variables": [
+    "metrics.regime.width_pct",
+    "metrics.families.tendencia"
+   ],
+   "params": {
+    "squeeze_pct": {
+     "value": 0.2,
+     "source": "Bollinger (2001), «the Squeeze»; `agents/technical/params.py`"
+    },
+    "width_window": {
+     "value": 200,
+     "source": "`agents/technical/params.py` (ventana del percentil)"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/mes",
+   "literature": [
+    "zarattini_aziz_2023"
+   ],
+   "horizon": "intradia"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "Ningún prospecto usa los pesos por familia ni `indicator_weights` (calibrables en T26): solo umbrales canónicos de Wilder y el umbral de neutralidad del agente.",
+  "El volumen de cripto puede estar inflado por wash trading (cong_2023_wash)."
+ ],
+ "performance_computed": false
+}

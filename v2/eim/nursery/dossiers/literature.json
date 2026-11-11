@@ -1,0 +1,180 @@
+{
+ "agent_id": "literature",
+ "agent_version": "0.1.0",
+ "status": "inscrito",
+ "verified": "2026-11-11",
+ "theory": "Las reglas codificadas de los libros (Nison: velas; Murphy: RSI y regla de las 4 semanas) activas en la última vela cerrada.",
+ "variables": [
+  {
+   "name": "metrics.hits[].card_id",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.hits[].direction",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.hits[].strength",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  }
+ ],
+ "history": {
+  "source": "banco T131 (v2/backups/t131_banco, binance-futures)",
+  "from": "2023-01-01",
+  "to": "2026-11-03",
+  "coverage": "100 % (0 huecos en 1m/15m/1h/4h)",
+  "exam": "banco_t131"
+ },
+ "cadence": {
+  "expected": "consenso: varias por semana; regla de 4 semanas: pocas al mes",
+  "basis": "degradado el 100 % en 1 h (reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes): con 500 velas de 1 h la regla de 4 semanas no se puede evaluar; en 4 h sí. |sesgo| ≥ 0,3 en el 8 %"
+ },
+ "literature": [
+  {
+   "id": "brock_lakonishok_lebaron_1992",
+   "concept": "trend_following",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "hurst_ooi_pedersen_2017",
+   "concept": "trend_following",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "caginalp_laurent_1998",
+   "concept": "candlesticks",
+   "stance": "apoya",
+   "consensus": "dividido (+0,19)"
+  },
+  {
+   "id": "marshall_young_rose_2006",
+   "concept": "candlesticks",
+   "stance": "objeta",
+   "consensus": "dividido (+0,19)"
+  }
+ ],
+ "prospects": [
+  {
+   "id": "lit_consenso",
+   "name": "Suma de fichas activas",
+   "role": "base",
+   "theory": "Si varias fichas de los libros apuntan al mismo lado, se sigue su suma.",
+   "opposite_of": null,
+   "rule": "Entra en el signo de Σ dirección·fuerza de los aciertos de la vela, con al menos min_hits aciertos.",
+   "variables": [
+    "metrics.hits[].direction",
+    "metrics.hits[].strength"
+   ],
+   "params": {
+    "min_hits": {
+     "value": 1,
+     "source": "un acierto de ficha (T53); la fuerza ya la fija cada ficha con los umbrales del autor"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "varias/semana",
+   "literature": [
+    "caginalp_laurent_1998"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "lit_regla_4_semanas",
+   "name": "Regla de las 4 semanas (Murphy/Donchian)",
+   "role": "candidato",
+   "theory": "Romper el máximo o mínimo de 4 semanas inicia tendencia.",
+   "opposite_of": null,
+   "rule": "Entra con el acierto `murphy_weekly_rule`; sale con la ruptura contraria.",
+   "variables": [
+    "metrics.hits[].card_id",
+    "metrics.hits[].direction"
+   ],
+   "params": {
+    "weeks": {
+     "value": 4,
+     "source": "Murphy (1999), cap. 9 — ficha local `murphy_weekly_rule` (T52)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "brock_lakonishok_lebaron_1992",
+    "hurst_ooi_pedersen_2017"
+   ],
+   "horizon": "semanal"
+  },
+  {
+   "id": "lit_nison_giro",
+   "name": "Patrones de giro de Nison",
+   "role": "candidato",
+   "theory": "Las velas de giro de Nison tras una tendencia previa anuncian el cambio.",
+   "opposite_of": null,
+   "rule": "Entra con el acierto más fuerte entre las fichas `nison_*` de la vela (exigen tendencia previa ≥ trend_atr ATR).",
+   "variables": [
+    "metrics.hits[].card_id",
+    "metrics.hits[].direction",
+    "metrics.hits[].strength"
+   ],
+   "params": {
+    "trend_atr": {
+     "value": 1.0,
+     "source": "Nison (2001), «tendencia previa aunque sea corta» — ficha local; `agents/literature/params.py`"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "varias/semana",
+   "literature": [
+    "caginalp_laurent_1998",
+    "marshall_young_rose_2006"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "lit_murphy_rsi",
+   "name": "RSI de Murphy (salida de 30/70)",
+   "role": "candidato",
+   "theory": "Teoría opuesta a la regla de 4 semanas: el RSI que vuelve desde un extremo anuncia reversión.",
+   "opposite_of": "lit_regla_4_semanas",
+   "rule": "Entra con el acierto `murphy_rsi` (RSI 14 que cruza de vuelta 30 o 70).",
+   "variables": [
+    "metrics.hits[].card_id",
+    "metrics.hits[].direction"
+   ],
+   "params": {
+    "rsi": {
+     "value": "14, 30/70",
+     "source": "Murphy (1999), cap. 10 — ficha local `murphy_rsi`; Wilder (1978), New Concepts in Technical Trading Systems — canon, fuera del catálogo T151"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/semana",
+   "literature": [
+    "chan_2013"
+   ],
+   "horizon": "intradia"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "`ind_donchian` (T31) usa un canal de N velas del marco; la regla de 4 semanas es de calendario y en 4 h: no es la misma regla."
+ ],
+ "performance_computed": false
+}

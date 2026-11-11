@@ -1,0 +1,127 @@
+{
+ "agent_id": "regime",
+ "agent_version": "1.0.0",
+ "status": "inscrito",
+ "verified": "2026-11-11",
+ "theory": "BOCPD sobre retornos y volatilidad separa el mercado en tramos y etiqueta cada uno como tendencial (alcista/bajista), rango o volátil.",
+ "variables": [
+  {
+   "name": "metrics.regime",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "trend_up / trend_down / range / volatile"
+  },
+  {
+   "name": "metrics.unstable",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "aviso del propio agente (permanencia y entropía)"
+  }
+ ],
+ "history": {
+  "source": "banco T131 (v2/backups/t131_banco, binance-futures)",
+  "from": "2023-01-01",
+  "to": "2026-11-03",
+  "coverage": "100 % (0 huecos en 1m/15m/1h/4h)",
+  "exam": "banco_t131"
+ },
+ "cadence": {
+  "expected": "pocas entradas al mes: solo en tramos etiquetados como tendencia",
+  "basis": "en reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes solo hubo rango (179) y volátil (113): ninguna vela tendencial en dos semanas"
+ },
+ "literature": [
+  {
+   "id": "adams_mackay_2007",
+   "concept": "regime",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "hamilton_1989",
+   "concept": "regime",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "moskowitz_ooi_pedersen_2012",
+   "concept": "momentum",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "daniel_moskowitz_2016",
+   "concept": "momentum_crash",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  }
+ ],
+ "prospects": [
+  {
+   "id": "regimen_tramo",
+   "name": "Seguir el tramo tendencial",
+   "role": "base",
+   "theory": "Un tramo cuya media es significativamente distinta de cero sigue mientras dure.",
+   "opposite_of": null,
+   "rule": "Largo en trend_up, corto en trend_down; sale cuando cambia la etiqueta.",
+   "variables": [
+    "metrics.regime"
+   ],
+   "params": {
+    "trend_t": {
+     "value": 2.0,
+     "source": "`agents/regime/params.py`: |t| ≥ 2 ≈ significación del 5 % (convención estadística)"
+    },
+    "hazard": {
+     "value": "1/800",
+     "source": "`agents/regime/params.py`, prior de BOCPD (adams_mackay_2007)"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "adams_mackay_2007"
+   ],
+   "horizon": "tres_dias"
+  },
+  {
+   "id": "regimen_tramo_estable",
+   "name": "Tramo tendencial estable",
+   "role": "candidato",
+   "theory": "Igual, pero solo cuando el agente no avisa de régimen inestable.",
+   "opposite_of": null,
+   "rule": "Como `regimen_tramo`, y solo si unstable es falso al entrar.",
+   "variables": [
+    "metrics.regime",
+    "metrics.unstable"
+   ],
+   "params": {
+    "trend_t": {
+     "value": 2.0,
+     "source": "convención estadística (ver base)"
+    },
+    "hazard": {
+     "value": "1/800",
+     "source": "prior de BOCPD del agente"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "adams_mackay_2007",
+    "daniel_moskowitz_2016"
+   ],
+   "horizon": "tres_dias"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "El sesgo del agente es siempre 0; los prospectos leen la etiqueta del tramo.",
+  "No hay teoría opuesta con variables propias: la reversión en rango necesita un nivel de precio que este agente no expone (cambiarlo sería otra versión)."
+ ],
+ "performance_computed": false
+}
