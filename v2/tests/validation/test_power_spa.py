@@ -121,7 +121,9 @@ def test_mcs_with_aliases_survives_two_models_with_identical_losses():
     base = rng.gamma(2.0, 0.2, (400, 3))
     losses = np.column_stack([base, base[:, 0]])     # la cuarta es copia exacta de la primera
     names = ["u0", "m0", "good", "clone"]
-    with pytest.raises(Exception):                   # la versión sin alias no lo aguanta
+    # La versión sin alias no lo aguanta: `arch` 8.0.0 divide por una varianza nula y se queda sin
+    # candidatos que eliminar. Se aceptan varios tipos porque el fallo es interno de la biblioteca.
+    with pytest.raises((IndexError, ValueError, ZeroDivisionError)):
         mcs_losses(names, losses, 0.10, 200, 1)
     p, alias = mcs_with_aliases(names, losses, 0.10, 200, 1)
     assert alias == {"clone": "u0"}
