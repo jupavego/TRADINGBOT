@@ -130,6 +130,33 @@ def mcs_losses(names: Sequence[str], losses: np.ndarray, size: float = 0.10, rep
     return {names[int(i)]: float(pv.loc[i]) for i in pv.index}
 
 
+def mcs_with_aliases(names: Sequence[str], losses: np.ndarray, size: float = 0.10,
+                     reps: int = 2000, seed: int = 0, block: float | None = None
+                     ) -> tuple[dict[str, float], dict[str, str]]:
+    """`mcs_losses` tolerante a modelos con pérdidas **idénticas** (T166).
+
+    Dos modelos distintos pueden dar exactamente el mismo pronóstico —p. ej. un etiquetador de
+    régimen que se queda en un solo estado da el mismo que no tener régimen—. Su diferencia de
+    pérdidas es cero, el MCS de `arch` divide por una varianza nula y revienta. Aquí se agrupan
+    las columnas iguales, el MCS corre con un representante de cada grupo y la p se copia a sus
+    alias: por definición es la misma, así que no se inventa nada.
+
+    Devuelve (p por modelo, alias → representante).
+    """
+    x = np.asarray(losses, float)
+    reps_of: dict[str, str] = {}
+    keep: list[int] = []
+    for j, name in enumerate(names):
+        same = next((i for i in keep if np.array_equal(x[:, i], x[:, j])), None)
+        if same is None:
+            keep.append(j)
+        else:
+            reps_of[name] = names[same]
+    pv = mcs_losses([names[j] for j in keep], x[:, keep], size, reps, seed, block)
+    out = {n: pv.get(reps_of.get(n, n), float("nan")) for n in names}
+    return out, reps_of
+
+
 def mean_diff_test(d: np.ndarray, reps: int = 2000, seed: int = 0, block: float | None = None
                    ) -> tuple[float, float, float]:
     """(IC95 % inferior, superior, p unilateral de media < 0) de una serie de diferencias de
