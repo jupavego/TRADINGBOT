@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T04:48:40",
+ "generated": "2026-11-11T08:26:44",
  "phases": [
   {
    "n": 0,
@@ -273,7 +273,8 @@ window.EIM_STATUS = {
     "T142",
     "T147",
     "T148",
-    "T149"
+    "T149",
+    "T173"
    ]
   },
   {
@@ -2551,6 +2552,20 @@ window.EIM_STATUS = {
    "notes": "—",
    "effort": "medio",
    "phase": 27
+  },
+  {
+   "id": "T173",
+   "title": "Un servicio bloqueado no es un servicio muerto, y nuestra red no es la del exchange",
+   "deps": [
+    "T140",
+    "T147",
+    "T148"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-11 con la evidencia del primer día completo del vigilante de T148. El 2026-11-10 de **20:07:55 a 23:46:33 UTC** este equipo se quedó sin resolución de nombres (164 `datos_fallidos` con `getaddrinfo failed`; el EIM ya lo decía en una alerta crítica a las 20:12:03). El bróker simulado dejó de latir a las ~20:05 porque su ciclo se quedó agotando reintentos **dentro de la API**, y el vigilante gastó sus 4 intentos (20:19, 20:24, 20:44, 21:14) con `rc=0` y **sin efecto**: la API escuchaba en el 8000, así que `servicio_continuo.ps1` no tocó nada, y aunque lo hubiera hecho el problema era la red. Se rindió a las 21:19 y avisó; recuperado a las 23:54:17 tras **3 h 49 min**. Tres cosas que no se distinguen: (1) muerto frente a **bloqueado** —mismo síntoma, remedio opuesto—, (2) **lanzado** frente a arreglado (`rc=0` no prueba nada; lo prueba el latido de la pasada siguiente) y (3) **nuestra red** frente a la del exchange: el recolector marcó 576 tramos `desconexion` en las horas 20–23 que fueron nuestro DNS, y la regla de T148 solo salva las horas 21 y 22, de rebote, porque los tramos no suman la hora entera. La captura siguió latiendo cada ~28 s con `runs: 0` y `book_usable 0.0`: un latido fresco no prueba que haya datos. ◆ en la ficha: si el vigilante se queda quieto mientras dura el corte y si un corte de red local cuenta como hora nuestra para T78.",
+   "effort": "medio",
+   "phase": 21,
+   "goal": "Que el vigilante de T148 no gaste sus cuatro intentos en un servicio que está vivo pero sin red, y"
   }
  ]
 };
