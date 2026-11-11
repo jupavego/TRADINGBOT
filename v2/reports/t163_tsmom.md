@@ -30,6 +30,7 @@ se declaró en un commit propio:
 
 | Qué | Valor declarado |
 |---|---|
+| Familia | la **de trading, 841 intentos** (T139); esta hipótesis habría gastado **1**, y la especificación es **una sola**, sin rejilla ni elección posterior. **No se gastó: sigue en 841.** |
 | Métrica principal | Sharpe neto anualizado de los retornos diarios de la cartera |
 | Ventaja mínima a detectar `S_min` | **0,70** |
 | Nivel y potencia | α = 0,05 unilateral, potencia 0,80 |
@@ -145,6 +146,10 @@ el mejor caso posible.
   necesita más historia, no menos, para distinguir ventaja de suerte.
 - **Lo que no se sabe.** No se sabe si esta cartera gana o pierde: no se calculó. Cerrar por
   potencia **no** es un resultado negativo sobre la estrategia; es un resultado sobre la prueba.
+
+**MCS:** no se calculó, igual que en T166 y por la misma razón: el Model Confidence Set y la p
+ajustada por Holm son el paso que se aplica **después** de medir, y aquí no se midió. El
+pre-registro que los habría declarado no se escribió.
 
 ## 6. Límites de este informe
 
