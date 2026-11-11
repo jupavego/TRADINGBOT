@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T01:56:56",
+ "generated": "2026-11-11T04:35:36",
  "phases": [
   {
    "n": 0,
@@ -2412,8 +2412,8 @@ window.EIM_STATUS = {
     "T19",
     "T160"
    ],
-   "state": "pending",
-   "notes": "Misma investigación. HAR-RV al cono (hoy GARCH con α/β fijos), ACI, QLIKE/CRPS/PIT y MCS de motores; adopción no antes del cierre de T31.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-11), sin adoptar hasta cerrar T31.** **M1 (Log-HAR-RV) pasa las tres condiciones pre-registradas**: QLIKE −9,6 % frente al GARCH fijo del cono (IC −0,051…−0,014, Holm 0,004), único en el MCS (M0 fuera, p 0,005) y cobertura 80 % con ACI 80,1 %/80,3 % (2024–26). GJR-GARCH diario y la combinación se descartan. **Matiz:** la ventaja es en la varianza realizada (M1 insesgado, M0 corto un 21 %); en la distribución del retorno empatan (mismo CRPS). Código `eim/forecast/{vol_models,vol_eval}.py`, `mcs_losses`/`mean_diff_test` en `validation/spa.py`; informe `v2/reports/t162_cono_volatilidad.md`, pre-registro `PLAN/notas/T162_preregistro.md`. Kronos sin medir (sin torch).",
    "effort": "medio",
    "phase": 26
   },
@@ -2453,8 +2453,8 @@ window.EIM_STATUS = {
     "T22",
     "T162"
    ],
-   "state": "pending",
-   "notes": "Misma investigación. API pública sin clave; entra solo si mejora el QLIKE sobre HAR.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-11), sin adoptar hasta cerrar T31. A2 (HAR-IV con la pendiente del DVOL) pasa las tres condiciones pre-registradas**: QLIKE −6,7 % frente a M1 (IC −0,032…−0,010, Holm 0,0006), único en el MCS (M1 fuera, p 0,004) y cobertura con ACI 80,2 %/80,3 %; la mejora (0,021) supera la mínima detectable declarada (0,014). **El DVOL solo, no:** A1 (nivel, = la prima en logaritmos) mejora un 1,0 % y no se distingue de M1 (p 0,33). Un control posterior avisa de que **con el DVOL de ayer el modelo es peor que el HAR**: toda la ventaja está en la lectura de las 00:00. 1 770 días (2022-01-01 → 2026-11-05), DVOL al 100 % desde 2021-03-24. Ingesta `eim/data/dvol.py` + `providers/deribit.py` (sin clave, sin servicio nuevo); informe `v2/reports/t165_dvol.md`, pre-registro `PLAN/notas/T165_preregistro.md`. **Colector programado el 2026-11-11** (`scripts/dvol_colector.ps1`, tarea horaria de Windows en prioridad de lote, registro en `data/operation/logs/dvol.log`); sin panel y sin entrar en la copia diaria (BACKLOG T165 (2) y (5)).",
    "effort": "bajo",
    "phase": 26
   },
@@ -2493,8 +2493,8 @@ window.EIM_STATUS = {
     "T49",
     "T143"
    ],
-   "state": "progress",
-   "notes": "En curso (2026-11-11), rama `claude/t168-motor-cantera-e1c28c`. T143 sigue ◐, pero sus cinco entregables están hechos y su configuración (`ExecParams`, `paper/t143_config.py`) ya está en `main`: se usa tal cual, sin tocar T143.",
+   "state": "pending",
+   "notes": "—",
    "effort": "alto",
    "phase": 27
   },
