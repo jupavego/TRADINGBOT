@@ -1,0 +1,605 @@
+{
+ "family_holm": 841,
+ "readings": {
+  "oficial": {
+   "days": 1181,
+   "power": {
+    "funding_contra@1h": {
+     "net": {
+      "n": 454,
+      "mean": -0.040458,
+      "sd": 1.148701,
+      "sr": -0.03522,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 815.797366,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 454,
+      "mean": 0.05435,
+      "sd": 1.10684,
+      "sr": 0.049104,
+      "mintrl_zero": 1099.260265,
+      "mintrl_cost": null,
+      "n_apriori": 842.649113,
+      "enough_zero": false
+     },
+     "mean_cost": 0.094808,
+     "trades_per_day": 0.3847,
+     "days_for_target": 2120.7
+    },
+    "funding_contra@4h": {
+     "net": {
+      "n": 232,
+      "mean": -0.034246,
+      "sd": 1.107842,
+      "sr": -0.030912,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 758.793473,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 232,
+      "mean": 0.006651,
+      "sd": 1.081253,
+      "sr": 0.006151,
+      "mintrl_zero": 71273.133285,
+      "mintrl_cost": null,
+      "n_apriori": 4321.591722,
+      "enough_zero": false
+     },
+     "mean_cost": 0.040897,
+     "trades_per_day": 0.1966,
+     "days_for_target": 3859.9
+    },
+    "flujo_sigue@1h": {
+     "net": {
+      "n": 635,
+      "mean": -0.080175,
+      "sd": 1.168581,
+      "sr": -0.068608,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 844.278612,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 635,
+      "mean": 0.060272,
+      "sd": 1.11894,
+      "sr": 0.053865,
+      "mintrl_zero": 912.37281,
+      "mintrl_cost": null,
+      "n_apriori": 392.429849,
+      "enough_zero": false
+     },
+     "mean_cost": 0.140446,
+     "trades_per_day": 0.5381,
+     "days_for_target": 1569.1
+    },
+    "flujo_sigue@4h": {
+     "net": {
+      "n": 152,
+      "mean": 0.182427,
+      "sd": 1.169014,
+      "sr": 0.156052,
+      "mintrl_zero": 109.56561,
+      "mintrl_cost": 109.56561,
+      "n_apriori": 844.904287,
+      "enough_zero": true
+     },
+     "gross": {
+      "n": 152,
+      "mean": 0.24998,
+      "sd": 1.128356,
+      "sr": 0.221544,
+      "mintrl_zero": 54.399078,
+      "mintrl_cost": 101.268678,
+      "n_apriori": 1724.935327,
+      "enough_zero": true
+     },
+     "mean_cost": 0.067553,
+     "trades_per_day": 0.1288,
+     "days_for_target": 6560.1
+    },
+    "flujo_revierte@1h": {
+     "net": {
+      "n": 205,
+      "mean": -0.273024,
+      "sd": 1.143681,
+      "sr": -0.238724,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 808.682013,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 205,
+      "mean": -0.092753,
+      "sd": 1.074345,
+      "sr": -0.086335,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 219.585969,
+      "enough_zero": false
+     },
+     "mean_cost": 0.180271,
+     "trades_per_day": 0.1737,
+     "days_for_target": 4655.5
+    },
+    "flujo_revierte@4h": {
+     "net": {
+      "n": 60,
+      "mean": -0.220634,
+      "sd": 1.172691,
+      "sr": -0.188144,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 850.227401,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 60,
+      "mean": -0.120188,
+      "sd": 1.133462,
+      "sr": -0.106036,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 787.25071,
+      "enough_zero": false
+     },
+     "mean_cost": 0.100446,
+     "trades_per_day": 0.0508,
+     "days_for_target": 16723.5
+    },
+    "cascada_revierte@1h": {
+     "net": {
+      "n": 451,
+      "mean": -0.103013,
+      "sd": 1.158212,
+      "sr": -0.088942,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 829.361762,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 451,
+      "mean": 0.01171,
+      "sd": 1.110085,
+      "sr": 0.010549,
+      "mintrl_zero": 24185.433877,
+      "mintrl_cost": null,
+      "n_apriori": 578.868285,
+      "enough_zero": false
+     },
+     "mean_cost": 0.114723,
+     "trades_per_day": 0.3821,
+     "days_for_target": 2170.3
+    },
+    "cascada_revierte@4h": {
+     "net": {
+      "n": 266,
+      "mean": -0.009821,
+      "sd": 1.105593,
+      "sr": -0.008883,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 755.716217,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 266,
+      "mean": 0.058868,
+      "sd": 1.074395,
+      "sr": 0.054792,
+      "mintrl_zero": 879.972299,
+      "mintrl_cost": null,
+      "n_apriori": 1512.571281,
+      "enough_zero": false
+     },
+     "mean_cost": 0.068689,
+     "trades_per_day": 0.2254,
+     "days_for_target": 3352.9
+    },
+    "momento_1d@1d": {
+     "net": {
+      "n": 121,
+      "mean": 0.04839,
+      "sd": 1.136826,
+      "sr": 0.042565,
+      "mintrl_zero": 1469.952111,
+      "mintrl_cost": 1469.952111,
+      "n_apriori": 799.017157,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 121,
+      "mean": 0.11485,
+      "sd": 1.127966,
+      "sr": 0.101821,
+      "mintrl_zero": 252.222513,
+      "mintrl_cost": 1416.208552,
+      "n_apriori": 1780.856246,
+      "enough_zero": false
+     },
+     "mean_cost": 0.066461,
+     "trades_per_day": 0.1025,
+     "days_for_target": 7793.2
+    }
+   },
+   "spa_net": {
+    "p_consistent": 0.4588,
+    "p_lower": 0.1342,
+    "p_upper": 0.4888,
+    "best": "flujo_sigue@4h",
+    "best_mean": 0.023479,
+    "days": 1181,
+    "block": 1.0,
+    "reps": 5000
+   },
+   "spa_gross": {
+    "p_consistent": 0.2118,
+    "p_lower": 0.207,
+    "p_upper": 0.2118,
+    "best": "flujo_sigue@1h",
+    "best_mean": 0.032407,
+    "days": 1181,
+    "block": 1.115626,
+    "reps": 5000
+   },
+   "mcs_net": {
+    "flujo_revierte@1h": 0.0124,
+    "flujo_sigue@1h": 0.1778,
+    "cascada_revierte@1h": 0.1778,
+    "flujo_revierte@4h": 0.3204,
+    "no_operar": 0.3494,
+    "funding_contra@1h": 0.435,
+    "funding_contra@4h": 0.435,
+    "cascada_revierte@4h": 0.435,
+    "momento_1d@1d": 0.435,
+    "flujo_sigue@4h": 1.0
+   }
+  },
+  "banco": {
+   "days": 1405,
+   "power": {
+    "funding_contra@1h": {
+     "net": {
+      "n": 624,
+      "mean": -0.139002,
+      "sd": 1.101135,
+      "sr": -0.126235,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 749.633894,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 624,
+      "mean": 0.018323,
+      "sd": 1.057008,
+      "sr": 0.017335,
+      "mintrl_zero": 8930.97654,
+      "mintrl_cost": null,
+      "n_apriori": 279.082287,
+      "enough_zero": false
+     },
+     "mean_cost": 0.157324,
+     "trades_per_day": 0.4443,
+     "days_for_target": 1687.1
+    },
+    "funding_contra@4h": {
+     "net": {
+      "n": 330,
+      "mean": -0.016615,
+      "sd": 1.153373,
+      "sr": -0.014406,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 822.446717,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 330,
+      "mean": 0.062805,
+      "sd": 1.125046,
+      "sr": 0.055824,
+      "mintrl_zero": 848.325869,
+      "mintrl_cost": null,
+      "n_apriori": 1240.647314,
+      "enough_zero": false
+     },
+     "mean_cost": 0.07942,
+     "trades_per_day": 0.235,
+     "days_for_target": 3500.0
+    },
+    "flujo_sigue@1h": {
+     "net": {
+      "n": 857,
+      "mean": -0.23596,
+      "sd": 1.101967,
+      "sr": -0.214126,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 750.767628,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 857,
+      "mean": -0.027087,
+      "sd": 1.054756,
+      "sr": -0.025681,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 157.654856,
+      "enough_zero": false
+     },
+     "mean_cost": 0.208873,
+     "trades_per_day": 0.6103,
+     "days_for_target": 1230.3
+    },
+    "flujo_sigue@4h": {
+     "net": {
+      "n": 222,
+      "mean": 0.017835,
+      "sd": 1.178584,
+      "sr": 0.015133,
+      "mintrl_zero": 11749.407688,
+      "mintrl_cost": 11749.407688,
+      "n_apriori": 858.794629,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 222,
+      "mean": 0.112652,
+      "sd": 1.149924,
+      "sr": 0.097965,
+      "mintrl_zero": 273.432309,
+      "mintrl_cost": 10869.645955,
+      "n_apriori": 909.36411,
+      "enough_zero": false
+     },
+     "mean_cost": 0.094817,
+     "trades_per_day": 0.1581,
+     "days_for_target": 5432.6
+    },
+    "flujo_revierte@1h": {
+     "net": {
+      "n": 247,
+      "mean": -0.274719,
+      "sd": 1.164542,
+      "sr": -0.235903,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 838.45268,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 247,
+      "mean": -0.029518,
+      "sd": 1.088033,
+      "sr": -0.027129,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 121.732839,
+      "enough_zero": false
+     },
+     "mean_cost": 0.245201,
+     "trades_per_day": 0.1759,
+     "days_for_target": 4767.1
+    },
+    "flujo_revierte@4h": {
+     "net": {
+      "n": 72,
+      "mean": -0.506064,
+      "sd": 1.004152,
+      "sr": -0.503972,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 623.399886,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 72,
+      "mean": -0.374712,
+      "sd": 0.95989,
+      "sr": -0.390369,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 330.168817,
+      "enough_zero": false
+     },
+     "mean_cost": 0.131352,
+     "trades_per_day": 0.0513,
+     "days_for_target": 12159.2
+    },
+    "cascada_revierte@1h": {
+     "net": {
+      "n": 651,
+      "mean": -0.170465,
+      "sd": 1.126143,
+      "sr": -0.151371,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 784.070611,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 651,
+      "mean": -0.018719,
+      "sd": 1.073869,
+      "sr": -0.017431,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 309.622535,
+      "enough_zero": false
+     },
+     "mean_cost": 0.151747,
+     "trades_per_day": 0.4636,
+     "days_for_target": 1691.4
+    },
+    "cascada_revierte@4h": {
+     "net": {
+      "n": 390,
+      "mean": -0.051006,
+      "sd": 1.150581,
+      "sr": -0.044331,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 818.469614,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 390,
+      "mean": 0.037467,
+      "sd": 1.117394,
+      "sr": 0.03353,
+      "mintrl_zero": 2369.226171,
+      "mintrl_cost": null,
+      "n_apriori": 986.193252,
+      "enough_zero": false
+     },
+     "mean_cost": 0.088473,
+     "trades_per_day": 0.2777,
+     "days_for_target": 2947.2
+    },
+    "momento_1d@1d": {
+     "net": {
+      "n": 151,
+      "mean": -0.00704,
+      "sd": 1.114913,
+      "sr": -0.006314,
+      "mintrl_zero": null,
+      "mintrl_cost": null,
+      "n_apriori": 768.510913,
+      "enough_zero": false
+     },
+     "gross": {
+      "n": 151,
+      "mean": 0.044743,
+      "sd": 1.103554,
+      "sr": 0.040544,
+      "mintrl_zero": 1614.437301,
+      "mintrl_cost": null,
+      "n_apriori": 2807.939126,
+      "enough_zero": false
+     },
+     "mean_cost": 0.051783,
+     "trades_per_day": 0.1075,
+     "days_for_target": 7147.3
+    }
+   },
+   "spa_net": {
+    "p_consistent": 0.8864,
+    "p_lower": 0.7874,
+    "p_upper": 0.9938,
+    "best": "flujo_sigue@4h",
+    "best_mean": 0.002818,
+    "days": 1405,
+    "block": 1.052619,
+    "reps": 5000
+   },
+   "spa_gross": {
+    "p_consistent": 0.6494,
+    "p_lower": 0.503,
+    "p_upper": 0.6504,
+    "best": "flujo_sigue@4h",
+    "best_mean": 0.0178,
+    "days": 1405,
+    "block": 1.0,
+    "reps": 5000
+   },
+   "mcs_net": {
+    "flujo_sigue@1h": 0.0,
+    "flujo_revierte@4h": 0.0024,
+    "cascada_revierte@1h": 0.0052,
+    "flujo_revierte@1h": 0.0052,
+    "funding_contra@1h": 0.0224,
+    "cascada_revierte@4h": 0.8932,
+    "funding_contra@4h": 0.9848,
+    "momento_1d@1d": 0.9848,
+    "no_operar": 0.9848,
+    "flujo_sigue@4h": 1.0
+   }
+  }
+ },
+ "regression": {
+  "ok": true,
+  "rows": {
+   "funding_contra@1h": {
+    "n": 454,
+    "n_pub": 454,
+    "mean": -0.04045761270023172,
+    "mean_pub": -0.04045761270023172,
+    "ok": true
+   },
+   "funding_contra@4h": {
+    "n": 232,
+    "n_pub": 232,
+    "mean": -0.03424591144017159,
+    "mean_pub": -0.03424591144017159,
+    "ok": true
+   },
+   "flujo_sigue@1h": {
+    "n": 635,
+    "n_pub": 635,
+    "mean": -0.08017452278208034,
+    "mean_pub": -0.08017452278208034,
+    "ok": true
+   },
+   "flujo_sigue@4h": {
+    "n": 152,
+    "n_pub": 152,
+    "mean": 0.18242732016832933,
+    "mean_pub": 0.18242732016832933,
+    "ok": true
+   },
+   "flujo_revierte@1h": {
+    "n": 205,
+    "n_pub": 205,
+    "mean": -0.2730241936423883,
+    "mean_pub": -0.2730241936423883,
+    "ok": true
+   },
+   "flujo_revierte@4h": {
+    "n": 60,
+    "n_pub": 60,
+    "mean": -0.22063445035051016,
+    "mean_pub": -0.22063445035051016,
+    "ok": true
+   },
+   "cascada_revierte@1h": {
+    "n": 451,
+    "n_pub": 451,
+    "mean": -0.10301316446181454,
+    "mean_pub": -0.10301316446181454,
+    "ok": true
+   },
+   "cascada_revierte@4h": {
+    "n": 266,
+    "n_pub": 266,
+    "mean": -0.009821372423826639,
+    "mean_pub": -0.009821372423826639,
+    "ok": true
+   },
+   "momento_1d@1d": {
+    "n": 121,
+    "n_pub": 121,
+    "mean": 0.048389502526702724,
+    "mean_pub": 0.048389502526702724,
+    "ok": true
+   }
+  }
+ },
+ "meta": {
+  "data": "backups/t139_banco",
+  "prereg": "prereg_t139_v1",
+  "reps": 5000,
+  "seed": 161,
+  "target_net_r": 0.1,
+  "command": "python scripts/t161_potencia_spa.py --data backups/t139_banco"
+ }
+}

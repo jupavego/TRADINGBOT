@@ -1254,3 +1254,11 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** no aplica (solo plan); hoja de ruta regenerada.
 - **Abierto:** BACKLOG T161 (1)–(3): licencia de data.binance.vision para T27, extra `hft` ausente en pyproject, pendientes menores. La fila de la fase 25 llega con la rama de T159/T160.
 - **Siguiente paso:** T161 primero (las demás usan su MinTRL y su SPA); T162 puede ir en paralelo pero no se adopta antes del cierre de T31 (2026-11-27).
+
+## 2026-11-11 · T161 hecha: potencia a priori y SPA
+- **Hecho:** MinTRL, n a priori, SPA y MCS (`arch`), bloque de Politis-White y Benjamini-Hochberg. Se rehízo la simulación de las 9 claves de T139 (idéntica a lo publicado) y se aplicó el SPA: **ninguna supera a no operar** (p 0,459 oficial, 0,886 banco; ni el bruto: 0,212/0,649) y «no operar» queda en el MCS. `flujo_sigue@4h` parecía significativa sola (MinTRL 110 < n 152) y deja de serlo al corregir la selección. Detectar +0,10 R exige ≈ 800 operaciones: 4–46 años al ritmo de las claves y ≈ 14 semanas al de T31.
+- **Archivos:** `v2/eim/validation/{power,spa}.py`, `v2/eim/backtest/edge.py`, `v2/tests/validation/test_power_spa.py`, `v2/scripts/t161_potencia_spa.py`, `v2/reports/t161_potencia_spa.{md,json}`, `v2/pyproject.toml` (extra `stats`), `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO}.md`.
+- **Pruebas:** `tests/validation/test_power_spa.py` (11) y `tests/backtest/test_edge.py` en verde; gate completo por la cola.
+- **Abierto:** BACKLOG T161 (1)–(4); `arch` instalada en el venv de `juanpablo-cpu`, falta en el otro equipo.
+- **Siguiente paso:** T162 (cono de volatilidad), que ya puede usar el MCS; T163/T164 solo si su MinTRL cabe en 6 meses.
+
