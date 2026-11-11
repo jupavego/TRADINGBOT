@@ -10,10 +10,16 @@ a su comienzo, 00:00 UTC):
   `stats`, licencia NCSA); se importa al llamar.
 - La combinación M3 es la media de M1 y M2 (la hace quien llama).
 
-Pre-registro: `PLAN/notas/T162_preregistro.md`.
+T165 añade sobre el mismo banco la volatilidad implícita de Deribit: `daily_implied_var` lleva el
+DVOL horario a la IV² del día sin fuga y `log_har_x` admite regresores extra (el HAR-IV y su
+pendiente). La ingesta del DVOL es I/O y vive en `eim/data/dvol.py`.
+
+Pre-registro: `PLAN/notas/T162_preregistro.md` y `PLAN/notas/T165_preregistro.md`.
 """
 
 from __future__ import annotations
+
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -81,25 +87,43 @@ def m0_fixed_garch(hour_t: np.ndarray, hour_c: np.ndarray, days: np.ndarray,
 
 
 def m1_log_har(rv: np.ndarray, min_rows: int = 250) -> np.ndarray:
-    """Pronóstico de RV de cada día con Log-HAR ajustado solo con días anteriores.
+    """Log-HAR-RV de T162: el caso sin regresores extra de `log_har_x`."""
+    return log_har_x(rv, None, min_rows)
+
+
+def log_har_x(rv: np.ndarray, extras: Sequence[np.ndarray] | None = None,
+              min_rows: int = 250) -> np.ndarray:
+    """Pronóstico de RV de cada día con Log-HAR (+ regresores extra) ajustado solo con el pasado.
 
     Ecuaciones normales acumuladas: cada día cuesta O(1). El pronóstico en niveles es
     exp(ŷ + s²/2), con s² la varianza residual del ajuste (corrección lognormal).
+
+    Cada arreglo de `extras` debe estar **alineado con el día que se pronostica** y contener solo
+    información anterior a su comienzo (T165 usa IV² leída a las 00:00 UTC de ese día). Un día con
+    algún extra no finito no se pronostica ni entra en el ajuste.
     """
     rv = np.asarray(rv, dtype=float)
     n = len(rv)
+    ex = None if not extras else np.column_stack([np.asarray(e, float) for e in extras])
+    k_cols = 4 + (0 if ex is None else ex.shape[1])
     out = np.full(n, np.nan)
-    xtx = np.zeros((4, 4))
-    xty = np.zeros(4)
+    xtx = np.zeros((k_cols, k_cols))
+    xty = np.zeros(k_cols)
     yty, rows = 0.0, 0
     lrv = np.log(np.where(rv > 0, rv, np.nan))
     for k in range(n):
-        x = _row(rv, k)
+        x = har_row(rv, k)
+        if x is not None and ex is not None:
+            x = np.concatenate([x, ex[k]]) if np.isfinite(ex[k]).all() else None
         if x is not None and rows >= min_rows:
-            beta = np.linalg.solve(xtx, xty)
-            ssr = max(yty - float(beta @ xty), 0.0)
-            s2 = ssr / max(rows - 4, 1)
-            out[k] = float(np.exp(x @ beta + s2 / 2))
+            try:
+                beta = np.linalg.solve(xtx, xty)
+            except np.linalg.LinAlgError:
+                beta = None
+            if beta is not None:
+                ssr = max(yty - float(beta @ xty), 0.0)
+                s2 = ssr / max(rows - k_cols, 1)
+                out[k] = float(np.exp(x @ beta + s2 / 2))
         if x is not None and np.isfinite(lrv[k]):
             xtx += np.outer(x, x)
             xty += x * lrv[k]
@@ -108,7 +132,11 @@ def m1_log_har(rv: np.ndarray, min_rows: int = 250) -> np.ndarray:
     return out
 
 
-def _row(rv: np.ndarray, k: int) -> np.ndarray | None:
+def har_row(rv: np.ndarray, k: int) -> np.ndarray | None:
+    """Fila HAR del día `k` —[1, ln RV_{k−1}, ln RV̄^(5), ln RV̄^(22)]— o None si falta historia.
+
+    Solo usa días estrictamente anteriores a `k`: es la que garantiza que no hay fuga.
+    """
     row = [1.0]
     for n in LAGS:
         if k - n < 0:
@@ -118,6 +146,36 @@ def _row(rv: np.ndarray, k: int) -> np.ndarray | None:
             return None
         row.append(float(np.log(w.mean())))
     return np.array(row)
+
+
+def daily_implied_var(hour_t: np.ndarray, hour_c: np.ndarray, days: np.ndarray,
+                      ann_days: float = 365.0, max_stale_ms: int = DAY_MS) -> np.ndarray:
+    """IV² diaria del DVOL para cada día, **sin fuga** (T165).
+
+    Para el día `d` toma el cierre de la última vela horaria de DVOL cerrada a más tardar a las
+    00:00 UTC de `d` (la de las 23:00 del día anterior) y lo convierte de σ anualizada en % a
+    varianza del día: (DVOL/100)² / `ann_days`. Si esa vela es más vieja que `max_stale_ms` o no
+    existe, el día queda en nan.
+    """
+    ht = np.asarray(hour_t, dtype=np.int64)
+    hc = np.asarray(hour_c, dtype=float)
+    starts = np.asarray(days, dtype=np.int64) * DAY_MS
+    if not len(ht):
+        return np.full(len(starts), np.nan)
+    j = np.searchsorted(ht, starts - HOUR_MS, side="right") - 1
+    jj = np.clip(j, 0, len(ht) - 1)
+    iv = hc[jj] / 100.0
+    ok = (j >= 0) & (starts - (ht[jj] + HOUR_MS) <= max_stale_ms) & np.isfinite(iv) & (iv > 0)
+    return np.where(ok, iv * iv / ann_days, np.nan)
+
+
+def log_slope(x: np.ndarray, lag: int = 5) -> np.ndarray:
+    """ln x_t − ln x_{t−lag} por posición; nan donde no hay historia o el valor no es positivo."""
+    lx = np.log(np.where(np.asarray(x, float) > 0, x, np.nan))
+    out = np.full(len(lx), np.nan)
+    if lag < len(lx):
+        out[lag:] = lx[lag:] - lx[:-lag]
+    return out
 
 
 def m2_gjr_garch(ret: np.ndarray, first: int, refit: int = 20, min_obs: int = 400
