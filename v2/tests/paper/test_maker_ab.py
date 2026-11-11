@@ -10,6 +10,7 @@ from eim.data.timeframes import tf_ms
 from eim.paper import maker_ab as ab
 from eim.paper.engine import Path, simulate
 from eim.paper.params import ExecParams
+from eim.paper.t143_config import EXEC_T143 as T143
 from tests.paper.helpers import M15, T0, bar, flat, idea, with_bar
 
 ZERO = ExecParams(costs=ZERO_COSTS, funding_8h_assumed=0.0)
@@ -238,3 +239,66 @@ def test_by_year_usa_los_indices_conservados():
     assert len(out) == 1
     (year, s), = out.items()
     assert s["n"] == 1 and s["delta"] == pytest.approx(0.5) and year == "2026"
+
+
+# --- lo adoptado: dónde se aplica y dónde no (T143 1b) ----------------------------------------
+#
+# La entrada maker NO va en los valores por defecto: T31 sigue con su configuración hasta cerrar
+# y T143 corre en una mesa aparte (◆ del usuario 2026-11-10, `eim/paper/t143_config.py`). Estas
+# pruebas usan esa configuración explícita, y la primera fija que por defecto está apagada.
+
+def _kinds(tf: str, ep: ExecParams, **kw) -> set[str]:
+    from eim.data.timeframes import tf_ms as _ms
+    from eim.paper.catalog import generate_ideas
+    from tests.paper.test_strategies import ctx_for, walk
+    cs = walk(400)
+    ideas = generate_ideas([ctx_for(c) for c in cs[300:340]], cs, "BTCUSDT", _ms(tf),
+                           timeframe=tf, exec_params=ep, **kw)
+    return {i.kind for i in ideas}
+
+
+def test_por_defecto_la_entrada_sigue_siendo_a_mercado():
+    """T31 no cambia de objeto a mitad de su medición: la adopción vive en la corrida aparte."""
+    ep = ExecParams()
+    assert ep.maker_entry_timeframes == ()
+    assert "market" in _kinds("1h", ep)
+
+
+def test_en_la_corrida_aparte_entra_en_los_marcos_medidos():
+    """1 h y 4 h se midieron; 15 m no tiene ni una operación en el banco, así que no se toca."""
+    ep = T143
+    assert _kinds("1h", ep) == {"limit"}
+    assert _kinds("4h", ep) == {"limit"}
+    assert "market" in _kinds("15m", ep)
+
+
+def test_la_vigencia_de_la_limite_es_la_del_pre_registro():
+    """Una vela del marco de decisión, el plazo que decidió la medición."""
+    from eim.data.timeframes import tf_ms as _ms
+    from eim.paper.catalog import generate_ideas
+    from tests.paper.test_strategies import ctx_for, walk
+    cs = walk(400)
+    ideas = generate_ideas([ctx_for(c) for c in cs[300:340]], cs, "BTCUSDT", _ms("1h"),
+                           timeframe="1h", exec_params=T143)
+    assert [i for i in ideas if i.fill_ms == _ms("1h")], "ninguna con la vigencia de una vela"
+
+
+def test_un_catalogo_propio_no_se_convierte():
+    """T139 y sus nulos traen su catálogo: cerraron con entradas a mercado y su control de
+    entrada aleatoria se compara con ellas. Convertirlas cambiaría lo que ya midieron, incluso
+    si alguien les pasara la mecánica de la corrida aparte."""
+    from eim.paper.catalog import CATALOG
+    propio = dict(list(CATALOG.items())[:3])
+    assert "market" in _kinds("1h", T143, catalog=propio)
+
+
+def test_se_puede_forzar_en_los_dos_sentidos():
+    from eim.paper.catalog import CATALOG
+    propio = dict(list(CATALOG.items())[:3])
+    assert _kinds("1h", T143, catalog=propio, maker_entry=True) == {"limit"}
+    assert "market" in _kinds("1h", T143, maker_entry=False)
+
+
+def test_apagarlo_en_la_configuracion_lo_apaga_entero():
+    assert "market" in _kinds("1h", T143.model_copy(update={"maker_entry_timeframes": ()}))
+    assert "market" in _kinds("1h", T143.model_copy(update={"maker_entry_bars": 0.0}))
