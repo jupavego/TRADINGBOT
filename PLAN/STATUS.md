@@ -168,6 +168,12 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T164 | ◆ Carry de funding y momentum transversales sobre el universo de perpetuos | T93 T95 T145 T161 | ☐ | Misma investigación. Extiende la clase B sin esperar al funding de BTC/ETH. Requiere T93. |
 | T165 | Volatilidad implícita de Deribit (DVOL) y prima de varianza como insumo de volatilidad | T03 T22 T162 | ☐ | Misma investigación. API pública sin clave; entra solo si mejora el QLIKE sobre HAR. |
 | T166 | Régimen: modelo de saltos estadístico frente a HMM y BOCPD | T22 T133 T161 | ☐ | Misma investigación. Comparación en el banco de T133 antes de construir más de un modelo. |
+| T167 | ◆ Expedientes de la cantera: qué sabe cada agente y qué perfiles propios propone | T49 T145 T151 T157 | ☐ | — |
+| T168 | Motor de la cantera: prospectos nativos en un libro aparte del bróker simulado | T167 T49 T143 | ☐ | — |
+| T169 | Examen físico de los prospectos en la historia (sin mirar su rendimiento) | T168 T131 T161 | ☐ | — |
+| T170 | ◆ Pre-registro `cantera_v1` y arranque de la cantera hacia adelante | T167 T168 T169 T160 T161 | ☐ | — (T160 sigue en una rama abierta) |
+| T171 | Panel «Cantera»: escalafón por agente, honesto con la muestra | T168 T170 | ☐ | — |
+| T172 | ◆ Informe mensual de ojeo y retroalimentación (agentes, biblioteca, síntesis) | T170 T155 T157 T159 | ☐ | — |
 
 **Mantenimiento 2026-10-19 · Mínimo de operaciones abiertas del bróker simulado (T47/T48/T49).** Cada perfil tiene `min_open` (Conservador 1, Moderado 2, Agresivo 3; 0 lo desactiva): si hay menos abiertas, la primera señal a mercado que solo incumpla filtros BLANDOS (solo-probado, confianza, R:B ≥ 1, síntesis, costo ≤ 0,3 R) entra con riesgo × 0,5 y marca «mínimo». Pausas, tendencia mayor, cupo, cobertura y margen siguen duros. Nueva estrategia «Posición base» (`base_tendencia`, familia `base`: a favor de la tendencia mayor, SL 2 ATR / TP 3 ATR) da oferta continua; se evalúa en la sombra como cualquier otra. Retroalimentación: cada entrada forzada guarda qué filtro se saltó; si saltarlo rinde con expectativa claramente negativa (mismo `judge` del perfil) ese filtro se bloquea y queda en la bitácora/insights. Código: `eim/paper/book.py`, `params.py`, `strategies.py`, `summary.py`, `insights.py`; tests en `tests/paper/`.
 
