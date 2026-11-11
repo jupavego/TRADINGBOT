@@ -19,6 +19,8 @@ Pre-registro: `PLAN/notas/T166_preregistro.md` (v1 en el commit `d5ae85e`, v2 en
 **anteriores a cualquier cifra del banco**). Cifras: `reports/t166_regimen.json` y
 `reports/t166_r_por_estado.json`.
 
+**Gate completo verde por la cola sobre el árbol publicado** (`gate-t166-final`: 3 635 pruebas pasadas, 8 omitidas, 0 fallos, 1 847 s, rc 0) y `ruff check eim tests` limpio.
+
 Reproducible con, desde `v2/` y por la cola:
 
 ```
