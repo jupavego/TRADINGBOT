@@ -1247,7 +1247,37 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** BACKLOG T151 (1)–(6); la API viva sirve las rutas nuevas tras fusionar y reiniciarla.
 - **Siguiente paso:** fusionar el PR y reiniciar la API (junto con lo pendiente de T150); ◆ al cerrar T31, si el bróker anota el diagnóstico en cada idea.
 
+## 2026-11-11 04:00 UTC · juanpablo-cpu · T159: auditoría periódica (fase 25)
+- **Pedido:** fase de revisión, auditoría y calibración con todo lo hecho, como skill para repetirla sin gastar tantos tokens y encontrar oportunidades que aumenten la rentabilidad.
+- **Hecho:** `v2/eim/analytics/audit/` (`python -m eim.analytics.audit`, solo lectura por la API) y skill `.claude/skills/eim-auditoria/SKILL.md` con las decisiones vigentes, línea base, hitos y procedimiento de 5 pasos. Primera auditoría = línea base en `v2/reports/audit/audit_2026-11-11.{md,json}`.
+- **Visto:** reproduce el diagnóstico de la fase 24 (E[R] −0,131 R, bruto −0,009, costo 0,123 R). Límite −0,050 R frente a mercado −0,174. 15 m, el marco más caro, es el menos malo y la puerta de costo lo retiraría. Calibración BTC 1 h sin skill y «bull» sobrestimado 12 pp. Funding de BTC 3,54 %, cerca del disparador de 4 %.
+- **Archivos:** `v2/eim/analytics/audit/*`, `v2/tests/analytics/test_audit.py`, `.claude/skills/eim-auditoria/SKILL.md`, `PLAN/{T159,T160,STATUS,00_MASTER,BACKLOG,BITACORA,ESTADO_PROYECTO}.md`, hoja de ruta.
+- **Pruebas:** 10 nuevas en verde; ruff limpio; gate completo por la cola.
+- **Abierto:** T160 ◆ y BACKLOG T159 (1)–(4).
+- **Siguiente paso:** fusionar el PR; ◆ programar la auditoría semanal.
 
+## 2026-11-11 · juanpablo-cpu · T159: auditoría programada y ◆ de T160 resuelta
+- **Pedido:** «Sí, prográmala» y luego, sobre T160, «tomemos la más acertada».
+- **Hecho:** tarea de Claude `eim-auditoria-semanal` (domingo 22:00 local = lunes 03:00 UTC, modo Auto; solo abre PR si hay algo nuevo y no lo fusiona). ◆ de T160 resuelta: se abre, familia de Holm propia de calibración con 2 intentos pre-registrados, adopción no antes del cierre de T31.
+- **Archivos:** `PLAN/{T160,STATUS,ESTADO_PROYECTO,BACKLOG,BITACORA}.md`, `.claude/skills/eim-auditoria/SKILL.md`, hoja de ruta.
+- **Siguiente paso:** fusionar #260; T160 empieza por su pre-registro.
+
+## 2026-11-11 04:50 UTC · juanpablo-cpu · T160: recalibración de escenarios (cerrada, ninguna pasa)
+- **Pedido:** «Sí, empieza T160».
+- **Hecho:** pre-registro (`PLAN/notas/T160_preregistro.md`, commit `92f6e12`) antes del código (`eim/forecast/recal.py`, `recal_eval.py`, `scripts/t160_recalibracion.py`) y del resultado. Medición por la cola: 135 s, sin pausas.
+- **Visto:** M1 +0,0029 (p 0,24) y M2 +0,0058 (p 0,096) en el banco, ninguno pasa Holm; en vivo empeoran (−0,012 y −0,003). El motor ya está casi calibrado en 3,8 años (ECE 0,024); el «bull» de más en vivo es del régimen bajista.
+- **Archivos:** `v2/eim/forecast/{recal,recal_eval}.py`, `v2/scripts/t160_recalibracion.py`, `v2/tests/forecast/test_recal.py`, `v2/reports/t160_recalibracion.{md,json}`, `v2/eim/analytics/audit/levers.py`, skill `eim-auditoria`, `PLAN/{T160,STATUS,ESTADO_PROYECTO,BITACORA}.md`, hoja de ruta.
+- **Pruebas:** 6 nuevas; gate por la cola.
+- **Siguiente paso:** fusionar #260 y el PR de T160.
+
+## 2026-11-11 · juanpablo-cpu · Fase 27 abierta: la cantera de perfiles por agente (T167–T172)
+- **Pedido:** un «criadero, guardería o casa de talentos» donde cada uno de los 19 agentes desarrolle sus propios perfiles de inversión desde sus datos y su teoría (no un algoritmo genérico), que operen en un campo de entrenamiento para ver cuáles podrían tener éxito, conjugado con lo aprendido y con la bibliografía.
+- **Visto:** hoy los agentes solo entran al bróker con la regla genérica `agente_{id}` (8 de 19, `paper/strategies_ind.py`) y el contexto solo guarda sesgo, confianza y estado: las variables propias (p. ej. las 44 FRM de `ema`) no llegan a ninguna estrategia.
+- **Hecho:** diseño en `PLAN/notas/T167_cantera.md` (reglas de la casa, escalafón guardería → cantera → promesa → primer equipo o baja, boceto de los 19 agentes con sus obras del catálogo T151, retroalimentación) y fichas T167–T172; fila de la fase 27 en `00_MASTER.md` y filas en `STATUS.md`. Sin código; el gate no aplica.
+- **Decisiones de diseño:** solo hacia adelante (la historia no asciende: la lectura limpia se gastó en T139), ≤ 4 prospectos por agente con hermano simple obligatorio («a empate asciende el simple»), parámetros canónicos sin optimizar, familia propia pre-registrada (precedente T160), miradas mensuales secuenciales, libro aparte sin tocar T31 y nada opera con D (T145).
+- **Abierto:** T160 y T161 (de las que dependen T169/T170) siguen en ramas sin fusionar; la fila de la fase 27 chocará con las de las fases 25 y 26 al fusionar.
+- **Siguiente paso:** T167 (expedientes) y su ◆: la lista de prospectos y el techo de la familia.
+- **Aclaración del usuario (misma sesión):** los perfiles operan de forma simulada e interna sobre el mercado real en vivo y se miden por la **rentabilidad** que dejan. Ajustado: cada prospecto tiene su propia cuenta simulada (mismo capital, 1 % de riesgo, costos reales) y la medida principal es su rentabilidad neta acumulada, comparada siempre con el perfil al azar y con comprar y mantener; el R queda como vara estadística interna (nota §3, T168, T170, T171, T172).
 ## 2026-11-10 · Investigación de herramientas no exploradas → fase 26 (T161–T166)
 - **Hecho:** investigación en cinco líneas (datos alternativos, validación, modelos, estrategias, repos), cada una contrastada con `v2/eim` y `PLAN/` en el commit 61cbcd3. Conclusión: a EIM le faltan piezas de rigor y de volatilidad, no señales; casi nada crea ventaja. Se abren T161 (MinTRL + SPA), T162 (HAR-RV + ACI en el cono), T163 ◆ (TSMOM en cartera), T164 ◆ (carry y momentum transversales, tras T93), T165 (DVOL de Deribit) y T166 (régimen por saltos). Numeración comprobada en el remoto (T159 y T160 ya existían en ramas).
 - **Archivos:** `PLAN/T161–T166.md`, `PLAN/notas/T161_investigacion_herramientas.md` (informe completo con fuentes), `PLAN/{STATUS,00_MASTER,BACKLOG}.md`, `PLAN/status.js`.

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T23:50:47",
+ "generated": "2026-11-11T01:04:33",
  "phases": [
   {
    "n": 0,
@@ -310,6 +310,14 @@ window.EIM_STATUS = {
    ]
   },
   {
+   "n": 25,
+   "name": "Auditoría y calibración periódica",
+   "ids": [
+    "T159",
+    "T160"
+   ]
+  },
+  {
    "n": 26,
    "name": "Rigor estadístico y volatilidad",
    "ids": [
@@ -319,6 +327,18 @@ window.EIM_STATUS = {
     "T164",
     "T165",
     "T166"
+   ]
+  },
+  {
+   "n": 27,
+   "name": "Cantera de perfiles por agente",
+   "ids": [
+    "T167",
+    "T168",
+    "T169",
+    "T170",
+    "T171",
+    "T172"
    ]
   }
  ],
@@ -2342,6 +2362,35 @@ window.EIM_STATUS = {
    "goal": "Ver en la pestaña «Biblioteca», bajo la biblioteca local, de dónde sale cada recomendación y qué aportó el conocimiento."
   },
   {
+   "id": "T159",
+   "title": "Auditoría periódica de rentabilidad, riesgo y calibración (herramienta + skill)",
+   "deps": [
+    "T143",
+    "T144",
+    "T145",
+    "T150"
+   ],
+   "state": "done",
+   "notes": "**Hecha (2026-11-11).** `python -m eim.analytics.audit` (libro oficial T144 por la API, KPI del método de la fase 24, variante t143, calibración, funding 12 m, HFT, oportunidades con vía y Δ frente a la anterior) → `v2/reports/audit/`; skill `.claude/skills/eim-auditoria`. Línea base: E[R] −0,131 R, bruto −0,009, costo 0,123 R; límite −0,050 frente a mercado −0,174; 15 m el marco menos malo; funding BTC 3,54 % (cerca del 4 %). Hallazgos → T160 y BACKLOG T159.",
+   "effort": "medio",
+   "phase": 25,
+   "goal": "Pedido del usuario (2026-11-11): entrar en una fase de revisión, auditoría y calibración y dejarla"
+  },
+  {
+   "id": "T160",
+   "title": "Recalibrar las probabilidades de escenario, con pre-registro y fuera de muestra",
+   "deps": [
+    "T19",
+    "T26",
+    "T150",
+    "T159"
+   ],
+   "state": "done",
+   "notes": "**Hecha (2026-11-11): ninguna pasa y la línea se cierra.** Pre-registro `PLAN/notas/T160_preregistro.md` (commit anterior al código y al resultado). Banco T131: M1 +0,0029 de Brier (p 0,24), M2 +0,0058 (p 0,096), ninguno pasa Holm; en vivo los dos empeoran (−0,012 y −0,003). En el banco el motor ya está casi calibrado (ECE 0,024): el «bull» sobrestimado de la auditoría es del régimen bajista de oct–nov. Informe `v2/reports/t160_recalibracion.md`.",
+   "effort": "medio",
+   "phase": 25
+  },
+  {
    "id": "T161",
    "title": "Potencia a priori y contraste SPA: cuánta historia hace falta y si la mejor entrada era suerte",
    "deps": [
@@ -2350,8 +2399,8 @@ window.EIM_STATUS = {
     "T139",
     "T145"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-10 desde la investigación de herramientas (`PLAN/notas/T161_investigacion_herramientas.md`). MinTRL, SPA/MCS con `arch`, bloque óptimo y Benjamini-Hochberg.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-11).** **T145 se sostiene con SPA**: ninguna de las 9 claves de T139 supera a no operar (p de familia 0,459 en la lectura oficial, 0,886 en el banco; bruto 0,212/0,649) y «no operar» sobrevive en el MCS. Simulación rehecha idéntica a lo publicado antes de calcular. Detectar +0,10 R netos exige ≈ 750–850 operaciones (4–46 años al ritmo de cada clave); T31, a ≈ 60/semana, solo puede detectar ≥ 0,18 R en 4 semanas. Código: `eim/validation/{power,spa}.py` (MinTRL, n a priori, SPA, MCS, Politis-White; `arch` 8.0.0 NCSA en el extra `stats`), `bh` y `block=\"auto\"` en `backtest/edge.py`. MinTRL probado por su definición (PSR = 1 − α en n = MinTRL) en lugar de un ejemplo publicado. Informe `v2/reports/t161_potencia_spa.md`.",
    "effort": "bajo",
    "phase": 26
   },
@@ -2421,6 +2470,87 @@ window.EIM_STATUS = {
    "notes": "Misma investigación. Comparación en el banco de T133 antes de construir más de un modelo.",
    "effort": "bajo",
    "phase": 26
+  },
+  {
+   "id": "T167",
+   "title": "◆ Expedientes de la cantera: qué sabe cada agente y qué perfiles propios propone",
+   "deps": [
+    "T49",
+    "T145",
+    "T151",
+    "T157"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "medio",
+   "phase": 27
+  },
+  {
+   "id": "T168",
+   "title": "Motor de la cantera: prospectos nativos en un libro aparte del bróker simulado",
+   "deps": [
+    "T167",
+    "T49",
+    "T143"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "alto",
+   "phase": 27
+  },
+  {
+   "id": "T169",
+   "title": "Examen físico de los prospectos en la historia (sin mirar su rendimiento)",
+   "deps": [
+    "T168",
+    "T131",
+    "T161"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "medio",
+   "phase": 27
+  },
+  {
+   "id": "T170",
+   "title": "◆ Pre-registro cantera_v1 y arranque de la cantera hacia adelante",
+   "deps": [
+    "T167",
+    "T168",
+    "T169",
+    "T160",
+    "T161"
+   ],
+   "state": "pending",
+   "notes": "— (T160 cerrada el 2026-11-11: ninguna recalibración pasó, `v2/reports/t160_recalibracion.md`)",
+   "effort": "medio",
+   "phase": 27
+  },
+  {
+   "id": "T171",
+   "title": "Panel «Cantera»: escalafón por agente, honesto con la muestra",
+   "deps": [
+    "T168",
+    "T170"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "medio",
+   "phase": 27
+  },
+  {
+   "id": "T172",
+   "title": "◆ Informe mensual de ojeo y retroalimentación (agentes, biblioteca, síntesis)",
+   "deps": [
+    "T170",
+    "T155",
+    "T157",
+    "T159"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "medio",
+   "phase": 27
   }
  ]
 };
