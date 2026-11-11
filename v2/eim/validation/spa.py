@@ -112,3 +112,36 @@ def mcs(names: Sequence[str], gains: np.ndarray, size: float = 0.10, reps: int =
     m.compute()
     pv = m.pvalues["Pvalue"]
     return {labels[int(i)]: float(pv.loc[i]) for i in pv.index}
+
+
+def mcs_losses(names: Sequence[str], losses: np.ndarray, size: float = 0.10, reps: int = 2000,
+               seed: int = 0, block: float | None = None) -> dict[str, float]:
+    """p del MCS por modelo a partir de pérdidas directas (menor es mejor), sin base añadida.
+
+    Para comparar pronósticos (T162); `mcs` es la versión de reglas de trading con «no operar»."""
+    from arch.bootstrap import MCS
+
+    x = np.asarray(losses, float)
+    b = block_length(x) if block is None else block
+    m = MCS(x, size=size, reps=reps, block_size=max(1, int(round(b))), method="R",
+            bootstrap="stationary", seed=seed)
+    m.compute()
+    pv = m.pvalues["Pvalue"]
+    return {names[int(i)]: float(pv.loc[i]) for i in pv.index}
+
+
+def mean_diff_test(d: np.ndarray, reps: int = 2000, seed: int = 0, block: float | None = None
+                   ) -> tuple[float, float, float]:
+    """(IC95 % inferior, superior, p unilateral de media < 0) de una serie de diferencias de
+    pérdida por bootstrap estacionario; p con la muestra recentrada bajo H0: media ≥ 0."""
+    from arch.bootstrap import StationaryBootstrap
+
+    d = np.asarray(d, float)
+    b = block_length(d) if block is None else block
+    bs = StationaryBootstrap(max(1.0, b), d, seed=seed)
+    means = np.array([float(np.mean(x[0][0])) for x in bs.bootstrap(reps)])
+    lo, hi = np.percentile(means, [2.5, 97.5])
+    centered = means - d.mean()
+    p = float((1 + np.sum(centered <= d.mean())) / (1 + reps))
+    return float(lo), float(hi), p
+

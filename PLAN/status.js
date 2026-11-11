@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T01:47:29",
+ "generated": "2026-11-11T02:05:36",
  "phases": [
   {
    "n": 0,
@@ -2412,8 +2412,8 @@ window.EIM_STATUS = {
     "T19",
     "T160"
    ],
-   "state": "pending",
-   "notes": "Misma investigación. HAR-RV al cono (hoy GARCH con α/β fijos), ACI, QLIKE/CRPS/PIT y MCS de motores; adopción no antes del cierre de T31.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-11), sin adoptar hasta cerrar T31.** **M1 (Log-HAR-RV) pasa las tres condiciones pre-registradas**: QLIKE −9,6 % frente al GARCH fijo del cono (IC −0,051…−0,014, Holm 0,004), único en el MCS (M0 fuera, p 0,005) y cobertura 80 % con ACI 80,1 %/80,3 % (2024–26). GJR-GARCH diario y la combinación se descartan. **Matiz:** la ventaja es en la varianza realizada (M1 insesgado, M0 corto un 21 %); en la distribución del retorno empatan (mismo CRPS). Código `eim/forecast/{vol_models,vol_eval}.py`, `mcs_losses`/`mean_diff_test` en `validation/spa.py`; informe `v2/reports/t162_cono_volatilidad.md`, pre-registro `PLAN/notas/T162_preregistro.md`. Kronos sin medir (sin torch).",
    "effort": "medio",
    "phase": 26
   },
