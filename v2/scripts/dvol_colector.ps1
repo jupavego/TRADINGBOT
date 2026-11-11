@@ -66,7 +66,7 @@ if ($Instalar) {
 
 try {
   if (-not (Test-Path $py)) {
-    throw "no existe $py: este script corre desde la carpeta principal, no desde un worktree"
+    throw "no existe ${py}; este script corre desde la carpeta principal, no desde un worktree"
   }
   $salida = & $py -m eim.operation.priority run batch -- `
     $py -m eim.data.dvol --data $datos --currency $Monedas 2>&1
