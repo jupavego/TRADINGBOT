@@ -1,14 +1,17 @@
 <#
 .SYNOPSIS
-  Colector del indice DVOL de Deribit (T165): cada hora refresca la volatilidad implicita de BTC y
-  ETH en el almacen vivo. No arranca ningun servicio nuevo ni toca los que ya corren.
+  Colector del indice DVOL de Deribit (T165): cada hora refresca la volatilidad implicita de BTC
+  en el almacen vivo. No arranca ningun servicio nuevo ni toca los que ya corren.
+
+  Solo BTC: es el alcance de este trabajo (decision del usuario, 2026-11-11). Otra moneda hay que
+  pedirla a mano con -Monedas, y medirla exigiria su propio pre-registro.
 
 .DESCRIPTION
   Ejecuta `python -m eim.data.dvol` con prioridad de lote (IDLE, `eim.operation.priority`), para no
   competir con la captura HFT ni con el broker simulado. Cada pasada es incremental: pide solo lo
   que falta desde la ultima vela guardada menos 24 h, asi que dura segundos y gasta unos pocos MB.
 
-  La serie queda en `data\dvol\symbol=BTC|ETH\timeframe=1h\` y cada pasada deja una linea en
+  La serie queda en `data\dvol\symbol=BTC\timeframe=1h\` y cada pasada deja una linea en
   `data\operation\logs\dvol.log`, tambien si falla, con las filas y la cobertura resultantes.
 
   Por que cada hora: el DVOL publica velas de 60 min y el pronostico de T165 usa la que cierra a
@@ -23,7 +26,7 @@
   powershell -ExecutionPolicy Bypass -File v2\scripts\dvol_colector.ps1 -Instalar
   powershell -ExecutionPolicy Bypass -File v2\scripts\dvol_colector.ps1 -Quitar
 #>
-param([switch]$Instalar, [switch]$Quitar, [string]$Monedas = "BTC,ETH")
+param([switch]$Instalar, [switch]$Quitar, [string]$Monedas = "BTC")
 $ErrorActionPreference = "Stop"
 $v2 = Split-Path -Parent $PSScriptRoot
 $py = Join-Path $v2 ".venv\Scripts\python.exe"

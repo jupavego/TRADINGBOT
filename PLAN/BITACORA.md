@@ -1333,3 +1333,18 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** BACKLOG T168 (1)–(5). La cantera **no se enciende aquí**: `EIM_NURSERY=0` hasta el pre-registro de T170. Nada de examen físico (T169), ascensos (T170), panel (T171) ni informe (T172). Solo BTCUSDT.
 - **En curso:** la corrida de aceptación de la semana entera, por la cola.
 - **Siguiente paso:** T169, el examen físico de los 43 prospectos en el banco de T131 (por la cola, 2 procesos como máximo, y con reintentos al leer el tramo vivo del almacén).
+## 2026-11-11 · T165: el DVOL entra en la copia diaria y el alcance se fija en BTC
+- **Hecho:** a pedido del usuario. (1) `data/dvol/` viaja en **toda** copia de seguridad, no solo con `--with-market`: va en su propia carpeta `dvol/` del `eim_*` y `restore` la devuelve a `data/dvol/`. Es redescargable, pero son ~0,9 MB frente a los ~90 MB de las velas y congelarla es lo que hace repetible la medición de T165 si Deribit recorta su historia. (2) **El alcance es BTC**: el colector pasa a `-Monedas "BTC"` por defecto (nació con `"BTC,ETH"`), ETHUSDT sale del siguiente paso de T165 y las 49 402 velas de ETH ya bajadas **se borraron** a pedido del usuario y la tarea horaria se volvió a registrar con `-Monedas BTC` (comprobado: la pasada siguiente solo trae BTC y no recrea ETH).
+- **Archivos:** `v2/eim/data/backup.py`, `v2/eim/data/backup_restore.py`, `v2/tests/data/test_backup.py`, `v2/scripts/dvol_colector.ps1`, `v2/docs/{OPERACION,ALMACENAMIENTO}.md`, `PLAN/{STATUS,BACKLOG,status.js}.md`.
+- **Pruebas:** dos nuevas en `test_backup.py` (el DVOL viaja sin `--with-market`; `restore` lo devuelve) y la lista de `test_restore` ampliada con `dvol/`; 38 en verde entre copia y DVOL. Gate completo por la cola.
+- **Abierto:** BACKLOG T165 (5) el panel, (7) la prueba que analice los `.ps1`; comprobar en la próxima subida que el DVOL viaja también en la copia externa.
+- **En curso:** nada.
+- **Siguiente paso:** T166 (régimen: saltos frente a HMM y BOCPD) sobre el banco de T133.
+
+## 2026-11-11 · T165: los .ps1 del proyecto pasan por el gate
+- **Hecho:** `v2/tests/test_scripts_ps1.py` pide al propio PowerShell que **analice** (no ejecute) los 16 scripts de `v2/scripts/` con `[Parser]::ParseFile`; 1,3 s y se omite donde no haya PowerShell. Cierra el agujero que dejó ver `dvol_colector.ps1`, que se fusionó con un error de sintaxis (`"$py:"`, que PowerShell lee como variable con unidad) y pasó el gate en verde porque solo mira Python. Una segunda prueba reproduce ese error exacto en un script de ejemplo, así que el análisis no puede quedarse vacío sin que falle. Comprobado además rompiendo a propósito el script real: la prueba lo caza nombrando archivo y línea.
+- **Archivos:** `v2/tests/test_scripts_ps1.py`, `PLAN/BACKLOG.md`.
+- **Pruebas:** 2 nuevas en verde; gate completo por la cola.
+- **Abierto:** el gate analiza los scripts pero no juzga **lo que hacen**: eso solo lo ve ejecutarlos (BACKLOG T165 (7)).
+- **En curso:** nada.
+- **Siguiente paso:** T166 (régimen: saltos frente a HMM y BOCPD) sobre el banco de T133.

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T08:15:01",
+ "generated": "2026-11-11T04:48:40",
  "phases": [
   {
    "n": 0,
@@ -2454,7 +2454,7 @@ window.EIM_STATUS = {
     "T162"
    ],
    "state": "done",
-   "notes": "**Hecha (2026-11-11), sin adoptar hasta cerrar T31. A2 (HAR-IV con la pendiente del DVOL) pasa las tres condiciones pre-registradas**: QLIKE −6,7 % frente a M1 (IC −0,032…−0,010, Holm 0,0006), único en el MCS (M1 fuera, p 0,004) y cobertura con ACI 80,2 %/80,3 %; la mejora (0,021) supera la mínima detectable declarada (0,014). **El DVOL solo, no:** A1 (nivel, = la prima en logaritmos) mejora un 1,0 % y no se distingue de M1 (p 0,33). Un control posterior avisa de que **con el DVOL de ayer el modelo es peor que el HAR**: toda la ventaja está en la lectura de las 00:00. 1 770 días (2022-01-01 → 2026-11-05), DVOL al 100 % desde 2021-03-24. Ingesta `eim/data/dvol.py` + `providers/deribit.py` (sin clave, sin servicio nuevo); informe `v2/reports/t165_dvol.md`, pre-registro `PLAN/notas/T165_preregistro.md`. **Colector programado el 2026-11-11** (`scripts/dvol_colector.ps1`, tarea horaria de Windows en prioridad de lote, registro en `data/operation/logs/dvol.log`); sin panel y sin entrar en la copia diaria (BACKLOG T165 (2) y (5)).",
+   "notes": "**Hecha (2026-11-11), sin adoptar hasta cerrar T31. A2 (HAR-IV con la pendiente del DVOL) pasa las tres condiciones pre-registradas**: QLIKE −6,7 % frente a M1 (IC −0,032…−0,010, Holm 0,0006), único en el MCS (M1 fuera, p 0,004) y cobertura con ACI 80,2 %/80,3 %; la mejora (0,021) supera la mínima detectable declarada (0,014). **El DVOL solo, no:** A1 (nivel, = la prima en logaritmos) mejora un 1,0 % y no se distingue de M1 (p 0,33). Un control posterior avisa de que **con el DVOL de ayer el modelo es peor que el HAR**: toda la ventaja está en la lectura de las 00:00. 1 770 días (2022-01-01 → 2026-11-05), DVOL al 100 % desde 2021-03-24. Ingesta `eim/data/dvol.py` + `providers/deribit.py` (sin clave, sin servicio nuevo); informe `v2/reports/t165_dvol.md`, pre-registro `PLAN/notas/T165_preregistro.md`. **Colector programado el 2026-11-11** (`scripts/dvol_colector.ps1`, tarea horaria de Windows en prioridad de lote, **solo BTC**, registro en `data/operation/logs/dvol.log`) y `data/dvol/` **entra en la copia diaria**; sin panel (BACKLOG T165 (5)).",
    "effort": "bajo",
    "phase": 26
   },
@@ -2493,8 +2493,8 @@ window.EIM_STATUS = {
     "T49",
     "T143"
    ],
-   "state": "done",
-   "notes": "`v2/eim/nursery/` (contrato `Prospect` con huella, 43 prospectos de los expedientes de T167, 13 módulos de reglas nativas puras, simulación maker con markout y funding real, cuentas propias con gemelos pareados y puerta de costo a 0,3 R) + `GET /v2/nursery`; contexto con `nat` solo con `EIM_NURSERY=1`, base propia `data/paper_cantera.duckdb`. Rescatada de una sesión caída: 3 fallos arreglados (ver `PLAN/notas/T168_motor_cantera.md` §5). Apagada hasta el pre-registro de T170",
+   "state": "pending",
+   "notes": "—",
    "effort": "alto",
    "phase": 27
   },

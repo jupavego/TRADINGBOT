@@ -35,6 +35,9 @@ def _data(tmp_path):
     (d / "operation" / "logs" / "op-2026-10-14.jsonl").write_text("{}\n", encoding="utf-8")
     (d / "candles").mkdir()
     (d / "candles" / "x.parquet").write_bytes(b"PAR1")
+    serie = d / "dvol" / "symbol=BTC" / "timeframe=1h"
+    serie.mkdir(parents=True)
+    (serie / "data.parquet").write_bytes(b"DVOL1")
     return d
 
 
@@ -51,6 +54,26 @@ def test_cold_backup_and_verify(tmp_path):
             "config/risk/risk_v1.json"} <= set(m["files"])
     assert not any(k.startswith("market/") for k in m["files"])      # sin --with-market
     assert B.verify(out) == []
+
+
+def test_dvol_travels_in_the_daily_copy_without_with_market(tmp_path):
+    """T165: el DVOL es pequeño y congelarlo hace repetible la medición, así que va siempre."""
+    out = B.create(_data(tmp_path), tmp_path / "bk", clock=lambda: T0)
+    rel = "dvol/symbol=BTC/timeframe=1h/data.parquet"
+    m = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
+    assert rel in m["files"] and not m["with_market"]
+    assert (out / rel).read_bytes() == b"DVOL1"
+    assert B.verify(out) == []
+
+
+def test_restore_brings_the_dvol_series_back(tmp_path):
+    d = _data(tmp_path)
+    out = B.create(d, tmp_path / "bk", clock=lambda: T0)
+    serie = d / "dvol" / "symbol=BTC" / "timeframe=1h" / "data.parquet"
+    serie.unlink()
+    restored = B.restore(out, d)
+    assert "dvol/" in restored
+    assert serie.read_bytes() == b"DVOL1"
 
 
 def test_with_market(tmp_path):
@@ -102,7 +125,7 @@ def test_restore(tmp_path):
     (d / "kill_switch.json").write_text('{"active": true}', encoding="utf-8")
     (d / "operation" / "state_testnet.json").write_text("{}", encoding="utf-8")  # no copiado
     assert B.restore(out, d, clock=lambda: T0) == ["reports.duckdb", "kill_switch.json",
-                                                   "operation/"]
+                                                   "operation/", "dvol/"]
     con = duckdb.connect(str(d / B.DB_NAME), read_only=True)
     assert con.execute("SELECT count(*) FROM t").fetchone()[0] == 3
     con.close()
