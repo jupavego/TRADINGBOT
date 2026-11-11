@@ -58,9 +58,8 @@ ficha. Los tres arreglos que hicieron falta están en §5.
 
 ## 3. El costo en disco de las variables nativas (entregable 3)
 
-Medido con datos reales (BTCUSDT, una semana, 15 m + 1 h + 4 h, `EIM_NURSERY=1` en una copia):
-
-Medido sobre reportes **reales** del almacén vivo (BTCUSDT, 2026-11-11), contexto a contexto:
+Medido sobre reportes **reales** del almacén vivo (BTCUSDT, 2026-11-11), contexto a contexto, con
+`EIM_NURSERY=1` en una copia:
 
 | Marco | Contexto sin `nat` | Con `nat` | Lo que añaden las variables nativas | Agentes con `nat` |
 |---|---|---|---|---|
@@ -72,10 +71,16 @@ A la cadencia del bróker (96 contextos de 15 m + 24 de 1 h + 6 de 4 h al día):
 
 **≈ 262 KiB de JSON al día, ≈ 1,8 MiB a la semana, ≈ 7,7 MiB al mes.** El contexto pasa de ~2,1 KB
 a ~4,4 KB: la cantera **duplica** el tamaño de cada contexto, y eso es lo que cuesta guardar las
-variables propias de los 13 agentes en vez de solo sus tres números. En disco pesa menos: DuckDB
-comprime el JSON y crece por bloques, así que la cifra de arriba es el techo. Para dar la escala:
-`paper.duckdb` lleva hoy 91 MB con más de un año de corrida, así que la cantera encendida un año
-añadiría del orden del 10 % de lo que ya ocupa, sin tocar nada de lo que hay.
+variables propias de los 13 agentes en vez de solo sus tres números.
+
+**Eso es el JSON; en disco salió más, no menos.** Medido en la corrida de la semana (882 contextos
+reales), la base pasó de **4,99 MB a 9,71 MB**: **+4,72 MB (+94,5 %)**, o **674 KB al día** para
+272 KB de JSON al día. DuckDB añadió **2,5 veces** la carga útil, porque a esta escala pesan los
+bloques y el JSON no se comprime bien. Sobre la base viva (`paper.duckdb`, 91 MB y más de un año de
+corrida) esa proporción no se ha medido, así que lo honesto es dar el rango: un año de cantera
+encendida añade **entre ~0,1 y ~0,25 GB**, y es un punto que T170 debe mirar al encenderla, no una
+cifra cerrada. El contexto medio sí quedó donde decía la estimación: **2 149 B sin `nat` y 4 312 B
+con `nat`** (+2 163 B).
 
 No se guarda nada que algún prospecto no declare: las rutas salen de `native_paths(prospects)`, y
 un agente sin prospectos (los 6 excluidos de T167) no aporta ni un byte. Los números se redondean
@@ -98,14 +103,49 @@ temporal):
    `paper_cantera.duckdb`. ✅ (También está como prueba del gate,
    `tests/nursery/test_native_desk.py::test_nursery_never_writes_to_the_t31_books`.)
 
-**Gate completo verde por la cola, dos veces:** `gate-t168` (rc 0, 1 481 s, 3 641 pruebas) y,
-tras la segunda fusión de `main`, `gate-t168-2` (rc 0, 1 411 s, **3 645 pruebas**, 3 637 pasadas,
-8 omitidas, 0 fallos).
+**Gate completo verde por la cola, tres veces**, una por cada árbol que hubo: `gate-t168` (rc 0,
+1 481 s, 3 641 pruebas), `gate-t168-2` tras la segunda fusión de `main` (rc 0, 1 411 s, 3 645
+pruebas) y **`gate-t168-3` sobre el árbol que va en el PR**, con T166 y T173 ya dentro (rc 0,
+1 416 s, **3 671 pruebas: 3 663 pasadas, 8 omitidas, 0 fallos**). `ruff check eim tests` limpio en
+ese mismo árbol.
 
-La corrida de **una semana entera** (882 contextos reales de 15 m, 1 h y 4 h) sigue por la cola y
-su resultado se añade aquí: es la que dice cuántos de los 43 prospectos operan de verdad en una
-semana y cuánto crece la base en disco. Costó tres intentos y **los dos primeros fallos son datos
-útiles para T169**, que va a leer mucho más del almacén:
+### La semana entera, con datos reales (2026-11-11)
+
+Costó tres intentos y salió a la tercera: **882 contextos reales** (164 + 396 de 15 m, 168 de 1 h y
+42 de 4 h hasta el 2026-11-10T12:15Z), 5 187 s de generación con un solo proceso. Las tres
+comprobaciones de arriba son de esta corrida; el libro de T31 salió **idéntico** en los dos juegos
+(digest `efc21670…`, 1 318 filas, 1 413 ideas, 1 087 cerradas; conservador 14, moderado 99, agresivo
+95, ppp 23).
+
+**Operan 32 de los 43 prospectos en una semana**, con 239 operaciones propias (494 con los
+controles, de las que 475 cerraron):
+
+| Banda | Operan | Operaciones | Los que no operaron |
+|---|---|---|---|
+| Scalping | 5 de 6 | 56 | `liq_agotamiento` |
+| Intradía | 16 de 18 | 144 | `ema_elastico`, `estructura_ruptura` |
+| Tres días | 6 de 11 | 26 | `bots_mayoria`, `bots_unanimidad`, `regimen_tramo`, `regimen_tramo_estable`, `tec_acuerdo_marcos` |
+| Semanal | 5 de 8 | 13 | `elliott_onda3`, `elliott_onda5_giro`, `estructura_continuacion` |
+
+Una semana **no es un veredicto de cadencia**: eso lo mide T169 sobre la historia, en la unidad de
+cada banda. Lo que esta corrida demuestra es que el motor **produce ideas con variables propias en
+las cuatro bandas**; por qué callaron esos 11 no se ha averiguado aquí, y quedan nombrados para que
+T169 los mida donde una semana no alcanza.
+
+**La puerta de costo se cerró sola, y es el hallazgo de la corrida.** Los tres marcos abrieron con el
+punto de partida de T136 (15 m 0,157 R · 1 h 0,123 · 4 h 0,091, todos bajo el umbral de 0,3 R) y al
+tercer día, con sus **50 operaciones de sombra** ya medidas, 15 m dio un costo real de **0,342 R** y
+el marco **quedó cerrado** para sus nueve cuentas. Dicho de otro modo: con la puerta en 0,15 R el
+scalping no habría llegado a medirse (§2.4), y con la puerta en 0,3 R **se midió y no pasó**, que es
+exactamente lo que la nota de T167 §3 quería que ocurriera. Dos avisos para T169 y T170: el número
+sale de **50 operaciones de una semana** y no decide nada por sí solo, y la banda de scalping es la
+que está en riesgo real de baja por costo.
+
+Costo medio de las 494 operaciones **0,185 R**, R medio **−0,156** y diferencia media frente a los
+gemelos **−0,011 R**: a una semana no significa nada (ni se pretende), pero confirma que las tres
+columnas se calculan y que el vivero nace sin ventaja regalada.
+
+Los **dos primeros intentos son datos útiles para T169**, que va a leer mucho más del almacén:
 
 1. **Carrera con la captura HFT.** Leer una parte parquet de `micro/top` de la hora en curso
    mientras el colector la compacta revienta con `IOException`. Solución: cortar la ventana un día
