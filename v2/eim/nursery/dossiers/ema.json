@@ -1,0 +1,233 @@
+{
+ "agent_id": "ema",
+ "agent_version": "1.0.0",
+ "status": "inscrito",
+ "verified": "2026-11-11",
+ "theory": "Las medias exponenciales ordenadas describen la tendencia; su orden, compresión y elasticidad dicen si continúa, si va a romper o si está sobreextendida.",
+ "variables": [
+  {
+   "name": "metrics.variables.STACK_ORDER",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "orden de la pila 9/21/55/100/200"
+  },
+  {
+   "name": "metrics.variables.PRICE_VS_STACK",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.variables.EMA_21",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.variables.EMA_200",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.variables.SLOPE_DIRECTION",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.variables.COMPRESSION_INDEX",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.variables.COMPRESSION_DURATION",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.variables.ELASTICITY",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.variables.BOUNCE_COUNT_21",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  }
+ ],
+ "history": {
+  "source": "banco T131 (v2/backups/t131_banco, binance-futures)",
+  "from": "2023-01-01",
+  "to": "2026-11-03",
+  "coverage": "100 % (0 huecos en 1m/15m/1h/4h)",
+  "exam": "banco_t131"
+ },
+ "cadence": {
+  "expected": "pila: 1–3 entradas/mes en 4 h; resorte y retroceso: varias por semana en 1 h; elástico: pocas al mes",
+  "basis": "|sesgo| ≥ 0,3 en el 83 % de los reportes (reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes): el agente casi siempre ve tendencia, así que la pila completa es la condición escasa"
+ },
+ "literature": [
+  {
+   "id": "brock_lakonishok_lebaron_1992",
+   "concept": "trend_following",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "hurst_ooi_pedersen_2017",
+   "concept": "trend_following",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "moskowitz_ooi_pedersen_2012",
+   "concept": "momentum",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "sullivan_timmermann_white_1999",
+   "concept": "technical_analysis",
+   "stance": "objeta",
+   "consensus": "dividido (+0,06)"
+  },
+  {
+   "id": "bajgrowicz_scaillet_2012",
+   "concept": "technical_analysis",
+   "stance": "objeta",
+   "consensus": "dividido (+0,06)"
+  },
+  {
+   "id": "avellaneda_lee_2010",
+   "concept": "mean_reversion",
+   "stance": "condiciona",
+   "consensus": "condicionado (0,00)"
+  }
+ ],
+ "prospects": [
+  {
+   "id": "ema_pila",
+   "name": "Pila alineada",
+   "role": "base",
+   "theory": "Seguir la tendencia mientras las cinco medias estén en orden.",
+   "opposite_of": null,
+   "rule": "Largo si EMA 9 > 21 > 55 > 100 > 200 y cierre > EMA 200; corto en espejo. Sale cuando la pila deja de estar en orden.",
+   "variables": [
+    "metrics.variables.STACK_ORDER",
+    "metrics.variables.PRICE_VS_STACK"
+   ],
+   "params": {
+    "emas": {
+     "value": "9/21/55/100/200",
+     "source": "EIM-FRM-001 (especificación F del proyecto), `agents/ema/params.py`"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "1–3/mes",
+   "literature": [
+    "brock_lakonishok_lebaron_1992",
+    "hurst_ooi_pedersen_2017"
+   ],
+   "horizon": "semanal"
+  },
+  {
+   "id": "ema_resorte",
+   "name": "Resorte (compresión → ruptura)",
+   "role": "candidato",
+   "theory": "Tras una compresión larga de las medias, la expansión sigue a las pendientes.",
+   "opposite_of": null,
+   "rule": "Si COMPRESSION_INDEX ≤ θ-001 durante ≥ θ-006 velas y la compresión se rompe, entra en la dirección de SLOPE_DIRECTION.",
+   "variables": [
+    "metrics.variables.COMPRESSION_INDEX",
+    "metrics.variables.COMPRESSION_DURATION",
+    "metrics.variables.SLOPE_DIRECTION"
+   ],
+   "params": {
+    "theta_001_compress": {
+     "value": 0.5,
+     "source": "θ de EIM-BRM-001, `agents/structure/params.py::BRMParams` (provisional, no calibrado)"
+    },
+    "theta_006_duration": {
+     "value": 5,
+     "source": "θ de EIM-BRM-001, `agents/structure/params.py::BRMParams` (provisional, no calibrado)"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "history_exam": "banco_t131",
+   "expected_cadence": "varias/semana",
+   "literature": [
+    "zarattini_aziz_2023",
+    "moskowitz_ooi_pedersen_2012"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "ema_retroceso",
+   "name": "Retroceso a la 21 en tendencia",
+   "role": "candidato",
+   "theory": "En tendencia ordenada, el retroceso a la media rápida es una entrada a favor.",
+   "opposite_of": null,
+   "rule": "Con la pila en orden, entra a favor cuando el precio toca la EMA 21 (BOUNCE_COUNT_21 sube) y cierra de nuevo a su favor.",
+   "variables": [
+    "metrics.variables.STACK_ORDER",
+    "metrics.variables.EMA_21",
+    "metrics.variables.BOUNCE_COUNT_21"
+   ],
+   "params": {
+    "ema_touch": {
+     "value": 21,
+     "source": "EIM-FRM-001 (especificación F del proyecto), `agents/ema/params.py`"
+    },
+    "emas": {
+     "value": "9/21/55/100/200",
+     "source": "EIM-FRM-001 (especificación F del proyecto), `agents/ema/params.py`"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "history_exam": "banco_t131",
+   "expected_cadence": "varias/semana",
+   "literature": [
+    "hurst_ooi_pedersen_2017",
+    "osler_2000_frbny"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "ema_elastico",
+   "name": "Elasticidad extrema (reversión)",
+   "role": "candidato",
+   "theory": "Teoría opuesta: un precio muy estirado sobre sus medias vuelve a ellas.",
+   "opposite_of": "ema_pila",
+   "rule": "Si ELASTICITY ≥ θ-003, entra contra el estiramiento con objetivo en la EMA 21.",
+   "variables": [
+    "metrics.variables.ELASTICITY",
+    "metrics.variables.EMA_21"
+   ],
+   "params": {
+    "theta_003_elastic": {
+     "value": 5.0,
+     "source": "θ de EIM-BRM-001, `agents/structure/params.py::BRMParams` (provisional, no calibrado)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "mean_target",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "avellaneda_lee_2010",
+    "chan_2013"
+   ],
+   "horizon": "intradia"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "Las 44 variables FRM existen en `metrics.variables`; T168 guarda solo las nueve declaradas aquí."
+ ],
+ "performance_computed": false
+}

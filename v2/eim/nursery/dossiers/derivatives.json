@@ -1,0 +1,196 @@
+{
+ "agent_id": "derivatives",
+ "agent_version": "1.0.0",
+ "status": "inscrito",
+ "verified": "2026-11-11",
+ "theory": "El posicionamiento apalancado (funding, open interest, base) delata a los saturados: cuando el funding es extremo, el lado lleno paga y suele perder.",
+ "variables": [
+  {
+   "name": "metrics.funding_z",
+   "source": "funding de Binance (snapshot.funding)",
+   "note": ""
+  },
+  {
+   "name": "metrics.funding_last",
+   "source": "funding de Binance (snapshot.funding)",
+   "note": ""
+  },
+  {
+   "name": "metrics.oi_change_z",
+   "source": "open interest de Binance (snapshot.open_interest)",
+   "note": ""
+  },
+  {
+   "name": "metrics.price_return",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.long_short_z",
+   "source": "ratio largos/cortos de Binance (snapshot.long_short_ratio)",
+   "note": "desde 2026-10-01; opcional"
+  }
+ ],
+ "history": {
+  "source": "funding: banco T131; OI: data/open_interest",
+  "from": "2023-01-01",
+  "to": "2026-11-11",
+  "coverage": "funding 4 209/4 208 liquidaciones (banco); OI solo desde 2026-10-01 (985 h: Binance sirve 30 días de OI)",
+  "exam": "mixto: funding → banco_t131; OI → solo_adelante"
+ },
+ "cadence": {
+  "expected": "funding extremo: pocas al mes; reglas con OI: varias al mes",
+  "basis": "|sesgo| ≥ 0,3 en el 22 % de los reportes (reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes)"
+ },
+ "literature": [
+  {
+   "id": "he_manela_2022",
+   "concept": "funding_rate",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "ackerer_2023_perp",
+   "concept": "perpetual_futures",
+   "stance": "apoya",
+   "consensus": "condicionado (+1,00)"
+  },
+  {
+   "id": "soska_2021_bitmex",
+   "concept": "liquidation",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "liu_tsyvinski_2021",
+   "concept": "momentum",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  }
+ ],
+ "prospects": [
+  {
+   "id": "deriv_funding_contrario",
+   "name": "Funding extremo, contrario",
+   "role": "base",
+   "theory": "Un funding muy alto (o muy negativo) indica un lado saturado que acaba pagando.",
+   "opposite_of": null,
+   "rule": "Corto si funding_z ≥ z_high; largo si ≤ −z_high.",
+   "variables": [
+    "metrics.funding_z"
+   ],
+   "params": {
+    "z_high": {
+     "value": 1.0,
+     "source": "`agents/derivatives/params.py` (umbral del agente, no calibrado)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "he_manela_2022",
+    "ackerer_2023_perp"
+   ],
+   "horizon": "tres_dias"
+  },
+  {
+   "id": "deriv_oi_tendencia",
+   "name": "Precio y OI a la vez (posiciones nuevas)",
+   "role": "candidato",
+   "theory": "Teoría opuesta: precio y OI que suben juntos con funding sano es tendencia con dinero nuevo, y se sigue.",
+   "opposite_of": "deriv_funding_contrario",
+   "rule": "Entra a favor del precio si |retorno| ≥ price_move, oi_change_z ≥ z_oi y |funding_z| < 1.",
+   "variables": [
+    "metrics.price_return",
+    "metrics.oi_change_z",
+    "metrics.funding_z"
+   ],
+   "params": {
+    "price_move": {
+     "value": 0.002,
+     "source": "`agents/derivatives/params.py`"
+    },
+    "z_oi": {
+     "value": 0.5,
+     "source": "`agents/derivatives/params.py`"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "history_exam": "solo_adelante",
+   "expected_cadence": "varias/mes",
+   "literature": [
+    "liu_tsyvinski_2021"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "deriv_saturacion",
+   "name": "Saturación apalancada (reglas 1 y 3)",
+   "role": "candidato",
+   "theory": "Precio y OI suben con funding extremo: el lado lleno está expuesto a un squeeze.",
+   "opposite_of": null,
+   "rule": "Corto si precio↑, oi_change_z ≥ z_oi y funding_z ≥ z_high; largo en espejo.",
+   "variables": [
+    "metrics.price_return",
+    "metrics.oi_change_z",
+    "metrics.funding_z"
+   ],
+   "params": {
+    "z_high": {
+     "value": 1.0,
+     "source": "`agents/derivatives/params.py`"
+    },
+    "z_oi": {
+     "value": 0.5,
+     "source": "`agents/derivatives/params.py`"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "history_exam": "solo_adelante",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "soska_2021_bitmex",
+    "he_manela_2022"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "deriv_largos_cortos",
+   "name": "Ratio largos/cortos extremo, contrario",
+   "role": "candidato",
+   "theory": "Cuando la mayoría de cuentas está de un lado, ese lado suele estar saturado.",
+   "opposite_of": null,
+   "rule": "Corto si long_short_z ≥ z_high; largo si ≤ −z_high.",
+   "variables": [
+    "metrics.long_short_z"
+   ],
+   "params": {
+    "z_high": {
+     "value": 1.0,
+     "source": "`agents/derivatives/params.py`"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "time_stop",
+   "history_exam": "solo_adelante",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "soska_2021_bitmex",
+    "delong_1990"
+   ],
+   "horizon": "tres_dias"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [],
+ "performance_computed": false
+}

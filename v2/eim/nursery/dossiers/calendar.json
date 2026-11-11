@@ -1,0 +1,41 @@
+{
+ "agent_id": "calendar",
+ "agent_version": "1.1.0",
+ "status": "excluido",
+ "verified": "2026-11-11",
+ "theory": "Riesgo de evento macro (FOMC, IPC, empleo); veto en la ventana de cada evento.",
+ "variables": [],
+ "history": {
+  "source": "data/calendar/events.parquet",
+  "from": "2021-01",
+  "to": "2027-12",
+  "coverage": "FOMC 56 (2021-01→2027-12); IPC, empleo, PIB desde 2025-01",
+  "exam": "no aplica"
+ },
+ "cadence": null,
+ "literature": [
+  {
+   "id": "lucca_moench_2015",
+   "concept": "macro_news",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "corbet_2020_fomc",
+   "concept": "monetary_policy",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  }
+ ],
+ "prospects": [],
+ "exclusion_reason": "Agente de riesgo, no direccional (sesgo siempre 0). Su única lectura direccional citable, la deriva previa al FOMC, da ≈ 8 eventos al año: unos 4 en los 6 meses de la cantera, sin posibilidad de veredicto. Su veto ya se aplica igual a todas las cuentas (T29/T37).",
+ "reserve": [
+  {
+   "id": "cal_deriva_fomc",
+   "rule": "largo 24 h antes de la decisión FOMC, cierre en la publicación",
+   "why_not": "≈ 4 operaciones en 6 meses"
+  }
+ ],
+ "notes": [],
+ "performance_computed": false
+}

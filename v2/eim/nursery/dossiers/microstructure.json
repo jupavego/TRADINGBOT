@@ -1,0 +1,128 @@
+{
+ "agent_id": "microstructure",
+ "agent_version": "1.0.0",
+ "status": "inscrito",
+ "verified": "2026-11-11",
+ "theory": "Flujo de órdenes: OFI, delta agresor, profundidad y divergencia precio/CVD.",
+ "variables": [
+  {
+   "name": "metrics.ofi_z",
+   "source": "flujo de órdenes de la captura propia (snapshot.micro: top-10 y HFT)",
+   "note": "desequilibrio del mejor nivel, en z"
+  },
+  {
+   "name": "metrics.delta_z",
+   "source": "flujo de órdenes de la captura propia (snapshot.micro: top-10 y HFT)",
+   "note": "delta de volumen agresor, en z"
+  },
+  {
+   "name": "metrics.price_return",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "retorno de la ventana"
+  },
+  {
+   "name": "metrics.incomplete_fraction",
+   "source": "flujo de órdenes de la captura propia (snapshot.micro: top-10 y HFT)",
+   "note": "fracción de velas con huecos; los prospectos solo operan si ≤ 0,3 (max_incomplete)"
+  }
+ ],
+ "history": {
+  "source": "data/micro/top y data/micro_hft",
+  "from": "2026-10-22",
+  "to": "2026-11-11",
+  "coverage": "trades y depth del recolector T23 parados el 2026-11-02; top-10 y HFT siguen",
+  "exam": "solo_adelante"
+ },
+ "cadence": {
+  "expected": "incierta: hoy el 95 % de los reportes de 1 h sale degradado",
+  "basis": "reports.duckdb, BTCUSDT 1h, 2026-10-28 → 2026-11-11"
+ },
+ "literature": [
+  {
+   "id": "cont_kukanov_stoikov_2014",
+   "concept": "order_flow",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "easley_lopezdeprado_ohara_2012",
+   "concept": "liquidity",
+   "stance": "condiciona",
+   "consensus": "condicionado (0,00)"
+  }
+ ],
+ "prospects": [
+  {
+   "id": "micro_ofi",
+   "name": "Flujo de órdenes persistente",
+   "role": "base",
+   "theory": "Un desequilibrio fuerte en el mejor nivel del libro empuja el precio en su dirección durante unos minutos.",
+   "opposite_of": null,
+   "rule": "Con la captura completa (incomplete_fraction ≤ 0,3): largo si ofi_z ≥ z_ofi, corto si ≤ −z_ofi; sale a las max_bars velas.",
+   "variables": [
+    "metrics.ofi_z",
+    "metrics.incomplete_fraction"
+   ],
+   "params": {
+    "z_ofi": {
+     "value": 2.0,
+     "source": "`agents/microstructure/params.py::z_scale` (z = 2, convención del agente; no calibrado)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "15m",
+   "exit_template": "time_stop",
+   "history_exam": "solo_adelante",
+   "expected_cadence": "incierta: depende de que la captura esté completa",
+   "literature": [
+    "cont_kukanov_stoikov_2014",
+    "easley_lopezdeprado_ohara_2012"
+   ],
+   "max_bars": 4,
+   "horizon": "scalping",
+   "timeframe_note": "Añadido el 2026-11-11 a pedido del usuario (más scalping), con una plaza de la reserva del techo de 50, antes del pre-registro de T170."
+  },
+  {
+   "id": "micro_absorcion",
+   "name": "Divergencia precio/delta (absorción)",
+   "role": "candidato",
+   "theory": "Teoría opuesta: si el precio sube mientras el agresor vende, alguien absorbe y el movimiento se agota.",
+   "opposite_of": "micro_ofi",
+   "rule": "Con la captura completa: corto si price_return ≥ price_move y delta_z ≤ −z_delta; largo en espejo; sale a las max_bars velas.",
+   "variables": [
+    "metrics.price_return",
+    "metrics.delta_z",
+    "metrics.incomplete_fraction"
+   ],
+   "params": {
+    "price_move": {
+     "value": 0.0005,
+     "source": "`agents/microstructure/params.py`"
+    },
+    "z_delta": {
+     "value": 1.0,
+     "source": "una desviación típica (convención)"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "15m",
+   "exit_template": "time_stop",
+   "history_exam": "solo_adelante",
+   "expected_cadence": "incierta: depende de que la captura esté completa",
+   "literature": [
+    "easley_lopezdeprado_ohara_2012"
+   ],
+   "max_bars": 4,
+   "horizon": "scalping",
+   "timeframe_note": "Añadido el 2026-11-11 a pedido del usuario (más scalping), con una plaza de la reserva del techo de 50, antes del pre-registro de T170."
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "Vuelve a pedido del usuario (más scalping). Motivo anterior de exclusión, que sigue siendo el riesgo principal: Verificado: degradado en el 95 % de los reportes de 1 h (fracción de velas con huecos 0,39 > 0,3) y no_data en el 5 % (reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes). Su horizonte es de 3 velas: en 1 h el costo VIP 0 probablemente supera 0,3 R, y la escala en la que esta información puede valer (100 ms – 60 s) es la clase A de T145 (fase 16), no la cantera.",
+  "Cont, Kukanov y Stoikov (2014) explican el precio contemporáneo, no el futuro: se espera baja, y medirlo hacia adelante es barato.",
+  "Riesgo alto de baja por «sin operaciones en 60 días» si la captura no mejora (T78/T148)."
+ ],
+ "performance_computed": false
+}

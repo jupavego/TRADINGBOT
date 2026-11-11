@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T01:04:33",
+ "generated": "2026-11-11T01:47:29",
  "phases": [
   {
    "n": 0,
@@ -2480,8 +2480,8 @@ window.EIM_STATUS = {
     "T151",
     "T157"
    ],
-   "state": "pending",
-   "notes": "—",
+   "state": "done",
+   "notes": "19 expedientes en `v2/eim/nursery/dossiers/` (13 agentes, 43 prospectos de scalping a semanal; 5 excluidos y `plan` como control); §4 y §9 (automejora) de `PLAN/notas/T167_cantera.md`. ◆ aprobada el 2026-11-11: 40 prospectos y techo de 50",
    "effort": "medio",
    "phase": 27
   },

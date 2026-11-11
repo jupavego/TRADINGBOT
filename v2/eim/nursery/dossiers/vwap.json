@@ -1,0 +1,195 @@
+{
+ "agent_id": "vwap",
+ "agent_version": "1.0.0",
+ "status": "inscrito",
+ "verified": "2026-11-11",
+ "theory": "El precio medio ponderado por volumen es el «precio justo» del período; las bandas σ dicen cuánto se aleja.",
+ "variables": [
+  {
+   "name": "metrics.periods.daily.position",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "SOBRE/ESTIRADO/EXTREMO (±1σ, ±2σ) o BAJO"
+  },
+  {
+   "name": "metrics.periods.daily.vwap",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.periods.daily.slope_pct",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.periods.weekly.position",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.periods.weekly.vwap",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.close",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.anchored_vwap",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "VWAP anclado del agente"
+  }
+ ],
+ "history": {
+  "source": "banco T131 (v2/backups/t131_banco, binance-futures)",
+  "from": "2023-01-01",
+  "to": "2026-11-03",
+  "coverage": "100 % (0 huecos en 1m/15m/1h/4h)",
+  "exam": "banco_t131"
+ },
+ "cadence": {
+  "expected": "reversión diaria: algunas por semana; tendencia diaria: casi a diario (rotación alta, vigilar el costo); semanal: pocas al mes",
+  "basis": "estado degradado el 23 % por períodos parciales (reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes)"
+ },
+ "literature": [
+  {
+   "id": "zarattini_aziz_2023",
+   "concept": "breakout",
+   "stance": "apoya",
+   "consensus": "sin evidencia (1 fuente)"
+  },
+  {
+   "id": "avellaneda_lee_2010",
+   "concept": "mean_reversion",
+   "stance": "condiciona",
+   "consensus": "condicionado (0,00)"
+  },
+  {
+   "id": "heston_korajczyk_sadka_2010",
+   "concept": "intraday",
+   "stance": "apoya",
+   "consensus": "dividido (+0,47)"
+  }
+ ],
+ "prospects": [
+  {
+   "id": "vwap_reversion",
+   "name": "Reversión al VWAP diario desde ±2σ",
+   "role": "base",
+   "theory": "Un precio a más de 2σ del VWAP diario tiende a volver a él.",
+   "opposite_of": null,
+   "rule": "Largo en EXTREMO_BAJO, corto en EXTREMO_SOBRE; objetivo el VWAP diario.",
+   "variables": [
+    "metrics.periods.daily.position",
+    "metrics.periods.daily.vwap"
+   ],
+   "params": {
+    "band_sigma": {
+     "value": 2,
+     "source": "Bollinger (2001), bandas de 2σ — canon; umbral del propio agente (POSITION)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "15m",
+   "exit_template": "mean_target",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/semana",
+   "literature": [
+    "avellaneda_lee_2010"
+   ],
+   "max_bars": 8,
+   "timeframe_note": "La reversión al VWAP diario es intradía por naturaleza; en 15 m sale en ≤ 8 velas (2 h). Cambio pedido por el usuario el 2026-11-11 (horizontes de scalping a semanal), antes del pre-registro de T170.",
+   "horizon": "scalping"
+  },
+  {
+   "id": "vwap_tendencia",
+   "name": "Lado del VWAP diario (Zarattini-Aziz)",
+   "role": "candidato",
+   "theory": "Teoría opuesta: estar sobre un VWAP que sube es tendencia y se sigue.",
+   "opposite_of": "vwap_reversion",
+   "rule": "Largo con cierre sobre el VWAP diario y pendiente > 0; corto en espejo. Sale al cruzar el VWAP.",
+   "variables": [
+    "metrics.periods.daily.position",
+    "metrics.periods.daily.slope_pct"
+   ],
+   "params": {
+    "period": {
+     "value": "diario",
+     "source": "zarattini_aziz_2023 (VWAP de sesión)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "casi diaria",
+   "literature": [
+    "zarattini_aziz_2023"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "vwap_semanal",
+   "name": "Ruptura del VWAP semanal con persistencia",
+   "role": "candidato",
+   "theory": "Cruzar el VWAP semanal y sostenerse cambia el lado del mercado de la semana.",
+   "opposite_of": null,
+   "rule": "Entra cuando el cierre lleva θ-007 velas seguidas al otro lado del VWAP semanal; sale al volver a cruzarlo.",
+   "variables": [
+    "metrics.periods.weekly.position",
+    "metrics.periods.weekly.vwap",
+    "metrics.close"
+   ],
+   "params": {
+    "theta_007_persistence": {
+     "value": 3,
+     "source": "θ de EIM-BRM-001, `agents/structure/params.py::BRMParams` (provisional, no calibrado)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "zarattini_aziz_2023",
+    "hurst_ooi_pedersen_2017"
+   ],
+   "horizon": "semanal"
+  },
+  {
+   "id": "vwap_anclado",
+   "name": "Lado del VWAP anclado",
+   "role": "candidato",
+   "theory": "El VWAP anclado al último pivote es el precio medio de quien entró desde entonces; cruzarlo cambia quién va ganando.",
+   "opposite_of": null,
+   "rule": "Largo con cierre sobre el VWAP anclado, corto bajo él; sale al cruzarlo.",
+   "variables": [
+    "metrics.anchored_vwap",
+    "metrics.close"
+   ],
+   "params": {
+    "anchor": {
+     "value": "ancla del agente",
+     "source": "`agents/vwap/compute.py` (no se elige)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "zarattini_aziz_2023"
+   ],
+   "horizon": "semanal"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "Zarattini y Aziz (2023) usan el VWAP como filtro de tendencia en acciones intradía: contradice la reversión, y por eso se inscriben las dos lecturas."
+ ],
+ "performance_computed": false
+}

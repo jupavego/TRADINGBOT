@@ -1,0 +1,165 @@
+{
+ "agent_id": "liquidations",
+ "agent_version": "2.0.0",
+ "status": "inscrito",
+ "verified": "2026-11-11",
+ "theory": "Las liquidaciones forzadas empujan el precio mientras dura la cascada y, al agotarse, dejan un rebote contra el flujo forzado.",
+ "variables": [
+  {
+   "name": "metrics.state",
+   "source": "flujo de liquidaciones en vivo Binance/Bybit/OKX (snapshot.liq_flow)",
+   "note": "quiet / active / exhausted"
+  },
+  {
+   "name": "metrics.imbalance",
+   "source": "flujo de liquidaciones en vivo Binance/Bybit/OKX (snapshot.liq_flow)",
+   "note": ""
+  },
+  {
+   "name": "bias",
+   "source": "flujo de liquidaciones en vivo Binance/Bybit/OKX (snapshot.liq_flow)",
+   "note": "signo contrario al pico en estado exhausted"
+  },
+  {
+   "name": "metrics.venues",
+   "source": "flujo de liquidaciones en vivo Binance/Bybit/OKX (snapshot.liq_flow)",
+   "note": "bolsas con liquidación en la ventana reciente"
+  }
+ ],
+ "history": {
+  "source": "data/micro/liqs (captura propia)",
+  "from": "2026-10-21",
+  "to": "2026-11-11",
+  "coverage": "736 archivos; estado degradado (cobertura < 80 %) en el 57 % de los reportes de 1 h",
+  "exam": "solo_adelante",
+  "note": "los CSV de Binance (BTCUSD_PERP) terminan el 2024-10-14: obsoletos y de otro contrato"
+ },
+ "cadence": {
+  "expected": "incierta y probablemente baja: en dos semanas ninguna cascada",
+  "basis": "estado en reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes: quiet 292/292"
+ },
+ "literature": [
+  {
+   "id": "soska_2021_bitmex",
+   "concept": "liquidation",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "brunnermeier_pedersen_2009",
+   "concept": "liquidation",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  }
+ ],
+ "prospects": [
+  {
+   "id": "liq_agotamiento",
+   "name": "Agotamiento tras cascada (contrario)",
+   "role": "base",
+   "theory": "Cuando la cascada se agota, el precio rebota contra el flujo forzado.",
+   "opposite_of": null,
+   "rule": "Entra en el signo del sesgo cuando el estado pasa a exhausted.",
+   "variables": [
+    "metrics.state",
+    "bias"
+   ],
+   "params": {
+    "z_active": {
+     "value": 2.0,
+     "source": "`agents/liquidations/params.py` (z de cascada)"
+    },
+    "z_calm": {
+     "value": 0.5,
+     "source": "`agents/liquidations/params.py` (z de calma)"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "15m",
+   "exit_template": "time_stop",
+   "history_exam": "solo_adelante",
+   "expected_cadence": "baja, incierta",
+   "literature": [
+    "brunnermeier_pedersen_2009"
+   ],
+   "max_bars": 6,
+   "timeframe_note": "Las cascadas duran minutos (flujo en velas de 5 m); en 15 m sale en 6 velas (1,5 h). Cambio pedido por el usuario el 2026-11-11 (horizontes de scalping a semanal), antes del pre-registro de T170.",
+   "horizon": "scalping"
+  },
+  {
+   "id": "liq_cascada",
+   "name": "Cascada activa (a favor del flujo)",
+   "role": "candidato",
+   "theory": "Teoría opuesta: mientras la cascada está activa, el flujo forzado arrastra el precio en su dirección (espiral de liquidez).",
+   "opposite_of": "liq_agotamiento",
+   "rule": "Entra en el signo del desequilibrio cuando el estado pasa a active.",
+   "variables": [
+    "metrics.state",
+    "metrics.imbalance"
+   ],
+   "params": {
+    "z_active": {
+     "value": 2.0,
+     "source": "`agents/liquidations/params.py`"
+    },
+    "min_flow_usd": {
+     "value": 250000,
+     "source": "`agents/liquidations/params.py`"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "15m",
+   "exit_template": "time_stop",
+   "history_exam": "solo_adelante",
+   "expected_cadence": "baja, incierta",
+   "literature": [
+    "soska_2021_bitmex",
+    "brunnermeier_pedersen_2009"
+   ],
+   "max_bars": 6,
+   "timeframe_note": "Ídem: la espiral de liquidaciones se mide en minutos. Cambio pedido por el usuario el 2026-11-11 (horizontes de scalping a semanal), antes del pre-registro de T170.",
+   "horizon": "scalping"
+  },
+  {
+   "id": "liq_cascada_multibolsa",
+   "name": "Cascada confirmada en varias bolsas",
+   "role": "candidato",
+   "theory": "Una cascada que ocurre a la vez en varias bolsas es un movimiento de mercado, no un accidente de una sola.",
+   "opposite_of": null,
+   "rule": "Como `liq_cascada`, pero solo si hay liquidación relevante en ≥ min_venues bolsas.",
+   "variables": [
+    "metrics.state",
+    "metrics.imbalance",
+    "metrics.venues"
+   ],
+   "params": {
+    "z_active": {
+     "value": 2.0,
+     "source": "`agents/liquidations/params.py`"
+    },
+    "min_venues": {
+     "value": 2,
+     "source": "`agents/liquidations/params.py` (regla de confirmación del agente)"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "15m",
+   "exit_template": "time_stop",
+   "history_exam": "solo_adelante",
+   "expected_cadence": "incierta: depende de que la captura esté completa",
+   "literature": [
+    "soska_2021_bitmex",
+    "brunnermeier_pedersen_2009"
+   ],
+   "max_bars": 6,
+   "horizon": "scalping",
+   "timeframe_note": "Añadido el 2026-11-11 a pedido del usuario (más scalping), con una plaza de la reserva del techo de 50, antes del pre-registro de T170."
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "Riesgo alto de baja por «sin operaciones en 60 días»: si la captura sigue con huecos, estos dos prospectos ocupan sitio en la familia sin dar veredicto."
+ ],
+ "performance_computed": false
+}
