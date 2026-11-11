@@ -1331,3 +1331,11 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** BACKLOG T165 (5) el panel, (7) la prueba que analice los `.ps1`; comprobar en la próxima subida que el DVOL viaja también en la copia externa.
 - **En curso:** nada.
 - **Siguiente paso:** T166 (régimen: saltos frente a HMM y BOCPD) sobre el banco de T133.
+
+## 2026-11-11 · T165: los .ps1 del proyecto pasan por el gate
+- **Hecho:** `v2/tests/test_scripts_ps1.py` pide al propio PowerShell que **analice** (no ejecute) los 16 scripts de `v2/scripts/` con `[Parser]::ParseFile`; 1,3 s y se omite donde no haya PowerShell. Cierra el agujero que dejó ver `dvol_colector.ps1`, que se fusionó con un error de sintaxis (`"$py:"`, que PowerShell lee como variable con unidad) y pasó el gate en verde porque solo mira Python. Una segunda prueba reproduce ese error exacto en un script de ejemplo, así que el análisis no puede quedarse vacío sin que falle. Comprobado además rompiendo a propósito el script real: la prueba lo caza nombrando archivo y línea.
+- **Archivos:** `v2/tests/test_scripts_ps1.py`, `PLAN/BACKLOG.md`.
+- **Pruebas:** 2 nuevas en verde; gate completo por la cola.
+- **Abierto:** el gate analiza los scripts pero no juzga **lo que hacen**: eso solo lo ve ejecutarlos (BACKLOG T165 (7)).
+- **En curso:** nada.
+- **Siguiente paso:** T166 (régimen: saltos frente a HMM y BOCPD) sobre el banco de T133.
