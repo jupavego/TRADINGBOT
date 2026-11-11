@@ -1,6 +1,6 @@
 ---
 name: eim-auditoria
-description: Auditoría periódica de rentabilidad, riesgo y calibración del EIM (T159, fase 25) con poco gasto de tokens. Úsala cuando se pida «auditoría», «revisión periódica», «calibración», «cómo vamos», «oportunidades de mejora/rentabilidad», al cerrar una semana de T31, o cuando la tarea programada de auditoría la lance.
+description: Auditoría periódica de rentabilidad, riesgo y calibración del EIM (T159, fase 25) con poco gasto de tokens. Úsala cuando se pida «auditoría», «revisión periódica», «calibración», «cómo vamos», «oportunidades de mejora/rentabilidad», al cerrar una semana de T31, o cuando la tarea programada `eim-auditoria-semanal` (lunes 03:00 UTC) la lance.
 ---
 
 # Auditoría periódica EIM (desde `v2/` de la carpeta principal, rama `main`)
