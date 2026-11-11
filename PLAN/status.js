@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T22:05:38",
+ "generated": "2026-11-10T22:51:50",
  "phases": [
   {
    "n": 0,
@@ -307,6 +307,14 @@ window.EIM_STATUS = {
     "T145",
     "T146",
     "T150"
+   ]
+  },
+  {
+   "n": 25,
+   "name": "Auditoría y calibración periódica",
+   "ids": [
+    "T159",
+    "T160"
    ]
   }
  ],
@@ -2328,6 +2336,35 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 11,
    "goal": "Ver en la pestaña «Biblioteca», bajo la biblioteca local, de dónde sale cada recomendación y qué aportó el conocimiento."
+  },
+  {
+   "id": "T159",
+   "title": "Auditoría periódica de rentabilidad, riesgo y calibración (herramienta + skill)",
+   "deps": [
+    "T143",
+    "T144",
+    "T145",
+    "T150"
+   ],
+   "state": "done",
+   "notes": "**Hecha (2026-11-11).** `python -m eim.analytics.audit` (libro oficial T144 por la API, KPI del método de la fase 24, variante t143, calibración, funding 12 m, HFT, oportunidades con vía y Δ frente a la anterior) → `v2/reports/audit/`; skill `.claude/skills/eim-auditoria`. Línea base: E[R] −0,131 R, bruto −0,009, costo 0,123 R; límite −0,050 frente a mercado −0,174; 15 m el marco menos malo; funding BTC 3,54 % (cerca del 4 %). Hallazgos → T160 y BACKLOG T159.",
+   "effort": "medio",
+   "phase": 25,
+   "goal": "Pedido del usuario (2026-11-11): entrar en una fase de revisión, auditoría y calibración y dejarla"
+  },
+  {
+   "id": "T160",
+   "title": "◆ Recalibrar las probabilidades de escenario, con pre-registro y fuera de muestra",
+   "deps": [
+    "T19",
+    "T26",
+    "T150",
+    "T159"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-11 por la primera auditoría (T159): Brier skill −0,010, acierto direccional 40,7 %, «bull» sobrestimado 12 pp. ◆ abrirla y si cuenta en Holm.",
+   "effort": "medio",
+   "phase": 25
   }
  ]
 };
