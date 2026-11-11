@@ -1,5 +1,6 @@
 /** Panel «Biblioteca» (T55): catálogo, pregunta a la literatura y respuesta con citas. Solo informa. */
 import { askLibrary, fetchLibCatalog, type LibAnswer, type LibCatalog } from './library_api'
+import { DigitalPanel } from './library_digital_ui'
 import { esc } from './panels'
 
 const TAG = 'Contexto bibliográfico · no es una recomendación'
@@ -19,8 +20,15 @@ export class LibraryPanel {
   private cat: LibCatalog | null = null
   private answer = ''
   private busy = false
+  private root: HTMLElement
+  private digital: DigitalPanel
 
-  constructor(private root: HTMLElement, private mode: () => string) {
+  constructor(tab: HTMLElement, private mode: () => string) {
+    // T158: la biblioteca local (T52–T55) arriba y la digital (T151–T158) debajo, cada una con su caja.
+    tab.innerHTML = '<div class="lib-local"></div><div class="lib-digital"></div>'
+    this.root = tab.querySelector<HTMLElement>('.lib-local')!
+    this.digital = new DigitalPanel(tab.querySelector<HTMLElement>('.lib-digital')!)
+    const root = this.root
     root.onclick = (e) => {
       const b = (e.target as HTMLElement).closest('button')
       if (!b) return
@@ -35,6 +43,7 @@ export class LibraryPanel {
     const q = this.root.querySelector<HTMLInputElement>('#lib-q')?.value ?? ''
     const sc = this.root.querySelector<HTMLSelectElement>('#lib-sc')?.value ?? ''
     this.paint(q, sc)
+    await this.digital.reload()
   }
 
   private async ask(forScenario: boolean): Promise<void> {

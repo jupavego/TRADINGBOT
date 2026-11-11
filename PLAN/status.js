@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T11:53:30",
+ "generated": "2026-11-10T22:05:38",
  "phases": [
   {
    "n": 0,
@@ -125,7 +125,15 @@ window.EIM_STATUS = {
     "T52",
     "T53",
     "T54",
-    "T55"
+    "T55",
+    "T151",
+    "T152",
+    "T153",
+    "T154",
+    "T155",
+    "T156",
+    "T157",
+    "T158"
    ]
   },
   {
@@ -2218,6 +2226,108 @@ window.EIM_STATUS = {
    "notes": "**Hecha (2026-11-10), PR #256.** Entra en el próximo reinicio de la API; el arreglo de huecos va detrás de `EIM_MICRO_IGNORE_LIQ_GAPS=1`, apagado hasta el cierre de T31. El panel publica la síntesis v2 (`eim/synthesis/evidence.py`, `api/synthesis_live.py`): sin datos en 48 velas no se vota, cobertura y fuente por agente, confianza × √(N_eff/N) con la ρ de las últimas 200 velas y votos efectivos a la vista (en vivo, ~1,9 de 6–7 votantes). Bróker simulado, plan y T49 siguen con v1. Falso hueco de `microstructure`: eran las reconexiones de `liq_ws` (38,9 % → 25,2 % en 1 h). **Calibración desfavorable para las dos** (`v2/reports/t150_calibracion.md`): acierto direccional 46,1 % a 24 h en el banco y confianza sin información; v2 adoptada igual. ◆: `seasonality` y `liquidations` informativos, `smart_money` retirado del voto del panel. Gate por la cola: 3 457 pasadas, 8 omitidas, 0 fallos. Nota `PLAN/notas/T150_sintesis.md`. Antes: Abierta el 2026-11-10 desde BACKLOG T145 (1), por decisión delegada del usuario. **Modo análisis**: no toca riesgo, ejecución, T31 ni T143. Lo de T146 para el panel: sin datos no se vota (ventana en vivo), cobertura publicada, penalización por correlación verificable y **votos efectivos**; en vez de la esperanza en R, se mide la **calibración** de la confianza (Brier y fiabilidad) y se adopta aunque no mejore. Prerrequisito: BACKLOG T120 (2), los falsos huecos de `microstructure`. ◆ qué se hace con los agentes sin datos.",
    "effort": "medio",
    "phase": 24
+  },
+  {
+   "id": "T151",
+   "title": "Biblioteca digital de conocimiento externo",
+   "deps": [
+    "T52",
+    "T55"
+   ],
+   "state": "done",
+   "notes": "**Hecha (2026-11-11).** 115 obras (A 17 · B 20 · C 13 · D 15 · E 11 · F 16 · G 13 · H 10) verificadas contra su registro (OpenAlex, arXiv, web oficial): `v2/eim/library/digital/{seed,catalog}.json`, cliente con caché y sin conexión `eim/data/library_digital.py`, búsqueda y filtros `catalog.py`, `GET /v2/library/digital/refs`. Acceso honesto: 80 con texto completo legal, 35 parciales, ninguna de pago como completa. 7 DOI de la lista inicial estaban mal y se corrigieron por título. Nota `PLAN/notas/T151_biblioteca_digital.md`.",
+   "effort": "alto",
+   "phase": 11,
+   "goal": "Un catálogo de ≈100 obras especializadas consultables en línea (DOI, arXiv o sitio oficial), con sus datos bibliográficos traídos del registro y no de memoria, distinguiendo texto completo legal, solo resumen y solo metadatos."
+  },
+  {
+   "id": "T152",
+   "title": "Agente de investigación y extracción de conocimiento",
+   "deps": [
+    "T151"
+   ],
+   "state": "done",
+   "notes": "**Hecha (2026-11-11).** `extract.py` + `eim/data/library_research.py` (`python -m eim.library.digital research [--full]`, por la cola): 15 obras leídas completas, 72 por resumen, 28 solo metadatos; fragmentos ≤ 25 palabras, inyección descartada, nivel de evidencia y 6 reglas candidatas (no activas). 81/115 posturas comprobadas en el texto; al leer textos completos se corrigieron 3 afirmaciones curadas. Nota `PLAN/notas/T151_biblioteca_digital.md`.",
+   "effort": "medio",
+   "phase": 11,
+   "goal": "Leer lo que legalmente se puede leer de cada obra y convertirlo en fichas estructuradas sin presentar como leído lo que no se leyó y sin convertir teorías en reglas."
+  },
+  {
+   "id": "T153",
+   "title": "Motor de contraste de estrategias y literatura",
+   "deps": [
+    "T151",
+    "T152"
+   ],
+   "state": "done",
+   "notes": "**Hecha (2026-11-11).** `contrast.py`: respalda/contradice/condiciona/mejora por operación; conceptos de método nunca respaldan una entrada; dirección por tendencia o por el régimen del libro (`trend_up`/`trend_down`), lateral → condicionado; selectivo y con caché. `GET /v2/library/digital/contrast`. Nota `PLAN/notas/T151_biblioteca_digital.md`.",
+   "effort": "medio",
+   "phase": 11,
+   "goal": "Comparar una operación o idea del bróker con las metodologías de la biblioteca: qué la respalda, qué la contradice y qué podría mejorarla."
+  },
+  {
+   "id": "T154",
+   "title": "Conocimiento aplicado al diagnóstico de operaciones",
+   "deps": [
+    "T153"
+   ],
+   "state": "done",
+   "notes": "**Hecha (2026-11-11).** `diagnose.py`: 10 dimensiones con cifras reales (R/B y acierto de equilibrio, stop y costo en R, liquidación aproximada con MMR 0,4 % declarado, estadística propia de la estrategia) y fuentes. `GET /v2/library/digital/diagnose?ledger_id=…`. Complemento: no veta ni ejecuta. Nota `PLAN/notas/T151_biblioteca_digital.md`.",
+   "effort": "medio",
+   "phase": 11,
+   "goal": "Que cada operación tenga un diagnóstico por dimensiones con cifras reales y la literatura pertinente al lado, como complemento."
+  },
+  {
+   "id": "T155",
+   "title": "Aprendizaje y retroalimentación bibliográfica",
+   "deps": [
+    "T154",
+    "T54"
+   ],
+   "state": "done",
+   "notes": "**Hecha (2026-11-11).** `learning.py`: cadena OPERACIÓN→DIAGNÓSTICO→ESTRATEGIA→LITERATURA→RESULTADO→CONCLUSIÓN, ≥ 30 por grupo, juicio en R (no en acierto). Libro real, 250 operaciones: respaldadas −0,110 R (IC −0,236…+0,016, acierto 74 %), ninguna contradicha → sin conclusión; el respaldo no aporta ventaja medible. Trazas solo de adición (`trace.jsonl`, POST con `X-EIM-Confirm`). Nota `PLAN/notas/T151_biblioteca_digital.md`.",
+   "effort": "medio",
+   "phase": 11,
+   "goal": "Saber qué conocimiento está aportando valor con las operaciones simuladas cerradas, sin juzgar por una operación ni por el porcentaje de acierto."
+  },
+  {
+   "id": "T156",
+   "title": "Conocimiento por perfil de riesgo",
+   "deps": [
+    "T153",
+    "T154"
+   ],
+   "state": "done",
+   "notes": "**Hecha (2026-11-11).** `profiles.py`: lentes de Conservador, Moderado, Agresivo y PPP (pesos por categoría, conceptos obligados, consenso exigido en Conservador y PPP) que reordenan y anotan el diagnóstico; `eim/paper/params.py` sin tocar. `GET /v2/library/digital/profiles`. Nota `PLAN/notas/T151_biblioteca_digital.md`.",
+   "effort": "bajo",
+   "phase": 11,
+   "goal": "Que Conservador, Moderado, Agresivo y Progressive Profit Protection lean la biblioteca con lentes distintas sin cambiar sus parámetros."
+  },
+  {
+   "id": "T157",
+   "title": "Diagnóstico de contradicciones y consenso bibliográfico",
+   "deps": [
+    "T151",
+    "T152"
+   ],
+   "state": "done",
+   "notes": "**Hecha (2026-11-11).** `consensus.py`: peso = nivel × fiabilidad × verificación × aplicabilidad a cripto × vigencia; un libro local cuenta una vez por concepto (si no, 20 fichas de Nison ganaban a un estudio empírico); «condicionado» si pesa más el «depende». Hoy divididos: análisis técnico, velas, volumen e intradía. `GET /v2/library/digital/{consensus/{c},contradictions}`. Nota `PLAN/notas/T151_biblioteca_digital.md`.",
+   "effort": "medio",
+   "phase": 11,
+   "goal": "Saber quién respalda y quién objeta cada metodología, con qué evidencia y en qué condiciones, sin contar libros."
+  },
+  {
+   "id": "T158",
+   "title": "Panel de conocimiento y trazabilidad",
+   "deps": [
+    "T151",
+    "T155"
+   ],
+   "state": "done",
+   "notes": "**Hecha (2026-11-11).** Pestaña «Biblioteca», bajo la local: KPI (referencias, texto legal, parcial, leídas completas/resumen, pendientes, posturas comprobadas, metodologías), categorías, búsqueda, ficha con enlaces y lo leído, trazabilidad, contradicciones e investigaciones (`web/src/library_digital_*`). Verificado en el navegador con API y Vite temporales: datos = API, sin errores, sin desbordes a 375 px. Entra en la API viva al reiniciarla. Nota `PLAN/notas/T151_biblioteca_digital.md`.",
+   "effort": "medio",
+   "phase": 11,
+   "goal": "Ver en la pestaña «Biblioteca», bajo la biblioteca local, de dónde sale cada recomendación y qué aportó el conocimiento."
   }
  ]
 };

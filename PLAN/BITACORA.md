@@ -1238,3 +1238,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **En curso:** T31, T45 (aparcada), T78, T104, T116, T128, T135 y T143.
 - **Siguiente paso:** T65/T66 (dependen de T63 y T64, ya hechas); antes de transcribir de verdad, BACKLOG T63 (7).
 
+## 2026-11-11 03:05 UTC · juanpablo-cpu · T151–T158: biblioteca digital (fase 11)
+- **Pedido:** ampliar «Biblioteca de trading» con ~100 fuentes consultables en línea y ocho tareas nuevas (catálogo digital, investigación, contraste, diagnóstico, aprendizaje, perfiles, consenso y panel), sin romper T52–T55.
+- **Hecho:** 115 obras verificadas contra OpenAlex, arXiv o su sitio oficial (`v2/eim/library/digital/`), fichas de lo leído (15 completas, 72 resumen, 28 metadatos; 81/115 posturas comprobadas), motores puros de consenso, contraste, diagnóstico, lentes por perfil y aprendizaje, API `/v2/library/digital/*`, CLI `python -m eim.library.digital` y panel bajo la biblioteca local. Investigación con texto completo y gate por la cola.
+- **Visto:** 7 DOI de la lista inicial estaban mal (corregidos por título); la API de OpenAlex pide a los agentes registrar el correo del usuario: no se hizo. Al leer textos completos se corrigieron 3 afirmaciones curadas. Con el libro real (250 operaciones), las respaldadas por la literatura rinden −0,110 R (IC −0,236…+0,016) con 74 % de acierto y ninguna sale contradicha: el respaldo no aporta ventaja medible. Dos fallos de diseño corregidos antes de cerrar: juzgar por acierto y que cada ficha local votara aparte.
+- **Archivos:** `v2/eim/library/digital/*`, `v2/eim/data/library_{digital,research}.py`, `v2/eim/api/{library_digital,main}.py`, `v2/eim/web/src/library_{digital_ui,digital_api,ui}.ts`, `library_digital.css`, `v2/tests/library/digital/*`, `v2/docs/OPERACION.md`, `PLAN/T151–T158.md`, `PLAN/notas/T151_biblioteca_digital.md`, `PLAN/{STATUS,00_MASTER,BACKLOG,ESTADO_PROYECTO}.md`.
+- **Pruebas:** `tests/library/digital` (17) y `tests/api/test_security.py` en verde; gate completo por la cola; panel verificado en el navegador con API y Vite temporales del worktree.
+- **Abierto:** BACKLOG T151 (1)–(6); la API viva sirve las rutas nuevas tras fusionar y reiniciarla.
+- **Siguiente paso:** fusionar el PR y reiniciar la API (junto con lo pendiente de T150); ◆ al cerrar T31, si el bróker anota el diagnóstico en cada idea.
+

@@ -21,6 +21,7 @@ from eim.api.forecast import Forecaster, build_forecast_router
 from eim.api.history import HistoryLoader
 from eim.api.leaders import LeaderDesk, build_leaders_router
 from eim.api.library import build_library_router
+from eim.api.library_digital import build_library_digital_router
 from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.micro import build_micro_router
 from eim.api.more import MoreSources, build_more_router
@@ -258,6 +259,9 @@ def create_app(
     app.include_router(build_leaders_router(app.state.leader_desk))
     app.include_router(build_micro_router(cfg.data_dir))
     app.include_router(build_paper_router(paper))
+    # T151–T158: biblioteca digital; lee el libro fijo del bróker para diagnóstico y aprendizaje.
+    app.include_router(build_library_digital_router(
+        rows=lambda: paper_ledger.query(paper.pstore, scope="perfil", limit=20000)))
     app.include_router(build_variant_router(variants))
     app.include_router(build_paper_arb_router(store, cfg.data_dir))  # T45: pruebas en papel
     app.state.paper = paper
