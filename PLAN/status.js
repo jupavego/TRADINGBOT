@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T04:48:40",
+ "generated": "2026-11-11T08:52:28",
  "phases": [
   {
    "n": 0,
@@ -2466,8 +2466,8 @@ window.EIM_STATUS = {
     "T133",
     "T161"
    ],
-   "state": "pending",
-   "notes": "Misma investigación. Comparación en el banco de T133 antes de construir más de un modelo.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-11). Veredicto: SIN POTENCIA; no se construye ningún modelo de régimen.** Pre-registro `PLAN/notas/T166_preregistro.md` (v1 `d5ae85e`, v2 `9c6cce2`, las dos anteriores a cualquier cifra del banco; la v2 corrige, con el procedimiento del v3 de T134, la regla de asignación en línea y la rejilla de penalizaciones, que dejaban dos candidatos iguales al suelo). Con 1 037 días de evaluación del banco de T133, la mejora de QLIKE mínima detectable es **0,146** frente a la puerta pre-registrada de 0,020 (σ de las diferencias emparejadas 1,89, cuatro veces la de T162 entre dos modelos continuos): harían falta ≈ 55 065 días (151 años), así que no se calculó el MCS ni ninguna p (BACKLOG T161 (3)). Lo que sí se contesta: en **persistencia** el modelo de saltos aplasta al HMM gaussiano con los mismos rasgos (permanencia 51,9 frente a **2,6 días**, 19 frente a 393 cambios), así que si se retoma el régimen el candidato es ese y no el HMM de T77; y sobre el **R del banco** el estado separa (ΔR 0,035–0,063 con IC que excluyen 0 en 29 828 operaciones fuera de muestra) pero **todas las mitades pierden** (la mejor −0,1043 R frente a −0,1538), igual que el oráculo perfecto de T133. Ningún etiquetador se acerca al Log-HAR-RV de T162 (QLIKE 0,2713 frente a 0,35–0,42): la vía medible es el estado **como regresor del HAR**, que queda en BACKLOG. Código `eim/agents/regime/{jump,hmm,daily}.py` y `mcs_with_aliases` en `validation/spa.py` (`mcs_losses` abortaba con pérdidas idénticas); `jumpmodels` es Apache 2.0 pero exige scikit-learn, que no está en el venv, así que el modelo va en NumPy. Informe `v2/reports/t166_regimen.md`. **Gate completo verde por la cola** (`gate-t166`, 3 633 pruebas pasadas, 8 omitidas, 0 fallos, 1 481 s, rc 0, sin pausas) y `ruff check eim tests` limpio; las 2 pruebas de los `.ps1` que trajo `main` al fusionar y un arreglo de lint en una aserción se corrieron aparte (verdes), y `gate-t166-final` repite el gate sobre el árbol exacto. Nada en vivo tocado.",
    "effort": "bajo",
    "phase": 26
   },
