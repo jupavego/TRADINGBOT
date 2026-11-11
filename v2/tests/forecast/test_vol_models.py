@@ -108,3 +108,70 @@ def test_gjr_garch_runs_without_look_ahead():
     r2[480:] *= 10
     g = vm.m2_gjr_garch(r2, first=440, refit=40)
     assert np.allclose(f[:481], g[:481], equal_nan=True)
+
+
+# --- T165: volatilidad implícita (DVOL) -------------------------------------
+def test_daily_implied_var_uses_the_candle_that_closes_at_midnight():
+    """Para el día d vale la vela de las 23:00 del día d−1: nada de dentro del propio día."""
+    days = np.arange(3, dtype=np.int64)
+    ht = np.arange(72, dtype=np.int64) * vm.HOUR_MS          # 3 días de velas horarias
+    hc = np.full(72, 100.0)
+    hc[23] = 50.0                                            # 23:00 del día 0
+    hc[24] = 999.0                                           # 00:00 del día 1: no debe usarse
+    hc[47] = 80.0                                            # 23:00 del día 1
+    iv2 = vm.daily_implied_var(ht, hc, days)
+    assert math.isnan(iv2[0])                                # el día 0 no tiene vela anterior
+    assert iv2[1] == pytest.approx((50.0 / 100) ** 2 / 365)
+    assert iv2[2] == pytest.approx((80.0 / 100) ** 2 / 365)
+
+
+def test_daily_implied_var_marks_stale_or_missing_hours_as_nan():
+    """Una vela que cierra el día anterior sirve; una de hace más de un día ya no."""
+    ht = np.array([9 * vm.DAY_MS - vm.HOUR_MS], dtype=np.int64)   # cierra el día 9 a las 00:00
+    iv2 = vm.daily_implied_var(ht, np.array([60.0]), np.array([8, 9, 10, 11], dtype=np.int64))
+    assert math.isnan(iv2[0])                                     # aún no había cerrado
+    assert iv2[1] == pytest.approx((60.0 / 100) ** 2 / 365)       # cierra justo al abrir el día
+    assert iv2[2] == pytest.approx((60.0 / 100) ** 2 / 365)       # un día de antigüedad: vale
+    assert math.isnan(iv2[3])                                     # dos días: demasiado vieja
+    days = np.array([10, 11], dtype=np.int64)
+    assert np.isnan(vm.daily_implied_var(np.array([], np.int64), np.array([]), days)).all()
+
+
+def test_log_slope_is_the_log_change_over_the_lag():
+    x = np.array([1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0])
+    s = vm.log_slope(x, 5)
+    assert np.isnan(s[:5]).all()
+    assert s[5] == pytest.approx(math.log(32.0 / 1.0))
+    assert s[6] == pytest.approx(math.log(64.0 / 2.0))
+
+
+def test_log_har_x_without_extras_is_exactly_m1():
+    t, c = _minutes(340, np.linspace(0.01, 0.05, 340), seed=3)
+    rv = vm.daily_series(t, c)["rv"]
+    a, b = vm.m1_log_har(rv, min_rows=250), vm.log_har_x(rv, None, min_rows=250)
+    assert np.array_equal(np.isnan(a), np.isnan(b))
+    assert np.allclose(a[~np.isnan(a)], b[~np.isnan(b)])
+
+
+def test_log_har_x_uses_an_informative_extra_and_still_ignores_the_future():
+    """Con un regresor que adelanta la RV del día, el HAR-X debe batir al HAR sin él."""
+    sigma = 0.02 * np.exp(np.sin(np.arange(340) / 7.0))
+    t, c = _minutes(340, sigma, seed=4)
+    rv = vm.daily_series(t, c)["rv"]
+    extra = np.log(sigma ** 2)                         # IV² ideal, conocida al abrir el día
+    base, withx = vm.m1_log_har(rv, 250), vm.log_har_x(rv, [extra], 250)
+    ok = np.isfinite(base) & np.isfinite(withx) & np.isfinite(rv)
+    assert ok.sum() > 50
+    assert ve.qlike(rv[ok], withx[ok]).mean() < ve.qlike(rv[ok], base[ok]).mean()
+    # un extra ausente no se inventa: ese día no se pronostica
+    gap = extra.copy()
+    gap[300] = np.nan
+    assert math.isnan(vm.log_har_x(rv, [gap], 250)[300])
+
+
+def test_har_row_only_looks_backwards():
+    rv = np.arange(1.0, 60.0)
+    row = vm.har_row(rv, 30)
+    assert row[1] == pytest.approx(math.log(rv[29]))
+    assert row[2] == pytest.approx(math.log(rv[25:30].mean()))
+    assert vm.har_row(rv, 5) is None                   # sin 22 días previos no hay fila

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T02:05:36",
+ "generated": "2026-11-11T03:10:02",
  "phases": [
   {
    "n": 0,
@@ -2453,8 +2453,8 @@ window.EIM_STATUS = {
     "T22",
     "T162"
    ],
-   "state": "pending",
-   "notes": "Misma investigación. API pública sin clave; entra solo si mejora el QLIKE sobre HAR.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-11), sin adoptar hasta cerrar T31. A2 (HAR-IV con la pendiente del DVOL) pasa las tres condiciones pre-registradas**: QLIKE −6,7 % frente a M1 (IC −0,032…−0,010, Holm 0,0006), único en el MCS (M1 fuera, p 0,004) y cobertura con ACI 80,2 %/80,3 %; la mejora (0,021) supera la mínima detectable declarada (0,014). **El DVOL solo, no:** A1 (nivel, = la prima en logaritmos) mejora un 1,0 % y no se distingue de M1 (p 0,33). Un control posterior avisa de que **con el DVOL de ayer el modelo es peor que el HAR**: toda la ventaja está en la lectura de las 00:00. 1 770 días (2022-01-01 → 2026-11-05), DVOL al 100 % desde 2021-03-24. Ingesta `eim/data/dvol.py` + `providers/deribit.py` (sin clave, sin servicio nuevo); informe `v2/reports/t165_dvol.md`, pre-registro `PLAN/notas/T165_preregistro.md`. Colector sin programar y sin panel: ambas, decisión del usuario (BACKLOG).",
    "effort": "bajo",
    "phase": 26
   },
