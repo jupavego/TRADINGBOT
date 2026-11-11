@@ -25,11 +25,12 @@ from eim.api.library_digital import build_library_digital_router
 from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.micro import build_micro_router
 from eim.api.more import MoreSources, build_more_router
+from eim.api.nursery import build_nursery_router
 from eim.api.obs import build_obs_router, build_observatory
 from eim.api.operation import build_operation_router
 from eim.api.paper import build_paper_router
 from eim.api.paper_arb import build_paper_arb_router
-from eim.api.paper_variant import build_variant_router, make_variants
+from eim.api.paper_variant import build_variant_router, make_nursery, make_variants
 from eim.api.reports_db import ReportStore
 from eim.api.risk import RiskDesk, build_risk_router
 from eim.api.security import BodyLimitMiddleware, LocalOnlyMiddleware, ws_token_subprotocol
@@ -161,6 +162,11 @@ def create_app(
     variants = (make_variants(cfg.paper_variants, store, cfg.data_dir, paper_store, reg)
                 if source is None and cfg.paper else {})
     backup_dbs.update({f"paper_{n}.duckdb": d.pstore.connection for n, d in variants.items()})
+    # T168: la cantera, apagada por defecto (EIM_NURSERY=0); con ella, contextos con `nat`
+    nursery = (make_nursery(cfg.nursery, cfg.paper_variants, store, cfg.data_dir, paper_store,
+                            paper.gens) if source is None and cfg.paper else None)
+    if nursery is not None:
+        backup_dbs[f"paper_{nursery.name}.duckdb"] = nursery.pstore.connection
     # T49: puerta de validación por estrategia; se recalcula al cierre de cada vela de 4 h.
     validator = Validator(paper, ValidationStore(paper_store),
                           attempts=ATTEMPTS_DIR if cfg.val_attempts else None)
@@ -194,6 +200,8 @@ def create_app(
         paper_task = (asyncio.create_task(paper.loop())
                       if source is None and cfg.paper else None)
         variant_tasks = [asyncio.create_task(d.loop()) for d in variants.values()]
+        if nursery is not None:
+            variant_tasks.append(asyncio.create_task(nursery.loop()))
         arb_exec_task = (asyncio.create_task(arb_loop(arb_rt))
                          if arb_rt.pilot is not None else None)
         share_task = asyncio.create_task(share_loop(share)) if share is not None else None
@@ -208,6 +216,8 @@ def create_app(
         for d in variants.values():
             d.hooks.stop()
             d.pstore.close()
+        if nursery is not None:
+            nursery.pstore.close()
         await hub.close()
         reports.close()
         paper_store.close()
@@ -263,6 +273,7 @@ def create_app(
     app.include_router(build_library_digital_router(
         rows=lambda: paper_ledger.query(paper.pstore, scope="perfil", limit=20000)))
     app.include_router(build_variant_router(variants))
+    app.include_router(build_nursery_router(nursery))
     app.include_router(build_paper_arb_router(store, cfg.data_dir))  # T45: pruebas en papel
     app.state.paper = paper
     app.include_router(build_validation_router(validator))

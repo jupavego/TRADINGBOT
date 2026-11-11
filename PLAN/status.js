@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T12:39:19",
+ "generated": "2026-11-11T17:32:58",
  "phases": [
   {
    "n": 0,
@@ -2494,8 +2494,8 @@ window.EIM_STATUS = {
     "T49",
     "T143"
    ],
-   "state": "pending",
-   "notes": "—",
+   "state": "done",
+   "notes": "`v2/eim/nursery/` (contrato `Prospect` con huella, 43 prospectos de los expedientes de T167, 13 módulos de reglas nativas puras, simulación maker con markout y funding real, cuentas propias con gemelos pareados y puerta de costo a 0,3 R) + `GET /v2/nursery`; contexto con `nat` solo con `EIM_NURSERY=1`, base propia `data/paper_cantera.duckdb`. Rescatada de una sesión caída: 3 fallos arreglados (ver `PLAN/notas/T168_motor_cantera.md` §5). En una semana real (882 contextos) **operan 32 de los 43** y la puerta cerró 15 m sola al medir 0,342 R con sus 50 operaciones de sombra; gate completo verde por la cola tres veces (la última, 3 671 pruebas sobre el árbol fusionado). Apagada hasta el pre-registro de T170",
    "effort": "alto",
    "phase": 27
   },
