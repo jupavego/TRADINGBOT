@@ -98,13 +98,24 @@ temporal):
    `paper_cantera.duckdb`. ✅ (También está como prueba del gate,
    `tests/nursery/test_native_desk.py::test_nursery_never_writes_to_the_t31_books`.)
 
-La corrida de **una semana entera** (882 contextos reales de 15 m, 1 h y 4 h) quedó lanzada por la
-cola y su resultado se añade aquí: es la que dice cuántos de los 43 prospectos operan de verdad en
-una semana y cuánto crece la base en disco. El primer intento murió por una carrera con la captura
-HFT —estaba leyendo una parte parquet de `micro/top` de la hora en curso mientras el colector la
-compactaba (`IOException`)—, así que la semana se desplazó un día hacia atrás, donde las
-particiones ya están quietas. **Aviso para T169, que va a leer mucho más del almacén:** cualquier
-lectura del tramo vivo necesita reintentos o un corte un día atrás.
+**Gate completo verde por la cola, dos veces:** `gate-t168` (rc 0, 1 481 s, 3 641 pruebas) y,
+tras la segunda fusión de `main`, `gate-t168-2` (rc 0, 1 411 s, **3 645 pruebas**, 3 637 pasadas,
+8 omitidas, 0 fallos).
+
+La corrida de **una semana entera** (882 contextos reales de 15 m, 1 h y 4 h) sigue por la cola y
+su resultado se añade aquí: es la que dice cuántos de los 43 prospectos operan de verdad en una
+semana y cuánto crece la base en disco. Costó tres intentos y **los dos primeros fallos son datos
+útiles para T169**, que va a leer mucho más del almacén:
+
+1. **Carrera con la captura HFT.** Leer una parte parquet de `micro/top` de la hora en curso
+   mientras el colector la compacta revienta con `IOException`. Solución: cortar la ventana un día
+   atrás, donde las particiones ya están quietas, y reintentar.
+2. **La cola lo mató por memoria.** Con 2 procesos el pico fue de **1 807 MB** y el equipo tenía
+   ~3 GB libres: cuando la RAM libre bajó a 844 MB, la cola lo reencoló pidiendo 3 328 MB y a las
+   2 h se rindió por no encontrar ese margen. Un trabajo largo en este equipo va con **un solo
+   proceso** y ha de ser **reanudable**: los contextos ya calculados se guardan vela a vela, así
+   que al relanzarlo solo se calcula lo que falta, con la ventana congelada en un archivo para que
+   el almacén, que no deja de crecer, no desplace la semana.
 
 ## 5. Los tres arreglos sobre lo que dejó la sesión de las 02:12
 
