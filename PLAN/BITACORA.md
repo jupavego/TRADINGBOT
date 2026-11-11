@@ -1255,3 +1255,9 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** 10 nuevas en verde; ruff limpio; gate completo por la cola.
 - **Abierto:** T160 ◆ y BACKLOG T159 (1)–(4).
 - **Siguiente paso:** fusionar el PR; ◆ programar la auditoría semanal.
+
+## 2026-11-11 · juanpablo-cpu · T159: auditoría programada y ◆ de T160 resuelta
+- **Pedido:** «Sí, prográmala» y luego, sobre T160, «tomemos la más acertada».
+- **Hecho:** tarea de Claude `eim-auditoria-semanal` (domingo 22:00 local = lunes 03:00 UTC, modo Auto; solo abre PR si hay algo nuevo y no lo fusiona). ◆ de T160 resuelta: se abre, familia de Holm propia de calibración con 2 intentos pre-registrados, adopción no antes del cierre de T31.
+- **Archivos:** `PLAN/{T160,STATUS,ESTADO_PROYECTO,BACKLOG,BITACORA}.md`, `.claude/skills/eim-auditoria/SKILL.md`, hoja de ruta.
+- **Siguiente paso:** fusionar #260; T160 empieza por su pre-registro.

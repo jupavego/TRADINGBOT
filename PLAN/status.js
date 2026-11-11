@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T22:51:50",
+ "generated": "2026-11-10T23:31:16",
  "phases": [
   {
    "n": 0,
@@ -2354,7 +2354,7 @@ window.EIM_STATUS = {
   },
   {
    "id": "T160",
-   "title": "◆ Recalibrar las probabilidades de escenario, con pre-registro y fuera de muestra",
+   "title": "Recalibrar las probabilidades de escenario, con pre-registro y fuera de muestra",
    "deps": [
     "T19",
     "T26",
@@ -2362,7 +2362,7 @@ window.EIM_STATUS = {
     "T159"
    ],
    "state": "pending",
-   "notes": "Abierta el 2026-11-11 por la primera auditoría (T159): Brier skill −0,010, acierto direccional 40,7 %, «bull» sobrestimado 12 pp. ◆ abrirla y si cuenta en Holm.",
+   "notes": "Abierta el 2026-11-11 por la primera auditoría (T159): Brier skill −0,010, acierto direccional 40,7 %, «bull» sobrestimado 12 pp. **◆ resuelta (delegada):** se abre; familia de Holm propia de calibración con 2 intentos pre-registrados (no suma a la de trading); adopción no antes del cierre de T31.",
    "effort": "medio",
    "phase": 25
   }

@@ -25,6 +25,7 @@ Esto resume 158 tareas. Si un hallazgo choca con una línea de esta tabla, se in
 | Al cerrar T31 (2026-11-27) | Encender `risk_includes_costs` y el freno gradual; decidir si la variante t143 pasa a oficial | `PLAN/T31.md`, T136 |
 | Dinero real | Imposible: puerta T27 no pasa | T27, T31 |
 | Multiplicidad | Todo intento cuenta en Holm (familia 841) | T49, T139 |
+| Calibración | T160 abierta: familia de Holm propia (2 intentos pre-registrados), adopción no antes del cierre de T31 | T160 |
 | Foco | Solo BTCUSDT | T122 |
 
 **Lectura honesta de «rentabilidad»:** el bruto del libro es ≈ 0 R. Las palancas de costo y riesgo
@@ -63,7 +64,7 @@ sobrestimado (27 % de probabilidad media frente a 15 % real).
    los últimos 7 días sale del IC de la línea base. Dónde mirar, y nada más:
    - costo → `eim/paper/cost_ledger.py`, `reports/t143_maker.md`, `/v2/paper/variant/t143`
    - riesgo → `reports/t136_riesgo.md`, `eim/paper/risk_budget.py`
-   - calibración → `/v2/calibration?symbol=BTCUSDT&tf=1h`, `reports/t150_calibracion.md`
+   - calibración → `/v2/calibration?symbol=BTCUSDT&tf=1h`, `reports/t150_calibracion.md`, `PLAN/T160.md`
    - catálogo → `PLAN/T49.md` (la puerta) antes de sugerir retirar una estrategia; Holm cuenta
    - datos HFT → `python -m eim.operation.usage incidents --days 7` (T141/T148)
    - disparador de funding → `reports/arbitrage_edge.md` y BACKLOG T145 (3): pre-registro propio, sin la tenencia de 2 160 h
