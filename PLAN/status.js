@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T23:59:48",
+ "generated": "2026-11-11T00:04:08",
  "phases": [
   {
    "n": 0,
@@ -307,6 +307,18 @@ window.EIM_STATUS = {
     "T145",
     "T146",
     "T150"
+   ]
+  },
+  {
+   "n": 26,
+   "name": "Rigor estadístico y volatilidad",
+   "ids": [
+    "T161",
+    "T162",
+    "T163",
+    "T164",
+    "T165",
+    "T166"
    ]
   },
   {
@@ -2342,6 +2354,87 @@ window.EIM_STATUS = {
    "goal": "Ver en la pestaña «Biblioteca», bajo la biblioteca local, de dónde sale cada recomendación y qué aportó el conocimiento."
   },
   {
+   "id": "T161",
+   "title": "Potencia a priori y contraste SPA: cuánta historia hace falta y si la mejor entrada era suerte",
+   "deps": [
+    "T49",
+    "T137",
+    "T139",
+    "T145"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-10 desde la investigación de herramientas (`PLAN/notas/T161_investigacion_herramientas.md`). MinTRL, SPA/MCS con `arch`, bloque óptimo y Benjamini-Hochberg.",
+   "effort": "bajo",
+   "phase": 26
+  },
+  {
+   "id": "T162",
+   "title": "Cono de volatilidad: Log-HAR-RV y bandas con calibración conformal adaptativa",
+   "deps": [
+    "T16",
+    "T19",
+    "T160"
+   ],
+   "state": "pending",
+   "notes": "Misma investigación. HAR-RV al cono (hoy GARCH con α/β fijos), ACI, QLIKE/CRPS/PIT y MCS de motores; adopción no antes del cierre de T31.",
+   "effort": "medio",
+   "phase": 26
+  },
+  {
+   "id": "T163",
+   "title": "◆ Cartera de tendencia lenta (TSMOM) con volatilidad objetivo, pre-registrada",
+   "deps": [
+    "T25",
+    "T49",
+    "T145",
+    "T161"
+   ],
+   "state": "pending",
+   "notes": "Misma investigación. La forma de la literatura que T139 no probó (cartera continua, no entradas con stop). ◆ si se gasta el intento de Holm.",
+   "effort": "medio",
+   "phase": 26
+  },
+  {
+   "id": "T164",
+   "title": "◆ Carry de funding y momentum transversales sobre el universo de perpetuos",
+   "deps": [
+    "T93",
+    "T95",
+    "T145",
+    "T161"
+   ],
+   "state": "pending",
+   "notes": "Misma investigación. Extiende la clase B sin esperar al funding de BTC/ETH. Requiere T93.",
+   "effort": "medio",
+   "phase": 26
+  },
+  {
+   "id": "T165",
+   "title": "Volatilidad implícita de Deribit (DVOL) y prima de varianza como insumo de volatilidad",
+   "deps": [
+    "T03",
+    "T22",
+    "T162"
+   ],
+   "state": "pending",
+   "notes": "Misma investigación. API pública sin clave; entra solo si mejora el QLIKE sobre HAR.",
+   "effort": "bajo",
+   "phase": 26
+  },
+  {
+   "id": "T166",
+   "title": "Régimen: modelo de saltos estadístico frente a HMM y BOCPD",
+   "deps": [
+    "T22",
+    "T133",
+    "T161"
+   ],
+   "state": "pending",
+   "notes": "Misma investigación. Comparación en el banco de T133 antes de construir más de un modelo.",
+   "effort": "bajo",
+   "phase": 26
+  },
+  {
    "id": "T167",
    "title": "◆ Expedientes de la cantera: qué sabe cada agente y qué perfiles propios propone",
    "deps": [
@@ -2377,7 +2470,7 @@ window.EIM_STATUS = {
     "T161"
    ],
    "state": "pending",
-   "notes": "— (T161 está en la rama abierta de la fase 26)",
+   "notes": "—",
    "effort": "medio",
    "phase": 27
   },
@@ -2392,7 +2485,7 @@ window.EIM_STATUS = {
     "T161"
    ],
    "state": "pending",
-   "notes": "— (T160 y T161 están en ramas abiertas)",
+   "notes": "— (T160 sigue en una rama abierta)",
    "effort": "medio",
    "phase": 27
   },
