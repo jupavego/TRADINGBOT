@@ -1,0 +1,205 @@
+{
+ "agent_id": "price_action",
+ "agent_version": "1.0.0",
+ "status": "inscrito",
+ "verified": "2026-11-11",
+ "theory": "La acción del precio: máximos y mínimos (BOS = ruptura a favor, CHOCH = cambio de carácter) y patrones de vela junto a zonas S/R.",
+ "variables": [
+  {
+   "name": "metrics.last_event",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "BOS_ALCISTA/BAJISTA, CHOCH_ALCISTA/BAJISTA"
+  },
+  {
+   "name": "metrics.last_event_age",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.structure_state",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.bullish_patterns",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.bearish_patterns",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.sr_zones",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  }
+ ],
+ "history": {
+  "source": "banco T131 (v2/backups/t131_banco, binance-futures)",
+  "from": "2023-01-01",
+  "to": "2026-11-03",
+  "coverage": "100 % (0 huecos en 1m/15m/1h/4h)",
+  "exam": "banco_t131"
+ },
+ "cadence": {
+  "expected": "BOS y CHOCH nuevos: varios por semana en 1 h",
+  "basis": "último evento en reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes: CHOCH bajista 126, BOS alcista 70, BOS bajista 62, CHOCH alcista 34 (velas con ese evento vigente)"
+ },
+ "literature": [
+  {
+   "id": "lo_mamaysky_wang_2000",
+   "concept": "chart_patterns",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "caginalp_laurent_1998",
+   "concept": "candlesticks",
+   "stance": "apoya",
+   "consensus": "dividido (+0,19)"
+  },
+  {
+   "id": "marshall_young_rose_2006",
+   "concept": "candlesticks",
+   "stance": "objeta",
+   "consensus": "dividido (+0,19)"
+  },
+  {
+   "id": "daniel_moskowitz_2016",
+   "concept": "momentum_crash",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  }
+ ],
+ "prospects": [
+  {
+   "id": "pa_bos",
+   "name": "Ruptura de estructura (BOS)",
+   "role": "base",
+   "theory": "Una ruptura del último máximo/mínimo a favor confirma la tendencia.",
+   "opposite_of": null,
+   "rule": "Entra a favor de un BOS nuevo (edad 0); sale con un CHOCH contrario.",
+   "variables": [
+    "metrics.last_event",
+    "metrics.last_event_age"
+   ],
+   "params": {
+    "fractal_n": {
+     "value": 2,
+     "source": "Williams (1995), fractal de 2 velas a cada lado — canon; valor del agente"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "varias/semana",
+   "literature": [
+    "lo_mamaysky_wang_2000"
+   ],
+   "horizon": "tres_dias"
+  },
+  {
+   "id": "pa_choch",
+   "name": "Cambio de carácter (CHOCH)",
+   "role": "candidato",
+   "theory": "Teoría opuesta: el primer quiebre contra la estructura anuncia el giro.",
+   "opposite_of": "pa_bos",
+   "rule": "Entra en la dirección de un CHOCH nuevo (edad 0); sale con un CHOCH contrario.",
+   "variables": [
+    "metrics.last_event",
+    "metrics.last_event_age"
+   ],
+   "params": {
+    "fractal_n": {
+     "value": 2,
+     "source": "Williams (1995) — canon; valor del agente"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "varias/semana",
+   "literature": [
+    "daniel_moskowitz_2016"
+   ],
+   "horizon": "tres_dias"
+  },
+  {
+   "id": "pa_patron_zona",
+   "name": "Patrón de giro en zona S/R",
+   "role": "candidato",
+   "theory": "Un patrón de vela de giro sobre una zona S/R marca el extremo del rango.",
+   "opposite_of": null,
+   "rule": "Largo con ≥ 1 patrón alcista en las últimas pattern_lookback velas a ≤ sr_tolerance de un soporte; corto en espejo.",
+   "variables": [
+    "metrics.bullish_patterns",
+    "metrics.bearish_patterns",
+    "metrics.sr_zones"
+   ],
+   "params": {
+    "pattern_lookback": {
+     "value": 5,
+     "source": "`agents/price_action/params.py` (legado F7)"
+    },
+    "sr_tolerance_pct": {
+     "value": 0.5,
+     "source": "`agents/price_action/params.py` (legado F7)"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/semana",
+   "literature": [
+    "caginalp_laurent_1998",
+    "marshall_young_rose_2006"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "pa_bos_patron",
+   "name": "BOS con patrón de vela",
+   "role": "candidato",
+   "theory": "Una ruptura de estructura acompañada de un patrón de vela a favor es más fiable.",
+   "opposite_of": null,
+   "rule": "Entra a favor de un BOS nuevo solo si hay ≥ 1 patrón del mismo signo en las últimas pattern_lookback velas.",
+   "variables": [
+    "metrics.last_event",
+    "metrics.last_event_age",
+    "metrics.bullish_patterns",
+    "metrics.bearish_patterns"
+   ],
+   "params": {
+    "fractal_n": {
+     "value": 2,
+     "source": "Williams (1995) — canon"
+    },
+    "pattern_lookback": {
+     "value": 5,
+     "source": "`agents/price_action/params.py` (legado F7)"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/semana",
+   "literature": [
+    "lo_mamaysky_wang_2000",
+    "caginalp_laurent_1998"
+   ],
+   "horizon": "tres_dias"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "Marshall, Young y Rose (2006) no encuentran valor en las velas japonesas en el DJIA: se espera baja de `pa_patron_zona`, y medirlo en BTC es parte del valor."
+ ],
+ "performance_computed": false
+}

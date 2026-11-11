@@ -1,0 +1,16 @@
+{
+ "agent_id": "plan",
+ "agent_version": "1.0.0",
+ "status": "control",
+ "verified": "2026-11-11",
+ "theory": "Plan entrada/SL/TP desde `structure` y `levels`.",
+ "variables": [],
+ "history": null,
+ "cadence": null,
+ "literature": [],
+ "prospects": [],
+ "exclusion_reason": "Entra como control, no como prospecto: ya existe como estrategia (`plan_tp1`, `plan_tp2`) y no aporta variables propias; sus entradas son las de `structure` y `levels`, que ya tienen prospectos.",
+ "reserve": [],
+ "notes": [],
+ "performance_computed": false
+}

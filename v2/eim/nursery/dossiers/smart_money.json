@@ -1,0 +1,40 @@
+{
+ "agent_id": "smart_money",
+ "agent_version": "0.1.0",
+ "status": "excluido",
+ "verified": "2026-11-11",
+ "theory": "Posición neta de los líderes aprobados por el scorecard (T41).",
+ "variables": [],
+ "history": {
+  "source": "leaders.duckdb",
+  "from": "2026-10-15",
+  "to": "2026-11-11",
+  "coverage": "posiciones 150 679 filas; ejecuciones desde 2026-02-05",
+  "exam": "solo_adelante"
+ },
+ "cadence": null,
+ "literature": [
+  {
+   "id": "bikhchandani_1992",
+   "concept": "sentiment",
+   "stance": "condiciona",
+   "consensus": "a favor (+1,00)"
+  }
+ ],
+ "prospects": [],
+ "exclusion_reason": "Verificado: no_data en el 100 % de los reportes de 1 h de las dos últimas semanas (reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes): no hay líderes aprobados con posición en BTC. Un prospecto que no puede operar ocupa sitio en la familia y acaba en baja por inactividad.",
+ "reserve": [
+  {
+   "id": "sm_consenso",
+   "rule": "sigue el sesgo con cobertura plena (≥ 3 líderes aprobados en la moneda)",
+   "why_not": "sin líderes aprobados hoy"
+  },
+  {
+   "id": "sm_unanimidad",
+   "rule": "acuerdo 1,0 con ≥ 2 líderes en la moneda",
+   "why_not": "sin líderes aprobados hoy"
+  }
+ ],
+ "notes": [],
+ "performance_computed": false
+}

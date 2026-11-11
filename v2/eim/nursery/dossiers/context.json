@@ -1,0 +1,23 @@
+{
+ "agent_id": "context",
+ "agent_version": "1.0.0",
+ "status": "excluido",
+ "verified": "2026-11-11",
+ "theory": "Contexto de noticias con un LLM; solo informa.",
+ "variables": [],
+ "history": null,
+ "cadence": null,
+ "literature": [
+  {
+   "id": "baker_wurgler_2007",
+   "concept": "sentiment",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  }
+ ],
+ "prospects": [],
+ "exclusion_reason": "Sin motor LLM activo: no_data en el 94 % de los reportes de 1 h (reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes); el sesgo es siempre 0 y su resultado no es reproducible. Vuelve cuando haya motor activo, como prospecto nuevo con ◆ (suma intento a la familia).",
+ "reserve": [],
+ "notes": [],
+ "performance_computed": false
+}

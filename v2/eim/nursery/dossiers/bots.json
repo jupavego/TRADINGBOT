@@ -1,0 +1,114 @@
+{
+ "agent_id": "bots",
+ "agent_version": "0.1.0",
+ "status": "inscrito",
+ "verified": "2026-11-11",
+ "theory": "Si los bots públicos encapsulados, cada uno con su lógica, coinciden en la postura, la coincidencia puede tener información.",
+ "variables": [
+  {
+   "name": "metrics.bots[].stance",
+   "source": "posturas de los bots públicos (snapshot.bot_signals, T57)",
+   "note": ""
+  },
+  {
+   "name": "metrics.bots[].status",
+   "source": "posturas de los bots públicos (snapshot.bot_signals, T57)",
+   "note": ""
+  },
+  {
+   "name": "metrics.disagreement",
+   "source": "posturas de los bots públicos (snapshot.bot_signals, T57)",
+   "note": ""
+  }
+ ],
+ "history": {
+  "source": "reports.duckdb::bot_signals",
+  "from": "2026-04-19",
+  "to": "2026-11-11",
+  "coverage": "104 921 señales de BTCUSDT, 5 bots",
+  "exam": "senales_guardadas",
+  "note": "se examinan las señales guardadas, no recalculadas: las versiones de los bots cambiaron en el camino (avisos VERSION_CHANGED)"
+ },
+ "cadence": {
+  "expected": "mayoría: varias por semana; unanimidad: pocas al mes",
+  "basis": "desacuerdo medio ≈ 0,6 en el último reporte; 9 señales (reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes)"
+ },
+ "literature": [
+  {
+   "id": "bikhchandani_1992",
+   "concept": "sentiment",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "delong_1990",
+   "concept": "sentiment",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  }
+ ],
+ "prospects": [
+  {
+   "id": "bots_mayoria",
+   "name": "Mayoría de bots",
+   "role": "base",
+   "theory": "La postura que comparte la mayoría de los bots operativos.",
+   "opposite_of": null,
+   "rule": "Largo si más de la mitad de los bots con estado ok tiene postura +1; corto en espejo; sale cuando se pierde la mayoría.",
+   "variables": [
+    "metrics.bots[].stance",
+    "metrics.bots[].status"
+   ],
+   "params": {
+    "majority": {
+     "value": "> 1/2",
+     "source": "mayoría simple (convención)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "history_exam": "senales_guardadas",
+   "expected_cadence": "varias/semana",
+   "literature": [
+    "bikhchandani_1992"
+   ],
+   "horizon": "tres_dias"
+  },
+  {
+   "id": "bots_unanimidad",
+   "name": "Unanimidad de bots",
+   "role": "candidato",
+   "theory": "Solo cuando todos los bots operativos coinciden.",
+   "opposite_of": null,
+   "rule": "Entra si todos los bots ok tienen la misma postura no nula (desacuerdo 0); sale al romperse.",
+   "variables": [
+    "metrics.bots[].stance",
+    "metrics.bots[].status",
+    "metrics.disagreement"
+   ],
+   "params": {
+    "min_bots": {
+     "value": 3,
+     "source": "mínimo para hablar de consenso, igual que `smart_money.full_leaders`"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "history_exam": "senales_guardadas",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "bikhchandani_1992"
+   ],
+   "horizon": "tres_dias"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "Los bots ya se puntúan uno a uno en T59: los prospectos usan solo el consenso, no las posturas individuales, para no contar dos veces.",
+  "Bikhchandani et al. (1992): el consenso puede ser imitación sin información."
+ ],
+ "performance_computed": false
+}

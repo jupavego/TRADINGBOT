@@ -1,0 +1,179 @@
+{
+ "agent_id": "structure",
+ "agent_version": "1.0.0",
+ "status": "inscrito",
+ "verified": "2026-11-11",
+ "theory": "El diagnóstico estructural FRM → BRM → IRM clasifica estado, momentum y energía y elige el escenario más probable (continuación, ruptura, retroceso, cambio, consolidación).",
+ "variables": [
+  {
+   "name": "metrics.scenario",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "SC-01…SC-05"
+  },
+  {
+   "name": "metrics.conviction",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.structural_state",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "bias",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "signo de la dirección del escenario"
+  }
+ ],
+ "history": {
+  "source": "banco T131 (v2/backups/t131_banco, binance-futures)",
+  "from": "2023-01-01",
+  "to": "2026-11-03",
+  "coverage": "100 % (0 huecos en 1m/15m/1h/4h)",
+  "exam": "banco_t131"
+ },
+ "cadence": {
+  "expected": "continuación ≈ 19 % de las velas, ruptura ≈ 8 %, cambio ≈ 17 % (frecuencia de estado, no de entradas)",
+  "basis": "frecuencia de escenarios en reports.duckdb (copia eim_20261111-000001), BTCUSDT 1h, 2026-10-28 → 2026-11-11, 272 reportes: CONT 55, BREAKOUT 24, CAMBIO 50, RETROCESO 45, CONSOLIDACIÓN 118"
+ },
+ "literature": [
+  {
+   "id": "lo_mamaysky_wang_2000",
+   "concept": "chart_patterns",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "hurst_ooi_pedersen_2017",
+   "concept": "trend_following",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "daniel_moskowitz_2016",
+   "concept": "momentum_crash",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  }
+ ],
+ "prospects": [
+  {
+   "id": "estructura_continuacion",
+   "name": "Continuación con convicción",
+   "role": "base",
+   "theory": "Si la estructura dice continuación con convicción alta, se sigue.",
+   "opposite_of": null,
+   "rule": "Entra en el sentido del sesgo cuando el escenario pasa a SC-01 con convicción ≥ conviction_min; sale cuando cambia el escenario.",
+   "variables": [
+    "metrics.scenario",
+    "metrics.conviction",
+    "bias"
+   ],
+   "params": {
+    "conviction_min": {
+     "value": 60,
+     "source": "límite superior de la banda SR-2 (40, 60), EIM-IRM-001, `agents/structure/params.py::IRMParams` (provisional, no calibrado)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/mes",
+   "literature": [
+    "hurst_ooi_pedersen_2017"
+   ],
+   "horizon": "semanal"
+  },
+  {
+   "id": "estructura_ruptura",
+   "name": "Ruptura estructural",
+   "role": "candidato",
+   "theory": "La ruptura de una consolidación inicia un tramo nuevo.",
+   "opposite_of": null,
+   "rule": "Entra en el sentido del sesgo cuando el escenario pasa a SC-02 con convicción ≥ conviction_min.",
+   "variables": [
+    "metrics.scenario",
+    "metrics.conviction",
+    "bias"
+   ],
+   "params": {
+    "conviction_min": {
+     "value": 60,
+     "source": "banda SR-2, EIM-IRM-001, `agents/structure/params.py::IRMParams` (provisional, no calibrado)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/mes",
+   "literature": [
+    "lo_mamaysky_wang_2000",
+    "zarattini_aziz_2023"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "estructura_cambio",
+   "name": "Cambio estructural (giro)",
+   "role": "candidato",
+   "theory": "Teoría opuesta: cuando la estructura se rompe contra la tendencia, se gira con ella (choque de momentum, Daniel-Moskowitz).",
+   "opposite_of": "estructura_continuacion",
+   "rule": "Entra en la nueva dirección cuando el escenario pasa a SC-04 con convicción ≥ conviction_min.",
+   "variables": [
+    "metrics.scenario",
+    "metrics.conviction",
+    "bias"
+   ],
+   "params": {
+    "conviction_min": {
+     "value": 60,
+     "source": "banda SR-2, EIM-IRM-001, `agents/structure/params.py::IRMParams` (provisional, no calibrado)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/mes",
+   "literature": [
+    "daniel_moskowitz_2016"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "estructura_retroceso",
+   "name": "Retroceso dentro de la estructura",
+   "role": "candidato",
+   "theory": "El retroceso en una estructura ordenada es una entrada a favor de la tendencia.",
+   "opposite_of": null,
+   "rule": "Entra en el sentido del sesgo cuando el escenario pasa a SC-03 con convicción ≥ conviction_min.",
+   "variables": [
+    "metrics.scenario",
+    "metrics.conviction",
+    "bias"
+   ],
+   "params": {
+    "conviction_min": {
+     "value": 60,
+     "source": "banda SR-2, EIM-IRM-001, `agents/structure/params.py::IRMParams` (provisional, no calibrado)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/mes",
+   "literature": [
+    "hurst_ooi_pedersen_2017"
+   ],
+   "horizon": "intradia"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [],
+ "performance_computed": false
+}

@@ -1,0 +1,23 @@
+{
+ "agent_id": "arbitrage",
+ "agent_version": "1.0.0",
+ "status": "excluido",
+ "verified": "2026-11-11",
+ "theory": "Diferenciales netos entre mercados (T38).",
+ "variables": [],
+ "history": null,
+ "cadence": null,
+ "literature": [
+  {
+   "id": "makarov_schoar_2020",
+   "concept": "crypto_arbitrage",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  }
+ ],
+ "prospects": [],
+ "exclusion_reason": "Neutral al mercado: sesgo siempre 0 y excluido de la síntesis direccional (T44). La cantera mide rentabilidad direccional; el arbitraje es otra clase (B de T145), aparcada sin claves de testnet (T45).",
+ "reserve": [],
+ "notes": [],
+ "performance_computed": false
+}
