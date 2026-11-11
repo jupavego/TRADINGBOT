@@ -4,6 +4,36 @@ Fijado el 2026-11-11, **antes de calcular ningún resultado**, en un commit prop
 sigue se cambia después de mirar cifras; si un defecto del código obliga a repetir, se declara en
 el informe.
 
+## Versión 2 (2026-11-11, antes de tocar el tramo de evaluación)
+
+La v1 (commit d5ae85e) se corrigió **antes de calcular ninguna cifra del banco**, por un defecto
+que apareció en el ensayo con series sintéticas que se corre para no gastar la cola con un script
+roto. El mismo procedimiento que usó T134 con su pre-registro v3: se declara el cambio, su motivo y
+que el recuento de intentos no se mueve (siguen 4 candidatos y el Holm sigue siendo sobre 4).
+
+Qué cambia y por qué:
+
+1. **La asignación en línea pasa a ser el filtro del propio modelo.** La v1 declaraba la regla
+   voraz s_d = argmin_s ‖x_d − c_s‖² + λ·1[s ≠ s_{d−1}], que exige que **un solo día** pague toda
+   la penalización; el DP con el que se ajusta la amortiza entre varios días. Con λ moderado la
+   regla voraz **no salta nunca**, así que medía otra cosa que el modelo ajustado. Pasa a ser el
+   pase hacia delante del mismo DP (f_d(s) = ‖x_d − c_s‖² + min(f_{d−1}(s), min_{s'} f_{d−1}(s')
+   + λ)), que es igual de causal —no mira ningún día posterior— y hace que λ signifique lo mismo
+   al ajustar y al evaluar.
+2. **La penalización se declara en unidades de los datos, no en un número absoluto.** La v1 fijaba
+   λ ∈ {1, 10, 100} sobre rasgos estandarizados; en el ensayo, λ = 10 y λ = 100 dejaban **un solo
+   estado**, es decir, dos de los tres intentos eran iguales al suelo sin régimen por construcción
+   y no probaban nada. Pasa a λ = c · d̄, con d̄ la distancia cuadrática media al centroide del
+   ajuste con λ = 0 (k-means puro) en la misma ventana, y **c ∈ {0,5, 2, 8}**: «cuántos días de
+   prueba cuesta saltar». Sigue siendo una rejilla de tres, declarada a priori y sin mirar ninguna
+   cifra de evaluación.
+3. **El MCS tolera modelos con pérdidas idénticas** (`validation/spa.mcs_with_aliases`): si dos
+   modelos dan exactamente el mismo pronóstico, su p del MCS es la misma por definición y se
+   copia, en vez de que `arch` divida por una varianza nula y aborte. No cambia ninguna regla.
+
+Nada más se toca: datos, tramos, rasgos, métrica, puerta de potencia y regla de adopción son los
+de la v1. Lo que sigue ya está en v2.
+
 **Modo: SIMULADO.** Mide; no toca el agente `regime` en vivo, ni el riesgo, ni la ejecución, ni la
 corrida de papel T31. Aunque algo pase, **no se adopta antes del cierre de T31 (2026-11-27)**, y la
 adopción sería otra entrega que añade el etiquetador como **métrica** del agente, sin cambiar su
@@ -75,21 +105,24 @@ ningún rasgo: los cuatro están declarados y son los mismos para los tres model
 | Id | Modelo | Persistencia | Ajuste |
 |---|---|---|---|
 | U0 | **Suelo sin régimen:** ĥ = exp(media de ln RV de los días anteriores + v/2) | — | expansivo diario |
-| M0 | **Referencia: el BOCPD de hoy** (`agents/regime/bocpd.py` + `labeling.label_bars`, parámetros de `RegimeParams`) sobre la serie diaria | tramo vigente | reajuste cada 20 días |
-| J1 | Modelo de saltos, K = 2, λ = 1 | penalización de salto | reajuste cada 20 días |
-| J2 | Modelo de saltos, K = 2, λ = 10 | penalización de salto | reajuste cada 20 días |
-| J3 | Modelo de saltos, K = 2, λ = 100 | penalización de salto | reajuste cada 20 días |
+| M0 | **Referencia: el BOCPD de hoy** (`agents/regime/bocpd.py` + `labeling.label_bars`, parámetros de `RegimeParams`) sobre la serie diaria | tramo vigente | día a día |
+| J1 | Modelo de saltos, K = 2, c = 0,5 | penalización de salto | reajuste cada 20 días |
+| J2 | Modelo de saltos, K = 2, c = 2 | penalización de salto | reajuste cada 20 días |
+| J3 | Modelo de saltos, K = 2, c = 8 | penalización de salto | reajuste cada 20 días |
 | H1 | HMM gaussiano, K = 2, Baum-Welch | matriz de transición | reajuste cada 20 días |
 
-Los tres λ se declaran **aquí y a priori**, en tres órdenes de magnitud; **cada uno cuenta como un
-intento** y entra en el Holm de la familia de 4 candidatos (J1, J2, J3, H1). No hay elección de λ
-por validación: elegirlo mirando el resultado sería un grado de libertad escondido.
+Las tres penalizaciones se declaran **aquí y a priori** como λ = c · d̄ (ver la v2 arriba);
+**cada una cuenta como un intento** y entra en el Holm de la familia de 4 candidatos (J1, J2, J3,
+H1). No hay elección de c por validación: elegirla mirando el resultado sería un grado de libertad
+escondido.
 
 **Sin fuga, por construcción:** los parámetros se ajustan solo con días anteriores al reajuste, y
-el estado de cada día se asigna **en línea** con los parámetros del último ajuste (el modelo de
-saltos, por el argmin de ‖x_d − c_s‖² + λ·1[s ≠ s_{d−1}]; el HMM, por el filtro hacia delante;
+el estado de cada día se asigna con un **filtro hacia delante** que no mira ningún día posterior
+(el modelo de saltos, por el pase hacia delante de su DP; el HMM, por la posterior filtrada;
 BOCPD lo es por definición). El reajuste cada 20 días es el mismo paso que T162 usó para su
-GJR-GARCH.
+GJR-GARCH. **M0 se recalcula día a día**, repitiendo el `run()` del agente sobre la historia hasta
+ese día: BOCPD no tiene parámetros que ajustar, así que la cadencia de 20 días no le aplica y
+dárselo todos los días solo favorece a la referencia.
 
 ## Métricas
 
@@ -132,7 +165,7 @@ diferencias emparejadas 0,352 R y objetivo Δ = +0,05 R (el único efecto que T1
 Un candidato Mk ∈ {J1, J2, J3, H1} **pasa** si se cumplen las tres:
 
 1. **Model Confidence Set** al 10 % sobre las pérdidas QLIKE de {U0, M0, J1, J2, J3, H1}
-   (`validation/spa.mcs_losses`, bootstrap estacionario, bloque de Politis-White, 5 000
+   (`validation/spa.mcs_with_aliases`, bootstrap estacionario, bloque de Politis-White, 5 000
    repeticiones, semilla 166): Mk está dentro y **M0 queda fuera**.
 2. **Mejora frente a M0:** la diferencia media de QLIKE (Mk − M0) tiene un IC del 95 % por
    bootstrap estacionario que **excluye 0 por debajo** (`validation/spa.mean_diff_test`) y su p
