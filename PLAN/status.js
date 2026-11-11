@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-10T22:05:38",
+ "generated": "2026-11-10T23:59:48",
  "phases": [
   {
    "n": 0,
@@ -307,6 +307,18 @@ window.EIM_STATUS = {
     "T145",
     "T146",
     "T150"
+   ]
+  },
+  {
+   "n": 27,
+   "name": "Cantera de perfiles por agente",
+   "ids": [
+    "T167",
+    "T168",
+    "T169",
+    "T170",
+    "T171",
+    "T172"
    ]
   }
  ],
@@ -2328,6 +2340,87 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 11,
    "goal": "Ver en la pestaña «Biblioteca», bajo la biblioteca local, de dónde sale cada recomendación y qué aportó el conocimiento."
+  },
+  {
+   "id": "T167",
+   "title": "◆ Expedientes de la cantera: qué sabe cada agente y qué perfiles propios propone",
+   "deps": [
+    "T49",
+    "T145",
+    "T151",
+    "T157"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "medio",
+   "phase": 27
+  },
+  {
+   "id": "T168",
+   "title": "Motor de la cantera: prospectos nativos en un libro aparte del bróker simulado",
+   "deps": [
+    "T167",
+    "T49",
+    "T143"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "alto",
+   "phase": 27
+  },
+  {
+   "id": "T169",
+   "title": "Examen físico de los prospectos en la historia (sin mirar su rendimiento)",
+   "deps": [
+    "T168",
+    "T131",
+    "T161"
+   ],
+   "state": "pending",
+   "notes": "— (T161 está en la rama abierta de la fase 26)",
+   "effort": "medio",
+   "phase": 27
+  },
+  {
+   "id": "T170",
+   "title": "◆ Pre-registro cantera_v1 y arranque de la cantera hacia adelante",
+   "deps": [
+    "T167",
+    "T168",
+    "T169",
+    "T160",
+    "T161"
+   ],
+   "state": "pending",
+   "notes": "— (T160 y T161 están en ramas abiertas)",
+   "effort": "medio",
+   "phase": 27
+  },
+  {
+   "id": "T171",
+   "title": "Panel «Cantera»: escalafón por agente, honesto con la muestra",
+   "deps": [
+    "T168",
+    "T170"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "medio",
+   "phase": 27
+  },
+  {
+   "id": "T172",
+   "title": "◆ Informe mensual de ojeo y retroalimentación (agentes, biblioteca, síntesis)",
+   "deps": [
+    "T170",
+    "T155",
+    "T157",
+    "T159"
+   ],
+   "state": "pending",
+   "notes": "—",
+   "effort": "medio",
+   "phase": 27
   }
  ]
 };

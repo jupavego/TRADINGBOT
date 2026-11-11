@@ -1247,3 +1247,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** BACKLOG T151 (1)–(6); la API viva sirve las rutas nuevas tras fusionar y reiniciarla.
 - **Siguiente paso:** fusionar el PR y reiniciar la API (junto con lo pendiente de T150); ◆ al cerrar T31, si el bróker anota el diagnóstico en cada idea.
 
+
+## 2026-11-11 · juanpablo-cpu · Fase 27 abierta: la cantera de perfiles por agente (T167–T172)
+- **Pedido:** un «criadero, guardería o casa de talentos» donde cada uno de los 19 agentes desarrolle sus propios perfiles de inversión desde sus datos y su teoría (no un algoritmo genérico), que operen en un campo de entrenamiento para ver cuáles podrían tener éxito, conjugado con lo aprendido y con la bibliografía.
+- **Visto:** hoy los agentes solo entran al bróker con la regla genérica `agente_{id}` (8 de 19, `paper/strategies_ind.py`) y el contexto solo guarda sesgo, confianza y estado: las variables propias (p. ej. las 44 FRM de `ema`) no llegan a ninguna estrategia.
+- **Hecho:** diseño en `PLAN/notas/T167_cantera.md` (reglas de la casa, escalafón guardería → cantera → promesa → primer equipo o baja, boceto de los 19 agentes con sus obras del catálogo T151, retroalimentación) y fichas T167–T172; fila de la fase 27 en `00_MASTER.md` y filas en `STATUS.md`. Sin código; el gate no aplica.
+- **Decisiones de diseño:** solo hacia adelante (la historia no asciende: la lectura limpia se gastó en T139), ≤ 4 prospectos por agente con hermano simple obligatorio («a empate asciende el simple»), parámetros canónicos sin optimizar, familia propia pre-registrada (precedente T160), miradas mensuales secuenciales, libro aparte sin tocar T31 y nada opera con D (T145).
+- **Abierto:** T160 y T161 (de las que dependen T169/T170) siguen en ramas sin fusionar; la fila de la fase 27 chocará con las de las fases 25 y 26 al fusionar.
+- **Siguiente paso:** T167 (expedientes) y su ◆: la lista de prospectos y el techo de la familia.
+- **Aclaración del usuario (misma sesión):** los perfiles operan de forma simulada e interna sobre el mercado real en vivo y se miden por la **rentabilidad** que dejan. Ajustado: cada prospecto tiene su propia cuenta simulada (mismo capital, 1 % de riesgo, costos reales) y la medida principal es su rentabilidad neta acumulada, comparada siempre con el perfil al azar y con comprar y mantener; el R queda como vara estadística interna (nota §3, T168, T170, T171, T172).
