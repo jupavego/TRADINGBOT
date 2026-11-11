@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T08:52:28",
+ "generated": "2026-11-11T12:39:19",
  "phases": [
   {
    "n": 0,
@@ -273,7 +273,8 @@ window.EIM_STATUS = {
     "T142",
     "T147",
     "T148",
-    "T149"
+    "T149",
+    "T173"
    ]
   },
   {
@@ -2467,7 +2468,7 @@ window.EIM_STATUS = {
     "T161"
    ],
    "state": "done",
-   "notes": "**Hecha (2026-11-11). Veredicto: SIN POTENCIA; no se construye ningún modelo de régimen.** Pre-registro `PLAN/notas/T166_preregistro.md` (v1 `d5ae85e`, v2 `9c6cce2`, las dos anteriores a cualquier cifra del banco; la v2 corrige, con el procedimiento del v3 de T134, la regla de asignación en línea y la rejilla de penalizaciones, que dejaban dos candidatos iguales al suelo). Con 1 037 días de evaluación del banco de T133, la mejora de QLIKE mínima detectable es **0,146** frente a la puerta pre-registrada de 0,020 (σ de las diferencias emparejadas 1,89, cuatro veces la de T162 entre dos modelos continuos): harían falta ≈ 55 065 días (151 años), así que no se calculó el MCS ni ninguna p (BACKLOG T161 (3)). Lo que sí se contesta: en **persistencia** el modelo de saltos aplasta al HMM gaussiano con los mismos rasgos (permanencia 51,9 frente a **2,6 días**, 19 frente a 393 cambios), así que si se retoma el régimen el candidato es ese y no el HMM de T77; y sobre el **R del banco** el estado separa (ΔR 0,035–0,063 con IC que excluyen 0 en 29 828 operaciones fuera de muestra) pero **todas las mitades pierden** (la mejor −0,1043 R frente a −0,1538), igual que el oráculo perfecto de T133. Ningún etiquetador se acerca al Log-HAR-RV de T162 (QLIKE 0,2713 frente a 0,35–0,42): la vía medible es el estado **como regresor del HAR**, que queda en BACKLOG. Código `eim/agents/regime/{jump,hmm,daily}.py` y `mcs_with_aliases` en `validation/spa.py` (`mcs_losses` abortaba con pérdidas idénticas); `jumpmodels` es Apache 2.0 pero exige scikit-learn, que no está en el venv, así que el modelo va en NumPy. Informe `v2/reports/t166_regimen.md`. **Gate completo verde por la cola** (`gate-t166`, 3 633 pruebas pasadas, 8 omitidas, 0 fallos, 1 481 s, rc 0, sin pausas) y `ruff check eim tests` limpio; las 2 pruebas de los `.ps1` que trajo `main` al fusionar y un arreglo de lint en una aserción se corrieron aparte (verdes), y `gate-t166-final` repite el gate sobre el árbol exacto. Nada en vivo tocado.",
+   "notes": "**Hecha (2026-11-11). Veredicto: SIN POTENCIA; no se construye ningún modelo de régimen.** Pre-registro `PLAN/notas/T166_preregistro.md` (v1 `d5ae85e`, v2 `9c6cce2`, las dos anteriores a cualquier cifra del banco; la v2 corrige, con el procedimiento del v3 de T134, la regla de asignación en línea y la rejilla de penalizaciones, que dejaban dos candidatos iguales al suelo). Con 1 037 días de evaluación del banco de T133, la mejora de QLIKE mínima detectable es **0,146** frente a la puerta pre-registrada de 0,020 (σ de las diferencias emparejadas 1,89, cuatro veces la de T162 entre dos modelos continuos): harían falta ≈ 55 065 días (151 años), así que no se calculó el MCS ni ninguna p (BACKLOG T161 (3)). Lo que sí se contesta: en **persistencia** el modelo de saltos aplasta al HMM gaussiano con los mismos rasgos (permanencia 51,9 frente a **2,6 días**, 19 frente a 393 cambios), así que si se retoma el régimen el candidato es ese y no el HMM de T77; y sobre el **R del banco** el estado separa (ΔR 0,035–0,063 con IC que excluyen 0 en 29 828 operaciones fuera de muestra) pero **todas las mitades pierden** (la mejor −0,1043 R frente a −0,1538), igual que el oráculo perfecto de T133. Ningún etiquetador se acerca al Log-HAR-RV de T162 (QLIKE 0,2713 frente a 0,35–0,42): la vía medible es el estado **como regresor del HAR**, que queda en BACKLOG. Código `eim/agents/regime/{jump,hmm,daily}.py` y `mcs_with_aliases` en `validation/spa.py` (`mcs_losses` abortaba con pérdidas idénticas); `jumpmodels` es Apache 2.0 pero exige scikit-learn, que no está en el venv, así que el modelo va en NumPy. Informe `v2/reports/t166_regimen.md`. **Gate completo verde por la cola sobre el árbol empujado** (`gate-t166-final`, **3 635 pruebas pasadas, 8 omitidas, 0 fallos**, 1 847 s, rc 0, una pausa de la cola) y `ruff check eim tests` limpio; antes, `gate-t166` dio 3 633/8/0 rc 0 sobre el árbol previo a fusionar `main`. Nada en vivo tocado.",
    "effort": "bajo",
    "phase": 26
   },
@@ -2551,6 +2552,20 @@ window.EIM_STATUS = {
    "notes": "—",
    "effort": "medio",
    "phase": 27
+  },
+  {
+   "id": "T173",
+   "title": "Un servicio bloqueado no es un servicio muerto, y nuestra red no es la del exchange",
+   "deps": [
+    "T140",
+    "T147",
+    "T148"
+   ],
+   "state": "pending",
+   "notes": "Abierta el 2026-11-11 con la evidencia del primer día completo del vigilante de T148. El 2026-11-10 de **20:07:55 a 23:46:33 UTC** este equipo se quedó sin resolución de nombres (164 `datos_fallidos` con `getaddrinfo failed`; el EIM ya lo decía en una alerta crítica a las 20:12:03). El bróker simulado dejó de latir a las ~20:05 porque su ciclo se quedó agotando reintentos **dentro de la API**, y el vigilante gastó sus 4 intentos (20:19, 20:24, 20:44, 21:14) con `rc=0` y **sin efecto**: la API escuchaba en el 8000, así que `servicio_continuo.ps1` no tocó nada, y aunque lo hubiera hecho el problema era la red. Se rindió a las 21:19 y avisó; recuperado a las 23:54:17 tras **3 h 49 min**. Tres cosas que no se distinguen: (1) muerto frente a **bloqueado** —mismo síntoma, remedio opuesto—, (2) **lanzado** frente a arreglado (`rc=0` no prueba nada; lo prueba el latido de la pasada siguiente) y (3) **nuestra red** frente a la del exchange: el recolector marcó 576 tramos `desconexion` en las horas 20–23 que fueron nuestro DNS, y la regla de T148 solo salva las horas 21 y 22, de rebote, porque los tramos no suman la hora entera. La captura siguió latiendo cada ~28 s con `runs: 0` y `book_usable 0.0`: un latido fresco no prueba que haya datos. ◆ en la ficha: si el vigilante se queda quieto mientras dura el corte y si un corte de red local cuenta como hora nuestra para T78.",
+   "effort": "medio",
+   "phase": 21,
+   "goal": "Que el vigilante de T148 no gaste sus cuatro intentos en un servicio que está vivo pero sin red, y"
   }
  ]
 };
