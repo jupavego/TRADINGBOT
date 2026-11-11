@@ -1247,3 +1247,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** BACKLOG T151 (1)–(6); la API viva sirve las rutas nuevas tras fusionar y reiniciarla.
 - **Siguiente paso:** fusionar el PR y reiniciar la API (junto con lo pendiente de T150); ◆ al cerrar T31, si el bróker anota el diagnóstico en cada idea.
 
+
+## 2026-11-10 · Investigación de herramientas no exploradas → fase 26 (T161–T166)
+- **Hecho:** investigación en cinco líneas (datos alternativos, validación, modelos, estrategias, repos), cada una contrastada con `v2/eim` y `PLAN/` en el commit 61cbcd3. Conclusión: a EIM le faltan piezas de rigor y de volatilidad, no señales; casi nada crea ventaja. Se abren T161 (MinTRL + SPA), T162 (HAR-RV + ACI en el cono), T163 ◆ (TSMOM en cartera), T164 ◆ (carry y momentum transversales, tras T93), T165 (DVOL de Deribit) y T166 (régimen por saltos). Numeración comprobada en el remoto (T159 y T160 ya existían en ramas).
+- **Archivos:** `PLAN/T161–T166.md`, `PLAN/notas/T161_investigacion_herramientas.md` (informe completo con fuentes), `PLAN/{STATUS,00_MASTER,BACKLOG}.md`, `PLAN/status.js`.
+- **Pruebas:** no aplica (solo plan); hoja de ruta regenerada.
+- **Abierto:** BACKLOG T161 (1)–(3): licencia de data.binance.vision para T27, extra `hft` ausente en pyproject, pendientes menores. La fila de la fase 25 llega con la rama de T159/T160.
+- **Siguiente paso:** T161 primero (las demás usan su MinTRL y su SPA); T162 puede ir en paralelo pero no se adopta antes del cierre de T31 (2026-11-27).
