@@ -1,0 +1,4026 @@
+{
+ "_doc": "Biblioteca digital (T151): curado a mano. Lo bibliográfico lo trae `verify` del registro.",
+ "refs": [
+  {
+   "id": "lo_mamaysky_wang_2000",
+   "locator": {
+    "doi": "10.1111/0022-1082.00265",
+    "expect": "Foundations of Technical Analysis"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "chart_patterns",
+     "technical_analysis",
+     "support_resistance"
+    ],
+    "methods": [
+     "regresión no paramétrica por núcleos",
+     "detección algorítmica de 10 patrones",
+     "prueba de bondad de ajuste"
+    ],
+    "description": "Formaliza la detección de patrones gráficos (hombro-cabeza-hombro, dobles techos, rectángulos…) con regresión por núcleos y compara la distribución de rendimientos tras cada patrón con la incondicional.",
+    "application": "Detectar patrones de forma reproducible en vez de a ojo y medir si cambian la distribución de rendimientos de BTC tras la señal.",
+    "stances": [
+     {
+      "concept": "chart_patterns",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Varios patrones aportan información incremental sobre la distribución de rendimientos, aunque no garantizan beneficio.",
+      "conditions": "acciones EE. UU. 1962–1996, diario",
+      "terms": [
+       "pattern",
+       "incremental information"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "brock_lakonishok_lebaron_1992",
+   "locator": {
+    "doi": "10.1111/j.1540-6261.1992.tb04681.x",
+    "expect": "Simple Technical Trading Rules"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "trend_following",
+     "breakout",
+     "technical_analysis"
+    ],
+    "methods": [
+     "medias móviles",
+     "ruptura de rango",
+     "bootstrap con modelos nulos (AR, GARCH)"
+    ],
+    "description": "Prueba reglas de medias móviles y de ruptura de rango en el Dow Jones de 1897 a 1986 y compara sus rendimientos con series simuladas bajo modelos nulos.",
+    "application": "Contrastar las estrategias de cruce de medias y Donchian del bróker con un nulo por bootstrap, no solo con cero.",
+    "stances": [
+     {
+      "concept": "trend_following",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Tras señales de compra de medias móviles y rupturas los rendimientos fueron mayores y menos volátiles que tras las de venta.",
+      "conditions": "DJIA 1897–1986, sin costos de transacción",
+      "terms": [
+       "moving average",
+       "trading"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "park_irwin_2007",
+   "locator": {
+    "doi": "10.1111/j.1467-6419.2007.00519.x",
+    "expect": "profitability of technical analysis"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "technical_analysis",
+     "backtest_overfitting",
+     "execution_costs"
+    ],
+    "methods": [
+     "revisión sistemática de estudios"
+    ],
+    "description": "Revisión de la literatura sobre rentabilidad del análisis técnico: clasifica estudios antiguos y modernos y discute sus problemas (sesgo de búsqueda, selección a posteriori, costos).",
+    "application": "Mapa de qué tipo de evidencia existe para cada familia técnica y de sus defectos típicos antes de creer un resultado.",
+    "stances": [
+     {
+      "concept": "technical_analysis",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "La mayoría de estudios modernos encuentran beneficios, pero muchos adolecen de búsqueda de datos, selección a posteriori y costos mal estimados.",
+      "conditions": "acciones, divisas y futuros; estudios hasta 2004",
+      "terms": [
+       "technical analysis",
+       "profit"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones",
+     "divisas",
+     "futuros"
+    ]
+   }
+  },
+  {
+   "id": "sullivan_timmermann_white_1999",
+   "locator": {
+    "doi": "10.1111/0022-1082.00163",
+    "expect": "Data-Snooping, Technical Trading Rule Performance"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "technical_analysis",
+     "multiple_testing",
+     "backtest_overfitting"
+    ],
+    "methods": [
+     "Reality Check de White",
+     "bootstrap estacionario",
+     "universo de miles de reglas"
+    ],
+    "description": "Aplica el Reality Check de White a un universo grande de reglas técnicas sobre el Dow Jones para separar la mejor regla de la suerte de haber probado muchas.",
+    "application": "Base del contraste de familias de estrategias: la mejor de N versiones debe juzgarse contra el máximo esperado por azar.",
+    "stances": [
+     {
+      "concept": "technical_analysis",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "La mejor regla supera al mercado dentro de muestra, pero ese rendimiento no se sostiene en el periodo posterior tras corregir la búsqueda de datos.",
+      "conditions": "DJIA, 100 años; fuera de muestra 1987–1996",
+      "terms": [
+       "data-snooping",
+       "rule"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "osler_2003",
+   "locator": {
+    "doi": "10.1111/1540-6261.00588",
+    "expect": "Currency Orders and Exchange Rate Dynamics"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "support_resistance",
+     "stop_loss",
+     "order_flow"
+    ],
+    "methods": [
+     "datos de órdenes de un banco",
+     "agrupamiento en números redondos"
+    ],
+    "description": "Con órdenes reales stop-loss y take-profit de un banco muestra que se agrupan en números redondos, de forma distinta para cada tipo.",
+    "application": "Fundamento de la lectura de soportes y resistencias en niveles redondos de BTC y de la aceleración al romperlos (stops encadenados).",
+    "stances": [
+     {
+      "concept": "support_resistance",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Las órdenes take-profit concentradas en números redondos explican giros en esos niveles; las stop-loss, justo pasados, explican aceleraciones tras cruzarlos.",
+      "conditions": "divisas, órdenes de un banco",
+      "terms": [
+       "orders",
+       "round"
+      ]
+     }
+    ],
+    "markets": [
+     "divisas"
+    ]
+   }
+  },
+  {
+   "id": "osler_2000_frbny",
+   "locator": {
+    "url": "https://www.newyorkfed.org/research/epr/00v06n2/0007osle.html",
+    "expect": "Support for Resistance",
+    "web": {
+     "title": "Support for Resistance: Technical Analysis and Intraday Exchange Rates",
+     "authors": [
+      "Carol L. Osler"
+     ],
+     "year": 2000,
+     "venue": "FRBNY Economic Policy Review 6(2)",
+     "publisher": "Federal Reserve Bank of New York",
+     "doc_type": "articulo"
+    }
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "support_resistance",
+     "intraday"
+    ],
+    "methods": [
+     "niveles publicados por firmas",
+     "comparación con niveles aleatorios"
+    ],
+    "description": "Contrasta los soportes y resistencias que publicaban seis firmas con niveles elegidos al azar para ver si las tendencias intradía se interrumpen más en los publicados.",
+    "application": "Comprobar si los soportes y resistencias que dibuja el sistema frenan el precio más que niveles al azar (prueba con nulo).",
+    "stances": [
+     {
+      "concept": "support_resistance",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Las tendencias intradía se interrumpen en los niveles publicados con más frecuencia que en niveles arbitrarios.",
+      "conditions": "divisas intradía, 1996–1998; el poder predictivo varía entre divisas",
+      "terms": [
+       "predict intraday trend interruptions"
+      ]
+     }
+    ],
+    "markets": [
+     "divisas"
+    ],
+    "reliability": "alta"
+   }
+  },
+  {
+   "id": "caginalp_laurent_1998",
+   "locator": {
+    "doi": "10.1080/135048698334637",
+    "expect": "predictive power of price patterns"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "candlesticks",
+     "chart_patterns"
+    ],
+    "methods": [
+     "patrones de velas de tres días",
+     "prueba fuera de muestra"
+    ],
+    "description": "Evalúa patrones de velas japonesas de giro en acciones del S&P 500 con definiciones explícitas y pruebas estadísticas fuera de muestra.",
+    "application": "Contraparte empírica de las fichas de Nison: definir el patrón con reglas cerradas y medir su efecto con muestra amplia.",
+    "stances": [
+     {
+      "concept": "candlesticks",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Algunos patrones de giro de tres días muestran poder predictivo estadísticamente significativo en el horizonte corto.",
+      "conditions": "acciones S&P 500, 1992–1996, diario",
+      "terms": [
+       "candlestick"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "marshall_young_rose_2006",
+   "locator": {
+    "doi": "10.1016/j.jbankfin.2005.08.001",
+    "expect": "Candlestick technical trading strategies"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "candlesticks",
+     "technical_analysis"
+    ],
+    "methods": [
+     "bootstrap",
+     "estrategias de velas"
+    ],
+    "description": "Pone a prueba estrategias de velas japonesas en acciones del Dow Jones con bootstrap para saber si crean valor para el inversor.",
+    "application": "Contrapeso a Nison y Caginalp: la ficha de velas debe mostrar su evidencia en contra al apoyar un escenario.",
+    "stances": [
+     {
+      "concept": "candlesticks",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "Las estrategias de velas no muestran valor para el inversor en las acciones grandes de EE. UU. del periodo estudiado.",
+      "conditions": "acciones DJIA, diario",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "karpoff_1987",
+   "locator": {
+    "doi": "10.2307/2330874",
+    "expect": "relation between price changes and trading volume"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "volume",
+     "market_microstructure"
+    ],
+    "methods": [
+     "revisión de estudios empíricos y teóricos"
+    ],
+    "description": "Revisa la relación empírica entre volumen y cambio de precio: con el valor absoluto del cambio y con el cambio mismo.",
+    "application": "Base para interpretar el volumen relativo como medida de intensidad del movimiento, no de su dirección.",
+    "stances": [
+     {
+      "concept": "volume",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "El volumen se relaciona sobre todo con la magnitud del cambio de precio; la relación con la dirección es más débil y asimétrica.",
+      "conditions": "acciones y futuros",
+      "terms": [
+       "volume",
+       "price"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones",
+     "futuros"
+    ]
+   }
+  },
+  {
+   "id": "blume_easley_ohara_1994",
+   "locator": {
+    "doi": "10.1111/j.1540-6261.1994.tb04424.x",
+    "expect": "Market Statistics and Technical Analysis"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "volume",
+     "technical_analysis"
+    ],
+    "methods": [
+     "modelo de equilibrio con información heterogénea"
+    ],
+    "description": "Modelo teórico en el que el volumen transmite información sobre la calidad de las señales de los operadores que el precio solo no revela.",
+    "application": "Justifica teóricamente usar el volumen como confirmación de las rupturas y patrones del bróker.",
+    "stances": [
+     {
+      "concept": "volume",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "El volumen contiene información que no está en el precio, y quien lo usa aprende más que quien no.",
+      "conditions": "modelo teórico",
+      "terms": [
+       "volume"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "kyle_1985",
+   "locator": {
+    "doi": "10.2307/1913210",
+    "expect": "Continuous Auctions and Insider Trading"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "order_flow",
+     "market_microstructure",
+     "liquidity"
+    ],
+    "methods": [
+     "modelo de subasta con informado, ruido y creador de mercado",
+     "lambda de Kyle"
+    ],
+    "description": "Modelo clásico de cómo un operador informado reparte sus órdenes entre operadores de ruido y cómo el creador de mercado fija el precio según el flujo neto.",
+    "application": "Fundamento del impacto de precio por unidad de flujo (lambda) que usan las medidas de flujo de órdenes del agente de microestructura.",
+    "stances": [
+     {
+      "concept": "order_flow",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "El precio incorpora la información privada de forma gradual a través del flujo de órdenes; la profundidad mide cuánto mueve una orden.",
+      "conditions": "modelo teórico",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "cont_kukanov_stoikov_2014",
+   "locator": {
+    "doi": "10.1093/jjfinec/nbt003",
+    "expect": "price impact of order book events"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "order_flow",
+     "market_microstructure",
+     "liquidity"
+    ],
+    "methods": [
+     "desequilibrio de flujo de órdenes (OFI)",
+     "regresión lineal en intervalos cortos"
+    ],
+    "description": "Muestra que el desequilibrio de flujo de órdenes en el mejor precio explica los cambios de precio en intervalos cortos, con una pendiente inversa a la profundidad.",
+    "application": "Respaldo directo del OFI que ya calcula `core/market.py`: su efecto debe escalarse por la profundidad del libro de BTC.",
+    "stances": [
+     {
+      "concept": "order_flow",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los cambios de precio a corto plazo dependen linealmente del desequilibrio de flujo de órdenes, con pendiente inversa a la profundidad.",
+      "conditions": "acciones EE. UU., intervalos de segundos a minutos",
+      "terms": [
+       "order",
+       "depth"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "easley_lopezdeprado_ohara_2012",
+   "locator": {
+    "doi": "10.1093/rfs/hhs053",
+    "expect": "Flow Toxicity and Liquidity"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "order_flow",
+     "liquidity",
+     "intraday"
+    ],
+    "methods": [
+     "VPIN (probabilidad de negociación informada sincronizada por volumen)"
+    ],
+    "description": "Propone VPIN, una medida de toxicidad del flujo en tiempo de volumen, y la relaciona con episodios de iliquidez como el Flash Crash de 2010.",
+    "application": "Señal de aviso de iliquidez para BTC: con flujo tóxico, ampliar stops o no entrar; nunca una señal direccional.",
+    "stances": [
+     {
+      "concept": "liquidity",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "La toxicidad del flujo (VPIN) se elevó antes de episodios de iliquidez extrema.",
+      "conditions": "futuros E-mini, 2010",
+      "terms": [
+       "toxicity",
+       "liquidity"
+      ]
+     }
+    ],
+    "markets": [
+     "futuros"
+    ]
+   }
+  },
+  {
+   "id": "bouchaud_farmer_lillo_2009",
+   "locator": {
+    "arxiv": "0809.0822",
+    "expect": "How markets slowly digest changes in supply and demand"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "order_flow",
+     "market_microstructure"
+    ],
+    "methods": [
+     "memoria larga del signo de las órdenes",
+     "impacto cóncavo"
+    ],
+    "description": "Revisión de la evidencia de que el signo del flujo de órdenes tiene memoria larga y de que el impacto de una orden grande crece de forma cóncava con su tamaño.",
+    "application": "Explica por qué el flujo de BTC persiste y por qué una orden grande no mueve el precio linealmente.",
+    "stances": [
+     {
+      "concept": "order_flow",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El flujo de órdenes es muy persistente y los mercados digieren despacio los cambios de oferta y demanda.",
+      "conditions": "acciones, alta frecuencia",
+      "terms": [
+       "order",
+       "impact"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "neely_rapach_tu_zhou_2014",
+   "locator": {
+    "doi": "10.1287/mnsc.2013.1838",
+    "expect": "Forecasting the Equity Risk Premium"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "technical_analysis",
+     "trend_following",
+     "forecast_eval"
+    ],
+    "methods": [
+     "indicadores técnicos mensuales",
+     "componentes principales",
+     "R² fuera de muestra"
+    ],
+    "description": "Compara indicadores técnicos (medias, momentum, volumen) con variables macroeconómicas para predecir la prima de riesgo de la bolsa mes a mes.",
+    "application": "Usar señales técnicas como complemento, no sustituto, de las variables de contexto en el pronóstico a horizontes largos.",
+    "stances": [
+     {
+      "concept": "technical_analysis",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los indicadores técnicos predicen la prima de riesgo mensual fuera de muestra y complementan a las variables macro.",
+      "conditions": "índice S&P 500, mensual",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "han_yang_zhou_2013",
+   "locator": {
+    "doi": "10.1017/S0022109013000586",
+    "expect": "cross-sectional profitability of technical analysis"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "trend_following",
+     "technical_analysis",
+     "volatility_model"
+    ],
+    "methods": [
+     "media móvil sobre carteras por volatilidad"
+    ],
+    "description": "Aplica una regla de media móvil a carteras ordenadas por volatilidad y encuentra rendimientos anormales que crecen con la volatilidad.",
+    "application": "Sugiere que las señales de tendencia funcionan mejor en activos o periodos de alta volatilidad, como BTC; condición a comprobar, no a suponer.",
+    "stances": [
+     {
+      "concept": "trend_following",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La regla de media móvil gana más cuanto más volátil es la cartera.",
+      "conditions": "acciones EE. UU., carteras por volatilidad",
+      "terms": [
+       "moving average"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "bajgrowicz_scaillet_2012",
+   "locator": {
+    "doi": "10.1016/j.jfineco.2012.06.001",
+    "expect": "Technical trading revisited"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "technical_analysis",
+     "multiple_testing",
+     "execution_costs"
+    ],
+    "methods": [
+     "tasa de falsos descubrimientos (FDR)",
+     "persistencia fuera de muestra"
+    ],
+    "description": "Revisa la rentabilidad de miles de reglas técnicas con control de falsos descubrimientos, persistencia y costos de transacción.",
+    "application": "Motivo para exigir FDR/Holm y costos completos antes de dar por buena una regla técnica en BTC.",
+    "stances": [
+     {
+      "concept": "technical_analysis",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "Con control de falsos descubrimientos y costos, las reglas que parecen rentables no persisten fuera de muestra.",
+      "conditions": "DJIA, diario",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "bailey_borwein_ldp_zhu_2014",
+   "locator": {
+    "doi": "10.1090/noti1105",
+    "expect": "Pseudo-Mathematics and Financial Charlatanism"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "backtest_overfitting",
+     "performance_stats"
+    ],
+    "methods": [
+     "longitud mínima de backtest",
+     "efecto del número de pruebas"
+    ],
+    "description": "Muestra cómo probar muchas configuraciones infla el Sharpe del backtest y calcula la longitud mínima de historia necesaria para el número de pruebas hecho.",
+    "application": "Regla de higiene para el banco de estrategias: anotar cuántas versiones se probaron y exigir historia suficiente.",
+    "stances": [
+     {
+      "concept": "backtest_overfitting",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Con suficientes pruebas, un backtest con Sharpe alto es esperable por azar y predice peor rendimiento fuera de muestra.",
+      "conditions": "teórico con simulaciones",
+      "terms": [
+       "backtest",
+       "overfitting"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "bailey_borwein_ldp_zhu_2017",
+   "locator": {
+    "doi": "10.21314/JCF.2016.322",
+    "expect": "probability of backtest overfitting"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "backtest_overfitting",
+     "multiple_testing"
+    ],
+    "methods": [
+     "validación cruzada combinatoria simétrica (CSCV)",
+     "PBO"
+    ],
+    "description": "Define la probabilidad de sobreajuste del backtest (PBO) y la estima con validación cruzada combinatoria simétrica.",
+    "application": "Es el PBO que ya usan T131/T134; la ficha permite citarlo como fuente.",
+    "stances": [
+     {
+      "concept": "backtest_overfitting",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El PBO estima con qué frecuencia la mejor configuración dentro de muestra queda por debajo de la mediana fuera de muestra.",
+      "conditions": "metodológico",
+      "terms": [
+       "over-fitting",
+       "probability"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "bailey_ldp_2014",
+   "locator": {
+    "doi": "10.3905/jpm.2014.40.5.094",
+    "expect": "Deflated Sharpe Ratio"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "performance_stats",
+     "multiple_testing"
+    ],
+    "methods": [
+     "Sharpe deflactado",
+     "corrección por asimetría y curtosis"
+    ],
+    "description": "Propone el Sharpe deflactado: corrige el Sharpe por sesgo de selección entre muchas pruebas y por rendimientos no normales.",
+    "application": "Fuente del Sharpe deflactado que ya calculan `validation/stats.py` y `copytrading/stats.py`.",
+    "stances": [
+     {
+      "concept": "performance_stats",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El Sharpe observado debe deflactarse por el número de pruebas y por la no normalidad antes de juzgar una estrategia.",
+      "conditions": "metodológico",
+      "terms": [
+       "sharpe"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "harvey_liu_zhu_2016",
+   "locator": {
+    "doi": "10.1093/rfs/hhv059",
+    "expect": "Cross-Section of Expected Returns"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "multiple_testing",
+     "backtest_overfitting"
+    ],
+    "methods": [
+     "umbral de t ajustado por pruebas múltiples"
+    ],
+    "description": "Recopila cientos de factores publicados y argumenta que, por las pruebas múltiples, el umbral de significación debe ser mucho más alto que t = 2.",
+    "application": "Argumento para que las familias de estrategias del bróker usen umbrales corregidos (Holm, Romano-Wolf) y no t = 2.",
+    "stances": [
+     {
+      "concept": "multiple_testing",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Muchos factores publicados son probablemente falsos descubrimientos; el umbral de t debe rondar 3.",
+      "conditions": "factores de acciones",
+      "terms": [
+       "multiple testing"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "white_2000",
+   "locator": {
+    "doi": "10.1111/1468-0262.00152",
+    "expect": "Reality Check for Data Snooping"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "multiple_testing",
+     "backtest_overfitting"
+    ],
+    "methods": [
+     "Reality Check (bootstrap del máximo)"
+    ],
+    "description": "Propone una prueba para saber si el mejor modelo de un conjunto supera de verdad a un referente, teniendo en cuenta que se eligió entre muchos.",
+    "application": "Prueba aplicable al comparar la mejor de las versiones de una estrategia contra el control aleatorio.",
+    "stances": [
+     {
+      "concept": "multiple_testing",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "La superioridad del mejor modelo de un conjunto debe contrastarse con la distribución del máximo bajo el nulo.",
+      "conditions": "metodológico",
+      "terms": [
+       "data snooping"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "romano_wolf_2005",
+   "locator": {
+    "doi": "10.1111/j.1468-0262.2005.00615.x",
+    "expect": "Stepwise Multiple Testing"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "multiple_testing"
+    ],
+    "methods": [
+     "procedimiento escalonado con control de FWER",
+     "bootstrap"
+    ],
+    "description": "Mejora el Reality Check con un procedimiento escalonado que identifica qué estrategias, y no solo si alguna, superan al referente controlando el error de familia.",
+    "application": "Complemento de Holm ya pedido en las mejoras E1–E12 (T129): más potencia con estrategias correlacionadas.",
+    "stances": [
+     {
+      "concept": "multiple_testing",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "El método escalonado identifica las estrategias que superan al referente con control del error de familia y más potencia que Bonferroni.",
+      "conditions": "metodológico",
+      "terms": [
+       "multiple"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "lo_2002",
+   "locator": {
+    "doi": "10.2469/faj.v58.n4.2453",
+    "expect": "Statistics of Sharpe Ratios"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "performance_stats",
+     "time_series"
+    ],
+    "methods": [
+     "error estándar del Sharpe",
+     "ajuste por autocorrelación"
+    ],
+    "description": "Deriva la distribución del Sharpe estimado y muestra que anualizar con raíz de q es incorrecto si los rendimientos están autocorrelacionados.",
+    "application": "Intervalos de confianza del Sharpe por perfil y corrección por autocorrelación de los rendimientos de la escalera.",
+    "stances": [
+     {
+      "concept": "performance_stats",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "El Sharpe tiene un error de estimación grande y su anualización depende de la autocorrelación de los rendimientos.",
+      "conditions": "metodológico",
+      "terms": [
+       "sharpe"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "arnott_harvey_markowitz_2019",
+   "locator": {
+    "doi": "10.3905/jfds.2019.1.064",
+    "expect": "Backtesting Protocol"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "backtest_overfitting",
+     "machine_learning"
+    ],
+    "methods": [
+     "lista de verificación de investigación"
+    ],
+    "description": "Protocolo de buenas prácticas para backtests en la era del aprendizaje automático: motivación previa, pruebas múltiples, datos, validación y cultura de investigación.",
+    "application": "Lista de comprobación para revisar cualquier regla extraída de la biblioteca antes de pasarla al banco.",
+    "stances": [
+     {
+      "concept": "backtest_overfitting",
+      "kind": "apoya",
+      "level": "estrategia_documentada",
+      "summary": "Propone una lista de comprobación para reducir falsos descubrimientos en backtests con aprendizaje automático.",
+      "conditions": "metodológico",
+      "terms": [
+       "backtest"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "cont_2001",
+   "locator": {
+    "doi": "10.1080/713665670",
+    "expect": "Empirical properties of asset returns"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "return_distribution",
+     "volatility_model",
+     "time_series"
+    ],
+    "methods": [
+     "hechos estilizados"
+    ],
+    "description": "Resume los hechos estilizados de los rendimientos: colas pesadas, ausencia de autocorrelación lineal, agrupamiento de volatilidad, asimetría ganancia/pérdida.",
+    "application": "Supuestos mínimos que debe respetar cualquier simulación de escenarios y cualquier stop basado en volatilidad.",
+    "stances": [
+     {
+      "concept": "return_distribution",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los rendimientos tienen colas pesadas y volatilidad agrupada, sin autocorrelación lineal apreciable.",
+      "conditions": "acciones, índices y divisas",
+      "terms": [
+       "heavy",
+       "tails"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones",
+     "divisas"
+    ]
+   }
+  },
+  {
+   "id": "bollerslev_1986",
+   "locator": {
+    "doi": "10.1016/0304-4076(86)90063-1",
+    "expect": "Generalized autoregressive conditional heteroskedasticity"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "volatility_model"
+    ],
+    "methods": [
+     "GARCH(p,q)"
+    ],
+    "description": "Introduce el modelo GARCH, que hace depender la varianza condicional de los errores y varianzas pasadas.",
+    "application": "Fuente del GARCH(1,1) de `forecast/base_engine.py` para las bandas de los escenarios.",
+    "stances": [
+     {
+      "concept": "volatility_model",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "La varianza condicional puede modelarse como función de los choques y varianzas pasadas (GARCH).",
+      "conditions": "metodológico",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "corsi_2009",
+   "locator": {
+    "doi": "10.1093/jjfinec/nbp001",
+    "expect": "Approximate Long-Memory Model of Realized Volatility"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "volatility_model"
+    ],
+    "methods": [
+     "HAR-RV: volatilidad realizada diaria, semanal y mensual"
+    ],
+    "description": "Modelo HAR de volatilidad realizada que combina componentes diaria, semanal y mensual y reproduce la memoria larga con una regresión simple.",
+    "application": "Candidato documentado (ausente en el código) para bandas de escenarios con datos intradía de BTC.",
+    "stances": [
+     {
+      "concept": "volatility_model",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Un modelo aditivo de volatilidad realizada a tres horizontes pronostica bien y reproduce la memoria larga.",
+      "conditions": "acciones y divisas, alta frecuencia",
+      "terms": [
+       "volatility"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones",
+     "divisas"
+    ]
+   }
+  },
+  {
+   "id": "abdl_2003",
+   "locator": {
+    "doi": "10.1111/1468-0262.00418",
+    "expect": "Modeling and Forecasting Realized Volatility"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "volatility_model",
+     "intraday"
+    ],
+    "methods": [
+     "volatilidad realizada con datos intradía",
+     "VAR de memoria larga"
+    ],
+    "description": "Usa datos intradía para construir la volatilidad realizada y muestra que modelos simples sobre ella pronostican mejor que GARCH diario.",
+    "application": "Argumento para estimar la volatilidad de BTC con velas finas en vez de solo diarias.",
+    "stances": [
+     {
+      "concept": "volatility_model",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La volatilidad realizada con datos intradía permite pronósticos mejores que los modelos diarios.",
+      "conditions": "divisas, alta frecuencia",
+      "terms": [
+       "volatility"
+      ]
+     }
+    ],
+    "markets": [
+     "divisas"
+    ]
+   }
+  },
+  {
+   "id": "diebold_mariano_1995",
+   "locator": {
+    "doi": "10.1080/07350015.1995.10524599",
+    "expect": "Comparing Predictive Accuracy"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "forecast_eval"
+    ],
+    "methods": [
+     "prueba de igualdad de precisión predictiva"
+    ],
+    "description": "Prueba para decidir si dos pronósticos difieren de verdad en precisión, válida con pérdidas generales y errores autocorrelacionados.",
+    "application": "Comparar dos versiones de la síntesis o del pronóstico de escenarios con una prueba formal y no por la media.",
+    "stances": [
+     {
+      "concept": "forecast_eval",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "La diferencia de precisión entre dos pronósticos debe contrastarse teniendo en cuenta la autocorrelación de los errores.",
+      "conditions": "metodológico",
+      "terms": [
+       "accuracy",
+       "forecasts"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "gneiting_raftery_2007",
+   "locator": {
+    "doi": "10.1198/016214506000001437",
+    "expect": "Strictly Proper Scoring Rules"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "forecast_eval"
+    ],
+    "methods": [
+     "reglas de puntuación propias",
+     "CRPS",
+     "puntuación logarítmica"
+    ],
+    "description": "Teoría de las reglas de puntuación estrictamente propias para evaluar pronósticos probabilísticos (Brier, logarítmica, CRPS).",
+    "application": "Base de la evaluación de los tres escenarios con probabilidad (Brier y log-loss de T19/T54).",
+    "stances": [
+     {
+      "concept": "forecast_eval",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Los pronósticos probabilísticos deben evaluarse con reglas de puntuación estrictamente propias.",
+      "conditions": "metodológico",
+      "terms": [
+       "scoring"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "lo_mackinlay_1988",
+   "locator": {
+    "doi": "10.1093/rfs/1.1.41",
+    "expect": "do not follow random walks"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "time_series",
+     "momentum",
+     "market_efficiency"
+    ],
+    "methods": [
+     "prueba de cociente de varianzas"
+    ],
+    "description": "Con la prueba de cociente de varianzas rechaza el paseo aleatorio en rendimientos semanales de acciones de EE. UU.",
+    "application": "Herramienta para medir si BTC muestra continuación o reversión a distintos horizontes antes de elegir estrategia.",
+    "stances": [
+     {
+      "concept": "time_series",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los rendimientos semanales no siguen un paseo aleatorio: hay autocorrelación positiva en carteras.",
+      "conditions": "acciones EE. UU., 1962–1985",
+      "terms": [
+       "random walk"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "hamilton_1989",
+   "locator": {
+    "doi": "10.2307/1912559",
+    "expect": "Nonstationary Time Series and the Business Cycle"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "regime"
+    ],
+    "methods": [
+     "cambio de régimen de Markov"
+    ],
+    "description": "Introduce el modelo de cambio de régimen de Markov para series con fases distintas (expansión y recesión).",
+    "application": "Fundamento de clasificar el mercado de BTC en regímenes y condicionar las estrategias al régimen.",
+    "stances": [
+     {
+      "concept": "regime",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Una serie puede alternar entre regímenes con dinámicas distintas gobernados por una cadena de Markov.",
+      "conditions": "macroeconomía",
+      "terms": [
+       "shifts",
+       "recession"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "adams_mackay_2007",
+   "locator": {
+    "arxiv": "0710.3742",
+    "expect": "Bayesian Online Changepoint Detection"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "regime"
+    ],
+    "methods": [
+     "BOCPD (detección bayesiana de cambios en línea)"
+    ],
+    "description": "Algoritmo bayesiano que calcula en línea la probabilidad de que acabe de producirse un cambio estructural.",
+    "application": "Fuente del detector BOCPD del agente de régimen (`agents/regime/bocpd.py`).",
+    "stances": [
+     {
+      "concept": "regime",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "La longitud del régimen actual puede estimarse en línea con inferencia bayesiana exacta.",
+      "conditions": "metodológico",
+      "terms": [
+       "changepoint"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "chan_2013",
+   "locator": {
+    "doi": "10.1002/9781118676998",
+    "expect": "Algorithmic Trading"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "mean_reversion",
+     "momentum",
+     "backtest_overfitting",
+     "position_sizing"
+    ],
+    "methods": [
+     "pruebas de estacionariedad",
+     "cointegración",
+     "momentum de series temporales",
+     "Kelly"
+    ],
+    "description": "Libro práctico sobre estrategias de reversión a la media y momentum, con trampas del backtest y gestión del tamaño.",
+    "application": "Recetario de estrategias y de errores de backtest; acceso de pago, se cita solo por su ficha editorial.",
+    "stances": [
+     {
+      "concept": "mean_reversion",
+      "kind": "condiciona",
+      "level": "estrategia_documentada",
+      "summary": "Las estrategias de reversión a la media exigen comprobar estacionariedad o cointegración antes de operarlas.",
+      "conditions": "acciones, futuros y divisas",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones",
+     "futuros",
+     "divisas"
+    ],
+    "reliability": "media"
+   }
+  },
+  {
+   "id": "hyndman_fpp3",
+   "locator": {
+    "url": "https://otexts.com/fpp3/",
+    "expect": "Forecasting: Principles and Practice",
+    "web": {
+     "title": "Forecasting: Principles and Practice (3.ª ed.)",
+     "authors": [
+      "Rob J Hyndman",
+      "George Athanasopoulos"
+     ],
+     "year": 2021,
+     "publisher": "OTexts",
+     "doc_type": "libro"
+    }
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "forecast_eval",
+     "time_series"
+    ],
+    "methods": [
+     "ARIMA",
+     "suavizado exponencial",
+     "validación cruzada temporal"
+    ],
+    "description": "Manual abierto de pronóstico de series temporales: modelos, evaluación fuera de muestra y validación cruzada en el tiempo.",
+    "application": "Referencia de método para validar pronósticos sin mirar al futuro (validación por origen móvil).",
+    "stances": [
+     {
+      "concept": "forecast_eval",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "La precisión de un pronóstico se mide fuera de muestra con validación por origen móvil, nunca con el ajuste.",
+      "conditions": "manual de método",
+      "terms": []
+     }
+    ],
+    "markets": [],
+    "reliability": "alta"
+   }
+  },
+  {
+   "id": "mit_ocw_18s096",
+   "locator": {
+    "url": "https://ocw.mit.edu/courses/18-s096-topics-in-mathematics-with-applications-in-finance-fall-2013/",
+    "expect": "Topics in Mathematics with Applications in Finance",
+    "web": {
+     "title": "Topics in Mathematics with Applications in Finance (MIT 18.S096, otoño 2013)",
+     "authors": [
+      "Peter Kempthorne",
+      "Choongbum Lee",
+      "Vasily Strela",
+      "Jake Xia"
+     ],
+     "year": 2013,
+     "publisher": "MIT OpenCourseWare",
+     "doc_type": "curso",
+     "access": "abierto"
+    }
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "time_series",
+     "volatility_model",
+     "regime"
+    ],
+    "methods": [
+     "series temporales",
+     "volatilidad",
+     "cálculo estocástico",
+     "optimización de carteras"
+    ],
+    "description": "Curso abierto del MIT con clases y apuntes sobre series temporales, modelos de volatilidad, regresión y procesos estocásticos aplicados a finanzas.",
+    "application": "Material abierto para revisar los fundamentos matemáticos de los modelos de pronóstico y riesgo.",
+    "stances": [],
+    "markets": [],
+    "reliability": "alta"
+   }
+  },
+  {
+   "id": "kelly_1956",
+   "locator": {
+    "doi": "10.1002/j.1538-7305.1956.tb03809.x",
+    "expect": "New Interpretation of Information Rate"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "position_sizing"
+    ],
+    "methods": [
+     "criterio de Kelly",
+     "maximización del crecimiento logarítmico"
+    ],
+    "description": "Origen del criterio de Kelly: la fracción apostada que maximiza la tasa de crecimiento del capital depende de la ventaja y de las probabilidades.",
+    "application": "Fuente del Kelly fraccionado sobre el límite inferior de E[R] (T134/T136): sin ventaja medida, tamaño 0.",
+    "stances": [
+     {
+      "concept": "position_sizing",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "La fracción que maximiza el crecimiento a largo plazo depende de la ventaja; sin ventaja la apuesta óptima es nula.",
+      "conditions": "teoría de la información",
+      "terms": [
+       "gambler",
+       "exponentially"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "maclean_ziemba_blazenko_1992",
+   "locator": {
+    "doi": "10.1287/mnsc.38.11.1562",
+    "expect": "Growth versus Security"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "position_sizing",
+     "drawdown"
+    ],
+    "methods": [
+     "Kelly fraccionado",
+     "frontera crecimiento-seguridad"
+    ],
+    "description": "Estudia el compromiso entre crecimiento y seguridad: apostar una fracción del Kelly reduce mucho el riesgo de caídas a costa de poco crecimiento.",
+    "application": "Respaldo del Kelly fraccionado y de que los perfiles conservadores apuesten por debajo del óptimo.",
+    "stances": [
+     {
+      "concept": "position_sizing",
+      "kind": "condiciona",
+      "level": "teoria",
+      "summary": "Las estrategias de Kelly fraccionado intercambian algo de crecimiento por mucha más seguridad frente a caídas.",
+      "conditions": "teórico con simulaciones",
+      "terms": [
+       "growth",
+       "security"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "artzner_1999",
+   "locator": {
+    "doi": "10.1111/1467-9965.00068",
+    "expect": "Coherent Measures of Risk"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "tail_risk"
+    ],
+    "methods": [
+     "axiomas de medidas coherentes",
+     "crítica del VaR"
+    ],
+    "description": "Define los axiomas de una medida de riesgo coherente y muestra que el VaR no los cumple (no es subaditivo).",
+    "application": "Argumento para medir el riesgo de cola de los perfiles con Expected Shortfall y no solo con VaR (ausente hoy).",
+    "stances": [
+     {
+      "concept": "tail_risk",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Una medida de riesgo debe ser coherente; el VaR puede violar la subaditividad.",
+      "conditions": "teórico",
+      "terms": [
+       "coherent"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "rockafellar_uryasev_2000",
+   "locator": {
+    "doi": "10.21314/JOR.2000.038",
+    "expect": "Optimization of conditional value-at-risk"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "tail_risk"
+    ],
+    "methods": [
+     "CVaR / Expected Shortfall",
+     "programación lineal"
+    ],
+    "description": "Muestra que el CVaR (Expected Shortfall) puede minimizarse con programación lineal y que su optimización acota también el VaR.",
+    "application": "Método práctico para calcular y limitar el Expected Shortfall de los perfiles.",
+    "stances": [
+     {
+      "concept": "tail_risk",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "El CVaR puede optimizarse eficientemente y es preferible al VaR como objetivo de riesgo.",
+      "conditions": "metodológico",
+      "terms": [
+       "value-at-risk"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "grossman_zhou_1993",
+   "locator": {
+    "doi": "10.1111/j.1467-9965.1993.tb00044.x",
+    "expect": "controlling drawdowns"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "drawdown",
+     "position_sizing"
+    ],
+    "methods": [
+     "restricción de caída máxima",
+     "exposición proporcional a la distancia al suelo"
+    ],
+    "description": "Deriva la estrategia óptima de inversión con una restricción de caída máxima: la exposición se reduce a medida que el capital se acerca a su suelo.",
+    "application": "Fundamento del freno gradual por caída (T136): reducir la exposición de forma continua, no con un corte brusco.",
+    "stances": [
+     {
+      "concept": "drawdown",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Con una restricción de caída máxima, la exposición óptima es proporcional a la distancia del capital al suelo permitido.",
+      "conditions": "teórico",
+      "terms": [
+       "maximum",
+       "surplus"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "magdon_ismail_2004",
+   "locator": {
+    "doi": "10.1239/jap/1077134674",
+    "expect": "maximum drawdown of a Brownian motion"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "drawdown",
+     "performance_stats"
+    ],
+    "methods": [
+     "caída máxima esperada del movimiento browniano"
+    ],
+    "description": "Calcula la caída máxima esperada de un movimiento browniano según deriva, volatilidad y horizonte.",
+    "application": "Saber qué caída es normal para un perfil con su volatilidad antes de llamar «fallo» a una racha.",
+    "stances": [
+     {
+      "concept": "drawdown",
+      "kind": "condiciona",
+      "level": "teoria",
+      "summary": "La caída máxima esperada depende de la deriva, la volatilidad y la duración; con deriva cero crece con la raíz del tiempo.",
+      "conditions": "teórico",
+      "terms": [
+       "drawdown"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "moreira_muir_2017",
+   "locator": {
+    "doi": "10.1111/jofi.12513",
+    "expect": "Volatility-Managed Portfolios"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "vol_targeting",
+     "position_sizing"
+    ],
+    "methods": [
+     "escalado inverso a la varianza reciente"
+    ],
+    "description": "Carteras que reducen la exposición cuando la volatilidad reciente es alta mejoran el Sharpe de varios factores.",
+    "application": "Respaldo del tamaño de posición en unidades de volatilidad (riesgo por operación constante en ATR).",
+    "stances": [
+     {
+      "concept": "vol_targeting",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Reducir la exposición cuando la volatilidad es alta mejora la relación rentabilidad-riesgo de varios factores.",
+      "conditions": "factores de acciones, mensual",
+      "terms": [
+       "volatility"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "harvey_2018_voltarget",
+   "locator": {
+    "doi": "10.3905/jpm.2018.45.1.014",
+    "expect": "Impact of Volatility Targeting"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "vol_targeting",
+     "tail_risk"
+    ],
+    "methods": [
+     "objetivo de volatilidad en 60 activos"
+    ],
+    "description": "Estudia el objetivo de volatilidad en una amplia gama de activos y cuándo mejora el Sharpe y reduce los extremos.",
+    "application": "Evidencia de que ajustar el tamaño a la volatilidad recorta colas en activos de riesgo; aplicable a BTC con cautela.",
+    "stances": [
+     {
+      "concept": "vol_targeting",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "El objetivo de volatilidad reduce colas y mejora el Sharpe sobre todo en activos de riesgo; el efecto es menor en otros.",
+      "conditions": "60 activos, 1926–2017",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones",
+     "futuros"
+    ]
+   }
+  },
+  {
+   "id": "kaminski_lo_2014",
+   "locator": {
+    "doi": "10.1016/j.finmar.2013.07.001",
+    "expect": "When do stop-loss rules stop losses"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "stop_loss",
+     "momentum",
+     "regime"
+    ],
+    "methods": [
+     "análisis teórico de reglas stop-loss",
+     "prueba empírica"
+    ],
+    "description": "Analiza cuándo una regla de stop-loss mejora el rendimiento: depende del proceso de precios (paseo aleatorio, momentum, cambio de régimen).",
+    "application": "Explica por qué los stops del sistema no crean ventaja por sí solos (T129–T134): bajo paseo aleatorio restan.",
+    "stances": [
+     {
+      "concept": "stop_loss",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Bajo paseo aleatorio un stop-loss reduce el rendimiento esperado; añade valor con momentum o cambios de régimen.",
+      "conditions": "teórico y acciones EE. UU.",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "lo_remorov_2017",
+   "locator": {
+    "doi": "10.1016/j.finmar.2017.02.003",
+    "expect": "Stop-loss strategies with serial correlation"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "stop_loss",
+     "execution_costs",
+     "regime"
+    ],
+    "methods": [
+     "stops con autocorrelación, cambio de régimen y costos"
+    ],
+    "description": "Amplía el análisis de stops con autocorrelación, regímenes y costos de transacción en acciones individuales.",
+    "application": "Advierte de que stops muy cercanos más costos destruyen valor, el mismo hallazgo de T129 sobre la escalera.",
+    "stances": [
+     {
+      "concept": "stop_loss",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Los stops ceñidos tienden a empeorar el rendimiento cuando se incluyen costos; ayudan solo con autocorrelación positiva.",
+      "conditions": "acciones EE. UU.",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "glynn_iglehart_1995",
+   "locator": {
+    "doi": "10.1287/mnsc.41.6.1096",
+    "expect": "Trading Securities Using Trailing Stops"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "trailing_stop",
+     "stop_loss"
+    ],
+    "methods": [
+     "análisis matemático de stops dinámicos"
+    ],
+    "description": "Analiza matemáticamente estrategias de salida con stop dinámico (trailing) bajo modelos de precio estocásticos.",
+    "application": "Referencia formal para el perfil Progressive Profit Protection: el valor del trailing depende del proceso supuesto.",
+    "stances": [
+     {
+      "concept": "trailing_stop",
+      "kind": "condiciona",
+      "level": "teoria",
+      "summary": "El valor de una salida con stop dinámico depende del proceso de precios supuesto.",
+      "conditions": "teórico",
+      "terms": [
+       "trailing"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "daniel_moskowitz_2016",
+   "locator": {
+    "doi": "10.1016/j.jfineco.2015.12.002",
+    "expect": "Momentum crashes"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "momentum_crash",
+     "momentum",
+     "vol_targeting"
+    ],
+    "methods": [
+     "momentum dinámico por pronóstico de media y varianza"
+    ],
+    "description": "Documenta que el momentum sufre caídas fuertes en estados de pánico tras caídas del mercado y propone una versión dinámica que las mitiga.",
+    "application": "Advertencia para las estrategias de tendencia del perfil Agresivo: reducir exposición en rebotes tras pánico.",
+    "stances": [
+     {
+      "concept": "momentum_crash",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El momentum sufre caídas severas en rebotes tras mercados bajistas con alta volatilidad, y son parcialmente previsibles.",
+      "conditions": "acciones, 1927–2013",
+      "terms": [
+       "momentum"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "almgren_chriss_2001",
+   "locator": {
+    "doi": "10.21314/JOR.2001.041",
+    "expect": "Optimal execution of portfolio transactions"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "execution_costs",
+     "liquidity"
+    ],
+    "methods": [
+     "frontera de ejecución impacto-riesgo"
+    ],
+    "description": "Modelo de ejecución óptima que equilibra el impacto de mercado de ejecutar deprisa con el riesgo de precio de ejecutar despacio.",
+    "application": "Marco para estimar el costo de entrar y salir de BTC con tamaño (ausente hoy).",
+    "stances": [
+     {
+      "concept": "execution_costs",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "La ejecución óptima equilibra impacto de mercado y riesgo de precio, con una frontera eficiente de estrategias.",
+      "conditions": "teórico",
+      "terms": [
+       "execution"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "kahneman_tversky_1979",
+   "locator": {
+    "doi": "10.2307/1914185",
+    "expect": "Prospect Theory"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "behavioral_bias",
+     "disposition"
+    ],
+    "methods": [
+     "teoría prospectiva",
+     "aversión a la pérdida",
+     "función de valor"
+    ],
+    "description": "Teoría de la decisión bajo riesgo en la que las personas valoran ganancias y pérdidas respecto a un punto de referencia y las pérdidas pesan más.",
+    "application": "Explica por qué la gestión manual tiende a cerrar ganancias pronto y aguantar pérdidas; motivo de las reglas fijas del bróker.",
+    "stances": [
+     {
+      "concept": "behavioral_bias",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Las decisiones bajo riesgo dependen de un punto de referencia y las pérdidas pesan más que las ganancias.",
+      "conditions": "experimentos",
+      "terms": [
+       "prospect theory"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "tversky_kahneman_1974",
+   "locator": {
+    "doi": "10.1126/science.185.4157.1124",
+    "expect": "Judgment under Uncertainty"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "behavioral_bias"
+    ],
+    "methods": [
+     "heurísticas: representatividad, disponibilidad, anclaje"
+    ],
+    "description": "Describe las heurísticas de representatividad, disponibilidad y anclaje y los sesgos sistemáticos que producen.",
+    "application": "Lista de sesgos que el diagnóstico debe vigilar (anclaje al precio de entrada, ver patrones en el ruido).",
+    "stances": [
+     {
+      "concept": "behavioral_bias",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Las heurísticas de juicio son útiles pero producen errores sistemáticos y previsibles.",
+      "conditions": "experimentos",
+      "terms": [
+       "heuristics"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "shefrin_statman_1985",
+   "locator": {
+    "doi": "10.1111/j.1540-6261.1985.tb05002.x",
+    "expect": "Disposition to Sell Winners Too Early"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "disposition",
+     "behavioral_bias"
+    ],
+    "methods": [
+     "efecto disposición",
+     "contabilidad mental"
+    ],
+    "description": "Formula el efecto disposición: la tendencia a vender pronto lo que gana y mantener demasiado lo que pierde.",
+    "application": "Contrasta con el diagnóstico de la fase 24: la escalera trunca ganadores y deja correr perdedores por código.",
+    "stances": [
+     {
+      "concept": "disposition",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Los inversores tienden a vender demasiado pronto las ganadoras y mantener demasiado las perdedoras.",
+      "conditions": "acciones",
+      "terms": [
+       "winners",
+       "losers"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "odean_1998",
+   "locator": {
+    "doi": "10.1111/0022-1082.00072",
+    "expect": "Reluctant to Realize Their Losses"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "disposition",
+     "behavioral_bias"
+    ],
+    "methods": [
+     "datos de 10 000 cuentas",
+     "proporción de ganancias y pérdidas realizadas"
+    ],
+    "description": "Con cuentas reales de un bróker muestra que los inversores realizan ganancias con mucha más frecuencia que pérdidas.",
+    "application": "Evidencia empírica del efecto disposición para revisar la asimetría ganador/perdedor del libro.",
+    "stances": [
+     {
+      "concept": "disposition",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los inversores minoristas realizan ganancias más a menudo que pérdidas, y las ganadoras vendidas rinden después más que las perdedoras mantenidas.",
+      "conditions": "cuentas de un bróker de EE. UU., 1987–1993",
+      "terms": [
+       "disposition",
+       "losers"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "barber_odean_2000",
+   "locator": {
+    "doi": "10.1111/0022-1082.00226",
+    "expect": "Trading Is Hazardous to Your Wealth"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "overtrading",
+     "execution_costs",
+     "behavioral_bias"
+    ],
+    "methods": [
+     "rotación y rendimiento neto de hogares"
+    ],
+    "description": "Los hogares que más operan obtienen rendimientos netos claramente inferiores por costos y exceso de confianza.",
+    "application": "Argumento contra la rotación alta: la fricción del libro (T143) ya supera la pérdida neta.",
+    "stances": [
+     {
+      "concept": "overtrading",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los hogares con mayor rotación obtienen rendimientos netos muy inferiores al mercado.",
+      "conditions": "cuentas minoristas de EE. UU., 1991–1996",
+      "terms": [
+       "trade"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "barber_lee_liu_odean_2014",
+   "locator": {
+    "doi": "10.1016/j.finmar.2013.05.006",
+    "expect": "cross-section of speculator skill"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "overtrading",
+     "intraday"
+    ],
+    "methods": [
+     "persistencia de resultados de operadores intradía"
+    ],
+    "description": "Con datos completos de operadores intradía de Taiwán estudia si hay habilidad persistente: una fracción mínima gana de forma previsible tras comisiones.",
+    "application": "Contexto realista para el day trading y el scalping: la habilidad persistente es rara.",
+    "stances": [
+     {
+      "concept": "intraday",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "Solo una fracción muy pequeña de operadores intradía obtiene beneficios previsibles netos de comisiones.",
+      "conditions": "Taiwán, operadores intradía",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "lo_repin_2002",
+   "locator": {
+    "doi": "10.1162/089892902317361877",
+    "expect": "Psychophysiology of Real-Time Financial Risk Processing"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "emotion",
+     "behavioral_bias"
+    ],
+    "methods": [
+     "medidas fisiológicas en tiempo real"
+    ],
+    "description": "Mide respuestas fisiológicas de operadores profesionales durante sesiones reales y encuentra respuestas emocionales ante eventos de mercado, incluso en expertos.",
+    "application": "Respalda separar la decisión de la emoción con reglas automáticas y registros, como hace el bróker simulado.",
+    "stances": [
+     {
+      "concept": "emotion",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Incluso operadores experimentados muestran respuestas fisiológicas significativas ante la volatilidad y los eventos del mercado.",
+      "conditions": "operadores de divisas",
+      "terms": [
+       "physiological"
+      ]
+     }
+    ],
+    "markets": [
+     "divisas"
+    ]
+   }
+  },
+  {
+   "id": "lo_2004",
+   "locator": {
+    "doi": "10.3905/jpm.2004.442611",
+    "expect": "Adaptive Markets Hypothesis"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "market_efficiency",
+     "regime"
+    ],
+    "methods": [
+     "marco evolutivo de la eficiencia"
+    ],
+    "description": "Propone que la eficiencia del mercado cambia con el entorno y la población de participantes: las estrategias funcionan por épocas.",
+    "application": "Justifica vigilar la caducidad de cualquier regla y re-medirla, en vez de suponer que una ventaja es permanente.",
+    "stances": [
+     {
+      "concept": "market_efficiency",
+      "kind": "condiciona",
+      "level": "teoria",
+      "summary": "La rentabilidad de una estrategia varía con el entorno; la eficiencia es dinámica, no un estado fijo.",
+      "conditions": "marco conceptual",
+      "terms": [
+       "adaptive"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "delong_1990",
+   "locator": {
+    "doi": "10.1086/261703",
+    "expect": "Noise Trader Risk in Financial Markets"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "sentiment",
+     "market_efficiency"
+    ],
+    "methods": [
+     "modelo de operadores de ruido",
+     "límites al arbitraje"
+    ],
+    "description": "Modelo en el que operadores de ruido con creencias erróneas generan un riesgo que limita el arbitraje y desvía los precios de su valor.",
+    "application": "Explica por qué los desvíos por sentimiento en BTC pueden durar más de lo que aguanta un stop.",
+    "stances": [
+     {
+      "concept": "sentiment",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "El riesgo creado por operadores de ruido limita el arbitraje y permite desvíos persistentes de los precios.",
+      "conditions": "modelo teórico",
+      "terms": [
+       "noise"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "barberis_shleifer_vishny_1998",
+   "locator": {
+    "doi": "10.1016/S0304-405X(98)00027-0",
+    "expect": "A model of investor sentiment"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "sentiment",
+     "momentum",
+     "mean_reversion"
+    ],
+    "methods": [
+     "modelo de conservadurismo y representatividad"
+    ],
+    "description": "Modelo de sentimiento en el que el conservadurismo produce infrarreacción (continuación) y la representatividad sobrerreacción (reversión).",
+    "application": "Da una explicación conductual de por qué conviven momentum a corto plazo y reversión a largo plazo.",
+    "stances": [
+     {
+      "concept": "momentum",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "La infrarreacción a noticias aisladas genera continuación; la sobrerreacción a series de noticias genera reversión.",
+      "conditions": "modelo teórico",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "shiller_2003",
+   "locator": {
+    "doi": "10.1257/089533003321164967",
+    "expect": "From Efficient Markets Theory to Behavioral Finance"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "sentiment",
+     "market_efficiency",
+     "behavioral_bias"
+    ],
+    "methods": [
+     "revisión",
+     "modelos de retroalimentación"
+    ],
+    "description": "Repasa el paso de la teoría de mercados eficientes a las finanzas conductuales, con modelos de retroalimentación de precios y burbujas.",
+    "application": "Marco para leer subidas impulsadas por retroalimentación en BTC sin confundirlas con tendencia sana.",
+    "stances": [
+     {
+      "concept": "sentiment",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La volatilidad excesiva y los bucles de retroalimentación son difíciles de conciliar con la eficiencia estricta.",
+      "conditions": "revisión",
+      "terms": [
+       "behavioral finance"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "hirshleifer_2015",
+   "locator": {
+    "doi": "10.1146/annurev-financial-092214-043752",
+    "expect": "Behavioral Finance"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "behavioral_bias",
+     "sentiment"
+    ],
+    "methods": [
+     "revisión de la literatura"
+    ],
+    "description": "Revisión amplia de las finanzas conductuales: sesgos individuales, efectos sociales y su reflejo en precios.",
+    "application": "Mapa de sesgos para la parte de psicología del diagnóstico.",
+    "stances": [
+     {
+      "concept": "behavioral_bias",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los sesgos individuales y la transmisión social de ideas afectan a los precios de forma sistemática.",
+      "conditions": "revisión",
+      "terms": [
+       "behavioral"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "baker_wurgler_2007",
+   "locator": {
+    "doi": "10.1257/jep.21.2.129",
+    "expect": "Investor Sentiment in the Stock Market"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "sentiment"
+    ],
+    "methods": [
+     "índice de sentimiento"
+    ],
+    "description": "Construye un índice de sentimiento y muestra que afecta más a los activos difíciles de valorar y de arbitrar.",
+    "application": "BTC es un activo difícil de valorar: el sentimiento (miedo y codicia) debería pesar más en él.",
+    "stances": [
+     {
+      "concept": "sentiment",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El sentimiento afecta más a los activos difíciles de valorar y arbitrar.",
+      "conditions": "acciones EE. UU.",
+      "terms": [
+       "sentiment"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "bikhchandani_1992",
+   "locator": {
+    "doi": "10.1086/261849",
+    "expect": "Informational Cascades"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "sentiment"
+    ],
+    "methods": [
+     "cascadas de información"
+    ],
+    "description": "Modelo de cascadas de información: las personas siguen a otras ignorando su información propia, lo que hace frágiles las modas.",
+    "application": "Explica rachas de compras en masa y su fragilidad ante noticias pequeñas.",
+    "stances": [
+     {
+      "concept": "sentiment",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Las cascadas de información generan conductas de masas frágiles que cambian bruscamente.",
+      "conditions": "modelo teórico",
+      "terms": [
+       "cascade"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "fama_1970",
+   "locator": {
+    "doi": "10.2307/2325486",
+    "expect": "Efficient Capital Markets"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "market_efficiency",
+     "technical_analysis"
+    ],
+    "methods": [
+     "formas débil, semifuerte y fuerte"
+    ],
+    "description": "Revisión clásica de la hipótesis de mercados eficientes y de sus pruebas en las formas débil, semifuerte y fuerte.",
+    "application": "Hipótesis nula de todo el sistema: sin evidencia en contra, el precio pasado no da ventaja (por eso existe el control aleatorio).",
+    "stances": [
+     {
+      "concept": "technical_analysis",
+      "kind": "objeta",
+      "level": "teoria",
+      "summary": "En su forma débil, los precios pasados no permiten obtener rendimientos anormales de forma sistemática.",
+      "conditions": "acciones; revisión hasta 1970",
+      "terms": [
+       "efficient"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "gao_han_li_zhou_2018",
+   "locator": {
+    "doi": "10.1016/j.jfineco.2018.05.009",
+    "expect": "Market intraday momentum"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "intraday",
+     "momentum"
+    ],
+    "methods": [
+     "rendimiento de la primera media hora como predictor de la última"
+    ],
+    "description": "El rendimiento de la primera media hora predice el de la última media hora en el ETF del S&P 500, con más fuerza en días volátiles y de noticias.",
+    "application": "Patrón de sesión con apertura y cierre: en BTC 24/7 solo es analogía (cierres de sesiones de otros mercados), a comprobar.",
+    "stances": [
+     {
+      "concept": "intraday",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La primera media hora predice la última; más fuerte con alta volatilidad, volumen y noticias macro.",
+      "conditions": "ETF S&P 500, 1993–2013",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "moskowitz_ooi_pedersen_2012",
+   "locator": {
+    "doi": "10.1016/j.jfineco.2011.11.003",
+    "expect": "Time series momentum"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "momentum",
+     "trend_following"
+    ],
+    "methods": [
+     "momentum de series temporales a 12 meses",
+     "escalado por volatilidad"
+    ],
+    "description": "Documenta el momentum de series temporales en 58 futuros: el rendimiento de los últimos 12 meses predice el siguiente mes, con reversión parcial después.",
+    "application": "Respaldo de las estrategias de tendencia a horizontes largos; el horizonte de 1 h del bróker no está cubierto por este estudio.",
+    "stances": [
+     {
+      "concept": "momentum",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El rendimiento pasado de 1 a 12 meses predice el futuro en todos los grupos de futuros, con reversión parcial a más de un año.",
+      "conditions": "58 futuros, 1965–2009, mensual",
+      "terms": [
+       "momentum"
+      ]
+     }
+    ],
+    "markets": [
+     "futuros"
+    ]
+   }
+  },
+  {
+   "id": "hurst_ooi_pedersen_2017",
+   "locator": {
+    "doi": "10.3905/jpm.2017.44.1.015",
+    "expect": "Century of Evidence on Trend-Following"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "trend_following",
+     "momentum"
+    ],
+    "methods": [
+     "tendencia a 1, 3 y 12 meses en 67 mercados"
+    ],
+    "description": "Estudia la rentabilidad del seguimiento de tendencia desde 1880 en decenas de mercados y su comportamiento en crisis.",
+    "application": "Evidencia histórica larga de la tendencia en futuros; útil como contexto, no como prueba para BTC intradía.",
+    "stances": [
+     {
+      "concept": "trend_following",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El seguimiento de tendencia fue rentable de forma consistente en más de un siglo y tendió a ir bien en crisis.",
+      "conditions": "67 mercados, 1880–2016, mensual",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "futuros"
+    ]
+   }
+  },
+  {
+   "id": "jegadeesh_titman_1993",
+   "locator": {
+    "doi": "10.1111/j.1540-6261.1993.tb04702.x",
+    "expect": "Returns to Buying Winners and Selling Losers"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "momentum"
+    ],
+    "methods": [
+     "momentum transversal 3–12 meses"
+    ],
+    "description": "Comprar las acciones ganadoras y vender las perdedoras de los últimos 3 a 12 meses dio rendimientos anormales en los meses siguientes.",
+    "application": "Base del momentum transversal; con un solo activo (BTC) solo aplica la versión de serie temporal.",
+    "stances": [
+     {
+      "concept": "momentum",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Las carteras de ganadoras menos perdedoras de 3–12 meses obtienen rendimientos anormales durante el año siguiente, con reversión parcial después.",
+      "conditions": "acciones EE. UU., 1965–1989",
+      "terms": [
+       "returns"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "gatev_2006",
+   "locator": {
+    "doi": "10.1093/rfs/hhj020",
+    "expect": "Pairs Trading"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "stat_arb",
+     "mean_reversion"
+    ],
+    "methods": [
+     "método de distancia",
+     "pares de acciones"
+    ],
+    "description": "Evalúa el trading de pares por el método de distancia en acciones de EE. UU. y su rentabilidad tras costos.",
+    "application": "Referencia para un eventual par BTC/ETH (ETH se conserva en el almacén), solo como análisis.",
+    "stances": [
+     {
+      "concept": "stat_arb",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El trading de pares por distancia obtuvo excesos de rentabilidad que no se explican por los riesgos habituales.",
+      "conditions": "acciones EE. UU., 1962–2002",
+      "terms": [
+       "pairs"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "avellaneda_lee_2010",
+   "locator": {
+    "doi": "10.1080/14697680903124632",
+    "expect": "Statistical arbitrage in the US equities market"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "stat_arb",
+     "mean_reversion",
+     "volume"
+    ],
+    "methods": [
+     "residuos por componentes principales y ETF",
+     "señales ponderadas por volumen"
+    ],
+    "description": "Arbitraje estadístico con residuos de componentes principales o ETF modelados como procesos de reversión; la rentabilidad cae tras 2002.",
+    "application": "Muestra la caducidad de las ventajas de reversión y el valor de condicionar por volumen.",
+    "stances": [
+     {
+      "concept": "mean_reversion",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Las estrategias de reversión de residuos rindieron bien hasta inicios de los 2000 y peor después; el volumen mejora las señales.",
+      "conditions": "acciones EE. UU., 1997–2007",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "avellaneda_stoikov_2008",
+   "locator": {
+    "doi": "10.1080/14697680701381228",
+    "expect": "High-frequency trading in a limit order book"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "market_making",
+     "intraday",
+     "order_flow"
+    ],
+    "methods": [
+     "cotización óptima con riesgo de inventario"
+    ],
+    "description": "Deriva las cotizaciones óptimas de compra y venta de un creador de mercado según su inventario y el riesgo de precio.",
+    "application": "Marco de la creación de mercado pasiva descartada en T145 (en VIP 0 la comisión maker la hace inviable).",
+    "stances": [
+     {
+      "concept": "market_making",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Un creador de mercado debe desplazar sus cotizaciones según su inventario para controlar el riesgo.",
+      "conditions": "modelo teórico",
+      "terms": [
+       "inventory"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "menkveld_2013",
+   "locator": {
+    "doi": "10.1016/j.finmar.2013.06.006",
+    "expect": "High frequency trading and the new market makers"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "market_making",
+     "intraday",
+     "execution_costs"
+    ],
+    "methods": [
+     "datos de un operador de alta frecuencia"
+    ],
+    "description": "Analiza un operador de alta frecuencia que actúa como creador de mercado en un mercado nuevo: su posición, sus ingresos por diferencial y sus pérdidas posicionales.",
+    "application": "Muestra de dónde gana un creador de mercado (diferencial y rebates), algo fuera del alcance del sistema.",
+    "stances": [
+     {
+      "concept": "market_making",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "El creador de mercado de alta frecuencia gana con el diferencial y pierde en posición; su negocio depende de las tarifas.",
+      "conditions": "acciones europeas, 2007–2008",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "brogaard_2014",
+   "locator": {
+    "doi": "10.1093/rfs/hhu032",
+    "expect": "High-Frequency Trading and Price Discovery"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "intraday",
+     "order_flow",
+     "market_microstructure"
+    ],
+    "methods": [
+     "datos de operadores de alta frecuencia"
+    ],
+    "description": "Muestra que la alta frecuencia opera en la dirección de los cambios permanentes de precio y contra los errores transitorios.",
+    "application": "Contexto de quién gana en horizontes de segundos: no compite el sistema (decisión T145).",
+    "stances": [
+     {
+      "concept": "order_flow",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los operadores de alta frecuencia contribuyen al descubrimiento de precios operando a favor de los cambios permanentes.",
+      "conditions": "acciones EE. UU., NASDAQ",
+      "terms": [
+       "high-frequency"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "heston_korajczyk_sadka_2010",
+   "locator": {
+    "doi": "10.1111/j.1540-6261.2010.01573.x",
+    "expect": "Intraday Patterns in the Cross-section"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "intraday",
+     "time_series"
+    ],
+    "methods": [
+     "periodicidad de rendimientos por media hora"
+    ],
+    "description": "Encuentra continuación de rendimientos en la misma media hora de días sucesivos durante varias semanas.",
+    "application": "Idea comprobable en BTC: estacionalidad por hora del día (relacionada con el agente `seasonality`).",
+    "stances": [
+     {
+      "concept": "intraday",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los rendimientos de una media hora tienden a repetirse a la misma hora en días posteriores.",
+      "conditions": "acciones EE. UU.",
+      "terms": [
+       "intraday"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "zarattini_aziz_2023",
+   "locator": {
+    "doi": "10.2139/ssrn.4416622",
+    "expect": "Can Day Trading Really Be Profitable"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "breakout",
+     "intraday"
+    ],
+    "methods": [
+     "ruptura del rango de apertura (ORB) de 5 minutos"
+    ],
+    "description": "Documento de trabajo que evalúa una estrategia de ruptura del rango de apertura de 5 minutos en el ETF del Nasdaq-100.",
+    "application": "Estrategia documentada pero sin revisión por pares: hipótesis para el banco, nunca regla directa; en 24/7 no hay apertura.",
+    "stances": [
+     {
+      "concept": "breakout",
+      "kind": "apoya",
+      "level": "estrategia_documentada",
+      "summary": "Los autores reportan rendimientos altos de la ruptura del rango de apertura en su periodo de prueba (sin revisión por pares).",
+      "conditions": "ETF QQQ, 2016–2023, 5 min",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ],
+    "reliability": "media"
+   }
+  },
+  {
+   "id": "nakamoto_2008",
+   "locator": {
+    "url": "https://bitcoin.org/bitcoin.pdf",
+    "expect": "Peer-to-Peer Electronic Cash System",
+    "web": {
+     "title": "Bitcoin: A Peer-to-Peer Electronic Cash System",
+     "authors": [
+      "Satoshi Nakamoto"
+     ],
+     "year": 2008,
+     "publisher": "bitcoin.org",
+     "doc_type": "otro"
+    }
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "crypto_returns"
+    ],
+    "methods": [
+     "prueba de trabajo",
+     "cadena de bloques"
+    ],
+    "description": "Documento fundacional de Bitcoin: sistema de pago entre pares con prueba de trabajo y sin intermediario de confianza.",
+    "application": "Contexto de fundamentos del activo; no contiene metodología de trading.",
+    "stances": [],
+    "markets": [
+     "cripto"
+    ],
+    "reliability": "media"
+   }
+  },
+  {
+   "id": "liu_tsyvinski_2021",
+   "locator": {
+    "doi": "10.1093/rfs/hhaa113",
+    "expect": "Risks and Returns of Cryptocurrency"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "crypto_returns",
+     "momentum",
+     "sentiment"
+    ],
+    "methods": [
+     "exposición a factores",
+     "momentum de series temporales",
+     "atención del inversor"
+    ],
+    "description": "Los rendimientos de las criptomonedas no se explican por factores bursátiles o macro, sino por factores propios como el momentum y la atención de los inversores.",
+    "application": "Respaldo para usar momentum y medidas de atención en BTC, y para no importar sin más factores de acciones.",
+    "stances": [
+     {
+      "concept": "momentum",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Las criptomonedas muestran momentum de series temporales y dependen de la atención del inversor, no de factores bursátiles.",
+      "conditions": "BTC, ETH, XRP; diario y semanal",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "liu_tsyvinski_wu_2022",
+   "locator": {
+    "doi": "10.1111/jofi.13119",
+    "expect": "Common Risk Factors in Cryptocurrency"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "crypto_returns",
+     "momentum"
+    ],
+    "methods": [
+     "modelo de tres factores: mercado, tamaño y momentum"
+    ],
+    "description": "Un modelo de tres factores cripto (mercado, tamaño y momentum) explica la sección transversal de rendimientos de las criptomonedas.",
+    "application": "Referencia del factor momentum en cripto; el sistema solo opera BTC, así que aplica la parte de mercado y momentum.",
+    "stances": [
+     {
+      "concept": "momentum",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El momentum es uno de los tres factores que explican los rendimientos de las criptomonedas.",
+      "conditions": "más de 1 700 criptomonedas, semanal",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "makarov_schoar_2020",
+   "locator": {
+    "doi": "10.1016/j.jfineco.2019.07.001",
+    "expect": "Trading and arbitrage in cryptocurrency markets"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "crypto_arbitrage",
+     "order_flow",
+     "liquidity"
+    ],
+    "methods": [
+     "diferencias de precio entre plataformas",
+     "flujo neto común"
+    ],
+    "description": "Documenta desvíos de precio grandes y recurrentes entre plataformas y países, y que un componente común del flujo neto explica gran parte de los rendimientos de BTC.",
+    "application": "Respaldo del arbitraje entre plataformas (T45, aparcada) y del flujo de órdenes como motor del precio de BTC.",
+    "stances": [
+     {
+      "concept": "order_flow",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Un componente común del flujo de órdenes entre plataformas explica una gran parte de los rendimientos de Bitcoin.",
+      "conditions": "BTC en 34 plataformas, 2017–2018",
+      "terms": []
+     },
+     {
+      "concept": "crypto_arbitrage",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Hubo oportunidades de arbitraje grandes y persistentes entre países, mayores que dentro de un mismo país.",
+      "conditions": "BTC, 2017–2018",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "griffin_shams_2020",
+   "locator": {
+    "doi": "10.1111/jofi.12903",
+    "expect": "Is Bitcoin Really Un-Tethered"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "crypto_manipulation",
+     "crypto_returns"
+    ],
+    "methods": [
+     "análisis de flujos de la cadena de bloques"
+    ],
+    "description": "Analiza los flujos de Tether y Bitcoin y encuentra que las compras con Tether tras caídas sostuvieron el precio en 2017–2018.",
+    "application": "Advertencia: parte de las subidas pasadas de BTC pudo deberse a manipulación; cuidado al extrapolar tendencias de ese periodo.",
+    "stances": [
+     {
+      "concept": "crypto_manipulation",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Las compras con Tether tras caídas del mercado se asociaron a subidas posteriores de Bitcoin en 2017–2018.",
+      "conditions": "BTC y Tether, 2017–2018",
+      "terms": [
+       "tether"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "he_manela_2022",
+   "locator": {
+    "arxiv": "2212.06888",
+    "expect": "Fundamentals of Perpetual Futures"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "perpetual_futures",
+     "funding_rate",
+     "crypto_arbitrage"
+    ],
+    "methods": [
+     "precio de no arbitraje del perpetuo",
+     "arbitraje perpetuo-spot"
+    ],
+    "description": "Deriva el precio de no arbitraje de los futuros perpetuos y documenta desvíos grandes respecto al spot en cripto y la rentabilidad del arbitraje.",
+    "application": "Base para interpretar la prima del perpetuo y el funding de BTCUSDT (agentes de derivados) y el disparador de T145.",
+    "stances": [
+     {
+      "concept": "funding_rate",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los perpetuos cripto se desvían a menudo de su precio de no arbitraje y el funding refleja esa prima.",
+      "conditions": "perpetuos cripto",
+      "terms": [
+       "funding rate",
+       "deviations"
+      ]
+     },
+     {
+      "concept": "perpetual_futures",
+      "kind": "condiciona",
+      "level": "teoria",
+      "summary": "El precio de no arbitraje del perpetuo depende del diseño del funding.",
+      "conditions": "teórico",
+      "terms": [
+       "no-arbitrage"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "alexander_2020",
+   "locator": {
+    "doi": "10.1002/fut.22050",
+    "expect": "BitMEX bitcoin derivatives"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "crypto_futures",
+     "perpetual_futures",
+     "market_efficiency"
+    ],
+    "methods": [
+     "descubrimiento de precios",
+     "eficacia de cobertura"
+    ],
+    "description": "Estudia los derivados de BitMEX y encuentra que lideran el descubrimiento de precios frente al spot.",
+    "application": "Respalda mirar los perpetuos como fuente de información adelantada del spot de BTC.",
+    "stances": [
+     {
+      "concept": "crypto_futures",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los derivados de Bitcoin de BitMEX lideran el descubrimiento de precios frente al spot.",
+      "conditions": "BitMEX, 2017–2019",
+      "terms": [
+       "price discovery"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "urquhart_2016",
+   "locator": {
+    "doi": "10.1016/j.econlet.2016.09.019",
+    "expect": "inefficiency of Bitcoin"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "market_efficiency",
+     "crypto_returns"
+    ],
+    "methods": [
+     "pruebas de eficiencia débil"
+    ],
+    "description": "Encuentra que Bitcoin era ineficiente en su primera etapa y tendía a volverse más eficiente con el tiempo.",
+    "application": "Advierte que la ventaja histórica de reglas simples en BTC puede haberse reducido con la madurez del mercado.",
+    "stances": [
+     {
+      "concept": "market_efficiency",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Bitcoin fue ineficiente en la forma débil en su primera etapa, pero se fue volviendo más eficiente.",
+      "conditions": "BTC, 2010–2016",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "cong_2023_wash",
+   "locator": {
+    "doi": "10.1287/mnsc.2021.02709",
+    "expect": "Crypto Wash Trading"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "crypto_manipulation",
+     "volume"
+    ],
+    "methods": [
+     "pruebas estadísticas y conductuales de volumen ficticio"
+    ],
+    "description": "Detecta volumen ficticio (wash trading) generalizado en plataformas cripto no reguladas con pruebas estadísticas sobre los datos de operaciones.",
+    "application": "Advertencia sobre el volumen como confirmación: el sistema solo debe usar volumen de plataformas reguladas o con calidad medida.",
+    "stances": [
+     {
+      "concept": "volume",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "Una parte grande del volumen de las plataformas no reguladas es ficticia, lo que invalida el volumen como señal allí.",
+      "conditions": "29 plataformas, 2019",
+      "terms": [
+       "wash trading"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "katsiampa_2017",
+   "locator": {
+    "doi": "10.1016/j.econlet.2017.06.023",
+    "expect": "Volatility estimation for Bitcoin"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "volatility_model",
+     "crypto_returns"
+    ],
+    "methods": [
+     "comparación de modelos GARCH"
+    ],
+    "description": "Compara modelos GARCH para la volatilidad de Bitcoin y encuentra el mejor ajuste en un modelo con componentes de corto y largo plazo.",
+    "application": "Elegir el modelo de volatilidad de las bandas de escenarios con evidencia específica de BTC.",
+    "stances": [
+     {
+      "concept": "volatility_model",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Un modelo GARCH con componentes de corto y largo plazo ajusta mejor la volatilidad de Bitcoin.",
+      "conditions": "BTC diario, 2010–2016",
+      "terms": [
+       "CGARCH",
+       "long-run"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "brauneis_2021",
+   "locator": {
+    "doi": "10.1016/j.jbankfin.2020.106041",
+    "expect": "Measure the Liquidity"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "liquidity",
+     "crypto_returns"
+    ],
+    "methods": [
+     "comparación de medidas de liquidez de baja frecuencia"
+    ],
+    "description": "Compara medidas de liquidez de baja frecuencia con referencias de alta frecuencia en mercados cripto.",
+    "application": "Elegir qué medida de liquidez usar para ajustar stops y tamaño cuando no hay libro de órdenes.",
+    "stances": [
+     {
+      "concept": "liquidity",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Algunas medidas de liquidez de baja frecuencia reproducen bien la liquidez de alta frecuencia en cripto; otras no.",
+      "conditions": "plataformas cripto",
+      "terms": [
+       "liquidity measures",
+       "outperform"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "detzel_2021",
+   "locator": {
+    "doi": "10.1111/fima.12310",
+    "expect": "Learning and predictability via technical analysis"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "technical_analysis",
+     "trend_following",
+     "crypto_returns"
+    ],
+    "methods": [
+     "medias móviles",
+     "modelo de equilibrio con aprendizaje"
+    ],
+    "description": "Muestra que las medias móviles predicen los rendimientos de Bitcoin y propone un modelo en el que el análisis técnico es útil cuando los fundamentos son difíciles de valorar.",
+    "application": "Uno de los pocos respaldos específicos de BTC para las reglas de medias del bróker.",
+    "stances": [
+     {
+      "concept": "trend_following",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Las relaciones de medias móviles predicen los rendimientos de Bitcoin dentro y fuera de muestra.",
+      "conditions": "BTC diario",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "hudson_urquhart_2021",
+   "locator": {
+    "doi": "10.1007/s10479-019-03357-1",
+    "expect": "Technical trading and cryptocurrencies"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "technical_analysis",
+     "crypto_returns",
+     "multiple_testing"
+    ],
+    "methods": [
+     "universo de unas 15 000 reglas",
+     "corrección por búsqueda de datos"
+    ],
+    "description": "Prueba un universo amplio de reglas técnicas en las principales criptomonedas con corrección por búsqueda de datos.",
+    "application": "Contraste directo para las familias técnicas en cripto; a revisar su periodo y costos frente a BTCUSDT actual.",
+    "stances": [
+     {
+      "concept": "technical_analysis",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Las reglas técnicas muestran predictibilidad y rentabilidad significativas en criptomonedas en el periodo estudiado.",
+      "conditions": "BTC, ETH, LTC, XRP; diario",
+      "terms": [
+       "technical"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "soska_2021_bitmex",
+   "locator": {
+    "doi": "10.1145/3442381.3450059",
+    "expect": "Understanding Cryptocurrency Derivatives"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "liquidation",
+     "crypto_futures",
+     "perpetual_futures"
+    ],
+    "methods": [
+     "datos de operaciones y liquidaciones de BitMEX"
+    ],
+    "description": "Estudio de caso de BitMEX: uso del apalancamiento, liquidaciones y comportamiento de los operadores de derivados cripto.",
+    "application": "Contexto del riesgo de liquidación en perpetuos apalancados, para el diagnóstico de cada operación.",
+    "stances": [
+     {
+      "concept": "liquidation",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La plataforma ofrece apalancamiento de hasta 100x y el estudio analiza su uso, sus productos perpetuos y sus liquidaciones.",
+      "conditions": "BitMEX",
+      "terms": [
+       "leverage"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "ackerer_2023_perp",
+   "locator": {
+    "arxiv": "2310.11771",
+    "expect": "Perpetual Futures Pricing"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "perpetual_futures",
+     "funding_rate"
+    ],
+    "methods": [
+     "fórmulas de precio del perpetuo con funding"
+    ],
+    "description": "Deriva fórmulas explícitas de precio de los futuros perpetuos lineales, inversos y quanto según el mecanismo de funding.",
+    "application": "Formalización del funding para el análisis de la prima de BTCUSDT.",
+    "stances": [
+     {
+      "concept": "perpetual_futures",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "El precio del perpetuo puede expresarse de forma explícita en función del mecanismo de funding.",
+      "conditions": "teórico",
+      "terms": [
+       "perpetual"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "bis_bulletin_69",
+   "locator": {
+    "url": "https://www.bis.org/publ/bisbull69.htm",
+    "expect": "Crypto shocks and retail losses",
+    "web": {
+     "title": "Crypto shocks and retail losses (BIS Bulletin n.º 69)",
+     "authors": [
+      "Giulio Cornelli",
+      "Sebastian Doerr",
+      "Jon Frost",
+      "Leonardo Gambacorta"
+     ],
+     "year": 2023,
+     "publisher": "Bank for International Settlements",
+     "doc_type": "informe"
+    }
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "crypto_returns",
+     "behavioral_bias",
+     "sentiment"
+    ],
+    "methods": [
+     "datos de descargas de aplicaciones y precios"
+    ],
+    "description": "Boletín del BIS con datos de aplicaciones de las grandes plataformas cripto entre agosto de 2015 y diciembre de 2022: la mayoría de sus usuarios perdió dinero con sus tenencias de bitcoin.",
+    "application": "Contexto de conducta minorista en BTC: la mayoría de quienes operan desde aplicaciones pierde.",
+    "stances": [
+     {
+      "concept": "sentiment",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La mayoría de los usuarios de aplicaciones cripto perdió dinero con sus tenencias de bitcoin en casi todas las economías.",
+      "conditions": "usuarios de aplicaciones cripto, 2015–2022",
+      "terms": [
+       "majority",
+       "losses"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ],
+    "reliability": "alta"
+   }
+  },
+  {
+   "id": "lopezdeprado_2018",
+   "locator": {
+    "url": "https://www.wiley.com/en-us/Advances+in+Financial+Machine+Learning-p-9781119482086",
+    "expect": "Advances in Financial Machine Learning",
+    "web": {
+     "title": "Advances in Financial Machine Learning",
+     "authors": [
+      "Marcos López de Prado"
+     ],
+     "year": 2018,
+     "publisher": "Wiley",
+     "doc_type": "libro",
+     "access": "suscripcion",
+     "availability": "solo_metadatos"
+    }
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "machine_learning",
+     "backtest_overfitting",
+     "position_sizing"
+    ],
+    "methods": [
+     "etiquetado de triple barrera",
+     "meta-etiquetado",
+     "validación cruzada purgada con embargo",
+     "diferenciación fraccionaria"
+    ],
+    "description": "Libro sobre aprendizaje automático en finanzas: etiquetado de triple barrera, meta-etiquetado, validación purgada y riesgos del backtest.",
+    "application": "Fuente de la purga y el embargo (E1 de T129) y del meta-etiquetado; libro de pago, se cita por su ficha editorial.",
+    "stances": [
+     {
+      "concept": "backtest_overfitting",
+      "kind": "apoya",
+      "level": "estrategia_documentada",
+      "summary": "La validación cruzada debe purgar y embargar observaciones solapadas para no filtrar información futura.",
+      "conditions": "metodológico",
+      "terms": []
+     }
+    ],
+    "markets": [],
+    "reliability": "media"
+   }
+  },
+  {
+   "id": "gu_kelly_xiu_2020",
+   "locator": {
+    "doi": "10.1093/rfs/hhaa009",
+    "expect": "Empirical Asset Pricing via Machine Learning"
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "machine_learning",
+     "deep_learning",
+     "momentum"
+    ],
+    "methods": [
+     "árboles",
+     "redes neuronales",
+     "comparación con regresión lineal"
+    ],
+    "description": "Compara métodos de aprendizaje automático para predecir rendimientos de acciones; árboles y redes superan a la regresión lineal y los predictores dominantes son momentum, liquidez y volatilidad.",
+    "application": "Indica qué variables suelen importar (momentum, liquidez, volatilidad) y que la ganancia de predicción es pequeña en R².",
+    "stances": [
+     {
+      "concept": "machine_learning",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los árboles y las redes neuronales mejoran la predicción de rendimientos frente a métodos lineales, con R² pequeños.",
+      "conditions": "acciones EE. UU., 1957–2016, mensual",
+      "terms": [
+       "machine learning"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "kelly_xiu_2023",
+   "locator": {
+    "doi": "10.1561/0500000064",
+    "expect": "Financial Machine Learning"
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "machine_learning",
+     "forecast_eval"
+    ],
+    "methods": [
+     "revisión",
+     "complejidad de modelos",
+     "relación señal-ruido baja"
+    ],
+    "description": "Revisión del aprendizaje automático en finanzas: predicción de rendimientos, factores, riesgo y el papel de la complejidad con señal-ruido baja.",
+    "application": "Marco para decidir si un modelo de aprendizaje automático tiene sentido con la poca señal del sistema.",
+    "stances": [
+     {
+      "concept": "machine_learning",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "En finanzas la relación señal-ruido es muy baja; los modelos complejos pueden ayudar, pero sus ganancias son modestas.",
+      "conditions": "revisión",
+      "terms": [
+       "machine learning"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "fischer_krauss_2018",
+   "locator": {
+    "doi": "10.1016/j.ejor.2017.11.054",
+    "expect": "long short-term memory networks for financial market predictions"
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "deep_learning",
+     "machine_learning"
+    ],
+    "methods": [
+     "LSTM para dirección diaria",
+     "comparación con bosques aleatorios"
+    ],
+    "description": "Usa redes LSTM para predecir la dirección diaria de las acciones del S&P 500 y compara con bosques aleatorios y otros modelos.",
+    "application": "Recuerda que el resultado es antes de costos y que una regla simple de reversión explica parte de él.",
+    "stances": [
+     {
+      "concept": "deep_learning",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Las LSTM superan a métodos sin memoria antes de costos; una regla simple de reversión a corto plazo explica parte de su rendimiento.",
+      "conditions": "S&P 500, 1992–2015, diario",
+      "terms": [
+       "outperform",
+       "short-term reversal"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "sirignano_cont_2019",
+   "locator": {
+    "doi": "10.1080/14697688.2019.1622295",
+    "expect": "Universal features of price formation"
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "deep_learning",
+     "order_flow",
+     "market_microstructure"
+    ],
+    "methods": [
+     "redes profundas sobre el libro de órdenes"
+    ],
+    "description": "Entrena redes profundas con datos de libros de órdenes de cientos de acciones y encuentra un modelo universal de formación de precios.",
+    "application": "Respaldo de que el libro de órdenes contiene información de dirección a muy corto plazo (horizonte de la captura HFT, T78).",
+    "stances": [
+     {
+      "concept": "order_flow",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Un modelo profundo entrenado con muchos libros de órdenes predice la dirección a muy corto plazo y generaliza entre activos.",
+      "conditions": "acciones EE. UU., alta frecuencia",
+      "terms": [
+       "deep learning"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "zhang_zohren_roberts_2019",
+   "locator": {
+    "doi": "10.1109/TSP.2019.2907260",
+    "expect": "DeepLOB"
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "deep_learning",
+     "order_flow"
+    ],
+    "methods": [
+     "red convolucional + LSTM sobre el libro de órdenes"
+    ],
+    "description": "Arquitectura convolucional con LSTM que predice movimientos de precio a partir del libro de órdenes limitadas.",
+    "application": "Arquitectura de referencia si algún día se modela el libro L2 capturado (disparador de T145 A, 2027).",
+    "stances": [
+     {
+      "concept": "deep_learning",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Una red convolucional con LSTM predice movimientos de precio a partir del libro de órdenes con buena precisión.",
+      "conditions": "London Stock Exchange, alta frecuencia",
+      "terms": [
+       "limit order"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "moody_saffell_2001",
+   "locator": {
+    "doi": "10.1109/72.935097",
+    "expect": "Learning to trade via direct reinforcement"
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "reinforcement_learning"
+    ],
+    "methods": [
+     "refuerzo directo recurrente",
+     "Sharpe diferencial"
+    ],
+    "description": "Propone el aprendizaje por refuerzo directo que optimiza el Sharpe diferencial y lo compara con Q-learning.",
+    "application": "Antecedente de agentes de RL para trading; el estudio T62/Sutton-Barto ya limita su uso a asignación y ejecución.",
+    "stances": [
+     {
+      "concept": "reinforcement_learning",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El refuerzo directo que optimiza una medida de rendimiento ajustada al riesgo funcionó mejor que Q-learning en sus pruebas.",
+      "conditions": "divisas e índice, datos históricos",
+      "terms": [
+       "reinforcement"
+      ]
+     }
+    ],
+    "markets": [
+     "divisas",
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "finrl_2020",
+   "locator": {
+    "arxiv": "2011.09607",
+    "expect": "FinRL"
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "reinforcement_learning"
+    ],
+    "methods": [
+     "biblioteca de RL profundo para trading"
+    ],
+    "description": "Biblioteca abierta de aprendizaje por refuerzo profundo para construir y probar agentes de trading.",
+    "application": "Herramienta documentada, no evidencia de ventaja; cualquier agente debería pasar por el banco y la puerta T49.",
+    "stances": [
+     {
+      "concept": "reinforcement_learning",
+      "kind": "condiciona",
+      "level": "estrategia_documentada",
+      "summary": "Ofrece entornos y algoritmos de RL profundo para trading; los resultados de ejemplo no son evidencia de ventaja.",
+      "conditions": "biblioteca de software",
+      "terms": [
+       "reinforcement learning"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ],
+    "reliability": "media"
+   }
+  },
+  {
+   "id": "sutton_barto_2018",
+   "locator": {
+    "url": "http://incompleteideas.net/book/the-book-2nd.html",
+    "expect": "Reinforcement Learning",
+    "web": {
+     "title": "Reinforcement Learning: An Introduction (2.ª ed.)",
+     "authors": [
+      "Richard S. Sutton",
+      "Andrew G. Barto"
+     ],
+     "year": 2018,
+     "publisher": "MIT Press",
+     "doc_type": "libro"
+    }
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "reinforcement_learning"
+    ],
+    "methods": [
+     "bandidos",
+     "diferencias temporales",
+     "evaluación fuera de política"
+    ],
+    "description": "Manual de referencia del aprendizaje por refuerzo, publicado libremente por sus autores.",
+    "application": "Estudiado en 2026-11: RL sí para bandidos de asignación y evaluación fuera de política; no como agente de punta a punta.",
+    "stances": [
+     {
+      "concept": "reinforcement_learning",
+      "kind": "condiciona",
+      "level": "teoria",
+      "summary": "Los bandidos y la evaluación fuera de política son las partes más aplicables con poca señal y poca muestra.",
+      "conditions": "manual de método",
+      "terms": []
+     }
+    ],
+    "markets": [],
+    "reliability": "alta"
+   }
+  },
+  {
+   "id": "kakushadze_2016",
+   "locator": {
+    "arxiv": "1601.00991",
+    "expect": "101 Formulaic Alphas"
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "momentum",
+     "mean_reversion",
+     "stat_arb",
+     "volume"
+    ],
+    "methods": [
+     "101 alfas en fórmulas explícitas"
+    ],
+    "description": "Publica 101 alfas reales en forma de fórmulas, con periodos de tenencia cortos y correlaciones bajas entre ellas.",
+    "application": "Catálogo de señales cuantitativas explícitas como hipótesis para el banco; leído completo en 2026-11.",
+    "stances": [
+     {
+      "concept": "mean_reversion",
+      "kind": "condiciona",
+      "level": "estrategia_documentada",
+      "summary": "Muchas alfas combinan reversión y momentum de precio y volumen en horizontes cortos; son señales débiles para combinar.",
+      "conditions": "acciones EE. UU.",
+      "terms": [
+       "alphas"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ],
+    "reliability": "media"
+   }
+  },
+  {
+   "id": "jiang_kelly_xiu_2023",
+   "locator": {
+    "doi": "10.1111/jofi.13268",
+    "expect": "Imag(in)ing Price Trends"
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "deep_learning",
+     "chart_patterns",
+     "trend_following"
+    ],
+    "methods": [
+     "redes convolucionales sobre imágenes de gráficos"
+    ],
+    "description": "Entrena redes convolucionales con imágenes de gráficos de precios y encuentra que predicen rendimientos mejor que las señales de tendencia tradicionales.",
+    "application": "Versión moderna de «leer el gráfico»: posible línea futura, siempre con validación fuera de muestra.",
+    "stances": [
+     {
+      "concept": "chart_patterns",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Las redes que leen imágenes de gráficos extraen patrones predictivos que superan a las señales de tendencia clásicas.",
+      "conditions": "acciones EE. UU.",
+      "terms": [
+       "price"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "jaquart_2021",
+   "locator": {
+    "doi": "10.1016/j.jfds.2021.03.001",
+    "expect": "Short-term bitcoin market prediction via machine learning"
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "machine_learning",
+     "crypto_returns",
+     "execution_costs"
+    ],
+    "methods": [
+     "comparación de modelos de clasificación",
+     "horizontes de 1 a 60 minutos"
+    ],
+    "description": "Compara modelos de aprendizaje automático para predecir la dirección de Bitcoin a horizontes cortos.",
+    "application": "Expectativas realistas para BTC: precisión apenas por encima del azar y beneficios que desaparecen con costos.",
+    "stances": [
+     {
+      "concept": "machine_learning",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Los modelos predicen la dirección de Bitcoin a corto plazo solo algo mejor que el azar; tras costos la estrategia no es rentable.",
+      "conditions": "BTC, horizontes de minutos",
+      "terms": [
+       "bitcoin"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "esl_2009",
+   "locator": {
+    "url": "https://hastie.su.domains/ElemStatLearn/",
+    "expect": "Elements of Statistical Learning",
+    "web": {
+     "title": "The Elements of Statistical Learning (2.ª ed.)",
+     "authors": [
+      "Trevor Hastie",
+      "Robert Tibshirani",
+      "Jerome Friedman"
+     ],
+     "year": 2009,
+     "publisher": "Springer",
+     "doc_type": "libro"
+    }
+   },
+   "curated": {
+    "category": "G",
+    "concepts": [
+     "machine_learning"
+    ],
+    "methods": [
+     "regularización",
+     "árboles y boosting",
+     "validación cruzada"
+    ],
+    "description": "Manual de aprendizaje estadístico publicado libremente por sus autores: modelos, regularización y evaluación.",
+    "application": "Referencia de método para cualquier clasificador que se pruebe en el banco.",
+    "stances": [
+     {
+      "concept": "machine_learning",
+      "kind": "condiciona",
+      "level": "teoria",
+      "summary": "El error de generalización debe estimarse con validación y regularización; el ajuste dentro de muestra engaña.",
+      "conditions": "manual de método",
+      "terms": []
+     }
+    ],
+    "markets": [],
+    "reliability": "alta"
+   }
+  },
+  {
+   "id": "bernanke_kuttner_2005",
+   "locator": {
+    "doi": "10.1111/j.1540-6261.2005.00760.x",
+    "expect": "Stock Market's Reaction to Federal Reserve Policy"
+   },
+   "curated": {
+    "category": "H",
+    "concepts": [
+     "monetary_policy",
+     "macro_news"
+    ],
+    "methods": [
+     "sorpresas de política monetaria con futuros de fondos federales"
+    ],
+    "description": "Mide la reacción de la bolsa a las sorpresas de política de la Reserva Federal y la atribuye sobre todo a cambios en la prima de riesgo esperada.",
+    "application": "Base para tratar las decisiones de la Fed como eventos de riesgo en el agente de calendario.",
+    "stances": [
+     {
+      "concept": "monetary_policy",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Un recorte inesperado de tipos eleva la bolsa de forma apreciable, sobre todo por la prima de riesgo.",
+      "conditions": "acciones EE. UU., 1989–2002",
+      "terms": [
+       "monetary policy"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "lucca_moench_2015",
+   "locator": {
+    "doi": "10.1111/jofi.12196",
+    "expect": "Pre-FOMC Announcement Drift"
+   },
+   "curated": {
+    "category": "H",
+    "concepts": [
+     "monetary_policy",
+     "macro_news"
+    ],
+    "methods": [
+     "rendimientos en ventanas alrededor del FOMC"
+    ],
+    "description": "Documenta rendimientos anormales de la bolsa en las 24 horas previas a los anuncios del FOMC.",
+    "application": "Hipótesis comprobable para BTC: comportamiento antes de los anuncios del FOMC (agente de calendario).",
+    "stances": [
+     {
+      "concept": "macro_news",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La bolsa obtuvo rendimientos anormales en las 24 horas previas a los anuncios del FOMC.",
+      "conditions": "S&P 500, 1994–2011",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "savor_wilson_2013",
+   "locator": {
+    "doi": "10.1017/s002210901300015x",
+    "expect": "How Much Do Investors Care About Macroeconomic Risk"
+   },
+   "curated": {
+    "category": "H",
+    "concepts": [
+     "macro_news"
+    ],
+    "methods": [
+     "rendimientos en días de anuncios"
+    ],
+    "description": "Los rendimientos y la prima de riesgo son mayores en los días de anuncios macro programados (empleo, inflación, FOMC).",
+    "application": "Respaldo para marcar los días de anuncios macro como contexto distinto en el diagnóstico.",
+    "stances": [
+     {
+      "concept": "macro_news",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La prima de riesgo de la bolsa es mayor en los días de anuncios macroeconómicos programados.",
+      "conditions": "acciones EE. UU., 1958–2009",
+      "terms": [
+       "announcement"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "abdv_2003",
+   "locator": {
+    "doi": "10.1257/000282803321455151",
+    "expect": "Micro Effects of Macro Announcements"
+   },
+   "curated": {
+    "category": "H",
+    "concepts": [
+     "macro_news",
+     "intraday"
+    ],
+    "methods": [
+     "sorpresas de anuncios con datos de alta frecuencia"
+    ],
+    "description": "Con datos de alta frecuencia muestra que las sorpresas macro provocan saltos rápidos en los tipos de cambio, con efectos asimétricos.",
+    "application": "Justifica ampliar stops o no abrir posiciones en la ventana de un anuncio macro.",
+    "stances": [
+     {
+      "concept": "macro_news",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Las sorpresas de los anuncios macro producen saltos rápidos de precio, con mayor efecto de las malas noticias.",
+      "conditions": "divisas, 5 min, 1992–1998",
+      "terms": [
+       "announcement"
+      ]
+     }
+    ],
+    "markets": [
+     "divisas"
+    ]
+   }
+  },
+  {
+   "id": "corbet_2020_fomc",
+   "locator": {
+    "doi": "10.1016/j.jfs.2019.100706",
+    "expect": "Cryptocurrency reaction to FOMC announcements"
+   },
+   "curated": {
+    "category": "H",
+    "concepts": [
+     "monetary_policy",
+     "crypto_returns"
+    ],
+    "methods": [
+     "estudio de eventos por tipo de criptomoneda"
+    ],
+    "description": "Estudia la reacción de las criptomonedas a los anuncios del FOMC y encuentra heterogeneidad según su posición en el ecosistema.",
+    "application": "Evidencia específica de cripto de que los anuncios de la Fed mueven el precio.",
+    "stances": [
+     {
+      "concept": "monetary_policy",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Las criptomonedas reaccionan a los anuncios del FOMC, de forma distinta según su tipo.",
+      "conditions": "criptomonedas, 2017–2019",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "miranda_agrippino_rey_2020",
+   "locator": {
+    "doi": "10.1093/restud/rdaa019",
+    "expect": "Global Financial Cycle"
+   },
+   "curated": {
+    "category": "H",
+    "concepts": [
+     "global_liquidity",
+     "monetary_policy",
+     "cross_asset"
+    ],
+    "methods": [
+     "VAR bayesiano",
+     "factor global de precios de activos"
+    ],
+    "description": "La política monetaria de EE. UU. mueve un ciclo financiero global: precios de activos de riesgo, apalancamiento y flujos.",
+    "application": "Contexto macro: un endurecimiento de la Fed presiona a los activos de riesgo, BTC incluido; complemento, no señal.",
+    "stances": [
+     {
+      "concept": "global_liquidity",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Un endurecimiento monetario de EE. UU. reduce los precios de activos de riesgo y el apalancamiento globales.",
+      "conditions": "datos globales, 1980–2010",
+      "terms": [
+       "monetary policy"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   }
+  },
+  {
+   "id": "brunnermeier_pedersen_2009",
+   "locator": {
+    "doi": "10.1093/rfs/hhn098",
+    "expect": "Market Liquidity and Funding Liquidity"
+   },
+   "curated": {
+    "category": "H",
+    "concepts": [
+     "global_liquidity",
+     "liquidity",
+     "liquidation"
+    ],
+    "methods": [
+     "modelo de espirales de liquidez y márgenes"
+    ],
+    "description": "Modelo en el que la liquidez de mercado y la de financiación se refuerzan: márgenes que suben provocan ventas forzadas y espirales de iliquidez.",
+    "application": "Explica las cascadas de liquidaciones en perpetuos de BTC: márgenes y ventas forzadas se alimentan.",
+    "stances": [
+     {
+      "concept": "liquidation",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Las restricciones de financiación y los márgenes crecientes generan espirales de iliquidez y ventas forzadas.",
+      "conditions": "modelo teórico",
+      "terms": [
+       "liquidity"
+      ]
+     }
+    ],
+    "markets": []
+   }
+  },
+  {
+   "id": "baur_hong_lee_2018",
+   "locator": {
+    "doi": "10.1016/j.intfin.2017.12.004",
+    "expect": "Medium of exchange or speculative assets"
+   },
+   "curated": {
+    "category": "H",
+    "concepts": [
+     "cross_asset",
+     "crypto_returns"
+    ],
+    "methods": [
+     "correlaciones con activos tradicionales",
+     "análisis de uso"
+    ],
+    "description": "Encuentra que Bitcoin se usaba sobre todo como activo especulativo y que no estaba correlacionado con los activos tradicionales en su periodo.",
+    "application": "Contraste con la etapa posterior, en la que BTC se correlaciona con la bolsa: la correlación es dependiente del periodo.",
+    "stances": [
+     {
+      "concept": "cross_asset",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Bitcoin no se correlacionaba con los activos tradicionales en su primera etapa y se usaba como especulación.",
+      "conditions": "BTC, 2010–2015",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "bouri_2017",
+   "locator": {
+    "doi": "10.1016/j.frl.2016.09.025",
+    "expect": "hedge and safe haven properties of Bitcoin"
+   },
+   "curated": {
+    "category": "H",
+    "concepts": [
+     "cross_asset"
+    ],
+    "methods": [
+     "modelo DCC",
+     "propiedades de cobertura y refugio"
+    ],
+    "description": "Evalúa si Bitcoin es cobertura o refugio frente a acciones, bonos, petróleo, oro y dólar.",
+    "application": "Desmonta el supuesto de «oro digital»: BTC no debe tratarse como refugio en el contexto macro.",
+    "stances": [
+     {
+      "concept": "cross_asset",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "Bitcoin es sobre todo un diversificador; su papel de cobertura o refugio es débil y limitado.",
+      "conditions": "BTC, 2011–2015",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  },
+  {
+   "id": "conlon_mcgee_2020",
+   "locator": {
+    "doi": "10.1016/j.frl.2020.101607",
+    "expect": "Safe haven or risky hazard"
+   },
+   "curated": {
+    "category": "H",
+    "concepts": [
+     "cross_asset",
+     "global_liquidity"
+    ],
+    "methods": [
+     "comportamiento en la caída de la COVID-19"
+    ],
+    "description": "Analiza el comportamiento de Bitcoin durante el mercado bajista de la COVID-19 y su papel como refugio.",
+    "application": "Evidencia de que en pánicos BTC cae junto con la bolsa: el diagnóstico no debe contar con él como refugio.",
+    "stances": [
+     {
+      "concept": "cross_asset",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "Durante la caída de 2020 Bitcoin no actuó como refugio y cayó junto con la bolsa.",
+      "conditions": "BTC y S&P 500, 2020",
+      "terms": [
+       "safe haven"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   }
+  }
+ ]
+}

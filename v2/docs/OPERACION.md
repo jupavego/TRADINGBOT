@@ -92,6 +92,7 @@ que no esté aquí. Al añadir una variable, añade su fila con el nombre comple
 | `EIM_LOCALAI_DB` | `<EIM_DATA_DIR>/localai/localai.duckdb` | Registro de salud `localai_calls` (T63) |
 | `EIM_LIBRARY_DIR`, `EIM_LIBRARY_INDEX`, `EIM_TESSERACT` | `data/library/books`, `data/library/index`, autodetección | Biblioteca de trading (T52): carpeta de los libros del usuario (fuera del repo), índice local (catálogo, texto por página, caché de OCR) y ruta de `tesseract.exe` si no está en el PATH |
 | `EIM_LIBRARY_LLM` | apagada | `1` (con `ANTHROPIC_API_KEY`) enciende las preguntas a la biblioteca con Claude (`python -m eim.library ask`); solo informa |
+| `EIM_OPENALEX_KEY` | sin clave | Clave propia de OpenAlex para la biblioteca digital (T151, `python -m eim.library.digital verify`); sin ella se comparte el cupo gratuito por IP. Nunca se envía un correo. Caché y textos legales en `data/library/digital/` |
 | `EIM_BOT_FREQTRADE_PY`, `EIM_BOT_FREQTRADE_ENGINE` | — | Escuadrón de bots (`docs/BOTS.md`): intérprete del entorno aparte de Freqtrade y versión fijada del motor (p. ej. `2026.9`; si la instalada difiere, la salida se rechaza). Sin ellas, los bots de Freqtrade no producen posturas |
 | `EIM_BOT_NFI_DIR` | `data/bots/nostalgia-for-infinity` | Checkout de NostalgiaForInfinity en el SHA de su ficha (solo relleno histórico) |
 | `EIM_BOT_PASSIVBOT_PY`, `EIM_BOT_PASSIVBOT_DIR` | — | Carril de simulación de Passivbot (`python -m eim.bots.sim_lane`): intérprete de su entorno y checkout en el SHA de la ficha; sin ellas no corre |
