@@ -1247,6 +1247,20 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** BACKLOG T151 (1)–(6); la API viva sirve las rutas nuevas tras fusionar y reiniciarla.
 - **Siguiente paso:** fusionar el PR y reiniciar la API (junto con lo pendiente de T150); ◆ al cerrar T31, si el bróker anota el diagnóstico en cada idea.
 
+## 2026-11-11 04:00 UTC · juanpablo-cpu · T159: auditoría periódica (fase 25)
+- **Pedido:** fase de revisión, auditoría y calibración con todo lo hecho, como skill para repetirla sin gastar tantos tokens y encontrar oportunidades que aumenten la rentabilidad.
+- **Hecho:** `v2/eim/analytics/audit/` (`python -m eim.analytics.audit`, solo lectura por la API) y skill `.claude/skills/eim-auditoria/SKILL.md` con las decisiones vigentes, línea base, hitos y procedimiento de 5 pasos. Primera auditoría = línea base en `v2/reports/audit/audit_2026-11-11.{md,json}`.
+- **Visto:** reproduce el diagnóstico de la fase 24 (E[R] −0,131 R, bruto −0,009, costo 0,123 R). Límite −0,050 R frente a mercado −0,174. 15 m, el marco más caro, es el menos malo y la puerta de costo lo retiraría. Calibración BTC 1 h sin skill y «bull» sobrestimado 12 pp. Funding de BTC 3,54 %, cerca del disparador de 4 %.
+- **Archivos:** `v2/eim/analytics/audit/*`, `v2/tests/analytics/test_audit.py`, `.claude/skills/eim-auditoria/SKILL.md`, `PLAN/{T159,T160,STATUS,00_MASTER,BACKLOG,BITACORA,ESTADO_PROYECTO}.md`, hoja de ruta.
+- **Pruebas:** 10 nuevas en verde; ruff limpio; gate completo por la cola.
+- **Abierto:** T160 ◆ y BACKLOG T159 (1)–(4).
+- **Siguiente paso:** fusionar el PR; ◆ programar la auditoría semanal.
+
+## 2026-11-11 · juanpablo-cpu · T159: auditoría programada y ◆ de T160 resuelta
+- **Pedido:** «Sí, prográmala» y luego, sobre T160, «tomemos la más acertada».
+- **Hecho:** tarea de Claude `eim-auditoria-semanal` (domingo 22:00 local = lunes 03:00 UTC, modo Auto; solo abre PR si hay algo nuevo y no lo fusiona). ◆ de T160 resuelta: se abre, familia de Holm propia de calibración con 2 intentos pre-registrados, adopción no antes del cierre de T31.
+- **Archivos:** `PLAN/{T160,STATUS,ESTADO_PROYECTO,BACKLOG,BITACORA}.md`, `.claude/skills/eim-auditoria/SKILL.md`, hoja de ruta.
+- **Siguiente paso:** fusionar #260; T160 empieza por su pre-registro.
 
 ## 2026-11-11 · juanpablo-cpu · Fase 27 abierta: la cantera de perfiles por agente (T167–T172)
 - **Pedido:** un «criadero, guardería o casa de talentos» donde cada uno de los 19 agentes desarrolle sus propios perfiles de inversión desde sus datos y su teoría (no un algoritmo genérico), que operen en un campo de entrenamiento para ver cuáles podrían tener éxito, conjugado con lo aprendido y con la bibliografía.
