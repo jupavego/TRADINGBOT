@@ -13,6 +13,7 @@ import io
 from fastapi import APIRouter, HTTPException, Response
 
 from eim.api.paper import _check, _view
+from eim.nursery.params import NAME as NURSERY
 from eim.paper import ledger, universe
 from eim.paper.variant import VariantDesk
 
@@ -70,6 +71,8 @@ def make_variants(names: tuple[str, ...], store, data_dir, ctx_store, registry) 
                                 t143_config.PROFILES_T143)}
     out: dict[str, VariantDesk] = {}
     for n in names:
+        if n == NURSERY:
+            continue        # la cantera es su propia mesa (`make_nursery`, `EIM_NURSERY=1`)
         if n not in known:
             raise ValueError(f"EIM_PAPER_VARIANTS: corrida aparte desconocida {n!r} "
                              f"(hay: {sorted(known)})")
@@ -79,3 +82,22 @@ def make_variants(names: tuple[str, ...], store, data_dir, ctx_store, registry) 
                              registry=registry)
         out[n].hooks.add("libro", out[n].ledger_tick)    # su libro fijo, en su base
     return out
+
+
+def make_nursery(enabled: bool, names: tuple[str, ...], store, data_dir, ctx_store, gens):
+    """La cantera (T168) si `EIM_NURSERY=1`; si no, None. Con ella, la mesa principal guarda las
+    variables nativas que declaran los prospectos (`gens`: generadores de contexto por marco)."""
+    if not enabled:
+        if NURSERY in names:
+            raise ValueError("EIM_PAPER_VARIANTS pide la cantera, pero EIM_NURSERY no es 1")
+        return None
+    from eim.data.paper_store import PaperStore
+    from eim.nursery.desk import NurseryDesk
+    from eim.nursery.prospect import load_prospects, native_paths
+
+    prospects = load_prospects()
+    native = native_paths(prospects)
+    for g in gens.values():
+        g.native = native
+    return NurseryDesk(store, ctx_store, PaperStore(data_dir / f"paper_{NURSERY}.duckdb"),
+                       prospects=prospects)
