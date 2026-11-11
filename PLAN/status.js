@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T01:47:29",
+ "generated": "2026-11-11T01:56:56",
  "phases": [
   {
    "n": 0,
@@ -2493,8 +2493,8 @@ window.EIM_STATUS = {
     "T49",
     "T143"
    ],
-   "state": "pending",
-   "notes": "—",
+   "state": "progress",
+   "notes": "En curso (2026-11-11), rama `claude/t168-motor-cantera-e1c28c`. T143 sigue ◐, pero sus cinco entregables están hechos y su configuración (`ExecParams`, `paper/t143_config.py`) ya está en `main`: se usa tal cual, sin tocar T143.",
    "effort": "alto",
    "phase": 27
   },

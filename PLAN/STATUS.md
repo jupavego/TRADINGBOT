@@ -171,7 +171,7 @@ Leyenda: ☐ pendiente · ◐ en curso · ☑ hecha
 | T165 | Volatilidad implícita de Deribit (DVOL) y prima de varianza como insumo de volatilidad | T03 T22 T162 | ☐ | Misma investigación. API pública sin clave; entra solo si mejora el QLIKE sobre HAR. |
 | T166 | Régimen: modelo de saltos estadístico frente a HMM y BOCPD | T22 T133 T161 | ☐ | Misma investigación. Comparación en el banco de T133 antes de construir más de un modelo. |
 | T167 | ◆ Expedientes de la cantera: qué sabe cada agente y qué perfiles propios propone | T49 T145 T151 T157 | ☑ | 19 expedientes en `v2/eim/nursery/dossiers/` (13 agentes, 43 prospectos de scalping a semanal; 5 excluidos y `plan` como control); §4 y §9 (automejora) de `PLAN/notas/T167_cantera.md`. ◆ aprobada el 2026-11-11: 40 prospectos y techo de 50 |
-| T168 | Motor de la cantera: prospectos nativos en un libro aparte del bróker simulado | T167 T49 T143 | ☐ | — |
+| T168 | Motor de la cantera: prospectos nativos en un libro aparte del bróker simulado | T167 T49 T143 | ◐ | En curso (2026-11-11), rama `claude/t168-motor-cantera-e1c28c`. T143 sigue ◐, pero sus cinco entregables están hechos y su configuración (`ExecParams`, `paper/t143_config.py`) ya está en `main`: se usa tal cual, sin tocar T143. |
 | T169 | Examen físico de los prospectos en la historia (sin mirar su rendimiento) | T168 T131 T161 | ☐ | — |
 | T170 | ◆ Pre-registro `cantera_v1` y arranque de la cantera hacia adelante | T167 T168 T169 T160 T161 | ☐ | — (T160 cerrada el 2026-11-11: ninguna recalibración pasó, `v2/reports/t160_recalibracion.md`) |
 | T171 | Panel «Cantera»: escalafón por agente, honesto con la muestra | T168 T170 | ☐ | — |
