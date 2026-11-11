@@ -1262,6 +1262,14 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `PLAN/{T160,STATUS,ESTADO_PROYECTO,BACKLOG,BITACORA}.md`, `.claude/skills/eim-auditoria/SKILL.md`, hoja de ruta.
 - **Siguiente paso:** fusionar #260; T160 empieza por su pre-registro.
 
+## 2026-11-11 04:50 UTC · juanpablo-cpu · T160: recalibración de escenarios (cerrada, ninguna pasa)
+- **Pedido:** «Sí, empieza T160».
+- **Hecho:** pre-registro (`PLAN/notas/T160_preregistro.md`, commit `92f6e12`) antes del código (`eim/forecast/recal.py`, `recal_eval.py`, `scripts/t160_recalibracion.py`) y del resultado. Medición por la cola: 135 s, sin pausas.
+- **Visto:** M1 +0,0029 (p 0,24) y M2 +0,0058 (p 0,096) en el banco, ninguno pasa Holm; en vivo empeoran (−0,012 y −0,003). El motor ya está casi calibrado en 3,8 años (ECE 0,024); el «bull» de más en vivo es del régimen bajista.
+- **Archivos:** `v2/eim/forecast/{recal,recal_eval}.py`, `v2/scripts/t160_recalibracion.py`, `v2/tests/forecast/test_recal.py`, `v2/reports/t160_recalibracion.{md,json}`, `v2/eim/analytics/audit/levers.py`, skill `eim-auditoria`, `PLAN/{T160,STATUS,ESTADO_PROYECTO,BITACORA}.md`, hoja de ruta.
+- **Pruebas:** 6 nuevas; gate por la cola.
+- **Siguiente paso:** fusionar #260 y el PR de T160.
+
 ## 2026-11-11 · juanpablo-cpu · Fase 27 abierta: la cantera de perfiles por agente (T167–T172)
 - **Pedido:** un «criadero, guardería o casa de talentos» donde cada uno de los 19 agentes desarrolle sus propios perfiles de inversión desde sus datos y su teoría (no un algoritmo genérico), que operen en un campo de entrenamiento para ver cuáles podrían tener éxito, conjugado con lo aprendido y con la bibliografía.
 - **Visto:** hoy los agentes solo entran al bróker con la regla genérica `agente_{id}` (8 de 19, `paper/strategies_ind.py`) y el contexto solo guarda sesgo, confianza y estado: las variables propias (p. ej. las 44 FRM de `ema`) no llegan a ninguna estrategia.

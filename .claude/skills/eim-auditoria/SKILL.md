@@ -25,7 +25,7 @@ Esto resume 158 tareas. Si un hallazgo choca con una línea de esta tabla, se in
 | Al cerrar T31 (2026-11-27) | Encender `risk_includes_costs` y el freno gradual; decidir si la variante t143 pasa a oficial | `PLAN/T31.md`, T136 |
 | Dinero real | Imposible: puerta T27 no pasa | T27, T31 |
 | Multiplicidad | Todo intento cuenta en Holm (familia 841) | T49, T139 |
-| Calibración | T160 abierta: familia de Holm propia (2 intentos pre-registrados), adopción no antes del cierre de T31 | T160 |
+| Calibración | Recalibrar cerrado: M1 y M2 fallaron su pre-registro; el motor está casi calibrado en el banco (ECE 0,024) y los desvíos en vivo son de régimen | T160 |
 | Foco | Solo BTCUSDT | T122 |
 
 **Lectura honesta de «rentabilidad»:** el bruto del libro es ≈ 0 R. Las palancas de costo y riesgo
