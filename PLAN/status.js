@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T04:48:40",
+ "generated": "2026-11-11T08:15:51",
  "phases": [
   {
    "n": 0,
@@ -2493,8 +2493,8 @@ window.EIM_STATUS = {
     "T49",
     "T143"
    ],
-   "state": "pending",
-   "notes": "—",
+   "state": "done",
+   "notes": "`v2/eim/nursery/` (contrato `Prospect` con huella, 43 prospectos de los expedientes de T167, 13 módulos de reglas nativas puras, simulación maker con markout y funding real, cuentas propias con gemelos pareados y puerta de costo a 0,3 R) + `GET /v2/nursery`; contexto con `nat` solo con `EIM_NURSERY=1`, base propia `data/paper_cantera.duckdb`. Rescatada de una sesión caída: 3 fallos arreglados (ver `PLAN/notas/T168_motor_cantera.md` §5). Apagada hasta el pre-registro de T170",
    "effort": "alto",
    "phase": 27
   },
