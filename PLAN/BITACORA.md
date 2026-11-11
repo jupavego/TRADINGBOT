@@ -1285,6 +1285,13 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** BACKLOG T161 (1)–(3): licencia de data.binance.vision para T27, extra `hft` ausente en pyproject, pendientes menores. La fila de la fase 25 llega con la rama de T159/T160.
 - **Siguiente paso:** T161 primero (las demás usan su MinTRL y su SPA); T162 puede ir en paralelo pero no se adopta antes del cierre de T31 (2026-11-27).
 
+## 2026-11-11 · T161 hecha: potencia a priori y SPA
+- **Hecho:** MinTRL, n a priori, SPA y MCS (`arch`), bloque de Politis-White y Benjamini-Hochberg. Se rehízo la simulación de las 9 claves de T139 (idéntica a lo publicado) y se aplicó el SPA: **ninguna supera a no operar** (p 0,459 oficial, 0,886 banco; ni el bruto: 0,212/0,649) y «no operar» queda en el MCS. `flujo_sigue@4h` parecía significativa sola (MinTRL 110 < n 152) y deja de serlo al corregir la selección. Detectar +0,10 R exige ≈ 800 operaciones: 4–46 años al ritmo de las claves y ≈ 14 semanas al de T31.
+- **Archivos:** `v2/eim/validation/{power,spa}.py`, `v2/eim/backtest/edge.py`, `v2/tests/validation/test_power_spa.py`, `v2/scripts/t161_potencia_spa.py`, `v2/reports/t161_potencia_spa.{md,json}`, `v2/pyproject.toml` (extra `stats`), `PLAN/{STATUS,BACKLOG,ESTADO_PROYECTO}.md`.
+- **Pruebas:** `tests/validation/test_power_spa.py` (11) y `tests/backtest/test_edge.py` en verde; gate completo por la cola.
+- **Abierto:** BACKLOG T161 (1)–(4); `arch` instalada en el venv de `juanpablo-cpu`, falta en el otro equipo.
+- **Siguiente paso:** T162 (cono de volatilidad), que ya puede usar el MCS; T163/T164 solo si su MinTRL cabe en 6 meses.
+
 ## 2026-11-11 · juanpablo-cpu · T167: expedientes de la cantera + automejora (◐, ◆ pendiente)
 - **Pedido:** T167 ampliada con «principios de automejora y retroalimentación con parte de lo que ya hemos hecho».
 - **Hecho:** 19 expedientes en `v2/eim/nursery/dossiers/` con variables y fuente, historia comprobada, cadencia, obras T151 con su consenso T157 y prospectos (12 agentes, 31 prospectos, 12 base, 9 con su teoría opuesta). Sección §4 de la nota reescrita con la tabla final y §9 nueva («Automejora y retroalimentación»: solo `AUTO_ADAPT` dentro de las cuentas e igual para todas, con evento en el libro; baja → diagnóstico T154/T155 → versión nueva = prospecto nuevo con ◆ y plaza de reserva; variantes aparte con `EIM_PAPER_VARIANTS` sin sumar intentos; qué vuelve a biblioteca, agentes, síntesis y auditoría, y qué nunca cambia solo). T168, T170 y T172 lo recogen.

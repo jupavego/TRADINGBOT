@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T01:24:05",
+ "generated": "2026-11-11T01:47:29",
  "phases": [
   {
    "n": 0,
@@ -2399,8 +2399,8 @@ window.EIM_STATUS = {
     "T139",
     "T145"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-10 desde la investigación de herramientas (`PLAN/notas/T161_investigacion_herramientas.md`). MinTRL, SPA/MCS con `arch`, bloque óptimo y Benjamini-Hochberg.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-11).** **T145 se sostiene con SPA**: ninguna de las 9 claves de T139 supera a no operar (p de familia 0,459 en la lectura oficial, 0,886 en el banco; bruto 0,212/0,649) y «no operar» sobrevive en el MCS. Simulación rehecha idéntica a lo publicado antes de calcular. Detectar +0,10 R netos exige ≈ 750–850 operaciones (4–46 años al ritmo de cada clave); T31, a ≈ 60/semana, solo puede detectar ≥ 0,18 R en 4 semanas. Código: `eim/validation/{power,spa}.py` (MinTRL, n a priori, SPA, MCS, Politis-White; `arch` 8.0.0 NCSA en el extra `stats`), `bh` y `block=\"auto\"` en `backtest/edge.py`. MinTRL probado por su definición (PSR = 1 − α en n = MinTRL) en lugar de un ejemplo publicado. Informe `v2/reports/t161_potencia_spa.md`.",
    "effort": "bajo",
    "phase": 26
   },

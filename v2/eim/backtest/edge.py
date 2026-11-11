@@ -88,16 +88,24 @@ def mean_pvalue(x: np.ndarray, n_boot: int = 5000, seed: int = 0) -> float:
 
 
 def sharpe_diff_pvalue(r_a: np.ndarray, r_b: np.ndarray, ppy: float, n_boot: int = 2000,
-                       seed: int = 0) -> tuple[float, list[float]]:
+                       seed: int = 0, block: int | str | None = None
+                       ) -> tuple[float, list[float]]:
     """p unilateral de Sharpe(a) > Sharpe(b) con bootstrap por bloques pareado + IC95 % de la
-    diferencia. `r_a` y `r_b` deben estar alineados por vela."""
+    diferencia. `r_a` y `r_b` deben estar alineados por vela.
+
+    `block`: None conserva el bloque histórico √n; un entero lo fija; "auto" lo elige por
+    Politis-White sobre la diferencia (T161, exige el extra `stats`)."""
     r_a, r_b = np.asarray(r_a, float), np.asarray(r_b, float)
     n = min(len(r_a), len(r_b))
     r_a, r_b = r_a[:n], r_b[:n]
     if n < 10:
         return 1.0, [math.nan, math.nan]
     rng = np.random.default_rng(seed)
-    block = max(2, int(math.sqrt(n)))
+    if block == "auto":
+        from eim.validation.spa import block_length
+        block = max(2, int(round(block_length(r_a - r_b))))
+    elif block is None:
+        block = max(2, int(math.sqrt(n)))
     diffs = []
     for _ in range(n_boot):
         i = _block_idx(rng, n, block)
@@ -114,4 +122,16 @@ def holm(pvals: dict[str, float]) -> dict[str, float]:
     for k, key in enumerate(keys):
         run = max(run, min(1.0, (m - k) * pvals[key]))
         out[key] = run
+    return out
+
+
+def bh(pvals: dict[str, float]) -> dict[str, float]:
+    """p ajustados por Benjamini-Hochberg (tasa de falsos descubrimientos), monótonos y ≤ 1.
+
+    Decidido en T95 y T129-E7; codificado en T161. Holm sigue siendo la corrección vinculante."""
+    keys = sorted(pvals, key=pvals.get)
+    m, run, out = len(keys), 1.0, {}
+    for k in range(m - 1, -1, -1):
+        run = min(run, pvals[keys[k]] * m / (k + 1))
+        out[keys[k]] = min(1.0, run)
     return out
