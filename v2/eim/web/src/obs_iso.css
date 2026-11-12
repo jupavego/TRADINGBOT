@@ -3,25 +3,27 @@
   background: radial-gradient(120% 90% at 45% 45%, #15216a 0%, #0a1240 48%, #040720 100%); }
 .iso-svg { width: 100%; height: auto; display: block; min-height: 420px; max-height: calc(100vh - 110px); margin: 0 auto; }
 .iso-area, .iso-person, .iso-label { cursor: pointer; outline: none; }
-.iso-area:hover .iso-floor { filter: brightness(1.2); }
+.iso-area:hover .iso-floor { fill: #cdd6e4; }
+.iso-lounge, .iso-avatar { pointer-events: none; }
+.iso-av-name { fill: #e8f0ff; font: 800 13px "Inter", system-ui, sans-serif; letter-spacing: .12em; text-anchor: middle; }
 .iso-area:focus-visible .iso-floor, .iso-person:focus-visible ellipse { stroke: var(--accent, #22e1ff); stroke-width: 3; }
-.iso-glow { opacity: .22; filter: blur(9px); }
 .iso-edge { filter: drop-shadow(0 0 5px currentColor); }
-.iso-edge.t-ok { color: #12e58f; } .iso-edge.t-bad { color: #ff3d5f; } .iso-edge.t-none { stroke-dasharray: 6 5; color: transparent; }
+.iso-edge.t-ok { color: #0fbf7a; } .iso-edge.t-bad { color: #f0324f; } .iso-edge.t-none { stroke-dasharray: 6 5; color: transparent; }
 .iso-person.plan { opacity: .38; }
 .iso-pulse { opacity: .35; animation: iso-pulse 2.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 .iso-beacon { filter: drop-shadow(0 0 3px currentColor); }
 .iso-blink { animation: iso-blink 1.6s steps(2, jump-none) infinite; }
 .iso-orb { animation: iso-pulse 3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 .iso-link path { stroke-linecap: round; }
-.iso-halo { opacity: .14; filter: blur(3px); }
+.iso-halo { opacity: .12; filter: blur(3px); }
 .iso-link:not(.main):not(.focus) { opacity: .6; }
-.iso-tiles line { stroke: #3550b8; stroke-width: 1; opacity: .28; }
+.iso-tiles line { stroke: #c6ccd6; stroke-width: 1; }
+.iso-fname { font-family: "Inter", system-ui, sans-serif; font-weight: 800; letter-spacing: .08em; text-anchor: middle; opacity: .85; pointer-events: none; }
 .iso-link .iso-flow { stroke-linejoin: round; }
 .iso-link.t-ok .iso-flow, .iso-link.t-bad .iso-flow { stroke-dasharray: 14 8; animation: iso-dash .8s linear infinite; }
 .iso-link.t-bad .iso-flow { animation: iso-dash 2.2s linear infinite, iso-fade 1.1s ease-in-out infinite; }
 .iso-link.t-none .iso-flow, .iso-link.t-plan .iso-flow { stroke-dasharray: 3 9; }
-.iso-dotm { filter: drop-shadow(0 0 4px #fff8); stroke: #fff; stroke-width: .8; }
+.iso-dotm { filter: drop-shadow(0 1px 2px #0004); stroke: #fff; stroke-width: .8; }
 .iso-link.t-bad .iso-dotm { animation: iso-fade .9s ease-in-out infinite; }
 .iso-flab rect, .iso-label rect { fill: #070c33; stroke-opacity: .7; }
 .iso-flab text { fill: #e8ecff; font: 600 10.5px "IBM Plex Mono", ui-monospace, monospace; text-anchor: middle; }
@@ -35,7 +37,7 @@
   padding: 6px 12px; border: 1px solid rgba(255, 255, 255, .12); border-radius: 9px;
   background: rgba(7, 12, 51, .85); font-size: 12px; color: #c4ccf2; }
 .iso-legend i { display: inline-block; width: 20px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
-.iso-legend i.t-ok { background: #12e58f; } .iso-legend i.t-bad { background: #ff3d5f; } .iso-legend i.t-none { background: #7d8aa6; }
+.iso-legend i.t-ok { background: #0fbf7a; } .iso-legend i.t-bad { background: #f0324f; } .iso-legend i.t-none { background: #8b95aa; }
 .iso-legend label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
 .obs-views { display: inline-flex; gap: 4px; }
 .obs-piece-list { list-style: none; padding: 0; margin: 6px 0; font-size: 12px; display: grid; gap: 3px; }
