@@ -242,7 +242,7 @@ def create_app(
     app.include_router(build_execution_router(runtime, now_ms))
     app.include_router(build_backup_router(reports, cfg.data_dir, cfg.backup_dir,
                                            cfg.backup_keep, lambda: op, extra_dbs=backup_dbs))
-    app.include_router(build_obs_router(obs_store, obs_indexer, (rcon, rlock)))
+    app.include_router(build_obs_router(obs_store, obs_indexer, (rcon, rlock), cfg.data_dir))
     app.state.obs_store, app.state.obs_indexer = obs_store, obs_indexer
     app.include_router(build_share_router(reports, paper_store, cfg.data_dir, lambda: share))
     app.include_router(build_forecast_router(forecaster))
@@ -255,7 +255,7 @@ def create_app(
     # T51: registro y resolución de lo publicado; el bróker lo llama tras cada ciclo.
     setups_router = build_setups_router(
         paper, validator, tracker=Tracker(SuggestionStore(paper_store), paper.ep))
-    paper.hooks.add("setups", setups_router.tick)
+    paper.hooks.add("setups", setups_router.tick, "validation.setups_followup")
     app.include_router(setups_router)
     app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T17:48:44",
+ "generated": "2026-11-11T20:32:12",
  "phases": [
   {
    "n": 0,
@@ -274,7 +274,8 @@ window.EIM_STATUS = {
     "T147",
     "T148",
     "T149",
-    "T173"
+    "T173",
+    "T174"
    ]
   },
   {
@@ -2566,6 +2567,20 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 21,
    "goal": "Que el vigilante de T148 no gaste sus cuatro intentos en un servicio que está vivo pero sin red, y"
+  },
+  {
+   "id": "T174",
+   "title": "El mapa del sistema no da por «sin datos» lo que está apagado o se usa a demanda",
+   "deps": [
+    "T75",
+    "T123",
+    "T148"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-11, sin desplegar.** Del diagnóstico del mapa vivo (34 «sin datos» de 83). `eim/observability/switches.py` + campo `switch` del catálogo: testnet, arbitraje en testnet, carril HFT (hasta T85), experiencia compartida, contexto sin LLM y video salen **«Pausado»** con el motivo; lo de uso a demanda sin uso sale **«En espera» (◌)** (`/v2/obs/components` → `off_reason`, `idle`). Emisores nuevos o con el nombre del catálogo: fotografía, noticias, liquidaciones, `bots.runner`/`bots.vote` (antes `bots.service`), puerta única, motor de arbitraje, copia simulada, publicador y seguimiento de sugerencias. Calendario sin falso degradado (eventos futuros). Síntesis declara a arbitrage, bots, calendar, context y literature (desvío de T75). UI `web/src/obs_{types,graph,iso,legend,detail}.ts` + `obs.css`. Tests `tests/observability/test_t174_map.py` (7) y `tests/api/test_obs_api.py`. Falta: gate completo y `npm run build` en el equipo, y reiniciar la API (la del 8000 corría código anterior al 1-nov).",
+   "effort": "medio",
+   "phase": 21,
+   "goal": "Que cada «sin datos» del mapa signifique de verdad «no hay señal de que esto funcione», y no"
   }
  ]
 };

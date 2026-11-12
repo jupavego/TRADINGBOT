@@ -165,7 +165,7 @@ def after_agents(ctx: AgentRunCtx, reports: list[AgentReport], expected: list[st
 
 @safe
 def snapshot_fetches(snap: Any, wanted: int) -> None:
-    """Un `data_fetch` por fuente del snapshot: fuente declarada, cobertura real y antigüedad."""
+    """Un `data_fetch` por fuente (fuente, cobertura real, antigüedad) y otro de la fotografía."""
     if current_trace() is None or not snap.candles:
         return
     c_lo, c_hi = snap.coverage.get("candles", (snap.candles[0].t, snap.candles[-1].t))
@@ -173,26 +173,29 @@ def snapshot_fetches(snap: Any, wanted: int) -> None:
         lo, hi = snap.coverage.get(key, (None, None))
         if key == "candles":
             cov: float | None = min(1.0, len(snap.candles) / wanted) if wanted else None
+        elif key == "events" or (hi is not None and hi > snap.asof):
+            cov = None          # T174: una agenda mira al futuro; su antigüedad no es un fallo
         elif lo is not None and hi is not None and hi > lo and c_hi > c_lo:
             cov = min(1.0, (hi - lo) / (c_hi - c_lo))
         else:
             cov = None
         emit("data_fetch", _component_for(key), run_id=new_run_id(), source=source[:120],
              coverage=cov, status="ok" if cov is None or cov >= 0.5 else "degraded",
-             detail={"key": key, "age_min": round((snap.asof - hi) / 60_000) if hi else None})
+             detail={"key": key, "age_min": max(0, round((snap.asof - hi) / 60_000))
+                     if hi else None})
+    emit("data_fetch", "data.snapshot", run_id=new_run_id(), source="snapshot",
+         detail={"symbol": snap.symbol, "timeframe": snap.timeframe,
+                 "sources": len(snap.sources)})
+
+
+_SOURCE_COMPONENT = {"micro": "data.micro_collector", "orderbook": "data.micro_collector",
+                     "events": "data.calendar", "arb": "data.arb_market",
+                     "leaders": "leaders.service", "liquidations": "data.liquidations",
+                     "liq_flow": "data.liquidations", "headlines": "data.news"}
 
 
 def _component_for(key: str) -> str:
-    base = key.split(":")[0]
-    if base == "micro" or base == "orderbook":
-        return "data.micro_collector"
-    if base == "events":
-        return "data.calendar"
-    if base == "arb":
-        return "data.arb_market"
-    if base == "leaders":
-        return "leaders.service"
-    return "data.store"
+    return _SOURCE_COMPONENT.get(key.split(":")[0], "data.store")
 
 
 @safe
@@ -257,6 +260,9 @@ def risk_decided(d: Any, *, always: bool = False, key: str | None = None,
          detail=decision_detail(d), ts_utc=ts, event_key=key)
     remember(f"risk:{d.plan_id}", rid)
     remember(f"trace:{d.plan_id}", tid)
+    if p is not None:          # T174: la puerta única comprobó la ruta de esta propuesta
+        from eim.observability.hooks_service import beat
+        beat("risk.authority", mode=d.mode, min_interval_s=60, detail={"source": p.source})
     return queued
 
 

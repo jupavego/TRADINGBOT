@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from eim.agents.levels.pivots import atr
 from eim.data.timeframes import SYMBOLS
+from eim.observability import hooks_service
 from eim.paper.desk import PaperDesk
 from eim.paper.generate import now_ms
 from eim.suggestions.publisher import NOTE, PublishParams, publish
@@ -58,6 +59,8 @@ def build_setups_router(desk: PaperDesk, validator: Validator,
         pub = publish([i for i, st in cands if st not in DEAD], verdicts, now=now, price=price,
                       atr=a, last_t=last_t, verdicts_asof=v_asof, heartbeat=desk.last_tick,
                       view_stale=stale, params=p, review=review)
+        hooks_service.beat("validation.setups_publisher", min_interval_s=60,   # T174
+                           detail={"symbol": symbol, "setups": len(pub.setups)})
         if tracker is not None:
             tracker.record(symbol, pub, now, verdicts, v_asof, validator.crit.version)
         board = {"ranking": ranking(pub, atr=a, statuses={i.id: st for i, st in cands}, params=p),
@@ -65,15 +68,19 @@ def build_setups_router(desk: PaperDesk, validator: Validator,
                                   atr=a, review=review, params=p)}
         return now, v_asof, verdicts, view, price, pub, board
 
-    def tick() -> None:
-        """Gancho del bróker (cada ~1 min): registra lo publicado y resuelve lo anterior."""
+    def tick() -> bool:
+        """Gancho del bróker (cada ~1 min): registra lo publicado y resuelve lo anterior.
+        Devuelve si siguió al menos un símbolo (T174: así late `validation.setups_followup`)."""
+        done = False
         for sym in desk.symbols:
             try:
                 now, v_asof, verdicts, view, *_ = current(sym, wait_s=0.0)
                 if view is not None:
                     tracker.refresh(sym, view.path, verdicts, v_asof, now)
+                    done = True
             except Exception:  # nunca tumba el ciclo del bróker
                 continue
+        return done
 
     router.tick = tick  # type: ignore[attr-defined]
 

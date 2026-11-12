@@ -30,6 +30,7 @@ from eim.copytrading.copy_params import CopyParams, ExchangeSpec
 from eim.copytrading.portfolio import account_values
 from eim.core.leaders import FollowQuote, Leader, LeaderFill, LeaderPosition
 from eim.data.copy_store import take_control, write_summary
+from eim.observability import hooks_service
 from eim.risk import RiskConfig
 
 LIVE_MAX_LATENCY_MS = 120_000  # como `QuoteBook.expect`: más tarde no espera cotización
@@ -229,6 +230,7 @@ class CopyLive:
         log.info("copia simulada: %d ejecuciones releídas tras el reinicio", n)
 
     def tick(self, now: int) -> None:
+        hooks_service.beat("leaders.copy_sim", min_interval_s=60)   # T174: latido propio
         if self._catchup:
             self._catch_up(now)
         self.drain(now)

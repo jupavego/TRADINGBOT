@@ -6,7 +6,7 @@ const NW = 176, NH = 64, GX = 44, GY = 18
 export const compState = (d: ObsData, c: ObsComp): ObsState => stateOf(c, d)
 
 const count = (d: ObsData, list: ObsComp[]): Record<ObsState, number> => {
-  const n = { ok: 0, degradado: 0, error: 0, obsoleto: 0, pausado: 0, sin_datos: 0, planeado: 0 } as Record<ObsState, number>
+  const n = { ok: 0, degradado: 0, error: 0, obsoleto: 0, pausado: 0, sin_datos: 0, en_espera: 0, planeado: 0 } as Record<ObsState, number>
   for (const c of list) n[compState(d, c)]++
   return n
 }
@@ -14,7 +14,7 @@ const count = (d: ObsData, list: ObsComp[]): Record<ObsState, number> => {
 /** Peor estado de una etapa, para el color del bloque (ignora lo planeado). */
 export function worst(n: Record<ObsState, number>): ObsState {
   for (const s of ['error', 'degradado', 'obsoleto', 'sin_datos', 'pausado'] as ObsState[]) if (n[s]) return s
-  return n.ok ? 'ok' : 'planeado'
+  return n.ok ? 'ok' : n.en_espera ? 'en_espera' : 'planeado'
 }
 
 /** Frase del resumen de etapa, armada con los conteos reales. */
@@ -29,6 +29,7 @@ export function stageSentence(d: ObsData, stage: string): string {
   if (n.obsoleto) parts.push(`${n.obsoleto} con dato viejo`)
   if (n.sin_datos) parts.push(`${n.sin_datos} sin datos recientes`)
   if (n.pausado) parts.push(`${n.pausado} en pausa`)
+  if (n.en_espera) parts.push(`${n.en_espera} a demanda, sin usar aún`)
   if (n.planeado) parts.push(`${n.planeado} planeados`)
   return parts.join(', ')
 }
@@ -61,7 +62,7 @@ export function routeHtml(d: ObsData, sel: string | null): string {
   const n = d.graph.stages.length
   const cards = d.graph.stages.map((s, i) => {
     const list = d.comps.filter((c) => c.stage === s), cnt = count(d, list), w = worst(cnt)
-    const dots = (['ok', 'degradado', 'error', 'obsoleto', 'sin_datos', 'pausado', 'planeado'] as ObsState[])
+    const dots = (['ok', 'degradado', 'error', 'obsoleto', 'sin_datos', 'pausado', 'en_espera', 'planeado'] as ObsState[])
       .filter((k) => cnt[k]).map((k) => `<span class="obs-dot st-${k}" title="${STATE_LABEL[k]}">${STATE_ICON[k]} ${cnt[k]}</span>`).join('')
     return `<div class="obs-n obs-stage obs-card st-${w}${s === sel ? ' sel' : ''}" data-stage="${s}" tabindex="0" role="button"
         aria-label="${esc(`${d.graph.stage_titles_es[s]}: ${stageSentence(d, s)}`)}">
