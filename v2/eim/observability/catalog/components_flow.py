@@ -165,14 +165,19 @@ FLOW: tuple[Component, ...] = (
     c("paper.broker", "paper", "ejecucion", "service", "api", "T47", "Bróker simulado",
       "Prueba decenas de estrategias en papel, en 15 m, 1 h y 4 h, y aprende de cada pérdida. "
       "Todo es Simulado: nunca envía órdenes. Cada perfil decide con su política registrada.",
+      # Destino final del flujo: en cada vela cerrada arma su contexto con la opinión conjunta,
+      # el plan y los tres escenarios (`paper/generate.py`). Desde que la mesa ya no tiene el
+      # panel «Operaciones sugeridas intradía», todo lo que proyecta el sistema termina aquí.
       # T128: late en cada ciclo de 60 s; sus ganchos corren aparte (`paper.hooks`) y ya no
       # lo callan. 120 s × 3 = 360 s: holgura para el ciclo del cierre de 4 h
       cadence="cada 60 s", cadence_s=120,
-      consumes=(("data.store", "candles"), ("risk.authority", "proposal")),
+      consumes=(("data.store", "candles"), ("synthesis.thesis", "synthesis"),
+                ("agent.plan", "plan"), ("forecast.engine", "forecast_set"),
+                ("risk.authority", "proposal")),
       produces=("paper_trade", "risk_decision")),
     c("paper.hooks", "paper", "validacion", "service", "api", "T128", "Ganchos del bróker",
       "Tras cada ciclo del bróker, y en segundo plano para no frenarlo: la validación al cierre "
-      "de 4 h, el libro fijo cada hora, la puntuación de bots y el seguimiento de sugerencias. "
+      "de 4 h, el libro fijo cada hora, la puntuación de bots y el registro de oportunidades. "
       "Late con lo que tardó cada uno.", cadence="tras cada ciclo (latido cada ~4 min)",
       cadence_s=300, consumes=(("paper.broker", "paper_trade"),)),
     c("leaders.copy_sim", "leaders", "ejecucion", "service", "leaders", "T42", "Copia simulada",
@@ -261,16 +266,16 @@ VALIDATION: tuple[Component, ...] = (
       cadence="cada cierre de vela de 4 h (y a demanda)", cadence_s=4 * 3600,
       consumes=(("paper.broker", "paper_trade"),), produces=("validation_verdict",)),
     c("validation.setups_publisher", "validation", "validacion", "service", "api", "T50",
-      "Publicador de sugerencias", "Publica como máximo 3 oportunidades intradía, solo de "
-      "estrategias que pasaron la puerta de validación, con su evidencia fuera de muestra; si "
-      "ninguna pasa, lo dice y explica por qué. Son oportunidades potenciales, no operaciones "
-      "ejecutadas.", cadence="a demanda",
+      "Registro de oportunidades", "Ya no hay panel de sugerencias intradía: las oportunidades "
+      "de las estrategias validadas se proyectan como operaciones en el bróker simulado. Esta "
+      "pieza solo deja constancia de ellas, con su evidencia, para el historial.",
+      cadence="tras cada ciclo del bróker",
       consumes=(("validation.gate", "validation_verdict"), ("paper.broker", "paper_trade")),
       produces=("setup",)),
     c("validation.setups_followup", "validation", "validacion", "service", "api", "T51",
-      "Seguimiento de sugerencias", "Registra cada sugerencia la primera vez que se publica y la "
-      "resuelve con el motor del bróker simulado sobre las velas posteriores; compara la señal "
-      "con el resultado y pone en revisión la versión que se degrada. Nunca ejecuta nada.",
+      "Seguimiento de oportunidades", "Resuelve cada oportunidad registrada con el motor del "
+      "bróker simulado sobre las velas posteriores; compara la señal con el resultado y pone en "
+      "revisión la versión que se degrada. Nunca ejecuta nada.",
       cadence="cada ciclo del bróker", cadence_s=60,
       consumes=(("validation.setups_publisher", "setup"),), produces=("followup",)),
     c("library.cards", "library", "validacion", "store", "cli", "T52", "Biblioteca de trading",
