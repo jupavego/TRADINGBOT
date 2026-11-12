@@ -164,6 +164,9 @@ class Watchdog:
                 return f"el proceso terminó (código {rc})"
             if (hb := heartbeat_t(self.hb)) is not None:
                 last = max(last, hb / 1000)
+            # T174: latido propio (antes solo emitía al reiniciar: en calma el mapa lo veía caído)
+            hooks_service.beat("operation.watchdog", min_interval_s=60,
+                               detail={"service": self.title})
             if self._clock() - last > self.stale_s:
                 self._stop(proc)
                 return f"latido detenido {self._clock() - last:.0f} s"
