@@ -13,10 +13,11 @@ _H = 3600  # los agentes corren al cierre de cada vela (ciclo de operación: 1 h
 
 
 def _a(name: str, version: str, title: str, explain: str, task: str, *,
-       stage: str = "analisis", consumes=_SNAP, produces=("agent_report",)) -> Component:
+       stage: str = "analisis", consumes=_SNAP, produces=("agent_report",),
+       switch: str | None = None) -> Component:
     return c(f"agent.{name}", "agent", stage, "agent", "api", task, title, explain,  # type: ignore[arg-type]
              cadence="cada cierre de vela", cadence_s=_H, consumes=consumes, produces=produces,
-             version=version)
+             version=version, switch=switch)
 
 
 AGENTS: tuple[Component, ...] = (
@@ -55,7 +56,7 @@ AGENTS: tuple[Component, ...] = (
        "entrega la etiqueta del régimen y la probabilidad de que acabe de cambiar.", "T22"),
     _a("context", "1.0.0", "Contexto de noticias",
        "Un modelo de lenguaje resume titulares y sentimiento. Solo informa: nunca decide ni da "
-       "sesgo; puede pedir una pausa por noticias.", "T24"),
+       "sesgo; puede pedir una pausa por noticias.", "T24", switch="context_llm"),
     _a("technical", "0.1.0", "Indicadores técnicos",
        "Junta decenas de indicadores clásicos sin contar dos veces lo mismo y en varios marcos "
        "de tiempo. Entrega una confluencia de sesgo.", "T35"),

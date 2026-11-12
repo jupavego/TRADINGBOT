@@ -105,11 +105,14 @@ class BotService:
         bad = [s for s in sigs if s.status == "degraded"]
         for s in bad:
             hooks_service.service_error(f"bots.{s.bot_id}", "; ".join(s.evidence) or "degradado")
-        hooks_service.beat("bots.service", status="degraded" if bad else "ok",
+        # T174: el catálogo llama a esta pieza «bots.runner» (antes latía como «bots.service»)
+        hooks_service.beat("bots.runner", status="degraded" if bad else "ok",
                            detail={"signals": len(sigs), "degraded": len(bad)})
         if self.quarantine is not None:
             self.quarantine.sync()      # una reactivación por CLI vale desde este ciclo (T119)
         pol = current_policy()
+        if pol is not None:             # T174: el voto existe aunque hoy no vote ningún bot
+            hooks_service.beat("bots.vote", detail={"voters": len(pol.voters)})
         if self.quarantine is None or pol is None:
             return
         for s in bad:

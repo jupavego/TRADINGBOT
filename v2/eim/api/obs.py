@@ -19,7 +19,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from eim.api import obs_queues, obs_trace
 from eim.api.reports_db import ReportStore
-from eim.observability import catalog
+from eim.observability import catalog, switches
 from eim.observability import thresholds as T
 from eim.observability.bridge import alerts_bridge, heartbeat_bridge, risk_bridge
 from eim.observability.derive import stage_rank
@@ -53,7 +53,8 @@ def _where(conds: list[tuple[str, Any]]) -> tuple[str, list]:
 
 
 def build_obs_router(store: ObsStore, indexer: Indexer,
-                     reports_conn: tuple[Any, threading.Lock] | None = None) -> APIRouter:
+                     reports_conn: tuple[Any, threading.Lock] | None = None,
+                     data_dir: Path | None = None) -> APIRouter:
     r = APIRouter(prefix="/v2/obs", tags=["observatorio"])
 
     def envelope(**body: Any) -> dict:
@@ -103,11 +104,16 @@ def build_obs_router(store: ObsStore, indexer: Indexer,
             seen = last.get(c.id)
             age = None if seen is None else round((now - seen["last_ms"]) / 1000, 1)
             limit_s = T.stale_after_s(c.cadence_s)
+            # T174: apagada por configuración → «pausada» con su motivo; a demanda y sin uso
+            # aún → «en espera». Ninguna de las dos es una avería ni «sin datos».
+            off = switches.off_reason(c.switch, data_dir=data_dir) if c.built == "construido" \
+                else None
+            idle = c.built == "construido" and seen is None and c.cadence_s is None and not off
             items.append({
                 **c.model_dump(mode="json"), "last_event_ms": seen and seen["last_ms"],
                 "last_status": seen and seen["last_status"], "n_events": seen["n_events"] if seen
-                else 0, "age_s": age, "stale_after_s": limit_s,
-                "no_data": c.built == "construido" and (
+                else 0, "age_s": age, "stale_after_s": limit_s, "off_reason": off, "idle": idle,
+                "no_data": c.built == "construido" and not off and not idle and (
                     seen is None or (limit_s is not None and age is not None and age > limit_s))})
         return envelope(items=items, total=len(items), stages=list(catalog.STAGES))
 

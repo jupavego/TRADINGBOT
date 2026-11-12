@@ -10,6 +10,8 @@ const num = (x: unknown, d = 2): string => (typeof x === 'number' ? x.toLocaleSt
 /** Frase armada SOLO con datos del último evento (jamás texto libre de un LLM). */
 export function plainWords(c: ObsComp, e: ObsEvent | undefined): string {
   if (c.built === 'planeado') return `Aún no existe: está planeado en la tarea ${c.task}. No es una avería.`
+  if (c.off_reason) return esc(c.off_reason)                        // T174
+  if (c.idle) return 'Se usa a demanda y todavía no se ha usado desde que hay registro. No es una avería.'
   if (!e) return 'Aún no hay actividad registrada de este componente.'
   const t = ago(e.ts_utc), det = e.detail ?? {}
   const src = e.source ? ` de ${esc(e.source)}` : ''

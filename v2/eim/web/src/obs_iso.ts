@@ -21,7 +21,7 @@ export function toneOf(st: ObsState, incFail: boolean): Tone {
   if (st === 'ok') return 'ok'
   if (st === 'degradado') return incFail ? 'bad' : 'ok'
   if (st === 'error' || st === 'obsoleto') return 'bad'
-  return 'none'                                // sin_datos y pausado: no hay señal de que esté bien
+  return 'none'                                // sin_datos, pausado y en_espera: no hay señal de que esté bien
 }
 const worstTone = (ts: Tone[]): Tone => { const t = ts.filter((x) => x !== 'plan'); return t.includes('bad') ? 'bad' : t.includes('ok') ? 'ok' : 'none' }
 
@@ -40,7 +40,7 @@ const ART_ES: Record<string, string> = {
   sim_trade: 'operaciones simuladas', backtest_result: 'resultado histórico', library_card: 'fichas', bot_signal: 'señales de bots',
 }
 
-const rank: Record<ObsState, number> = { error: 0, obsoleto: 1, degradado: 2, sin_datos: 3, pausado: 4, ok: 5, planeado: 6 }
+const rank: Record<ObsState, number> = { error: 0, obsoleto: 1, degradado: 2, sin_datos: 3, pausado: 4, ok: 5, en_espera: 6, planeado: 7 }
 
 function areas(d: ObsData, inc: boolean): Area[] {
   const st = d.graph.stages
@@ -181,7 +181,7 @@ function person(d: ObsData, a: Area, comp: ObsComp, [u, v]: [number, number], in
 function label(d: ObsData, a: Area, room: string, inc: boolean, dim: string): [string, number[]] {
   const cnt: Partial<Record<ObsState, number>> = {}
   a.list.forEach((c) => { const s = compState(d, c); cnt[s] = (cnt[s] ?? 0) + 1 })
-  const order: ObsState[] = ['ok', 'degradado', 'obsoleto', 'error', 'sin_datos', 'pausado', 'planeado']
+  const order: ObsState[] = ['ok', 'degradado', 'obsoleto', 'error', 'sin_datos', 'pausado', 'en_espera', 'planeado']
   const icons = order.filter((s) => cnt[s]).map((s) => `<tspan fill="${s === 'planeado' ? '#9aa6d6' : COLOR[toneOf(s, inc)]}">${STATE_ICON[s]}${cnt[s]}</tspan>`).join('  ')
   const plain = order.filter((s) => cnt[s]).map((s) => `${STATE_ICON[s]}${cnt[s]}`).join('  ')
   const name = `${a.i + 1}  ${d.graph.stage_titles_es[a.stage] ?? a.stage}`, c = COLOR[a.tone]
@@ -227,6 +227,6 @@ export function isoHtml(d: ObsData, stage: string | null, sel: string | null): s
     <svg class="iso-svg" viewBox="${x0.toFixed(0)} ${y0.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}" role="img" aria-label="Mapa isométrico: ${d.graph.stages.length} etapas como salas de trabajo">
       <defs>${marks}</defs>${floor}<g class="iso-lines">${lines.join('')}</g><g>${rooms.join('')}</g><g>${tags.join('')}</g><g class="iso-flabs">${labs.join('')}</g></svg>
     <div class="iso-legend"><span><i class="t-ok"></i>Funciona</span><span><i class="t-bad"></i>Falla (✖ error · ◷ dato viejo${inc ? ' · ▲ incompleto' : ''})</span>
-      <span><i class="t-none"></i>Sin información (? sin datos · ❚❚ pausa)</span><span class="muted">Puesto translúcido = planeado</span>
+      <span><i class="t-none"></i>Sin información (? sin datos · ❚❚ pausa · ◌ en espera)</span><span class="muted">Puesto translúcido = planeado</span>
       <label><input type="checkbox" data-act="iso-inc"${inc ? ' checked' : ''}> ▲ cuenta como falla</label></div></div>`
 }

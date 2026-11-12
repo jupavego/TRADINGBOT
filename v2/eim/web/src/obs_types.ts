@@ -2,7 +2,7 @@
 import type { ObsQueue } from './obs_queues'
 import { base } from './api'
 
-export type ObsState = 'ok' | 'degradado' | 'error' | 'obsoleto' | 'pausado' | 'sin_datos' | 'planeado'
+export type ObsState = 'ok' | 'degradado' | 'error' | 'obsoleto' | 'pausado' | 'sin_datos' | 'en_espera' | 'planeado'
 
 export interface ObsComp {
   id: string; layer: string; stage: string; kind: string; process: string; version: string | null
@@ -10,6 +10,7 @@ export interface ObsComp {
   produces: string[]; built: 'construido' | 'planeado'; task: string; title_es: string; explain_es: string
   last_event_ms: number | null; last_status: string | null; n_events: number; age_s: number | null
   stale_after_s: number | null; no_data: boolean
+  off_reason?: string | null; idle?: boolean   // T174: apagada por configuración / a demanda sin uso
 }
 export interface ObsEdge { source: string; target: string; artifact: string }
 export interface ObsGraph {
@@ -34,20 +35,23 @@ export interface ObsData {
 
 export const STATE_LABEL: Record<ObsState, string> = {
   ok: 'Al día', degradado: 'Degradado', error: 'Error', obsoleto: 'Dato viejo',
-  pausado: 'Pausado', sin_datos: 'Sin datos', planeado: 'Planeado',
+  pausado: 'Pausado', sin_datos: 'Sin datos', en_espera: 'En espera', planeado: 'Planeado',
 }
 /** Forma + icono además del color: el color nunca es la única señal. */
 export const STATE_ICON: Record<ObsState, string> = {
-  ok: '✔', degradado: '▲', error: '✖', obsoleto: '◷', pausado: '❚❚', sin_datos: '?', planeado: '…',
+  ok: '✔', degradado: '▲', error: '✖', obsoleto: '◷', pausado: '❚❚', sin_datos: '?', en_espera: '◌', planeado: '…',
 }
-export const STATE_ORDER: ObsState[] = ['error', 'degradado', 'obsoleto', 'sin_datos', 'pausado', 'ok', 'planeado']
+export const STATE_ORDER: ObsState[] = ['error', 'degradado', 'obsoleto', 'sin_datos', 'pausado', 'ok', 'en_espera', 'planeado']
 
 export const esc = (s: unknown): string => String(s ?? '').replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
 
 /** Estado de un componente, sin suponerlo sano: sin telemetría reciente = «sin datos». */
 export function stateOf(c: ObsComp, d: { failed: boolean; paused: Set<string> }): ObsState {
   if (c.built === 'planeado') return 'planeado'
-  if (d.failed || c.n_events === 0 || c.last_event_ms === null) return 'sin_datos'
+  if (d.failed) return 'sin_datos'
+  if (c.off_reason) return 'pausado'           // T174: apagada a propósito por configuración
+  if (c.idle) return 'en_espera'               // T174: a demanda y aún sin usar
+  if (c.n_events === 0 || c.last_event_ms === null) return 'sin_datos'
   if (d.paused.has(c.id)) return 'pausado'
   if (c.no_data) return 'obsoleto'
   if (c.last_status === 'error') return 'error'
