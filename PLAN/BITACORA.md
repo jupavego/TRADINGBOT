@@ -1423,3 +1423,9 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** `tests/observability/test_catalog.py` verde salvo dos pruebas que ya fallaban en la sesión remota por falta de `duckdb`; `tsc` sin errores en los archivos tocados (sin dependencias instaladas). Pendiente: gate completo y verlo con datos en vivo en el equipo.
 - **Abierto:** las nuevas aristas hacia `paper.broker` saldrán como «declarada y nunca vista» en Desvíos hasta que el bróker emita eventos con esos padres. **En curso:** nada.
 - **Siguiente paso:** reiniciar la API (toma el catálogo nuevo) y recompilar la web (`cd v2/eim/web && npm run build`).
+## 2026-11-11 · UI: río de decisión sin haces hacia la esfera ni pestañas de filtro
+- **Hecho:** a pedido del usuario, en el **Río de decisión** de la mesa principal se quitaron los canales dinámicos (haces con pulsos de luz) que unían cada agente con la esfera central, y de la cabecera las pestañas de filtro por tipo (Todos/Dirección/Riesgo/Derivados/Carril propio/Contexto) y los contadores (compra/neutral/venta/«se contradicen»). Los nodos, su sesgo, confianza y etiquetas, la esfera, los % de subida/bajada y el satélite de arbitraje siguen igual; el río muestra siempre todos los agentes.
+- **Archivos:** `v2/eim/web/src/river.ts`. `filterBar`/`loadFilter`/`saveFilter` de `agent_roles.ts` quedan sin uso en el río (no se borraron).
+- **Pruebas:** `tsc --noEmit` sin errores nuevos (sin dependencias instaladas en la sesión remota). Sin cambios de Python.
+- **Abierto:** nada. **En curso:** nada.
+- **Siguiente paso:** recompilar la web (`cd v2/eim/web && npm run build`) en el equipo que sirve la interfaz.

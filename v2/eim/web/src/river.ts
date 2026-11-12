@@ -1,20 +1,21 @@
 import { collectorLabel, degradedLabel, noDataLabel } from './no_data_label'
 import { orb } from './agent_orbs'
-import { filterBar, type Filter, loadFilter, matches, roleTag, saveFilter, votes } from './agent_roles'
+import { type Filter, matches, roleTag, votes } from './agent_roles'
 import type { ArbPayload } from './arb_types'
 import { agentName, esc } from './panels'
 import { core, hexPath, holoDefs, platform } from './river_holo'
 import { ARB_ID, arbSatellite, arbTip, SAT_R, setArbData } from './river_arb'
 import { animateSphere } from './river_sphere'
 import { agentTip, CORE_ID, coreTip, sg, THRESH, tint, votesLine } from './river_tips'
-import { disagreeing, PCT_NOTE, upDown } from './synth'
+import { PCT_NOTE, upDown } from './synth'
 import { rememberOpenFamilies } from './technical_ui'
 import type { AgentInfo, AgentReport, Synthesis } from './types'
 
 const W = 1200, CX = W / 2, NR = 21, ROW = 52, R = 104, TOP = 54
 
 let selected: string | null = null // agente con tooltip abierto
-let filter: Filter = loadFilter() // tipo de agente visible (T44)
+// Sin pestañas de filtro en el río: siempre se ven todos los agentes.
+let filter: Filter = 'todos'
 let ctx: { infos: AgentInfo[]; reports: AgentReport[]; synthesis: Synthesis | null; tf: string } = { infos: [], reports: [], synthesis: null, tf: '' }
 let keyBound = false
 let tip = ''
@@ -22,25 +23,10 @@ let sat = { x: 0, y: 0 } // posición del satélite de arbitraje en el último r
 
 type Row = { id: string; bias: number; conf: number; live: boolean; votes: boolean; why: string; deg: string }
 
-/** Pulsos de luz (cabeza brillante + estela) que recorren un haz hasta la esfera. */
-function pulses(pathId: string, n: number, dur: number, r: number, col: string): string {
-  // `begin` negativo = la animación ya va por ese punto; la estela va unos instantes por detrás.
-  const motion = (t: number): string =>
-    `<animateMotion dur="${dur.toFixed(1)}s" begin="${(-t).toFixed(2)}s" repeatCount="indefinite"><mpath href="#${pathId}"/></animateMotion>`
-  return Array.from({ length: n }, (_, k) => {
-    const t = (dur / n) * k + dur
-    return `<circle r="${(r * 2.4).toFixed(1)}" fill="${col}" opacity=".35" filter="url(#rblur)">${motion(t)}</circle>` +
-      [0.04, 0.08, 0.12].map((lag, j) =>
-        `<circle r="${(r * (0.85 - j * 0.2)).toFixed(1)}" fill="${col}" opacity="${(0.6 - j * 0.17).toFixed(2)}">${motion(t - lag * dur)}</circle>`).join('') +
-      `<circle r="${r.toFixed(1)}" fill="#fff">${motion(t)}</circle>`
-  }).join('')
-}
-
 /**
  * Río de decisión holográfico (formato horizontal). Un nodo por agente en dos columnas: a la
- * izquierda los más alcistas, a la derecha los más bajistas; los extremos quedan arriba. De cada
- * nodo sale un haz con pulsos de luz que viajan hasta la esfera central, cuyo color es el sesgo
- * de la síntesis. Grosor, número y velocidad de los pulsos = confianza; discontinuo = sin datos.
+ * izquierda los más alcistas, a la derecha los más bajistas; los extremos quedan arriba. Los nodos
+ * no se conectan con la esfera central (sin haces), cuyo color es el sesgo de la síntesis.
  * Las etiquetas viven en columnas de ancho fijo separadas `ROW`: nunca se solapan.
  */
 export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentReport[], synthesis: Synthesis | null, tf = ''): void {
@@ -52,13 +38,6 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     if (t.closest('[data-open-arb]')) { // tooltip del satélite → pestaña «Arbitraje»
       document.getElementById('tab-arb')?.click()
       document.querySelector('.bottom')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      return
-    }
-    const fb = t.closest<HTMLElement>('[data-filter]')
-    if (fb) { // filtro por tipo de agente (T44)
-      filter = fb.dataset.filter as Filter; saveFilter(filter)
-      if (selected && selected !== CORE_ID && !matches(filter, selected, ctx.infos)) selected = null
-      renderRiver(el, ctx.infos, ctx.reports, ctx.synthesis, ctx.tf)
       return
     }
     if (t.closest('.tip') && !t.closest('[data-close]')) return // dentro del detalle (p. ej. abrir una familia)
@@ -123,12 +102,6 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     const s = isLeft ? 1 : -1
     const nx = isLeft ? 52 : W - 52
     const col = r.live ? tint(r.bias) : 'var(--muted)'
-    const w = r.live ? 2 + r.conf * 5 : 1.5
-    // Haz: tramo horizontal, codo y diagonal hasta la superficie de la esfera.
-    const a = Math.max(-1.05, Math.min(1.05, ((y - cy) / Math.max(colH / 2, ROW)) * 1.05))
-    const tx = (CX - s * R * Math.cos(a)).toFixed(1), ty = (cy + R * Math.sin(a)).toFixed(1)
-    const x0 = nx + s * 196, xk = nx + s * 262
-    const d = `M${x0} ${y} L${xk} ${y} L${tx} ${ty}`
     const i = rows.indexOf(r)
     if (r.id === selected) {
       const pos = `left:${Math.min(80, Math.max(20, (nx / W) * 100 + s * 14)).toFixed(1)}%;` +
@@ -138,15 +111,8 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     const lx = nx + s * (NR + 11), anchor = isLeft ? 'start' : 'end'
     const bw = 92, bx = isLeft ? lx : lx - bw
     const pct = r.live ? `${Math.round(r.conf * 100)}%${r.deg ? ` · ${r.deg}` : ''}` : r.why
-    const flow = r.live && r.votes // solo los que votan alimentan la esfera (T44)
     const tag = roleTag(r.id, infos, synthesis)
     return `<g class="trib${r.id === selected ? ' sel' : ''}" data-id="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(agentName(r.id))}: ver detalles">` +
-      (flow ? `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w + 7}" stroke-linejoin="round" opacity=".28" filter="url(#rblur)"/>` : '') +
-      `<path id="rp${i}" d="${d}" fill="none" stroke="${col}" stroke-width="${flow ? w.toFixed(1) : 1.2}" stroke-linejoin="round" opacity="${flow ? 0.85 : r.live ? 0.4 : 0.5}"` +
-      `${flow ? ' class="hflow"' : r.live ? ' stroke-dasharray="1.5 6"' : ' stroke-dasharray="3 7"'}/>` +
-      `<circle cx="${x0}" cy="${y}" r="3" fill="${col}"/>` +
-      (flow ? pulses(`rp${i}`, 1 + Math.round(r.conf * 3), 4.8 - 2.2 * r.conf, 1.8 + r.conf * 1.4, col) : '') +
-      (flow ? `<circle cx="${tx}" cy="${ty}" r="${(w / 2 + 2).toFixed(1)}" fill="${col}" opacity=".9"/>` : '') +
       `<circle cx="${nx}" cy="${y}" r="${NR + 4}" fill="none" stroke="${col}" stroke-width="1" stroke-dasharray="4 5" opacity=".7" class="hspin"/>` +
       orb(r.id, nx, y, NR, r.live && Math.abs(r.bias) < THRESH ? 'var(--holo)' : col, r.live, i) +
       `<text x="${lx}" y="${y - 5}" text-anchor="${anchor}" class="rl">${esc(agentName(r.id))}` +
@@ -159,7 +125,6 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
 
   const ups = rows.filter((r) => r.live && r.bias >= THRESH).length
   const downs = rows.filter((r) => r.live && r.bias <= -THRESH).length
-  const flat = live.length - ups - downs
   const deco = [[CX - 330, 36, 15], [CX - 302, 62, 9], [CX + 332, py - 4, 13], [CX + 300, py + 20, 8]]
     .map(([x, y, s]) => `<path d="${hexPath(x, y, s)}" fill="none" stroke="var(--holo)" stroke-width="1.2" opacity=".45"/>`).join('')
 
@@ -172,12 +137,8 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   if (selected === ARB_ID && showSat) {
     tip = `<div class="tip tip-arb" style="left:${pct(sat.x, W)};bottom:${pct(H - sat.y + SAT_R + 18, H)}" role="dialog">${arbTip()}</div>`
   }
-  const dis = disagreeing(reports, synthesis)
   el.style.setProperty('--rt', Math.abs(b) < THRESH ? 'transparent' : mainCol)
-  el.innerHTML = `<div class="river-head"><h3>Río de decisión</h3>${filterBar(filter, all, infos)}` +
-    `<span class="chips"><i class="c up">${ups} compra</i><i class="c flat">${flat} neutral</i><i class="c down">${downs} venta</i>` +
-    (dis ? '<i class="c warn" title="Agentes con convicción en direcciones opuestas: ver la esfera">⚠ se contradicen</i>' : '') +
-    '</span></div>' +
+  el.innerHTML = `<div class="river-head"><h3>Río de decisión</h3></div>` +
     `<div class="rsvg"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(verdict)}: ${ups} agentes en verde, ${downs} en rojo">` +
     `<defs>${holoDefs(rc, split ? split.up : null, CX, R)}</defs>` +
     platform(CX, py) + core(CX, cy, R, py) + deco +
@@ -212,11 +173,10 @@ export function refreshArbitrage(el: HTMLElement, p: ArbPayload): void {
 }
 
 /** Abre el detalle de un agente en el río (p. ej. desde el reloj de eventos de la barra
- * superior); si el filtro lo oculta, vuelve a «Todos». */
+ * superior). */
 export function openAgent(id: string): void {
   const el = document.getElementById('river')
   if (!el) return
-  if (!matches(filter, id, ctx.infos)) { filter = 'todos'; saveFilter(filter) }
   selected = id
   renderRiver(el, ctx.infos, ctx.reports, ctx.synthesis, ctx.tf)
   el.scrollIntoView({ behavior: 'smooth', block: 'start' })
