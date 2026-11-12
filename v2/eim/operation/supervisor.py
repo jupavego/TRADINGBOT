@@ -130,6 +130,8 @@ class Operation:
                            status="ok" if not self.status["consecutive_failures"] else "degraded",
                            detail={"state": self.status["state"], "cycles": self.status["cycles"],
                                    "failures": self.status["consecutive_failures"]})
+        hooks_service.beat("operation.alerts", detail={"active": len(self.alerts.active)},  # T174
+                           status="degraded" if self.alerts.active else "ok")
         if err := write_heartbeat(self.root / "heartbeat.json", {k: self.status[k] for k in (
                 "last_heartbeat", "pid", "state", "mode", "cycles", "consecutive_failures")}):
             self.log.write("latido_fallido", "warn", error=f"{type(err).__name__}: {err}")
