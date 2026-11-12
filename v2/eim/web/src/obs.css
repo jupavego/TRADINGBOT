@@ -6,6 +6,7 @@
   --st-pausado: var(--neutral); --st-sin_datos: var(--muted); --st-en_espera: var(--muted); --st-planeado: var(--muted); }
 .obs-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .obs-head h3 { margin: 0; }
+.obs-age[data-tone="error"] { color: var(--down, #ff3d5f); }
 .obs-replay-btn { border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .obs-banner { margin: 0; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--warn); background: color-mix(in srgb, var(--warn) 14%, var(--panel)); }
 .obs-banner[data-tone="error"] { border-color: var(--down); background: color-mix(in srgb, var(--down) 14%, var(--panel)); }

@@ -1,38 +1,35 @@
 /** «Mapa del sistema» (T75): el flujo de trabajo del proyecto en tres niveles de zoom. Desde T122
  * vive en la mesa, justo debajo del Río de decisión (ya no es una pantalla aparte): consulta el
- * observatorio solo mientras está a la vista (pestaña visible y sección en pantalla). */
+ * observatorio solo mientras está a la vista (pestaña visible y sección en pantalla).
+ * Tablero de control en vivo: solo el mapa isométrico, sondeo cada 5 s (el ritmo del indexador)
+ * y la edad del último evento corre cada segundo. El flujo termina en el bróker simulado, que
+ * está justo debajo; el modo lo dice la barra superior. Trazas, tarjetas, la reproducción de la
+ * última vela y el recorrido guiado se retiraron de esta vista. */
 import { detailHtml } from './obs_detail'
 import { isoHtml, isoIncFail, isoKey, setIsoIncFail } from './obs_iso'
 import { queueHtml, queuesSummary } from './obs_queues'
 import { compState, routeHtml, stageSentence, stageSvg } from './obs_graph'
-import { glossarize, legendHtml, markTour, tourHtml, TOUR, tourSeen } from './obs_legend'
-import { pulseNew, Story } from './obs_story'
-import { TraceView } from './obs_trace_view'
+import { glossarize, legendHtml } from './obs_legend'
+import { pulseNew } from './obs_story'
 import { ago, esc, loadObs, STATE_ICON, STATE_LABEL, type ObsData } from './obs_types'
 
 type MapView = 'route' | 'iso'
-const loadView = (): MapView => { try { return localStorage.getItem('eim.obs.view') === 'route' ? 'route' : 'iso' } catch { return 'iso' } }
 
-const POLL_MS = 10_000
-const MODE_ES: Record<string, string> = { ANALISIS: 'Análisis', SIMULADO: 'Simulado', TESTNET: 'Testnet', REAL: 'Real' }
+const POLL_MS = 5_000          // = cadencia del indexador del observatorio (T73)
+const TICK_MS = 1_000          // la edad del último evento avanza sola entre sondeos
+const STALE_S = 180            // sin eventos en 3 min el encabezado lo dice en rojo
 
 const TEMPLATE = `
 <header class="obs-head">
   <h3 class="sh">Mapa del sistema</h3>
-  <span class="mode" data-x="mode">Modo: —</span>
-  <span class="obs-age muted" data-x="age" aria-live="polite"></span>
+  <span class="obs-age muted" data-x="age" aria-live="off"></span>
   <span class="spacer"></span>
   <span class="obs-panes" role="group" aria-label="Qué ver">
-    <button class="btn" data-act="pane-map" aria-pressed="true">Mapa</button>
-    <button class="btn" data-act="pane-trace" aria-pressed="false" title="Elegir una decisión y ver qué ocurrió, paso a paso">Trazas y calidad</button></span>
+    <button class="btn" aria-pressed="true" title="El flujo de la vela hasta el bróker simulado, en vivo">Mapa</button></span>
   <span class="obs-views" role="group" aria-label="Cómo dibujar el mapa">
-    <button class="btn" data-act="view-iso" aria-pressed="true" title="Cada etapa como una sala de trabajo y cada pieza como un puesto">Isométrico</button>
-    <button class="btn" data-act="view-route" aria-pressed="false" title="Tarjetas por etapa y diagrama de piezas">Tarjetas</button></span>
-  <button class="btn obs-replay-btn" data-act="replay" title="Reproduce despacio lo que pasó con la última vela">▶ Ver la última vela</button>
-  <button class="btn" data-act="tour" aria-label="Recorrido guiado" title="Recorrido guiado">?</button>
+    <button class="btn" aria-pressed="true" title="Cada etapa como una sala de trabajo y cada pieza como un puesto">Isométrico</button></span>
 </header>
 <p class="obs-banner" data-x="banner" role="status" hidden></p>
-<div class="obs-story" data-x="story" hidden aria-live="polite"></div>
 <div class="obs-body">
   <div class="obs-main">
     <nav class="obs-crumb" data-x="crumb"></nav>
@@ -44,8 +41,7 @@ const TEMPLATE = `
     <div class="obs-detail" data-x="detail" aria-live="polite"><p class="muted">Pulsa una etapa o una pieza del mapa para ver su detalle.</p></div>
   </aside>
 </div>
-<section class="obs-traces" data-x="traces" aria-label="Trazas y calidad de la evidencia" hidden></section>
-<div data-x="tour"></div>`
+`
 
 export class ObsView {
   private data: ObsData | null = null
@@ -56,11 +52,10 @@ export class ObsView {
   private onScreen = false
   private loadedAt = 0          // última carga pedida (evita recargas al entrar y salir de la vista)
   private ctl: AbortController | null = null
-  private story!: Story
-  private tourStep = -1
   private built = false
-  private traces!: TraceView
-  private view: MapView = loadView()
+  private view: MapView = 'iso'
+  private tick = 0
+  private ageBase: { age: number; at: number } | null = null   // edad del último evento al cargar
   private isoLast = ''          // clave del último dibujo isométrico (no se rehace si nada cambió)
 
   constructor(private root: HTMLElement) {}
@@ -83,19 +78,19 @@ export class ObsView {
     if (show === this.open) return
     this.open = show
     clearInterval(this.timer)
+    clearInterval(this.tick)
     if (!show) return              // la carga en curso termina; solo se deja de sondear
     if (Date.now() - this.loadedAt >= POLL_MS) void this.reload()
     this.timer = window.setInterval(() => void this.reload(), POLL_MS)
-    if (!tourSeen() && this.tourStep < 0) this.startTour()
+    this.tick = window.setInterval(() => this.paintAge(), TICK_MS)
   }
 
   private build(): void {
     this.built = true
     this.root.innerHTML = TEMPLATE
     this.q('legend').innerHTML = legendHtml()
-    this.story = new Story(this.q('story'), this.root, () => this.data)
-    this.traces = new TraceView(this.q('traces'), (id) => { this.pane('map'); void this.story.start(id) })
-    this.setView(this.view)
+    try { localStorage.removeItem('eim.obs.view') } catch { /* la vista «Tarjetas» se retiró */ }
+    this.setView('iso')
     this.root.addEventListener('click', (e) => this.onClick(e))
     this.root.addEventListener('keydown', (e) => {
       if ((e.key === 'Enter' || e.key === ' ') && (e.target as HTMLElement).closest('.obs-n')) { e.preventDefault(); this.onClick(e) }
@@ -105,19 +100,9 @@ export class ObsView {
   private onClick(e: Event): void {
     const t = e.target as HTMLElement
     const act = t.closest<HTMLElement>('[data-act]')?.dataset.act
-    if (act === 'replay') { this.pane('map'); void this.story.start(); return }
-    if (act === 'pane-map') { this.pane('map'); return }
-    if (act === 'pane-trace') { this.pane('trace'); return }
-    if (act === 'tour') { this.startTour(); return }
-    if (act === 'view-iso' || act === 'view-route') { this.setView(act === 'view-iso' ? 'iso' : 'route'); this.paintMap(); this.paintDetail(); return }
     if (act === 'iso-inc') { setIsoIncFail(!isoIncFail()); this.paintMap(); return }
-    if (t.closest('[data-story="stop"]')) { this.story.stop(); return }
-    const tour = t.closest<HTMLElement>('[data-tour]')?.dataset.tour
-    if (tour) { this.stepTour(tour); return }
     if (t.closest('[data-close]')) { this.sel = null; this.paintDetail(); this.paintMap(); return }
     if (t.closest('[data-home]')) { this.stage = null; this.sel = null; this.paint(); return }
-    const tr = t.closest<HTMLElement>('[data-open-trace]')?.dataset.openTrace
-    if (tr) { this.pane('trace'); void this.traces.open(tr); return }
     const go = t.closest<HTMLElement>('[data-goto]')?.dataset.goto
     const node = t.closest<HTMLElement>('.obs-n')
     const id = go ?? node?.dataset.id
@@ -129,23 +114,12 @@ export class ObsView {
     }
   }
 
-  /** Alterna entre el mapa (T75) y las trazas con su calidad de evidencia (T76). */
-  private pane(which: 'map' | 'trace'): void {
-    this.root.dataset.pane = which
-    this.root.querySelectorAll<HTMLElement>('[data-act^="pane-"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.act === `pane-${which}`)))
-    this.q('traces').hidden = which !== 'trace'
-    this.root.querySelector<HTMLElement>('.obs-body')!.hidden = which === 'trace'
-    if (which === 'trace') { this.story.stop(); this.traces.show() }
-  }
-
-  /** Alterna el dibujo del mapa entre la vista isométrica y las tarjetas de T75 (se recuerda). */
+  /** Fija el dibujo del mapa (hoy solo «Isométrico»; las tarjetas de T75 quedan en el código). */
   private setView(v: MapView): void {
     this.view = v
     this.isoLast = ''
     this.root.dataset.view = v   // en «Isométrico» la leyenda y el detalle flotan dentro del diagrama (obs_iso.css)
     this.root.querySelector('.obs-legend')?.toggleAttribute('open', v === 'route')
-    try { localStorage.setItem('eim.obs.view', v) } catch { /* sin almacenamiento */ }
-    this.root.querySelectorAll<HTMLElement>('[data-act^="view-"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.act === `view-${v}`)))
   }
 
   async reload(): Promise<void> {
@@ -181,11 +155,18 @@ export class ObsView {
       banner.textContent = `El observatorio avisa: ${d.health.problems.join(' · ')}`
       banner.dataset.tone = 'warn'
     } else banner.hidden = true
-    const m = g?.mode ?? null
-    this.q('mode').textContent = `Modo: ${m ? MODE_ES[m] ?? m : 'sin eventos'}`
-    this.q('mode').dataset.mode = m ?? ''
-    this.q('age').textContent = g?.last_event_age_s == null ? 'Último evento: ninguno registrado'
-      : `Último evento ${ago(Date.now() - g.last_event_age_s * 1000)}${g.index_lag_s != null ? ` · indexador al día hace ${Math.round(g.index_lag_s)} s` : ''}`
+    this.ageBase = g?.last_event_age_s == null ? null : { age: g.last_event_age_s, at: Date.now() }
+    this.paintAge()
+  }
+
+  /** «Último evento hace N s», avanzando cada segundo; en rojo si el sistema lleva callado. */
+  private paintAge(): void {
+    const el = this.q('age'), b = this.ageBase
+    if (!this.data) return
+    if (!b) { el.textContent = 'Último evento: ninguno registrado'; el.dataset.tone = 'error'; return }
+    const age = b.age + (Date.now() - b.at) / 1000
+    el.textContent = `Último evento ${ago(Date.now() - age * 1000)}`
+    el.dataset.tone = age > STALE_S ? 'error' : ''
   }
 
   private paintMap(): void {
@@ -247,20 +228,5 @@ export class ObsView {
         ${dev.undeclared.length + dev.unseen.length ? '' : '<li class="muted">Ninguno detectado con las trazas disponibles.</li>'}</ul></details>
       <details${o4} data-x="queues"><summary>Colas entre etapas (${d.queues ? `${qsum.drops} con descartes · ${qsum.missing} sin informe` : 'sin respuesta'})</summary>
         <ul class="obs-ul">${qs.map(queueHtml).join('') || '<li class="muted">El observatorio no devolvió las colas.</li>'}</ul></details>`
-  }
-
-  // --- recorrido guiado ---
-  private startTour(): void { this.tourStep = 0; this.paintTour() }
-  private stepTour(a: string): void {
-    if (a === 'skip') { this.tourStep = -1; markTour() } else if (a === 'prev') this.tourStep = Math.max(0, this.tourStep - 1)
-    else if (++this.tourStep >= TOUR.length) { this.tourStep = -1; markTour() }
-    this.paintTour()
-  }
-  private paintTour(): void {
-    this.root.querySelectorAll('.tour-hl').forEach((e) => e.classList.remove('tour-hl'))
-    const box = this.q('tour')
-    if (this.tourStep < 0) { box.innerHTML = ''; return }
-    box.innerHTML = tourHtml(this.tourStep)
-    this.root.querySelector(TOUR[this.tourStep].sel)?.classList.add('tour-hl')
   }
 }
