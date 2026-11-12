@@ -1442,3 +1442,9 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** sin PowerShell en la sesión remota: revisado a mano, sin ejecutar. Sin cambios de Python.
 - **Abierto:** probarlo en el equipo (primera vez: `git pull` a mano y reiniciar el icono de la bandeja).
 - **Siguiente paso:** ver el globo «EIM actualizado desde GitHub» tras el próximo PR fusionado.
+
+## 2026-11-12 · T174: arreglo del gate (gancho «setups»)
+- **Hecho:** el gate completo en el equipo (3 700 pruebas) dio **un solo fallo**, de T174: `tests/api/test_paper_api.py::test_hooks_are_registered_in_order_and_run_outside_the_cycle` fija que el gancho «setups» no tiene componente y que no figura en `ran` en cada pasada. Se vuelve a ese contrato: el gancho se registra sin componente y `tick()` late por su cuenta como `validation.setups_followup` (muestreado a 60 s).
+- **Archivos:** `v2/eim/api/{setups,main}.py`.
+- **Pruebas:** gate del equipo con salida guardada en `_gate_t174.txt` (fuera del repo): 1 fallo, el de arriba; resto verde. Falta repetirlo tras fusionar (lo hace `actualizar_t174.cmd`).
+- **Siguiente paso:** fusionar y correr `actualizar_t174.cmd` (gate → build → reinicio).

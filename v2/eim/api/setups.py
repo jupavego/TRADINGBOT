@@ -68,9 +68,9 @@ def build_setups_router(desk: PaperDesk, validator: Validator,
                                   atr=a, review=review, params=p)}
         return now, v_asof, verdicts, view, price, pub, board
 
-    def tick() -> bool:
-        """Gancho del bróker (cada ~1 min): registra lo publicado y resuelve lo anterior.
-        Devuelve si siguió al menos un símbolo (T174: así late `validation.setups_followup`)."""
+    def tick() -> None:
+        """Gancho del bróker (cada ~1 min): registra lo publicado y resuelve lo anterior. Late
+        como `validation.setups_followup` (T174) sin figurar en `ran`: no es trabajo «de cierre»."""
         done = False
         for sym in desk.symbols:
             try:
@@ -80,7 +80,8 @@ def build_setups_router(desk: PaperDesk, validator: Validator,
                     done = True
             except Exception:  # nunca tumba el ciclo del bróker
                 continue
-        return done
+        if done:
+            hooks_service.beat("validation.setups_followup", min_interval_s=60)
 
     router.tick = tick  # type: ignore[attr-defined]
 
