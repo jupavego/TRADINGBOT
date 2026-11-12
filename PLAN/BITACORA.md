@@ -1429,3 +1429,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** `tsc --noEmit` sin errores nuevos (sin dependencias instaladas en la sesión remota). Sin cambios de Python.
 - **Abierto:** nada. **En curso:** nada.
 - **Siguiente paso:** recompilar la web (`cd v2/eim/web && npm run build`) en el equipo que sirve la interfaz.
+
+## 2026-11-11 · Operación: el icono del escritorio se mantiene al día con main
+- **Hecho:** a pedido del usuario, el acceso «EIM» del escritorio y el icono de la bandeja traen solos lo que se fusiona en `main` (p. ej. los PR de Claude). Nuevo `sincronizar_main.ps1`: solo fast-forward; no toca nada con cambios sin confirmar ni ramas con trabajo sin fusionar (pasa a `main` si la rama ya está fusionada); tras avanzar reinicia solo la API si cambió Python de `v2/eim/` (la relanza el vigilante), corre `npm install` si cambió `package-lock.json` y avisa si cambiaron dependencias de Python. `abrir_interfaz.ps1` lo corre antes de abrir (`-SinActualizar` lo salta); `icono_bandeja.ps1` cada 5 min (`-SyncMin`), con opción «Actualizar desde GitHub (main)» y aviso al actualizar o al no poder.
+- **Archivos:** nuevo `v2/scripts/sincronizar_main.ps1`; `v2/scripts/{abrir_interfaz,icono_bandeja}.ps1`; `v2/docs/OPERACION.md`.
+- **Pruebas:** sin PowerShell en la sesión remota: revisado a mano, sin ejecutar. Sin cambios de Python.
+- **Abierto:** probarlo en el equipo (primera vez: `git pull` a mano y reiniciar el icono de la bandeja).
+- **Siguiente paso:** ver el globo «EIM actualizado desde GitHub» tras el próximo PR fusionado.
