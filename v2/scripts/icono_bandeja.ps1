@@ -14,7 +14,7 @@
   powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File v2\scripts\icono_bandeja.ps1
   wscript.exe v2\scripts\eim_oculto.vbs v2\scripts\icono_bandeja.ps1
 #>
-param([int]$Puerto = 8000, [int]$CadaS = 15)
+param([int]$Puerto = 8000, [int]$CadaS = 15, [int]$SyncMin = 5)
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing
 
@@ -218,6 +218,7 @@ $menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator)) | Out-Null
 Opcion "Abrir interfaz" { Start-Process $web } | Out-Null
 Opcion "Hoja de ruta" { Start-Process $ruta } | Out-Null
 Opcion "Ver registros" { if (Test-Path $logs) { Start-Process explorer.exe $logs } } | Out-Null
+Opcion "Actualizar desde GitHub (main)" { Sincronizar } | Out-Null
 $menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator)) | Out-Null
 $mArrancar = Opcion "Arrancar servicio" {
   Start-Process wscript.exe -ArgumentList @(
@@ -297,14 +298,46 @@ function Revisar {
   }
 }
 
+# Sincronizacion con main (sincronizar_main.ps1): cada $SyncMin min en un proceso oculto aparte
+# (no bloquea el icono). El resultado llega por data\operation\sync_main.json: se avisa cuando
+# entra algo nuevo o cuando no se pudo actualizar por cambios locales (una vez por motivo).
+$syncJson = Join-Path $v2 "data\operation\sync_main.json"
+$syncVisto = $null
+$syncMotivo = $null
+try { if (Test-Path $syncJson) { $syncVisto = (Get-Content $syncJson -Raw -Encoding UTF8 | ConvertFrom-Json).at } } catch { }
+function Sincronizar {
+  Start-Process wscript.exe -ArgumentList @(
+    ('"' + (Join-Path $scripts "eim_oculto.vbs") + '"'),
+    ('"' + (Join-Path $scripts "sincronizar_main.ps1") + '"'))
+}
+function SyncAvisos {
+  try {
+    if (-not (Test-Path $syncJson)) { return }
+    $s = Get-Content $syncJson -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($s.at -eq $script:syncVisto) { return }
+    $script:syncVisto = $s.at
+    if ($s.status -eq "updated") {
+      $script:syncMotivo = $null
+      Aviso "EIM actualizado desde GitHub" ("" + $s.message) "Info"
+    } elseif ($s.status -eq "skipped" -and $s.message -ne $script:syncMotivo) {
+      $script:syncMotivo = $s.message
+      Aviso "EIM sin actualizar" ("" + $s.message) "Warning"
+    } elseif ($s.status -eq "up_to_date") { $script:syncMotivo = $null }
+  } catch { }
+}
+$relojSync = New-Object System.Windows.Forms.Timer
+$relojSync.Interval = [Math]::Max(1, $SyncMin) * 60000
+$relojSync.add_Tick({ Sincronizar })
+$relojSync.Start()
+
 $reloj = New-Object System.Windows.Forms.Timer
 $reloj.Interval = [Math]::Max(5, $CadaS) * 1000
-$reloj.add_Tick({ Revisar })
+$reloj.add_Tick({ Revisar; SyncAvisos })
 $reloj.Start()
 Revisar
 
 try { [System.Windows.Forms.Application]::Run() }
 finally {
-  $reloj.Stop(); $icono.Visible = $false; $icono.Dispose()
+  $reloj.Stop(); $relojSync.Stop(); $icono.Visible = $false; $icono.Dispose()
   $cerrojo.ReleaseMutex(); $cerrojo.Dispose()
 }
