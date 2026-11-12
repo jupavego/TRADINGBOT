@@ -1,7 +1,7 @@
 import { base } from './api'
 import { esc } from './panels'
 import { emptySlot, funnelHtml, nf, pc, slotCard, usd, utc, watchHtml, type Setup, type SetupsView, type Slot } from './setups_cards'
-import { simulate, type Side } from './sim_calc'
+import { simulate } from './sim_calc'
 
 /**
  * Operaciones sugeridas intradía (T50 · T122): siempre tres posiciones para BTCUSDT, ordenadas
@@ -15,7 +15,6 @@ import { simulate, type Side } from './sim_calc'
  * repinta la zona cuyo contenido cambió y nunca mientras se escribe un monto.
  */
 
-export interface ApplySetup { side: Side; entry: number; tp: number; sl: number; amount: number; leverage: number }
 
 const KEY = 'eim.setups'
 const POLL_MS = 60_000           // el bróker simulado sondea cada ~1 min
@@ -43,7 +42,7 @@ export class SetupsPanel {
   private deferred = false       // repintado aplazado mientras el usuario escribe un monto
   private watchOpen = false
 
-  constructor(private el: HTMLElement, private onApply: (s: ApplySetup) => void) {
+  constructor(private el: HTMLElement) {
     el.innerHTML = '<div data-z="head"></div><div data-z="body"></div><div data-z="foot"></div>'
     el.addEventListener('input', (e) => this.onInput(e.target as HTMLInputElement))
     el.addEventListener('focusout', () => { if (this.deferred) window.setTimeout(() => this.paint(), 0) })
@@ -53,12 +52,8 @@ export class SetupsPanel {
     }, true)
     el.addEventListener('click', (e) => {
       if ((e.target as HTMLElement).closest('[data-open-paper]')) {
-        document.getElementById('paper-btn')?.click(); return
+        window.dispatchEvent(new Event('eim:open-paper'))
       }
-      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-apply]')
-      const s = b && this.view?.setups[Number(b.dataset.apply)]
-      if (s) this.onApply({ side: s.side, entry: r2(s.entry), tp: r2(s.tp), sl: r2(s.sl),
-        amount: this.prefs.amounts[Number(b.dataset.apply)] ?? 0, leverage: this.prefs.leverage })
     })
     this.paintHead()
     this.paint()
@@ -175,4 +170,3 @@ export class SetupsPanel {
   }
 }
 
-const r2 = (x: number): number => Math.round(x * 100) / 100

@@ -71,10 +71,6 @@ export class TraceView {
     if (act === 'prev') this.pick(Math.max(0, this.step - 1))
     else if (act === 'next') this.pick(Math.min(n - 1, this.step + 1))
     else if (act === 'map' && this.selId) this.onMap(this.selId)
-    else if (act === 'desk' && this.cur?.decision) {
-      const d = this.cur.decision
-      window.dispatchEvent(new CustomEvent('eim:replay', { detail: { symbol: d.symbol, timeframe: d.timeframe, ts: d.last_ms } }))
-    }
   }
 
   async loadList(): Promise<void> {
@@ -129,8 +125,7 @@ export class TraceView {
     }
     box.innerHTML = `<header class="obs-tr-h"><h3>${esc(d?.symbol ?? '')} ${esc(d?.timeframe ?? '')} · ${esc(MODE_ES[d?.mode ?? ''] ?? d?.mode ?? '')}</h3>
         ${markBadge(x.mark)}<span class="muted">${ago(d?.last_ms)}</span><span class="spacer"></span>
-        <button class="btn" data-tact="map" title="Reproduce esta traza en el mapa del sistema">Ver en el mapa</button>
-        <button class="btn" data-tact="desk" title="Abre la mesa con el deslizador de reproducción en ese instante">Abrir en la mesa en ese instante</button></header>
+        <button class="btn" data-tact="map" title="Reproduce esta traza en el mapa del sistema">Ver en el mapa</button></header>
       ${whyHtml(x)}${factsHtml(x)}
       <div class="obs-tr-graph" data-x="graph"></div>
       <section class="obs-story-box"><div class="obs-tr-nav"><button class="btn" data-tact="prev">◀ Anterior</button><button class="btn" data-tact="next">Siguiente ▶</button>

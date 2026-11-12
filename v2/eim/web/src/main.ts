@@ -1,6 +1,5 @@
 import './style.css'
 import './cyber.css'
-import './sim.css'
 import './setups.css'
 import './arb.css'
 import './leaders.css'
@@ -9,19 +8,16 @@ import { SquadPanel } from './squad_ui'
 import './paper.css'
 import './obs.css'
 import './obs_trace.css'
-import { fetchAgents, fetchAsofs, fetchJournal, fetchMicroStatus, fetchMode, fetchOverlays, fetchReplay, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, symbolPicker, TIMEFRAMES, type StreamHandle } from './api'
-import { PriceChart } from './chart'
+import { fetchAgents, fetchJournal, fetchMicroStatus, fetchMode, fetchReports, fetchSnapshot, fetchSynthesis, openStream, SYMBOLS, symbolPicker, TIMEFRAMES, type StreamHandle } from './api'
 import { refreshArbitrage, renderRiver } from './river'
 import { latestPerAgent, renderJournal } from './panels'
-import { mountLayerBar, showCard } from './layers_ui'
 import { LibraryPanel } from './library_ui'
 import { ScenarioPanel } from './scenarios_ui'
 import { CalibrationPanel } from './calibration_ui'
 import { MoreView } from './more'
-import { renderLog, TradeMarks } from './trades_ui'
+import { renderLog } from './trades_ui'
 import { RiskPanel } from './risk_ui'
 import { OperationPanel } from './operation_ui'
-import { TradeSimulator } from './sim_ui'
 import { SetupsHistory } from './setups_history'
 import { SetupsPanel } from './setups_ui'
 import { ArbPanel } from './arb_ui'
@@ -31,7 +27,6 @@ import { ObsView } from './obs_view'
 import { setCalendarClock } from './event_clock'
 import { setCollectorState } from './no_data_label'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
-import { bogIso } from './tz'
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T
 
@@ -51,22 +46,18 @@ let infos: AgentInfo[] = []
 let latest: AgentReport[] = []
 let synthesis: Synthesis | null = null
 let journal: AgentReport[] = []
-let replaying = false
-let asofs: number[] = []
-let replayTimer: number | undefined
 
-const chart = new PriceChart($('chart'))
+// Sin gráfico de velas ni simulador en la mesa: el río, el mapa del sistema y el bróker
+// simulado (bajo el mapa) cuentan la decisión; el bróker trae su propio gráfico por perfil.
 const more = new MoreView($('more'))
-const marks = new TradeMarks(chart)
 let squadSupport: SquadPanel | null = null
-const scenarios = new ScenarioPanel($('t-esc'), chart, () => ({ symbol, tf }),
+const scenarios = new ScenarioPanel($('t-esc'), null, () => ({ symbol, tf }),
   () => latest.find((r) => r.agent_id === 'literature'), () => squadSupport?.support ?? null)
 const calibration = new CalibrationPanel($('t-cal'), () => ({ symbol, tf }))
 const risk = new RiskPanel($('t-plan'), () => ({ symbol, tf }))
 const operation = new OperationPanel($('t-op'))
-const sim = new TradeSimulator($('simbar'), chart)
 const library = new LibraryPanel($('t-lib'), () => $('mode').textContent ?? '')
-const setups = new SetupsPanel($('setups'), (x) => sim.apply(x))
+const setups = new SetupsPanel($('setups'))
 const setupsHistory = new SetupsHistory($('t-hist')) // T51; pestaña inferior tras Bitácora (T122)
 // independiente del par/marco (T39); cada escaneo también repinta el satélite del río
 const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('river'), p))
@@ -74,13 +65,7 @@ const leaders = new LeadersPanel($('t-lead'), $('tab-lead'))
 const squad = new SquadPanel($('t-squad'), () => ({ symbol, tf }), () => scenarios.refresh()) // T60
 squadSupport = squad
 const obs = new ObsView($('obs')) // Mapa del sistema (T75), en la mesa bajo el río (T122)
-const paper = new PaperView($('paper')) // bróker simulado (T47): vista propia, modo Simulado
-chart.layers.modeLabel = MODE_LABEL[mode]
-mountLayerBar($('layerbar'), chart.layers)
-chart.chart.subscribeCrosshairMove((p) => {
-  const w = $('chart').clientWidth
-  showCard($('evcard'), p.point ? chart.layers.hit(p.point.x, p.point.y) : null, p.point?.x ?? 0, p.point?.y ?? 0, w)
-})
+const paper = new PaperView($('paper')) // bróker simulado (T47): en la mesa, bajo el mapa del sistema; modo Simulado en su cabecera
 
 function paintLive(): void {
   const el = $('live')
@@ -103,12 +88,11 @@ function paintPrice(c: Candle): void {
   el.textContent = c.c.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   if (lastClose !== null && c.c !== lastClose) el.dataset.dir = c.c > lastClose ? 'up' : 'down'
   lastClose = c.c
-  if (!replaying) sim.setLast(c.c)
 }
 
 /** Reloj del próximo evento en la barra superior (T44): siempre con el último dato en vivo. */
 function paintClock(): void {
-  if (!replaying) setCalendarClock($('evclock'), latest.find((r) => r.agent_id === 'calendar'))
+  setCalendarClock($('evclock'), latest.find((r) => r.agent_id === 'calendar'))
 }
 
 function paintAgents(): void {
@@ -138,57 +122,21 @@ async function loadAgents(signal: AbortSignal): Promise<void> {
 
 async function loadTrades(signal?: AbortSignal): Promise<void> {
   try {
-    const [j, a] = await Promise.all([fetchJournal(symbol, tf, signal), fetchAsofs(symbol, tf, signal)])
-    marks.set(j.trades)
+    const j = await fetchJournal(symbol, tf, signal)
     renderLog($('trades-log'), j.trades, j.decisions)
-    asofs = a
   } catch (e) {
     if ((e as Error).name === 'AbortError') return
-    marks.set([]); asofs = []
     $('trades-log').innerHTML = '<p class="muted">No se pudo cargar la bitácora.</p>'
   }
-  paintReplayBar()
-}
-
-function paintReplayBar(): void {
-  const bar = $('replay'), range = $<HTMLInputElement>('replay-range')
-  bar.hidden = asofs.length < 2
-  range.max = String(Math.max(0, asofs.length - 1))
-  if (!replaying) range.value = range.max
-  bar.dataset.replaying = String(replaying)
-  $('replay-live').hidden = !replaying
-  $('replay-label').textContent = replaying
-    ? `Reproducción · ${bogIso(asofs[Number(range.value)]).slice(0, 16).replace('T', ' ')} COT (Simulado)`
-    : 'En vivo'
-}
-
-async function showReplay(i: number): Promise<void> {
-  replaying = true; paintReplayBar(); risk.replayNote()
-  try {
-    const r = await fetchReplay(symbol, tf, asofs[i])
-    if (!replaying || Number($<HTMLInputElement>('replay-range').value) !== i) return
-    chart.setData(r.candles, null)
-    chart.layers.replace(r.overlays)
-    marks.set(r.trades)
-    latest = r.reports; synthesis = r.synthesis; paintAgents()
-  } catch { $('banner').hidden = false; $('banner').textContent = 'No se pudo reconstruir ese instante.' }
-}
-
-function leaveReplay(): void {
-  if (!replaying) return
-  replaying = false; clearTimeout(replayTimer)
-  void load()
 }
 
 function onMsg(m: StreamMsg): void {
   if (m.type === 'arbitrage') { arb.push(m); return } // escáner: no depende de la reproducción
-  if (replaying) return
   if (m.type === 'status') { state = m.state; paintLive() }
   else if (m.type === 'reports') {
     if (m.symbol !== symbol || m.timeframe !== tf) return
     latest = m.reports as AgentReport[]
     synthesis = m.synthesis
-    chart.layers.replace(m.overlays)
     journal = [...latest, ...journal].slice(0, 200)
     paintClock()
     paintAgents()
@@ -200,7 +148,6 @@ function onMsg(m: StreamMsg): void {
   } else if (m.type === 'tick') {
     if (m.symbol !== symbol || m.timeframe !== tf) return
     state = 'up'; paintLive()
-    chart.update(m.candle)
     paintPrice(m.candle)
     if (m.closed) scenarios.setLast(m.candle)
   } else if (m.type === 'forecast') {
@@ -212,35 +159,24 @@ function onMsg(m: StreamMsg): void {
 
 async function load(): Promise<void> {
   stream?.close(); loadAbort?.abort()
-  replaying = false; clearTimeout(replayTimer)
   loadAbort = new AbortController()
   link = false; state = 'connecting'; lastClose = null
   $('price').textContent = '—'; delete $('price').dataset.dir
   paintLive()
   more.setContext(symbol, tf)
-  sim.setSymbol(symbol)
   setups.setSymbol(symbol)
   setupsHistory.setSymbol(symbol)
   void loadAgents(loadAbort.signal)
   void loadTrades(loadAbort.signal)
   void calibration.reload()
   void risk.reload()
-  chart.layers.clear()
-  fetchOverlays(symbol, tf, loadAbort.signal).then((o) => chart.layers.replace(o)).catch(() => {})
   try {
     const snap = await fetchSnapshot(symbol, tf, 500, loadAbort.signal)
-    chart.setData(snap.candles, snap.forming)
     const last = snap.forming ?? snap.candles[snap.candles.length - 1]
     if (last) paintPrice(last)
     scenarios.setLast(snap.candles[snap.candles.length - 1] ?? null)
     void scenarios.reload()
     void squad.reload()
-    const src = Object.entries(snap.sources).map(([k, v]) => `${k}: ${v}`).join(' · ')
-    const cov = snap.candles.length
-      ? `${bogIso(snap.candles[0].t).slice(0, 10)} → ` +
-        `${bogIso(snap.candles[snap.candles.length - 1].t).slice(0, 10)}`
-      : 'sin datos'
-    $('source').textContent = `Fuente — ${src || 'almacén local'} · cobertura ${cov} · ${snap.candles.length} velas`
   } catch (e) {
     if ((e as Error).name === 'AbortError') return
     $('banner').hidden = false
@@ -276,57 +212,30 @@ function build(): void {
       setupsHistory.show(b.dataset.tab === 't-hist')
     }
   })
-  const range = $<HTMLInputElement>('replay-range')
-  range.oninput = () => {
-    const i = Number(range.value)
-    clearTimeout(replayTimer)
-    if (i >= Number(range.max)) { leaveReplay(); return }
-    replayTimer = window.setTimeout(() => void showReplay(i), 120)
-    replaying = true; paintReplayBar()
-  }
-  $('replay-live').onclick = () => leaveReplay()
   const modeEl = $('mode')
   modeEl.textContent = `Modo: ${MODE_LABEL[mode]}`
   // con ejecución en testnet (T30) el servidor manda: la cabecera muestra TESTNET
   void fetchMode().then((m) => {
     if (m === 'TESTNET') { modeEl.textContent = `Modo: ${MODE_LABEL.TESTNET}`; modeEl.dataset.mode = m }
   })
-  const mb = $<HTMLButtonElement>('more-btn'), pb = $<HTMLButtonElement>('paper-btn')
-  // Vistas de pantalla completa: Más análisis y Bróker simulado (una a la vez); el mapa del
-  // sistema ya no es una vista aparte: vive en la mesa, bajo el río (T122)
-  const show = (view: 'desk' | 'more' | 'paper'): void => {
-    if (view !== 'more' && mb.getAttribute('aria-pressed') === 'true') more.toggle(false)
-    if (view !== 'paper' && pb.getAttribute('aria-pressed') === 'true') paper.toggle(false)
+  const mb = $<HTMLButtonElement>('more-btn')
+  // Única vista de pantalla completa: Más análisis. El mapa del sistema (T122) y el bróker
+  // simulado viven en la mesa, uno debajo del otro.
+  const show = (view: 'desk' | 'more'): void => {
     mb.setAttribute('aria-pressed', String(view === 'more'))
-    pb.setAttribute('aria-pressed', String(view === 'paper'))
     mb.textContent = view === 'more' ? 'Volver a la mesa' : 'Más análisis'
-    pb.textContent = view === 'paper' ? 'Volver a la mesa' : 'Bróker simulado'
-    modeEl.textContent = `Modo: ${MODE_LABEL[view === 'paper' ? 'SIMULADO' : mode]}`
-    if (view === 'more') more.toggle(true)
-    if (view === 'paper') paper.toggle(true, symbol)
-    if (view === 'desk') document.getElementById('app')!.dataset.view = 'desk'
+    more.toggle(view === 'more')
   }
   mb.onclick = () => show(mb.getAttribute('aria-pressed') === 'true' ? 'desk' : 'more')
-  pb.onclick = () => show(pb.getAttribute('aria-pressed') === 'true' ? 'desk' : 'paper')
-  // T76: «Abrir en la mesa en ese instante» desde una traza → deslizador de reproducción (T15)
-  window.addEventListener('eim:replay', (e) => {
-    const d = (e as CustomEvent<{ symbol: string; timeframe: string; ts: number }>).detail
-    if (SYMBOLS.includes(d.symbol as never)) { symbol = d.symbol; if (sel) sel.value = symbol }
-    if ((TIMEFRAMES as readonly string[]).includes(d.timeframe)) tf = d.timeframe
-    mark(); show('desk')
-    document.querySelector('.chart-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    void load().then(async () => {
-      asofs = await fetchAsofs(symbol, tf)
-      const i = asofs.reduce((k, t, j) => (t <= d.ts ? j : k), -1)
-      if (i < 0) { $('banner').hidden = false; $('banner').textContent = 'Esa vela es anterior a los reportes guardados: no hay reproducción para ese instante.'; return }
-      $<HTMLInputElement>('replay-range').value = String(i)
-      await showReplay(i)
-    })
+  // «Ver la validación en Bróker simulado» (operaciones sugeridas): baja hasta el bróker
+  window.addEventListener('eim:open-paper', () => {
+    show('desk')
+    $('paper').scrollIntoView({ behavior: 'smooth', block: 'start' })
   })
 }
 
 build()
 obs.mount()
+paper.toggle(true, symbol)
 void load()
 void arb.reload()
-;(window as unknown as { __eim: unknown }).__eim = { chart, layers: chart.layers, scen: chart.scen }

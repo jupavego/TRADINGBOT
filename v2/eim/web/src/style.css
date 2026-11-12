@@ -378,3 +378,10 @@ td[data-sign="-1"] { color: var(--down); }
 /* Pestaña Inversionistas: documento autocontenido (public/inversionistas.html) a todo el ancho */
 .tabbody.inv { padding: 0; }
 .tabbody.inv iframe { display: block; width: 100%; height: 100%; min-height: 78vh; border: 0; background: #040a13; }
+
+/* Mesa sin gráfico de velas ni simulador: solo queda el panel de pestañas inferior.
+   El aviso de conexión deja de flotar sobre el gráfico y va como franja bajo la barra superior. */
+.desk { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "bottom"; }
+@media (max-width: 900px) { .desk { grid-template-rows: auto; } }
+#banner { position: static; transform: none; margin: 12px 20px 0; max-width: none; }
+#banner[hidden] { display: none; }
