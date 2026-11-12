@@ -19,7 +19,6 @@ import { renderLog } from './trades_ui'
 import { RiskPanel } from './risk_ui'
 import { OperationPanel } from './operation_ui'
 import { SetupsHistory } from './setups_history'
-import { SetupsPanel } from './setups_ui'
 import { ArbPanel } from './arb_ui'
 import { LeadersPanel } from './leaders_ui'
 import { PaperView } from './paper_view'
@@ -57,7 +56,6 @@ const calibration = new CalibrationPanel($('t-cal'), () => ({ symbol, tf }))
 const risk = new RiskPanel($('t-plan'), () => ({ symbol, tf }))
 const operation = new OperationPanel($('t-op'))
 const library = new LibraryPanel($('t-lib'), () => $('mode').textContent ?? '')
-const setups = new SetupsPanel($('setups'))
 const setupsHistory = new SetupsHistory($('t-hist')) // T51; pestaña inferior tras Bitácora (T122)
 // independiente del par/marco (T39); cada escaneo también repinta el satélite del río
 const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('river'), p))
@@ -143,7 +141,6 @@ function onMsg(m: StreamMsg): void {
     scenarios.refresh()
     void loadTrades()
     void risk.reload()
-    setups.soon()
     setupsHistory.soon()
   } else if (m.type === 'tick') {
     if (m.symbol !== symbol || m.timeframe !== tf) return
@@ -164,7 +161,6 @@ async function load(): Promise<void> {
   $('price').textContent = '—'; delete $('price').dataset.dir
   paintLive()
   more.setContext(symbol, tf)
-  setups.setSymbol(symbol)
   setupsHistory.setSymbol(symbol)
   void loadAgents(loadAbort.signal)
   void loadTrades(loadAbort.signal)

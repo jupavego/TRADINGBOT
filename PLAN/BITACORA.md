@@ -1387,3 +1387,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** `tsc --noEmit` limpio. Sin cambios de Python. Pendiente: `npm run build` y ver la mesa con screenshot en el equipo.
 - **Abierto:** nada. **En curso:** nada.
 - **Siguiente paso:** recompilar la web (`cd v2/eim/web && npm run build`) en el equipo que sirve la interfaz.
+
+## 2026-11-11 · UI: fuera de la mesa principal «Operaciones sugeridas intradía»
+- **Hecho:** a pedido del usuario se quitó de la interfaz principal el panel **«Operaciones sugeridas intradía»** (`#setups`, `SetupsPanel`). La API `GET /v2/setups`, el ranking y la pestaña inferior **«Historial»** de sugerencias (T51) siguen igual.
+- **Archivos:** `v2/eim/web/index.html`, `v2/eim/web/src/main.ts`. `setups_ui.ts` queda sin importar (no se borró, por si se quiere volver); `setups.css` se conserva porque lo usa el historial.
+- **Pruebas:** `tsc --noEmit` sin errores en `main.ts` (sin dependencias instaladas en la sesión remota). Sin cambios de Python.
+- **Abierto:** nada. **En curso:** nada.
+- **Siguiente paso:** recompilar la web (`cd v2/eim/web && npm run build`) en el equipo que sirve la interfaz.
