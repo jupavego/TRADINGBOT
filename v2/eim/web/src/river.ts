@@ -5,7 +5,7 @@ import type { ArbPayload } from './arb_types'
 import { agentName, esc } from './panels'
 import { core, hexPath, holoDefs } from './river_holo'
 import { ARB_ID, arbSatellite, arbTip, SAT_R, setArbData } from './river_arb'
-import { animateOrbit, holdOrbit, ORY, orbitPos, orbitTransform } from './river_orbit'
+import { animateOrbit, holdOrbit, ORBIT_EXTENT, orbitPaths, orbitPos, orbitTransform } from './river_orbit'
 import { animateSphere } from './river_sphere'
 import { agentTip, CORE_ID, coreTip, sg, THRESH, tint, votesLine } from './river_tips'
 import { PCT_NOTE, upDown } from './synth'
@@ -25,9 +25,11 @@ let sat = { x: 0, y: 0 } // posición del satélite de arbitraje en el último r
 type Row = { id: string; bias: number; conf: number; live: boolean; votes: boolean; why: string; deg: string }
 
 /**
- * Río de decisión holográfico. Los agentes son satélites que orbitan despacio la esfera central
- * (`river_orbit`), ordenados por sesgo alrededor de la órbita; no se conectan con ella (sin
- * haces) y su color es su sesgo. Fuera del agente solo queda su icono: nombre, sesgo, confianza
+ * Río de decisión holográfico, como un sistema solar: los agentes son planetas que orbitan despacio
+ * la esfera central (`river_orbit`) en órbitas a distinta distancia, inclinación y tamaño; los de
+ * opinión más decidida (|sesgo| × confianza) van en las órbitas cercanas y los sin datos en las
+ * lejanas. Pasan por delante de la esfera en la mitad delantera (SVG `rfront` sobre el canvas) y
+ * por detrás en la trasera. No se conectan con ella (sin haces) y su color es su sesgo. Fuera del agente solo queda su icono: nombre, sesgo, confianza
  * y el resto viven dentro, en el detalle que se abre al tocarlo (con el puntero encima la órbita
  * se detiene para que sea fácil acertar). Sin plataforma bajo la esfera.
  */
@@ -72,9 +74,9 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
   const showSat = filter === 'todos' || filter === 'carril'
 
   const live = rows.filter((r) => r.live)
-  // Órbita: detrás pasa por encima de los % de subida/bajada; delante, por encima del veredicto.
-  const cy = ORY + 46
-  let H = cy + ORY + NR + 84
+  // Sistema solar: deja sitio a los % de subida/bajada sobre la esfera y al veredicto debajo.
+  const cy = Math.max(ORBIT_EXTENT + 52, 1.42 * R + 80)
+  let H = cy + ORBIT_EXTENT + 1.4 * NR + 84
   // Satélite de arbitraje: fijo abajo a la izquierda, fuera de la órbita (carril propio).
   sat = { x: 96, y: H - 62 }
   if (showSat) H = Math.max(H, sat.y + SAT_R + 30)
@@ -92,21 +94,28 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     ? `color-mix(in srgb, var(--${split.up > split.down ? 'up' : 'down'}) ${Math.round(25 + 75 * fill)}%, var(--holo))`
     : 'var(--holo)'
 
-  const node = (r: Row, k: number): string => {
+  // Planetas en dos capas: los de la mitad trasera bajo la esfera, los de la delantera sobre ella.
+  const back: { d: number; svg: string }[] = [], front: typeof back = []
+  const node = (r: Row, k: number): void => {
     const p = orbitPos(k, n, CX, cy)
     const col = r.live ? tint(r.bias) : 'var(--muted)'
     if (r.id === selected) {
       const pos = `left:${Math.min(80, Math.max(20, (p.x / W) * 100)).toFixed(1)}%;` +
-        (p.y < H / 2 ? `top:${(((p.y + NR + 10) / H) * 100).toFixed(1)}%` : `bottom:${(((H - p.y + NR + 10) / H) * 100).toFixed(1)}%`)
+        (p.y < H / 2 ? `top:${(((p.y + NR * p.s + 10) / H) * 100).toFixed(1)}%` : `bottom:${(((H - p.y + NR * p.s + 10) / H) * 100).toFixed(1)}%`)
       tip = `<div class="tip" style="${pos}" role="dialog">${agentTip(byId.get(r.id), r.id, synthesis, infos)}</div>`
     }
     const state = r.live ? `sesgo ${sg(r.bias)}, confianza ${Math.round(r.conf * 100)}%` : r.why
-    return `<g class="trib${r.id === selected ? ' sel' : ''}" data-id="${esc(r.id)}" data-k="${k}" transform="${orbitTransform(p)}" ` +
+    const svg = `<g class="trib${r.id === selected ? ' sel' : ''}" data-id="${esc(r.id)}" data-k="${k}" transform="${orbitTransform(p)}" ` +
       `style="opacity:${p.o.toFixed(2)}" tabindex="0" role="button" aria-label="${esc(agentName(r.id))} (${esc(state)}): ver detalles">` +
       `<circle r="${NR + 4}" fill="none" stroke="${col}" stroke-width="1" stroke-dasharray="4 5" opacity=".7" class="hspin"/>` +
       orb(r.id, 0, 0, NR, r.live && Math.abs(r.bias) < THRESH ? 'var(--holo)' : col, r.live, k) +
       `<text y="${NR + 18}" text-anchor="middle" class="rname hov">${esc(agentName(r.id))}</text></g>`
+    ;(p.front ? front : back).push({ d: p.depth, svg })
   }
+  // Orden en las órbitas: de dentro hacia fuera, de la opinión más decidida a los sin datos.
+  ;[...rows].sort((a, b) => Number(b.live) - Number(a.live) || Math.abs(b.bias) * b.conf - Math.abs(a.bias) * a.conf)
+    .forEach((r, k) => node(r, k))
+  const layer = (xs: typeof back): string => xs.sort((a, b) => a.d - b.d).map((x) => x.svg).join('')
 
   const ups = rows.filter((r) => r.live && r.bias >= THRESH).length
   const downs = rows.filter((r) => r.live && r.bias <= -THRESH).length
@@ -127,7 +136,7 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     `<div class="rsvg"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(verdict)}: ${ups} agentes en verde, ${downs} en rojo">` +
     `<defs>${holoDefs(rc, split ? split.up : null, CX, R)}</defs>` +
     core(CX, cy, R, cy + 1.6 * R) + deco +
-    rows.map((r, k) => node(r, k)).join('') +
+    orbitPaths(CX, cy) + `<g class="orbit-back">${layer(back)}</g>` +
     (showSat ? arbSatellite(sat.x, sat.y, selected === ARB_ID) : '') +
     `<text x="${CX}" y="${H - 34}" text-anchor="middle" class="rbig" style="fill:${mainCol}">${esc(verdict)}</text>` +
     `<text x="${CX}" y="${H - 12}" text-anchor="middle" class="rv">sesgo ${syn ? sg(b) : '—'} · confianza ${syn ? Math.round(syn.confidence * 100) : 0}% · ` +
@@ -135,7 +144,8 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
     (votesLine(syn, true) ? `${votesLine(syn, true)} · ` : '') +
     (filter === 'carril' ? 'arbitraje: carril propio, no suma a la síntesis'
       : `${live.length} de ${n} agentes con datos${filter === 'todos' ? '' : ' (filtro activo)'}`) + '</text>' +
-    `</svg>${sphere}<div class="rcore${selected === CORE_ID ? ' sel' : ''}" data-id="${CORE_ID}" role="button" tabindex="0" ` +
+    `</svg>${sphere}<svg class="rfront" viewBox="0 0 ${W} ${H}"><g class="orbit-front">${layer(front)}</g></svg>` +
+    `<div class="rcore${selected === CORE_ID ? ' sel' : ''}" data-id="${CORE_ID}" role="button" tabindex="0" ` +
     `aria-label="Síntesis: ver detalles" style="left:${pct(CX, W)};top:${pct(cy - 1.42 * R - 6, H)}" title="${esc(PCT_NOTE)}">` +
     (split
       ? `<b class="pu${split.up > split.down ? ' lead' : ''}" style="color:${tint(1)}">▲ ${split.up}%<i>subida</i></b>` +
