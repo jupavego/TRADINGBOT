@@ -29,24 +29,29 @@ const ring = (at: (a: number, b: number) => [number, number], a: number, b: numb
   return `<polygon points="${pts(p)}" ${attrs}/>`
 }
 const ringBR = (r: Room, u: number, z: number, rad: number, attrs: string): string => ring((a, b) => onBR(r, a, b), u, z, rad, attrs)
-const windowsBR = (r: Room, u0: number, u1: number): string => {
+const windowsBR = (r: Room, u0: number, u1: number, z0 = 0.42, z1 = 1.16): string => {
   const n = Math.max(2, Math.round((u1 - u0) / 0.7)), w = (u1 - u0) / n
-  return Array.from({ length: n }, (_, i) => onBackRight(r, u0 + i * w + 0.04, u0 + (i + 1) * w - 0.04, 0.5, 1.15, 'fill="#bfe6ff" opacity=".55"')).join('')
+  return Array.from({ length: n }, (_, i) => onBackRight(r, u0 + i * w + 0.03, u0 + (i + 1) * w - 0.03, z0, z1, 'fill="#9fd6ee" stroke="#ffffff" stroke-width="2.5"')).join('')
 }
 const windowsBL = (r: Room, v0: number, v1: number): string => {
   const n = Math.max(2, Math.round((v1 - v0) / 0.7)), w = (v1 - v0) / n
-  return Array.from({ length: n }, (_, i) => onBackLeft(r, v0 + i * w + 0.04, v0 + (i + 1) * w - 0.04, 0.5, 1.15, 'fill="#bfe6ff" opacity=".45"')).join('')
+  return Array.from({ length: n }, (_, i) => onBackLeft(r, v0 + i * w + 0.03, v0 + (i + 1) * w - 0.03, 0.42, 1.16, 'fill="#8fcbe6" stroke="#ffffff" stroke-width="2.5"')).join('')
 }
 const backV = (r: Room): number => -r.hv + 0.42
 
-/** Paredes claras de oficina (como en las ilustraciones); cada sala conserva su color de acento. */
+/** Criterio de cada sala (pared pintada, ventanas, mobiliario):
+ * 1 Datos: técnico, pared de pantallas azul petróleo y ventanal · 2 Análisis: luminosa, ventanal y tablero de velas
+ * 3 Proyección: inmersiva, paredes moradas oscuras tipo sala de cine · 4 Plan: cálida, pared ocre con corcho
+ * 5 Riesgo: sobria y segura, pared grafito con bóveda · 6 Ejecución: mesa de operaciones, pared verde noche con
+ * pantallas y ventanas · 7 Validación: biblioteca-laboratorio, pared amarilla suave con tableros.
+ * El resto de paredes son claras, como en las ilustraciones; cada sala conserva su color de acento. */
 const WL = '#eef0f4', WR = '#dde1e8'
 const fl = onFloor
 
 /** Siete salas: el orden sigue `graph.stages`; si llega una etapa desconocida usa la neutra. */
 export const THEMES: Record<string, Theme> = {
   datos: {
-    room: 'Centro de recolección', floor: '#1f5f7a', grid: '#7fd3ff', wallL: WL, wallR: WR, accent: '#12a9d6', shirt: '#2a7fb8',
+    room: 'Centro de recolección', floor: '#1f5f7a', grid: '#7fd3ff', wallL: '#24566b', wallR: WR, accent: '#12a9d6', shirt: '#2a7fb8',
     walls: (r) => windowsBR(r, -r.hu + 0.3, r.hu - 0.3) + onBackLeft(r, -r.hv + 0.3, r.hv - 0.4, 0.42, 1.12, 'fill="#061a2c" stroke="#12a9d6" stroke-width=".8"')
       + Array.from({ length: 9 }, (_, i) => { const v = -r.hv + 0.45 + i * ((2 * r.hv - 1) / 9); const h = 0.55 + ((i * 37) % 5) * 0.1
         return lineBL(r, [[v, 0.5], [v, Math.min(1.05, h)]], 'stroke="#2ee6ff" stroke-width="3" opacity=".75"') }).join(''),
@@ -57,7 +62,7 @@ export const THEMES: Record<string, Theme> = {
       + art('dispensador', fl(r, -r.hu + 1.15, backV(r)), 32) + art('planta_alta', fl(r, r.hu - 1.45, backV(r) - 0.05), 40),
   },
   analisis: {
-    room: 'Sala de analistas', floor: '#24478f', grid: '#9ec0ff', wallL: WL, wallR: WR, accent: '#4f7fe8', shirt: '#3c5fb0',
+    room: 'Sala de analistas', floor: '#24478f', grid: '#9ec0ff', wallL: WL, wallR: '#dbe6f7', accent: '#4f7fe8', shirt: '#3c5fb0',
     walls: (r) => onBackRight(r, -r.hu + 0.4, r.hu - 0.7, 0.42, 1.12, 'fill="#ffffff" stroke="#9fb1d6" stroke-width="1"')
       + Array.from({ length: 10 }, (_, i) => { const u = -r.hu + 0.65 + i * ((2 * r.hu - 1.5) / 10), up = (i * 7) % 3 !== 0, y0 = 0.6 + ((i * 13) % 4) * 0.07
         return lineBR(r, [[u, y0 - 0.06], [u, y0 + 0.24]], 'stroke="#667" stroke-width="1"') + lineBR(r, [[u, y0], [u, y0 + 0.16]], `stroke="${up ? '#12b673' : '#e0405a'}" stroke-width="4"`) }).join('')
@@ -66,7 +71,7 @@ export const THEMES: Record<string, Theme> = {
       + art('cajonera', fl(r, -r.hu + 0.85, backV(r) - 0.05), 18),
   },
   proyeccion: {
-    room: 'Sala de escenarios', floor: '#4a2f8f', grid: '#c7a8ff', wallL: WL, wallR: WR, accent: '#9a6cf0', shirt: '#6a45b8',
+    room: 'Sala de escenarios', floor: '#4a2f8f', grid: '#c7a8ff', wallL: '#4a3a7a', wallR: '#3d2f68', accent: '#9a6cf0', shirt: '#6a45b8',
     walls: (r) => onBackRight(r, -r.hu + 0.3, r.hu - 0.3, 0.38, 1.18, 'fill="#0d0a24" stroke="#b98cff" stroke-width="1"')
       + (() => { const u0 = -r.hu + 0.5, u1 = r.hu - 0.5, m = (u0 + u1) / 2
         return lineBR(r, [[u0, 0.62], [m, 0.72], [u1, 1.05]], 'stroke="#12e58f" stroke-width="2.4"') + lineBR(r, [[u0, 0.62], [m, 0.66], [u1, 0.7]], 'stroke="#9aa6c8" stroke-width="2.4"')
@@ -77,7 +82,7 @@ export const THEMES: Record<string, Theme> = {
       + art('planta', fl(r, -r.hu + 0.35, backV(r)), 22) + art('planta', fl(r, r.hu - 0.35, backV(r)), 22),
   },
   plan: {
-    room: 'Sala de estrategia', floor: '#7a5420', grid: '#ffd08a', wallL: WL, wallR: WR, accent: '#f0a020', shirt: '#b8741e',
+    room: 'Sala de estrategia', floor: '#7a5420', grid: '#ffd08a', wallL: '#e8c37a', wallR: WR, accent: '#f0a020', shirt: '#b8741e',
     walls: (r) => onBackRight(r, -r.hu + 0.35, r.hu - 0.35, 0.42, 1.12, 'fill="#fffdf7" stroke="#c9a76b" stroke-width="1"')
       + ([[0.95, '#12b673'], [0.75, '#22a7e1'], [0.55, '#e0405a']] as [number, string][]).map(([z, c]) => lineBR(r, [[-r.hu + 0.45, z], [r.hu - 0.45, z]], `stroke="${c}" stroke-width="2" stroke-dasharray="${c === '#22a7e1' ? '0' : '5 3'}"`)).join('')
       + art('corcho', onBL(r, -r.hv + 0.75, 0.8), 30, 'pared', true) + art('reloj', onBL(r, r.hv - 0.4, 0.98), 14, 'pared', true),
@@ -86,30 +91,31 @@ export const THEMES: Record<string, Theme> = {
       + art('arbol', fl(r, r.hu - 0.3, backV(r) - 0.05), 40),
   },
   riesgo: {
-    room: 'Control de riesgo', floor: '#5a2333', grid: '#ff9fb1', wallL: WL, wallR: WR, accent: '#e8405f', shirt: '#8a2f45',
+    room: 'Control de riesgo', floor: '#5a2333', grid: '#ff9fb1', wallL: '#3e4350', wallR: WR, accent: '#e8405f', shirt: '#8a2f45',
     walls: (r) => ringBR(r, r.hu - 0.75, 0.78, 0.36, 'fill="#8f99ab" stroke="#4b5568" stroke-width="2"') + ringBR(r, r.hu - 0.75, 0.78, 0.22, 'fill="#6f7a8e" stroke="#c9d2e0" stroke-width="1.5"')
       + (() => { const a = onBR(r, -r.hu + 0.6, 1.1), b = onBR(r, -r.hu + 1.1, 1.1), c = onBR(r, -r.hu + 1.1, 0.75), d = onBR(r, -r.hu + 0.85, 0.5), e = onBR(r, -r.hu + 0.6, 0.75)
         return `<polygon points="${pts([a, b, c, d, e])}" fill="#e8405f" opacity=".85"/>` })()
-      + art('pizarra_negra', onBL(r, -0.2, 0.8), 30, 'pared', true),
+      + art('pizarra_negra', onBL(r, -0.2, 0.8), 30, 'pared', true) + art('repisa_reloj', onBR(r, 0.15, 0.8), 30, 'pared'),
     props: (r) => box(r, -r.hu + 0.55, backV(r) + 0.05, 0.3, 0.3, 0.5, 0, '#444b5c', '#262b36', '#333948')
       + (() => { const c = P(r.cx, r.cy, -r.hu + 0.55, backV(r) + 0.05, 0.56); return `<ellipse cx="${c[0]}" cy="${c[1]}" rx="9" ry="5" fill="#ff2d4d" class="iso-blink"/>` })()
       + art('archivador', fl(r, r.hu - 0.45, backV(r)), 36) + art('cactus', fl(r, r.hu - 0.95, backV(r) - 0.05), 16),
   },
   ejecucion: {
-    room: 'Mesa de operaciones', floor: '#1d5e48', grid: '#8ff0c4', wallL: WL, wallR: WR, accent: '#0fbf7a', shirt: '#1f8a62',
+    room: 'Mesa de operaciones', floor: '#1d5e48', grid: '#8ff0c4', wallL: '#1f3b34', wallR: WR, accent: '#0fbf7a', shirt: '#1f8a62',
     walls: (r) => onBackRight(r, -r.hu + 0.3, r.hu - 0.3, 0.82, 1.15, 'fill="#04140e" stroke="#12e58f" stroke-width=".8"')
       + Array.from({ length: 12 }, (_, i) => { const u = -r.hu + 0.45 + i * ((2 * r.hu - 0.9) / 12); return lineBR(r, [[u, 0.92], [u + 0.12, 0.92]], `stroke="${i % 3 ? '#12e58f' : '#ff3d5f'}" stroke-width="3"`) }).join('')
       + Array.from({ length: 6 }, (_, i) => onBackLeft(r, -r.hv + 0.35 + (i % 3) * 0.55, -r.hv + 0.82 + (i % 3) * 0.55, 0.45 + Math.floor(i / 3) * 0.34, 0.74 + Math.floor(i / 3) * 0.34,
         'fill="#071c2c" stroke="#12e58f" stroke-width=".6"')).join('')
-      + art('aire', onBR(r, 0, 0.6), 16, 'pared'),
+      + windowsBR(r, -r.hu + 0.3, r.hu - 0.3, 0.3, 0.72),
     props: (r) => art('mueble', fl(r, r.hu - 0.45, backV(r)), 22) + art('libros', fl(r, r.hu - 0.45, backV(r)), 8, 'piso', false, ' transform="translate(0,-21)"')
       + art('planta_alta', fl(r, -r.hu + 0.35, backV(r)), 40) + art('dispensador', fl(r, r.hu - 1.0, backV(r) - 0.05), 30),
   },
   validacion: {
-    room: 'Laboratorio de aprendizaje', floor: '#6b5a22', grid: '#ffe58a', wallL: WL, wallR: WR, accent: '#e0b400', shirt: '#9c7d1c',
+    room: 'Laboratorio de aprendizaje', floor: '#6b5a22', grid: '#ffe58a', wallL: WL, wallR: '#f6e7a8', accent: '#e0b400', shirt: '#9c7d1c',
     walls: (r) => onBackLeft(r, -r.hv + 0.35, r.hv - 0.5, 0.45, 1.12, 'fill="#ffffff" stroke="#c9b56b" stroke-width="1"')
       + Array.from({ length: 6 }, (_, i) => { const v = -r.hv + 0.6 + i * ((2 * r.hv - 1.3) / 6); return lineBL(r, [[v, 0.52], [v, 0.6 + ((i * 11) % 5) * 0.09]], `stroke="${i % 2 ? '#22a7e1' : '#ffb547'}" stroke-width="6"`) }).join('')
-      + art('tablero_graf', onBR(r, -r.hu + 0.9, 0.78), 36, 'pared') + art('corcho_reloj', onBR(r, 0.2, 0.82), 36, 'pared'),
+      + art('tablero_graf', onBR(r, -r.hu + 0.9, 0.78), 36, 'pared') + art('corcho_reloj', onBR(r, 0.2, 0.82), 36, 'pared')
+      + art('barras', onBR(r, r.hu - 0.8, 0.8), 26, 'pared') + art('dona', onBR(r, r.hu - 0.35, 0.8), 20, 'pared'),
     props: (r) => [r.hu - 0.45, r.hu - 1.05].map((u) => art('estante', fl(r, u, backV(r) - 0.05), 30)).join('')
       + art('mesa', fl(r, -r.hu + 0.6, backV(r)), 22) + art('planta', fl(r, -r.hu + 0.6, backV(r)), 10, 'piso', false, ' transform="translate(0,-15)"')
       + art('arbol', fl(r, -r.hu + 1.3, backV(r) - 0.05), 38),

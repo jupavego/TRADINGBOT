@@ -2,11 +2,13 @@
  * propia y cada pieza del catálogo es un puesto. Los estados son los del mapa (`stateOf`), dichos en
  * tres colores: verde = funciona, rojo = falla, gris = sin información. Las líneas salen de las
  * conexiones declaradas entre etapas y cierran el ciclo de Validación a Datos. Todas las salas se apoyan
- * sobre un mismo piso blanco de oficina; el nombre de cada área va pintado en su franja del frente. */
+ * sobre un mismo piso gris claro de oficina; el nombre de cada área va pintado en su franja del frente y el
+ * centro es un área común con salitas (obs_iso_lounge) que no pisa las pistas. */
 import './obs_iso.css'
 import { compState } from './obs_graph'
 import { P, pts, S, type Room } from './obs_iso_geo'
 import { ART_DEFS } from './obs_iso_art'
+import { lounges, type UVRect } from './obs_iso_lounge'
 import { NAME_STRIP, station, STRIP, themeOf, WALL_H } from './obs_iso_props'
 import { esc, STATE_ICON, STATE_LABEL, type ObsComp, type ObsData, type ObsState } from './obs_types'
 
@@ -28,7 +30,7 @@ export function toneOf(st: ObsState, incFail: boolean): Tone {
 const worstTone = (ts: Tone[]): Tone => { const t = ts.filter((x) => x !== 'plan'); return t.includes('bad') ? 'bad' : t.includes('ok') ? 'ok' : 'none' }
 
 /** Posición (en unidades) de las siete salas, en el orden de la ruta, formando un anillo. */
-const RING: [number, number][] = [[-9.4, 0.9], [-7.4, -5.6], [0.6, -6.9], [5.6, -5.0], [9.6, 0.6], [5.6, 5.8], [-3.9, 6.0]]
+const RING: [number, number][] = [[-9.4, 0.9], [-7.4, -5.6], [0.6, -6.9], [6.3, -4.7], [9.6, 0.9], [5.6, 5.8], [-3.9, 6.0]]
 const posOf = (i: number, n: number): [number, number] => (n === RING.length ? RING[i]
   : [Math.cos(Math.PI + (i / n) * Math.PI * 2) * 9.4, Math.sin(Math.PI + (i / n) * Math.PI * 2) * 6.2])
 
@@ -92,7 +94,7 @@ const sgn = (x: number): number => (x >= 0 ? 1 : -1)
 
 /** Pista sobre el piso entre dos salas: sale por el borde de la de origen, gira en ángulo recto
  * siguiendo los ejes del piso y entra por el borde de la de destino, con flechas de sentido. */
-function drawLink(l: Link, A: Area[], i: number, focus: string | null, motion: boolean, mid: [number, number], taken: number[][]): [string, string] {
+function drawLink(l: Link, A: Area[], i: number, focus: string | null, motion: boolean, mid: [number, number], taken: number[][], tracks: UVRect[]): [string, string] {
   const a = A.find((x) => x.stage === l.a)!, b = A.find((x) => x.stage === l.b)!
   const [ua, va] = toUV(a.cx, a.cy), [ub, vb] = toUV(b.cx, b.cy)
   const o = l.main || l.fb ? 0 : ((i % 3) - 1) * 0.32                       // carriles para no pisarse
@@ -102,6 +104,10 @@ function drawLink(l: Link, A: Area[], i: number, focus: string | null, motion: b
   const way: [number, number][] = uFirst
     ? [[ua + su * (a.hu + 0.15), va + o], [ub + o, va + o], [ub + o, vb - sv * (b.hv + 0.3)]]
     : [[ua + o, va + sv * (a.hv + 0.15)], [ua + o, vb + o], [ub - su * (b.hu + 0.3), vb + o]]
+  for (let q = 0; q + 1 < way.length; q++) {               // tramos ocupados: el área común no los pisa
+    const [p1, p2] = [way[q], way[q + 1]], m = 0.42
+    tracks.push([Math.min(p1[0], p2[0]) - m, Math.min(p1[1], p2[1]) - m, Math.max(p1[0], p2[0]) + m, Math.max(p1[1], p2[1]) + m])
+  }
   const sp = way.map(([u, v]) => G(u, v))
   const dPath = `M${sp.map((q) => `${q[0].toFixed(1)},${q[1].toFixed(1)}`).join(' L')}`, id = `iso-l${i}`, c = COLOR[l.tone]
   const on = !focus || l.a === focus || l.b === focus, w = l.fb ? 6 : l.main ? 5 : 2.6
@@ -139,15 +145,17 @@ function tiles(u0: number, v0: number, u1: number, v1: number): string {
   return s
 }
 
-/** Piso común bajo todas las salas: una sola losa blanca de oficina, en vez de islas separadas. */
+const FLOOR = '#e7eaef'           // gris claro: el mismo en todo el piso, dentro y fuera de las salas
+
+/** Piso común bajo todas las salas: una sola losa gris clara de oficina, en vez de islas separadas. */
 function floorSlab(A: Area[]): [string, number[]] {
   const uv = A.flatMap((a) => { const [u, v] = toUV(a.cx, a.cy); return [[u - a.hu, v - a.hv], [u + a.hu, v + a.hv]] })
   const m = 1.4, u0 = Math.floor(Math.min(...uv.map((q) => q[0])) - m), u1 = Math.ceil(Math.max(...uv.map((q) => q[0])) + m)
   const v0 = Math.floor(Math.min(...uv.map((q) => q[1])) - m), v1 = Math.ceil(Math.max(...uv.map((q) => q[1])) + m), t = 0.45
   const [a0, b, c, d] = [G(u0, v0), G(u1, v0), G(u1, v1), G(u0, v1)], [b0, c0, d0] = [G(u1, v0, -t), G(u1, v1, -t), G(u0, v1, -t)]
   const s = `<polygon points="${pts([d, c, c0, d0])}" fill="#cfd5df"/><polygon points="${pts([c, b, b0, c0])}" fill="#b4bcc9"/>`
-    + `<polygon points="${pts([a0, b, c, d])}" fill="#ffffff" class="iso-ground"/>${tiles(u0, v0, u1, v1)}`
-    + `<polyline points="${pts([d, c, b])}" fill="none" stroke="#e6eaf0" stroke-width="2"/>`
+    + `<polygon points="${pts([a0, b, c, d])}" fill="${FLOOR}" class="iso-ground"/>${tiles(u0, v0, u1, v1)}`
+    + `<polyline points="${pts([d, c, b])}" fill="none" stroke="#f4f6f9" stroke-width="2"/>`
   const xs = [a0, b, c, d, b0, c0, d0].map((q) => q[0]), ys = [a0, b, c, d, b0, c0, d0].map((q) => q[1])
   return [`<g class="iso-tiles">${s}</g>`, [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]]
 }
@@ -167,8 +175,8 @@ function drawArea(d: ObsData, a: Area, inc: boolean, stage: string | null, sel: 
   const p = (u: number, v: number, z = 0): [number, number] => P(cx, cy, u, v, z)
   const A0 = p(-hu, -hv), B = p(hu, -hv), C = p(hu, hv), D = p(-hu, hv)
   const AH = p(-hu, -hv, WALL_H), BH = p(hu, -hv, WALL_H), DH = p(-hu, hv, WALL_H)
-  const [gu, gv] = toUV(cx, cy)        // el mismo piso blanco que el resto: solo tapa las pistas que pasan por debajo
-  let s = `<polygon points="${pts([A0, B, C, D])}" fill="#ffffff" class="iso-floor"/><g class="iso-tiles">${tiles(gu - hu, gv - hv, gu + hu, gv + hv)}</g>`
+  const [gu, gv] = toUV(cx, cy)        // el mismo piso que el resto: solo tapa las pistas que pasan por debajo
+  let s = `<polygon points="${pts([A0, B, C, D])}" fill="${FLOOR}" class="iso-floor"/><g class="iso-tiles">${tiles(gu - hu, gv - hv, gu + hu, gv + hv)}</g>`
     + floorName(a, d.graph.stage_titles_es[a.stage] ?? a.stage, th.accent)
   s += `<polygon points="${pts([A0, D, DH, AH])}" fill="${th.wallL}"/><polygon points="${pts([A0, B, BH, AH])}" fill="${th.wallR}"/>`
     + `<polyline points="${pts([DH, AH, BH])}" fill="none" stroke="${th.accent}" stroke-width="4"/>`
@@ -226,18 +234,22 @@ export function isoKey(d: ObsData, stage: string | null, sel: string | null): st
 export function isoHtml(d: ObsData, stage: string | null, sel: string | null): string {
   const inc = isoIncFail(), A = areas(d, inc), L = links(d, inc, A)
   const motion = !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
-  const lines: string[] = [], labs: string[] = [], taken: number[][] = [], uvs = A.map((a) => toUV(a.cx, a.cy))
+  const lines: string[] = [], labs: string[] = [], taken: number[][] = [], tracks: UVRect[] = [], uvs = A.map((a) => toUV(a.cx, a.cy))
   const mid: [number, number] = [uvs.reduce((t, q) => t + q[0], 0) / uvs.length, uvs.reduce((t, q) => t + q[1], 0) / uvs.length]
   L.map((l, i) => ({ l, i })).sort((x, y) => Number(x.l.main || !!x.l.fb) - Number(y.l.main || !!y.l.fb))
-    .forEach(({ l, i }) => { const [g, lab] = drawLink(l, A, i, stage, motion, mid, taken); lines.push(g); labs.push(lab) })
+    .forEach(({ l, i }) => { const [g, lab] = drawLink(l, A, i, stage, motion, mid, taken, tracks); lines.push(g); labs.push(lab) })
   const [floor] = floorSlab(A)        // el piso sigue más allá del encuadre: se enfoca en las salas
   const marks = (Object.keys(COLOR) as Tone[]).map((t) => `<marker id="iso-ah-${t}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${COLOR[t]}"/></marker>`).join('')
-  const rooms: string[] = [], tags: string[] = [], xs: number[] = [], ys: number[] = []
-  A.slice().sort((x, y) => x.cy - y.cy).forEach((a) => {
-    const [r, t, b] = drawArea(d, a, inc, stage, sel); rooms.push(r); tags.push(t)
+  const items: { svg: string; depth: number }[] = [], tags: string[] = [], boxes: number[][] = [], xs: number[] = [], ys: number[] = []
+  A.forEach((a) => {
+    const [r, t, b] = drawArea(d, a, inc, stage, sel); items.push({ svg: r, depth: a.cy }); tags.push(t); boxes.push(b)
     xs.push(b[0], b[2], a.cx - (a.hu + a.hv) * 0.866 * S, a.cx + (a.hu + a.hv) * 0.866 * S)
     ys.push(b[1], b[3], a.cy - (a.hu + a.hv) * 0.5 * S - WALL_H * S, a.cy + (a.hu + a.hv) * 0.5 * S + 0.4 * S)
   })
+  const roomUV = A.map((a, i): UVRect => [uvs[i][0] - a.hu, uvs[i][1] - a.hv, uvs[i][0] + a.hu, uvs[i][1] + a.hv])
+  const zone: UVRect = [Math.min(...uvs.map((q) => q[0])), Math.min(...uvs.map((q) => q[1])), Math.max(...uvs.map((q) => q[0])), Math.max(...uvs.map((q) => q[1]))]
+  items.push(...lounges(zone, roomUV, tracks, [...boxes, ...taken]))         // área común en los huecos del centro
+  const rooms = items.sort((x, y) => x.depth - y.depth).map((x) => x.svg)
   const pad = 16; xs.push(Math.min(...xs) - pad, Math.max(...xs) + pad); ys.push(Math.min(...ys) - pad, Math.max(...ys) + pad)
   const x0 = Math.min(...xs), y0 = Math.min(...ys), vw = Math.max(...xs) - x0, vh = Math.max(...ys) - y0
   return `<div class="iso-wrap">

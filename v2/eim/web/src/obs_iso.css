@@ -3,7 +3,8 @@
   background: radial-gradient(120% 90% at 45% 45%, #15216a 0%, #0a1240 48%, #040720 100%); }
 .iso-svg { width: 100%; height: auto; display: block; min-height: 420px; max-height: calc(100vh - 110px); margin: 0 auto; }
 .iso-area, .iso-person, .iso-label { cursor: pointer; outline: none; }
-.iso-area:hover .iso-floor { fill: #f1f6ff; }
+.iso-area:hover .iso-floor { fill: #dfe7f3; }
+.iso-lounge { pointer-events: none; }
 .iso-area:focus-visible .iso-floor, .iso-person:focus-visible ellipse { stroke: var(--accent, #22e1ff); stroke-width: 3; }
 .iso-edge { filter: drop-shadow(0 0 5px currentColor); }
 .iso-edge.t-ok { color: #0fbf7a; } .iso-edge.t-bad { color: #f0324f; } .iso-edge.t-none { stroke-dasharray: 6 5; color: transparent; }
@@ -15,7 +16,7 @@
 .iso-link path { stroke-linecap: round; }
 .iso-halo { opacity: .12; filter: blur(3px); }
 .iso-link:not(.main):not(.focus) { opacity: .6; }
-.iso-tiles line { stroke: #dfe4ec; stroke-width: 1; }
+.iso-tiles line { stroke: #d6dbe3; stroke-width: 1; }
 .iso-fname { font-family: "Inter", system-ui, sans-serif; font-weight: 800; letter-spacing: .08em; text-anchor: middle; opacity: .85; pointer-events: none; }
 .iso-link .iso-flow { stroke-linejoin: round; }
 .iso-link.t-ok .iso-flow, .iso-link.t-bad .iso-flow { stroke-dasharray: 14 8; animation: iso-dash .8s linear infinite; }
