@@ -11,24 +11,28 @@ import { queueHtml, queuesSummary } from './obs_queues'
 import { compState, routeHtml, stageSentence, stageSvg } from './obs_graph'
 import { glossarize, legendHtml } from './obs_legend'
 import { pulseNew } from './obs_story'
-import { ago, esc, loadObs, STATE_ICON, STATE_LABEL, type ObsData } from './obs_types'
+import { ago, esc, loadObs, STATE_ICON, STATE_LABEL, type ObsData, type ObsState } from './obs_types'
 
 type MapView = 'route' | 'iso'
 
 const POLL_MS = 5_000          // = cadencia del indexador del observatorio (T73)
 const TICK_MS = 1_000          // la edad del último evento avanza sola entre sondeos
 const STALE_S = 180            // sin eventos en 3 min el encabezado lo dice en rojo
+const FOLD_KEY = 'eim.obs.folded' // plegado/desplegado se recuerda entre visitas
 
 const TEMPLATE = `
 <header class="obs-head">
-  <h3 class="sh">Mapa del sistema</h3>
+  <h3 class="sh"><button class="obs-fold" data-fold aria-expanded="true" aria-controls="obs-fold-body"
+    title="Pulsa para plegar o desplegar el mapa"><span class="obs-chev" aria-hidden="true">▾</span> Mapa del sistema</button></h3>
   <span class="obs-age muted" data-x="age" aria-live="off"></span>
+  <span class="obs-sum" data-x="sum"></span>
   <span class="spacer"></span>
   <span class="obs-panes" role="group" aria-label="Qué ver">
     <button class="btn" aria-pressed="true" title="El flujo de la vela hasta el bróker simulado, en vivo">Mapa</button></span>
   <span class="obs-views" role="group" aria-label="Cómo dibujar el mapa">
     <button class="btn" aria-pressed="true" title="Cada etapa como una sala de trabajo y cada pieza como un puesto">Isométrico</button></span>
 </header>
+<div class="obs-fold-body" id="obs-fold-body">
 <p class="obs-banner" data-x="banner" role="status" hidden></p>
 <div class="obs-body">
   <div class="obs-main">
@@ -40,6 +44,7 @@ const TEMPLATE = `
     <div class="obs-legend-box" data-x="legend"></div>
     <div class="obs-detail" data-x="detail" aria-live="polite"><p class="muted">Pulsa una etapa o una pieza del mapa para ver su detalle.</p></div>
   </aside>
+</div>
 </div>
 `
 
@@ -91,6 +96,9 @@ export class ObsView {
     this.q('legend').innerHTML = legendHtml()
     try { localStorage.removeItem('eim.obs.view') } catch { /* la vista «Tarjetas» se retiró */ }
     this.setView('iso')
+    let folded = false
+    try { folded = localStorage.getItem(FOLD_KEY) === '1' } catch { /* sin almacenamiento: desplegado */ }
+    this.setFolded(folded)
     this.root.addEventListener('click', (e) => this.onClick(e))
     this.root.addEventListener('keydown', (e) => {
       if ((e.key === 'Enter' || e.key === ' ') && (e.target as HTMLElement).closest('.obs-n')) { e.preventDefault(); this.onClick(e) }
@@ -99,6 +107,7 @@ export class ObsView {
 
   private onClick(e: Event): void {
     const t = e.target as HTMLElement
+    if (t.closest('[data-fold]')) { this.setFolded(this.root.dataset.folded !== '1'); return }
     const act = t.closest<HTMLElement>('[data-act]')?.dataset.act
     if (act === 'iso-inc') { setIsoIncFail(!isoIncFail()); this.paintMap(); return }
     if (t.closest('[data-close]')) { this.sel = null; this.paintDetail(); this.paintMap(); return }
@@ -112,6 +121,14 @@ export class ObsView {
     } else if (node?.dataset.stage) {
       this.stage = node.dataset.stage; this.sel = null; this.paint()
     }
+  }
+
+  /** Pliega o despliega el mapa al pulsar su título; plegado queda el encabezado con el resumen. */
+  private setFolded(f: boolean): void {
+    this.root.dataset.folded = f ? '1' : '0'
+    this.root.querySelector('[data-fold]')?.setAttribute('aria-expanded', String(!f))
+    try { localStorage.setItem(FOLD_KEY, f ? '1' : '0') } catch { /* preferencia solo de esta visita */ }
+    if (!f) { this.isoLast = ''; this.paint() }   // al desplegar se redibuja con lo último cargado
   }
 
   /** Fija el dibujo del mapa (hoy solo «Isométrico»; las tarjetas de T75 quedan en el código). */
@@ -155,8 +172,17 @@ export class ObsView {
       banner.textContent = `El observatorio avisa: ${d.health.problems.join(' · ')}`
       banner.dataset.tone = 'warn'
     } else banner.hidden = true
+    this.paintSum(d)
     this.ageBase = g?.last_event_age_s == null ? null : { age: g.last_event_age_s, at: Date.now() }
     this.paintAge()
+  }
+
+  /** Resumen por estado («40 ✓ · 34 sin datos…») para seguir el sistema aun con el mapa plegado. */
+  private paintSum(d: ObsData): void {
+    const n = new Map<ObsState, number>()
+    if (d.graph) d.comps.forEach((c) => { const s = compState(d, c); n.set(s, (n.get(s) ?? 0) + 1) })
+    this.q('sum').innerHTML = [...n].sort((a, b) => b[1] - a[1])
+      .map(([s, k]) => `<span class="obs-sum-i st-${s}" title="${STATE_LABEL[s]}">${STATE_ICON[s]} ${k}</span>`).join('')
   }
 
   /** «Último evento hace N s», avanzando cada segundo; en rojo si el sistema lleva callado. */
@@ -170,6 +196,7 @@ export class ObsView {
   }
 
   private paintMap(): void {
+    if (this.root.dataset.folded === '1') return   // plegado no se dibuja el diagrama
     const d = this.data
     if (!d?.graph) { this.q('map').innerHTML = '<p class="muted">Sin conexión con el observatorio.</p>'; this.q('crumb').innerHTML = ''; return }
     const crumb = this.q('crumb'), map = this.q('map'), iso = this.view === 'iso'

@@ -1429,3 +1429,9 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** `tsc --noEmit` sin errores nuevos (sin dependencias instaladas en la sesión remota). Sin cambios de Python.
 - **Abierto:** nada. **En curso:** nada.
 - **Siguiente paso:** recompilar la web (`cd v2/eim/web && npm run build`) en el equipo que sirve la interfaz.
+## 2026-11-11 · UI: el Mapa del sistema se pliega y despliega
+- **Hecho:** a pedido del usuario, el título «▾ Mapa del sistema» es un botón: al pulsarlo el mapa se pliega (queda solo el encabezado con «Último evento hace N s» y un resumen por estado en pastillas, p. ej. «✓ 40 · … 34») y al pulsarlo otra vez se despliega. La elección se recuerda entre visitas (`localStorage` `eim.obs.folded`). Plegado no se dibuja el diagrama isométrico; el sondeo sigue para que el resumen esté en vivo. Accesible con teclado (`aria-expanded`).
+- **Archivos:** `v2/eim/web/src/obs_view.ts`, `v2/eim/web/src/obs.css`.
+- **Pruebas:** `tsc --noEmit` sin errores en los archivos tocados (sin dependencias instaladas en la sesión remota). Sin cambios de Python.
+- **Abierto:** nada. **En curso:** nada.
+- **Siguiente paso:** recompilar la web (`cd v2/eim/web && npm run build`) en el equipo que sirve la interfaz.
