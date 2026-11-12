@@ -7,5 +7,5 @@
 
 1. `python3 sheet.py <svg> hoja.html` → hoja de contacto con los objetos numerados (abrir en Chrome).
 2. `python3 extract.py <svg> "39,117,..." 0.22 > x_parts.json` → extrae esos objetos (requiere `google-chrome`).
-3. `python3 build_assets.py ../../v2/eim/web/src/obs_iso_art.ts` → simplifica (redondeo, sin grupos vacíos,
+3. `python3 build_assets.py ../../eim/web/src/obs_iso_art.ts` → simplifica (redondeo, sin grupos vacíos,
    sin piezas diminutas) y escribe los `<symbol>`; la lista `PICK` dice qué objeto es cada nombre.

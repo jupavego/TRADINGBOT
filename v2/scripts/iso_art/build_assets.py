@@ -23,7 +23,7 @@ for i, (name, (f, k)) in enumerate(PICK.items()):
     meta[name] = [w, h]; total += len(body)
 ts = '''/** Objetos vectoriales (personas, monitores, plantas, muebles, tableros) tomados de las ilustraciones
  * isométricas que aportó el usuario (archivos de Illustrator), simplificados para el mapa: se definen una
- * vez como <symbol> y se colocan con <use>. Archivo generado; para regenerarlo ver `scripts/iso_art/`. */
+ * vez como <symbol> y se colocan con <use>. Archivo generado; para regenerarlo ver `v2/scripts/iso_art/`. */
 
 /** Ancho y alto de cada objeto en sus unidades originales. */
 export const ART: Record<string, [number, number]> = ''' + json.dumps(meta, ensure_ascii=False) + '''

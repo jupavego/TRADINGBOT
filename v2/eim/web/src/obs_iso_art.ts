@@ -1,6 +1,6 @@
 /** Objetos vectoriales (personas, monitores, plantas, muebles, tableros) tomados de las ilustraciones
  * isométricas que aportó el usuario (archivos de Illustrator), simplificados para el mapa: se definen una
- * vez como <symbol> y se colocan con <use>. Archivo generado; para regenerarlo ver `scripts/iso_art/`. */
+ * vez como <symbol> y se colocan con <use>. Archivo generado; para regenerarlo ver `v2/scripts/iso_art/`. */
 
 /** Ancho y alto de cada objeto en sus unidades originales. */
 export const ART: Record<string, [number, number]> = {"mujer": [37.5, 69.8], "hombre": [47.2, 74.1], "monitor": [23.9, 29.5], "planta": [15.0, 25.8], "arbol": [25.1, 32.5], "cactus": [5.1, 12.3], "planta_alta": [49.4, 104.8], "base_planta": [42.4, 59.0], "mueble": [14.6, 21.2], "cajonera": [14.6, 20.3], "archivador": [46.0, 85.8], "estante": [28.8, 27.3], "repisa": [40.9, 38.8], "dispensador": [23.0, 59.1], "sofa": [39.7, 37.7], "libros": [12.9, 11.6], "mesa": [29.9, 29.7], "corcho": [24.6, 32.3], "pizarra": [23.8, 31.2], "tablero_graf": [35.0, 46.0], "aire": [19.9, 17.6], "reloj": [38.6, 48.0], "pizarra_negra": [32.6, 42.8], "corcho_reloj": [33.7, 55.4], "grafico": [84.3, 94.6], "sofa_morado": [119.4, 113.4], "planta_mueble": [46.9, 84.7], "repisa_reloj": [61.9, 59.3], "dona": [28.5, 40.1], "barras": [32.7, 54.1], "sofa_blanco": [122.5, 116.4], "arbol_grande": [59.2, 76.8], "planta_maceta": [22.9, 39.4], "sillon": [53.0, 57.3], "cafe": [7.2, 11.8], "pizza": [44.9, 29.1], "cocineta": [96.7, 97.3], "sofa_corto": [34.8, 33.1]}
