@@ -1,7 +1,9 @@
 ﻿<#
 .SYNOPSIS
   Abre la interfaz del EIM con un doble clic (lo usa el acceso directo del escritorio que crea
-  `crear_acceso_escritorio.ps1`). Asegura el servicio completo con
+  `crear_acceso_escritorio.ps1`). Primero trae lo nuevo de `main` en GitHub con
+  `sincronizar_main.ps1` (solo fast-forward, sin pisar trabajo local; -SinActualizar lo salta).
+  Asegura el servicio completo con
   `servicio_continuo.ps1 -ConWeb` (vigilante, API en papel, bróker simulado, líderes, interfaz,
   hoja de ruta y modo «equipo despierto»; no duplica lo que ya corre), espera a que respondan
   y abre http://127.0.0.1:5173 y la hoja de ruta en el navegador predeterminado. Si algo no arranca a tiempo, la ventana
@@ -10,7 +12,7 @@
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File v2\scripts\abrir_interfaz.ps1
 #>
-param([int]$Espera = 120)
+param([int]$Espera = 120, [switch]$SinActualizar)
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 $Host.UI.RawUI.WindowTitle = "EIM - abriendo la interfaz"
@@ -29,6 +31,14 @@ function Falla([string]$motivo) {
   Add-Type -AssemblyName System.Windows.Forms
   [System.Windows.Forms.MessageBox]::Show($txt, "EIM - no se pudo abrir", "OK", "Error") | Out-Null
   exit 1
+}
+
+if (-not $SinActualizar) {
+  Write-Host "Trayendo lo nuevo de main (GitHub)..."
+  # Proceso aparte: el script termina con exit. Si falla, se abre igual con lo que hay.
+  try {
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "sincronizar_main.ps1")
+  } catch { Write-Host "No se pudo sincronizar con main: $_" }
 }
 
 Write-Host "Asegurando el servicio del EIM (vigilante + API en papel + bróker + líderes + interfaz + equipo despierto)..."
