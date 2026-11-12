@@ -122,8 +122,7 @@ export function slotCard(sl: Slot, s: Setup, criteria: string, amount: string, o
     (sl.risks?.length ? `<div class="su-rules"><span>Riesgos</span><ul>${sl.risks.map((r) => `<li>${ruleText(r)}</li>`).join('')}</ul></div>` : '') +
     `<p class="su-val"><span>Validación</span> análisis: veredicto <b>VALIDADA</b> (${esc(criteria)}, ${esc(s.version)}) · bróker simulado: <b>${esc(sim)}</b></p>` +
     `<label class="su-amt"><span>Monto (margen USDT)</span><input data-amt="${i}" inputmode="decimal" class="num" value="${amount}" /></label>` +
-    `<div class="su-out" data-out="${i}">${out}</div>` +
-    `<button type="button" class="btn" data-apply="${i}">Cargar en el simulador</button></article>`
+    `<div class="su-out" data-out="${i}">${out}</div></article>`
 }
 
 /** Posición sin oportunidad validada: se dice por qué; nunca se rellena con otra idea. */
