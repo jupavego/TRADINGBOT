@@ -31,7 +31,7 @@ export function toneOf(st: ObsState, incFail: boolean): Tone {
 const worstTone = (ts: Tone[]): Tone => { const t = ts.filter((x) => x !== 'plan'); return t.includes('bad') ? 'bad' : t.includes('ok') ? 'ok' : 'none' }
 
 /** Posición (en unidades) de las siete salas, en el orden de la ruta, formando un anillo. */
-const RING: [number, number][] = [[-9.4, 0.9], [-7.4, -5.6], [0.6, -6.9], [6.3, -4.7], [9.6, 0.9], [5.6, 5.8], [-3.9, 6.0]]
+const RING: [number, number][] = [[-9.4, 0.9], [-8.7, -5.9], [0.6, -6.9], [6.3, -4.7], [9.6, 0.9], [5.6, 5.8], [-3.9, 6.0]]
 const posOf = (i: number, n: number): [number, number] => (n === RING.length ? RING[i]
   : [Math.cos(Math.PI + (i / n) * Math.PI * 2) * 9.4, Math.sin(Math.PI + (i / n) * Math.PI * 2) * 6.2])
 
@@ -146,7 +146,7 @@ function tiles(u0: number, v0: number, u1: number, v1: number): string {
   return s
 }
 
-const FLOOR = '#e7eaef'           // gris claro: el mismo en todo el piso, dentro y fuera de las salas
+const FLOOR = '#d8dce3'           // gris claro: el mismo en todo el piso, dentro y fuera de las salas
 
 /** Piso común bajo todas las salas: una sola losa gris clara de oficina, en vez de islas separadas. */
 function floorSlab(A: Area[]): [string, number[]] {
@@ -154,9 +154,9 @@ function floorSlab(A: Area[]): [string, number[]] {
   const m = 1.4, u0 = Math.floor(Math.min(...uv.map((q) => q[0])) - m), u1 = Math.ceil(Math.max(...uv.map((q) => q[0])) + m)
   const v0 = Math.floor(Math.min(...uv.map((q) => q[1])) - m), v1 = Math.ceil(Math.max(...uv.map((q) => q[1])) + m), t = 0.45
   const [a0, b, c, d] = [G(u0, v0), G(u1, v0), G(u1, v1), G(u0, v1)], [b0, c0, d0] = [G(u1, v0, -t), G(u1, v1, -t), G(u0, v1, -t)]
-  const s = `<polygon points="${pts([d, c, c0, d0])}" fill="#cfd5df"/><polygon points="${pts([c, b, b0, c0])}" fill="#b4bcc9"/>`
+  const s = `<polygon points="${pts([d, c, c0, d0])}" fill="#bfc6d1"/><polygon points="${pts([c, b, b0, c0])}" fill="#a5aebc"/>`
     + `<polygon points="${pts([a0, b, c, d])}" fill="${FLOOR}" class="iso-ground"/>${tiles(u0, v0, u1, v1)}`
-    + `<polyline points="${pts([d, c, b])}" fill="none" stroke="#f4f6f9" stroke-width="2"/>`
+    + `<polyline points="${pts([d, c, b])}" fill="none" stroke="#e6e9ee" stroke-width="2"/>`
   const xs = [a0, b, c, d, b0, c0, d0].map((q) => q[0]), ys = [a0, b, c, d, b0, c0, d0].map((q) => q[1])
   return [`<g class="iso-tiles">${s}</g>`, [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]]
 }
@@ -168,7 +168,7 @@ function floorName(a: Area, title: string, accent: string): string {
   const [ox, oy] = P(cx, cy, 0, vMid)
   const fr = [P(cx, cy, -hu + 0.12, hv - 0.18 - NAME_STRIP), P(cx, cy, hu - 0.12, hv - 0.18 - NAME_STRIP), P(cx, cy, hu - 0.12, hv - 0.18), P(cx, cy, -hu + 0.12, hv - 0.18)]
   return `<polygon points="${pts(fr)}" fill="${accent}" fill-opacity=".07" stroke="${accent}" stroke-opacity=".55" stroke-width="1.5"/>`
-    + `<text class="iso-fname" transform="matrix(0.866 0.5 -0.866 0.5 ${ox.toFixed(1)} ${oy.toFixed(1)})" y="${(fs * 0.36).toFixed(1)}" font-size="${fs.toFixed(1)}" fill="${accent}">${esc(txt)}</text>`
+    + `<text class="iso-fname" transform="matrix(0.866 0.5 -0.866 0.5 ${ox.toFixed(1)} ${oy.toFixed(1)})" y="${(fs * 0.36).toFixed(1)}" font-size="${fs.toFixed(1)}" fill="#111111">${esc(txt)}</text>`
 }
 
 function drawArea(d: ObsData, a: Area, inc: boolean, stage: string | null, sel: string | null): [string, string, number[]] {
@@ -254,7 +254,7 @@ export function isoHtml(d: ObsData, stage: string | null, sel: string | null): s
   // Avatares SV (izquierda) y JP (derecha) de pie en el piso, a los costados de las salas.
   const ext = A.map((a) => [a.cx - (a.hu + a.hv) * 0.866 * S, a.cx + (a.hu + a.hv) * 0.866 * S, a.cy])
   const byX = A.map((_, i) => i).sort((i, j) => A[i].cx - A[j].cx), two = (ix: number[]): number => (A[ix[0]].cy + A[ix[1]].cy) / 2
-  const avL: [number, number] = [Math.min(...ext.map((e) => e[0])) - 80, two(byX.slice(0, 2)) - 30]
+  const avL: [number, number] = [Math.min(...ext.map((e) => e[0])) - 100, two(byX.slice(0, 2)) - 75]
   const avR: [number, number] = [Math.max(...ext.map((e) => e[1])) + 5, two(byX.slice(-2)) - 20]
   const avs = avatar('SV', avL[0], avL[1]) + avatar('JP', avR[0], avR[1])
   xs.push(avL[0] - 50, avR[0] + 50); ys.push(avL[1] - 180, avR[1] - 180, avL[1] + 40, avR[1] + 40)

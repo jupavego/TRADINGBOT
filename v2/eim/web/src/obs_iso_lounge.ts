@@ -40,8 +40,9 @@ const screenBox = (r: UVRect, zTop: number): number[] => {
 export function lounges(zone: UVRect, rooms: UVRect[], tracks: UVRect[], labels: number[][], max = 6): { svg: string; depth: number }[] {
   const busy = [...rooms.map((r): UVRect => [r[0] - 0.4, r[1] - 0.4, r[2] + 0.4, r[3] + 0.4]), ...tracks]
   const mu = (zone[0] + zone[2]) / 2, mv = (zone[1] + zone[3]) / 2, out: { svg: string; depth: number }[] = []
-  for (let n = 0, miss = 0; out.length < max && miss < KINDS.length; n++) {
-    const k = KINDS[n % KINDS.length]
+  const order = [0, 1, 2, 3, 0, 3, 1]                  // cada tipo una vez; luego se repiten salita y verde
+  for (let n = 0; out.length < max && n < order.length; n++) {
+    const k = KINDS[order[n]]
     let best: [number, number] | null = null, bd = Infinity
     for (let u = zone[0] + k.hu; u <= zone[2] - k.hu; u += 0.25) for (let v = zone[1] + k.hv; v <= zone[3] - k.hv; v += 0.25) {
       const r: UVRect = [u - k.hu, v - k.hv, u + k.hu, v + k.hv]
@@ -51,8 +52,7 @@ export function lounges(zone: UVRect, rooms: UVRect[], tracks: UVRect[], labels:
       const dd = Math.hypot(u - mu, v - mv)
       if (dd < bd) { bd = dd; best = [u, v] }
     }
-    if (!best) { miss++; continue }
-    miss = 0
+    if (!best) continue
     const [u, v] = best
     busy.push([u - k.hu - 0.25, v - k.hv - 0.25, u + k.hu + 0.25, v + k.hv + 0.25])
     out.push({ svg: `<g class="iso-lounge">${k.draw(u, v)}</g>`, depth: G(u, v)[1] + k.hv * 0.5 * S })
