@@ -111,6 +111,20 @@ code{background:var(--block-bg);padding:1px 6px;border-radius:5px;font-size:12.5
 .cmd{display:flex;gap:8px;align-items:center;margin-top:6px}
 .foot{margin-top:26px;color:var(--tx3);font-size:12.5px}
 .warn{background:var(--ready-bg);color:var(--ready);padding:10px 14px;border-radius:10px;margin-bottom:16px;display:none}
+.vigia{margin-top:28px;border-left:4px solid var(--prog)}
+.vgh{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.vgh h2{margin:0}
+.vgh a.btn{margin-left:auto;font-size:13px;color:var(--tx);text-decoration:none;border:1px solid var(--line2);border-radius:8px;padding:4px 12px}
+.vgh a.btn:hover{background:var(--bg)}
+.vgd{color:var(--tx2);font-size:13px;margin:0 0 12px}
+.vgk{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
+.vgk div{border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.vgk b{display:block;font-size:24px;font-weight:600;line-height:1.1}
+.vgk span{font-size:12px;color:var(--tx2)}
+.vgk .k-prog b{color:var(--prog)}.vgk .k-ready b{color:var(--ready)}.vgk .k-gate b{color:var(--gate)}
+.vgl h3{font-size:13px;font-weight:600;color:var(--tx2);margin:10px 0 4px}
+.vgl .t{cursor:default}
+.vge{color:var(--tx3);font-size:13px;margin:4px 0}
 </style>
 </head>
 <body>
@@ -151,6 +165,16 @@ code{background:var(--block-bg);padding:1px 6px;border-radius:5px;font-size:12.5
   <div class="phases" id="phases"></div>
 
   <div class="foot">◆ = punto de decisión tuya (no se avanza sin tu visto bueno). “Lista” = todas sus dependencias están hechas. Las fases 3 en adelante no empiezan hasta cerrar las anteriores que indica cada tarea.</div>
+
+  <section class="card vigia" id="vigia">
+    <div class="vgh">
+      <h2>Vigía de tareas EIM · control de lo que está en curso</h2>
+      <a class="btn" href="https://claude.ai/artifact/QxazRZrJecoh9qmqM8XL19" target="_blank" rel="noopener">Abrir el Vigía ↗</a>
+    </div>
+    <p class="vgd">El Vigía muestra, cada hora, cómo van en el PC del EIM las tareas en marcha, los servicios y las alertas. Aquí abajo, lo que la ruta tiene en curso ahora, para cruzarlo con él.</p>
+    <div class="vgk" id="vg-k"></div>
+    <div class="vgl" id="vg-l"></div>
+  </section>
 </div>
 
 <script>
@@ -237,6 +261,29 @@ function render(){
   document.getElementById("rest-count").textContent=rest.length;
   var gen=new Date(data.generated),age=(Date.now()-gen.getTime())/60000;
   document.getElementById("upd").textContent="Actualizado "+gen.toLocaleString("es-CO",{dateStyle:"short",timeStyle:"short"});
+  renderVigia(tasks);
+}
+// Sección del Vigía: tareas en curso, listas y decisiones pendientes, leídas del mismo status.js
+function renderVigia(tasks){
+  var ph={};(data.phases||[]).forEach(function(p){p.ids.forEach(function(i){ph[i]=p})});
+  var prog=tasks.filter(function(t){return t.view==="progress"});
+  var ready=tasks.filter(function(t){return t.view==="ready"});
+  var gate=ready.filter(function(t){return GATES[t.id]});
+  document.getElementById("vg-k").innerHTML=
+    '<div class="k-prog"><b>'+prog.length+'</b><span>en curso</span></div>'+
+    '<div class="k-ready"><b>'+ready.length+'</b><span>listas para empezar</span></div>'+
+    '<div class="k-gate"><b>'+gate.length+'</b><span>esperan tu decisión ◆</span></div>';
+  function row(t){
+    var p=ph[t.id];
+    return '<div class="t '+t.view+'"><div class="tr"><span class="st '+t.view+'">'+icon(t.view)+'</span><span class="tid">'+t.id+'</span><span class="tt">'+esc(t.title)+'</span>'+
+      (p?'<span class="tag block">Cap. '+esc(p.n)+'</span>':"")+
+      (GATES[t.id]?'<span class="tag gate" title="'+esc(GATES[t.id])+'">◆ decisión</span>':"")+
+      '<button type="button" data-copy="Ejecuta PLAN/'+t.id+'.md">Copiar</button></div>'+
+      (GATES[t.id]?'<div class="vge" style="margin-left:26px;color:var(--gate)">'+esc(GATES[t.id])+'</div>':"")+'</div>';
+  }
+  document.getElementById("vg-l").innerHTML=
+    '<h3>En curso ahora</h3>'+(prog.length?prog.map(row).join(""):'<p class="vge">Ninguna tarea marcada en curso en STATUS.md.</p>')+
+    (gate.length?'<h3>Esperan tu decisión</h3>'+gate.map(row).join(""):"");
 }
 function phaseCard(p,m,ts,d){
     var k=function(v){return ts.filter(function(t){return t.view===v}).length};
