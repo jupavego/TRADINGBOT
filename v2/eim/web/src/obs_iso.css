@@ -4,7 +4,8 @@
 .iso-svg { width: 100%; height: auto; display: block; min-height: 420px; max-height: calc(100vh - 110px); margin: 0 auto; }
 .iso-area, .iso-person, .iso-label { cursor: pointer; outline: none; }
 .iso-area:hover .iso-floor { fill: #dfe7f3; }
-.iso-lounge { pointer-events: none; }
+.iso-lounge, .iso-avatar { pointer-events: none; }
+.iso-av-name { fill: #e8f0ff; font: 800 13px "Inter", system-ui, sans-serif; letter-spacing: .12em; text-anchor: middle; }
 .iso-area:focus-visible .iso-floor, .iso-person:focus-visible ellipse { stroke: var(--accent, #22e1ff); stroke-width: 3; }
 .iso-edge { filter: drop-shadow(0 0 5px currentColor); }
 .iso-edge.t-ok { color: #0fbf7a; } .iso-edge.t-bad { color: #f0324f; } .iso-edge.t-none { stroke-dasharray: 6 5; color: transparent; }

@@ -8,6 +8,7 @@ import './obs_iso.css'
 import { compState } from './obs_graph'
 import { P, pts, S, type Room } from './obs_iso_geo'
 import { ART_DEFS } from './obs_iso_art'
+import { avatar, avatarDefs } from './obs_iso_avatar'
 import { lounges, type UVRect } from './obs_iso_lounge'
 import { NAME_STRIP, station, STRIP, themeOf, WALL_H } from './obs_iso_props'
 import { esc, STATE_ICON, STATE_LABEL, type ObsComp, type ObsData, type ObsState } from './obs_types'
@@ -250,11 +251,18 @@ export function isoHtml(d: ObsData, stage: string | null, sel: string | null): s
   const zone: UVRect = [Math.min(...uvs.map((q) => q[0])), Math.min(...uvs.map((q) => q[1])), Math.max(...uvs.map((q) => q[0])), Math.max(...uvs.map((q) => q[1]))]
   items.push(...lounges(zone, roomUV, tracks, [...boxes, ...taken]))         // área común en los huecos del centro
   const rooms = items.sort((x, y) => x.depth - y.depth).map((x) => x.svg)
+  // Avatares SV (izquierda) y JP (derecha) de pie en el piso, a los costados de las salas.
+  const ext = A.map((a) => [a.cx - (a.hu + a.hv) * 0.866 * S, a.cx + (a.hu + a.hv) * 0.866 * S, a.cy])
+  const byX = A.map((_, i) => i).sort((i, j) => A[i].cx - A[j].cx), two = (ix: number[]): number => (A[ix[0]].cy + A[ix[1]].cy) / 2
+  const avL: [number, number] = [Math.min(...ext.map((e) => e[0])) - 80, two(byX.slice(0, 2)) - 30]
+  const avR: [number, number] = [Math.max(...ext.map((e) => e[1])) + 5, two(byX.slice(-2)) - 20]
+  const avs = avatar('SV', avL[0], avL[1]) + avatar('JP', avR[0], avR[1])
+  xs.push(avL[0] - 50, avR[0] + 50); ys.push(avL[1] - 180, avR[1] - 180, avL[1] + 40, avR[1] + 40)
   const pad = 16; xs.push(Math.min(...xs) - pad, Math.max(...xs) + pad); ys.push(Math.min(...ys) - pad, Math.max(...ys) + pad)
   const x0 = Math.min(...xs), y0 = Math.min(...ys), vw = Math.max(...xs) - x0, vh = Math.max(...ys) - y0
   return `<div class="iso-wrap">
     <svg class="iso-svg" viewBox="${x0.toFixed(0)} ${y0.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}" role="img" aria-label="Mapa isométrico: ${d.graph.stages.length} etapas como salas de trabajo">
-      <defs>${marks}${ART_DEFS}</defs>${floor}<g class="iso-lines">${lines.join('')}</g><g>${rooms.join('')}</g><g>${tags.join('')}</g><g class="iso-flabs">${labs.join('')}</g></svg>
+      <defs>${marks}${ART_DEFS}${avatarDefs()}</defs>${floor}<g class="iso-lines">${lines.join('')}</g><g>${rooms.join('')}</g><g>${avs}</g><g>${tags.join('')}</g><g class="iso-flabs">${labs.join('')}</g></svg>
     <div class="iso-legend"><span><i class="t-ok"></i>Funciona</span><span><i class="t-bad"></i>Falla (✖ error · ◷ dato viejo${inc ? ' · ▲ incompleto' : ''})</span>
       <span><i class="t-none"></i>Sin información (? sin datos · ❚❚ pausa · ◌ en espera)</span><span class="muted">Puesto translúcido = planeado</span>
       <label><input type="checkbox" data-act="iso-inc"${inc ? ' checked' : ''}> ▲ cuenta como falla</label></div></div>`
