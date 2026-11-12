@@ -2,12 +2,16 @@
  * vive en la mesa, justo debajo del Río de decisión (ya no es una pantalla aparte): consulta el
  * observatorio solo mientras está a la vista (pestaña visible y sección en pantalla). */
 import { detailHtml } from './obs_detail'
+import { isoHtml, isoIncFail, isoKey, setIsoIncFail } from './obs_iso'
 import { queueHtml, queuesSummary } from './obs_queues'
 import { compState, routeHtml, stageSentence, stageSvg } from './obs_graph'
 import { glossarize, legendHtml, markTour, tourHtml, TOUR, tourSeen } from './obs_legend'
 import { pulseNew, Story } from './obs_story'
 import { TraceView } from './obs_trace_view'
 import { ago, esc, loadObs, STATE_ICON, STATE_LABEL, type ObsData } from './obs_types'
+
+type MapView = 'route' | 'iso'
+const loadView = (): MapView => { try { return localStorage.getItem('eim.obs.view') === 'route' ? 'route' : 'iso' } catch { return 'iso' } }
 
 const POLL_MS = 10_000
 const MODE_ES: Record<string, string> = { ANALISIS: 'Análisis', SIMULADO: 'Simulado', TESTNET: 'Testnet', REAL: 'Real' }
@@ -21,6 +25,9 @@ const TEMPLATE = `
   <span class="obs-panes" role="group" aria-label="Qué ver">
     <button class="btn" data-act="pane-map" aria-pressed="true">Mapa</button>
     <button class="btn" data-act="pane-trace" aria-pressed="false" title="Elegir una decisión y ver qué ocurrió, paso a paso">Trazas y calidad</button></span>
+  <span class="obs-views" role="group" aria-label="Cómo dibujar el mapa">
+    <button class="btn" data-act="view-iso" aria-pressed="true" title="Cada etapa como una sala de trabajo y cada pieza como un puesto">Isométrico</button>
+    <button class="btn" data-act="view-route" aria-pressed="false" title="Tarjetas por etapa y diagrama de piezas">Tarjetas</button></span>
   <button class="btn obs-replay-btn" data-act="replay" title="Reproduce despacio lo que pasó con la última vela">▶ Ver la última vela</button>
   <button class="btn" data-act="tour" aria-label="Recorrido guiado" title="Recorrido guiado">?</button>
 </header>
@@ -53,6 +60,8 @@ export class ObsView {
   private tourStep = -1
   private built = false
   private traces!: TraceView
+  private view: MapView = loadView()
+  private isoLast = ''          // clave del último dibujo isométrico (no se rehace si nada cambió)
 
   constructor(private root: HTMLElement) {}
 
@@ -86,6 +95,7 @@ export class ObsView {
     this.q('legend').innerHTML = legendHtml()
     this.story = new Story(this.q('story'), this.root, () => this.data)
     this.traces = new TraceView(this.q('traces'), (id) => { this.pane('map'); void this.story.start(id) })
+    this.setView(this.view)
     this.root.addEventListener('click', (e) => this.onClick(e))
     this.root.addEventListener('keydown', (e) => {
       if ((e.key === 'Enter' || e.key === ' ') && (e.target as HTMLElement).closest('.obs-n')) { e.preventDefault(); this.onClick(e) }
@@ -99,6 +109,8 @@ export class ObsView {
     if (act === 'pane-map') { this.pane('map'); return }
     if (act === 'pane-trace') { this.pane('trace'); return }
     if (act === 'tour') { this.startTour(); return }
+    if (act === 'view-iso' || act === 'view-route') { this.setView(act === 'view-iso' ? 'iso' : 'route'); this.paintMap(); this.paintDetail(); return }
+    if (act === 'iso-inc') { setIsoIncFail(!isoIncFail()); this.paintMap(); return }
     if (t.closest('[data-story="stop"]')) { this.story.stop(); return }
     const tour = t.closest<HTMLElement>('[data-tour]')?.dataset.tour
     if (tour) { this.stepTour(tour); return }
@@ -124,6 +136,16 @@ export class ObsView {
     this.q('traces').hidden = which !== 'trace'
     this.root.querySelector<HTMLElement>('.obs-body')!.hidden = which === 'trace'
     if (which === 'trace') { this.story.stop(); this.traces.show() }
+  }
+
+  /** Alterna el dibujo del mapa entre la vista isométrica y las tarjetas de T75 (se recuerda). */
+  private setView(v: MapView): void {
+    this.view = v
+    this.isoLast = ''
+    this.root.dataset.view = v   // en «Isométrico» la leyenda y el detalle flotan dentro del diagrama (obs_iso.css)
+    this.root.querySelector('.obs-legend')?.toggleAttribute('open', v === 'route')
+    try { localStorage.setItem('eim.obs.view', v) } catch { /* sin almacenamiento */ }
+    this.root.querySelectorAll<HTMLElement>('[data-act^="view-"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.act === `view-${v}`)))
   }
 
   async reload(): Promise<void> {
@@ -169,23 +191,28 @@ export class ObsView {
   private paintMap(): void {
     const d = this.data
     if (!d?.graph) { this.q('map').innerHTML = '<p class="muted">Sin conexión con el observatorio.</p>'; this.q('crumb').innerHTML = ''; return }
-    const crumb = this.q('crumb'), map = this.q('map')
+    const crumb = this.q('crumb'), map = this.q('map'), iso = this.view === 'iso'
+    if (iso) {                    // se rehace solo si cambió algo visible: las animaciones no saltan en cada sondeo
+      const k = isoKey(d, this.stage, this.sel)
+      if (k !== this.isoLast || !map.querySelector('.iso-wrap')) { map.innerHTML = isoHtml(d, this.stage, this.sel); this.isoLast = k }
+    }
     if (!this.stage) {
-      crumb.innerHTML = '<b>Ruta completa</b> · pulsa una etapa para ver sus piezas'
-      map.innerHTML = routeHtml(d, null)
+      crumb.innerHTML = `<b>Ruta completa</b> · pulsa ${iso ? 'una sala o un puesto' : 'una etapa para ver sus piezas'}`
+      if (!iso) map.innerHTML = routeHtml(d, null)
       return
     }
     const g = d.graph
     crumb.innerHTML = `<button class="obs-link" data-home>← Ruta completa</button> / <b>${esc(g.stage_titles_es[this.stage])}</b>
       <span class="muted">${esc(g.stage_explain_es[this.stage] ?? '')} ${esc(stageSentence(d, this.stage))}.</span>`
     glossarize(crumb, g.glossary)
-    map.innerHTML = stageSvg(d, this.stage, this.sel)
+    if (!iso) map.innerHTML = stageSvg(d, this.stage, this.sel)
   }
 
   private paintDetail(): void {
     const box = this.q('detail'), d = this.data
     if (!d?.graph || !this.sel) {
       if (d?.graph && this.stage) box.innerHTML = `<h3>${esc(d.graph.stage_titles_es[this.stage])}</h3><p>${esc(d.graph.stage_explain_es[this.stage] ?? '')}</p><p class="muted">Pulsa una pieza para ver su detalle.</p>`
+        + (this.view === 'iso' ? `<ul class="obs-piece-list">${d.comps.filter((c) => c.stage === this.stage).map((c) => `<li>${STATE_ICON[compState(d, c)]} <button class="obs-link" data-goto="${esc(c.id)}">${esc(c.title_es)}</button> <small class="muted">${STATE_LABEL[compState(d, c)]}</small></li>`).join('')}</ul>` : '')
       else box.innerHTML = '<p class="muted">Pulsa una etapa o una pieza del mapa para ver su detalle.</p>'
       return
     }
