@@ -20,9 +20,7 @@
       <button id="evclock" class="evclock" type="button" hidden aria-live="off" aria-label="Próximo evento económico"></button>
       <div class="spacer"></div>
       <span id="mode" class="mode" title="Modo de operación">Modo: Análisis</span>
-      <button id="more-btn" class="btn" aria-pressed="false">Más análisis</button>
     </header>
-    <section id="more" class="more" aria-label="Más análisis" hidden></section>
     <div id="banner" class="banner" hidden></div>
     <section id="river" class="river" aria-label="Río de decisión"></section>
     <!-- Mapa del sistema (T75) bajo el río (T122): el río explica la decisión; el mapa, el flujo que la produjo -->
@@ -43,6 +41,13 @@
           <button role="tab" aria-selected="false" data-tab="t-inv">Inversionistas</button>
           <button role="tab" aria-selected="false" data-tab="t-log">Bitácora</button>
           <button role="tab" aria-selected="false" data-tab="t-hist" id="tab-hist">Historial de sugerencias</button>
+          <!-- Antes en la vista aparte «Más análisis» (T11); ahora pestañas de la mesa (src/more.ts) -->
+          <button role="tab" aria-selected="false" data-tab="t-bt">Backtest / VRM</button>
+          <button role="tab" aria-selected="false" data-tab="t-vwap">VWAP por periodos</button>
+          <button role="tab" aria-selected="false" data-tab="t-multi">Multi-activo</button>
+          <button role="tab" aria-selected="false" data-tab="t-liq">Liquidaciones</button>
+          <button role="tab" aria-selected="false" data-tab="t-season">Estacionalidad</button>
+          <button role="tab" aria-selected="false" data-tab="t-tjournal">Bitácora de trading</button>
         </nav>
         <div class="tabbody" id="t-esc"><p class="muted">Cargando escenarios…</p></div>
         <div class="tabbody" id="t-cal" hidden><p class="muted">Cargando calibración…</p></div>
@@ -55,6 +60,12 @@
         <div class="tabbody inv" id="t-inv" hidden><iframe src="inversionistas.html" title="Sistema documental para inversionistas" loading="lazy"></iframe></div>
         <div class="tabbody" id="t-log" hidden><div id="trades-log"></div><h4>Reportes de agentes</h4><div id="journal"></div></div>
         <div class="tabbody su-histtab" id="t-hist" hidden><p class="muted">Cargando historial de sugerencias…</p></div>
+        <div class="tabbody more-body" id="t-bt" hidden></div>
+        <div class="tabbody more-body" id="t-vwap" hidden></div>
+        <div class="tabbody more-body" id="t-multi" hidden></div>
+        <div class="tabbody more-body" id="t-liq" hidden></div>
+        <div class="tabbody more-body" id="t-season" hidden></div>
+        <div class="tabbody more-body" id="t-tjournal" hidden></div>
       </section>
     </main>
   </div>

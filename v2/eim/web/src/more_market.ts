@@ -1,4 +1,4 @@
-/** Pestañas de mercado de "Más análisis": Backtest/VRM, VWAP por periodos y Multi-activo. */
+/** Pestañas de mercado (antes en «Más análisis», hoy en la barra inferior): Backtest/VRM, VWAP por periodos y Multi-activo. */
 import { LineSeries, LineStyle, type UTCTimestamp } from 'lightweight-charts'
 import { PriceChart } from './chart'
 import { cssVar } from './theme'

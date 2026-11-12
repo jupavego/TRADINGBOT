@@ -14,7 +14,7 @@ import { latestPerAgent, renderJournal } from './panels'
 import { LibraryPanel } from './library_ui'
 import { ScenarioPanel } from './scenarios_ui'
 import { CalibrationPanel } from './calibration_ui'
-import { MoreView } from './more'
+import { MoreTabs } from './more'
 import { renderLog } from './trades_ui'
 import { RiskPanel } from './risk_ui'
 import { OperationPanel } from './operation_ui'
@@ -48,7 +48,7 @@ let journal: AgentReport[] = []
 
 // Sin gráfico de velas ni simulador en la mesa: el río, el mapa del sistema y el bróker
 // simulado (bajo el mapa) cuentan la decisión; el bróker trae su propio gráfico por perfil.
-const more = new MoreView($('more'))
+const more = new MoreTabs()
 let squadSupport: SquadPanel | null = null
 const scenarios = new ScenarioPanel($('t-esc'), null, () => ({ symbol, tf }),
   () => latest.find((r) => r.agent_id === 'literature'), () => squadSupport?.support ?? null)
@@ -206,6 +206,7 @@ function build(): void {
       if (b.dataset.tab === 't-squad') void squad.reload()
       if (b.dataset.tab === 't-lib') void library.reload()
       setupsHistory.show(b.dataset.tab === 't-hist')
+      more.show(b.dataset.tab!)
     }
   })
   const modeEl = $('mode')
@@ -214,18 +215,8 @@ function build(): void {
   void fetchMode().then((m) => {
     if (m === 'TESTNET') { modeEl.textContent = `Modo: ${MODE_LABEL.TESTNET}`; modeEl.dataset.mode = m }
   })
-  const mb = $<HTMLButtonElement>('more-btn')
-  // Única vista de pantalla completa: Más análisis. El mapa del sistema (T122) y el bróker
-  // simulado viven en la mesa, uno debajo del otro.
-  const show = (view: 'desk' | 'more'): void => {
-    mb.setAttribute('aria-pressed', String(view === 'more'))
-    mb.textContent = view === 'more' ? 'Volver a la mesa' : 'Más análisis'
-    more.toggle(view === 'more')
-  }
-  mb.onclick = () => show(mb.getAttribute('aria-pressed') === 'true' ? 'desk' : 'more')
   // «Ver la validación en Bróker simulado» (operaciones sugeridas): baja hasta el bróker
   window.addEventListener('eim:open-paper', () => {
-    show('desk')
     $('paper').scrollIntoView({ behavior: 'smooth', block: 'start' })
   })
 }

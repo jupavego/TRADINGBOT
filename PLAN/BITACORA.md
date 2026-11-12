@@ -1401,3 +1401,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** `tsc` estricto sin errores en los archivos tocados (sin dependencias instaladas en la sesión remota); render verificado con screenshot con los 83 componentes reales del observatorio y, dentro de la app en Vite, con datos de prueba (clics, alternador, casilla). Sin cambios de Python. Pendiente: `npm run typecheck` completo y verlo con datos en vivo (el navegador integrado de Claude bloquea la llamada de la web a la API).
 - **Abierto:** nada. **En curso:** nada.
 - **Siguiente paso:** recompilar la web (`cd v2/eim/web && npm run build`) en el equipo que sirve la interfaz.
+
+## 2026-11-11 · UI: fuera el botón «Más análisis»; sus análisis pasan a las pestañas inferiores
+- **Hecho:** a pedido del usuario se quitó de la barra superior el botón **«Más análisis»** y su vista de pantalla completa (`#more`). Sus seis análisis (T11) son ahora pestañas de la barra inferior de la mesa, a continuación de Escenarios, Calibración, Plan, Operación, Arbitraje…: **Backtest / VRM, VWAP por periodos, Multi-activo, Liquidaciones, Estacionalidad y Bitácora de trading**. Solo se pinta la pestaña activa (al salir se vacía y se liberan sus gráficos) y siguen el símbolo/marco elegidos arriba. La API `/v2/more/*` no cambia.
+- **Archivos:** `v2/eim/web/index.html`, `v2/eim/web/src/{main,more,more_market,more_other}.ts`, `v2/eim/web/src/{style,cyber}.css`, `legacy/README.md` (referencia).
+- **Pruebas:** `tsc --noEmit` sin errores en los archivos tocados (sin dependencias instaladas en la sesión remota). Sin cambios de Python.
+- **Abierto:** nada. **En curso:** nada.
+- **Siguiente paso:** recompilar la web (`cd v2/eim/web && npm run build`) en el equipo que sirve la interfaz.
