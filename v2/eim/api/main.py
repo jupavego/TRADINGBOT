@@ -255,7 +255,7 @@ def create_app(
     # T51: registro y resolución de lo publicado; el bróker lo llama tras cada ciclo.
     setups_router = build_setups_router(
         paper, validator, tracker=Tracker(SuggestionStore(paper_store), paper.ep))
-    paper.hooks.add("setups", setups_router.tick, "validation.setups_followup")
+    paper.hooks.add("setups", setups_router.tick)
     app.include_router(setups_router)
     app.include_router(build_calibration_router(store, forecaster))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
