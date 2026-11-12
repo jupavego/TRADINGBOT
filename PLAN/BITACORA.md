@@ -1429,6 +1429,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** `tsc --noEmit` sin errores nuevos (sin dependencias instaladas en la sesión remota). Sin cambios de Python.
 - **Abierto:** nada. **En curso:** nada.
 - **Siguiente paso:** recompilar la web (`cd v2/eim/web && npm run build`) en el equipo que sirve la interfaz.
+## 2026-11-11 · UI: el Mapa del sistema se pliega y despliega
+- **Hecho:** a pedido del usuario, el título «▾ Mapa del sistema» es un botón: al pulsarlo el mapa se pliega (queda solo el encabezado con «Último evento hace N s» y un resumen por estado en pastillas, p. ej. «✓ 40 · … 34») y al pulsarlo otra vez se despliega. La elección se recuerda entre visitas (`localStorage` `eim.obs.folded`). Plegado no se dibuja el diagrama isométrico; el sondeo sigue para que el resumen esté en vivo. Accesible con teclado (`aria-expanded`).
+- **Archivos:** `v2/eim/web/src/obs_view.ts`, `v2/eim/web/src/obs.css`.
+- **Pruebas:** `tsc --noEmit` sin errores en los archivos tocados (sin dependencias instaladas en la sesión remota). Sin cambios de Python.
+- **Abierto:** nada. **En curso:** nada.
+- **Siguiente paso:** recompilar la web (`cd v2/eim/web && npm run build`) en el equipo que sirve la interfaz.
 
 ## 2026-11-11 · Operación: el icono del escritorio se mantiene al día con main
 - **Hecho:** a pedido del usuario, el acceso «EIM» del escritorio y el icono de la bandeja traen solos lo que se fusiona en `main` (p. ej. los PR de Claude). Nuevo `sincronizar_main.ps1`: solo fast-forward; no toca nada con cambios sin confirmar ni ramas con trabajo sin fusionar (pasa a `main` si la rama ya está fusionada); tras avanzar reinicia solo la API si cambió Python de `v2/eim/` (la relanza el vigilante), corre `npm install` si cambió `package-lock.json` y avisa si cambiaron dependencias de Python. `abrir_interfaz.ps1` lo corre antes de abrir (`-SinActualizar` lo salta); `icono_bandeja.ps1` cada 5 min (`-SyncMin`), con opción «Actualizar desde GitHub (main)» y aviso al actualizar o al no poder.

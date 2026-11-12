@@ -88,3 +88,15 @@
 @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
 /* T123: colas entre etapas */
 .obs-q { margin-bottom: 6px; } .obs-q-drop > b { color: var(--warn, #b7791f); }
+/* Plegable: el título pliega/despliega el mapa; plegado queda solo el encabezado con el resumen por estado */
+.obs-fold { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; }
+.obs-fold:hover { color: var(--accent); }
+.obs-fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.obs-chev { display: inline-block; transition: transform .2s ease; }
+.obs[data-folded="1"] .obs-chev { transform: rotate(-90deg); }
+.obs[data-folded="1"] .obs-fold-body, .obs[data-folded="1"] .obs-panes, .obs[data-folded="1"] .obs-views { display: none; }
+.obs-fold-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.obs-sum { display: none; gap: 8px; font-size: 12px; }
+.obs[data-folded="1"] .obs-sum { display: inline-flex; flex-wrap: wrap; }
+.obs-sum-i { padding: 1px 8px; border: 1px solid var(--line); border-radius: 999px; }
+.obs-sum-i.st-ok { border-color: var(--st-ok); } .obs-sum-i.st-error { border-color: var(--st-error); } .obs-sum-i.st-degradado { border-color: var(--st-degradado); }
