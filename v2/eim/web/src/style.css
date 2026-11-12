@@ -276,6 +276,10 @@ td[data-sign="-1"] { color: var(--down); }
 }
 .river::before { background-image: radial-gradient(rgba(34, 225, 255, .3) 1px, transparent 1px); opacity: .3; }
 .river .rl { fill: var(--text); font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+/* Satélites del río: el nombre solo aparece al pasar el puntero o con el foco; el resto vive en el detalle. */
+.river .rname { fill: var(--text); font-size: 13px; font-weight: 600; letter-spacing: .02em; paint-order: stroke; stroke: var(--bg); stroke-width: 3px; }
+.river .trib .hov { opacity: 0; transition: opacity .2s; pointer-events: none; }
+.river .trib:is(:hover, :focus-visible, .sel) .hov { opacity: 1; }
 .river .rv { fill: var(--muted); font-size: 11px; }
 .river .rvv { font-size: 11px; font-weight: 700; }
 .river .hsphere { position: absolute; pointer-events: none; }

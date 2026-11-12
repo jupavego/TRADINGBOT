@@ -1448,3 +1448,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `v2/eim/api/{setups,main}.py`.
 - **Pruebas:** gate del equipo con salida guardada en `_gate_t174.txt` (fuera del repo): 1 fallo, el de arriba; resto verde. Falta repetirlo tras fusionar (lo hace `actualizar_t174.cmd`).
 - **Siguiente paso:** fusionar y correr `actualizar_t174.cmd` (gate → build → reinicio).
+
+## 2026-11-12 · Río de decisión: agentes en órbita, sin plataforma
+- **Hecho:** a pedido del usuario se quita la plataforma de anillos bajo la esfera y los agentes dejan las columnas: ahora son satélites que orbitan despacio la esfera central (una vuelta cada 3 min, elipse inclinada; detrás más pequeños y tenues). Fuera del agente solo queda su icono; nombre, sesgo, confianza y demás están dentro, en el detalle que abre al tocarlo. Con el puntero encima o con un detalle abierto la órbita se detiene (fácil de tocar); la fase persiste entre re-renderizados y respeta «reducir movimiento». El nombre aparece al pasar el puntero. El satélite de arbitraje queda fijo abajo a la izquierda con su texto también al pasar el puntero.
+- **Archivos:** nuevo `v2/eim/web/src/river_orbit.ts`; `river.ts`, `river_holo.ts` (sin `platform`), `river_arb.ts`, `style.css`; `PLAN/UI_SPEC.md`.
+- **Pruebas:** sin `node_modules` en la sesión remota: `tsc` de la cadena del río sin errores propios; verificado con capturas en Chrome sin interfaz (órbita en movimiento, pausa al pasar el puntero y con detalle abierto, detalle del agente, arbitraje).
+- **Abierto:** `npm run build` en el equipo.
+- **Siguiente paso:** ver el río en vivo y ajustar velocidad (`PERIOD_S`) o tamaño de órbita (`ORX`/`ORY`) si hace falta.
