@@ -45,6 +45,7 @@ def main(argv: list[str] | None = None) -> int:
     audit = build(rows, now_ms, stamp, variant_rows=variant_rows, funding=funding,
                   hft=sources.hft_quality(a.data_dir),
                   calibration={} if a.ledger else sources.calibration(a.api),
+                  calibration_4h={} if a.ledger else sources.calibration(a.api, tf="4h"),
                   prev=sources.previous(a.out, today))
     base = a.out / f"audit_{today}"
     audit["paths"] = {"json": str(base.with_suffix(".json")), "md": str(base.with_suffix(".md"))}

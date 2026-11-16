@@ -78,6 +78,7 @@ def test_opportunities_routes_and_signed_impact():
 def test_losing_strategy_needs_user_and_variant_waits_for_sample():
     rows = [_row(-1.0, -100.0, strategy="mala") for _ in range(28)]
     rows += [_row(0.5, 50.0, strategy="mala") for _ in range(2)]
+    rows = [r | {"idea_id": f"m{i}"} for i, r in enumerate(rows)]     # T175: se empareja por idea
     k = kpis.book_kpis(rows, NOW)
     o = {x["id"]: x for x in levers.opportunities(k)}["estrategia_mala"]
     assert o["route"].startswith("◆") and o["impact_usdt"] > 0
@@ -90,9 +91,17 @@ def test_losing_strategy_needs_user_and_variant_waits_for_sample():
 def test_calibration_findings():
     c = {"brier_skill": -0.01, "directional": {"n": 500, "accuracy": 0.41}, "n_effective": 22,
          "mean_prob": {"bull": 0.27, "bear": 0.28}, "realized_freq": {"bull": 0.15, "bear": 0.30}}
-    ids = {o["id"] for o in levers.calibration_opps(c)}
+    # T175: con n efectiva 22, 12 pp de sesgo no pasan de 2 errores típicos (15 pp)
+    assert {o["id"] for o in levers.calibration_opps(c)} == {"calib_sin_skill"}
+    ids = {o["id"] for o in levers.calibration_opps(c | {"n_effective": 200})}
     assert ids == {"calib_sin_skill", "calib_sesgo_bull"}
     assert levers.calibration_opps({"brier_skill": 0.05}) == []
+    # 4 h con muestra efectiva 4: no se lee nada, ni el acierto del 80 %
+    c4 = {"n_evaluated": 105, "n_effective": 4.2, "brier_skill": 0.03,
+          "directional": {"n": 103, "accuracy": 0.796}, "mean_prob": {"bear": 0.31},
+          "realized_freq": {"bear": 0.67}}
+    (o,) = levers.calibration_opps(c4, "4h")
+    assert o["id"] == "calib_sin_muestra_4h" and o["route"] == "esperar"
 
 
 def test_triggers_fire_and_near():
@@ -146,3 +155,56 @@ def test_cli_offline_writes_reports_and_compares(tmp_path, capsys):
     assert "DESDE 2000-01-01" in text
     files = sorted(p.name for p in out.iterdir())
     assert len(files) == 3 and any(f.endswith(".md") for f in files)
+
+
+# ------------------------------------------------------------------------------------- T175
+
+def test_strategy_losing_only_by_cost_is_not_a_user_question():
+    """Bruto 0 y costo 0,04 R: el IC del neto queda bajo cero sin que la estrategia sea peor que
+    el azar. Va a la línea informativa, no al usuario."""
+    rows = [_row(x, x * 100, strategy="cara", fees=4.0)
+            for x in (-0.30, 0.22) * 100]               # neto −0,04 de media, bruto 0
+    k = kpis.book_kpis(rows, NOW)
+    s = k["by_strategy"]["cara"]
+    assert s["e_r_ci"][1] < 0 and s["gross_sd"] > 0
+    ids = {o["id"]: o for o in levers.opportunities(k)}
+    assert "estrategia_cara" not in ids
+    assert ids["estrategias_por_costo"]["route"].startswith("cerrada")
+    assert "cara" in ids["estrategias_por_costo"]["evidence"]
+
+
+def test_holm_is_monotone_and_capped():
+    adj = levers.holm({"a": 0.01, "b": 0.04, "c": 0.03, "d": 0.5})
+    assert adj["a"] == pytest.approx(0.04) and adj["c"] == pytest.approx(0.09)
+    assert adj["b"] == pytest.approx(0.09) and adj["d"] == pytest.approx(0.5)
+
+
+def test_variant_is_compared_on_the_same_ideas():
+    """Las dos mesas toman ideas distintas: la media sin emparejar mezcla muestras."""
+    off, var = [], []
+    for i in range(40):                       # 40 comunes: la variante gana 0,02 R en cada una
+        base = _row(-0.1, -10.0, profile="moderado") | {"idea_id": f"i{i}"}
+        off.append(base)
+        var.append(base | {"r": -0.08, "pnl_usdt": -8.0})      # mismo riesgo, mismo costo
+    off += [_row(0.5, 50.0) | {"idea_id": f"o{i}"} for i in range(20)]     # solo la oficial
+    var += [_row(-0.9, -90.0) | {"idea_id": f"v{i}"} for i in range(20)]   # solo la variante
+    blk = build.variant_block(off, var)
+    pr = blk["paired"]
+    assert pr["n"] == 40 and pr["only_official"] == 20 and pr["only_variant"] == 20
+    assert pr["d_r"] == pytest.approx(0.02) and pr["d_cost_r"] == pytest.approx(0.0)
+    o = levers.variant_vs_official(kpis.book_kpis(off, NOW), blk)
+    assert o["impact_r_per_op"] == pytest.approx(0.02)
+    assert "emparejado" in o["evidence"] and "sin emparejar ΔE[R] -" in o["evidence"]
+
+
+def test_auto_gate_not_reflected_in_variant_is_flagged():
+    """La variante sigue operando 15 m con costo vivido 0,2 R ≥ 0,15: la puerta no se refleja."""
+    var = [_row(-0.1, -10.0, tf="15m", fees=20.0, profile="agresivo") | {"idea_id": f"a{i}"}
+           for i in range(30)]
+    var += [_row(-0.1, -10.0, tf="15m", fees=12.0) | {"idea_id": f"b{i}"} for i in range(30)]
+    blk = build.variant_block(var, var)
+    ids = {o["id"]: o for o in levers.auto_not_reflected(blk)}
+    o = ids["auto_no_refleja_15m"]
+    assert o["route"].startswith("◆") and "agresivo 0.200 R" in o["evidence"]
+    assert "moderado" not in o["evidence"]
+    assert levers.auto_not_reflected(build.variant_block(var[30:], var[30:])) == []
