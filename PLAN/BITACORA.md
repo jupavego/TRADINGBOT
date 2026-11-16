@@ -1525,3 +1525,32 @@ más reciente por fecha y su siguiente paso. Formato:
   - Gate por la cola (`20261116-192326-gate-t169-dbee`, rc=0, 1 236 s, sin pausas): `ruff` limpio, 3 765 pruebas pasadas y 8 omitidas, tras fusionar `origin/main`.
 - **Abierto:** BACKLOG T169 (1)–(5): rediseñar o retirar las 4 reglas imposibles y el gemelo, decidir las bandas, acelerar la generación si se amplía la muestra, y darle historia a `deriv_funding_contrario` con un modo que funcione solo con funding.
 - **Siguiente paso:** ◆ T170, pre-registro `cantera_v1`, con las decisiones de la nota de T169.
+
+## 2026-11-16 · T170: pre-registro `cantera_v1` aprobado y escalafón de la cantera
+- **Hecho:**
+  - ◆ del usuario, en una sola pregunta:
+    - se rediseñan `estructura_ruptura` (sin filtro de convicción) y `tec_acuerdo_marcos` (1 h y 4 h);
+    - las dos de Elliott, de baja;
+    - los gemelos de `regime` cuentan como dos;
+    - manda la banda medida;
+    - familia propia con m = los que entran + 7.
+  - Re-examen de las dos rediseñadas con la ficha de T169 y los contextos guardados (10 s por la cola): las dos siguen (`v2/reports/t170_reexamen.md`).
+  - Calibración por la cola (3,8 min, `v2/reports/t170_calibracion.json`):
+    - topes de drawdown de 13–21 %;
+    - 0,011 promesas falsas esperadas bajo la nula global, P(≥ 1) = 1,0 %;
+    - potencia con +0,25 R: 60 % a 250 operaciones y 90 % a 400.
+  - Pre-registro completo aprobado por el usuario y confirmado en el commit `a9cefd6`, antes de cualquier operación: entran 29, caen 14, m = 36 y techo 50.
+- **Archivos:**
+  - `v2/eim/validation/prereg/prereg_cantera_v1.json` (huella en `v2/eim/nursery/prereg.py`).
+  - `v2/eim/nursery/{ladder,ladder_rules,ladder_stats,ladder_final,ladder_io,evalue,themes,calibrate}.py`.
+  - La cantera solo corre los 29 con su huella (`desk.py`, `api/paper_variant.py`), y el alta queda en `nursery_prereg` (`store.py`).
+  - Reglas y expedientes de `structure` y `technical`.
+  - `v2/scripts/t170_{prereg,prereg_text,reexamen}.py`.
+  - `PLAN/notas/T170_cantera_v1.md`, `v2/docs/{OPERACION,ALMACENAMIENTO}.md` y `PLAN/BACKLOG.md`.
+- **Pruebas:**
+  - `v2/tests/nursery/test_{ladder,ladder_final,ladder_desk,prereg_cantera}.py`.
+  - Control al azar en 1 000 semillas: llega a promesa el 2,8 %, por debajo del α = 0,10.
+  - Consistencia, ventaja grande, hermano simple, una baja que sigue contando, no anticipación, inactividad sin los días de puerta cerrada, drawdown, StepM e inmutabilidad.
+  - Gate completo por la cola.
+- **Abierto:** BACKLOG T170 (1)–(5): Elliott 2.0, la huella que no firma los ayudantes de una regla, congelar en el panel las cuentas dadas de baja, el anexo de reentradas y el estado de los descartados en los expedientes.
+- **Siguiente paso:** fusionar, encender `EIM_NURSERY=1` (con permiso del usuario, hoy) y anotar el alta.
