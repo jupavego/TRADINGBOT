@@ -77,6 +77,13 @@ def _state(v: dict) -> str:
     return "sin opción a primer equipo" if v["no_first_team"] else "sigue"
 
 
+def _declared(v: dict) -> str:
+    kept = v.get("kept_with_declared_band")
+    if kept is None:
+        return "—"
+    return f"seguiría ({v['declared_band']})" if kept else f"también cae ({v['declared_band']})"
+
+
 def _days(v: dict, key: str) -> str:
     d = (v.get("days_to_verdict") or {}).get(key) or {}
     return _f(d.get("days"), 0)
@@ -106,16 +113,20 @@ def to_markdown(data: dict) -> str:
                     f"{_spread(ph['ops_month_by_block'])} | {_f(ph['cost_r_mean'], 3)} | "
                     f"{_f(ph['hold_h_median'], 1)} | {_f(ph['pos_days_frac'], pct=True)} | "
                     f"{_f(ph['turnover_month'], 1)} | {_state(v)} |")
-    head += ["", "## Descartes mecánicos", "", "| Prospecto | Motivo | Al borde |", "|---|---|---|"]
+    head += ["", "## Descartes mecánicos", "",
+             "Manda la banda medida por la tenencia (`PLAN/T169.md`). «Con la banda declarada» "
+             "dice si el prospecto seguiría sin esa reasignación, para que se vea de qué depende "
+             "cada descarte.", "",
+             "| Prospecto | Motivo | Al borde | Con la banda declarada |", "|---|---|---|---|"]
     for r in rows:
         v = r["verdict"]
         if v["discarded"]:
             head.append(f"| `{r['id']}` | {'; '.join(v['reasons'])} | "
-                        f"{', '.join(v['borderline']) or '—'} |")
+                        f"{', '.join(v['borderline']) or '—'} | {_declared(v)} |")
     head += ["", "## Días hasta el veredicto (supervivientes)", "",
              "σ = 1 R por operación **supuesta**; μ en R por operación; z = 1,645 (α 0,05) y "
              "z ≈ 3,09 (α 0,05/50, la familia). Operaciones necesarias: " +
-             "; ".join(f"μ {m['mu_r']:+.2f} R con z {m['z']:.2f} → {m['ops']}"
+             "; ".join(f"μ +{_f(m['mu_r'])} R con z {_f(m['z'])} → {m['ops']}"
                        for m in data["mintrl"]) + ".", "",
              "| Prospecto | Banda | Esperadas en 6 meses | +0,10 R | +0,10 R familia | +0,25 R "
              "| +0,25 R familia | Al borde |",
@@ -128,6 +139,10 @@ def to_markdown(data: dict) -> str:
                         f"{_days(v, 'mu_0_25_alfa_0_05')} | {_days(v, 'mu_0_25_familia')} | "
                         f"{', '.join(v['borderline']) or '—'} |")
     head += ["", "## Cobertura de las variables declaradas", "",
+             "«Agente con datos»: contextos en que el agente no salió `no_data`. «Con valor»: "
+             "contextos con la variable presente; en las variables de lista (`[]`), con al menos "
+             "un elemento, así que una lista vacía (p. ej., ningún acierto de `literature` en esa "
+             "vela) cuenta como sin valor aunque no sea un dato perdido.", "",
              "| Prospecto | Agente con datos | Variable | Con valor |", "|---|--:|---|--:|"]
     for r in rows:
         cov = r["physics"]["coverage"]

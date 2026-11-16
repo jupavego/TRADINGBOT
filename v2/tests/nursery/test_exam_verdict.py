@@ -59,6 +59,21 @@ def test_band_is_reassigned_and_its_thresholds_apply() -> None:
     assert few["measured_band"] is None and few["band"] == "intradia" and few["discarded"]
 
 
+def test_report_says_when_the_declared_band_would_keep_it() -> None:
+    v = vd.judge("semanal", _ph(hold_h_median=50.0, ops_month=4.0, pos_days_frac=0.5), False)
+    assert v["band"] == "tres_dias" and v["discarded"] and v["kept_with_declared_band"] is True
+    v = vd.judge("semanal", _ph(hold_h_median=50.0, ops_month=4.0, pos_days_frac=0.2), False)
+    assert v["discarded"] and v["kept_with_declared_band"] is False
+    assert vd.judge("intradia", _ph(), False)["kept_with_declared_band"] is None
+
+
+def test_a_rule_that_never_fires_says_so() -> None:
+    v = vd.judge("intradia", _ph(ideas=0, filled=0, closed=0, ops_month=0.0,
+                                 hold_h_median=None, cost_r_mean=None), False)
+    assert v["discarded"] and v["reasons"][0].startswith("ninguna idea")
+    assert "0,0 operaciones al mes" in v["reasons"][1]
+
+
 def test_no_first_team_below_100_operations_in_six_months() -> None:
     per_day = 99 / vd.TERM_DAYS
     v = vd.judge("intradia", _ph(filled=round(per_day * 448), ops_month=per_day * 30), False)

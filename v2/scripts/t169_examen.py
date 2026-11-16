@@ -158,15 +158,36 @@ def _cost(work: Path) -> dict:
     return out
 
 
-def _cost_line(cost: dict) -> str:
+def _dec(x: float, nd: int = 1) -> str:
+    return f"{x:.{nd}f}".replace(".", ",")
+
+
+def _ids(ids: list[str]) -> str:
+    return ", ".join(f"`{i}`" for i in ids) or "ninguno"
+
+
+def _twins(rows: list[dict]) -> list[list[str]]:
+    """Prospectos con la misma física (sin contar la cobertura, que nombra otras variables)."""
+    groups: dict[str, list[str]] = {}
+    for r in rows:
+        ph = {k: v for k, v in r["physics"].items() if k != "coverage"}
+        if ph.get("ideas"):
+            groups.setdefault(r["timeframe"] + json.dumps(ph, sort_keys=True), []).append(r["id"])
+    return [g for g in groups.values() if len(g) > 1]
+
+
+def _cost_line(cost: dict, contexts: int) -> str:
     if not cost:
         return "Costo de generación: sin registro de pasadas."
     tot = sum(c["seconds"] for c in cost.values())
+    logged = sum(c["computed"] for c in cost.values())
+    extra = (f" Los otros {contexts - logged} contextos salieron de pasadas de prueba anteriores "
+             "al registro de costo." if contexts > logged else "")
     return ("Costo de generación (un proceso, en IDLE, por la cola): " + "; ".join(
-        f"{tf} {c['computed']} contextos a {c['s_per_ctx']} s" for tf, c in cost.items()) +
-        f" → **{tot / 3600:.1f} h de cálculo** ({tot / 86400:.2f} días de máquina) en "
+        f"{tf} {c['computed']} contextos a {_dec(c['s_per_ctx'], 3)} s" for tf, c in cost.items())
+        + f" → **{_dec(tot / 3600)} h de cálculo** ({_dec(tot / 86400, 2)} días de máquina) en "
         f"{sum(c['passes'] for c in cost.values())} pasadas; RAM máxima "
-        f"{max(c['rss_mb_max'] for c in cost.values()):.0f} MB.")
+        f"{max(c['rss_mb_max'] for c in cost.values()):.0f} MB." + extra)
 
 
 def cmd_exam(a: argparse.Namespace) -> None:
@@ -199,15 +220,26 @@ def cmd_exam(a: argparse.Namespace) -> None:
     disc = [r for r in rows if r["verdict"]["discarded"]]
     keep = [r for r in rows if not r["verdict"]["discarded"]]
     nofirst = [r for r in keep if r["verdict"]["no_first_team"]]
+    by_band = [r["id"] for r in disc if r["verdict"]["kept_with_declared_band"]]
+    dead = [r["id"] for r in rows if r["physics"]["ideas"] == 0]
+    twins = _twins(rows)
+    total = sum(s["contexts"] for s in sample.values())
     summary = [
         f"**{len(rows)} prospectos con historia examinados** de "
         f"{len(rows) + len(pl['without_history'])}: **{len(disc)} descartados** por razones "
         f"mecánicas y {len(keep)} siguen, de los que {len(nofirst)} quedan «sin opción a "
         "primer equipo» (no llegan a ≈ 100 operaciones, o a 120 días con posición, en 6 meses). "
         f"{sum(r['verdict']['reassigned'] for r in rows)} cambian de banda por su tenencia.",
+        "", f"- **{len(by_band)} descartes dependen de la reasignación de banda**: con la banda "
+        f"declarada seguirían ({_ids(by_band)}).",
+        f"- **{len(dead)} reglas no se cumplen nunca** en la muestra ({_ids(dead)}): la causa "
+        "de cada una está en `PLAN/notas/T169_examen_fisico.md`.",
+        f"- **Gemelos físicos** (mismas ideas y operaciones): "
+        f"{'; '.join(' = '.join(f'`{i}`' for i in g) for g in twins) or 'ninguno'}.",
         "", "Muestra: " + "; ".join(
-            f"{tf} {s['contexts']} contextos de {s['expected']} en {s['stretches']} tramos "
-            f"({s['days']} días)" for tf, s in sample.items()) + ".", "", _cost_line(cost)]
+            f"{tf} {s['contexts']} contextos de {s['expected']} en {s['stretches']} "
+            f"tramo{'s' if s['stretches'] != 1 else ''} ({_dec(s['days'])} días)"
+            for tf, s in sample.items()) + ".", "", _cost_line(cost, total)]
     data = {"task": "T169", "mode": "SIMULADO", "generated_utc": time.strftime(
         "%Y-%m-%dT%H:%MZ", time.gmtime()), "plan": pl, "sample": sample, "cost": cost,
         "thresholds": {"min_ops_month": verdict.MIN_OPS_MONTH,

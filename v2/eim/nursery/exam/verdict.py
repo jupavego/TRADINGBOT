@@ -79,32 +79,42 @@ def _spread_ci(rates: list[float]) -> tuple[float, float] | None:
     return m - half, m + half
 
 
-def judge(declared: str, ph: dict, anticipation: bool) -> dict:
-    """Veredicto mecánico de un prospecto con historia a partir de su física."""
+def _c(x: float, nd: int) -> str:
+    return f"{x:.{nd}f}".replace(".", ",")
+
+
+def judge(declared: str, ph: dict, anticipation: bool, reassign: bool = True) -> dict:
+    """Veredicto mecánico de un prospecto con historia a partir de su física.
+
+    Manda la banda medida; si al reasignarla el prospecto cae, `kept_with_declared_band` dice si
+    con la declarada seguiría, para que el informe muestre de qué depende el descarte.
+    """
     reasons: list[str] = []
     edge: list[str] = []
     hold = ph.get("hold_h_median")
-    measured = band_of(hold) if hold is not None and ph["closed"] >= MIN_CLOSED_FOR_BAND \
-        else None
+    measured = band_of(hold) if (reassign and hold is not None and
+                                 ph["closed"] >= MIN_CLOSED_FOR_BAND) else None
+    if ph.get("ideas") == 0:
+        reasons.append("ninguna idea en toda la muestra: la regla no se cumple nunca")
     band = measured or declared
     days, n = ph["days"], ph["filled"]
     if band == "semanal":
         frac = ph["pos_days_frac"]
         if frac < MIN_POS_DAYS_FRAC:
-            reasons.append(f"semanal en posición el {frac:.0%} de los días (< 30 %)")
+            reasons.append(f"semanal en posición el {round(frac * 100)} % de los días (< 30 %)")
         ci = _spread_ci(ph.get("pos_days_by_block") or [])
         if ci and ci[0] <= MIN_POS_DAYS_FRAC <= ci[1]:
             edge.append("días en posición")
     else:
         need = MIN_OPS_MONTH[band]
         if ph["ops_month"] < need:
-            reasons.append(f"{band}: {ph['ops_month']:.1f} operaciones al mes (< {need:g})")
+            reasons.append(f"{band}: {_c(ph['ops_month'], 1)} operaciones al mes (< {need:g})")
         lo, hi = poisson_ci(n)
         if days and lo / days * 30 <= need <= hi / days * 30:
             edge.append("cadencia")
     cost, sd, nc = ph.get("cost_r_mean"), ph.get("cost_r_sd"), ph["closed"]
     if cost is not None and cost > MAX_COST_R:
-        reasons.append(f"costo medio {cost:.3f} R (> {MAX_COST_R:g} R, V6 de T49)")
+        reasons.append(f"costo medio {_c(cost, 3)} R (> {_c(MAX_COST_R, 1)} R, V6 de T49)")
     if cost is not None and sd and nc > 1 and abs(cost - MAX_COST_R) <= 1.96 * sd / math.sqrt(nc):
         edge.append("costo")
     if anticipation:
@@ -117,9 +127,12 @@ def judge(declared: str, ph: dict, anticipation: bool) -> dict:
     else:
         expected = per_day * TERM_DAYS
         no_first = expected < FIRST_TEAM_OPS
+    reassigned = measured is not None and measured != declared
+    kept_declared = (not judge(declared, ph, anticipation, reassign=False)["discarded"]
+                     if reassigned and reasons else None)
     return {
         "declared_band": declared, "measured_band": measured, "band": band,
-        "reassigned": measured is not None and measured != declared,
+        "reassigned": reassigned, "kept_with_declared_band": kept_declared,
         "discarded": bool(reasons), "reasons": reasons, "borderline": edge,
         "expected_in_term": round(expected, 1),
         "no_first_team": (not reasons) and no_first,
