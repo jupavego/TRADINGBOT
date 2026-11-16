@@ -45,6 +45,18 @@
    "concept": "sentiment",
    "stance": "apoya",
    "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "kosc_2019",
+   "concept": "mean_reversion",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "chevapatrakul_mascia_2019",
+   "concept": "mean_reversion",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
   }
  ],
  "prospects": [
@@ -102,6 +114,38 @@
     "bikhchandani_1992"
    ],
    "horizon": "tres_dias"
+  },
+  {
+   "id": "bots_contrario",
+   "name": "Contra la unanimidad",
+   "role": "candidato",
+   "theory": "Teoría opuesta del rebaño: cuando todos los bots coinciden, la posición está llena y el movimiento tiende a revertir (operadores de ruido de DeLong et al. 1990; cascadas frágiles de Bikhchandani et al. 1992; efecto contrario de corto plazo en cripto, Kosc et al. 2019).",
+   "opposite_of": "bots_unanimidad",
+   "rule": "Cuando los bots ok (≥ min_bots) pasan a tener todos la misma postura no nula, con desacuerdo 0, entra en contra; sale al horizonte del agente (mediana de los bots que votan).",
+   "variables": [
+    "metrics.bots[].stance",
+    "metrics.bots[].status",
+    "metrics.disagreement"
+   ],
+   "params": {
+    "min_bots": {
+     "value": 3,
+     "source": "mínimo para hablar de consenso, igual que `bots_unanimidad` y `smart_money.full_leaders`"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "history_exam": "senales_guardadas",
+   "expected_cadence": "pocas al mes (las mismas formaciones de unanimidad que `bots_unanimidad`)",
+   "literature": [
+    "delong_1990",
+    "bikhchandani_1992",
+    "kosc_2019",
+    "chevapatrakul_mascia_2019"
+   ],
+   "horizon": "intradia",
+   "replaces": "regimen_tramo_estable"
   }
  ],
  "exclusion_reason": null,

@@ -11,7 +11,8 @@ from eim.nursery.rules.base import View
 NEW = {"ema_precio_200", "ema_cruce_21_55", "ema_retroceso_12h", "tec_acuerdo_tres_marcos",
        "tec_rsi_giro", "tec_compresion_bb_12h", "vwap_reversion_1h", "vwap_quincenal",
        "elliott_oscilacion", "elliott_dow", "elliott_tendencia_dow",
-       "estructura_ruptura_sc02", "estructura_cambio_sc04", "niveles_redondos", "lit_consenso_4h"}
+       "estructura_ruptura_sc02", "estructura_cambio_sc04", "niveles_redondos", "lit_consenso_4h",
+       "bots_contrario"}
 # Los que repiten la regla de un descartado con otra plantilla o marco (lección de T169).
 SAME_RULE = {"ema_retroceso_12h": "ema_retroceso", "tec_compresion_bb_12h": "tec_compresion_bb",
              "vwap_reversion_1h": "vwap_reversion", "lit_consenso_4h": "lit_consenso"}
@@ -32,13 +33,14 @@ def test_the_sixteen_replace_the_sixteen_discarded():
     disc = {p["id"]: p for d in docs.values() for p in d.get("discarded", [])}
     news = {p["id"]: p for d in docs.values() for p in d.get("prospects", []) if "replaces" in p}
     assert set(news) == NEW and len(disc) == 16
-    assert {p["replaces"] for p in news.values()} <= set(disc)
+    assert {p["replaces"] for p in news.values()} == set(disc)
     for pid, p in disc.items():
         assert p["discarded_by"] == "T169" and p["reasons"] and p["fingerprint"]
-        assert p["replaced_by"] is None or news[p["replaced_by"]]["replaces"] == pid
+        assert news[p["replaced_by"]]["replaces"] == pid
     # `regime` no llega a la cadencia en ningún marco: excluido, su plaza base pasa a `elliott`.
     assert docs["regime"]["status"] == "excluido" and not docs["regime"]["prospects"]
     assert news["elliott_tendencia_dow"]["replaces"] == "regimen_tramo"
+    assert news["bots_contrario"]["replaces"] == "regimen_tramo_estable"
     ids = {p.id for p in load_prospects()}
     assert NEW <= ids and not (set(disc) & ids)
 
@@ -122,3 +124,14 @@ def test_round_number_inside_the_support_zone(lo, hi, enters):
            "zones[].touches": [3, 3]}
     p = {"touch_atr": 0.5, "min_touches": 2, "paso_usd": 1000}
     assert r(_view("levels", [row], close=hi + 100.0), p).enter == (1 if enters else 0)
+
+
+def test_against_a_freshly_formed_bot_unanimity():
+    r = _rule("bots_contrario")
+    p = {"min_bots": 3}
+    split = {"bots[].stance": [1, -1, 1], "bots[].status": ["ok"] * 3, "disagreement": 0.4}
+    longs = {"bots[].stance": [1, 1, 1], "bots[].status": ["ok"] * 3, "disagreement": 0.0}
+    assert r(_view("bots", [split, longs]), p).enter == -1            # se forma: en contra
+    assert r(_view("bots", [longs, longs]), p).enter == 0             # ya estaba formada
+    two = longs | {"bots[].status": ["ok", "ok", "stale"]}
+    assert r(_view("bots", [split, two]), p).enter == 0               # menos de min_bots
