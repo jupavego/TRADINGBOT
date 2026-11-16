@@ -18,6 +18,7 @@ from eim.agents.arbitrage.rows import all_rows
 from eim.arbitrage.alerts import AlertParams, AlertTracker
 from eim.core import ArbMarket
 from eim.data.arb_store import ArbStore, arb_snapshot
+from eim.observability import hooks_service
 
 MODE = "ANALISIS"
 
@@ -45,6 +46,9 @@ class ArbDesk:
         if mkt is not None and res is not None:
             with self._lock:
                 alerts = self.tracker.update(res.selection, mkt.asof)
+            # T174: el motor de arbitraje es este cálculo; late como mucho una vez por minuto
+            hooks_service.beat("arbitrage.engine", min_interval_s=60,
+                               detail={"scan_asof": mkt.asof})
         p = self.tracker.p
         return {
             "type": "arbitrage", "mode": MODE, "label": LABEL, "now": now,

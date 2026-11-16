@@ -3,9 +3,10 @@
   border: 1px solid rgba(var(--glow), .22); border-radius: var(--radius); background: var(--glass);
   box-shadow: 0 0 28px rgba(var(--glow), .07), inset 0 0 40px rgba(var(--glow), .035);
   --st-ok: var(--up); --st-degradado: var(--warn); --st-error: var(--down); --st-obsoleto: #a86bd6;
-  --st-pausado: var(--neutral); --st-sin_datos: var(--muted); --st-planeado: var(--muted); }
+  --st-pausado: var(--neutral); --st-sin_datos: var(--muted); --st-en_espera: var(--muted); --st-planeado: var(--muted); }
 .obs-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .obs-head h3 { margin: 0; }
+.obs-age[data-tone="error"] { color: var(--down, #ff3d5f); }
 .obs-replay-btn { border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .obs-banner { margin: 0; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--warn); background: color-mix(in srgb, var(--warn) 14%, var(--panel)); }
 .obs-banner[data-tone="error"] { border-color: var(--down); background: color-mix(in srgb, var(--down) 14%, var(--panel)); }
@@ -38,6 +39,7 @@
 .obs-node.st-ok { stroke: var(--st-ok); } .obs-node.st-degradado { stroke: var(--st-degradado); } .obs-node.st-error { stroke: var(--st-error); }
 .obs-node.st-obsoleto { stroke: var(--st-obsoleto); stroke-dasharray: 2 4; } .obs-node.st-pausado { stroke: var(--st-pausado); }
 .obs-node.st-sin_datos { stroke: var(--st-sin_datos); stroke-dasharray: 10 3 2 3; }
+.obs-card.st-en_espera, .obs-sw.st-en_espera, .obs-badge.st-en_espera { border-color: var(--st-en_espera); border-style: dotted; opacity: .85; } .obs-node.st-en_espera { stroke: var(--st-en_espera); stroke-dasharray: 1 4; }
 .obs-node.st-planeado { stroke: var(--st-planeado); stroke-dasharray: 6 5; opacity: .75; fill: transparent; }
 .obs-t { fill: var(--text); font-size: 13px; font-weight: 600; } .obs-t.big { font-size: 15px; }
 .obs-s { fill: var(--muted); font-size: 11px; }
@@ -86,3 +88,15 @@
 @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
 /* T123: colas entre etapas */
 .obs-q { margin-bottom: 6px; } .obs-q-drop > b { color: var(--warn, #b7791f); }
+/* Plegable: el título pliega/despliega el mapa; plegado queda solo el encabezado con el resumen por estado */
+.obs-fold { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; }
+.obs-fold:hover { color: var(--accent); }
+.obs-fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.obs-chev { display: inline-block; transition: transform .2s ease; }
+.obs[data-folded="1"] .obs-chev { transform: rotate(-90deg); }
+.obs[data-folded="1"] .obs-fold-body, .obs[data-folded="1"] .obs-panes, .obs[data-folded="1"] .obs-views { display: none; }
+.obs-fold-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.obs-sum { display: none; gap: 8px; font-size: 12px; }
+.obs[data-folded="1"] .obs-sum { display: inline-flex; flex-wrap: wrap; }
+.obs-sum-i { padding: 1px 8px; border: 1px solid var(--line); border-radius: 999px; }
+.obs-sum-i.st-ok { border-color: var(--st-ok); } .obs-sum-i.st-error { border-color: var(--st-error); } .obs-sum-i.st-degradado { border-color: var(--st-degradado); }

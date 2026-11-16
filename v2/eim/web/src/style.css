@@ -150,11 +150,8 @@ select, .btn, .seg button {
 .tip .ev, .tip .warn { margin: 4px 0; padding-left: 16px; }
 .tip p { margin: 6px 0 0; }
 
-/* ── Más análisis (T11) ── */
-#app[data-view="more"] > :not(.topbar):not(#more) { display: none; }
-.more { margin: 12px 20px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
-.more[hidden] { display: none; }
-.more-body { padding: 14px 16px 18px; }
+/* ── Análisis portados (T11): antes vista «Más análisis», ahora pestañas inferiores ── */
+.tabbody.more-body { color: var(--text); }
 .mrow { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
 .mrow label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
 .mrow input, .mrow select { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; max-width: 160px; }
@@ -165,7 +162,7 @@ select, .btn, .seg button {
 .mt th { color: var(--muted); font-weight: 500; }
 .mt.heat td, .mt.heat th { text-align: center; }
 .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
-.more h4 { margin: 10px 0 6px; font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+.more-body h4 { margin: 10px 0 6px; font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
 .kpi-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
 .kpi { border: 1px solid var(--line); border-radius: 12px; padding: 8px 14px; min-width: 140px; display: flex; flex-direction: column; }
 .kpi b { font-size: 22px; }
@@ -279,9 +276,17 @@ td[data-sign="-1"] { color: var(--down); }
 }
 .river::before { background-image: radial-gradient(rgba(34, 225, 255, .3) 1px, transparent 1px); opacity: .3; }
 .river .rl { fill: var(--text); font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+/* Satélites del río: el nombre solo aparece al pasar el puntero o con el foco; el resto vive en el detalle. */
+.river .rname { fill: var(--text); font-size: 13px; font-weight: 600; letter-spacing: .02em; paint-order: stroke; stroke: var(--bg); stroke-width: 3px; }
+.river .trib .hov { opacity: 0; transition: opacity .2s; pointer-events: none; }
+.river .trib:is(:hover, :focus-visible, .sel) .hov { opacity: 1; }
 .river .rv { fill: var(--muted); font-size: 11px; }
 .river .rvv { font-size: 11px; font-weight: 700; }
 .river .hsphere { position: absolute; pointer-events: none; }
+/* Planetas de la mitad delantera: SVG alineado con el del río, encima del canvas de la esfera. */
+.river .rfront { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.river .rfront .trib { pointer-events: auto; }
+.river .orbit-paths ellipse { fill: none; stroke: var(--holo); stroke-width: 1; stroke-dasharray: 3 6; opacity: .4; }
 .river .rcore { position: absolute; transform: translate(-50%, -100%); pointer-events: auto; cursor: help; display: flex; flex-flow: row wrap; justify-content: center; align-items: baseline; column-gap: clamp(10px, 2vw, 26px); width: max-content; max-width: 60%; line-height: 1.15;
   text-shadow: 0 0 4px #040a13, 0 0 10px #040a13, 0 0 18px currentColor; }
 .river .rcore b { display: flex; align-items: baseline; gap: 6px; font: 700 clamp(12px, 1.6vw, 20px)/1.2 var(--f-num, ui-monospace, monospace); opacity: .8; }
@@ -378,3 +383,10 @@ td[data-sign="-1"] { color: var(--down); }
 /* Pestaña Inversionistas: documento autocontenido (public/inversionistas.html) a todo el ancho */
 .tabbody.inv { padding: 0; }
 .tabbody.inv iframe { display: block; width: 100%; height: 100%; min-height: 78vh; border: 0; background: #040a13; }
+
+/* Mesa sin gráfico de velas ni simulador: solo queda el panel de pestañas inferior.
+   El aviso de conexión deja de flotar sobre el gráfico y va como franja bajo la barra superior. */
+.desk { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "bottom"; }
+@media (max-width: 900px) { .desk { grid-template-rows: auto; } }
+#banner { position: static; transform: none; margin: 12px 20px 0; max-width: none; }
+#banner[hidden] { display: none; }

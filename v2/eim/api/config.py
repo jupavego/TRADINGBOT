@@ -73,6 +73,7 @@ class Settings:
     paper_poll_s: float = 60.0
     paper_variants: tuple[str, ...] = ()   # T143: corridas aparte en papel (EIM_PAPER_VARIANTS)
     val_attempts: bool = False  # T137: da de alta los intentos versionados (1 en from_env)
+    nursery: bool = False       # T168: cantera (variante `cantera`); apagada salvo EIM_NURSERY=1
     extra: dict[str, str] = field(default_factory=dict)
 
     @property
@@ -121,4 +122,5 @@ class Settings:
             paper_poll_s=float(env.get("EIM_PAPER_S", d.paper_poll_s)),
             paper_variants=tuple(_csv(env.get("EIM_PAPER_VARIANTS", "")) or ()),
             val_attempts=env.get("EIM_VAL_ATTEMPTS", "1") != "0",
+            nursery=env.get("EIM_NURSERY", "0") == "1",
         )

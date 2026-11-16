@@ -10,7 +10,7 @@ from __future__ import annotations
 import os
 import threading
 import time
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 
 from eim.agents.registry import AgentRegistry, default_registry
@@ -46,8 +46,10 @@ def closed_asofs(last_candle_t: int, bar_ms: int, n: int, step: int = 1) -> list
 
 class CtxGenerator:
     def __init__(self, store: Store, registry: AgentRegistry | None = None,
-                 timeframe: str = "1h", agent_timeout_s: float = 30.0) -> None:
+                 timeframe: str = "1h", agent_timeout_s: float = 30.0,
+                 native: Mapping[str, tuple[str, ...]] | None = None) -> None:
         self.store, self.tf = store, timeframe
+        self.native = native        # T168: variables nativas de la cantera (None = apagada)
         self.bar = tf_ms(timeframe)
         reg = registry or default_registry()
         self.agents = [a for a in reg.latest() if a.id not in SKIP_AGENTS]
@@ -66,7 +68,7 @@ class CtxGenerator:
                                 drift=synthesis_drift(reports, self.expected, fsnap))
         except (ValueError, LookupError):
             fs = None
-        return make_ctx(snap, reports, self.expected, fs, self.bar)
+        return make_ctx(snap, reports, self.expected, fs, self.bar, native=self.native)
 
     def run(self, pstore: PaperStore, symbol: str, asofs: Iterable[int],
             origin_of: Callable[[int], str], stop: threading.Event | None = None,
@@ -97,7 +99,7 @@ class CtxGenerator:
                   progress: Callable[[int, int], None] | None, workers: int) -> int:
         saved = done = 0
         with ProcessPoolExecutor(workers, initializer=_init_worker,
-                                 initargs=(str(self.store.root), self.tf)) as pool:
+                                 initargs=(str(self.store.root), self.tf, self.native)) as pool:
             pending = {pool.submit(_worker_ctx, symbol, a) for a in todo}
             try:
                 while pending:
@@ -121,9 +123,10 @@ class CtxGenerator:
 _WORKER: CtxGenerator | None = None
 
 
-def _init_worker(data_dir: str, timeframe: str) -> None:
+def _init_worker(data_dir: str, timeframe: str,
+                 native: Mapping[str, tuple[str, ...]] | None = None) -> None:
     global _WORKER
-    _WORKER = CtxGenerator(Store(data_dir), timeframe=timeframe)
+    _WORKER = CtxGenerator(Store(data_dir), timeframe=timeframe, native=native)
 
 
 def _worker_ctx(symbol: str, asof: int) -> dict | None:

@@ -7,16 +7,20 @@ estrategias —baratas— se reevalúan sobre él cuantas veces haga falta. Solo
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 
 import numpy as np
 
 from eim.agents.levels.pivots import atr
 from eim.core import AgentReport, ForecastSet, MarketSnapshot
+from eim.nursery.native import native_block
 from eim.synthesis import synthesize
 from eim.synthesis.setups import SetupParams, levels_of, suggest
 from eim.synthesis.synth import drift_of
 
 CTX_VERSION = 2       # 2: añade `lit` (aciertos compactos del agente `literature`, T54)
+# `nat` (T168, cantera) es opcional y no cambia la versión: solo aparece con `EIM_NURSERY=1` y
+# guarda las variables nativas que algún prospecto declara (`eim/nursery/native.py`).
 HOUR_MS = 3_600_000
 VOL_BARS = 200        # mismas velas que `/v2/setups` para la volatilidad
 ATR_PERIOD = 14
@@ -80,15 +84,19 @@ def lit_summary(rep: AgentReport | None) -> dict | None:
 
 def make_ctx(snap: MarketSnapshot, reports: list[AgentReport], expected: list[str],
              forecast: ForecastSet | None, bar_ms: int,
-             setup_params: SetupParams | None = None) -> dict:
-    """Contexto compacto de `snap.asof` a partir de reportes ya calculados."""
+             setup_params: SetupParams | None = None,
+             native: Mapping[str, tuple[str, ...]] | None = None) -> dict:
+    """Contexto compacto de `snap.asof` a partir de reportes ya calculados.
+
+    `native` (T168): rutas por agente que declaran los prospectos de la cantera; sin él (cantera
+    apagada) el contexto es exactamente el de siempre."""
     byid = {r.agent_id: r for r in reports}
     syn = synthesize(reports, expected=expected)
     close, a, sigma_h = vol_inputs(snap, bar_ms)
     setups = (suggest(close, sigma_h, a, levels_of(reports), syn, setup_params,
                       bar_hours=bar_ms / HOUR_MS) if a > 0 and sigma_h > 0 else [])
     reg = byid.get("regime")
-    return {
+    ctx = {
         "v": CTX_VERSION, "t": snap.asof, "close": _r(close), "atr": _r(a), "sigma_h": _r(sigma_h),
         "agents": {r.agent_id: [_r(r.bias), _r(r.confidence), r.status] for r in reports},
         "regime": reg.metrics.get("regime") if reg is not None and reg.status == "ok" else None,
@@ -103,6 +111,9 @@ def make_ctx(snap: MarketSnapshot, reports: list[AgentReport], expected: list[st
                    for s in setups],
         "fc": forecast_summary(forecast),
     }
+    if native:
+        ctx["nat"] = native_block(reports, native)
+    return ctx
 
 
 def synthesis_drift(reports: list[AgentReport], expected: list[str],

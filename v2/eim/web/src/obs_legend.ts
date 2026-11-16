@@ -4,7 +4,8 @@ import { esc, STATE_ICON, STATE_LABEL, type ObsState } from './obs_types'
 const HINT: Record<ObsState, string> = {
   ok: 'Emitió eventos a tiempo y sin fallos.', degradado: 'Funciona, pero con datos parciales.',
   error: 'Falló en su última ejecución.', obsoleto: 'Su última señal es más vieja de lo esperado.',
-  pausado: 'Detenido a propósito.', sin_datos: 'Sin señales recientes: no se supone sano.',
+  pausado: 'Detenido a propósito (apagado por configuración).', sin_datos: 'Sin señales recientes: no se supone sano.',
+  en_espera: 'Se usa a demanda y aún no se ha usado. No es una avería.',
   planeado: 'Previsto en el plan, aún sin código. No es una avería.',
 }
 

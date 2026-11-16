@@ -1,0 +1,81 @@
+{
+  "task": "T163",
+  "generated_at": "2026-11-11T20:20:34Z",
+  "prereg": "PLAN/notas/T163_potencia.md",
+  "symbol": "BTCUSDT",
+  "mode": "SIMULADO",
+  "data": {
+    "bank": "C:\\Users\\jo\\Desktop\\JP\\TRADINGBOT\\v2\\backups\\t139_banco",
+    "days_valid": 2615,
+    "first_day": "2019-09-09T00:00:00Z",
+    "last_day": "2026-11-05T00:00:00Z",
+    "min_coverage": 0.9,
+    "funding_points": 7842
+  },
+  "spec": {
+    "lookbacks": [
+      20,
+      60,
+      120
+    ],
+    "vol_window": 60,
+    "vol_target": 0.3,
+    "max_leverage": 3.0,
+    "rebalance": "lunes 00:00 UTC",
+    "costs": "T25 CostParams() + funding 8 h"
+  },
+  "gate": {
+    "power_tramo": {
+      "from": "2020-01-06",
+      "to": "2020-12-31",
+      "n": 358,
+      "sd_daily": 0.01724,
+      "vol_annual": 0.3294,
+      "skew": 4.619,
+      "kurt": 54.0004,
+      "politis_white_block": 4.019,
+      "nw_window": 4.0,
+      "kappa_raw": 0.8397,
+      "acf": [
+        -0.1493,
+        0.0592,
+        -0.0293,
+        0.0779
+      ],
+      "kappa": 1.0,
+      "mean_and_sharpe": "no calculados (pre-registro)",
+      "first_day_real": "2020-01-08T00:00:00Z"
+    },
+    "s_min": 0.7,
+    "alpha": 0.05,
+    "power": 0.8,
+    "n_apriori_days": 4605.4,
+    "n_apriori_years": 12.62,
+    "mintrl_days": 1711.1,
+    "mintrl_years": 4.69,
+    "n_eval_days": 2135,
+    "n_eval_years": 5.85,
+    "mde_eval": 1.0281,
+    "n_sub_days": 1040,
+    "mde_sub": 1.4731,
+    "n_max_days": 2494,
+    "n_max_years": 6.83,
+    "mde_max": 0.9512,
+    "observable_threshold_eval": 0.6801,
+    "observable_threshold_sub": 0.9744,
+    "achieved_power_eval": 0.5192,
+    "achieved_power_sub": 0.3216,
+    "achieved_power_max": 0.5734,
+    "years_needed_by_sharpe": {
+      "0.50": 24.73,
+      "0.70": 12.62,
+      "1.00": 6.18,
+      "1.41": 3.11,
+      "2.00": 1.55,
+      "2.41": 1.06
+    },
+    "passes": false
+  },
+  "verdict": "SIN POTENCIA: se cierra sin pre-registro y sin gastar el intento de Holm",
+  "holm_family_spent": false
+}

@@ -10,6 +10,8 @@ const num = (x: unknown, d = 2): string => (typeof x === 'number' ? x.toLocaleSt
 /** Frase armada SOLO con datos del último evento (jamás texto libre de un LLM). */
 export function plainWords(c: ObsComp, e: ObsEvent | undefined): string {
   if (c.built === 'planeado') return `Aún no existe: está planeado en la tarea ${c.task}. No es una avería.`
+  if (c.off_reason) return esc(c.off_reason)                        // T174
+  if (c.idle) return 'Se usa a demanda y todavía no se ha usado desde que hay registro. No es una avería.'
   if (!e) return 'Aún no hay actividad registrada de este componente.'
   const t = ago(e.ts_utc), det = e.detail ?? {}
   const src = e.source ? ` de ${esc(e.source)}` : ''
@@ -47,7 +49,6 @@ export async function detailHtml(d: ObsData, id: string, signal?: AbortSignal): 
   }
   const last = evs[0]
   const refs = (last ? [...last.inputs.map((r) => `entra: ${r.type} ${r.id}`), ...last.outputs.map((r) => `sale: ${r.type} ${r.id}`)] : []).slice(0, 6)
-  const trace = last?.trace_id
   return `<header class="obs-dh"><span class="obs-badge st-${st}">${STATE_ICON[st]} ${STATE_LABEL[st]}</span>
       <h3>${esc(c.title_es)}</h3><button class="obs-x" data-close aria-label="Cerrar detalle">×</button></header>
     <p class="obs-explain">${esc(c.explain_es)}</p>
@@ -61,6 +62,5 @@ export async function detailHtml(d: ObsData, id: string, signal?: AbortSignal): 
     ${refs.length ? `<h4>Últimas entradas y salidas <small class="muted">(referencias)</small></h4><ul class="obs-ul">${refs.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
     ${(() => { const qs = (d.queues ?? []).filter((q) => q.component_id === id); return qs.length ? `<h4>Colas de esta pieza <small class="muted">(lo que espera entre etapas y lo descartado)</small></h4><ul class="obs-ul">${qs.map(queueHtml).join('')}</ul>` : '' })()}
     ${errs.length ? `<h4>Últimos errores</h4><ul class="obs-ul">${errs.map((r) => `<li>${ago(r.started_ms)} · ${esc(r.error ?? 'sin mensaje')}</li>`).join('')}</ul>` : ''}
-    <p class="obs-links">${trace ? `<button class="obs-link" data-open-trace="${esc(trace)}" title="Ver qué ocurrió con esa vela, paso a paso">Ver su traza completa</button>` : ''}
-      ${c.kind === 'agent' ? '<small class="muted">Su tarjeta está en la mesa, pestaña «Escenarios».</small>' : ''}</p>`
+    <p class="obs-links">${c.kind === 'agent' ? '<small class="muted">Su tarjeta está en la mesa, pestaña «Escenarios».</small>' : ''}</p>`
 }

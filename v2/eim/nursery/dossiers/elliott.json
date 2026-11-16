@@ -19,6 +19,11 @@
    "name": "metrics.prob_up_pct",
    "source": "velas de futuros Binance (snapshot.candles)",
    "note": ""
+  },
+  {
+   "name": "metrics.pivots[-1].type",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "H/L del último pivote: da la dirección de la onda siguiente"
   }
  ],
  "history": {
@@ -56,7 +61,8 @@
    "rule": "Entra en la dirección de la onda 1 cuando se confirma el pivote 2 y valid_count es verdadero; sale al confirmarse el pivote 3.",
    "variables": [
     "metrics.pivots[-1].wave_label",
-    "metrics.valid_count"
+    "metrics.valid_count",
+    "metrics.pivots[-1].type"
    ],
    "params": {
     "threshold_pct": {
@@ -81,7 +87,8 @@
    "rule": "Entra contra el impulso cuando se confirma el pivote 5 con conteo válido; sale al confirmarse el pivote A.",
    "variables": [
     "metrics.pivots[-1].wave_label",
-    "metrics.valid_count"
+    "metrics.valid_count",
+    "metrics.pivots[-1].type"
    ],
    "params": {
     "threshold_pct": {
@@ -101,7 +108,8 @@
  "exclusion_reason": null,
  "reserve": [],
  "notes": [
-  "Sin respaldo académico en el catálogo T151: se inscribe porque es una teoría del agente y medirla hacia adelante es barato; se espera baja o descarte por cadencia."
+  "Sin respaldo académico en el catálogo T151: se inscribe porque es una teoría del agente y medirla hacia adelante es barato; se espera baja o descarte por cadencia.",
+  "T168 (2026-11-11): las dos reglas leen además el tipo (H/L) del último pivote, que es lo que da «la dirección de la onda 1» o «contra el impulso»; sin parámetros nuevos. Aviso para T169: el agente etiqueta los últimos pivotes y el último queda casi siempre en «C»."
  ],
  "performance_computed": false
 }

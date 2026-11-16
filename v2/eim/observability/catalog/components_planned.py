@@ -20,7 +20,7 @@ PLANNED: tuple[Component, ...] = (
     c("video.watcher", "video", "datos", "service", "video", "T64", "Vigilancia de canales",
       "Vigila canales de YouTube elegidos (solo metadatos, Data API v3) y ordena los videos "
       "por relevancia con un tope diario. Opcional: solo corre con EIM_VIDEO=1.",
-      cadence="cada hora", cadence_s=3600, produces=("video_queue",)),
+      cadence="cada hora", cadence_s=3600, produces=("video_queue",), switch="video"),
     c("video.transcribe", "video", "datos", "service", "video", "T65", "Transcripción",
       "Obtendrá el texto del video con marcas de tiempo, subtítulos primero y voz local si "
       "faltan. Aún no existe.", consumes=(("video.watcher", "video_queue"),),

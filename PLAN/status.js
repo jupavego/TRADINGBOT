@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T08:26:44",
+ "generated": "2026-11-11T20:32:12",
  "phases": [
   {
    "n": 0,
@@ -274,7 +274,8 @@ window.EIM_STATUS = {
     "T147",
     "T148",
     "T149",
-    "T173"
+    "T173",
+    "T174"
    ]
   },
   {
@@ -2427,8 +2428,8 @@ window.EIM_STATUS = {
     "T145",
     "T161"
    ],
-   "state": "pending",
-   "notes": "Misma investigación. La forma de la literatura que T139 no probó (cartera continua, no entradas con stop). ◆ si se gasta el intento de Holm.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-11). Veredicto: SIN POTENCIA; no se midió nada y no se gastó el intento de Holm (sigue en 841).** ◆ abierta por el usuario con la condición de calcular el MinTRL primero (BACKLOG T161 (3)). Puerta declarada en `PLAN/notas/T163_potencia.md` (commit `483915b`, anterior a toda cifra): una sola especificación —cartera continua de BTCUSDT, señal de 20/60/120 días, σ objetivo 30 % anual, tope 3×, rebalanceo los lunes, costos de T25 con funding de 8 h— y `S_min` = **0,70** de Sharpe neto anualizado (la mitad del único Sharpe fuera de muestra publicado, 1,41 en *majors* con sesgo de supervivencia admitido; y las cifras publicadas son multiactivo, esta es una sola pata). **Detectar 0,70 con potencia 0,80 exige 4 605 días (12,62 años) y hay 2 135 (5,85) en el tramo de evaluación, 2 494 (6,83) en toda la vida del instrumento**: falla por un factor 2,2, y el subtramo 2024–2026 (1 040 días) no detecta ni el 1,41 publicado (mínimo detectable 1,473). La potencia real para 0,70 es 51,9 % (32,2 % en 2024–2026): una moneda al aire. κ de Newey-West no es la causa (sin suelo 0,8397: los días se compensan, autocorrelación de retardo 1 −0,149). **Matiz para T136:** sin stops la σ objetivo sí controla la dispersión (32,9 % realizada frente al 30 % pedido), pero la cola se concentra (asimetría +4,6, curtosis 54 con el 12-M-2020 dentro). Código `eim/backtest/tsmom.py` + `tests/backtest/test_tsmom.py` (10 pruebas: causalidad, costos, funding, ruina, sin look-ahead) y `scripts/t163_tsmom.py`; informe `v2/reports/t163_tsmom.{md,json}`.",
    "effort": "medio",
    "phase": 26
   },
@@ -2467,8 +2468,8 @@ window.EIM_STATUS = {
     "T133",
     "T161"
    ],
-   "state": "pending",
-   "notes": "Misma investigación. Comparación en el banco de T133 antes de construir más de un modelo.",
+   "state": "done",
+   "notes": "**Hecha (2026-11-11). Veredicto: SIN POTENCIA; no se construye ningún modelo de régimen.** Pre-registro `PLAN/notas/T166_preregistro.md` (v1 `d5ae85e`, v2 `9c6cce2`, las dos anteriores a cualquier cifra del banco; la v2 corrige, con el procedimiento del v3 de T134, la regla de asignación en línea y la rejilla de penalizaciones, que dejaban dos candidatos iguales al suelo). Con 1 037 días de evaluación del banco de T133, la mejora de QLIKE mínima detectable es **0,146** frente a la puerta pre-registrada de 0,020 (σ de las diferencias emparejadas 1,89, cuatro veces la de T162 entre dos modelos continuos): harían falta ≈ 55 065 días (151 años), así que no se calculó el MCS ni ninguna p (BACKLOG T161 (3)). Lo que sí se contesta: en **persistencia** el modelo de saltos aplasta al HMM gaussiano con los mismos rasgos (permanencia 51,9 frente a **2,6 días**, 19 frente a 393 cambios), así que si se retoma el régimen el candidato es ese y no el HMM de T77; y sobre el **R del banco** el estado separa (ΔR 0,035–0,063 con IC que excluyen 0 en 29 828 operaciones fuera de muestra) pero **todas las mitades pierden** (la mejor −0,1043 R frente a −0,1538), igual que el oráculo perfecto de T133. Ningún etiquetador se acerca al Log-HAR-RV de T162 (QLIKE 0,2713 frente a 0,35–0,42): la vía medible es el estado **como regresor del HAR**, que queda en BACKLOG. Código `eim/agents/regime/{jump,hmm,daily}.py` y `mcs_with_aliases` en `validation/spa.py` (`mcs_losses` abortaba con pérdidas idénticas); `jumpmodels` es Apache 2.0 pero exige scikit-learn, que no está en el venv, así que el modelo va en NumPy. Informe `v2/reports/t166_regimen.md`. **Gate completo verde por la cola sobre el árbol empujado** (`gate-t166-final`, **3 635 pruebas pasadas, 8 omitidas, 0 fallos**, 1 847 s, rc 0, una pausa de la cola) y `ruff check eim tests` limpio; antes, `gate-t166` dio 3 633/8/0 rc 0 sobre el árbol previo a fusionar `main`. Nada en vivo tocado.",
    "effort": "bajo",
    "phase": 26
   },
@@ -2494,8 +2495,8 @@ window.EIM_STATUS = {
     "T49",
     "T143"
    ],
-   "state": "pending",
-   "notes": "—",
+   "state": "done",
+   "notes": "`v2/eim/nursery/` (contrato `Prospect` con huella, 43 prospectos de los expedientes de T167, 13 módulos de reglas nativas puras, simulación maker con markout y funding real, cuentas propias con gemelos pareados y puerta de costo a 0,3 R) + `GET /v2/nursery`; contexto con `nat` solo con `EIM_NURSERY=1`, base propia `data/paper_cantera.duckdb`. Rescatada de una sesión caída: 3 fallos arreglados (ver `PLAN/notas/T168_motor_cantera.md` §5). En una semana real (882 contextos) **operan 32 de los 43** y la puerta cerró 15 m sola al medir 0,342 R con sus 50 operaciones de sombra; gate completo verde por la cola tres veces (la última, 3 671 pruebas sobre el árbol fusionado). Apagada hasta el pre-registro de T170",
    "effort": "alto",
    "phase": 27
   },
@@ -2566,6 +2567,20 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 21,
    "goal": "Que el vigilante de T148 no gaste sus cuatro intentos en un servicio que está vivo pero sin red, y"
+  },
+  {
+   "id": "T174",
+   "title": "El mapa del sistema no da por «sin datos» lo que está apagado o se usa a demanda",
+   "deps": [
+    "T75",
+    "T123",
+    "T148"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-11, sin desplegar.** Del diagnóstico del mapa vivo (34 «sin datos» de 83). `eim/observability/switches.py` + campo `switch` del catálogo: testnet, arbitraje en testnet, carril HFT (hasta T85), experiencia compartida, contexto sin LLM y video salen **«Pausado»** con el motivo; lo de uso a demanda sin uso sale **«En espera» (◌)** (`/v2/obs/components` → `off_reason`, `idle`). Emisores nuevos o con el nombre del catálogo: fotografía, noticias, liquidaciones, `bots.runner`/`bots.vote` (antes `bots.service`), puerta única, motor de arbitraje, copia simulada, publicador y seguimiento de sugerencias. Calendario sin falso degradado (eventos futuros). Síntesis declara a arbitrage, bots, calendar, context y literature (desvío de T75). UI `web/src/obs_{types,graph,iso,legend,detail}.ts` + `obs.css`. Tests `tests/observability/test_t174_map.py` (7) y `tests/api/test_obs_api.py`. Falta: gate completo y `npm run build` en el equipo, y reiniciar la API (la del 8000 corría código anterior al 1-nov).",
+   "effort": "medio",
+   "phase": 21,
+   "goal": "Que cada «sin datos» del mapa signifique de verdad «no hay señal de que esto funcione», y no"
   }
  ]
 };

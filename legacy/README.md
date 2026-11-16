@@ -24,7 +24,7 @@ cuando todo su comportamiento ya estaba migrado al paquete `v2/eim/`.
 | `eim_liquidations.py` | `eim/data/providers/liquidations.py` |
 | `eim_market_data.py`, `eim_data.py` | `eim/data/providers/` (binance, multi_asset) |
 | `eim_bitacora.py` | `eim/analytics/bitacora*.py` + `POST /v2/more/bitacora` |
-| `eim_web.py`, `web/index.html` | `eim/api/` + `eim/web/` (pestañas en «Más análisis») |
+| `eim_web.py`, `web/index.html` | `eim/api/` + `eim/web/` (pestañas inferiores de la mesa; antes «Más análisis») |
 
 ## Cuándo borrarlo
 Cuando los goldens de `v2/tests/fixtures/golden/` se consideren la única referencia (ya lo son para

@@ -145,6 +145,31 @@ semanal**, no solo de mediano plazo. Cada horizonte se mide en su propia unidad,
 | **Primer equipo** | Criterios `cantera_v1` completos: **StepM de Romano-Wolf** en la mirada final, Sharpe deflactado con el **N efectivo** (prospectos agrupados por correlación) declarado junto al nominal, d_j con signo coherente en ≥ 2 regímenes, **orden persistente** entre los meses 1–3 y 4–6, drawdown y costo como V4–V6. El PBO/CSCV se informa como descriptivo, no decide | ◆ del usuario: **confirma o veta** la salida mecánica (no elige entre candidatos); inscribir en T49 |
 | **Baja** | **Futilidad:** la cota superior del R neto frente a los gemelos queda por debajo de μ_mín = +0,10 R (pre-registrado); drawdown de su cuenta por encima del tope **calibrado por simulación** con la ventaja objetivo de +0,25 R (probabilidad de baja injusta fijada de antemano); sin operaciones en 60 días o fecha límite (6 meses) | Definitiva; **sigue contando en la familia** |
 
+### Sensibilidad de los veredictos (decisión del usuario, 2026-11-11)
+
+El usuario pide, el mismo día en que vio cerrarse **T166 y T163 «sin potencia»** (en T163 el MinTRL
+pedía 12,62 años de historia y hay 5,85, así que ni se escribió el pre-registro), que los veredictos
+de la fase 27 sean **muy sensibles**: que diferencias pequeñas de desempeño entre prospectos se
+puedan **notar, evaluar, desarrollar y hacer evolucionar**. Una hipótesis confirmatoria sobre
+historia fija y un vivero que mide hacia adelante no se juzgan con la misma vara.
+
+1. **Dos capas, explícitas.** *Dentro* de la cantera, escalafón sensible: e-proceso por prospecto y
+   e-BH mensual con **q = 0,10**, R encogido por el modelo jerárquico, persistencia del orden y
+   contribución marginal. En la **puerta de ascenso a primer equipo** y en cualquier cosa que toque
+   dinero, el criterio estricto ya diseñado (**StepM de Romano-Wolf**, T49) **sin aflojar un punto**.
+2. **La sensibilidad se gana reduciendo varianza y subiendo n, no bajando el umbral:** gemelos
+   aleatorios pareados sobre el mismo camino (la vara pareada, no una comparación suelta), las bandas
+   de horizonte con scalping a 15 m (más operaciones al mes) y evidencia que **se acumula en el
+   tiempo** (miradas libres de los e-procesos) en lugar de un n fijo.
+3. **Nada de puerta de potencia estilo T163 para la cantera:** no se cierra un prospecto porque «no
+   habría n suficiente». Se le deja acumular evidencia, o se le da de baja por **futilidad** frente a
+   μ_mín, que es otra cosa: un veredicto con datos, no una negativa antes de empezar.
+4. **Declarar el precio:** con q = 0,10 se esperan falsas promesas, así que el informe (T172) dice
+   **cuántas se esperan** bajo la nula global, simuladas con los gemelos.
+
+Casi todo esto ya estaba en el diseño (§3 arriba, §10 y `PLAN/T170.md`); la decisión lo confirma como
+**intención declarada** y prohíbe endurecer el escalafón interno «por prudencia» en T170.
+
 ## 4. Los 19 agentes: expedientes verificados (T167, 2026-11-11)
 
 Cerrado por T167. Cada agente tiene su expediente en `v2/eim/nursery/dossiers/<id>.json` con sus

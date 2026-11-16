@@ -19,21 +19,31 @@ def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str,
                    origin_of: Callable[[dict], str] | None = None,
                    catalog: dict[str, StrategyInfo] | None = None,
                    timeframe: str = "1h", htf: Callable[[int], int] | None = None,
-                   exec_params: ExecParams | None = None) -> list[Idea]:
+                   exec_params: ExecParams | None = None,
+                   maker_entry: bool | None = None) -> list[Idea]:
     """Todas las ideas candidatas, en orden de tiempo y de catálogo.
 
     `candles` = serie de decisión (1 h) que cubre los contextos; cada estrategia ve el índice de
     la última vela cerrada en `ctx["t"]` (abrió en `t − bar_ms`), nunca una posterior. Cada idea
     lleva la versión de su estrategia en ese marco con esa mecánica (`exec_params`, T49).
+
+    `maker_entry` fuerza o impide la conversión de la entrada a orden límite (T143); por defecto
+    se aplica solo con el catálogo de producción.
     """
     cat = catalog or CATALOG
     cat = {k: v for k, v in cat.items() if v.runs_in(timeframe)}
     vers = {info.id: info.version(timeframe, exec_params) for info in cat.values()}
     # T143 (1b): en los marcos adoptados la entrada a mercado se pide como orden límite al mismo
-    # precio. Es la MISMA conversión que midió `reports/t143_maker.md` (`maker_ab.to_limit`), no
-    # una reimplementación: lo que se despliega es exactamente lo que se midió.
+    # precio. Es la MISMA conversión que midió `reports/t143_maker.md` (`ideas.to_limit`), no una
+    # reimplementación: lo que se despliega es exactamente lo que se midió.
+    #
+    # Solo con el catálogo de producción. Quien trae el suyo está corriendo su propia medición
+    # —las reglas de T139 y sus nulos (`eim/validation/hypotheses/`)— y tiene que recibir
+    # exactamente lo que pidió: T139 cerró con entradas a mercado y su control de entrada
+    # aleatoria se compara con ellas, así que convertirlas cambiaría lo que ya midió.
     ep = exec_params or ExecParams()
-    bars = ep.maker_entry_bars if timeframe in ep.maker_entry_timeframes else 0.0
+    use = (catalog is None) if maker_entry is None else maker_entry
+    bars = ep.maker_entry_bars if use and timeframe in ep.maker_entry_timeframes else 0.0
     maker = (lambda i: to_limit(i, bars)) if bars > 0 else (lambda i: i)
     ind = Ind(candles)
     out: list[Idea] = []

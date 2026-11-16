@@ -11,6 +11,8 @@ from eim.observability.catalog.model import Component, c
 
 _VOTERS = ("structure", "ema", "vwap", "price_action", "elliott", "seasonality", "liquidations",
            "levels", "derivatives", "microstructure", "regime", "technical", "smart_money")
+# T174 (desvío visto en T75): informan a la síntesis aunque no voten o voten con peso propio
+_INFORMERS = ("arbitrage", "bots", "calendar", "context", "literature")
 
 DATA: tuple[Component, ...] = (
     c("data.binance_rest", "data", "datos", "provider", "api", "T03", "Binance (consulta REST)",
@@ -85,7 +87,8 @@ FLOW: tuple[Component, ...] = (
       "Pondera la opinión de los analistas según su confianza y resta fuerza si discrepan. "
       "Entrega una tesis con su desacuerdo; calendario y arbitraje no votan.",
       cadence="cada cierre de vela", cadence_s=3600,
-      consumes=tuple((f"agent.{a}", "agent_report") for a in _VOTERS), produces=("synthesis",)),
+      consumes=tuple((f"agent.{a}", "agent_report") for a in (*_VOTERS, *_INFORMERS)),
+      produces=("synthesis",)),
     c("risk.killswitch", "risk", "riesgo", "gate", "api", "T29", "Interruptor de emergencia",
       "Estado global que bloquea órdenes nuevas y pide cerrar lo abierto. Se activa a mano o por "
       "pérdida máxima; ningún otro componente puede saltárselo.", produces=("kill_switch_state",)),
@@ -111,7 +114,7 @@ FLOW: tuple[Component, ...] = (
       "Revisa los planes de dos patas del arbitraje: tamaño, cuenta total y fallo de una pata. "
       "Mismo principio que el motor de riesgo: determinista y con veto.", cadence="cada ciclo",
       consumes=(("arbitrage.engine", "arb_scan"), ("risk.authority", "proposal")),
-      produces=("risk_decision",)),
+      produces=("risk_decision",), switch="arb_testnet"),
     c("arbitrage.engine", "arbitrage", "analisis", "engine", "api", "T38", "Motor de arbitraje",
       "Calcula oportunidades netas de costos (carry de funding, base, perpetuos relacionados) "
       "sobre la fotografía del mercado de arbitraje.", cadence="cada 60 s (10 s con ejecución)",
@@ -122,11 +125,12 @@ FLOW: tuple[Component, ...] = (
       "órdenes, libro al día y reloj. Aprueba o veta una a una y firma cada decisión.",
       cadence="por orden", consumes=(("data.hft_collector", "hft_events"),
                                      ("risk.killswitch", "kill_switch_state")),
-      produces=("risk_decision",)),
+      produces=("risk_decision",), switch="hft_live"),
     c("execution.hft", "execution", "ejecucion", "service", "hft", "T83", "Ejecución del carril HFT",
       "Envía solo órdenes aprobadas (sin cruzar el libro o solo para reducir), sigue los llenados "
       "por evento, cuadra con el exchange y lo cancela todo si falta el libro, el reloj o el latido.",
-      cadence="por orden", consumes=(("risk.hft_engine", "risk_decision"),), produces=("fill",)),
+      cadence="por orden", consumes=(("risk.hft_engine", "risk_decision"),), produces=("fill",),
+      switch="hft_live"),
     c("execution.gateway", "execution", "ejecucion", "gate", "api", "T30", "Puerta única de órdenes",
       "Solo deja pasar decisiones aprobadas y selladas por el riesgo, vigentes (60 s). Una orden "
       "fabricada, vetada o vieja se rechaza.", cadence="por orden",
@@ -142,7 +146,8 @@ FLOW: tuple[Component, ...] = (
     c("execution.testnet_broker", "execution", "ejecucion", "service", "api", "T30",
       "Testnet de Binance", "Envía órdenes a la testnet de Binance, solo a hosts de prueba y con "
       "claves sin permiso de retiro. Construido; falta la corrida completa con claves.",
-      cadence="por orden", consumes=(("execution.service", "order"),), produces=("fill",)),
+      cadence="por orden", consumes=(("execution.service", "order"),), produces=("fill",),
+      switch="testnet"),
     c("execution.reconcile", "execution", "ejecucion", "service", "api", "T30", "Reconciliación",
       "Compara cada cierto tiempo el libro interno con el exchange y avisa si no coinciden.",
       cadence="cada ciclo", cadence_s=300,
@@ -150,23 +155,29 @@ FLOW: tuple[Component, ...] = (
       produces=("alert",)),
     c("execution.sim_ledger", "execution", "ejecucion", "service", "api", "T15", "Libro simulado",
       "Reconstruye operaciones simuladas desde los planes guardados: entrada, salida, costos y "
-      "resultado en R. Sirve para medir sin arriesgar dinero.", cadence="cada cierre de vela",
-      cadence_s=3600, consumes=(("agent.plan", "plan"),), produces=("sim_trade",)),
+      "resultado en R. Sirve para medir sin arriesgar dinero.",
+      cadence="a demanda (al consultar)", consumes=(("agent.plan", "plan"),), produces=("sim_trade",)),
     c("arbitrage.executor", "arbitrage", "ejecucion", "service", "api", "T45", "Ejecutor de arbitraje",
       "Abre y cierra las dos patas del arbitraje en testnet, con tiempo límite y deshaciendo si "
       "una falla. Construido; falta la prueba extremo a extremo.", cadence="cada 60 s",
-      cadence_s=60, consumes=(("risk.arb_engine", "risk_decision"),), produces=("fill",)),
+      cadence_s=60, consumes=(("risk.arb_engine", "risk_decision"),), produces=("fill",),
+      switch="arb_testnet"),
     c("paper.broker", "paper", "ejecucion", "service", "api", "T47", "Bróker simulado",
       "Prueba decenas de estrategias en papel, en 15 m, 1 h y 4 h, y aprende de cada pérdida. "
       "Todo es Simulado: nunca envía órdenes. Cada perfil decide con su política registrada.",
+      # Destino final del flujo: en cada vela cerrada arma su contexto con la opinión conjunta,
+      # el plan y los tres escenarios (`paper/generate.py`). Desde que la mesa ya no tiene el
+      # panel «Operaciones sugeridas intradía», todo lo que proyecta el sistema termina aquí.
       # T128: late en cada ciclo de 60 s; sus ganchos corren aparte (`paper.hooks`) y ya no
       # lo callan. 120 s × 3 = 360 s: holgura para el ciclo del cierre de 4 h
       cadence="cada 60 s", cadence_s=120,
-      consumes=(("data.store", "candles"), ("risk.authority", "proposal")),
+      consumes=(("data.store", "candles"), ("synthesis.thesis", "synthesis"),
+                ("agent.plan", "plan"), ("forecast.engine", "forecast_set"),
+                ("risk.authority", "proposal")),
       produces=("paper_trade", "risk_decision")),
     c("paper.hooks", "paper", "validacion", "service", "api", "T128", "Ganchos del bróker",
       "Tras cada ciclo del bróker, y en segundo plano para no frenarlo: la validación al cierre "
-      "de 4 h, el libro fijo cada hora, la puntuación de bots y el seguimiento de sugerencias. "
+      "de 4 h, el libro fijo cada hora, la puntuación de bots y el registro de oportunidades. "
       "Late con lo que tardó cada uno.", cadence="tras cada ciclo (latido cada ~4 min)",
       cadence_s=300, consumes=(("paper.broker", "paper_trade"),)),
     c("leaders.copy_sim", "leaders", "ejecucion", "service", "leaders", "T42", "Copia simulada",
@@ -255,16 +266,16 @@ VALIDATION: tuple[Component, ...] = (
       cadence="cada cierre de vela de 4 h (y a demanda)", cadence_s=4 * 3600,
       consumes=(("paper.broker", "paper_trade"),), produces=("validation_verdict",)),
     c("validation.setups_publisher", "validation", "validacion", "service", "api", "T50",
-      "Publicador de sugerencias", "Publica como máximo 3 oportunidades intradía, solo de "
-      "estrategias que pasaron la puerta de validación, con su evidencia fuera de muestra; si "
-      "ninguna pasa, lo dice y explica por qué. Son oportunidades potenciales, no operaciones "
-      "ejecutadas.", cadence="a demanda",
+      "Registro de oportunidades", "Ya no hay panel de sugerencias intradía: las oportunidades "
+      "de las estrategias validadas se proyectan como operaciones en el bróker simulado. Esta "
+      "pieza solo deja constancia de ellas, con su evidencia, para el historial.",
+      cadence="tras cada ciclo del bróker",
       consumes=(("validation.gate", "validation_verdict"), ("paper.broker", "paper_trade")),
       produces=("setup",)),
     c("validation.setups_followup", "validation", "validacion", "service", "api", "T51",
-      "Seguimiento de sugerencias", "Registra cada sugerencia la primera vez que se publica y la "
-      "resuelve con el motor del bróker simulado sobre las velas posteriores; compara la señal "
-      "con el resultado y pone en revisión la versión que se degrada. Nunca ejecuta nada.",
+      "Seguimiento de oportunidades", "Resuelve cada oportunidad registrada con el motor del "
+      "bróker simulado sobre las velas posteriores; compara la señal con el resultado y pone en "
+      "revisión la versión que se degrada. Nunca ejecuta nada.",
       cadence="cada ciclo del bróker", cadence_s=60,
       consumes=(("validation.setups_publisher", "setup"),), produces=("followup",)),
     c("library.cards", "library", "validacion", "store", "cli", "T52", "Biblioteca de trading",
@@ -282,7 +293,7 @@ VALIDATION: tuple[Component, ...] = (
       "Experiencia compartida", "Une los historiales de varios equipos: cada máquina exporta lo suyo a una carpeta compartida e importa lo ajeno sin duplicar, con simulacro y copia previa. Nunca viajan claves.",
       cadence="a demanda (o cada hora si está automático)",
       consumes=(("validation.gate", "validation_verdict"), ("paper.broker", "paper_trade")),
-      produces=("experience",)),
+      produces=("experience",), switch="share"),
 )
 
 CORE: tuple[Component, ...] = DATA + FLOW + OPERATION + VALIDATION

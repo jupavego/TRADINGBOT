@@ -24,7 +24,7 @@ export class ScenarioPanel {
   private key = ''
   private roomFor = ''
 
-  constructor(private readonly el: HTMLElement, private readonly chart: PriceChart,
+  constructor(private readonly el: HTMLElement, private readonly chart: PriceChart | null,
     private readonly ctx: () => { symbol: string; tf: string },
     private readonly literature: () => AgentReport | undefined = () => undefined,
     private readonly squad: () => SquadSupport | null = () => null) {
@@ -54,7 +54,7 @@ export class ScenarioPanel {
     this.abort?.abort(); this.abort = new AbortController()
     const { symbol, tf } = this.ctx()
     const key = `${symbol}|${tf}`
-    if (key !== this.key) { this.key = key; this.fs = null; this.sel = null; this.chart.scen.set(null, null) }
+    if (key !== this.key) { this.key = key; this.fs = null; this.sel = null; this.chart?.scen.set(null, null) }
     try {
       this.fs = await fetchForecast(symbol, tf, this.horizon, this.abort.signal)
       this.err = ''
@@ -79,9 +79,11 @@ export class ScenarioPanel {
 
   private apply(): void {
     const rk = `${this.key}|${this.horizon}`
-    if (this.fs && rk !== this.roomFor) { this.roomFor = rk; this.chart.makeRoom(this.fs.horizon_bars) }
-    this.chart.scen.set(this.fs, this.last)
-    this.chart.scen.setView(this.sel, this.candles, this.context)
+    if (this.chart) { // sin gráfico (mesa sin velas) solo se pintan las tarjetas
+      if (this.fs && rk !== this.roomFor) { this.roomFor = rk; this.chart.makeRoom(this.fs.horizon_bars) }
+      this.chart.scen.set(this.fs, this.last)
+      this.chart.scen.setView(this.sel, this.candles, this.context)
+    }
     this.render()
   }
 
@@ -100,9 +102,9 @@ export class ScenarioPanel {
   private render(): void {
     const bar = '<div class="scen-bar"><label>Velas a proyectar <select id="scen-h">' +
       HORIZONS.map((h) => `<option${h === this.horizon ? ' selected' : ''}>${h}</option>`).join('') +
-      `</select></label><button id="scen-candles" aria-pressed="${this.candles}">Ver escenario como velas</button>` +
-      `<button id="scen-ctx" aria-pressed="${this.context}" title="Fibonacci, ondas de Elliott y pivotes cercanos al techo/piso. Validación: aporte marginal; no confirman.">Contexto Fib/Elliott</button>` +
-      (this.candles ? `<span class="muted">Velas simuladas de «${SCEN_LABEL[this.sel ?? 'neutral']}» — ` +
+      '</select></label>' + (!this.chart ? '' : `<button id="scen-candles" aria-pressed="${this.candles}">Ver escenario como velas</button>` +
+      `<button id="scen-ctx" aria-pressed="${this.context}" title="Fibonacci, ondas de Elliott y pivotes cercanos al techo/piso. Validación: aporte marginal; no confirman.">Contexto Fib/Elliott</button>`) +
+      (this.chart && this.candles ? `<span class="muted">Velas simuladas de «${SCEN_LABEL[this.sel ?? 'neutral']}» — ` +
         'elige una tarjeta para cambiar de escenario.</span>' : '') + '</div>'
     if (!this.fs) {
       this.el.innerHTML = bar + `<p class="muted">${esc(this.err || 'Cargando escenarios…')}</p>`

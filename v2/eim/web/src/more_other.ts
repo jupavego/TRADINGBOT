@@ -1,4 +1,4 @@
-/** Pestañas de "Más análisis": Liquidaciones, Estacionalidad y Bitácora de trading. */
+/** Pestañas inferiores (antes en «Más análisis»): Liquidaciones, Estacionalidad y Bitácora de trading. */
 import { day, esc, fmt, focusAssets, getMore, postMore, sourceLine, usd, type Json } from './more_api'
 import type { Ctx } from './more_market'
 

@@ -1,5 +1,5 @@
 /** Geometría decorativa del río de decisión holográfico: esfera de hexágonos, haz de luz,
- * red de nodos y plataforma de anillos. Solo SVG, sin estado. Se tiñen con el reparto
+ * red de nodos (sin plataforma bajo la esfera). Solo SVG, sin estado. Se tiñen con el reparto
  * subida/bajada (verde a la izquierda, rojo a la derecha, fundidos en degradado) igual que la
  * esfera 3D: los gradientes `hsplit*` y las máscaras de brillo viven en `holoDefs`. */
 
@@ -43,16 +43,6 @@ export function core(cx: number, cy: number, r: number, base: number): string {
     `<circle cx="${cx}" cy="${cy}" r="${r + 26}" fill="url(#hsplit)" mask="url(#mglow)"/>` +
     network(cx, cy, r) +
     `<circle cx="${cx}" cy="${cy}" r="${r + 9}" fill="none" stroke="url(#hsplit)" stroke-width="1" stroke-dasharray="2 9" opacity=".6" class="hspin"/></g>`
-}
-
-/** Plataforma de anillos en perspectiva bajo la esfera. */
-export function platform(cx: number, py: number): string {
-  const rings = [250, 196, 142, 92, 48].map((rx, k) =>
-    `<ellipse cx="${cx}" cy="${py}" rx="${rx}" ry="${f1(rx * 0.16)}" fill="none" stroke="url(#hsplit)" ` +
-    `stroke-width="${k === 1 ? 5 : 1.2}" opacity="${k === 1 ? .35 : .6}"` +
-    `${k === 1 ? ' stroke-dasharray="26 10"' : k === 3 ? ' stroke-dasharray="3 6"' : ''}` +
-    `${k === 1 || k === 3 ? ` class="hdash${k === 3 ? ' rev' : ''}"` : ''}/>`).join('')
-  return `<g><ellipse cx="${cx}" cy="${py}" rx="260" ry="46" fill="url(#hsplit)" mask="url(#mglow)" opacity=".7"/>${rings}</g>`
 }
 
 /** Gradiente horizontal `id`: `left` hasta `at − band`, fundido, y `right` desde `at + band`

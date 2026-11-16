@@ -32,7 +32,7 @@
 }
 
 /* Paneles de vidrio con esquinas de HUD */
-:root[data-theme="cyber"] :is(.chart-wrap, .bottom, .more) {
+:root[data-theme="cyber"] :is(.chart-wrap, .bottom) {
   border: 1px solid rgba(var(--glow), .22); border-radius: var(--radius);
   background:
     linear-gradient(var(--hud), var(--hud)) top left / 18px 2px no-repeat,
@@ -103,7 +103,7 @@
 }
 
 /* Títulos y cifras */
-:root[data-theme="cyber"] :is(.sh, .river-head h3, .more h4, #t-log h4) {
+:root[data-theme="cyber"] :is(.sh, .river-head h3, .more-body h4, #t-log h4) {
   font-family: var(--f-display); font-size: 11px; letter-spacing: .22em; color: var(--accent);
   text-shadow: 0 0 8px rgba(var(--glow), .5);
 }

@@ -48,7 +48,7 @@ export function arbSatellite(x: number, y: number, sel: boolean): string {
   const pr = projection()
   const col = colorOf(pr)
   const live = !!pr && !!data && !data.stale
-  const lx = x - SAT_R - 16
+  const lx = x + SAT_R + 16 // a la derecha: el satélite vive en la esquina inferior izquierda
   const value = pr ? `${arrow(pr.dir)} ${pr.text}` : 'sin datos'
   const sub = !data ? 'consultando el escáner…' : !pr ? 'escáner sin fotografía'
     : data.stale ? 'fotografía vieja' : 'neto estimado · no direccional'
@@ -61,9 +61,9 @@ export function arbSatellite(x: number, y: number, sel: boolean): string {
     `<circle cx="${x}" cy="${y}" r="${SAT_R + 8}" fill="none" stroke="${col}" stroke-width="1" stroke-dasharray="2 6" opacity=".8" class="hspin"/>` +
     `<circle cx="${x}" cy="${y}" r="${SAT_R + 15}" fill="none" stroke="${col}" stroke-width=".8" stroke-dasharray="1 10" opacity=".35"/>` +
     orb(ARB_ID, x, y, SAT_R, col, live, 990) +
-    `<text x="${lx}" y="${y - 9}" text-anchor="end" class="rl">Arbitraje</text>` +
-    `<text x="${lx}" y="${y + 10}" text-anchor="end" class="arb-pv" style="fill:${col}">${esc(value)}</text>` +
-    `<text x="${lx}" y="${y + 25}" text-anchor="end" class="rv">${esc(sub)}</text></g>`
+    `<text x="${lx}" y="${y - 9}" text-anchor="start" class="rl hov">Arbitraje</text>` +
+    `<text x="${lx}" y="${y + 10}" text-anchor="start" class="arb-pv hov" style="fill:${col}">${esc(value)}</text>` +
+    `<text x="${lx}" y="${y + 25}" text-anchor="start" class="rv hov">${esc(sub)}</text></g>`
 }
 
 const ago = (t: number): string => `${Math.max(0, Math.round((Date.now() + skew - t) / 1000))} s`

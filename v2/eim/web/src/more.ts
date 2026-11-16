@@ -1,57 +1,51 @@
-/** Vista "Más análisis": pestañas portadas del legado F7 (consumen `/v2/more/*`). */
+/** Análisis portados del legado F7 (consumen `/v2/more/*`). Antes vivían en la vista aparte
+ * «Más análisis»; ahora son pestañas de la mesa, junto a Escenarios, Calibración, Plan…
+ * Solo se pinta la pestaña activa: al salir se vacía y se liberan sus gráficos. */
 import { esc } from './more_api'
 import { backtestView, disposeCharts, multiAssetView, vwapView, type Ctx } from './more_market'
 import { bitacoraView, liquidationsView, seasonalityView } from './more_other'
 
-const TABS: [string, string][] = [
-  ['backtest', 'Backtest / VRM'], ['vwap', 'VWAP por periodos'], ['multi', 'Multi-activo'],
-  ['liq', 'Liquidaciones'], ['season', 'Estacionalidad'], ['journal', 'Bitácora de trading'],
+/** ids de los paneles (`.tabbody`) en index.html; etiquetas solo como referencia. */
+export const MORE_TABS: [string, string][] = [
+  ['t-bt', 'Backtest / VRM'], ['t-vwap', 'VWAP por periodos'], ['t-multi', 'Multi-activo'],
+  ['t-liq', 'Liquidaciones'], ['t-season', 'Estacionalidad'], ['t-tjournal', 'Bitácora de trading'],
 ]
 
-export class MoreView {
-  private tab = 'backtest'
+export class MoreTabs {
+  private active: string | null = null
   private ctx: Ctx = { symbol: 'BTCUSDT', tf: '1h' }
-  private open = false
-
-  constructor(private root: HTMLElement) {
-    root.innerHTML = `<nav class="tabs" id="more-tabs">${TABS.map(([id, t]) =>
-      `<button data-t="${id}" aria-selected="${id === this.tab}">${esc(t)}</button>`).join('')}</nav>
-      <div id="more-body" class="more-body"></div>`
-    root.querySelector<HTMLElement>('#more-tabs')!.onclick = (e) => {
-      const b = (e.target as HTMLElement).closest('button')
-      if (!b) return
-      this.tab = b.dataset.t!
-      root.querySelectorAll('#more-tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b)))
-      void this.render()
-    }
-  }
 
   setContext(symbol: string, tf: string): void {
     this.ctx = { symbol, tf }
-    if (this.open) void this.render()
+    if (this.active) void this.render(this.active)
   }
 
-  toggle(show: boolean): void {
-    this.open = show
-    this.root.hidden = !show
-    document.getElementById('app')!.dataset.view = show ? 'more' : 'desk'
-    if (show) void this.render(); else disposeCharts()
+  /** Llamar en cada cambio de pestaña inferior (sea o no de este grupo). */
+  show(tab: string): void {
+    const mine = MORE_TABS.some(([id]) => id === tab)
+    if (this.active && this.active !== tab) {
+      disposeCharts()
+      const prev = document.getElementById(this.active)
+      if (prev) prev.innerHTML = ''
+    }
+    this.active = mine ? tab : null
+    if (mine) void this.render(tab)
   }
 
-  private async render(): Promise<void> {
-    const body = this.root.querySelector<HTMLElement>('#more-body')!
-    const mine = this.tab
+  private async render(tab: string): Promise<void> {
+    const body = document.getElementById(tab)
+    if (!body) return
     disposeCharts()
     body.innerHTML = '<p class="muted">Cargando…</p>'
     try {
-      if (mine === 'backtest') await backtestView(body, this.ctx)
-      else if (mine === 'vwap') await vwapView(body, this.ctx)
-      else if (mine === 'multi') await multiAssetView(body)
-      else if (mine === 'liq') await liquidationsView(body, this.ctx)
-      else if (mine === 'season') await seasonalityView(body)
+      if (tab === 't-bt') await backtestView(body, this.ctx)
+      else if (tab === 't-vwap') await vwapView(body, this.ctx)
+      else if (tab === 't-multi') await multiAssetView(body)
+      else if (tab === 't-liq') await liquidationsView(body, this.ctx)
+      else if (tab === 't-season') await seasonalityView(body)
       else bitacoraView(body)
     } catch (e) {
-      body.innerHTML = `<div class="alert bad">${esc((e as Error).message)}</div>`
+      if (this.active === tab) body.innerHTML = `<div class="alert bad">${esc((e as Error).message)}</div>`
     }
   }
 }

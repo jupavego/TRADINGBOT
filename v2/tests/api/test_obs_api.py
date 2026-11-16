@@ -108,9 +108,16 @@ def test_components_report_no_data_and_graph_matches_catalog(parts):
     ids = {x["id"]: x for x in j["items"]}
     assert ids["risk.engine"]["n_events"] == 1 and ids["risk.engine"]["last_status"] == "ok"
     # un componente construido que nunca emitió se marca «sin datos» (no se inventa actividad)
-    quiet = next(x for x in c.get("/v2/obs/components").json()["items"]
-                 if x["built"] == "construido" and x["n_events"] == 0)
+    items = c.get("/v2/obs/components").json()["items"]
+    quiet = next(x for x in items if x["built"] == "construido" and x["n_events"] == 0
+                 and not x["idle"] and not x["off_reason"])
     assert quiet["no_data"] is True
+    # T174: a demanda sin uso → «en espera»; apagada por configuración → motivo, nunca «sin datos»
+    by = {x["id"]: x for x in items}
+    assert by["backtest.engine"]["idle"] and not by["backtest.engine"]["no_data"]
+    tb = by["execution.testnet_broker"]
+    assert "EIM_EXECUTION=testnet" in tb["off_reason"] and not tb["no_data"] and not tb["idle"]
+    assert by["execution.hft"]["off_reason"] and not by["execution.hft"]["no_data"]
     planned = [x for x in c.get("/v2/obs/components", params={"built": "planeado"}).json()["items"]]
     assert planned and not any(x["no_data"] for x in planned)
     g = c.get("/v2/obs/graph").json()

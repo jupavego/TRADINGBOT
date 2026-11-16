@@ -49,6 +49,16 @@
    "name": "metrics.channel.slope_per_bar",
    "source": "velas de futuros Binance (snapshot.candles)",
    "note": ""
+  },
+  {
+   "name": "metrics.zones[].p_low",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "borde inferior de cada zona (para saber cuál es la del soporte)"
+  },
+  {
+   "name": "metrics.zones[].p_high",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "borde superior de cada zona"
   }
  ],
  "history": {
@@ -94,7 +104,9 @@
     "metrics.dist_support",
     "metrics.dist_resistance",
     "metrics.atr",
-    "metrics.zones[].touches"
+    "metrics.zones[].touches",
+    "metrics.zones[].p_low",
+    "metrics.zones[].p_high"
    ],
    "params": {
     "touch_atr": {
@@ -201,6 +213,8 @@
  ],
  "exclusion_reason": null,
  "reserve": [],
- "notes": [],
+ "notes": [
+  "T168 (2026-11-11): `niveles_rebote` lee además los bordes de las zonas para atribuir los toques a la zona de soporte o resistencia más cercana; sin parámetros nuevos (la regla aprobada ya lo pedía)."
+ ],
  "performance_computed": false
 }

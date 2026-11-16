@@ -110,3 +110,35 @@ def test_block_length_grows_with_persistence():
     assert block_length(ar) > block_length(e) >= 1.0
     p_auto, _ = sharpe_diff_pvalue(e, ar, 365, n_boot=200, block="auto")
     assert 0.0 < p_auto <= 1.0
+
+
+def test_mcs_with_aliases_survives_two_models_with_identical_losses():
+    """T166: un etiquetador que se queda en un solo estado da el mismo pronóstico que no tener
+    régimen; `mcs_losses` dividía por una varianza nula y abortaba."""
+    from eim.validation.spa import mcs_losses, mcs_with_aliases
+
+    rng = np.random.default_rng(166)
+    base = rng.gamma(2.0, 0.2, (400, 3))
+    losses = np.column_stack([base, base[:, 0]])     # la cuarta es copia exacta de la primera
+    names = ["u0", "m0", "good", "clone"]
+    # La versión sin alias no lo aguanta: `arch` 8.0.0 divide por una varianza nula y se queda sin
+    # candidatos que eliminar. Se aceptan varios tipos porque el fallo es interno de la biblioteca.
+    with pytest.raises((IndexError, ValueError, ZeroDivisionError)):
+        mcs_losses(names, losses, 0.10, 200, 1)
+    p, alias = mcs_with_aliases(names, losses, 0.10, 200, 1)
+    assert alias == {"clone": "u0"}
+    assert p["clone"] == p["u0"]
+    assert set(p) == set(names)
+    assert all(0.0 <= v <= 1.0 for v in p.values())
+
+
+def test_mcs_with_aliases_matches_mcs_losses_when_nothing_repeats():
+    from eim.validation.spa import mcs_losses, mcs_with_aliases
+
+    rng = np.random.default_rng(167)
+    losses = rng.gamma(2.0, 0.2, (400, 3))
+    losses[:, 1] += 0.4
+    names = ["a", "b", "c"]
+    p, alias = mcs_with_aliases(names, losses, 0.10, 200, 3)
+    assert alias == {}
+    assert p == mcs_losses(names, losses, 0.10, 200, 3)

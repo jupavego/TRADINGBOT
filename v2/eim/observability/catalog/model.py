@@ -64,6 +64,7 @@ class Component(Frozen):
     produces: tuple[str, ...] = ()
     built: Built
     task: str = Field(pattern=r"^T\d+$")  # tarea de PLAN/STATUS.md que lo construye / lo construirá
+    switch: str | None = None         # T174: interruptor de configuración (`observability/switches.py`)
     title_es: str = Field(min_length=3, max_length=60)
     explain_es: str = Field(min_length=20, max_length=MAX_EXPLAIN)
 
@@ -78,10 +79,10 @@ def c(id: str, layer: Layer, stage: Stage, kind: Kind, process: str, task: str,
       title_es: str, explain_es: str, *, cadence: str = "a demanda",
       cadence_s: int | None = None, consumes: tuple[tuple[str, str], ...] = (),
       produces: tuple[str, ...] = (), version: str | None = None,
-      built: Built = "construido") -> Component:
+      built: Built = "construido", switch: str | None = None) -> Component:
     """Constructor compacto para las tablas de datos."""
     return Component(
         id=id, layer=layer, stage=stage, kind=kind, process=process, version=version,
         cadence=cadence, cadence_s=cadence_s,
         consumes=tuple(Flow(source=s, artifact=a) for s, a in consumes), produces=produces,
-        built=built, task=task, title_es=title_es, explain_es=explain_es)
+        built=built, task=task, title_es=title_es, explain_es=explain_es, switch=switch)

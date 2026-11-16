@@ -77,8 +77,7 @@ export class PaperView {
 
   toggle(show: boolean, symbol?: string): void {
     this.open = show
-    this.root.hidden = !show
-    document.getElementById('app')!.dataset.view = show ? 'paper' : 'desk'
+    this.root.hidden = !show // ya no es vista de pantalla completa: vive en la mesa, bajo el mapa del sistema
     if (!show) { this.stream?.close(); this.stream = null; clearInterval(this.timer); clearInterval(this.liveTimer); clearTimeout(this.retry); return }
     if (!this.chart) this.build()
     if (symbol && symbol !== this.symbol && !this.v) this.symbol = symbol
