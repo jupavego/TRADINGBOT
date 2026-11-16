@@ -84,6 +84,15 @@ Cambiar las plantillas es una decisión de familia, de T170 o de una versión 2.
 | `regime` → `elliott` | `regimen_tramo` (base) | `elliott_tendencia_dow` (opuesta de `elliott_oscilacion`) | 4 h · time_stop · tres días | Dow a favor de la tendencia, en el retroceso: tras un máximo más alto compra, y tras un mínimo más bajo vende. Brown et al. 1998, Leigh et al. 2002 |
 | `regime` → `bots` | `regimen_tramo_estable` | `bots_contrario` (opuesta de `bots_unanimidad`) | 1 h · time_stop · intradía | Entra contra la unanimidad recién formada: DeLong et al. 1990, Bikhchandani et al. 1992, Kosc et al. 2019. Solo hacia adelante |
 
+**Duplicados con T170 (resuelto el 2026-11-16).** En la sesión de T170 se habían rediseñado en su
+sitio `estructura_ruptura` (sin filtro de convicción) y `tec_acuerdo_marcos` (marcos de 1 h y 4 h).
+T177 formula esas mismas dos reglas con id nuevo: `estructura_ruptura_sc02` y
+`tec_acuerdo_tres_marcos`, esta con 15 m, 1 h y 4 h. Si entraban las dos versiones, la familia
+pasaba a 45. El usuario eligió en esa sesión las de T177. Por eso:
+- T170 devuelve sus archivos al estado de T169.
+- Las dos originales quedan como bajas de T169, con sus huellas (`1d4c4f294f59`, `61b1b609e29f`).
+- La familia queda en 43, y T177 es la única fuente de reglas y expedientes de la cantera.
+
 **Cuatro reemplazos repiten la regla de su descartado** con otra salida o en otro marco:
 `ema_retroceso_12h`, `tec_compresion_bb_12h`, `vwap_reversion_1h` y `lit_consenso_4h`. La lección
 de T169 era física, no de rendimiento. Cada uno es un prospecto nuevo, con su huella propia, y suma
