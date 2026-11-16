@@ -22,6 +22,13 @@ persona es el único recurso que queda. Cada intento queda registrado con **qué
 llevaba caído**, y la recuperación también (entregable 5). El estado entre pasadas vive en
 `data/operation/fleet_watch.json`, porque cada pasada es un proceso nuevo que muere al acabar.
 
+**Lo que T173 añadió, porque el 2026-11-10 los cuatro intentos no sirvieron de nada:** antes de
+relanzar se mira si hay una razón por la que relanzar no puede funcionar (`fleet_cause.py`) —un
+corte de red en marcha, o un servicio que vive dentro de otro que está vivo—; en esos casos no se
+gasta intento, se avisa una vez y se sigue contando la caída. Y un intento se cuenta por su
+**efecto**: si en la pasada siguiente el latido no avanzó, queda «sin efecto», porque un guion que
+devuelve 0 sin haber lanzado nada no es un arranque bueno.
+
 Instalación y comprobación: `v2/docs/RUNBOOK.md` §18.
 
     python -m eim.operation.fleet_watch status        # qué ve, sin tocar nada
@@ -29,17 +36,17 @@ Instalación y comprobación: `v2/docs/RUNBOOK.md` §18.
 
 from __future__ import annotations
 
-import argparse
 import json
 import subprocess
 import sys
 import time
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass, field
 from pathlib import Path
 
+from eim.operation import fleet_cause
 from eim.operation.alerts import Alert
-from eim.operation.fleet_alert import alert_for, announce
+from eim.operation.fleet_alert import alert_for, announce, stuck_alert
+from eim.operation.fleet_state import Decision, State
 from eim.operation.notify import JsonLog, WindowsToast
 from eim.operation.usage_summary import load_day
 
@@ -86,19 +93,25 @@ def _usage_beat_ms(data_dir: Path, now_s: float) -> int | None:
     return best
 
 
+def beats_ms(data_dir: Path, now_s: float | None = None) -> dict[str, int | None]:
+    """El último latido de cada servicio, en milisegundos. None = ninguna señal.
+
+    El valor absoluto, no la edad: T173 compara el latido de antes de un intento con el de la
+    pasada siguiente para saber si el intento sirvió de algo."""
+    now = time.time() if now_s is None else now_s
+    out: dict[str, int | None] = {n: _beat_ms(Path(data_dir) / rel) for n, rel in BEATS.items()}
+    out[USAGE] = _usage_beat_ms(Path(data_dir), now)
+    return out
+
+
 def ages(data_dir: Path, now_s: float | None = None) -> dict[str, float | None]:
     """Segundos desde la última señal de vida de cada servicio. None = ninguna señal.
 
     None no es «caído desde siempre»: es «nunca dio señales», que en un equipo recién instalado
     también se levanta, y en uno con datos significa que el archivo no se puede leer."""
     now = time.time() if now_s is None else now_s
-    out: dict[str, float | None] = {}
-    for name, rel in BEATS.items():
-        ms = _beat_ms(Path(data_dir) / rel)
-        out[name] = None if ms is None else round(now - ms / 1000.0, 1)
-    ms = _usage_beat_ms(Path(data_dir), now)
-    out[USAGE] = None if ms is None else round(now - ms / 1000.0, 1)
-    return out
+    return {n: None if ms is None else round(now - ms / 1000.0, 1)
+            for n, ms in beats_ms(Path(data_dir), now).items()}
 
 
 def missing(seen: Mapping[str, float | None], down_s: float = DOWN_S) -> list[str]:
@@ -106,60 +119,30 @@ def missing(seen: Mapping[str, float | None], down_s: float = DOWN_S) -> list[st
     return [k for k, age in seen.items() if age is None or age >= down_s]
 
 
-# ---------------------------------------------------------------------------------- qué hacer
+def _no_effect(state: State, beats: Mapping[str, int | None] | None) -> bool:
+    """¿El último intento movió algún latido de los que faltaban? (T173 E2)
 
-@dataclass
-class State:
-    """Lo que esta pasada necesita saber de las anteriores."""
-
-    tries: int = 0
-    down_since_ms: int | None = None
-    last_try_ms: int | None = None
-    gave_up_ms: int | None = None
-    last_missing: list[str] = field(default_factory=list)
-
-    @classmethod
-    def load(cls, path: Path) -> State:
-        try:
-            d = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            return cls()
-        f = {k: d.get(k) for k in ("tries", "down_since_ms", "last_try_ms", "gave_up_ms")}
-        return cls(int(f["tries"] or 0), f["down_since_ms"], f["last_try_ms"], f["gave_up_ms"],
-                   list(d.get("last_missing") or []))
-
-    def save(self, path: Path) -> None:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_suffix(".tmp")
-        tmp.write_text(json.dumps({"tries": self.tries, "down_since_ms": self.down_since_ms,
-                                   "last_try_ms": self.last_try_ms, "gave_up_ms": self.gave_up_ms,
-                                   "last_missing": self.last_missing}, ensure_ascii=False),
-                       encoding="utf-8")
-        tmp.replace(path)
-
-
-@dataclass(frozen=True)
-class Decision:
-    """Qué toca en esta pasada y por qué, para poder registrarlo sin volver a razonarlo."""
-
-    action: str                  # "ok" | "recuperado" | "levantar" | "esperar" | "rendirse"
-    missing: tuple[str, ...] = ()
-    down_s: float = 0.0          # cuánto lleva caído el conjunto, no cada servicio
-    wait_s: float = 0.0          # lo que falta para el siguiente intento ("esperar")
-    tries: int = 0
-
-    @property
-    def lift(self) -> bool:
-        return self.action == "levantar"
+    `rc=0` del guion no prueba nada: el 2026-11-10 devolvió 0 cuatro veces sin tocar nada. Lo que
+    lo prueba es el latido de la pasada siguiente. Sin intento previo o sin latidos que comparar,
+    no se afirma nada."""
+    if beats is None or state.last_try_ms is None or not state.last_try_beats:
+        return False
+    antes = {k: v for k, v in state.last_try_beats.items() if k in beats}
+    return bool(antes) and all(beats[k] == v for k, v in antes.items())
 
 
 def decide(seen: Mapping[str, float | None], state: State, now_ms: int,
-           down_s: float = DOWN_S, max_tries: int = MAX_TRIES) -> Decision:
+           down_s: float = DOWN_S, max_tries: int = MAX_TRIES, blocked: dict | None = None,
+           beats: Mapping[str, int | None] | None = None) -> Decision:
     """Regla pura: lo que ven los latidos y lo que pasó antes → qué hacer ahora.
 
     - nada caído: «ok», o «recuperado» si se venía de un apagón (hay que avisar y olvidarlo);
-    - algo caído: «levantar» si ya toca, «esperar» si la espera creciente aún corre, «rendirse»
-      si se agotaron los intentos (y hasta `GIVE_UP_S` después no se vuelve a probar).
+    - algo caído con una causa por la que relanzar no puede servir (T173): «sin_red» mientras dura
+      un corte de red, «dentro_de_otro» si lo que falta vive dentro de otro que sí late. Ninguna
+      de las dos gasta intento, porque el 2026-11-10 los cuatro se gastaron en balde;
+    - algo caído y nuestro remedio sirve: «levantar» si ya toca, «esperar» si la espera creciente
+      aún corre, «rendirse» si se agotaron los intentos (y hasta `GIVE_UP_S` después no se
+      vuelve a probar).
     """
     down = missing(seen, down_s)
     if not down:
@@ -172,19 +155,34 @@ def decide(seen: Mapping[str, float | None], state: State, now_ms: int,
     oldest = max((seen[k] for k in down if seen[k] is not None), default=0.0)
     since = state.down_since_ms or now_ms - int(oldest * 1000)
     elapsed = round((now_ms - since) / 1000, 1)
+    nada = _no_effect(state, beats)
+    inside = tuple(fleet_cause.not_liftable(down, dict(seen), down_s))
+    if blocked is not None:
+        return Decision("sin_red", tuple(down), elapsed, tries=state.tries, blocked=blocked,
+                        inside=inside, no_effect=nada)
+    if state.said == "sin_red":   # volvió la red: una pasada de gracia para que lata solo (E1)
+        return Decision("esperar", tuple(down), elapsed, tries=state.tries, inside=inside,
+                        wait_s=float(EVERY_MIN * 60), no_effect=nada)
+    if inside and len(inside) == len(down):
+        return Decision("dentro_de_otro", tuple(down), elapsed, tries=state.tries, inside=inside,
+                        no_effect=nada)
     tries = state.tries
     if state.gave_up_ms is not None:
         if now_ms - state.gave_up_ms < GIVE_UP_S * 1000:
-            return Decision("rendirse", tuple(down), elapsed, tries=tries,
+            return Decision("rendirse", tuple(down), elapsed, tries=tries, inside=inside,
+                            no_effect=nada,
                             wait_s=round(GIVE_UP_S - (now_ms - state.gave_up_ms) / 1000, 1))
         tries = 0                 # cumplida la penitencia, se vuelve a empezar desde el intento 1
     if tries >= max_tries:
-        return Decision("rendirse", tuple(down), elapsed, tries=tries)
+        return Decision("rendirse", tuple(down), elapsed, tries=tries, inside=inside,
+                        no_effect=nada)
     wait = BACKOFF_S[min(tries, len(BACKOFF_S) - 1)] * 1000
     if tries and state.last_try_ms is not None and now_ms - state.last_try_ms < wait:
-        return Decision("esperar", tuple(down), elapsed, tries=tries,
+        return Decision("esperar", tuple(down), elapsed, tries=tries, inside=inside,
+                        no_effect=nada,
                         wait_s=round((wait - (now_ms - state.last_try_ms)) / 1000, 1))
-    return Decision("levantar", tuple(down), elapsed, tries=tries + 1)
+    return Decision("levantar", tuple(down), elapsed, tries=tries + 1, inside=inside,
+                    no_effect=nada)
 
 
 # ------------------------------------------------------------------------------------- levantar
@@ -215,27 +213,45 @@ def launch(data_dir: Path, timeout_s: float = 600.0) -> tuple[int, str]:
 
 def check(data_dir: Path, now_s: float | None = None, down_s: float = DOWN_S,
           dry_run: bool = False, launcher: Callable[[Path], tuple[int, str]] | None = None,
-          notify: bool = True) -> dict:
-    """Una pasada: mirar, decidir, levantar si toca y dejarlo todo registrado."""
+          notify: bool = True, ops: list[dict] | None = None) -> dict:
+    """Una pasada: mirar, decidir, levantar si toca y dejarlo todo registrado.
+
+    `ops` permite pasar los eventos de operación ya leídos (las pruebas lo usan); si no, se leen
+    de `data/operation/logs`."""
     now = time.time() if now_s is None else now_s
     now_ms = int(now * 1000)
     data_dir = Path(data_dir)
     state_path = data_dir / "operation" / "fleet_watch.json"
     st = State.load(state_path)
-    seen = ages(data_dir, now)
-    d = decide(seen, st, now_ms, down_s)
+    beats = beats_ms(data_dir, now)
+    seen = {n: None if ms is None else round(now - ms / 1000.0, 1) for n, ms in beats.items()}
+    rows = fleet_cause.recent_ops(data_dir, now) if ops is None else ops
+    # Una alerta de desconexión abierta solo cuenta si quien la cerraría (el ciclo, en la API)
+    # sigue vivo: si la API murió con ella abierta, nadie la va a cerrar y bloquearía para siempre.
+    api_up = (seen.get("API") if seen.get("API") is not None else down_s) < down_s
+    blocked = (fleet_cause.network_cause(rows, now_ms, trust_open_alert=api_up)
+               if missing(seen, down_s) else None)
+    d = decide(seen, st, now_ms, down_s, blocked=blocked, beats=beats)
     rc, tail = None, ""
     if d.lift and not dry_run:
         rc, tail = (launcher or launch)(data_dir)
+    stuck = fleet_cause.not_producing(data_dir, now)
     out = {"action": "simulado" if (d.lift and dry_run) else d.action, "missing": list(d.missing),
            "down_s": d.down_s, "tries": d.tries, "wait_s": d.wait_s,
-           "ages_s": dict(seen), "rc": rc, **({"detail": tail} if tail else {})}
+           "ages_s": dict(seen), "rc": rc,
+           **({"sin_efecto": True} if d.no_effect else {}),
+           **({"red": d.blocked} if d.blocked else {}),
+           **({"dentro_de_otro": list(d.inside)} if d.inside else {}),
+           **({"late_sin_producir": stuck} if stuck else {}),
+           **({"detail": tail} if tail else {})}
     if dry_run:
         return out
     if d.action == "levantar":
         st.tries, st.last_try_ms = d.tries, now_ms
         st.down_since_ms = st.down_since_ms or now_ms - int(d.down_s * 1000)
         st.last_missing = list(d.missing)
+        # T173: el latido de los que faltan, para juzgar este intento en la pasada siguiente.
+        st.last_try_beats = {k: beats.get(k) for k in d.missing}
         if d.tries == 1:
             st.gave_up_ms = None
         if d.tries >= MAX_TRIES and rc not in (0, None):
@@ -244,46 +260,41 @@ def check(data_dir: Path, now_s: float | None = None, down_s: float = DOWN_S,
         st.gave_up_ms = now_ms
     elif d.action == "recuperado":
         st = State()
-    elif d.action == "ok":
-        st.down_since_ms = st.down_since_ms if d.missing else None
+    elif d.action in ("ok", "sin_red", "dentro_de_otro"):
+        # Ni intento ni penitencia: solo se conserva desde cuándo está caído, para decirlo bien.
+        st.down_since_ms = None if not d.missing else (
+            st.down_since_ms or now_ms - int(d.down_s * 1000))
+        st.last_missing = list(d.missing)
+    # Un estado de espera que no cambia no se vuelve a contar: el 2026-11-10 «rendirse» quedó 31
+    # veces en el registro y avisó una sola, que es lo que hay que hacer con los dos.
+    repetido = d.holding and st.said == d.action
+    st.said = d.action if d.holding else ""
+    nuevo_atasco = bool(stuck) and str(stuck.get("hour") or "") != st.stuck_hour
+    st.stuck_hour = str((stuck or {}).get("hour") or "")
     st.save(state_path)
     log = JsonLog(data_dir / "operation" / "logs", clock=lambda: now_ms)
-    if d.action != "ok":
+    if d.action != "ok" and not repetido:
         log.write(f"conjunto_{d.action}", "warn" if d.action != "recuperado" else "info",
                   component=COMPONENT, **{k: v for k, v in out.items() if k != "action"})
+    if nuevo_atasco:
+        log.write("conjunto_late_sin_producir", "warn", component=COMPONENT, **stuck)
     a = alert_for(d.action, d.missing, d.down_s, d.tries, MAX_TRIES, rc, GIVE_UP_S,
-                  waiting=bool(d.wait_s))
-    if a is not None:
-        announce(Alert(now_ms, a.kind, a.level, a.title, a.detail, a.key, a.resolved),
-                 log.alert_sink, WindowsToast() if notify else None,
-                 lambda err: log.write("conjunto_aviso_fallido", "warn", component=COMPONENT,
-                                       error=err))
+                  waiting=bool(d.wait_s), blocked=d.blocked, inside=d.inside,
+                  no_effect=d.no_effect) if not repetido else None
+    for x in (a, stuck_alert(stuck) if nuevo_atasco else None):
+        if x is not None:
+            announce(Alert(now_ms, x.kind, x.level, x.title, x.detail, x.key, x.resolved),
+                     log.alert_sink, WindowsToast() if notify else None,
+                     lambda err: log.write("conjunto_aviso_fallido", "warn",
+                                           component=COMPONENT, error=err))
     return out
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(prog="eim.operation.fleet_watch", description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    sub = ap.add_subparsers(dest="cmd", required=True)
-    for name, helptext in (("check", "una pasada: levanta el conjunto si falta algún latido"),
-                           ("status", "qué latidos se ven, sin tocar nada")):
-        s = sub.add_parser(name, help=helptext)
-        s.add_argument("--data-dir", default="data")
-        s.add_argument("--down-s", type=float, default=DOWN_S)
-        if name == "check":
-            s.add_argument("--dry-run", action="store_true", help="decide pero no lanza nada")
-    a = ap.parse_args(argv)
-    if a.cmd == "status":
-        seen = ages(Path(a.data_dir))
-        out = {"ages_s": seen, "missing": missing(seen, a.down_s),
-               "state": vars(State.load(Path(a.data_dir) / "operation" / "fleet_watch.json"))}
-    else:
-        out = check(Path(a.data_dir), down_s=a.down_s, dry_run=a.dry_run)
-    print(json.dumps(out, ensure_ascii=False, indent=1))
-    # Para `Get-ScheduledTaskInfo`: 0 = nada que arreglar o arreglado; 1 = sigue caído y hay que
-    # mirarlo. «esperar» es normal (la espera creciente aún corre), no un fallo de la tarea.
-    bad = out.get("action") == "rendirse" or (out.get("rc") not in (0, None))
-    return 1 if bad else 0
+    """La línea de órdenes vive en `fleet_cli.py`; esta puerta no cambia (T173)."""
+    from eim.operation.fleet_cli import main as cli
+
+    return cli(argv)
 
 
 if __name__ == "__main__":

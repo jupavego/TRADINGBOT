@@ -28,6 +28,16 @@ Las otras dos señales que pide T148 E3:
 - **Una hora que cae en un hueco del registro de consumo** (`blind_hours`, de
   `eim.operation.usage_gaps`) es nuestra: el registro de consumo es otro de los cinco servicios, y
   si él tampoco estaba, lo que faltó fue el equipo, no el exchange.
+
+**T173: nuestra red no es la del exchange.** `desconexion` quería decir las dos cosas. El
+2026-11-10, de 20:07:55 a 23:46:33 UTC, este equipo se quedó sin resolución de nombres y el
+recolector marcó 576 tramos `desconexion` en las horas 20–23 que no eran de Binance, sino nuestras.
+Decidido por el usuario (2026-11-11): **un corte de la red de este equipo cuenta como hora
+nuestra**, y se distingue por su motivo (`red_local`), no por un cubo nuevo del reparto: el titular
+sigue siendo «nuestra / ajena». La evidencia ya existía sin que nadie la cruzara —los
+`datos_fallidos` con el marcador `red: ` de los proveedores y las alertas `desconexion` del
+registro de operación—, y las horas que cubre llegan en `local_net_hours`
+(`eim.operation.fleet_cause` las lee; `hft_ops.local_net_hours` las agrupa por hora).
 """
 
 from __future__ import annotations
@@ -138,14 +148,19 @@ def unmarked_s(rep: dict, hour: int | None = None) -> float:
 
 def attribute(rep: dict | None, hour: int, maint: list[dict] | None = None,
               blind_hours: Container[int] | None = None,
-              unmarked_min: float = UNMARKED_S) -> str:
+              unmarked_min: float = UNMARKED_S,
+              local_net_hours: Container[int] | None = None) -> str:
     """De quién es una hora incompleta: «mantenimiento», «nuestra», «ajena» o «sin causa».
 
     `rep` a None = la hora no tiene QC (proceso caído), que es deuda nuestra salvo mantenimiento.
     `blind_hours`: horas que el registro de consumo no vio (T148 E2); si él tampoco estaba, lo
-    que faltó fue el equipo."""
+    que faltó fue el equipo. `local_net_hours`: horas con la red de ESTE equipo caída (T173): son
+    nuestras aunque el recolector las marcara `desconexion`, que es lo que dice cuando el exchange
+    se calla."""
     if maint and is_maint(hour, maint):
         return "mantenimiento"
+    if local_net_hours is not None and hour in local_net_hours:
+        return "nuestra"
     if rep is None:
         return "nuestra"
     causes = (rep.get("gaps_marked") or {}).get("by_cause") or {}
@@ -160,10 +175,13 @@ def attribute(rep: dict | None, hour: int, maint: list[dict] | None = None,
 
 
 def why(rep: dict | None, hour: int, maint: list[dict] | None = None,
-        blind_hours: Container[int] | None = None) -> str:
+        blind_hours: Container[int] | None = None,
+        local_net_hours: Container[int] | None = None) -> str:
     """La razón de la atribución, para poder discutirla sin releer los JSON."""
     if maint and is_maint(hour, maint):
         return "mantenimiento declarado"
+    if local_net_hours is not None and hour in local_net_hours:
+        return "red_local: la red de este equipo estaba caída, no la del exchange"
     if rep is None:
         return "sin JSON de QC: no había quien lo escribiera"
     if rep.get("restarts") or (rep.get("runs") or 1) > 1:

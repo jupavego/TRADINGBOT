@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-16T05:21:33",
+ "generated": "2026-11-16T05:30:24",
  "phases": [
   {
    "n": 0,
@@ -275,7 +275,8 @@ window.EIM_STATUS = {
     "T148",
     "T149",
     "T173",
-    "T174"
+    "T174",
+    "T176"
    ]
   },
   {
@@ -316,7 +317,8 @@ window.EIM_STATUS = {
    "name": "Auditoría y calibración periódica",
    "ids": [
     "T159",
-    "T160"
+    "T160",
+    "T175"
    ]
   },
   {
@@ -2562,8 +2564,8 @@ window.EIM_STATUS = {
     "T147",
     "T148"
    ],
-   "state": "pending",
-   "notes": "Abierta el 2026-11-11 con la evidencia del primer día completo del vigilante de T148. El 2026-11-10 de **20:07:55 a 23:46:33 UTC** este equipo se quedó sin resolución de nombres (164 `datos_fallidos` con `getaddrinfo failed`; el EIM ya lo decía en una alerta crítica a las 20:12:03). El bróker simulado dejó de latir a las ~20:05 porque su ciclo se quedó agotando reintentos **dentro de la API**, y el vigilante gastó sus 4 intentos (20:19, 20:24, 20:44, 21:14) con `rc=0` y **sin efecto**: la API escuchaba en el 8000, así que `servicio_continuo.ps1` no tocó nada, y aunque lo hubiera hecho el problema era la red. Se rindió a las 21:19 y avisó; recuperado a las 23:54:17 tras **3 h 49 min**. Tres cosas que no se distinguen: (1) muerto frente a **bloqueado** —mismo síntoma, remedio opuesto—, (2) **lanzado** frente a arreglado (`rc=0` no prueba nada; lo prueba el latido de la pasada siguiente) y (3) **nuestra red** frente a la del exchange: el recolector marcó 576 tramos `desconexion` en las horas 20–23 que fueron nuestro DNS, y la regla de T148 solo salva las horas 21 y 22, de rebote, porque los tramos no suman la hora entera. La captura siguió latiendo cada ~28 s con `runs: 0` y `book_usable 0.0`: un latido fresco no prueba que haya datos. ◆ en la ficha: si el vigilante se queda quieto mientras dura el corte y si un corte de red local cuenta como hora nuestra para T78.",
+   "state": "done",
+   "notes": "**Hecha 2026-11-16 (rescatada de una sesión caída el 2026-11-11).** El vigilante del conjunto ya no gasta intentos cuando relanzar no puede servir (`eim/operation/fleet_cause.py`): con un corte de red en marcha (`datos_fallidos` con `red: ` en 15 min, o la alerta `desconexion` abierta con la API viva) registra `conjunto_sin_red`, avisa una vez y, al volver la red, da una pasada de gracia; si lo que falta es el bróker simulado con la API latiendo, `conjunto_dentro_de_otro` y aviso crítico con el remedio (§16, con permiso por T31). Un intento que no mueve el latido sale `sin_efecto`, la captura que late sin datos avisa una vez por hora y los estados de espera ya no se repiten cada 5 min. Atribución de T78: corte de red local = hora **nuestra** con motivo `red_local`; 393 horas reatribuidas, 74/23 → **76/21** (cambian 2026-11-04T03 y 2026-11-06T07, dos cortes de DNS de 2–3 min). Estado y CLI aparte (`fleet_state.py`, `fleet_cli.py`, orden `why`), 14 pruebas nuevas en `tests/operation/test_fleet_cause.py`, RUNBOOK §18.1. Se despliega sola al fusionar: la tarea programada corre el código de la carpeta principal cada 5 min. Abierta el 2026-11-11 con la evidencia del 2026-11-10 (20:07:55 → 23:46:33 UTC sin DNS): Abierta el 2026-11-11 con la evidencia del primer día completo del vigilante de T148. El 2026-11-10 de **20:07:55 a 23:46:33 UTC** este equipo se quedó sin resolución de nombres (164 `datos_fallidos` con `getaddrinfo failed`; el EIM ya lo decía en una alerta crítica a las 20:12:03). El bróker simulado dejó de latir a las ~20:05 porque su ciclo se quedó agotando reintentos **dentro de la API**, y el vigilante gastó sus 4 intentos (20:19, 20:24, 20:44, 21:14) con `rc=0` y **sin efecto**: la API escuchaba en el 8000, así que `servicio_continuo.ps1` no tocó nada, y aunque lo hubiera hecho el problema era la red. Se rindió a las 21:19 y avisó; recuperado a las 23:54:17 tras **3 h 49 min**. Tres cosas que no se distinguen: (1) muerto frente a **bloqueado** —mismo síntoma, remedio opuesto—, (2) **lanzado** frente a arreglado (`rc=0` no prueba nada; lo prueba el latido de la pasada siguiente) y (3) **nuestra red** frente a la del exchange: el recolector marcó 576 tramos `desconexion` en las horas 20–23 que fueron nuestro DNS, y la regla de T148 solo salva las horas 21 y 22, de rebote, porque los tramos no suman la hora entera. La captura siguió latiendo cada ~28 s con `runs: 0` y `book_usable 0.0`: un latido fresco no prueba que haya datos. ◆ en la ficha: si el vigilante se queda quieto mientras dura el corte y si un corte de red local cuenta como hora nuestra para T78.",
    "effort": "medio",
    "phase": 21,
    "goal": "Que el vigilante de T148 no gaste sus cuatro intentos en un servicio que está vivo pero sin red, y"
@@ -2577,10 +2579,36 @@ window.EIM_STATUS = {
     "T148"
    ],
    "state": "done",
-   "notes": "**Hecha 2026-11-11, sin desplegar.** Del diagnóstico del mapa vivo (34 «sin datos» de 83). `eim/observability/switches.py` + campo `switch` del catálogo: testnet, arbitraje en testnet, carril HFT (hasta T85), experiencia compartida, contexto sin LLM y video salen **«Pausado»** con el motivo; lo de uso a demanda sin uso sale **«En espera» (◌)** (`/v2/obs/components` → `off_reason`, `idle`). Emisores nuevos o con el nombre del catálogo: fotografía, noticias, liquidaciones, `bots.runner`/`bots.vote` (antes `bots.service`), puerta única, motor de arbitraje, copia simulada, publicador y seguimiento de sugerencias. Calendario sin falso degradado (eventos futuros). Síntesis declara a arbitrage, bots, calendar, context y literature (desvío de T75). UI `web/src/obs_{types,graph,iso,legend,detail}.ts` + `obs.css`. Tests `tests/observability/test_t174_map.py` (7) y `tests/api/test_obs_api.py`. Falta: gate completo y `npm run build` en el equipo, y reiniciar la API (la del 8000 corría código anterior al 1-nov).",
+   "notes": "**Hecha 2026-11-11, sin desplegar.** Del diagnóstico del mapa vivo (34 «sin datos» de 83). `eim/observability/switches.py` + campo `switch` del catálogo: testnet, arbitraje en testnet, carril HFT (hasta T85), experiencia compartida, contexto sin LLM y video salen **«Pausado»** con el motivo; lo de uso a demanda sin uso sale **«En espera» (◌)** (`/v2/obs/components` → `off_reason`, `idle`). Emisores nuevos o con el nombre del catálogo: fotografía, noticias, liquidaciones, `bots.runner`/`bots.vote` (antes `bots.service`), puerta única, motor de arbitraje, copia simulada, publicador y seguimiento de sugerencias. Calendario sin falso degradado (eventos futuros). Síntesis declara a arbitrage, bots, calendar, context y literature (desvío de T75). UI `web/src/obs_{types,graph,iso,legend,detail}.ts` + `obs.css`. Tests `tests/observability/test_t174_map.py` (7) y `tests/api/test_obs_api.py`. Falta: gate completo y `npm run build` en el equipo, y reiniciar la API (la del 8000 corría código anterior al 1-nov). 2026-11-16: el recolector de liquidaciones late en calma (`liq_ws.alive`; cadencia del catálogo 60 s).",
    "effort": "medio",
    "phase": 21,
    "goal": "Que cada «sin datos» del mapa signifique de verdad «no hay señal de que esto funcione», y no"
+  },
+  {
+   "id": "T175",
+   "title": "Auditoría: la variante se compara emparejada y el catálogo por su bruto con Holm",
+   "deps": [
+    "T159",
+    "T143",
+    "T49"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-16.** La herramienta de T159 llevaba al usuario tres conclusiones que los datos no sostienen. (1) Variante t143: −0,032 R/op sin emparejar → **+0,011 R/op** emparejada por perfil e idea (115 comunes, IC ±0,011, Δcosto −0,006 R). (2) Catálogo: las 4 «pierden con IC < 0» lo hacen solo por el costo (bruto p 0,28–0,41, Holm 1,00; con bruto 0 se esperaban 2 de 13); ahora solo va a ◆ un bruto peor que el azar con Holm. (3) La variante sigue operando 15 m a **0,157 R** vividos porque la puerta mide 0,129 R en la sombra tomable; agresivo 0,180, moderado 0,140: nueva palanca `auto_no_refleja_<marco>` y ◆ de puerta por perfil y marco (`PLAN/T175.md`). (4) Calibración por su muestra efectiva y también en 4 h: 4 h tiene n efectiva 4,2 (no se lee) y el «bear» de 1 h (−17 pp, n efectiva 30) queda dentro de 2 errores típicos. `eim/analytics/audit/{build,kpis,levers}.py`, 4 pruebas nuevas, informe `v2/reports/audit/audit_2026-11-16.md` regenerado, skill al día",
+   "effort": "bajo",
+   "phase": 25
+  },
+  {
+   "id": "T176",
+   "title": "Una lectura de microestructura no cae porque la compactación le cambió las partes",
+   "deps": [
+    "T78",
+    "T128",
+    "T173"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-16, entra al reiniciar la API.** Visto en vivo: el bróker simulado de T31 estuvo 26 min sin completar un ciclo (07:44 → 08:10 UTC) con la API lenta por falta de RAM, y un ciclo cayó a las 08:04:40 con `IOException: Cannot open file` sobre una parte de `micro_hft/trades` que la compactación de la hora 05 acababa de sustituir. `eim/data/micro.py::read_micro` vuelve a listar y leer hasta dos veces (0,2 s y 1 s) solo si falta una parte; nada más cambia. Anexo: el informe semanal de T135 ya no muere en su `print` final por cp1252 (el del 2026-11-16 se escribió entero y la cola lo dio por fallido). 2 pruebas en `tests/data/test_micro_feed.py`; ficha `PLAN/T176.md`",
+   "effort": "bajo",
+   "phase": 21
   }
  ]
 };

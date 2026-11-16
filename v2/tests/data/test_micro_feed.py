@@ -141,3 +141,44 @@ def test_while_an_old_collector_runs_the_feed_writes_nothing_and_then_takes_over
     feed.flush()
     assert feed.tops == 1 and health.read_heartbeat(tmp_path, SYM)["source"] == "hft_ws"
     feed.close()
+
+
+def _stale(real, kinds=("trades",)):
+    """Un `_hft_files` que la primera vez devuelve una lista con una parte que ya no existe,
+    como cuando la compactación sustituye las partes entre el listado y la lectura (T176)."""
+    calls = {"n": 0}
+
+    def fake(root, kind, symbol, start, end):
+        lst = real(root, kind, symbol, start, end)
+        if kind in kinds and calls["n"] == 0 and lst is not None:
+            calls["n"] += 1
+            gone = (root / micro.HFT / kind / f"symbol={symbol}" / "part-compactada.parquet")
+            return lst[:-1] + ", '" + gone.as_posix() + "']"
+        return lst
+    return fake, calls
+
+
+def test_a_part_compacted_between_listing_and_reading_is_read_again(tmp_path, monkeypatch):
+    _, new_root, _ = both(tmp_path)
+    t0 = T0 // MS
+    before = read_micro(new_root, SYM, t0, STEP, BARS)
+    fake, calls = _stale(micro._hft_files)
+    monkeypatch.setattr(micro, "_hft_files", fake)
+    monkeypatch.setattr(micro.time, "sleep", lambda s: None)
+    after = read_micro(new_root, SYM, t0, STEP, BARS)
+    assert calls["n"] == 1 and same(after[0], before[0]) and after[1] == before[1]
+
+
+def test_a_part_that_never_comes_back_still_fails_loud(tmp_path, monkeypatch):
+    _, new_root, _ = both(tmp_path)
+    real = micro._hft_files
+
+    def always_gone(root, kind, symbol, start, end):
+        lst = real(root, kind, symbol, start, end)
+        return None if lst is None else lst[:-1] + ", 'C:/no/existe/part-x.parquet']"
+    waits = []
+    monkeypatch.setattr(micro, "_hft_files", always_gone)
+    monkeypatch.setattr(micro.time, "sleep", waits.append)
+    with pytest.raises(duckdb.IOException):
+        read_micro(new_root, SYM, T0 // MS, STEP, BARS)
+    assert waits == list(micro.RETRY_WAITS_S)

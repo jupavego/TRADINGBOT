@@ -65,13 +65,14 @@ def markdown(a: dict) -> str:
         v = "sin medir" if t["value"] is None else f"{t['value']:.4g}"
         state = "**SÍ**" if t["fired"] else ("cerca" if t.get("near") else "no")
         lines.append(f"| {t['text']} | {v} | {t['threshold']} | {state} | {t['action']} |")
-    c = a.get("calibration") or {}
-    if c.get("n_evaluated"):
-        d = c.get("directional") or {}
-        lines += ["", f"**Calibración BTCUSDT {c.get('tf', '1h')}** (`/v2/calibration`): "
-                  f"{c['n_evaluated']} pronósticos (efectiva ≈{c.get('n_effective', 0):.0f}), "
-                  f"Brier skill {c.get('brier_skill', 0):+.3f}, acierto direccional "
-                  f"{d.get('accuracy', 0):.1%}, ECE {c.get('ece', 0):.3f}."]
+    for key, tf in (("calibration", "1h"), ("calibration_4h", "4h")):
+        c = a.get(key) or {}
+        if c.get("n_evaluated"):
+            d = c.get("directional") or {}
+            lines += ["", f"**Calibración BTCUSDT {tf}** (`/v2/calibration`): "
+                      f"{c['n_evaluated']} pronósticos (efectiva ≈{c.get('n_effective', 0):.1f}), "
+                      f"Brier skill {c.get('brier_skill', 0):+.3f}, acierto direccional "
+                      f"{d.get('accuracy', 0):.1%}, ECE {c.get('ece', 0):.3f}."]
     lines += ["", "## 4. Cambios desde la auditoría anterior", ""]
     d = a["deltas"]
     if not d.get("previous"):

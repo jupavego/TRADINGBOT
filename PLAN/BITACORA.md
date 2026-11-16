@@ -1468,6 +1468,13 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** `npm run build` en el equipo y ver el mapa en vivo.
 - **Siguiente paso:** ajustar posiciones (`RING` en `obs_iso.ts`) o espacios del área común (`KINDS` en `obs_iso_lounge.ts`) si hace falta.
 
+## 2026-11-16 · T174: el recolector de liquidaciones late en calma
+- **Hecho:** en el mapa vivo `data.liq_collector` salía «sin datos» (último latido hace 18 h) mientras seguía guardando en `data/micro/liqs/` (carpeta de la hora en curso escrita al minuto). Causa: solo latía al conectar cada bolsa, y con las tres conexiones estables no volvía a latir; el mismo defecto que el vigilante (#292). Arreglo: `LiqCollector.alive` (la marca de vida de cada 30 s) late también, como mucho una vez por minuto y solo con alguna bolsa conectada; el catálogo pasa su cadencia de 3600 s a 60 s, así una caída se ve en 3 min y no en 3 h.
+- **Archivos:** `v2/eim/data/collectors/liq_ws.py`, `v2/eim/observability/catalog/components_flow.py`, `v2/tests/agents/liquidations/test_flow.py`.
+- **Pruebas:** `test_marca_de_vida_late_en_el_mapa_sin_reconectar` (late con bolsas conectadas, no late sin ninguna); gate completo por la cola.
+- **Abierto:** en `juanpablo-cpu` el supervisor (`eim.operation run`) y los recolectores corren desde el 10-nov 13:09, con código anterior a T174 (la API sí se reinició el 14-nov): el vigilante y este recolector siguen «sin datos» hasta «Parar» + «Arrancar servicio». Con la cadencia nueva, si solo se reinicia la API (p. ej. `sincronizar_main.ps1`) el recolector viejo seguirá «sin datos» igual que hoy.
+- **Siguiente paso:** fusionar y reiniciar el servicio cuando convenga a la captura.
+
 ## 2026-11-16 · T78 cerrada: la captura HFT cumplió su ventana de 72 h
 - **Hecho:** revisión de las tareas que esperaban tiempo de observación. T78 cumple §Aceptación desde el cierre de la hora 2026-11-14T07 UTC (72 h seguidas completas desde la 2026-11-11T08) y lo sostiene: `python -m eim.data.collectors.hft_ops --root data --window` da una ventana de 127 h (2026-11-11T00 → 2026-11-16T06), 126 completas (99,2 %), top-10 100 %, 0 huecos sin detectar, libro útil 99,921 %, `passed: true`; la única hora incompleta (2026-11-11T07) es del exchange. Últimas 72 h: 72/72, 863/863 verificaciones REST, 0 descartes, reinicios ni saltos de reloj. Disco: 1 099 MB/día ⇒ 33,0 GB a 30 d y 49,4 GB a 45 d (426 GB libres). Marcada ☑.
 - **Cola:** el trabajo `20261116-013003-copia_externa-3478` llevaba desde las 02:53 UTC esperando 3,8 GB libres (reencolado por T149 mientras exportaba la experiencia, con la copia externa ya publicada) y no dejaba correr nada detrás. Cancelado con permiso del usuario; la experiencia de hoy se exporta en la copia de esta noche. Hallazgo: tras reencolarlo, su plazo de 2 h (`REQUEUE_WAIT_S`) no se cumplió (el ejecutor que lo reencoló murió con la tarea programada y el plazo vivía en su memoria) → BACKLOG T149 (5).
@@ -1475,3 +1482,25 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** gate por la cola verde (`20261116-074427-gate-t78-cierre-478c`, rc=0): `ruff` limpio, 3 686 pruebas pasadas y 8 omitidas; 9 pausas por RAM (la API llegó a 8,4 GB comprometidos desde las 07:41 UTC) y una repetición por `--retry-paused`.
 - **Abierto:** T128 — la base de líderes sigue creciendo ~53 MB/día en las copias de cada noche (1 264 → 1 528 MB del 11 al 16-nov); su semana termina el 2026-11-17 02:29 UTC. Quedaban para después de T78: ◆ reiniciar los servicios con el código de parada sin elevar, ◆ el reloj adelantado ~835 ms (BACKLOG T138 (3)) y las 3 corridas de T116 con el equipo descargado.
 - **Siguiente paso:** cerrar la semana de T128 y diagnosticar qué sigue creciendo; T31 cierra el 2026-11-27.
+
+## 2026-11-16 · sesión «Retroalimentación, calibración y ajustes» · T176: lectura que sobrevive a la compactación
+- **Hecho:** diagnosticado en vivo el atasco del bróker simulado (26 min sin ciclo, 07:44 → 08:10 UTC, API lenta con 0,5–2 GB libres) y el ciclo caído a las 08:04:40 por leer una parte de `micro_hft/trades` que la compactación acababa de sustituir; `read_micro` reintenta con la lista nueva solo en ese caso. Se recuperó solo, sin reiniciar nada.
+- **Archivos:** `v2/eim/data/micro.py`, `v2/tests/data/test_micro_feed.py`, `PLAN/T176.md`, `PLAN/STATUS.md`, `PLAN/00_MASTER.md`, `PLAN/BACKLOG.md`.
+- **Pruebas:** 16 de microestructura y recolector en verde; gate completo por la cola.
+- **Abierto:** BACKLOG T176 (1) la cola no mira al bróker; (2) avisar al usuario de la memoria de `NVIDIA Overlay`.
+- **Siguiente paso:** fusionar; entra en el bróker con el próximo reinicio de la API.
+
+## 2026-11-16 · sesión «Retroalimentación, calibración y ajustes» · T175: auditoría semanal y su herramienta corregida
+- **Hecho:** auditoría del 2026-11-16 (n = 410, E[R] −0,110 R, IC −0,179…−0,042; bruto +0,016; costo 0,126 R; Δ desde el 11-nov: +160 operaciones, E[R] +0,021, PnL −878 USDT). Revisada con criterio de experto, la herramienta daba tres lecturas falsas y T175 las corrige: la variante t143 se comparaba sin emparejar (−0,032 → **+0,011 R/op** emparejada, 115 comunes); 4 estrategias iban a ◆ por perder en neto cuando ninguna de las 13 legibles se distingue del azar en bruto (Holm 1,00); y la palanca «15 m caro: vía auto» no comprobaba que la variante lo cerrara (no lo cierra: 0,157 R vividos frente a 0,129 en la sombra tomable).
+- **Archivos:** `v2/eim/analytics/audit/{build,kpis,levers}.py`, `v2/tests/analytics/test_audit.py`, `.claude/skills/eim-auditoria/SKILL.md`, `v2/reports/audit/audit_2026-11-16.{md,json}`, `PLAN/T175.md`, `PLAN/STATUS.md`, `PLAN/00_MASTER.md`, `PLAN/BACKLOG.md`.
+- **Pruebas:** 14 de la auditoría en verde; gate completo por la cola.
+- **◆ abiertas:** puerta de costo por perfil y marco en la variante (T175). Sin disparadores: funding de BTC 3,51 % frente al 4 %.
+- **Siguiente paso:** fusionar; la próxima auditoría semanal ya usa la herramienta nueva.
+
+## 2026-11-16 · sesión «Retroalimentación, calibración y ajustes» · T173 rescatada y cerrada
+- **Hecho:** T173 estaba a medias desde el 2026-11-11 en `.claude/worktrees/t148-vigilante-conjunto-cb8831` (10 archivos sin confirmar, sin pruebas y con `attribute()` sin el parámetro que la ventana le pasaba). Se confirmó tal cual, se puso al día con `main` y se terminó: sin red no se relanza, lo que vive dentro de la API no se intenta levantar, un intento se juzga por su efecto, la captura que late sin datos avisa y el corte de red local cuenta como hora nuestra (`red_local`).
+- **Medido con datos reales:** reparto de T78 74/23 → 76/21 en 393 horas; 2026-11-06T07, que constaba «sin causa confirmada», fue un corte de DNS de este equipo (07:55:03–07:58:23 UTC).
+- **Visto en vivo esta madrugada (no es de T173, va a su tarea):** el bróker simulado estuvo 26 min sin latir dentro de la API (07:44 → 08:10 UTC) con la API viva pero lenta por falta de RAM, y un ciclo falló con `IOException` al abrir una parte de `micro_hft/trades` que la compactación acababa de borrar. El vigilante gastó el intento 1 de 4 sin efecto (`rc=0`), que es exactamente lo que T173 corrige.
+- **Archivos:** `v2/eim/operation/fleet_{watch,cause,state,cli,alert}.py`, `v2/eim/data/collectors/hft_{attrib,ops,window}.py`, `v2/tests/operation/test_fleet_{cause,watch}.py`, `v2/docs/RUNBOOK.md` §18.1, `PLAN/T173.md`, `PLAN/STATUS.md`.
+- **Pruebas:** 77 de los módulos tocados en verde; gate completo por la cola.
+- **Siguiente paso:** fusionar (se despliega sola: la tarea del vigilante corre el código de la carpeta principal cada 5 min).

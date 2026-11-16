@@ -207,11 +207,35 @@ def _last_top_levels(root: Path, symbol: str, start: int, end: int):
     return row
 
 
+# T176: la compactación de las horas cerradas (`hft_ops.maintain`, `compact_closed`) sustituye
+# las partes por una sola en milisegundos, pero una lectura que ya las había listado intenta abrir
+# archivos que no existen. El 2026-11-16 a las 08:04 UTC eso tumbó un ciclo del bróker simulado
+# (`IOException: Cannot open file .../hour=05/part-….parquet`) con la API lenta por falta de RAM,
+# que es cuando el rato entre listar y leer se alarga. Se vuelve a listar y a leer; los datos no
+# cambian (la compactación verifica filas y sumas antes de sustituir).
+RETRY_WAITS_S = (0.2, 1.0)
+_GONE = ("Cannot open file", "No files found")
+
+
 def read_micro(
     root: str | Path, symbol: str, t0: int, step: int, n: int
 ) -> tuple[list[MicroBar], Book | None]:
-    """Agregados por vela de las `n` velas desde `t0` y el último libro top-10 de la ventana."""
-    root = Path(root)
+    """Agregados por vela de las `n` velas desde `t0` y el último libro top-10 de la ventana.
+
+    Si una parte listada desaparece a mitad de lectura (la compactó otro proceso), se reintenta
+    con la lista nueva hasta `len(RETRY_WAITS_S)` veces; cualquier otro error sale tal cual."""
+    for wait in (*RETRY_WAITS_S, None):
+        try:
+            return _read_micro_once(Path(root), symbol, t0, step, n)
+        except duckdb.IOException as e:
+            if wait is None or not any(m in str(e) for m in _GONE):
+                raise
+            time.sleep(wait)
+    raise AssertionError("inalcanzable")  # pragma: no cover
+
+
+def _read_micro_once(root: Path, symbol: str, t0: int, step: int,
+                     n: int) -> tuple[list[MicroBar], Book | None]:
     end = t0 + n * step
     tb = _read_trade_bars(root, symbol, t0, step, n)
     tops = _read_tops(root, symbol, t0, end)
