@@ -15,6 +15,7 @@ from eim.nursery.prospect import load_prospects
 from tests.nursery.helpers import H1, M15, T0, make_ctxs, make_path
 
 PR = load_prereg()
+N = len(PR.family.members)
 
 
 @pytest.fixture()
@@ -42,12 +43,12 @@ def test_desk_with_prereg_runs_only_the_family_and_starts_in_nursery(stores):
     d = NurseryDesk(store, main, own, prospects=ps, prereg=PR, params=NurseryParams())
     now = T0 + 2 * 24 * H1
     book = d.compute(now=now)
-    assert book is not None and book.prospect_count == 29
+    assert book is not None and book.prospect_count == N
     s = d.summary()
     assert s["prereg"]["version"] == "prereg_cantera_v1" and s["prereg"]["alta_ms"] == now
-    assert s["prereg"]["family_m"] == 36 and s["prereg"]["stages"] == {"guarderia": 29}
+    assert s["prereg"]["family_m"] == PR.m and s["prereg"]["stages"] == {"guarderia": N}
     rows = [a for a in s["accounts"] if a["kind"] == "prospecto"]
-    assert len(rows) == 29 and all(a["stage"] == "guarderia" for a in rows)
+    assert len(rows) == N and all(a["stage"] == "guarderia" for a in rows)
     assert all(e.trade.fill_t is None or e.t >= now for e in book.entries)
     assert d.compute(now=now + 10 * H1) is not None
     assert own.execute("SELECT alta_ms FROM nursery_prereg")[0][0] == now   # el alta no se mueve
@@ -77,7 +78,7 @@ def test_make_nursery_loads_the_prereg_or_blocks(stores, monkeypatch):
     for sub in ("x", "y"):
         (data_dir / sub).mkdir()
     d = make_nursery(True, (), store, data_dir / "x", main, {})
-    assert d.prereg is not None and len(d.prospects) == 29 and not d.blocked
+    assert d.prereg is not None and len(d.prospects) == N and not d.blocked
     d.pstore.close()
 
     def bad(*a, **k):

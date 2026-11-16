@@ -31,9 +31,10 @@ def test_published_hash_is_pinned_and_a_modified_copy_fails(tmp_path):
 def test_family_matches_the_code_and_the_ceiling():
     ps = family_prospects(PR, load_prospects())
     fam = PR.family
-    assert len(ps) == len(fam.members) == 29 and len(fam.discarded) == 14
-    assert fam.ceiling == CEILING == fam.enrolled_t167 + fam.reserve_slots == 50
-    assert PR.m == len(fam.members) + fam.reserve_slots == 36
+    n = len(fam.members)
+    assert len(ps) == n and n + len(fam.discarded) == fam.enrolled_t167 + len(fam.replacements)
+    assert fam.ceiling == CEILING == 50 and fam.enrolled_t167 == 43 and PR.m <= fam.ceiling
+    assert PR.m == n + fam.reserve_slots
     assert set(fam.redesigned) == {"estructura_ruptura", "tec_acuerdo_marcos"}
     assert {"elliott_onda3", "elliott_onda5_giro", "regimen_tramo",
             "regimen_tramo_estable"} <= {x.id for x in fam.discarded}
@@ -68,4 +69,4 @@ def test_sensitive_layer_is_not_hardened():
     assert lad.promise.q == 0.10 and lad.futility.mu_min_r == 0.10
     assert lad.first_team.stepm_size == 0.05 and lad.first_team.max_dd == 0.25
     assert lad.drawdown.target_edge_r == 0.25
-    assert PR.false_promises["m"] == PR.m and PR.false_promises["members"] == 29
+    assert PR.false_promises["m"] == PR.m and PR.false_promises["members"] == len(PR.family.members)

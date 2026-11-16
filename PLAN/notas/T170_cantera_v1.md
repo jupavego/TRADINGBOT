@@ -1,5 +1,13 @@
 # T170 — Pre-registro `cantera_v1` (2026-11-16)
 
+> **En pausa (2026-11-16, después de la aprobación):** el usuario pidió en la sesión de T169 que
+> prospectos nuevos de T177 reemplacen a los descartados y entren en v1, del mismo agente si emite
+> variables usables. La lista de 29 de esta nota es un **borrador**: no está en `main` y no ha
+> operado nadie, así que se rehace con la lista final (calibración, huella y gate), y esa lista
+> vuelve a aprobarse antes de fusionar y encender. El constructor ya admite informes de examen y
+> temas adicionales (`v2/scripts/t170_prereg.py --exam --themes --reserve`). Queda por decidir si
+> son 14 reemplazos (familia de 43 y m = 50) o 16 (45 y reserva de 5).
+
 **Modo: SIMULADO.** El archivo vinculante es `v2/eim/validation/prereg/prereg_cantera_v1.json`. Su
 huella SHA-256 está fijada en `v2/eim/nursery/prereg.py::PUBLISHED`, y el commit `a9cefd6` es
 anterior a la primera operación de la cantera. Esta nota lo resume; si hay diferencias, manda el

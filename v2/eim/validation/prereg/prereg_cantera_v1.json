@@ -548,7 +548,8 @@
   "redesigned": [
    "estructura_ruptura",
    "tec_acuerdo_marcos"
-  ]
+  ],
+  "replacements": []
  },
  "accounts": {
   "initial_equity_usdt": 10000.0,

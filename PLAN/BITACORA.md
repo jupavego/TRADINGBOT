@@ -1553,4 +1553,5 @@ más reciente por fecha y su siguiente paso. Formato:
   - Consistencia, ventaja grande, hermano simple, una baja que sigue contando, no anticipación, inactividad sin los días de puerta cerrada, drawdown, StepM e inmutabilidad.
   - Gate completo por la cola.
 - **Abierto:** BACKLOG T170 (1)–(5): Elliott 2.0, la huella que no firma los ayudantes de una regla, congelar en el panel las cuentas dadas de baja, el anexo de reentradas y el estado de los descartados en los expedientes.
-- **Siguiente paso:** fusionar, encender `EIM_NURSERY=1` (con permiso del usuario, hoy) y anotar el alta.
+- **En pausa:** la sesión de T169 avisó de que el usuario quiere que prospectos nuevos (T177) reemplacen a los descartados y entren en v1. PR #301 pasa a borrador, no se fusiona ni se enciende, y la familia queda como parámetro del constructor. Quedan 14 descartados, porque las dos rediseñadas entran. Hay que decidir si son 14 o 16 reemplazos.
+- **Siguiente paso:** con la lista de T177, rehacer la calibración por la cola, volver a fijar la huella, pasar el gate, pedir la aprobación de la lista final y luego fusionar, encender `EIM_NURSERY=1` y anotar el alta.

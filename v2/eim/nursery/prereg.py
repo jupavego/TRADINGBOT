@@ -27,7 +27,7 @@ PREREG_DIR = Path(__file__).resolve().parents[1] / "validation" / "prereg"
 DEFAULT_VERSION = "prereg_cantera_v1"
 # SHA-256 (fin de línea LF) de cada versión publicada. Solo se añaden entradas.
 PUBLISHED: dict[str, str] = {
-    "prereg_cantera_v1": "fc3001f980a3d67b0f872de0d5b4eca1f0def81dafeb9b1268b894df2f52fd92",
+    "prereg_cantera_v1": "f3c9c08cf8cb1082ed192930d8c078ac94a3537dc739a289f0ebd452c331ad24",
 }
 THEMES = ("tendencia", "reversion", "derivados", "consenso")
 BANDS = ("scalping", "intradia", "tres_dias", "semanal")
@@ -71,18 +71,23 @@ class Family(_Frozen):
     members: tuple[MemberSpec, ...]
     discarded: tuple[Discarded, ...]
     redesigned: tuple[str, ...]
+    replacements: tuple[str, ...] = ()       # prospectos nuevos que reemplazan descartados
 
     @model_validator(mode="after")
     def _counts(self) -> Family:
         ids = [x.id for x in self.members] + [x.id for x in self.discarded]
         if len(set(ids)) != len(ids):
             raise ValueError("un prospecto aparece dos veces en la familia")
-        if len(ids) != self.enrolled_t167:
-            raise ValueError(f"{len(ids)} prospectos ≠ {self.enrolled_t167} inscritos en T167")
-        if self.ceiling != self.enrolled_t167 + self.reserve_slots:
-            raise ValueError("techo ≠ inscritos + plazas de reserva")
+        if len(ids) != self.enrolled_t167 + len(self.replacements):
+            raise ValueError(f"{len(ids)} prospectos ≠ {self.enrolled_t167} inscritos en T167 + "
+                             f"{len(self.replacements)} reemplazos")
+        if not set(self.replacements) <= {x.id for x in self.members}:
+            raise ValueError("un reemplazo que no entra en la familia")
         if self.m != len(self.members) + self.reserve_slots:
             raise ValueError("m de e-BH ≠ los que entran + las plazas de reserva")
+        if self.m > self.ceiling:
+            raise ValueError(f"los que entran + la reserva ({self.m}) pasan del techo "
+                             f"({self.ceiling})")
         mids = {x.id for x in self.members}
         bad = [x.id for x in self.members if x.sibling and x.sibling not in mids]
         if bad or not set(self.redesigned) <= mids | {x.id for x in self.discarded}:

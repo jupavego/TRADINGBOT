@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-16T14:58:41",
+ "generated": "2026-11-16T15:55:42",
  "phases": [
   {
    "n": 0,
@@ -2526,7 +2526,7 @@ window.EIM_STATUS = {
     "T161"
    ],
    "state": "progress",
-   "notes": "En curso (2026-11-16, rama `claude/t170-prereg-cantera-8115e5`): decisiones ◆ del pre-registro con el usuario, luego `prereg_cantera_v1.json`, `eim/nursery/ladder.py` y sus pruebas",
+   "notes": "En curso (2026-11-16, PR #301 en borrador): ◆ resueltas, `prereg_cantera_v1.json` (borrador con 29), `eim/nursery/ladder.py` y sus pruebas hechos. **En pausa** hasta que T177 cierre los prospectos nuevos que reemplazan a los descartados (entran en v1); después, recalibrar, volver a fijar la huella, aprobar la lista final, fusionar y encender",
    "effort": "medio",
    "phase": 27
   },

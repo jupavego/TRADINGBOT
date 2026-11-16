@@ -37,15 +37,19 @@ def document(fam: dict, lad: dict, cal: dict, np_, criteria_sha: str, reserve: i
             "◆ T170 (2026-11-16) 3: manda la banda medida por la tenencia; las plantillas de "
             "salida no cambian.",
             "◆ T170 (2026-11-16) 4: familia propia (precedente de T160; los datos son nuevos), "
-            "con m de e-BH = los que entran + las 7 plazas de reserva.",
-        ],
+            f"con m de e-BH = los que entran + las {reserve} plazas de reserva.",
+        ] + ([
+            f"◆ (2026-11-16, sesión de T169 y tarea T177): {len(fam['replacements'])} prospectos "
+            "nuevos reemplazan a los descartados y entran en v1, del mismo agente si emite "
+            "variables usables; pasaron antes el mismo examen físico de T169."
+        ] if fam["replacements"] else []),
         "family": {
             "kind": "propia",
             "why": (
                 "Las operaciones de la cantera son todas posteriores a este pre-registro: datos "
                 "nuevos, no la historia ya mirada de las 841 claves de T49/T137/T139. Sumarla a "
                 "esa familia haría imposible graduar a nadie con la potencia disponible."),
-            "enrolled_t167": len(members) + len(fam["discarded"]),
+            "enrolled_t167": fam["enrolled_t167"],
             "reserve_slots": reserve,
             "ceiling": ceiling,
             "m": m,
@@ -58,6 +62,7 @@ def document(fam: dict, lad: dict, cal: dict, np_, criteria_sha: str, reserve: i
             "members": members,
             "discarded": fam["discarded"],
             "redesigned": list(redesigned),
+            "replacements": fam["replacements"],
         },
         "accounts": {
             "initial_equity_usdt": np_.initial_equity,

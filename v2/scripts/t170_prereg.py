@@ -31,7 +31,7 @@ T170 = ROOT / "reports" / "t170_reexamen.json"
 CALIB = ROOT / "reports" / "t170_calibracion.json"
 OUT = ROOT / "eim" / "validation" / "prereg" / "prereg_cantera_v1.json"
 REDESIGNED = ("estructura_ruptura", "tec_acuerdo_marcos")
-RESERVE, CEILING = 7, 50
+RESERVE, CEILING = 7, 50      # la reserva puede bajar (--reserve) si entran más reemplazos
 THEME = {
     "tendencia": ("niveles_ruptura", "pa_bos", "pa_bos_patron", "estructura_continuacion",
                   "estructura_retroceso", "estructura_ruptura", "tec_ruptura_volumen",
@@ -71,11 +71,22 @@ def _say(msg: str) -> None:
     print(f"[{time.strftime('%H:%M:%S', time.gmtime())} UTC] {msg}", flush=True)
 
 
-def family() -> dict:
-    """Quién entra y quién no, con su huella, banda, tema, hermano y control."""
-    rows = {r["id"]: r for r in json.loads(T169.read_text(encoding="utf-8"))["prospects"]}
-    rows.update({r["id"]: r for r in json.loads(T170.read_text(encoding="utf-8"))["prospects"]})
+def family(exams: tuple[Path, ...] = (), themes: Path | None = None) -> dict:
+    """Quién entra y quién no, con su huella, banda, tema, hermano y control.
+
+    `exams`: informes de examen físico adicionales con el formato del de T169 (p. ej., los
+    prospectos nuevos de T177 que reemplazan descartados); `themes`: JSON {id: tema} para ellos.
+    """
+    t169 = json.loads(T169.read_text(encoding="utf-8"))
+    original = {r["id"] for r in t169["prospects"]} | {
+        r["id"] if isinstance(r, dict) else r for r in t169["without_history"]}
+    rows = {r["id"]: r for r in t169["prospects"]}
+    for f in (T170, *exams):
+        rows.update({r["id"]: r for r in json.loads(Path(f).read_text(encoding="utf-8"))
+                     ["prospects"]})
     theme = {pid: th for th, ids in THEME.items() for pid in ids}
+    if themes is not None:
+        theme.update(json.loads(Path(themes).read_text(encoding="utf-8")))
     ps = load_prospects()
     by = {p.id: p for p in ps}
     generic = {(a.agent_id, a.timeframe): a.id for a in accounts_for(ps) if a.kind == "control"}
@@ -99,8 +110,11 @@ def family() -> dict:
         sib = base.id if (base and base.id != p.id and len(p.params) > len(base.params)
                           and (rows.get(base.id) is None or
                                not rows[base.id]["verdict"]["discarded"])) else None
-        src = "declarada" if r is None else ("medida_t170" if p.id in REDESIGNED
-                                             else "medida_t169")
+        if p.id not in theme:
+            raise SystemExit(f"{p.id}: falta su tema (tendencia, reversion, derivados o "
+                             "consenso); pásalo con --themes")
+        src = "declarada" if r is None else ("medida_t169" if p.id in original and
+                                             p.id not in REDESIGNED else "medida_t170")
         members.append({
             "id": p.id, "fingerprint": p.fingerprint, "agent_id": p.agent_id,
             "timeframe": p.timeframe, "role": p.role, "n_params": len(p.params),
@@ -109,8 +123,10 @@ def family() -> dict:
             "generic": generic[(p.agent_id, p.timeframe)],
             "expected_in_term": None if r is None else
             int(round(r["verdict"]["expected_in_term"]))})
-    assert len(members) + len(discarded) == len(by) == 43
-    return {"members": members, "discarded": discarded}
+    assert len(members) + len(discarded) == len(by)
+    return {"members": members, "discarded": discarded,
+            "replacements": [x["id"] for x in members if x["id"] not in original],
+            "enrolled_t167": len(original)}
 
 
 def rules_without_caps(n_members: int) -> LadderRules:
@@ -119,8 +135,12 @@ def rules_without_caps(n_members: int) -> LadderRules:
     return LadderRules(**lad)
 
 
+def _fam(a: argparse.Namespace) -> dict:
+    return family(tuple(Path(x) for x in a.exam), Path(a.themes) if a.themes else None)
+
+
 def cmd_calibrate(a: argparse.Namespace) -> None:
-    fam = family()
+    fam = _fam(a)
     ms = fam["members"]
     dd = LADDER["drawdown"]
     n_term = {x["id"]: x["expected_in_term"] or dd["n_without_history"] for x in ms}
@@ -129,9 +149,9 @@ def cmd_calibrate(a: argparse.Namespace) -> None:
     caps = calibrate.caps_for(n_term, rules, a.dd_sims)
     _say(f"topes de drawdown: {len(caps)} en {time.time() - t0:.0f} s")
     t0 = time.time()
-    fp = calibrate.false_promises(n_term, rules, len(ms) + RESERVE, a.null_sims, seed=1701)
+    fp = calibrate.false_promises(n_term, rules, len(ms) + a.reserve, a.null_sims, seed=1701)
     _say(f"promesas falsas: {fp} en {time.time() - t0:.0f} s")
-    pw = calibrate.power(rules, len(ms) + RESERVE, a.power_sims, seed=1702)
+    pw = calibrate.power(rules, len(ms) + a.reserve, a.power_sims, seed=1702)
     _say(f"potencia: {pw['by_mu']}")
     CALIB.write_text(json.dumps({"task": "T170", "mode": "SIMULADO", "n_term": n_term,
                                  "caps_pct": caps, "false_promises": fp, "power": pw,
@@ -143,13 +163,15 @@ def cmd_calibrate(a: argparse.Namespace) -> None:
 def cmd_build(a: argparse.Namespace) -> None:
     from t170_prereg_text import document  # texto fijo del pre-registro (mismo directorio)
 
-    fam = family()
+    fam = _fam(a)
     cal = json.loads(CALIB.read_text(encoding="utf-8"))
+    if set(cal["caps_pct"]) != {x["id"] for x in fam["members"]}:
+        raise SystemExit("la calibración es de otra familia: corre `calibrate` con la misma lista")
     lad = json.loads(json.dumps(LADDER))
     lad["drawdown"]["caps_pct"] = {x["id"]: cal["caps_pct"][x["id"]] for x in fam["members"]}
     np_ = NurseryParams()
-    doc = document(fam, lad, cal, np_, CRITERIA["validation_v1"], RESERVE, CEILING, REDESIGNED,
-                   a.not_before)
+    doc = document(fam, lad, cal, np_, CRITERIA["validation_v1"], a.reserve, CEILING,
+                   REDESIGNED, a.not_before)
     LadderRules(**doc["ladder"])
     OUT.write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     _say(f"pre-registro en {OUT}")
@@ -158,11 +180,16 @@ def cmd_build(a: argparse.Namespace) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description="T170: pre-registro cantera_v1")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    s = sub.add_parser("calibrate")
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--exam", action="append", default=[],
+                        help="informe de examen adicional (formato T169), repetible")
+    common.add_argument("--themes", default=None, help="JSON {id: tema} de los nuevos")
+    common.add_argument("--reserve", type=int, default=RESERVE)
+    s = sub.add_parser("calibrate", parents=[common])
     s.add_argument("--dd-sims", type=int, default=None)
     s.add_argument("--null-sims", type=int, default=10_000)
     s.add_argument("--power-sims", type=int, default=20_000)
-    s = sub.add_parser("build")
+    s = sub.add_parser("build", parents=[common])
     s.add_argument("--not-before", required=True, help="UTC, p. ej. 2026-11-16T22:00Z")
     a = ap.parse_args()
     {"calibrate": cmd_calibrate, "build": cmd_build}[a.cmd](a)
