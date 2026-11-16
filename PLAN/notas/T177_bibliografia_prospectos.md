@@ -53,7 +53,7 @@ lo bibliográfico verificado está en `catalog.json` y lo leído en `cards.json`
 | Cadencia intrínseca baja | `ema_pila`, `ema_resorte`, `niveles_canal_tendencia`, `lit_regla_4_semanas`, `vwap_anclado`, `tec_rsi_rango` | Ideas nuevas, estimadas antes con los cierres o con las variables del banco |
 
 Además, en T169 **no quedó ningún superviviente en las bandas de tres días ni semanal**: los 16
-quedaron en scalping (3) o intradía (13). Por eso 9 de los 16 reemplazos se formulan para la banda
+quedaron en scalping (3) o intradía (13). Por eso 7 de los 14 reemplazos se formulan para la banda
 de tres días.
 
 **La banda semanal no se alcanza con las plantillas vigentes.**
@@ -63,26 +63,35 @@ de tres días.
 
 Cambiar las plantillas es una decisión de familia, de T170 o de una versión 2.
 
-## 4. Los 16 reemplazos
+## 4. Los 14 reemplazos (y los 2 rediseños de T170)
 
 | Agente | Descartado | Reemplazo | Marco · salida · banda | Idea y obras |
 |---|---|---|---|---|
 | `ema` | `ema_pila` (base) | **`ema_precio_200`** (base) | 4 h · rule_flip · tres días | La regla 1/200: Brock et al. 1992, Glabadanidis 2015, Lempérière 2014. En contra: Huang et al. 2020. Unos 6 cruces al mes |
 | `ema` | `ema_resorte` | `ema_cruce_21_55` | 1 h · rule_flip · tres días | Cruce de medias como filtro de tendencia: Levine y Pedersen 2016, Corbet et al. 2019. Unos 13 al mes |
 | `ema` | `ema_retroceso` | `ema_retroceso_12h` | 1 h · time_stop · intradía | La misma regla con salida a 12 h. Bandera y pausa en tendencia: Leigh et al. 2002 |
-| `technical` | `tec_acuerdo_marcos` (base) | **`tec_acuerdo_tres_marcos`** (base) | 1 h · rule_flip · intradía | Acuerdo de 15 m, 1 h y 4 h, los marcos que el agente sí evalúa |
 | `technical` | `tec_rsi_rango` | `tec_rsi_giro` (opuesta) | 1 h · time_stop · intradía | El RSI sale de un extremo, sin filtro ADX: Chong y Ng 2008, Kosc et al. 2019, Nagel 2012 |
 | `technical` | `tec_compresion_bb` | `tec_compresion_bb_12h` | 1 h · time_stop · intradía | La misma regla con salida a 12 h. La tendencia paga en la expansión: Fung y Hsieh 2001 |
 | `vwap` | `vwap_reversion` (base) | **`vwap_reversion_1h`** (base) | 1 h · mean_target · intradía | La misma regla en 1 h, por el costo: Berkowitz et al. 1988, Kato 2014, Nagel 2012 |
 | `vwap` | `vwap_anclado` | `vwap_quincenal` | 4 h · rule_flip · tres días | VWAP de 15 días con su pendiente: tendencia lenta (Lempérière 2014) |
 | `elliott` | `elliott_onda3` (base) | **`elliott_oscilacion`** (base) | 4 h · rule_flip · tres días | Sigue la oscilación confirmada por el zigzag, sin ondas (Elliott en cripto: no). Unos 27 al mes |
 | `elliott` | `elliott_onda5_giro` | `elliott_dow` | 4 h · rule_flip · tres días | Solo mínimos crecientes o máximos decrecientes: Brown et al. 1998 |
-| `structure` | `estructura_ruptura` | `estructura_ruptura_sc02` | 1 h · time_stop · intradía | SC-02 sin el umbral no calibrado: Gerritsen et al. 2020, Donaldson y Kim 1993 |
 | `structure` | `estructura_cambio` | `estructura_cambio_sc04` (opuesta) | 1 h · time_stop · intradía | SC-04 sin el umbral (unos 77 al mes): patrones de giro (Savin 2007, Chang y Osler 1999) |
 | `levels` | `niveles_canal_tendencia` | `niveles_redondos` | 1 h · time_stop · tres días | Soporte o resistencia que contiene un múltiplo de 1 000 USD: Donaldson y Kim 1993, Bhattacharya 2012, Mbanga 2019 |
 | `literature` | `lit_regla_4_semanas` | `lit_consenso_4h` | 4 h · time_stop · tres días | Consenso de fichas con tenencia de 48 h: Lu et al. 2012; en contra en intradía, Duvinage 2013 |
 | `regime` → `elliott` | `regimen_tramo` (base) | `elliott_tendencia_dow` (opuesta de `elliott_oscilacion`) | 4 h · time_stop · tres días | Dow a favor de la tendencia, en el retroceso: tras un máximo más alto compra, y tras un mínimo más bajo vende. Brown et al. 1998, Leigh et al. 2002 |
 | `regime` → `bots` | `regimen_tramo_estable` | `bots_contrario` (opuesta de `bots_unanimidad`) | 1 h · time_stop · intradía | Entra contra la unanimidad recién formada: DeLong et al. 1990, Bikhchandani et al. 1992, Kosc et al. 2019. Solo hacia adelante |
+
+**`estructura_ruptura` y `tec_acuerdo_marcos` no tienen reemplazo.** En la sesión de T170 el
+usuario decidió rediseñarlas en su sitio, con el mismo id (◆ «Rediseñar 2»):
+- `estructura_ruptura` queda sin filtro de convicción.
+- `tec_acuerdo_marcos` queda con los marcos de 1 h y 4 h.
+
+Las dos pasaron el reexamen de T170 (`v2/reports/t170_reexamen.md`). T177 había formulado lo mismo
+con id nuevo (`estructura_ruptura_sc02`, y `tec_acuerdo_tres_marcos` con 15 m, 1 h y 4 h). Al traer la
+rama de T170 se quedaron sus versiones, para respetar esa decisión, y se retiraron los duplicados.
+Así la familia sigue en 43 y no se gasta reserva. `tec_rsi_giro` pasa a ser la opuesta de
+`tec_acuerdo_marcos`. El examen previo había dado 17,5 operaciones al mes a `estructura_ruptura_sc02`.
 
 **Cuatro reemplazos repiten la regla de su descartado** con otra salida o en otro marco:
 `ema_retroceso_12h`, `tec_compresion_bb_12h`, `vwap_reversion_1h` y `lit_consenso_4h`. La lección
@@ -90,7 +99,7 @@ de T169 era física, no de rendimiento. Cada uno es un prospecto nuevo, con su h
 un intento a la familia.
 
 **Lo demás:**
-- **Supervivientes intactos.** Las huellas de los 16 supervivientes no cambian (comprobado contra
+- **Supervivientes intactos.** Las huellas de los 16 supervivientes de T169 no cambian (comprobado contra
   el plan de T169).
 - **Descartados a la vista.** Los descartados no se borran: pasan a `discarded` en su expediente,
   con su huella, su motivo y el id de su reemplazo.
@@ -133,7 +142,6 @@ midieron con la misma física y el mismo veredicto (`t177-examen-previo`, por la
 | `estructura_cambio_sc04` | 36,2 | 12,0 h | 0,163 R | intradía |
 | `tec_rsi_giro` | 33,2 | 12,0 h | 0,153 R | intradía |
 | `niveles_redondos` | 17,5 | 11,4 h | 0,139 R | intradía |
-| `estructura_ruptura_sc02` | 17,5 | 10,5 h | 0,167 R | intradía |
 | `elliott_oscilacion` | 14,9 | 8,0 h | 0,070 R | intradía |
 | `tec_compresion_bb_12h` | 13,8 | 8,6 h | 0,187 R | intradía |
 | `lit_consenso_4h` | 9,8 | 48,0 h | 0,081 R | tres días |
