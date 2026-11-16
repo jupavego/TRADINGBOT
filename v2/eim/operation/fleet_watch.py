@@ -45,7 +45,7 @@ from pathlib import Path
 
 from eim.operation import fleet_cause
 from eim.operation.alerts import Alert
-from eim.operation.fleet_alert import alert_for, announce
+from eim.operation.fleet_alert import alert_for, announce, stuck_alert
 from eim.operation.fleet_state import Decision, State
 from eim.operation.notify import JsonLog, WindowsToast
 from eim.operation.usage_summary import load_day
@@ -160,6 +160,9 @@ def decide(seen: Mapping[str, float | None], state: State, now_ms: int,
     if blocked is not None:
         return Decision("sin_red", tuple(down), elapsed, tries=state.tries, blocked=blocked,
                         inside=inside, no_effect=nada)
+    if state.said == "sin_red":   # volvió la red: una pasada de gracia para que lata solo (E1)
+        return Decision("esperar", tuple(down), elapsed, tries=state.tries, inside=inside,
+                        wait_s=float(EVERY_MIN * 60), no_effect=nada)
     if inside and len(inside) == len(down):
         return Decision("dentro_de_otro", tuple(down), elapsed, tries=state.tries, inside=inside,
                         no_effect=nada)
@@ -223,7 +226,11 @@ def check(data_dir: Path, now_s: float | None = None, down_s: float = DOWN_S,
     beats = beats_ms(data_dir, now)
     seen = {n: None if ms is None else round(now - ms / 1000.0, 1) for n, ms in beats.items()}
     rows = fleet_cause.recent_ops(data_dir, now) if ops is None else ops
-    blocked = fleet_cause.network_cause(rows, now_ms) if missing(seen, down_s) else None
+    # Una alerta de desconexión abierta solo cuenta si quien la cerraría (el ciclo, en la API)
+    # sigue vivo: si la API murió con ella abierta, nadie la va a cerrar y bloquearía para siempre.
+    api_up = (seen.get("API") if seen.get("API") is not None else down_s) < down_s
+    blocked = (fleet_cause.network_cause(rows, now_ms, trust_open_alert=api_up)
+               if missing(seen, down_s) else None)
     d = decide(seen, st, now_ms, down_s, blocked=blocked, beats=beats)
     rc, tail = None, ""
     if d.lift and not dry_run:
@@ -262,21 +269,24 @@ def check(data_dir: Path, now_s: float | None = None, down_s: float = DOWN_S,
     # veces en el registro y avisó una sola, que es lo que hay que hacer con los dos.
     repetido = d.holding and st.said == d.action
     st.said = d.action if d.holding else ""
+    nuevo_atasco = bool(stuck) and str(stuck.get("hour") or "") != st.stuck_hour
+    st.stuck_hour = str((stuck or {}).get("hour") or "")
     st.save(state_path)
     log = JsonLog(data_dir / "operation" / "logs", clock=lambda: now_ms)
     if d.action != "ok" and not repetido:
         log.write(f"conjunto_{d.action}", "warn" if d.action != "recuperado" else "info",
                   component=COMPONENT, **{k: v for k, v in out.items() if k != "action"})
-    if stuck and not repetido:
+    if nuevo_atasco:
         log.write("conjunto_late_sin_producir", "warn", component=COMPONENT, **stuck)
     a = alert_for(d.action, d.missing, d.down_s, d.tries, MAX_TRIES, rc, GIVE_UP_S,
                   waiting=bool(d.wait_s), blocked=d.blocked, inside=d.inside,
                   no_effect=d.no_effect) if not repetido else None
-    if a is not None:
-        announce(Alert(now_ms, a.kind, a.level, a.title, a.detail, a.key, a.resolved),
-                 log.alert_sink, WindowsToast() if notify else None,
-                 lambda err: log.write("conjunto_aviso_fallido", "warn", component=COMPONENT,
-                                       error=err))
+    for x in (a, stuck_alert(stuck) if nuevo_atasco else None):
+        if x is not None:
+            announce(Alert(now_ms, x.kind, x.level, x.title, x.detail, x.key, x.resolved),
+                     log.alert_sink, WindowsToast() if notify else None,
+                     lambda err: log.write("conjunto_aviso_fallido", "warn",
+                                           component=COMPONENT, error=err))
     return out
 
 

@@ -85,6 +85,18 @@ def alert_for(action: str, missing: tuple[str, ...], down_s: float, tries: int, 
     return None
 
 
+STUCK_KEY = "captura_sin_producir"
+
+
+def stuck_alert(stuck: dict) -> Alert:
+    """T173 E4: la captura late pero la última hora cerrada no trajo datos.
+
+    Un aviso, no una alarma crítica: el vigilante no relanza a quien ya late (no lo arreglaría),
+    pero alguien tiene que enterarse antes de leer el QC al día siguiente."""
+    return Alert(0, SERVICE, WARN, "La captura HFT late pero no captura",
+                 str(stuck.get("detail") or "")[:300], STUCK_KEY)
+
+
 def announce(a: Alert, log_sink: Callable[[Alert], None], toast: Callable[[Alert], None] | None,
              on_error: Callable[[str], None]) -> None:
     """Deja el aviso en el registro y, si se puede, en la pantalla.

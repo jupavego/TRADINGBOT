@@ -119,6 +119,21 @@ def net_hours(spans: list[dict], min_s: float = NET_HOUR_S) -> set[int]:
     return out
 
 
+def local_net_hours(root: Path | str, now_s: float, days: int = 45) -> set[int]:
+    """Horas con un corte de la red de este equipo en los últimos `days` días (T173 E5).
+
+    Lo usa la atribución de T78 (`hft_ops.window`). Nunca lanza: sin registro de operación
+    devuelve un conjunto vacío y la atribución se queda con las demás señales."""
+    try:
+        now_ms = int(now_s * 1000)
+        first = now_ms - (days - 1) * 86_400_000
+        day_list = sorted({time.strftime("%Y-%m-%d", time.gmtime((first + i * 86_400_000) / 1000))
+                           for i in range(days)})
+        return net_hours(local_net_spans(ops_days(Path(root), day_list)))
+    except Exception:  # noqa: BLE001 - una atribución sin esta señal es peor, no imposible
+        return set()
+
+
 def recent_ops(data_dir: Path, now_s: float) -> list[dict]:
     """Eventos recientes del registro de operación (hoy y, en el cambio de día, ayer)."""
     logs = Path(data_dir) / "operation" / "logs"
@@ -132,7 +147,8 @@ def recent_ops(data_dir: Path, now_s: float) -> list[dict]:
 
 # ------------------------------------------------------------------- (1) hay una causa externa
 
-def network_cause(rows: list[dict], now_ms: int, window_s: float = NET_WINDOW_S) -> dict | None:
+def network_cause(rows: list[dict], now_ms: int, window_s: float = NET_WINDOW_S,
+                  trust_open_alert: bool = True) -> dict | None:
     """¿Hay un corte de red en marcha, según lo que el EIM ya anotó? (None si no).
 
     Dos señales, y basta una:
@@ -143,13 +159,15 @@ def network_cause(rows: list[dict], now_ms: int, window_s: float = NET_WINDOW_S)
       `window_s`: cubre el rato que va desde que la red falla hasta que la alerta salta (el
       2026-11-10 fueron 4 min), y también los cortes demasiado cortos para alertar.
 
-    `since_ms` es desde cuándo, para poder decirlo en el aviso sin volver a leer nada."""
+    `since_ms` es desde cuándo, para poder decirlo en el aviso sin volver a leer nada.
+    `trust_open_alert=False` ignora la alerta abierta: si la API murió con ella abierta, nadie la
+    va a cerrar, y tomarla por un corte en marcha dejaría al conjunto sin levantar para siempre."""
     open_since: int | None = None
     by_key: dict[str, dict] = {}
     for r in rows:
         if r.get("event") == "alerta" and r.get("kind") == DISCONNECT and r.get("key"):
             by_key[r["key"]] = r
-    for r in by_key.values():
+    for r in by_key.values() if trust_open_alert else ():
         if not r.get("resolved"):
             open_since = r["t"] if open_since is None else min(open_since, r["t"])
     fails = [r for r in rows if r.get("event") == "datos_fallidos"

@@ -30,6 +30,9 @@ class State:
     # cada 5 min: el 2026-11-10 «rendirse» quedó 31 veces en el registro.
     last_try_beats: dict[str, int | None] = field(default_factory=dict)
     said: str = ""
+    # T173 E4: la última hora de captura que se avisó como «late sin producir», para avisar una
+    # vez por hora y no en cada pasada mientras el QC de esa hora siga siendo el último.
+    stuck_hour: str = ""
 
     _KEYS = ("tries", "down_since_ms", "last_try_ms", "gave_up_ms")
 
@@ -43,14 +46,16 @@ class State:
         beats = d.get("last_try_beats")
         return cls(int(f["tries"] or 0), f["down_since_ms"], f["last_try_ms"], f["gave_up_ms"],
                    list(d.get("last_missing") or []),
-                   dict(beats) if isinstance(beats, dict) else {}, str(d.get("said") or ""))
+                   dict(beats) if isinstance(beats, dict) else {}, str(d.get("said") or ""),
+                   str(d.get("stuck_hour") or ""))
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_suffix(".tmp")
         tmp.write_text(json.dumps({**{k: getattr(self, k) for k in self._KEYS},
                                    "last_missing": self.last_missing,
-                                   "last_try_beats": self.last_try_beats, "said": self.said},
+                                   "last_try_beats": self.last_try_beats, "said": self.said,
+                                   "stuck_hour": self.stuck_hour},
                                   ensure_ascii=False), encoding="utf-8")
         tmp.replace(path)
 

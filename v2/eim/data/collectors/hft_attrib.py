@@ -148,14 +148,19 @@ def unmarked_s(rep: dict, hour: int | None = None) -> float:
 
 def attribute(rep: dict | None, hour: int, maint: list[dict] | None = None,
               blind_hours: Container[int] | None = None,
-              unmarked_min: float = UNMARKED_S) -> str:
+              unmarked_min: float = UNMARKED_S,
+              local_net_hours: Container[int] | None = None) -> str:
     """De quién es una hora incompleta: «mantenimiento», «nuestra», «ajena» o «sin causa».
 
     `rep` a None = la hora no tiene QC (proceso caído), que es deuda nuestra salvo mantenimiento.
     `blind_hours`: horas que el registro de consumo no vio (T148 E2); si él tampoco estaba, lo
-    que faltó fue el equipo."""
+    que faltó fue el equipo. `local_net_hours`: horas con la red de ESTE equipo caída (T173): son
+    nuestras aunque el recolector las marcara `desconexion`, que es lo que dice cuando el exchange
+    se calla."""
     if maint and is_maint(hour, maint):
         return "mantenimiento"
+    if local_net_hours is not None and hour in local_net_hours:
+        return "nuestra"
     if rep is None:
         return "nuestra"
     causes = (rep.get("gaps_marked") or {}).get("by_cause") or {}

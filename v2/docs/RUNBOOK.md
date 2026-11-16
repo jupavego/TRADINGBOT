@@ -423,6 +423,36 @@ nadie anotó nada), si cae en un hueco del registro de consumo o si no tiene JSO
 **Las horas de un apagón NO se declaran como mantenimiento** (§17). El mantenimiento es para cortes
 previstos y decididos antes; declarar uno imprevisto a posteriori es falsear la ventana de T78.
 
+### 18.1 Bloqueado no es muerto: red caída, servicio dentro de otro e intento sin efecto (T173)
+
+El 2026-11-10 de 20:07:55 a 23:46:33 UTC este equipo se quedó sin DNS: el bróker simulado dejó de
+latir, el vigilante gastó sus 4 intentos con `rc=0` sin efecto y se rindió. Desde T173 cada pasada
+mira, **antes** de relanzar, si relanzar puede servir (`eim/operation/fleet_cause.py`):
+
+| Acción en el registro | Qué vio | Qué hace |
+|---|---|---|
+| `conjunto_sin_red` | `datos_fallidos` con `red: …` en los últimos 15 min, o la alerta `desconexion:<símbolo>` abierta con la API viva | **No relanza ni gasta intento**; avisa una vez («El EIM está sin red, no caído») y sigue contando la caída. Al volver la red da **una pasada de gracia** (`esperar`) y, si el latido sigue parado, relanza |
+| `conjunto_dentro_de_otro` | Falta el bróker simulado y la API late | **No relanza**: el bróker vive dentro de la API y `servicio_continuo.ps1` no puede levantarlo. Aviso **crítico** una vez: hay que reiniciar la API a mano (§16), con permiso, porque ahí vive la corrida de T31 |
+| `sin_efecto: true` en `conjunto_levantar` | El arranque anterior no movió el latido de los que faltaban | Lo dice en el aviso («ese intento no contó»); `rc=0` del guion no prueba que arrancara |
+| `conjunto_late_sin_producir` | La captura HFT late pero la última hora cerrada tiene `runs: 0` o libro útil < 50 % | Aviso una vez por hora («La captura HFT late pero no captura»); no relanza a quien ya late |
+
+Ver lo mismo sin tocar nada: `python -m eim.operation.fleet_watch why --data-dir data`. Una alerta
+de desconexión que quedó abierta al morir la API **no** frena el arranque: solo cuenta mientras la
+API, que es quien la cerraría, sigue viva. Los avisos de espera no se repiten cada 5 min: el registro
+dice cada estado una vez y vuelve a hablar cuando cambia.
+
+**Cómo se lee un corte de red en el registro de operación:** ráfagas de `datos_fallidos` cuyo
+`error` lleva el marcador `red: ` de los proveedores (el 2026-11-10, `getaddrinfo failed`), una alerta crítica
+`desconexion:BTCUSDT` unos 4 min después y su «Resuelta» al volver. Si solo hay alertas de
+desconexión **sin** `datos_fallidos` de red, el que se calló fue el exchange, no nuestra red.
+
+**De quién es la hora (T78).** Las horas con ≥ 120 s de corte de la red **de este equipo** son
+**nuestras** aunque el recolector las marcara `desconexion` (◆ decidida el 2026-11-11), con motivo
+`red_local` en `hft_ops --window`. Reatribuidas el 2026-11-16 las 393 horas auditadas
+(2026-10-28T23 → 2026-11-16T06): 74/23 → **76 nuestras / 21 ajenas** (+1 mantenimiento); cambian
+2026-11-04T03 y 2026-11-06T07 (cortes de DNS de 2 y 3 min), y las 20–23 del 2026-11-10 siguen
+nuestras, ahora por su motivo.
+
 ## 19. Esferas «sin datos», estado de los recolectores y de dónde corre cada servicio (T120)
 
 **Estados de un recolector.** Una sola tabla (`eim/data/collectors/health.py::LABELS`): la usan el
