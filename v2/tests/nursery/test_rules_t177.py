@@ -1,4 +1,8 @@
-"""T177: las reglas de los 16 reemplazos hacen lo que dice su expediente, sin red ni disco."""
+"""T177: las reglas de los 14 reemplazos hacen lo que dice su expediente, sin red ni disco.
+
+`estructura_ruptura` y `tec_acuerdo_marcos` no se reemplazan: T170 las rediseñó en su sitio (◆ del
+usuario).
+"""
 
 from __future__ import annotations
 
@@ -8,10 +12,10 @@ from eim.nursery.prospect import load_dossiers, load_prospects
 from eim.nursery.rules import MODULES
 from eim.nursery.rules.base import View
 
-NEW = {"ema_precio_200", "ema_cruce_21_55", "ema_retroceso_12h", "tec_acuerdo_tres_marcos",
+NEW = {"ema_precio_200", "ema_cruce_21_55", "ema_retroceso_12h",
        "tec_rsi_giro", "tec_compresion_bb_12h", "vwap_reversion_1h", "vwap_quincenal",
        "elliott_oscilacion", "elliott_dow", "elliott_tendencia_dow",
-       "estructura_ruptura_sc02", "estructura_cambio_sc04", "niveles_redondos", "lit_consenso_4h",
+       "estructura_cambio_sc04", "niveles_redondos", "lit_consenso_4h",
        "bots_contrario"}
 # Los que repiten la regla de un descartado con otra plantilla o marco (lección de T169).
 SAME_RULE = {"ema_retroceso_12h": "ema_retroceso", "tec_compresion_bb_12h": "tec_compresion_bb",
@@ -28,11 +32,11 @@ def _rule(pid: str):
     return next(p for p in load_prospects() if p.id == pid).rule
 
 
-def test_the_sixteen_replace_the_sixteen_discarded():
+def test_the_fourteen_replace_the_fourteen_discarded():
     docs = load_dossiers()
     disc = {p["id"]: p for d in docs.values() for p in d.get("discarded", [])}
     news = {p["id"]: p for d in docs.values() for p in d.get("prospects", []) if "replaces" in p}
-    assert set(news) == NEW and len(disc) == 16
+    assert set(news) == NEW and len(disc) == 14
     assert {p["replaces"] for p in news.values()} == set(disc)
     for pid, p in disc.items():
         assert p["discarded_by"] == "T169" and p["reasons"] and p["fingerprint"]
@@ -43,6 +47,8 @@ def test_the_sixteen_replace_the_sixteen_discarded():
     assert news["bots_contrario"]["replaces"] == "regimen_tramo_estable"
     ids = {p.id for p in load_prospects()}
     assert NEW <= ids and not (set(disc) & ids)
+    assert {"estructura_ruptura", "tec_acuerdo_marcos"} <= ids          # rediseñadas en T170
+    assert len(ids) == 43
 
 
 def test_reused_rules_are_new_prospects_with_their_own_fingerprint():
@@ -62,13 +68,6 @@ def test_ema_price_against_its_200_and_the_21_55_cross():
     assert up.enter == 1 and up.hold == 1
     stay = c(_view("ema", [{"variables.SPREAD_21_55": 0.2}, {"variables.SPREAD_21_55": 0.1}]), {})
     assert stay.enter == 0 and stay.hold == 1
-
-
-def test_three_frames_use_15m_not_the_missing_daily():
-    r = _rule("tec_acuerdo_tres_marcos")
-    row = {"frames.15m.bias": 0.3, "frames.1h.bias": 0.2, "frames.4h.bias": 0.4}
-    assert r(_view("technical", [row]), {"mtf_neutral": 0.1}).enter == 1
-    assert r(_view("technical", [row | {"frames.15m.bias": 0.05}]), {"mtf_neutral": 0.1}).enter == 0
 
 
 def test_rsi_turn_needs_no_adx():
@@ -104,13 +103,13 @@ def test_zigzag_swing_and_dow_filter():
     assert pull(_view("elliott", [low_hi, hh]), {}).enter == 1        # máximo más alto: compra
 
 
-def test_structure_scenarios_without_the_uncalibrated_conviction():
-    sc02, sc04 = _rule("estructura_ruptura_sc02"), _rule("estructura_cambio_sc04")
+def test_structure_change_without_the_uncalibrated_conviction():
+    sc04 = _rule("estructura_cambio_sc04")
     prev = {"scenario": "SC-05_CONSOLIDATION", "bias": 0.2, "conviction": 47.0}
     brk = {"scenario": "SC-02_BREAKOUT", "bias": 0.3, "conviction": 47.0}
     chg = {"scenario": "SC-04_STRUCTURAL_CHANGE", "bias": -0.4, "conviction": 30.0}
-    assert sc02(_view("structure", [prev, brk]), {}).enter == 1
-    assert sc02(_view("structure", [brk, brk]), {}).enter == 0
+    assert sc04(_view("structure", [brk, chg]), {}).enter == -1
+    assert sc04(_view("structure", [chg, chg]), {}).enter == 0
     assert sc04(_view("structure", [prev, chg]), {}).enter == -1
     assert sc04(_view("structure", [chg]), {}).enter == 0             # sin vela anterior
 

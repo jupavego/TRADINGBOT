@@ -115,16 +115,34 @@ def buy_and_hold(book: Book, path: Path, ctxs_first: dict | None) -> dict | None
             "basis": f"1 R = {book.params.sl_atr:g} ATR del primer cierre que cuenta"}
 
 
-def summarize(book: Book, path: Path, first_ctx: dict | None = None) -> dict:
+def summarize(book: Book, path: Path, first_ctx: dict | None = None,
+              ladder: tuple | None = None) -> dict:
+    """Resumen del libro; con `ladder = (pre-registro, alta, etapas)` (T170), la etapa de cada
+    prospecto es la del escalafón pre-registrado, con su motivo por criterio."""
+    pr, alta, stand = ladder if ladder is not None else (None, None, {})
     rows = []
     for a in book.accounts:
         s = account_summary(book, a.id)
+        st = stand.get(a.prospect.id) if a.prospect is not None else None
+        if st is not None:
+            s = {**s, "stage": st.stage, "ladder": st.to_json()}
+        elif a.kind != "prospecto":
+            s = {**s, "stage": "control"}
         rows.append({"account": a.id, "kind": a.kind, "agent_id": a.agent_id,
                      "timeframe": a.timeframe, "exit_template": a.exit_template,
                      "prospect": a.prospect.model_dump(mode="json") if a.prospect else None, **s})
-    return {"mode": "SIMULADO", "prospects": book.prospect_count,
-            "controls": len(book.accounts) - book.prospect_count,
-            "initial_equity": book.params.initial_equity, "risk_pct": book.params.risk_pct,
-            "twins_k": book.params.twins_k, "start_ms": book.params.start_ms,
-            "accounts": rows, "events": book.events,
-            "buy_and_hold": buy_and_hold(book, path, first_ctx)}
+    out = {"mode": "SIMULADO", "prospects": book.prospect_count,
+           "controls": len(book.accounts) - book.prospect_count,
+           "initial_equity": book.params.initial_equity, "risk_pct": book.params.risk_pct,
+           "twins_k": book.params.twins_k, "start_ms": book.params.start_ms,
+           "accounts": rows, "events": book.events,
+           "buy_and_hold": buy_and_hold(book, path, first_ctx)}
+    if pr is not None:
+        reviews = [alta + d * DAY_MS for d in pr.ladder.reviews_days]
+        out["prereg"] = {"version": pr.version, "sha256": pr.sha256, "alta_ms": alta,
+                         "family_m": pr.m, "members": len(pr.family.members),
+                         "reserve_slots": pr.family.reserve_slots, "reviews_ms": reviews,
+                         "deadline_ms": reviews[-1],
+                         "stages": {k: sum(1 for x in stand.values() if x.stage == k)
+                                    for k in sorted({x.stage for x in stand.values()})}}
+    return out

@@ -151,34 +151,27 @@
    "horizon": "intradia"
   },
   {
-   "id": "estructura_ruptura_sc02",
-   "name": "Ruptura SC-02 sin umbral",
+   "id": "estructura_ruptura",
+   "name": "Ruptura estructural",
    "role": "candidato",
-   "theory": "La ruptura de un rango anuncia continuación (ruptura de rango en Bitcoin, Gerritsen et al. 2020); el escenario SC-02 del agente ya es su juicio de ruptura.",
+   "theory": "La ruptura de una consolidación inicia un tramo nuevo.",
    "opposite_of": null,
-   "rule": "Entra en el sentido del sesgo cuando el escenario pasa a SC-02; sale a las 12 velas del agente.",
+   "rule": "Entra en el sentido del sesgo cuando el escenario pasa a SC-02, sin filtro de convicción. Rediseñada en T170: el umbral provisional de 60 (banda SR-2) no se cumplía nunca, porque el agente da a SC-02 una convicción de 47–50 (T169).",
    "variables": [
     "metrics.scenario",
     "bias"
    ],
-   "params": {
-    "scenario": {
-     "value": "SC-02",
-     "source": "escenario de ruptura de EIM-IRM-001 (`agents/structure/irm.py`)"
-    }
-   },
-   "n_params": 1,
+   "params": {},
+   "n_params": 0,
    "timeframe": "1h",
-   "exit_template": "time_stop",
+   "exit_template": "atr_ladder",
    "history_exam": "banco_t131",
-   "expected_cadence": "≈ 35 pasos a SC-02 al mes en 1 h (muestra de T169); `estructura_ruptura` pedía convicción ≥ 60 y el agente da 47–50",
+   "expected_cadence": "algunas/mes",
    "literature": [
-    "gerritsen_2020",
-    "donaldson_kim_1993",
-    "corbet_2019_ta"
+    "lo_mamaysky_wang_2000",
+    "zarattini_aziz_2023"
    ],
-   "horizon": "intradia",
-   "replaces": "estructura_ruptura"
+   "horizon": "intradia"
   },
   {
    "id": "estructura_cambio_sc04",
@@ -217,44 +210,6 @@
  "notes": [],
  "performance_computed": false,
  "discarded": [
-  {
-   "id": "estructura_ruptura",
-   "name": "Ruptura estructural",
-   "role": "candidato",
-   "theory": "La ruptura de una consolidación inicia un tramo nuevo.",
-   "opposite_of": null,
-   "rule": "Entra en el sentido del sesgo cuando el escenario pasa a SC-02 con convicción ≥ conviction_min.",
-   "variables": [
-    "metrics.scenario",
-    "metrics.conviction",
-    "bias"
-   ],
-   "params": {
-    "conviction_min": {
-     "value": 60,
-     "source": "banda SR-2, EIM-IRM-001, `agents/structure/params.py::IRMParams` (provisional, no calibrado)"
-    }
-   },
-   "n_params": 1,
-   "timeframe": "1h",
-   "exit_template": "atr_ladder",
-   "history_exam": "banco_t131",
-   "expected_cadence": "algunas/mes",
-   "literature": [
-    "lo_mamaysky_wang_2000",
-    "zarattini_aziz_2023"
-   ],
-   "horizon": "intradia",
-   "fingerprint": "1d4c4f294f59",
-   "discarded_by": "T169",
-   "reasons": [
-    "ninguna idea en toda la muestra: la regla no se cumple nunca",
-    "intradia: 0,0 operaciones al mes (< 8)"
-   ],
-   "measured_band": "intradia",
-   "report": "v2/reports/t169_examen_fisico.md",
-   "replaced_by": "estructura_ruptura_sc02"
-  },
   {
    "id": "estructura_cambio",
    "name": "Cambio estructural (giro)",

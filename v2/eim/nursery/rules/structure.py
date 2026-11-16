@@ -33,7 +33,16 @@ def estructura_continuacion(v: View, p: dict) -> Signal:
 
 
 def estructura_ruptura(v: View, p: dict) -> Signal:
-    return Signal(enter=_enters(v, p, "SC-02"))
+    """Pasa a SC-02 (ruptura): entra con el sesgo, sin filtro de convicción (T170).
+
+    T169 vio que el agente da a SC-02 una convicción de 47–50 y que el umbral provisional de 60
+    (banda SR-2) no se cumplía nunca; T170 quitó el filtro en vez de elegir otro valor mirando
+    la distribución. No usa `_enters`: las otras reglas conservan su filtro y su huella.
+    """
+    scen = v.get(SCEN)
+    if not _is(scen, "SC-02") or not v.has(1) or _is(v.get(SCEN, 1), "SC-02"):
+        return NONE
+    return Signal(enter=sign(num(v.get(BIAS))))
 
 
 def estructura_cambio(v: View, p: dict) -> Signal:
@@ -42,14 +51,6 @@ def estructura_cambio(v: View, p: dict) -> Signal:
 
 def estructura_retroceso(v: View, p: dict) -> Signal:
     return Signal(enter=_enters(v, p, "SC-03"))
-
-
-def estructura_ruptura_sc02(v: View, p: dict) -> Signal:
-    """T177. El escenario PASA a SC-02 (ruptura): entra con el sesgo, sin umbral de convicción (con
-    60, `estructura_ruptura` no entró nunca: el agente da 47–50 a SC-02, T169)."""
-    if not v.has(1) or not _is(v.get(SCEN), "SC-02") or _is(v.get(SCEN, 1), "SC-02"):
-        return NONE
-    return Signal(enter=sign(num(v.get(BIAS))))
 
 
 def estructura_cambio_sc04(v: View, p: dict) -> Signal:
@@ -63,5 +64,6 @@ def estructura_cambio_sc04(v: View, p: dict) -> Signal:
 RULES = {"estructura_continuacion": estructura_continuacion,
          "estructura_ruptura": estructura_ruptura, "estructura_cambio": estructura_cambio,
          "estructura_retroceso": estructura_retroceso,
-         "estructura_ruptura_sc02": estructura_ruptura_sc02,
+         # T177: reemplazo de `estructura_cambio`, con el mismo cambio que T170 hizo en
+         # `estructura_ruptura` (sin el umbral de convicción no calibrado).
          "estructura_cambio_sc04": estructura_cambio_sc04}

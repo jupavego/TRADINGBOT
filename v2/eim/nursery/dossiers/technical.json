@@ -49,11 +49,6 @@
    "name": "metrics.regime.width_pct",
    "source": "velas de futuros Binance (snapshot.candles)",
    "note": "percentil del ancho de Bollinger"
-  },
-  {
-   "name": "metrics.frames.15m.bias",
-   "source": "velas 15m del snapshot",
-   "note": "sesgo del marco vecino inferior"
   }
  ],
  "history": {
@@ -168,6 +163,34 @@
  ],
  "prospects": [
   {
+   "id": "tec_acuerdo_marcos",
+   "name": "Acuerdo de marcos",
+   "role": "base",
+   "theory": "Cuando 1 h y 4 h leen lo mismo, la lectura es más fiable.",
+   "opposite_of": null,
+   "rule": "Largo si el sesgo de 1 h y el de 4 h superan +mtf_neutral; corto en espejo. Sale cuando un marco deja de estar de acuerdo. Rediseñada en T170: con base 1 h el agente solo evalúa sus marcos vecinos, así que el de 1 d no existía nunca (T169).",
+   "variables": [
+    "metrics.frames.1h.bias",
+    "metrics.frames.4h.bias"
+   ],
+   "params": {
+    "mtf_neutral": {
+     "value": 0.1,
+     "source": "`agents/technical/params.py` (umbral de neutralidad del propio agente, no calibrado)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/semana",
+   "literature": [
+    "hudson_urquhart_2021",
+    "neely_rapach_tu_zhou_2014"
+   ],
+   "horizon": "tres_dias"
+  },
+  {
    "id": "tec_ruptura_volumen",
    "name": "Tendencia confirmada por volumen",
    "role": "candidato",
@@ -197,43 +220,11 @@
    "horizon": "intradia"
   },
   {
-   "id": "tec_acuerdo_tres_marcos",
-   "name": "Acuerdo de 15 m, 1 h y 4 h",
-   "role": "base",
-   "theory": "Cuando los tres marcos que el agente evalúa con base 1 h coinciden, la tendencia es más fiable.",
-   "opposite_of": null,
-   "rule": "Largo si el sesgo de 15 m, 1 h y 4 h supera +mtf_neutral; corto en espejo; sale cuando un marco deja de estar de acuerdo.",
-   "variables": [
-    "metrics.frames.15m.bias",
-    "metrics.frames.1h.bias",
-    "metrics.frames.4h.bias"
-   ],
-   "params": {
-    "mtf_neutral": {
-     "value": 0.1,
-     "source": "`agents/technical/params.py` (umbral de neutralidad del propio agente, no calibrado)"
-    }
-   },
-   "n_params": 1,
-   "timeframe": "1h",
-   "exit_template": "rule_flip",
-   "history_exam": "banco_t131",
-   "expected_cadence": "varias por semana (por medir; reemplaza a una regla que pedía el marco de 1 d, que no existe a 1 h)",
-   "literature": [
-    "neely_rapach_tu_zhou_2014",
-    "gerritsen_2020",
-    "neely_weller_ulrich_2009",
-    "wong_manzur_chew_2003"
-   ],
-   "horizon": "intradia",
-   "replaces": "tec_acuerdo_marcos"
-  },
-  {
    "id": "tec_rsi_giro",
    "name": "Giro del RSI",
    "role": "candidato",
    "theory": "Lectura contraria: el RSI que sale de un extremo anuncia un giro de corto plazo (sobrerreacción).",
-   "opposite_of": "tec_acuerdo_tres_marcos",
+   "opposite_of": "tec_acuerdo_marcos",
    "rule": "Largo cuando el voto del RSI sale de la sobreventa (30), corto cuando sale de la sobrecompra (70); sale a las 12 velas del agente.",
    "variables": [
     "metrics.votes.RSI"
@@ -302,44 +293,6 @@
  ],
  "performance_computed": false,
  "discarded": [
-  {
-   "id": "tec_acuerdo_marcos",
-   "name": "Acuerdo de marcos",
-   "role": "base",
-   "theory": "Cuando 1 h, 4 h y 1 d leen lo mismo, la lectura es más fiable.",
-   "opposite_of": null,
-   "rule": "Largo si el sesgo de 1 h, 4 h y 1 d supera +mtf_neutral; corto en espejo. Sale cuando un marco deja de estar de acuerdo.",
-   "variables": [
-    "metrics.frames.1h.bias",
-    "metrics.frames.4h.bias",
-    "metrics.frames.1d.bias"
-   ],
-   "params": {
-    "mtf_neutral": {
-     "value": 0.1,
-     "source": "`agents/technical/params.py` (umbral de neutralidad del propio agente, no calibrado)"
-    }
-   },
-   "n_params": 1,
-   "timeframe": "1h",
-   "exit_template": "rule_flip",
-   "history_exam": "banco_t131",
-   "expected_cadence": "algunas/semana",
-   "literature": [
-    "hudson_urquhart_2021",
-    "neely_rapach_tu_zhou_2014"
-   ],
-   "horizon": "tres_dias",
-   "fingerprint": "61b1b609e29f",
-   "discarded_by": "T169",
-   "reasons": [
-    "ninguna idea en toda la muestra: la regla no se cumple nunca",
-    "tres_dias: 0,0 operaciones al mes (< 5)"
-   ],
-   "measured_band": "tres_dias",
-   "report": "v2/reports/t169_examen_fisico.md",
-   "replaced_by": "tec_acuerdo_tres_marcos"
-  },
   {
    "id": "tec_rsi_rango",
    "name": "RSI extremo en rango",

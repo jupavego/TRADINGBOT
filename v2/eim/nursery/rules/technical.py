@@ -6,10 +6,9 @@ from eim.nursery.rules.base import NONE, Signal, View, num, sign, steady
 
 M = "metrics."
 B1, B4, BD = M + "frames.1h.bias", M + "frames.4h.bias", M + "frames.1d.bias"
-B15 = M + "frames.15m.bias"
 ADX, RSI, WIDTH = M + "regime.adx", M + "votes.RSI", M + "regime.width_pct"
 TREND, VOLUME = M + "families.tendencia", M + "families.volumen"
-EXPOSES = frozenset({B1, B4, BD, B15, M + "regime.label", ADX, RSI, TREND, VOLUME, WIDTH})
+EXPOSES = frozenset({B1, B4, BD, M + "regime.label", ADX, RSI, TREND, VOLUME, WIDTH})
 
 
 def _vote(fam: object) -> float | None:
@@ -18,8 +17,12 @@ def _vote(fam: object) -> float | None:
 
 
 def tec_acuerdo_marcos(v: View, p: dict) -> Signal:
-    """Los sesgos de 1 h, 4 h y 1 d pasan todos de ±mtf_neutral en el mismo sentido."""
-    bs = [num(v.get(k)) for k in (B1, B4, BD)]
+    """Los sesgos de 1 h y 4 h pasan los dos de ±mtf_neutral en el mismo sentido.
+
+    Con base 1 h el agente solo evalúa sus marcos vecinos, así que `frames.1d.bias` no existe
+    nunca, ni en el banco ni en vivo (T169). T170 la reescribió con los dos marcos que sí existen.
+    """
+    bs = [num(v.get(k)) for k in (B1, B4)]
     if any(b is None for b in bs):
         return steady(0)
     th = float(p["mtf_neutral"])
@@ -53,16 +56,6 @@ def tec_compresion_bb(v: View, p: dict) -> Signal:
     return Signal(enter=sign(_vote(v.get(TREND)))) if w0 <= sq < w else NONE
 
 
-def tec_acuerdo_tres_marcos(v: View, p: dict) -> Signal:
-    """T177. Los sesgos de 15 m, 1 h y 4 h pasan todos de ±mtf_neutral en el mismo sentido (con
-    base 1 h el agente evalúa sus marcos vecinos; el de 1 d no existe ni en vivo: T169)."""
-    bs = [num(v.get(k)) for k in (B15, B1, B4)]
-    if any(b is None for b in bs):
-        return steady(0)
-    th = float(p["mtf_neutral"])
-    return steady(1 if all(b > th for b in bs) else -1 if all(b < -th for b in bs) else 0)
-
-
 def tec_rsi_giro(v: View, p: dict) -> Signal:
     """T177. El voto del RSI deja la sobreventa (largo) o la sobrecompra (corto), sin filtro de
     ADX (con él, `tec_rsi_rango` no llegaba a 8 operaciones al mes en T169)."""
@@ -75,5 +68,4 @@ def tec_rsi_giro(v: View, p: dict) -> Signal:
 RULES = {"tec_acuerdo_marcos": tec_acuerdo_marcos, "tec_rsi_rango": tec_rsi_rango,
          "tec_ruptura_volumen": tec_ruptura_volumen, "tec_compresion_bb": tec_compresion_bb,
          # T177: reemplazos (tec_compresion_bb_12h: la misma regla con salida por tiempo).
-         "tec_acuerdo_tres_marcos": tec_acuerdo_tres_marcos, "tec_rsi_giro": tec_rsi_giro,
-         "tec_compresion_bb_12h": tec_compresion_bb}
+         "tec_rsi_giro": tec_rsi_giro, "tec_compresion_bb_12h": tec_compresion_bb}

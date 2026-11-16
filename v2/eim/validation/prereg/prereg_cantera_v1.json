@@ -1,0 +1,787 @@
+{
+ "version": "prereg_cantera_v1",
+ "declared": "2026-11-16",
+ "description": "Pre-registro de la cantera (fase 27, T170): familia, cuentas, controles, medida, escalafón con todos sus umbrales, plazas de reserva y reloj, fijados ANTES de la primera operación hacia adelante. Nada de esto se calculó mirando rendimiento: la historia solo sirvió para el examen físico (T169 y el re-examen de T170). Cambiar cualquier valor es cantera_v2, con reloj nuevo y sin recalcular el pasado.",
+ "mode": "SIMULADO",
+ "symbol": "BTCUSDT",
+ "criteria": "validation_v1",
+ "criteria_sha256": "0a5b19962ded0d12dfdbccac0359f91c1bebf211ed891f7817c96667e01c30a8",
+ "decisions": [
+  "◆ T167 (2026-11-11): 43 prospectos de 13 agentes y techo de la familia 50 = 43 + 7 plazas de reserva («ampliemos a 40 a 50», «Apruebo»).",
+  "Decisión del usuario (2026-11-11): veredictos muy sensibles, dos capas (escalafón interno con q = 0,10; StepM estricto en la puerta a primer equipo y en todo lo que toque dinero), sin puerta de potencia y con el precio declarado. Este pre-registro no endurece el escalafón interno.",
+  "◆ T170 (2026-11-16) 1: se rediseñan estructura_ruptura (sin filtro de convicción) y tec_acuerdo_marcos (marcos de 1 h y 4 h), re-examinadas con la ficha de T169 (`reports/t170_reexamen.md`); las dos de elliott, de baja.",
+  "◆ T170 (2026-11-16) 2: regimen_tramo y regimen_tramo_estable (gemelos físicos) cuentan como dos prospectos dados de baja.",
+  "◆ T170 (2026-11-16) 3: manda la banda medida por la tenencia; las plantillas de salida no cambian.",
+  "◆ T170 (2026-11-16) 4: familia propia (precedente de T160; los datos son nuevos), con m de e-BH = los que entran + las 7 plazas de reserva."
+ ],
+ "family": {
+  "kind": "propia",
+  "why": "Las operaciones de la cantera son todas posteriores a este pre-registro: datos nuevos, no la historia ya mirada de las 841 claves de T49/T137/T139. Sumarla a esa familia haría imposible graduar a nadie con la potencia disponible.",
+  "enrolled_t167": 43,
+  "reserve_slots": 7,
+  "ceiling": 50,
+  "m": 36,
+  "m_rule": "e-BH corrige sobre m = 29 que entran + 7 plazas de reserva = 36, fijo durante toda la fase. Una baja hacia adelante sigue contando (su e-valor pasa a 0); una plaza de reserva vacía cuenta con e = 0; una reentrada ocupa una plaza ya contada. Los descartados por el examen físico no cuentan: nunca se mide su rendimiento, así que no son hipótesis probadas.",
+  "members": [
+   {
+    "id": "bots_mayoria",
+    "fingerprint": "d6b3f08d9fbe",
+    "agent_id": "bots",
+    "timeframe": "1h",
+    "role": "base",
+    "n_params": 1,
+    "band": "tres_dias",
+    "band_source": "declarada",
+    "history": false,
+    "theme": "consenso",
+    "sibling": null,
+    "generic": "control:agente_bots@1h",
+    "expected_in_term": null
+   },
+   {
+    "id": "bots_unanimidad",
+    "fingerprint": "d0101a73386a",
+    "agent_id": "bots",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "tres_dias",
+    "band_source": "declarada",
+    "history": false,
+    "theme": "consenso",
+    "sibling": null,
+    "generic": "control:agente_bots@1h",
+    "expected_in_term": null
+   },
+   {
+    "id": "deriv_funding_contrario",
+    "fingerprint": "cf074fd9e326",
+    "agent_id": "derivatives",
+    "timeframe": "4h",
+    "role": "base",
+    "n_params": 1,
+    "band": "tres_dias",
+    "band_source": "declarada",
+    "history": false,
+    "theme": "derivados",
+    "sibling": null,
+    "generic": "control:agente_derivatives@4h",
+    "expected_in_term": null
+   },
+   {
+    "id": "deriv_oi_tendencia",
+    "fingerprint": "3353e8101e5f",
+    "agent_id": "derivatives",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 2,
+    "band": "intradia",
+    "band_source": "declarada",
+    "history": false,
+    "theme": "derivados",
+    "sibling": "deriv_funding_contrario",
+    "generic": "control:agente_derivatives@1h",
+    "expected_in_term": null
+   },
+   {
+    "id": "deriv_saturacion",
+    "fingerprint": "15ded7aa15ba",
+    "agent_id": "derivatives",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 2,
+    "band": "intradia",
+    "band_source": "declarada",
+    "history": false,
+    "theme": "derivados",
+    "sibling": "deriv_funding_contrario",
+    "generic": "control:agente_derivatives@1h",
+    "expected_in_term": null
+   },
+   {
+    "id": "deriv_largos_cortos",
+    "fingerprint": "2af30ca4d876",
+    "agent_id": "derivatives",
+    "timeframe": "4h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "tres_dias",
+    "band_source": "declarada",
+    "history": false,
+    "theme": "derivados",
+    "sibling": null,
+    "generic": "control:agente_derivatives@4h",
+    "expected_in_term": null
+   },
+   {
+    "id": "ema_elastico",
+    "fingerprint": "4adf41d6152c",
+    "agent_id": "ema",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "reversion",
+    "sibling": null,
+    "generic": "control:agente_ema@1h",
+    "expected_in_term": 90
+   },
+   {
+    "id": "niveles_rebote",
+    "fingerprint": "43b679912604",
+    "agent_id": "levels",
+    "timeframe": "1h",
+    "role": "base",
+    "n_params": 2,
+    "band": "scalping",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "reversion",
+    "sibling": null,
+    "generic": "control:agente_levels@1h",
+    "expected_in_term": 542
+   },
+   {
+    "id": "niveles_ruptura",
+    "fingerprint": "7e110f1d368a",
+    "agent_id": "levels",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_levels@1h",
+    "expected_in_term": 103
+   },
+   {
+    "id": "niveles_canal_extremos",
+    "fingerprint": "583d8c9cdad4",
+    "agent_id": "levels",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "reversion",
+    "sibling": null,
+    "generic": "control:agente_levels@1h",
+    "expected_in_term": 159
+   },
+   {
+    "id": "liq_agotamiento",
+    "fingerprint": "8927d01e2358",
+    "agent_id": "liquidations",
+    "timeframe": "15m",
+    "role": "base",
+    "n_params": 2,
+    "band": "scalping",
+    "band_source": "declarada",
+    "history": false,
+    "theme": "derivados",
+    "sibling": null,
+    "generic": "control:agente_liquidations@15m",
+    "expected_in_term": null
+   },
+   {
+    "id": "liq_cascada",
+    "fingerprint": "1ce6d748f3b1",
+    "agent_id": "liquidations",
+    "timeframe": "15m",
+    "role": "candidato",
+    "n_params": 2,
+    "band": "scalping",
+    "band_source": "declarada",
+    "history": false,
+    "theme": "derivados",
+    "sibling": null,
+    "generic": "control:agente_liquidations@15m",
+    "expected_in_term": null
+   },
+   {
+    "id": "liq_cascada_multibolsa",
+    "fingerprint": "cdfadda66e64",
+    "agent_id": "liquidations",
+    "timeframe": "15m",
+    "role": "candidato",
+    "n_params": 2,
+    "band": "scalping",
+    "band_source": "declarada",
+    "history": false,
+    "theme": "derivados",
+    "sibling": null,
+    "generic": "control:agente_liquidations@15m",
+    "expected_in_term": null
+   },
+   {
+    "id": "lit_consenso",
+    "fingerprint": "3e4036420348",
+    "agent_id": "literature",
+    "timeframe": "1h",
+    "role": "base",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "consenso",
+    "sibling": null,
+    "generic": "control:agente_literature@1h",
+    "expected_in_term": 208
+   },
+   {
+    "id": "lit_nison_giro",
+    "fingerprint": "bb30fcf2d405",
+    "agent_id": "literature",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "reversion",
+    "sibling": null,
+    "generic": "control:agente_literature@1h",
+    "expected_in_term": 168
+   },
+   {
+    "id": "lit_murphy_rsi",
+    "fingerprint": "9a752088158c",
+    "agent_id": "literature",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "reversion",
+    "sibling": null,
+    "generic": "control:agente_literature@1h",
+    "expected_in_term": 95
+   },
+   {
+    "id": "micro_ofi",
+    "fingerprint": "574c3443f015",
+    "agent_id": "microstructure",
+    "timeframe": "15m",
+    "role": "base",
+    "n_params": 1,
+    "band": "scalping",
+    "band_source": "declarada",
+    "history": false,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_microstructure@15m",
+    "expected_in_term": null
+   },
+   {
+    "id": "micro_absorcion",
+    "fingerprint": "66f8a3de4b91",
+    "agent_id": "microstructure",
+    "timeframe": "15m",
+    "role": "candidato",
+    "n_params": 2,
+    "band": "scalping",
+    "band_source": "declarada",
+    "history": false,
+    "theme": "reversion",
+    "sibling": "micro_ofi",
+    "generic": "control:agente_microstructure@15m",
+    "expected_in_term": null
+   },
+   {
+    "id": "pa_bos",
+    "fingerprint": "2a07156f3c69",
+    "agent_id": "price_action",
+    "timeframe": "1h",
+    "role": "base",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_price_action@1h",
+    "expected_in_term": 119
+   },
+   {
+    "id": "pa_choch",
+    "fingerprint": "8073a08a64c8",
+    "agent_id": "price_action",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "reversion",
+    "sibling": null,
+    "generic": "control:agente_price_action@1h",
+    "expected_in_term": 125
+   },
+   {
+    "id": "pa_patron_zona",
+    "fingerprint": "72f00c79c26d",
+    "agent_id": "price_action",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 2,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "reversion",
+    "sibling": "pa_bos",
+    "generic": "control:agente_price_action@1h",
+    "expected_in_term": 393
+   },
+   {
+    "id": "pa_bos_patron",
+    "fingerprint": "091c0a0c5f4b",
+    "agent_id": "price_action",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 2,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": "pa_bos",
+    "generic": "control:agente_price_action@1h",
+    "expected_in_term": 106
+   },
+   {
+    "id": "estructura_continuacion",
+    "fingerprint": "e10f6a3fe844",
+    "agent_id": "structure",
+    "timeframe": "4h",
+    "role": "base",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_structure@4h",
+    "expected_in_term": 96
+   },
+   {
+    "id": "estructura_ruptura",
+    "fingerprint": "f732d941eeca",
+    "agent_id": "structure",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 0,
+    "band": "scalping",
+    "band_source": "medida_t170",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_structure@1h",
+    "expected_in_term": 155
+   },
+   {
+    "id": "estructura_retroceso",
+    "fingerprint": "445ea1320e26",
+    "agent_id": "structure",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "scalping",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_structure@1h",
+    "expected_in_term": 145
+   },
+   {
+    "id": "tec_acuerdo_marcos",
+    "fingerprint": "a3e0ee4321f2",
+    "agent_id": "technical",
+    "timeframe": "1h",
+    "role": "base",
+    "n_params": 1,
+    "band": "scalping",
+    "band_source": "medida_t170",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_technical@1h",
+    "expected_in_term": 228
+   },
+   {
+    "id": "tec_ruptura_volumen",
+    "fingerprint": "b93657b1ca3c",
+    "agent_id": "technical",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "scalping",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_technical@1h",
+    "expected_in_term": 492
+   },
+   {
+    "id": "vwap_tendencia",
+    "fingerprint": "db2a4c3fd26f",
+    "agent_id": "vwap",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_vwap@1h",
+    "expected_in_term": 653
+   },
+   {
+    "id": "vwap_semanal",
+    "fingerprint": "3aff5f8d768a",
+    "agent_id": "vwap",
+    "timeframe": "4h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t169",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_vwap@4h",
+    "expected_in_term": 81
+   }
+  ],
+  "discarded": [
+   {
+    "id": "elliott_onda3",
+    "fingerprint": "4d968968896e",
+    "stage": "examen_fisico_t169",
+    "reason": "ninguna idea en toda la muestra: la regla no se cumple nunca; semanal en posición el 0 % de los días (< 30 %). Imposible por cómo emite el agente (`agents/elliott/compute.py:66` etiqueta los pivotes por posición: el último es siempre C); arreglarlo exige una versión nueva del agente (BACKLOG; ◆ 2026-11-16: baja)"
+   },
+   {
+    "id": "elliott_onda5_giro",
+    "fingerprint": "4f745cbeb4c5",
+    "stage": "examen_fisico_t169",
+    "reason": "ninguna idea en toda la muestra: la regla no se cumple nunca; semanal en posición el 0 % de los días (< 30 %). Imposible por cómo emite el agente (`agents/elliott/compute.py:66` etiqueta los pivotes por posición: el último es siempre C); arreglarlo exige una versión nueva del agente (BACKLOG; ◆ 2026-11-16: baja)"
+   },
+   {
+    "id": "ema_pila",
+    "fingerprint": "a8d6fa26a3aa",
+    "stage": "examen_fisico_t169",
+    "reason": "tres_dias: 4,9 operaciones al mes (< 5)"
+   },
+   {
+    "id": "ema_resorte",
+    "fingerprint": "eafe7eef82e7",
+    "stage": "examen_fisico_t169",
+    "reason": "scalping: 5,4 operaciones al mes (< 20)"
+   },
+   {
+    "id": "ema_retroceso",
+    "fingerprint": "51c2ec7a3ff7",
+    "stage": "examen_fisico_t169",
+    "reason": "scalping: 11,1 operaciones al mes (< 20)"
+   },
+   {
+    "id": "niveles_canal_tendencia",
+    "fingerprint": "3d4114cbe146",
+    "stage": "examen_fisico_t169",
+    "reason": "intradia: 3,4 operaciones al mes (< 8)"
+   },
+   {
+    "id": "lit_regla_4_semanas",
+    "fingerprint": "aa9cb2b3f8c7",
+    "stage": "examen_fisico_t169",
+    "reason": "tres_dias: 1,0 operaciones al mes (< 5)"
+   },
+   {
+    "id": "regimen_tramo",
+    "fingerprint": "22b697e89a4d",
+    "stage": "examen_fisico_t169",
+    "reason": "scalping: 4,6 operaciones al mes (< 20). Gemelo físico de regimen_tramo_estable (◆ 2026-11-16: cuentan como dos prospectos)"
+   },
+   {
+    "id": "regimen_tramo_estable",
+    "fingerprint": "ed21cf948690",
+    "stage": "examen_fisico_t169",
+    "reason": "scalping: 4,6 operaciones al mes (< 20). Gemelo físico de regimen_tramo (◆ 2026-11-16: cuentan como dos prospectos)"
+   },
+   {
+    "id": "estructura_cambio",
+    "fingerprint": "30e8421a26c8",
+    "stage": "examen_fisico_t169",
+    "reason": "scalping: 6,8 operaciones al mes (< 20)"
+   },
+   {
+    "id": "tec_rsi_rango",
+    "fingerprint": "e23fcbe93ec1",
+    "stage": "examen_fisico_t169",
+    "reason": "intradia: 6,6 operaciones al mes (< 8)"
+   },
+   {
+    "id": "tec_compresion_bb",
+    "fingerprint": "01ea566b87e6",
+    "stage": "examen_fisico_t169",
+    "reason": "scalping: 13,9 operaciones al mes (< 20)"
+   },
+   {
+    "id": "vwap_reversion",
+    "fingerprint": "57a35f14987e",
+    "stage": "examen_fisico_t169",
+    "reason": "costo medio 0,337 R (> 0,3 R, V6 de T49)"
+   },
+   {
+    "id": "vwap_anclado",
+    "fingerprint": "d723967cb38d",
+    "stage": "examen_fisico_t169",
+    "reason": "tres_dias: 2,6 operaciones al mes (< 5)"
+   }
+  ],
+  "redesigned": [
+   "estructura_ruptura",
+   "tec_acuerdo_marcos"
+  ],
+  "replacements": []
+ },
+ "accounts": {
+  "initial_equity_usdt": 10000.0,
+  "risk_pct": 0.01,
+  "cost_gate_max_r": 0.3,
+  "twins_k": 200,
+  "seed": 168,
+  "execution": "La de la corrida aparte T143 (◆ 2026-11-10) con solo lo de AUTO_ADAPT: puerta de costo por marco (a 0,3 R, el V6 de T49, para no cerrar el scalping antes de medirlo), entrada maker en 1 h y 4 h y riesgo con costos. Una posición a la vez por cuenta, mismo capital, mismo riesgo y mismos costos para todas.",
+  "not_adapted": "Fijos y comprobados al construir (`nursery/params.py`): peso aprendido de la escalera = 1, sin freno propio (lo sustituye el tope de drawdown) y salida adaptativa apagada."
+ },
+ "controls": [
+  "Gemelos aleatorios pareados: por cada operación, K = 200 entradas de lado al azar en la misma vela, con la misma plantilla, los mismos costos y salida como mucho cuando sale la real; d = R − media de los gemelos.",
+  "Comprar y mantener desde el alta, en % y en unidades de riesgo (1 R = 1,5 ATR del primer cierre), con desglose largo/corto.",
+  "El agente_{id} genérico (sigue al agente si |sesgo| ≥ 0,3 y confianza ≥ 20 %, plantilla atr_ladder), uno por agente y marco con prospectos. Los controles no cuentan en la familia."
+ ],
+ "measure": {
+  "principal": "Rentabilidad neta acumulada de la cuenta propia (%), con comisiones, deslizamiento y funding.",
+  "primary_hypothesis": "Una por prospecto: H0 E[d̃] ≤ 0, con d̃ = recorte de d a ±3 R. e-proceso mezcla por apuestas sobre y = d̃/3 (rejilla λ = 0,1…0,9). Solo cuentan las operaciones contabilizadas y cerradas en exit_t ≤ t; las sombras de la puerta de costo, no.",
+  "secondary": [
+   "Nativo frente a genérico, una por agente: d de sus prospectos frente al del agente_{id} genérico, Holm sobre los 11 agentes con prospectos (α = 0,10, capa sensible).",
+   "Por tema (tendencia, reversión, derivados, consenso): media de efectos aleatorios > 0, Holm sobre los 4 temas (α = 0,10). Estimaciones encogidas hacia el tema (DerSimonian-Laird) en el panel y en T172.",
+   "Hermano simple: requisito de Promesa para los complejos (a empate, el simple).",
+   "Comprar y mantener: descriptivo.",
+   "SPA de T161 sobre la familia: solo prueba de humo. PBO/CSCV: descriptivo."
+  ],
+  "unit": "R por operación dentro; rentabilidad % hacia fuera."
+ },
+ "bands": {
+  "scalping": "operación",
+  "intradia": "operación",
+  "tres_dias": "operación",
+  "semanal": "día (suma diaria de d; los días sin cierre no mueven el e-proceso)",
+  "rule": "Manda la banda medida por la tenencia mediana (T169; T170 para las dos rediseñadas). Los 11 sin historia usan su banda declarada hasta su examen físico hacia adelante, al salir de guardería, que la mide con la misma ficha y la congela.",
+  "templates": "Plantillas de salida sin cambio (◆ 2026-11-16): atr_ladder en 1 h cierra en 1–4 h y rule_flip en 4 h en 4–62 h; los 5 descartes que dependían de la reasignación se mantienen.",
+  "cost_gate": "Puerta de costo de la cantera: 0,3 R (V6 de T49), la misma vara del examen físico, automática por marco con todas sus cuentas (AUTO_ADAPT)."
+ },
+ "ladder": {
+  "reviews_days": [
+   30,
+   61,
+   91,
+   121,
+   152,
+   182
+  ],
+  "nursery_exit": {
+   "min_trades": 30,
+   "max_days": 60
+  },
+  "clearly_negative": {
+   "z": 1.0,
+   "min_trades": 30
+  },
+  "primary": {
+   "clip_r": 3.0,
+   "lambdas": [
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9
+   ],
+   "day_unit_bands": [
+    "semanal"
+   ]
+  },
+  "promise": {
+   "q": 0.1,
+   "max_trade_share": 0.4,
+   "sibling_alpha": 0.1,
+   "sibling_min_trades": 30,
+   "marginal_corr": 0.7,
+   "marginal_min_days": 10
+  },
+  "futility": {
+   "mu_min_r": 0.1,
+   "beta": 0.1,
+   "min_trades": 30
+  },
+  "drawdown": {
+   "target_edge_r": 0.25,
+   "sigma_r": 1.3,
+   "p_unfair": 0.05,
+   "risk_pct": 0.01,
+   "n_without_history": 1000,
+   "sims": 100000,
+   "seed": 170,
+   "caps_pct": {
+    "bots_mayoria": 20.89,
+    "bots_unanimidad": 20.89,
+    "deriv_funding_contrario": 20.89,
+    "deriv_oi_tendencia": 20.89,
+    "deriv_saturacion": 20.89,
+    "deriv_largos_cortos": 20.89,
+    "ema_elastico": 13.32,
+    "niveles_rebote": 19.14,
+    "niveles_ruptura": 13.76,
+    "niveles_canal_extremos": 15.26,
+    "liq_agotamiento": 20.89,
+    "liq_cascada": 20.89,
+    "liq_cascada_multibolsa": 20.89,
+    "lit_consenso": 16.15,
+    "lit_nison_giro": 15.46,
+    "lit_murphy_rsi": 13.49,
+    "micro_ofi": 20.89,
+    "micro_absorcion": 20.89,
+    "pa_bos": 14.26,
+    "pa_choch": 14.43,
+    "pa_patron_zona": 18.15,
+    "pa_bos_patron": 13.87,
+    "estructura_continuacion": 13.52,
+    "estructura_ruptura": 15.2,
+    "estructura_retroceso": 14.96,
+    "tec_acuerdo_marcos": 16.48,
+    "tec_ruptura_volumen": 18.86,
+    "vwap_tendencia": 19.64,
+    "vwap_semanal": 12.95
+   }
+  },
+  "inactivity": {
+   "days": 60,
+   "gate_closed_counts": false
+  },
+  "forward_exam": {
+   "min_ops_month": {
+    "scalping": 20.0,
+    "intradia": 8.0,
+    "tres_dias": 5.0
+   },
+   "min_pos_days_frac": 0.3,
+   "max_cost_r": 0.3,
+   "min_closed_for_band": 10,
+   "band_max_hours": [
+    2.0,
+    24.0,
+    120.0
+   ]
+  },
+  "first_team": {
+   "stepm_size": 0.05,
+   "stepm_reps": 10000,
+   "stepm_seed": 170,
+   "dsr_min": 0.95,
+   "neff_corr": 0.7,
+   "regimes_min": 2,
+   "regime_min_trades": 20,
+   "persistence_min_trades": 10,
+   "min_trades": 100,
+   "min_pos_days": 120,
+   "max_dd": 0.25,
+   "window_days": 30,
+   "window_min_trades": 5,
+   "min_windows": 4,
+   "min_positive_frac": 0.6,
+   "max_cost_r": 0.3
+  }
+ },
+ "false_promises": {
+  "sims": 10000,
+  "seed": 1701,
+  "m": 36,
+  "members": 29,
+  "mean": 0.0106,
+  "p_at_least_one": 0.0104,
+  "p95": 0,
+  "max": 2,
+  "sigma_r": 1.0,
+  "bound": "cota superior: solo el paso por e-BH",
+  "power": {
+   "threshold_e": 360.0,
+   "sigma_r": 1.0,
+   "sims": 20000,
+   "seed": 1702,
+   "by_mu": {
+    "0.10": {
+     "100": 0.002,
+     "150": 0.007,
+     "250": 0.019,
+     "400": 0.045,
+     "650": 0.112
+    },
+    "0.25": {
+     "100": 0.081,
+     "150": 0.251,
+     "250": 0.597,
+     "400": 0.896,
+     "650": 0.995
+    },
+    "0.50": {
+     "100": 0.85,
+     "150": 0.991,
+     "250": 1.0,
+     "400": 1.0,
+     "650": 1.0
+    }
+   }
+  },
+  "reading": "Bajo la nula global, el paso por e-BH deja de media 0.0106 promesas falsas en la fase (P(≥ 1) = 0.0104); los demás requisitos solo pueden quitar ascensos. e-BH garantiza FDR ≤ 0,10 bajo cualquier dependencia, y en la práctica es más estricto: el precio es la potencia (tabla `power`, ascenso en solitario con e ≥ m/q)."
+ },
+ "reserve": [
+  "7 plazas de reserva del techo de 50: solo para reentradas (versión nueva de un prospecto dado de baja, también de los descartados por el examen físico) o para los prospectos en reserva de T167 si vuelven sus datos.",
+  "Como mucho una reentrada por prospecto dado de baja.",
+  "Causa nombrada (variable sin información, costo, cadencia o la teoría contraria) e hipótesis escrita con su obra del catálogo; «perdió dinero» no basta.",
+  "◆ del usuario para cada reentrada, que se anota antes de su primera operación en un anexo de solo adición, con su huella; no cambia nada más de cantera_v1.",
+  "Solo si su MinTRL (T161) con +0,25 R cabe en los días que le quedan a la fase.",
+  "Prospecto nuevo: huella nueva, cuenta nueva desde el capital inicial y en guardería, sin heredar operaciones; su guardería e inactividad cuentan desde su alta, y sigue el calendario de revisiones de la fase."
+ ],
+ "clock": {
+  "not_before_utc": "2026-11-16T21:00Z",
+  "alta": "El primer cálculo de la cantera con EIM_NURSERY=1 posterior a not_before y al commit de este archivo, anotado en `paper_cantera.duckdb` (tabla nursery_prereg) con la versión y la huella; ninguna operación anterior cuenta.",
+  "reviews": "Revisiones fijas a los días 30, 61, 91, 121, 152 y 182 desde el alta. Solo en ellas cambia una etapa; la lectura semanal de T159 y el panel no son miradas.",
+  "deadline": "Día 182 (6 meses): mirada final. Las promesas que cumplen el primer equipo quedan como candidatas (◆ T172: el usuario confirma o veta la salida mecánica, no elige entre candidatos); el resto, baja por fecha límite.",
+  "stop_rule": "La fase termina en la fecha límite aunque nadie llegue a primer equipo, que es el resultado más probable y también informativo. Graduarse no habilita dinero: permite, con ◆, inscribir el perfil en T49; la decisión D (T145) sigue.",
+  "change_rule": "Un cambio de fórmula, umbral, familia o cuentas a mitad de fase solo puede ser cantera_v2, con pre-registro y reloj nuevos y sin recalcular ni reinterpretar lo de v1."
+ },
+ "self_improvement": [
+  "Solo se adapta solo lo de AUTO_ADAPT (costo y riesgo); reglas, parámetros, plantillas, escalafón, techo, capital y riesgo base nunca cambian solos.",
+  "Los días con el marco cerrado por la puerta de costo no cuentan para la baja por inactividad ni para la cadencia del examen hacia adelante.",
+  "Las variantes de ejecución (§9.3) no suman intentos ni tocan el libro de la cantera; adoptarlas exige resultado medido y ◆, y se aplican a todas las cuentas.",
+  "La lectura semanal de T159 describe y no es una mirada del método secuencial.",
+  "Cada adaptación es un evento del libro con hora, marco, valor, umbral y cuentas."
+ ],
+ "notes": [
+  "Promesa: los requisitos no estadísticos se miran antes de e-BH (quien no los cumple entra con e = 0) y el e-valor de quien asciende queda congelado; así todo ascenso de la fase pertenece al e-BH sobre e-valores detenidos y la FDR sigue ≤ q.",
+  "Futilidad: cota superior unilateral de E[d̃] con z = z(1 − 0,10/6) (Bonferroni sobre las 6 revisiones) < +0,10 R, con n ≥ 30: probabilidad de una baja injusta ≤ 0,10 para un prospecto con E[d̃] ≥ +0,10 R, sea cual sea su ritmo.",
+  "Tope de drawdown: cuantil 95 % del drawdown máximo realizado con +0,25 R por operación, σ = 1,3 R (el extremo alto de lo razonable, T139 §4), riesgo 1 % y las operaciones esperadas en 6 meses (T169; 1 000 sin historia).",
+  "Claramente negativo al salir de guardería: media de d̃ + 1·EE < 0 con n ≥ 30 (regla de T49, sobre d y no sobre R neto).",
+  "Contribución marginal: correlación del P&L diario > 0,7 con el hermano o el genérico exige aportar por encima (media diaria de la diferencia > 0).",
+  "Persistencia del orden: en los meses 1–3 y 4–6, media de d > 0 y por encima de la mediana de la familia (≥ 10 operaciones en cada mitad)."
+ ]
+}
