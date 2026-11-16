@@ -25,6 +25,7 @@ FUNDING_TRIGGER = 0.04      # BACKLOG T145 (3): ≥ 4 % anual en 12 meses móvil
 L2_TRIGGER_DAYS = 365       # BACKLOG T145 (4): un año de libro L2 propio → valorar A
 HFT_MIN_COMPLETE = 0.99     # T78
 CALIB_BIAS = 0.05           # 5 pp entre probabilidad media y frecuencia real de un escenario
+CALIB_MIN_EFF = 10          # T175: muestra efectiva mínima para leer una calibración
 NEAR = 0.75                 # un disparador «cerca» al 75 % de su umbral
 
 
@@ -34,7 +35,7 @@ def _opp(oid, cat, title, evidence, route, ref, usdt=None, r_op=None) -> dict:
 
 
 def opportunities(k: dict, variant: dict | None = None,
-                  calib: dict | None = None) -> list[dict]:
+                  calib: dict | None = None, calib_4h: dict | None = None) -> list[dict]:
     """Oportunidades ordenadas por impacto en USDT (las informativas, al final)."""
     out: list[dict] = []
     a = k.get("all", {})
@@ -86,6 +87,7 @@ def opportunities(k: dict, variant: dict | None = None,
         out.append(variant_vs_official(k, variant))
         out += auto_not_reflected(variant)
     out += calibration_opps(calib or {})
+    out += calibration_opps(calib_4h or {}, "4h")
     return sorted(out, key=lambda o: -(o["impact_usdt"] or 0))
 
 
@@ -127,26 +129,43 @@ def strategy_opps(by_strategy: dict[str, dict]) -> list[dict]:
     return out
 
 
-def calibration_opps(c: dict) -> list[dict]:
-    """Calidad del pronóstico (lo que el sistema sigue haciendo con T145 D: analizar bien)."""
+def calibration_opps(c: dict, tf: str = "1h") -> list[dict]:
+    """Calidad del pronóstico (lo que el sistema sigue haciendo con T145 D: analizar bien).
+
+    T175: los pronósticos de horizonte largo se solapan, así que la muestra que cuenta es la
+    efectiva (`n_effective`), no el número de pronósticos. Sin >= `CALIB_MIN_EFF` no se afirma
+    nada, y un sesgo solo se señala si pasa de `CALIB_BIAS` **y** de dos errores típicos de una
+    frecuencia con esa muestra (el 2026-11-16, «bear» -17 pp con n efectiva 30 no llegaba)."""
+    sfx = "" if tf == "1h" else f"_{tf}"
+    n_eff = float(c.get("n_effective") or 0)
+    d = (c.get("directional") or {})
+    if c.get("n_evaluated") and n_eff < CALIB_MIN_EFF:
+        return [_opp(f"calib_sin_muestra{sfx}", "calibración",
+                     f"Calibración BTC {tf}: sin muestra efectiva",
+                     f"{c['n_evaluated']} pronósticos pero efectiva ≈{n_eff:.1f} (horizontes "
+                     f"solapados); acierto direccional {d.get('accuracy', 0):.1%} no se lee",
+                     "esperar", "T160 · T175")]
     out = []
     if c.get("brier_skill") is not None and c["brier_skill"] <= 0:
-        d = (c.get("directional") or {})
-        out.append(_opp("calib_sin_skill", "calibración",
-                        "Las probabilidades de escenario no superan a la caminata aleatoria",
+        out.append(_opp(f"calib_sin_skill{sfx}", "calibración",
+                        "Las probabilidades de escenario no superan a la caminata aleatoria"
+                        + ("" if not sfx else f" ({tf})"),
                         f"Brier skill {c['brier_skill']:+.3f}, acierto direccional "
                         f"{d.get('accuracy', 0):.1%} (n={d.get('n', 0)}, efectiva "
-                        f"≈{c.get('n_effective', 0):.0f})",
+                        f"≈{n_eff:.0f})",
                         "cerrada (T160: ninguna recalibración pasó)", "T160"))
     mp, rf = c.get("mean_prob") or {}, c.get("realized_freq") or {}
     gaps = {s: mp[s] - rf[s] for s in mp if s in rf}
     if gaps:
         s, g = max(gaps.items(), key=lambda kv: abs(kv[1]))
-        if abs(g) >= CALIB_BIAS:
-            out.append(_opp(f"calib_sesgo_{s}", "calibración", f"Escenario «{s}» descalibrado",
+        se = math.sqrt(max(rf[s] * (1 - rf[s]), 1e-9) / max(n_eff, 1.0))
+        if abs(g) >= CALIB_BIAS and abs(g) >= 2 * se:
+            out.append(_opp(f"calib_sesgo_{s}{sfx}", "calibración",
+                            f"Escenario «{s}» descalibrado" + ("" if not sfx else f" ({tf})"),
                             f"probabilidad media {mp[s]:.1%} frente a frecuencia real "
-                            f"{rf[s]:.1%} ({g:+.1%})", "cerrada (T160: desvío de régimen, no del modelo)",
-                            "T160"))
+                            f"{rf[s]:.1%} ({g:+.1%}; 2 errores típicos con n efectiva "
+                            f"{n_eff:.0f} = {2 * se:.1%})",
+                            "cerrada (T160: desvío de régimen, no del modelo)", "T160"))
     return out
 
 

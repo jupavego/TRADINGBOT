@@ -46,14 +46,15 @@ sobrestimado (27 % de probabilidad media frente a 15 % real).
 bruto +0,016 · costo 0,126 R · acierto 72,4 % frente a 81,1 % · PnL −2 552 USDT con 2 781 de
 fricción · variante t143 **+0,011 R/op emparejada** (115 comunes; sin emparejar daba −0,032) ·
 la variante sigue operando 15 m a 0,157 R vividos (agresivo 0,180) · funding 12 m BTC 3,51 % ·
-calibración BTC 1 h: Brier skill −0,004, acierto direccional 46,8 %, «bear» infraestimado
-(27 % frente a 45 %).
+calibración BTC 1 h: Brier skill −0,004, acierto direccional 46,8 %, n efectiva 29,5 («bear»
+27 % frente a 45 %, dentro de 2 errores típicos) · BTC 4 h: n efectiva 4,2, no se lee.
 
 **Tres trampas que T175 quitó de la herramienta y que no hay que reintroducir a mano:**
 comparar medias de dos mesas que toman ideas distintas (se empareja por perfil e idea); llevar al
 usuario una estrategia porque su **neto** pierde (el costo solo ya lo produce: se juzga el bruto con
 Holm entre las legibles); y dar por aplicada una palanca `auto` sin mirar el libro de la variante
-(`auto_no_refleja_<marco>`).
+(`auto_no_refleja_<marco>`). Y una cuarta: leer una calibración por su número de pronósticos y
+no por su muestra efectiva (los horizontes se solapan: 105 pronósticos de 4 h son ≈ 4).
 
 ## 2. Procedimiento (5 pasos; no leas nada más salvo que un paso lo pida)
 

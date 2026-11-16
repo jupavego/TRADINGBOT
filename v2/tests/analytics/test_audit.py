@@ -91,9 +91,17 @@ def test_losing_strategy_needs_user_and_variant_waits_for_sample():
 def test_calibration_findings():
     c = {"brier_skill": -0.01, "directional": {"n": 500, "accuracy": 0.41}, "n_effective": 22,
          "mean_prob": {"bull": 0.27, "bear": 0.28}, "realized_freq": {"bull": 0.15, "bear": 0.30}}
-    ids = {o["id"] for o in levers.calibration_opps(c)}
+    # T175: con n efectiva 22, 12 pp de sesgo no pasan de 2 errores típicos (15 pp)
+    assert {o["id"] for o in levers.calibration_opps(c)} == {"calib_sin_skill"}
+    ids = {o["id"] for o in levers.calibration_opps(c | {"n_effective": 200})}
     assert ids == {"calib_sin_skill", "calib_sesgo_bull"}
     assert levers.calibration_opps({"brier_skill": 0.05}) == []
+    # 4 h con muestra efectiva 4: no se lee nada, ni el acierto del 80 %
+    c4 = {"n_evaluated": 105, "n_effective": 4.2, "brier_skill": 0.03,
+          "directional": {"n": 103, "accuracy": 0.796}, "mean_prob": {"bear": 0.31},
+          "realized_freq": {"bear": 0.67}}
+    (o,) = levers.calibration_opps(c4, "4h")
+    assert o["id"] == "calib_sin_muestra_4h" and o["route"] == "esperar"
 
 
 def test_triggers_fire_and_near():

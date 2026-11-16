@@ -1,7 +1,7 @@
 {
  "mode": "SIMULADO",
- "generated_at": "2026-11-16T08:21:49Z",
- "now_ms": 1794817309099,
+ "generated_at": "2026-11-16T08:30:35Z",
+ "now_ms": 1794817835435,
  "book": {
   "universe": "libro fijo de los perfiles · `counts_as_result` (T144)",
   "rows_total": 4755,
@@ -1228,12 +1228,12 @@
  },
  "hft": {
   "source": "C:\\Users\\jo\\Desktop\\JP\\TRADINGBOT\\v2\\data\\micro_hft\\qc\\symbol=BTCUSDT\\summary.json",
-  "generated_at": 1794816714087,
+  "generated_at": 1794817322875,
   "pct_complete": 1.0,
   "window_h": 72,
   "streak_h": 120,
   "best_streak_h": 120,
-  "l2_days": 45.01520989519676
+  "l2_days": 45.021329294664355
  },
  "funding_apr": {
   "BTCUSDT": 0.03509505027310916,
@@ -1296,6 +1296,66 @@
    "Conclusión: no supera la línea base; usar la proyección solo como rango de incertidumbre, no como señal."
   ],
   "timeframe": "1h",
+  "engine": "base",
+  "n_backfill": 0,
+  "source": "pronósticos persistidos vs velas del almacén"
+ },
+ "calibration_4h": {
+  "symbol": "BTCUSDT",
+  "tf": "4h",
+  "n_evaluated": 105,
+  "n_pending": 24,
+  "horizon": 25,
+  "n_effective": 4.2,
+  "coverage": {
+   "50": {
+    "nominal": 0.5,
+    "terminal": 0.4666666666666667,
+    "pooled": 0.4994285714285714
+   },
+   "80": {
+    "nominal": 0.8,
+    "terminal": 0.6761904761904762,
+    "pooled": 0.726857142857143
+   },
+   "90": {
+    "nominal": 0.9,
+    "terminal": 0.8571428571428571,
+    "pooled": 0.822857142857143
+   }
+  },
+  "n_with_bands": 105,
+  "brier": 0.6720496761904763,
+  "brier_rw": 0.6933799356602279,
+  "brier_skill": 0.030762729598515448,
+  "pinball": 0.013177406483078205,
+  "pinball_rw": 0.01383956822280825,
+  "pinball_skill": 0.04784554901349969,
+  "ece": 0.06872380952380949,
+  "directional": {
+   "n": 103,
+   "accuracy": 0.7961165048543689
+  },
+  "top_hit": 0.42857142857142855,
+  "realized_freq": {
+   "bull": 0.02857142857142857,
+   "neutral": 0.3047619047619048,
+   "bear": 0.6666666666666666
+  },
+  "mean_prob": {
+   "bull": 0.27135238095238096,
+   "neutral": 0.42095238095238097,
+   "bear": 0.3076952380952381
+  },
+  "verdict": [
+   "105 pronósticos evaluados; por solape entre horizontes la muestra efectiva es ≈4 independientes: las diferencias pequeñas no son concluyentes.",
+   "Bandas fuera de la cobertura nominal (±5 pp) en 80 %: 68% observado.",
+   "Las probabilidades mejoran a la caminata aleatoria (Brier skill +3.1%).",
+   "La distribución terminal mejora a la caminata aleatoria (pinball +4.8%).",
+   "Acierto direccional 79.6% (n=103): no distinguible del azar.",
+   "Calibración imperfecta (error esperado 6.9%)."
+  ],
+  "timeframe": "4h",
   "engine": "base",
   "n_backfill": 0,
   "source": "pronósticos persistidos vs velas del almacén"
@@ -1382,12 +1442,12 @@
    "impact_r_per_op": null
   },
   {
-   "id": "calib_sesgo_bear",
+   "id": "calib_sin_muestra_4h",
    "category": "calibración",
-   "title": "Escenario «bear» descalibrado",
-   "evidence": "probabilidad media 27.4% frente a frecuencia real 44.8% (-17.4%)",
-   "route": "cerrada (T160: desvío de régimen, no del modelo)",
-   "ref": "T160",
+   "title": "Calibración BTC 4h: sin muestra efectiva",
+   "evidence": "105 pronósticos pero efectiva ≈4.2 (horizontes solapados); acierto direccional 79.6% no se lee",
+   "route": "esperar",
+   "ref": "T160 · T175",
    "impact_usdt": null,
    "impact_r_per_op": null
   }
@@ -1415,7 +1475,7 @@
    "id": "l2_un_ano",
    "fired": false,
    "near": false,
-   "value": 45.01520989519676,
+   "value": 45.021329294664355,
    "threshold": 365,
    "text": "Días de libro L2 propio",
    "action": "valorar A (T80) con pre-registro · ◆"
@@ -1481,7 +1541,7 @@
   },
   "new": [
    "auto_no_refleja_15m",
-   "calib_sesgo_bear",
+   "calib_sin_muestra_4h",
    "estrategias_por_costo"
   ],
   "gone": [
