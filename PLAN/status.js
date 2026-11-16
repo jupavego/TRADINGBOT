@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T20:32:12",
+ "generated": "2026-11-16T04:47:57",
  "phases": [
   {
    "n": 0,
@@ -275,7 +275,8 @@ window.EIM_STATUS = {
     "T148",
     "T149",
     "T173",
-    "T174"
+    "T174",
+    "T176"
    ]
   },
   {
@@ -2581,6 +2582,19 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 21,
    "goal": "Que cada «sin datos» del mapa signifique de verdad «no hay señal de que esto funcione», y no"
+  },
+  {
+   "id": "T176",
+   "title": "Una lectura de microestructura no cae porque la compactación le cambió las partes",
+   "deps": [
+    "T78",
+    "T128",
+    "T173"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-16, entra al reiniciar la API.** Visto en vivo: el bróker simulado de T31 estuvo 26 min sin completar un ciclo (07:44 → 08:10 UTC) con la API lenta por falta de RAM, y un ciclo cayó a las 08:04:40 con `IOException: Cannot open file` sobre una parte de `micro_hft/trades` que la compactación de la hora 05 acababa de sustituir. `eim/data/micro.py::read_micro` vuelve a listar y leer hasta dos veces (0,2 s y 1 s) solo si falta una parte; nada más cambia. Anexo: el informe semanal de T135 ya no muere en su `print` final por cp1252 (el del 2026-11-16 se escribió entero y la cola lo dio por fallido). 2 pruebas en `tests/data/test_micro_feed.py`; ficha `PLAN/T176.md`",
+   "effort": "bajo",
+   "phase": 21
   }
  ]
 };
