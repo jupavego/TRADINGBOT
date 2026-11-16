@@ -112,7 +112,8 @@ _EMPTY = {"hours": 0, "first_hour": None, "last_hour": None, "hours_complete": 0
 
 
 def _win_info(span: list[dict], i: int, j: int, maint: list[dict],
-              blind: Container[int] | None = None) -> dict:
+              blind: Container[int] | None = None,
+              net: Container[int] | None = None) -> dict:
     run = span[i:j]
     if not run:
         return dict(_EMPTY)
@@ -122,8 +123,9 @@ def _win_info(span: list[dict], i: int, j: int, maint: list[dict],
     usable = [r["book_usable"] for r in run if r.get("book_usable") is not None]
     worst = min((r for r in run if r.get("book_usable") is not None),
                 key=lambda r: r["book_usable"], default=None)
-    inc = [{"hour": r["hour"], "causa": attribute(r, r["hour_index"], maint, blind),
-            "motivo": why(r, r["hour_index"], maint, blind),
+    inc = [{"hour": r["hour"],
+            "causa": attribute(r, r["hour_index"], maint, blind, local_net_hours=net),
+            "motivo": why(r, r["hour_index"], maint, blind, net),
             "book_usable": r.get("book_usable")} for r in run if not r["complete"]]
     return {
         "hours": len(run), "first_hour": run[0]["hour"], "last_hour": run[-1]["hour"],
@@ -140,13 +142,16 @@ def _win_info(span: list[dict], i: int, j: int, maint: list[dict],
 
 def window(reps: list[dict], fresh_h: int, maint: list[dict] | None = None,
            since_h: int | None = None, need_h: int = NEED_H,
-           blind_hours: Container[int] | None = None) -> dict:
+           blind_hours: Container[int] | None = None,
+           local_net_hours: Container[int] | None = None) -> dict:
     """Veredicto de T78 por ventana (T147). `fresh_h`: hora desde la que una ventana sigue viva.
 
     `best` decide; `current` es la ventana viva (la que acaba en la última hora auditada), para ver
     lo que falta. `attribution` reparte TODAS las horas incompletas del tramo leído, no solo las de
     la ventana, porque es lo que dice de quién es la deuda. `blind_hours`: las horas que el
-    registro de consumo no vio (T148 E2), que la atribución cuenta como nuestras."""
+    registro de consumo no vio (T148 E2), que la atribución cuenta como nuestras.
+    `local_net_hours`: las horas con un corte de la red de este equipo (T173), que tampoco son
+    del exchange."""
     maint = maint or []
     out = {"rule": "ventana (T147)", "need_h": need_h, "hours_min": HOURS_MIN,
            "match_min": MATCH_MIN,
@@ -170,10 +175,10 @@ def window(reps: list[dict], fresh_h: int, maint: list[dict] | None = None,
         r = by_hour.get(h)
         if r is not None and r["complete"]:
             continue
-        k = attribute(r, h, maint, blind_hours)
+        k = attribute(r, h, maint, blind_hours, local_net_hours=local_net_hours)
         att[k] = att.get(k, 0) + 1
-    top = _win_info(best_span, best[0], best[1], maint, blind_hours)
-    now = _win_info(cur_span, cur[0], cur[1], maint, blind_hours)
+    top = _win_info(best_span, best[0], best[1], maint, blind_hours, local_net_hours)
+    now = _win_info(cur_span, cur[0], cur[1], maint, blind_hours, local_net_hours)
     passed = top["hours"] >= need_h
     return {**out, "best": top, "current": now,
             "remaining_h": 0 if passed else max(0, need_h - now["hours"]), "passed": passed,
