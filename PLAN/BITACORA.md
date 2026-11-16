@@ -1467,3 +1467,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** sin `node_modules` en la sesión remota: `tsc` de los archivos del mapa sin errores propios; verificado con capturas en Chrome sin interfaz con el catálogo real (86 piezas, estados de prueba). Sin cambios de Python.
 - **Abierto:** `npm run build` en el equipo y ver el mapa en vivo.
 - **Siguiente paso:** ajustar posiciones (`RING` en `obs_iso.ts`) o espacios del área común (`KINDS` en `obs_iso_lounge.ts`) si hace falta.
+
+## 2026-11-16 · T174: el recolector de liquidaciones late en calma
+- **Hecho:** en el mapa vivo `data.liq_collector` salía «sin datos» (último latido hace 18 h) mientras seguía guardando en `data/micro/liqs/` (carpeta de la hora en curso escrita al minuto). Causa: solo latía al conectar cada bolsa, y con las tres conexiones estables no volvía a latir; el mismo defecto que el vigilante (#292). Arreglo: `LiqCollector.alive` (la marca de vida de cada 30 s) late también, como mucho una vez por minuto y solo con alguna bolsa conectada; el catálogo pasa su cadencia de 3600 s a 60 s, así una caída se ve en 3 min y no en 3 h.
+- **Archivos:** `v2/eim/data/collectors/liq_ws.py`, `v2/eim/observability/catalog/components_flow.py`, `v2/tests/agents/liquidations/test_flow.py`.
+- **Pruebas:** `test_marca_de_vida_late_en_el_mapa_sin_reconectar` (late con bolsas conectadas, no late sin ninguna); gate completo por la cola.
+- **Abierto:** en `juanpablo-cpu` el supervisor (`eim.operation run`) y los recolectores corren desde el 10-nov 13:09, con código anterior a T174 (la API sí se reinició el 14-nov): el vigilante y este recolector siguen «sin datos» hasta «Parar» + «Arrancar servicio». Con la cadencia nueva, si solo se reinicia la API (p. ej. `sincronizar_main.ps1`) el recolector viejo seguirá «sin datos» igual que hoy.
+- **Siguiente paso:** fusionar y reiniciar el servicio cuando convenga a la captura.

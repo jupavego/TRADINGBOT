@@ -55,7 +55,7 @@ DATA: tuple[Component, ...] = (
     c("data.liq_collector", "data", "datos", "service", "collector", "T07", "Recolector de liquidaciones",
       "Proceso aparte que escucha las liquidaciones forzadas en vivo de Binance, Bybit y OKX y las "
       "guarda por hora. Reemplaza al archivo histórico de Binance, retirado en 2024.",
-      cadence="continuo", cadence_s=3600, produces=("liq_flow",)),
+      cadence="continuo", cadence_s=60, produces=("liq_flow",)),
     c("data.arb_market", "arbitrage", "datos", "service", "api", "T39", "Mercado para arbitraje",
       "Cada minuto (cada 10 s si opera en testnet) toma una fotografía de precios spot y futuros "
       "de Binance (solo lectura) para buscar diferencias que dejen ganancia neta.",
