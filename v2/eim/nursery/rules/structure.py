@@ -33,7 +33,16 @@ def estructura_continuacion(v: View, p: dict) -> Signal:
 
 
 def estructura_ruptura(v: View, p: dict) -> Signal:
-    return Signal(enter=_enters(v, p, "SC-02"))
+    """Pasa a SC-02 (ruptura): entra con el sesgo, sin filtro de convicción (T170).
+
+    T169 vio que el agente da a SC-02 una convicción de 47–50 y que el umbral provisional de 60
+    (banda SR-2) no se cumplía nunca; T170 quitó el filtro en vez de elegir otro valor mirando
+    la distribución. No usa `_enters`: las otras reglas conservan su filtro y su huella.
+    """
+    scen = v.get(SCEN)
+    if not _is(scen, "SC-02") or not v.has(1) or _is(v.get(SCEN, 1), "SC-02"):
+        return NONE
+    return Signal(enter=sign(num(v.get(BIAS))))
 
 
 def estructura_cambio(v: View, p: dict) -> Signal:

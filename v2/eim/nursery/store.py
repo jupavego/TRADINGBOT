@@ -28,9 +28,13 @@ DDL = (
     "CREATE TABLE IF NOT EXISTS nursery_events (t BIGINT, kind VARCHAR, payload VARCHAR)",
     """CREATE TABLE IF NOT EXISTS nursery_daily (account_id VARCHAR, day BIGINT,
        pnl_usd DOUBLE, twin_pnl_usd DOUBLE, PRIMARY KEY (account_id, day))""",
+    # T170: alta de cada pre-registro (solo adición). El reloj de la fase empieza aquí.
+    """CREATE TABLE IF NOT EXISTS nursery_prereg (version VARCHAR PRIMARY KEY, sha256 VARCHAR,
+       alta_ms BIGINT)""",
 )
 CTX_FIELDS = ("SELECT asof_ms, json_extract(ctx, '$.close'), json_extract(ctx, '$.atr'), "
-              "json_extract(ctx, '$.agents'), json_extract(ctx, '$.nat') FROM paper_ctx "
+              "json_extract(ctx, '$.agents'), json_extract(ctx, '$.nat'), "
+              "json_extract_string(ctx, '$.regime') FROM paper_ctx "
               "WHERE symbol = ? AND timeframe = ? AND asof_ms >= ? ORDER BY asof_ms")
 
 
@@ -42,8 +46,9 @@ def light_contexts(ctx_store, symbol: str, timeframe: str, start: int) -> list[d
     """Solo `t`, `close`, `atr`, `agents` y `nat` de cada contexto (lectura, sin escribir)."""
     rows = ctx_store.execute(CTX_FIELDS, [symbol, timeframe, int(start)])
     return [{"t": int(t), "close": _num(c), "atr": _num(a),
-             "agents": json.loads(ag) if ag else {}, "nat": json.loads(nat) if nat else None}
-            for t, c, a, ag, nat in rows]
+             "agents": json.loads(ag) if ag else {}, "nat": json.loads(nat) if nat else None,
+             "regime": reg}
+            for t, c, a, ag, nat, reg in rows]
 
 
 class NurseryStore:
@@ -61,6 +66,23 @@ class NurseryStore:
                for a in accounts if a.id not in have]
         self.own.executemany("INSERT INTO nursery_accounts VALUES (?,?,?,?,?,?)", new)
         return {**have, **{r[0]: now_ms for r in new}}
+
+    def alta(self, version: str, sha256: str, now_ms: int) -> int:
+        """Hora de alta del pre-registro `version` (la primera vez que se calcula con él).
+
+        Solo adición: si ya hay un alta de esa versión con otra huella, falla, porque el archivo
+        publicado no puede haber cambiado (eso sería `cantera_v2`, con reloj nuevo).
+        """
+        row = self.own.execute("SELECT sha256, alta_ms FROM nursery_prereg WHERE version = ?",
+                               [version])
+        if row:
+            if row[0][0] != sha256:
+                raise ValueError(f"{version} ya tiene alta con otra huella ({row[0][0]}): "
+                                 "un cambio es cantera_v2, con reloj nuevo")
+            return int(row[0][1])
+        self.own.executemany("INSERT INTO nursery_prereg VALUES (?,?,?)",
+                             [(version, sha256, int(now_ms))])
+        return int(now_ms)
 
     def save(self, book: Book) -> None:
         trades, daily = [], {}

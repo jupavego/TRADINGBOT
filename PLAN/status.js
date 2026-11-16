@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-16T14:48:45",
+ "generated": "2026-11-16T14:58:41",
  "phases": [
   {
    "n": 0,
@@ -2525,8 +2525,8 @@ window.EIM_STATUS = {
     "T160",
     "T161"
    ],
-   "state": "pending",
-   "notes": "— (T160 cerrada el 2026-11-11: ninguna recalibración pasó, `v2/reports/t160_recalibracion.md`)",
+   "state": "progress",
+   "notes": "En curso (2026-11-16, rama `claude/t170-prereg-cantera-8115e5`): decisiones ◆ del pre-registro con el usuario, luego `prereg_cantera_v1.json`, `eim/nursery/ladder.py` y sus pruebas",
    "effort": "medio",
    "phase": 27
   },

@@ -1,0 +1,243 @@
+{
+ "task": "T170",
+ "mode": "SIMULADO",
+ "generated_utc": "2026-11-16T20:24Z",
+ "contexts": 10752,
+ "stretches": 16,
+ "days": 448.0,
+ "prospects": [
+  {
+   "id": "estructura_ruptura",
+   "agent": "structure",
+   "timeframe": "1h",
+   "role": "candidato",
+   "exit_template": "atr_ladder",
+   "declared_band": "intradia",
+   "fingerprint_t169": "1d4c4f294f59",
+   "fingerprint_t170": "f732d941eeca",
+   "rule": "Entra en el sentido del sesgo cuando el escenario pasa a SC-02, sin filtro de convicción. Rediseñada en T170: el umbral provisional de 60 (banda SR-2) no se cumplía nunca, porque el agente da a SC-02 una convicción de 47–50 (T169).",
+   "params": {},
+   "physics": {
+    "days": 448.0,
+    "ideas": 505,
+    "orders": 388,
+    "rejected": 0,
+    "filled": 382,
+    "unfilled": 6,
+    "closed": 380,
+    "censored": 2,
+    "ops_month": 25.58,
+    "ops_month_by_block": [
+     16.07,
+     21.43,
+     34.29,
+     39.64,
+     3.21,
+     34.29,
+     18.21,
+     16.07,
+     31.07,
+     32.14,
+     32.14,
+     19.29,
+     22.5,
+     25.71,
+     30.0,
+     33.21
+    ],
+    "cost_r_mean": 0.1535,
+    "cost_r_sd": 0.0635,
+    "hold_h_median": 1.25,
+    "hold_h_p25_p75": [
+     0.75,
+     3.0
+    ],
+    "exposure": 0.1015,
+    "pos_days_frac": 0.4665,
+    "pos_days_by_block": [
+     0.321,
+     0.607,
+     0.679,
+     0.643,
+     0.071,
+     0.571,
+     0.321,
+     0.286,
+     0.464,
+     0.536,
+     0.5,
+     0.357,
+     0.5,
+     0.429,
+     0.536,
+     0.643
+    ],
+    "turnover_month": 54.43,
+    "side_flips_month": 0.0,
+    "long_share": 0.0,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.scenario",
+       "with_value": 1.0
+      },
+      {
+       "variable": "bias",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "scalping",
+    "band": "scalping",
+    "reassigned": true,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 155.2,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 320.1
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 1126.7
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 53.5
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 186.0
+     }
+    }
+   }
+  },
+  {
+   "id": "tec_acuerdo_marcos",
+   "agent": "technical",
+   "timeframe": "1h",
+   "role": "base",
+   "exit_template": "rule_flip",
+   "declared_band": "tres_dias",
+   "fingerprint_t169": "61b1b609e29f",
+   "fingerprint_t170": "a3e0ee4321f2",
+   "rule": "Largo si el sesgo de 1 h y el de 4 h superan +mtf_neutral; corto en espejo. Sale cuando un marco deja de estar de acuerdo. Rediseñada en T170: con base 1 h el agente solo evalúa sus marcos vecinos, así que el de 1 d no existía nunca (T169).",
+   "params": {
+    "mtf_neutral": 0.1
+   },
+   "physics": {
+    "days": 448.0,
+    "ideas": 2874,
+    "orders": 566,
+    "rejected": 0,
+    "filled": 561,
+    "unfilled": 5,
+    "closed": 560,
+    "censored": 1,
+    "ops_month": 37.567,
+    "ops_month_by_block": [
+     32.14,
+     32.14,
+     42.86,
+     33.21,
+     36.43,
+     42.86,
+     33.21,
+     27.86,
+     38.57,
+     47.14,
+     46.07,
+     31.07,
+     42.86,
+     51.43,
+     42.86,
+     20.36
+    ],
+    "cost_r_mean": 0.1449,
+    "cost_r_sd": 0.0742,
+    "hold_h_median": 2.0,
+    "hold_h_p25_p75": [
+     1.0,
+     6.0
+    ],
+    "exposure": 0.2586,
+    "pos_days_frac": 0.7188,
+    "pos_days_by_block": [
+     0.714,
+     0.643,
+     0.714,
+     0.643,
+     0.786,
+     0.75,
+     0.679,
+     0.679,
+     0.786,
+     0.857,
+     0.679,
+     0.714,
+     0.786,
+     0.786,
+     0.714,
+     0.571
+    ],
+    "turnover_month": 75.85,
+    "side_flips_month": 5.424,
+    "long_share": 0.439,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.frames.1h.bias",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.frames.4h.bias",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "tres_dias",
+    "measured_band": "scalping",
+    "band": "scalping",
+    "reassigned": true,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 227.9,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 217.9
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 767.2
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 36.4
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 126.6
+     }
+    }
+   }
+  }
+ ],
+ "lookahead_note": "Heredada de T169: 54 contextos de 1 h recalculados con el banco truncado, 0 distintos. Las dos reglas son funciones puras de esos contextos, así que sus ideas no pueden cambiar al truncar."
+}

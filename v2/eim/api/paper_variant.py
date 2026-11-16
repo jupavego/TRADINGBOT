@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import io
+import logging
 
 from fastapi import APIRouter, HTTPException, Response
 
@@ -16,6 +17,8 @@ from eim.api.paper import _check, _view
 from eim.nursery.params import NAME as NURSERY
 from eim.paper import ledger, universe
 from eim.paper.variant import VariantDesk
+
+_log = logging.getLogger("eim.nursery")
 
 
 def build_variant_router(desks: dict[str, VariantDesk]) -> APIRouter:
@@ -93,11 +96,20 @@ def make_nursery(enabled: bool, names: tuple[str, ...], store, data_dir, ctx_sto
         return None
     from eim.data.paper_store import PaperStore
     from eim.nursery.desk import NurseryDesk
+    from eim.nursery.params import NurseryParams
+    from eim.nursery.prereg import family_prospects, load_prereg, not_before_ms
     from eim.nursery.prospect import load_prospects, native_paths
 
-    prospects = load_prospects()
+    own = PaperStore(data_dir / f"paper_{NURSERY}.duckdb")
+    try:        # T170: solo los prospectos del pre-registro, con su huella congelada
+        pr = load_prereg()
+        prospects = family_prospects(pr, load_prospects())
+    except (ValueError, OSError) as exc:
+        _log.error("cantera bloqueada: %s", exc)     # nunca tumba la API ni opera sin pre-registro
+        return NurseryDesk(store, ctx_store, own, prospects=(),
+                           blocked=f"cantera bloqueada: {exc}")
     native = native_paths(prospects)
     for g in gens.values():
         g.native = native
-    return NurseryDesk(store, ctx_store, PaperStore(data_dir / f"paper_{NURSERY}.duckdb"),
-                       prospects=prospects)
+    return NurseryDesk(store, ctx_store, own, prospects=prospects, prereg=pr,
+                       params=NurseryParams(start_ms=not_before_ms(pr)))
