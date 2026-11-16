@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-11T20:32:12",
+ "generated": "2026-11-16T04:25:00",
  "phases": [
   {
    "n": 0,
@@ -316,7 +316,8 @@ window.EIM_STATUS = {
    "name": "Auditoría y calibración periódica",
    "ids": [
     "T159",
-    "T160"
+    "T160",
+    "T175"
    ]
   },
   {
@@ -2581,6 +2582,19 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 21,
    "goal": "Que cada «sin datos» del mapa signifique de verdad «no hay señal de que esto funcione», y no"
+  },
+  {
+   "id": "T175",
+   "title": "Auditoría: la variante se compara emparejada y el catálogo por su bruto con Holm",
+   "deps": [
+    "T159",
+    "T143",
+    "T49"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-16.** La herramienta de T159 llevaba al usuario tres conclusiones que los datos no sostienen. (1) Variante t143: −0,032 R/op sin emparejar → **+0,011 R/op** emparejada por perfil e idea (115 comunes, IC ±0,011, Δcosto −0,006 R). (2) Catálogo: las 4 «pierden con IC < 0» lo hacen solo por el costo (bruto p 0,28–0,41, Holm 1,00; con bruto 0 se esperaban 2 de 13); ahora solo va a ◆ un bruto peor que el azar con Holm. (3) La variante sigue operando 15 m a **0,157 R** vividos porque la puerta mide 0,129 R en la sombra tomable; agresivo 0,180, moderado 0,140: nueva palanca `auto_no_refleja_<marco>` y ◆ de puerta por perfil y marco (`PLAN/T175.md`). (4) Calibración por su muestra efectiva y también en 4 h: 4 h tiene n efectiva 4,2 (no se lee) y el «bear» de 1 h (−17 pp, n efectiva 30) queda dentro de 2 errores típicos. `eim/analytics/audit/{build,kpis,levers}.py`, 4 pruebas nuevas, informe `v2/reports/audit/audit_2026-11-16.md` regenerado, skill al día",
+   "effort": "bajo",
+   "phase": 25
   }
  ]
 };
