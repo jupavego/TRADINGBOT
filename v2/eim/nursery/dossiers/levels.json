@@ -77,19 +77,49 @@
    "id": "osler_2000_frbny",
    "concept": "support_resistance",
    "stance": "apoya",
-   "consensus": "a favor (+1,00)"
+   "consensus": "a favor (+0,76)"
   },
   {
    "id": "osler_2003",
    "concept": "support_resistance",
    "stance": "apoya",
-   "consensus": "a favor (+1,00)"
+   "consensus": "a favor (+0,76)"
   },
   {
    "id": "lo_mamaysky_wang_2000",
    "concept": "chart_patterns",
    "stance": "apoya",
-   "consensus": "a favor (+1,00)"
+   "consensus": "dividido (+0,19)"
+  },
+  {
+   "id": "bhattacharya_holden_jacobsen_2012",
+   "concept": "support_resistance",
+   "stance": "apoya",
+   "consensus": "a favor (+0,76)"
+  },
+  {
+   "id": "donaldson_kim_1993",
+   "concept": "support_resistance",
+   "stance": "apoya",
+   "consensus": "a favor (+0,76)"
+  },
+  {
+   "id": "mbanga_2019",
+   "concept": "support_resistance",
+   "stance": "apoya",
+   "consensus": "a favor (+0,76)"
+  },
+  {
+   "id": "chung_bellotti_2021",
+   "concept": "support_resistance",
+   "stance": "apoya",
+   "consensus": "a favor (+0,76)"
+  },
+  {
+   "id": "zapranis_tsinaslanidis_2012",
+   "concept": "support_resistance",
+   "stance": "objeta",
+   "consensus": "a favor (+0,76)"
   }
  ],
  "prospects": [
@@ -183,6 +213,59 @@
    "horizon": "intradia"
   },
   {
+   "id": "niveles_redondos",
+   "name": "Zona con número redondo",
+   "role": "candidato",
+   "theory": "Los números redondos son barreras de soporte y resistencia (Donaldson y Kim 1993; Bhattacharya et al. 2012) y los precios de Bitcoin se agrupan en ellos (Mbanga 2019).",
+   "opposite_of": null,
+   "rule": "Como `niveles_rebote`, y además la zona contiene un múltiplo de paso_usd; sale a las 24 velas del agente.",
+   "variables": [
+    "metrics.dist_support",
+    "metrics.dist_resistance",
+    "metrics.atr",
+    "metrics.zones[].touches",
+    "metrics.zones[].p_low",
+    "metrics.zones[].p_high"
+   ],
+   "params": {
+    "touch_atr": {
+     "value": 0.5,
+     "source": "`agents/levels/params.py::channel_touch_atr` (heurística del agente, no calibrada)"
+    },
+    "min_touches": {
+     "value": 2,
+     "source": "definición mínima de nivel: dos toques (Osler 2000)"
+    },
+    "paso_usd": {
+     "value": 1000,
+     "source": "convención, no calibrada: múltiplos redondos del orden del 1–3 % del precio, como los de 100 del Dow en Donaldson y Kim (1993)"
+    }
+   },
+   "n_params": 3,
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "menos que `niveles_rebote` (3 075 ideas en T169; por medir)",
+   "literature": [
+    "bhattacharya_holden_jacobsen_2012",
+    "donaldson_kim_1993",
+    "mbanga_2019",
+    "chung_bellotti_2021",
+    "osler_2003",
+    "zapranis_tsinaslanidis_2012"
+   ],
+   "horizon": "intradia",
+   "replaces": "niveles_canal_tendencia"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "T168 (2026-11-11): `niveles_rebote` lee además los bordes de las zonas para atribuir los toques a la zona de soporte o resistencia más cercana; sin parámetros nuevos (la regla aprobada ya lo pedía)."
+ ],
+ "performance_computed": false,
+ "discarded": [
+  {
    "id": "niveles_canal_tendencia",
    "name": "Seguir un canal con pendiente",
    "role": "candidato",
@@ -208,13 +291,16 @@
    "literature": [
     "hurst_ooi_pedersen_2017"
    ],
-   "horizon": "semanal"
+   "horizon": "semanal",
+   "fingerprint": "3d4114cbe146",
+   "discarded_by": "T169",
+   "reasons": [
+    "intradia: 3,4 operaciones al mes (< 8)"
+   ],
+   "measured_band": "intradia",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": "niveles_redondos"
   }
  ],
- "exclusion_reason": null,
- "reserve": [],
- "notes": [
-  "T168 (2026-11-11): `niveles_rebote` lee además los bordes de las zonas para atribuir los toques a la zona de soporte o resistencia más cercana; sin parámetros nuevos (la regla aprobada ya lo pedía)."
- ],
- "performance_computed": false
+ "consensus_at": "2026-11-16 (T177, 165 obras)"
 }

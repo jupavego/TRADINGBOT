@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 from eim.nursery.rules.base import NONE, Signal, View, num, nums, sign, steady
 
 M = "metrics."
@@ -74,6 +76,41 @@ def niveles_canal_tendencia(v: View, p: dict) -> Signal:
     return Signal(enter=sign(sl) if ok else 0)
 
 
+def _nearest_zone(v: View, side: int) -> tuple[float, float, float] | None:
+    """(p_low, p_high, toques) de la zona más cercana por debajo del cierre (soporte) o por
+    encima (resistencia)."""
+    lo, hi, tc = nums(v.get(ZLO)), nums(v.get(ZHI)), nums(v.get(TOUCH))
+    c = v.close
+    if c is None or not (len(lo) == len(hi) == len(tc)) or not tc:
+        return None
+    if side > 0:
+        cand = [(c - h, (lw, h, t)) for lw, h, t in zip(lo, hi, tc, strict=True) if h <= c]
+    else:
+        cand = [(lw - c, (lw, h, t)) for lw, h, t in zip(lo, hi, tc, strict=True) if lw >= c]
+    return min(cand)[1] if cand else None
+
+
+def _has_round(lo: float, hi: float, step: float) -> bool:
+    """¿Contiene [lo, hi] un múltiplo de `step`?"""
+    return math.floor(hi / step) * step >= lo
+
+
+def niveles_redondos(v: View, p: dict) -> Signal:
+    """T177. Como `niveles_rebote`, y además la zona contiene un múltiplo de paso_usd (número
+    redondo): largo en soporte, corto en resistencia."""
+    a = num(v.get(ATR))
+    if a is None or a <= 0:
+        return NONE
+    near, k, step = float(p["touch_atr"]) * a, float(p["min_touches"]), float(p["paso_usd"])
+    sides = []
+    for s, d in ((1, num(v.get(DSUP))), (-1, num(v.get(DRES)))):
+        z = _nearest_zone(v, s) if d is not None and 0 <= d <= near else None
+        if z is not None and z[2] >= k and _has_round(z[0], z[1], step):
+            sides.append(s)
+    return Signal(enter=sides[0]) if len(sides) == 1 else NONE
+
+
 RULES = {"niveles_rebote": niveles_rebote, "niveles_ruptura": niveles_ruptura,
          "niveles_canal_extremos": niveles_canal_extremos,
-         "niveles_canal_tendencia": niveles_canal_tendencia}
+         "niveles_canal_tendencia": niveles_canal_tendencia,
+         "niveles_redondos": niveles_redondos}

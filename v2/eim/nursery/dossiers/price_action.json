@@ -52,19 +52,19 @@
    "id": "lo_mamaysky_wang_2000",
    "concept": "chart_patterns",
    "stance": "apoya",
-   "consensus": "a favor (+1,00)"
+   "consensus": "dividido (+0,19)"
   },
   {
    "id": "caginalp_laurent_1998",
    "concept": "candlesticks",
    "stance": "apoya",
-   "consensus": "dividido (+0,19)"
+   "consensus": "dividido (+0,16)"
   },
   {
    "id": "marshall_young_rose_2006",
    "concept": "candlesticks",
    "stance": "objeta",
-   "consensus": "dividido (+0,19)"
+   "consensus": "dividido (+0,16)"
   },
   {
    "id": "daniel_moskowitz_2016",
@@ -201,5 +201,6 @@
  "notes": [
   "Marshall, Young y Rose (2006) no encuentran valor en las velas japonesas en el DJIA: se espera baja de `pa_patron_zona`, y medirlo en BTC es parte del valor."
  ],
- "performance_computed": false
+ "performance_computed": false,
+ "consensus_at": "2026-11-16 (T177, 165 obras)"
 }

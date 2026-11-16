@@ -49,6 +49,11 @@
    "name": "metrics.variables.BOUNCE_COUNT_21",
    "source": "velas de futuros Binance (snapshot.candles)",
    "note": ""
+  },
+  {
+   "name": "metrics.variables.SPREAD_21_55",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "EMA 21 − EMA 55 (signo = cruce)"
   }
  ],
  "history": {
@@ -79,28 +84,208 @@
    "id": "moskowitz_ooi_pedersen_2012",
    "concept": "momentum",
    "stance": "apoya",
-   "consensus": "a favor (+1,00)"
+   "consensus": "dividido (+0,42)"
   },
   {
    "id": "sullivan_timmermann_white_1999",
    "concept": "technical_analysis",
    "stance": "objeta",
-   "consensus": "dividido (+0,06)"
+   "consensus": "dividido (+0,28)"
   },
   {
    "id": "bajgrowicz_scaillet_2012",
    "concept": "technical_analysis",
    "stance": "objeta",
-   "consensus": "dividido (+0,06)"
+   "consensus": "dividido (+0,28)"
   },
   {
    "id": "avellaneda_lee_2010",
    "concept": "mean_reversion",
    "stance": "condiciona",
-   "consensus": "condicionado (0,00)"
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "glabadanidis_2015",
+   "concept": "trend_following",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "lemperiere_2014",
+   "concept": "trend_following",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "levine_pedersen_2016",
+   "concept": "trend_following",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "huang_li_wang_zhou_2020",
+   "concept": "momentum",
+   "stance": "objeta",
+   "consensus": "dividido (+0,42)"
+  },
+  {
+   "id": "corbet_2019_ta",
+   "concept": "technical_analysis",
+   "stance": "apoya",
+   "consensus": "dividido (+0,28)"
+  },
+  {
+   "id": "tzouvanas_2020",
+   "concept": "momentum",
+   "stance": "condiciona",
+   "consensus": "dividido (+0,42)"
+  },
+  {
+   "id": "grobys_ahmed_sapkota_2020",
+   "concept": "technical_analysis",
+   "stance": "condiciona",
+   "consensus": "dividido (+0,28)"
+  },
+  {
+   "id": "leigh_paz_purvis_2002",
+   "concept": "chart_patterns",
+   "stance": "apoya",
+   "consensus": "dividido (+0,19)"
   }
  ],
  "prospects": [
+  {
+   "id": "ema_elastico",
+   "name": "Elasticidad extrema (reversión)",
+   "role": "candidato",
+   "theory": "Teoría opuesta: un precio muy estirado sobre sus medias vuelve a ellas.",
+   "opposite_of": "ema_precio_200",
+   "rule": "Si ELASTICITY ≥ θ-003, entra contra el estiramiento con objetivo en la EMA 21.",
+   "variables": [
+    "metrics.variables.ELASTICITY",
+    "metrics.variables.EMA_21"
+   ],
+   "params": {
+    "theta_003_elastic": {
+     "value": 5.0,
+     "source": "θ de EIM-BRM-001, `agents/structure/params.py::BRMParams` (provisional, no calibrado)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "mean_target",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "avellaneda_lee_2010",
+    "chan_2013"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "ema_precio_200",
+   "name": "Precio y EMA 200",
+   "role": "base",
+   "theory": "Seguir la tendencia larga: estar del lado de la EMA 200 en que cierra el precio (regla 1/200).",
+   "opposite_of": null,
+   "rule": "Largo con cierre sobre la EMA 200 de 4 h, corto bajo ella; sale al cruzarla.",
+   "variables": [
+    "metrics.variables.EMA_200"
+   ],
+   "params": {
+    "ema_larga": {
+     "value": 200,
+     "source": "Brock, Lakonishok y LeBaron (1992), regla 1/200; EMA 200 de la pila EIM-FRM-001 (`agents/ema/params.py`)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "≈ 6 cruces al mes en 4 h (cierres del banco, T177)",
+   "literature": [
+    "brock_lakonishok_lebaron_1992",
+    "glabadanidis_2015",
+    "lemperiere_2014",
+    "levine_pedersen_2016",
+    "huang_li_wang_zhou_2020"
+   ],
+   "horizon": "tres_dias",
+   "replaces": "ema_pila"
+  },
+  {
+   "id": "ema_cruce_21_55",
+   "name": "Cruce 21/55",
+   "role": "candidato",
+   "theory": "Un cruce de medias es un filtro de tendencia de horizonte medio (Levine y Pedersen 2016).",
+   "opposite_of": null,
+   "rule": "Entra cuando la EMA 21 cruza la EMA 55 en 1 h, en el sentido del cruce; sale con el cruce contrario.",
+   "variables": [
+    "metrics.variables.SPREAD_21_55"
+   ],
+   "params": {
+    "emas": {
+     "value": "21/55",
+     "source": "medias de la pila EIM-FRM-001 (`agents/ema/params.py`)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "≈ 13 cruces al mes en 1 h (cierres del banco, T177)",
+   "literature": [
+    "levine_pedersen_2016",
+    "corbet_2019_ta",
+    "tzouvanas_2020",
+    "grobys_ahmed_sapkota_2020"
+   ],
+   "horizon": "tres_dias",
+   "replaces": "ema_resorte"
+  },
+  {
+   "id": "ema_retroceso_12h",
+   "name": "Retroceso a la EMA 21 (12 h)",
+   "role": "candidato",
+   "theory": "La regla de `ema_retroceso` con salida por tiempo: en T169 la operaban bien sus ideas, pero `atr_ladder` en 1 h cerraba en 1,5 h y la llevaba a la banda de scalping.",
+   "opposite_of": null,
+   "rule": "Con la pila en orden, entra a favor cuando el precio toca la EMA 21 (sube BOUNCE_COUNT_21) y cierra de nuevo a favor; sale a las 12 velas del agente.",
+   "variables": [
+    "metrics.variables.STACK_ORDER",
+    "metrics.variables.BOUNCE_COUNT_21",
+    "metrics.variables.EMA_21"
+   ],
+   "params": {
+    "ema_touch": {
+     "value": 21,
+     "source": "EIM-FRM-001 (especificación F del proyecto), `agents/ema/params.py`"
+    },
+    "emas": {
+     "value": "9/21/55/100/200",
+     "source": "EIM-FRM-001 (especificación F del proyecto), `agents/ema/params.py`"
+    }
+   },
+   "n_params": 2,
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "≈ 13 ideas al mes (195 en la muestra de T169)",
+   "literature": [
+    "leigh_paz_purvis_2002",
+    "lemperiere_2014",
+    "hurst_ooi_pedersen_2017"
+   ],
+   "horizon": "intradia",
+   "replaces": "ema_retroceso"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "Las 44 variables FRM existen en `metrics.variables`; T168 guarda solo las nueve declaradas aquí."
+ ],
+ "performance_computed": false,
+ "discarded": [
   {
    "id": "ema_pila",
    "name": "Pila alineada",
@@ -127,7 +312,15 @@
     "brock_lakonishok_lebaron_1992",
     "hurst_ooi_pedersen_2017"
    ],
-   "horizon": "semanal"
+   "horizon": "semanal",
+   "fingerprint": "a8d6fa26a3aa",
+   "discarded_by": "T169",
+   "reasons": [
+    "tres_dias: 4,9 operaciones al mes (< 5)"
+   ],
+   "measured_band": "tres_dias",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": "ema_precio_200"
   },
   {
    "id": "ema_resorte",
@@ -160,7 +353,15 @@
     "zarattini_aziz_2023",
     "moskowitz_ooi_pedersen_2012"
    ],
-   "horizon": "intradia"
+   "horizon": "intradia",
+   "fingerprint": "eafe7eef82e7",
+   "discarded_by": "T169",
+   "reasons": [
+    "scalping: 5,4 operaciones al mes (< 20)"
+   ],
+   "measured_band": "scalping",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": "ema_cruce_21_55"
   },
   {
    "id": "ema_retroceso",
@@ -193,41 +394,16 @@
     "hurst_ooi_pedersen_2017",
     "osler_2000_frbny"
    ],
-   "horizon": "intradia"
-  },
-  {
-   "id": "ema_elastico",
-   "name": "Elasticidad extrema (reversión)",
-   "role": "candidato",
-   "theory": "Teoría opuesta: un precio muy estirado sobre sus medias vuelve a ellas.",
-   "opposite_of": "ema_pila",
-   "rule": "Si ELASTICITY ≥ θ-003, entra contra el estiramiento con objetivo en la EMA 21.",
-   "variables": [
-    "metrics.variables.ELASTICITY",
-    "metrics.variables.EMA_21"
+   "horizon": "intradia",
+   "fingerprint": "51c2ec7a3ff7",
+   "discarded_by": "T169",
+   "reasons": [
+    "scalping: 11,1 operaciones al mes (< 20)"
    ],
-   "params": {
-    "theta_003_elastic": {
-     "value": 5.0,
-     "source": "θ de EIM-BRM-001, `agents/structure/params.py::BRMParams` (provisional, no calibrado)"
-    }
-   },
-   "n_params": 1,
-   "timeframe": "1h",
-   "exit_template": "mean_target",
-   "history_exam": "banco_t131",
-   "expected_cadence": "pocas/mes",
-   "literature": [
-    "avellaneda_lee_2010",
-    "chan_2013"
-   ],
-   "horizon": "intradia"
+   "measured_band": "scalping",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": "ema_retroceso_12h"
   }
  ],
- "exclusion_reason": null,
- "reserve": [],
- "notes": [
-  "Las 44 variables FRM existen en `metrics.variables`; T168 guarda solo las nueve declaradas aquí."
- ],
- "performance_computed": false
+ "consensus_at": "2026-11-16 (T177, 165 obras)"
 }

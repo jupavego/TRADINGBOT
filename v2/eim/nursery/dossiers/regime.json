@@ -1,7 +1,7 @@
 {
  "agent_id": "regime",
  "agent_version": "1.0.0",
- "status": "inscrito",
+ "status": "excluido",
  "verified": "2026-11-11",
  "theory": "BOCPD sobre retornos y volatilidad separa el mercado en tramos y etiqueta cada uno como tendencial (alcista/bajista), rango o volátil.",
  "variables": [
@@ -44,7 +44,7 @@
    "id": "moskowitz_ooi_pedersen_2012",
    "concept": "momentum",
    "stance": "apoya",
-   "consensus": "a favor (+1,00)"
+   "consensus": "dividido (+0,42)"
   },
   {
    "id": "daniel_moskowitz_2016",
@@ -53,7 +53,16 @@
    "consensus": "a favor (+1,00)"
   }
  ],
- "prospects": [
+ "prospects": [],
+ "exclusion_reason": "T177: la etiqueta del agente casi nunca pasa a tendencia. Medido sin rendimiento: 4,6 pasos a trend_up/trend_down al mes en 1 h (muestra de T169), 1,1 en 4 h (250 días) y 5,3 en 15 m (28 días), con tramos de 2–3 velas; ninguna regla direccional sobre ella llega a la cadencia mínima de su banda (≥ 5 al mes en tres días, ≥ 8 en intradía, ≥ 20 en scalping). Su plaza base pasa a `elliott` (el agente con más respaldo bibliográfico y hueco, decisión del usuario del 2026-11-16).",
+ "reserve": [],
+ "notes": [
+  "El sesgo del agente es siempre 0; los prospectos leen la etiqueta del tramo.",
+  "No hay teoría opuesta con variables propias: la reversión en rango necesita un nivel de precio que este agente no expone (cambiarlo sería otra versión)."
+ ],
+ "performance_computed": false,
+ "consensus_at": "2026-11-16 (T177, 165 obras)",
+ "discarded": [
   {
    "id": "regimen_tramo",
    "name": "Seguir el tramo tendencial",
@@ -82,7 +91,15 @@
    "literature": [
     "adams_mackay_2007"
    ],
-   "horizon": "tres_dias"
+   "horizon": "tres_dias",
+   "fingerprint": "22b697e89a4d",
+   "discarded_by": "T169",
+   "reasons": [
+    "scalping: 4,6 operaciones al mes (< 20)"
+   ],
+   "measured_band": "scalping",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": "elliott_tendencia_dow"
   },
   {
    "id": "regimen_tramo_estable",
@@ -114,14 +131,15 @@
     "adams_mackay_2007",
     "daniel_moskowitz_2016"
    ],
-   "horizon": "tres_dias"
+   "horizon": "tres_dias",
+   "fingerprint": "ed21cf948690",
+   "discarded_by": "T169",
+   "reasons": [
+    "scalping: 4,6 operaciones al mes (< 20)"
+   ],
+   "measured_band": "scalping",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": null
   }
- ],
- "exclusion_reason": null,
- "reserve": [],
- "notes": [
-  "El sesgo del agente es siempre 0; los prospectos leen la etiqueta del tramo.",
-  "No hay teoría opuesta con variables propias: la reversión en rango necesita un nivel de precio que este agente no expone (cambiarlo sería otra versión)."
- ],
- "performance_computed": false
+ ]
 }

@@ -44,6 +44,24 @@ def estructura_retroceso(v: View, p: dict) -> Signal:
     return Signal(enter=_enters(v, p, "SC-03"))
 
 
+def estructura_ruptura_sc02(v: View, p: dict) -> Signal:
+    """T177. El escenario PASA a SC-02 (ruptura): entra con el sesgo, sin umbral de convicción (con
+    60, `estructura_ruptura` no entró nunca: el agente da 47–50 a SC-02, T169)."""
+    if not v.has(1) or not _is(v.get(SCEN), "SC-02") or _is(v.get(SCEN, 1), "SC-02"):
+        return NONE
+    return Signal(enter=sign(num(v.get(BIAS))))
+
+
+def estructura_cambio_sc04(v: View, p: dict) -> Signal:
+    """T177. El escenario PASA a SC-04 (cambio): entra en la nueva dirección del sesgo, sin umbral
+    de convicción (con 60, `estructura_cambio` daba 6,8 operaciones al mes en T169)."""
+    if not v.has(1) or not _is(v.get(SCEN), "SC-04") or _is(v.get(SCEN, 1), "SC-04"):
+        return NONE
+    return Signal(enter=sign(num(v.get(BIAS))))
+
+
 RULES = {"estructura_continuacion": estructura_continuacion,
          "estructura_ruptura": estructura_ruptura, "estructura_cambio": estructura_cambio,
-         "estructura_retroceso": estructura_retroceso}
+         "estructura_retroceso": estructura_retroceso,
+         "estructura_ruptura_sc02": estructura_ruptura_sc02,
+         "estructura_cambio_sc04": estructura_cambio_sc04}

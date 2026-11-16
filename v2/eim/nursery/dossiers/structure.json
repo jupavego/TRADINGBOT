@@ -42,7 +42,7 @@
    "id": "lo_mamaysky_wang_2000",
    "concept": "chart_patterns",
    "stance": "apoya",
-   "consensus": "a favor (+1,00)"
+   "consensus": "dividido (+0,19)"
   },
   {
    "id": "hurst_ooi_pedersen_2017",
@@ -53,6 +53,42 @@
   {
    "id": "daniel_moskowitz_2016",
    "concept": "momentum_crash",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "gerritsen_2020",
+   "concept": "breakout",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "donaldson_kim_1993",
+   "concept": "support_resistance",
+   "stance": "apoya",
+   "consensus": "a favor (+0,76)"
+  },
+  {
+   "id": "corbet_2019_ta",
+   "concept": "technical_analysis",
+   "stance": "apoya",
+   "consensus": "dividido (+0,28)"
+  },
+  {
+   "id": "savin_weller_zvingelis_2007",
+   "concept": "chart_patterns",
+   "stance": "condiciona",
+   "consensus": "dividido (+0,19)"
+  },
+  {
+   "id": "chang_osler_1999",
+   "concept": "chart_patterns",
+   "stance": "condiciona",
+   "consensus": "dividido (+0,19)"
+  },
+  {
+   "id": "kosc_2019",
+   "concept": "mean_reversion",
    "stance": "apoya",
    "consensus": "a favor (+1,00)"
   }
@@ -87,6 +123,101 @@
    "horizon": "semanal"
   },
   {
+   "id": "estructura_retroceso",
+   "name": "Retroceso dentro de la estructura",
+   "role": "candidato",
+   "theory": "El retroceso en una estructura ordenada es una entrada a favor de la tendencia.",
+   "opposite_of": null,
+   "rule": "Entra en el sentido del sesgo cuando el escenario pasa a SC-03 con convicción ≥ conviction_min.",
+   "variables": [
+    "metrics.scenario",
+    "metrics.conviction",
+    "bias"
+   ],
+   "params": {
+    "conviction_min": {
+     "value": 60,
+     "source": "banda SR-2, EIM-IRM-001, `agents/structure/params.py::IRMParams` (provisional, no calibrado)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/mes",
+   "literature": [
+    "hurst_ooi_pedersen_2017"
+   ],
+   "horizon": "intradia"
+  },
+  {
+   "id": "estructura_ruptura_sc02",
+   "name": "Ruptura SC-02 sin umbral",
+   "role": "candidato",
+   "theory": "La ruptura de un rango anuncia continuación (ruptura de rango en Bitcoin, Gerritsen et al. 2020); el escenario SC-02 del agente ya es su juicio de ruptura.",
+   "opposite_of": null,
+   "rule": "Entra en el sentido del sesgo cuando el escenario pasa a SC-02; sale a las 12 velas del agente.",
+   "variables": [
+    "metrics.scenario",
+    "bias"
+   ],
+   "params": {
+    "scenario": {
+     "value": "SC-02",
+     "source": "escenario de ruptura de EIM-IRM-001 (`agents/structure/irm.py`)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "≈ 35 pasos a SC-02 al mes en 1 h (muestra de T169); `estructura_ruptura` pedía convicción ≥ 60 y el agente da 47–50",
+   "literature": [
+    "gerritsen_2020",
+    "donaldson_kim_1993",
+    "corbet_2019_ta"
+   ],
+   "horizon": "intradia",
+   "replaces": "estructura_ruptura"
+  },
+  {
+   "id": "estructura_cambio_sc04",
+   "name": "Cambio SC-04 sin umbral",
+   "role": "candidato",
+   "theory": "Teoría opuesta del agente: el cambio de estructura anuncia un giro (patrones de giro como el hombro-cabeza-hombro).",
+   "opposite_of": "estructura_continuacion",
+   "rule": "Entra en la nueva dirección del sesgo cuando el escenario pasa a SC-04; sale a las 12 velas del agente.",
+   "variables": [
+    "metrics.scenario",
+    "bias"
+   ],
+   "params": {
+    "scenario": {
+     "value": "SC-04",
+     "source": "escenario de cambio de EIM-IRM-001 (`agents/structure/irm.py`)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "≈ 77 pasos a SC-04 al mes en 1 h (muestra de T169); con convicción ≥ 60 eran 6,8 operaciones al mes",
+   "literature": [
+    "savin_weller_zvingelis_2007",
+    "chang_osler_1999",
+    "lo_mamaysky_wang_2000",
+    "kosc_2019"
+   ],
+   "horizon": "intradia",
+   "replaces": "estructura_cambio"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [],
+ "performance_computed": false,
+ "discarded": [
+  {
    "id": "estructura_ruptura",
    "name": "Ruptura estructural",
    "role": "candidato",
@@ -113,7 +244,16 @@
     "lo_mamaysky_wang_2000",
     "zarattini_aziz_2023"
    ],
-   "horizon": "intradia"
+   "horizon": "intradia",
+   "fingerprint": "1d4c4f294f59",
+   "discarded_by": "T169",
+   "reasons": [
+    "ninguna idea en toda la muestra: la regla no se cumple nunca",
+    "intradia: 0,0 operaciones al mes (< 8)"
+   ],
+   "measured_band": "intradia",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": "estructura_ruptura_sc02"
   },
   {
    "id": "estructura_cambio",
@@ -141,39 +281,16 @@
    "literature": [
     "daniel_moskowitz_2016"
    ],
-   "horizon": "intradia"
-  },
-  {
-   "id": "estructura_retroceso",
-   "name": "Retroceso dentro de la estructura",
-   "role": "candidato",
-   "theory": "El retroceso en una estructura ordenada es una entrada a favor de la tendencia.",
-   "opposite_of": null,
-   "rule": "Entra en el sentido del sesgo cuando el escenario pasa a SC-03 con convicción ≥ conviction_min.",
-   "variables": [
-    "metrics.scenario",
-    "metrics.conviction",
-    "bias"
+   "horizon": "intradia",
+   "fingerprint": "30e8421a26c8",
+   "discarded_by": "T169",
+   "reasons": [
+    "scalping: 6,8 operaciones al mes (< 20)"
    ],
-   "params": {
-    "conviction_min": {
-     "value": 60,
-     "source": "banda SR-2, EIM-IRM-001, `agents/structure/params.py::IRMParams` (provisional, no calibrado)"
-    }
-   },
-   "n_params": 1,
-   "timeframe": "1h",
-   "exit_template": "atr_ladder",
-   "history_exam": "banco_t131",
-   "expected_cadence": "algunas/mes",
-   "literature": [
-    "hurst_ooi_pedersen_2017"
-   ],
-   "horizon": "intradia"
+   "measured_band": "scalping",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": "estructura_cambio_sc04"
   }
  ],
- "exclusion_reason": null,
- "reserve": [],
- "notes": [],
- "performance_computed": false
+ "consensus_at": "2026-11-16 (T177, 165 obras)"
 }
