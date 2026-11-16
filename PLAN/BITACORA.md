@@ -1504,3 +1504,24 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `v2/eim/operation/fleet_{watch,cause,state,cli,alert}.py`, `v2/eim/data/collectors/hft_{attrib,ops,window}.py`, `v2/tests/operation/test_fleet_{cause,watch}.py`, `v2/docs/RUNBOOK.md` §18.1, `PLAN/T173.md`, `PLAN/STATUS.md`.
 - **Pruebas:** 77 de los módulos tocados en verde; gate completo por la cola.
 - **Siguiente paso:** fusionar (se despliega sola: la tarea del vigilante corre el código de la carpeta principal cada 5 min).
+
+## 2026-11-16 · T169 cerrada: examen físico de la cantera (sin rendimiento)
+- **Hecho:**
+  - El plan de muestreo y costo quedó declarado en `PLAN/T169.md` antes de correr: 4 h en toda la historia, 1 h en 16 bloques de 28 días y 15 m en 14 días de esos bloques, con las seis celdas de régimen representadas.
+  - La generación de `nat` se hizo sobre una copia del banco (`v2/backups/t169_examen/banco`), por la cola, con un proceso y de forma reanudable: 40 132 contextos en 3,5 h de cálculo, 4 pausas por RAM, sin reencolar y con un pico de 135 MB.
+  - Resultado: de 32 prospectos con historia, **16 descartados** por razones mecánicas y **16 siguen**, 4 de ellos sin opción a primer equipo. 19 cambian de banda por su tenencia.
+  - Hallazgos para T170, detallados en `PLAN/notas/T169_examen_fisico.md`:
+    - 4 reglas no pueden cumplirse por cómo emite su agente: las dos de Elliott (etiqueta posicional), `estructura_ruptura` (convicción 47–50 frente a un mínimo de 60) y `tec_acuerdo_marcos` (no existe un marco de 1 d a 1 h).
+    - `regimen_tramo_estable` es gemelo de `regimen_tramo`.
+    - 5 descartes dependen de la reasignación de banda: `atr_ladder` en 1 h da scalping y `rule_flip` en 4 h no da semanal.
+- **Archivos:**
+  - `v2/eim/nursery/exam/{plan,gen,physical,verdict,checks,report}.py` y `v2/scripts/t169_examen.py`.
+  - `v2/tests/nursery/test_exam_*.py`.
+  - `v2/reports/t169_examen_fisico.{md,json}`.
+  - `PLAN/T169.md`, `PLAN/notas/T169_examen_fisico.md`, `PLAN/STATUS.md`, `PLAN/BACKLOG.md`, `PLAN/ESTADO_PROYECTO.md`.
+- **Pruebas:**
+  - Comprobaciones: identidad del subconjunto de agentes 9/9 y no anticipación 0 diferencias en 18 cortes (162 contextos).
+  - Una prueba falla si el informe muestra R neto, acierto o PF, y otra si el código del examen lee resultados del motor.
+  - Gate por la cola (`20261116-192326-gate-t169-dbee`, rc=0, 1 236 s, sin pausas): `ruff` limpio, 3 765 pruebas pasadas y 8 omitidas, tras fusionar `origin/main`.
+- **Abierto:** BACKLOG T169 (1)–(5): rediseñar o retirar las 4 reglas imposibles y el gemelo, decidir las bandas, acelerar la generación si se amplía la muestra, y darle historia a `deriv_funding_contrario` con un modo que funcione solo con funding.
+- **Siguiente paso:** ◆ T170, pre-registro `cantera_v1`, con las decisiones de la nota de T169.

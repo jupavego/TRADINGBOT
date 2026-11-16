@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-16T05:30:24",
+ "generated": "2026-11-16T14:48:45",
  "phases": [
   {
    "n": 0,
@@ -2510,8 +2510,8 @@ window.EIM_STATUS = {
     "T131",
     "T161"
    ],
-   "state": "pending",
-   "notes": "—",
+   "state": "done",
+   "notes": "Hecha (2026-11-16): `v2/reports/t169_examen_fisico.md` (+ `.json`), sin rendimiento. De 32 prospectos con historia, 16 descartados por razones mecánicas y 16 siguen (4 sin opción a primer equipo); 11 sin historia se examinan hacia adelante. Identidad 9/9 y no anticipación 0/162. Hallazgos (4 reglas imposibles, 1 gemelo, 5 descartes que dependen de reasignar la banda) en `PLAN/notas/T169_examen_fisico.md`, para T170. Código en `v2/eim/nursery/exam/` y `v2/scripts/t169_examen.py`",
    "effort": "medio",
    "phase": 27
   },
