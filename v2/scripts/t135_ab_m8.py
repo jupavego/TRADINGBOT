@@ -274,6 +274,10 @@ def main() -> int:
     p.add_argument("--frozen", default=str(FROZEN))
     p.add_argument("--out", default="reports/t135_ab")
     a = ap.parse_args()
+    # T176: por la cola la salida va a un archivo con la página de códigos de Windows (cp1252) y
+    # el 2026-11-16 el informe, ya escrito, murió en el `print` final por una «Δ» (rc 1).
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     return {"regress": regress, "freeze": _freeze, "report": report}[a.cmd](a)
 
 

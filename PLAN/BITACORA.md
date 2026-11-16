@@ -1482,3 +1482,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** gate por la cola verde (`20261116-074427-gate-t78-cierre-478c`, rc=0): `ruff` limpio, 3 686 pruebas pasadas y 8 omitidas; 9 pausas por RAM (la API llegó a 8,4 GB comprometidos desde las 07:41 UTC) y una repetición por `--retry-paused`.
 - **Abierto:** T128 — la base de líderes sigue creciendo ~53 MB/día en las copias de cada noche (1 264 → 1 528 MB del 11 al 16-nov); su semana termina el 2026-11-17 02:29 UTC. Quedaban para después de T78: ◆ reiniciar los servicios con el código de parada sin elevar, ◆ el reloj adelantado ~835 ms (BACKLOG T138 (3)) y las 3 corridas de T116 con el equipo descargado.
 - **Siguiente paso:** cerrar la semana de T128 y diagnosticar qué sigue creciendo; T31 cierra el 2026-11-27.
+
+## 2026-11-16 · sesión «Retroalimentación, calibración y ajustes» · T176: lectura que sobrevive a la compactación
+- **Hecho:** diagnosticado en vivo el atasco del bróker simulado (26 min sin ciclo, 07:44 → 08:10 UTC, API lenta con 0,5–2 GB libres) y el ciclo caído a las 08:04:40 por leer una parte de `micro_hft/trades` que la compactación acababa de sustituir; `read_micro` reintenta con la lista nueva solo en ese caso. Se recuperó solo, sin reiniciar nada.
+- **Archivos:** `v2/eim/data/micro.py`, `v2/tests/data/test_micro_feed.py`, `PLAN/T176.md`, `PLAN/STATUS.md`, `PLAN/00_MASTER.md`, `PLAN/BACKLOG.md`.
+- **Pruebas:** 16 de microestructura y recolector en verde; gate completo por la cola.
+- **Abierto:** BACKLOG T176 (1) la cola no mira al bróker; (2) avisar al usuario de la memoria de `NVIDIA Overlay`.
+- **Siguiente paso:** fusionar; entra en el bróker con el próximo reinicio de la API.
