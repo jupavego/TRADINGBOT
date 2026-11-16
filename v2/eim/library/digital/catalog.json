@@ -6209,6 +6209,2732 @@
     "cited_by": 896,
     "has_abstract": true
    }
+  },
+  {
+   "id": "grobys_sapkota_2019",
+   "locator": {
+    "doi": "10.1016/j.econlet.2019.03.028",
+    "expect": "Cryptocurrencies and momentum"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "momentum",
+     "crypto_returns",
+     "market_efficiency"
+    ],
+    "methods": [
+     "momentum transversal de 143 criptomonedas, 2014–2018"
+    ],
+    "description": "Con 143 criptomonedas (2014–2018) no encuentra pagos significativos del momentum transversal, a diferencia de estudios anteriores.",
+    "application": "Advierte que el momentum entre monedas no es una ley en cripto; la cantera solo mide BTC en series temporales, que es otra pregunta.",
+    "stances": [
+     {
+      "concept": "momentum",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "Sin pagos significativos del momentum transversal en cripto.",
+      "conditions": "143 criptomonedas, 2014–2018, transversal",
+      "terms": [
+       "momentum"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Cryptocurrencies and momentum",
+    "authors": [
+     "Klaus Grobys",
+     "Niranjan Sapkota"
+    ],
+    "year": 2019,
+    "venue": "Economics Letters",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.econlet.2019.03.028",
+    "oa_url": "https://www.sciencedirect.com/science/article/pii/S0165176519301077/pdf",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 159,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "shen_urquhart_wang_2022",
+   "locator": {
+    "doi": "10.1111/fire.12290",
+    "expect": "Bitcoin intraday time series momentum"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "intraday",
+     "momentum",
+     "crypto_returns",
+     "liquidity"
+    ],
+    "methods": [
+     "primera media hora (por volumen) como predictor de la última"
+    ],
+    "description": "En Bitcoin, la primera media hora de la sesión definida por volumen predice la última; más fuerte en las sesiones de más volumen o volatilidad, y movida por provisión de liquidez.",
+    "application": "Base empírica para seguir el movimiento intradía de BTC; la sesión en cripto se define por volumen, no por reloj de bolsa.",
+    "stances": [
+     {
+      "concept": "intraday",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Momentum intradía en BTC: la primera media hora predice la última, más con volumen y volatilidad altos.",
+      "conditions": "Bitcoin, intradía, sesiones por volumen",
+      "terms": [
+       "intraday",
+       "momentum"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Bitcoin intraday time series momentum",
+    "authors": [
+     "Dehua Shen",
+     "Andrew Urquhart",
+     "Pengfei Wang"
+    ],
+    "year": 2021,
+    "venue": "Financial Review",
+    "publisher": "Wiley",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1111/fire.12290",
+    "oa_url": "https://centaur.reading.ac.uk/100181/3/21Sep2021Bitcoin%20Intraday%20Time-Series%20Momentum.R2.pdf",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 37,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "tzouvanas_2020",
+   "locator": {
+    "doi": "10.1016/j.econlet.2019.108728",
+    "expect": "Momentum trading in cryptocurrencies"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "momentum",
+     "crypto_returns"
+    ],
+    "methods": [
+     "estrategia J/K de momentum con 12 criptomonedas, datos diarios"
+    ],
+    "description": "Con datos diarios de doce criptomonedas, el momentum J/K es muy significativo a corto plazo y desaparece a plazos largos (resumen de Semantic Scholar).",
+    "application": "Apoya horizontes cortos (días) para el momentum en cripto y no los de meses.",
+    "stances": [
+     {
+      "concept": "momentum",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Momentum fuerte a corto plazo que desaparece a largo plazo.",
+      "conditions": "12 criptomonedas, diario, unos tres años",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Momentum trading in cryptocurrencies: Short-term returns and diversification benefits",
+    "authors": [
+     "Panagiotis Tzouvanas",
+     "Renatas Kizys",
+     "Bayasgalan Tsend-Ayush"
+    ],
+    "year": 2019,
+    "venue": "Economics Letters",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.econlet.2019.108728",
+    "oa_url": "https://eprints.soton.ac.uk/434719/1/Momentum_trading_in_cryptocurrencies_Short_term_returns_and_diversification_benefits.pdf",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 87,
+    "has_abstract": false
+   }
+  },
+  {
+   "id": "levine_pedersen_2016",
+   "locator": {
+    "doi": "10.2469/faj.v72.n3.3",
+    "expect": "Which trend is your friend"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "trend_following",
+     "momentum",
+     "time_series"
+    ],
+    "methods": [
+     "equivalencia entre momentum de series y cruces de medias",
+     "firmas de tendencia por horizonte"
+    ],
+    "description": "Muestra, en la teoría y en los datos, que el momentum de series temporales y los cruces de medias son representaciones equivalentes de filtros lineales de tendencia.",
+    "application": "Un cruce de medias es un filtro de tendencia más: lo que importa es su horizonte, no la fórmula. Evita inscribir dos prospectos que sean el mismo filtro.",
+    "stances": [
+     {
+      "concept": "trend_following",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Los cruces de medias y el momentum de series son el mismo filtro lineal visto distinto.",
+      "conditions": "teoría y futuros gestionados",
+      "terms": [
+       "moving-average",
+       "filters"
+      ]
+     }
+    ],
+    "markets": [
+     "futuros",
+     "multiactivo"
+    ]
+   },
+   "verified": {
+    "title": "Which Trend Is Your Friend?",
+    "authors": [
+     "Ari Levine",
+     "Lasse Heje Pedersen"
+    ],
+    "year": 2016,
+    "venue": "Financial Analysts Journal",
+    "publisher": "Taylor & Francis",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.2469/faj.v72.n3.3",
+    "oa_url": "https://www.tandfonline.com/doi/pdf/10.2469/faj.v72.n3.3?needAccess=true",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 68,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "glabadanidis_2015",
+   "locator": {
+    "doi": "10.1111/irfi.12052",
+    "expect": "Market timing with moving averages"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "trend_following",
+     "market_efficiency"
+    ],
+    "methods": [
+     "regla de media móvil frente a comprar y mantener, carteras y 18 000 acciones"
+    ],
+    "description": "Una regla de media móvil mensual mejora el rendimiento medio y la asimetría y baja la varianza frente a comprar y mantener; se parece a una put protectora en la moneda.",
+    "application": "Sostiene una base de tendencia lenta con la media larga; su perfil es de seguro contra caídas, no de acierto alto.",
+    "stances": [
+     {
+      "concept": "trend_following",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La media móvil da más rendimiento y asimetría con menos varianza que comprar y mantener, también tras costos.",
+      "conditions": "acciones EE. UU. e internacionales, mensual",
+      "terms": [
+       "moving"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Market Timing With Moving Averages",
+    "authors": [
+     "Paskalis Glabadanidis"
+    ],
+    "year": 2015,
+    "venue": "International Review of Finance",
+    "publisher": "Wiley",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1111/irfi.12052",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 23,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "lemperiere_2014",
+   "locator": {
+    "arxiv": "1404.3274",
+    "expect": "Two centuries of trend following"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "trend_following",
+     "momentum"
+    ],
+    "methods": [
+     "exceso de rendimiento de la tendencia en 4 clases de activo desde 1800"
+    ],
+    "description": "La tendencia da excesos de rendimiento estables en materias primas, divisas, índices y bonos, con t ≈ 5 desde 1960; las tendencias cortas se han debilitado y las largas no.",
+    "application": "Argumento para preferir tendencias lentas (4 h, medias largas) a las cortas al formular prospectos de tendencia.",
+    "stances": [
+     {
+      "concept": "trend_following",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La tendencia es de las anomalías más significativas y estables; las largas no se degradan.",
+      "conditions": "futuros desde 1960 y contado desde 1800",
+      "terms": [
+       "trend"
+      ]
+     },
+     {
+      "concept": "momentum",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Las tendencias cortas han perdido fuerza en el periodo reciente.",
+      "conditions": "multiactivo, periodo reciente",
+      "terms": [
+       "shorter"
+      ]
+     }
+    ],
+    "markets": [
+     "futuros",
+     "multiactivo"
+    ]
+   },
+   "verified": {
+    "title": "Two centuries of trend following",
+    "authors": [
+     "Yves Lempérière",
+     "Cyril Deremble",
+     "Philip Seager",
+     "Marc Potters",
+     "Jean‐Philippe Bouchaud"
+    ],
+    "year": 2014,
+    "venue": "The Journal of Investment Strategies",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.21314/jois.2014.043",
+    "oa_url": "https://arxiv.org/pdf/1404.3274",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 114,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "huang_li_wang_zhou_2020",
+   "locator": {
+    "doi": "10.1016/j.jfineco.2019.08.004",
+    "expect": "Time series momentum: Is it there"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "momentum",
+     "time_series",
+     "multiple_testing"
+    ],
+    "methods": [
+     "regresiones activo por activo",
+     "bootstrap paramétrico y no paramétrico"
+    ],
+    "description": "Activo por activo hay poca evidencia de momentum de series temporales; la t agrupada no supera los valores críticos del bootstrap, y la estrategia rinde igual que una basada en la media histórica (resumen de Semantic Scholar).",
+    "application": "La contraria de los prospectos de tendencia: un buen resultado puede venir de la deriva y no de la predicción; por eso la vara es el gemelo aleatorio.",
+    "stances": [
+     {
+      "concept": "momentum",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "Evidencia débil de momentum de series activo por activo; el pool engaña.",
+      "conditions": "sección amplia de activos, mensual",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "futuros",
+     "multiactivo"
+    ]
+   },
+   "verified": {
+    "title": "Time series momentum: Is it there?",
+    "authors": [
+     "Dashan Huang",
+     "Jiangyuan Li",
+     "Liyao Wang",
+     "Guofu Zhou"
+    ],
+    "year": 2018,
+    "venue": "Journal of Financial Economics",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.jfineco.2019.08.004",
+    "oa_url": "https://doi.org/10.2139/ssrn.3165284",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 128,
+    "has_abstract": false
+   }
+  },
+  {
+   "id": "caporale_plastun_2020",
+   "locator": {
+    "doi": "10.1007/s11408-020-00357-1",
+    "expect": "Momentum effects in the cryptocurrency market after one-day abnormal returns"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "momentum",
+     "intraday",
+     "crypto_returns"
+    ],
+    "methods": [
+     "días de rendimiento anormal",
+     "rendimientos horarios",
+     "simulación de operaciones"
+    ],
+    "description": "En BTC, ETH y LTC (2015–2019) los días de rendimiento anormal tienen horas más extremas y el precio sigue en esa dirección hasta el cierre del día: momentum intradía.",
+    "application": "Apoya seguir la dirección de un movimiento grande dentro del mismo día (horizonte de horas).",
+    "stances": [
+     {
+      "concept": "momentum",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Tras detectar un día anormal, el precio sigue en su dirección hasta el final del día.",
+      "conditions": "BTC, ETH, LTC, horario, 2015–2019",
+      "terms": [
+       "momentum"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Momentum effects in the cryptocurrency market after one-day abnormal returns",
+    "authors": [
+     "Guglielmo Maria Caporale",
+     "Alex Plastun"
+    ],
+    "year": 2020,
+    "venue": "Financial markets and portfolio management",
+    "publisher": "Springer Science+Business Media",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1007/s11408-020-00357-1",
+    "oa_url": "https://link.springer.com/content/pdf/10.1007/s11408-020-00357-1.pdf",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 45,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "kosc_2019",
+   "locator": {
+    "doi": "10.1016/j.physa.2019.02.057",
+    "expect": "Momentum and contrarian effects on the cryptocurrency market"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "momentum",
+     "mean_reversion",
+     "crypto_returns",
+     "execution_costs"
+    ],
+    "methods": [
+     "carteras de 100 criptomonedas con distintos periodos y costos"
+    ],
+    "description": "Entre las 100 criptomonedas más grandes domina con claridad el efecto contrario a corto plazo sobre el momentum, también con costos (resumen de Semantic Scholar).",
+    "application": "Justifica inscribir también la teoría contraria (reversión) en horizontes cortos.",
+    "stances": [
+     {
+      "concept": "mean_reversion",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El efecto contrario a corto plazo domina al momentum en cripto.",
+      "conditions": "100 criptomonedas de mayor capitalización, datos hasta nov. 2017",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Momentum and contrarian effects on the cryptocurrency market",
+    "authors": [
+     "Krzysztof Kość",
+     "Paweł Sakowski",
+     "Robert Ślepaczuk"
+    ],
+    "year": 2019,
+    "venue": "Physica A Statistical Mechanics and its Applications",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.physa.2019.02.057",
+    "oa_url": "https://repozytorium.uw.edu.pl//handle/item/112892",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 75,
+    "has_abstract": false
+   }
+  },
+  {
+   "id": "chevapatrakul_mascia_2019",
+   "locator": {
+    "doi": "10.1016/j.frl.2018.11.004",
+    "expect": "Detecting overreaction in the Bitcoin market"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "mean_reversion",
+     "return_distribution",
+     "crypto_returns"
+    ],
+    "methods": [
+     "autorregresión por cuantiles"
+    ],
+    "description": "Los cuantiles bajos del rendimiento diario y los altos del semanal dependen de los rendimientos pasados: sobrerreacción en caídas fuertes de un día y en subidas de una semana (resumen de Semantic Scholar).",
+    "application": "Sostiene la reversión tras extremos, con asimetría: caídas diarias y subidas semanales.",
+    "stances": [
+     {
+      "concept": "mean_reversion",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Sobrerreacción en Bitcoin: días de caída fuerte y semanas de subida.",
+      "conditions": "Bitcoin, diario y semanal",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Detecting overreaction in the Bitcoin market: A quantile autoregression approach",
+    "authors": [
+     "Thanaset Chevapatrakul",
+     "Danilo V. Mascia"
+    ],
+    "year": 2018,
+    "venue": "Finance research letters",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.frl.2018.11.004",
+    "oa_url": "https://nottingham-repository.worktribe.com/file/1232446/1/Detecting%20Overreaction%20In%20The%20Bitcoin%20Market",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 62,
+    "has_abstract": false
+   }
+  },
+  {
+   "id": "corbet_2019_ta",
+   "locator": {
+    "doi": "10.1016/j.frl.2019.04.027",
+    "expect": "effectiveness of technical trading rules in cryptocurrency markets"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "technical_analysis",
+     "trend_following",
+     "breakout",
+     "support_resistance"
+    ],
+    "methods": [
+     "medias móviles y ruptura de rango en Bitcoin de alta frecuencia"
+    ],
+    "description": "Con rendimientos de alta frecuencia de Bitcoin, las reglas de media móvil reciben apoyo significativo; la de longitud variable es la mejor y las compras rinden más que las ventas (resumen de Semantic Scholar).",
+    "application": "Apoya reglas de medias en BTC intradía y avisa de la asimetría entre largos y cortos.",
+    "stances": [
+     {
+      "concept": "technical_analysis",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Medias móviles con apoyo significativo en BTC de alta frecuencia; compras mejores que ventas.",
+      "conditions": "Bitcoin, alta frecuencia",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "The Effectiveness of Technical Trading Rules in Cryptocurrency Markets",
+    "authors": [
+     "Shaen Corbet",
+     "Veysel Eraslan",
+     "Brian M. Lucey",
+     "Ahmet Şensoy"
+    ],
+    "year": 2019,
+    "venue": "Finance research letters",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.2139/ssrn.3454216",
+    "oa_url": "https://doi.org/10.2139/ssrn.3454216",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 132,
+    "has_abstract": false
+   }
+  },
+  {
+   "id": "gerritsen_2020",
+   "locator": {
+    "doi": "10.1016/j.frl.2019.08.011",
+    "expect": "profitability of technical trading rules in the Bitcoin market"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "technical_analysis",
+     "breakout",
+     "trend_following"
+    ],
+    "methods": [
+     "siete indicadores de tendencia",
+     "Sharpe con bootstrap"
+    ],
+    "description": "Con datos diarios de Bitcoin (2010–2019), la ruptura de rango tiene poder predictivo y supera a comprar y mantener, sobre todo en mercados de tendencia fuerte (resumen de Semantic Scholar).",
+    "application": "Respaldo para rupturas y para filtrar por tendencia fuerte.",
+    "stances": [
+     {
+      "concept": "breakout",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La ruptura de rango predice y supera a comprar y mantener, más en tendencias fuertes.",
+      "conditions": "Bitcoin, diario, 2010–2019",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "The profitability of technical trading rules in the Bitcoin market",
+    "authors": [
+     "Dirk F. Gerritsen",
+     "Elie I. Bouri",
+     "Ehsan Ramezanifar",
+     "David Roubaud"
+    ],
+    "year": 2019,
+    "venue": "Finance research letters",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.frl.2019.08.011",
+    "oa_url": "https://www.sciencedirect.com/science/article/pii/S1544612319303770",
+    "access": "gratuito",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 117,
+    "has_abstract": false
+   }
+  },
+  {
+   "id": "grobys_ahmed_sapkota_2020",
+   "locator": {
+    "doi": "10.1016/j.frl.2019.101396",
+    "expect": "Technical trading rules in the cryptocurrency market"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "technical_analysis",
+     "trend_following",
+     "market_efficiency"
+    ],
+    "methods": [
+     "media móvil variable de 20 días en 11 criptomonedas"
+    ],
+    "description": "La media de 20 días funciona en las once criptomonedas más negociadas (2016–2018), con 8,76 % anual de exceso, pero no en Bitcoin.",
+    "application": "Advertencia directa para BTC: la regla que funciona en el resto puede no funcionar en la moneda más líquida.",
+    "stances": [
+     {
+      "concept": "technical_analysis",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "La media de 20 días da exceso de rendimiento excluyendo Bitcoin.",
+      "conditions": "11 criptomonedas, diario, 2016–2018",
+      "terms": [
+       "bitcoin"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Technical trading rules in the cryptocurrency market",
+    "authors": [
+     "Klaus Grobys",
+     "Shaker Ahmed",
+     "Niranjan Sapkota"
+    ],
+    "year": 2019,
+    "venue": "Finance research letters",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.frl.2019.101396",
+    "oa_url": "https://www.sciencedirect.com/science/article/pii/S1544612319308852/pdf",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 112,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "resta_2020",
+   "locator": {
+    "doi": "10.3390/risks8020044",
+    "expect": "Technical Analysis on the Bitcoin Market"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "technical_analysis",
+     "intraday",
+     "mean_reversion",
+     "trend_following"
+    ],
+    "methods": [
+     "reglas de tendencia y de reversión a 5 min y diarias"
+    ],
+    "description": "En Bitcoin (2012–2019), operar con datos diarios es más rentable que intradía; a 5 min gana comprar y mantener y con datos diarios las medias simples.",
+    "application": "Señal de cautela para los marcos cortos: el ruido y el costo pesan más en intradía.",
+    "stances": [
+     {
+      "concept": "intraday",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "A 5 min, comprar y mantener supera a las reglas técnicas en Bitcoin.",
+      "conditions": "Bitcoin, 5 min y diario, 2012–2019",
+      "terms": [
+       "intraday"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Technical Analysis on the Bitcoin Market: Trading Opportunities or Investors’ Pitfall?",
+    "authors": [
+     "Marina R. Resta",
+     "Paolo Pagnottoni",
+     "Maria Elena De Giuli"
+    ],
+    "year": 2020,
+    "venue": "Risks",
+    "publisher": "Multidisciplinary Digital Publishing Institute",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.3390/risks8020044",
+    "oa_url": "https://www.mdpi.com/2227-9091/8/2/44/pdf?version=1588764710",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 43,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "lento_2007_bollinger",
+   "locator": {
+    "doi": "10.1080/17446540701206576",
+    "expect": "Investment information content in Bollinger Bands"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "technical_analysis",
+     "mean_reversion",
+     "volatility_model"
+    ],
+    "methods": [
+     "bandas de Bollinger, directa y contraria"
+    ],
+    "description": "Tras costos, las bandas de Bollinger no superan a comprar y mantener; la lectura contraria (vender en la banda alta, comprar en la baja) mejora la rentabilidad.",
+    "application": "Para las bandas, la lectura contraria tiene más respaldo que la de ruptura.",
+    "stances": [
+     {
+      "concept": "technical_analysis",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "Las bandas de Bollinger no superan a comprar y mantener tras costos.",
+      "conditions": "",
+      "terms": [
+       "bollinger"
+      ]
+     },
+     {
+      "concept": "mean_reversion",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El enfoque contrario mejora la rentabilidad de las bandas.",
+      "conditions": "",
+      "terms": [
+       "contrarian"
+      ]
+     }
+    ],
+    "markets": []
+   },
+   "verified": {
+    "title": "Investment information content in Bollinger Bands?",
+    "authors": [
+     "Camillo Lento",
+     "Nikola Gradojević",
+     "Christopher S. Wright"
+    ],
+    "year": 2007,
+    "venue": "Applied Financial Economics Letters",
+    "publisher": "Chapman and Hall London",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1080/17446540701206576",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 88,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "chong_ng_2008",
+   "locator": {
+    "doi": "10.1080/13504850600993598",
+    "expect": "Technical analysis and the London stock exchange"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "technical_analysis",
+     "mean_reversion"
+    ],
+    "methods": [
+     "reglas MACD y RSI sobre el FT30, 60 años"
+    ],
+    "description": "Con 60 años del FT30, las reglas del RSI y del MACD superan a comprar y mantener en la mayoría de los casos.",
+    "application": "Respaldo del RSI clásico (30/70) como oscilador de giro.",
+    "stances": [
+     {
+      "concept": "technical_analysis",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "RSI y MACD superan a comprar y mantener en la mayoría de los casos.",
+      "conditions": "FT30, 60 años",
+      "terms": [
+       "rsi"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Technical analysis and the London stock exchange: testing the MACD and RSI rules using the FT30",
+    "authors": [
+     "Terence Tai‐Leung Chong",
+     "Wing-Kam Ng"
+    ],
+    "year": 2008,
+    "venue": "Applied Economics Letters",
+    "publisher": "Taylor & Francis",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1080/13504850600993598",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 300,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "neely_weller_ulrich_2009",
+   "locator": {
+    "doi": "10.1017/S0022109009090103",
+    "expect": "The Adaptive Markets Hypothesis: Evidence from the Foreign Exchange Market"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "technical_analysis",
+     "market_efficiency",
+     "backtest_overfitting"
+    ],
+    "methods": [
+     "pruebas fuera de muestra de reglas ya publicadas"
+    ],
+    "description": "Los excesos de las reglas técnicas en divisas de los 70 y 80 eran reales, pero desaparecieron a comienzos de los 90 para filtros y medias; encaja con mercados adaptativos.",
+    "application": "Una regla puede perder su ventaja con el tiempo: la cantera mide hacia adelante y prevé bajas por futilidad.",
+    "stances": [
+     {
+      "concept": "technical_analysis",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Las ventajas de filtros y medias en divisas desaparecieron hacia los 90.",
+      "conditions": "divisas, desde los años setenta",
+      "terms": [
+       "disappeared"
+      ]
+     }
+    ],
+    "markets": [
+     "divisas"
+    ]
+   },
+   "verified": {
+    "title": "The Adaptive Markets Hypothesis: Evidence from the Foreign Exchange Market",
+    "authors": [
+     "Christopher J. Neely",
+     "Paul A. Weller",
+     "Joshua M. Ulrich"
+    ],
+    "year": 2009,
+    "venue": "Journal of Financial and Quantitative Analysis",
+    "publisher": "Cambridge University Press",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1017/s0022109009090103",
+    "oa_url": "https://doi.org/10.2139/ssrn.922345",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 369,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "wong_manzur_chew_2003",
+   "locator": {
+    "doi": "10.1080/0960310022000020906",
+    "expect": "How rewarding is technical analysis"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "technical_analysis",
+     "trend_following",
+     "mean_reversion"
+    ],
+    "methods": [
+     "media móvil y RSI con estadísticos de entrada y salida"
+    ],
+    "description": "En Singapur, la media móvil (tendencia) y el RSI (contra tendencia) generan rendimientos significativamente positivos.",
+    "application": "Apoya combinar una regla de tendencia con su opuesta de giro dentro del mismo agente.",
+    "stances": [
+     {
+      "concept": "technical_analysis",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Media móvil y RSI generan rendimientos positivos significativos.",
+      "conditions": "bolsa de Singapur",
+      "terms": [
+       "relative strength index"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "How rewarding is technical analysis? Evidence from Singapore stock market",
+    "authors": [
+     "Wing‐Keung Wong",
+     "Meher Manzur",
+     "Boon-Kiat Chew"
+    ],
+    "year": 2003,
+    "venue": "Applied Financial Economics",
+    "publisher": "Chapman and Hall London",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1080/0960310022000020906",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 289,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "baltussen_2021",
+   "locator": {
+    "doi": "10.1016/j.jfineco.2021.04.029",
+    "expect": "Hedging demand and market intraday momentum"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "intraday",
+     "momentum",
+     "market_microstructure"
+    ],
+    "methods": [
+     "más de 60 futuros intradía, 1974–2020"
+    ],
+    "description": "En más de 60 futuros hay momentum intradía: la última media hora sigue al resto del día y revierte en los días siguientes; lo liga a la cobertura de gamma (resumen de Semantic Scholar).",
+    "application": "El momentum intradía existe en muchos mercados pero revierte en días: horizonte de horas, no de días.",
+    "stances": [
+     {
+      "concept": "intraday",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Momentum intradía en futuros de todos los tipos, que revierte en días.",
+      "conditions": "60 futuros, 1974–2020",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "futuros"
+    ]
+   },
+   "verified": {
+    "title": "Hedging demand and market intraday momentum",
+    "authors": [
+     "Guido Baltussen",
+     "Zhi Da",
+     "Sten Lammers",
+     "Martin P.E. Martens"
+    ],
+    "year": 2021,
+    "venue": "Journal of Financial Economics",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.jfineco.2021.04.029",
+    "oa_url": "https://www.sciencedirect.com/science/article/pii/S0304405X21001598",
+    "access": "gratuito",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 111,
+    "has_abstract": false
+   }
+  },
+  {
+   "id": "eross_2019",
+   "locator": {
+    "doi": "10.1016/j.ribaf.2019.01.008",
+    "expect": "intraday dynamics of bitcoin"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "intraday",
+     "volume",
+     "liquidity",
+     "crypto_returns"
+    ],
+    "methods": [
+     "datos de ticks a 5 min, 4 años"
+    ],
+    "description": "Con ticks a 5 min de la bolsa líder, el volumen de Bitcoin sube a lo largo del día y cae desde las 16 h hasta medianoche, como en divisas; volumen, volatilidad y liquidez cambian mucho con los años (resumen de Semantic Scholar).",
+    "application": "El VWAP diario de BTC pesa más las horas activas; un mismo nivel de VWAP no significa lo mismo a todas horas.",
+    "stances": [
+     {
+      "concept": "intraday",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Patrones de volumen intradía como en divisas; las variables cambian mucho con el tiempo.",
+      "conditions": "Bitcoin, 5 min, 4 años",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "The intraday dynamics of bitcoin",
+    "authors": [
+     "Andrea Eross",
+     "Frank McGroarty",
+     "Andrew Urquhart",
+     "Simon Wolfe"
+    ],
+    "year": 2019,
+    "venue": "Research in International Business and Finance",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.ribaf.2019.01.008",
+    "oa_url": "https://doi.org/10.2139/ssrn.3013699",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 140,
+    "has_abstract": false
+   }
+  },
+  {
+   "id": "baur_2019_tod",
+   "locator": {
+    "doi": "10.1016/j.frl.2019.04.023",
+    "expect": "Bitcoin time-of-day, day-of-week and month-of-year effects"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "intraday",
+     "volume",
+     "crypto_returns"
+    ],
+    "methods": [
+     "más de 15 millones de observaciones en siete bolsas"
+    ],
+    "description": "Hay anomalías horarias en los rendimientos de Bitcoin pero no persisten; sí persisten las diferencias de actividad (menos de noche y en fin de semana) (resumen de Semantic Scholar).",
+    "application": "No inscribir prospectos de hora del día sobre rendimiento; la actividad sí cambia y con ella el costo.",
+    "stances": [
+     {
+      "concept": "intraday",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "Las anomalías horarias de rendimiento en Bitcoin no persisten.",
+      "conditions": "7 bolsas, intradía",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Bitcoin time-of-day, day-of-week and month-of-year effects in returns and trading volume",
+    "authors": [
+     "Dirk G. Baur",
+     "Daniel Cahill",
+     "Keith Godfrey",
+     "Zhangxin Frank Liu"
+    ],
+    "year": 2019,
+    "venue": "Finance research letters",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.frl.2019.04.023",
+    "oa_url": "https://doi.org/10.2139/ssrn.3088472",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 138,
+    "has_abstract": false
+   }
+  },
+  {
+   "id": "berkowitz_logue_noser_1988",
+   "locator": {
+    "doi": "10.1111/j.1540-6261.1988.tb02591.x",
+    "expect": "total cost of transactions on the NYSE"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "execution_costs",
+     "market_microstructure"
+    ],
+    "methods": [
+     "VWAP del día como referencia del costo de ejecución"
+    ],
+    "description": "Propone el precio medio ponderado por volumen del día como medida del costo de ejecución, menos sesgada que los precios de cierre, y lo aplica a 14 000 operaciones.",
+    "application": "Origen del VWAP como precio justo de la sesión: base de la lectura de reversión al VWAP.",
+    "stances": [
+     {
+      "concept": "execution_costs",
+      "kind": "apoya",
+      "level": "estrategia_documentada",
+      "summary": "El VWAP del día es una referencia de costo menos sesgada que el cierre.",
+      "conditions": "NYSE, 14 000 operaciones",
+      "terms": [
+       "volume",
+       "weighted"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "The Total Cost of Transactions on the NYSE",
+    "authors": [
+     "Stephen A. Berkowitz",
+     "Dennis E. Logue",
+     "Eugene A. Noser"
+    ],
+    "year": 1988,
+    "venue": "The Journal of Finance",
+    "publisher": "Wiley",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1111/j.1540-6261.1988.tb02591.x",
+    "oa_url": "https://onlinelibrary.wiley.com/doi/pdfdirect/10.1111/j.1540-6261.1988.tb02591.x",
+    "access": "gratuito",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 366,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "kato_2014_vwap",
+   "locator": {
+    "doi": "10.14495/jsiaml.7.33",
+    "expect": "VWAP Execution as an Optimal Strategy"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "execution_costs",
+     "market_microstructure"
+    ],
+    "methods": [
+     "modelo de Almgren-Chriss con proceso de volumen"
+    ],
+    "description": "Introduce el volumen en el modelo de Almgren-Chriss y muestra que ejecutar al VWAP es óptimo para un operador neutral al riesgo.",
+    "application": "Explica por qué grandes órdenes gravitan hacia el VWAP: razón teórica de la atracción del precio hacia él.",
+    "stances": [
+     {
+      "concept": "execution_costs",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "La ejecución al VWAP es la óptima para un operador neutral al riesgo.",
+      "conditions": "modelo teórico",
+      "terms": [
+       "vwap"
+      ]
+     }
+    ],
+    "markets": [
+     "teoría"
+    ]
+   },
+   "verified": {
+    "title": "VWAP Execution as an Optimal Strategy",
+    "authors": [
+     "Takashi Kato"
+    ],
+    "year": 2014,
+    "venue": "JSIAM Letters",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.14495/jsiaml.7.33",
+    "oa_url": "https://www.jstage.jst.go.jp/article/jsiaml/7/0/7_33/_pdf",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 22,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "petukhina_2021",
+   "locator": {
+    "doi": "10.1080/1351847X.2020.1789684",
+    "expect": "Intraday high-frequency trading patterns of cryptocurrencies"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "intraday",
+     "volume",
+     "market_microstructure",
+     "crypto_returns"
+    ],
+    "methods": [
+     "alta frecuencia: rendimiento, volumen y periodicidad de volatilidad"
+    ],
+    "description": "Analiza patrones intradía de alta frecuencia en cripto: rendimientos, volumen y periodicidad de la volatilidad, y su relación con el índice CRIX.",
+    "application": "Los patrones horarios de volumen y volatilidad mueven el costo en R de una vela a otra.",
+    "stances": [
+     {
+      "concept": "intraday",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Hay periodicidad intradía de volumen y volatilidad en cripto.",
+      "conditions": "cripto, alta frecuencia, mercado europeo",
+      "terms": [
+       "intraday"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Rise of the machines? Intraday high-frequency trading patterns of cryptocurrencies",
+    "authors": [
+     "Alla Petukhina",
+     "Raphael C. G. Reule",
+     "Wolfgang Karl Härdle"
+    ],
+    "year": 2020,
+    "venue": "European Journal of Finance",
+    "publisher": "Taylor & Francis",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1080/1351847x.2020.1789684",
+    "oa_url": "https://www.tandfonline.com/doi/pdf/10.1080/1351847X.2020.1789684?needAccess=true",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 93,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "bhattacharya_holden_jacobsen_2012",
+   "locator": {
+    "doi": "10.1287/mnsc.1110.1364",
+    "expect": "Penny Wise, Dollar Foolish"
+   },
+   "curated": {
+    "category": "D",
+    "concepts": [
+     "support_resistance",
+     "behavioral_bias",
+     "order_flow"
+    ],
+    "methods": [
+     "100 millones de operaciones",
+     "desequilibrio compra-venta por precio"
+    ],
+    "description": "Los operadores usan los números redondos como puntos de referencia: hay exceso de compra un céntimo por debajo y de venta por encima, mayor cuanto más redondo, y los rendimientos de 24 h varían con ello.",
+    "application": "Base para dar peso a soportes y resistencias que contienen un número redondo.",
+    "stances": [
+     {
+      "concept": "support_resistance",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Desequilibrios de compra-venta en torno a números redondos, mayores cuanto más redondos.",
+      "conditions": "acciones EE. UU., operaciones",
+      "terms": [
+       "round numbers"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Penny Wise, Dollar Foolish: Buy–Sell Imbalances On and Around Round Numbers",
+    "authors": [
+     "Utpal Bhattacharya",
+     "Craig W. Holden",
+     "Stacey E. Jacobsen"
+    ],
+    "year": 2011,
+    "venue": "Management Science",
+    "publisher": "Institute for Operations Research and the Management Sciences",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1287/mnsc.1110.1364",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 133,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "donaldson_kim_1993",
+   "locator": {
+    "doi": "10.2307/2331416",
+    "expect": "Price Barriers in the Dow Jones Industrial Average"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "support_resistance",
+     "breakout"
+    ],
+    "methods": [
+     "barreras en múltiplos de 100",
+     "Monte Carlo"
+    ],
+    "description": "El Dow Jones queda frenado por soportes y resistencias en múltiplos de 100, y al romperlos se mueve más de lo que tocaría.",
+    "application": "Respaldo de los números redondos como barrera y de la ruptura de esa barrera.",
+    "stances": [
+     {
+      "concept": "support_resistance",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los múltiplos de 100 actúan como soporte y resistencia, y su ruptura acelera el movimiento.",
+      "conditions": "Dow Jones",
+      "terms": [
+       "support",
+       "resistance"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Price Barriers in the Dow Jones Industrial Average",
+    "authors": [
+     "R. Glen Donaldson",
+     "Harold Y. Kim"
+    ],
+    "year": 1993,
+    "venue": "Journal of Financial and Quantitative Analysis",
+    "publisher": "Cambridge University Press",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.2307/2331416",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 131,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "mbanga_2019",
+   "locator": {
+    "doi": "10.1080/13504851.2018.1497844",
+    "expect": "day-of-the-week pattern of price clustering in Bitcoin"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "support_resistance",
+     "crypto_returns",
+     "behavioral_bias"
+    ],
+    "methods": [
+     "agrupamiento de precios por día de la semana"
+    ],
+    "description": "Siguiendo a Urquhart (2017), confirma que los precios de Bitcoin se agrupan en números enteros, más los viernes y menos los lunes.",
+    "application": "Los números redondos también atraen precios en BTC: base del filtro de número redondo en una zona.",
+    "stances": [
+     {
+      "concept": "support_resistance",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los precios de Bitcoin se agrupan en números enteros.",
+      "conditions": "Bitcoin",
+      "terms": [
+       "whole numbers"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "The day-of-the-week pattern of price clustering in Bitcoin",
+    "authors": [
+     "Cedric L. Mbanga"
+    ],
+    "year": 2018,
+    "venue": "Applied Economics Letters",
+    "publisher": "Taylor & Francis",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1080/13504851.2018.1497844",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 42,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "chung_bellotti_2021",
+   "locator": {
+    "arxiv": "2101.07410",
+    "expect": "Evidence and Behaviour of Support and Resistance Levels"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "support_resistance",
+     "time_series"
+    ],
+    "methods": [
+     "algoritmo heurístico de niveles en series intradía"
+    ],
+    "description": "Los soportes y resistencias descubiertos revierten la tendencia de forma significativa; los niveles con más rebotes previos rebotan más y su efecto decae con el tiempo.",
+    "application": "Justifica exigir varios toques a una zona y no confiar en zonas viejas.",
+    "stances": [
+     {
+      "concept": "support_resistance",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Los niveles con más rebotes previos tienen más probabilidad de volver a rebotar; el efecto decae.",
+      "conditions": "series intradía",
+      "terms": [
+       "bounces"
+      ]
+     }
+    ],
+    "markets": []
+   },
+   "verified": {
+    "title": "Evidence and Behaviour of Support and Resistance Levels in Financial Time Series",
+    "authors": [
+     "Ken Chung",
+     "Anthony Graham Bellotti"
+    ],
+    "year": 2021,
+    "venue": "RePEc: Research Papers in Economics",
+    "publisher": "Federal Reserve Bank of St. Louis",
+    "doc_type": "preprint",
+    "url": "https://doi.org/10.48550/arxiv.2101.07410",
+    "oa_url": "https://arxiv.org/pdf/2101.07410",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 5,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "zapranis_tsinaslanidis_2012",
+   "locator": {
+    "doi": "10.1080/09603107.2012.663469",
+    "expect": "Identifying and evaluating horizontal support and resistance levels"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "support_resistance",
+     "market_efficiency"
+    ],
+    "methods": [
+     "regla de identificación de niveles horizontales",
+     "NYSE y NASDAQ, 20 años"
+    ],
+    "description": "Un mecanismo de reglas que identifica niveles horizontales desde extremos locales no genera rendimientos anormales sistemáticos en acciones de EE. UU.: resultados acordes con la eficiencia.",
+    "application": "La contraria de los prospectos de niveles: el rebote puede no pagar en acciones; la vara es el gemelo.",
+    "stances": [
+     {
+      "concept": "support_resistance",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "Los niveles horizontales no dan rendimientos anormales sistemáticos.",
+      "conditions": "NYSE y NASDAQ, diario, 20 años",
+      "terms": [
+       "efficient market"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Identifying and evaluating horizontal support and resistance levels: an empirical study on US stock markets",
+    "authors": [
+     "Achilleas D. Zapranis",
+     "Prodromos E. Tsinaslanidis"
+    ],
+    "year": 2012,
+    "venue": "Applied Financial Economics",
+    "publisher": "Chapman and Hall London",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1080/09603107.2012.663469",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 25,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "brown_goetzmann_kumar_1998",
+   "locator": {
+    "doi": "10.1111/0022-1082.00054",
+    "expect": "The Dow Theory"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "trend_following",
+     "chart_patterns",
+     "technical_analysis"
+    ],
+    "methods": [
+     "revisión de las llamadas de Hamilton",
+     "red neuronal que las replica"
+    ],
+    "description": "Reexamina la prueba de Cowles contra la teoría de Dow y concluye lo contrario: las estrategias de Hamilton dieron Sharpe alto y alfa positiva entre 1902 y 1929.",
+    "application": "Base de la estructura de máximos y mínimos crecientes como definición de tendencia.",
+    "stances": [
+     {
+      "concept": "trend_following",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Las llamadas de la teoría de Dow dieron Sharpe alto y alfa positiva.",
+      "conditions": "Dow Jones, 1902–1929",
+      "terms": [
+       "dow theory"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "The Dow Theory: William Peter Hamilton's Track Record Reconsidered",
+    "authors": [
+     "Stephen J. Brown",
+     "William Nelson Goetzmann",
+     "Alok Kumar"
+    ],
+    "year": 1998,
+    "venue": "The Journal of Finance",
+    "publisher": "Wiley",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1111/0022-1082.00054",
+    "oa_url": "https://onlinelibrary.wiley.com/doi/pdfdirect/10.1111/0022-1082.00054",
+    "access": "gratuito",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 168,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "savin_weller_zvingelis_2007",
+   "locator": {
+    "doi": "10.1093/jjfinec/nbl012",
+    "expect": "predictive power of head-and-shoulders price patterns"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "chart_patterns",
+     "technical_analysis"
+    ],
+    "methods": [
+     "algoritmo de Lo-Mamaysky-Wang con filtros de analista"
+    ],
+    "description": "Con S&P 500 y Russell 2000 (1990–1999), el hombro-cabeza-hombro no basta como estrategia aislada, pero sí predice excesos de rendimiento ajustados por riesgo de 5–7 % anual.",
+    "application": "Un patrón puede informar aunque no pague solo: apoya usar estructura como condición de otra señal.",
+    "stances": [
+     {
+      "concept": "chart_patterns",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "El patrón predice excesos de rendimiento pero no es rentable como estrategia aislada.",
+      "conditions": "S&P 500 y Russell 2000, 1990–1999",
+      "terms": [
+       "head-and-shoulders"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "The Predictive Power of \"Head-and-Shoulders\" Price Patterns in the U.S. Stock Market",
+    "authors": [
+     "Gustaf Savin",
+     "P. Weller",
+     "Janis J. Zvingelis"
+    ],
+    "year": 2006,
+    "venue": "Journal of Financial Econometrics",
+    "publisher": "Oxford University Press",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1093/jjfinec/nbl012",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 86,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "chang_osler_1999",
+   "locator": {
+    "doi": "10.1111/1468-0297.00466",
+    "expect": "Methodical Madness"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "chart_patterns",
+     "technical_analysis",
+     "market_efficiency"
+    ],
+    "methods": [
+     "hombro-cabeza-hombro en divisas",
+     "bootstrap"
+    ],
+    "description": "En divisas (1973–1994) el hombro-cabeza-hombro es rentable en tiempo real pero no eficiente: lo dominan reglas más simples.",
+    "application": "Regla del hermano simple: un patrón complejo debe superar a la regla simple de su agente.",
+    "stances": [
+     {
+      "concept": "chart_patterns",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "El patrón es rentable pero lo dominan reglas más simples.",
+      "conditions": "divisas, diario, 1973–1994",
+      "terms": [
+       "simpler"
+      ]
+     }
+    ],
+    "markets": [
+     "divisas"
+    ]
+   },
+   "verified": {
+    "title": "Methodical Madness: Technical Analysis and the Irrationality of Exchange‐rate Forecasts",
+    "authors": [
+     "P. H. Kevin Chang",
+     "Carol L. Osler"
+    ],
+    "year": 1999,
+    "venue": "The Economic Journal",
+    "publisher": "Oxford University Press",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1111/1468-0297.00466",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 189,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "leigh_paz_purvis_2002",
+   "locator": {
+    "doi": "10.1016/s0165-1765(02)00110-6",
+    "expect": "Market timing: a test of a charting heuristic"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "chart_patterns",
+     "trend_following"
+    ],
+    "methods": [
+     "patrón «bandera alcista» sobre el NYSE Composite"
+    ],
+    "description": "La «bandera alcista» (una pausa tras un tramo de subida) sobre el NYSE Composite da resultados positivos (resumen del repositorio de la Universidad de Florida Central).",
+    "application": "Respaldo de la continuación tras una pausa dentro de una tendencia.",
+    "stances": [
+     {
+      "concept": "chart_patterns",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La bandera alcista predice subidas en el NYSE Composite.",
+      "conditions": "NYSE Composite, varios años",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Market timing: a test of a charting heuristic",
+    "authors": [
+     "William E. Leigh",
+     "Noemi M. Paz",
+     "Russell L. Purvis"
+    ],
+    "year": 2002,
+    "venue": "Economics Letters",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/s0165-1765(02)00110-6",
+    "oa_url": "https://stars.library.ucf.edu/facultybib2000/3311",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 61,
+    "has_abstract": false
+   }
+  },
+  {
+   "id": "elliott_nft_2024",
+   "locator": {
+    "doi": "10.1038/s41598-024-55011-x",
+    "expect": "Periodicity, Elliott waves, and fractals in the NFT market"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "chart_patterns",
+     "time_series",
+     "crypto_returns"
+    ],
+    "methods": [
+     "autociclos en NFT y criptomonedas"
+    ],
+    "description": "En NFT y criptomonedas no encuentra comportamiento de ondas de Elliott; sí periodicidad ligada a la comunidad de cada activo.",
+    "application": "La contraria del agente elliott: no inscribir conteos de onda; usar solo sus pivotes como oscilaciones.",
+    "stances": [
+     {
+      "concept": "chart_patterns",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "No hay comportamiento de ondas de Elliott en cripto ni en NFT.",
+      "conditions": "NFT y criptomonedas",
+      "terms": [
+       "elliott"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Periodicity, Elliott waves, and fractals in the NFT market",
+    "authors": [
+     "James Christopher Westland"
+    ],
+    "year": 2024,
+    "venue": "Scientific Reports",
+    "publisher": "Nature Portfolio",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1038/s41598-024-55011-x",
+    "oa_url": "https://www.nature.com/articles/s41598-024-55011-x.pdf",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 15,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "lu_shiu_liu_2012",
+   "locator": {
+    "doi": "10.1016/j.rfe.2012.02.001",
+    "expect": "Profitable candlestick trading strategies"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "candlesticks",
+     "technical_analysis"
+    ],
+    "methods": [
+     "patrones de dos velas, comprar hasta el patrón contrario",
+     "bootstrap"
+    ],
+    "description": "En Taiwán (2002–2008), tres patrones de giro alcista de dos velas son rentables comprando y manteniendo hasta el patrón contrario, con pruebas fuera de muestra.",
+    "application": "Apoya mantener la posición más que la vela siguiente: un horizonte más largo para las velas.",
+    "stances": [
+     {
+      "concept": "candlesticks",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Tres patrones alcistas de dos velas son rentables.",
+      "conditions": "Taiwán Top 50, diario, 2002–2008",
+      "terms": [
+       "candlestick"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Profitable candlestick trading strategies—The evidence from a new perspective",
+    "authors": [
+     "Tsung‐Hsun Lu",
+     "Yung‐Ming Shiu",
+     "Tsung‐Chi Liu"
+    ],
+    "year": 2012,
+    "venue": "Review of Financial Economics",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.rfe.2012.02.001",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 79,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "duvinage_2013",
+   "locator": {
+    "doi": "10.1080/14697688.2013.768774",
+    "expect": "intra-day performance of market timing strategies and trading systems based on Japanese candlesticks"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "candlesticks",
+     "intraday",
+     "multiple_testing",
+     "execution_costs"
+    ],
+    "methods": [
+     "velas a 5 min en el DJIA",
+     "SSPA"
+    ],
+    "description": "A 5 min en el DJIA, un tercio de las reglas de velas supera a comprar y mantener con Bonferroni, pero tras costos y corrigiendo el fisgoneo con SSPA ninguna gana.",
+    "application": "La contraria fuerte de las velas en marcos cortos: pasarlas a 4 h baja el peso del costo.",
+    "stances": [
+     {
+      "concept": "candlesticks",
+      "kind": "objeta",
+      "level": "evidencia_empirica",
+      "summary": "Tras costos y SSPA, ninguna regla de velas intradía supera a comprar y mantener.",
+      "conditions": "DJIA, 5 min",
+      "terms": [
+       "candlestick",
+       "transaction costs"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "The intra-day performance of market timing strategies and trading systems based on Japanese candlesticks",
+    "authors": [
+     "Matthieu Duvinage",
+     "Paolo Mazza",
+     "Mikael J. K. Petitjean"
+    ],
+    "year": 2013,
+    "venue": "Quantitative Finance",
+    "publisher": "Taylor & Francis",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1080/14697688.2013.768774",
+    "oa_url": "https://doi.org/10.2139/ssrn.2125889",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 26,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "fang_2022_survey",
+   "locator": {
+    "doi": "10.1186/s40854-021-00321-6",
+    "expect": "Cryptocurrency trading: a comprehensive survey"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "crypto_returns",
+     "technical_analysis",
+     "machine_learning"
+    ],
+    "methods": [
+     "revisión de 146 trabajos"
+    ],
+    "description": "Revisa 146 trabajos sobre operativa en cripto: plataformas, señales, estrategias, burbujas, predicción de volatilidad y rendimiento, carteras y gestión del riesgo.",
+    "application": "Mapa de lo ya estudiado en cripto para no repetir ideas y ver qué señales tienen respaldo.",
+    "stances": [
+     {
+      "concept": "crypto_returns",
+      "kind": "condiciona",
+      "level": "estrategia_documentada",
+      "summary": "Resume la investigación sobre señales y estrategias en cripto.",
+      "conditions": "146 trabajos",
+      "terms": [
+       "cryptocurrency"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Cryptocurrency trading: a comprehensive survey",
+    "authors": [
+     "Fan Fang",
+     "Carmine Ventre",
+     "Michail Basios",
+     "Leslie Kanthan",
+     "David Martínez‐Rego",
+     "Fan Wu",
+     "Lingbo Li"
+    ],
+    "year": 2022,
+    "venue": "Financial Innovation",
+    "publisher": "Springer Nature",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1186/s40854-021-00321-6",
+    "oa_url": "https://jfin-swufe.springeropen.com/counter/pdf/10.1186/s40854-021-00321-6",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 541,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "tharavanij_2017",
+   "locator": {
+    "doi": "10.1177/2158244017736799",
+    "expect": "Profitability of candlestick charting patterns"
+   },
+   "curated": {
+    "category": "A",
+    "concepts": [
+     "candlesticks",
+     "technical_analysis"
+    ],
+    "methods": [
+     "patrones de giro con y sin filtros técnicos",
+     "salidas MYR y CL"
+    ],
+    "description": "En el SET50 (2006–2016) estudia patrones de giro de velas con tenencias de 1 a 10 días, con y sin filtros de estocástico, RSI y otros.",
+    "application": "Muestra que el horizonte de tenencia y el filtro cambian el resultado: se fija de antemano.",
+    "stances": [
+     {
+      "concept": "candlesticks",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "La utilidad de las velas depende del horizonte y de los filtros técnicos.",
+      "conditions": "SET50, diario, 2006–2016",
+      "terms": [
+       "holding periods"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Profitability of Candlestick Charting Patterns in the Stock Exchange of Thailand",
+    "authors": [
+     "Piyapas Tharavanij",
+     "Vasan Siraprapasiri",
+     "Kittichai Rajchamaha"
+    ],
+    "year": 2017,
+    "venue": "SAGE Open",
+    "publisher": "SAGE Publishing",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1177/2158244017736799",
+    "oa_url": "https://doi.org/10.1177/2158244017736799",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 95,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "ardia_bluteau_ruede_2019",
+   "locator": {
+    "doi": "10.1016/j.frl.2018.08.009",
+    "expect": "Regime changes in Bitcoin GARCH volatility dynamics"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "regime",
+     "volatility_model",
+     "tail_risk"
+    ],
+    "methods": [
+     "MSGARCH bayesiano",
+     "VaR a un día"
+    ],
+    "description": "Hay evidencia fuerte de cambios de régimen en la volatilidad GARCH de Bitcoin, y los modelos con regímenes predicen mejor el VaR.",
+    "application": "Los regímenes de BTC son reales y persistentes: apoya mantener la posición un horizonte fijo tras un cambio.",
+    "stances": [
+     {
+      "concept": "regime",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Cambios de régimen fuertes en la volatilidad de Bitcoin.",
+      "conditions": "Bitcoin, diario",
+      "terms": [
+       "regime changes"
+      ]
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Regime changes in Bitcoin GARCH volatility dynamics",
+    "authors": [
+     "David Ardia",
+     "Keven Bluteau",
+     "Maxime Rüede"
+    ],
+    "year": 2018,
+    "venue": "Finance research letters",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.frl.2018.08.009",
+    "oa_url": "https://doi.org/10.1016/j.frl.2018.08.009",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 350,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "ang_timmermann_2012",
+   "locator": {
+    "doi": "10.1146/annurev-financial-110311-101808",
+    "expect": "Regime Changes and Financial Markets"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "regime",
+     "return_distribution"
+    ],
+    "methods": [
+     "revisión de modelos de cambio de régimen"
+    ],
+    "description": "Los mercados cambian de comportamiento de golpe y el comportamiento nuevo persiste varios periodos; los regímenes difieren en media, volatilidad y autocorrelación.",
+    "application": "Base para sostener una posición un tiempo fijo tras el cambio en lugar de salir con cada parpadeo de la etiqueta.",
+    "stances": [
+     {
+      "concept": "regime",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "Tras un cambio de régimen, el comportamiento nuevo persiste varios periodos.",
+      "conditions": "revisión",
+      "terms": [
+       "persists"
+      ]
+     }
+    ],
+    "markets": [
+     "multiactivo"
+    ]
+   },
+   "verified": {
+    "title": "Regime Changes and Financial Markets",
+    "authors": [
+     "Andrew Ang",
+     "Allan Timmermann"
+    ],
+    "year": 2012,
+    "venue": "Annual Review of Financial Economics",
+    "publisher": "Annual Reviews",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1146/annurev-financial-110311-101808",
+    "oa_url": "https://doi.org/10.2139/ssrn.1919497",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 520,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "kritzman_page_turkington_2012",
+   "locator": {
+    "doi": "10.2469/faj.v68.n3.3",
+    "expect": "Regime Shifts: Implications for Dynamic Strategies"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "regime",
+     "drawdown"
+    ],
+    "methods": [
+     "modelos de Markov para turbulencia, inflación y crecimiento"
+    ],
+    "description": "Con modelos de Markov que predicen regímenes de turbulencia, un proceso dinámico supera a la asignación estática en pruebas históricas, sobre todo para quien evita caídas grandes.",
+    "application": "Apoya leer el régimen para decidir cuándo estar dentro.",
+    "stances": [
+     {
+      "concept": "regime",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La asignación dinámica por régimen supera a la estática, sobre todo para evitar caídas.",
+      "conditions": "multiactivo",
+      "terms": [
+       "regime"
+      ]
+     }
+    ],
+    "markets": [
+     "multiactivo"
+    ]
+   },
+   "verified": {
+    "title": "Regime Shifts: Implications for Dynamic Strategies (corrected)",
+    "authors": [
+     "Mark P. Kritzman",
+     "Sébastien Page",
+     "David Turkington"
+    ],
+    "year": 2012,
+    "venue": "Financial Analysts Journal",
+    "publisher": "Taylor & Francis",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.2469/faj.v68.n3.3",
+    "oa_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2066848",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 178,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "koki_2022",
+   "locator": {
+    "doi": "10.1016/j.ribaf.2021.101554",
+    "expect": "Exploring the predictability of cryptocurrencies via Bayesian hidden Markov models"
+   },
+   "curated": {
+    "category": "F",
+    "concepts": [
+     "regime",
+     "crypto_returns",
+     "forecast_eval"
+    ],
+    "methods": [
+     "Markov oculto no homogéneo de 4 estados"
+    ],
+    "description": "Un Markov oculto de cuatro estados predice mejor que el paseo aleatorio en BTC, ETH y XRP porque capta periodos alcistas, bajistas y tranquilos (resumen de Semantic Scholar).",
+    "application": "Los estados direccionales de BTC (alcista, bajista) se pueden detectar: respaldo de seguir la etiqueta de tendencia.",
+    "stances": [
+     {
+      "concept": "regime",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Estados alcistas, bajistas y tranquilos identificables en Bitcoin.",
+      "conditions": "BTC, ETH, XRP",
+      "terms": []
+     }
+    ],
+    "markets": [
+     "cripto"
+    ]
+   },
+   "verified": {
+    "title": "Exploring the predictability of cryptocurrencies via Bayesian hidden Markov models",
+    "authors": [
+     "Constandina Koki",
+     "Stefanos Leonardos",
+     "Georgios Piliouras"
+    ],
+    "year": 2021,
+    "venue": "Research in International Business and Finance",
+    "publisher": "Elsevier BV",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1016/j.ribaf.2021.101554",
+    "oa_url": "http://arxiv.org/pdf/2011.03741",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 53,
+    "has_abstract": false
+   }
+  },
+  {
+   "id": "fung_hsieh_2001",
+   "locator": {
+    "doi": "10.1093/rfs/14.2.313",
+    "expect": "The Risk in Hedge Fund Strategies: Theory and Evidence from Trend Followers"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "trend_following",
+     "volatility_model",
+     "breakout"
+    ],
+    "methods": [
+     "straddles retrospectivos como modelo de la tendencia"
+    ],
+    "description": "Los fondos de tendencia rinden como straddles retrospectivos: ganan con movimientos grandes en cualquier dirección.",
+    "application": "La tendencia paga en la expansión de la volatilidad: base de entrar al salir de una compresión.",
+    "stances": [
+     {
+      "concept": "trend_following",
+      "kind": "apoya",
+      "level": "teoria",
+      "summary": "La tendencia rinde como una opción sobre movimientos grandes.",
+      "conditions": "fondos de tendencia",
+      "terms": [
+       "lookback straddles"
+      ]
+     }
+    ],
+    "markets": [
+     "futuros"
+    ]
+   },
+   "verified": {
+    "title": "The Risk in Hedge Fund Strategies: Theory and Evidence from Trend Followers",
+    "authors": [
+     "William K. H. Fung",
+     "David Arthur Hsieh"
+    ],
+    "year": 2001,
+    "venue": "Review of Financial Studies",
+    "publisher": "Oxford University Press",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1093/rfs/14.2.313",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 1281,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "novy_marx_velikov_2016",
+   "locator": {
+    "doi": "10.1093/rfs/hhv063",
+    "expect": "A Taxonomy of Anomalies and Their Trading Costs"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "execution_costs",
+     "overtrading",
+     "backtest_overfitting"
+    ],
+    "methods": [
+     "costos tras anomalías",
+     "banda de compra y mantenimiento"
+    ],
+    "description": "Las anomalías con rotación menor del 50 % mensual sobreviven a los costos si se diseñan para mitigarlos; pocas con más rotación lo hacen. Exigir más para abrir que para mantener es lo que más ahorra.",
+    "application": "Lección para la cantera: entradas más exigentes que la permanencia y vigilar la rotación de los prospectos rápidos.",
+    "stances": [
+     {
+      "concept": "execution_costs",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Solo las anomalías de rotación baja sobreviven a los costos; la banda de mantenimiento es la mejor mitigación.",
+      "conditions": "acciones EE. UU.",
+      "terms": [
+       "turnover",
+       "transaction costs"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "A Taxonomy of Anomalies and Their Trading Costs",
+    "authors": [
+     "Robert Novy‐Marx",
+     "Mihail Velikov"
+    ],
+    "year": 2015,
+    "venue": "Review of Financial Studies",
+    "publisher": "Oxford University Press",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1093/rfs/hhv063",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 763,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "korajczyk_sadka_2004",
+   "locator": {
+    "doi": "10.1111/j.1540-6261.2004.00656.x",
+    "expect": "Are Momentum Profits Robust to Trading Costs"
+   },
+   "curated": {
+    "category": "C",
+    "concepts": [
+     "execution_costs",
+     "momentum",
+     "liquidity"
+    ],
+    "methods": [
+     "costos proporcionales y de impacto con datos intradía"
+    ],
+    "description": "Con costos de impacto medidos intradía, el momentum pierde rentabilidad con el tamaño; las carteras ponderadas por liquidez aguantan más capital.",
+    "application": "El costo en R depende de la liquidez del momento: la puerta de costo de la cantera se mide, no se supone.",
+    "stances": [
+     {
+      "concept": "execution_costs",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Los beneficios del momentum caen con los costos de impacto.",
+      "conditions": "acciones EE. UU.",
+      "terms": [
+       "trading costs"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Are Momentum Profits Robust to Trading Costs?",
+    "authors": [
+     "Robert A. Korajczyk",
+     "Ronnie Sadka"
+    ],
+    "year": 2004,
+    "venue": "The Journal of Finance",
+    "publisher": "Wiley",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1111/j.1540-6261.2004.00656.x",
+    "oa_url": "https://doi.org/10.2139/ssrn.305282",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 703,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "mclean_pontiff_2016",
+   "locator": {
+    "doi": "10.1111/jofi.12365",
+    "expect": "Does Academic Research Destroy Stock Return Predictability"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "backtest_overfitting",
+     "market_efficiency"
+    ],
+    "methods": [
+     "97 predictores, fuera de muestra y tras publicación"
+    ],
+    "description": "Los rendimientos de 97 predictores son un 26 % menores fuera de muestra y un 58 % menores tras publicarse.",
+    "application": "Lo que dice un libro o un artículo llega con la ventaja reducida: la cantera espera ventajas menores que las publicadas.",
+    "stances": [
+     {
+      "concept": "backtest_overfitting",
+      "kind": "condiciona",
+      "level": "evidencia_empirica",
+      "summary": "Las ventajas publicadas caen un 26 % fuera de muestra y un 58 % tras publicarse.",
+      "conditions": "acciones EE. UU., 97 predictores",
+      "terms": [
+       "publication"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Does Academic Research Destroy Stock Return Predictability?",
+    "authors": [
+     "R. David McLean",
+     "Jeffrey Pontiff"
+    ],
+    "year": 2015,
+    "venue": "The Journal of Finance",
+    "publisher": "Wiley",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1111/jofi.12365",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 1854,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "nagel_2012",
+   "locator": {
+    "doi": "10.1093/rfs/hhs066",
+    "expect": "Evaporating Liquidity"
+   },
+   "curated": {
+    "category": "E",
+    "concepts": [
+     "mean_reversion",
+     "liquidity",
+     "market_making"
+    ],
+    "methods": [
+     "reversión de corto plazo como rendimiento de dar liquidez"
+    ],
+    "description": "La reversión de corto plazo equivale a cobrar por dar liquidez, y paga más cuando sube la volatilidad (VIX) y la liquidez se evapora.",
+    "application": "La reversión de la cantera se ejecuta con órdenes límite (maker): es dar liquidez, y paga más en turbulencia.",
+    "stances": [
+     {
+      "concept": "mean_reversion",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "La reversión de corto plazo es el pago por dar liquidez, mayor en turbulencia.",
+      "conditions": "acciones EE. UU.",
+      "terms": [
+       "reversal",
+       "liquidity provision"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Evaporating Liquidity",
+    "authors": [
+     "Stefan Nagel"
+    ],
+    "year": 2012,
+    "venue": "Review of Financial Studies",
+    "publisher": "Oxford University Press",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1093/rfs/hhs066",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 514,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "chordia_goyal_saretto_2020",
+   "locator": {
+    "doi": "10.1093/rfs/hhaa018",
+    "expect": "Anomalies and False Rejections"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "multiple_testing",
+     "backtest_overfitting"
+    ],
+    "methods": [
+     "2 millones de estrategias generadas al azar"
+    ],
+    "description": "Con más de 2 millones de estrategias al azar fija umbrales de t de 3,8 (series) y 3,4 (transversal) y estima un 45 % de falsos descubrimientos si no se corrige.",
+    "application": "Precio de buscar muchas reglas: la familia de la cantera se corrige y se declara el número esperado de promesas falsas.",
+    "stances": [
+     {
+      "concept": "multiple_testing",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "Sin corregir por pruebas múltiples, cerca del 45 % de los hallazgos son falsos.",
+      "conditions": "acciones EE. UU.",
+      "terms": [
+       "multiple hypothesis testing"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Anomalies and False Rejections",
+    "authors": [
+     "Tarun Chordia",
+     "Amit Goyal",
+     "Alessio Saretto"
+    ],
+    "year": 2020,
+    "venue": "Review of Financial Studies",
+    "publisher": "Oxford University Press",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1093/rfs/hhaa018",
+    "oa_url": "https://doi.org/10.2139/ssrn.3017677",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 228,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "harvey_liu_saretto_2020",
+   "locator": {
+    "doi": "10.1093/rapstu/raaa003",
+    "expect": "An Evaluation of Alternative Multiple Testing Methods for Finance Applications"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "multiple_testing",
+     "performance_stats"
+    ],
+    "methods": [
+     "guía y simulación de métodos de pruebas múltiples"
+    ],
+    "description": "Guía de los métodos de pruebas múltiples en finanzas, con simulaciones de su comportamiento relativo en distintos entornos.",
+    "application": "Apoya el uso de métodos de la familia (e-BH, StepM) en la cantera según su potencia y su control del error.",
+    "stances": [
+     {
+      "concept": "multiple_testing",
+      "kind": "apoya",
+      "level": "estrategia_documentada",
+      "summary": "Compara métodos de pruebas múltiples por simulación para elegir el adecuado.",
+      "conditions": "simulación",
+      "terms": [
+       "multiple testing"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "An Evaluation of Alternative Multiple Testing Methods for Finance Applications",
+    "authors": [
+     "Campbell R. Harvey",
+     "Yan Liu",
+     "Alessio Saretto"
+    ],
+    "year": 2020,
+    "venue": "The Review of Asset Pricing Studies",
+    "publisher": "Oxford University Press",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1093/rapstu/raaa003",
+    "oa_url": "https://doi.org/10.2139/ssrn.3480087",
+    "access": "abierto",
+    "availability": "texto_completo",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 48,
+    "has_abstract": true
+   }
+  },
+  {
+   "id": "lo_mackinlay_1990",
+   "locator": {
+    "doi": "10.1093/rfs/3.3.431",
+    "expect": "Data-Snooping Biases in Tests of Financial Asset Pricing Models"
+   },
+   "curated": {
+    "category": "B",
+    "concepts": [
+     "backtest_overfitting",
+     "multiple_testing"
+    ],
+    "methods": [
+     "cálculo analítico y Monte Carlo del sesgo por fisgoneo"
+    ],
+    "description": "Construir la prueba con propiedades de los mismos datos (ordenar carteras por una característica vista) puede sesgar mucho la inferencia.",
+    "application": "Fundamento de no elegir reglas ni parámetros mirando la historia que se va a juzgar: la cantera solo mira la física.",
+    "stances": [
+     {
+      "concept": "backtest_overfitting",
+      "kind": "apoya",
+      "level": "evidencia_empirica",
+      "summary": "El fisgoneo de datos sesga de forma sustancial las pruebas.",
+      "conditions": "acciones EE. UU.",
+      "terms": [
+       "data snooping"
+      ]
+     }
+    ],
+    "markets": [
+     "acciones"
+    ]
+   },
+   "verified": {
+    "title": "Data-Snooping Biases in Tests of Financial Asset Pricing Models",
+    "authors": [
+     "Andrew W. Lo",
+     "A. Craig MacKinlay"
+    ],
+    "year": 1990,
+    "venue": "Review of Financial Studies",
+    "publisher": "Oxford University Press",
+    "doc_type": "articulo",
+    "url": "https://doi.org/10.1093/rfs/3.3.431",
+    "access": "suscripcion",
+    "availability": "solo_resumen",
+    "source": "openalex",
+    "verified_at": "2026-11-16",
+    "cited_by": 1123,
+    "has_abstract": true
+   }
   }
  ]
 }
