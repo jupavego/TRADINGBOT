@@ -1467,3 +1467,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** sin `node_modules` en la sesión remota: `tsc` de los archivos del mapa sin errores propios; verificado con capturas en Chrome sin interfaz con el catálogo real (86 piezas, estados de prueba). Sin cambios de Python.
 - **Abierto:** `npm run build` en el equipo y ver el mapa en vivo.
 - **Siguiente paso:** ajustar posiciones (`RING` en `obs_iso.ts`) o espacios del área común (`KINDS` en `obs_iso_lounge.ts`) si hace falta.
+
+## 2026-11-16 · sesión «Retroalimentación, calibración y ajustes» · T176: lectura que sobrevive a la compactación
+- **Hecho:** diagnosticado en vivo el atasco del bróker simulado (26 min sin ciclo, 07:44 → 08:10 UTC, API lenta con 0,5–2 GB libres) y el ciclo caído a las 08:04:40 por leer una parte de `micro_hft/trades` que la compactación acababa de sustituir; `read_micro` reintenta con la lista nueva solo en ese caso. Se recuperó solo, sin reiniciar nada.
+- **Archivos:** `v2/eim/data/micro.py`, `v2/tests/data/test_micro_feed.py`, `PLAN/T176.md`, `PLAN/STATUS.md`, `PLAN/00_MASTER.md`, `PLAN/BACKLOG.md`.
+- **Pruebas:** 16 de microestructura y recolector en verde; gate completo por la cola.
+- **Abierto:** BACKLOG T176 (1) la cola no mira al bróker; (2) avisar al usuario de la memoria de `NVIDIA Overlay`.
+- **Siguiente paso:** fusionar; entra en el bróker con el próximo reinicio de la API.
