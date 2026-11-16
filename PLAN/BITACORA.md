@@ -1496,3 +1496,11 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** 14 de la auditoría en verde; gate completo por la cola.
 - **◆ abiertas:** puerta de costo por perfil y marco en la variante (T175). Sin disparadores: funding de BTC 3,51 % frente al 4 %.
 - **Siguiente paso:** fusionar; la próxima auditoría semanal ya usa la herramienta nueva.
+
+## 2026-11-16 · sesión «Retroalimentación, calibración y ajustes» · T173 rescatada y cerrada
+- **Hecho:** T173 estaba a medias desde el 2026-11-11 en `.claude/worktrees/t148-vigilante-conjunto-cb8831` (10 archivos sin confirmar, sin pruebas y con `attribute()` sin el parámetro que la ventana le pasaba). Se confirmó tal cual, se puso al día con `main` y se terminó: sin red no se relanza, lo que vive dentro de la API no se intenta levantar, un intento se juzga por su efecto, la captura que late sin datos avisa y el corte de red local cuenta como hora nuestra (`red_local`).
+- **Medido con datos reales:** reparto de T78 74/23 → 76/21 en 393 horas; 2026-11-06T07, que constaba «sin causa confirmada», fue un corte de DNS de este equipo (07:55:03–07:58:23 UTC).
+- **Visto en vivo esta madrugada (no es de T173, va a su tarea):** el bróker simulado estuvo 26 min sin latir dentro de la API (07:44 → 08:10 UTC) con la API viva pero lenta por falta de RAM, y un ciclo falló con `IOException` al abrir una parte de `micro_hft/trades` que la compactación acababa de borrar. El vigilante gastó el intento 1 de 4 sin efecto (`rc=0`), que es exactamente lo que T173 corrige.
+- **Archivos:** `v2/eim/operation/fleet_{watch,cause,state,cli,alert}.py`, `v2/eim/data/collectors/hft_{attrib,ops,window}.py`, `v2/tests/operation/test_fleet_{cause,watch}.py`, `v2/docs/RUNBOOK.md` §18.1, `PLAN/T173.md`, `PLAN/STATUS.md`.
+- **Pruebas:** 77 de los módulos tocados en verde; gate completo por la cola.
+- **Siguiente paso:** fusionar (se despliega sola: la tarea del vigilante corre el código de la carpeta principal cada 5 min).
