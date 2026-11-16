@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-16T14:48:45",
+ "generated": "2026-11-16T15:02:46",
  "phases": [
   {
    "n": 0,
@@ -342,7 +342,8 @@ window.EIM_STATUS = {
     "T169",
     "T170",
     "T171",
-    "T172"
+    "T172",
+    "T177"
    ]
   }
  ],
@@ -2609,6 +2610,21 @@ window.EIM_STATUS = {
    "notes": "**Hecha 2026-11-16, entra al reiniciar la API.** Visto en vivo: el bróker simulado de T31 estuvo 26 min sin completar un ciclo (07:44 → 08:10 UTC) con la API lenta por falta de RAM, y un ciclo cayó a las 08:04:40 con `IOException: Cannot open file` sobre una parte de `micro_hft/trades` que la compactación de la hora 05 acababa de sustituir. `eim/data/micro.py::read_micro` vuelve a listar y leer hasta dos veces (0,2 s y 1 s) solo si falta una parte; nada más cambia. Anexo: el informe semanal de T135 ya no muere en su `print` final por cp1252 (el del 2026-11-16 se escribió entero y la cola lo dio por fallido). 2 pruebas en `tests/data/test_micro_feed.py`; ficha `PLAN/T176.md`",
    "effort": "bajo",
    "phase": 21
+  },
+  {
+   "id": "T177",
+   "title": "50 obras nuevas y 16 prospectos que reemplazan a los descartados de T169",
+   "deps": [
+    "T167",
+    "T168",
+    "T169",
+    "T151",
+    "T157"
+   ],
+   "state": "progress",
+   "notes": "En curso (2026-11-16): protocolo fijado en `PLAN/T177.md` antes de buscar; entran en `cantera_v1` antes de que T170 congele la familia",
+   "effort": "alto",
+   "phase": 27
   }
  ]
 };
