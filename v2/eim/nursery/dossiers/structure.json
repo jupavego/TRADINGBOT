@@ -92,13 +92,19 @@
    "role": "candidato",
    "theory": "La ruptura de una consolidación inicia un tramo nuevo.",
    "opposite_of": null,
-   "rule": "Entra en el sentido del sesgo cuando el escenario pasa a SC-02, sin filtro de convicción. Rediseñada en T170: el umbral provisional de 60 (banda SR-2) no se cumplía nunca, porque el agente da a SC-02 una convicción de 47–50 (T169).",
+   "rule": "Entra en el sentido del sesgo cuando el escenario pasa a SC-02 con convicción ≥ conviction_min.",
    "variables": [
     "metrics.scenario",
+    "metrics.conviction",
     "bias"
    ],
-   "params": {},
-   "n_params": 0,
+   "params": {
+    "conviction_min": {
+     "value": 60,
+     "source": "banda SR-2, EIM-IRM-001, `agents/structure/params.py::IRMParams` (provisional, no calibrado)"
+    }
+   },
+   "n_params": 1,
    "timeframe": "1h",
    "exit_template": "atr_ladder",
    "history_exam": "banco_t131",

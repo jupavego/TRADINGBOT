@@ -17,12 +17,8 @@ def _vote(fam: object) -> float | None:
 
 
 def tec_acuerdo_marcos(v: View, p: dict) -> Signal:
-    """Los sesgos de 1 h y 4 h pasan los dos de ±mtf_neutral en el mismo sentido.
-
-    Con base 1 h el agente solo evalúa sus marcos vecinos, así que `frames.1d.bias` no existe
-    nunca, ni en el banco ni en vivo (T169). T170 la reescribió con los dos marcos que sí existen.
-    """
-    bs = [num(v.get(k)) for k in (B1, B4)]
+    """Los sesgos de 1 h, 4 h y 1 d pasan todos de ±mtf_neutral en el mismo sentido."""
+    bs = [num(v.get(k)) for k in (B1, B4, BD)]
     if any(b is None for b in bs):
         return steady(0)
     th = float(p["mtf_neutral"])

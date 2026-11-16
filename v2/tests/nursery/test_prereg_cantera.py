@@ -35,9 +35,10 @@ def test_family_matches_the_code_and_the_ceiling():
     assert len(ps) == n and n + len(fam.discarded) == fam.enrolled_t167 + len(fam.replacements)
     assert fam.ceiling == CEILING == 50 and fam.enrolled_t167 == 43 and PR.m <= fam.ceiling
     assert PR.m == n + fam.reserve_slots
-    assert set(fam.redesigned) == {"estructura_ruptura", "tec_acuerdo_marcos"}
-    assert {"elliott_onda3", "elliott_onda5_giro", "regimen_tramo",
-            "regimen_tramo_estable"} <= {x.id for x in fam.discarded}
+    assert not fam.redesigned            # ◆ 2026-11-16: entran las versiones de T177
+    assert {"estructura_ruptura", "tec_acuerdo_marcos", "elliott_onda3", "elliott_onda5_giro",
+            "regimen_tramo", "regimen_tramo_estable"} <= {x.id for x in fam.discarded}
+    assert {"estructura_ruptura_sc02", "tec_acuerdo_tres_marcos"} <= set(fam.replacements)
 
 
 def test_a_changed_rule_is_not_preregistered():

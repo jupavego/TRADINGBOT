@@ -68,9 +68,7 @@ def test_prospects_follow_house_rules(aid):
     assert len(bases) == 1 and bases[0]["n_params"] <= 2, "un hermano simple de 1–2 parámetros"
     for p in d["prospects"]:
         assert p["role"] in {"base", "candidato"}
-        # ≤ 3 parámetros libres; un candidato puede no tener ninguno (estructura_ruptura, T170)
-        assert p["n_params"] == len(p["params"]) <= 3, p["id"]
-        assert p["role"] == "candidato" or p["n_params"] >= 1, p["id"]
+        assert 1 <= p["n_params"] == len(p["params"]) <= 3, p["id"]
         assert all(v["source"].strip() for v in p["params"].values()), "parámetro sin cita"
         assert set(p["variables"]) <= declared, f"{p['id']} lee variables no declaradas"
         assert p["exit_template"] in EXITS and p["history_exam"] in EXAMS

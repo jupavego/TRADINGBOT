@@ -29,9 +29,10 @@ def document(fam: dict, lad: dict, cal: dict, np_, criteria_sha: str, reserve: i
             "interno con q = 0,10; StepM estricto en la puerta a primer equipo y en todo lo que "
             "toque dinero), sin puerta de potencia y con el precio declarado. Este pre-registro "
             "no endurece el escalafón interno.",
-            "◆ T170 (2026-11-16) 1: se rediseñan estructura_ruptura (sin filtro de convicción) y "
-            "tec_acuerdo_marcos (marcos de 1 h y 4 h), re-examinadas con la ficha de T169 "
-            "(`reports/t170_reexamen.md`); las dos de elliott, de baja.",
+            "◆ T170 (2026-11-16) 1: las cuatro reglas imposibles de T169 quedan como bajas. "
+            "Se rediseñaron en su sitio estructura_ruptura y tec_acuerdo_marcos "
+            "(`reports/t170_reexamen.md`), pero el usuario eligió después las versiones de T177 "
+            "(estructura_ruptura_sc02 y tec_acuerdo_tres_marcos) y el rediseño se revirtió.",
             "◆ T170 (2026-11-16) 2: regimen_tramo y regimen_tramo_estable (gemelos físicos) "
             "cuentan como dos prospectos dados de baja.",
             "◆ T170 (2026-11-16) 3: manda la banda medida por la tenencia; las plantillas de "

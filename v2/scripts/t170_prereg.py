@@ -3,7 +3,7 @@
     python scripts/t170_prereg.py calibrate   # por la cola: topes de drawdown, promesas falsas
     python scripts/t170_prereg.py build       # escribe prereg/prereg_cantera_v1.json
 
-La familia sale del examen físico (T169 y el re-examen de T170) y de las ◆ del 2026-11-16; los
+La familia sale de los exámenes físicos (T169 y el de los reemplazos de T177) y de las ◆; los
 topes de drawdown y las promesas falsas esperadas, de `nursery/calibrate.py` con semilla fija. El
 archivo, una vez publicado, no se edita: su SHA-256 queda en `nursery/prereg.py::PUBLISHED`.
 """
@@ -27,10 +27,12 @@ from eim.nursery.signals import accounts_for  # noqa: E402
 from eim.validation.criteria import PUBLISHED as CRITERIA  # noqa: E402
 
 T169 = ROOT / "reports" / "t169_examen_fisico.json"
-T170 = ROOT / "reports" / "t170_reexamen.json"
 CALIB = ROOT / "reports" / "t170_calibracion.json"
 OUT = ROOT / "eim" / "validation" / "prereg" / "prereg_cantera_v1.json"
-REDESIGNED = ("estructura_ruptura", "tec_acuerdo_marcos")
+# ◆ 2026-11-16: el usuario eligió las versiones de T177 (`estructura_ruptura_sc02`,
+# `tec_acuerdo_tres_marcos`) frente a los rediseños en su sitio de T170, que se revirtieron;
+# `reports/t170_reexamen.*` queda solo como registro. No hay rediseños en su sitio.
+REDESIGNED: tuple[str, ...] = ()
 RESERVE, CEILING = 7, 50      # la reserva puede bajar (--reserve) si entran más reemplazos
 THEME = {
     "tendencia": ("niveles_ruptura", "pa_bos", "pa_bos_patron", "estructura_continuacion",
@@ -81,12 +83,13 @@ def family(exams: tuple[Path, ...] = (), themes: Path | None = None) -> dict:
     original = {r["id"] for r in t169["prospects"]} | {
         r["id"] if isinstance(r, dict) else r for r in t169["without_history"]}
     rows = {r["id"]: r for r in t169["prospects"]}
-    for f in (T170, *exams):
+    for f in exams:
         rows.update({r["id"]: r for r in json.loads(Path(f).read_text(encoding="utf-8"))
                      ["prospects"]})
     theme = {pid: th for th, ids in THEME.items() for pid in ids}
-    if themes is not None:
-        theme.update(json.loads(Path(themes).read_text(encoding="utf-8")))
+    if themes is not None:      # «reversión» con tilde (T177) es el tema `reversion`
+        theme.update({k: v.replace("ó", "o") for k, v in
+                      json.loads(Path(themes).read_text(encoding="utf-8")).items()})
     ps = load_prospects()
     by = {p.id: p for p in ps}
     generic = {(a.agent_id, a.timeframe): a.id for a in accounts_for(ps) if a.kind == "control"}
@@ -114,7 +117,7 @@ def family(exams: tuple[Path, ...] = (), themes: Path | None = None) -> dict:
             raise SystemExit(f"{p.id}: falta su tema (tendencia, reversion, derivados o "
                              "consenso); pásalo con --themes")
         src = "declarada" if r is None else ("medida_t169" if p.id in original and
-                                             p.id not in REDESIGNED else "medida_t170")
+                                             p.id not in REDESIGNED else "medida_t177")
         members.append({
             "id": p.id, "fingerprint": p.fingerprint, "agent_id": p.agent_id,
             "timeframe": p.timeframe, "role": p.role, "n_params": len(p.params),

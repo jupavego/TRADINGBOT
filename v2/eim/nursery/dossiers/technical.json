@@ -112,12 +112,13 @@
    "id": "tec_acuerdo_marcos",
    "name": "Acuerdo de marcos",
    "role": "base",
-   "theory": "Cuando 1 h y 4 h leen lo mismo, la lectura es más fiable.",
+   "theory": "Cuando 1 h, 4 h y 1 d leen lo mismo, la lectura es más fiable.",
    "opposite_of": null,
-   "rule": "Largo si el sesgo de 1 h y el de 4 h superan +mtf_neutral; corto en espejo. Sale cuando un marco deja de estar de acuerdo. Rediseñada en T170: con base 1 h el agente solo evalúa sus marcos vecinos, así que el de 1 d no existía nunca (T169).",
+   "rule": "Largo si el sesgo de 1 h, 4 h y 1 d supera +mtf_neutral; corto en espejo. Sale cuando un marco deja de estar de acuerdo.",
    "variables": [
     "metrics.frames.1h.bias",
-    "metrics.frames.4h.bias"
+    "metrics.frames.4h.bias",
+    "metrics.frames.1d.bias"
    ],
    "params": {
     "mtf_neutral": {

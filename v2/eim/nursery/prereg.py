@@ -45,7 +45,7 @@ class MemberSpec(_Frozen):
     role: Literal["base", "candidato"]
     n_params: int = Field(ge=0, le=3)
     band: Literal["scalping", "intradia", "tres_dias", "semanal"]
-    band_source: Literal["medida_t169", "medida_t170", "declarada"]
+    band_source: Literal["medida_t169", "medida_t177", "declarada"]
     history: bool
     theme: Literal["tendencia", "reversion", "derivados", "consenso"]
     sibling: str | None = None
