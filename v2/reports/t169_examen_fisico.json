@@ -1,0 +1,4673 @@
+{
+ "task": "T169",
+ "mode": "SIMULADO",
+ "generated_utc": "2026-11-16T19:20Z",
+ "plan": {
+  "version": 1,
+  "symbol": "BTCUSDT",
+  "bank": "C:\\Users\\jo\\Desktop\\JP\\TRADINGBOT\\v2\\backups\\t169_examen\\banco",
+  "bank_files": {
+   "candles/symbol=BTCUSDT/timeframe=15m/data.parquet": "ab9eeb9400fb8d7ce45273a7b8ddfc6baa23b86475b967a18edc9f89a57c66ee",
+   "candles/symbol=BTCUSDT/timeframe=1h/data.parquet": "5535ee7493f8b37bb7dcaa717c593b443c45499bf794714a814314eb92c99b9d",
+   "candles/symbol=BTCUSDT/timeframe=1m/data.parquet": "7ec39effd8f5e5b2b167673c397629c5a08d67a6eff980fe9b90e08e0df021ab",
+   "candles/symbol=BTCUSDT/timeframe=4h/data.parquet": "01dec3936b12be6187eba8b479b5a4752aac44d163409d9e4251959b6010d3f9",
+   "funding/symbol=BTCUSDT/timeframe=-/data.parquet": "c8d527ae6b72ae3244e5e97c5d812c0a76effe9b55e4b63c8796df75682bced2"
+  },
+  "last_asof": {
+   "15m": 1793728800000,
+   "1h": 1793728800000,
+   "4h": 1793721600000
+  },
+  "rule": {
+   "epoch_ms": 1680307200000,
+   "block_days": 28,
+   "every": 3,
+   "phase": 0,
+   "m15_days": 14
+  },
+  "stretches": {
+   "4h": [
+    [
+     -1,
+     1680307200000,
+     1793721600000
+    ]
+   ],
+   "15m": [
+    [
+     0,
+     1680307200000,
+     1681516800000
+    ],
+    [
+     3,
+     1687564800000,
+     1688774400000
+    ],
+    [
+     6,
+     1694822400000,
+     1696032000000
+    ],
+    [
+     9,
+     1702080000000,
+     1703289600000
+    ],
+    [
+     12,
+     1709337600000,
+     1710547200000
+    ],
+    [
+     15,
+     1716595200000,
+     1717804800000
+    ],
+    [
+     18,
+     1723852800000,
+     1725062400000
+    ],
+    [
+     21,
+     1731110400000,
+     1732320000000
+    ],
+    [
+     24,
+     1738368000000,
+     1739577600000
+    ],
+    [
+     27,
+     1745625600000,
+     1746835200000
+    ],
+    [
+     30,
+     1752883200000,
+     1754092800000
+    ],
+    [
+     33,
+     1760140800000,
+     1761350400000
+    ],
+    [
+     36,
+     1767398400000,
+     1768608000000
+    ],
+    [
+     39,
+     1774656000000,
+     1775865600000
+    ],
+    [
+     42,
+     1781913600000,
+     1783123200000
+    ],
+    [
+     45,
+     1789171200000,
+     1790380800000
+    ]
+   ],
+   "1h": [
+    [
+     0,
+     1680307200000,
+     1682726400000
+    ],
+    [
+     3,
+     1687564800000,
+     1689984000000
+    ],
+    [
+     6,
+     1694822400000,
+     1697241600000
+    ],
+    [
+     9,
+     1702080000000,
+     1704499200000
+    ],
+    [
+     12,
+     1709337600000,
+     1711756800000
+    ],
+    [
+     15,
+     1716595200000,
+     1719014400000
+    ],
+    [
+     18,
+     1723852800000,
+     1726272000000
+    ],
+    [
+     21,
+     1731110400000,
+     1733529600000
+    ],
+    [
+     24,
+     1738368000000,
+     1740787200000
+    ],
+    [
+     27,
+     1745625600000,
+     1748044800000
+    ],
+    [
+     30,
+     1752883200000,
+     1755302400000
+    ],
+    [
+     33,
+     1760140800000,
+     1762560000000
+    ],
+    [
+     36,
+     1767398400000,
+     1769817600000
+    ],
+    [
+     39,
+     1774656000000,
+     1777075200000
+    ],
+    [
+     42,
+     1781913600000,
+     1784332800000
+    ],
+    [
+     45,
+     1789171200000,
+     1791590400000
+    ]
+   ]
+  },
+  "agents": {
+   "15m": [
+    "vwap"
+   ],
+   "1h": [
+    "ema",
+    "levels",
+    "literature",
+    "price_action",
+    "regime",
+    "structure",
+    "technical",
+    "vwap"
+   ],
+   "4h": [
+    "elliott",
+    "ema",
+    "levels",
+    "literature",
+    "structure",
+    "vwap"
+   ]
+  },
+  "native": {
+   "elliott": [
+    "metrics.pivots[-1].type",
+    "metrics.pivots[-1].wave_label",
+    "metrics.valid_count"
+   ],
+   "ema": [
+    "metrics.variables.BOUNCE_COUNT_21",
+    "metrics.variables.COMPRESSION_DURATION",
+    "metrics.variables.COMPRESSION_INDEX",
+    "metrics.variables.ELASTICITY",
+    "metrics.variables.EMA_21",
+    "metrics.variables.PRICE_VS_STACK",
+    "metrics.variables.SLOPE_DIRECTION",
+    "metrics.variables.STACK_ORDER"
+   ],
+   "levels": [
+    "metrics.atr",
+    "metrics.channel.kind",
+    "metrics.channel.r2",
+    "metrics.channel.slope_per_bar",
+    "metrics.channel.state",
+    "metrics.channel_pos",
+    "metrics.dist_resistance",
+    "metrics.dist_support",
+    "metrics.zones[].p_high",
+    "metrics.zones[].p_low",
+    "metrics.zones[].touches"
+   ],
+   "literature": [
+    "metrics.hits[].card_id",
+    "metrics.hits[].direction",
+    "metrics.hits[].strength"
+   ],
+   "price_action": [
+    "metrics.bearish_patterns",
+    "metrics.bullish_patterns",
+    "metrics.last_event",
+    "metrics.last_event_age",
+    "metrics.sr_zones"
+   ],
+   "regime": [
+    "metrics.regime",
+    "metrics.unstable"
+   ],
+   "structure": [
+    "bias",
+    "metrics.conviction",
+    "metrics.scenario"
+   ],
+   "technical": [
+    "metrics.families.tendencia",
+    "metrics.families.volumen",
+    "metrics.frames.1d.bias",
+    "metrics.frames.1h.bias",
+    "metrics.frames.4h.bias",
+    "metrics.regime.adx",
+    "metrics.regime.width_pct",
+    "metrics.votes.RSI"
+   ],
+   "vwap": [
+    "metrics.anchored_vwap",
+    "metrics.close",
+    "metrics.periods.daily.position",
+    "metrics.periods.daily.slope_pct",
+    "metrics.periods.daily.vwap",
+    "metrics.periods.weekly.position",
+    "metrics.periods.weekly.vwap"
+   ]
+  },
+  "prospects": {
+   "elliott_onda3": "4d968968896e",
+   "elliott_onda5_giro": "4f745cbeb4c5",
+   "ema_pila": "a8d6fa26a3aa",
+   "ema_resorte": "eafe7eef82e7",
+   "ema_retroceso": "51c2ec7a3ff7",
+   "ema_elastico": "4adf41d6152c",
+   "niveles_rebote": "43b679912604",
+   "niveles_ruptura": "7e110f1d368a",
+   "niveles_canal_extremos": "583d8c9cdad4",
+   "niveles_canal_tendencia": "3d4114cbe146",
+   "lit_consenso": "3e4036420348",
+   "lit_regla_4_semanas": "aa9cb2b3f8c7",
+   "lit_nison_giro": "bb30fcf2d405",
+   "lit_murphy_rsi": "9a752088158c",
+   "pa_bos": "2a07156f3c69",
+   "pa_choch": "8073a08a64c8",
+   "pa_patron_zona": "72f00c79c26d",
+   "pa_bos_patron": "091c0a0c5f4b",
+   "regimen_tramo": "22b697e89a4d",
+   "regimen_tramo_estable": "ed21cf948690",
+   "estructura_continuacion": "e10f6a3fe844",
+   "estructura_ruptura": "1d4c4f294f59",
+   "estructura_cambio": "30e8421a26c8",
+   "estructura_retroceso": "445ea1320e26",
+   "tec_acuerdo_marcos": "61b1b609e29f",
+   "tec_rsi_rango": "e23fcbe93ec1",
+   "tec_ruptura_volumen": "b93657b1ca3c",
+   "tec_compresion_bb": "01ea566b87e6",
+   "vwap_reversion": "57a35f14987e",
+   "vwap_tendencia": "db2a4c3fd26f",
+   "vwap_semanal": "3aff5f8d768a",
+   "vwap_anclado": "d723967cb38d"
+  },
+  "without_history": {
+   "bots_mayoria": "pide las señales del servicio de bots, que no se guardan",
+   "bots_unanimidad": "pide las señales del servicio de bots, que no se guardan",
+   "deriv_funding_contrario": "el agente exige interés abierto y el banco solo tiene funding",
+   "deriv_oi_tendencia": "el agente exige interés abierto y el banco solo tiene funding",
+   "deriv_saturacion": "el agente exige interés abierto y el banco solo tiene funding",
+   "deriv_largos_cortos": "el agente exige interés abierto y el banco solo tiene funding",
+   "liq_agotamiento": "pide liquidaciones en vivo, que el banco no tiene",
+   "liq_cascada": "pide liquidaciones en vivo, que el banco no tiene",
+   "liq_cascada_multibolsa": "pide liquidaciones en vivo, que el banco no tiene",
+   "micro_ofi": "pide la captura HFT, que el banco no tiene",
+   "micro_absorcion": "pide la captura HFT, que el banco no tiene"
+  }
+ },
+ "sample": {
+  "4h": {
+   "stretches": 1,
+   "contexts": 7876,
+   "expected": 7876,
+   "skipped": 0,
+   "days": 1312.7
+  },
+  "15m": {
+   "stretches": 16,
+   "contexts": 21504,
+   "expected": 21504,
+   "skipped": 0,
+   "days": 224.0
+  },
+  "1h": {
+   "stretches": 16,
+   "contexts": 10752,
+   "expected": 10752,
+   "skipped": 0,
+   "days": 448.0
+  }
+ },
+ "cost": {
+  "4h": {
+   "computed": 7752,
+   "seconds": 2751.5,
+   "rss_mb_max": 134.6,
+   "passes": 1,
+   "s_per_ctx": 0.355
+  },
+  "15m": {
+   "computed": 21444,
+   "seconds": 3451.6,
+   "rss_mb_max": 114.3,
+   "passes": 1,
+   "s_per_ctx": 0.161
+  },
+  "1h": {
+   "computed": 10692,
+   "seconds": 6576.6,
+   "rss_mb_max": 116.7,
+   "passes": 1,
+   "s_per_ctx": 0.615
+  }
+ },
+ "thresholds": {
+  "min_ops_month": {
+   "scalping": 20.0,
+   "intradia": 8.0,
+   "tres_dias": 5.0
+  },
+  "min_pos_days_frac": 0.3,
+  "max_cost_r": 0.3,
+  "term_days": 182,
+  "first_team_ops": 100,
+  "first_team_pos_days": 120,
+  "sigma_r_assumed": 1.0
+ },
+ "mintrl": [
+  {
+   "mu_r": 0.1,
+   "alpha": 0.05,
+   "z": 1.645,
+   "ops": 273
+  },
+  {
+   "mu_r": 0.1,
+   "alpha": 0.001,
+   "z": 3.09,
+   "ops": 961
+  },
+  {
+   "mu_r": 0.25,
+   "alpha": 0.05,
+   "z": 1.645,
+   "ops": 46
+  },
+  {
+   "mu_r": 0.25,
+   "alpha": 0.001,
+   "z": 3.09,
+   "ops": 159
+  }
+ ],
+ "prospects": [
+  {
+   "id": "elliott_onda3",
+   "agent": "elliott",
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "role": "base",
+   "physics": {
+    "days": 1312.67,
+    "ideas": 0,
+    "orders": 0,
+    "rejected": 0,
+    "filled": 0,
+    "unfilled": 0,
+    "closed": 0,
+    "censored": 0,
+    "ops_month": 0.0,
+    "ops_month_by_block": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "cost_r_mean": null,
+    "cost_r_sd": null,
+    "hold_h_median": null,
+    "hold_h_p25_p75": null,
+    "exposure": 0.0,
+    "pos_days_frac": 0.0,
+    "pos_days_by_block": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "turnover_month": 0.0,
+    "side_flips_month": 0.0,
+    "long_share": null,
+    "coverage": {
+     "contexts": 7876,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.pivots[-1].wave_label",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.valid_count",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.pivots[-1].type",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "semanal",
+    "measured_band": null,
+    "band": "semanal",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": true,
+    "reasons": [
+     "ninguna idea en toda la muestra: la regla no se cumple nunca",
+     "semanal en posición el 0 % de los días (< 30 %)"
+    ],
+    "borderline": [],
+    "expected_in_term": 0.0,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "elliott_onda5_giro",
+   "agent": "elliott",
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "role": "candidato",
+   "physics": {
+    "days": 1312.67,
+    "ideas": 0,
+    "orders": 0,
+    "rejected": 0,
+    "filled": 0,
+    "unfilled": 0,
+    "closed": 0,
+    "censored": 0,
+    "ops_month": 0.0,
+    "ops_month_by_block": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "cost_r_mean": null,
+    "cost_r_sd": null,
+    "hold_h_median": null,
+    "hold_h_p25_p75": null,
+    "exposure": 0.0,
+    "pos_days_frac": 0.0,
+    "pos_days_by_block": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "turnover_month": 0.0,
+    "side_flips_month": 0.0,
+    "long_share": null,
+    "coverage": {
+     "contexts": 7876,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.pivots[-1].wave_label",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.valid_count",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.pivots[-1].type",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "semanal",
+    "measured_band": null,
+    "band": "semanal",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": true,
+    "reasons": [
+     "ninguna idea en toda la muestra: la regla no se cumple nunca",
+     "semanal en posición el 0 % de los días (< 30 %)"
+    ],
+    "borderline": [],
+    "expected_in_term": 0.0,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "ema_pila",
+   "agent": "ema",
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "role": "base",
+   "physics": {
+    "days": 1312.67,
+    "ideas": 3866,
+    "orders": 214,
+    "rejected": 0,
+    "filled": 214,
+    "unfilled": 0,
+    "closed": 213,
+    "censored": 1,
+    "ops_month": 4.891,
+    "ops_month_by_block": [
+     5.36,
+     9.64,
+     6.43,
+     5.36,
+     3.21,
+     3.21,
+     3.21,
+     2.14,
+     6.43,
+     10.71,
+     2.14,
+     4.29,
+     2.14,
+     5.36,
+     5.36,
+     5.36,
+     2.14,
+     8.57,
+     2.14,
+     1.07,
+     4.29,
+     4.29,
+     1.07,
+     8.57,
+     7.5,
+     6.43,
+     3.21,
+     4.29,
+     4.29,
+     7.5,
+     5.36,
+     3.21,
+     6.43,
+     4.29,
+     3.21,
+     7.5,
+     6.43,
+     6.43,
+     5.36,
+     6.43,
+     4.29,
+     4.29,
+     2.14,
+     7.5,
+     4.29,
+     3.21,
+     3.65
+    ],
+    "cost_r_mean": 0.1042,
+    "cost_r_sd": 0.1515,
+    "hold_h_median": 36.0,
+    "hold_h_p25_p75": [
+     9.25,
+     104.0
+    ],
+    "exposure": 0.4761,
+    "pos_days_frac": 0.5957,
+    "pos_days_by_block": [
+     0.5,
+     0.714,
+     0.643,
+     0.607,
+     0.357,
+     0.75,
+     0.321,
+     0.929,
+     0.929,
+     0.607,
+     0.429,
+     0.821,
+     0.679,
+     0.429,
+     0.607,
+     0.464,
+     0.607,
+     0.571,
+     0.464,
+     0.393,
+     0.714,
+     0.893,
+     0.429,
+     0.679,
+     0.679,
+     0.5,
+     0.571,
+     0.929,
+     0.357,
+     0.786,
+     0.571,
+     0.393,
+     0.536,
+     0.571,
+     0.643,
+     0.643,
+     0.5,
+     0.893,
+     0.25,
+     0.821,
+     0.607,
+     0.607,
+     0.464,
+     0.429,
+     0.75,
+     0.607,
+     0.324
+    ],
+    "turnover_month": 4.96,
+    "side_flips_month": 0.708,
+    "long_share": 0.542,
+    "coverage": {
+     "contexts": 7876,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.variables.STACK_ORDER",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.variables.PRICE_VS_STACK",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "semanal",
+    "measured_band": "tres_dias",
+    "band": "tres_dias",
+    "reassigned": true,
+    "kept_with_declared_band": true,
+    "discarded": true,
+    "reasons": [
+     "tres_dias: 4,9 operaciones al mes (< 5)"
+    ],
+    "borderline": [
+     "cadencia"
+    ],
+    "expected_in_term": 29.7,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "ema_resorte",
+   "agent": "ema",
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 80,
+    "orders": 80,
+    "rejected": 0,
+    "filled": 80,
+    "unfilled": 0,
+    "closed": 80,
+    "censored": 0,
+    "ops_month": 5.357,
+    "ops_month_by_block": [
+     3.21,
+     3.21,
+     4.29,
+     6.43,
+     2.14,
+     6.43,
+     8.57,
+     3.21,
+     5.36,
+     6.43,
+     3.21,
+     5.36,
+     6.43,
+     8.57,
+     7.5,
+     5.36
+    ],
+    "cost_r_mean": 0.1248,
+    "cost_r_sd": 0.0404,
+    "hold_h_median": 1.62,
+    "hold_h_p25_p75": [
+     0.75,
+     3.75
+    ],
+    "exposure": 0.0206,
+    "pos_days_frac": 0.1897,
+    "pos_days_by_block": [
+     0.107,
+     0.143,
+     0.179,
+     0.25,
+     0.071,
+     0.25,
+     0.286,
+     0.107,
+     0.179,
+     0.179,
+     0.107,
+     0.25,
+     0.214,
+     0.25,
+     0.286,
+     0.179
+    ],
+    "turnover_month": 9.38,
+    "side_flips_month": 2.21,
+    "long_share": 0.55,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.variables.COMPRESSION_INDEX",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.variables.COMPRESSION_DURATION",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.variables.SLOPE_DIRECTION",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "scalping",
+    "band": "scalping",
+    "reassigned": true,
+    "kept_with_declared_band": false,
+    "discarded": true,
+    "reasons": [
+     "scalping: 5,4 operaciones al mes (< 20)"
+    ],
+    "borderline": [],
+    "expected_in_term": 32.5,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "ema_retroceso",
+   "agent": "ema",
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 195,
+    "orders": 168,
+    "rejected": 0,
+    "filled": 166,
+    "unfilled": 2,
+    "closed": 166,
+    "censored": 0,
+    "ops_month": 11.116,
+    "ops_month_by_block": [
+     6.43,
+     15.0,
+     13.93,
+     9.64,
+     13.93,
+     15.0,
+     9.64,
+     17.14,
+     7.5,
+     16.07,
+     7.5,
+     9.64,
+     7.5,
+     11.79,
+     6.43,
+     10.71
+    ],
+    "cost_r_mean": 0.1492,
+    "cost_r_sd": 0.0751,
+    "hold_h_median": 1.5,
+    "hold_h_p25_p75": [
+     0.75,
+     3.75
+    ],
+    "exposure": 0.048,
+    "pos_days_frac": 0.3192,
+    "pos_days_by_block": [
+     0.214,
+     0.429,
+     0.357,
+     0.25,
+     0.321,
+     0.393,
+     0.357,
+     0.464,
+     0.214,
+     0.393,
+     0.25,
+     0.25,
+     0.214,
+     0.393,
+     0.25,
+     0.357
+    ],
+    "turnover_month": 23.04,
+    "side_flips_month": 2.277,
+    "long_share": 0.645,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.variables.STACK_ORDER",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.variables.EMA_21",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.variables.BOUNCE_COUNT_21",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "scalping",
+    "band": "scalping",
+    "reassigned": true,
+    "kept_with_declared_band": true,
+    "discarded": true,
+    "reasons": [
+     "scalping: 11,1 operaciones al mes (< 20)"
+    ],
+    "borderline": [],
+    "expected_in_term": 67.4,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "ema_elastico",
+   "agent": "ema",
+   "timeframe": "1h",
+   "exit_template": "mean_target",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 1201,
+    "orders": 227,
+    "rejected": 0,
+    "filled": 222,
+    "unfilled": 5,
+    "closed": 221,
+    "censored": 1,
+    "ops_month": 14.866,
+    "ops_month_by_block": [
+     10.71,
+     7.5,
+     1.07,
+     3.21,
+     65.36,
+     0.0,
+     13.93,
+     53.57,
+     18.21,
+     12.86,
+     0.0,
+     20.36,
+     9.64,
+     8.57,
+     4.29,
+     8.57
+    ],
+    "cost_r_mean": 0.0772,
+    "cost_r_sd": 0.0609,
+    "hold_h_median": 3.25,
+    "hold_h_p25_p75": [
+     1.0,
+     7.75
+    ],
+    "exposure": 0.0988,
+    "pos_days_frac": 0.2299,
+    "pos_days_by_block": [
+     0.25,
+     0.071,
+     0.036,
+     0.071,
+     0.714,
+     0.0,
+     0.286,
+     0.571,
+     0.214,
+     0.25,
+     0.0,
+     0.357,
+     0.286,
+     0.321,
+     0.107,
+     0.143
+    ],
+    "turnover_month": 21.32,
+    "side_flips_month": 0.938,
+    "long_share": 0.297,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.variables.ELASTICITY",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.variables.EMA_21",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 90.2,
+    "no_first_team": true,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 550.7
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 1938.8
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 92.1
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 320.0
+     }
+    }
+   }
+  },
+  {
+   "id": "niveles_rebote",
+   "agent": "levels",
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "role": "base",
+   "physics": {
+    "days": 448.0,
+    "ideas": 3075,
+    "orders": 1364,
+    "rejected": 0,
+    "filled": 1335,
+    "unfilled": 29,
+    "closed": 1331,
+    "censored": 4,
+    "ops_month": 89.397,
+    "ops_month_by_block": [
+     88.93,
+     103.93,
+     68.57,
+     82.5,
+     84.64,
+     99.64,
+     96.43,
+     78.21,
+     91.07,
+     90.0,
+     100.71,
+     97.5,
+     71.79,
+     100.71,
+     100.71,
+     75.0
+    ],
+    "cost_r_mean": 0.1418,
+    "cost_r_sd": 0.0616,
+    "hold_h_median": 1.5,
+    "hold_h_p25_p75": [
+     0.75,
+     3.0
+    ],
+    "exposure": 0.3512,
+    "pos_days_frac": 0.9397,
+    "pos_days_by_block": [
+     0.929,
+     1.0,
+     1.0,
+     0.893,
+     0.964,
+     1.0,
+     0.893,
+     0.893,
+     0.857,
+     0.893,
+     1.0,
+     0.929,
+     0.893,
+     0.964,
+     1.0,
+     0.929
+    ],
+    "turnover_month": 175.89,
+    "side_flips_month": 39.174,
+    "long_share": 0.498,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.dist_support",
+       "with_value": 0.8793
+      },
+      {
+       "variable": "metrics.dist_resistance",
+       "with_value": 0.8505
+      },
+      {
+       "variable": "metrics.atr",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.zones[].touches",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.zones[].p_low",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.zones[].p_high",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "scalping",
+    "band": "scalping",
+    "reassigned": true,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 542.3,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 91.6
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 322.4
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 15.3
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 53.2
+     }
+    }
+   }
+  },
+  {
+   "id": "niveles_ruptura",
+   "agent": "levels",
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 286,
+    "orders": 263,
+    "rejected": 0,
+    "filled": 254,
+    "unfilled": 9,
+    "closed": 247,
+    "censored": 7,
+    "ops_month": 17.009,
+    "ops_month_by_block": [
+     18.21,
+     21.43,
+     18.21,
+     13.93,
+     15.0,
+     19.29,
+     13.93,
+     16.07,
+     11.79,
+     21.43,
+     15.0,
+     16.07,
+     21.43,
+     12.86,
+     19.29,
+     18.21
+    ],
+    "cost_r_mean": 0.153,
+    "cost_r_sd": 0.0914,
+    "hold_h_median": 6.5,
+    "hold_h_p25_p75": [
+     2.25,
+     16.25
+    ],
+    "exposure": 0.2946,
+    "pos_days_frac": 0.6696,
+    "pos_days_by_block": [
+     0.679,
+     0.679,
+     0.679,
+     0.643,
+     0.536,
+     0.714,
+     0.643,
+     0.714,
+     0.571,
+     0.714,
+     0.75,
+     0.607,
+     0.821,
+     0.5,
+     0.679,
+     0.786
+    ],
+    "turnover_month": 32.16,
+    "side_flips_month": 6.964,
+    "long_share": 0.524,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.channel.state",
+       "with_value": 0.9042
+      },
+      {
+       "variable": "metrics.channel.kind",
+       "with_value": 0.9042
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "tres_dias",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": true,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 103.2,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 481.3
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 1694.5
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 80.5
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 279.7
+     }
+    }
+   }
+  },
+  {
+   "id": "niveles_canal_extremos",
+   "agent": "levels",
+   "timeframe": "1h",
+   "exit_template": "mean_target",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 1740,
+    "orders": 398,
+    "rejected": 0,
+    "filled": 391,
+    "unfilled": 7,
+    "closed": 382,
+    "censored": 9,
+    "ops_month": 26.183,
+    "ops_month_by_block": [
+     26.79,
+     26.79,
+     30.0,
+     28.93,
+     28.93,
+     32.14,
+     26.79,
+     21.43,
+     24.64,
+     24.64,
+     26.79,
+     24.64,
+     22.5,
+     23.57,
+     28.93,
+     21.43
+    ],
+    "cost_r_mean": 0.1758,
+    "cost_r_sd": 0.1078,
+    "hold_h_median": 10.88,
+    "hold_h_p25_p75": [
+     4.06,
+     24.0
+    ],
+    "exposure": 0.4674,
+    "pos_days_frac": 0.8281,
+    "pos_days_by_block": [
+     0.75,
+     0.857,
+     0.893,
+     0.821,
+     0.893,
+     0.929,
+     0.821,
+     0.786,
+     0.857,
+     0.75,
+     0.786,
+     0.857,
+     0.75,
+     0.821,
+     0.857,
+     0.821
+    ],
+    "turnover_month": 52.2,
+    "side_flips_month": 7.835,
+    "long_share": 0.486,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.channel.state",
+       "with_value": 0.9042
+      },
+      {
+       "variable": "metrics.channel_pos",
+       "with_value": 0.9042
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 158.8,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 312.7
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 1100.8
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 52.3
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 181.7
+     }
+    }
+   }
+  },
+  {
+   "id": "niveles_canal_tendencia",
+   "agent": "levels",
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "role": "candidato",
+   "physics": {
+    "days": 1312.67,
+    "ideas": 1518,
+    "orders": 150,
+    "rejected": 0,
+    "filled": 148,
+    "unfilled": 2,
+    "closed": 148,
+    "censored": 0,
+    "ops_month": 3.382,
+    "ops_month_by_block": [
+     5.36,
+     2.14,
+     0.0,
+     2.14,
+     5.36,
+     2.14,
+     3.21,
+     5.36,
+     2.14,
+     2.14,
+     0.0,
+     4.29,
+     7.5,
+     2.14,
+     1.07,
+     3.21,
+     5.36,
+     5.36,
+     1.07,
+     1.07,
+     4.29,
+     7.5,
+     2.14,
+     1.07,
+     2.14,
+     3.21,
+     0.0,
+     6.43,
+     1.07,
+     2.14,
+     8.57,
+     4.29,
+     2.14,
+     1.07,
+     10.71,
+     0.0,
+     4.29,
+     3.21,
+     2.14,
+     4.29,
+     6.43,
+     3.21,
+     0.0,
+     7.5,
+     4.29,
+     1.07,
+     4.86
+    ],
+    "cost_r_mean": 0.0945,
+    "cost_r_sd": 0.0604,
+    "hold_h_median": 20.88,
+    "hold_h_p25_p75": [
+     5.94,
+     56.38
+    ],
+    "exposure": 0.2118,
+    "pos_days_frac": 0.2887,
+    "pos_days_by_block": [
+     0.179,
+     0.25,
+     0.071,
+     0.286,
+     0.464,
+     0.107,
+     0.179,
+     0.286,
+     0.821,
+     0.286,
+     0.0,
+     0.286,
+     0.357,
+     0.107,
+     0.071,
+     0.571,
+     0.571,
+     0.25,
+     0.107,
+     0.214,
+     0.357,
+     0.643,
+     0.429,
+     0.107,
+     0.357,
+     0.429,
+     0.0,
+     0.75,
+     0.179,
+     0.143,
+     0.393,
+     0.179,
+     0.107,
+     0.214,
+     0.643,
+     0.0,
+     0.286,
+     0.393,
+     0.071,
+     0.321,
+     0.643,
+     0.286,
+     0.071,
+     0.429,
+     0.143,
+     0.286,
+     0.243
+    ],
+    "turnover_month": 3.47,
+    "side_flips_month": 0.526,
+    "long_share": 0.615,
+    "coverage": {
+     "contexts": 7876,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.channel.state",
+       "with_value": 0.9191
+      },
+      {
+       "variable": "metrics.channel.r2",
+       "with_value": 0.9191
+      },
+      {
+       "variable": "metrics.channel.slope_per_bar",
+       "with_value": 0.9191
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "semanal",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": true,
+    "kept_with_declared_band": false,
+    "discarded": true,
+    "reasons": [
+     "intradia: 3,4 operaciones al mes (< 8)"
+    ],
+    "borderline": [],
+    "expected_in_term": 20.5,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "lit_consenso",
+   "agent": "literature",
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "role": "base",
+   "physics": {
+    "days": 448.0,
+    "ideas": 804,
+    "orders": 521,
+    "rejected": 0,
+    "filled": 513,
+    "unfilled": 8,
+    "closed": 508,
+    "censored": 5,
+    "ops_month": 34.353,
+    "ops_month_by_block": [
+     35.36,
+     25.71,
+     28.93,
+     35.36,
+     39.64,
+     23.57,
+     39.64,
+     35.36,
+     36.43,
+     40.71,
+     37.5,
+     34.29,
+     34.29,
+     34.29,
+     33.21,
+     35.36
+    ],
+    "cost_r_mean": 0.1505,
+    "cost_r_sd": 0.0975,
+    "hold_h_median": 12.0,
+    "hold_h_p25_p75": [
+     4.0,
+     12.0
+    ],
+    "exposure": 0.398,
+    "pos_days_frac": 0.9062,
+    "pos_days_by_block": [
+     0.893,
+     0.786,
+     0.857,
+     1.0,
+     0.893,
+     0.857,
+     0.964,
+     0.929,
+     0.929,
+     0.964,
+     0.857,
+     0.893,
+     0.893,
+     0.893,
+     0.929,
+     0.964
+    ],
+    "turnover_month": 64.41,
+    "side_flips_month": 12.388,
+    "long_share": 0.491,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.hits[].direction",
+       "with_value": 0.0748
+      },
+      {
+       "variable": "metrics.hits[].strength",
+       "with_value": 0.0748
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 208.4,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 238.3
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 839.0
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 39.9
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 138.5
+     }
+    }
+   }
+  },
+  {
+   "id": "lit_regla_4_semanas",
+   "agent": "literature",
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "role": "candidato",
+   "physics": {
+    "days": 1312.67,
+    "ideas": 185,
+    "orders": 44,
+    "rejected": 0,
+    "filled": 44,
+    "unfilled": 0,
+    "closed": 44,
+    "censored": 0,
+    "ops_month": 1.006,
+    "ops_month_by_block": [
+     1.07,
+     1.07,
+     3.21,
+     0.0,
+     2.14,
+     0.0,
+     0.0,
+     1.07,
+     0.0,
+     0.0,
+     1.07,
+     1.07,
+     0.0,
+     0.0,
+     2.14,
+     1.07,
+     0.0,
+     3.21,
+     1.07,
+     1.07,
+     3.21,
+     0.0,
+     0.0,
+     2.14,
+     1.07,
+     0.0,
+     2.14,
+     0.0,
+     0.0,
+     1.07,
+     0.0,
+     1.07,
+     2.14,
+     1.07,
+     1.07,
+     0.0,
+     3.21,
+     0.0,
+     0.0,
+     3.21,
+     2.14,
+     2.14,
+     0.0,
+     1.07,
+     1.07,
+     0.0,
+     0.0
+    ],
+    "cost_r_mean": 0.2606,
+    "cost_r_sd": 0.5598,
+    "hold_h_median": 62.38,
+    "hold_h_p25_p75": [
+     17.31,
+     809.94
+    ],
+    "exposure": 0.5788,
+    "pos_days_frac": 0.6087,
+    "pos_days_by_block": [
+     0.286,
+     0.143,
+     0.214,
+     1.0,
+     0.214,
+     1.0,
+     0.571,
+     0.679,
+     1.0,
+     1.0,
+     0.643,
+     0.786,
+     1.0,
+     1.0,
+     0.321,
+     0.286,
+     1.0,
+     0.143,
+     0.143,
+     0.179,
+     0.5,
+     1.0,
+     1.0,
+     0.5,
+     0.143,
+     0.071,
+     0.179,
+     1.0,
+     1.0,
+     0.429,
+     1.0,
+     0.536,
+     0.393,
+     0.071,
+     0.821,
+     1.0,
+     0.607,
+     1.0,
+     0.643,
+     0.179,
+     0.179,
+     0.857,
+     1.0,
+     0.214,
+     0.857,
+     1.0,
+     0.851
+    ],
+    "turnover_month": 0.97,
+    "side_flips_month": 0.503,
+    "long_share": 0.568,
+    "coverage": {
+     "contexts": 7876,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.hits[].card_id",
+       "with_value": 0.1067
+      },
+      {
+       "variable": "metrics.hits[].direction",
+       "with_value": 0.1067
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "semanal",
+    "measured_band": "tres_dias",
+    "band": "tres_dias",
+    "reassigned": true,
+    "kept_with_declared_band": true,
+    "discarded": true,
+    "reasons": [
+     "tres_dias: 1,0 operaciones al mes (< 5)"
+    ],
+    "borderline": [
+     "costo"
+    ],
+    "expected_in_term": 6.1,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "lit_nison_giro",
+   "agent": "literature",
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 581,
+    "orders": 417,
+    "rejected": 0,
+    "filled": 413,
+    "unfilled": 4,
+    "closed": 408,
+    "censored": 5,
+    "ops_month": 27.656,
+    "ops_month_by_block": [
+     25.71,
+     22.5,
+     23.57,
+     31.07,
+     34.29,
+     21.43,
+     35.36,
+     30.0,
+     31.07,
+     33.21,
+     28.93,
+     26.79,
+     24.64,
+     27.86,
+     19.29,
+     26.79
+    ],
+    "cost_r_mean": 0.149,
+    "cost_r_sd": 0.0812,
+    "hold_h_median": 12.0,
+    "hold_h_p25_p75": [
+     4.0,
+     12.0
+    ],
+    "exposure": 0.321,
+    "pos_days_frac": 0.8281,
+    "pos_days_by_block": [
+     0.857,
+     0.643,
+     0.821,
+     0.964,
+     0.893,
+     0.786,
+     0.893,
+     0.857,
+     0.893,
+     0.929,
+     0.786,
+     0.786,
+     0.75,
+     0.821,
+     0.679,
+     0.893
+    ],
+    "turnover_month": 52.09,
+    "side_flips_month": 11.719,
+    "long_share": 0.484,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.hits[].card_id",
+       "with_value": 0.0748
+      },
+      {
+       "variable": "metrics.hits[].direction",
+       "with_value": 0.0748
+      },
+      {
+       "variable": "metrics.hits[].strength",
+       "with_value": 0.0748
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 167.8,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 296.0
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 1042.1
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 49.5
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 172.0
+     }
+    }
+   }
+  },
+  {
+   "id": "lit_murphy_rsi",
+   "agent": "literature",
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 288,
+    "orders": 238,
+    "rejected": 0,
+    "filled": 233,
+    "unfilled": 5,
+    "closed": 231,
+    "censored": 2,
+    "ops_month": 15.603,
+    "ops_month_by_block": [
+     17.14,
+     8.57,
+     13.93,
+     15.0,
+     17.14,
+     13.93,
+     11.79,
+     16.07,
+     15.0,
+     15.0,
+     17.14,
+     20.36,
+     19.29,
+     11.79,
+     19.29,
+     18.21
+    ],
+    "cost_r_mean": 0.1403,
+    "cost_r_sd": 0.1093,
+    "hold_h_median": 11.25,
+    "hold_h_p25_p75": [
+     3.88,
+     12.0
+    ],
+    "exposure": 0.1799,
+    "pos_days_frac": 0.5201,
+    "pos_days_by_block": [
+     0.429,
+     0.429,
+     0.607,
+     0.536,
+     0.536,
+     0.643,
+     0.464,
+     0.536,
+     0.5,
+     0.393,
+     0.393,
+     0.714,
+     0.571,
+     0.393,
+     0.607,
+     0.571
+    ],
+    "turnover_month": 26.65,
+    "side_flips_month": 5.089,
+    "long_share": 0.494,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.hits[].card_id",
+       "with_value": 0.0748
+      },
+      {
+       "variable": "metrics.hits[].direction",
+       "with_value": 0.0748
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 94.7,
+    "no_first_team": true,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 524.7
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 1847.2
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 87.8
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 304.9
+     }
+    }
+   }
+  },
+  {
+   "id": "pa_bos",
+   "agent": "price_action",
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "role": "base",
+   "physics": {
+    "days": 448.0,
+    "ideas": 461,
+    "orders": 298,
+    "rejected": 0,
+    "filled": 294,
+    "unfilled": 4,
+    "closed": 289,
+    "censored": 5,
+    "ops_month": 19.688,
+    "ops_month_by_block": [
+     16.07,
+     19.29,
+     18.21,
+     26.79,
+     16.07,
+     19.29,
+     22.5,
+     23.57,
+     22.5,
+     21.43,
+     13.93,
+     20.36,
+     16.07,
+     24.64,
+     19.29,
+     15.0
+    ],
+    "cost_r_mean": 0.1857,
+    "cost_r_sd": 0.103,
+    "hold_h_median": 9.0,
+    "hold_h_p25_p75": [
+     4.0,
+     18.5
+    ],
+    "exposure": 0.3773,
+    "pos_days_frac": 0.8125,
+    "pos_days_by_block": [
+     0.857,
+     0.571,
+     0.821,
+     0.893,
+     0.786,
+     0.75,
+     0.893,
+     0.75,
+     0.964,
+     0.821,
+     0.75,
+     0.893,
+     0.857,
+     0.857,
+     0.786,
+     0.75
+    ],
+    "turnover_month": 41.72,
+    "side_flips_month": 11.116,
+    "long_share": 0.541,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.last_event",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.last_event_age",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "tres_dias",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": true,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 119.4,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 415.9
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 1464.0
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 69.5
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 241.6
+     }
+    }
+   }
+  },
+  {
+   "id": "pa_choch",
+   "agent": "price_action",
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 498,
+    "orders": 316,
+    "rejected": 0,
+    "filled": 308,
+    "unfilled": 8,
+    "closed": 299,
+    "censored": 9,
+    "ops_month": 20.625,
+    "ops_month_by_block": [
+     19.29,
+     21.43,
+     23.57,
+     19.29,
+     15.0,
+     22.5,
+     18.21,
+     25.71,
+     18.21,
+     22.5,
+     21.43,
+     22.5,
+     19.29,
+     23.57,
+     18.21,
+     19.29
+    ],
+    "cost_r_mean": 0.1795,
+    "cost_r_sd": 0.1075,
+    "hold_h_median": 9.75,
+    "hold_h_p25_p75": [
+     3.75,
+     20.0
+    ],
+    "exposure": 0.4136,
+    "pos_days_frac": 0.8504,
+    "pos_days_by_block": [
+     0.821,
+     0.929,
+     0.786,
+     0.929,
+     0.786,
+     0.893,
+     0.679,
+     0.929,
+     0.714,
+     0.857,
+     0.893,
+     0.857,
+     0.857,
+     0.964,
+     0.857,
+     0.857
+    ],
+    "turnover_month": 44.66,
+    "side_flips_month": 8.304,
+    "long_share": 0.481,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.last_event",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.last_event_age",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "tres_dias",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": true,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 125.1,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 397.0
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 1397.4
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 66.4
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 230.6
+     }
+    }
+   }
+  },
+  {
+   "id": "pa_patron_zona",
+   "agent": "price_action",
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 5909,
+    "orders": 981,
+    "rejected": 0,
+    "filled": 968,
+    "unfilled": 13,
+    "closed": 955,
+    "censored": 13,
+    "ops_month": 64.821,
+    "ops_month_by_block": [
+     61.07,
+     71.79,
+     62.14,
+     68.57,
+     61.07,
+     70.71,
+     63.21,
+     65.36,
+     60.0,
+     62.14,
+     64.29,
+     61.07,
+     64.29,
+     70.71,
+     62.14,
+     68.57
+    ],
+    "cost_r_mean": 0.1651,
+    "cost_r_sd": 0.0968,
+    "hold_h_median": 11.75,
+    "hold_h_p25_p75": [
+     4.25,
+     12.0
+    ],
+    "exposure": 0.7567,
+    "pos_days_frac": 0.9955,
+    "pos_days_by_block": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     0.964,
+     0.964,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "turnover_month": 134.68,
+    "side_flips_month": 36.027,
+    "long_share": 0.495,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.bullish_patterns",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.bearish_patterns",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.sr_zones",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 393.2,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 126.3
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 444.6
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 21.1
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 73.4
+     }
+    }
+   }
+  },
+  {
+   "id": "pa_bos_patron",
+   "agent": "price_action",
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 385,
+    "orders": 263,
+    "rejected": 0,
+    "filled": 260,
+    "unfilled": 3,
+    "closed": 255,
+    "censored": 5,
+    "ops_month": 17.411,
+    "ops_month_by_block": [
+     15.0,
+     16.07,
+     17.14,
+     22.5,
+     13.93,
+     17.14,
+     22.5,
+     18.21,
+     19.29,
+     19.29,
+     10.71,
+     19.29,
+     13.93,
+     21.43,
+     18.21,
+     13.93
+    ],
+    "cost_r_mean": 0.1882,
+    "cost_r_sd": 0.1039,
+    "hold_h_median": 9.0,
+    "hold_h_p25_p75": [
+     3.5,
+     18.0
+    ],
+    "exposure": 0.3252,
+    "pos_days_frac": 0.7299,
+    "pos_days_by_block": [
+     0.821,
+     0.5,
+     0.786,
+     0.786,
+     0.75,
+     0.679,
+     0.821,
+     0.571,
+     0.893,
+     0.786,
+     0.607,
+     0.75,
+     0.786,
+     0.75,
+     0.679,
+     0.714
+    ],
+    "turnover_month": 37.13,
+    "side_flips_month": 9.509,
+    "long_share": 0.542,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.last_event",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.last_event_age",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.bullish_patterns",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.bearish_patterns",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "tres_dias",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": true,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 105.6,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 470.2
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 1655.4
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 78.6
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 273.2
+     }
+    }
+   }
+  },
+  {
+   "id": "regimen_tramo",
+   "agent": "regime",
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "role": "base",
+   "physics": {
+    "days": 448.0,
+    "ideas": 256,
+    "orders": 68,
+    "rejected": 0,
+    "filled": 68,
+    "unfilled": 0,
+    "closed": 68,
+    "censored": 0,
+    "ops_month": 4.554,
+    "ops_month_by_block": [
+     6.43,
+     1.07,
+     1.07,
+     3.21,
+     6.43,
+     1.07,
+     5.36,
+     5.36,
+     6.43,
+     2.14,
+     7.5,
+     5.36,
+     6.43,
+     7.5,
+     3.21,
+     4.29
+    ],
+    "cost_r_mean": 0.1358,
+    "cost_r_sd": 0.0736,
+    "hold_h_median": 2.0,
+    "hold_h_p25_p75": [
+     1.0,
+     5.0
+    ],
+    "exposure": 0.0237,
+    "pos_days_frac": 0.1116,
+    "pos_days_by_block": [
+     0.143,
+     0.036,
+     0.036,
+     0.036,
+     0.179,
+     0.036,
+     0.107,
+     0.143,
+     0.071,
+     0.071,
+     0.179,
+     0.107,
+     0.214,
+     0.179,
+     0.107,
+     0.143
+    ],
+    "turnover_month": 8.21,
+    "side_flips_month": 1.339,
+    "long_share": 0.632,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.regime",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "tres_dias",
+    "measured_band": "scalping",
+    "band": "scalping",
+    "reassigned": true,
+    "kept_with_declared_band": false,
+    "discarded": true,
+    "reasons": [
+     "scalping: 4,6 operaciones al mes (< 20)"
+    ],
+    "borderline": [],
+    "expected_in_term": 27.6,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "regimen_tramo_estable",
+   "agent": "regime",
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 256,
+    "orders": 68,
+    "rejected": 0,
+    "filled": 68,
+    "unfilled": 0,
+    "closed": 68,
+    "censored": 0,
+    "ops_month": 4.554,
+    "ops_month_by_block": [
+     6.43,
+     1.07,
+     1.07,
+     3.21,
+     6.43,
+     1.07,
+     5.36,
+     5.36,
+     6.43,
+     2.14,
+     7.5,
+     5.36,
+     6.43,
+     7.5,
+     3.21,
+     4.29
+    ],
+    "cost_r_mean": 0.1358,
+    "cost_r_sd": 0.0736,
+    "hold_h_median": 2.0,
+    "hold_h_p25_p75": [
+     1.0,
+     5.0
+    ],
+    "exposure": 0.0237,
+    "pos_days_frac": 0.1116,
+    "pos_days_by_block": [
+     0.143,
+     0.036,
+     0.036,
+     0.036,
+     0.179,
+     0.036,
+     0.107,
+     0.143,
+     0.071,
+     0.071,
+     0.179,
+     0.107,
+     0.214,
+     0.179,
+     0.107,
+     0.143
+    ],
+    "turnover_month": 8.21,
+    "side_flips_month": 1.339,
+    "long_share": 0.632,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.regime",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.unstable",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "tres_dias",
+    "measured_band": "scalping",
+    "band": "scalping",
+    "reassigned": true,
+    "kept_with_declared_band": false,
+    "discarded": true,
+    "reasons": [
+     "scalping: 4,6 operaciones al mes (< 20)"
+    ],
+    "borderline": [],
+    "expected_in_term": 27.6,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "estructura_continuacion",
+   "agent": "structure",
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "role": "base",
+   "physics": {
+    "days": 1312.67,
+    "ideas": 699,
+    "orders": 699,
+    "rejected": 0,
+    "filled": 695,
+    "unfilled": 4,
+    "closed": 695,
+    "censored": 0,
+    "ops_month": 15.884,
+    "ops_month_by_block": [
+     21.43,
+     3.21,
+     13.93,
+     20.36,
+     0.0,
+     5.36,
+     17.14,
+     36.43,
+     31.07,
+     18.21,
+     11.79,
+     36.43,
+     25.71,
+     12.86,
+     17.14,
+     15.0,
+     10.71,
+     8.57,
+     9.64,
+     21.43,
+     19.29,
+     33.21,
+     15.0,
+     19.29,
+     1.07,
+     9.64,
+     19.29,
+     34.29,
+     15.0,
+     31.07,
+     15.0,
+     7.5,
+     20.36,
+     5.36,
+     5.36,
+     8.57,
+     12.86,
+     0.0,
+     16.07,
+     21.43,
+     18.21,
+     5.36,
+     18.21,
+     9.64,
+     23.57,
+     21.43,
+     2.43
+    ],
+    "cost_r_mean": 0.0697,
+    "cost_r_sd": 0.0287,
+    "hold_h_median": 4.0,
+    "hold_h_p25_p75": [
+     4.0,
+     8.0
+    ],
+    "exposure": 0.1324,
+    "pos_days_frac": 0.4068,
+    "pos_days_by_block": [
+     0.571,
+     0.143,
+     0.321,
+     0.5,
+     0.0,
+     0.107,
+     0.464,
+     0.893,
+     0.679,
+     0.536,
+     0.321,
+     0.714,
+     0.607,
+     0.357,
+     0.429,
+     0.393,
+     0.179,
+     0.25,
+     0.286,
+     0.536,
+     0.571,
+     0.857,
+     0.429,
+     0.5,
+     0.036,
+     0.286,
+     0.464,
+     0.786,
+     0.393,
+     0.786,
+     0.5,
+     0.25,
+     0.536,
+     0.143,
+     0.214,
+     0.214,
+     0.357,
+     0.0,
+     0.429,
+     0.571,
+     0.393,
+     0.143,
+     0.393,
+     0.25,
+     0.607,
+     0.643,
+     0.041
+    ],
+    "turnover_month": 16.69,
+    "side_flips_month": 0.0,
+    "long_share": 1.0,
+    "coverage": {
+     "contexts": 7876,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.scenario",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.conviction",
+       "with_value": 1.0
+      },
+      {
+       "variable": "bias",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "semanal",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": true,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 96.4,
+    "no_first_team": true,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 515.4
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 1814.6
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 86.2
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 299.5
+     }
+    }
+   }
+  },
+  {
+   "id": "estructura_ruptura",
+   "agent": "structure",
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 0,
+    "orders": 0,
+    "rejected": 0,
+    "filled": 0,
+    "unfilled": 0,
+    "closed": 0,
+    "censored": 0,
+    "ops_month": 0.0,
+    "ops_month_by_block": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "cost_r_mean": null,
+    "cost_r_sd": null,
+    "hold_h_median": null,
+    "hold_h_p25_p75": null,
+    "exposure": 0.0,
+    "pos_days_frac": 0.0,
+    "pos_days_by_block": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "turnover_month": 0.0,
+    "side_flips_month": 0.0,
+    "long_share": null,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.scenario",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.conviction",
+       "with_value": 1.0
+      },
+      {
+       "variable": "bias",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": null,
+    "band": "intradia",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": true,
+    "reasons": [
+     "ninguna idea en toda la muestra: la regla no se cumple nunca",
+     "intradia: 0,0 operaciones al mes (< 8)"
+    ],
+    "borderline": [],
+    "expected_in_term": 0.0,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "estructura_cambio",
+   "agent": "structure",
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 110,
+    "orders": 103,
+    "rejected": 0,
+    "filled": 102,
+    "unfilled": 1,
+    "closed": 102,
+    "censored": 0,
+    "ops_month": 6.83,
+    "ops_month_by_block": [
+     10.71,
+     8.57,
+     1.07,
+     7.5,
+     13.93,
+     2.14,
+     4.29,
+     16.07,
+     2.14,
+     13.93,
+     0.0,
+     4.29,
+     4.29,
+     9.64,
+     7.5,
+     3.21
+    ],
+    "cost_r_mean": 0.1361,
+    "cost_r_sd": 0.0502,
+    "hold_h_median": 1.5,
+    "hold_h_p25_p75": [
+     0.75,
+     2.94
+    ],
+    "exposure": 0.0248,
+    "pos_days_frac": 0.192,
+    "pos_days_by_block": [
+     0.357,
+     0.214,
+     0.036,
+     0.179,
+     0.393,
+     0.071,
+     0.179,
+     0.393,
+     0.071,
+     0.25,
+     0.0,
+     0.107,
+     0.179,
+     0.286,
+     0.25,
+     0.107
+    ],
+    "turnover_month": 12.65,
+    "side_flips_month": 0.0,
+    "long_share": 1.0,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.scenario",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.conviction",
+       "with_value": 1.0
+      },
+      {
+       "variable": "bias",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "scalping",
+    "band": "scalping",
+    "reassigned": true,
+    "kept_with_declared_band": false,
+    "discarded": true,
+    "reasons": [
+     "scalping: 6,8 operaciones al mes (< 20)"
+    ],
+    "borderline": [],
+    "expected_in_term": 41.4,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "estructura_retroceso",
+   "agent": "structure",
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 440,
+    "orders": 364,
+    "rejected": 0,
+    "filled": 357,
+    "unfilled": 7,
+    "closed": 357,
+    "censored": 0,
+    "ops_month": 23.906,
+    "ops_month_by_block": [
+     24.64,
+     12.86,
+     7.5,
+     15.0,
+     56.79,
+     9.64,
+     24.64,
+     56.79,
+     2.14,
+     39.64,
+     7.5,
+     19.29,
+     16.07,
+     43.93,
+     25.71,
+     20.36
+    ],
+    "cost_r_mean": 0.1253,
+    "cost_r_sd": 0.0478,
+    "hold_h_median": 1.5,
+    "hold_h_p25_p75": [
+     0.75,
+     3.5
+    ],
+    "exposure": 0.0981,
+    "pos_days_frac": 0.375,
+    "pos_days_by_block": [
+     0.393,
+     0.321,
+     0.143,
+     0.321,
+     0.714,
+     0.143,
+     0.429,
+     0.786,
+     0.036,
+     0.607,
+     0.107,
+     0.286,
+     0.286,
+     0.679,
+     0.429,
+     0.321
+    ],
+    "turnover_month": 40.51,
+    "side_flips_month": 0.0,
+    "long_share": 1.0,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.scenario",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.conviction",
+       "with_value": 1.0
+      },
+      {
+       "variable": "bias",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "scalping",
+    "band": "scalping",
+    "reassigned": true,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 145.0,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 342.5
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 1205.6
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 57.3
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 199.0
+     }
+    }
+   }
+  },
+  {
+   "id": "tec_acuerdo_marcos",
+   "agent": "technical",
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "role": "base",
+   "physics": {
+    "days": 448.0,
+    "ideas": 0,
+    "orders": 0,
+    "rejected": 0,
+    "filled": 0,
+    "unfilled": 0,
+    "closed": 0,
+    "censored": 0,
+    "ops_month": 0.0,
+    "ops_month_by_block": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "cost_r_mean": null,
+    "cost_r_sd": null,
+    "hold_h_median": null,
+    "hold_h_p25_p75": null,
+    "exposure": 0.0,
+    "pos_days_frac": 0.0,
+    "pos_days_by_block": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "turnover_month": 0.0,
+    "side_flips_month": 0.0,
+    "long_share": null,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.frames.1h.bias",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.frames.4h.bias",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.frames.1d.bias",
+       "with_value": 0.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "tres_dias",
+    "measured_band": null,
+    "band": "tres_dias",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": true,
+    "reasons": [
+     "ninguna idea en toda la muestra: la regla no se cumple nunca",
+     "tres_dias: 0,0 operaciones al mes (< 5)"
+    ],
+    "borderline": [],
+    "expected_in_term": 0.0,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "tec_rsi_rango",
+   "agent": "technical",
+   "timeframe": "1h",
+   "exit_template": "time_stop",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 116,
+    "orders": 99,
+    "rejected": 0,
+    "filled": 98,
+    "unfilled": 1,
+    "closed": 98,
+    "censored": 0,
+    "ops_month": 6.562,
+    "ops_month_by_block": [
+     8.57,
+     6.43,
+     6.43,
+     5.36,
+     10.71,
+     5.36,
+     0.0,
+     9.64,
+     6.43,
+     9.64,
+     10.71,
+     5.36,
+     3.21,
+     5.36,
+     3.21,
+     8.57
+    ],
+    "cost_r_mean": 0.1655,
+    "cost_r_sd": 0.0837,
+    "hold_h_median": 12.0,
+    "hold_h_p25_p75": [
+     3.5,
+     12.0
+    ],
+    "exposure": 0.0766,
+    "pos_days_frac": 0.2679,
+    "pos_days_by_block": [
+     0.393,
+     0.25,
+     0.25,
+     0.214,
+     0.393,
+     0.214,
+     0.0,
+     0.429,
+     0.214,
+     0.321,
+     0.429,
+     0.25,
+     0.143,
+     0.286,
+     0.214,
+     0.286
+    ],
+    "turnover_month": 14.23,
+    "side_flips_month": 3.281,
+    "long_share": 0.367,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.regime.adx",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.votes.RSI",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": true,
+    "reasons": [
+     "intradia: 6,6 operaciones al mes (< 8)"
+    ],
+    "borderline": [],
+    "expected_in_term": 39.8,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "tec_ruptura_volumen",
+   "agent": "technical",
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 3528,
+    "orders": 1230,
+    "rejected": 0,
+    "filled": 1210,
+    "unfilled": 20,
+    "closed": 1208,
+    "censored": 2,
+    "ops_month": 81.027,
+    "ops_month_by_block": [
+     82.5,
+     56.79,
+     76.07,
+     82.5,
+     87.86,
+     64.29,
+     97.5,
+     80.36,
+     84.64,
+     58.93,
+     85.71,
+     98.57,
+     82.5,
+     83.57,
+     87.86,
+     86.79
+    ],
+    "cost_r_mean": 0.1321,
+    "cost_r_sd": 0.0588,
+    "hold_h_median": 1.25,
+    "hold_h_p25_p75": [
+     0.75,
+     3.0
+    ],
+    "exposure": 0.3163,
+    "pos_days_frac": 0.8438,
+    "pos_days_by_block": [
+     0.714,
+     0.714,
+     0.893,
+     0.821,
+     0.857,
+     0.893,
+     0.964,
+     0.857,
+     0.75,
+     0.75,
+     0.964,
+     0.964,
+     0.857,
+     0.857,
+     0.929,
+     0.714
+    ],
+    "turnover_month": 144.78,
+    "side_flips_month": 13.326,
+    "long_share": 0.462,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.regime.adx",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.families.tendencia",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.families.volumen",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "scalping",
+    "band": "scalping",
+    "reassigned": true,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 491.6,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 101.0
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 355.7
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 16.9
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 58.7
+     }
+    }
+   }
+  },
+  {
+   "id": "tec_compresion_bb",
+   "agent": "technical",
+   "timeframe": "1h",
+   "exit_template": "atr_ladder",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 221,
+    "orders": 210,
+    "rejected": 0,
+    "filled": 208,
+    "unfilled": 2,
+    "closed": 207,
+    "censored": 1,
+    "ops_month": 13.929,
+    "ops_month_by_block": [
+     10.71,
+     15.0,
+     12.86,
+     11.79,
+     17.14,
+     12.86,
+     11.79,
+     16.07,
+     16.07,
+     15.0,
+     20.36,
+     11.79,
+     10.71,
+     12.86,
+     16.07,
+     11.79
+    ],
+    "cost_r_mean": 0.179,
+    "cost_r_sd": 0.0737,
+    "hold_h_median": 1.25,
+    "hold_h_p25_p75": [
+     0.75,
+     2.75
+    ],
+    "exposure": 0.0459,
+    "pos_days_frac": 0.442,
+    "pos_days_by_block": [
+     0.357,
+     0.429,
+     0.429,
+     0.429,
+     0.5,
+     0.464,
+     0.393,
+     0.464,
+     0.5,
+     0.571,
+     0.571,
+     0.393,
+     0.321,
+     0.393,
+     0.464,
+     0.393
+    ],
+    "turnover_month": 33.05,
+    "side_flips_month": 6.897,
+    "long_share": 0.505,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.regime.width_pct",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.families.tendencia",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "scalping",
+    "band": "scalping",
+    "reassigned": true,
+    "kept_with_declared_band": true,
+    "discarded": true,
+    "reasons": [
+     "scalping: 13,9 operaciones al mes (< 20)"
+    ],
+    "borderline": [],
+    "expected_in_term": 84.5,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "vwap_reversion",
+   "agent": "vwap",
+   "timeframe": "15m",
+   "exit_template": "mean_target",
+   "role": "base",
+   "physics": {
+    "days": 224.0,
+    "ideas": 2253,
+    "orders": 1113,
+    "rejected": 12,
+    "filled": 1113,
+    "unfilled": 0,
+    "closed": 1113,
+    "censored": 0,
+    "ops_month": 149.062,
+    "ops_month_by_block": [
+     120.0,
+     126.43,
+     132.86,
+     150.0,
+     145.71,
+     158.57,
+     192.86,
+     156.43,
+     160.71,
+     145.71,
+     147.86,
+     150.0,
+     162.86,
+     135.0,
+     152.14,
+     147.86
+    ],
+    "cost_r_mean": 0.3368,
+    "cost_r_sd": 0.2059,
+    "hold_h_median": 0.75,
+    "hold_h_p25_p75": [
+     0.25,
+     2.0
+    ],
+    "exposure": 0.2127,
+    "pos_days_frac": 1.0,
+    "pos_days_by_block": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "turnover_month": 532.99,
+    "side_flips_month": 59.732,
+    "long_share": 0.452,
+    "coverage": {
+     "contexts": 21504,
+     "agent_ok": 1.0,
+     "variables": [
+      {
+       "variable": "metrics.periods.daily.position",
+       "with_value": 1.0
+      },
+      {
+       "variable": "metrics.periods.daily.vwap",
+       "with_value": 1.0
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "scalping",
+    "measured_band": "scalping",
+    "band": "scalping",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": true,
+    "reasons": [
+     "costo medio 0,337 R (> 0,3 R, V6 de T49)"
+    ],
+    "borderline": [],
+    "expected_in_term": 904.3,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  },
+  {
+   "id": "vwap_tendencia",
+   "agent": "vwap",
+   "timeframe": "1h",
+   "exit_template": "rule_flip",
+   "role": "candidato",
+   "physics": {
+    "days": 448.0,
+    "ideas": 9573,
+    "orders": 1637,
+    "rejected": 0,
+    "filled": 1607,
+    "unfilled": 30,
+    "closed": 1592,
+    "censored": 15,
+    "ops_month": 107.612,
+    "ops_month_by_block": [
+     117.86,
+     114.64,
+     112.5,
+     106.07,
+     92.14,
+     110.36,
+     111.43,
+     103.93,
+     108.21,
+     116.79,
+     103.93,
+     106.07,
+     113.57,
+     108.21,
+     99.64,
+     96.43
+    ],
+    "cost_r_mean": 0.1476,
+    "cost_r_sd": 0.0779,
+    "hold_h_median": 3.0,
+    "hold_h_p25_p75": [
+     1.5,
+     7.0
+    ],
+    "exposure": 0.8157,
+    "pos_days_frac": 1.0,
+    "pos_days_by_block": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "turnover_month": 223.85,
+    "side_flips_month": 75.737,
+    "long_share": 0.505,
+    "coverage": {
+     "contexts": 10752,
+     "agent_ok": 0.9999,
+     "variables": [
+      {
+       "variable": "metrics.periods.daily.position",
+       "with_value": 0.9999
+      },
+      {
+       "variable": "metrics.periods.daily.slope_pct",
+       "with_value": 0.9999
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "intradia",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": false,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 652.8,
+    "no_first_team": false,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 76.1
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 267.8
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 12.7
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 44.2
+     }
+    }
+   }
+  },
+  {
+   "id": "vwap_semanal",
+   "agent": "vwap",
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "role": "candidato",
+   "physics": {
+    "days": 1312.67,
+    "ideas": 591,
+    "orders": 591,
+    "rejected": 0,
+    "filled": 586,
+    "unfilled": 5,
+    "closed": 585,
+    "censored": 1,
+    "ops_month": 13.393,
+    "ops_month_by_block": [
+     12.86,
+     12.86,
+     9.64,
+     17.14,
+     15.0,
+     13.93,
+     12.86,
+     12.86,
+     13.93,
+     15.0,
+     16.07,
+     15.0,
+     13.93,
+     16.07,
+     11.79,
+     13.93,
+     13.93,
+     9.64,
+     9.64,
+     11.79,
+     9.64,
+     10.71,
+     13.93,
+     9.64,
+     18.21,
+     19.29,
+     15.0,
+     15.0,
+     15.0,
+     12.86,
+     18.21,
+     13.93,
+     13.93,
+     6.43,
+     15.0,
+     21.43,
+     8.57,
+     12.86,
+     15.0,
+     10.71,
+     13.93,
+     9.64,
+     13.93,
+     10.71,
+     10.71,
+     10.71,
+     17.03
+    ],
+    "cost_r_mean": 0.0765,
+    "cost_r_sd": 0.0628,
+    "hold_h_median": 20.0,
+    "hold_h_p25_p75": [
+     8.0,
+     52.0
+    ],
+    "exposure": 0.701,
+    "pos_days_frac": 0.9378,
+    "pos_days_by_block": [
+     0.893,
+     0.893,
+     0.893,
+     0.893,
+     0.964,
+     0.929,
+     1.0,
+     0.964,
+     1.0,
+     0.929,
+     0.857,
+     1.0,
+     1.0,
+     1.0,
+     0.893,
+     0.929,
+     1.0,
+     0.964,
+     0.929,
+     0.75,
+     1.0,
+     1.0,
+     1.0,
+     0.964,
+     1.0,
+     1.0,
+     0.857,
+     0.964,
+     1.0,
+     1.0,
+     1.0,
+     0.821,
+     1.0,
+     0.679,
+     0.857,
+     0.964,
+     1.0,
+     0.929,
+     1.0,
+     0.964,
+     1.0,
+     0.571,
+     1.0,
+     1.0,
+     0.929,
+     0.893,
+     1.0
+    ],
+    "turnover_month": 13.79,
+    "side_flips_month": 9.073,
+    "long_share": 0.519,
+    "coverage": {
+     "contexts": 7876,
+     "agent_ok": 0.9991,
+     "variables": [
+      {
+       "variable": "metrics.periods.weekly.position",
+       "with_value": 0.9991
+      },
+      {
+       "variable": "metrics.periods.weekly.vwap",
+       "with_value": 0.9991
+      },
+      {
+       "variable": "metrics.close",
+       "with_value": 0.9991
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "semanal",
+    "measured_band": "intradia",
+    "band": "intradia",
+    "reassigned": true,
+    "kept_with_declared_band": null,
+    "discarded": false,
+    "reasons": [],
+    "borderline": [],
+    "expected_in_term": 81.2,
+    "no_first_team": true,
+    "days_to_verdict": {
+     "mu_0_10_alfa_0_05": {
+      "ops": 273,
+      "days": 611.3
+     },
+     "mu_0_10_familia": {
+      "ops": 961,
+      "days": 2152.1
+     },
+     "mu_0_25_alfa_0_05": {
+      "ops": 46,
+      "days": 102.2
+     },
+     "mu_0_25_familia": {
+      "ops": 159,
+      "days": 355.2
+     }
+    }
+   }
+  },
+  {
+   "id": "vwap_anclado",
+   "agent": "vwap",
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "role": "candidato",
+   "physics": {
+    "days": 1312.67,
+    "ideas": 7869,
+    "orders": 114,
+    "rejected": 0,
+    "filled": 114,
+    "unfilled": 0,
+    "closed": 113,
+    "censored": 1,
+    "ops_month": 2.605,
+    "ops_month_by_block": [
+     4.29,
+     4.29,
+     5.36,
+     0.0,
+     1.07,
+     0.0,
+     7.5,
+     1.07,
+     0.0,
+     0.0,
+     3.21,
+     0.0,
+     0.0,
+     1.07,
+     8.57,
+     6.43,
+     2.14,
+     5.36,
+     4.29,
+     17.14,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     10.71,
+     0.0,
+     2.14,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     8.57,
+     5.36,
+     6.43,
+     0.0,
+     0.0,
+     2.14,
+     0.0,
+     0.0,
+     4.29,
+     0.0,
+     4.29,
+     0.0,
+     4.29,
+     1.07,
+     0.0,
+     1.22
+    ],
+    "cost_r_mean": 0.1659,
+    "cost_r_sd": 0.5096,
+    "hold_h_median": 32.0,
+    "hold_h_p25_p75": [
+     8.0,
+     164.0
+    ],
+    "exposure": 0.9827,
+    "pos_days_frac": 1.0,
+    "pos_days_by_block": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "turnover_month": 2.73,
+    "side_flips_month": 1.714,
+    "long_share": 0.491,
+    "coverage": {
+     "contexts": 7876,
+     "agent_ok": 0.9991,
+     "variables": [
+      {
+       "variable": "metrics.anchored_vwap",
+       "with_value": 0.9991
+      },
+      {
+       "variable": "metrics.close",
+       "with_value": 0.9991
+      }
+     ]
+    }
+   },
+   "verdict": {
+    "declared_band": "semanal",
+    "measured_band": "tres_dias",
+    "band": "tres_dias",
+    "reassigned": true,
+    "kept_with_declared_band": true,
+    "discarded": true,
+    "reasons": [
+     "tres_dias: 2,6 operaciones al mes (< 5)"
+    ],
+    "borderline": [],
+    "expected_in_term": 15.8,
+    "no_first_team": false,
+    "days_to_verdict": null
+   }
+  }
+ ],
+ "without_history": {
+  "bots_mayoria": "pide las señales del servicio de bots, que no se guardan",
+  "bots_unanimidad": "pide las señales del servicio de bots, que no se guardan",
+  "deriv_funding_contrario": "el agente exige interés abierto y el banco solo tiene funding",
+  "deriv_oi_tendencia": "el agente exige interés abierto y el banco solo tiene funding",
+  "deriv_saturacion": "el agente exige interés abierto y el banco solo tiene funding",
+  "deriv_largos_cortos": "el agente exige interés abierto y el banco solo tiene funding",
+  "liq_agotamiento": "pide liquidaciones en vivo, que el banco no tiene",
+  "liq_cascada": "pide liquidaciones en vivo, que el banco no tiene",
+  "liq_cascada_multibolsa": "pide liquidaciones en vivo, que el banco no tiene",
+  "micro_ofi": "pide la captura HFT, que el banco no tiene",
+  "micro_absorcion": "pide la captura HFT, que el banco no tiene"
+ },
+ "checks": {
+  "lookahead": [
+   {
+    "tf": "15m",
+    "cut": 1681516800000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 1,
+    "idea_diff": []
+   },
+   {
+    "tf": "15m",
+    "cut": 1703289600000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 1,
+    "idea_diff": []
+   },
+   {
+    "tf": "15m",
+    "cut": 1725062400000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 1,
+    "idea_diff": []
+   },
+   {
+    "tf": "15m",
+    "cut": 1746835200000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 1,
+    "idea_diff": []
+   },
+   {
+    "tf": "15m",
+    "cut": 1768608000000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 1,
+    "idea_diff": []
+   },
+   {
+    "tf": "15m",
+    "cut": 1790380800000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 1,
+    "idea_diff": []
+   },
+   {
+    "tf": "1h",
+    "cut": 1682726400000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 23,
+    "idea_diff": []
+   },
+   {
+    "tf": "1h",
+    "cut": 1704499200000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 23,
+    "idea_diff": []
+   },
+   {
+    "tf": "1h",
+    "cut": 1726272000000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 23,
+    "idea_diff": []
+   },
+   {
+    "tf": "1h",
+    "cut": 1748044800000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 23,
+    "idea_diff": []
+   },
+   {
+    "tf": "1h",
+    "cut": 1769817600000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 23,
+    "idea_diff": []
+   },
+   {
+    "tf": "1h",
+    "cut": 1791590400000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 23,
+    "idea_diff": []
+   },
+   {
+    "tf": "4h",
+    "cut": 1682726400000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 8,
+    "idea_diff": []
+   },
+   {
+    "tf": "4h",
+    "cut": 1704499200000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 8,
+    "idea_diff": []
+   },
+   {
+    "tf": "4h",
+    "cut": 1726272000000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 8,
+    "idea_diff": []
+   },
+   {
+    "tf": "4h",
+    "cut": 1748044800000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 8,
+    "idea_diff": []
+   },
+   {
+    "tf": "4h",
+    "cut": 1769817600000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 8,
+    "idea_diff": []
+   },
+   {
+    "tf": "4h",
+    "cut": 1791590400000,
+    "contexts": 9,
+    "ctx_diff": [],
+    "prospects": 8,
+    "idea_diff": []
+   }
+  ],
+  "identity": [
+   {
+    "tf": "15m",
+    "t": 1680308100000,
+    "identical": true,
+    "historyless_with_data": [],
+    "full_nat_agents": [
+     "elliott",
+     "ema",
+     "levels",
+     "literature",
+     "price_action",
+     "regime",
+     "structure",
+     "technical",
+     "vwap"
+    ],
+    "run_nat_agents": [
+     "vwap"
+    ]
+   },
+   {
+    "tf": "15m",
+    "t": 1716999300000,
+    "identical": true,
+    "historyless_with_data": [],
+    "full_nat_agents": [
+     "elliott",
+     "ema",
+     "levels",
+     "literature",
+     "price_action",
+     "regime",
+     "structure",
+     "technical",
+     "vwap"
+    ],
+    "run_nat_agents": [
+     "vwap"
+    ]
+   },
+   {
+    "tf": "15m",
+    "t": 1753690500000,
+    "identical": true,
+    "historyless_with_data": [],
+    "full_nat_agents": [
+     "elliott",
+     "ema",
+     "levels",
+     "literature",
+     "price_action",
+     "regime",
+     "structure",
+     "technical",
+     "vwap"
+    ],
+    "run_nat_agents": [
+     "vwap"
+    ]
+   },
+   {
+    "tf": "1h",
+    "t": 1680310800000,
+    "identical": true,
+    "historyless_with_data": [],
+    "full_nat_agents": [
+     "elliott",
+     "ema",
+     "levels",
+     "literature",
+     "price_action",
+     "regime",
+     "structure",
+     "technical",
+     "vwap"
+    ],
+    "run_nat_agents": [
+     "ema",
+     "levels",
+     "literature",
+     "price_action",
+     "regime",
+     "structure",
+     "technical",
+     "vwap"
+    ]
+   },
+   {
+    "tf": "1h",
+    "t": 1717405200000,
+    "identical": true,
+    "historyless_with_data": [],
+    "full_nat_agents": [
+     "elliott",
+     "ema",
+     "levels",
+     "literature",
+     "price_action",
+     "regime",
+     "structure",
+     "technical",
+     "vwap"
+    ],
+    "run_nat_agents": [
+     "ema",
+     "levels",
+     "literature",
+     "price_action",
+     "regime",
+     "structure",
+     "technical",
+     "vwap"
+    ]
+   },
+   {
+    "tf": "1h",
+    "t": 1754499600000,
+    "identical": true,
+    "historyless_with_data": [],
+    "full_nat_agents": [
+     "elliott",
+     "ema",
+     "levels",
+     "literature",
+     "price_action",
+     "regime",
+     "structure",
+     "technical",
+     "vwap"
+    ],
+    "run_nat_agents": [
+     "ema",
+     "levels",
+     "literature",
+     "price_action",
+     "regime",
+     "structure",
+     "technical",
+     "vwap"
+    ]
+   },
+   {
+    "tf": "4h",
+    "t": 1680321600000,
+    "identical": true,
+    "historyless_with_data": [],
+    "full_nat_agents": [
+     "elliott",
+     "ema",
+     "levels",
+     "literature",
+     "price_action",
+     "regime",
+     "structure",
+     "technical",
+     "vwap"
+    ],
+    "run_nat_agents": [
+     "elliott",
+     "ema",
+     "levels",
+     "literature",
+     "structure",
+     "vwap"
+    ]
+   },
+   {
+    "tf": "4h",
+    "t": 1718121600000,
+    "identical": true,
+    "historyless_with_data": [],
+    "full_nat_agents": [
+     "elliott",
+     "ema",
+     "levels",
+     "literature",
+     "price_action",
+     "regime",
+     "structure",
+     "technical",
+     "vwap"
+    ],
+    "run_nat_agents": [
+     "elliott",
+     "ema",
+     "levels",
+     "literature",
+     "structure",
+     "vwap"
+    ]
+   },
+   {
+    "tf": "4h",
+    "t": 1755921600000,
+    "identical": true,
+    "historyless_with_data": [],
+    "full_nat_agents": [
+     "elliott",
+     "ema",
+     "levels",
+     "literature",
+     "price_action",
+     "regime",
+     "structure",
+     "technical",
+     "vwap"
+    ],
+    "run_nat_agents": [
+     "elliott",
+     "ema",
+     "levels",
+     "literature",
+     "structure",
+     "vwap"
+    ]
+   }
+  ]
+ },
+ "summary_lines": [
+  "**32 prospectos con historia examinados** de 43: **16 descartados** por razones mecánicas y 16 siguen, de los que 4 quedan «sin opción a primer equipo» (no llegan a ≈ 100 operaciones, o a 120 días con posición, en 6 meses). 19 cambian de banda por su tenencia.",
+  "",
+  "- **5 descartes dependen de la reasignación de banda**: con la banda declarada seguirían (`ema_pila`, `ema_retroceso`, `lit_regla_4_semanas`, `tec_compresion_bb`, `vwap_anclado`).",
+  "- **4 reglas no se cumplen nunca** en la muestra (`elliott_onda3`, `elliott_onda5_giro`, `estructura_ruptura`, `tec_acuerdo_marcos`): la causa de cada una está en `PLAN/notas/T169_examen_fisico.md`.",
+  "- **Gemelos físicos** (mismas ideas y operaciones): `regimen_tramo` = `regimen_tramo_estable`.",
+  "",
+  "Muestra: 4h 7876 contextos de 7876 en 1 tramo (1312,7 días); 15m 21504 contextos de 21504 en 16 tramos (224,0 días); 1h 10752 contextos de 10752 en 16 tramos (448,0 días).",
+  "",
+  "Costo de generación (un proceso, en IDLE, por la cola): 4h 7752 contextos a 0,355 s; 15m 21444 contextos a 0,161 s; 1h 10692 contextos a 0,615 s → **3,5 h de cálculo** (0,15 días de máquina) en 3 pasadas; RAM máxima 135 MB. Los otros 244 contextos salieron de pasadas de prueba anteriores al registro de costo."
+ ],
+ "checks_lines": [
+  "## Comprobaciones",
+  "",
+  "- **No anticipación:** 18 cortes (6 por marco), 162 contextos recalculados con el banco truncado: 0 distintos; prospectos cuyas ideas cambian: ninguno.",
+  "- **Identidad del subconjunto:** 9 de 9 contextos con `nat` idéntico al de la mesa con todos los agentes (los agentes sin historia no aportan nada en el banco)."
+ ]
+}
