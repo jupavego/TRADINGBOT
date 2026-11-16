@@ -14,6 +14,9 @@ operación. Es una cota, no una promesa: no corrige por selección ni por régim
 
 from __future__ import annotations
 
+import math
+
+ALPHA = 0.05                # catálogo: p de Holm sobre el bruto (T175)
 TF_MAX_COST_R = 0.15        # mismo umbral que `EXEC_T143.tf_max_cost_r`
 TAIL_SHARE = 0.40           # las 5 peores pérdidas pesan ≥ 40 % de toda la pérdida
 MIN_N = 20
@@ -72,12 +75,7 @@ def opportunities(k: dict, variant: dict | None = None,
         out.append(_opp("mas_alla_sl", "riesgo", "Pérdidas por encima de 1 R",
                         f"{a['beyond_sl_n']} operaciones con bruto < −1,05 R (salto o "
                         "deslizamiento más allá del stop)", "auto (risk_includes_costs)", "T136"))
-    for st, s in k.get("by_strategy", {}).items():
-        if s.get("readable") and s["e_r_ci"][1] < 0:
-            out.append(_opp(f"estrategia_{st}", "catálogo", f"«{st}» pierde con IC 95 % < 0",
-                            f"E[R] {s['e_r']:+.3f} [{s['e_r_ci'][0]:+.3f}, {s['e_r_ci'][1]:+.3f}], "
-                            f"n={s['n']}, PnL {s['pnl_usdt']:+.1f}", "◆ (catálogo; Holm cuenta)",
-                            "T49", -s["pnl_usdt"] if s["pnl_usdt"] < 0 else None, -s["e_r"]))
+    out += strategy_opps(k.get("by_strategy", {}))
     be = a.get("breakeven_win_rate")
     if be is not None and a["win_rate"] < be:
         out.append(_opp("equilibrio", "medición", "Acierto por debajo del de equilibrio",
@@ -86,8 +84,47 @@ def opportunities(k: dict, variant: dict | None = None,
                         "cerrada (T134 salidas)", "T134"))
     if variant is not None:
         out.append(variant_vs_official(k, variant))
+        out += auto_not_reflected(variant)
     out += calibration_opps(calib or {})
     return sorted(out, key=lambda o: -(o["impact_usdt"] or 0))
+
+
+def holm(p: dict[str, float]) -> dict[str, float]:
+    """p ajustadas por Holm–Bonferroni (paso a paso, monótonas)."""
+    out, prev, m = {}, 0.0, len(p)
+    for i, (key, v) in enumerate(sorted(p.items(), key=lambda kv: kv[1])):
+        prev = min(1.0, max(prev, (m - i) * v))
+        out[key] = prev
+    return out
+
+
+def strategy_opps(by_strategy: dict[str, dict]) -> list[dict]:
+    """Catálogo (T175): una estrategia se lleva al usuario si su BRUTO es peor que el azar.
+
+    Antes bastaba con que el IC del neto quedara bajo cero, y eso lo produce el costo solo: con
+    bruto 0, 0,126 R de costo y n ≈ 25, el 15 % de las estrategias lo cumple sin culpa. Se prueba
+    el bruto contra 0 (normal, bilateral) y se ajusta por Holm sobre las legibles, que es como se
+    juzga el catálogo (T49). Las que solo pierden por el costo salen en una línea informativa."""
+    rd = {st: s for st, s in by_strategy.items() if s.get("readable") and s.get("gross_sd")}
+    pv = {st: math.erfc(abs(s["gross_r"]) / (s["gross_sd"] / math.sqrt(s["n"])) / math.sqrt(2))
+          for st, s in rd.items()}
+    adj = holm(pv)
+    out, cost_only = [], []
+    for st, s in rd.items():
+        if s["gross_r"] < 0 and adj[st] < ALPHA:
+            out.append(_opp(f"estrategia_{st}", "catálogo", f"«{st}» peor que el azar en bruto",
+                            f"bruto {s['gross_r']:+.3f} R (p Holm {adj[st]:.3f} entre {len(rd)}), "
+                            f"neto {s['e_r']:+.3f} [{s['e_r_ci'][0]:+.3f}, {s['e_r_ci'][1]:+.3f}], "
+                            f"n={s['n']}, PnL {s['pnl_usdt']:+.1f}", "◆ (catálogo; Holm cuenta)",
+                            "T49", -s["pnl_usdt"] if s["pnl_usdt"] < 0 else None, -s["e_r"]))
+        elif s["e_r_ci"][1] < 0:
+            cost_only.append(f"{st} (bruto {s['gross_r']:+.3f}, p Holm {adj[st]:.2f})")
+    if cost_only:
+        out.append(_opp("estrategias_por_costo", "catálogo",
+                        f"{len(cost_only)} estrategias pierden con IC neto < 0 solo por el costo",
+                        "ninguna es peor que el azar en bruto: " + "; ".join(sorted(cost_only)),
+                        "cerrada (el costo va por T143; T139 P1)", "T175 · T49"))
+    return out
 
 
 def calibration_opps(c: dict) -> list[dict]:
@@ -114,17 +151,47 @@ def calibration_opps(c: dict) -> list[dict]:
 
 
 def variant_vs_official(k: dict, v: dict) -> dict:
-    """La corrida aparte (costo y riesgo adaptados) frente a la oficial, en la misma ventana."""
+    """La corrida aparte (costo y riesgo adaptados) frente a la oficial, en la misma ventana.
+
+    Manda la comparación **emparejada** (mismas ideas, T175); la de medias se da al lado, porque
+    mezcla operaciones que una mesa toma y la otra no."""
     vs, os_ = v.get("all", {}), v.get("official_same_window", {})
+    pr = v.get("paired") or {}
     n = vs.get("n", 0)
-    if n < VARIANT_MIN_N:
+    if n < VARIANT_MIN_N or pr.get("n", 0) < VARIANT_MIN_N:
         return _opp("variante", "costo", "Corrida aparte T143: aún sin muestra",
-                    f"n={n} de {VARIANT_MIN_N} necesarias", "esperar", "T143")
+                    f"n={n} (emparejadas {pr.get('n', 0)}) de {VARIANT_MIN_N} necesarias",
+                    "esperar", "T143")
     d_e = vs["e_r"] - os_.get("e_r", 0)
-    d_c = (vs.get("cost_r") or 0) - (os_.get("cost_r") or 0)
+    lo, hi = pr["d_r_ci"]
     return _opp("variante", "costo", "Corrida aparte T143 frente a la oficial",
-                f"ΔE[R] {d_e:+.3f} R/op, Δcosto {d_c:+.3f} R/op (n={n} / {os_.get('n', 0)})",
-                "◆ adoptar al cerrar T31 (2026-11-27)", "T143 · T31", None, d_e)
+                f"emparejado: ΔR {pr['d_r']:+.4f} [{lo:+.4f}, {hi:+.4f}] R/op, Δcosto "
+                f"{pr['d_cost_r']:+.4f} (n={pr['n']} comunes; {pr['only_official']} solo oficial, "
+                f"{pr['only_variant']} solo variante) · sin emparejar ΔE[R] {d_e:+.3f}",
+                "◆ adoptar al cerrar T31 (2026-11-27)", "T143 · T31", None, pr["d_r"])
+
+
+def auto_not_reflected(v: dict) -> list[dict]:
+    """¿La variante aplica de verdad la puerta de costo que se adapta sola? (T175)
+
+    La puerta decide con el costo de la sombra que algún perfil aceptaría, un número por marco;
+    el libro paga el de lo que cada perfil toma. Si la variante sigue operando un marco cuyo costo
+    vivido pasa el umbral, la adaptación automática no se está reflejando y eso hay que verlo,
+    no darlo por hecho (skill `eim-auditoria`, paso 3)."""
+    out = []
+    for tf, s in (v.get("by_timeframe") or {}).items():
+        if not s.get("readable") or (s.get("cost_r") or 0) < TF_MAX_COST_R:
+            continue
+        caros = sorted(f"{key.split('@')[0]} {x['cost_r']:.3f} R (n={x['n']})"
+                       for key, x in (v.get("by_profile_tf") or {}).items()
+                       if key.endswith(f"@{tf}") and (x.get("cost_r") or 0) >= TF_MAX_COST_R)
+        out.append(_opp(f"auto_no_refleja_{tf}", "costo",
+                        f"La variante sigue operando {tf} con costo vivido ≥ {TF_MAX_COST_R} R",
+                        f"costo {s['cost_r']:.3f} R, E[R] {s['e_r']:+.3f}, n={s['n']} en el libro "
+                        f"de la variante; por perfil sobre el umbral: {', '.join(caros) or '—'}",
+                        "◆ (medir la puerta por perfil y marco en AUTO_ADAPT)", "T143 · T175",
+                        -s["pnl_usdt"] if s["pnl_usdt"] < 0 else None, -s["e_r"]))
+    return out
 
 
 def triggers(funding: dict[str, float | None], l2_days: float | None,

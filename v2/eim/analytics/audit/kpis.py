@@ -61,11 +61,15 @@ def stats(rows: Sequence[dict]) -> dict:
     pnl = [_f(r.get("pnl_usdt")) for r in rows]
     neg = sorted(x for x in pnl if x < 0)
     cost_r = statistics.fmean(cr) if cr else None
+    # T175: el bruto por operación (neto + su costo), para juzgar una estrategia contra el azar y
+    # no contra el costo: con bruto 0 y 0,126 R de costo, 2 de 13 salen con IC neto < 0 solas.
+    g = [x + (c["cost_r"] or 0.0) for x, c in zip(rs, costs, strict=True)]
     return {
         "n": n, "win_rate": len(wins) / n, "avg_win_r": aw, "avg_loss_r": al,
         "breakeven_win_rate": abs(al) / (aw + abs(al)) if (aw + abs(al)) else None,
         "e_r": mean, "e_r_ci": [mean - half, mean + half],
         "cost_r": cost_r, "gross_r": mean + cost_r if cost_r is not None else None,
+        "gross_sd": statistics.stdev(g) if n > 1 else None,
         "cost_bps_median": statistics.median(cb) if cb else None,
         "pnl_usdt": sum(pnl), "cost_usdt": sum(c["cost_usdt"] for c in costs),
         "worst5_share": (sum(neg[:5]) / sum(neg)) if neg else 0.0,

@@ -1467,3 +1467,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** sin `node_modules` en la sesión remota: `tsc` de los archivos del mapa sin errores propios; verificado con capturas en Chrome sin interfaz con el catálogo real (86 piezas, estados de prueba). Sin cambios de Python.
 - **Abierto:** `npm run build` en el equipo y ver el mapa en vivo.
 - **Siguiente paso:** ajustar posiciones (`RING` en `obs_iso.ts`) o espacios del área común (`KINDS` en `obs_iso_lounge.ts`) si hace falta.
+
+## 2026-11-16 · sesión «Retroalimentación, calibración y ajustes» · T175: auditoría semanal y su herramienta corregida
+- **Hecho:** auditoría del 2026-11-16 (n = 410, E[R] −0,110 R, IC −0,179…−0,042; bruto +0,016; costo 0,126 R; Δ desde el 11-nov: +160 operaciones, E[R] +0,021, PnL −878 USDT). Revisada con criterio de experto, la herramienta daba tres lecturas falsas y T175 las corrige: la variante t143 se comparaba sin emparejar (−0,032 → **+0,011 R/op** emparejada, 115 comunes); 4 estrategias iban a ◆ por perder en neto cuando ninguna de las 13 legibles se distingue del azar en bruto (Holm 1,00); y la palanca «15 m caro: vía auto» no comprobaba que la variante lo cerrara (no lo cierra: 0,157 R vividos frente a 0,129 en la sombra tomable).
+- **Archivos:** `v2/eim/analytics/audit/{build,kpis,levers}.py`, `v2/tests/analytics/test_audit.py`, `.claude/skills/eim-auditoria/SKILL.md`, `v2/reports/audit/audit_2026-11-16.{md,json}`, `PLAN/T175.md`, `PLAN/STATUS.md`, `PLAN/00_MASTER.md`, `PLAN/BACKLOG.md`.
+- **Pruebas:** 14 de la auditoría en verde; gate completo por la cola.
+- **◆ abiertas:** puerta de costo por perfil y marco en la variante (T175). Sin disparadores: funding de BTC 3,51 % frente al 4 %.
+- **Siguiente paso:** fusionar; la próxima auditoría semanal ya usa la herramienta nueva.
