@@ -146,8 +146,10 @@ def _leave_nursery(m: Member, s: Standing, acc: AccountData, k: dict, rules: Lad
 
 
 def _eligible(m: Member, acc: AccountData, k: dict, data: Mapping[str, AccountData],
-              rules: LadderRules, alta: int, tau: int) -> tuple[bool, list[dict]]:
-    """Requisitos de Promesa distintos de e-BH, con su motivo."""
+              rules: LadderRules, alta: int, tau: int, cut: Mapping[str, int]
+              ) -> tuple[bool, list[dict]]:
+    """Requisitos de Promesa distintos de e-BH, con su motivo. Un hermano dado de baja cuenta
+    solo hasta su baja (`cut`): lo que su cuenta haga después no existe para el escalafón."""
     out, p = [], rules.promise
     pnl = k["net_pnl_usd"]
     out.append(_crit("rentabilidad", pnl > 0, f"beneficio neto {pnl:+.2f} USDT", pnl, 0))
@@ -157,15 +159,15 @@ def _eligible(m: Member, acc: AccountData, k: dict, data: Mapping[str, AccountDa
                      f"la mejor operación explica el {share * 100:.0f} % del beneficio "
                      f"(≤ {p.max_trade_share * 100:.0f} %)", share, p.max_trade_share))
     if m.sibling:
-        sib = data.get(m.sibling, AccountData()).upto(tau)
+        sib = data.get(m.sibling, AccountData()).upto(min(tau, cut.get(m.sibling, tau)))
         ok, z = st.beats([c.d for c in acc.closed], [c.d for c in sib.closed], rules)
         out.append(_crit("hermano_simple", ok, f"frente a {m.sibling}: z = {z} (a empate, "
                                                "asciende el simple)", z, p.sibling_alpha))
     own = st.daily_pnl(acc, alta, tau)
     for other in (m.sibling, m.generic):
         if other:
-            ok, info = st.marginal(own, st.daily_pnl(data.get(other, AccountData()).upto(tau),
-                                                     alta, tau), rules)
+            od = data.get(other, AccountData()).upto(min(tau, cut.get(other, tau)))
+            ok, info = st.marginal(own, st.daily_pnl(od, alta, tau), rules)
             out.append(_crit(f"marginal:{other}", ok, f"correlación diaria {info['corr']} con "
                              f"{other}; aporta {info.get('gain_usd_day')} USDT/día", info,
                              p.marginal_corr))
@@ -194,7 +196,8 @@ def _review(members: Sequence[Member], acct: Mapping[str, AccountData],
             _leave_nursery(mb, s, acc, k, rules, tau, a0, sp)
         if s.stage not in (CANTERA, PROMESA):
             continue
-        ok, crit = _eligible(mb, acc, k, data, rules, a0, tau)
+        cut = {i: x.exit["at_ms"] for i, x in stand.items() if x.stage == BAJA and x.exit}
+        ok, crit = _eligible(mb, acc, k, data, rules, a0, tau, cut)
         s.criteria.extend(crit)
         if s.frozen_e is not None:
             ek[mb.id] = s.frozen_e

@@ -33,7 +33,8 @@ def daily_d(acc: AccountData, alta: int, tau: int) -> np.ndarray:
     d0 = alta // DAY_MS
     out = np.zeros(int(tau // DAY_MS - d0 + 1))
     for c in acc.closed:
-        out[int(c.exit_t // DAY_MS - d0)] += c.d
+        if alta <= c.exit_t <= tau:
+            out[int(c.exit_t // DAY_MS - d0)] += c.d
     return out
 
 
@@ -109,6 +110,7 @@ def make_first_team(rules: LadderRules, alta_ms: int, m: int, initial: float
                     ) -> Callable[[Sequence[Member], Mapping[str, AccountData],
                                    dict[str, Standing], int], None]:
     ft = rules.first_team
+    memo: dict[tuple, dict] = {}       # la mirada final no cambia: no repetir StepM en cada ciclo
 
     def first_team(members: Sequence[Member], accounts: Mapping[str, AccountData],
                    stand: dict[str, Standing], tau: int) -> None:
@@ -116,6 +118,15 @@ def make_first_team(rules: LadderRules, alta_ms: int, m: int, initial: float
         for mb in members:
             s, acc = stand[mb.id], accounts.get(mb.id, AccountData())
             accs[mb.id] = acc.upto(s.exit["at_ms"] if s.stage == BAJA and s.exit else tau)
+        key = (tau, tuple((i, stand[i].stage, len(a.closed), round(sum(c.d for c in a.closed), 9))
+                          for i, a in accs.items()))
+        if key in memo:
+            for i, (stage, since, ex, crit, met) in memo[key].items():
+                s = stand[i]
+                s.stage, s.since_ms, s.exit = stage, since, ex
+                s.criteria, s.metrics = list(crit), dict(met)
+            return
+        before = {i for i in accs if stand[i].stage == PROMESA}
         names = [mb.id for mb in members]
         mat = np.column_stack([daily_d(accs[n], alta_ms, tau) for n in names])
         superior = stepm_superior(names, mat, rules)
@@ -167,5 +178,7 @@ def make_first_team(rules: LadderRules, alta_ms: int, m: int, initial: float
             else:
                 _set(s, PRIMER, tau)
                 s.metrics["pending"] = "◆ T172: el usuario confirma o veta"
+        memo[key] = {i: (stand[i].stage, stand[i].since_ms, stand[i].exit,
+                         list(stand[i].criteria), dict(stand[i].metrics)) for i in before}
 
     return first_team

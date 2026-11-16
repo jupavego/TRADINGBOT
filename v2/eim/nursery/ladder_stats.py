@@ -101,7 +101,8 @@ def daily_pnl(acc: AccountData, alta: int, tau: int) -> np.ndarray:
     d0, d1 = alta // DAY_MS, tau // DAY_MS
     out = np.zeros(int(d1 - d0 + 1))
     for c in acc.closed:
-        out[int(c.exit_t // DAY_MS - d0)] += c.pnl_usd
+        if alta <= c.exit_t <= tau:          # lo anterior al alta (reentradas) no cuenta
+            out[int(c.exit_t // DAY_MS - d0)] += c.pnl_usd
     return out
 
 
