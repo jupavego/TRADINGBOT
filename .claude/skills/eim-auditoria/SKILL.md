@@ -42,6 +42,20 @@ t143 con n = 19 · funding 12 m BTC 3,54 % (**cerca** del 4 %), ETH 2,47 % · L2
 77,8 % de horas completas · calibración BTC 1 h: Brier skill −0,010, acierto direccional 40,7 %, «bull»
 sobrestimado (27 % de probabilidad media frente a 15 % real).
 
+**Segunda auditoría (2026-11-16, ya con T175):** n = 410 · E[R] −0,110 R (IC −0,179 … −0,042) ·
+bruto +0,016 · costo 0,126 R · acierto 72,4 % frente a 81,1 % · PnL −2 552 USDT con 2 781 de
+fricción · variante t143 **+0,011 R/op emparejada** (115 comunes; sin emparejar daba −0,032) ·
+la variante sigue operando 15 m a 0,157 R vividos (agresivo 0,180) · funding 12 m BTC 3,51 % ·
+calibración BTC 1 h: Brier skill −0,004, acierto direccional 46,8 %, n efectiva 29,5 («bear»
+27 % frente a 45 %, dentro de 2 errores típicos) · BTC 4 h: n efectiva 4,2, no se lee.
+
+**Tres trampas que T175 quitó de la herramienta y que no hay que reintroducir a mano:**
+comparar medias de dos mesas que toman ideas distintas (se empareja por perfil e idea); llevar al
+usuario una estrategia porque su **neto** pierde (el costo solo ya lo produce: se juzga el bruto con
+Holm entre las legibles); y dar por aplicada una palanca `auto` sin mirar el libro de la variante
+(`auto_no_refleja_<marco>`). Y una cuarta: leer una calibración por su número de pronósticos y
+no por su muestra efectiva (los horizontes se solapan: 105 pronósticos de 4 h son ≈ 4).
+
 ## 2. Procedimiento (5 pasos; no leas nada más salvo que un paso lo pida)
 
 1. **Correr** (≈ 30 s, ligero, no hace falta la cola; la API tiene que estar en marcha):
@@ -52,7 +66,7 @@ sobrestimado (27 % de probabilidad media frente a 15 % real).
    - 2026-11-17 → T128: medición de la base de líderes cumplida, cerrar T128.
    - 2026-11-27 → **cierre de T31**: informe final, `risk_includes_costs` y freno gradual, ◆ sobre la variante t143.
    - 2026-12-06 → T135: veredicto del A/B de M8 (`reports/t135_ab/`), sin revisar antes.
-   - T78: se cumple cuando la racha llegue a 72 h (`python -m eim.data.collectors.hft_ops --root data --streak`).
+   - T78: cumplida al cerrar la hora 2026-11-14T07 UTC (72 h seguidas desde la 11T08); el cierre en `PLAN/STATUS.md` va con su gate.
    - 2027-05-06 → fecha límite de T139. 2027-10 → disparador A de T145.
 3. **Clasificar cada oportunidad por su vía** (columna «vía» del informe):
    - `auto` → ya se adapta sola; solo comprueba que la variante t143 lo refleja.
@@ -65,7 +79,8 @@ sobrestimado (27 % de probabilidad media frente a 15 % real).
    - costo → `eim/paper/cost_ledger.py`, `reports/t143_maker.md`, `/v2/paper/variant/t143`
    - riesgo → `reports/t136_riesgo.md`, `eim/paper/risk_budget.py`
    - calibración → `/v2/calibration?symbol=BTCUSDT&tf=1h`, `reports/t150_calibracion.md`, `PLAN/T160.md`
-   - catálogo → `PLAN/T49.md` (la puerta) antes de sugerir retirar una estrategia; Holm cuenta
+   - catálogo → `PLAN/T49.md` (la puerta) antes de sugerir retirar una estrategia; Holm cuenta.
+     La palanca ya filtra por bruto con Holm (T175): `estrategias_por_costo` es informativa
    - datos HFT → `python -m eim.operation.usage incidents --days 7` (T141/T148)
    - disparador de funding → `reports/arbitrage_edge.md` y BACKLOG T145 (3): pre-registro propio, sin la tenencia de 2 160 h
 5. **Cerrar** (en un worktree propio si hay que escribir en `PLAN/`, nunca en la carpeta principal):

@@ -81,3 +81,19 @@ def test_recolector_a_parquet_y_lectura_con_marca_de_vida(tmp_path):
     bars = read_liq_flow(tmp_path, "BTCUSDT", T0, H, 4)
     assert [b.t for b in bars] == [T0, T0 + H, T0 + 2 * H]  # la vela 3 no existe: sin datos
     assert bars[0].count == 0 and bars[1].short_usd == 100.0 and bars[1].long_usd == 0.0
+
+
+def test_marca_de_vida_late_en_el_mapa_sin_reconectar(tmp_path, monkeypatch):
+    """T174: con las conexiones estables el recolector sigue latiendo (antes solo al conectar);
+    sin ninguna bolsa conectada no late, y el mapa lo ve caer."""
+    from eim.data.collectors import liq_ws
+    beats = []
+    monkeypatch.setattr(liq_ws.hooks_service, "beat", lambda cid, **kw: beats.append((cid, kw)))
+    col = LiqCollector(tmp_path, "BTCUSDT")
+    col.alive(T0)
+    assert beats == []
+    col.connected.update({"okx", "bybit"})
+    col.alive(T0 + 30_000)
+    (cid, kw), = beats
+    assert cid == "data.liq_collector" and kw["min_interval_s"] == 60
+    assert kw["detail"] == {"venues": ["bybit", "okx"], "events": 0}

@@ -25,6 +25,9 @@ Lo llama el vigilante (`hft_supervise`) cada 10 min; también a mano:
 - **Horas ciegas del registro de consumo** (T148): `blind_hours` lee los huecos de `data/usage/`
   (`eim.operation.usage_gaps`) y se los pasa a la atribución, que cuenta como nuestras las horas
   que el registro de consumo tampoco vio. Si falta esa carpeta, no se inventa nada: conjunto vacío.
+- **Horas con la red de este equipo caída** (T173): `fleet_cause.local_net_hours` las saca de
+  los `datos_fallidos` del registro de operación, para que una
+  `desconexion` marcada mientras nuestro DNS estaba caído no se le apunte al exchange.
 """
 
 from __future__ import annotations
@@ -39,7 +42,7 @@ from eim.data.collectors.compact import compact_dir
 from eim.data.collectors.hft_read import hour_label, hours_with_data, parse_hour
 from eim.data.collectors.hft_schema import AREA, KINDS
 from eim.data.collectors.hft_writer import hour_dir
-from eim.operation import usage_gaps
+from eim.operation import fleet_cause, usage_gaps
 from eim.operation.usage_summary import days_between, load_day
 
 KEEP_DAYS = 45
@@ -203,7 +206,7 @@ def window(root: str | Path, symbol: str, now_s: float, since_h: int | None = No
     """Veredicto de T78 por ventana (T147): `hft_window.window` sobre los JSON de QC."""
     return hft_window.window(qc_reports(root, symbol, since_h), last_auditable(now_s) - 1,
                              hft_window.load_maint(root, symbol), since_h, need_h,
-                             blind_hours(root, now_s))
+                             blind_hours(root, now_s), fleet_cause.local_net_hours(root, now_s))
 
 
 def requalify(root: str | Path, symbol: str, since_h: int | None = None,
@@ -247,7 +250,9 @@ def week_summary(root: str | Path, symbol: str, t0_ms: int, t1_ms: int) -> dict 
             "projection_30d_gb": round(disk["mb_per_day_total"] * 30 / 1000, 2),
             "t78_window": hft_window.window(reps, last_auditable(now_s) - 1,
                                             hft_window.load_maint(root, symbol),
-                                            blind_hours=blind_hours(root, now_s))}
+                                            blind_hours=blind_hours(root, now_s),
+                                            local_net_hours=fleet_cause.local_net_hours(
+                                                root, now_s))}
 
 
 def maintain(root: str | Path, symbol: str, now_s: float, keep_days: int = KEEP_DAYS) -> dict:

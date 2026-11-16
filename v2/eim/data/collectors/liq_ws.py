@@ -85,9 +85,14 @@ class LiqCollector:
         self.connected: set[str] = set()
 
     def alive(self, now: int) -> None:
-        """Marca de vida por bolsa conectada: distingue «0 liquidaciones» de «recolector caído»."""
+        """Marca de vida por bolsa conectada: distingue «0 liquidaciones» de «recolector caído».
+        T174: también late en el mapa (como mucho uno por minuto); antes solo latía al conectar,
+        y con las conexiones estables el mapa lo daba por «sin datos» mientras guardaba."""
         for v in self.connected:
             self.liqs.add((now, f"alive:{v}", False, 0.0, 0.0, 0.0))
+        if self.connected:
+            hooks_service.beat("data.liq_collector", min_interval_s=60,
+                               detail={"venues": sorted(self.connected), "events": self.n})
 
     def on_message(self, venue: str, msg: dict) -> None:
         rows = {"binance": lambda: parse_binance(msg, self.symbol),

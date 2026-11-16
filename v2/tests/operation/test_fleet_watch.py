@@ -114,13 +114,16 @@ def test_con_los_cinco_caidos_levanta_y_registra_que_faltaba_y_cuanto(tmp_path):
 
 
 def test_un_solo_servicio_caido_basta_para_levantar(tmp_path):
-    """`servicio_continuo.ps1` es idempotente: no duplica lo que está en pie."""
-    _beats(tmp_path, T0, solo=("API", "líderes", "captura HFT"))
-    _beats(tmp_path, T0, age_s=20 * 60, solo=("bróker simulado",))
+    """`servicio_continuo.ps1` es idempotente: no duplica lo que está en pie.
+
+    Con un servicio de proceso propio (los líderes). El bróker simulado ya no vale de ejemplo: vive
+    dentro de la API y el guion no puede levantarlo, que es lo que T173 arregló."""
+    _beats(tmp_path, T0, solo=("API", "bróker simulado", "captura HFT"))
+    _beats(tmp_path, T0, age_s=20 * 60, solo=("líderes",))
     _usage(tmp_path, T0)
     lz = Lanzador()
     out = _check(tmp_path, T0, lz)
-    assert out["action"] == "levantar" and out["missing"] == ["bróker simulado"]
+    assert out["action"] == "levantar" and out["missing"] == ["líderes"]
     assert lz.calls == 1
 
 
