@@ -1,54 +1,56 @@
-# T170 — Pre-registro `cantera_v1` (2026-11-16)
-
-> **En pausa (2026-11-16, después de la aprobación):** el usuario pidió en la sesión de T169 que
-> prospectos nuevos de T177 reemplacen a los descartados y entren en v1, del mismo agente si emite
-> variables usables. La lista de 29 de esta nota es un **borrador**: no está en `main` y no ha
-> operado nadie, así que se rehace con la lista final (calibración, huella y gate), y esa lista
-> vuelve a aprobarse antes de fusionar y encender. El constructor ya admite informes de examen y
-> temas adicionales (`v2/scripts/t170_prereg.py --exam --themes --reserve`). Queda por decidir si
-> son 14 reemplazos (familia de 43 y m = 50) o 16 (45 y reserva de 5).
+# T170 — Pre-registro `cantera_v1` (2026-11-16/17)
 
 **Modo: SIMULADO.** El archivo vinculante es `v2/eim/validation/prereg/prereg_cantera_v1.json`. Su
-huella SHA-256 está fijada en `v2/eim/nursery/prereg.py::PUBLISHED`, y el commit `a9cefd6` es
-anterior a la primera operación de la cantera. Esta nota lo resume; si hay diferencias, manda el
-JSON. Cualquier cambio a mitad de fase solo puede ser `cantera_v2`, con reloj nuevo.
+huella SHA-256 está fijada en `v2/eim/nursery/prereg.py::PUBLISHED`. Esta nota lo resume; si hay
+diferencias, manda el JSON. Cualquier cambio a mitad de fase solo puede ser `cantera_v2`, con
+reloj nuevo.
 
-## Decisiones del usuario (◆, 2026-11-16)
+## Cómo se llegó a la familia (◆ del usuario)
 
-1. **Las cuatro reglas imposibles.**
-   - Se rediseñaron `estructura_ruptura` (sin filtro de convicción, cero parámetros) y
-     `tec_acuerdo_marcos` (marcos de 1 h y 4 h, que son los que existen con base 1 h).
-   - Las dos se re-examinaron con la misma ficha de T169 y los contextos ya guardados, sin
-     regenerarlos (`v2/reports/t170_reexamen.md`). Las dos siguen:
-     - `estructura_ruptura`: 25,6 operaciones al mes, scalping, 0,153 R.
-     - `tec_acuerdo_marcos`: 37,6 operaciones al mes, scalping, 0,145 R.
-   - Las dos de Elliott se dan de baja: arreglarlas exige una versión nueva del agente (BACKLOG).
-2. **Los gemelos de `regime`** cuentan como dos prospectos dados de baja.
-3. **Bandas.** Manda la banda medida y las plantillas de salida no cambian. Los 11 sin historia
-   usan la banda declarada hasta su examen físico hacia adelante.
-4. **Familia propia**, con m de e-BH = los que entran + las 7 plazas de reserva.
-5. **Pre-registro completo aprobado.** Hay permiso para fusionar y encender la cantera hoy, con el
-   gate en verde.
+1. **2026-11-16, en esta sesión:**
+   - se rediseñan `estructura_ruptura` y `tec_acuerdo_marcos`, y se re-examinan
+     (`v2/reports/t170_reexamen.md`);
+   - los gemelos de `regime` cuentan como dos;
+   - manda la banda medida, sin tocar las plantillas;
+   - familia propia, con m = los que entran + las plazas de reserva;
+   - se aprueba el pre-registro de 29 (`a9cefd6`).
+2. **Después, en la sesión de T169:** 50 obras nuevas y prospectos nuevos que reemplazan a los
+   descartados. Entran en v1, del mismo agente si emite variables usables (T177). `regime` queda
+   excluido y sus dos plazas van a `elliott` y a `bots`.
+3. **Rediseños duplicados:** el usuario eligió las versiones de T177, `estructura_ruptura_sc02` y
+   `tec_acuerdo_tres_marcos`. El rediseño en su sitio de T170 se revirtió (`a6f187e`), y el
+   re-examen de T170 queda solo como registro.
+4. **El examen físico de T177** (`v2/reports/t177_examen_fisico.md`) descartó
+   `elliott_tendencia_dow`: 4,7 operaciones al mes, y la banda pide 5. Su plaza vuelve a la reserva.
 
-## Familia
+Ninguna operación de la cantera se hizo antes de este pre-registro. La lista de 29 solo existió
+en la rama y nunca operó.
 
-- **Entran 29:**
-  - 16 supervivientes con historia;
-  - 11 sin historia: bots ×2, derivatives ×4, liquidations ×3 y microstructure ×2;
-  - las 2 rediseñadas.
-- **No entran 14,** dados de baja en el examen físico. No cuentan en m: nunca se mide su
-  rendimiento.
-- **m = 36 y techo 50** (43 inscritos + 7 de reserva). Una baja hacia adelante sigue contando,
-  con e = 0.
+## Familia final
+
+- **Entran 42:**
+  - 16 supervivientes de T169;
+  - 12 sin historia: los 11 de T169 y `bots_contrario`;
+  - 14 reemplazos con historia, examinados por T177.
+- **Descartes: 17.** Son 16 de T169 y 1 de T177, con su huella en los expedientes (clave
+  `discarded`). No cuentan en m: nunca se mide su rendimiento.
+- **Reserva y m:** 8 plazas de reserva hasta el techo de 50, así que **m = 50**. Una baja hacia
+  adelante sigue contando, con e = 0.
 - **Temas:**
-  - tendencia: 11;
-  - reversión: 8;
-  - derivados: 7 (con las liquidaciones);
-  - consenso: 3.
+  - tendencia: 18;
+  - reversión: 12;
+  - derivados: 7;
+  - consenso: 5.
 - **Hermano simple** (complejo = más parámetros que la base viva de su agente):
   - `pa_patron_zona` y `pa_bos_patron` → `pa_bos`;
   - `deriv_oi_tendencia` y `deriv_saturacion` → `deriv_funding_contrario`;
-  - `micro_absorcion` → `micro_ofi`.
+  - `micro_absorcion` → `micro_ofi`;
+  - `ema_retroceso_12h` → `ema_precio_200`;
+  - `niveles_redondos` → `niveles_rebote`;
+  - `tec_compresion_bb_12h` → `tec_acuerdo_tres_marcos`.
+- **Banda semanal:** ningún prospecto es semanal. Con las plantillas vigentes ninguno pasa de 62 h
+  de tenencia mediana. Tener semanales de verdad exigiría otra plantilla (BACKLOG T177 (1),
+  `cantera_v2`).
 
 ## Escalafón (`v2/eim/nursery/ladder.py`)
 
@@ -61,16 +63,16 @@ Las etapas solo cambian en las revisiones fijas: los días 30, 61, 91, 121, 152 
   - ninguna operación > 40 % del beneficio;
   - hermano simple: z de Welch con α = 0,10; a empate, asciende el simple;
   - contribución marginal: con ρ > 0,7, tiene que aportar por encima;
-  - después, e-BH con q = 0,10 y m = 36.
+  - después, e-BH con q = 0,10 y m = 50.
 
   Quien no cumple los requisitos entra a e-BH con e = 0, y el e-valor de quien asciende queda
   congelado, también si luego se da de baja. Así la FDR sigue ≤ q aunque se mire seis veces.
 - **Baja:**
-  - drawdown por encima del tope calibrado, de 13 a 21 % según las operaciones esperadas;
+  - drawdown por encima del tope calibrado, de 9,6 a 20,9 % según las operaciones esperadas;
   - futilidad: cota superior < +0,10 R, con z(1 − 0,10/6) y n ≥ 30;
   - 60 días sin operar, sin contar los días con el marco cerrado;
   - claramente negativo al salir de guardería;
-  - examen físico hacia adelante (solo los sin historia);
+  - examen físico hacia adelante (los 12 sin historia);
   - fecha límite.
 - **Primer equipo,** solo el día 182 (`ladder_final.py`):
   - StepM con FWER 0,05 sobre la familia, bajas incluidas;
@@ -83,26 +85,25 @@ Las etapas solo cambian en las revisiones fijas: los días 30, 61, 91, 121, 152 
 
 ## El precio y la potencia, declarados (`v2/reports/t170_calibracion.json`)
 
-- **Bajo la nula global,** e-BH deja de media 0,011 promesas falsas en la fase, y P(≥ 1) = 1,0 %,
+- **Bajo la nula global,** e-BH deja de media 0,0068 promesas falsas en la fase, y P(≥ 1) = 0,7 %,
   en 10 000 réplicas con el modelo de los gemelos. Es una cota superior.
-- **Potencia de un ascenso en solitario** (e ≥ 360), con σ = 1 R:
+- **Potencia de un ascenso en solitario** (e ≥ 500), con σ = 1 R:
 
   | Ventaja | Operaciones | Potencia |
   |---|--:|--:|
-  | +0,25 R | 250 | 60 % |
-  | +0,25 R | 400 | 90 % |
-  | +0,50 R | 100 | 85 % |
-  | +0,10 R | 650 | 11 % |
+  | +0,25 R | 250 | 56 % |
+  | +0,25 R | 400 | 88 % |
+  | +0,50 R | 100 | 82 % |
+  | +0,10 R | 650 | 10 % |
 
-  Es el costo de poder mirar sin pagar por mirar. No es una puerta de potencia: nadie se cierra
-  por «no habría n».
+  No es una puerta de potencia: nadie se cierra por «no habría n».
 - **El control al azar** (prueba con 1 000 semillas y m = 1) llega a promesa el 2,8 % de las
   veces, por debajo del α de 10 %.
 
 ## Arranque
 
-La cantera solo corre con los 29 del pre-registro y sus huellas. Si alguna no coincide, la mesa
+La cantera solo corre con los 42 del pre-registro y sus huellas. Si alguna no coincide, la mesa
 se bloquea y lo dice en `GET /v2/nursery`; la API no se cae.
 
-El alta es el primer cálculo con `EIM_NURSERY=1` posterior a `not_before` (2026-11-16T21:00Z), y
+El alta es el primer cálculo con `EIM_NURSERY=1` posterior a `not_before` (2026-11-17T02:00Z), y
 queda anotada en `data/paper_cantera.duckdb`, en la tabla `nursery_prereg`.

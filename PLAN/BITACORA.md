@@ -1577,3 +1577,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** BACKLOG T177 (1)–(5). Lo principal: la banda semanal no se alcanza con las plantillas vigentes, y `regime` 2.0.
 - **Siguiente paso:** T170 trae esta rama, recalibra por la cola con la familia de 42, rehace el pre-registro con el informe y los temas de T177, y pide la aprobación del usuario antes de encender.
 
+## 2026-11-17 · T170: pre-registro `cantera_v1` reconstruido con la familia final de T177
+- **Hecho:**
+  - El usuario eligió las versiones de T177 frente a los rediseños en su sitio, y se revirtieron (`a6f187e`).
+  - Se trajo `claude/t177-reemplazos` (`f3e3bdf`, merge `d099d7c`).
+  - El constructor lee los descartes de los expedientes (clave `discarded`) y el examen y los temas de T177.
+  - Se recalibró por la cola con los 42 y 8 plazas de reserva: topes de drawdown de 9,6–20,9 %, y 0,0068 promesas falsas esperadas, P(≥ 1) = 0,7 %.
+  - El pre-registro quedó en `40a60b7`: 42 entran, 17 descartes, m = 50 y `not_before` 2026-11-17T02:00Z.
+- **Pruebas:** las del pre-registro, el escalafón, los expedientes y las reglas de T177 pasan. 9 pruebas de T168/T169 aún esperan 43 prospectos y a `regime`, y fallan igual en la rama de T177: se lo dije a esa sesión para que las corrija allí.
+- **Siguiente paso:** traer el arreglo de esas pruebas, pasar el gate completo por la cola, pedir la aprobación de la lista final de 42 y, con ella, fusionar, encender `EIM_NURSERY=1` y anotar el alta.
