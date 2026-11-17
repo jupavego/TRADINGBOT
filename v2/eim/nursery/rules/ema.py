@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from eim.nursery.rules.base import NONE, Signal, View, num, steady
+from eim.nursery.rules.base import NONE, Signal, View, num, sign, steady
 
 V = "metrics.variables."
 EXPOSES = frozenset(V + k for k in (
     "STACK_ORDER", "PRICE_VS_STACK", "EMA_21", "EMA_200", "SLOPE_DIRECTION",
-    "COMPRESSION_INDEX", "COMPRESSION_DURATION", "ELASTICITY", "BOUNCE_COUNT_21"))
+    "COMPRESSION_INDEX", "COMPRESSION_DURATION", "ELASTICITY", "BOUNCE_COUNT_21",
+    "SPREAD_21_55"))
 _STACK = {"BULL_PERFECT": 1, "BEAR_PERFECT": -1}
 _SLOPE = {"UP": 1, "DOWN": -1}
 
@@ -55,5 +56,27 @@ def ema_elastico(v: View, p: dict) -> Signal:
     return Signal(enter=side, target=e21) if side else NONE
 
 
+def ema_precio_200(v: View, p: dict) -> Signal:
+    """T177. Cierre sobre la EMA 200 (largo) o bajo ella (corto); sale al cruzarla (regla 1/200)."""
+    e200 = num(v.get(V + "EMA_200"))
+    if e200 is None or v.close is None:
+        return NONE
+    return steady(sign(v.close - e200))
+
+
+def ema_cruce_21_55(v: View, p: dict) -> Signal:
+    """T177. La EMA 21 cruza la 55: entra en el sentido del cruce; sale con el cruce contrario."""
+    s, s0 = num(v.get(V + "SPREAD_21_55")), num(v.get(V + "SPREAD_21_55", 1))
+    if s is None:
+        return NONE
+    now = sign(s)
+    crossed = s0 is not None and now != 0 and sign(s0) == -now
+    return Signal(enter=now if crossed else 0, hold=now or None)
+
+
 RULES = {"ema_pila": ema_pila, "ema_resorte": ema_resorte, "ema_retroceso": ema_retroceso,
-         "ema_elastico": ema_elastico}
+         "ema_elastico": ema_elastico,
+         # T177: reemplazos de los descartados de T169 (ema_retroceso_12h: la misma regla con
+         # salida por tiempo, porque `atr_ladder` en 1 h la llevaba a scalping).
+         "ema_precio_200": ema_precio_200, "ema_cruce_21_55": ema_cruce_21_55,
+         "ema_retroceso_12h": ema_retroceso}

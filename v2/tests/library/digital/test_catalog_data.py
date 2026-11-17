@@ -13,7 +13,7 @@ from eim.library.digital.taxonomy import CONCEPTS
 
 def test_seed_size_categories_and_ids():
     seed = load_seed()
-    assert 95 <= len(seed) <= 130
+    assert 95 <= len(seed) <= 170          # 115 de T151 + 50 de T177
     assert len({s.id for s in seed}) == len(seed)
     per_cat = Counter(s.curated.category for s in seed)
     assert set(per_cat) == set(CATEGORY_NAMES)

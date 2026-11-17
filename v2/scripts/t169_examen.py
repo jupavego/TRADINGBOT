@@ -199,6 +199,8 @@ def cmd_exam(a: argparse.Namespace) -> None:
     rows, sample = [], {}
     by_tf_ctx = {}
     for tf, ss in plan.stretches_of(pl).items():
+        if not pl["agents"].get(tf):
+            continue                    # ningún prospecto en ese marco (T177: sin 15 m)
         allc = gen.load_ctxs(gen.ctx_path(work, tf))
         ts = np.array([int(c["t"]) for c in allc], dtype=np.int64)
         by_tf_ctx[tf] = [(s, allc[int(np.searchsorted(ts, s.start, "right")):
@@ -233,14 +235,14 @@ def cmd_exam(a: argparse.Namespace) -> None:
         "", f"- **{len(by_band)} descartes dependen de la reasignación de banda**: con la banda "
         f"declarada seguirían ({_ids(by_band)}).",
         f"- **{len(dead)} reglas no se cumplen nunca** en la muestra ({_ids(dead)}): la causa "
-        "de cada una está en `PLAN/notas/T169_examen_fisico.md`.",
+        f"de cada una está en `{a.notes}`.",
         f"- **Gemelos físicos** (mismas ideas y operaciones): "
         f"{'; '.join(' = '.join(f'`{i}`' for i in g) for g in twins) or 'ninguno'}.",
         "", "Muestra: " + "; ".join(
             f"{tf} {s['contexts']} contextos de {s['expected']} en {s['stretches']} "
             f"tramo{'s' if s['stretches'] != 1 else ''} ({_dec(s['days'])} días)"
             for tf, s in sample.items()) + ".", "", _cost_line(cost, total)]
-    data = {"task": "T169", "mode": "SIMULADO", "generated_utc": time.strftime(
+    data = {"task": a.task, "mode": "SIMULADO", "generated_utc": time.strftime(
         "%Y-%m-%dT%H:%MZ", time.gmtime()), "plan": pl, "sample": sample, "cost": cost,
         "thresholds": {"min_ops_month": verdict.MIN_OPS_MONTH,
                        "min_pos_days_frac": verdict.MIN_POS_DAYS_FRAC,
@@ -279,6 +281,8 @@ def main(argv: list[str] | None = None) -> None:
     s = sub.add_parser("exam")
     s.add_argument("--work", required=True)
     s.add_argument("--out", default="reports/t169_examen_fisico")
+    s.add_argument("--task", default="T169")                  # T177 reutiliza el examen
+    s.add_argument("--notes", default="PLAN/notas/T169_examen_fisico.md")
     s.add_argument("--allow-partial", action="store_true")
     a = ap.parse_args(argv)
     {"plan": cmd_plan, "generate": cmd_generate, "identity": cmd_identity,

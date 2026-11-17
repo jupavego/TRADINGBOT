@@ -39,6 +39,16 @@
    "name": "metrics.anchored_vwap",
    "source": "velas de futuros Binance (snapshot.candles)",
    "note": "VWAP anclado del agente"
+  },
+  {
+   "name": "metrics.periods.quincenal.vwap",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
+  },
+  {
+   "name": "metrics.periods.quincenal.slope_pct",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": ""
   }
  ],
  "history": {
@@ -57,57 +67,64 @@
    "id": "zarattini_aziz_2023",
    "concept": "breakout",
    "stance": "apoya",
-   "consensus": "sin evidencia (1 fuente)"
+   "consensus": "a favor (+1,00)"
   },
   {
    "id": "avellaneda_lee_2010",
    "concept": "mean_reversion",
    "stance": "condiciona",
-   "consensus": "condicionado (0,00)"
+   "consensus": "a favor (+1,00)"
   },
   {
    "id": "heston_korajczyk_sadka_2010",
    "concept": "intraday",
    "stance": "apoya",
-   "consensus": "dividido (+0,47)"
+   "consensus": "dividido (+0,11)"
+  },
+  {
+   "id": "berkowitz_logue_noser_1988",
+   "concept": "execution_costs",
+   "stance": "apoya",
+   "consensus": "condicionado (+1,00)"
+  },
+  {
+   "id": "kato_2014_vwap",
+   "concept": "execution_costs",
+   "stance": "apoya",
+   "consensus": "condicionado (+1,00)"
+  },
+  {
+   "id": "nagel_2012",
+   "concept": "mean_reversion",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "kosc_2019",
+   "concept": "mean_reversion",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "lemperiere_2014",
+   "concept": "trend_following",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "levine_pedersen_2016",
+   "concept": "trend_following",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
   }
  ],
  "prospects": [
-  {
-   "id": "vwap_reversion",
-   "name": "Reversión al VWAP diario desde ±2σ",
-   "role": "base",
-   "theory": "Un precio a más de 2σ del VWAP diario tiende a volver a él.",
-   "opposite_of": null,
-   "rule": "Largo en EXTREMO_BAJO, corto en EXTREMO_SOBRE; objetivo el VWAP diario.",
-   "variables": [
-    "metrics.periods.daily.position",
-    "metrics.periods.daily.vwap"
-   ],
-   "params": {
-    "band_sigma": {
-     "value": 2,
-     "source": "Bollinger (2001), bandas de 2σ — canon; umbral del propio agente (POSITION)"
-    }
-   },
-   "n_params": 1,
-   "timeframe": "15m",
-   "exit_template": "mean_target",
-   "history_exam": "banco_t131",
-   "expected_cadence": "algunas/semana",
-   "literature": [
-    "avellaneda_lee_2010"
-   ],
-   "max_bars": 8,
-   "timeframe_note": "La reversión al VWAP diario es intradía por naturaleza; en 15 m sale en ≤ 8 velas (2 h). Cambio pedido por el usuario el 2026-11-11 (horizontes de scalping a semanal), antes del pre-registro de T170.",
-   "horizon": "scalping"
-  },
   {
    "id": "vwap_tendencia",
    "name": "Lado del VWAP diario (Zarattini-Aziz)",
    "role": "candidato",
    "theory": "Teoría opuesta: estar sobre un VWAP que sube es tendencia y se sigue.",
-   "opposite_of": "vwap_reversion",
+   "opposite_of": "vwap_reversion_1h",
    "rule": "Largo con cierre sobre el VWAP diario y pendiente > 0; corto en espejo. Sale al cruzar el VWAP.",
    "variables": [
     "metrics.periods.daily.position",
@@ -159,6 +176,114 @@
    "horizon": "semanal"
   },
   {
+   "id": "vwap_reversion_1h",
+   "name": "Reversión al VWAP diario (1 h)",
+   "role": "base",
+   "theory": "El VWAP es el precio justo de la sesión (Berkowitz, Logue y Noser 1988); los extremos de su banda tienden a volver, y dar liquidez con órdenes límite cobra esa vuelta (Nagel 2012).",
+   "opposite_of": null,
+   "rule": "Largo en EXTREMO_BAJO, corto en EXTREMO_SOBRE de la banda del VWAP diario en 1 h; objetivo el VWAP diario.",
+   "variables": [
+    "metrics.periods.daily.position",
+    "metrics.periods.daily.vwap"
+   ],
+   "params": {
+    "band_sigma": {
+     "value": 2,
+     "source": "Bollinger (2001), bandas de 2σ — canon; umbral del propio agente (POSITION)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "1h",
+   "exit_template": "mean_target",
+   "history_exam": "banco_t131",
+   "expected_cadence": "varias por semana (por medir; en 15 m daba 149 al mes, pero a 0,337 R de costo)",
+   "literature": [
+    "berkowitz_logue_noser_1988",
+    "kato_2014_vwap",
+    "nagel_2012",
+    "kosc_2019",
+    "avellaneda_lee_2010"
+   ],
+   "horizon": "intradia",
+   "replaces": "vwap_reversion"
+  },
+  {
+   "id": "vwap_quincenal",
+   "name": "Tendencia del VWAP quincenal",
+   "role": "candidato",
+   "theory": "Seguir la tendencia lenta: el lado del VWAP de quince días con su pendiente a favor.",
+   "opposite_of": null,
+   "rule": "Largo con cierre de 4 h sobre el VWAP quincenal y pendiente > 0; corto en espejo; sale al cruzarlo.",
+   "variables": [
+    "metrics.close",
+    "metrics.periods.quincenal.vwap",
+    "metrics.periods.quincenal.slope_pct"
+   ],
+   "params": {
+    "period": {
+     "value": "quincenal",
+     "source": "periodo del propio agente `vwap` (`agents/vwap/params.py::PERIODS`)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas al mes (por medir)",
+   "literature": [
+    "zarattini_aziz_2023",
+    "lemperiere_2014",
+    "levine_pedersen_2016"
+   ],
+   "horizon": "tres_dias",
+   "replaces": "vwap_anclado"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "Zarattini y Aziz (2023) usan el VWAP como filtro de tendencia en acciones intradía: contradice la reversión, y por eso se inscriben las dos lecturas."
+ ],
+ "performance_computed": false,
+ "discarded": [
+  {
+   "id": "vwap_reversion",
+   "name": "Reversión al VWAP diario desde ±2σ",
+   "role": "base",
+   "theory": "Un precio a más de 2σ del VWAP diario tiende a volver a él.",
+   "opposite_of": null,
+   "rule": "Largo en EXTREMO_BAJO, corto en EXTREMO_SOBRE; objetivo el VWAP diario.",
+   "variables": [
+    "metrics.periods.daily.position",
+    "metrics.periods.daily.vwap"
+   ],
+   "params": {
+    "band_sigma": {
+     "value": 2,
+     "source": "Bollinger (2001), bandas de 2σ — canon; umbral del propio agente (POSITION)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "15m",
+   "exit_template": "mean_target",
+   "history_exam": "banco_t131",
+   "expected_cadence": "algunas/semana",
+   "literature": [
+    "avellaneda_lee_2010"
+   ],
+   "max_bars": 8,
+   "timeframe_note": "La reversión al VWAP diario es intradía por naturaleza; en 15 m sale en ≤ 8 velas (2 h). Cambio pedido por el usuario el 2026-11-11 (horizontes de scalping a semanal), antes del pre-registro de T170.",
+   "horizon": "scalping",
+   "fingerprint": "57a35f14987e",
+   "discarded_by": "T169",
+   "reasons": [
+    "costo medio 0,337 R (> 0,3 R, V6 de T49)"
+   ],
+   "measured_band": "scalping",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": "vwap_reversion_1h"
+  },
+  {
    "id": "vwap_anclado",
    "name": "Lado del VWAP anclado",
    "role": "candidato",
@@ -183,13 +308,16 @@
    "literature": [
     "zarattini_aziz_2023"
    ],
-   "horizon": "semanal"
+   "horizon": "semanal",
+   "fingerprint": "d723967cb38d",
+   "discarded_by": "T169",
+   "reasons": [
+    "tres_dias: 2,6 operaciones al mes (< 5)"
+   ],
+   "measured_band": "tres_dias",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": "vwap_quincenal"
   }
  ],
- "exclusion_reason": null,
- "reserve": [],
- "notes": [
-  "Zarattini y Aziz (2023) usan el VWAP como filtro de tendencia en acciones intradía: contradice la reversión, y por eso se inscriben las dos lecturas."
- ],
- "performance_computed": false
+ "consensus_at": "2026-11-16 (T177, 165 obras)"
 }

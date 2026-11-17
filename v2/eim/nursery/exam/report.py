@@ -92,7 +92,7 @@ def _days(v: dict, key: str) -> str:
 def to_markdown(data: dict) -> str:
     rows = data["prospects"]
     head = [
-        "# T169 — Examen físico de los prospectos en la historia", "",
+        f"# {data.get('task', 'T169')} — Examen físico de los prospectos en la historia", "",
         "**Modo: SIMULADO.** Sin rendimiento: este informe no calcula ni muestra R neto, acierto "
         "ni PF (regla 5 de la nota de T167 §3). La historia no asciende a nadie; solo descarta "
         "por razones mecánicas, con los umbrales fijados en `PLAN/T169.md` antes de correr.", "",

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-16T15:55:42",
+ "generated": "2026-11-16T20:00:16",
  "phases": [
   {
    "n": 0,
@@ -342,7 +342,8 @@ window.EIM_STATUS = {
     "T169",
     "T170",
     "T171",
-    "T172"
+    "T172",
+    "T177"
    ]
   }
  ],
@@ -2609,6 +2610,21 @@ window.EIM_STATUS = {
    "notes": "**Hecha 2026-11-16, entra al reiniciar la API.** Visto en vivo: el bróker simulado de T31 estuvo 26 min sin completar un ciclo (07:44 → 08:10 UTC) con la API lenta por falta de RAM, y un ciclo cayó a las 08:04:40 con `IOException: Cannot open file` sobre una parte de `micro_hft/trades` que la compactación de la hora 05 acababa de sustituir. `eim/data/micro.py::read_micro` vuelve a listar y leer hasta dos veces (0,2 s y 1 s) solo si falta una parte; nada más cambia. Anexo: el informe semanal de T135 ya no muere en su `print` final por cp1252 (el del 2026-11-16 se escribió entero y la cola lo dio por fallido). 2 pruebas en `tests/data/test_micro_feed.py`; ficha `PLAN/T176.md`",
    "effort": "bajo",
    "phase": 21
+  },
+  {
+   "id": "T177",
+   "title": "50 obras nuevas y 16 prospectos que reemplazan a los descartados de T169",
+   "deps": [
+    "T167",
+    "T168",
+    "T169",
+    "T151",
+    "T157"
+   ],
+   "state": "done",
+   "notes": "Hecha (2026-11-17): 50 obras verificadas en la biblioteca digital (165/165 pasan `verify`) y 16 reemplazos formulados con lo aprendido en T169 (`PLAN/notas/T177_bibliografia_prospectos.md`); `regime` excluido (su etiqueta no da cadencia en 15m/1h/4h), plazas a `elliott` y `bots`. Examen físico con el código y los umbrales de T169 (`v2/reports/t177_examen_fisico.md`): 14 de 15 siguen, `elliott_tendencia_dow` cae (4,7 al mes) y su plaza va a la reserva; no anticipación 0/108, identidad 6/6, sin gemelos. Familia de `cantera_v1`: 42 (16 + 11 + 15)",
+   "effort": "alto",
+   "phase": 27
   }
  ]
 };

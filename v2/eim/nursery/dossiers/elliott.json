@@ -24,6 +24,16 @@
    "name": "metrics.pivots[-1].type",
    "source": "velas de futuros Binance (snapshot.candles)",
    "note": "H/L del último pivote: da la dirección de la onda siguiente"
+  },
+  {
+   "name": "metrics.pivots[-1].price",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "precio del último pivote"
+  },
+  {
+   "name": "metrics.pivots[-3].price",
+   "source": "velas de futuros Binance (snapshot.candles)",
+   "note": "precio del pivote anterior del mismo tipo"
   }
  ],
  "history": {
@@ -42,16 +52,121 @@
    "id": "sullivan_timmermann_white_1999",
    "concept": "technical_analysis",
    "stance": "objeta",
-   "consensus": "dividido (+0,06)"
+   "consensus": "dividido (+0,28)"
   },
   {
    "id": "fama_1970",
    "concept": "technical_analysis",
    "stance": "objeta",
-   "consensus": "dividido (+0,06)"
+   "consensus": "dividido (+0,28)"
+  },
+  {
+   "id": "brown_goetzmann_kumar_1998",
+   "concept": "trend_following",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
+  },
+  {
+   "id": "elliott_nft_2024",
+   "concept": "chart_patterns",
+   "stance": "objeta",
+   "consensus": "dividido (+0,19)"
+  },
+  {
+   "id": "chang_osler_1999",
+   "concept": "chart_patterns",
+   "stance": "condiciona",
+   "consensus": "dividido (+0,19)"
+  },
+  {
+   "id": "savin_weller_zvingelis_2007",
+   "concept": "chart_patterns",
+   "stance": "condiciona",
+   "consensus": "dividido (+0,19)"
+  },
+  {
+   "id": "leigh_paz_purvis_2002",
+   "concept": "chart_patterns",
+   "stance": "apoya",
+   "consensus": "dividido (+0,19)"
+  },
+  {
+   "id": "lemperiere_2014",
+   "concept": "trend_following",
+   "stance": "apoya",
+   "consensus": "a favor (+1,00)"
   }
  ],
  "prospects": [
+  {
+   "id": "elliott_oscilacion",
+   "name": "Oscilación del zigzag",
+   "role": "base",
+   "theory": "Sin conteo de ondas (no hay evidencia de ondas de Elliott en cripto): seguir la última oscilación confirmada por el zigzag del agente.",
+   "opposite_of": null,
+   "rule": "Entra largo al confirmarse un mínimo (L) y corto al confirmarse un máximo (H) en 4 h; sale al confirmarse el pivote siguiente.",
+   "variables": [
+    "metrics.pivots[-1].type"
+   ],
+   "params": {
+    "umbral_zigzag_pct": {
+     "value": 3.0,
+     "source": "`agents/elliott/params.py::threshold_pct` (reversión mínima para confirmar un pivote, del propio agente)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "≈ 27 pivotes al mes en 4 h (1 175 cambios en la historia de T169)",
+   "literature": [
+    "brown_goetzmann_kumar_1998",
+    "elliott_nft_2024",
+    "sullivan_timmermann_white_1999"
+   ],
+   "horizon": "tres_dias",
+   "replaces": "elliott_onda3"
+  },
+  {
+   "id": "elliott_dow",
+   "name": "Mínimos y máximos de Dow",
+   "role": "candidato",
+   "theory": "La teoría de Dow define la tendencia por mínimos crecientes (o máximos decrecientes): solo esas oscilaciones.",
+   "opposite_of": null,
+   "rule": "Como `elliott_oscilacion`, pero largo solo si el mínimo nuevo es más alto que el anterior y corto solo si el máximo nuevo es más bajo.",
+   "variables": [
+    "metrics.pivots[-1].type",
+    "metrics.pivots[-1].price",
+    "metrics.pivots[-3].price"
+   ],
+   "params": {
+    "umbral_zigzag_pct": {
+     "value": 3.0,
+     "source": "`agents/elliott/params.py::threshold_pct` (reversión mínima para confirmar un pivote, del propio agente)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "≈ la mitad de `elliott_oscilacion`",
+   "literature": [
+    "brown_goetzmann_kumar_1998",
+    "chang_osler_1999",
+    "savin_weller_zvingelis_2007"
+   ],
+   "horizon": "tres_dias",
+   "replaces": "elliott_onda5_giro"
+  }
+ ],
+ "exclusion_reason": null,
+ "reserve": [],
+ "notes": [
+  "Sin respaldo académico en el catálogo T151: se inscribe porque es una teoría del agente y medirla hacia adelante es barato; se espera baja o descarte por cadencia.",
+  "T168 (2026-11-11): las dos reglas leen además el tipo (H/L) del último pivote, que es lo que da «la dirección de la onda 1» o «contra el impulso»; sin parámetros nuevos. Aviso para T169: el agente etiqueta los últimos pivotes y el último queda casi siempre en «C»."
+ ],
+ "performance_computed": false,
+ "discarded": [
   {
    "id": "elliott_onda3",
    "name": "Onda 3 en curso",
@@ -76,7 +191,16 @@
    "history_exam": "banco_t131",
    "expected_cadence": "1–2/mes",
    "literature": [],
-   "horizon": "semanal"
+   "horizon": "semanal",
+   "fingerprint": "4d968968896e",
+   "discarded_by": "T169",
+   "reasons": [
+    "ninguna idea en toda la muestra: la regla no se cumple nunca",
+    "semanal en posición el 0 % de los días (< 30 %)"
+   ],
+   "measured_band": "semanal",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": "elliott_oscilacion"
   },
   {
    "id": "elliott_onda5_giro",
@@ -102,14 +226,58 @@
    "history_exam": "banco_t131",
    "expected_cadence": "≤ 1/mes",
    "literature": [],
-   "horizon": "semanal"
+   "horizon": "semanal",
+   "fingerprint": "4f745cbeb4c5",
+   "discarded_by": "T169",
+   "reasons": [
+    "ninguna idea en toda la muestra: la regla no se cumple nunca",
+    "semanal en posición el 0 % de los días (< 30 %)"
+   ],
+   "measured_band": "semanal",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": "elliott_dow"
+  },
+  {
+   "id": "elliott_tendencia_dow",
+   "name": "Retroceso en tendencia de Dow",
+   "role": "candidato",
+   "theory": "Lectura contraria a la oscilación nueva, a favor de la tendencia de Dow: tras un máximo más alto, la bajada que empieza es un retroceso (se compra); tras un mínimo más bajo, la subida es un rebote (se vende).",
+   "opposite_of": "elliott_oscilacion",
+   "rule": "Al confirmarse en 4 h un máximo más alto que el anterior, largo; al confirmarse un mínimo más bajo que el anterior, corto; sale a las 12 velas del agente (48 h).",
+   "variables": [
+    "metrics.pivots[-1].type",
+    "metrics.pivots[-1].price",
+    "metrics.pivots[-3].price"
+   ],
+   "params": {
+    "umbral_zigzag_pct": {
+     "value": 3.0,
+     "source": "`agents/elliott/params.py::threshold_pct` (reversión mínima para confirmar un pivote, del propio agente)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "≈ la mitad de los 27 pivotes al mes en 4 h (los que extienden la tendencia)",
+   "literature": [
+    "brown_goetzmann_kumar_1998",
+    "leigh_paz_purvis_2002",
+    "lemperiere_2014",
+    "savin_weller_zvingelis_2007"
+   ],
+   "horizon": "tres_dias",
+   "replaces": "regimen_tramo",
+   "fingerprint": "f99e61a65e9a",
+   "discarded_by": "T177",
+   "reasons": [
+    "tres_dias: 4,7 operaciones al mes (< 5)"
+   ],
+   "measured_band": "tres_dias",
+   "report": "v2/reports/t177_examen_fisico.md",
+   "replaced_by": null,
+   "redesign": "Sin rediseño: tiene 6,9 ideas al mes y la salida a 48 h bloquea parte; con salida en el pivote siguiente la tenencia baja de 24 h (banda intradía, ≥ 8 al mes). La plaza queda vacía y pasa a la reserva (PLAN/T177.md, punto 8)."
   }
  ],
- "exclusion_reason": null,
- "reserve": [],
- "notes": [
-  "Sin respaldo académico en el catálogo T151: se inscribe porque es una teoría del agente y medirla hacia adelante es barato; se espera baja o descarte por cadencia.",
-  "T168 (2026-11-11): las dos reglas leen además el tipo (H/L) del último pivote, que es lo que da «la dirección de la onda 1» o «contra el impulso»; sin parámetros nuevos. Aviso para T169: el agente etiqueta los últimos pivotes y el último queda casi siempre en «C»."
- ],
- "performance_computed": false
+ "consensus_at": "2026-11-16 (T177, 165 obras)"
 }

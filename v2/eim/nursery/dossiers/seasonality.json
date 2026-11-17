@@ -18,7 +18,7 @@
    "id": "heston_korajczyk_sadka_2010",
    "concept": "intraday",
    "stance": "apoya",
-   "consensus": "dividido (+0,47)"
+   "consensus": "dividido (+0,11)"
   }
  ],
  "prospects": [],
@@ -31,5 +31,6 @@
   }
  ],
  "notes": [],
- "performance_computed": false
+ "performance_computed": false,
+ "consensus_at": "2026-11-16 (T177, 165 obras)"
 }

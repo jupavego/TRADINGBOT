@@ -55,4 +55,6 @@ def lit_murphy_rsi(v: View, p: dict) -> Signal:
 
 
 RULES = {"lit_consenso": lit_consenso, "lit_regla_4_semanas": lit_regla_4_semanas,
-         "lit_nison_giro": lit_nison_giro, "lit_murphy_rsi": lit_murphy_rsi}
+         "lit_nison_giro": lit_nison_giro, "lit_murphy_rsi": lit_murphy_rsi,
+         # T177: la misma regla en 4 h (salida a 12 velas = 48 h: banda de tres días).
+         "lit_consenso_4h": lit_consenso}

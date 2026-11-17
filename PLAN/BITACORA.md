@@ -1555,3 +1555,25 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Abierto:** BACKLOG T170 (1)–(5): Elliott 2.0, la huella que no firma los ayudantes de una regla, congelar en el panel las cuentas dadas de baja, el anexo de reentradas y el estado de los descartados en los expedientes.
 - **En pausa:** la sesión de T169 avisó de que el usuario quiere que prospectos nuevos (T177) reemplacen a los descartados y entren en v1. PR #301 pasa a borrador, no se fusiona ni se enciende, y la familia queda como parámetro del constructor. Quedan 14 descartados, porque las dos rediseñadas entran. Hay que decidir si son 14 o 16 reemplazos.
 - **Siguiente paso:** con la lista de T177, rehacer la calibración por la cola, volver a fijar la huella, pasar el gate, pedir la aprobación de la lista final y luego fusionar, encender `EIM_NURSERY=1` y anotar el alta.
+## 2026-11-17 · T177 cerrada: 50 obras nuevas y 16 reemplazos de los descartados de T169
+- **Hecho:**
+  - Protocolo fijado antes de buscar (`PLAN/T177.md`).
+  - 50 obras nuevas en la biblioteca digital, sin repetir las 115 de T151. Las 165 pasan `verify` y se leyó el resumen de cada una. 21 de las 50 objetan o condicionan su idea.
+  - 16 reemplazos formulados con lo aprendido en T169: la banda medida, que la regla pueda cumplirse, que el filtro filtre, el costo en 15 m, parámetros de canon, el hermano simple y variables que el agente ya calcula.
+  - `regime` excluido: la sonda por la cola dio 1,1, 4,6 y 5,3 pasos a tendencia al mes en 4 h, 1 h y 15 m.
+    - Plaza base → `elliott`, el agente con más respaldo bibliográfico entre los que tienen hueco.
+    - Segunda plaza → `bots_contrario` (◆ del usuario).
+  - Duplicados con T170 (`estructura_ruptura` y `tec_acuerdo_marcos`): el usuario eligió las versiones de T177, y T170 revirtió las suyas.
+  - Examen físico con el código y los umbrales de T169, por la cola, sobre la copia del banco: 14 de 15 siguen.
+    - `elliott_tendencia_dow` cae con 4,7 al mes y su plaza va a la reserva.
+    - Comprobaciones limpias: no anticipación 0/108, identidad 6/6, sin gemelos.
+- **Archivos:**
+  - `v2/eim/library/digital/{seed,catalog,cards}.json`.
+  - `v2/eim/nursery/rules/*.py` (reglas nuevas, sin tocar las de los supervivientes) y `v2/eim/nursery/dossiers/*.json` (los descartados en `discarded` con su huella).
+  - `v2/scripts/t177_examen.py` y `t169_examen.py` (`--task`, `--notes` y salto de los marcos sin agentes).
+  - `v2/reports/t177_examen_fisico.{md,json}`.
+  - `PLAN/notas/T177_bibliografia_prospectos.md`.
+- **Pruebas:** `v2/tests/nursery/test_rules_t177.py`; `test_catalog_data` admite 165 obras. Gate completo por la cola.
+- **Abierto:** BACKLOG T177 (1)–(5). Lo principal: la banda semanal no se alcanza con las plantillas vigentes, y `regime` 2.0.
+- **Siguiente paso:** T170 trae esta rama, recalibra por la cola con la familia de 42, rehace el pre-registro con el informe y los temas de T177, y pide la aprobación del usuario antes de encender.
+
