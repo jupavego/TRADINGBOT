@@ -1607,3 +1607,9 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** las del plan y la documentación (`tests/plan`, `tests/docs`, `tests/repo`, `tests/architecture`); sin cambios de código.
 - **Siguiente paso:** T178 (retención de reconciliaciones correctas y fotos de posiciones; ◆ sobre el detalle de aprobados).
 
+## 2026-11-17 · sesión «Retroalimentación, calibración y ajustes» · T180: pre-registro del carry de BTC
+- **Hecho:** ◆ del usuario («dejarlo listo»). Medido con el banco de T131 y velas diarias públicas de spot: P&L diario del carry +1,95 pb (σ 3,07, autocorrelación +0,36); bloques de 30 días +59,2 pb (σ 53,9). Aritmética de costos: a VIP 0 y 3× el carry solo bate el 4 % sobre el capital con funding ≥ 6,6 % anual, así que el disparador del 4 % avisa pero no garantiza. Regla, unidad, criterios y potencia congelados en `PLAN/T180.md`; la auditoría remite allí cuando salte. Funding 12 m 3,49 % y subiendo (3 m 6,02 %).
+- **Archivos:** `PLAN/T180.md`, `PLAN/STATUS.md`, `PLAN/00_MASTER.md`, `PLAN/BACKLOG.md` (T145 (3)), `v2/eim/analytics/audit/levers.py` (texto de la acción).
+- **Pruebas:** `tests/analytics/test_audit.py`.
+- **Siguiente paso:** cuando salte el disparador, ◆ del usuario para arrancar la medición hacia adelante en papel.
+

@@ -223,7 +223,7 @@ def triggers(funding: dict[str, float | None], l2_days: float | None,
                     "value": apr, "threshold": FUNDING_TRIGGER,
                     "text": f"Funding medio 12 m de {sym} anualizado"
                             + ("" if apr is not None else " (sin medir)"),
-                    "action": "reabrir B (carry) con pre-registro propio · ◆"})
+                    "action": "reabrir B con el pre-registro congelado de T180 · ◆"})
     out.append({"id": "l2_un_ano", "fired": l2_days is not None and l2_days >= L2_TRIGGER_DAYS,
                 "near": l2_days is not None and NEAR * L2_TRIGGER_DAYS <= l2_days < L2_TRIGGER_DAYS,
                 "value": l2_days, "threshold": L2_TRIGGER_DAYS,
