@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from fastapi import FastAPI
 
@@ -44,7 +46,9 @@ def test_la_corrida_aparte_lleva_las_tres_palancas_y_solo_esas():
     assert all(p.risk_includes_costs for p in PROFILES_T143)
     assert [p.model_copy(update={"risk_includes_costs": False}) for p in PROFILES_T143] \
         == list(PROFILES)
-    assert set(AUTO_ADAPT) == {"tf_max_cost_r", "maker_entry_timeframes", "risk_includes_costs"}
+    # T179 (◆ 2026-11-17): la puerta por perfil y marco es la cuarta, con su umbral y su prueba
+    assert set(AUTO_ADAPT) == {"tf_max_cost_r", "maker_entry_timeframes", "risk_includes_costs",
+                               "tf_gate_by_profile"}
 
 
 def test_lee_los_contextos_de_la_principal_y_escribe_en_su_base(world):
@@ -84,3 +88,17 @@ def test_rutas_de_solo_lectura(world):
 def test_variante_desconocida_no_arranca(tmp_path):
     with pytest.raises(ValueError):
         make_variants(("nada",), None, tmp_path, None, None)
+
+
+def test_la_variante_decide_por_perfil_y_guarda_sus_tramos_t31_no(world):
+    """T179: con la puerta por perfil, la vista publica una fila por perfil y marco y la mesa
+    guarda sus tramos cerrados en `data/paper/tf_gate_t143.json`; la principal no hace nada."""
+    st, ps, var, _ = world
+    v = var.view(SYM)
+    assert var.gate_error == ""
+    rows = v.summary["cost"]["by_profile"]
+    assert {(r["profile"], r["timeframe"]) for r in rows} == {
+        (p.id, tf) for p in PROFILES_T143 for tf in EXEC_T143.timeframes}
+    assert (Path(st.root) / "paper" / "tf_gate_t143.json").exists()
+    main = PaperDesk(st, ps)
+    assert main.view(SYM).summary["cost"]["by_profile"] == []

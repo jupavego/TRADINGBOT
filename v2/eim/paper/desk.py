@@ -15,13 +15,14 @@ from eim.data.providers.base import Provider
 from eim.data.store import Store
 from eim.data.timeframes import FOCUS, tf_ms
 from eim.operation.priority import lower_thread
-from eim.paper import accounting, cost_ledger, ledger, tf_gate
+from eim.paper import accounting, ledger, tf_gate
 from eim.paper.adaptive import policies_for
 from eim.paper.authority_obs import DecisionEmitter
 from eim.paper.balance import balance
 from eim.paper.book import ProfileState, run_profile
 from eim.paper.catalog import CATALOG, generate_ideas
 from eim.paper.desk_audit import DeskAudit
+from eim.paper.desk_gate import DeskGate
 from eim.paper.engine import CAUSES, Outcome, Path, run_shadow
 from eim.paper.feedback import Learner, family_stats, strategy_stats, timeframe_stats
 from eim.paper.generate import CtxGenerator, now_ms
@@ -58,6 +59,7 @@ class View:
     path: Path | None = None        # camino de 15 m usado en la sombra (T49: réplica contraria)
     protection: dict = field(default_factory=dict)   # pasada del diario de la protección (T110)
     tf_cost: list[dict] = field(default_factory=list)  # costo por marco y si opera (T143 (3))
+    tf_cost_profiles: list[dict] = field(default_factory=list)  # por perfil y marco (T179)
 
 
 def strategy_infos(tfs: tuple[str, ...]) -> list[dict]:
@@ -67,7 +69,7 @@ def strategy_infos(tfs: tuple[str, ...]) -> list[dict]:
             if s.runs_in(tf)]
 
 
-class PaperDesk(DeskService, DeskProtection, DeskAudit):
+class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
     def __init__(self, store: Store, pstore: PaperStore, registry: AgentRegistry | None = None,
                  exec_params: ExecParams | None = None,
                  profiles: tuple[ProfileParams, ...] = PROFILES, provider: Provider | None = None,
@@ -86,7 +88,6 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         self.loop_started: int | None = None    # el servicio arrancó (aunque falte el 1er ciclo)
         self.hooks = HookRunner()               # ganchos tras cada ciclo, en su hilo (T128)
         self._cache: dict[str, View] = {}
-        self._cost_cache: dict[str, tuple[int, dict]] = {}   # T143 (4): por filas del libro
         self._lock = threading.Lock()
         self._busy: dict[str, threading.Event] = {}    # recálculos en segundo plano en curso
         self._busy_lock = threading.Lock()
@@ -97,6 +98,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         ledger.ensure(pstore)
         self._protection_init()
         self._audit_init()
+        self._gate_init()
 
     def live_status(self) -> dict:
         return {"last_tick": self.last_tick, "started": self.loop_started, "error": self.live_error,
@@ -197,7 +199,8 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         sim = LadderSim(path, self.ep, fine, guards=self._guards(symbol), exits=exits)
         # T143 (3): el marco caro no opera; la sombra y el aprendizaje los siguen viendo todos.
         v.tf_cost, tradable = tf_gate.gate(self.tfs, v.outcomes, self.ep, self.profiles)
-        v.books ={p.id: run_profile(p, tradable, learner, mmr, sim) for p in self.profiles}
+        by_p = self._tradable(v, tradable)              # T179: por perfil y marco, si toca
+        v.books = {p.id: run_profile(p, by_p[p.id], learner, mmr, sim) for p in self.profiles}
         self._record_ledger(v)
         self._emit_decisions(v)
         self._sync_protection(v, fine)
@@ -259,15 +262,6 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
         cs = self.store.read_candles(symbol, htf, start=t0 - 4 * slow * bar)
         return HtfTrend(cs, bar, fast, slow).at
 
-    def _cost(self, symbol: str) -> dict:
-        """Costo vivido (T143 (4)); se relee el libro solo si cambió su número de filas."""
-        key = ledger.counts(self.pstore).get(f"perfil:{symbol}", 0)
-        hit = self._cost_cache.get(symbol)
-        if hit is None or hit[0] != key:
-            rows = ledger.query(self.pstore, symbol, "perfil", limit=max(key, 1))
-            hit = self._cost_cache[symbol] = (key, cost_ledger.summarize(rows))
-        return hit[1]
-
     def _payload(self, v: View, by_tf: dict[str, list[dict]], infos: list[dict],
                  learner: Learner, now: int | None, mark: float | None, n_ideas: int = 0) -> dict:
         mmr = MMR.get(v.symbol, 0.005)
@@ -295,5 +289,6 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit):
             "accounting": accounting.from_store(self.pstore, v.symbol),   # T144: universo
             "job": self.job.to_json(), "live": self.live_status(), "protection": v.protection,
             # T143 (4): costo vivido del libro fijo y puerta de marcos, cada uno con su `source`
-            "cost": {**self._cost(v.symbol), "timeframes": v.tf_cost},
+            "cost": {**self._cost(v.symbol), "timeframes": v.tf_cost,
+                     "by_profile": v.tf_cost_profiles},
         }

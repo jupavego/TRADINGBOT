@@ -41,6 +41,11 @@ class ExecParams(BaseModel):
     # aparte de T143 la enciende (`eim/paper/t143_config.py`).
     tf_max_cost_r: float | None = None
     tf_cost_min_n: int = 50
+    # T179 (◆ 2026-11-17): la puerta decide por perfil y marco, con la sombra que cada perfil
+    # aceptaría calibrada con su libro (`eim/paper/tf_gate_profile.py`), y un marco cerrado solo
+    # deja de abrir posiciones nuevas. No entra en `exec_fingerprint` (no cambia la sombra).
+    # Apagada por defecto (T31 intacta); la enciende la corrida aparte de T143.
+    tf_gate_by_profile: bool = False
     # T143 (1b): la entrada a mercado pasa a orden límite al precio pedido, vigente
     # `maker_entry_bars` velas: comisión de creador (2 pb) en vez de tomador (5 pb). Medido
     # emparejado en `reports/t143_maker.md` (costo −0,0432 R, neto +0,0422 R [IC95 % +0,0417,

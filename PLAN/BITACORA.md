@@ -1607,3 +1607,9 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** las del plan y la documentación (`tests/plan`, `tests/docs`, `tests/repo`, `tests/architecture`); sin cambios de código.
 - **Siguiente paso:** T178 (retención de reconciliaciones correctas y fotos de posiciones; ◆ sobre el detalle de aprobados).
 
+## 2026-11-17 · sesión «Retroalimentación, calibración y ajustes» · T179: puerta de costo por perfil y marco
+- **Hecho:** ◆ de T175 aprobada por el usuario. Al medir, la sombra resultó subestimar lo que paga el libro en 15 m (agresivo 0,132 frente a 0,185 R; moderado 0,106 frente a 0,136): emparejadas idea a idea, mismo stop y misma entrada, pero el libro sale por la escalera como tomador y con más deslizamiento. La puerta de la variante ahora juzga cada perfil con la sombra que él aceptaría calibrada con su libro, y cerrar solo bloquea posiciones nuevas (tramos guardados en disco). Hoy cerraría solo agresivo@15m. Comprobado de paso que la cantera no frena al bróker: mediana del latido 34 s frente a 33 s antes, p90 59 frente a 61.
+- **Archivos:** `v2/eim/paper/{tf_calib,tf_gate_profile,desk_gate}.py` (nuevos), `desk.py`, `params.py`, `t143_config.py`, `variant.py`; `v2/tests/paper/test_tf_gate_profile.py`, `test_variant.py`; `PLAN/T179.md`, `STATUS.md`, `00_MASTER.md`.
+- **Pruebas:** `tests/paper` entero en verde; gate completo por la cola.
+- **Siguiente paso:** fusionar y reiniciar la API cuando el usuario lo autorice (aloja T31); al cerrar T31, leer el efecto en la comparación emparejada.
+
