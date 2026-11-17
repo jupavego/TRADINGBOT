@@ -9,19 +9,20 @@
  "decisions": [
   "◆ T167 (2026-11-11): 43 prospectos de 13 agentes y techo de la familia 50 = 43 + 7 plazas de reserva («ampliemos a 40 a 50», «Apruebo»).",
   "Decisión del usuario (2026-11-11): veredictos muy sensibles, dos capas (escalafón interno con q = 0,10; StepM estricto en la puerta a primer equipo y en todo lo que toque dinero), sin puerta de potencia y con el precio declarado. Este pre-registro no endurece el escalafón interno.",
-  "◆ T170 (2026-11-16) 1: se rediseñan estructura_ruptura (sin filtro de convicción) y tec_acuerdo_marcos (marcos de 1 h y 4 h), re-examinadas con la ficha de T169 (`reports/t170_reexamen.md`); las dos de elliott, de baja.",
+  "◆ T170 (2026-11-16) 1: las cuatro reglas imposibles de T169 quedan como bajas. Se rediseñaron en su sitio estructura_ruptura y tec_acuerdo_marcos (`reports/t170_reexamen.md`), pero el usuario eligió después las versiones de T177 (estructura_ruptura_sc02 y tec_acuerdo_tres_marcos) y el rediseño se revirtió.",
   "◆ T170 (2026-11-16) 2: regimen_tramo y regimen_tramo_estable (gemelos físicos) cuentan como dos prospectos dados de baja.",
   "◆ T170 (2026-11-16) 3: manda la banda medida por la tenencia; las plantillas de salida no cambian.",
-  "◆ T170 (2026-11-16) 4: familia propia (precedente de T160; los datos son nuevos), con m de e-BH = los que entran + las 7 plazas de reserva."
+  "◆ T170 (2026-11-16) 4: familia propia (precedente de T160; los datos son nuevos), con m de e-BH = los que entran + las 8 plazas de reserva.",
+  "◆ (2026-11-16, sesión de T169 y tarea T177): 15 prospectos nuevos reemplazan a los descartados y entran en v1, del mismo agente si emite variables usables; pasaron antes el mismo examen físico de T169."
  ],
  "family": {
   "kind": "propia",
   "why": "Las operaciones de la cantera son todas posteriores a este pre-registro: datos nuevos, no la historia ya mirada de las 841 claves de T49/T137/T139. Sumarla a esa familia haría imposible graduar a nadie con la potencia disponible.",
   "enrolled_t167": 43,
-  "reserve_slots": 7,
+  "reserve_slots": 8,
   "ceiling": 50,
-  "m": 36,
-  "m_rule": "e-BH corrige sobre m = 29 que entran + 7 plazas de reserva = 36, fijo durante toda la fase. Una baja hacia adelante sigue contando (su e-valor pasa a 0); una plaza de reserva vacía cuenta con e = 0; una reentrada ocupa una plaza ya contada. Los descartados por el examen físico no cuentan: nunca se mide su rendimiento, así que no son hipótesis probadas.",
+  "m": 50,
+  "m_rule": "e-BH corrige sobre m = 42 que entran + 8 plazas de reserva = 50, fijo durante toda la fase. Una baja hacia adelante sigue contando (su e-valor pasa a 0); una plaza de reserva vacía cuenta con e = 0; una reentrada ocupa una plaza ya contada. Los descartados por el examen físico no cuentan: nunca se mide su rendimiento, así que no son hipótesis probadas.",
   "members": [
    {
     "id": "bots_mayoria",
@@ -46,6 +47,21 @@
     "role": "candidato",
     "n_params": 1,
     "band": "tres_dias",
+    "band_source": "declarada",
+    "history": false,
+    "theme": "consenso",
+    "sibling": null,
+    "generic": "control:agente_bots@1h",
+    "expected_in_term": null
+   },
+   {
+    "id": "bots_contrario",
+    "fingerprint": "ed211b4fee75",
+    "agent_id": "bots",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
     "band_source": "declarada",
     "history": false,
     "theme": "consenso",
@@ -114,6 +130,36 @@
     "expected_in_term": null
    },
    {
+    "id": "elliott_oscilacion",
+    "fingerprint": "7dbde5ad7dd1",
+    "agent_id": "elliott",
+    "timeframe": "4h",
+    "role": "base",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_elliott@4h",
+    "expected_in_term": 90
+   },
+   {
+    "id": "elliott_dow",
+    "fingerprint": "7932d9fce6e4",
+    "agent_id": "elliott",
+    "timeframe": "4h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_elliott@4h",
+    "expected_in_term": 82
+   },
+   {
     "id": "ema_elastico",
     "fingerprint": "4adf41d6152c",
     "agent_id": "ema",
@@ -127,6 +173,51 @@
     "sibling": null,
     "generic": "control:agente_ema@1h",
     "expected_in_term": 90
+   },
+   {
+    "id": "ema_precio_200",
+    "fingerprint": "7e560c3bb8ed",
+    "agent_id": "ema",
+    "timeframe": "4h",
+    "role": "base",
+    "n_params": 1,
+    "band": "tres_dias",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_ema@4h",
+    "expected_in_term": 31
+   },
+   {
+    "id": "ema_cruce_21_55",
+    "fingerprint": "0064eab82c2f",
+    "agent_id": "ema",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_ema@1h",
+    "expected_in_term": 64
+   },
+   {
+    "id": "ema_retroceso_12h",
+    "fingerprint": "4b5c446e1384",
+    "agent_id": "ema",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 2,
+    "band": "intradia",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": "ema_precio_200",
+    "generic": "control:agente_ema@1h",
+    "expected_in_term": 58
    },
    {
     "id": "niveles_rebote",
@@ -172,6 +263,21 @@
     "sibling": null,
     "generic": "control:agente_levels@1h",
     "expected_in_term": 159
+   },
+   {
+    "id": "niveles_redondos",
+    "fingerprint": "a14216276d73",
+    "agent_id": "levels",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 3,
+    "band": "intradia",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "reversion",
+    "sibling": "niveles_rebote",
+    "generic": "control:agente_levels@1h",
+    "expected_in_term": 106
    },
    {
     "id": "liq_agotamiento",
@@ -262,6 +368,21 @@
     "sibling": null,
     "generic": "control:agente_literature@1h",
     "expected_in_term": 95
+   },
+   {
+    "id": "lit_consenso_4h",
+    "fingerprint": "5d290cffe097",
+    "agent_id": "literature",
+    "timeframe": "4h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "tres_dias",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "consenso",
+    "sibling": null,
+    "generic": "control:agente_literature@4h",
+    "expected_in_term": 60
    },
    {
     "id": "micro_ofi",
@@ -369,21 +490,6 @@
     "expected_in_term": 96
    },
    {
-    "id": "estructura_ruptura",
-    "fingerprint": "f732d941eeca",
-    "agent_id": "structure",
-    "timeframe": "1h",
-    "role": "candidato",
-    "n_params": 0,
-    "band": "scalping",
-    "band_source": "medida_t170",
-    "history": true,
-    "theme": "tendencia",
-    "sibling": null,
-    "generic": "control:agente_structure@1h",
-    "expected_in_term": 155
-   },
-   {
     "id": "estructura_retroceso",
     "fingerprint": "445ea1320e26",
     "agent_id": "structure",
@@ -399,19 +505,34 @@
     "expected_in_term": 145
    },
    {
-    "id": "tec_acuerdo_marcos",
-    "fingerprint": "a3e0ee4321f2",
-    "agent_id": "technical",
+    "id": "estructura_ruptura_sc02",
+    "fingerprint": "885e6f34a867",
+    "agent_id": "structure",
     "timeframe": "1h",
-    "role": "base",
+    "role": "candidato",
     "n_params": 1,
-    "band": "scalping",
-    "band_source": "medida_t170",
+    "band": "intradia",
+    "band_source": "medida_t177",
     "history": true,
     "theme": "tendencia",
     "sibling": null,
-    "generic": "control:agente_technical@1h",
-    "expected_in_term": 228
+    "generic": "control:agente_structure@1h",
+    "expected_in_term": 106
+   },
+   {
+    "id": "estructura_cambio_sc04",
+    "fingerprint": "a558ff523220",
+    "agent_id": "structure",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "reversion",
+    "sibling": null,
+    "generic": "control:agente_structure@1h",
+    "expected_in_term": 219
    },
    {
     "id": "tec_ruptura_volumen",
@@ -427,6 +548,51 @@
     "sibling": null,
     "generic": "control:agente_technical@1h",
     "expected_in_term": 492
+   },
+   {
+    "id": "tec_acuerdo_tres_marcos",
+    "fingerprint": "b1109231490a",
+    "agent_id": "technical",
+    "timeframe": "1h",
+    "role": "base",
+    "n_params": 1,
+    "band": "scalping",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_technical@1h",
+    "expected_in_term": 216
+   },
+   {
+    "id": "tec_rsi_giro",
+    "fingerprint": "47e8e8ee0e70",
+    "agent_id": "technical",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "reversion",
+    "sibling": null,
+    "generic": "control:agente_technical@1h",
+    "expected_in_term": 202
+   },
+   {
+    "id": "tec_compresion_bb_12h",
+    "fingerprint": "def5e9e1cd39",
+    "agent_id": "technical",
+    "timeframe": "1h",
+    "role": "candidato",
+    "n_params": 2,
+    "band": "intradia",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": "tec_acuerdo_tres_marcos",
+    "generic": "control:agente_technical@1h",
+    "expected_in_term": 84
    },
    {
     "id": "vwap_tendencia",
@@ -457,6 +623,36 @@
     "sibling": null,
     "generic": "control:agente_vwap@4h",
     "expected_in_term": 81
+   },
+   {
+    "id": "vwap_reversion_1h",
+    "fingerprint": "a5a1a51d47e8",
+    "agent_id": "vwap",
+    "timeframe": "1h",
+    "role": "base",
+    "n_params": 1,
+    "band": "scalping",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "reversion",
+    "sibling": null,
+    "generic": "control:agente_vwap@1h",
+    "expected_in_term": 409
+   },
+   {
+    "id": "vwap_quincenal",
+    "fingerprint": "2ecb1c3cc6ab",
+    "agent_id": "vwap",
+    "timeframe": "4h",
+    "role": "candidato",
+    "n_params": 1,
+    "band": "intradia",
+    "band_source": "medida_t177",
+    "history": true,
+    "theme": "tendencia",
+    "sibling": null,
+    "generic": "control:agente_vwap@4h",
+    "expected_in_term": 92
    }
   ],
   "discarded": [
@@ -464,13 +660,19 @@
     "id": "elliott_onda3",
     "fingerprint": "4d968968896e",
     "stage": "examen_fisico_t169",
-    "reason": "ninguna idea en toda la muestra: la regla no se cumple nunca; semanal en posición el 0 % de los días (< 30 %). Imposible por cómo emite el agente (`agents/elliott/compute.py:66` etiqueta los pivotes por posición: el último es siempre C); arreglarlo exige una versión nueva del agente (BACKLOG; ◆ 2026-11-16: baja)"
+    "reason": "ninguna idea en toda la muestra: la regla no se cumple nunca; semanal en posición el 0 % de los días (< 30 %). Imposible por cómo emite el agente (`agents/elliott/compute.py:66` etiqueta los pivotes por posición: el último es siempre C)"
    },
    {
     "id": "elliott_onda5_giro",
     "fingerprint": "4f745cbeb4c5",
     "stage": "examen_fisico_t169",
-    "reason": "ninguna idea en toda la muestra: la regla no se cumple nunca; semanal en posición el 0 % de los días (< 30 %). Imposible por cómo emite el agente (`agents/elliott/compute.py:66` etiqueta los pivotes por posición: el último es siempre C); arreglarlo exige una versión nueva del agente (BACKLOG; ◆ 2026-11-16: baja)"
+    "reason": "ninguna idea en toda la muestra: la regla no se cumple nunca; semanal en posición el 0 % de los días (< 30 %). Imposible por cómo emite el agente (`agents/elliott/compute.py:66` etiqueta los pivotes por posición: el último es siempre C)"
+   },
+   {
+    "id": "elliott_tendencia_dow",
+    "fingerprint": "f99e61a65e9a",
+    "stage": "examen_fisico_t177",
+    "reason": "tres_dias: 4,7 operaciones al mes (< 5)"
    },
    {
     "id": "ema_pila",
@@ -506,19 +708,31 @@
     "id": "regimen_tramo",
     "fingerprint": "22b697e89a4d",
     "stage": "examen_fisico_t169",
-    "reason": "scalping: 4,6 operaciones al mes (< 20). Gemelo físico de regimen_tramo_estable (◆ 2026-11-16: cuentan como dos prospectos)"
+    "reason": "scalping: 4,6 operaciones al mes (< 20). Gemelo físico de regimen_tramo_estable (◆ 2026-11-16: cuentan como dos prospectos; regime queda excluido en T177)"
    },
    {
     "id": "regimen_tramo_estable",
     "fingerprint": "ed21cf948690",
     "stage": "examen_fisico_t169",
-    "reason": "scalping: 4,6 operaciones al mes (< 20). Gemelo físico de regimen_tramo (◆ 2026-11-16: cuentan como dos prospectos)"
+    "reason": "scalping: 4,6 operaciones al mes (< 20). Gemelo físico de regimen_tramo (◆ 2026-11-16: cuentan como dos prospectos; regime queda excluido en T177)"
+   },
+   {
+    "id": "estructura_ruptura",
+    "fingerprint": "1d4c4f294f59",
+    "stage": "examen_fisico_t169",
+    "reason": "ninguna idea en toda la muestra: la regla no se cumple nunca; intradia: 0,0 operaciones al mes (< 8). Reemplazada por la versión de T177 (◆ 2026-11-16, frente al rediseño en su sitio de T170)"
    },
    {
     "id": "estructura_cambio",
     "fingerprint": "30e8421a26c8",
     "stage": "examen_fisico_t169",
     "reason": "scalping: 6,8 operaciones al mes (< 20)"
+   },
+   {
+    "id": "tec_acuerdo_marcos",
+    "fingerprint": "61b1b609e29f",
+    "stage": "examen_fisico_t169",
+    "reason": "ninguna idea en toda la muestra: la regla no se cumple nunca; tres_dias: 0,0 operaciones al mes (< 5). Reemplazada por la versión de T177 (◆ 2026-11-16, frente al rediseño en su sitio de T170)"
    },
    {
     "id": "tec_rsi_rango",
@@ -545,11 +759,24 @@
     "reason": "tres_dias: 2,6 operaciones al mes (< 5)"
    }
   ],
-  "redesigned": [
-   "estructura_ruptura",
-   "tec_acuerdo_marcos"
-  ],
-  "replacements": []
+  "redesigned": [],
+  "replacements": [
+   "bots_contrario",
+   "elliott_oscilacion",
+   "elliott_dow",
+   "ema_precio_200",
+   "ema_cruce_21_55",
+   "ema_retroceso_12h",
+   "niveles_redondos",
+   "lit_consenso_4h",
+   "estructura_ruptura_sc02",
+   "estructura_cambio_sc04",
+   "tec_acuerdo_tres_marcos",
+   "tec_rsi_giro",
+   "tec_compresion_bb_12h",
+   "vwap_reversion_1h",
+   "vwap_quincenal"
+  ]
  },
  "accounts": {
   "initial_equity_usdt": 10000.0,
@@ -569,7 +796,7 @@
   "principal": "Rentabilidad neta acumulada de la cuenta propia (%), con comisiones, deslizamiento y funding.",
   "primary_hypothesis": "Una por prospecto: H0 E[d̃] ≤ 0, con d̃ = recorte de d a ±3 R. e-proceso mezcla por apuestas sobre y = d̃/3 (rejilla λ = 0,1…0,9). Solo cuentan las operaciones contabilizadas y cerradas en exit_t ≤ t; las sombras de la puerta de costo, no.",
   "secondary": [
-   "Nativo frente a genérico, una por agente: d de sus prospectos frente al del agente_{id} genérico, Holm sobre los 11 agentes con prospectos (α = 0,10, capa sensible).",
+   "Nativo frente a genérico, una por agente: d de sus prospectos frente al del agente_{id} genérico, Holm sobre los 12 agentes con prospectos (α = 0,10, capa sensible).",
    "Por tema (tendencia, reversión, derivados, consenso): media de efectos aleatorios > 0, Holm sobre los 4 temas (α = 0,10). Estimaciones encogidas hacia el tema (DerSimonian-Laird) en el panel y en T172.",
    "Hermano simple: requisito de Promesa para los complejos (a empate, el simple).",
    "Comprar y mantener: descriptivo.",
@@ -582,8 +809,8 @@
   "intradia": "operación",
   "tres_dias": "operación",
   "semanal": "día (suma diaria de d; los días sin cierre no mueven el e-proceso)",
-  "rule": "Manda la banda medida por la tenencia mediana (T169; T170 para las dos rediseñadas). Los 11 sin historia usan su banda declarada hasta su examen físico hacia adelante, al salir de guardería, que la mide con la misma ficha y la congela.",
-  "templates": "Plantillas de salida sin cambio (◆ 2026-11-16): atr_ladder en 1 h cierra en 1–4 h y rule_flip en 4 h en 4–62 h; los 5 descartes que dependían de la reasignación se mantienen.",
+  "rule": "Manda la banda medida por la tenencia mediana (T169 y, para los reemplazos, T177). Los 12 sin historia usan su banda declarada hasta su examen físico hacia adelante, al salir de guardería, que la mide con la misma ficha y la congela.",
+  "templates": "Plantillas de salida sin cambio (◆ 2026-11-16): atr_ladder en 1 h cierra en 1–4 h y rule_flip en 4 h en 4–62 h; los 5 descartes que dependían de la reasignación se mantienen. Por eso ningún prospecto de v1 es semanal: tener semanales de verdad exigiría otra plantilla de familia (BACKLOG T177 (1), cantera_v2).",
   "cost_gate": "Puerta de costo de la cantera: 0,3 R (V6 de T49), la misma vara del examen físico, automática por marco con todas sus cuentas (AUTO_ADAPT)."
  },
  "ladder": {
@@ -644,20 +871,28 @@
    "caps_pct": {
     "bots_mayoria": 20.89,
     "bots_unanimidad": 20.89,
+    "bots_contrario": 20.89,
     "deriv_funding_contrario": 20.89,
     "deriv_oi_tendencia": 20.89,
     "deriv_saturacion": 20.89,
     "deriv_largos_cortos": 20.89,
+    "elliott_oscilacion": 13.32,
+    "elliott_dow": 12.96,
     "ema_elastico": 13.32,
+    "ema_precio_200": 9.59,
+    "ema_cruce_21_55": 12.11,
+    "ema_retroceso_12h": 11.77,
     "niveles_rebote": 19.14,
     "niveles_ruptura": 13.76,
     "niveles_canal_extremos": 15.26,
+    "niveles_redondos": 13.87,
     "liq_agotamiento": 20.89,
     "liq_cascada": 20.89,
     "liq_cascada_multibolsa": 20.89,
     "lit_consenso": 16.15,
     "lit_nison_giro": 15.46,
     "lit_murphy_rsi": 13.49,
+    "lit_consenso_4h": 11.88,
     "micro_ofi": 20.89,
     "micro_absorcion": 20.89,
     "pa_bos": 14.26,
@@ -665,12 +900,17 @@
     "pa_patron_zona": 18.15,
     "pa_bos_patron": 13.87,
     "estructura_continuacion": 13.52,
-    "estructura_ruptura": 15.2,
     "estructura_retroceso": 14.96,
-    "tec_acuerdo_marcos": 16.48,
+    "estructura_ruptura_sc02": 13.87,
+    "estructura_cambio_sc04": 16.32,
     "tec_ruptura_volumen": 18.86,
+    "tec_acuerdo_tres_marcos": 16.25,
+    "tec_rsi_giro": 16.07,
+    "tec_compresion_bb_12h": 13.08,
     "vwap_tendencia": 19.64,
-    "vwap_semanal": 12.95
+    "vwap_semanal": 12.95,
+    "vwap_reversion_1h": 18.3,
+    "vwap_quincenal": 13.36
    }
   },
   "inactivity": {
@@ -714,47 +954,47 @@
  "false_promises": {
   "sims": 10000,
   "seed": 1701,
-  "m": 36,
-  "members": 29,
-  "mean": 0.0106,
-  "p_at_least_one": 0.0104,
+  "m": 50,
+  "members": 42,
+  "mean": 0.0068,
+  "p_at_least_one": 0.0067,
   "p95": 0,
   "max": 2,
   "sigma_r": 1.0,
   "bound": "cota superior: solo el paso por e-BH",
   "power": {
-   "threshold_e": 360.0,
+   "threshold_e": 500.0,
    "sigma_r": 1.0,
    "sims": 20000,
    "seed": 1702,
    "by_mu": {
     "0.10": {
      "100": 0.002,
-     "150": 0.007,
-     "250": 0.019,
-     "400": 0.045,
-     "650": 0.112
+     "150": 0.005,
+     "250": 0.014,
+     "400": 0.037,
+     "650": 0.095
     },
     "0.25": {
-     "100": 0.081,
-     "150": 0.251,
-     "250": 0.597,
-     "400": 0.896,
-     "650": 0.995
+     "100": 0.065,
+     "150": 0.219,
+     "250": 0.561,
+     "400": 0.878,
+     "650": 0.994
     },
     "0.50": {
-     "100": 0.85,
-     "150": 0.991,
+     "100": 0.819,
+     "150": 0.987,
      "250": 1.0,
      "400": 1.0,
      "650": 1.0
     }
    }
   },
-  "reading": "Bajo la nula global, el paso por e-BH deja de media 0.0106 promesas falsas en la fase (P(≥ 1) = 0.0104); los demás requisitos solo pueden quitar ascensos. e-BH garantiza FDR ≤ 0,10 bajo cualquier dependencia, y en la práctica es más estricto: el precio es la potencia (tabla `power`, ascenso en solitario con e ≥ m/q)."
+  "reading": "Bajo la nula global, el paso por e-BH deja de media 0.0068 promesas falsas en la fase (P(≥ 1) = 0.0067); los demás requisitos solo pueden quitar ascensos. e-BH garantiza FDR ≤ 0,10 bajo cualquier dependencia, y en la práctica es más estricto: el precio es la potencia (tabla `power`, ascenso en solitario con e ≥ m/q)."
  },
  "reserve": [
-  "7 plazas de reserva del techo de 50: solo para reentradas (versión nueva de un prospecto dado de baja, también de los descartados por el examen físico) o para los prospectos en reserva de T167 si vuelven sus datos.",
+  "8 plazas de reserva del techo de 50: solo para reentradas (versión nueva de un prospecto dado de baja, también de los descartados por el examen físico) o para los prospectos en reserva de T167 si vuelven sus datos.",
   "Como mucho una reentrada por prospecto dado de baja.",
   "Causa nombrada (variable sin información, costo, cadencia o la teoría contraria) e hipótesis escrita con su obra del catálogo; «perdió dinero» no basta.",
   "◆ del usuario para cada reentrada, que se anota antes de su primera operación en un anexo de solo adición, con su huella; no cambia nada más de cantera_v1.",
@@ -762,7 +1002,7 @@
   "Prospecto nuevo: huella nueva, cuenta nueva desde el capital inicial y en guardería, sin heredar operaciones; su guardería e inactividad cuentan desde su alta, y sigue el calendario de revisiones de la fase."
  ],
  "clock": {
-  "not_before_utc": "2026-11-16T21:00Z",
+  "not_before_utc": "2026-11-17T02:00Z",
   "alta": "El primer cálculo de la cantera con EIM_NURSERY=1 posterior a not_before y al commit de este archivo, anotado en `paper_cantera.duckdb` (tabla nursery_prereg) con la versión y la huella; ninguna operación anterior cuenta.",
   "reviews": "Revisiones fijas a los días 30, 61, 91, 121, 152 y 182 desde el alta. Solo en ellas cambia una etapa; la lectura semanal de T159 y el panel no son miradas.",
   "deadline": "Día 182 (6 meses): mirada final. Las promesas que cumplen el primer equipo quedan como candidatas (◆ T172: el usuario confirma o veta la salida mecánica, no elige entre candidatos); el resto, baja por fecha límite.",

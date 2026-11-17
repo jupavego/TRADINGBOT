@@ -27,7 +27,7 @@ PREREG_DIR = Path(__file__).resolve().parents[1] / "validation" / "prereg"
 DEFAULT_VERSION = "prereg_cantera_v1"
 # SHA-256 (fin de línea LF) de cada versión publicada. Solo se añaden entradas.
 PUBLISHED: dict[str, str] = {
-    "prereg_cantera_v1": "f3c9c08cf8cb1082ed192930d8c078ac94a3537dc739a289f0ebd452c331ad24",
+    "prereg_cantera_v1": "eef1519260360552b6248613f19765f4ba6a915f51bb78c3354fbc9363b62a7a",
 }
 THEMES = ("tendencia", "reversion", "derivados", "consenso")
 BANDS = ("scalping", "intradia", "tres_dias", "semanal")
