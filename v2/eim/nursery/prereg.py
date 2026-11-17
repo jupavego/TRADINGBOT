@@ -56,7 +56,7 @@ class MemberSpec(_Frozen):
 class Discarded(_Frozen):
     id: str
     fingerprint: str
-    stage: Literal["examen_fisico_t169"]
+    stage: Literal["examen_fisico_t169", "examen_fisico_t177"]
     reason: str
 
 
@@ -78,9 +78,11 @@ class Family(_Frozen):
         ids = [x.id for x in self.members] + [x.id for x in self.discarded]
         if len(set(ids)) != len(ids):
             raise ValueError("un prospecto aparece dos veces en la familia")
-        if len(ids) != self.enrolled_t167 + len(self.replacements):
+        new = len(self.replacements) + sum(x.stage != "examen_fisico_t169"
+                                           for x in self.discarded)
+        if len(ids) != self.enrolled_t167 + new:
             raise ValueError(f"{len(ids)} prospectos ≠ {self.enrolled_t167} inscritos en T167 + "
-                             f"{len(self.replacements)} reemplazos")
+                             f"{new} nuevos (los que entran y los que cayeron en su examen)")
         if not set(self.replacements) <= {x.id for x in self.members}:
             raise ValueError("un reemplazo que no entra en la familia")
         if self.m != len(self.members) + self.reserve_slots:

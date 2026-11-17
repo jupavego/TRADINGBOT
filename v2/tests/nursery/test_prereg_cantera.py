@@ -10,7 +10,7 @@ import pytest
 from eim.nursery.exam import verdict
 from eim.nursery.params import NurseryParams
 from eim.nursery.prereg import PREREG_DIR, PUBLISHED, family_prospects, load_prereg
-from eim.nursery.prospect import CEILING, load_prospects
+from eim.nursery.prospect import CEILING, load_dossiers, load_prospects
 from eim.validation.criteria import PUBLISHED as CRITERIA
 
 PR = load_prereg()
@@ -32,10 +32,14 @@ def test_family_matches_the_code_and_the_ceiling():
     ps = family_prospects(PR, load_prospects())
     fam = PR.family
     n = len(fam.members)
-    assert len(ps) == n and n + len(fam.discarded) == fam.enrolled_t167 + len(fam.replacements)
+    late = sum(x.stage != "examen_fisico_t169" for x in fam.discarded)
+    assert len(ps) == n and n + len(fam.discarded) == fam.enrolled_t167 + len(fam.replacements) \
+        + late
     assert fam.ceiling == CEILING == 50 and fam.enrolled_t167 == 43 and PR.m <= fam.ceiling
     assert PR.m == n + fam.reserve_slots
     assert not fam.redesigned            # ◆ 2026-11-16: entran las versiones de T177
+    assert {x.id for x in fam.discarded} == {
+        x["id"] for d in load_dossiers().values() for x in d.get("discarded", [])}
     assert {"estructura_ruptura", "tec_acuerdo_marcos", "elliott_onda3", "elliott_onda5_giro",
             "regimen_tramo", "regimen_tramo_estable"} <= {x.id for x in fam.discarded}
     assert {"estructura_ruptura_sc02", "tec_acuerdo_tres_marcos"} <= set(fam.replacements)

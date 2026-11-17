@@ -22,7 +22,7 @@ sys.path.insert(0, str(ROOT))
 from eim.nursery import calibrate  # noqa: E402
 from eim.nursery.ladder_rules import LadderRules  # noqa: E402
 from eim.nursery.params import V6_MAX_COST_R, NurseryParams  # noqa: E402
-from eim.nursery.prospect import load_prospects  # noqa: E402
+from eim.nursery.prospect import load_dossiers, load_prospects  # noqa: E402
 from eim.nursery.signals import accounts_for  # noqa: E402
 from eim.validation.criteria import PUBLISHED as CRITERIA  # noqa: E402
 
@@ -90,25 +90,30 @@ def family(exams: tuple[Path, ...] = (), themes: Path | None = None) -> dict:
     if themes is not None:      # «reversión» con tilde (T177) es el tema `reversion`
         theme.update({k: v.replace("ó", "o") for k, v in
                       json.loads(Path(themes).read_text(encoding="utf-8")).items()})
-    ps = load_prospects()
-    by = {p.id: p for p in ps}
+    ps = load_prospects()          # desde T177, solo los vivos: los descartes van aparte
     generic = {(a.agent_id, a.timeframe): a.id for a in accounts_for(ps) if a.kind == "control"}
     members, discarded = [], []
+    for d in load_dossiers().values():
+        for x in d.get("discarded", []):
+            r = rows.get(x["id"])
+            why = "; ".join(r["verdict"]["reasons"]) if r else str(x.get("reason", ""))
+            if x["id"].startswith("regimen_tramo"):
+                why += (". Gemelo físico de " + ("regimen_tramo_estable" if x["id"] ==
+                        "regimen_tramo" else "regimen_tramo") + " (◆ 2026-11-16: cuentan como "
+                        "dos prospectos; regime queda excluido en T177)")
+            if x["id"] in ("elliott_onda3", "elliott_onda5_giro"):
+                why += (". Imposible por cómo emite el agente (`agents/elliott/compute.py:66` "
+                        "etiqueta los pivotes por posición: el último es siempre C)")
+            if x["id"] in ("estructura_ruptura", "tec_acuerdo_marcos"):
+                why += (". Reemplazada por la versión de T177 (◆ 2026-11-16, frente al "
+                        "rediseño en su sitio de T170)")
+            discarded.append({"id": x["id"], "fingerprint": x["fingerprint"],
+                              "stage": f"examen_fisico_{x['discarded_by'].lower()}",
+                              "reason": why})
     for p in ps:
         r = rows.get(p.id)
         if r is not None and r["verdict"]["discarded"]:
-            why = "; ".join(r["verdict"]["reasons"])
-            if p.id.startswith("regimen_tramo"):
-                why += (". Gemelo físico de " + ("regimen_tramo_estable" if p.id ==
-                        "regimen_tramo" else "regimen_tramo") + " (◆ 2026-11-16: cuentan como "
-                        "dos prospectos)")
-            if p.id.startswith("elliott_"):
-                why += (". Imposible por cómo emite el agente (`agents/elliott/compute.py:66` "
-                        "etiqueta los pivotes por posición: el último es siempre C); arreglarlo "
-                        "exige una versión nueva del agente (BACKLOG; ◆ 2026-11-16: baja)")
-            discarded.append({"id": p.id, "fingerprint": p.fingerprint,
-                              "stage": "examen_fisico_t169", "reason": why})
-            continue
+            raise SystemExit(f"{p.id}: el examen lo descarta pero su expediente lo inscribe")
         base = next((q for q in ps if q.agent_id == p.agent_id and q.role == "base"), None)
         sib = base.id if (base and base.id != p.id and len(p.params) > len(base.params)
                           and (rows.get(base.id) is None or
@@ -126,7 +131,6 @@ def family(exams: tuple[Path, ...] = (), themes: Path | None = None) -> dict:
             "generic": generic[(p.agent_id, p.timeframe)],
             "expected_in_term": None if r is None else
             int(round(r["verdict"]["expected_in_term"]))})
-    assert len(members) + len(discarded) == len(by)
     return {"members": members, "discarded": discarded,
             "replacements": [x["id"] for x in members if x["id"] not in original],
             "enrolled_t167": len(original)}

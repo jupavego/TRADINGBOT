@@ -115,14 +115,16 @@ def document(fam: dict, lad: dict, cal: dict, np_, criteria_sha: str, reserve: i
             "scalping": "operación", "intradia": "operación", "tres_dias": "operación",
             "semanal": "día (suma diaria de d; los días sin cierre no mueven el e-proceso)",
             "rule": (
-                "Manda la banda medida por la tenencia mediana (T169; T170 para las dos "
-                "rediseñadas). Los 11 sin historia usan su banda declarada hasta su examen "
-                "físico hacia adelante, al salir de guardería, que la mide con la misma ficha y "
-                "la congela."),
+                "Manda la banda medida por la tenencia mediana (T169 y, para los reemplazos, "
+                f"T177). Los {sum(not x['history'] for x in members)} sin historia usan su banda "
+                "declarada hasta su examen físico hacia adelante, al salir de guardería, que la "
+                "mide con la misma ficha y la congela."),
             "templates": (
                 "Plantillas de salida sin cambio (◆ 2026-11-16): atr_ladder en 1 h cierra en "
                 "1–4 h y rule_flip en 4 h en 4–62 h; los 5 descartes que dependían de la "
-                "reasignación se mantienen."),
+                "reasignación se mantienen. Por eso ningún prospecto de v1 es semanal: tener "
+                "semanales de verdad exigiría otra plantilla de familia (BACKLOG T177 (1), "
+                "cantera_v2)."),
             "cost_gate": (
                 "Puerta de costo de la cantera: 0,3 R (V6 de T49), la misma vara del examen "
                 "físico, automática por marco con todas sus cuentas (AUTO_ADAPT)."),
