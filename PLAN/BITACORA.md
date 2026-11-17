@@ -1586,3 +1586,17 @@ más reciente por fecha y su siguiente paso. Formato:
   - El pre-registro quedó en `40a60b7`: 42 entran, 17 descartes, m = 50 y `not_before` 2026-11-17T02:00Z.
 - **Pruebas:** las del pre-registro, el escalafón, los expedientes y las reglas de T177 pasan. 9 pruebas de T168/T169 aún esperan 43 prospectos y a `regime`, y fallan igual en la rama de T177: se lo dije a esa sesión para que las corrija allí.
 - **Siguiente paso:** traer el arreglo de esas pruebas, pasar el gate completo por la cola, pedir la aprobación de la lista final de 42 y, con ella, fusionar, encender `EIM_NURSERY=1` y anotar el alta.
+
+## 2026-11-17 · T170 cerrada: la cantera opera hacia adelante
+- **Hecho:**
+  - El usuario aprobó la lista final de 42 y dio permiso para fusionar y encender esta noche.
+  - A petición suya, para liberar RAM durante los gates, de 02:39 a 03:24 UTC el servicio de líderes estuvo parado y la tarea «EIM - vigilante del conjunto», deshabilitada. La captura HFT y la de liquidaciones siguieron.
+  - Gate final por la cola (`gate-t170-final-56e7`): rc 0, 1 296 s y sin pausas. El de T177 (`gate-t177-8a85`) salió también rc 0.
+  - PR #301 fusionado (`c135f52`), que lleva dentro T177: GitHub da #302 por fusionado.
+  - La carpeta principal se trajo con `sincronizar_main.ps1 -SinReiniciar` y se fijó `EIM_NURSERY=1` como variable de usuario.
+  - Reinicio sin `-Todo`: parada a las 03:24:15 y `servicio_continuo.ps1 -ConWeb` a las 03:24:37 UTC; líderes volvió con él. La tarea del vigilante se habilitó a las 03:25:46.
+  - **Alta de `cantera_v1`: 2026-11-17 03:25:17 UTC** (`nursery_prereg` en `data/paper_cantera.duckdb`).
+  - `GET /v2/nursery`: activada, sin bloqueo, huella `eef151926036`, m = 50, 42 en guardería y 17 controles.
+  - `GET /v2/paper` dio 503 durante el primer ciclo y 200 desde las 03:27:09. Quedaban 3,6 GB libres.
+- **Revisiones del escalafón:** días 30, 61, 91, 121, 152 y 182 desde el alta. La primera es el 2026-12-17; la fecha límite, el 2027-05-18.
+- **Siguiente paso:** T171 (panel «Cantera»). T172, el informe mensual, tras la primera revisión.

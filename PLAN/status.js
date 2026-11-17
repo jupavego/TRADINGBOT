@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-16T20:48:56",
+ "generated": "2026-11-16T22:27:53",
  "phases": [
   {
    "n": 0,
@@ -2526,8 +2526,8 @@ window.EIM_STATUS = {
     "T160",
     "T161"
    ],
-   "state": "progress",
-   "notes": "En curso (2026-11-17, PR #301 en borrador): `prereg_cantera_v1.json` reconstruido con la familia final de T177 (42 entran, 17 descartes, m = 50; `PLAN/notas/T170_cantera_v1.md`), `eim/nursery/ladder.py` y sus pruebas. Falta: gate completo, aprobación de la lista final, fusionar y encender",
+   "state": "done",
+   "notes": "**Hecha (2026-11-17): la cantera opera hacia adelante desde el alta 2026-11-17 03:25:17 UTC.** Pre-registro `v2/eim/validation/prereg/prereg_cantera_v1.json` (huella `eef15192…`, commit `40a60b7`, anterior a toda operación), aprobado por el usuario con la familia final de T177: 42 entran (16 supervivientes, 12 sin historia y 14 reemplazos), 17 descartes, 8 plazas de reserva, m = 50 y techo 50. Escalafón puro `v2/eim/nursery/ladder.py` (+ `ladder_final`, `evalue`, `themes`, `calibrate`): e-BH q = 0,10 para Promesa y StepM en la mirada final; 0,0068 promesas falsas esperadas. `EIM_NURSERY=1`; `GET /v2/nursery` da los 42 en guardería. PR #301 (con T177, #302). Nota `PLAN/notas/T170_cantera_v1.md`",
    "effort": "medio",
    "phase": 27
   },
