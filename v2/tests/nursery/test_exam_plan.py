@@ -37,13 +37,13 @@ def test_stretches_match_the_declared_sizes() -> None:
     assert first[0] == plan.EPOCH_MS + H1 and first[-1] == plan.block_start(1)
 
 
-def test_32_of_43_prospects_have_history() -> None:
+def test_30_of_42_prospects_have_history() -> None:
     ps = load_prospects()
     hist = plan.with_history(ps)
-    assert len(ps) == 43 and len(hist) == 32
+    assert len(ps) == 42 and len(hist) == 30              # familia tras T177
     assert {p.agent_id for p in ps} - {p.agent_id for p in hist} == plan.HISTORYLESS
     agents = plan.agents_by_tf(ps)
-    assert agents["15m"] == ["vwap"]
+    assert "15m" not in agents       # vwap_reversion pasó a 1 h en T177 (costo en 15 m)
     assert not set().union(*map(set, agents.values())) & plan.HISTORYLESS
 
 
@@ -63,4 +63,4 @@ def test_freeze_is_idempotent_and_refuses_another_window(tmp_path: Path) -> None
         plan.freeze(f, other)
     st = plan.stretches_of(pl)
     assert [s.block for s in st["1h"]] == list(range(0, 46, 3))
-    assert len(pl["prospects"]) == 32 and len(pl["without_history"]) == 11
+    assert len(pl["prospects"]) == 30 and len(pl["without_history"]) == 12

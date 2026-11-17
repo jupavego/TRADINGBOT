@@ -43,14 +43,14 @@ def test_every_rule_runs_and_some_trade(world):
     _, _, book = world
     traded = {e.account for e in book.entries}
     prospects = [a for a in book.accounts if a.kind == PROSPECT]
-    assert len(prospects) == len(PROSPECTS) == 43
+    assert len(prospects) == len(PROSPECTS) == 42          # familia tras T177
     assert len(traded & {a.id for a in prospects}) >= 30      # datos al azar: casi todas operan
 
 
 def test_controls_do_not_count_as_prospects(world):
     path, ctxs, book = world
     s = summarize(book, path, ctxs["15m"][0])
-    assert s["prospects"] == book.prospect_count == 43
+    assert s["prospects"] == book.prospect_count == 42
     ctrl = [a for a in s["accounts"] if a["kind"] == CONTROL]
     assert s["controls"] == len(ctrl) > 0
     assert all(a["account"].startswith("control:agente_") and a["prospect"] is None for a in ctrl)
