@@ -151,6 +151,67 @@ midieron con la misma física y el mismo veredicto (`t177-examen-previo`, por la
 `niveles_redondos` declaraba tres días y pasa a declarar intradía, que es lo que dan su plantilla y
 su marco (lección 1). Su regla y su huella no cambian.
 
-## 6. Examen
+## 6. Examen físico (2026-11-17)
 
-Pendiente: `v2/reports/t177_examen_fisico.md`.
+El informe está en `v2/reports/t177_examen_fisico.md` (+ `.json`, con el formato de T169, que es el que lee
+`t170_prereg.py`).
+
+**Cómo se midió.** Mismo código y mismos umbrales que T169 (`scripts/t177_examen.py`, que filtra el de
+T169). La copia del banco de T169 se usó en solo lectura, con su huella comprobada.
+
+**Muestra:**
+- 4 h: 7 876 contextos, 1 313 días.
+- 1 h: 10 752 contextos, 448 días en 16 bloques de 28.
+
+**Costo:** 1,5 h de cálculo registradas, más 3 424 contextos de una pasada anterior al registro. Fueron 9
+pausas de la cola por falta de memoria; la RAM máxima fue de 135 MB.
+
+**Comprobaciones:**
+- No anticipación: 12 cortes y 108 contextos recalculados con el banco truncado, con 0 diferencias.
+- Identidad del subconjunto: 6 de 6 contextos idénticos.
+- Gemelos físicos: ninguno. `elliott_dow` cambia el 26 % de las ideas de `elliott_oscilacion` (875 frente a 1 175).
+
+| Prospecto | Al mes | Tenencia | Costo | Banda medida | Estado |
+|---|--:|--:|--:|---|---|
+| `vwap_reversion_1h` | 67,4 | 2,0 h | 0,105 R | scalping | sigue |
+| `estructura_cambio_sc04` | 36,2 | 12,0 h | 0,163 R | intradía | sigue |
+| `tec_acuerdo_tres_marcos` | 35,7 | 2,0 h | 0,128 R | scalping | sigue |
+| `tec_rsi_giro` | 33,2 | 12,0 h | 0,153 R | intradía | sigue |
+| `niveles_redondos` | 17,5 | 11,4 h | 0,139 R | intradía | sigue |
+| `estructura_ruptura_sc02` | 17,5 | 10,5 h | 0,167 R | intradía | sigue |
+| `vwap_quincenal` | 15,2 | 16,9 h | 0,079 R | intradía | sigue, sin opción a primer equipo |
+| `elliott_oscilacion` | 14,9 | 8,0 h | 0,070 R | intradía | sigue, sin opción a primer equipo |
+| `tec_compresion_bb_12h` | 13,8 | 8,6 h | 0,187 R | intradía | sigue, sin opción a primer equipo |
+| `elliott_dow` | 13,5 | 9,2 h | 0,069 R | intradía | sigue, sin opción a primer equipo |
+| `ema_cruce_21_55` | 10,6 | 9,2 h | 0,157 R | intradía | sigue, sin opción a primer equipo |
+| `lit_consenso_4h` | 9,8 | 48,0 h | 0,081 R | tres días | sigue, sin opción a primer equipo |
+| `ema_retroceso_12h` | 9,5 | 11,8 h | 0,175 R | intradía | sigue, sin opción a primer equipo |
+| `ema_precio_200` | 5,1 | 24,0 h | 0,111 R | tres días | sigue, al borde, sin opción a primer equipo |
+| `elliott_tendencia_dow` | 4,7 | 48,0 h | 0,065 R | tres días | **descartado** (< 5 al mes) |
+
+**Resultado: 14 de 15 siguen.** Los 6 primeros llegan a un veredicto antes, porque tienen más
+operaciones: con μ = +0,10 R y α = 0,05, `vwap_reversion_1h` tarda unos 121 días y
+`estructura_cambio_sc04` unos 226. Los otros 8 quedan «sin opción a primer equipo», como 4 de los
+supervivientes de T169: siguen en la familia, pero solo pueden dar baja o promesa. `bots_contrario` se
+examina hacia adelante.
+
+**`elliott_tendencia_dow` cae y su plaza queda vacía** (punto 8 de `PLAN/T177.md`). No hay rediseño
+físico que la haga pasar:
+- Tiene solo 6,9 ideas al mes, y la salida a 48 h bloquea parte de ellas.
+- Si sale en el pivote siguiente, la tenencia baja de 24 h. Entonces la banda pasa a intradía, que pide 8 al mes.
+
+La plaza vuelve a la reserva.
+
+**Familia final de `cantera_v1`: 42.**
+
+| Grupo | Prospectos |
+|---|--:|
+| Supervivientes de T169 | 16 |
+| Sin historia | 11 |
+| Nuevos de T177 | 15 |
+| **Total** | **42** |
+
+Quedan 8 plazas de reserva hasta el techo de 50.
+
+**Bandas.** La banda de tres días vuelve a tener prospectos: `lit_consenso_4h` y `ema_precio_200`.
+La banda semanal sigue sin ninguno (§3).

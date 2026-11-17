@@ -1,4 +1,8 @@
-"""T177: las reglas de los 16 reemplazos hacen lo que dice su expediente, sin red ni disco."""
+"""T177: las reglas de los reemplazos hacen lo que dice su expediente, sin red ni disco.
+
+Son 16 formulados y 15 en la familia: `elliott_tendencia_dow` cayó en el examen (4,7 operaciones al
+mes en tres días) y su plaza quedó vacía.
+"""
 
 from __future__ import annotations
 
@@ -10,7 +14,7 @@ from eim.nursery.rules.base import View
 
 NEW = {"ema_precio_200", "ema_cruce_21_55", "ema_retroceso_12h", "tec_acuerdo_tres_marcos",
        "tec_rsi_giro", "tec_compresion_bb_12h", "vwap_reversion_1h", "vwap_quincenal",
-       "elliott_oscilacion", "elliott_dow", "elliott_tendencia_dow",
+       "elliott_oscilacion", "elliott_dow",
        "estructura_ruptura_sc02", "estructura_cambio_sc04", "niveles_redondos", "lit_consenso_4h",
        "bots_contrario"}
 # Los que repiten la regla de un descartado con otra plantilla o marco (lección de T169).
@@ -28,21 +32,27 @@ def _rule(pid: str):
     return next(p for p in load_prospects() if p.id == pid).rule
 
 
-def test_the_sixteen_replace_the_sixteen_discarded():
+def test_the_replacements_and_the_discarded_match():
     docs = load_dossiers()
     disc = {p["id"]: p for d in docs.values() for p in d.get("discarded", [])}
     news = {p["id"]: p for d in docs.values() for p in d.get("prospects", []) if "replaces" in p}
-    assert set(news) == NEW and len(disc) == 16
-    assert {p["replaces"] for p in news.values()} == set(disc)
+    t169 = {k: p for k, p in disc.items() if p["discarded_by"] == "T169"}
+    assert set(news) == NEW and len(t169) == 16
+    assert set(disc) - set(t169) == {"elliott_tendencia_dow"}
+    assert {p["replaces"] for p in news.values()} == set(t169) - {"regimen_tramo"}
     for pid, p in disc.items():
-        assert p["discarded_by"] == "T169" and p["reasons"] and p["fingerprint"]
-        assert news[p["replaced_by"]]["replaces"] == pid
+        assert p["reasons"] and p["fingerprint"]
+        if p["replaced_by"] in news:
+            assert news[p["replaced_by"]]["replaces"] == pid
+    # Su reemplazo cayó en el examen de T177: la plaza queda vacía (PLAN/T177.md, punto 8).
+    assert t169["regimen_tramo"]["replaced_by"] == "elliott_tendencia_dow"
+    assert disc["elliott_tendencia_dow"]["discarded_by"] == "T177"
+    assert disc["elliott_tendencia_dow"]["replaced_by"] is None
     # `regime` no llega a la cadencia en ningún marco: excluido, su plaza base pasa a `elliott`.
     assert docs["regime"]["status"] == "excluido" and not docs["regime"]["prospects"]
-    assert news["elliott_tendencia_dow"]["replaces"] == "regimen_tramo"
     assert news["bots_contrario"]["replaces"] == "regimen_tramo_estable"
     ids = {p.id for p in load_prospects()}
-    assert NEW <= ids and not (set(disc) & ids)
+    assert NEW <= ids and not (set(disc) & ids) and len(ids) == 42
 
 
 def test_reused_rules_are_new_prospects_with_their_own_fingerprint():
@@ -97,7 +107,7 @@ def test_zigzag_swing_and_dow_filter():
     assert dow(_view("elliott", [h, low_hi]), {}).enter == 1          # mínimo más alto
     lower = dow(_view("elliott", [h, low_lo]), {})
     assert lower.enter == 0 and lower.hold == 1                       # mínimo más bajo: no entra
-    pull = _rule("elliott_tendencia_dow")
+    pull = MODULES["elliott"].RULES["elliott_tendencia_dow"]   # dada de baja, la regla queda
     assert pull(_view("elliott", [h, low_lo]), {}).enter == -1        # mínimo más bajo: vende
     assert pull(_view("elliott", [h, low_hi]), {}).enter == 0         # mínimo más alto: nada
     hh = {"pivots[-1].type": "H", "pivots[-1].price": 130.0, "pivots[-3].price": 120.0}

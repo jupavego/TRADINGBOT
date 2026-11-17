@@ -199,6 +199,8 @@ def cmd_exam(a: argparse.Namespace) -> None:
     rows, sample = [], {}
     by_tf_ctx = {}
     for tf, ss in plan.stretches_of(pl).items():
+        if not pl["agents"].get(tf):
+            continue                    # ningún prospecto en ese marco (T177: sin 15 m)
         allc = gen.load_ctxs(gen.ctx_path(work, tf))
         ts = np.array([int(c["t"]) for c in allc], dtype=np.int64)
         by_tf_ctx[tf] = [(s, allc[int(np.searchsorted(ts, s.start, "right")):

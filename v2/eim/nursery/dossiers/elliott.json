@@ -157,38 +157,6 @@
    ],
    "horizon": "tres_dias",
    "replaces": "elliott_onda5_giro"
-  },
-  {
-   "id": "elliott_tendencia_dow",
-   "name": "Retroceso en tendencia de Dow",
-   "role": "candidato",
-   "theory": "Lectura contraria a la oscilación nueva, a favor de la tendencia de Dow: tras un máximo más alto, la bajada que empieza es un retroceso (se compra); tras un mínimo más bajo, la subida es un rebote (se vende).",
-   "opposite_of": "elliott_oscilacion",
-   "rule": "Al confirmarse en 4 h un máximo más alto que el anterior, largo; al confirmarse un mínimo más bajo que el anterior, corto; sale a las 12 velas del agente (48 h).",
-   "variables": [
-    "metrics.pivots[-1].type",
-    "metrics.pivots[-1].price",
-    "metrics.pivots[-3].price"
-   ],
-   "params": {
-    "umbral_zigzag_pct": {
-     "value": 3.0,
-     "source": "`agents/elliott/params.py::threshold_pct` (reversión mínima para confirmar un pivote, del propio agente)"
-    }
-   },
-   "n_params": 1,
-   "timeframe": "4h",
-   "exit_template": "time_stop",
-   "history_exam": "banco_t131",
-   "expected_cadence": "≈ la mitad de los 27 pivotes al mes en 4 h (los que extienden la tendencia)",
-   "literature": [
-    "brown_goetzmann_kumar_1998",
-    "leigh_paz_purvis_2002",
-    "lemperiere_2014",
-    "savin_weller_zvingelis_2007"
-   ],
-   "horizon": "tres_dias",
-   "replaces": "regimen_tramo"
   }
  ],
  "exclusion_reason": null,
@@ -268,6 +236,47 @@
    "measured_band": "semanal",
    "report": "v2/reports/t169_examen_fisico.md",
    "replaced_by": "elliott_dow"
+  },
+  {
+   "id": "elliott_tendencia_dow",
+   "name": "Retroceso en tendencia de Dow",
+   "role": "candidato",
+   "theory": "Lectura contraria a la oscilación nueva, a favor de la tendencia de Dow: tras un máximo más alto, la bajada que empieza es un retroceso (se compra); tras un mínimo más bajo, la subida es un rebote (se vende).",
+   "opposite_of": "elliott_oscilacion",
+   "rule": "Al confirmarse en 4 h un máximo más alto que el anterior, largo; al confirmarse un mínimo más bajo que el anterior, corto; sale a las 12 velas del agente (48 h).",
+   "variables": [
+    "metrics.pivots[-1].type",
+    "metrics.pivots[-1].price",
+    "metrics.pivots[-3].price"
+   ],
+   "params": {
+    "umbral_zigzag_pct": {
+     "value": 3.0,
+     "source": "`agents/elliott/params.py::threshold_pct` (reversión mínima para confirmar un pivote, del propio agente)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "≈ la mitad de los 27 pivotes al mes en 4 h (los que extienden la tendencia)",
+   "literature": [
+    "brown_goetzmann_kumar_1998",
+    "leigh_paz_purvis_2002",
+    "lemperiere_2014",
+    "savin_weller_zvingelis_2007"
+   ],
+   "horizon": "tres_dias",
+   "replaces": "regimen_tramo",
+   "fingerprint": "f99e61a65e9a",
+   "discarded_by": "T177",
+   "reasons": [
+    "tres_dias: 4,7 operaciones al mes (< 5)"
+   ],
+   "measured_band": "tres_dias",
+   "report": "v2/reports/t177_examen_fisico.md",
+   "replaced_by": null,
+   "redesign": "Sin rediseño: tiene 6,9 ideas al mes y la salida a 48 h bloquea parte; con salida en el pivote siguiente la tenencia baja de 24 h (banda intradía, ≥ 8 al mes). La plaza queda vacía y pasa a la reserva (PLAN/T177.md, punto 8)."
   }
  ],
  "consensus_at": "2026-11-16 (T177, 165 obras)"

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-16T15:02:46",
+ "generated": "2026-11-16T19:58:55",
  "phases": [
   {
    "n": 0,
@@ -2621,8 +2621,8 @@ window.EIM_STATUS = {
     "T151",
     "T157"
    ],
-   "state": "progress",
-   "notes": "En curso (2026-11-16): protocolo fijado en `PLAN/T177.md` antes de buscar; entran en `cantera_v1` antes de que T170 congele la familia",
+   "state": "done",
+   "notes": "Hecha (2026-11-17): 50 obras verificadas en la biblioteca digital (165/165 pasan `verify`) y 16 reemplazos formulados con lo aprendido en T169 (`PLAN/notas/T177_bibliografia_prospectos.md`); `regime` excluido (su etiqueta no da cadencia en 15m/1h/4h), plazas a `elliott` y `bots`. Examen físico con el código y los umbrales de T169 (`v2/reports/t177_examen_fisico.md`): 14 de 15 siguen, `elliott_tendencia_dow` cae (4,7 al mes) y su plaza va a la reserva; no anticipación 0/108, identidad 6/6, sin gemelos. Familia de `cantera_v1`: 42 (16 + 11 + 15)",
    "effort": "alto",
    "phase": 27
   }

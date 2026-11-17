@@ -1525,3 +1525,26 @@ más reciente por fecha y su siguiente paso. Formato:
   - Gate por la cola (`20261116-192326-gate-t169-dbee`, rc=0, 1 236 s, sin pausas): `ruff` limpio, 3 765 pruebas pasadas y 8 omitidas, tras fusionar `origin/main`.
 - **Abierto:** BACKLOG T169 (1)–(5): rediseñar o retirar las 4 reglas imposibles y el gemelo, decidir las bandas, acelerar la generación si se amplía la muestra, y darle historia a `deriv_funding_contrario` con un modo que funcione solo con funding.
 - **Siguiente paso:** ◆ T170, pre-registro `cantera_v1`, con las decisiones de la nota de T169.
+
+## 2026-11-17 · T177 cerrada: 50 obras nuevas y 16 reemplazos de los descartados de T169
+- **Hecho:**
+  - Protocolo fijado antes de buscar (`PLAN/T177.md`).
+  - 50 obras nuevas en la biblioteca digital, sin repetir las 115 de T151. Las 165 pasan `verify` y se leyó el resumen de cada una. 21 de las 50 objetan o condicionan su idea.
+  - 16 reemplazos formulados con lo aprendido en T169: la banda medida, que la regla pueda cumplirse, que el filtro filtre, el costo en 15 m, parámetros de canon, el hermano simple y variables que el agente ya calcula.
+  - `regime` excluido: la sonda por la cola dio 1,1, 4,6 y 5,3 pasos a tendencia al mes en 4 h, 1 h y 15 m.
+    - Plaza base → `elliott`, el agente con más respaldo bibliográfico entre los que tienen hueco.
+    - Segunda plaza → `bots_contrario` (◆ del usuario).
+  - Duplicados con T170 (`estructura_ruptura` y `tec_acuerdo_marcos`): el usuario eligió las versiones de T177, y T170 revirtió las suyas.
+  - Examen físico con el código y los umbrales de T169, por la cola, sobre la copia del banco: 14 de 15 siguen.
+    - `elliott_tendencia_dow` cae con 4,7 al mes y su plaza va a la reserva.
+    - Comprobaciones limpias: no anticipación 0/108, identidad 6/6, sin gemelos.
+- **Archivos:**
+  - `v2/eim/library/digital/{seed,catalog,cards}.json`.
+  - `v2/eim/nursery/rules/*.py` (reglas nuevas, sin tocar las de los supervivientes) y `v2/eim/nursery/dossiers/*.json` (los descartados en `discarded` con su huella).
+  - `v2/scripts/t177_examen.py` y `t169_examen.py` (`--task`, `--notes` y salto de los marcos sin agentes).
+  - `v2/reports/t177_examen_fisico.{md,json}`.
+  - `PLAN/notas/T177_bibliografia_prospectos.md`.
+- **Pruebas:** `v2/tests/nursery/test_rules_t177.py`; `test_catalog_data` admite 165 obras. Gate completo por la cola.
+- **Abierto:** BACKLOG T177 (1)–(5). Lo principal: la banda semanal no se alcanza con las plantillas vigentes, y `regime` 2.0.
+- **Siguiente paso:** T170 trae esta rama, recalibra por la cola con la familia de 42, rehace el pre-registro con el informe y los temas de T177, y pide la aprobación del usuario antes de encender.
+
