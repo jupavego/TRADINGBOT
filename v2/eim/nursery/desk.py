@@ -22,6 +22,7 @@ from eim.data.store import Store
 from eim.data.timeframes import FOCUS, tf_ms
 from eim.nursery.book import Book, run_book
 from eim.nursery.params import LABEL, NAME, NurseryParams
+from eim.nursery.prereg import Prereg
 from eim.nursery.prospect import Prospect, load_prospects
 from eim.nursery.signals import accounts_for
 from eim.nursery.store import NurseryStore, light_contexts
@@ -46,9 +47,12 @@ class NurseryDesk:
     def __init__(self, store: Store, ctx_store: PaperStore, own_store: PaperStore, *,
                  params: NurseryParams | None = None,
                  prospects: tuple[Prospect, ...] | None = None,
-                 symbol: str = FOCUS[0], poll_s: float = 300.0) -> None:
+                 symbol: str = FOCUS[0], poll_s: float = 300.0,
+                 prereg: Prereg | None = None, blocked: str = "") -> None:
         self.store, self.ctx_store, self.pstore = store, ctx_store, own_store
         self.params = params or NurseryParams()
+        self.prereg, self.blocked = prereg, blocked
+        self.alta_ms: int | None = None
         self.prospects = prospects if prospects is not None else load_prospects()
         self.symbol, self.poll_s = symbol, poll_s
         self.name, self.label = NAME, LABEL
@@ -61,15 +65,26 @@ class NurseryDesk:
         self._lock = threading.Lock()
 
     def live_status(self) -> dict:
-        return {"last_tick": self.last_tick, "error": self.live_error, "poll_s": self.poll_s}
+        return {"last_tick": self.last_tick, "error": self.live_error, "poll_s": self.poll_s,
+                "blocked": self.blocked or None}
 
-    def compute(self, now: int | None = None) -> Book:
-        """Recalcula el libro con lo que haya y lo guarda en la base propia."""
+    def compute(self, now: int | None = None) -> Book | None:
+        """Recalcula el libro con lo que haya y lo guarda en la base propia.
+
+        Con pre-registro (T170), nada cuenta antes de su `not_before` ni de su alta, que se
+        anota la primera vez y no se mueve después.
+        """
         p = self.params
         at = now_ms() if now is None else now
+        if self.prereg is not None and at < p.start_ms:
+            self.live_error = "esperando la hora `not_before` del pre-registro"
+            return None
         registered = self.book_store.register(accounts_for(self.prospects), at)
         warm = max(tf_ms(tf) for tf in self.tfs) * WARM_BARS
         start = max(p.start_ms, min(registered.values(), default=p.start_ms))
+        if self.prereg is not None:
+            self.alta_ms = self.book_store.alta(self.prereg.version, self.prereg.sha256, at)
+            start = max(p.start_ms, self.alta_ms)
         ctxs = {tf: light_contexts(self.ctx_store, self.symbol, tf, start - warm)
                 for tf in self.tfs}
         path = load_path(self.store, self.symbol, p.exec.path_tf, start - warm)
@@ -77,8 +92,13 @@ class NurseryDesk:
                         registered)
         self.book_store.save(book)
         first = next((c for c in ctxs.get(self.tfs[0], []) if c["t"] >= start), None)
+        ladder = None
+        if self.prereg is not None:
+            from eim.nursery.ladder_io import standings
+            regimes = {tf: {c["t"]: c.get("regime") for c in cs} for tf, cs in ctxs.items()}
+            ladder = (self.prereg, start, standings(book, self.prereg, start, at, regimes))
         with self._lock:
-            self._summary = summarize(book, path, first)
+            self._summary = summarize(book, path, first, ladder)
         return book
 
     def summary(self) -> dict | None:
@@ -86,11 +106,18 @@ class NurseryDesk:
             return self._summary
 
     def tick(self) -> None:
+        if self.blocked:
+            self.last_tick, self.live_error = now_ms(), self.blocked
+            self._beat()
+            return
         stamp = tuple(self.ctx_store.stamp(self.symbol, tf) for tf in self.tfs)
+        waiting = ""
         if stamp != self._stamp:
-            self.compute()
-            self._stamp = stamp
-        self.last_tick, self.live_error = now_ms(), ""
+            if self.compute() is None:
+                waiting = self.live_error
+            else:
+                self._stamp = stamp
+        self.last_tick, self.live_error = now_ms(), waiting
         self._beat()
 
     def heartbeat_path(self) -> FsPath:

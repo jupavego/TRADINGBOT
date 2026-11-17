@@ -3477,6 +3477,1362 @@
     "(taking slippage into account), and hold until −1 appears to sell all µ shares (we do nothing if 0 appears)."
    ],
    "extracted_at": "2026-11-11T02:56:27+00:00"
+  },
+  {
+   "ref_id": "ang_timmermann_2012",
+   "coverage": "resumen",
+   "concepts": [
+    "return_distribution",
+    "volatility_model",
+    "regime",
+    "time_series",
+    "position_sizing",
+    "cross_asset"
+   ],
+   "methods": [
+    "modelo de equilibrio"
+   ],
+   "conditions": [],
+   "limitations": [
+    {
+     "text": "Although the regimes captured by regime-switching models are identified by an econometric procedure, they often correspond to different periods in regulation, policy, and other secular…",
+     "where": "resumen"
+    }
+   ],
+   "findings": [],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "regime"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "ardia_bluteau_ruede_2019",
+   "coverage": "resumen",
+   "concepts": [
+    "volatility_model",
+    "regime",
+    "forecast_eval",
+    "tail_risk",
+    "crypto_returns"
+   ],
+   "methods": [
+    "GARCH",
+    "modelo de Markov"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "We find strong evidence of regime changes in the GARCH process and show that MSGARCH models outperform single–regime specifications when predicting the VaR.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "regime"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "baltussen_2021",
+   "coverage": "metadatos",
+   "concepts": [],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [],
+   "stances_pending": [
+    "intraday"
+   ],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "baur_2019_tod",
+   "coverage": "metadatos",
+   "concepts": [],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [],
+   "stances_pending": [
+    "intraday"
+   ],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "berkowitz_logue_noser_1988",
+   "coverage": "resumen",
+   "concepts": [
+    "volume",
+    "execution_costs"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [
+    {
+     "text": "We show that total transaction costs, commission plus market impact costs, average twenty‐three basis points of principal value for our sample.",
+     "where": "resumen"
+    },
+    {
+     "text": "Though brokers do not incur consistently high or low transaction costs, money managers experience persistently high or lost costs.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "execution_costs"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "bhattacharya_holden_jacobsen_2012",
+   "coverage": "resumen",
+   "concepts": [
+    "liquidity"
+   ],
+   "methods": [],
+   "conditions": [
+    "liquidez"
+   ],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "This paper provides evidence that stock traders focus on round numbers as cognitive reference points for value.",
+     "where": "resumen"
+    },
+    {
+     "text": "Using a random sample of more than 100 million stock transactions, we find excess buying (selling) by liquidity demanders at all price points one penny…",
+     "where": "resumen"
+    },
+    {
+     "text": "Conditioning on the price path, we find much stronger excess buying (selling) by liquidity demanders when the ask falls (bid rises) to reach the integer…",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "support_resistance"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "brown_goetzmann_kumar_1998",
+   "coverage": "resumen",
+   "concepts": [
+    "support_resistance",
+    "performance_stats",
+    "forecast_eval"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "Alfred Cowles' test of the Dow Theory apparently provides strong evidence against the ability of Wall Street's most famous chartist to forecast the stock market.",
+     "where": "resumen"
+    },
+    {
+     "text": "We review Cowles' evidence and find that it supports the contrary conclusion.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "trend_following"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "caporale_plastun_2020",
+   "coverage": "resumen",
+   "concepts": [
+    "momentum",
+    "intraday",
+    "crypto_returns",
+    "global_liquidity"
+   ],
+   "methods": [
+    "simulación"
+   ],
+   "conditions": [
+    "intradía"
+   ],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "The results suggest that hourly returns during the day of positive/negative abnormal returns are significantly higher/lower than those during the average positive/negative day.",
+     "where": "resumen"
+    }
+   ],
+   "level": "hipotesis",
+   "stances_verified": [
+    "momentum"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "chang_osler_1999",
+   "coverage": "resumen",
+   "concepts": [
+    "technical_analysis",
+    "chart_patterns",
+    "forecast_eval",
+    "market_efficiency",
+    "global_liquidity"
+   ],
+   "methods": [
+    "bootstrap"
+   ],
+   "conditions": [],
+   "limitations": [
+    {
+     "text": "We find that the rule is profitable, but not efficient, since it is dominated by simpler trading rules.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "chart_patterns"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "chevapatrakul_mascia_2019",
+   "coverage": "metadatos",
+   "concepts": [],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [],
+   "stances_pending": [
+    "mean_reversion"
+   ],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "chong_ng_2008",
+   "coverage": "resumen",
+   "concepts": [
+    "trend_following"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "technical_analysis"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "chordia_goyal_saretto_2020",
+   "coverage": "resumen",
+   "concepts": [],
+   "methods": [
+    "regresión"
+   ],
+   "conditions": [],
+   "limitations": [
+    {
+     "text": "We estimate the expected proportion of false rejections that researchers would produce if they failed to account for multiple hypothesis testing to be about 45%.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "multiple_testing"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "chung_bellotti_2021",
+   "coverage": "resumen",
+   "concepts": [
+    "support_resistance",
+    "trend_following",
+    "intraday",
+    "time_series"
+   ],
+   "methods": [],
+   "conditions": [
+    "tendencia",
+    "intradía"
+   ],
+   "limitations": [],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [
+    "support_resistance"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "corbet_2019_ta",
+   "coverage": "metadatos",
+   "concepts": [],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [],
+   "stances_pending": [
+    "technical_analysis"
+   ],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "donaldson_kim_1993",
+   "coverage": "resumen",
+   "concepts": [
+    "support_resistance",
+    "sentiment",
+    "reinforcement_learning"
+   ],
+   "methods": [
+    "Monte Carlo"
+   ],
+   "conditions": [],
+   "limitations": [
+    {
+     "text": "It is found that the DJIA's rise and fall is indeed restrained by “support” and “resistance” levels at multiples of 100 (e.g., 2800, 2900, 3000,…",
+     "where": "resumen"
+    },
+    {
+     "text": "This suggests that some agents may trade on the basis of the DJIA but does not necessarily suggest that the market is inefficient.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [
+    "support_resistance"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "duvinage_2013",
+   "coverage": "resumen",
+   "concepts": [
+    "candlesticks",
+    "backtest_overfitting",
+    "execution_costs"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [
+    {
+     "text": "After adjusting for trading costs, however, just a few rules remain profitable.",
+     "where": "resumen"
+    },
+    {
+     "text": "When we correct for data snooping by applying the SSPA test on double-or-out market timing strategies, no single candlestick rule beats the buy-and-hold strategy after…",
+     "where": "resumen"
+    },
+    {
+     "text": "No evidence of out-performance is found after transaction costs.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [
+    {
+     "text": "Around a third of the candlestick rules outperform the buy-and-hold strategy at the conservative Bonferroni level.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "candlesticks"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "elliott_nft_2024",
+   "coverage": "resumen",
+   "concepts": [
+    "support_resistance",
+    "volume",
+    "crypto_returns",
+    "crypto_arbitrage"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [
+    {
+     "text": "The research found no evidence supporting whole market effects across the full price series of individual NFTs.",
+     "where": "resumen"
+    },
+    {
+     "text": "Fractal models consistent with Elliott wave theory do explain some of NFT price behavior, but are not consistent or stable over time.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [
+    {
+     "text": "It found that traditional linear econometric models cannot predict or explain NFT price series, only that NFT price and volume were weakly correlated.",
+     "where": "resumen"
+    },
+    {
+     "text": "This research confirmed prior research findings that Bitcoin and Ether price movements are correlated with general NFT price and volume series in periods of between…",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "chart_patterns"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "eross_2019",
+   "coverage": "metadatos",
+   "concepts": [],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [],
+   "stances_pending": [
+    "intraday"
+   ],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "fang_2022_survey",
+   "coverage": "resumen",
+   "concepts": [
+    "technical_analysis",
+    "trend_following",
+    "return_distribution",
+    "volatility_model",
+    "crypto_returns"
+   ],
+   "methods": [
+    "revisión de la literatura"
+   ],
+   "conditions": [
+    "tendencia"
+   ],
+   "limitations": [
+    {
+     "text": "Although they have some commonalities with more traditional assets, they have their own separate nature and their behaviour as an asset is still in the…",
+     "where": "resumen"
+    }
+   ],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [
+    "crypto_returns"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "fung_hsieh_2001",
+   "coverage": "resumen",
+   "concepts": [
+    "trend_following",
+    "performance_stats",
+    "cross_asset"
+   ],
+   "methods": [],
+   "conditions": [
+    "tendencia"
+   ],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "We use lookback straddles to model trend-following strategies, and show that they can explain trend-following funds’ returns better than standard asset indices.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "trend_following"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "gerritsen_2020",
+   "coverage": "metadatos",
+   "concepts": [],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [],
+   "stances_pending": [
+    "breakout"
+   ],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "glabadanidis_2015",
+   "coverage": "resumen",
+   "concepts": [
+    "trend_following",
+    "momentum",
+    "performance_stats",
+    "volatility_model",
+    "execution_costs",
+    "cross_asset"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [
+    {
+     "text": "The MA strategy generates risk‐adjusted returns of 3–7% per year after transaction costs.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [
+    {
+     "text": "Abstract I present evidence that a moving average (MA) trading strategy has a greater average return and skewness as well as a lower variance compared…",
+     "where": "resumen"
+    },
+    {
+     "text": "Conditional factor models with macroeconomic variables, especially the default premium, can explain some of the abnormal returns.",
+     "where": "resumen"
+    },
+    {
+     "text": "Standard market timing tests reveal ample evidence regarding the timing ability of the MA strategy.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "trend_following"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "grobys_ahmed_sapkota_2020",
+   "coverage": "resumen",
+   "concepts": [
+    "technical_analysis",
+    "trend_following",
+    "crypto_returns"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "Our results indicate a variable moving average strategy is successful when using the 20 days moving average trading strategy.",
+     "where": "resumen"
+    },
+    {
+     "text": "Our results suggest that cryptocurrency markets are inefficient.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "technical_analysis"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "grobys_sapkota_2019",
+   "coverage": "resumen",
+   "concepts": [
+    "momentum",
+    "crypto_returns"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "Contrary to earlier studies our findings do not indicate any evidence of significant momentum payoffs, supporting the view that the cryptocurrency market is far more…",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "momentum"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "harvey_liu_saretto_2020",
+   "coverage": "resumen",
+   "concepts": [
+    "multiple_testing",
+    "performance_stats"
+   ],
+   "methods": [
+    "regresión",
+    "simulación"
+   ],
+   "conditions": [],
+   "limitations": [
+    {
+     "text": "Factor selection is another glaring case in which multiple tests are performed, but numerous other applications do not receive as much attention.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [
+    {
+     "text": "We provide simulation evidence on the relative performance of different methods across a variety of testing environments.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "multiple_testing"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "huang_li_wang_zhou_2020",
+   "coverage": "metadatos",
+   "concepts": [],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [],
+   "stances_pending": [
+    "momentum"
+   ],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "kato_2014_vwap",
+   "coverage": "resumen",
+   "concepts": [
+    "volume",
+    "execution_costs"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "teoria",
+   "stances_verified": [
+    "execution_costs"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "koki_2022",
+   "coverage": "metadatos",
+   "concepts": [],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [],
+   "stances_pending": [
+    "regime"
+   ],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "korajczyk_sadka_2004",
+   "coverage": "resumen",
+   "concepts": [
+    "liquidity",
+    "market_microstructure",
+    "momentum",
+    "intraday",
+    "execution_costs"
+   ],
+   "methods": [],
+   "conditions": [
+    "caídas",
+    "liquidez",
+    "intradía"
+   ],
+   "limitations": [
+    {
+     "text": "The price impact models imply that abnormal returns to portfolio strategies decline with portfolio size.",
+     "where": "resumen"
+    },
+    {
+     "text": "Liquidity‐weighted and hybrid liquidity/value‐weighted strategies have the largest break‐even fund sizes: $5 billion or more (relative to December 1999 market capitalization) may be invested in…",
+     "where": "resumen"
+    }
+   ],
+   "findings": [],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "execution_costs"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "kosc_2019",
+   "coverage": "metadatos",
+   "concepts": [],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [],
+   "stances_pending": [
+    "mean_reversion"
+   ],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "kritzman_page_turkington_2012",
+   "coverage": "resumen",
+   "concepts": [
+    "backtest_overfitting",
+    "performance_stats",
+    "regime",
+    "forecast_eval",
+    "position_sizing"
+   ],
+   "methods": [
+    "modelo de Markov"
+   ],
+   "conditions": [
+    "rango"
+   ],
+   "limitations": [
+    {
+     "text": "But regime shifts also present opportunities for gain.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [
+    {
+     "text": "Regime shifts present significant challenges for investors because they cause performance to depart significantly from the ranges implied by long-term averages of means and covariances.",
+     "where": "resumen"
+    }
+   ],
+   "level": "hipotesis",
+   "stances_verified": [
+    "regime"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "leigh_paz_purvis_2002",
+   "coverage": "metadatos",
+   "concepts": [],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [],
+   "stances_pending": [
+    "chart_patterns"
+   ],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "lemperiere_2014",
+   "coverage": "resumen",
+   "concepts": [
+    "trend_following",
+    "performance_stats",
+    "time_series",
+    "crypto_futures"
+   ],
+   "methods": [],
+   "conditions": [
+    "tendencia"
+   ],
+   "limitations": [
+    {
+     "text": "When analyzing the trend following signal further, we find a clear saturation effect for large signals, suggesting that fundamentalist traders do not attempt to resist…",
+     "where": "resumen"
+    }
+   ],
+   "findings": [
+    {
+     "text": "It makes the existence of trends one of the most statistically significant anomalies in financial markets.",
+     "where": "resumen"
+    },
+    {
+     "text": "We find no sign of a statistical degradation of long trends, whereas shorter trends have significantly withered.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "trend_following",
+    "momentum"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "lento_2007_bollinger",
+   "coverage": "resumen",
+   "concepts": [
+    "execution_costs"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [
+    {
+     "text": "It is found that, after adjusting for transaction costs, the BB are consistently unable to earn profits in excess of the buy-and-hold trading strategy.",
+     "where": "resumen"
+    },
+    {
+     "text": "However, the profitability is improved using a contrarian's approach.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [
+    "technical_analysis",
+    "mean_reversion"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "levine_pedersen_2016",
+   "coverage": "resumen",
+   "concepts": [
+    "trend_following",
+    "momentum",
+    "behavioral_bias",
+    "crypto_futures"
+   ],
+   "methods": [],
+   "conditions": [
+    "tendencia"
+   ],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "Two key statistical measures of trends are “time-series momentum” and “moving-average crossovers.” We show, empirically and theoretically, that these trend indicators are closely related.",
+     "where": "resumen"
+    },
+    {
+     "text": "We show how these filters can be represented through “trend signature plots,” demonstrating their dependence on past prices and returns by horizon.",
+     "where": "resumen"
+    }
+   ],
+   "level": "hipotesis",
+   "stances_verified": [
+    "trend_following"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "lo_mackinlay_1990",
+   "coverage": "resumen",
+   "concepts": [
+    "backtest_overfitting"
+   ],
+   "methods": [
+    "simulación",
+    "Monte Carlo"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "backtest_overfitting"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "lu_shiu_liu_2012",
+   "coverage": "resumen",
+   "concepts": [
+    "chart_patterns",
+    "candlesticks",
+    "mean_reversion",
+    "cross_asset"
+   ],
+   "methods": [
+    "bootstrap"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "We find that three bullish reversal patterns are profitable in the Taiwan stock market.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "candlesticks"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "mbanga_2019",
+   "coverage": "resumen",
+   "concepts": [
+    "crypto_returns"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "Following Urquhart (2017) who finds evidence of price clustering in Bitcoin, we answer the question of whether the documented price clustering in Bitcoin is driven…",
+     "where": "resumen"
+    },
+    {
+     "text": "We find evidence that Bitcoin prices cluster around whole numbers more on Fridays and least on Mondays.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "support_resistance"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "mclean_pontiff_2016",
+   "coverage": "resumen",
+   "concepts": [
+    "liquidity",
+    "market_microstructure",
+    "cross_asset"
+   ],
+   "methods": [],
+   "conditions": [
+    "caídas",
+    "liquidez"
+   ],
+   "limitations": [
+    {
+     "text": "The out‐of‐sample decline is an upper bound estimate of data mining effects.",
+     "where": "resumen"
+    },
+    {
+     "text": "Post‐publication declines are greater for predictors with higher in‐sample returns, and returns are higher for portfolios concentrated in stocks with high idiosyncratic risk and low…",
+     "where": "resumen"
+    }
+   ],
+   "findings": [
+    {
+     "text": "ABSTRACT We study the out‐of‐sample and post‐publication return predictability of 97 variables shown to predict cross‐sectional stock returns.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "backtest_overfitting"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "nagel_2012",
+   "coverage": "resumen",
+   "concepts": [
+    "liquidity",
+    "mean_reversion",
+    "performance_stats"
+   ],
+   "methods": [],
+   "conditions": [
+    "liquidez"
+   ],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "The results point to withdrawal of liquidity supply and an associated increase in the expected returns from liquidity provision, as a main driver behind the…",
+     "where": "resumen"
+    }
+   ],
+   "level": "hipotesis",
+   "stances_verified": [
+    "mean_reversion"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "neely_weller_ulrich_2009",
+   "coverage": "resumen",
+   "concepts": [
+    "technical_analysis",
+    "trend_following",
+    "backtest_overfitting",
+    "volatility_model",
+    "market_efficiency"
+   ],
+   "methods": [
+    "prueba fuera de muestra"
+   ],
+   "conditions": [
+    "alta volatilidad",
+    "caídas"
+   ],
+   "limitations": [
+    {
+     "text": "But these profit opportunities had disappeared by the early 1990s for filter and moving average rules.",
+     "where": "resumen"
+    },
+    {
+     "text": "Returns to less-studied rules also have declined but have probably not completely disappeared.",
+     "where": "resumen"
+    },
+    {
+     "text": "These regularities are consistent with the Adaptive Markets Hypothesis (Lo (2004)), but not with the Efficient Markets Hypothesis.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "technical_analysis"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "novy_marx_velikov_2016",
+   "coverage": "resumen",
+   "concepts": [
+    "support_resistance",
+    "liquidity",
+    "backtest_overfitting",
+    "performance_stats",
+    "execution_costs",
+    "overtrading"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [
+    {
+     "text": "We study the after-trading-cost performance of anomalies and the effectiveness of transaction cost mitigation techniques.",
+     "where": "resumen"
+    },
+    {
+     "text": "Most anomalies with less than 50% turnover per month generate significant net spreads when designed to mitigate transaction costs; few with higher turnover do.",
+     "where": "resumen"
+    },
+    {
+     "text": "Transaction costs always reduce strategy profitability, increasing data-snooping concerns.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "execution_costs"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "petukhina_2021",
+   "coverage": "resumen",
+   "concepts": [
+    "chart_patterns",
+    "volume",
+    "momentum",
+    "intraday",
+    "volatility_model",
+    "execution_costs",
+    "crypto_returns",
+    "cross_asset"
+   ],
+   "methods": [],
+   "conditions": [
+    "intradía",
+    "alta frecuencia"
+   ],
+   "limitations": [],
+   "findings": [],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "intraday"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "resta_2020",
+   "coverage": "resumen",
+   "concepts": [
+    "technical_analysis",
+    "trend_following",
+    "intraday",
+    "mean_reversion",
+    "performance_stats",
+    "crypto_returns"
+   ],
+   "methods": [],
+   "conditions": [
+    "tendencia",
+    "intradía"
+   ],
+   "limitations": [],
+   "findings": [],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "intraday"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "savin_weller_zvingelis_2007",
+   "coverage": "resumen",
+   "concepts": [
+    "support_resistance",
+    "chart_patterns"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [
+    {
+     "text": "But we do find strong evidence that the pattern had power to predict excess returns.",
+     "where": "resumen"
+    }
+   ],
+   "findings": [
+    {
+     "text": "With data from the S&P 500 and the Russell 2000 over the period 1990–1999 we find little or no support for the profitability of a…",
+     "where": "resumen"
+    },
+    {
+     "text": "Combining the strategy with the market portfolio produces a significant increase in excess return for a fixed level of risk exposure.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "chart_patterns"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "shen_urquhart_wang_2022",
+   "coverage": "resumen",
+   "concepts": [
+    "volume",
+    "liquidity",
+    "market_microstructure",
+    "momentum",
+    "intraday",
+    "volatility_model",
+    "time_series",
+    "crypto_returns"
+   ],
+   "methods": [],
+   "conditions": [
+    "mercado bajista",
+    "liquidez",
+    "intradía"
+   ],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "We find that the first trading sessions with the highest volume or volatility are associated with the greatest predictability for intraday time series momentum.",
+     "where": "resumen"
+    },
+    {
+     "text": "Consistent with the finding in foreign exchange markets, our results also show that the Bitcoin intraday momentum is driven by liquidity provision rather than late‐informed…",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "intraday"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "tharavanij_2017",
+   "coverage": "resumen",
+   "concepts": [
+    "chart_patterns",
+    "candlesticks",
+    "mean_reversion",
+    "cross_asset"
+   ],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "Even the ones with statistically significant returns do have high risks in terms of standard deviations.",
+     "where": "resumen"
+    },
+    {
+     "text": "The binomial test results also indicate that candlestick patterns cannot reliably predict market directions.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "candlesticks"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "tzouvanas_2020",
+   "coverage": "metadatos",
+   "concepts": [],
+   "methods": [],
+   "conditions": [],
+   "limitations": [],
+   "findings": [],
+   "level": "hipotesis",
+   "stances_verified": [],
+   "stances_pending": [
+    "momentum"
+   ],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "wong_manzur_chew_2003",
+   "coverage": "resumen",
+   "concepts": [
+    "technical_analysis",
+    "trend_following",
+    "performance_stats"
+   ],
+   "methods": [],
+   "conditions": [
+    "tendencia"
+   ],
+   "limitations": [],
+   "findings": [
+    {
+     "text": "Using Singapore data, the results indicate that the indicators can be used to generate significantly positive return.",
+     "where": "resumen"
+    }
+   ],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "technical_analysis"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
+  },
+  {
+   "ref_id": "zapranis_tsinaslanidis_2012",
+   "coverage": "resumen",
+   "concepts": [
+    "support_resistance",
+    "trend_following",
+    "market_efficiency",
+    "cross_asset"
+   ],
+   "methods": [],
+   "conditions": [
+    "tendencia"
+   ],
+   "limitations": [
+    {
+     "text": "More concretely, support levels outperform resistance ones in predicting trend interruptions but they fail to generate excess returns when they are compared with simple buy-and-hold…",
+     "where": "resumen"
+    }
+   ],
+   "findings": [],
+   "level": "evidencia_empirica",
+   "stances_verified": [
+    "support_resistance"
+   ],
+   "stances_pending": [],
+   "operational_rules": [],
+   "extracted_at": "2026-11-16T20:20:08+00:00"
   }
  ]
 }

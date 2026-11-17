@@ -1525,3 +1525,64 @@ más reciente por fecha y su siguiente paso. Formato:
   - Gate por la cola (`20261116-192326-gate-t169-dbee`, rc=0, 1 236 s, sin pausas): `ruff` limpio, 3 765 pruebas pasadas y 8 omitidas, tras fusionar `origin/main`.
 - **Abierto:** BACKLOG T169 (1)–(5): rediseñar o retirar las 4 reglas imposibles y el gemelo, decidir las bandas, acelerar la generación si se amplía la muestra, y darle historia a `deriv_funding_contrario` con un modo que funcione solo con funding.
 - **Siguiente paso:** ◆ T170, pre-registro `cantera_v1`, con las decisiones de la nota de T169.
+
+## 2026-11-16 · T170: pre-registro `cantera_v1` aprobado y escalafón de la cantera
+- **Hecho:**
+  - ◆ del usuario, en una sola pregunta:
+    - se rediseñan `estructura_ruptura` (sin filtro de convicción) y `tec_acuerdo_marcos` (1 h y 4 h);
+    - las dos de Elliott, de baja;
+    - los gemelos de `regime` cuentan como dos;
+    - manda la banda medida;
+    - familia propia con m = los que entran + 7.
+  - Re-examen de las dos rediseñadas con la ficha de T169 y los contextos guardados (10 s por la cola): las dos siguen (`v2/reports/t170_reexamen.md`).
+  - Calibración por la cola (3,8 min, `v2/reports/t170_calibracion.json`):
+    - topes de drawdown de 13–21 %;
+    - 0,011 promesas falsas esperadas bajo la nula global, P(≥ 1) = 1,0 %;
+    - potencia con +0,25 R: 60 % a 250 operaciones y 90 % a 400.
+  - Pre-registro completo aprobado por el usuario y confirmado en el commit `a9cefd6`, antes de cualquier operación: entran 29, caen 14, m = 36 y techo 50.
+- **Archivos:**
+  - `v2/eim/validation/prereg/prereg_cantera_v1.json` (huella en `v2/eim/nursery/prereg.py`).
+  - `v2/eim/nursery/{ladder,ladder_rules,ladder_stats,ladder_final,ladder_io,evalue,themes,calibrate}.py`.
+  - La cantera solo corre los 29 con su huella (`desk.py`, `api/paper_variant.py`), y el alta queda en `nursery_prereg` (`store.py`).
+  - Reglas y expedientes de `structure` y `technical`.
+  - `v2/scripts/t170_{prereg,prereg_text,reexamen}.py`.
+  - `PLAN/notas/T170_cantera_v1.md`, `v2/docs/{OPERACION,ALMACENAMIENTO}.md` y `PLAN/BACKLOG.md`.
+- **Pruebas:**
+  - `v2/tests/nursery/test_{ladder,ladder_final,ladder_desk,prereg_cantera}.py`.
+  - Control al azar en 1 000 semillas: llega a promesa el 2,8 %, por debajo del α = 0,10.
+  - Consistencia, ventaja grande, hermano simple, una baja que sigue contando, no anticipación, inactividad sin los días de puerta cerrada, drawdown, StepM e inmutabilidad.
+  - Gate completo por la cola.
+- **Abierto:** BACKLOG T170 (1)–(5): Elliott 2.0, la huella que no firma los ayudantes de una regla, congelar en el panel las cuentas dadas de baja, el anexo de reentradas y el estado de los descartados en los expedientes.
+- **En pausa:** la sesión de T169 avisó de que el usuario quiere que prospectos nuevos (T177) reemplacen a los descartados y entren en v1. PR #301 pasa a borrador, no se fusiona ni se enciende, y la familia queda como parámetro del constructor. Quedan 14 descartados, porque las dos rediseñadas entran. Hay que decidir si son 14 o 16 reemplazos.
+- **Siguiente paso:** con la lista de T177, rehacer la calibración por la cola, volver a fijar la huella, pasar el gate, pedir la aprobación de la lista final y luego fusionar, encender `EIM_NURSERY=1` y anotar el alta.
+## 2026-11-17 · T177 cerrada: 50 obras nuevas y 16 reemplazos de los descartados de T169
+- **Hecho:**
+  - Protocolo fijado antes de buscar (`PLAN/T177.md`).
+  - 50 obras nuevas en la biblioteca digital, sin repetir las 115 de T151. Las 165 pasan `verify` y se leyó el resumen de cada una. 21 de las 50 objetan o condicionan su idea.
+  - 16 reemplazos formulados con lo aprendido en T169: la banda medida, que la regla pueda cumplirse, que el filtro filtre, el costo en 15 m, parámetros de canon, el hermano simple y variables que el agente ya calcula.
+  - `regime` excluido: la sonda por la cola dio 1,1, 4,6 y 5,3 pasos a tendencia al mes en 4 h, 1 h y 15 m.
+    - Plaza base → `elliott`, el agente con más respaldo bibliográfico entre los que tienen hueco.
+    - Segunda plaza → `bots_contrario` (◆ del usuario).
+  - Duplicados con T170 (`estructura_ruptura` y `tec_acuerdo_marcos`): el usuario eligió las versiones de T177, y T170 revirtió las suyas.
+  - Examen físico con el código y los umbrales de T169, por la cola, sobre la copia del banco: 14 de 15 siguen.
+    - `elliott_tendencia_dow` cae con 4,7 al mes y su plaza va a la reserva.
+    - Comprobaciones limpias: no anticipación 0/108, identidad 6/6, sin gemelos.
+- **Archivos:**
+  - `v2/eim/library/digital/{seed,catalog,cards}.json`.
+  - `v2/eim/nursery/rules/*.py` (reglas nuevas, sin tocar las de los supervivientes) y `v2/eim/nursery/dossiers/*.json` (los descartados en `discarded` con su huella).
+  - `v2/scripts/t177_examen.py` y `t169_examen.py` (`--task`, `--notes` y salto de los marcos sin agentes).
+  - `v2/reports/t177_examen_fisico.{md,json}`.
+  - `PLAN/notas/T177_bibliografia_prospectos.md`.
+- **Pruebas:** `v2/tests/nursery/test_rules_t177.py`; `test_catalog_data` admite 165 obras. Gate completo por la cola.
+- **Abierto:** BACKLOG T177 (1)–(5). Lo principal: la banda semanal no se alcanza con las plantillas vigentes, y `regime` 2.0.
+- **Siguiente paso:** T170 trae esta rama, recalibra por la cola con la familia de 42, rehace el pre-registro con el informe y los temas de T177, y pide la aprobación del usuario antes de encender.
+
+## 2026-11-17 · T170: pre-registro `cantera_v1` reconstruido con la familia final de T177
+- **Hecho:**
+  - El usuario eligió las versiones de T177 frente a los rediseños en su sitio, y se revirtieron (`a6f187e`).
+  - Se trajo `claude/t177-reemplazos` (`f3e3bdf`, merge `d099d7c`).
+  - El constructor lee los descartes de los expedientes (clave `discarded`) y el examen y los temas de T177.
+  - Se recalibró por la cola con los 42 y 8 plazas de reserva: topes de drawdown de 9,6–20,9 %, y 0,0068 promesas falsas esperadas, P(≥ 1) = 0,7 %.
+  - El pre-registro quedó en `40a60b7`: 42 entran, 17 descartes, m = 50 y `not_before` 2026-11-17T02:00Z.
+- **Pruebas:** las del pre-registro, el escalafón, los expedientes y las reglas de T177 pasan. 9 pruebas de T168/T169 aún esperan 43 prospectos y a `regime`, y fallan igual en la rama de T177: se lo dije a esa sesión para que las corrija allí.
+- **Siguiente paso:** traer el arreglo de esas pruebas, pasar el gate completo por la cola, pedir la aprobación de la lista final de 42 y, con ella, fusionar, encender `EIM_NURSERY=1` y anotar el alta.

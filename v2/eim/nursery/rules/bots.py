@@ -38,4 +38,26 @@ def bots_unanimidad(v: View, p: dict) -> Signal:
     return steady(signs.pop() if same else 0)
 
 
-RULES = {"bots_mayoria": bots_mayoria, "bots_unanimidad": bots_unanimidad}
+def bots_contrario(v: View, p: dict) -> Signal:
+    """T177. Lectura contraria del rebaño: cuando los bots `ok` (≥ min_bots) PASAN a la
+    unanimidad, entra en contra; la plantilla `time_stop` sale al horizonte del agente."""
+
+    def unanimous(back: int) -> int | None:
+        st, ss = v.get(STANCE, back), v.get(STATUS, back)
+        if not isinstance(st, list) or not isinstance(ss, list) or len(st) != len(ss):
+            return None
+        ok = [x for x in (num(a) for a, b in zip(st, ss, strict=True) if b == "ok")
+              if x is not None]
+        signs = {1 if s > 0 else -1 if s < 0 else 0 for s in ok}
+        same = len(ok) >= int(p["min_bots"]) and len(signs) == 1 and 0 not in signs
+        return signs.pop() if same and num(v.get(DIS, back)) == 0 else 0
+
+    now, before = unanimous(0), unanimous(1)
+    if not now or before is None or before == now:
+        return NONE
+    return Signal(enter=-now)
+
+
+RULES = {"bots_mayoria": bots_mayoria, "bots_unanimidad": bots_unanimidad,
+         # T177: ocupa la plaza de `regimen_tramo_estable` (decisión del usuario, 2026-11-16).
+         "bots_contrario": bots_contrario}

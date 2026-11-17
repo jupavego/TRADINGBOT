@@ -9,7 +9,8 @@ DPOS, DVWAP, DSLOPE = M + "periods.daily.position", M + "periods.daily.vwap", \
     M + "periods.daily.slope_pct"
 WPOS, WVWAP, CLOSE, ANCH = M + "periods.weekly.position", M + "periods.weekly.vwap", \
     M + "close", M + "anchored_vwap"
-EXPOSES = frozenset({DPOS, DVWAP, DSLOPE, WPOS, WVWAP, CLOSE, ANCH})
+QVWAP, QSLOPE = M + "periods.quincenal.vwap", M + "periods.quincenal.slope_pct"
+EXPOSES = frozenset({DPOS, DVWAP, DSLOPE, WPOS, WVWAP, CLOSE, ANCH, QVWAP, QSLOPE})
 _ABOVE = {"SOBRE_VWAP", "ESTIRADO_SOBRE", "EXTREMO_SOBRE"}
 _BELOW = {"BAJO_VWAP", "ESTIRADO_BAJO", "EXTREMO_BAJO"}
 
@@ -54,5 +55,17 @@ def vwap_anclado(v: View, p: dict) -> Signal:
     return steady(sign(c - a)) if c is not None and a is not None else NONE
 
 
+def vwap_quincenal(v: View, p: dict) -> Signal:
+    """T177. Cierre sobre el VWAP quincenal con pendiente > 0 (largo) o en espejo; sale al
+    cruzarlo."""
+    c, q, slope = num(v.get(CLOSE)), num(v.get(QVWAP)), num(v.get(QSLOPE))
+    if c is None or q is None:
+        return NONE
+    at = sign(c - q)
+    return Signal(enter=at if at and sign(slope) == at else 0, hold=at or None)
+
+
 RULES = {"vwap_reversion": vwap_reversion, "vwap_tendencia": vwap_tendencia,
-         "vwap_semanal": vwap_semanal, "vwap_anclado": vwap_anclado}
+         "vwap_semanal": vwap_semanal, "vwap_anclado": vwap_anclado,
+         # T177: vwap_reversion_1h es la misma regla en 1 h (en 15 m costó 0,337 R en T169).
+         "vwap_reversion_1h": vwap_reversion, "vwap_quincenal": vwap_quincenal}

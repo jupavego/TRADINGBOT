@@ -8,11 +8,16 @@ from eim.core import Candle
 from eim.nursery.exam.physical import physics
 from eim.nursery.exam.plan import DAY_MS, Stretch
 from eim.nursery.exam.report import FORBIDDEN, tokens
-from eim.nursery.prospect import load_prospects
+from eim.nursery.prospect import from_dossier, load_dossiers, load_prospects
 from eim.paper.engine import Path
 from tests.nursery.helpers import H1, M15, T0, make_ctxs, make_path
 
 PS = {p.id: p for p in load_prospects()}
+_REG = load_dossiers()["regime"]
+# `regimen_tramo` se dio de baja en T169 (regime, excluido en T177), pero su regla sigue siendo la
+# prueba más limpia de `rule_flip`: etiquetas que entran, sostienen y cambian.
+PS["regimen_tramo"] = from_dossier(_REG, next(x for x in _REG["discarded"]
+                                              if x["id"] == "regimen_tramo"))
 
 
 def _calm_path(hours: int) -> Path:

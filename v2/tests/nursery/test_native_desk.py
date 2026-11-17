@@ -25,7 +25,7 @@ from tests.nursery.helpers import H1, M15, make_ctxs, make_path
 
 PROSPECTS = load_prospects()
 CANDLE_AGENTS = ("ema", "technical", "vwap", "levels", "structure", "price_action", "elliott",
-                 "regime", "literature")
+                 "literature")                       # regime: excluido en T177
 
 
 def _copy_dossiers(tmp_path):
@@ -84,12 +84,12 @@ def test_declared_paths_exist_in_real_agent_reports():
 
 def test_context_without_nursery_is_unchanged():
     snap = make_snapshot(300)
-    reps = [default_registry().get(a).run(snap) for a in ("ema", "regime")]
-    plain = make_ctx(snap, reps, ["ema", "regime"], None, H1)
+    reps = [default_registry().get(a).run(snap) for a in ("ema", "technical")]
+    plain = make_ctx(snap, reps, ["ema", "technical"], None, H1)
     native = native_paths(PROSPECTS)
-    with_nat = make_ctx(snap, reps, ["ema", "regime"], None, H1, native=native)
+    with_nat = make_ctx(snap, reps, ["ema", "technical"], None, H1, native=native)
     assert "nat" not in plain and {k: v for k, v in with_nat.items() if k != "nat"} == plain
-    assert set(with_nat["nat"]) == {"ema", "regime"}
+    assert set(with_nat["nat"]) == {"ema", "technical"}
     assert with_nat["nat"] == native_block(reps, native)
     assert set(with_nat["nat"]["ema"]) == {stored_key(p) for p in native["ema"]} | {"_h"}
 
@@ -158,7 +158,7 @@ def test_get_nursery_is_read_only(desk):
     assert c.get("/v2/nursery").json()["accounts"] == []
     d.compute(now=0)
     body = c.get("/v2/nursery").json()
-    assert body["mode"] == "SIMULADO" and body["prospects"] == 43
+    assert body["mode"] == "SIMULADO" and body["prospects"] == 42
     row = next(a for a in body["accounts"] if a["kind"] == "prospecto")
     for k in ("net_return_pct", "balance", "equity_curve", "max_drawdown_pct", "n",
               "hit_rate", "cost_paid_usd", "stage", "r_net", "d_vs_twins"):

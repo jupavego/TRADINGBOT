@@ -49,13 +49,31 @@
    "id": "caginalp_laurent_1998",
    "concept": "candlesticks",
    "stance": "apoya",
-   "consensus": "dividido (+0,19)"
+   "consensus": "dividido (+0,16)"
   },
   {
    "id": "marshall_young_rose_2006",
    "concept": "candlesticks",
    "stance": "objeta",
-   "consensus": "dividido (+0,19)"
+   "consensus": "dividido (+0,16)"
+  },
+  {
+   "id": "lu_shiu_liu_2012",
+   "concept": "candlesticks",
+   "stance": "apoya",
+   "consensus": "dividido (+0,16)"
+  },
+  {
+   "id": "duvinage_2013",
+   "concept": "candlesticks",
+   "stance": "objeta",
+   "consensus": "dividido (+0,16)"
+  },
+  {
+   "id": "tharavanij_2017",
+   "concept": "candlesticks",
+   "stance": "condiciona",
+   "consensus": "dividido (+0,16)"
   }
  ],
  "prospects": [
@@ -85,34 +103,6 @@
     "caginalp_laurent_1998"
    ],
    "horizon": "intradia"
-  },
-  {
-   "id": "lit_regla_4_semanas",
-   "name": "Regla de las 4 semanas (Murphy/Donchian)",
-   "role": "candidato",
-   "theory": "Romper el máximo o mínimo de 4 semanas inicia tendencia.",
-   "opposite_of": null,
-   "rule": "Entra con el acierto `murphy_weekly_rule`; sale con la ruptura contraria.",
-   "variables": [
-    "metrics.hits[].card_id",
-    "metrics.hits[].direction"
-   ],
-   "params": {
-    "weeks": {
-     "value": 4,
-     "source": "Murphy (1999), cap. 9 — ficha local `murphy_weekly_rule` (T52)"
-    }
-   },
-   "n_params": 1,
-   "timeframe": "4h",
-   "exit_template": "rule_flip",
-   "history_exam": "banco_t131",
-   "expected_cadence": "pocas/mes",
-   "literature": [
-    "brock_lakonishok_lebaron_1992",
-    "hurst_ooi_pedersen_2017"
-   ],
-   "horizon": "semanal"
   },
   {
    "id": "lit_nison_giro",
@@ -148,7 +138,7 @@
    "name": "RSI de Murphy (salida de 30/70)",
    "role": "candidato",
    "theory": "Teoría opuesta a la regla de 4 semanas: el RSI que vuelve desde un extremo anuncia reversión.",
-   "opposite_of": "lit_regla_4_semanas",
+   "opposite_of": null,
    "rule": "Entra con el acierto `murphy_rsi` (RSI 14 que cruza de vuelta 30 o 70).",
    "variables": [
     "metrics.hits[].card_id",
@@ -168,7 +158,39 @@
    "literature": [
     "chan_2013"
    ],
-   "horizon": "intradia"
+   "horizon": "intradia",
+   "opposite_note": "Su opuesta era `lit_regla_4_semanas` (Donchian de 4 semanas), descartada en T169 por cadencia; ninguna ficha de tendencia cabe en 1 h ni opera bastante en 4 h (T177)."
+  },
+  {
+   "id": "lit_consenso_4h",
+   "name": "Consenso de fichas en 4 h",
+   "role": "candidato",
+   "theory": "Las velas y reglas de libro rinden mejor con tenencias de días que en marcos cortos, donde el costo las anula (Duvinage et al. 2013; Lu et al. 2012).",
+   "opposite_of": null,
+   "rule": "Entra en el signo de Σ dirección·fuerza de los aciertos de la vela de 4 h, con al menos min_hits aciertos; sale a las 12 velas (48 h).",
+   "variables": [
+    "metrics.hits[].direction",
+    "metrics.hits[].strength"
+   ],
+   "params": {
+    "min_hits": {
+     "value": 1,
+     "source": "un acierto de ficha (T53); la fuerza ya la fija cada ficha con los umbrales del autor"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "time_stop",
+   "history_exam": "banco_t131",
+   "expected_cadence": "≈ 1 de cada 10 velas de 4 h trae un acierto (T169)",
+   "literature": [
+    "lu_shiu_liu_2012",
+    "duvinage_2013",
+    "tharavanij_2017",
+    "caginalp_laurent_1998"
+   ],
+   "horizon": "tres_dias",
+   "replaces": "lit_regla_4_semanas"
   }
  ],
  "exclusion_reason": null,
@@ -176,5 +198,44 @@
  "notes": [
   "`ind_donchian` (T31) usa un canal de N velas del marco; la regla de 4 semanas es de calendario y en 4 h: no es la misma regla."
  ],
- "performance_computed": false
+ "performance_computed": false,
+ "discarded": [
+  {
+   "id": "lit_regla_4_semanas",
+   "name": "Regla de las 4 semanas (Murphy/Donchian)",
+   "role": "candidato",
+   "theory": "Romper el máximo o mínimo de 4 semanas inicia tendencia.",
+   "opposite_of": null,
+   "rule": "Entra con el acierto `murphy_weekly_rule`; sale con la ruptura contraria.",
+   "variables": [
+    "metrics.hits[].card_id",
+    "metrics.hits[].direction"
+   ],
+   "params": {
+    "weeks": {
+     "value": 4,
+     "source": "Murphy (1999), cap. 9 — ficha local `murphy_weekly_rule` (T52)"
+    }
+   },
+   "n_params": 1,
+   "timeframe": "4h",
+   "exit_template": "rule_flip",
+   "history_exam": "banco_t131",
+   "expected_cadence": "pocas/mes",
+   "literature": [
+    "brock_lakonishok_lebaron_1992",
+    "hurst_ooi_pedersen_2017"
+   ],
+   "horizon": "semanal",
+   "fingerprint": "aa9cb2b3f8c7",
+   "discarded_by": "T169",
+   "reasons": [
+    "tres_dias: 1,0 operaciones al mes (< 5)"
+   ],
+   "measured_band": "tres_dias",
+   "report": "v2/reports/t169_examen_fisico.md",
+   "replaced_by": "lit_consenso_4h"
+  }
+ ],
+ "consensus_at": "2026-11-16 (T177, 165 obras)"
 }

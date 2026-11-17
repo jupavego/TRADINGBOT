@@ -65,7 +65,7 @@
    "id": "liu_tsyvinski_2021",
    "concept": "momentum",
    "stance": "apoya",
-   "consensus": "a favor (+1,00)"
+   "consensus": "dividido (+0,42)"
   }
  ],
  "prospects": [
@@ -192,5 +192,6 @@
  "exclusion_reason": null,
  "reserve": [],
  "notes": [],
- "performance_computed": false
+ "performance_computed": false,
+ "consensus_at": "2026-11-16 (T177, 165 obras)"
 }
