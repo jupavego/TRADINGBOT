@@ -1600,3 +1600,10 @@ más reciente por fecha y su siguiente paso. Formato:
   - `GET /v2/paper` dio 503 durante el primer ciclo y 200 desde las 03:27:09. Quedaban 3,6 GB libres.
 - **Revisiones del escalafón:** días 30, 61, 91, 121, 152 y 182 desde el alta. La primera es el 2026-12-17; la fecha límite, el 2027-05-18.
 - **Siguiente paso:** T171 (panel «Cantera»). T172, el informe mensual, tras la primera revisión.
+
+## 2026-11-17 · sesión «Retroalimentación, calibración y ajustes» · T128 cerrada, T178 abierta
+- **Hecho:** leída la semana de medición de la base de líderes con los manifiestos de las copias diarias (filas por tabla y copia en caliente, sin espacio libre). La poda de los rechazados bajó el crecimiento de ≈ +90 a ≈ +53 MB/día (1 264 → 1 582 MB de datos del 11 al 17-nov), pero la base sigue creciendo en línea recta. Lo que crece: `leader_recon` (+41 300 filas/día, comprobaciones rutinarias, todas correctas), detalle de aprobados y `watch` (`leader_follow` +38 600, `leader_fills` +29 400) y fotos de posiciones (+10 600). ◆ del usuario: cerrar T128 con ese criterio cumplido en parte y abrir T178 para lo que falta.
+- **Archivos:** `PLAN/STATUS.md`, `PLAN/T178.md`, `PLAN/00_MASTER.md`, `PLAN/ESTADO_PROYECTO.md`, `.claude/skills/eim-auditoria/SKILL.md` (hito de T128).
+- **Pruebas:** las del plan y la documentación (`tests/plan`, `tests/docs`, `tests/repo`, `tests/architecture`); sin cambios de código.
+- **Siguiente paso:** T178 (retención de reconciliaciones correctas y fotos de posiciones; ◆ sobre el detalle de aprobados).
+

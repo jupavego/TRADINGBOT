@@ -63,7 +63,7 @@ no por su muestra efectiva (los horizontes se solapan: 105 pronósticos de 4 h s
    completo queda en `reports/audit/audit_<fecha>.md` y el JSON al lado (es la referencia de la
    próxima vez). Sin API: `--ledger libro.csv`. Sin red: `--sin-red` (funding «sin medir»).
 2. **Hitos de calendario** (comprueba la fecha de hoy contra esta lista; actualízala al cerrarse uno):
-   - 2026-11-17 → T128: medición de la base de líderes cumplida, cerrar T128.
+   - 2026-11-17 → T128 cerrada: la base de líderes crece ≈ +53 MB/día (antes ≈ +90); lo que falta es T178.
    - 2026-11-27 → **cierre de T31**: informe final, `risk_includes_costs` y freno gradual, ◆ sobre la variante t143.
    - 2026-12-06 → T135: veredicto del A/B de M8 (`reports/t135_ab/`), sin revisar antes.
    - T78: cumplida al cerrar la hora 2026-11-14T07 UTC (72 h seguidas desde la 11T08); el cierre en `PLAN/STATUS.md` va con su gate.
