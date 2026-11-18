@@ -57,6 +57,8 @@ ganadoras recientes, que M compra y C vende.
 retornos): número de semanas con ≥ 30 elegibles, en años. Por las fechas de alta, se espera
 ≈ 5,8 años (2021-01 → 2026-11).
 
+**◆ resuelta por el usuario (2026-11-18, antes de mirar ningún retorno): se juzga C**, una sola hipótesis: la cartera **combinada** carry + momentum a riesgo igual (cada una escalada a la misma volatilidad realizada de 26 semanas con datos ≤ `t`; mitad del riesgo a cada una), m = 1, z = 1,645, T = 5,1 años con ρ = 0,3. Las componentes C y M se informan, pero no se juzgan.
+
 **Decisión congelada:** se mide solo la hipótesis cuya T quepa en la historia disponible. Con A,
 ninguna cabe (10,4 y 9,7 años frente a ≈ 5,8). **Se declara SIN POTENCIA, no se calcula ningún
 retorno y no se gasta el intento**, como en T163 y T166, salvo que el usuario cambie a C (◆ abierta
