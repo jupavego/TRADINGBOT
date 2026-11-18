@@ -1637,3 +1637,7 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `v2/reports/t164_transversal.{md,json}`, `v2/eim/analytics/transversal{,_report}.py` (beta en retorno), `PLAN/STATUS.md` (T164 y T181 ☑), `PLAN/BACKLOG.md` (T164).
 - **Lectura:** con estas reglas y esta historia no hay ventaja transversal demostrada. La pista del carry solo necesita otro pre-registro hacia adelante y los retirados recuperados.
 
+
+## 2026-11-18 · sesión «Retroalimentación, calibración y ajustes» · atasco por memoria y primera prueba real de T173
+- **Hecho:** con 340–420 MB libres (API 2,4–3,3 GB, sesiones de Claude 2,5 GB, Chrome 1 GB), el ciclo de operación dejó de latir de 03:38 a 03:54 UTC y el bróker de T31 apenas completó un ciclo entre 03:45 y 04:27. El vigilante del conjunto con T173 hizo lo previsto: con la API caída lanzó un intento (03:49, «recuperado» a las 03:54) y, con la API viva y el bróker parado, registró `conjunto_dentro_de_otro` (03:59), sin gastar intentos y con el aviso crítico del remedio. El vigilante propio de la API la relanzó a las 04:08:29 (`proceso_reiniciado`, 909 s sin latido) y el bróker volvió a las 04:27. El usuario autorizó reiniciar la API si seguía parada; no hizo falta. Para no sumar carga se cancelaron los trozos 2–5 del gate del #305 (el 1 pasó).
+- **Lección para la cuenta siguiente:** en `juanpablo-cpu` el gate solo cabe con margen de RAM; si no lo hay, correrlo en la portátil (ESTADO §0, punto 2).
