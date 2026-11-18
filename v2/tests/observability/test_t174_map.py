@@ -20,9 +20,15 @@ def test_every_switch_in_the_catalog_has_a_check():
         assert C.get(cid).switch, cid
 
 
+ON_BY_DEFAULT = {"intermarket"}   # T183: se apaga a propósito con EIM_INTERMARKET=0
+
+
 def test_switches_off_by_default_and_on_with_their_variable(tmp_path):
-    for key in S.CHECKS:
+    for key in set(S.CHECKS) - ON_BY_DEFAULT:
         assert S.off_reason(key, env={}, data_dir=tmp_path), key
+    for key in ON_BY_DEFAULT:
+        assert S.off_reason(key, env={}, data_dir=tmp_path) is None, key
+    assert S.off_reason("intermarket", env={"EIM_INTERMARKET": "0"})
     on = {"testnet": {"EIM_EXECUTION": "testnet"}, "arb_testnet": {"EIM_ARB_EXECUTION": "testnet"},
           "share": {"EIM_SHARED_DIR": "Z:/x"}, "context_llm": {"EIM_CONTEXT_LLM": "local"},
           "video": {"EIM_VIDEO": "1"}}
@@ -47,6 +53,7 @@ def test_off_reasons_never_echo_secret_values():
 
 def test_snapshot_sources_map_to_their_own_pieces():
     assert _component_for("headlines") == "data.news"
+    assert _component_for("intermarket:SP500") == "data.intermarket"   # T183
     assert _component_for("liquidations") == "data.liquidations"
     assert _component_for("liq_flow") == "data.liquidations"
     assert _component_for("events") == "data.calendar"

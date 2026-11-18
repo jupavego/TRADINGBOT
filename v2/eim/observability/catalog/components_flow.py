@@ -12,7 +12,7 @@ from eim.observability.catalog.model import Component, c
 _VOTERS = ("structure", "ema", "vwap", "price_action", "elliott", "seasonality", "liquidations",
            "levels", "derivatives", "microstructure", "regime", "technical", "smart_money")
 # T174 (desvío visto en T75): informan a la síntesis aunque no voten o voten con peso propio
-_INFORMERS = ("arbitrage", "bots", "calendar", "context", "literature")
+_INFORMERS = ("arbitrage", "bots", "calendar", "context", "literature", "intermarket")  # +T183
 
 DATA: tuple[Component, ...] = (
     c("data.binance_rest", "data", "datos", "provider", "api", "T03", "Binance (consulta REST)",
@@ -65,6 +65,11 @@ DATA: tuple[Component, ...] = (
       "Proceso aparte que sigue a los traders públicos mejor evaluados y escribe un tablero cada "
       "5 minutos. Solo lee datos públicos; sin claves.", cadence="cada 5 min", cadence_s=300,
       produces=("leader_board",)),
+    c("data.intermarket", "data", "datos", "provider", "api", "T183", "Intermercado",
+      "Descarga velas diarias reales del oro (Binance), del S&P 500 y el Nasdaq (Yahoo) y de la "
+      "propia cripto, como mucho cada 6 h por activo. Las guarda para la fotografía del mercado.",
+      cadence="cada 6 h", cadence_s=21600, switch="intermarket",
+      produces=("intermarket_bars",)),
     c("data.snapshot", "data", "datos", "engine", "api", "T03", "Fotografía del mercado",
       "Reúne velas, funding, liquidaciones, noticias, calendario, flujo y líderes en un solo "
       "paquete con la fuente y la cobertura real de cada cifra. Es lo único que ven los agentes.",
@@ -74,7 +79,8 @@ DATA: tuple[Component, ...] = (
                 ("data.liquidations", "liquidations"), ("data.news", "headlines"),
                 ("data.calendar", "econ_events"), ("data.micro_collector", "micro_bars"),
                 ("data.liq_collector", "liq_flow"),
-                ("data.arb_market", "arb_market"), ("leaders.service", "leader_board")),
+                ("data.arb_market", "arb_market"), ("leaders.service", "leader_board"),
+                ("data.intermarket", "intermarket_bars")),
       produces=("snapshot",)),
 )
 
@@ -245,9 +251,10 @@ OPERATION: tuple[Component, ...] = (
 VALIDATION: tuple[Component, ...] = (
     c("forecast.calibration", "forecast", "validacion", "engine", "api", "T19",
       "Calibración de escenarios", "Mide si las probabilidades y bandas de los escenarios fueron "
-      "fiables (puntaje de Brier, cobertura) frente a una caminata al azar.",
-      cadence="a demanda", consumes=(("forecast.engine", "forecast_set"),),
-      produces=("calibration",)),
+      "fiables frente a una caminata al azar. Un vigía la revisa solo cada 6 h, guarda el "
+      "historial, avisa si se desvía y prueba en sombra las recalibraciones (T184).",
+      cadence="cada 6 h (vigía) y a demanda", cadence_s=21600,
+      consumes=(("forecast.engine", "forecast_set"),), produces=("calibration",)),
     c("backtest.engine", "validation", "validacion", "engine", "cli", "T25", "Simulador histórico",
       "Repite la estrategia sobre el pasado, vela a vela y sin ver el futuro, con costos de "
       "perpetuos, funding y liquidación.", consumes=(("data.store", "candles"),),

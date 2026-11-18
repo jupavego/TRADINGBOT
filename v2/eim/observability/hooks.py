@@ -191,7 +191,8 @@ def snapshot_fetches(snap: Any, wanted: int) -> None:
 _SOURCE_COMPONENT = {"micro": "data.micro_collector", "orderbook": "data.micro_collector",
                      "events": "data.calendar", "arb": "data.arb_market",
                      "leaders": "leaders.service", "liquidations": "data.liquidations",
-                     "liq_flow": "data.liquidations", "headlines": "data.news"}
+                     "liq_flow": "data.liquidations", "headlines": "data.news",
+                     "intermarket": "data.intermarket"}   # T183
 
 
 def _component_for(key: str) -> str:

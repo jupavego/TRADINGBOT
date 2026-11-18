@@ -44,6 +44,11 @@ export function renderRiver(el: HTMLElement, infos: AgentInfo[], reports: AgentR
       document.querySelector('.bottom')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       return
     }
+    const lupa = t.closest<HTMLElement>('[data-lupa]')
+    if (lupa) { // T185: la lupa del agente (VWAP, liquidaciones, estacionalidad, intermercado)
+      window.dispatchEvent(new CustomEvent('eim:lupa', { detail: lupa.dataset.lupa }))
+      return
+    }
     if (t.closest('.tip') && !t.closest('[data-close]')) return // dentro del detalle (p. ej. abrir una familia)
     if (t.closest('[data-close]')) selected = null
     else {

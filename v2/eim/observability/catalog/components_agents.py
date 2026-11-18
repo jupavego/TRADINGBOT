@@ -78,6 +78,10 @@ AGENTS: tuple[Component, ...] = (
        "Resume lo que opinan los bots públicos aprobados (cada uno con su versión y estado). Hasta "
        "que la puerta de validación los habilite solo informa: no suma al sesgo.", "T57",
        consumes=(("bots.runner", "bot_signal"),)),
+    _a("intermarket", "0.1.0", "Intermercado",
+       "Mira el oro y los índices de EE. UU. (Nasdaq, S&P 500): si hay apetito o miedo al riesgo y "
+       "cuánto se mueve hoy la cripto con ellos. Solo informa: pesa 0 hasta que se mida su aporte.",
+       "T183", switch="intermarket"),
     _a("plan", "1.0.0", "Plan de operación",
        "Propone una operación completa: precio de entrada, salida de pérdida (SL), objetivos (TP) y "
        "relación ganancia/riesgo, a partir de estructura y niveles. Siempre en modo Análisis.",

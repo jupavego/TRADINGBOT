@@ -1,6 +1,7 @@
 import { roleOf, weightOf } from './agent_roles'
 import { arbDetail } from './arb_view'
 import { calendarDetail } from './calendar_ui'
+import { hasLupa } from './more'
 import { agentName, esc } from './panels'
 import { disagreeing, PCT_NOTE, shares, upDown } from './synth'
 import { technicalDetail } from './technical_ui'
@@ -98,9 +99,14 @@ function share(id: string, syn: Synthesis | null, infos: AgentInfo[]): string {
     `${s.dir > 0 ? 'subida' : 'bajada'}</b>${pbar(s.pct, s.dir)}${wt}`
 }
 
+/** T185: botón a la lupa del agente (antes una pestaña inferior), si la tiene. */
+const lupaBtn = (id: string): string => hasLupa(id)
+  ? `<button type="button" class="tip-lupa" data-lupa="${esc(id)}" title="El mismo cálculo del agente, con todo su detalle">🔍 Ver en detalle</button>`
+  : ''
+
 /** Tooltip de un agente: su último reporte + su aporte a la proyección. */
 export function agentTip(r: AgentReport | undefined, id: string, syn: Synthesis | null, infos: AgentInfo[] = []): string {
-  if (!r) return `${head(agentName(id))}<p class="muted">Aún sin reporte: se ejecuta al cerrar la próxima vela.</p>`
+  if (!r) return `${head(agentName(id))}<p class="muted">Aún sin reporte: se ejecuta al cerrar la próxima vela.</p>${lupaBtn(id)}`
   const dir = Math.abs(r.bias) < THRESH ? 'Neutral' : r.bias > 0 ? 'Compra' : 'Venta'
   const ev = r.evidence.slice(0, 4).map((e) => `<li>${esc(e)}</li>`).join('')
   const wn = r.warnings.map((w) => `<li>${esc(w)}</li>`).join('')
@@ -114,6 +120,7 @@ export function agentTip(r: AgentReport | undefined, id: string, syn: Synthesis 
     (ev ? `<ul class="ev">${ev}</ul>` : '') + (wn ? `<ul class="warn">${wn}</ul>` : '') +
     (r.agent_id === 'technical' ? technicalDetail(r.metrics) : r.agent_id === 'calendar' ? calendarDetail(r.metrics)
       : r.agent_id === 'arbitrage' ? arbDetail(r.metrics) : mt ? `<table class="metrics">${mt}</table>` : '') +
+    lupaBtn(id) +
     `<p class="muted">v${esc(r.version)} · ${bogIso(r.asof).slice(0, 16).replace('T', ' ')} COT</p>`
 }
 

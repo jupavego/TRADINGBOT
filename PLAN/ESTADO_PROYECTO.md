@@ -215,6 +215,8 @@ T79–T86 (HFT), T87–T103 (multiactivo), T167–T172 (fase 27, cantera de perf
 
 ## 4. Decisiones vigentes del usuario (no reabrir sin preguntar)
 
+- **El cerebro integrado (T183–T185, 2026-11-18, «los 7 pasos»):** toda pieza se clasifica por los pilares (control, proyección, validación, retroalimentación, mejora continua, automatización). Un agente nuevo entra con peso 0 y nunca `degraded` hasta que la prueba de aporte marginal lo mida (intermercado). La calibración la revisa un vigía cada 6 h; **no se enciende ninguna recalibración** sin un pre-registro nuevo (T160 las rechazó). Las vistas que duplican a un agente son su lupa, no una pestaña; backtest/VRM e historial de sugerencias salieron de la barra; lo documental va tras «Documental».
+
 - **Decisiones delegadas (2026-11-07, «toma tu la mejor decision» sobre las cuatro tareas que esperaban al usuario):**
   - **T62, YouTube:** se cumplen sus Términos. Metadatos con la Data API v3, sin `yt-dlp` ni `youtube-transcript-api` con YouTube, y transcripción solo de lo propio, lo aportado o lo que el autor permita por escrito. El equipo de referencia pasa a ser `juanpablo-cpu`. T62 ☑.
   - **T117:** los conflictos se aceptan conservando lo local. T117 ☑ y T61 sin ◆. El modo automático sigue apagado.

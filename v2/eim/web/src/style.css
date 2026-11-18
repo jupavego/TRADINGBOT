@@ -62,6 +62,31 @@ select, .btn, .seg button {
 }
 .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
 .tabbody { padding: 14px; color: var(--muted); overflow: auto; flex: 1; }
+/* T185: separador entre lo conectado al cerebro y lo documental */
+.tabs-sep {
+  align-self: center; margin-left: auto; padding: 2px 8px; font-size: 10px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--muted); border-left: 1px solid var(--line); opacity: .8;
+}
+/* T185: lupa de una esfera (VWAP, liquidaciones, estacionalidad, intermercado) */
+.lupa {
+  width: min(1100px, 94vw); max-height: 88vh; padding: 14px 16px; color: var(--text);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: auto;
+}
+.lupa::backdrop { background: rgba(0, 0, 0, .55); }
+.lupa-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.lupa-h button { background: none; border: 0; font-size: 22px; line-height: 1; color: var(--muted); cursor: pointer; }
+.tip-lupa {
+  margin: 6px 0 2px; font: inherit; font-size: 12px; color: var(--text); background: none;
+  border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; cursor: pointer;
+}
+.tip-lupa:hover { border-color: var(--accent); }
+/* T184: vigía automático de la calibración */
+.cal-watch { margin: 8px 0 12px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+.cal-watch[data-s="alerta"], .cal-watch[data-s="alerta_sostenida"] { border-color: var(--warn); }
+.cal-trail { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 11px; }
+.cal-watch .chip[data-s="ok"] { color: var(--up); }
+.cal-watch .chip[data-s="vigilar"] { color: var(--warn); }
+.cal-watch .chip[data-s="alerta"], .cal-watch .chip[data-s="alerta_sostenida"] { color: var(--down); }
 
 @media (max-width: 900px) {
   .topbar { padding: 8px 12px; gap: 10px; }
