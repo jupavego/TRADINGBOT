@@ -36,10 +36,16 @@ def _many(n: int, r: float, origin: str, start: int = 0) -> list[Outcome]:
 
 def test_por_defecto_esta_apagado_y_no_cambia_la_huella_de_t31():
     ep = ExecParams()
-    assert ep.live_first is False and ep.prior_cap == CAP
-    on = ep.model_copy(update={"live_first": True, "prior_cap": 3.0})
+    assert ep.live_first is False and ep.live_first_from_ms is None and ep.prior_cap == CAP
+    assert not ep.live_first_on(T0) and ExecParams(live_first=True).live_first_on(T0)
+    on = ep.model_copy(update={"live_first": True, "prior_cap": 3.0, "live_first_from_ms": T0})
     for tf in ep.timeframes:     # no cambia la sombra: las versiones de estrategia son las mismas
         assert exec_fingerprint(on, tf) == exec_fingerprint(ep, tf)
+
+
+def test_se_enciende_solo_al_cerrar_t31_sin_reiniciar_nada():
+    ep = ExecParams(live_first_from_ms=T0)
+    assert not ep.live_first_on(T0 - 1) and ep.live_first_on(T0) and ep.live_first_on(T0 + H1)
 
 
 def test_sin_cierres_vivos_lo_reconstruido_vale_como_mucho_cap_operaciones():
@@ -123,8 +129,7 @@ def test_el_libro_registra_sus_cierres_para_servir_de_prior():
 
 def test_apagado_los_libros_son_los_de_siempre():
     outs = _many(3, 1.0, "backtest") + _many(3, 1.0, "vivo", start=10)
-    ep = ExecParams()
-    got = profile_books((AUD,), {AUD.id: outs}, Learner(outs), 0.004, None, ep)
+    got = profile_books((AUD,), {AUD.id: outs}, Learner(outs), 0.004, None, False, CAP)
     ref = run_profile(AUD, outs, Learner(outs), 0.004)
     assert [t["exit_t"] for t in got[AUD.id].trades] == [t["exit_t"] for t in ref.trades]
     assert len(ref.trades) == 6
@@ -132,8 +137,7 @@ def test_apagado_los_libros_son_los_de_siempre():
 
 def test_encendido_el_libro_solo_toma_lo_decidido_en_vivo():
     outs = _many(3, 1.0, "backtest") + _many(3, 1.0, "vivo", start=10)
-    ep = ExecParams(live_first=True)
-    lf = LiveFirstLearner(outs, ep.prior_cap)
-    st = profile_books((AUD,), {AUD.id: outs}, lf, 0.004, None, ep)[AUD.id]
+    lf = LiveFirstLearner(outs, CAP)
+    st = profile_books((AUD,), {AUD.id: outs}, lf, 0.004, None, True, CAP)[AUD.id]
     assert len(st.trades) == 3 and {t["origin"] for t in st.trades} == {"vivo"}
     assert st.curve[0][0] == outs[3].idea.t           # la cuenta empieza con lo vivo

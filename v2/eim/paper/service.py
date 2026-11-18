@@ -4,13 +4,13 @@ Cada ciclo trae velas y funding nuevos, analiza las velas cerradas que falten en
 4 h (contextos `vivo` si se deciden a lo sumo una vela después de su cierre) y escribe
 `data/paper/heartbeat.json` para que el vigilante y la vista sepan que sigue en marcha.
 
-Puesta al día automática (T182, reemplaza el botón «Reconstruir historial»; solo con
-`ExecParams.live_first`): tras cada ciclo, si en los últimos `CATCHUP_DAYS` días quedan velas
-cerradas sin analizar (el equipo estuvo apagado más de lo que cubre el ciclo), el servicio las
-analiza solo, en segundo plano, de a lotes y con prioridad baja. Esas velas no se decidieron en
-tiempo real: quedan como `backtest` (reconstruidas), así que no entran en los libros de los
-perfiles y en el aprendizaje solo pesan como opinión inicial acotada (`eim/paper/prior.py`).
-Nadie tiene que lanzarla a mano.
+Puesta al día automática (T182, reemplaza el botón «Reconstruir historial»; solo con «lo vivo
+manda», `ExecParams.live_first_on`): tras cada ciclo, si en los últimos `CATCHUP_DAYS` días
+quedan velas cerradas sin analizar (el equipo estuvo apagado más de lo que cubre el ciclo), el
+servicio las analiza solo, en segundo plano, de a lotes y con prioridad baja. Esas velas no se
+decidieron en tiempo real: quedan como `backtest` (reconstruidas), así que no entran en los libros
+de los perfiles y en el aprendizaje solo pesan como opinión inicial acotada
+(`eim/paper/prior.py`). Nadie tiene que lanzarla a mano.
 """
 
 from __future__ import annotations
@@ -93,9 +93,9 @@ class DeskService:
 
     def catch_up(self) -> dict:
         """Lanza (si hace falta y no hay otro en curso) un lote de puesta al día en segundo
-        plano. Solo con `ExecParams.live_first`: sin él (configuración de T31) lo reconstruido
-        entra en los libros, así que rellenar huecos cambiaría la corrida. Devuelve el estado."""
-        if not self.ep.live_first or self.job.state == "corriendo":
+        plano. Solo con «lo vivo manda» (`ExecParams.live_first_on`): sin él (configuración de
+        T31) lo reconstruido entra en los libros y rellenar huecos cambiaría la corrida."""
+        if not self.ep.live_first_on(now_ms()) or self.job.state == "corriendo":
             return self.job.to_json()
         plan = self._catchup_plan()
         if not plan:

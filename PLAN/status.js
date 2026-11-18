@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-18T11:50:27",
+ "generated": "2026-11-18T12:06:22",
  "phases": [
   {
    "n": 0,
@@ -2692,7 +2692,7 @@ window.EIM_STATUS = {
     "T31"
    ],
    "state": "done",
-   "notes": "**Hecha 2026-11-18 (◆ del usuario), los pasos 2–4 apagados hasta cerrar T31.** Fuera de la cabecera del bróker el botón «Reconstruir historial (backtest)» y sus selectores, y las rutas `POST /v2/paper/backtest(/stop)`; el CLI queda como laboratorio local. Detrás de `ExecParams.live_first` (apagado: configuración de T31; fuera de `exec_fingerprint`): puesta al día automática de las velas que falten en 30 días (`service.catch_up`, lotes de 400, prioridad baja, quedan como reconstruidas), libros de los perfiles solo con `origin = vivo` (`live_books.py`) y lo reconstruido como opinión inicial acotada a 8 operaciones que se diluye con cada cierre vivo (`prior.py`, `LadderRisk.prior`, `LiveFirstLearner`). Nada se borra; T49 sigue igual. 18 pruebas nuevas. Encender al cerrar T31 (`PLAN/T31.md`). Ficha `PLAN/T182.md`",
+   "notes": "**Hecha 2026-11-18 (◆ del usuario); el botón salió en #311 y lo demás se enciende SOLO al cerrar T31 (2026-11-28 00:00 UTC), sin reiniciar.** Fuera de la cabecera del bróker el botón «Reconstruir historial (backtest)» y sus selectores, y las rutas `POST /v2/paper/backtest(/stop)`; el CLI queda como laboratorio local. `ExecParams.live_first_on(ahora)` (fuera de `exec_fingerprint`; la API fija `live_first_from_ms` con `EIM_PAPER_LIVE_FIRST_FROM`, por defecto el cierre de T31, `off` lo apaga): puesta al día automática de las velas que falten en 30 días (`service.catch_up`, lotes de 400, prioridad baja, quedan como reconstruidas), libros de los perfiles solo con `origin = vivo` (`live_books.py`) y lo reconstruido como opinión inicial acotada a 8 operaciones que se diluye con cada cierre vivo (`prior.py`, `LadderRisk.prior`, `LiveFirstLearner`). Nada se borra; T49 sigue igual. 20 pruebas nuevas. Ficha `PLAN/T182.md`",
    "effort": "medio",
    "phase": 26
   }
