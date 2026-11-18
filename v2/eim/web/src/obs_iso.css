@@ -1,7 +1,7 @@
 /* ── Mapa del sistema · vista «Isométrico»: salas por etapa, puestos por pieza, líneas animadas ── */
 .iso-wrap { position: relative; border-radius: var(--radius, 10px); overflow: hidden;
   background: radial-gradient(120% 90% at 45% 45%, #15216a 0%, #0a1240 48%, #040720 100%); }
-.iso-svg { width: 100%; height: auto; display: block; min-height: 420px; max-height: calc(100vh - 110px); margin: 0 auto; }
+.iso-svg { width: 100%; height: auto; display: block; min-height: 420px; margin: 0 auto; }   /* sin tope de alto: el mapa llena el ancho */
 .iso-area, .iso-person, .iso-label { cursor: pointer; outline: none; }
 .iso-area:hover .iso-floor { fill: #cdd6e4; }
 .iso-lounge, .iso-avatar { pointer-events: none; }
@@ -42,17 +42,17 @@
 .obs-views { display: inline-flex; gap: 4px; }
 .obs-piece-list { list-style: none; padding: 0; margin: 6px 0; font-size: 12px; display: grid; gap: 3px; }
 /* En «Isométrico» el mapa ocupa todo el ancho: «Cómo leer este mapa» y el detalle flotan en la esquina superior derecha del diagrama */
-[data-view="iso"] > .obs-body { grid-template-columns: minmax(0, 1fr); position: relative; }
-[data-view="iso"] > .obs-body > .obs-side { position: absolute; top: 56px; right: 24px; z-index: 5; width: min(320px, 40%);
+[data-view="iso"] .obs-body { grid-template-columns: minmax(0, 1fr); position: relative; }
+[data-view="iso"] .obs-body > .obs-side { position: absolute; top: 56px; right: 24px; z-index: 5; width: min(320px, 40%);
   max-height: min(72vh, calc(100% - 70px)); overflow-y: auto; gap: 8px; pointer-events: none; }
-[data-view="iso"] > .obs-body > .obs-side > div { pointer-events: auto; padding: 8px 12px; font-size: 12px;
+[data-view="iso"] .obs-body > .obs-side > div { pointer-events: auto; padding: 8px 12px; font-size: 12px;
   background: rgba(6, 10, 40, .9); border-color: rgba(var(--glow, 34, 225, 255), .35); box-shadow: 0 6px 24px rgba(0, 0, 0, .55); backdrop-filter: blur(4px); }
 [data-view="iso"] .obs-legend summary { font-size: 13px; }
 [data-view="iso"] .obs-legend:not([open]) { width: max-content; margin-left: auto; }
 [data-view="iso"] .obs-side > .obs-legend-box:has(.obs-legend:not([open])) { margin-left: auto; width: max-content; }
 [data-view="iso"] .obs-lg-states { font-size: 11.5px; }
 [data-view="iso"] .obs-detail:has(> p.muted:only-child) { display: none; }      /* sin nada elegido no tapa el mapa */
-@media (max-width: 700px) { [data-view="iso"] > .obs-body > .obs-side { position: static; width: auto; max-height: none; pointer-events: auto; } }
+@media (max-width: 700px) { [data-view="iso"] .obs-body > .obs-side { position: static; width: auto; max-height: none; pointer-events: auto; } }
 @keyframes iso-dash { to { stroke-dashoffset: -22; } }
 @keyframes iso-fade { 50% { opacity: .3; } }
 @keyframes iso-blink { 50% { opacity: .2; } }

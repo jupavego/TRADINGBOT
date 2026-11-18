@@ -1646,3 +1646,9 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Hecho:** el equipo se apagó de forma ordenada a las 07:15 UTC (evento 1074, desde el menú de inicio) y arrancó a las 12:50: ≈ 5,6 h sin servicios. El vigilante levantó el conjunto y el bróker de T31 volvió a las 13:07. La copia diaria del 18-nov salió sin `leaders.duckdb` (el servicio de líderes no atendió la instantánea con 340 MB libres), así que, con permiso del usuario, se hizo una completa por la cola: `eim_20261118-130754`, íntegra y verificada (6 957 159 filas de líderes, 3 185 MB, ciclo retenido 8 s). Con el margen del arranque pasaron los trozos 2–5 del gate del #305: ruff limpio y 3 821 pasadas, 8 omitidas, 0 fallos.
 - **Siguiente paso:** con el sí del usuario, fusionar el #305, traer `main` a la carpeta principal y reiniciar la API para que entre T179.
 
+
+## 2026-11-18 · sesión «Mapa a todo el ancho» · arreglo de UI del Mapa del sistema
+- **Hecho:** en la vista «Isométrico» el mapa vuelve a ocupar todo el ancho. El plegado del título (commit `8d1d7cb`) metió `.obs-body` dentro de `.obs-fold-body` y los selectores `[data-view="iso"] > .obs-body` dejaron de aplicar: reaparecía la columna lateral de 340 px vacía. Selectores pasados a descendiente y quitado el tope de alto del SVG (`max-height: calc(100vh - 110px)`), que lo dejaba centrado con bandas a los lados; ahora llena el ancho y, en pantallas bajas, se baja con la rueda.
+- **Archivos:** `v2/eim/web/src/obs_iso.css`.
+- **Pruebas:** solo CSS; comprobado con captura en Chrome sin interfaz sobre la estructura de `obs_view.ts` (sin `node_modules` en la sesión en la nube, falta mirarlo en el panel real).
+- **Siguiente paso:** fusionar con el sí del usuario y recargar el panel.
