@@ -1646,6 +1646,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Hecho:** el equipo se apagó de forma ordenada a las 07:15 UTC (evento 1074, desde el menú de inicio) y arrancó a las 12:50: ≈ 5,6 h sin servicios. El vigilante levantó el conjunto y el bróker de T31 volvió a las 13:07. La copia diaria del 18-nov salió sin `leaders.duckdb` (el servicio de líderes no atendió la instantánea con 340 MB libres), así que, con permiso del usuario, se hizo una completa por la cola: `eim_20261118-130754`, íntegra y verificada (6 957 159 filas de líderes, 3 185 MB, ciclo retenido 8 s). Con el margen del arranque pasaron los trozos 2–5 del gate del #305: ruff limpio y 3 821 pasadas, 8 omitidas, 0 fallos.
 - **Siguiente paso:** con el sí del usuario, fusionar el #305, traer `main` a la carpeta principal y reiniciar la API para que entre T179.
 
+## 2026-11-18 · sesión «Retroalimentación, calibración y ajustes» · #305 fusionado, API reiniciada y corrección de T179
+- **Hecho:** con el sí del usuario se fusionó el #305 (`0a73a48`) y se reinició la API a las 13:45:44 UTC (hija de uvicorn detenida, el vigilante la relanzó en 30 s y el bróker volvió en otros 30). T179 se desplegó y cerró agresivo@15m, como se esperaba, y también agresivo@4h, que no se esperaba: el factor en cociente de 4 h salió ×2,12 porque el funding cobrado abarata la gemela. La calibración pasa a ser aditiva (libro − gemela); con los datos del momento cierra solo agresivo@15m (0,173 R).
+- **Archivos:** `v2/eim/paper/{tf_calib,tf_gate_profile,desk_gate}.py`, `v2/tests/paper/test_tf_gate_profile.py`, `PLAN/T179.md`, `PLAN/STATUS.md`.
+- **Pruebas:** las de la puerta y la variante en verde; gate completo por la cola.
+- **Siguiente paso:** con el sí del usuario, fusionar y reiniciar la API otra vez.
+
 
 ## 2026-11-18 · sesión «Mapa a todo el ancho» · arreglo de UI del Mapa del sistema
 - **Hecho:** en la vista «Isométrico» el mapa vuelve a ocupar todo el ancho. El plegado del título (commit `8d1d7cb`) metió `.obs-body` dentro de `.obs-fold-body` y los selectores `[data-view="iso"] > .obs-body` dejaron de aplicar: reaparecía la columna lateral de 340 px vacía. Selectores pasados a descendiente y quitado el tope de alto del SVG (`max-height: calc(100vh - 110px)`), que lo dejaba centrado con bandas a los lados; ahora llena el ancho y, en pantallas bajas, se baja con la rueda.

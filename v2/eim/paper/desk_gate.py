@@ -44,8 +44,8 @@ class DeskGate:
         if not self.ep.tf_gate_by_profile or self._gate_path is None:
             return same
         try:
-            fac = tf_calib.factors(self._ledger_rows(v.symbol)[1], v.outcomes)
-            rows = tf_gate_profile.decide(self.tfs, v.outcomes, self.ep, self.profiles, fac)
+            cor = tf_calib.corrections(self._ledger_rows(v.symbol)[1], v.outcomes)
+            rows = tf_gate_profile.decide(self.tfs, v.outcomes, self.ep, self.profiles, cor)
             at = max((o.idea.t for o in v.outcomes), default=0) + 1   # solo ideas futuras
             closed = tf_gate_profile.update(tf_gate_profile.load(self._gate_path), rows,
                                             v.symbol, at)

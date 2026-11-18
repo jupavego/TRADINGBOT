@@ -4,7 +4,7 @@ La puerta de T143 (3) cierra un marco **entero** con un solo costo, medido en la
 algún perfil aceptaría. Los perfiles tienen vetos de costo distintos (conservador 0,12 R,
 moderado y PPP 0,15, agresivo 0,20), así que en 15 m el agresivo pagaba 0,180 R vividos y el
 moderado 0,140, y la puerta, con un número, no podía decidir por los dos. Aquí cada perfil se
-juzga con la sombra que **él** aceptaría, calibrada con su propio libro (`tf_calib`).
+juzga con la sombra que **él** aceptaría, corregida con su propio libro (`tf_calib`, aditiva).
 
 **Un marco cerrado no abre posiciones nuevas; no reescribe lo vivido.** La puerta de T143 filtra
 toda la sombra, así que al cerrarse un marco el libro recalculado perdería también lo ya cerrado
@@ -28,23 +28,23 @@ from eim.paper.engine import Outcome
 
 
 def decide(tfs: Sequence[str], outcomes: Sequence[Outcome], ep, profiles: Sequence,
-           fac: Mapping[str, dict]) -> list[dict]:
+           cor: Mapping[str, dict]) -> list[dict]:
     """Una fila por perfil y marco: costo calibrado, de dónde sale y si el perfil opera ahí."""
     rows = []
     for p in profiles:
         meas = tf_gate.cost_by_tf(tf_gate.takeable(outcomes, [p]))
         for tf in tfs:
             c, n = meas.get(tf, (None, 0))
-            f, fsrc = tf_calib.factor_for(fac, p.id, tf)
+            d, dsrc = tf_calib.correction_for(cor, p.id, tf)
             if c is not None and n >= ep.tf_cost_min_n:
-                cost, src = c * f, f"sombra de {p.id} ({n} operaciones) × {f:.2f} ({fsrc})"
+                cost, src = c + d, f"sombra de {p.id} ({n} operaciones) {d:+.3f} R ({dsrc})"
             else:
                 cost = tf_gate.BASELINE_COST_R.get(tf)
                 src = f"T136 (banco de T131); la sombra de {p.id} lleva {n} de {ep.tf_cost_min_n}"
             ok = ep.tf_max_cost_r is None or cost is None or cost < ep.tf_max_cost_r
             rows.append({"profile": p.id, "timeframe": tf,
                          "cost_r": None if cost is None else round(cost, 4),
-                         "shadow_cost_r": None if c is None else round(c, 4), "factor": f,
+                         "shadow_cost_r": None if c is None else round(c, 4), "correction_r": d,
                          "source": src, "max_cost_r": ep.tf_max_cost_r, "admitted": ok})
     return rows
 
