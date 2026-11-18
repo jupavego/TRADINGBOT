@@ -1,8 +1,8 @@
-"""T179: la puerta de costo por perfil y marco, con la sombra calibrada con el libro.
+"""T179: la puerta de costo por perfil y marco, con la sombra corregida con el libro.
 
 El caso que la motiva (corrida t143, 2026-11-17): en 15 m la sombra que el agresivo aceptaría
 costaba 0,132 R y su libro pagaba 0,185; el moderado, 0,106 frente a 0,136. Con un solo número
-por marco la puerta de T143 no cerraba nada; por perfil, y calibrada, cierra solo al agresivo.
+por marco la puerta de T143 no cerraba nada; por perfil, y corregida, cierra solo al agresivo.
 """
 
 from __future__ import annotations
@@ -48,46 +48,58 @@ def _shadow(n: int = 120) -> list[Outcome]:
 
 # ---------------------------------------------------------------------------- calibración
 
-def test_el_factor_es_el_cociente_de_lo_vivido_entre_su_gemela_de_la_sombra():
+def test_la_correccion_es_la_diferencia_media_entre_lo_vivido_y_su_gemela():
     sh = _shadow()
     rows = [row(o, "agresivo", 0.18) for o in sh[:40]]           # 0,18 vivido frente a 0,13
-    f = cal.factors(rows, sh)
-    assert f["agresivo@15m"]["n"] == 40
-    assert abs(f["agresivo@15m"]["factor"] - 0.18 / 0.13) < 1e-3
-    assert cal.factor_for(f, "agresivo", "15m")[1].startswith("propio")
+    c = cal.corrections(rows, sh)
+    assert c["agresivo@15m"]["n"] == 40
+    assert abs(c["agresivo@15m"]["delta"] - 0.05) < 1e-4
+    assert cal.correction_for(c, "agresivo", "15m")[1].startswith("propio")
 
 
-def test_con_pocas_parejas_propias_se_usa_el_del_marco_y_sin_ninguna_uno():
+def test_con_pocas_parejas_propias_se_usa_la_del_marco_y_sin_ninguna_cero():
     sh = _shadow()
     rows = [row(o, "agresivo", 0.18) for o in sh[:20]] + [row(o, "moderado", 0.12)
                                                          for o in sh[120:135]]
-    f = cal.factors(rows, sh)
-    assert "agresivo@15m" not in f and "moderado@15m" not in f and f["*@15m"]["n"] == 35
-    assert cal.factor_for(f, "moderado", "15m")[1].startswith("del marco")
-    assert cal.factor_for({}, "moderado", "1h") == (1.0, "sin parejas con el libro")
+    c = cal.corrections(rows, sh)
+    assert "agresivo@15m" not in c and "moderado@15m" not in c and c["*@15m"]["n"] == 35
+    assert cal.correction_for(c, "moderado", "15m")[1].startswith("del marco")
+    assert cal.correction_for({}, "moderado", "1h") == (0.0, "sin parejas con el libro")
 
 
-def test_el_factor_esta_acotado_y_no_cuenta_lo_que_no_es_resultado():
+def test_la_correccion_esta_acotada_y_no_cuenta_lo_que_no_es_resultado():
     sh = _shadow()
     rows = [row(o, "agresivo", 5.0) for o in sh[:40]]
-    assert cal.factors(rows, sh)["agresivo@15m"]["factor"] == cal.BOUNDS[1]
+    assert cal.corrections(rows, sh)["agresivo@15m"]["delta"] == cal.BOUNDS[1]
     retro = [r | {"retro": True} for r in rows]
-    assert cal.factors(retro, sh) == {}
+    assert cal.corrections(retro, sh) == {}
+
+
+def test_una_gemela_barata_por_el_funding_no_dispara_la_correccion():
+    """El fallo del cociente (2026-11-18): en 4 h el funding cobrado dejó la gemela en ≈ 0,03 R y
+    el libro pagó ≈ 0,06; el cociente salió ×2 y cerró agresivo@4h. La diferencia da +0,03."""
+    sh = [out("4h", 0.03, 98.6, T0 + i * 4 * H1, f"q{i}") for i in range(60)]
+    rows = [row(o, "agresivo", 0.06) for o in sh[:40]]
+    c = cal.corrections(rows, sh)
+    assert abs(c["agresivo@4h"]["delta"] - 0.03) < 1e-4
+    acept = [out("4h", 0.07, 98.6, T0 + i * 4 * H1 + 1, f"a{i}") for i in range(60)]
+    rows4 = {r["timeframe"]: r for r in gp.decide(TFS, acept, EP, [AGR], c)}
+    assert rows4["4h"]["admitted"] and abs(rows4["4h"]["cost_r"] - 0.10) < 1e-3
 
 
 # ------------------------------------------------------------------------------- decisión
 
-def test_por_perfil_y_calibrada_cierra_15m_solo_para_el_agresivo():
+def test_por_perfil_y_corregida_cierra_15m_solo_para_el_agresivo():
     sh = _shadow()
-    fac = {"agresivo@15m": {"factor": 1.25, "n": 41}, "moderado@15m": {"factor": 1.14, "n": 45}}
-    rows = {(r["profile"], r["timeframe"]): r for r in gp.decide(TFS, sh, EP, [AGR, MOD], fac)}
+    cor = {"agresivo@15m": {"delta": 0.03, "n": 41}, "moderado@15m": {"delta": 0.02, "n": 45}}
+    rows = {(r["profile"], r["timeframe"]): r for r in gp.decide(TFS, sh, EP, [AGR, MOD], cor)}
     a, m = rows[("agresivo", "15m")], rows[("moderado", "15m")]
-    # el agresivo acepta las dos mitades: (0,13 + 0,10) / 2 × 1,25 ≈ 0,144 < 0,15, y abre; con
-    # un tercio más de stops pegados pasa de 0,15; el moderado solo acepta las de 1,4 %: 0,10 × 1,14
-    assert m["shadow_cost_r"] < a["shadow_cost_r"]
-    assert m["admitted"] and abs(m["cost_r"] - 0.10 * 1.14) < 1e-3
+    # el agresivo acepta las dos mitades: (0,13 + 0,10) / 2 + 0,03 = 0,145 < 0,15, y abre; con un
+    # tercio más de stops pegados pasa de 0,15; el moderado solo acepta las de 1,4 %: 0,10 + 0,02
+    assert m["shadow_cost_r"] < a["shadow_cost_r"] and a["admitted"]
+    assert m["admitted"] and abs(m["cost_r"] - 0.12) < 1e-3
     sh_cara = sh + [out("15m", 0.16, 99.15, T0 + i * H1 + 2, f"c{i}") for i in range(120)]
-    dec = gp.decide(TFS, sh_cara, EP, [AGR, MOD], fac)
+    dec = gp.decide(TFS, sh_cara, EP, [AGR, MOD], cor)
     rows2 = {(r["profile"], r["timeframe"]): r for r in dec}
     assert not rows2[("agresivo", "15m")]["admitted"] and rows2[("moderado", "15m")]["admitted"]
 

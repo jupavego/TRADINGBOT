@@ -8,15 +8,20 @@ escalera cierra por stop dinámico, como tomador, casi nunca por la misma salida
 al agresivo, que mueve más nocional. Por eso la sombra que el agresivo aceptaría da 0,132 R en
 15 m y su libro paga 0,185.
 
-El factor es costo vivido / costo de las gemelas de la sombra, sobre las operaciones del libro
-fijo que cuentan como resultado (T144): un cociente de sumas, no una media de cocientes, para que
-una operación con el stop pegado no lo dispare. Con menos de `MIN_PAIRS` parejas propias se usa el
-de todos los perfiles en ese marco, y sin parejas, 1. Se acota a `BOUNDS`: medir no puede llevar
-la puerta a un extremo absurdo.
+**La corrección es aditiva** (2026-11-18): costo vivido − costo de la gemela de la sombra, en media
+sobre las operaciones del libro fijo que cuentan como resultado (T144). La primera versión era un
+**cociente** y falló en 4 h nada más desplegarse. Allí el funding cobrado en tenencias de días deja
+el costo de la gemela en ≈ 0,03 R, y el cociente salió ×2,12; con eso cerró agresivo@4h, cuando su
+libro paga ≈ 0,065 R. Una diferencia no se dispara cuando el denominador es pequeño o cambia de
+signo.
+
+Con menos de `MIN_PAIRS` parejas propias se usa la de todos los perfiles en ese marco, y sin
+parejas, 0. Se acota a `BOUNDS`: medir no puede llevar la puerta a un extremo absurdo.
 """
 
 from __future__ import annotations
 
+import statistics
 from collections.abc import Iterable, Mapping
 
 from eim.paper.cost_ledger import trade_cost
@@ -24,7 +29,7 @@ from eim.paper.engine import Outcome
 from eim.paper.universe import result_rows
 
 MIN_PAIRS = 30
-BOUNDS = (0.5, 3.0)
+BOUNDS = (-0.10, 0.30)      # en R: lo que el libro puede pagar de menos o de más que la sombra
 ALL = "*"
 
 
@@ -35,11 +40,11 @@ def shadow_cost(o: Outcome) -> float | None:
     return (o.fee_in + o.fee_out + o.slip + o.funding) / o.risk
 
 
-def factors(rows: Iterable[Mapping], outcomes: Iterable[Outcome],
-            min_pairs: int = MIN_PAIRS) -> dict[str, dict]:
-    """`perfil@marco` (y `*@marco`: todos los perfiles) → {"factor", "n"} si hay muestra."""
-    twin = {o.idea.id: c for o in outcomes if (c := shadow_cost(o)) is not None and c > 0}
-    acc: dict[tuple[str, str], list[tuple[float, float]]] = {}
+def corrections(rows: Iterable[Mapping], outcomes: Iterable[Outcome],
+                min_pairs: int = MIN_PAIRS) -> dict[str, dict]:
+    """`perfil@marco` (y `*@marco`: todos los perfiles) → {"delta", "n"} si hay muestra."""
+    twin = {o.idea.id: c for o in outcomes if (c := shadow_cost(o)) is not None}
+    acc: dict[tuple[str, str], list[float]] = {}
     for r in result_rows(rows):
         s = twin.get(r.get("idea_id"))
         b = trade_cost(dict(r))["cost_r"]
@@ -47,19 +52,19 @@ def factors(rows: Iterable[Mapping], outcomes: Iterable[Outcome],
             continue
         tf = str(r.get("timeframe"))
         for key in ((str(r.get("profile")), tf), (ALL, tf)):
-            acc.setdefault(key, []).append((b, s))
+            acc.setdefault(key, []).append(b - s)
     out: dict[str, dict] = {}
     for (p, tf), v in acc.items():
         if len(v) < min_pairs:
             continue
-        f = sum(b for b, _ in v) / sum(s for _, s in v)
-        out[f"{p}@{tf}"] = {"factor": round(min(max(f, BOUNDS[0]), BOUNDS[1]), 4), "n": len(v)}
+        d = statistics.fmean(v)
+        out[f"{p}@{tf}"] = {"delta": round(min(max(d, BOUNDS[0]), BOUNDS[1]), 4), "n": len(v)}
     return out
 
 
-def factor_for(fac: Mapping[str, dict], profile: str, tf: str) -> tuple[float, str]:
-    """(factor, de dónde sale) para un perfil y un marco."""
+def correction_for(cor: Mapping[str, dict], profile: str, tf: str) -> tuple[float, str]:
+    """(corrección en R, de dónde sale) para un perfil y un marco."""
     for key, label in ((f"{profile}@{tf}", "propio"), (f"{ALL}@{tf}", "del marco")):
-        if (x := fac.get(key)) is not None:
-            return float(x["factor"]), f"{label}, {x['n']} parejas"
-    return 1.0, "sin parejas con el libro"
+        if (x := cor.get(key)) is not None:
+            return float(x["delta"]), f"{label}, {x['n']} parejas"
+    return 0.0, "sin parejas con el libro"
