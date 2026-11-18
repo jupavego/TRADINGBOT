@@ -1652,3 +1652,9 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** las de la puerta y la variante en verde; gate completo por la cola.
 - **Siguiente paso:** con el sí del usuario, fusionar y reiniciar la API otra vez.
 
+
+## 2026-11-18 · sesión «Mapa a todo el ancho» · arreglo de UI del Mapa del sistema
+- **Hecho:** en la vista «Isométrico» el mapa vuelve a ocupar todo el ancho. El plegado del título (commit `8d1d7cb`) metió `.obs-body` dentro de `.obs-fold-body` y los selectores `[data-view="iso"] > .obs-body` dejaron de aplicar: reaparecía la columna lateral de 340 px vacía. Selectores pasados a descendiente y quitado el tope de alto del SVG (`max-height: calc(100vh - 110px)`), que lo dejaba centrado con bandas a los lados; ahora llena el ancho y, en pantallas bajas, se baja con la rueda.
+- **Archivos:** `v2/eim/web/src/obs_iso.css`.
+- **Pruebas:** solo CSS; comprobado con captura en Chrome sin interfaz sobre la estructura de `obs_view.ts` (sin `node_modules` en la sesión en la nube, falta mirarlo en el panel real).
+- **Siguiente paso:** fusionar con el sí del usuario y recargar el panel.
