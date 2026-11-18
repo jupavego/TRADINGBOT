@@ -63,7 +63,7 @@
 
 /* Tema futurista */
 :root[data-theme="cyber"] .simbar {
-  border-color: rgba(var(--glow), .22); background: var(--glass); backdrop-filter: blur(10px);
+  border-color: rgba(var(--glow), .22); background: var(--glass);
   box-shadow: 0 0 28px rgba(var(--glow), .07), inset 0 0 40px rgba(var(--glow), .035);
 }
 :root[data-theme="cyber"] .simbar[data-side="long"] { border-left-color: var(--up); }

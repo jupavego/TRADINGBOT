@@ -84,10 +84,18 @@ export class ObsView {
     this.open = show
     clearInterval(this.timer)
     clearInterval(this.tick)
+    this.setMotion(show)           // fuera de la vista el mapa no anima: no gasta GPU ni CPU
     if (!show) return              // la carga en curso termina; solo se deja de sondear
     if (Date.now() - this.loadedAt >= POLL_MS) void this.reload()
     this.timer = window.setInterval(() => void this.reload(), POLL_MS)
     this.tick = window.setInterval(() => this.paintAge(), TICK_MS)
+  }
+
+  /** Congela o reanuda las animaciones del mapa (CSS y las flechas SMIL que viajan por las líneas). */
+  private setMotion(on: boolean): void {
+    this.root.classList.toggle('iso-paused', !on)
+    const svg = this.root.querySelector<SVGSVGElement>('svg.iso-svg')
+    if (svg) { if (on) svg.unpauseAnimations(); else svg.pauseAnimations() }
   }
 
   private build(): void {
@@ -202,7 +210,7 @@ export class ObsView {
     const crumb = this.q('crumb'), map = this.q('map'), iso = this.view === 'iso'
     if (iso) {                    // se rehace solo si cambió algo visible: las animaciones no saltan en cada sondeo
       const k = isoKey(d, this.stage, this.sel)
-      if (k !== this.isoLast || !map.querySelector('.iso-wrap')) { map.innerHTML = isoHtml(d, this.stage, this.sel); this.isoLast = k }
+      if (k !== this.isoLast || !map.querySelector('.iso-wrap')) { map.innerHTML = isoHtml(d, this.stage, this.sel); this.isoLast = k; if (!this.open) this.setMotion(false) }
     }
     if (!this.stage) {
       crumb.innerHTML = `<b>Ruta completa</b> · pulsa ${iso ? 'una sala o un puesto' : 'una etapa para ver sus piezas'}`

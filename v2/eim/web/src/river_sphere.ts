@@ -207,6 +207,8 @@ function draw(cv: HTMLCanvasElement, now: number, still: boolean): void {
   }
 }
 
+const FRAME_MS = 1000 / 30 - 2   // margen para no saltarse cuadros de una pantalla de 60 Hz
+
 /** Arranca (una sola vez) el bucle que anima el canvas `.hsphere` dentro de `root`. */
 export function animateSphere(root: HTMLElement): void {
   const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -218,10 +220,12 @@ export function animateSphere(root: HTMLElement): void {
     watched = root
     new IntersectionObserver((es) => { onScreen = es.some((e) => e.isIntersecting) }).observe(root)
   }
+  let lastDraw = 0
   const loop = (now: number): void => {
     const cv = root.querySelector<HTMLCanvasElement>('canvas.hsphere')
     if (!cv || !document.contains(cv)) { running = false; return }
-    if (onScreen) draw(cv, now, false)
+    // ~30 cuadros/s: el giro es lento y así se pinta la mitad de veces (deja la CPU libre para el resto)
+    if (onScreen && now - lastDraw >= FRAME_MS) { lastDraw = now; draw(cv, now, false) }
     requestAnimationFrame(loop)
   }
   requestAnimationFrame(loop)

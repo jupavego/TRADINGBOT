@@ -37,7 +37,8 @@ function network(cx: number, cy: number, r: number): string {
 
 /** Haz vertical, halo y red alrededor de la esfera (la esfera 3D la dibuja `river_sphere`). */
 export function core(cx: number, cy: number, r: number, base: number): string {
-  const beam = `<g filter="url(#hsoft)"><rect x="${cx - 46}" y="0" width="92" height="${base}" fill="url(#hsplitL)" mask="url(#mbeam)"/></g>` +
+  // Haz sin filtro de desenfoque: la máscara ya funde sus bordes y el blur se rehacía con cada cuadro de la órbita
+  const beam = `<rect x="${cx - 46}" y="0" width="92" height="${base}" fill="url(#hsplitL)" mask="url(#mbeam)"/>` +
     `<rect x="${cx - 1.2}" y="0" width="2.4" height="${base}" fill="url(#hline)"/>`
   return '<g>' + beam +
     `<circle cx="${cx}" cy="${cy}" r="${r + 26}" fill="url(#hsplit)" mask="url(#mglow)"/>` +

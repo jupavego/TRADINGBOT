@@ -117,7 +117,7 @@ function drawLink(l: Link, A: Area[], i: number, focus: string | null, motion: b
     + `<path id="${id}" d="${dPath}" stroke="${c}" stroke-width="${w * 0.55}" opacity=".45"/>`
     + `<path d="${dPath}" stroke="${c}" stroke-width="${w}" class="iso-flow" marker-end="url(#iso-ah-${l.tone})"/>`
   if (motion && l.tone !== 'none' && l.tone !== 'plan') {
-    const n = l.fb ? 6 : l.main ? 4 : 2, dur = l.tone === 'bad' ? 8 : 4, k = l.main || l.fb ? 1.25 : 0.85
+    const n = l.fb ? 3 : l.main ? 2 : 1, dur = l.tone === 'bad' ? 8 : 4, k = l.main || l.fb ? 1.25 : 0.85
     for (let q = 0; q < n; q++) parts += `<path d="M${-7 * k},${-5 * k} L${5 * k},0 L${-7 * k},${5 * k} L${-3.5 * k},0 Z" fill="${c}" class="iso-dotm">`
       + `<animateMotion dur="${dur}s" repeatCount="indefinite" rotate="auto" begin="${(-q * dur / n).toFixed(2)}s"><mpath href="#${id}"/></animateMotion></path>`
   }
@@ -231,8 +231,19 @@ export function isoKey(d: ObsData, stage: string | null, sel: string | null): st
     d.graph.observed.map((o) => `${o.source}>${o.target}`).join('|')].join('#')
 }
 
+/** Pone una sola vez en la página los objetos del mapa (~1.900 figuras como <symbol>) y los degradados
+ * de los avatares: cada redibujo del mapa los usa con <use> sin volver a analizar ~400 KB de SVG. */
+export function ensureIsoDefs(): void {
+  if (typeof document === 'undefined' || document.getElementById('iso-shared-defs')) return
+  const box = document.createElement('div')
+  box.innerHTML = `<svg id="iso-shared-defs" aria-hidden="true" focusable="false" width="0" height="0"
+    style="position:absolute;width:0;height:0;overflow:hidden"><defs>${ART_DEFS}${avatarDefs()}</defs></svg>`
+  document.body.appendChild(box.firstElementChild!)
+}
+
 /** El mapa completo como HTML (SVG + leyenda con el ajuste de «datos incompletos»). */
 export function isoHtml(d: ObsData, stage: string | null, sel: string | null): string {
+  ensureIsoDefs()
   const inc = isoIncFail(), A = areas(d, inc), L = links(d, inc, A)
   const motion = !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
   const lines: string[] = [], labs: string[] = [], taken: number[][] = [], tracks: UVRect[] = [], uvs = A.map((a) => toUV(a.cx, a.cy))
@@ -262,7 +273,7 @@ export function isoHtml(d: ObsData, stage: string | null, sel: string | null): s
   const x0 = Math.min(...xs), y0 = Math.min(...ys), vw = Math.max(...xs) - x0, vh = Math.max(...ys) - y0
   return `<div class="iso-wrap">
     <svg class="iso-svg" viewBox="${x0.toFixed(0)} ${y0.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}" role="img" aria-label="Mapa isométrico: ${d.graph.stages.length} etapas como salas de trabajo">
-      <defs>${marks}${ART_DEFS}${avatarDefs()}</defs>${floor}<g class="iso-lines">${lines.join('')}</g><g>${rooms.join('')}</g><g>${avs}</g><g>${tags.join('')}</g><g class="iso-flabs">${labs.join('')}</g></svg>
+      <defs>${marks}</defs>${floor}<g class="iso-lines">${lines.join('')}</g><g>${rooms.join('')}</g><g>${avs}</g><g>${tags.join('')}</g><g class="iso-flabs">${labs.join('')}</g></svg>
     <div class="iso-legend"><span><i class="t-ok"></i>Funciona</span><span><i class="t-bad"></i>Falla (✖ error · ◷ dato viejo${inc ? ' · ▲ incompleto' : ''})</span>
       <span><i class="t-none"></i>Sin información (? sin datos · ❚❚ pausa · ◌ en espera)</span><span class="muted">Puesto translúcido = planeado</span>
       <label><input type="checkbox" data-act="iso-inc"${inc ? ' checked' : ''}> ▲ cuenta como falla</label></div></div>`
