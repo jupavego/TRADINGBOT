@@ -1667,3 +1667,10 @@ más reciente por fecha y su siguiente paso. Formato:
 pm run build en el equipo del usuario.
 - **Abierto:** la API toma el cambio del backend al reiniciarse (einiciar_t174.cmd); hasta entonces las instantáneas nuevas siguen sin ccounting (la franja ya no se ve tras el build).
 - **Siguiente paso:** ninguno obligatorio; si se quiere ver la franja otra vez, scopeHtml/universeHtml siguen en paper_audit.ts/paper_universe.ts.
+
+## 2026-11-18 · sesión «Mapa solo isométrico» · fuera los botones Mapa / Isométrico
+- **Hecho:** a pedido del usuario, el encabezado del Mapa del sistema ya no muestra los botones «Mapa» e «Isométrico»: el mapa se ve solo en isométrico. En `obs_view.ts` se retiró el selector de vista (`MapView`, `setView` y las ramas de la vista de tarjetas que ya no se alcanzaban); `data-view="iso"` se fija al montar para que la leyenda y el detalle sigan flotando dentro del diagrama. CSS de `.obs-panes`/`.obs-views` retirado.
+- **Archivos:** `v2/eim/web/src/{obs_view.ts,obs.css,obs_iso.css,obs_trace.css}`, `PLAN/UI_SPEC.md`.
+- **Pruebas:** `tsc --noEmit` sin errores nuevos (en la nube faltan `node_modules`; el único error es la dependencia ausente). Falta `npm run build` y mirarlo en el panel del equipo.
+- **Abierto:** `routeHtml`/`stageSvg` siguen en `obs_graph.ts` sin uso desde el mapa (se pueden retirar aparte).
+- **Siguiente paso:** fusionar, `npm run build` y recargar el panel.
