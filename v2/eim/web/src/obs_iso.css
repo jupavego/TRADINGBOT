@@ -40,7 +40,6 @@
 .iso-legend i { display: inline-block; width: 20px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
 .iso-legend i.t-ok { background: #0fbf7a; } .iso-legend i.t-bad { background: #f0324f; } .iso-legend i.t-none { background: #8b95aa; }
 .iso-legend label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
-.obs-views { display: inline-flex; gap: 4px; }
 .obs-piece-list { list-style: none; padding: 0; margin: 6px 0; font-size: 12px; display: grid; gap: 3px; }
 /* En «Isométrico» el mapa ocupa todo el ancho: «Cómo leer este mapa» y el detalle flotan en la esquina superior derecha del diagrama */
 [data-view="iso"] .obs-body { grid-template-columns: minmax(0, 1fr); position: relative; }

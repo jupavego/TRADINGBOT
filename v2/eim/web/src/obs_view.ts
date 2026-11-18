@@ -1,19 +1,17 @@
 /** «Mapa del sistema» (T75): el flujo de trabajo del proyecto en tres niveles de zoom. Desde T122
  * vive en la mesa, justo debajo del Río de decisión (ya no es una pantalla aparte): consulta el
  * observatorio solo mientras está a la vista (pestaña visible y sección en pantalla).
- * Tablero de control en vivo: solo el mapa isométrico, sondeo cada 5 s (el ritmo del indexador)
+ * Tablero de control en vivo: solo el mapa isométrico (sin selector de vista), sondeo cada 5 s (el ritmo del indexador)
  * y la edad del último evento corre cada segundo. El flujo termina en el bróker simulado, que
  * está justo debajo; el modo lo dice la barra superior. Trazas, tarjetas, la reproducción de la
  * última vela y el recorrido guiado se retiraron de esta vista. */
 import { detailHtml } from './obs_detail'
 import { isoHtml, isoIncFail, isoKey, setIsoIncFail } from './obs_iso'
 import { queueHtml, queuesSummary } from './obs_queues'
-import { compState, routeHtml, stageSentence, stageSvg } from './obs_graph'
+import { compState, stageSentence } from './obs_graph'
 import { glossarize, legendHtml } from './obs_legend'
 import { pulseNew } from './obs_story'
 import { ago, esc, loadObs, STATE_ICON, STATE_LABEL, type ObsData, type ObsState } from './obs_types'
-
-type MapView = 'route' | 'iso'
 
 const POLL_MS = 5_000          // = cadencia del indexador del observatorio (T73)
 const TICK_MS = 1_000          // la edad del último evento avanza sola entre sondeos
@@ -26,11 +24,6 @@ const TEMPLATE = `
     title="Pulsa para plegar o desplegar el mapa"><span class="obs-chev" aria-hidden="true">▾</span> Mapa del sistema</button></h3>
   <span class="obs-age muted" data-x="age" aria-live="off"></span>
   <span class="obs-sum" data-x="sum"></span>
-  <span class="spacer"></span>
-  <span class="obs-panes" role="group" aria-label="Qué ver">
-    <button class="btn" aria-pressed="true" title="El flujo de la vela hasta el bróker simulado, en vivo">Mapa</button></span>
-  <span class="obs-views" role="group" aria-label="Cómo dibujar el mapa">
-    <button class="btn" aria-pressed="true" title="Cada etapa como una sala de trabajo y cada pieza como un puesto">Isométrico</button></span>
 </header>
 <div class="obs-fold-body" id="obs-fold-body">
 <p class="obs-banner" data-x="banner" role="status" hidden></p>
@@ -58,7 +51,6 @@ export class ObsView {
   private loadedAt = 0          // última carga pedida (evita recargas al entrar y salir de la vista)
   private ctl: AbortController | null = null
   private built = false
-  private view: MapView = 'iso'
   private tick = 0
   private ageBase: { age: number; at: number } | null = null   // edad del último evento al cargar
   private isoLast = ''          // clave del último dibujo isométrico (no se rehace si nada cambió)
@@ -103,7 +95,7 @@ export class ObsView {
     this.root.innerHTML = TEMPLATE
     this.q('legend').innerHTML = legendHtml()
     try { localStorage.removeItem('eim.obs.view') } catch { /* la vista «Tarjetas» se retiró */ }
-    this.setView('iso')
+    this.root.dataset.view = 'iso'   // única vista: la leyenda y el detalle flotan dentro del diagrama (obs_iso.css)
     let folded = false
     try { folded = localStorage.getItem(FOLD_KEY) === '1' } catch { /* sin almacenamiento: desplegado */ }
     this.setFolded(folded)
@@ -137,14 +129,6 @@ export class ObsView {
     this.root.querySelector('[data-fold]')?.setAttribute('aria-expanded', String(!f))
     try { localStorage.setItem(FOLD_KEY, f ? '1' : '0') } catch { /* preferencia solo de esta visita */ }
     if (!f) { this.isoLast = ''; this.paint() }   // al desplegar se redibuja con lo último cargado
-  }
-
-  /** Fija el dibujo del mapa (hoy solo «Isométrico»; las tarjetas de T75 quedan en el código). */
-  private setView(v: MapView): void {
-    this.view = v
-    this.isoLast = ''
-    this.root.dataset.view = v   // en «Isométrico» la leyenda y el detalle flotan dentro del diagrama (obs_iso.css)
-    this.root.querySelector('.obs-legend')?.toggleAttribute('open', v === 'route')
   }
 
   async reload(): Promise<void> {
@@ -207,28 +191,24 @@ export class ObsView {
     if (this.root.dataset.folded === '1') return   // plegado no se dibuja el diagrama
     const d = this.data
     if (!d?.graph) { this.q('map').innerHTML = '<p class="muted">Sin conexión con el observatorio.</p>'; this.q('crumb').innerHTML = ''; return }
-    const crumb = this.q('crumb'), map = this.q('map'), iso = this.view === 'iso'
-    if (iso) {                    // se rehace solo si cambió algo visible: las animaciones no saltan en cada sondeo
-      const k = isoKey(d, this.stage, this.sel)
-      if (k !== this.isoLast || !map.querySelector('.iso-wrap')) { map.innerHTML = isoHtml(d, this.stage, this.sel); this.isoLast = k; if (!this.open) this.setMotion(false) }
-    }
+    const crumb = this.q('crumb'), map = this.q('map')
+    const k = isoKey(d, this.stage, this.sel)   // se rehace solo si cambió algo visible: las animaciones no saltan en cada sondeo
+    if (k !== this.isoLast || !map.querySelector('.iso-wrap')) { map.innerHTML = isoHtml(d, this.stage, this.sel); this.isoLast = k; if (!this.open) this.setMotion(false) }
     if (!this.stage) {
-      crumb.innerHTML = `<b>Ruta completa</b> · pulsa ${iso ? 'una sala o un puesto' : 'una etapa para ver sus piezas'}`
-      if (!iso) map.innerHTML = routeHtml(d, null)
+      crumb.innerHTML = '<b>Ruta completa</b> · pulsa una sala o un puesto'
       return
     }
     const g = d.graph
     crumb.innerHTML = `<button class="obs-link" data-home>← Ruta completa</button> / <b>${esc(g.stage_titles_es[this.stage])}</b>
       <span class="muted">${esc(g.stage_explain_es[this.stage] ?? '')} ${esc(stageSentence(d, this.stage))}.</span>`
     glossarize(crumb, g.glossary)
-    if (!iso) map.innerHTML = stageSvg(d, this.stage, this.sel)
   }
 
   private paintDetail(): void {
     const box = this.q('detail'), d = this.data
     if (!d?.graph || !this.sel) {
       if (d?.graph && this.stage) box.innerHTML = `<h3>${esc(d.graph.stage_titles_es[this.stage])}</h3><p>${esc(d.graph.stage_explain_es[this.stage] ?? '')}</p><p class="muted">Pulsa una pieza para ver su detalle.</p>`
-        + (this.view === 'iso' ? `<ul class="obs-piece-list">${d.comps.filter((c) => c.stage === this.stage).map((c) => `<li>${STATE_ICON[compState(d, c)]} <button class="obs-link" data-goto="${esc(c.id)}">${esc(c.title_es)}</button> <small class="muted">${STATE_LABEL[compState(d, c)]}</small></li>`).join('')}</ul>` : '')
+        + `<ul class="obs-piece-list">${d.comps.filter((c) => c.stage === this.stage).map((c) => `<li>${STATE_ICON[compState(d, c)]} <button class="obs-link" data-goto="${esc(c.id)}">${esc(c.title_es)}</button> <small class="muted">${STATE_LABEL[compState(d, c)]}</small></li>`).join('')}</ul>`
       else box.innerHTML = '<p class="muted">Pulsa una etapa o una pieza del mapa para ver su detalle.</p>'
       return
     }

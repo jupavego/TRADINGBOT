@@ -1,7 +1,5 @@
 /* ── Trazas y calidad de la evidencia (T76) ── */
 .obs[data-pane="trace"] .obs-story { display: none; }
-.obs-panes { display: inline-flex; gap: 0; }
-.obs-panes .btn[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 .obs-traces[hidden], .obs-body[hidden] { display: none; }
 .obs-tr-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 12px; align-items: start; }
 .obs-tr-side, .obs-tr-main { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; min-width: 0; }
