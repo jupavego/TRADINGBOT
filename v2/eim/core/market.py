@@ -159,6 +159,9 @@ class MarketSnapshot(Frozen):
     # Escuadrón de bots (T57): posturas ya calculadas por el servicio (los agentes no lanzan
     # procesos); None si no hay servicio de bots o no produjo nada a `asof`.
     bot_signals: list[BotSignal] | None = None
+    # Intermercado (T183, aditivo): velas DIARIAS cerradas a `asof` de otros mercados y de la
+    # propia cripto ({"XAUUSDT": [...], "SP500": [...], ...}); None si nunca se sincronizó.
+    intermarket: dict[str, list[Candle]] | None = None
     asof: int
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}

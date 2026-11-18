@@ -8,6 +8,7 @@ from eim.core import MarketSnapshot
 from eim.data.arb_store import ArbStore, arb_sources
 from eim.data.calendar import read_calendar
 from eim.data.extras import read_headlines, read_liquidations
+from eim.data.intermarket import read_intermarket
 from eim.data.leader_board import BoardStore, snapshot_inputs
 from eim.data.liq_flow import read_liq_flow
 from eim.data.micro import read_micro
@@ -48,6 +49,8 @@ def build_snapshot(
     `arb` (T39): último escaneo de arbitraje no posterior a `asof` (≤ 10 min); None si no hay.
     `leaders`/`leader_weights` (T41): posiciones y calidad de los líderes aprobados del último
     tablero no posterior a `asof` (≤ 10 min); None si no hay tablero (vigilante apagado).
+    `intermarket` (T183): velas diarias cerradas a `asof` de oro, índices y cripto; None si nunca
+    se sincronizó.
     """
     step = tf_ms(timeframe)
     asof = asof if asof is not None else int(time.time() * 1000)
@@ -105,6 +108,12 @@ def build_snapshot(
         leaders, weights, ld_src, ld_cov = snapshot_inputs(board)
         sources |= ld_src
         coverage |= ld_cov
+    intermarket = None
+    im = read_intermarket(store.root, asof)
+    if im is not None:
+        intermarket, im_src, im_cov = im
+        sources |= im_src
+        coverage |= im_cov
     return MarketSnapshot(
         symbol=symbol,
         timeframe=timeframe,
@@ -123,6 +132,7 @@ def build_snapshot(
         arb=arb,
         leaders=leaders,
         leader_weights=weights,
+        intermarket=intermarket,
         asof=asof,
         sources=sources,
         coverage=coverage,

@@ -8,6 +8,8 @@
 - DuckDB con memoria e hilos fijos, los de producción (`eim/data/duck.py`: 1 GB, 2 hilos): no
   depende de la RAM libre ni de lo que el equipo tenga en `EIM_DUCKDB_*`.
 - `EIM_NOTIFY=0`: ningún supervisor de prueba lanza avisos de escritorio en Windows.
+- `EIM_INTERMARKET=0` (T183): el ciclo no descarga oro ni índices (Yahoo va por libcurl y no lo
+  frena `tests/offline.py`); las pruebas del intermercado usan un descargador falso.
 - Sin red: solo el bucle local (`tests/offline.py`); el resultado no depende de la conexión.
 - Las pruebas `perf` corren en prioridad NORMAL aunque el gate vaya en IDLE (`tests/perf.py`).
 """
@@ -23,7 +25,7 @@ from tests.perf import normal_priority
 
 for _k in [k for k in os.environ if k.upper().startswith("EIM_")]:
     del os.environ[_k]
-os.environ.update({"EIM_OBS": "off", "EIM_NOTIFY": "0",
+os.environ.update({"EIM_OBS": "off", "EIM_NOTIFY": "0", "EIM_INTERMARKET": "0",
                    "EIM_DUCKDB_MEMORY": "1GB", "EIM_DUCKDB_THREADS": "2"})
 os.environ.pop("ANTHROPIC_API_KEY", None)  # la suite nunca llama al LLM real
 block_network()

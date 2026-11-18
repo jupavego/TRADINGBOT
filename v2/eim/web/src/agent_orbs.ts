@@ -56,6 +56,9 @@ export const GLYPH: Record<string, string> = {
   // Plan: retícula de objetivo
   plan: '<circle cx="24" cy="24" r="9"/><circle cx="24" cy="24" r="3" class="f"/>' +
     '<path d="M24 10v6M24 32v6M10 24h6M32 24h6"/>',
+  // Intermercado (T183): globo con meridianos (oro e índices frente a la cripto)
+  intermarket: '<circle cx="24" cy="24" r="10"/><path d="M14 24h20" opacity=".7"/>' +
+    '<path d="M24 14c-4.5 4-4.5 16 0 20M24 14c4.5 4 4.5 16 0 20"/><circle cx="34" cy="15" r="2.2" class="f"/>',
   // Régimen: radar con punto de cambio
   regime: '<path d="M11 30c3 0 3-6 6-6s3 6 6 6" /><path d="M25 22l3-8 3 18 3-12 3 6"/>' +
     '<path d="M24 12v26" stroke-dasharray="1.5 2" opacity=".6"/>',

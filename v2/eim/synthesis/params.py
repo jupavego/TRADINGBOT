@@ -17,7 +17,7 @@ PEERS: tuple[str, ...] = ("ema", "structure", "technical")
 Role = Literal["direccional", "riesgo", "carril", "derivado", "contexto"]
 # Papel de cada agente que no vota como uno más (el resto es «direccional").
 ROLES: dict[str, Role] = {"calendar": "riesgo", "regime": "riesgo", "arbitrage": "carril",
-                          "plan": "derivado"}
+                          "plan": "derivado", "intermarket": "contexto"}
 # Papel mientras el agente siga en `excluded`: al sacarlo (T60, tras la puerta de edge de T59)
 # `role_of` lo devuelve como «direccional» sin tocar nada más.
 EXCLUDED_ROLES: dict[str, Role] = {"bots": "contexto"}
@@ -38,6 +38,10 @@ T44_WEIGHTS: dict[str, float] = {
     # T57: escuadrón de bots; ninguno está en estado `vota` hasta T59/T60.
     "bots": 0.0,
 }
+# T183 — informantes de contexto (intermercado): entran con peso 0 como todo agente nuevo
+# (regla de T44) y no cambian la síntesis v1 del bróker ni la corrida de T31. La prueba de aporte
+# marginal (`agents_marginal_report`) decide si algún día votan; hasta entonces solo se ven.
+INFORMER_WEIGHTS: dict[str, float] = {"intermarket": 0.0}
 # Correlación (Pearson del sesgo, velas en que ambos tienen datos) de cada agente nuevo con los
 # existentes que miden lo mismo, medida en la mitad de descubrimiento (BTCUSDT 1h 2023-01 →
 # 2024-12, n = 4093). Solo se penaliza el agente nuevo, y solo si el correlacionado vota.
@@ -48,7 +52,8 @@ class SynthesisParams(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     # Peso base por agente (1.0 si no figura). Calibrable en T26; los de T44 vienen medidos.
-    weights: dict[str, float] = Field(default_factory=lambda: dict(T44_WEIGHTS))
+    weights: dict[str, float] = Field(
+        default_factory=lambda: {**T44_WEIGHTS, **INFORMER_WEIGHTS})
     # Agentes que no votan: `plan` deriva de structure/levels (doble conteo), `regime` modula
     # pesos y los no direccionales (`NON_DIRECTIONAL`, siempre fuera) emiten bias=0.
     excluded: frozenset[str] = frozenset({"plan", "calendar", "arbitrage", "regime", "bots"})
@@ -113,4 +118,6 @@ class EvidenceParams(BaseModel):
     # panel. `seasonality` y `liquidations`, informativos (Binance dejó de publicar liquidaciones
     # en 2024); `smart_money`, retirado (T44: no aporta y no tiene datos). `calendar` ya no vota
     # (modula la confianza). `microstructure` y `derivatives` votan solo con cobertura en vivo.
-    informative: frozenset[str] = frozenset({"seasonality", "liquidations", "smart_money"})
+    # T183: `intermarket` también (contexto de otros mercados, peso 0).
+    informative: frozenset[str] = frozenset({"seasonality", "liquidations", "smart_money",
+                                             "intermarket"})

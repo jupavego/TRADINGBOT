@@ -133,6 +133,22 @@ export const fetchCalibration = (
   symbol: string, tf: string, h: number, signal?: AbortSignal,
 ): Promise<CalibrationReport> => getJson(`/v2/calibration?symbol=${symbol}&tf=${tf}&h=${h}`, signal)
 
+/** T184: revisión automática de la calibración (vigía cada 6 h) y su prueba en sombra. */
+export interface CalibWatchEntry {
+  at: number; symbol: string; timeframe: string; horizon: number
+  state: 'ok' | 'vigilar' | 'alerta' | 'alerta_sostenida' | 'sin_veredicto'; reasons: string[]
+  n_evaluated: number; n_effective: number; brier_skill?: number | null; ece?: number | null
+  coverage: Record<string, number | null>
+  shadow: { state: string; note: string; streak?: number; better?: string[] }
+}
+export interface CalibWatch {
+  enabled: boolean; latest: CalibWatchEntry[]; history: CalibWatchEntry[]
+  last_run?: number | null; next_run?: number | null; error?: string; note?: string
+}
+
+export const fetchCalibWatch = (symbol: string, tf: string, signal?: AbortSignal): Promise<CalibWatch> =>
+  getJson(`/v2/calibration/watch?symbol=${symbol}&tf=${tf}&limit=12`, signal)
+
 export async function runBackfill(symbol: string, tf: string, h: number): Promise<CalibrationReport> {
   const r = await fetch(`${base()}/v2/calibration/backfill?symbol=${symbol}&tf=${tf}&h=${h}&origins=800`,
     { method: 'POST', headers: { 'X-EIM-Confirm': 'backfill' } })

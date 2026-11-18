@@ -14,6 +14,7 @@ from eim.api.arb_execution import arb_loop, build_arb_execution_router, build_ar
 from eim.api.arbitrage import ArbDesk, build_arbitrage_router
 from eim.api.backup import build_backup_router
 from eim.api.bots import build_bots_router
+from eim.api.calib_watch import CalibWatch
 from eim.api.calibration import build_calibration_router
 from eim.api.config import Settings
 from eim.api.execution import build_execution_router, build_runtime, recon_loop
@@ -259,7 +260,13 @@ def create_app(
         paper, validator, tracker=Tracker(SuggestionStore(paper_store), paper.ep))
     paper.hooks.add("setups", setups_router.tick)
     app.include_router(setups_router)
-    app.include_router(build_calibration_router(store, forecaster))
+    # T184: vigía de calibración cada 6 h en el hilo de los ganchos (solo con el bróker en vivo)
+    calib_watch = (CalibWatch(store, forecaster, cfg.data_dir)
+                   if source is None and cfg.paper else None)
+    if calib_watch is not None:
+        paper.hooks.add("calibracion", calib_watch.maybe_run, "forecast.calibration")
+    app.state.calib_watch = calib_watch
+    app.include_router(build_calibration_router(store, forecaster, calib_watch))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
     app.include_router(build_arbitrage_router(arb_desk))
     app.state.arb_desk = arb_desk

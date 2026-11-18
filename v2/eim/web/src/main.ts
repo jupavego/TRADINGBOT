@@ -18,7 +18,6 @@ import { MoreTabs } from './more'
 import { renderLog } from './trades_ui'
 import { RiskPanel } from './risk_ui'
 import { OperationPanel } from './operation_ui'
-import { SetupsHistory } from './setups_history'
 import { ArbPanel } from './arb_ui'
 import { LeadersPanel } from './leaders_ui'
 import { PaperView } from './paper_view'
@@ -49,6 +48,8 @@ let journal: AgentReport[] = []
 // Sin gráfico de velas ni simulador en la mesa: el río, el mapa del sistema y el bróker
 // simulado (bajo el mapa) cuentan la decisión; el bróker trae su propio gráfico por perfil.
 const more = new MoreTabs()
+// T185: el detalle de una esfera abre su lupa (lo que antes eran pestañas inferiores)
+window.addEventListener('eim:lupa', (e) => { void more.openLupa(String((e as CustomEvent).detail)) })
 let squadSupport: SquadPanel | null = null
 const scenarios = new ScenarioPanel($('t-esc'), null, () => ({ symbol, tf }),
   () => latest.find((r) => r.agent_id === 'literature'), () => squadSupport?.support ?? null)
@@ -56,7 +57,6 @@ const calibration = new CalibrationPanel($('t-cal'), () => ({ symbol, tf }))
 const risk = new RiskPanel($('t-plan'), () => ({ symbol, tf }))
 const operation = new OperationPanel($('t-op'))
 const library = new LibraryPanel($('t-lib'), () => $('mode').textContent ?? '')
-const setupsHistory = new SetupsHistory($('t-hist')) // T51; pestaña inferior tras Bitácora (T122)
 // independiente del par/marco (T39); cada escaneo también repinta el satélite del río
 const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('river'), p))
 const leaders = new LeadersPanel($('t-lead'), $('tab-lead'))
@@ -141,7 +141,6 @@ function onMsg(m: StreamMsg): void {
     scenarios.refresh()
     void loadTrades()
     void risk.reload()
-    setupsHistory.soon()
   } else if (m.type === 'tick') {
     if (m.symbol !== symbol || m.timeframe !== tf) return
     state = 'up'; paintLive()
@@ -161,7 +160,6 @@ async function load(): Promise<void> {
   $('price').textContent = '—'; delete $('price').dataset.dir
   paintLive()
   more.setContext(symbol, tf)
-  setupsHistory.setSymbol(symbol)
   void loadAgents(loadAbort.signal)
   void loadTrades(loadAbort.signal)
   void calibration.reload()
@@ -205,7 +203,6 @@ function build(): void {
       if (b.dataset.tab === 't-lead') void leaders.reload()
       if (b.dataset.tab === 't-squad') void squad.reload()
       if (b.dataset.tab === 't-lib') void library.reload()
-      setupsHistory.show(b.dataset.tab === 't-hist')
       more.show(b.dataset.tab!)
     }
   })

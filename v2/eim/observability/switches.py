@@ -45,6 +45,9 @@ CHECKS: dict[str, Check] = {
                                           or e.get("ANTHROPIC_API_KEY")) else
     "Apagado: no hay modelo de lenguaje. Se enciende con Ollama (EIM_CONTEXT_LLM=local, lo "
     "pone servicio_continuo.ps1 si encuentra Ollama) o con ANTHROPIC_API_KEY.",
+    "intermarket": lambda e, _d: None if e.get("EIM_INTERMARKET", "1") != "0" else
+    "Apagado con EIM_INTERMARKET=0: no se descargan oro ni índices y el agente intermercado "
+    "dice «sin datos». Se enciende quitando la variable (T183).",
     "video": lambda e, _d: None if e.get("EIM_VIDEO") == "1" else
     "Apagado: opcional. Se enciende con EIM_VIDEO=1 y la clave de YouTube (T64).",
 }

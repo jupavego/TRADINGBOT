@@ -29,25 +29,23 @@
     <section id="paper" class="paper" aria-label="Bróker simulado"></section>
     <main class="desk">
       <section class="bottom">
+        <!-- T185: arriba lo que está conectado al cerebro (con su pilar en el título); a la derecha,
+             tras «Documental», lo que solo se consulta. VWAP, liquidaciones, estacionalidad y
+             multi-activo viven ahora como lupa de su esfera en el río; el backtest y el historial de
+             sugerencias salieron (lo vivo manda, T182; las sugerencias van al bróker simulado). -->
         <nav class="tabs" role="tablist">
-          <button role="tab" aria-selected="true" data-tab="t-esc">Escenarios</button>
-          <button role="tab" aria-selected="false" data-tab="t-cal">Calibración</button>
-          <button role="tab" aria-selected="false" data-tab="t-plan">Plan</button>
-          <button role="tab" aria-selected="false" data-tab="t-op">Operación</button>
-          <button role="tab" aria-selected="false" data-tab="t-arb" id="tab-arb">Arbitraje</button>
-          <button role="tab" aria-selected="false" data-tab="t-lead" id="tab-lead">Líderes</button>
-          <button role="tab" aria-selected="false" data-tab="t-squad" id="tab-squad">Escuadrón</button>
-          <button role="tab" aria-selected="false" data-tab="t-lib">Biblioteca</button>
-          <button role="tab" aria-selected="false" data-tab="t-inv">Inversionistas</button>
-          <button role="tab" aria-selected="false" data-tab="t-log">Bitácora</button>
-          <button role="tab" aria-selected="false" data-tab="t-hist" id="tab-hist">Historial de sugerencias</button>
-          <!-- Antes en la vista aparte «Más análisis» (T11); ahora pestañas de la mesa (src/more.ts) -->
-          <button role="tab" aria-selected="false" data-tab="t-bt">Backtest / VRM</button>
-          <button role="tab" aria-selected="false" data-tab="t-vwap">VWAP por periodos</button>
-          <button role="tab" aria-selected="false" data-tab="t-multi">Multi-activo</button>
-          <button role="tab" aria-selected="false" data-tab="t-liq">Liquidaciones</button>
-          <button role="tab" aria-selected="false" data-tab="t-season">Estacionalidad</button>
-          <button role="tab" aria-selected="false" data-tab="t-tjournal">Bitácora de trading</button>
+          <button role="tab" aria-selected="true" data-tab="t-esc" title="Proyección · conectada: alimenta al bróker simulado">Escenarios</button>
+          <button role="tab" aria-selected="false" data-tab="t-cal" title="Validación · el vigía la revisa solo cada 6 h (T184)">Calibración</button>
+          <button role="tab" aria-selected="false" data-tab="t-plan" title="Control · plan vigente y veto del motor de riesgo">Plan</button>
+          <button role="tab" aria-selected="false" data-tab="t-op" title="Control y automatización · ciclo continuo, alertas e interruptor de emergencia">Operación</button>
+          <button role="tab" aria-selected="false" data-tab="t-arb" id="tab-arb" title="Proyección y simulación · carril propio del arbitraje">Arbitraje</button>
+          <button role="tab" aria-selected="false" data-tab="t-lead" id="tab-lead" title="Retroalimentación · líderes y su copia simulada">Líderes</button>
+          <button role="tab" aria-selected="false" data-tab="t-squad" id="tab-squad" title="Validación · bots puntuados con la misma puerta que las estrategias">Escuadrón</button>
+          <button role="tab" aria-selected="false" data-tab="t-lib" title="Mejora continua · el conocimiento de los libros, con citas">Biblioteca</button>
+          <span class="tabs-sep" role="presentation" title="Pestañas de consulta: no alimentan a los agentes">Documental</span>
+          <button role="tab" aria-selected="false" data-tab="t-inv" title="Documental · sistema para inversionistas">Inversionistas</button>
+          <button role="tab" aria-selected="false" data-tab="t-log" title="Documental · espejo de decisiones y reportes de los agentes">Bitácora</button>
+          <button role="tab" aria-selected="false" data-tab="t-tjournal" title="Documental · análisis de tu historial real de Binance (archivo que subes)">Bitácora de trading</button>
         </nav>
         <div class="tabbody" id="t-esc"><p class="muted">Cargando escenarios…</p></div>
         <div class="tabbody" id="t-cal" hidden><p class="muted">Cargando calibración…</p></div>
@@ -59,16 +57,12 @@
         <div class="tabbody" id="t-lib" hidden><p class="muted">Cargando biblioteca…</p></div>
         <div class="tabbody inv" id="t-inv" hidden><iframe src="inversionistas.html" title="Sistema documental para inversionistas" loading="lazy"></iframe></div>
         <div class="tabbody" id="t-log" hidden><div id="trades-log"></div><h4>Reportes de agentes</h4><div id="journal"></div></div>
-        <div class="tabbody su-histtab" id="t-hist" hidden><p class="muted">Cargando historial de sugerencias…</p></div>
-        <div class="tabbody more-body" id="t-bt" hidden></div>
-        <div class="tabbody more-body" id="t-vwap" hidden></div>
-        <div class="tabbody more-body" id="t-multi" hidden></div>
-        <div class="tabbody more-body" id="t-liq" hidden></div>
-        <div class="tabbody more-body" id="t-season" hidden></div>
         <div class="tabbody more-body" id="t-tjournal" hidden></div>
       </section>
     </main>
   </div>
+  <!-- T185: lupa de una esfera (VWAP, liquidaciones, estacionalidad, intermercado) -->
+  <dialog id="lupa" class="lupa" aria-label="Detalle del agente"><div class="lupa-h"><b id="lupa-t"></b><button type="button" data-lupa-close aria-label="Cerrar">×</button></div><div id="lupa-b" class="more-body"></div></dialog>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

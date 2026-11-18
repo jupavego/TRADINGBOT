@@ -20,6 +20,7 @@ from eim.agents.runner import call_with_deadline, run_agents
 from eim.api.reports_db import ReportStore
 from eim.api.risk import RiskDesk
 from eim.core import Candle
+from eim.data import intermarket
 from eim.data.extras import sync_headlines, sync_liquidations
 from eim.data.providers.base import Provider
 from eim.data.snapshot import build_snapshot
@@ -137,8 +138,9 @@ class OperationCycle:
         return True
 
     def _sync_extras(self, sym: str, now: int) -> None:
-        """Derivados, liquidaciones y titulares: datos lentos, con su propio ritmo (≥ 10 min) y
-        sin frenar el ciclo si fallan; el agente correspondiente dirá `no_data` con motivo."""
+        """Derivados, liquidaciones, titulares e intermercado: datos lentos, con su propio ritmo
+        (≥ 10 min; el intermercado además cada 6 h por activo, T183) y sin frenar el ciclo si
+        fallan; el agente correspondiente dirá `no_data` con motivo."""
         tf = self.p.timeframe
         jobs = {
             f"deriv:{sym}": lambda: sync_derivatives(
@@ -146,6 +148,8 @@ class OperationCycle:
             f"liq:{sym}": lambda: sync_liquidations(self.store.root, sym),
             "news": lambda: sync_headlines(self.store.root, now),
         }
+        if intermarket.enabled():
+            jobs["intermarket"] = lambda: intermarket.sync_intermarket(self.store.root, now)
         for key, job in jobs.items():
             if now - self._extras_at.get(key, 0) < 600_000:
                 continue

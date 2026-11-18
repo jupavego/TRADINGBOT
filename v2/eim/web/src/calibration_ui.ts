@@ -1,11 +1,13 @@
-import { fetchCalibration, runBackfill, type CalibrationReport } from './api'
+import { fetchCalibWatch, fetchCalibration, runBackfill, type CalibWatch, type CalibrationReport } from './api'
 import { esc } from './panels'
+import { bogIso } from './tz'
 
 const pct = (x: number | null | undefined, d = 1): string => (x == null ? '—' : `${(x * 100).toFixed(d)} %`)
 
 /** Pestaña "Calibración": ¿son fiables las probabilidades y bandas de los escenarios? */
 export class CalibrationPanel {
   private rep: CalibrationReport | null = null
+  private watch: CalibWatch | null = null
   private busy = false
   private err = ''
   private h = 25
@@ -20,6 +22,7 @@ export class CalibrationPanel {
     const { symbol, tf } = this.ctx()
     try { this.rep = await fetchCalibration(symbol, tf, this.h); this.err = '' }
     catch (e) { this.rep = null; this.err = (e as Error).message }
+    this.watch = await fetchCalibWatch(symbol, tf).catch(() => null)
     this.render()
   }
 
@@ -37,16 +40,34 @@ export class CalibrationPanel {
     return `<svg width="${s}" height="${s}" role="img" aria-label="Curva de calibración"><rect x="6" y="6" width="${s - 12}" height="${s - 12}" fill="none" stroke="var(--line)"/><line x1="6" y1="${s - 6}" x2="${s - 6}" y2="6" stroke="var(--muted)" stroke-dasharray="3 3"/>${dots}</svg>`
   }
 
+  /** T184: el vigía revisa solo cada 6 h; aquí se ve su último juicio y la prueba en sombra. */
+  private watchHtml(): string {
+    const w = this.watch
+    if (!w) return ''
+    if (!w.enabled) return `<div class="cal-watch"><b>Vigía automático</b> <span class="muted">${esc(w.note ?? 'apagado')}</span></div>`
+    const e = w.latest[0]
+    const when = (t?: number | null): string => (t ? bogIso(t).slice(0, 16).replace('T', ' ') : '—')
+    if (!e) return `<div class="cal-watch"><b>Vigía automático</b> <span class="muted">primera revisión pendiente · próxima ${when(w.next_run)} COT</span></div>`
+    const label: Record<string, string> = { ok: 'OK', vigilar: 'Vigilar', alerta: 'Alerta', alerta_sostenida: 'Alerta sostenida', sin_veredicto: 'Sin veredicto' }
+    const trail = w.history.map((h) => `<span class="chip" data-s="${esc(h.state)}" title="${esc(when(h.at))}">${esc(label[h.state] ?? h.state)}</span>`).join('')
+    return `<div class="cal-watch" data-s="${esc(e.state)}"><b>Vigía automático</b> · <span class="chip" data-s="${esc(e.state)}">${esc(label[e.state] ?? e.state)}</span>` +
+      ` <span class="muted">revisado ${when(e.at)} COT · próxima ${when(w.next_run)} COT · cada 6 h, sin intervención</span>` +
+      `<ul class="cal-v">${e.reasons.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` +
+      `<p class="muted">Sombra (T160, no cambia el pronóstico): ${esc(e.shadow.note)}${e.shadow.streak ? ` · ${e.shadow.streak} revisiones seguidas` : ''}</p>` +
+      (trail ? `<div class="cal-trail"><span class="muted">Historial:</span> ${trail}</div>` : '') +
+      (w.error ? `<p class="scen-warn">${esc(w.error)}</p>` : '') + '</div>'
+  }
+
   render(): void {
     const r = this.rep
     const { symbol, tf } = this.ctx()
     const head = `<div class="scen-bar"><b>Calibración · ${esc(symbol)} ${esc(tf)} · h=${this.h}</b> <span class="muted">Modo: Análisis (sin dinero)</span> <button id="cal-backfill" ${this.busy ? 'disabled' : ''}>${this.busy ? 'Evaluando…' : 'Ejecutar backfill walk-forward'}</button></div>`
     const err = this.err ? `<p class="scen-warn">${esc(this.err)}</p>` : ''
-    if (!r) { this.el.innerHTML = head + err + '<p class="muted">Sin datos de calibración.</p>'; return }
+    if (!r) { this.el.innerHTML = head + err + this.watchHtml() + '<p class="muted">Sin datos de calibración.</p>'; return }
     const cov = Object.entries(r.coverage ?? {}).map(([k, c]) =>
       `<tr><td>Banda ${k} %</td><td>${pct(c.nominal, 0)}</td><td>${pct(c.terminal)}</td><td>${pct(c.pooled)}</td></tr>`).join('')
     const verdict = r.verdict.map((v) => `<li>${esc(v)}</li>`).join('')
-    this.el.innerHTML = head + err + `
+    this.el.innerHTML = head + err + this.watchHtml() + `
       <p class="muted">${r.n_evaluated} pronósticos evaluados (${r.n_backfill ?? 0} por backfill) · muestra efectiva ≈ ${r.n_effective} · ${r.n_pending} pendientes</p>
       <div class="cal-grid">
         <div><table class="cal-t"><tr><th></th><th>Nominal</th><th>Terminal</th><th>Todas las velas</th></tr>${cov}</table>
