@@ -1607,3 +1607,42 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** las del plan y la documentación (`tests/plan`, `tests/docs`, `tests/repo`, `tests/architecture`); sin cambios de código.
 - **Siguiente paso:** T178 (retención de reconciliaciones correctas y fotos de posiciones; ◆ sobre el detalle de aprobados).
 
+## 2026-11-17 · sesión «Retroalimentación, calibración y ajustes» · T179: puerta de costo por perfil y marco
+- **Hecho:** ◆ de T175 aprobada por el usuario. Al medir, la sombra resultó subestimar lo que paga el libro en 15 m (agresivo 0,132 frente a 0,185 R; moderado 0,106 frente a 0,136): emparejadas idea a idea, mismo stop y misma entrada, pero el libro sale por la escalera como tomador y con más deslizamiento. La puerta de la variante ahora juzga cada perfil con la sombra que él aceptaría calibrada con su libro, y cerrar solo bloquea posiciones nuevas (tramos guardados en disco). Hoy cerraría solo agresivo@15m. Comprobado de paso que la cantera no frena al bróker: mediana del latido 34 s frente a 33 s antes, p90 59 frente a 61.
+- **Archivos:** `v2/eim/paper/{tf_calib,tf_gate_profile,desk_gate}.py` (nuevos), `desk.py`, `params.py`, `t143_config.py`, `variant.py`; `v2/tests/paper/test_tf_gate_profile.py`, `test_variant.py`; `PLAN/T179.md`, `STATUS.md`, `00_MASTER.md`.
+- **Pruebas:** `tests/paper` entero en verde; gate completo por la cola.
+- **Siguiente paso:** fusionar y reiniciar la API cuando el usuario lo autorice (aloja T31); al cerrar T31, leer el efecto en la comparación emparejada.
+
+## 2026-11-17 · sesión «Retroalimentación, calibración y ajustes» · T180: pre-registro del carry de BTC
+- **Hecho:** ◆ del usuario («dejarlo listo»). Medido con el banco de T131 y velas diarias públicas de spot: P&L diario del carry +1,95 pb (σ 3,07, autocorrelación +0,36); bloques de 30 días +59,2 pb (σ 53,9). Aritmética de costos: a VIP 0 y 3× el carry solo bate el 4 % sobre el capital con funding ≥ 6,6 % anual, así que el disparador del 4 % avisa pero no garantiza. Regla, unidad, criterios y potencia congelados en `PLAN/T180.md`; la auditoría remite allí cuando salte. Funding 12 m 3,49 % y subiendo (3 m 6,02 %).
+- **Archivos:** `PLAN/T180.md`, `PLAN/STATUS.md`, `PLAN/00_MASTER.md`, `PLAN/BACKLOG.md` (T145 (3)), `v2/eim/analytics/audit/levers.py` (texto de la acción).
+- **Pruebas:** `tests/analytics/test_audit.py`.
+- **Siguiente paso:** cuando salte el disparador, ◆ del usuario para arrancar la medición hacia adelante en papel.
+
+## 2026-11-18 · sesión «Retroalimentación, calibración y ajustes» · T181 (universo de perpetuos) y pre-registro de T164
+- **Hecho:** abierta la vía multiactivo transversal solo de análisis (◆ del usuario, 2026-11-17). T181 descarga despacio el funding y las velas diarias de los 659 perpetuos USDT (`eim/data/perp_universe.py`, 3 s entre llamadas por el límite de funding compartido con el bróker). El pre-registro de T164 quedó congelado antes de mirar ningún retorno, con familia propia (◆ del usuario). Su puerta de potencia, aplicada antes de calcular nada: con la regla de la casa (Sharpe = mitad del publicado), carry y momentum por separado piden 9,7 y 10,4 años frente a ≈ 5,8 de historia, así que no se miden; la combinada cabría en 5,1 años (◆ abierta).
+- **Archivos:** `v2/eim/data/perp_universe.py`, `v2/tests/data/test_perp_universe.py`, `PLAN/T181.md`, `PLAN/notas/T164_preregistro.md`, `PLAN/T164.md`, `PLAN/STATUS.md`, `PLAN/00_MASTER.md`.
+- **Pruebas:** `tests/data/test_perp_universe.py` (4, sin red).
+- **En curso:** la descarga de T181 (≈ 2,6 h).
+- **Siguiente paso:** ◆ sobre la combinada; con el universo bajado, la historia disponible por la regla de §1 (sin retornos).
+
+
+## 2026-11-18 · sesión «Retroalimentación, calibración y ajustes» · traspaso a otra cuenta en la portátil de Santivego
+- **Hecho:** a pedido del usuario, todo queda listo para que otra cuenta siga desde `LAPTOP-I6PF9OVP`: ramas subidas (ninguna con commits solo locales), PR #305 abierto con la integración del día y §0 de `ESTADO_PROYECTO.md` reescrito como punto de entrada (git, ◆ de la sesión, lo que queda en orden, cómo medir T164 y cómo correr el gate en trozos, lo que vive solo en `juanpablo-cpu`).
+- **Abierto:** el gate en trozos del #305, la descarga de T181 y la medición única de T164.
+- **Siguiente paso:** el de §0, punto 1.
+
+## 2026-11-18 · sesión «Retroalimentación, calibración y ajustes» · T164 medida: NO PASA
+- **Hecho:** T181 bajó la historia completa (659 perpetuos, 2,70 M liquidaciones de funding, 641 828 velas diarias, 1 error). La medición de T164 corrió una vez con el pre-registro congelado. La puerta de potencia pasó (5,69 años evaluables frente a 5,1) y la combinada **no pasa** (t Newey-West 0,81, p 0,21), neutral al mercado. Informativo: carry solo Sharpe +0,77, momentum +0,24. El informe se regeneró una vez para corregir la beta, que mezclaba unidades; la prueba y el resultado no cambiaron (declarado en el informe).
+- **Archivos:** `v2/reports/t164_transversal.{md,json}`, `v2/eim/analytics/transversal{,_report}.py` (beta en retorno), `PLAN/STATUS.md` (T164 y T181 ☑), `PLAN/BACKLOG.md` (T164).
+- **Lectura:** con estas reglas y esta historia no hay ventaja transversal demostrada. La pista del carry solo necesita otro pre-registro hacia adelante y los retirados recuperados.
+
+
+## 2026-11-18 · sesión «Retroalimentación, calibración y ajustes» · atasco por memoria y primera prueba real de T173
+- **Hecho:** con 340–420 MB libres (API 2,4–3,3 GB, sesiones de Claude 2,5 GB, Chrome 1 GB), el ciclo de operación dejó de latir de 03:38 a 03:54 UTC y el bróker de T31 apenas completó un ciclo entre 03:45 y 04:27. El vigilante del conjunto con T173 hizo lo previsto: con la API caída lanzó un intento (03:49, «recuperado» a las 03:54) y, con la API viva y el bróker parado, registró `conjunto_dentro_de_otro` (03:59), sin gastar intentos y con el aviso crítico del remedio. El vigilante propio de la API la relanzó a las 04:08:29 (`proceso_reiniciado`, 909 s sin latido) y el bróker volvió a las 04:27. El usuario autorizó reiniciar la API si seguía parada; no hizo falta. Para no sumar carga se cancelaron los trozos 2–5 del gate del #305 (el 1 pasó).
+- **Lección para la cuenta siguiente:** en `juanpablo-cpu` el gate solo cabe con margen de RAM; si no lo hay, correrlo en la portátil (ESTADO §0, punto 2).
+
+## 2026-11-18 · sesión «Retroalimentación, calibración y ajustes» · apagado del equipo, copia completa y gate verde del #305
+- **Hecho:** el equipo se apagó de forma ordenada a las 07:15 UTC (evento 1074, desde el menú de inicio) y arrancó a las 12:50: ≈ 5,6 h sin servicios. El vigilante levantó el conjunto y el bróker de T31 volvió a las 13:07. La copia diaria del 18-nov salió sin `leaders.duckdb` (el servicio de líderes no atendió la instantánea con 340 MB libres), así que, con permiso del usuario, se hizo una completa por la cola: `eim_20261118-130754`, íntegra y verificada (6 957 159 filas de líderes, 3 185 MB, ciclo retenido 8 s). Con el margen del arranque pasaron los trozos 2–5 del gate del #305: ruff limpio y 3 821 pasadas, 8 omitidas, 0 fallos.
+- **Siguiente paso:** con el sí del usuario, fusionar el #305, traer `main` a la carpeta principal y reiniciar la API para que entre T179.
+

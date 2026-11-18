@@ -79,6 +79,7 @@ class VariantDesk(PaperDesk):
                          exec_params=exec_params, profiles=profiles, provider=None,
                          symbols=symbols, poll_s=poll_s)
         self.name, self.label = name, label
+        self._gate_init(Path(store.root) / "paper" / f"tf_gate_{name}.json")  # T179
         self.obs = _Silent()
 
     def tick(self) -> int:

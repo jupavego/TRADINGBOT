@@ -1,0 +1,39 @@
+{
+ "gate": {
+  "weeks": 323,
+  "first": "2020-09-07",
+  "years": 5.69,
+  "needed_years": 5.1,
+  "passes": true
+ },
+ "measured": true,
+ "t_nw": 0.8148943712261484,
+ "p_one_sided": 0.2075663877021678,
+ "verdict": "NO PASA",
+ "beta_btc": {
+  "carry": 0.03734945539537378,
+  "momentum": -0.03775155497287734
+ },
+ "corr_btc": 0.07234304455309942,
+ "rho_cm": 0.1659293766469753,
+ "stats": {
+  "carry": {
+   "mean_weekly": 0.0026188376577414244,
+   "weeks": 323,
+   "sharpe": 0.7734686524168631
+  },
+  "momentum": {
+   "mean_weekly": 0.0012025817683311776,
+   "weeks": 323,
+   "sharpe": 0.24032583169627358
+  },
+  "combinada": {
+   "mean_weekly": 0.039524375809533926,
+   "weeks": 310,
+   "sharpe": 0.34900393686331477
+  }
+ },
+ "weeks": 310,
+ "first": "2020-12-07",
+ "last": "2026-11-09"
+}
