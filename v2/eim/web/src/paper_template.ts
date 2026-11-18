@@ -21,7 +21,6 @@ export const TEMPLATE = `
   <button class="btn" data-act="bt">Reconstruir historial (backtest)</button>
   <span class="pp-job" data-x="job"></span>
 </header>
-<div class="pp-scope" data-x="scope" aria-label="Instantánea y alcance de la vista"></div>
 <div class="pp-livebar" data-x="live" aria-live="polite"></div>
 <section class="pp-balance" data-x="bal" aria-label="Balance de operaciones ganadas y perdidas"></section>
 <section class="pp-eqbox" aria-label="Capital por perfil">

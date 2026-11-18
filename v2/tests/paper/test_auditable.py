@@ -81,6 +81,15 @@ def test_la_instantanea_pedida_devuelve_la_foto_de_entonces_no_la_nueva(desk, cl
     assert ids[:2] == [second["snapshot"]["id"], sid]
 
 
+def test_la_instantanea_guarda_alcance_y_universo_oficial_aunque_el_panel_no_los_pinte(client):
+    """2026-11-18: la franja de alcance y universo oficial salió de la vista principal; sus cifras
+    quedan en cada instantánea, igual que las sirve la API, para control y análisis posterior."""
+    v = client.get(f"/v2/paper?symbol={SYM}").json()
+    photo = client.get(f"/v2/paper/snapshot/{v['snapshot']['id']}").json()["snapshot"]
+    assert photo["scope"] == v["scope"] and photo["scope"]["ceiling"] >= 0
+    assert photo["accounting"] == v["accounting"] and "ok" in photo["accounting"]
+
+
 def test_instantanea_alterada_se_delata_y_desconocida_no_se_inventa(desk, client):
     sid = client.get(f"/v2/paper?symbol={SYM}").json()["snapshot"]["id"]
     body = snapshot.get(desk.pstore, sid)["snapshot"]
