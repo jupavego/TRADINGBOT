@@ -4,13 +4,27 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 
 from eim.api.security import LOOPBACK_HOSTS
 
+# T182: la corrida de T31 empezó el 2026-10-30 23:35 UTC y dura 4 semanas; «lo vivo manda» se
+# enciende solo 25 min después de su cierre. Si T31 se alarga, mover la fecha por el entorno.
+T31_CLOSE_UTC = "2026-11-28T00:00:00+00:00"
+
 
 def _csv(value: str | None) -> tuple[str, ...]:
     return tuple(x.strip() for x in (value or "").split(",") if x.strip())
+
+
+def _when(value: str | None) -> int | None:
+    """Fecha ISO (sin zona = UTC) → ms; vacío u `off` → None (apagado)."""
+    v = (value or "").strip()
+    if not v or v.lower() == "off":
+        return None
+    d = datetime.fromisoformat(v)
+    return int((d if d.tzinfo else d.replace(tzinfo=UTC)).timestamp() * 1000)
 
 
 @dataclass(frozen=True)
@@ -28,7 +42,9 @@ class Settings:
     escaneos: 60, o 10 con EIM_ARB_EXECUTION=testnet; T128), EIM_ARB_ALERT_SCORE (umbral de alerta,
     pb/día ajustados) y EIM_ARB_ALERT_S (segundos seguidos sobre el umbral antes de avisar);
     EIM_PAPER=0 desactiva el servicio en vivo del bróker simulado (T47) y EIM_PAPER_S fija los
-    segundos entre ciclos; EIM_ARB_ASSETS (p. ej. "BTC" o "BTC,ETH") elige los activos del escáner
+    segundos entre ciclos; EIM_PAPER_LIVE_FIRST_FROM (fecha ISO UTC u `off`; por defecto el cierre
+    de T31) enciende solo «lo vivo manda» en el bróker (T182); EIM_ARB_ASSETS (p. ej. "BTC" o
+    "BTC,ETH") elige los activos del escáner
     de arbitraje y EIM_ARB_TRI_ASSETS los de sus ciclos triangulares (foco actual, T122: BTC, sin
     ETH)."""
 
@@ -74,6 +90,9 @@ class Settings:
     paper_variants: tuple[str, ...] = ()   # T143: corridas aparte en papel (EIM_PAPER_VARIANTS)
     val_attempts: bool = False  # T137: da de alta los intentos versionados (1 en from_env)
     nursery: bool = False       # T168: cantera (variante `cantera`); apagada salvo EIM_NURSERY=1
+    # T182: desde cuándo «lo vivo manda» en el bróker simulado (UTC, ms). None en las pruebas;
+    # `from_env` pone el cierre de T31 salvo EIM_PAPER_LIVE_FIRST_FROM (fecha ISO u `off`)
+    paper_live_first_from_ms: int | None = None
     extra: dict[str, str] = field(default_factory=dict)
 
     @property
@@ -123,4 +142,6 @@ class Settings:
             paper_variants=tuple(_csv(env.get("EIM_PAPER_VARIANTS", "")) or ()),
             val_attempts=env.get("EIM_VAL_ATTEMPTS", "1") != "0",
             nursery=env.get("EIM_NURSERY", "0") == "1",
+            paper_live_first_from_ms=_when(env.get("EIM_PAPER_LIVE_FIRST_FROM",
+                                                   T31_CLOSE_UTC)),
         )

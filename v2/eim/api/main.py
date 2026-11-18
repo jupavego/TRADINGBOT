@@ -67,6 +67,7 @@ from eim.operation.supervisor import Operation, Supervisor
 from eim.operation.task_watch import watch_supervisor
 from eim.paper import ledger as paper_ledger
 from eim.paper.desk import PaperDesk
+from eim.paper.params import ExecParams
 from eim.risk import global_kill_switch, load_config
 from eim.suggestions.tracker import Tracker
 from eim.synthesis.params import role_of
@@ -155,6 +156,7 @@ def create_app(
     runtime.extra_open = arb_rt.open_symbols
     # T47: bróker simulado; servicio en vivo solo con la fuente real.
     paper = PaperDesk(store, paper_store, reg,
+                      exec_params=ExecParams(live_first_from_ms=cfg.paper_live_first_from_ms),
                       provider=BinanceFutures() if source is None else None,
                       poll_s=cfg.paper_poll_s)
     paper.alerts = op.alerts if op is not None else AlertCenter(rcon, rlock)   # T110 → op_alerts

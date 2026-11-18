@@ -63,6 +63,7 @@ class View:
     protection: dict = field(default_factory=dict)   # pasada del diario de la protección (T110)
     tf_cost: list[dict] = field(default_factory=list)  # costo por marco y si opera (T143 (3))
     tf_cost_profiles: list[dict] = field(default_factory=list)  # por perfil y marco (T179)
+    live_first: bool = False        # T182: esta vista se calculó con «lo vivo manda»
 
 
 def strategy_infos(tfs: tuple[str, ...]) -> list[dict]:
@@ -85,8 +86,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
         check_profiles(self.profiles, self.symbols)   # T108: configuración inválida = no arranca
         tf_gate.check(self.ep)                        # T143 (3): umbral de costo por marco
         self.gens = {tf: CtxGenerator(store, registry, tf) for tf in self.tfs}
-        self.job = Job()                        # puesta al día automática en curso (T182)
-        self.catchup_tried: set[tuple[str, str, int]] = set()
+        self.job, self.catchup_tried = Job(), set()   # puesta al día automática (T182)
         self.live_error = ""
         self.last_tick: int | None = None
         self.loop_started: int | None = None    # el servicio arrancó (aunque falte el 1er ciclo)
@@ -194,8 +194,8 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
         funding = self.store.read_series("funding", symbol, start=t0 - FUNDING_MS)
         path = v.path = Path(pc, funding, tf_ms(self.ep.path_tf))
         v.outcomes = run_shadow(ideas, path, self.ep)
-        learner = (LiveFirstLearner(v.outcomes, self.ep.prior_cap) if self.ep.live_first
-                   else Learner(v.outcomes))           # T182: lo vivo manda (si está encendido)
+        lf = v.live_first = self.ep.live_first_on(now_ms())   # T182: ¿manda lo vivo?
+        learner = LiveFirstLearner(v.outcomes, self.ep.prior_cap) if lf else Learner(v.outcomes)
         mmr = MMR.get(symbol, 0.005)
         fine = self._fine(symbol, t0)
         htf = self.ep.htf[self.ep.path_tf][0]    # T135: marco mayor del camino; hoy, sin perfiles
@@ -205,7 +205,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
         # T143 (3): el marco caro no opera; la sombra y el aprendizaje los siguen viendo todos.
         v.tf_cost, tradable = tf_gate.gate(self.tfs, v.outcomes, self.ep, self.profiles)
         by_p = self._tradable(v, tradable)              # T179: por perfil y marco, si toca
-        v.books = profile_books(self.profiles, by_p, learner, mmr, sim, self.ep)
+        v.books = profile_books(self.profiles, by_p, learner, mmr, sim, lf, self.ep.prior_cap)
         self._record_ledger(v)
         self._emit_decisions(v)
         self._sync_protection(v, fine)
@@ -288,7 +288,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
                         "costs": "tarifa regular Binance (supuesto: taker 0,05 %, maker 0,02 %)"},
             "families": FAMILIES, "causes": CAUSES, "profiles": profiles, "strategies": rows,
             "family_stats": fams, "tf_stats": timeframe_stats(v.outcomes),
-            "live_first": self.ep.live_first,          # T182: libros solo con lo vivo
+            "live_first": v.live_first,                # T182: libros solo con lo vivo
             "insights": insights(rows, fams, profiles, cov["origins"]),
             "balance": balance({pid: b.trades for pid, b in v.books.items()},
                                {i["id"]: i["name"] for i in infos}, now, self.tfs),

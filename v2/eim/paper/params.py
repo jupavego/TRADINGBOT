@@ -60,9 +60,17 @@ class ExecParams(BaseModel):
     # operaciones, que se diluye con cada cierre vivo (`eim/paper/prior.py`); y (3) el servicio se
     # pone al día solo con las velas que falten (`service.catch_up`), sin botón. No entra en
     # `exec_fingerprint` (no cambia la sombra). Apagado por defecto: el valor por defecto es la
-    # configuración de T31, que no cambia hasta su cierre (2026-11-27); se enciende al cerrarla.
+    # configuración de T31, que no cambia hasta su cierre (2026-11-27). `live_first_from_ms` lo
+    # enciende SOLO desde ese instante (UTC, ms) sin reiniciar nada: la API lo fija al cierre de
+    # T31 (`EIM_PAPER_LIVE_FIRST_FROM`, `api/config.py`). None = solo con `live_first`.
     live_first: bool = False
+    live_first_from_ms: int | None = None
     prior_cap: float = Field(8.0, ge=0.0)
+
+    def live_first_on(self, now_ms: int) -> bool:
+        """¿Manda lo vivo en este instante? (T182)"""
+        return self.live_first or (self.live_first_from_ms is not None
+                                   and now_ms >= self.live_first_from_ms)
     path_tf: str = "15m"             # camino del precio para llenar y salir
     min_risk_frac: float = 0.001     # SL a menos de 0,1 % del precio = geometría inválida
     funding_8h_assumed: float = 0.0001   # solo donde falta el funding real

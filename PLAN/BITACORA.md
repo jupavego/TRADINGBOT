@@ -3350,3 +3350,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** `ruff check eim tests` limpio; 17 pruebas nuevas en verde (la 18.ª, de la API, necesita `fastapi`); `tests/paper`, `nursery`, `validation` y `analytics` sin fallos nuevos (en la nube faltan `duckdb`, `fastapi`, `httpx` y `arch`: los fallos que quedan son los mismos que antes del cambio). `tsc` sin errores nuevos (faltan `node_modules`).
 - **Abierto:** gate completo y `npm run build` en el equipo; encender `live_first` al cerrar T31 (o antes, si el usuario lo decide) y esperar el aviso único de la conciliación y del diario de la protección (`PLAN/T182.md`).
 - **Siguiente paso:** fusionar con el sí del usuario, `npm run build` y reiniciar la API.
+
+## 2026-11-18 · sesión «Lo vivo manda» (2) · #311 fusionado y encendido automático al cerrar T31
+- **Hecho:** con el sí del usuario se fusionó #311 en `main` (botón de backtest fuera). Pidió que lo demás quede en el cerebro interno, automático y sin tocar T31: «lo vivo manda» ya no espera a que alguien cambie el código; `ExecParams.live_first_on(ahora)` con `live_first_from_ms`, que la API fija al cierre de T31 (**2026-11-28 00:00 UTC**, `EIM_PAPER_LIVE_FIRST_FROM`; `off` lo apaga, otra fecha lo mueve). Hasta entonces T31 sigue intacta.
+- **Archivos:** `v2/eim/paper/{params,desk,service,live_books}.py`, `v2/eim/api/{config,main}.py`, `v2/tests/paper/test_live_first.py`, `v2/tests/api/test_paper_live_first_config.py`, `v2/docs/OPERACION.md`, `PLAN/{T182,T31,STATUS,BACKLOG}.md`.
+- **Pruebas:** ruff limpio; 18 pruebas de T182 en verde aquí (+1 de configuración con un sustituto de `fastapi`); mismos fallos de entorno que antes en `tests/{paper,nursery,validation,analytics,literature,operation}`.
+- **Abierto:** en cada equipo, traer `main`, `npm run build` y reiniciar la API una vez (carga el código nuevo; el encendido del 28 ya no necesita reinicio). Si T31 se alarga, mover `EIM_PAPER_LIVE_FIRST_FROM` antes del 28.
+- **Siguiente paso:** el 28 de noviembre, comprobar en el panel que la cabecera dice «reconstruidas, solo como opinión inicial del aprendizaje» y revisar el aviso único de la conciliación.
