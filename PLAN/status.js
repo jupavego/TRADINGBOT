@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-17T22:27:49",
+ "generated": "2026-11-18T09:12:25",
  "phases": [
   {
    "n": 0,
@@ -2649,7 +2649,7 @@ window.EIM_STATUS = {
     "T175"
    ],
    "state": "done",
-   "notes": "**Hecha 2026-11-17 (◆ de T175 aprobada), entra al reiniciar la API; solo en la variante t143.** La sombra subestima lo que paga el libro (15 m: agresivo 0,132 → 0,185 R, moderado 0,106 → 0,136; la escalera sale como tomador y con más deslizamiento), así que cada perfil se juzga con la sombra que él aceptaría × un factor vivido/gemela por perfil y marco (`eim/paper/tf_calib.py`), contra los mismos 0,15 R. Cerrar solo bloquea posiciones nuevas: tramos `[desde, hasta]` guardados en `data/paper/tf_gate_t143.json` (`eim/paper/tf_gate_profile.py`, `desk_gate.py`); `cost.by_profile` en la API. Hoy cerraría solo agresivo@15m (≈ 0,165 R). T31 intacta (campo fuera de la huella). 13 pruebas nuevas en `tests/paper/test_tf_gate_profile.py` y `test_variant.py`. Ficha `PLAN/T179.md`",
+   "notes": "**Hecha 2026-11-17 (◆ de T175 aprobada), entra al reiniciar la API; solo en la variante t143.** La sombra subestima lo que paga el libro (15 m: agresivo 0,132 → 0,185 R, moderado 0,106 → 0,136; la escalera sale como tomador y con más deslizamiento), así que cada perfil se juzga con la sombra que él aceptaría × un factor vivido/gemela por perfil y marco (`eim/paper/tf_calib.py`), contra los mismos 0,15 R. Cerrar solo bloquea posiciones nuevas: tramos `[desde, hasta]` guardados en `data/paper/tf_gate_t143.json` (`eim/paper/tf_gate_profile.py`, `desk_gate.py`); `cost.by_profile` en la API. Hoy cerraría solo agresivo@15m (≈ 0,165 R). **2026-11-18:** desplegada; el factor en cociente cerró también agresivo@4h (×2,12 en 4 h, por el funding cobrado) y pasa a corrección **aditiva** (libro − gemela): cierra solo agresivo@15m (0,173 R). T31 intacta (campo fuera de la huella). 13 pruebas nuevas en `tests/paper/test_tf_gate_profile.py` y `test_variant.py`. Ficha `PLAN/T179.md`",
    "effort": "bajo",
    "phase": 24
   },
