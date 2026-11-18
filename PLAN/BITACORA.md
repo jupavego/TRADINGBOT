@@ -1607,3 +1607,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** las del plan y la documentación (`tests/plan`, `tests/docs`, `tests/repo`, `tests/architecture`); sin cambios de código.
 - **Siguiente paso:** T178 (retención de reconciliaciones correctas y fotos de posiciones; ◆ sobre el detalle de aprobados).
 
+## 2026-11-18 · sesión «Retroalimentación, calibración y ajustes» · T181 (universo de perpetuos) y pre-registro de T164
+- **Hecho:** abierta la vía multiactivo transversal solo de análisis (◆ del usuario, 2026-11-17). T181 descarga despacio el funding y las velas diarias de los 659 perpetuos USDT (`eim/data/perp_universe.py`, 3 s entre llamadas por el límite de funding compartido con el bróker). El pre-registro de T164 quedó congelado antes de mirar ningún retorno, con familia propia (◆ del usuario). Su puerta de potencia, aplicada antes de calcular nada: con la regla de la casa (Sharpe = mitad del publicado), carry y momentum por separado piden 9,7 y 10,4 años frente a ≈ 5,8 de historia, así que no se miden; la combinada cabría en 5,1 años (◆ abierta).
+- **Archivos:** `v2/eim/data/perp_universe.py`, `v2/tests/data/test_perp_universe.py`, `PLAN/T181.md`, `PLAN/notas/T164_preregistro.md`, `PLAN/T164.md`, `PLAN/STATUS.md`, `PLAN/00_MASTER.md`.
+- **Pruebas:** `tests/data/test_perp_universe.py` (4, sin red).
+- **En curso:** la descarga de T181 (≈ 2,6 h).
+- **Siguiente paso:** ◆ sobre la combinada; con el universo bajado, la historia disponible por la regla de §1 (sin retornos).
+
