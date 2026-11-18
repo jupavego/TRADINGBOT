@@ -9,7 +9,7 @@ import type { AgentInfo, AgentRole, Synthesis } from './types'
 export type Filter = 'todos' | AgentRole
 
 // Respaldo si la API aún no envía el papel (mismo criterio que `eim/synthesis/params.py`).
-const FALLBACK: Record<string, AgentRole> = { calendar: 'riesgo', regime: 'riesgo', arbitrage: 'carril', plan: 'derivado', bots: 'contexto' }
+const FALLBACK: Record<string, AgentRole> = { calendar: 'riesgo', regime: 'riesgo', arbitrage: 'carril', plan: 'derivado', bots: 'contexto', intermarket: 'contexto' }
 
 export const FILTERS: [Filter, string, string][] = [
   ['todos', 'Todos', 'Todos los agentes'],
@@ -17,7 +17,7 @@ export const FILTERS: [Filter, string, string][] = [
   ['riesgo', 'Riesgo', 'No votan: el calendario reduce confianza y tamaño en ventana de evento; el régimen modula pesos'],
   ['derivado', 'Derivados', 'No votan: el plan deriva de estructura y niveles (evita el doble conteo)'],
   ['carril', 'Carril propio', 'Arbitraje: rendimiento propio, no suma a la dirección del precio'],
-  ['contexto', 'Contexto', 'No votan: se muestran para comparar (bots de terceros) hasta superar la puerta de edge'],
+  ['contexto', 'Contexto', 'No votan: se muestran para comparar (bots de terceros, intermercado) hasta que se mida su aporte'],
 ]
 
 const KEY = 'eim.river.filter'

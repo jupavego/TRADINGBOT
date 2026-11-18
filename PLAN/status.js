@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-18T12:06:22",
+ "generated": "2026-11-18T14:48:50",
  "phases": [
   {
    "n": 0,
@@ -349,6 +349,15 @@ window.EIM_STATUS = {
     "T171",
     "T172",
     "T177"
+   ]
+  },
+  {
+   "n": 28,
+   "name": "El cerebro integrado",
+   "ids": [
+    "T183",
+    "T184",
+    "T185"
    ]
   }
  ],
@@ -2695,6 +2704,51 @@ window.EIM_STATUS = {
    "notes": "**Hecha 2026-11-18 (◆ del usuario); el botón salió en #311 y lo demás se enciende SOLO al cerrar T31 (2026-11-28 00:00 UTC), sin reiniciar.** Fuera de la cabecera del bróker el botón «Reconstruir historial (backtest)» y sus selectores, y las rutas `POST /v2/paper/backtest(/stop)`; el CLI queda como laboratorio local. `ExecParams.live_first_on(ahora)` (fuera de `exec_fingerprint`; la API fija `live_first_from_ms` con `EIM_PAPER_LIVE_FIRST_FROM`, por defecto el cierre de T31, `off` lo apaga): puesta al día automática de las velas que falten en 30 días (`service.catch_up`, lotes de 400, prioridad baja, quedan como reconstruidas), libros de los perfiles solo con `origin = vivo` (`live_books.py`) y lo reconstruido como opinión inicial acotada a 8 operaciones que se diluye con cada cierre vivo (`prior.py`, `LadderRisk.prior`, `LiveFirstLearner`). Nada se borra; T49 sigue igual. 20 pruebas nuevas. Ficha `PLAN/T182.md`",
    "effort": "medio",
    "phase": 26
+  },
+  {
+   "id": "T183",
+   "title": "Intermercado: el multi-activo entra al cerebro como informante",
+   "deps": [
+    "T11",
+    "T44",
+    "T75",
+    "T174"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-18 (◆ del usuario, «los 7 pasos»); entra al reiniciar la API.** `eim/data/intermarket.py` (velas diarias reales de BTC, ETH, oro, S&P 500 y Nasdaq; el ciclo las sincroniza cada 6 h por activo, solo añadir, point-in-time por cierre; `EIM_INTERMARKET=0` la apaga), `MarketSnapshot.intermarket` (aditivo) y agente `intermarket` 0.1.0 (impulso 20 sesiones, tendencia sobre la media de 50, correlación cripto–índice de 60; nunca `degraded`). **Peso 0** (`INFORMER_WEIGHTS`, papel «contexto»): la síntesis v1, el riesgo y T31 no cambian. En el mapa: `data.intermarket` → snapshot → `agent.intermarket` → síntesis (informante). Ficha `PLAN/T183.md`",
+   "effort": "medio",
+   "phase": 28,
+   "goal": "Que el oro y los índices de EE. UU. alimenten el análisis como un planeta más alrededor de la"
+  },
+  {
+   "id": "T184",
+   "title": "Vigía de calibración: validación y retroalimentación automáticas",
+   "deps": [
+    "T19",
+    "T128",
+    "T159",
+    "T160"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-18 (◆ del usuario); entra al reiniciar la API.** Gancho del bróker que cada 6 h revisa la calibración de cada marco del foco con reglas declaradas (`eim/forecast/calib_watch.py`: bandas ±5/±10 pp, ECE 5/10 %, skill < −5 %, dos alertas = sostenida, que pinta el mapa en ámbar), guarda el historial en `data/calibration/watch.jsonl` y repite **en sombra** M1/M2 de T160 con Holm. **No enciende ninguna recalibración**: T160 las rechazó y no se tocan probabilidades durante T31. `GET /v2/calibration/watch` y bloque «Vigía automático» en la pestaña Calibración. Ficha `PLAN/T184.md`",
+   "effort": "medio",
+   "phase": 28,
+   "goal": "Que nadie tenga que abrir la pestaña para enterarse de que las bandas o las probabilidades se"
+  },
+  {
+   "id": "T185",
+   "title": "Las pestañas por pilar: lupas en las esferas, fuera lo que no nutre y lo documental aparte",
+   "deps": [
+    "T11",
+    "T122",
+    "T182",
+    "T183"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-18 (◆ del usuario).** VWAP por periodos, Liquidaciones, Estacionalidad y Multi-activo pasan a ser la lupa de su esfera («Ver en detalle»); salen Backtest/VRM (pestaña y `GET /v2/more/backtest`) e Historial de sugerencias (el backend y `GET /v2/setups/history` siguen); las conectadas llevan su pilar en el título y las documentales (Inversionistas, Bitácora, Bitácora de trading) van tras el separador «Documental». Ficha `PLAN/T185.md`, decisión en `PLAN/UI_SPEC.md`",
+   "effort": "bajo",
+   "phase": 28,
+   "goal": "Que la barra inferior diga de un vistazo qué alimenta al cerebro y con qué pilar, y que nada"
   }
  ]
 };

@@ -10,7 +10,8 @@ import pytest
 
 from tests.offline import is_local
 
-FIXED = {"EIM_OBS", "EIM_NOTIFY", "EIM_DUCKDB_MEMORY", "EIM_DUCKDB_THREADS"}
+FIXED = {"EIM_OBS", "EIM_NOTIFY", "EIM_DUCKDB_MEMORY", "EIM_DUCKDB_THREADS",
+         "EIM_INTERMARKET"}  # T183: el ciclo de prueba no descarga oro ni índices
 
 
 def test_no_machine_variable_reaches_the_tests():

@@ -1,4 +1,8 @@
-"""Endpoints de "Más análisis" (`/v2/more/*`): pestañas portadas del legado F7.
+"""Endpoints de "Más análisis" (`/v2/more/*`): vistas portadas del legado F7.
+
+T185: VWAP, liquidaciones, estacionalidad y multi-activo son la lupa de su esfera en el río; la
+bitácora de trading sigue como pestaña documental. `/v2/more/backtest` (VRM a la carta) salió:
+lo vivo manda (T182); el laboratorio sigue en `python -m eim.backtest.cli`.
 
 Cada respuesta incluye `source`/cobertura. Las fuentes externas se inyectan (`MoreSources`) para
 poder probar sin red.
@@ -16,21 +20,16 @@ from typing import Any
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 
 from eim.agents.seasonality.compute import build_matrix, monthly_closes
-from eim.agents.structure.agent import snapshot_frame, structure_frame
+from eim.agents.structure.agent import snapshot_frame
 from eim.agents.vwap.compute import compute_vwap
 from eim.agents.vwap.params import LABEL, PERIODS, PREFIX
 from eim.analytics.bitacora import build_bitacora
-from eim.backtest.vrm import WARMUP, run_backtest
 from eim.core import Candle, Liquidations
 from eim.data.providers import multi_asset as ma
 from eim.data.providers.liquidations import BinanceLiquidations, LiquidationsUnavailable
 from eim.data.snapshot import build_snapshot
 from eim.data.store import Store
 from eim.data.timeframes import SYMBOLS, TF_MS
-from eim.repro.stamp import stamp
-
-VRM_WHY = ("cálculo a la carta sobre el almacén vivo, sin instantánea de datos; para una cifra "
-           "que se pueda repetir, python -m eim.backtest.cli")
 
 
 def jsonable(obj: Any) -> Any:
@@ -152,22 +151,6 @@ def build_more_router(store: Store, src: MoreSources | None = None,
                          "close": float(last["close"]), "current": current, "series": series,
                          "candles": [{"t": c.t, "o": c.o, "h": c.h, "l": c.l, "c": c.c}
                                      for c in snap.candles[-n:]]})
-
-    @r.get("/backtest")
-    def backtest(symbol: str = "ETHUSDT", tf: str = "1h",
-                 candles: int = Query(2000, ge=WARMUP + 50, le=20000),
-                 horizon: int = Query(6, ge=1, le=100)):
-        _check(symbol, tf)
-        snap = build_snapshot(store, symbol, tf, max(candles, WARMUP + horizon + 1))
-        try:
-            res = run_backtest(structure_frame(snapshot_frame(snap)), horizon)
-        except ValueError as e:
-            raise HTTPException(400, str(e)) from e
-        res["symbol"], res["timeframe"] = symbol, tf
-        res["source"] = snap.sources.get("candles", "desconocida")
-        res["coverage"] = {"start": _ts(snap.candles[0].t), "end": _ts(snap.candles[-1].t)}
-        res["reproducibility"] = stamp([], None, VRM_WHY)          # T124: se dice, no se calla
-        return jsonable(res)
 
     @r.post("/bitacora")
     async def bitacora(

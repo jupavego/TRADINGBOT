@@ -1,4 +1,5 @@
-/** Pestañas de mercado (antes en «Más análisis», hoy en la barra inferior): Backtest/VRM, VWAP por periodos y Multi-activo. */
+/** Vistas de mercado (antes pestañas; desde T185, lupa de su esfera en el río): VWAP por periodos y
+ * multi-activo (lupa del intermercado). El backtest/VRM salió: lo vivo manda (T182). */
 import { LineSeries, LineStyle, type UTCTimestamp } from 'lightweight-charts'
 import { PriceChart } from './chart'
 import { cssVar } from './theme'
@@ -15,60 +16,6 @@ function newChart(el: HTMLElement): PriceChart {
   const c = new PriceChart(el)
   charts.push(c)
   return c
-}
-
-const STATUS_CLS: Record<string, string> = { PASS: 'up', FAIL: 'down', NO_EVALUADO: 'warn' }
-
-export async function backtestView(el: HTMLElement, ctx: Ctx): Promise<void> {
-  el.innerHTML = `<div class="mrow">
-    <label>Velas <input id="bt-n" type="number" value="1000" min="450" max="20000"></label>
-    <label>Horizonte <input id="bt-h" type="number" value="6" min="1" max="100"></label>
-    <button class="btn" id="bt-run">Ejecutar backtest</button>
-    <span class="muted">${esc(ctx.symbol)} ${esc(ctx.tf)} · protocolo EIM-VRM-001 · sobre el almacén local</span>
-  </div><div id="bt-out" class="muted">Pulsa «Ejecutar backtest».</div>`
-  const out = el.querySelector<HTMLElement>('#bt-out')!
-  el.querySelector<HTMLButtonElement>('#bt-run')!.onclick = async () => {
-    out.textContent = 'Calculando…'
-    try {
-      const j = await getMore('backtest', {
-        symbol: ctx.symbol, tf: ctx.tf,
-        candles: el.querySelector<HTMLInputElement>('#bt-n')!.value,
-        horizon: el.querySelector<HTMLInputElement>('#bt-h')!.value,
-      })
-      out.innerHTML = renderBacktest(j)
-    } catch (e) { out.innerHTML = `<div class="alert bad">${esc((e as Error).message)}</div>` }
-  }
-}
-
-function renderBacktest(m: Json): string {
-  const ca = m.acceptance_criteria
-  const sc = Object.entries(m['MET-002_accuracy_by_scenario'] as Record<string, number | null>)
-    .map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v === null ? 'sin muestras' : `${fmt(v)}%`}</td></tr>`).join('')
-  const crit = Object.entries(ca.criteria as Record<string, Json>).map(([k, c]) => {
-    const r = c.result === null ? '—' : esc(typeof c.result === 'object' ? JSON.stringify(c.result) : c.result)
-    return `<tr><td>${esc(k)}</td><td>${esc(c.criticidad)}</td><td>${esc(c.threshold)}</td><td>${r}</td>
-      <td class="${STATUS_CLS[c.status] ?? ''}">${esc(c.status)}</td></tr>`
-  }).join('')
-  const na = Object.entries(m.not_evaluated as Record<string, string>)
-    .map(([k, v]) => `<li><b>${esc(k)}</b>: ${esc(v)}</li>`).join('')
-  const repro = m.reproducibility?.reproducible
-    ? `Reproducible (T124): ${esc(m.reproducibility.repeat ?? '')}`
-    : `<b>No reproducible</b> (T124): ${esc(m.reproducibility?.why ?? 'sin instantánea de datos')}`
-  return `<div class="msrc">${sourceLine(m.source, m.coverage)} · ${m.bars} velas · horizonte ${m.horizon}</div>
-  <p class="muted" data-repro="${m.reproducibility?.reproducible ? 'si' : 'no'}">${repro}.</p>
-  <div class="kpi-row">
-    <div class="kpi"><b>${fmt(m['MET-001_accuracy_global'])}%</b><span>MET-001 exactitud global</span></div>
-    <div class="kpi"><b>${fmt(m['MET-004_calibration_error'], 4)}</b><span>MET-004 error de calibración</span></div>
-    <div class="kpi"><b>${fmt(m['MET-005_stability'], 4)}</b><span>MET-005 estabilidad</span></div>
-    <div class="kpi"><b>${fmt(m['MET-006_coverage_pct'])}%</b><span>MET-006 cobertura de estados</span></div>
-    <div class="kpi"><b>${m['MET-008_detection_latency_p50'] ?? '—'}</b><span>MET-008 latencia (velas)</span></div>
-    <div class="kpi"><b>${m.correct_diagnoses}/${m.total_evaluated}</b><span>diagnósticos correctos</span></div>
-  </div>
-  <div class="alert ${ca.overall_status === 'FAIL' ? 'bad' : ''}">Veredicto VRM: <b>${esc(ca.overall_status)}</b>
-    ${ca.blocking_failures.length ? ` · fallos bloqueantes: ${esc(ca.blocking_failures.join(', '))}` : ''}</div>
-  <div class="two"><div><h4>MET-002 · exactitud por escenario</h4><table class="mt">${sc}</table></div>
-  <div><h4>Criterios de aceptación</h4><table class="mt"><tr><th>CA</th><th>Criticidad</th><th>Umbral</th><th>Resultado</th><th>Estado</th></tr>${crit}</table></div></div>
-  <h4>No evaluado en esta corrida (no se inventa)</h4><ul class="muted">${na}</ul>`
 }
 
 const PERIOD_ORDER = ['daily', 'weekly', 'quincenal', 'monthly']
