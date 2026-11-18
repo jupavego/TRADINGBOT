@@ -5,7 +5,7 @@
   --bg: #040a13; --panel: #08131f; --text: #d9f4ff; --muted: #6d8fa3; --line: #123047;
   --grid: #0c1f30; --accent: #22e1ff; --up: #12e58f; --down: #ff3d5f; --warn: #ffb547; --neutral: #8b98a6;
   --glow: 34, 225, 255;
-  --glass: rgba(8, 19, 31, .74);
+  --glass: rgba(8, 19, 31, .86);   /* vidrio sin backdrop-filter: algo más opaco para conservar el contraste */
   --hud: rgba(var(--glow), .9);
   --radius: 6px;
   --f-display: "Orbitron", "Rajdhani", system-ui, sans-serif;
@@ -15,20 +15,24 @@
 }
 
 /* Fondo: resplandores, retícula y líneas de barrido estáticas (sin la franja animada tipo radar,
-   retirada en T122 para no repintar la pantalla entera en cada cuadro) */
+   retirada en T122 para no repintar la pantalla entera en cada cuadro). Van en una capa fija propia,
+   detrás del contenido: el desplazamiento ya no repinta el fondo (antes `background-attachment: fixed`)
+   y las líneas de barrido dejan de ser una capa de pantalla completa encima de todo. */
+:root[data-theme="cyber"] { background: var(--bg); }
 :root[data-theme="cyber"] body {
   font-family: var(--f-body); font-size: 14px; letter-spacing: .01em;
+  background: transparent;
+}
+:root[data-theme="cyber"] body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+  transform: translateZ(0);
   background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 3px),
     radial-gradient(60% 50% at 85% 10%, rgba(var(--glow), .13), transparent 70%),
     radial-gradient(50% 40% at 0% 80%, rgba(255, 61, 95, .06), transparent 70%),
     linear-gradient(rgba(var(--glow), .045) 1px, transparent 1px) 0 0 / 44px 44px,
     linear-gradient(90deg, rgba(var(--glow), .045) 1px, transparent 1px) 0 0 / 44px 44px,
     var(--bg);
-  background-attachment: fixed;
-}
-:root[data-theme="cyber"] body::after {
-  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
-  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 3px);
 }
 
 /* Paneles de vidrio con esquinas de HUD */
@@ -45,7 +49,6 @@
     linear-gradient(var(--hud), var(--hud)) bottom right / 2px 18px no-repeat,
     var(--glass);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 0 28px rgba(var(--glow), .07), inset 0 0 40px rgba(var(--glow), .035);
-  backdrop-filter: blur(10px);
 }
 :root[data-theme="cyber"] .river {
   border: 1px solid rgba(var(--glow), .22); border-radius: var(--radius);
@@ -55,7 +58,7 @@
 
 /* Barra superior */
 :root[data-theme="cyber"] .topbar {
-  z-index: 20; background: rgba(4, 10, 19, .82); backdrop-filter: blur(12px);
+  z-index: 20; background: rgba(4, 10, 19, .95);   /* sin blur: la barra fija lo rehacía en cada desplazamiento */
   border-bottom: 1px solid transparent;
   border-image: linear-gradient(90deg, transparent, rgba(var(--glow), .8), transparent) 1;
   box-shadow: 0 6px 24px rgba(var(--glow), .06);
@@ -129,7 +132,7 @@
 :root[data-theme="cyber"] .alert.bad, :root[data-theme="cyber"] .banner { background: rgba(255, 61, 95, .08); box-shadow: 0 0 14px rgba(255, 61, 95, .25); }
 :root[data-theme="cyber"] :is(.tip, .evcard) {
   background: rgba(6, 15, 26, .92); border: 1px solid rgba(var(--glow), .4); border-radius: 4px;
-  box-shadow: 0 0 24px rgba(var(--glow), .2); backdrop-filter: blur(8px);
+  box-shadow: 0 0 24px rgba(var(--glow), .2);
 }
 :root[data-theme="cyber"] .replay { background: rgba(4, 10, 19, .8); border-color: rgba(var(--glow), .3); }
 :root[data-theme="cyber"] .replay input { accent-color: var(--accent); }

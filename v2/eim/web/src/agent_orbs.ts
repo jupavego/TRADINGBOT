@@ -68,16 +68,23 @@ export function orb(id: string, x: number, y: number, r: number, col: string, li
   const g = `og${k}`, c = `oc${k}`
   const s = (r * 1.6) / 48 // el glifo ocupa ~1,6 r
   const ry = (r * 0.32).toFixed(1)
+  if (!live) col = '#8b98a6' // apagado en gris (antes `filter: grayscale`, recalculado en cada cuadro de la órbita)
+  const gr = r + 15           // el resplandor llega hasta donde llegaba el desenfoque (σ 6 ≈ 12 px)
   return `<defs><radialGradient id="${g}" cx="36%" cy="30%" r="78%">` +
     // cristal: centro casi transparente y borde más denso (efecto Fresnel)
     `<stop offset="0" style="stop-color:color-mix(in srgb, ${col} 40%, #fff);stop-opacity:.32"/>` +
     `<stop offset=".55" style="stop-color:${col};stop-opacity:.18"/>` +
     `<stop offset=".85" style="stop-color:${col};stop-opacity:.42"/>` +
     `<stop offset="1" style="stop-color:${col};stop-opacity:.75"/></radialGradient>` +
+    // Degradados en vez de filtros: la órbita mueve la esfera en cada cuadro y un blur se recalcularía siempre
+    `<radialGradient id="${g}g"><stop offset="${((r + 3) / gr * 0.6).toFixed(3)}" style="stop-color:${col}"/>` +
+    `<stop offset="1" style="stop-color:${col};stop-opacity:0"/></radialGradient>` +
+    `<radialGradient id="${g}s"><stop offset="0" stop-color="#000"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>` +
+    `<radialGradient id="${g}p"><stop offset=".2" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>` +
     `<clipPath id="${c}"><circle cx="${x}" cy="${y}" r="${r}"/></clipPath></defs>` +
     `<g class="orb${live ? '' : ' off'}">` +
-    `<ellipse cx="${x}" cy="${y + r + 5}" rx="${(r * 0.8).toFixed(1)}" ry="3" class="orb-shadow"/>` +
-    `<circle cx="${x}" cy="${y}" r="${r + 3}" fill="${col}" opacity=".14" filter="url(#rblur)"/>` +
+    `<ellipse cx="${x}" cy="${y + r + 5}" rx="${(r * 0.8 + 4).toFixed(1)}" ry="7" fill="url(#${g}s)" class="orb-shadow"/>` +
+    `<circle cx="${x}" cy="${y}" r="${gr}" fill="url(#${g}g)" opacity=".14"/>` +
     `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#${g})" class="orb-body"/>` +
     `<g clip-path="url(#${c})" class="orb-grid">` +
     `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${ry}"/>` +
@@ -85,8 +92,8 @@ export function orb(id: string, x: number, y: number, r: number, col: string, li
     `<ellipse cx="${x}" cy="${y + r * 0.55}" rx="${(r * 0.84).toFixed(1)}" ry="${(r * 0.2).toFixed(1)}"/>` +
     `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r}" class="orb-mer"><animate attributeName="rx" values="${r};0.5;${r}" dur="6s" repeatCount="indefinite"/></ellipse></g>` +
     `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${col}" stroke-width="1.2" class="orb-rim"/>` +
-    `<g class="orb-glyph" transform="translate(${(x - 24 * s).toFixed(2)} ${(y - 24 * s).toFixed(2)}) scale(${s.toFixed(3)})">` +
-    `${GLYPH[id] ?? DEFAULT}</g>` +
-    `<ellipse cx="${(x - r * 0.36).toFixed(1)}" cy="${(y - r * 0.46).toFixed(1)}" rx="${(r * 0.34).toFixed(1)}" ry="${(r * 0.18).toFixed(1)}" ` +
+    `<g transform="translate(${(x - 24 * s).toFixed(2)} ${(y - 24 * s).toFixed(2)}) scale(${s.toFixed(3)})">` +
+    `<g class="orb-glyph-glow">${GLYPH[id] ?? DEFAULT}</g><g class="orb-glyph">${GLYPH[id] ?? DEFAULT}</g></g>` +
+    `<ellipse cx="${(x - r * 0.36).toFixed(1)}" cy="${(y - r * 0.46).toFixed(1)}" rx="${(r * 0.34 + 1.5).toFixed(1)}" ry="${(r * 0.18 + 1.5).toFixed(1)}" fill="url(#${g}p)" ` +
     `transform="rotate(-30 ${(x - r * 0.36).toFixed(1)} ${(y - r * 0.46).toFixed(1)})" class="orb-spec"/></g>`
 }

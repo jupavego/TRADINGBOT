@@ -69,6 +69,9 @@ export function orbitPos(k: number, n: number, cx: number, cy: number): OrbitPos
 export const orbitTransform = (p: OrbitPos): string =>
   `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) scale(${p.s.toFixed(3)})`
 
+const FRAME_MS = 1000 / 30 - 2
+let onScreen = true, watched = false
+
 /** Marca si el puntero está sobre un agente (pausa la órbita mientras tanto). */
 export function holdOrbit(on: boolean): void { hold = on }
 
@@ -81,12 +84,17 @@ export function animateOrbit(root: HTMLElement, cx: number, cy: number, paused: 
   if (running || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   running = true
   last = performance.now()
+  if (!watched) {               // fuera de pantalla la órbita se detiene (antes solo con la pestaña oculta)
+    watched = true
+    new IntersectionObserver((es) => { onScreen = es.some((e) => e.isIntersecting) }).observe(root)
+  }
   const loop = (now: number): void => {
     const back = root.querySelector('g.orbit-back'), front = root.querySelector('g.orbit-front')
     if (!back || !front || !document.contains(root)) { running = false; return }
+    if (now - last < FRAME_MS) { requestAnimationFrame(loop); return }   // ~30 cuadros/s bastan para la órbita
     const dt = Math.min(0.1, (now - last) / 1000)
     last = now
-    if (!(hold || frozen() || document.hidden || !root.offsetParent)) {
+    if (!(hold || frozen() || document.hidden || !root.offsetParent || !onScreen)) {
       t += dt
       place(root, back, front)
     }

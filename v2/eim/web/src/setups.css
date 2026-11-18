@@ -39,7 +39,7 @@
 @media (max-width: 900px) { .setups { margin: 12px; } }
 
 :root[data-theme="cyber"] .setups {
-  border-color: rgba(var(--glow), .22); border-radius: var(--radius); background: var(--glass); backdrop-filter: blur(10px);
+  border-color: rgba(var(--glow), .22); border-radius: var(--radius); background: var(--glass);
   box-shadow: 0 0 28px rgba(var(--glow), .07), inset 0 0 40px rgba(var(--glow), .035);
 }
 :root[data-theme="cyber"] .su-card { background: rgba(4, 10, 19, .6); border-color: rgba(var(--glow), .18); border-radius: 3px; }
