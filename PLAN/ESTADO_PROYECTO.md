@@ -27,9 +27,9 @@ manda es esta sección**. Escrita a las ~03:15 UTC del 2026-11-18.
   resueltos. **Fusionar solo ese**, no las ramas sueltas `claude/t179-…`, `t180-…` y `t181-…`, que ya
   están dentro. Fusionar en `main` necesita el sí explícito del usuario: el modo automático lo deniega
   si no lo hay.
-- Gate del #305: por la cola de `juanpablo-cpu`, en 5 trozos. **Solo pasó el trozo 1** (ruff + `tests/paper`); los
-  trozos 2–5 se cancelaron a las 03:58 UTC por falta de RAM: con 340 MB libres, el bróker de T31 se atascó. **Hay que
-  correrlos** (en la portátil o aquí con margen), como explica el punto 2.
+- Gate del #305: **verde** sobre `4421c73`, por la cola en 5 trozos (el 1 a las 01:57 UTC; los 2–5 el 2026-11-18 de
+  13:08 a 13:31 UTC, tras reiniciarse el equipo): ruff limpio, **3 821 pasadas, 8 omitidas, 0 fallos**. Falta solo el sí del
+  usuario para fusionar.
 
 **Decisiones del usuario de esta sesión (◆, no reabrir sin preguntar):**
 - T128 cerrada con su criterio de líderes cumplido en parte; lo que falta es **T178**.
