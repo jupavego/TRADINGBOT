@@ -56,6 +56,14 @@ CREATE TABLE IF NOT EXISTS leader_recon (
 CREATE TABLE IF NOT EXISTS leader_gaps (
     leader_id VARCHAR, symbol VARCHAR, t_from BIGINT, t_to BIGINT, cause VARCHAR,
     detail VARCHAR, observed_at BIGINT, recovered INTEGER, machine VARCHAR);
+CREATE TABLE IF NOT EXISTS leader_photo_cover (   -- T178: lo que cubrían las fotos borradas
+    leader_id VARCHAR PRIMARY KEY, cut_t BIGINT, covered_ms BIGINT, first_at BIGINT,
+    kept BIGINT, dropped BIGINT, last_shape VARCHAR);
+CREATE TABLE IF NOT EXISTS leader_recon_daily (   -- T178: resumen de las que se borran
+    leader_id VARCHAR, day BIGINT, machine VARCHAR, checks BIGINT, size_ok BIGINT,
+    matched BIGINT, resynced BIGINT, coins_checked BIGINT, coins_skipped BIGINT,
+    after_retry BIGINT, offset_sum BIGINT, offset_n BIGINT, offset_max INTEGER,
+    first_at BIGINT, last_at BIGINT, PRIMARY KEY (leader_id, day, machine));
 """
 _MACHINE_TABLES = ("leader_recon", "leader_gaps")     # sin clave natural: T61 les añade `machine`
 _FILL_COLS = ("leader_id, tid, oid, address, symbol, side, action, size, price, start_position, "

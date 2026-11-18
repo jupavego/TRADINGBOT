@@ -42,6 +42,7 @@ from eim.data.leader_eval import evaluate, refresh_portfolios
 from eim.data.leader_fold_io import EvalCache
 from eim.data.leader_prune import prune
 from eim.data.leader_quotes import QuoteBook
+from eim.data.leader_retention import retain
 from eim.data.leader_snapshot import take_snapshot_request
 from eim.data.leader_store import LeaderStore
 from eim.data.leader_watch import LeaderWatch
@@ -278,6 +279,11 @@ class LeaderService(LeaderWatch):
                       "origins": sum(x.origins for x in got.values())}
             log.info("poda de rechazados: %s", detail)
             hooks_service.service_event("leaders.service", "poda de rechazados", detail=detail)
+        kept = await asyncio.to_thread(retain, self.store, self.now())
+        if kept:
+            log.info("retención de recon y fotos: %s", kept.to_json())
+            hooks_service.service_event("leaders.service", "retención de recon y fotos",
+                                        detail=kept.to_json())
         free = await asyncio.to_thread(free_share, self.store)
         if free is not None and self._stop is not None:
             self.compact_wanted = True

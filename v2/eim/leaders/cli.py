@@ -39,6 +39,7 @@ from eim.data.leader_eval import evaluate, refresh_portfolios
 from eim.data.leader_prune import DAY_MS, KEEP_MS, prune
 from eim.data.leader_ranking import RankingUnavailable, discover_ranking
 from eim.data.leader_report import render, summary
+from eim.data.leader_retention import retain
 from eim.data.leader_service import COMPACT_EXIT, HEARTBEAT, LeaderService
 from eim.data.leader_store import DB_NAME, LeaderStore
 from eim.data.providers.leaders import HyperliquidInfo, now_ms
@@ -110,16 +111,19 @@ def _compact(root: str | Path) -> None:
 
 
 def _prune_cold(root: str | Path, now: int, keep_ms: int = KEEP_MS) -> dict:
-    """T128: poda de los rechazados con la base cerrada para los demás (antes de compactar,
-    así el compactado ya devuelve ese espacio). Abre y cierra la base."""
+    """T128: poda de los rechazados y T178: retención de reconciliaciones y fotos, con la base
+    cerrada para los demás (antes de compactar, así el compactado ya devuelve ese espacio).
+    Abre y cierra la base."""
     store = LeaderStore.at_root(root)
     try:
         with lowered("batch"):
             got = prune(store, now, keep_ms=keep_ms)
+            kept = retain(store, now, keep_ms=keep_ms)
     finally:
         store.close()
-    return {lid: {"fills": x.fills, "quotes": x.quotes, "trips": x.trips, "origins": x.origins}
-            for lid, x in got.items()}
+    return {"podado": {lid: {"fills": x.fills, "quotes": x.quotes, "trips": x.trips,
+                             "origins": x.origins} for lid, x in got.items()},
+            "retenido": kept.to_json()}
 
 
 def _prune_then_compact(root: str | Path) -> None:
@@ -132,10 +136,11 @@ def _prune_then_compact(root: str | Path) -> None:
         logging.getLogger(__name__).warning("poda de %s: %s", DB_NAME, exc)
         hooks_service.service_error("leaders.service", exc, detail={"what": "poda"})
     else:
-        if got:
-            logging.getLogger(__name__).info("poda de rechazados: %s", got)
+        if got["podado"] or any(got["retenido"].values()):
+            logging.getLogger(__name__).info("poda y retención: %s", got)
             hooks_service.service_event("leaders.service", "poda de rechazados",
-                                        detail={"leaders": len(got)})
+                                        detail={"leaders": len(got["podado"]),
+                                                **got["retenido"]})
     _compact(root)
 
 
@@ -225,7 +230,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.cmd == "prune":  # abre y cierra la base; luego la compacta
         got = _prune_cold(a.root, now_ms(), int(a.days * DAY_MS))
         done = compact(Path(a.root) / DB_NAME)
-        print(json.dumps({"podado": got, "compactado": done}, indent=1))
+        print(json.dumps({**got, "compactado": done}, indent=1))
         return 0
     store = LeaderStore.at_root(a.root)
     try:

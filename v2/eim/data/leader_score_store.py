@@ -62,6 +62,13 @@ class ScoreTables:
             "SELECT observed_at FROM leader_positions WHERE leader_id = ? AND observed_at <= ? "
             "ORDER BY observed_at", [lid, asof])]
 
+    def photo_cover(self, lid: str) -> tuple[int, int, int | None] | None:
+        """(corte, tiempo cubierto hasta el corte, primera foto) que dejó la retención de T178
+        al borrar fotos; None si a ese líder no se le ha borrado ninguna."""
+        row = self._exec("SELECT cut_t, covered_ms, first_at FROM leader_photo_cover "
+                         "WHERE leader_id = ?", [lid])
+        return row[0] if row else None
+
     def positions_near(self, lid: str, asof: int) -> tuple[int, list[LeaderPosition]] | None:
         """Última foto con observed_at ≤ asof (sin límite de edad)."""
         row = self._exec("SELECT observed_at, positions FROM leader_positions WHERE "

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-18T12:06:22",
+ "generated": "2026-11-18T14:34:43",
  "phases": [
   {
    "n": 0,
@@ -2636,8 +2636,8 @@ window.EIM_STATUS = {
    "deps": [
     "T128"
    ],
-   "state": "pending",
-   "notes": "— (abierta al cerrar T128: +53 MB/día en la semana medida, `PLAN/T178.md`)",
+   "state": "progress",
+   "notes": "**Entregables 1, 2 y 4 hechos; falta la ◆ del 3 y desplegar** (`PLAN/notas/T178_retencion.md`). Medido sobre la copia del 18-nov: la poda de T128 **está al día** (solo 2 371 ejecuciones de rechazados con más de 7 días) y los **+53 MB/día son casi enteros las fotos de posiciones** (≈ 6,5 KB cada una en disco × 10 600/día); las reconciliaciones, 41 300 filas/día, son 0,4 MB/día. `eim/data/leader_retention.py`: de las reconciliaciones con más de 7 días se quedan todas las que no cuadran y una por líder cada 2 min (por debajo del `recon_gap_ms` de 5 min, para no inventar huecos en la copia simulada), con resumen diario en `leader_recon_daily` que `leader_report` suma al informe; de las fotos, cada cambio de forma y una por hora, con el tiempo capturado guardado antes de borrar en `leader_photo_cover` para que `observed_ms` (lo que mide T49) no cambie. Corre tras la poda diaria y en frío antes de compactar. **Ahorra solo el 39 % de los bytes de las fotos** (el 66 % son cambios de forma de verdad): 53 → ≈ 32 MB/día. **◆ abierta:** recodificar la foto sin perder ningún campo (hoy repite `leader_id` y `address` en cada posición) la deja en el 25 % y, con la poda por hora, en el **9 % (≈ 5 MB/día)**; medido en disco con 20 000 fotos reales. 7 pruebas en `tests/data/test_leader_retention.py`.",
    "effort": "bajo",
    "phase": 21
   },
