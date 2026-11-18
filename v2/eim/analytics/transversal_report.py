@@ -36,12 +36,15 @@ def markdown(out: dict, uni: dict) -> str:
               f"- Semanas medidas: {out['weeks']} ({out['first']} → {out['last']}).",
               f"- **t de Newey-West = {out['t_nw']:.2f}** (p unilateral {out['p_one_sided']:.4f}) → "
               f"**{out['verdict']}**.",
-              f"- Beta semanal frente a BTC: {out['beta_btc']:+.3f}"
-              + (" (neutral)" if out["beta_btc"] is not None and abs(out["beta_btc"]) < 0.3
-                 else " (**no** neutral)") + f" · correlación carry–momentum {out['rho_cm']:+.2f}.",
+              "- Beta semanal frente a BTC (en retorno; neutral si |β| < 0,3): "
+              + ", ".join(f"{k} {b:+.3f} ({'neutral' if abs(b) < 0.3 else '**no** neutral'})"
+                          for k, b in (out["beta_btc"] or {}).items())
+              + f" · correlación de la combinada con BTC {out['corr_btc']:+.2f}"
+              + f" · correlación carry–momentum {out['rho_cm']:+.2f}.",
               "", "| Cartera | Semanas | Media semanal | Sharpe anual |", "|---|---|---|---|"]
-    lines += [f"| {k} | {v['weeks']} | {v['mean_weekly'] * 100:+.3f} % | {v['sharpe']:+.2f} |"
-              for k, v in s.items()]
+    lines += [f"| {k} | {v['weeks']} | "
+              + (f"{v['mean_weekly']:+.3f} σ" if k == "combinada" else f"{v['mean_weekly'] * 100:+.3f} %")
+              + f" | {v['sharpe']:+.2f} |" for k, v in s.items()]
     lines += ["", "Carry y momentum se informan; **solo la combinada se juzga** (◆ del usuario).",
               "La combinada está en unidades de volatilidad (escala de 26 semanas): su media no es un "
               "retorno en %, su Sharpe sí se compara."]

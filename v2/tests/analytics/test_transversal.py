@@ -87,7 +87,7 @@ def test_con_historia_suficiente_mide_una_vez_la_combinada():
     out = tv.run(panel(years=7.0, carry_edge=30.0))
     assert out["measured"] and out["gate"]["passes"]
     assert set(out["stats"]) == {"carry", "momentum", "combinada"}
-    assert out["verdict"] in ("PASA", "NO PASA") and out["beta_btc"] is not None
+    assert out["verdict"] in ("PASA", "NO PASA") and set(out["beta_btc"]) == {"carry", "momentum"}
     assert out["stats"]["carry"]["sharpe"] > 0                        # el efecto plantado se ve
 
 

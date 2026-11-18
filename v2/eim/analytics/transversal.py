@@ -143,14 +143,21 @@ def run(p: Panel, btc: pd.Series | None = None) -> dict:
     series = (("carry", df["carry"]), ("momentum", df["momentum"]), ("combinada", comb))
     stats = {name: {"mean_weekly": float(s.mean()), "weeks": int(len(s)),
                     "sharpe": float(s.mean() / s.std() * math.sqrt(52))} for name, s in series}
-    beta, bw = None, btc if btc is not None else btc_weekly(p)
+    # §3: la beta se mide en retorno (carry y momentum). La combinada está en unidades de
+    # volatilidad, así que de ella solo se informa la correlación con BTC (una beta mezclaría
+    # unidades: la primera corrida del 2026-11-18 dio +0,754 por eso).
+    beta, corr, bw = {}, None, btc if btc is not None else btc_weekly(p)
     if bw is not None:
+        for name, ser in (("carry", df["carry"]), ("momentum", df["momentum"])):
+            j = ser.to_frame("c").join(bw.rename("b"), how="inner").dropna()
+            if len(j) > 10:
+                beta[name] = float(np.cov(j["c"], j["b"])[0, 1] / np.var(j["b"], ddof=1))
         j = comb.to_frame("c").join(bw.rename("b"), how="inner").dropna()
-        if len(j) > 10:
-            beta = float(np.cov(j["c"], j["b"])[0, 1] / np.var(j["b"], ddof=1))
+        corr = float(j["c"].corr(j["b"])) if len(j) > 10 else None
     rho = float(df["carry"].corr(df["momentum"]))
     return {"gate": gate, "measured": True, "t_nw": float(t_nw), "p_one_sided": p_one,
-            "verdict": "PASA" if t_nw > Z else "NO PASA", "beta_btc": beta, "rho_cm": rho,
+            "verdict": "PASA" if t_nw > Z else "NO PASA", "beta_btc": beta, "corr_btc": corr,
+            "rho_cm": rho,
             "stats": stats, "weeks": int(len(comb)),
             "first": str(comb.index[0].date()), "last": str(comb.index[-1].date())}
 

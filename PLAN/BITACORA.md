@@ -1631,3 +1631,9 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Hecho:** a pedido del usuario, todo queda listo para que otra cuenta siga desde `LAPTOP-I6PF9OVP`: ramas subidas (ninguna con commits solo locales), PR #305 abierto con la integración del día y §0 de `ESTADO_PROYECTO.md` reescrito como punto de entrada (git, ◆ de la sesión, lo que queda en orden, cómo medir T164 y cómo correr el gate en trozos, lo que vive solo en `juanpablo-cpu`).
 - **Abierto:** el gate en trozos del #305, la descarga de T181 y la medición única de T164.
 - **Siguiente paso:** el de §0, punto 1.
+
+## 2026-11-18 · sesión «Retroalimentación, calibración y ajustes» · T164 medida: NO PASA
+- **Hecho:** T181 bajó la historia completa (659 perpetuos, 2,70 M liquidaciones de funding, 641 828 velas diarias, 1 error). La medición de T164 corrió una vez con el pre-registro congelado. La puerta de potencia pasó (5,69 años evaluables frente a 5,1) y la combinada **no pasa** (t Newey-West 0,81, p 0,21), neutral al mercado. Informativo: carry solo Sharpe +0,77, momentum +0,24. El informe se regeneró una vez para corregir la beta, que mezclaba unidades; la prueba y el resultado no cambiaron (declarado en el informe).
+- **Archivos:** `v2/reports/t164_transversal.{md,json}`, `v2/eim/analytics/transversal{,_report}.py` (beta en retorno), `PLAN/STATUS.md` (T164 y T181 ☑), `PLAN/BACKLOG.md` (T164).
+- **Lectura:** con estas reglas y esta historia no hay ventaja transversal demostrada. La pista del carry solo necesita otro pre-registro hacia adelante y los retirados recuperados.
+
