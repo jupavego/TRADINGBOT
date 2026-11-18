@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-17T06:23:01",
+ "generated": "2026-11-17T22:27:49",
  "phases": [
   {
    "n": 0,
@@ -310,7 +310,9 @@ window.EIM_STATUS = {
     "T144",
     "T145",
     "T146",
-    "T150"
+    "T150",
+    "T179",
+    "T180"
    ]
   },
   {
@@ -331,7 +333,8 @@ window.EIM_STATUS = {
     "T163",
     "T164",
     "T165",
-    "T166"
+    "T166",
+    "T181"
    ]
   },
   {
@@ -2441,13 +2444,12 @@ window.EIM_STATUS = {
    "id": "T164",
    "title": "◆ Carry de funding y momentum transversales sobre el universo de perpetuos",
    "deps": [
-    "T93",
-    "T95",
+    "T181",
     "T145",
     "T161"
    ],
-   "state": "pending",
-   "notes": "Misma investigación. Extiende la clase B sin esperar al funding de BTC/ETH. Requiere T93.",
+   "state": "done",
+   "notes": "**Hecha 2026-11-18. Veredicto: NO PASA.** Pre-registro `transversal_v1` congelado antes de mirar retornos (`PLAN/notas/T164_preregistro.md`), familia propia y una sola hipótesis, la cartera combinada carry + momentum (◆ del usuario). Puerta de potencia: 5,69 años evaluables (323 semanas con ≥ 30 elegibles desde 2020-09) frente a 5,1 → pasa. Medición única: t de Newey-West **0,81** (p 0,21). Neutral al mercado (β carry +0,04, momentum −0,04). Informativo, sin juzgar: carry solo Sharpe neto +0,77, momentum +0,24, ρ +0,17; el carry probablemente se beneficia del sesgo de supervivencia. Informe `v2/reports/t164_transversal.md` ||",
    "effort": "medio",
    "phase": 26
   },
@@ -2637,6 +2639,45 @@ window.EIM_STATUS = {
    "notes": "— (abierta al cerrar T128: +53 MB/día en la semana medida, `PLAN/T178.md`)",
    "effort": "bajo",
    "phase": 21
+  },
+  {
+   "id": "T179",
+   "title": "Puerta de costo por perfil y marco, con la sombra calibrada con el libro",
+   "deps": [
+    "T143",
+    "T144",
+    "T175"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-17 (◆ de T175 aprobada), entra al reiniciar la API; solo en la variante t143.** La sombra subestima lo que paga el libro (15 m: agresivo 0,132 → 0,185 R, moderado 0,106 → 0,136; la escalera sale como tomador y con más deslizamiento), así que cada perfil se juzga con la sombra que él aceptaría × un factor vivido/gemela por perfil y marco (`eim/paper/tf_calib.py`), contra los mismos 0,15 R. Cerrar solo bloquea posiciones nuevas: tramos `[desde, hasta]` guardados en `data/paper/tf_gate_t143.json` (`eim/paper/tf_gate_profile.py`, `desk_gate.py`); `cost.by_profile` en la API. Hoy cerraría solo agresivo@15m (≈ 0,165 R). T31 intacta (campo fuera de la huella). 13 pruebas nuevas en `tests/paper/test_tf_gate_profile.py` y `test_variant.py`. Ficha `PLAN/T179.md`",
+   "effort": "bajo",
+   "phase": 24
+  },
+  {
+   "id": "T180",
+   "title": "Pre-registro del carry de funding de BTC, congelado para el disparador B",
+   "deps": [
+    "T43",
+    "T45",
+    "T145",
+    "T161"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-17 (◆ del usuario: dejarlo listo); no opera ni reabre B.** Aritmética: a VIP 0 y 3×, el carry solo bate la referencia del 4 % sobre el capital con funding ≥ **6,6 %** anual; el disparador del 4 % avisa, no garantiza. Regla congelada: entrar con funding de 30 días ≥ 6,6 %, salir < 5,33 %, sin tenencia fija (no se reutiliza la de 2 160 h); unidad, bloques de 30 días en posición; un intento más en Holm (842). Potencia con σ medido (53,9 pb por bloque): con funding real de 10 %, «bate la referencia» exige 83 bloques con Holm; solo con ≥ 15 % cabe en ~1 año. Funding 12 m al congelar 3,49 % y subiendo (3 m: 6,02 %). La auditoría remite aquí al saltar. Ficha `PLAN/T180.md`",
+   "effort": "bajo",
+   "phase": 24
+  },
+  {
+   "id": "T181",
+   "title": "Historia del universo de perpetuos USDT (lo mínimo que pide T164)",
+   "deps": [
+    "T03",
+    "T145"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-18.** `eim/data/perp_universe.py`: 659 perpetuos USDT (522 vigentes, 136 en liquidación, 1 pendiente), 2,70 M liquidaciones de funding y 641 828 velas diarias en `data/universe_perps/` (60 MB), 3 s entre llamadas por el límite compartido con el bróker; 1 error (GAIBUSDT, retirado). Sesgo de supervivencia declarado. Ficha `PLAN/T181.md` |",
+   "effort": "bajo",
+   "phase": 26
   }
  ]
 };
