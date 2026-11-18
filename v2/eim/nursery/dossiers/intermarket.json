@@ -1,0 +1,28 @@
+{
+ "agent_id": "intermarket",
+ "agent_version": "0.1.0",
+ "status": "excluido",
+ "verified": "2026-11-18",
+ "theory": "Contexto de otros mercados: impulso y tendencia del Nasdaq y el S&P 500, oro como refugio y correlación de la cripto con los índices (T183).",
+ "variables": [],
+ "history": {
+  "source": "data/intermarket/*.jsonl",
+  "from": "2026-11-18",
+  "to": "2026-11-18",
+  "coverage": "recién encendido: ~400 sesiones diarias por activo descargadas al sincronizar; sin reportes en vivo todavía",
+  "exam": "solo_adelante"
+ },
+ "cadence": null,
+ "literature": [],
+ "prospects": [],
+ "exclusion_reason": "Agente nuevo (T183), informante con peso 0 en la síntesis. Su lectura es diaria y lenta: en los 6 meses de la cantera daría pocos cambios de postura y ningún veredicto. Se inscribe solo si la prueba de aporte marginal (≥ 3 meses de reportes en vivo) dice que aporta.",
+ "reserve": [
+  {
+   "id": "im_riesgo_on",
+   "rule": "sigue el sesgo con correlación cripto–Nasdaq ≥ 0,3 e impulso de los índices |z| ≥ 1",
+   "why_not": "sin historia de reportes en vivo"
+  }
+ ],
+ "notes": [],
+ "performance_computed": false
+}

@@ -83,7 +83,8 @@ def test_default_registry_has_structure():
 NO_DATA = {"seasonality", "liquidations", "derivatives", "microstructure", "context", "calendar",
            "arbitrage",  # arbitrage: el CSV no trae fotografía de libros (T39)
            "smart_money",  # smart_money: sin tablero de líderes (T41)
-           "bots"}  # bots: el snapshot del CSV no trae señales del servicio de bots (T57)
+           "bots",  # bots: el snapshot del CSV no trae señales del servicio de bots (T57)
+           "intermarket"}  # intermarket: el CSV no trae velas diarias de oro ni índices (T183)
 
 
 def test_new_agents_registered_and_run():
