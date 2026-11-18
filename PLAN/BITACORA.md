@@ -1626,3 +1626,8 @@ más reciente por fecha y su siguiente paso. Formato:
 - **En curso:** la descarga de T181 (≈ 2,6 h).
 - **Siguiente paso:** ◆ sobre la combinada; con el universo bajado, la historia disponible por la regla de §1 (sin retornos).
 
+
+## 2026-11-18 · sesión «Retroalimentación, calibración y ajustes» · traspaso a otra cuenta en la portátil de Santivego
+- **Hecho:** a pedido del usuario, todo queda listo para que otra cuenta siga desde `LAPTOP-I6PF9OVP`: ramas subidas (ninguna con commits solo locales), PR #305 abierto con la integración del día y §0 de `ESTADO_PROYECTO.md` reescrito como punto de entrada (git, ◆ de la sesión, lo que queda en orden, cómo medir T164 y cómo correr el gate en trozos, lo que vive solo en `juanpablo-cpu`).
+- **Abierto:** el gate en trozos del #305, la descarga de T181 y la medición única de T164.
+- **Siguiente paso:** el de §0, punto 1.
