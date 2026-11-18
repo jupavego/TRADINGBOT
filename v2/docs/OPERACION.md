@@ -451,9 +451,11 @@ API la huella del código es la del arranque: el código que de verdad corre, au
   - `python -m eim.leaders copy-status` — capital, resultado, órdenes y pausas de cada subcuenta.
   - `python -m eim.leaders copy-sim` — reproduce la copia sobre todo el historial capturado (mismo motor) y escribe `reports/copytrading_sim.md` (+ bitácora en `data/copytrading/replay_journal.jsonl`). Con el servicio en marcha le pide una instantánea de la base (`data/leaders/snapshot-<hora>.duckdb`, un archivo por pedido; se copia en una transacción aparte, sin frenar la captura); pide `meta` y velas de 1 min de Hyperliquid (caché en `data/cache/hl_candles/`; el exchange solo sirve ≈ 3,5 días de velas de 1 min). `--offline` usa solo la caché.
   - `python -m eim.leaders copy-resume 0x…` (o `--all`) — reanuda a mano una subcuenta en pausa (ver `docs/RUNBOOK.md` §11).
-- **Bróker simulado (T47):** botón «Bróker simulado» arriba a la derecha. Historial inicial o ampliación:
-  `python -m eim.paper backtest --symbol BTCUSDT --days 60 [--tf 15m,1h,4h]` (si la API está en marcha le delega el trabajo;
-  ≈1,5 s por vela y por proceso, en paralelo) o el botón «Ejecutar» de la vista. Resumen por consola:
+- **Bróker simulado (T47):** botón «Bróker simulado» arriba a la derecha. Desde T182 no hay botón ni ruta para
+  reconstruir historial: con `ExecParams.live_first` el servicio se pone al día solo con las velas que falten en los
+  últimos 30 días (quedan como reconstruidas; los libros solo toman lo vivo). Para un laboratorio sobre una copia del
+  almacén (con la API detenida o en otra carpeta): `python -m eim.paper backtest --data <carpeta> --symbol BTCUSDT
+  --days 60 [--tf 15m,1h,4h]` (≈1,5 s por vela y por proceso, en paralelo). Resumen por consola:
   `python -m eim.paper resumen`. Para empezar de cero: detener la API y borrar `data/paper.duckdb`.
   - **Cómo leer las cifras de la cuenta (T107).** Hay dos capitales y uno solo manda:
     «Saldo realizado (balance)» = solo lo cerrado; **«Capital (equity)» = saldo + PnL no realizado**, y

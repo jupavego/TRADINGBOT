@@ -54,6 +54,15 @@ class ExecParams(BaseModel):
     # defecto (T31 intacta); la corrida aparte de T143 pone ("1h", "4h").
     maker_entry_timeframes: tuple[str, ...] = ()
     maker_entry_bars: float = 1.0
+    # T182 (◆ del usuario 2026-11-18): lo vivo manda. Encendido, (1) los libros de los perfiles
+    # (capital, balance, Historial) solo toman ideas decididas en tiempo real (`origin = vivo`);
+    # (2) lo reconstruido solo pesa en el aprendizaje como opinión inicial acotada a `prior_cap`
+    # operaciones, que se diluye con cada cierre vivo (`eim/paper/prior.py`); y (3) el servicio se
+    # pone al día solo con las velas que falten (`service.catch_up`), sin botón. No entra en
+    # `exec_fingerprint` (no cambia la sombra). Apagado por defecto: el valor por defecto es la
+    # configuración de T31, que no cambia hasta su cierre (2026-11-27); se enciende al cerrarla.
+    live_first: bool = False
+    prior_cap: float = Field(8.0, ge=0.0)
     path_tf: str = "15m"             # camino del precio para llenar y salir
     min_risk_frac: float = 0.001     # SL a menos de 0,1 % del precio = geometría inválida
     funding_8h_assumed: float = 0.0001   # solo donde falta el funding real

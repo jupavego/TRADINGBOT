@@ -1,12 +1,15 @@
 """CLI del bróker simulado (desde `v2/`).
 
-    python -m eim.paper backtest --symbol BTCUSDT --days 30 [--step 1]
+    python -m eim.paper backtest --symbol BTCUSDT --days 30 [--step 1]   (laboratorio, sin la API)
     python -m eim.paper resumen --symbol BTCUSDT
     python -m eim.paper proteccion lista|historial|reconciliar …   (T110, `protection_cli.py`)
     python -m eim.paper salidas --symbol BTCUSDT   (calidad de la salida y A/B con la sombra, T130)
 
-DuckDB admite un solo proceso escritor: si la API está en marcha (tiene `data/paper.duckdb`
-abierta), `backtest` le pide el trabajo a ella (`POST /v2/paper/backtest`).
+`backtest` es una herramienta de laboratorio (p. ej. `scripts/ppp_backtest.py` sobre una copia del
+almacén): reconstruye contextos en este proceso y los guarda como `backtest` (reconstruidos). En
+operación nadie la necesita: desde T182 el servicio se pone al día solo y la API ya no expone la
+reconstrucción. DuckDB admite un solo proceso escritor, así que con la API en marcha sobre la
+misma carpeta no puede abrir `paper.duckdb`: usa una copia o detén la API.
 """
 
 from __future__ import annotations
@@ -14,11 +17,10 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-import urllib.error
 import urllib.request
 from pathlib import Path
 
-from eim.data.local_api import DEFAULT_API, post_local
+from eim.data.local_api import DEFAULT_API
 from eim.data.timeframes import SYMBOLS
 from eim.paper import exit_cli, protection_cli
 
@@ -29,7 +31,13 @@ def _backtest_local(a: argparse.Namespace) -> int:
     from eim.paper.generate import CtxGenerator, closed_asofs, default_workers
 
     store = Store(a.data)
-    ps = PaperStore(Path(a.data) / "paper.duckdb")
+    try:
+        ps = PaperStore(Path(a.data) / "paper.duckdb")
+    except Exception as exc:  # noqa: BLE001 - p. ej. la API en marcha tiene la base abierta
+        print(f"no se pudo abrir {a.data}/paper.duckdb ({type(exc).__name__}: {exc}). Con la API "
+              "en marcha usa una copia del almacén (--data) o detenla: en operación el servicio "
+              "se pone al día solo (T182).", file=sys.stderr)
+        return 1
     for tf in a.tf.split(","):
         gen = CtxGenerator(store, timeframe=tf)
         b = store.bounds(a.symbol, tf)
@@ -53,14 +61,15 @@ def _backtest_local(a: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m eim.paper")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    bt = sub.add_parser("backtest", help="reconstruye contextos de los últimos N días")
+    bt = sub.add_parser("backtest", help="laboratorio: reconstruye contextos de los últimos N "
+                                         "días en este proceso (sin la API)")
     bt.add_argument("--symbol", default="BTCUSDT", choices=SYMBOLS)
     bt.add_argument("--days", type=float, default=30)
     bt.add_argument("--step", type=int, default=1, help="cada cuántas velas del marco")
     bt.add_argument("--tf", default="15m,1h,4h", help="marcos separados por coma")
     bt.add_argument("--data", default="data")
-    bt.add_argument("--api", default=DEFAULT_API)
-    bt.add_argument("--local", action="store_true", help="no delegar en la API")
+    bt.add_argument("--local", action="store_true",
+                    help="sin efecto (se acepta por compatibilidad: siempre es local)")
     bt.add_argument("--workers", type=int, default=0, help="procesos (0 = núcleos − 2)")
     rs = sub.add_parser("resumen", help="resumen de perfiles y estrategias (vía la API)")
     rs.add_argument("--symbol", default="BTCUSDT", choices=SYMBOLS)
@@ -73,14 +82,6 @@ def main(argv: list[str] | None = None) -> int:
     if a.cmd == "salidas":
         return exit_cli.run(a)
     if a.cmd == "backtest":
-        if not a.local:
-            try:
-                r = post_local(a.api, f"/v2/paper/backtest?symbol={a.symbol}&days={a.days}"
-                                      f"&step={a.step}&tf={a.tf}", "paper-backtest")
-                print(json.dumps(r, ensure_ascii=False, indent=1))
-                return 0
-            except (urllib.error.URLError, OSError):
-                print("API no disponible: se calcula en este proceso", flush=True)
         return _backtest_local(a)
     with urllib.request.urlopen(f"{a.api}/v2/paper?symbol={a.symbol}", timeout=120) as r:  # noqa: S310
         v = json.loads(r.read())

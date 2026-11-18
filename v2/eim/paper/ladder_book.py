@@ -17,6 +17,7 @@ from eim.paper.ideas import Idea
 from eim.paper.ladder import floor_qty, simulate_ladder
 from eim.paper.ladder_floor import Guard
 from eim.paper.params import ExecParams, LadderParams, ProfileParams, spec_for
+from eim.paper.prior import Prior, judge_blend
 
 
 @dataclass(frozen=True)
@@ -95,15 +96,31 @@ class LadderRisk:
     halt_until: int = 0
     halt_reason: str = ""
     activations: list[dict] = field(default_factory=list)
+    # T182 (lo vivo manda): opinión inicial con los cierres del libro previo sobre lo
+    # reconstruido, acotada a `prior_cap` operaciones; y registro de cierres (estrategia,
+    # contexto, exit_t, R), del que sale el prior cuando este libro es el previo
+    prior: Prior | None = None
+    prior_cap: float = 0.0
+    log: list[tuple[str, str, int, float]] = field(default_factory=list)
 
-    def strategy(self, sid: str, p: ProfileParams) -> Judgement:
-        """Juicio de una estrategia@marco con lo que la escalera ya cerró (hasta ahora)."""
-        return _capped(judge(self.r_by_sid.get(sid, []), p.feedback), p.ladder or p.adaptive)
+    def _judge(self, rs: list[float], pri, p: ProfileParams) -> Judgement:
+        j = (judge(rs, p.feedback) if pri is None
+             else judge_blend(rs, pri, p.feedback, self.prior_cap))
+        return _capped(j, p.ladder or p.adaptive)
 
-    def own(self, sid: str, ctx: str, p: ProfileParams) -> tuple[Judgement, Judgement]:
+    def strategy(self, sid: str, p: ProfileParams, t: int | None = None) -> Judgement:
+        """Juicio de una estrategia@marco con lo que la escalera ya cerró (hasta ahora; con
+        prior, el reconstruido cerrado hasta `t`)."""
+        pri = (self.prior.strategy(sid, t, p.feedback.half_life)
+               if self.prior is not None and t is not None else None)
+        return self._judge(self.r_by_sid.get(sid, []), pri, p)
+
+    def own(self, sid: str, ctx: str, p: ProfileParams,
+            t: int | None = None) -> tuple[Judgement, Judgement]:
         """Juicio de la estrategia y del contexto con lo que la escalera ya cerró (hasta ahora)."""
-        return (self.strategy(sid, p),
-                _capped(judge(self.r_by_ctx.get(ctx, []), p.feedback), p.ladder or p.adaptive))
+        pri = (self.prior.context(ctx, t, p.feedback.half_life)
+               if self.prior is not None and t is not None else None)
+        return self.strategy(sid, p, t), self._judge(self.r_by_ctx.get(ctx, []), pri, p)
 
     def veto(self, t: int) -> str | None:
         return (f"entradas en pausa hasta {t_iso(self.halt_until)} UTC: {self.halt_reason}"
@@ -116,6 +133,7 @@ class LadderRisk:
         if r is not None:
             self.r_by_sid.setdefault(i.sid, []).append(r)
             self.r_by_ctx.setdefault(context_key(i), []).append(r)
+            self.log.append((i.sid, context_key(i), exit_t, r))
         self.peak = max(self.peak or initial, equity)
         self.consec = self.consec + 1 if pnl <= 0 else 0
         if lp is None or not lp.brake:   # los tres perfiles conservan su propio freno (`caps`)

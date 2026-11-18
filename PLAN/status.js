@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-18T09:12:25",
+ "generated": "2026-11-18T11:50:27",
  "phases": [
   {
    "n": 0,
@@ -334,7 +334,8 @@ window.EIM_STATUS = {
     "T164",
     "T165",
     "T166",
-    "T181"
+    "T181",
+    "T182"
    ]
   },
   {
@@ -2677,6 +2678,22 @@ window.EIM_STATUS = {
    "state": "done",
    "notes": "**Hecha 2026-11-18.** `eim/data/perp_universe.py`: 659 perpetuos USDT (522 vigentes, 136 en liquidación, 1 pendiente), 2,70 M liquidaciones de funding y 641 828 velas diarias en `data/universe_perps/` (60 MB), 3 s entre llamadas por el límite compartido con el bróker; 1 error (GAIBUSDT, retirado). Sesgo de supervivencia declarado. Ficha `PLAN/T181.md` |",
    "effort": "bajo",
+   "phase": 26
+  },
+  {
+   "id": "T182",
+   "title": "Lo vivo manda: fuera el botón de backtest, puesta al día automática y libros solo en vivo",
+   "deps": [
+    "T47",
+    "T48",
+    "T49",
+    "T109",
+    "T118",
+    "T31"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-18 (◆ del usuario), los pasos 2–4 apagados hasta cerrar T31.** Fuera de la cabecera del bróker el botón «Reconstruir historial (backtest)» y sus selectores, y las rutas `POST /v2/paper/backtest(/stop)`; el CLI queda como laboratorio local. Detrás de `ExecParams.live_first` (apagado: configuración de T31; fuera de `exec_fingerprint`): puesta al día automática de las velas que falten en 30 días (`service.catch_up`, lotes de 400, prioridad baja, quedan como reconstruidas), libros de los perfiles solo con `origin = vivo` (`live_books.py`) y lo reconstruido como opinión inicial acotada a 8 operaciones que se diluye con cada cierre vivo (`prior.py`, `LadderRisk.prior`, `LiveFirstLearner`). Nada se borra; T49 sigue igual. 18 pruebas nuevas. Encender al cerrar T31 (`PLAN/T31.md`). Ficha `PLAN/T182.md`",
+   "effort": "medio",
    "phase": 26
   }
  ]

@@ -1,7 +1,8 @@
 """Mesa del bróker simulado: une contextos guardados (15 m, 1 h y 4 h), estrategias, motor,
-retroalimentación y perfiles; el servicio en vivo y el backtest están en `service.py`, el diario
-de la protección (T110) en `protection_desk.py` y la instantánea auditable de cada cálculo, con su
-alcance y la conciliación con el libro fijo (T118), en `desk_audit.py`. Siempre SIMULADO."""
+retroalimentación y perfiles; el servicio en vivo y la puesta al día están en `service.py`, los
+libros con «lo vivo manda» (T182) en `live_books.py`, el diario de la protección (T110) en
+`protection_desk.py` y la instantánea auditable de cada cálculo, con su alcance y la conciliación
+con el libro fijo (T118), en `desk_audit.py`. Siempre SIMULADO."""
 
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ from eim.paper import accounting, ledger, tf_gate
 from eim.paper.adaptive import policies_for
 from eim.paper.authority_obs import DecisionEmitter
 from eim.paper.balance import balance
-from eim.paper.book import ProfileState, run_profile
+from eim.paper.book import ProfileState
 from eim.paper.catalog import CATALOG, generate_ideas
 from eim.paper.desk_audit import DeskAudit
 from eim.paper.desk_gate import DeskGate
@@ -29,6 +30,7 @@ from eim.paper.generate import CtxGenerator, now_ms
 from eim.paper.hooks import HookRunner
 from eim.paper.insights import insights
 from eim.paper.ladder_book import LadderSim
+from eim.paper.live_books import profile_books
 from eim.paper.params import (
     FAMILIES,
     PROFILES,
@@ -36,6 +38,7 @@ from eim.paper.params import (
     ProfileParams,
     check_profiles,
 )
+from eim.paper.prior import LiveFirstLearner
 from eim.paper.protection_desk import DeskProtection
 from eim.paper.service import WARMUP_BARS, DeskService, Job
 from eim.paper.summary import coverage, profile_summary
@@ -43,7 +46,7 @@ from eim.paper.trend import HtfTrend
 
 MMR = {"BTCUSDT": 0.004, "ETHUSDT": 0.005}     # tramo bajo de Binance (supuesto, = simulador)
 FUNDING_MS = 8 * 3_600_000
-BUSY_REFRESH_MS = 10 * 60_000   # con un backtest en curso la vista se rehace como mucho cada 10 min
+BUSY_REFRESH_MS = 10 * 60_000   # con la puesta al día en curso, la vista se rehace cada ≥ 10 min
 LEDGER_EVERY_MS = 3_600_000     # el libro fijo se pone al día cada hora aunque nadie mire
 
 
@@ -82,7 +85,8 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
         check_profiles(self.profiles, self.symbols)   # T108: configuración inválida = no arranca
         tf_gate.check(self.ep)                        # T143 (3): umbral de costo por marco
         self.gens = {tf: CtxGenerator(store, registry, tf) for tf in self.tfs}
-        self.job = Job()
+        self.job = Job()                        # puesta al día automática en curso (T182)
+        self.catchup_tried: set[tuple[str, str, int]] = set()
         self.live_error = ""
         self.last_tick: int | None = None
         self.loop_started: int | None = None    # el servicio arrancó (aunque falte el 1er ciclo)
@@ -124,7 +128,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
     def cached_view(self, symbol: str, wait_s: float = 0.0) -> View | None:
         """Vista para la API sin quedarse colgada: con datos nuevos lanza el recálculo en segundo
         plano y espera hasta `wait_s`; si no termina, entrega la última calculada (desfasada) o
-        None si aún no hay ninguna. Con un backtest en curso cada contexto nuevo cambia los datos:
+        None si aún no hay ninguna. Con la puesta al día en curso cada contexto nuevo cambia datos:
         la vista se rehace como mucho cada `BUSY_REFRESH_MS`."""
         v = self._cache.get(symbol)
         if v is not None and (v.stamp == self._stamp(symbol) or self._throttled(v)):
@@ -190,7 +194,8 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
         funding = self.store.read_series("funding", symbol, start=t0 - FUNDING_MS)
         path = v.path = Path(pc, funding, tf_ms(self.ep.path_tf))
         v.outcomes = run_shadow(ideas, path, self.ep)
-        learner = Learner(v.outcomes)
+        learner = (LiveFirstLearner(v.outcomes, self.ep.prior_cap) if self.ep.live_first
+                   else Learner(v.outcomes))           # T182: lo vivo manda (si está encendido)
         mmr = MMR.get(symbol, 0.005)
         fine = self._fine(symbol, t0)
         htf = self.ep.htf[self.ep.path_tf][0]    # T135: marco mayor del camino; hoy, sin perfiles
@@ -200,7 +205,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
         # T143 (3): el marco caro no opera; la sombra y el aprendizaje los siguen viendo todos.
         v.tf_cost, tradable = tf_gate.gate(self.tfs, v.outcomes, self.ep, self.profiles)
         by_p = self._tradable(v, tradable)              # T179: por perfil y marco, si toca
-        v.books = {p.id: run_profile(p, by_p[p.id], learner, mmr, sim) for p in self.profiles}
+        v.books = profile_books(self.profiles, by_p, learner, mmr, sim, self.ep)
         self._record_ledger(v)
         self._emit_decisions(v)
         self._sync_protection(v, fine)
@@ -283,6 +288,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
                         "costs": "tarifa regular Binance (supuesto: taker 0,05 %, maker 0,02 %)"},
             "families": FAMILIES, "causes": CAUSES, "profiles": profiles, "strategies": rows,
             "family_stats": fams, "tf_stats": timeframe_stats(v.outcomes),
+            "live_first": self.ep.live_first,          # T182: libros solo con lo vivo
             "insights": insights(rows, fams, profiles, cov["origins"]),
             "balance": balance({pid: b.trades for pid, b in v.books.items()},
                                {i["id"]: i["name"] for i in infos}, now, self.tfs),

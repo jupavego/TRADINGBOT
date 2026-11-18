@@ -46,13 +46,6 @@ export async function getPaper<T>(path: string, signal?: AbortSignal): Promise<T
   return body as T
 }
 
-export async function postPaper<T>(path: string): Promise<T> {
-  const r = await fetch(`${base()}/v2/paper${path}`, { method: 'POST', headers: { 'X-EIM-Confirm': 'paper-backtest' } })
-  const body = await r.json().catch(() => ({ detail: r.statusText }))
-  if (!r.ok) throw new Error(String((body as { detail?: string }).detail ?? r.statusText))
-  return body as T
-}
-
 export const CAT_LABEL: Record<string, string> = {
   orden: 'Orden', llenada: 'Llenada', tp: 'Take profit', be: 'Break-even +', sl: 'Stop loss', tiempo: 'Por tiempo',
   liquidacion: 'Liquidación', salvaguarda: 'Salvaguarda', cuenta: 'Cuenta', cancelada: 'Cancelada', rechazada: 'Rechazada',

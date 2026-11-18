@@ -25,13 +25,14 @@ export function liveStrip(v: PaperSummary, now = Date.now()): string {
   return `<span class="pp-live-dot" data-state="${state}"><i></i>${label}${err}</span>${tfs}${viewNote(v, now)}`
 }
 
-/** Antigüedad de la vista: con un backtest en curso las cifras pueden ir unos minutos atrasadas. */
+/** Antigüedad de la vista: con la puesta al día automática en curso las cifras pueden ir unos
+ * minutos atrasadas. */
 function viewNote(v: PaperSummary, now: number): string {
   const s = v.view
   if (!s) return ''
   const age = `cifras calculadas hace ${dur(now - s.computed)}`
   const why = s.refreshing ? 'recalculando con los datos nuevos'
-    : v.job.state === 'corriendo' ? 'con el backtest en curso se rehacen cada 10 min' : 'se rehacen en la próxima carga'
+    : v.job.state === 'corriendo' ? 'con la puesta al día en curso se rehacen cada 10 min' : 'se rehacen en la próxima carga'
   const err = s.error ? ` · error al recalcular: ${esc(s.error)}` : ''
   return s.stale || err ? `<span class="pp-tf"><span class="warn">${age} · ${why}${err}</span></span>` : `<span class="pp-tf">${age}</span>`
 }
@@ -39,16 +40,16 @@ function viewNote(v: PaperSummary, now: number): string {
 export function covText(v: PaperSummary): string {
   const c = v.coverage
   return c.contexts
-    ? `${c.contexts} velas analizadas (${c.origins.vivo ?? 0} en vivo · ${c.origins.backtest ?? 0} reconstruidas) · ${utc(c.from!)} → ${utc(c.to!)} COT`
-    : 'sin velas analizadas: ejecuta un backtest'
+    ? `${c.contexts} velas analizadas (${c.origins.vivo ?? 0} en vivo · ${c.origins.backtest ?? 0} reconstruidas${v.live_first ? ', solo como opinión inicial del aprendizaje' : ''}) · ${utc(c.from!)} → ${utc(c.to!)} COT`
+    : 'sin velas analizadas todavía: el servicio en vivo las analiza al cerrar cada vela'
 }
 
 export function jobHtml(j: Job): string {
   if (j.state === 'corriendo') {
-    return `<progress max="${j.total || 1}" value="${j.done}"></progress> ${j.done}/${j.total || '…'} velas${j.tf ? ` · ${j.tf}` : ''}`
+    return `poniéndose al día <progress max="${j.total || 1}" value="${j.done}"></progress> ${j.done}/${j.total || '…'} velas${j.tf ? ` · ${j.tf}` : ''}`
   }
   if (j.state === 'error') return `<span class="down">error: ${esc(j.error)}</span>`
-  return j.state === 'terminado' ? `<span class="muted">último: +${j.saved} velas</span>` : ''
+  return j.state === 'terminado' && j.saved ? `<span class="muted">última puesta al día: +${j.saved} velas</span>` : ''
 }
 
 export function acctHtml(p: ProfileView): string {
