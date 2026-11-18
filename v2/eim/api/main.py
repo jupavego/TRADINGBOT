@@ -211,7 +211,7 @@ def create_app(
                   *variant_tasks):
             if t is not None:
                 t.cancel()
-        paper.stop_backtest()
+        paper.stop_catchup()
         paper.hooks.stop()
         for d in variants.values():
             d.hooks.stop()

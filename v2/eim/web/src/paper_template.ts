@@ -14,12 +14,7 @@ export const TEMPLATE = `
   <b class="price num" data-x="price">—</b>
   <span class="spacer"></span>
   <span class="pp-cov muted" data-x="cov"></span>
-  <label class="pp-bt" title="Reconstruye las decisiones de días pasados para que el aprendizaje tenga historial; el servicio en vivo no lo necesita">Historial <select data-k="days"><option value="7">7 días</option><option value="30" selected>30 días</option>
-    <option value="60">60 días</option><option value="90">90 días</option></select>
-    <select data-k="bttf" aria-label="Temporalidades del backtest"><option value="">15m · 1h · 4h</option>
-    <option>15m</option><option>1h</option><option>4h</option></select></label>
-  <button class="btn" data-act="bt">Reconstruir historial (backtest)</button>
-  <span class="pp-job" data-x="job"></span>
+  <span class="pp-job" data-x="job" title="Puesta al día automática: el servicio analiza solo las velas que faltan (no decidió en tiempo real: cuentan como reconstruidas)"></span>
 </header>
 <div class="pp-livebar" data-x="live" aria-live="polite"></div>
 <section class="pp-balance" data-x="bal" aria-label="Balance de operaciones ganadas y perdidas"></section>

@@ -113,19 +113,13 @@ def test_exits_route_reports_exit_quality_per_profile(client):
     assert client.get("/v2/paper/exits?symbol=XRPUSDT").status_code == 400
 
 
-def test_backtest_requires_confirm_and_runs(client):
-    assert client.post("/v2/paper/backtest?symbol=BTCUSDT&days=0.05").status_code == 403
+def test_no_route_rebuilds_history_by_hand(client):
+    """T182: sin botón ni ruta para reconstruir historial; la puesta al día es interna."""
     h = {"X-EIM-Confirm": "paper-backtest"}
-    assert client.post("/v2/paper/backtest?days=0.05&tf=1m", headers=h).status_code == 400
-    r = client.post("/v2/paper/backtest?symbol=BTCUSDT&days=0.05&tf=1h,15m", headers=h)
-    assert r.status_code == 200 and r.json()["state"] == "corriendo"
-    end = time.monotonic() + 300               # T116: con el equipo cargado tarda más
-    while time.monotonic() < end:
-        job = client.get("/v2/paper/status").json()["job"]
-        if job["state"] != "corriendo":
-            break
-        time.sleep(0.25)
-    assert job["state"] == "terminado" and job["total"] == 1 + 4    # 1 h: 1 vela, 15 m: 4
+    for url in ("/v2/paper/backtest?symbol=BTCUSDT&days=0.05", "/v2/paper/backtest/stop"):
+        assert client.post(url, headers=h).status_code in (404, 405)
+    job = client.get("/v2/paper/status").json()["job"]
+    assert job["state"] == "inactivo"            # apagada por defecto (configuración de T31)
 
 
 def test_ctx_has_no_lookahead(tmp_path):

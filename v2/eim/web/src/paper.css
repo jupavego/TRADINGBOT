@@ -12,7 +12,6 @@
 .pp-title { margin: 0; font-size: 17px; letter-spacing: .04em; }
 .pp-perp { font-size: 12px; color: var(--muted); }
 .pp-cov { font-size: 12px; }
-.pp-bt { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
 .pp-job { font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
 .pp-job progress { width: 110px; accent-color: var(--accent); }
 

@@ -134,7 +134,7 @@ def profile_summary(st: ProfileState, learner: Learner, strategy_ids: list[str],
         "curve": _downsample(curve),
         "by_strategy": by,
         # con escalera o salida adaptativa el perfil aprende de SUS cierres (T109), no de la sombra
-        "weights": {sid: (st.lrisk.strategy(sid, p) if ladder_on or ada
+        "weights": {sid: (st.lrisk.strategy(sid, p, now) if ladder_on or ada
                           else learner.at(sid, now, p.feedback)).to_json()
                     for sid in strategy_ids},
         "learning": ("cierres propios (escalera)" if ladder_on

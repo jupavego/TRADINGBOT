@@ -3343,3 +3343,10 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** solo documentación (`PLAN/BITACORA.md`, `PLAN/ESTADO_PROYECTO.md`).
 - **Abierto:** T178 (base de líderes) sigue sin empezar; el panel va lento mientras la API siga en 3 GB.
 - **Siguiente paso:** T178, o lo que el usuario prefiera.
+
+## 2026-11-18 · sesión «Lo vivo manda» · T182: fuera el botón de backtest del bróker simulado
+- **Hecho:** a pedido del usuario (el objetivo es que cada operación real alimente las siguientes, sin depender de un botón), fuera el botón «Reconstruir historial (backtest)», sus dos selectores y las rutas `POST /v2/paper/backtest(/stop)`. Detrás de `ExecParams.live_first` (apagado hasta cerrar T31): puesta al día automática de huecos (`service.catch_up`), libros solo con lo vivo (`live_books.py`) y lo reconstruido como opinión inicial acotada a 8 operaciones que se diluye con cada cierre vivo (`prior.py`). Diagnóstico: el 95 % de lo que aprendían los perfiles era reconstruido.
+- **Archivos:** `v2/eim/paper/{prior,live_books}.py` (nuevos), `v2/eim/paper/{service,desk,book,ladder_book,feedback,summary,insights,params,__main__}.py`, `v2/eim/api/{paper,main}.py`, `v2/eim/web/src/paper_{template,view,head,fmt,types}.ts`, `paper.css`, `v2/tests/paper/{test_live_first,test_catchup}.py`, `v2/tests/api/test_paper_api.py`, `v2/docs/OPERACION.md`, `PLAN/{T182,T31,STATUS,UI_SPEC}.md`.
+- **Pruebas:** `ruff check eim tests` limpio; 17 pruebas nuevas en verde (la 18.ª, de la API, necesita `fastapi`); `tests/paper`, `nursery`, `validation` y `analytics` sin fallos nuevos (en la nube faltan `duckdb`, `fastapi`, `httpx` y `arch`: los fallos que quedan son los mismos que antes del cambio). `tsc` sin errores nuevos (faltan `node_modules`).
+- **Abierto:** gate completo y `npm run build` en el equipo; encender `live_first` al cerrar T31 (o antes, si el usuario lo decide) y esperar el aviso único de la conciliación y del diario de la protección (`PLAN/T182.md`).
+- **Siguiente paso:** fusionar con el sí del usuario, `npm run build` y reiniciar la API.

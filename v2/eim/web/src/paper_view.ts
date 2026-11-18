@@ -3,7 +3,7 @@ import { fetchSnapshot, openStream, type StreamHandle } from './api'
 import { PaperArb } from './paper_arb'
 import { balanceView } from './paper_balance'
 import { EquityChart, PaperPriceChart } from './paper_chart'
-import { esc, getPaper, PaperError, postPaper, px, usd } from './paper_fmt'
+import { getPaper, PaperError, px, usd } from './paper_fmt'
 import { acctHtml, covText, jobHtml, liveStrip } from './paper_head'
 import { PaperJournal } from './paper_journal'
 import { PaperLearn } from './paper_learn'
@@ -190,7 +190,6 @@ export class PaperView {
 
   private paintJob(j: Job): void {
     const run = j.state === 'corriendo'
-    this.root.querySelector<HTMLButtonElement>('[data-act="bt"]')!.textContent = run ? 'Detener' : 'Reconstruir historial (backtest)'
     this.q('job').innerHTML = jobHtml(j)
     if (run) { clearTimeout(this.jobTimer); this.jobTimer = window.setTimeout(() => void this.pollJob(), 3000) }
   }
@@ -244,8 +243,7 @@ export class PaperView {
       this.bodies.pos.querySelectorAll<HTMLElement>('tr[data-pos]').forEach((r) => { r.dataset.focus = String(r.dataset.pos === this.focus) })
       return
     }
-    if (t.closest('[data-more="hist"]')) { this.hist.limit += 200; this.paintTab(); return }
-    if (t.closest('[data-act="bt"]')) void this.backtest()
+    if (t.closest('[data-more="hist"]')) { this.hist.limit += 200; this.paintTab() }
   }
 
   private onChange(s: HTMLSelectElement): void {
@@ -254,16 +252,5 @@ export class PaperView {
       (this.hist as unknown as Record<string, string>)[s.dataset.hf] = s.value
       this.hist.limit = 100; this.paintTab()
     }
-  }
-
-  private async backtest(): Promise<void> {
-    const job = this.v?.job
-    try {
-      if (job?.state === 'corriendo') { this.paintJob(await postPaper<Job>('/backtest/stop')); return }
-      const days = this.root.querySelector<HTMLSelectElement>('[data-k="days"]')!.value
-      const tf = this.root.querySelector<HTMLSelectElement>('[data-k="bttf"]')!.value
-      this.paintJob(await postPaper<Job>(`/backtest?symbol=${this.symbol}&days=${days}${tf ? `&tf=${tf}` : ''}`))
-      if (this.v) this.v.job.state = 'corriendo'
-    } catch (e) { this.q('job').innerHTML = `<span class="down">${esc((e as Error).message)}</span>` }
   }
 }

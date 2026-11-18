@@ -35,11 +35,18 @@ class Judgement:
     m: float          # expectativa contraída (R por operación)
     se: float
     n: int
+    # T182 (lo vivo manda): cierres vivos y peso (en operaciones) de la opinión inicial que aporta
+    # lo reconstruido; `n` = vivos + ese peso redondeado. None/0 sin `live_first`.
+    n_live: int | None = None
+    prior: float = 0.0
 
     def to_json(self) -> dict:
-        return {"weight": round(self.weight, 3), "state": self.state,
-                "state_label": STATES[self.state], "m": round(self.m, 4),
-                "se": None if math.isnan(self.se) else round(self.se, 4), "n": self.n}
+        out = {"weight": round(self.weight, 3), "state": self.state,
+               "state_label": STATES[self.state], "m": round(self.m, 4),
+               "se": None if math.isnan(self.se) else round(self.se, 4), "n": self.n}
+        if self.n_live is not None:
+            out.update(n_live=self.n_live, prior=round(self.prior, 2))
+        return out
 
 
 def judge(rs: Sequence[float], p: FeedbackParams) -> Judgement:

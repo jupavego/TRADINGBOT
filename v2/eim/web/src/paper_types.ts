@@ -158,9 +158,11 @@ export interface PaperSummary {
   sources: { candles: string | null; funding: string; funding_last: number | null; costs: string }
   families: Record<string, string>; profiles: ProfileView[]; strategies: StrategyRow[]
   family_stats: { family: string; n: number; sum_r: number; mean_r: number | null; strategies: number }[]
+  /** T182: libros solo con lo vivo; lo reconstruido, solo como opinión inicial del aprendizaje. */
+  live_first?: boolean
   insights: Insight[]; job: Job; live: { last_tick: number | null; started: number | null; error: string }
   balance: Record<string, BalanceWindow>
-  /** Frescura de la vista: con un backtest largo se entrega la última calculada mientras se rehace. */
+  /** Frescura de la vista: con la puesta al día en curso se entrega la última calculada mientras se rehace. */
   view?: { computed: number; stale: boolean; refreshing: boolean; error: string }
   /** T118: instantánea guardada de esta vista (se vuelve a leer por su id) y su alcance. */
   snapshot?: { id: string | null; computed: number; error: string }

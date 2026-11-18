@@ -56,8 +56,8 @@ def insights(rows: Sequence[dict], fams: Sequence[dict], profiles: Sequence[dict
     out: list[dict] = []
     total = sum(r["n"] for r in rows)
     if total == 0:
-        return [{"tone": "warn", "text": "Aún no hay operaciones cerradas: lanza un backtest o "
-                 "espera a que el servicio en vivo acumule velas."}]
+        return [{"tone": "warn", "text": "Aún no hay operaciones cerradas: el servicio en vivo "
+                 "las irá acumulando con cada vela que cierre."}]
     live = sum(r["origin_live"] for r in rows)
     out.append({"tone": "warn" if total < SMALL_SAMPLE * 3 else "info",
                 "text": f"{total} operaciones sombra cerradas ({live} decididas en vivo, el resto "

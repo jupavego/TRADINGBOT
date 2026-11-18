@@ -1,8 +1,16 @@
-"""Servicio continuo del bróker simulado (T48): ciclo en vivo por marco, latido y backtest.
+"""Servicio continuo del bróker simulado (T48): ciclo en vivo por marco, latido y puesta al día.
 
 Cada ciclo trae velas y funding nuevos, analiza las velas cerradas que falten en 15 m, 1 h y
 4 h (contextos `vivo` si se deciden a lo sumo una vela después de su cierre) y escribe
 `data/paper/heartbeat.json` para que el vigilante y la vista sepan que sigue en marcha.
+
+Puesta al día automática (T182, reemplaza el botón «Reconstruir historial»; solo con
+`ExecParams.live_first`): tras cada ciclo, si en los últimos `CATCHUP_DAYS` días quedan velas
+cerradas sin analizar (el equipo estuvo apagado más de lo que cubre el ciclo), el servicio las
+analiza solo, en segundo plano, de a lotes y con prioridad baja. Esas velas no se decidieron en
+tiempo real: quedan como `backtest` (reconstruidas), así que no entran en los libros de los
+perfiles y en el aprendizaje solo pesan como opinión inicial acotada (`eim/paper/prior.py`).
+Nadie tiene que lanzarla a mano.
 """
 
 from __future__ import annotations
@@ -19,7 +27,8 @@ from eim.data.aggregate import aggregate_new
 from eim.data.sync import sync_candles
 from eim.data.timeframes import tf_ms
 from eim.observability import hooks_service
-from eim.paper.generate import closed_asofs, default_workers, now_ms
+from eim.operation.priority import lower_thread
+from eim.paper.generate import closed_asofs, now_ms
 
 WARMUP_BARS = 400                               # velas previas para los indicadores
 LIVE_BARS = 48                                  # el ciclo rellena como mucho 48 velas por marco
@@ -29,6 +38,8 @@ FINE_BACKFILL_MS = 7 * 86_400_000                 # velas de 1 min del perfil de
 # más de 7 se mueve al tramo histórico congelado (`Store.compact`), que nadie reescribe.
 FINE_KEEP_MS = 7 * 86_400_000
 FINE_COMPACT_ROWS = 30 * 1440
+CATCHUP_DAYS = 30            # ventana que la puesta al día mantiene completa (velas cerradas)
+CATCHUP_BATCH = 400          # velas como mucho por lote (≈ 10 min de CPU en un proceso)
 
 
 @dataclass
@@ -51,39 +62,60 @@ class Job:
 
 class DeskService:
     """Mezcla para `PaperDesk`: espera `store`, `pstore`, `gens`, `tfs`, `ep`, `provider`,
-    `symbols`, `poll_s`, `job`, `last_tick`, `live_error`, `hooks`."""
+    `symbols`, `poll_s`, `job`, `last_tick`, `live_error`, `hooks`, `catchup_tried`."""
 
     def _origin_for(self, tf: str):
         bar = tf_ms(tf)
         return lambda asof: "vivo" if now_ms() - asof <= 2 * bar else "backtest"
 
-    # --- backtest ---------------------------------------------------------------------
-    def start_backtest(self, symbol: str, days: float, step: int = 1,
-                       tfs: tuple[str, ...] | None = None) -> dict:
-        if self.job.state == "corriendo":
+    # --- puesta al día automática (T182) ---------------------------------------------
+    def _catchup_plan(self) -> list[tuple[str, str, list[int]]]:
+        """Velas cerradas de la ventana que faltan por analizar (sin las que ya se intentaron en
+        este proceso: si una no da contexto, por ejemplo por un hueco del almacén, no se repite
+        cada minuto). Las más recientes van primero; como mucho `CATCHUP_BATCH` por lote. Las
+        últimas `LIVE_BARS` son del ciclo en vivo: así nunca se calcula dos veces la misma vela ni
+        se reetiqueta como reconstruida una que se decidió en vivo."""
+        tried = self.catchup_tried
+        plan, left = [], CATCHUP_BATCH
+        for sym in self.symbols:
+            for tf in self.tfs:
+                b = self.store.bounds(sym, tf)
+                if b is None or left <= 0:
+                    continue
+                n = int(CATCHUP_DAYS * 86_400_000 / tf_ms(tf))
+                have = self.pstore.asofs(sym, tf)
+                todo = [a for a in reversed(closed_asofs(b[1], tf_ms(tf), n)[:-LIVE_BARS])
+                        if a not in have and (sym, tf, a) not in tried][:left]
+                if todo:
+                    plan.append((sym, tf, sorted(todo)))
+                    left -= len(todo)
+        return plan
+
+    def catch_up(self) -> dict:
+        """Lanza (si hace falta y no hay otro en curso) un lote de puesta al día en segundo
+        plano. Solo con `ExecParams.live_first`: sin él (configuración de T31) lo reconstruido
+        entra en los libros, así que rellenar huecos cambiaría la corrida. Devuelve el estado."""
+        if not self.ep.live_first or self.job.state == "corriendo":
             return self.job.to_json()
-        plan: list[tuple[str, list[int]]] = []
-        for tf in tfs or self.tfs:
-            b = self.store.bounds(symbol, tf)
-            if b is None:
-                continue
-            n = max(1, int(days * 86_400_000 / tf_ms(tf) / step))
-            plan.append((tf, closed_asofs(b[1], tf_ms(tf), n, step)))
+        plan = self._catchup_plan()
         if not plan:
-            raise LookupError(f"sin velas de {symbol} en {', '.join(tfs or self.tfs)}")
-        job = self.job = Job(state="corriendo", symbol=symbol, started=now_ms(),
-                             total=sum(len(a) for _, a in plan))
+            return self.job.to_json()
+        self.catchup_tried.update((sym, tf, a) for sym, tf, asofs in plan for a in asofs)
+        syms = ",".join(dict.fromkeys(s for s, _, _ in plan))
+        job = self.job = Job(state="corriendo", symbol=syms, started=now_ms(),
+                             total=sum(len(a) for _, _, a in plan))
 
         def work() -> None:
+            lower_thread()   # T128: trabajo de fondo; el ciclo en vivo y la API van primero
             base = 0
             try:
-                for tf, asofs in plan:
+                for sym, tf, asofs in plan:
                     job.tf = tf
 
                     def prog(k: int, _total: int, base: int = base) -> None:
                         job.done = base + k
-                    job.saved += self.gens[tf].run(self.pstore, symbol, asofs, self._origin_for(tf),
-                                                   job.stop, prog, workers=default_workers())
+                    job.saved += self.gens[tf].run(self.pstore, sym, asofs, self._origin_for(tf),
+                                                   job.stop, prog)
                     base += len(asofs)
                     if job.stop.is_set():
                         break
@@ -92,10 +124,10 @@ class DeskService:
                 job.state, job.error = "error", f"{type(exc).__name__}: {exc}"
             job.finished = now_ms()
 
-        threading.Thread(target=work, name="eim-paper-backtest", daemon=True).start()
+        threading.Thread(target=work, name="eim-paper-catchup", daemon=True).start()
         return job.to_json()
 
-    def stop_backtest(self) -> dict:
+    def stop_catchup(self) -> dict:
         self.job.stop.set()
         return self.job.to_json()
 
@@ -115,6 +147,10 @@ class DeskService:
                                            self._origin_for(tf))
         self.last_tick, self.live_error = now_ms(), ""
         self._beat(saved)
+        try:
+            self.catch_up()
+        except Exception as exc:  # noqa: BLE001 - la puesta al día nunca frena el ciclo en vivo
+            logging.getLogger("eim.paper").warning("puesta al día: %s: %s", type(exc).__name__, exc)
         return saved
 
     def _sync(self, sym: str) -> None:

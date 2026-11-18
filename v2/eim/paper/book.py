@@ -44,6 +44,7 @@ from eim.paper.ladder_audit import SAFEGUARD
 from eim.paper.ladder_book import LadderRisk, LadderSim
 from eim.paper.params import ProfileParams
 from eim.paper.policy import PaperDecision, decide, verify
+from eim.paper.prior import Prior
 
 PRIO = {"close": 0, "cancel": 1, "fill": 2, "signal": 3}
 EXIT_CAT = {"TP": "tp", "SL": "sl", "SLD": "sl", "BE": "be", "TIEMPO": "tiempo", "HTF": "tiempo",
@@ -109,7 +110,7 @@ def _signal(st: ProfileState, o: Outcome, learner: Learner, mmr: float, q: list,
     tag = {"against": against} if against else {}
     st.contrary += bool(against)
     if p.stop_driven:                # aprende de SUS cierres, no de la sombra con TP
-        j, jc = st.lrisk.own(i.sid, context_key(i), p)
+        j, jc = st.lrisk.own(i.sid, context_key(i), p, i.t)
     else:
         j = learner.at(i.sid, i.t, p.feedback)
         jc = learner.context_at(i, i.t, p.feedback)
@@ -261,11 +262,16 @@ def _cancel(st: ProfileState, o: Outcome) -> None:
 
 
 def run_profile(p: ProfileParams, outcomes: list[Outcome], learner: Learner,
-                mmr: float, sim: LadderSim | None = None) -> ProfileState:
+                mmr: float, sim: LadderSim | None = None, prior: Prior | None = None,
+                prior_cap: float = 0.0) -> ProfileState:
+    """`prior` (T182): cierres del libro previo sobre lo reconstruido, como opinión inicial
+    acotada a `prior_cap` operaciones de la memoria propia (solo perfiles con escalera o salida
+    adaptativa; los que aprenden de la sombra lo reciben por el `learner`)."""
     if p.stop_driven and sim is None:
         what = "escalera" if p.exit_mode == "ladder" else "adaptativo"
         raise ValueError(f"el perfil {p.id} ({what}) necesita el camino de precios (`sim`)")
     st = ProfileState(p=p, equity=p.initial_equity)
+    st.lrisk.prior, st.lrisk.prior_cap = prior, prior_cap
     if p.adaptive is not None and p.id in sim.exits:
         st.exit_info = sim.exits[p.id].feats.to_json()
     seq = [0]
