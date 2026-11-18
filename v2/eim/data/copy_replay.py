@@ -20,7 +20,6 @@ seguidor habría visto y hecho, con el MISMO motor que corre en vivo:
 from __future__ import annotations
 
 import bisect
-import json
 from collections import Counter
 from dataclasses import dataclass, field
 
@@ -33,6 +32,7 @@ from eim.copytrading.trades import Trip, build_trips
 from eim.core import Candle
 from eim.core.leaders import FollowQuote, Leader, LeaderPosition
 from eim.data import leader_archive
+from eim.data import leader_photos as photos
 from eim.data.hl_market import MIN_MS, Bar
 from eim.risk import RiskConfig
 
@@ -71,7 +71,7 @@ def funding_rates(store, start: int, end: int) -> dict[tuple[str, int], tuple[fl
 def _photos(store, lid: str) -> list[tuple[int, int, list[LeaderPosition]]]:
     rows = store.query("SELECT t, observed_at, positions FROM leader_positions WHERE "
                        "leader_id = ? ORDER BY observed_at", [lid])
-    return [(t, obs, [LeaderPosition.model_validate(x) for x in json.loads(raw)])
+    return [(t, obs, photos.decode(raw))
             for t, obs, raw in rows]
 
 

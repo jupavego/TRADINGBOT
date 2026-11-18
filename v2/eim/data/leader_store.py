@@ -20,6 +20,7 @@ from pathlib import Path
 import duckdb
 
 from eim.core.leaders import Leader, LeaderFill, LeaderFunding, LeaderPosition, LeaderStatus
+from eim.data import leader_photos as photos
 from eim.data.copy_store import COPY_DDL, CopyTables
 from eim.data.duck import tune
 from eim.data.leader_archive import ARCHIVE_DDL
@@ -230,12 +231,10 @@ class LeaderStore(ScoreTables, CopyTables):
         last = self._exec("SELECT observed_at, positions FROM leader_positions WHERE "
                           "leader_id = ? ORDER BY observed_at DESC LIMIT 1", [lid])
         if last and observed_at - last[0][0] < keep_ms:
-            prev = [LeaderPosition.model_validate(p) for p in json.loads(last[0][1])]
-            if _shape(prev) == _shape(positions):
+            if _shape(photos.decode(last[0][1])) == _shape(positions):
                 return False
-        payload = json.dumps([p.model_dump() for p in positions])
         return self._insert("leader_positions", "leader_id, t, observed_at, positions",
-                            [(lid, t, observed_at, payload)]) == 1
+                            [(lid, t, observed_at, photos.encode(positions))]) == 1
 
     def positions_at(self, asof: int, statuses: tuple[str, ...] = ("approved",),
                      max_age_ms: int = POSITIONS_MAX_AGE_MS) -> list[LeaderPosition]:
@@ -247,7 +246,7 @@ class LeaderStore(ScoreTables, CopyTables):
                              "leader_id = ? AND observed_at <= ? ORDER BY observed_at DESC "
                              "LIMIT 1", [lid, asof])
             if row and asof - row[0][0] <= max_age_ms:
-                out += [LeaderPosition.model_validate(p) for p in json.loads(row[0][1])]
+                out += photos.decode(row[0][1])
         return out
 
     # --- control de calidad ------------------------------------------------------------------

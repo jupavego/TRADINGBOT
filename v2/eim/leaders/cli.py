@@ -118,7 +118,7 @@ def _prune_cold(root: str | Path, now: int, keep_ms: int = KEEP_MS) -> dict:
     try:
         with lowered("batch"):
             got = prune(store, now, keep_ms=keep_ms)
-            kept = retain(store, now, keep_ms=keep_ms)
+            kept = retain(store, now, keep_ms=keep_ms, recode_budget=None)  # en frío, sin tope
     finally:
         store.close()
     return {"podado": {lid: {"fills": x.fills, "quotes": x.quotes, "trips": x.trips,

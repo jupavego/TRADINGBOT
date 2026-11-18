@@ -22,8 +22,10 @@ ahí lo anterior al corte y solo cuenta las fotos que quedan a partir de él.
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
+
+from eim.data.leader_photos import recode as _recode_raw
+from eim.data.leader_photos import shape  # noqa: F401  (lo usan la poda y sus pruebas)
 
 DAY_MS = 86_400_000
 KEEP_MS = 7 * DAY_MS
@@ -31,7 +33,7 @@ PHOTO_STEP_MS = 15 * 60_000      # salto entre fotos que aún cuenta como tiempo
 PHOTO_KEEP_MS = 3_600_000        # sin cambios, una foto por hora
 RECON_GRID_MS = 120_000          # confirmación de flujo cada 2 min (recon_gap_ms = 5 min)
 STEP_ROWS = 5_000                # fotas por transacción (cada una pesa ~5 KB de JSON)
-_SHAPE = ("symbol", "side", "size", "entry", "leverage", "margin_mode")
+RECODE_BUDGET = 50_000           # fotos que se recodifican por vuelta con el servicio en marcha
 
 
 @dataclass
@@ -40,26 +42,18 @@ class Retained:
     recon_days: int = 0
     photos_dropped: int = 0
     photos_kept: int = 0
+    photos_recoded: int = 0
+    bytes_saved: int = 0
     leaders: int = 0
 
     def to_json(self) -> dict:
         return {"recon_borradas": self.recon_dropped, "recon_resumidas_dias": self.recon_days,
                 "fotos_borradas": self.photos_dropped, "fotos_conservadas": self.photos_kept,
+                "fotos_recodificadas": self.photos_recoded, "bytes_ahorrados": self.bytes_saved,
                 "lideres": self.leaders}
 
     def __bool__(self) -> bool:
-        return bool(self.recon_dropped or self.photos_dropped)
-
-
-def shape(raw: str | None) -> str:
-    """La forma de una foto: lo que define la posición, sin PnL ni margen (cambian con el
-    precio). Mismo criterio que `LeaderStore._shape`, sobre el JSON ya guardado y como texto
-    (así se guarda en `leader_photo_cover` para enlazar una tanda con la siguiente)."""
-    try:
-        ps = json.loads(raw or "[]")
-    except (TypeError, ValueError):
-        return f"?{raw}"
-    return json.dumps(sorted([p.get(k) for k in _SHAPE] for p in ps), separators=(",", ":"))
+        return bool(self.recon_dropped or self.photos_dropped or self.photos_recoded)
 
 
 # --- reconciliaciones -------------------------------------------------------------------------
@@ -219,9 +213,56 @@ def _thin_one(cur, lid: str, cut: int, photo_keep_ms: int, step_ms: int, max_row
     return touched
 
 
-def retain(store, now: int, keep_ms: int = KEEP_MS, **kw) -> Retained:
-    """Las dos retenciones de T178; la corre el servicio tras la poda diaria de T128."""
+def recode_photos(store, budget: int | None = RECODE_BUDGET, max_rows: int = STEP_ROWS,
+                  out: Retained | None = None) -> Retained:
+    """Pasa al formato compacto (`leader_photos`) las fotos que aún estén en el de antes.
+
+    No borra ni cambia ningún dato: solo deja de repetir en cada posición lo que ya está en las
+    columnas de la fila. Por tandas y, con el servicio en marcha, acotada a `budget` fotos por
+    vuelta; en frío (`python -m eim.leaders prune`) va sin tope y el compactado devuelve el
+    espacio. Se lee y se escribe en la misma transacción."""
+    out = Retained() if out is None else out
+    con, lock = store.connection
+    with lock:
+        cur = con.cursor()
+    left = budget
+    try:
+        while left is None or left > 0:
+            take = max_rows if left is None else min(max_rows, left)
+            cur.execute("BEGIN TRANSACTION")
+            try:
+                rows = cur.execute(
+                    "SELECT rowid, positions FROM leader_positions "
+                    "WHERE positions NOT LIKE '{%' LIMIT ?", [take]).fetchall()
+                pairs, saved = [], 0
+                for rid, raw in rows:
+                    new = _recode_raw(raw)
+                    if new is not None and len(new) < len(raw or ""):
+                        pairs.append((new, rid))
+                        saved += len(raw) - len(new)
+                if pairs:
+                    cur.executemany(
+                        "UPDATE leader_positions SET positions = ? WHERE rowid = ?", pairs)
+                cur.execute("COMMIT")
+            except BaseException:
+                cur.execute("ROLLBACK")
+                raise
+            out.photos_recoded += len(pairs)
+            out.bytes_saved += saved
+            if len(rows) < take or not pairs:   # nada más que recodificar (o nada que ganar)
+                break
+            if left is not None:
+                left -= len(rows)
+    finally:
+        cur.close()
+    return out
+
+
+def retain(store, now: int, keep_ms: int = KEEP_MS, recode_budget: int | None = RECODE_BUDGET,
+           **kw) -> Retained:
+    """Las tres retenciones de T178; la corre el servicio tras la poda diaria de T128."""
     out = Retained()
     thin_recon(store, now, keep_ms, out=out)
     thin_photos(store, now, keep_ms, out=out, **kw)
+    recode_photos(store, recode_budget, out=out)
     return out

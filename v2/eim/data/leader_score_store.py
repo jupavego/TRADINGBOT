@@ -12,6 +12,7 @@ import json
 
 from eim.copytrading.forward import VerdictMark
 from eim.core.leaders import FollowQuote, LeaderFill, LeaderFunding, LeaderPosition
+from eim.data import leader_photos as photos
 
 SCORE_DDL = """
 CREATE TABLE IF NOT EXISTS leader_portfolio (
@@ -76,7 +77,7 @@ class ScoreTables:
                          [lid, asof])
         if not row:
             return None
-        return row[0][0], [LeaderPosition.model_validate(p) for p in json.loads(row[0][1])]
+        return row[0][0], photos.decode(row[0][1])
 
     def recent_coins(self, since: int) -> set[str]:
         return {r[0] for r in self._exec(

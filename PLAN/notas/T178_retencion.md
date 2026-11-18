@@ -44,10 +44,11 @@ esté plegado. Las de `watch` ocupan 2 bytes cada una (no tienen posiciones abie
   de las fotos de más de 7 días son cambios de forma de verdad** (102 771 de 155 698): estos
   líderes mueven la cartera casi cada minuto, así que deduplicar apenas tiene qué quitar.
 
-**Con los dos entregables, el crecimiento baja de ≈ 53 a ≈ 32 MB/día (11,7 GB/año).** No es
-«dejar de crecer». Lo que falta para eso es la ◆ de abajo.
+**Con solo esos dos entregables, el crecimiento bajaría de ≈ 53 a ≈ 32 MB/día (11,7 GB/año)**, que
+no es «dejar de crecer». Con la ◆ de abajo ya resuelta (recodificar la foto), queda en **≈ 5
+MB/día (1,8 GB/año)**.
 
-## 3. ◆ Decisión del usuario: cómo se guarda cada foto
+## 3. ◆ Resuelta (usuario, 2026-11-18): se recodifica la foto
 
 Cada posición del JSON repite `leader_id` (65 caracteres), `address` (42), `source`, `t` y
 `observed_at`, que **ya están en las columnas de la fila**. Una foto de 15 monedas gasta ~1,5 KB
@@ -60,14 +61,19 @@ solo en eso. Medido en disco con las mismas 20 000 fotos reales:
 | **C. Recodificar la foto, sin borrar ninguna** | 20 000 | 32,0 MB | **25 %** | ≈ 13 MB/día |
 | **D. B + C** | 8 648 | 11,5 MB | **9 %** | **≈ 5 MB/día** |
 
-C no pierde **ningún** campo: saca una sola vez por foto lo que hoy se repite en cada posición.
-Cuesta un codificador y un decodificador (`leader_photos.py`) y tocar los cuatro sitios que leen
-`positions`; las fotos viejas se siguen leyendo en el formato actual, y rehacerlas una vez
-devolvería ~800 MB del archivo de hoy.
+**El usuario eligió D** (recodificar y podar), así que T178 entrega las dos cosas.
 
-**Lo que se pregunta:** ¿se adopta **C** (y con ella **D**), o se queda en **B** y se acepta
-crecer ~12 GB al año? T178 entrega B; C es trabajo nuevo, acotado, y es lo único que hace que
-«deje de crecer» sea verdad.
+C no pierde **ningún** campo: saca una sola vez por foto lo que hoy se repite en cada posición.
+Formato nuevo en `eim/data/leader_photos.py` (`{"v":2,"h":{…},"p":[[…], …]}`, un objeto para
+distinguirlo de la lista de antes); `decode` lee los dos, así que **ninguna foto vieja deja de
+leerse**, y si alguna vez llegara una foto cuyas posiciones no comparten cabecera se guarda en el
+formato de antes antes que perder un campo. Escriben y leen por el códec `leader_store`
+(`save_positions`, `positions_at`), `leader_score_store.positions_near` y `copy_replay`.
+
+Las fotos ya guardadas las pasa `recode_photos`: con el servicio en marcha, **50 000 por vuelta**
+(unos 250 MB de lectura, en tandas de 5 000 dentro de su transacción), así que las 227 338 de hoy
+tardan unos días; en frío (`python -m eim.leaders prune`) va sin tope y el compactado que viene
+detrás devuelve el espacio (~800 MB).
 
 ## 4. Lo que se comprobó de los lectores
 
