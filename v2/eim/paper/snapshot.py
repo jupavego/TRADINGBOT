@@ -1,15 +1,16 @@
 """Instantáneas de la vista del bróker simulado (T118): la foto que se mostró, para auditarla.
 
-La vista se RECALCULA desde todo el almacén en cada consulta (T106 A4), así que una cifra de ayer
-no se puede volver a obtener recalculando. Cada cálculo de la vista guarda aquí, solo adición
-(`INSERT OR IGNORE`), la foto de lo que muestra el panel: capital y cuenta de cada perfil,
-operaciones contadas con su origen, alcance (tramo, techo y huecos), conciliación con el libro
-fijo, rechazos por código, versiones de parámetros y de código, estado del almacén y sello de
-tiempo. El identificador es la huella SHA-256 del contenido (12 hex): pedirlo devuelve exactamente
-las mismas cifras y, al leer, se vuelve a calcular la huella (`intact`), así que una fila alterada
-se delata sola. El contenido se guarda como JSON canónico comprimido con zlib (≈ 2,7 KB por foto
-frente a ≈ 16 KB en texto, medido en T118 con la vista real de BTCUSDT; con ≈ 200 cálculos al día
-son ≈ 16 MB al mes): la huella es la del JSON, no la del comprimido.
+La vista se RECALCULA desde todo el almacén en cada consulta (T106 A4), así que una cifra de ayer no
+se puede volver a obtener recalculando. Cada cálculo de la vista guarda aquí, solo adición (`INSERT
+OR IGNORE`), la foto de lo que muestra el panel: capital y cuenta de cada perfil, operaciones
+contadas con su origen, alcance (tramo, techo y huecos), universo oficial de la contabilidad (T144:
+cuántas cuentan, acierto, R, PnL y por qué quedan fuera las demás), conciliación con el libro fijo,
+rechazos por código, versiones de parámetros y de código, estado del almacén y sello de tiempo. El
+identificador es la huella SHA-256 del contenido (12 hex): pedirlo devuelve exactamente las mismas
+cifras y, al leer, se vuelve a calcular la huella (`intact`), así que una fila alterada se delata
+sola. El contenido se guarda como JSON canónico comprimido con zlib (≈ 2,7 KB por foto frente a ≈ 16
+KB en texto, medido en T118 con la vista real de BTCUSDT; con ≈ 200 cálculos al día son ≈ 16 MB al
+mes): la huella es la del JSON, no la del comprimido.
 
 Las instantáneas son de ESTA máquina: la experiencia compartida (T61) no las lleva. Todo SIMULADO.
 """
@@ -31,8 +32,11 @@ PROFILE_KEYS = ("id", "name", "initial", "balance", "equity", "upnl", "realized"
                 "return_base", "max_dd_pct", "dd", "n_closed", "win_rate", "pf", "avg_r", "best",
                 "worst", "fees", "slip", "funding", "exhausted", "exhausted_t", "min_equity",
                 "margin_used", "reserved", "available", "counts")
+# `scope` (tramo, techo, huecos frente al libro fijo) y `accounting` (universo oficial T144) ya
+# no se muestran en la vista principal (2026-11-18): se guardan aquí para control, proyección y
+# análisis
 TOP_KEYS = ("mode", "symbol", "timeframes", "path_tf", "now", "mark", "coverage", "scope",
-            "sources")
+            "accounting", "sources")
 
 
 def ensure(pstore: PaperStore) -> None:

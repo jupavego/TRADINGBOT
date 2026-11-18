@@ -4,9 +4,7 @@ import { PaperArb } from './paper_arb'
 import { balanceView } from './paper_balance'
 import { EquityChart, PaperPriceChart } from './paper_chart'
 import { esc, getPaper, PaperError, postPaper, px, usd } from './paper_fmt'
-import { scopeHtml } from './paper_audit'
 import { acctHtml, covText, jobHtml, liveStrip } from './paper_head'
-import { universeHtml } from './paper_universe'
 import { PaperJournal } from './paper_journal'
 import { PaperLearn } from './paper_learn'
 import { PaperLedger } from './paper_ledger'
@@ -164,7 +162,8 @@ export class PaperView {
   private paintAll(): void {
     const v = this.v!
     this.q('cov').textContent = covText(v)
-    this.q('scope').innerHTML = scopeHtml(v) + universeHtml(v.accounting)
+    // 2026-11-18: la franja «Instantánea · alcance · universo oficial» ya no se pinta en la vista
+    // principal; sus datos siguen en cada instantánea guardada (/v2/paper/snapshot/{id}).
     this.q('live').innerHTML = liveStrip(v)
     this.paintJob(v.job)
     this.q('bal').innerHTML = balanceView(v, this.bal)

@@ -1658,3 +1658,12 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** `v2/eim/web/src/obs_iso.css`.
 - **Pruebas:** solo CSS; comprobado con captura en Chrome sin interfaz sobre la estructura de `obs_view.ts` (sin `node_modules` en la sesión en la nube, falta mirarlo en el panel real).
 - **Siguiente paso:** fusionar con el sí del usuario y recargar el panel.
+
+
+## 2026-11-18 · sesión «Ocultar alcance del bróker» · la franja de auditoría sale de la vista principal
+- **Hecho:** a pedido del usuario, la franja bajo la cabecera del Bróker simulado (instantánea, tramo, techo, «La vista NO abarca todo el historial» con los huecos frente al libro fijo y el resumen del universo oficial) ya no se pinta. Sus datos siguen en el backend: scope ya iba en cada instantánea (T118) y ahora también ccounting (universo oficial T144), en paper_view_snapshot, para control, proyección y análisis. Se consultan en GET /v2/paper, /v2/paper/snapshot/{id}, /v2/paper/snapshots y /v2/paper/accounting.
+- **Archivos:** 2/eim/web/src/{paper_template,paper_view}.ts, 2/eim/paper/snapshot.py, 2/tests/paper/test_auditable.py, PLAN/UI_SPEC.md.
+- **Pruebas:** nueva 	est_la_instantanea_guarda_alcance_y_universo_oficial_aunque_el_panel_no_los_pinte; ruff, 	ests/paper/test_auditable.py, 	ests/api y 
+pm run build en el equipo del usuario.
+- **Abierto:** la API toma el cambio del backend al reiniciarse (einiciar_t174.cmd); hasta entonces las instantáneas nuevas siguen sin ccounting (la franja ya no se ve tras el build).
+- **Siguiente paso:** ninguno obligatorio; si se quiere ver la franja otra vez, scopeHtml/universeHtml siguen en paper_audit.ts/paper_universe.ts.
