@@ -1,127 +1,188 @@
-/** Microecosistema de una sala del mapa isométrico: los puestos no van en rejilla sino donde les toca
- * según cómo sale la información. Empieza con «1. Datos»:
- *   · Ventanillas (fila del fondo, junto al ventanal que mira al mercado): fuentes externas que se consultan.
- *   · Monitoreo continuo (columna junto a la pared de pantallas): lo que escucha el mercado sin parar.
- *   · Archivo (centro): el almacén de velas, con su rack y su archivador.
- *   · Fotografía (puesto principal, más grande): junta todo y lo reparte por la salida grande.
- *   · En obra (frente): lo planeado, translúcido y con cinta.
- * En el piso van los flujos internos declarados (de quién recibe cada puesto, animados con el estado de
- * quien entrega) y las salidas laterales hacia otras salas por el borde más cercano. Solo ordena y decora:
- * los estados siguen saliendo de `compState`; las conexiones, del catálogo. */
-import { box, P, pts, type Room } from './obs_iso_geo'
+/** Microecosistema de cada sala del mapa isométrico: los puestos no van en rejilla sino donde les toca según
+ * cómo entra, se trabaja y sale la información. Todas las salas usan la misma gramática de zonas:
+ *   · fondo (junto al ventanal)     → ENTRADAS: lo primero que recibe de fuera de la sala
+ *   · pared izquierda               → VIGILANCIA / SOPORTE: lo que corre siempre o cuida a los demás
+ *   · centro                        → TRABAJO: el cuerpo principal de la sala
+ *   · lateral (derecha del centro)  → ARCHIVO / REGISTRO: lo que guarda o lleva cuentas
+ *   · frente derecho                → CONSOLIDA Y SALE: el puesto principal (más grande) y la salida gruesa
+ *   · frente izquierdo              → EN OBRA: lo planeado, translúcido, con cinta y conos
+ * Cada sala solo declara qué pieza va en qué zona (`obs_iso_eco_specs`); lo desconocido cae en su zona por
+ * defecto y lo planeado siempre en obra. En el piso van, quietos, los flujos internos del catálogo y las
+ * salidas hacia otras salas por el borde abierto más cercano, con flechas pequeñas de sentido. Solo ordena y
+ * decora: los estados salen de `compState` y las conexiones del catálogo. */
+import { arrowsAlong, box, P, pts, type Room } from './obs_iso_geo'
+import { continuo, SPECS, ZONES, type Zone } from './obs_iso_eco_specs'
 import { art, STRIP } from './obs_iso_props'
 import { esc, type ObsComp, type ObsEdge } from './obs_types'
 
+export type { Zone } from './obs_iso_eco_specs'
 export type EcoTone = 'ok' | 'bad' | 'none' | 'plan'
-export type Zone = 'fuente' | 'continuo' | 'archivo' | 'jefe' | 'obra'
 const COLOR: Record<EcoTone, string> = { ok: '#0fbf7a', bad: '#f0324f', none: '#8b95aa', plan: '#8b95aa' }
+const OBRA_LABEL = 'En obra (planeado)'
 
-/** Puestos ya ubicados: medio ancho de la sala, posición y tamaño de cada puesto (en el orden de `list`). */
-export interface EcoPlan { hu: number; hv: number; slots: [number, number][]; ks: number[]; k: number; zones: Zone[]; f: number; uF0: number }
+export const hasEco = (stage: string): boolean => stage in SPECS
 
-/** Lo que la sala necesita saber del resto del mapa para pintar flujos y salidas. */
-export interface EcoCtx {
-  list: ObsComp[]; edges: ObsEdge[]; tone: (id: string) => EcoTone; stageOf: (id: string) => string | undefined
-  title: (stage: string) => string; stage: string; detail: boolean
-}
-
-const ZONE_OF: Record<string, Zone> = {
-  'data.snapshot': 'jefe', 'data.store': 'archivo',
-  'data.live_ticks': 'continuo', 'data.micro_collector': 'continuo', 'data.hft_collector': 'continuo', 'data.liq_collector': 'continuo',
-}
-/** Orden dentro de cada zona: las fuentes que salen directo a otras salas quedan cerca de su salida. */
-const ORDER = ['data.binance_rest', 'data.liquidations', 'data.news', 'data.calendar', 'leaders.service', 'data.arb_market',
-  'data.micro_collector', 'data.liq_collector', 'data.live_ticks', 'data.hft_collector']
-const pos = (id: string): number => { const i = ORDER.indexOf(id); return i < 0 ? ORDER.length : i }
-
-export function zoneOf(c: ObsComp): Zone {
+export function zoneOf(stage: string, c: ObsComp): Zone {
+  const sp = SPECS[stage]
   if (c.built === 'planeado') return 'obra'
-  const z = ZONE_OF[c.id]
-  if (z) return z
-  if (c.kind === 'store') return 'archivo'
-  return /continuo/i.test(c.cadence ?? '') ? 'continuo' : 'fuente'
+  for (const z of ZONES) if (sp.zones[z]?.ids?.includes(c.id)) return z
+  for (const z of ZONES) if (sp.zones[z]?.pick?.(c)) return z
+  return sp.fallback
 }
 
-export const hasEco = (stage: string): boolean => stage === 'datos'
+/** Separaciones (unidades del piso). Mapa completo: denso. Sala ampliada: con sitio para el nombre de cada
+ * puesto, que se abre hacia la izquierda (filas) o la derecha (pared izquierda) sin tapar al vecino. */
+interface Mode { gu: number; gv: number; col: number; hub: number; board: number; gap: number; gapL: number; pad: number; padTop: number; padBot: number; kb: number; kh: number; f: number }
+const BASE: Mode = { gu: 0.8, gv: 0.8, col: 0.8, hub: 1.05, board: 0.75, gap: 0.3, gapL: 0.3, pad: 0.35, padTop: 0.3, padBot: 0.35, kb: 0.8, kh: 1.15, f: 1 }
+const FOCUS: Mode = { gu: 2.1, gv: 5.0, col: 2.1, hub: 2.7, board: 1.9, gap: 1.6, gapL: 3.6, pad: 1.0, padTop: 1.4, padBot: 1.6, kb: 1.36, kh: 1.95, f: 2.6 }
+/** Proporción buscada (ancho / fondo) de cada zona: el fondo y el frente son filas; la pared izquierda, columna. */
+const ASPECT: Record<Zone, number> = { back: 99, left: 0, center: 1.7, side: 0.6, hub: 99, obra: 3 }
+const MAXROW: Record<Zone, number> = { back: 7, left: 99, center: 99, side: 99, hub: 4, obra: 4 }
 
-const KB = 0.8, KJ = 1.18          // tamaño de un puesto y del puesto principal (mapa completo)
+type Box = [number, number, number, number]          // u0, v0, u1, v1 (coordenadas de la sala)
+export interface EcoPlan {
+  stage: string; hu: number; hv: number; slots: [number, number][]; ks: number[]; k: number; zones: Zone[]; f: number
+  boxes: Partial<Record<Zone, Box>>; labels: Partial<Record<Zone, string>>; tints: Partial<Record<Zone, string>>; board: [number, number] | null
+}
 
-/** Ubica los puestos de la sala. `f` amplía todo (sala enfocada) dejando sitio a los nombres. */
-export function ecoPlan(list: ObsComp[], f = 1, kf = 1): EcoPlan {
-  const by: Record<Zone, number[]> = { fuente: [], continuo: [], archivo: [], jefe: [], obra: [] }
-  list.forEach((c, i) => by[zoneOf(c)].push(i))
-  ;(Object.keys(by) as Zone[]).forEach((z) => by[z].sort((a, b) => pos(list[a].id) - pos(list[b].id) || list[a].id.localeCompare(list[b].id)))
-  const nF = by.fuente.length, nC = by.continuo.length
-  const step = 0.8, uF0 = f > 1 ? -0.95 : -1.45, vF = -2.7 + STRIP + 0.4      // ampliada: la fila se aparta de la esquina
-  const hu = Math.max(2.95, uF0 + Math.max(nF - 1, 0) * step + 0.55), hv = Math.max(2.7, 1.25 + (Math.max(nC, 4) - 1) * step / 2 + 0.2)
+/** Ubica los puestos de la sala (mapa completo, o ampliada con `focus`). */
+export function ecoPlan(stage: string, list: ObsComp[], focus = false): EcoPlan {
+  const m = focus ? FOCUS : BASE, sp = SPECS[stage]
+  const by: Record<Zone, number[]> = { back: [], left: [], center: [], side: [], hub: [], obra: [] }
+  list.forEach((c, i) => by[zoneOf(stage, c)].push(i))
+  const rank = (z: Zone, id: string): number => { const r = sp.zones[z]?.ids?.indexOf(id) ?? -1; return r < 0 ? 999 : r }
+  ZONES.forEach((z) => by[z].sort((a, b) => rank(z, list[a].id) - rank(z, list[b].id) || list[a].id.localeCompare(list[b].id)))
+  // Tamaño de cada zona: columnas × filas con su separación
+  const dims = {} as Record<Zone, { cols: number; w: number; h: number; su: number; sv: number }>
+  for (const z of ZONES) {
+    const n = by[z].length
+    if (!n) { dims[z] = { cols: 0, w: 0, h: 0, su: 0, sv: 0 }; continue }
+    const su = z === 'hub' ? m.hub : z === 'left' ? m.col : m.gu, sv = z === 'left' ? m.col : m.gv
+    const cols = z === 'left' ? 1 : Math.min(n, MAXROW[z], Math.max(1, Math.round(Math.sqrt((n * ASPECT[z] * sv) / su))))
+    dims[z] = { cols, w: cols * su + (z === 'hub' ? m.board : 0), h: Math.ceil(n / cols) * sv, su, sv }
+  }
+  const has = (z: Zone): boolean => dims[z].w > 0
+  const band = (zs: Zone[]): [number, number] => {      // ancho y fondo de una banda de zonas lado a lado
+    const on = zs.filter(has); return [on.reduce((s, z) => s + dims[z].w, 0) + Math.max(0, on.length - 1) * m.gap, Math.max(0, ...on.map((z) => dims[z].h))]
+  }
+  const [wb, hb] = band(['back']), [wm, hm] = band(['center', 'side']), [wf, hf] = band(['obra', 'hub'])
+  const bands = [hb, hm, hf].filter((h) => h > 0)
+  const colW = Math.max(wb, wm, wf), colH = bands.reduce((s, h) => s + h, 0) + Math.max(0, bands.length - 1) * m.gap
+  const xB = has('left') ? dims.left.w + m.gapL : 0, W = xB + colW, H = Math.max(dims.left.h, colH)
+  const hu = Math.max(focus ? 3.8 : 1.9, W / 2 + m.pad), hv = Math.max(focus ? 3.8 : 1.9, (H + STRIP + m.padTop + m.padBot + 0.78) / 2)
+  const U = (x: number): number => -W / 2 + x, V = (y: number): number => -hv + STRIP + m.padTop + y
+  // Origen de cada zona: fondo arriba a la derecha (ventanal), centro debajo, lateral a su derecha,
+  // obra al frente a la izquierda y el puesto principal al frente a la derecha (sale corto al borde derecho).
+  const org: Partial<Record<Zone, [number, number]>> = {}
+  let y = 0
+  if (has('left')) org.left = [0, 0]
+  if (hb) { org.back = [xB + colW - wb, y]; y += hb + m.gap }
+  if (hm) { if (has('center')) org.center = [xB, y]; if (has('side')) org.side = [xB + colW - dims.side.w, y]; y += hm + m.gap }
+  if (hf) { if (has('obra')) org.obra = [xB, y]; if (has('hub')) org.hub = [xB + colW - dims.hub.w, y] }
   const slots: [number, number][] = new Array(list.length), ks: number[] = new Array(list.length), zones: Zone[] = new Array(list.length)
-  const put = (i: number, u: number, v: number, k: number, z: Zone): void => { slots[i] = [u * f, v * f]; ks[i] = k * kf; zones[i] = z }
-  by.fuente.forEach((i, j) => put(i, uF0 + (j % 8) * step, vF + Math.floor(j / 8) * 0.85, KB, 'fuente'))
-  const cStep = nC > 1 ? Math.min(step, (1.42 - vF) / (nC - 1)) : step
-  by.continuo.forEach((i, j) => put(i, -hu + 0.55, vF + j * cStep, KB, 'continuo'))
-  by.archivo.forEach((i, j) => put(i, -1.15 + j * 0.75, -0.3, KB, 'archivo'))
-  by.jefe.forEach((i, j) => put(i, 0.95 + j * 0.9, 0.35 + j * 0.6, j ? KB : KJ, 'jefe'))
-  by.obra.forEach((i, j) => put(i, -1.5 + (j % 3) * 0.7, 1.2 - Math.floor(j / 3) * 0.6, KB, 'obra'))
-  return { hu: hu * f, hv: hv * f, slots, ks, k: KB * kf, zones, f, uF0 }
+  const boxes: Partial<Record<Zone, Box>> = {}, labels: Partial<Record<Zone, string>> = {}, tints: Partial<Record<Zone, string>> = {}
+  let board: [number, number] | null = null
+  for (const z of ZONES) {
+    const o = org[z], d = dims[z]
+    if (!o) continue
+    const extra = z === 'hub' ? m.board : 0
+    boxes[z] = [U(o[0]), V(o[1]), U(o[0] + d.w), V(o[1] + d.h)]
+    labels[z] = z === 'obra' ? OBRA_LABEL : sp.zones[z]?.label ?? ''
+    const t = sp.zones[z]?.tint; if (t) tints[z] = t
+    by[z].forEach((i, j) => {
+      const c = j % d.cols, r = Math.floor(j / d.cols)
+      slots[i] = [U(o[0] + extra + d.su * (c + 0.5)), V(o[1] + d.sv * (r + 0.5))]
+      ks[i] = z === 'hub' && j === 0 ? m.kh : m.kb; zones[i] = z
+    })
+    if (z === 'hub') board = [U(o[0] + extra * 0.45), V(o[1] + d.sv * 0.5)]
+  }
+  return { stage, hu, hv, slots, ks, k: m.kb, zones, f: m.f, boxes, labels, tints, board }
 }
 
 /* ---------------- dibujo ---------------- */
 type UV = [number, number]
-const at = (r: Room, u: number, v: number, z = 0): [number, number] => P(r.cx, r.cy, u, v, z)
-const quad = (r: Room, u0: number, v0: number, u1: number, v1: number, attrs: string): string =>
-  `<polygon points="${pts([at(r, u0, v0), at(r, u1, v0), at(r, u1, v1), at(r, u0, v1)])}" ${attrs}/>`
-const pathD = (r: Room, uv: UV[]): string => `M${uv.map(([u, v]) => at(r, u, v)).map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' L')}`
-/** Texto pintado en el piso, a lo largo del eje u (frente a una fila) o del eje v (junto a la pared izquierda). */
-function floorText(r: Room, u: number, v: number, txt: string, fs: number, axis: 'u' | 'v', fill: string): string {
-  const [x, y] = at(r, u, v), m = axis === 'u' ? '0.866 0.5 -0.866 0.5' : '0.866 -0.5 0.866 0.5'
-  return `<text class="iso-zname" transform="matrix(${m} ${x.toFixed(1)} ${y.toFixed(1)})" font-size="${fs.toFixed(1)}" fill="${fill}">${esc(txt)}</text>`
+export interface EcoCtx {
+  list: ObsComp[]; edges: ObsEdge[]; tone: (id: string) => EcoTone; stageOf: (id: string) => string | undefined
+  title: (stage: string) => string; stage: string; detail: boolean
 }
+const at = (r: Room, u: number, v: number, z = 0): [number, number] => P(r.cx, r.cy, u, v, z)
+const quad = (r: Room, [u0, v0, u1, v1]: Box, attrs: string): string =>
+  `<polygon points="${pts([at(r, u0, v0), at(r, u1, v0), at(r, u1, v1), at(r, u0, v1)])}" ${attrs}/>`
+const pathD = (sp: [number, number][]): string => `M${sp.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' L')}`
+const grow = (b: Box, g: number): Box => [b[0] - g, b[1] - g, b[2] + g, b[3] + g]
 
-/** Zonas pintadas en el piso con su nombre (el nombre solo en la sala enfocada, para no ensuciar el mapa). */
-function zonesFloor(r: Room, pl: EcoPlan, accent: string, detail: boolean): string {
-  const f = pl.f, hu = pl.hu / f, vF = -2.7 + STRIP + 0.4, s = (x: number): number => x * f
-  const tint = (c: string, o = 0.09): string => `fill="${c}" fill-opacity="${o}" stroke="${c}" stroke-opacity=".55" stroke-width="1.3" stroke-dasharray="6 4"`
-  let out = quad(r, s(pl.uF0 - 0.45), s(vF - 0.5), s(hu - 0.12), s(vF + 0.62), tint(accent))                     // ventanillas
-    + quad(r, s(-hu + 0.12), s(vF - 0.5), s(-hu + 1.0), s(1.75), tint('#2ee6ff', 0.1))                       // monitoreo continuo
-    + quad(r, s(-1.6), s(-0.78), s(-0.62), s(0.2), tint('#7d8aa6', 0.12))                                    // archivo
-    + quad(r, s(-1.95), s(0.82), s(0.15), s(1.7), 'fill="#ffd23f" fill-opacity=".1" stroke="#e0a800" stroke-width="2.2" stroke-dasharray="7 5"')   // en obra
-  const [jx, jy] = at(r, s(0.95), s(0.55))                                                                   // tapete del puesto principal
-  out += `<ellipse cx="${jx.toFixed(1)}" cy="${jy.toFixed(1)}" rx="${(s(1.05) * 34.6).toFixed(1)}" ry="${(s(1.05) * 20).toFixed(1)}" fill="${accent}" fill-opacity=".13" stroke="${accent}" stroke-opacity=".7" stroke-width="2"/>`
-    + `<ellipse cx="${jx.toFixed(1)}" cy="${jy.toFixed(1)}" rx="${(s(0.78) * 34.6).toFixed(1)}" ry="${(s(0.78) * 20).toFixed(1)}" fill="none" stroke="${accent}" stroke-opacity=".45" stroke-dasharray="3 5"/>`
-  if (detail) {
-    const fs = 10.5, ink = '#1d3b52'
-    out += floorText(r, s(pl.uF0 - 0.4), s(vF - 0.3), 'VENTANILLAS · FUENTES EXTERNAS', fs, 'u', ink)
-      + floorText(r, s(-hu + 0.3), s(1.6), 'MONITOREO CONTINUO', fs, 'v', ink)
-      + floorText(r, s(-1.55), s(0.15), 'ARCHIVO', fs, 'u', ink)
-      + floorText(r, s(-1.9), s(1.64), 'EN OBRA · VIDEO (PLANEADO)', fs, 'u', '#8a6a00')
-      + floorText(r, s(0.35), s(1.5), 'FOTOGRAFÍA · REPARTO', fs, 'u', ink)
+/** Zonas pintadas en el piso (tinte y borde punteado); obra con cinta amarilla; el puesto principal, borde lleno. */
+function zonesFloor(r: Room, pl: EcoPlan, accent: string): string {
+  let out = ''
+  for (const z of ZONES) {
+    const b = pl.boxes[z]; if (!b) continue
+    const e = grow(b, 0.18 * pl.f)
+    if (z === 'obra') { out += quad(r, e, 'fill="#ffd23f" fill-opacity=".1" stroke="#e0a800" stroke-width="2.2" stroke-dasharray="7 5"'); continue }
+    const c = pl.tints[z] ?? accent, hub = z === 'hub'
+    out += quad(r, e, `fill="${c}" fill-opacity="${hub ? 0.16 : 0.09}" stroke="${c}" stroke-opacity=".55" stroke-width="${hub ? 2 : 1.3}"${hub ? '' : ' stroke-dasharray="6 4"'}`)
   }
   return out
 }
 
-/** Flujos internos (dentro de la sala) en ángulo recto sobre el piso: de las ventanillas bajan por v y luego
- * cruzan por u; del monitoreo cruzan primero por u. Un carril por conexión para que no se pisen. */
+/** Nombre de cada zona (solo en la sala ampliada): placa pequeña en la capa de arriba. Se prueba alrededor de la
+ * zona (esquinas y bordes) y se queda en el primer sitio libre de figuras, de nombres de puestos (cuelgan bajo
+ * los pies hacia su lado) y de las otras placas. */
+function zoneTags(r: Room, pl: EcoPlan, ctx: EcoCtx, accent: string): string {
+  type Rect = [number, number, number, number]
+  const busy: Rect[] = pl.slots.map(([u, v], i) => { const k = pl.ks[i], [x, y] = at(r, u, v + 0.22 * k); return [x - 24 * k, y - 50 * k, x + 24 * k, y + 8] })
+  pl.slots.forEach(([u, v], i) => {                       // nombre de cada puesto (como en obs_iso_focus.nameTags)
+    const k = pl.ks[i], [x, y] = at(r, u, v + 0.22 * k), w = Math.min(ctx.list[i].title_es.length, 24) * 7 + 26
+    const x0 = pl.zones[i] === 'left' ? x - 18 : x - w + 18; busy.push([x0, y + 12, x0 + w, y + 36])
+  })
+  const hit = (a: Rect): boolean => busy.some((b) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1])
+  let out = ''
+  for (const z of ZONES) {
+    const b = pl.boxes[z], txt = (pl.labels[z] ?? '').toLocaleUpperCase('es'); if (!b || !txt) continue
+    const e = grow(b, 0.18 * pl.f), c = z === 'obra' ? '#e0a800' : pl.tints[z] ?? accent, w = txt.length * 6.4 + 18
+    const mu = (e[0] + e[2]) / 2, mv = (e[1] + e[3]) / 2
+    const cands: [number, number][] = [[e[0], e[1]], [e[2], e[1]], [e[0], e[3]], [mu, e[1]], [e[0], mv], [e[2], mv], [mu, e[3]], [e[2], e[3]]]
+    let best: Rect | null = null
+    for (const [u, v] of cands) for (const dy of [-6, -24, 14]) {
+      const [x, y] = at(r, u, v), cand: Rect = [x - w / 2, y + dy - 9, x + w / 2, y + dy + 9]
+      if (!hit(cand)) { best = cand; break }
+    }
+    if (!best) continue                                    // sin sitio libre: mejor sin placa que tapando a alguien
+    busy.push(best)
+    out += `<g class="iso-ztag"><rect x="${best[0].toFixed(1)}" y="${best[1].toFixed(1)}" width="${w.toFixed(1)}" height="18" rx="4" stroke="${c}"/>`
+      + `<text x="${((best[0] + best[2]) / 2).toFixed(1)}" y="${(best[1] + 12.5).toFixed(1)}">${esc(txt)}</text></g>`
+  }
+  return out
+}
+
+/** Trazo quieto con borde blanco y flechas pequeñas de sentido. */
+function still(sp: [number, number][], w: number, c: string, arrow: string, f: number, big = false): string {
+  const d = pathD(sp)
+  return `<path d="${d}" stroke="#ffffff" stroke-width="${(w + 3).toFixed(1)}" opacity=".85"/><path d="${d}" stroke="${c}" stroke-width="${w.toFixed(1)}" class="iso-flow"/>`
+    + arrowsAlong(sp, 70 * f, (big ? 4.2 : 3.2) * Math.sqrt(f), arrow)
+}
+
+/** Flujos internos (dentro de la sala) en ángulo recto sobre el piso: desde filas bajan por v y cruzan por u;
+ * desde la pared izquierda cruzan primero por u. Un carril por conexión para que no se pisen. */
 function innerFlows(r: Room, pl: EcoPlan, ctx: EcoCtx): string {
   const idx = new Map(ctx.list.map((c, i) => [c.id, i])), seen = new Set<string>(), f = pl.f
   let out = '', lane = 0
   for (const e of ctx.edges) {
     const a = idx.get(e.source), b = idx.get(e.target), key = `${e.source}>${e.target}`
-    if (a == null || b == null || seen.has(key)) continue
+    if (a == null || b == null || a === b || seen.has(key)) continue
     seen.add(key)
     const [ua, va] = pl.slots[a], [ub, vb] = pl.slots[b], o = ((lane++ % 5) - 2) * 0.05 * f
-    const sv = va + 0.32 * pl.ks[a], vFirst = pl.zones[a] === 'fuente' || pl.zones[a] === 'obra'
-    const way: UV[] = vFirst ? [[ua + o, sv], [ua + o, vb + o], [ub, vb + o]] : [[ua, sv + o], [ub + o, sv + o], [ub + o, vb]]
-    const t = ctx.tone(e.source), plan = pl.zones[a] === 'obra' || pl.zones[b] === 'obra', tone: EcoTone = plan ? 'plan' : t
-    const d = pathD(r, way), w = 2.2 * Math.sqrt(f)
+    const sv = va + 0.32 * pl.ks[a], uFirst = pl.zones[a] === 'left'
+    const way: UV[] = uFirst ? [[ua, sv + o], [ub + o, sv + o], [ub + o, vb]] : [[ua + o, sv], [ua + o, vb + o], [ub, vb + o]]
+    const plan = pl.zones[a] === 'obra' || pl.zones[b] === 'obra', tone: EcoTone = plan ? 'plan' : ctx.tone(e.source)
     out += `<g class="iso-inner t-${tone}" fill="none"><title>${esc(`${ctx.list[a].title_es} → ${ctx.list[b].title_es} (${e.artifact})`)}</title>`
-      + `<path d="${d}" stroke="#ffffff" stroke-width="${(w + 3).toFixed(1)}" opacity=".85"/><path d="${d}" stroke="${COLOR[tone]}" stroke-width="${w.toFixed(1)}" class="iso-flow"/></g>`
+      + still(way.map(([u, v]) => at(r, u, v)), 2.2 * Math.sqrt(f), COLOR[tone], COLOR[tone], f) + '</g>'
   }
   return out
 }
 
-/** Salidas laterales: cada puesto que entrega a otra sala sale por el borde abierto más cercano
- * (frente derecho o frente izquierdo) con una flecha; en la sala enfocada dice a qué salas va. */
-function exits(r: Room, pl: EcoPlan, ctx: EcoCtx): string {
+/** Salidas hacia otras salas: el puesto principal sale por el borde derecho; los demás por el borde abierto más
+ * cercano (derecho o izquierdo del frente). En la sala ampliada, una placa dice a qué salas va cada una. */
+function exits(r: Room, pl: EcoPlan, ctx: EcoCtx): [string, string] {
   const idx = new Map(ctx.list.map((c, i) => [c.id, i])), outs = new Map<number, Set<string>>()
   for (const e of ctx.edges) {
     const a = idx.get(e.source), st = ctx.stageOf(e.target)
@@ -129,76 +190,75 @@ function exits(r: Room, pl: EcoPlan, ctx: EcoCtx): string {
     ;(outs.get(a) ?? outs.set(a, new Set()).get(a)!).add(st)
   }
   let out = '', chips = ''
-  const placed: number[][] = []                       // etiquetas ya puestas: la siguiente que choque se aparta
+  const placed: number[][] = [], said = new Set<string>()      // una placa por destino y borde
   const ordered = [...outs].sort((x, y) => pl.slots[x[0]][1] - pl.slots[y[0]][1] || pl.slots[x[0]][0] - pl.slots[y[0]][0])
   ordered.forEach(([i, stages], n) => {
-    const [u, v] = pl.slots[i], k = pl.ks[i], plan = pl.zones[i] === 'obra', main = pl.zones[i] === 'jefe'
+    const [u, v] = pl.slots[i], k = pl.ks[i], plan = pl.zones[i] === 'obra', main = pl.zones[i] === 'hub'
     const tone: EcoTone = plan ? 'plan' : ctx.tone(ctx.list[i].id), c = COLOR[tone]
     const toRight = main || pl.hu - u <= pl.hv - v, lv = v + 0.3 * k + (main ? 0 : ((n % 3) - 1) * 0.06 * pl.f)
     const way: UV[] = toRight ? [[u, lv], [pl.hu + 0.05, lv]] : [[u + 0.12 * pl.f, v + 0.3 * k], [u + 0.12 * pl.f, pl.hv + 0.05]]
-    const w = (main ? 5 : 2.4) * Math.sqrt(pl.f), d = pathD(r, way), end = way[1]
-    const names = [...stages].map((s) => ctx.title(s).split(/ \/ | y /)[0])
+    const names = [...stages].map((s) => ctx.title(s).split(/ \/ | y /)[0]), end = way[1]
     out += `<g class="iso-inner t-${tone}${main ? ' main' : ''}" fill="none"><title>${esc(`${ctx.list[i].title_es} → ${names.join(', ')}`)}</title>`
-      + `<path d="${d}" stroke="#ffffff" stroke-width="${(w + 3).toFixed(1)}" opacity=".85"/><path d="${d}" stroke="${c}" stroke-width="${w.toFixed(1)}" class="iso-flow"/></g>`
+      + still(way.map(([p, q]) => at(r, p, q)), (main ? 4.5 : 2.4) * Math.sqrt(pl.f), c, main ? '#ffffff' : c, pl.f, main) + '</g>'
     const a = 0.2 * pl.f * (main ? 1.3 : 1), [eu, ev] = end                       // flecha en el borde
     const tri: UV[] = toRight ? [[eu + a, ev], [eu - a * 0.4, ev - a * 0.7], [eu - a * 0.4, ev + a * 0.7]] : [[eu, ev + a], [eu - a * 0.7, ev - a * 0.4], [eu + a * 0.7, ev - a * 0.4]]
     out += `<polygon points="${pts(tri.map(([p, q]) => at(r, p, q)))}" fill="${c}" stroke="#fff" stroke-width="1"/>`
-    if (ctx.detail) {
-      const [x, y0] = at(r, eu + (toRight ? 0.45 * pl.f : 0), ev + (toRight ? 0 : 0.45 * pl.f)), txt = `→ ${names.slice(0, 3).join(' · ')}${names.length > 3 ? ' …' : ''}`
-      const tw = txt.length * 6.3 + 16, x0 = toRight ? x - 4 : x - tw + 8
-      let y = y0
-      const hit = (yy: number): boolean => placed.some((q) => x0 < q[2] && x0 + tw > q[0] && yy - 11 < q[3] && yy + 11 > q[1])
-      for (let g = 0; g < 8 && hit(y); g++) y += 23
-      placed.push([x0, y - 11, x0 + tw, y + 11])
-      chips += `<g class="iso-exit"><rect x="${x0.toFixed(1)}" y="${(y - 10).toFixed(1)}" width="${tw.toFixed(1)}" height="20" rx="10" stroke="${c}"/>`
-        + `<text x="${(x0 + tw / 2).toFixed(1)}" y="${(y + 4).toFixed(1)}">${esc(txt)}</text></g>`
-    }
+    if (!ctx.detail) return
+    const [x, y0] = at(r, eu + (toRight ? 0.45 * pl.f : 0), ev + (toRight ? 0 : 0.45 * pl.f)), txt = `→ ${names.slice(0, 3).join(' · ')}${names.length > 3 ? ' …' : ''}`
+    const tw = txt.length * 6.3 + 16, x0 = toRight ? x - 4 : x - tw + 8, key = `${toRight}|${txt}`
+    if (said.has(key)) return
+    said.add(key)
+    let y = y0
+    const hit = (yy: number): boolean => placed.some((q) => x0 < q[2] && x0 + tw > q[0] && yy - 11 < q[3] && yy + 11 > q[1])
+    for (let g = 0; g < 12 && hit(y); g++) y += 23
+    placed.push([x0, y - 11, x0 + tw, y + 11])
+    chips += `<g class="iso-exit"><rect x="${x0.toFixed(1)}" y="${(y - 10).toFixed(1)}" width="${tw.toFixed(1)}" height="20" rx="10" stroke="${c}"/>`
+      + `<text x="${(x0 + tw / 2).toFixed(1)}" y="${(y + 4).toFixed(1)}">${esc(txt)}</text></g>`
   })
-  return out + chips
+  return [out, chips]
 }
 
-/** Mobiliario con profundidad (se ordena junto con los puestos): rack y archivador del archivo, tablero del
- * puesto principal, conos de la obra y plantas. `depth` = u + v del punto de apoyo. */
+/** Mobiliario con profundidad (se ordena junto con los puestos): tablero del puesto principal, conos de la obra
+ * y plantas en las esquinas libres del frente. `depth` = u + v del punto de apoyo. */
 function props(r: Room, pl: EcoPlan): { svg: string; depth: number }[] {
-  const f = pl.f, s = (x: number): number => x * f, hu = pl.hu / f, hv = pl.hv / f, out: { svg: string; depth: number }[] = []
-  const add = (u: number, v: number, svg: string): void => { out.push({ svg, depth: s(u) + s(v) }) }
-  // Archivo: archivador y estante bajos detrás del almacén (los racks del fondo siguen junto al ventanal)
-  const kf = pl.k / KB
-  add(-0.75, -0.8, art('archivador', at(r, s(-0.75), s(-0.8)), 30 * kf))
-  add(-1.55, -0.75, art('estante', at(r, s(-1.55), s(-0.75)), 20 * kf))
-  // Tablero del puesto principal: pantalla de pie detrás, con la «fotografía» (barras y curva) encendida
-  const bu = 0.05, bv = 0.75, bw = 0.62, bh = 0.42, z0 = 0.3
-  const sc = (du: number, z: number): [number, number] => at(r, s(bu + du), s(bv), s(z))
-  let board = box(r, s(bu), s(bv), s(0.08), s(0.08), s(z0), 0, '#9aa7bf', '#6b7891', '#7d8aa3')
-  board += `<polygon points="${pts([sc(-bw / 2, z0), sc(bw / 2, z0), sc(bw / 2, z0 + bh), sc(-bw / 2, z0 + bh)])}" fill="#061a2c" stroke="#12a9d6" stroke-width="1.6"/>`
-  board += [0.08, 0.2, 0.14, 0.27, 0.22].map((h, j) => { const x = -bw / 2 + 0.08 + j * 0.105
-    return `<polygon points="${pts([sc(x, z0 + 0.06), sc(x + 0.06, z0 + 0.06), sc(x + 0.06, z0 + 0.06 + h), sc(x, z0 + 0.06 + h)])}" fill="#2ee6ff" opacity=".75"/>` }).join('')
-  board += `<polyline points="${pts([sc(-0.27, z0 + 0.2), sc(-0.12, z0 + 0.29), sc(0.02, z0 + 0.25), sc(0.15, z0 + 0.36), sc(0.27, z0 + 0.34)])}" fill="none" stroke="#12e58f" stroke-width="${(1.8 * Math.sqrt(f)).toFixed(1)}"/>`
-  add(bu, bv, board)
-  // Obra: conos naranjas en las esquinas de la cinta
-  for (const [u, v] of [[-1.85, 0.92], [0.05, 1.6]] as UV[]) {
-    const b = at(r, s(u), s(v)), t = at(r, s(u), s(v), s(0.32)), w = 7 * Math.sqrt(f)
-    add(u, v, `<polygon points="${pts([[b[0] - w, b[1]], [b[0] + w, b[1]], t])}" fill="#ff8a1f" stroke="#c45f00" stroke-width="1"/><rect x="${(b[0] - w * 0.55).toFixed(1)}" y="${(b[1] - s(0.13) * 40).toFixed(1)}" width="${(w * 1.1).toFixed(1)}" height="${(2.2 * Math.sqrt(f)).toFixed(1)}" fill="#fff"/>`)
+  const f = pl.f, kf = pl.k / BASE.kb, out: { svg: string; depth: number }[] = []
+  const add = (u: number, v: number, svg: string): void => { out.push({ svg, depth: u + v }) }
+  if (pl.board) {                         // tablero de pie junto al puesto principal, con barras encendidas
+    const [bu, bv] = pl.board, bw = 0.62 * kf, bh = 0.42 * kf, z0 = 0.3 * kf
+    const sc = (du: number, z: number): [number, number] => at(r, bu + du, bv, z)
+    let s = box(r, bu, bv, 0.08 * kf, 0.08 * kf, z0, 0, '#9aa7bf', '#6b7891', '#7d8aa3')
+    s += `<polygon points="${pts([sc(-bw / 2, z0), sc(bw / 2, z0), sc(bw / 2, z0 + bh), sc(-bw / 2, z0 + bh)])}" fill="#061a2c" stroke="#12a9d6" stroke-width="1.6"/>`
+    s += [0.2, 0.48, 0.34, 0.65, 0.52].map((h, j) => { const x = -bw / 2 + bw * (0.13 + j * 0.17), z1 = z0 + 0.05 * kf, hh = h * bh * 0.8
+      return `<polygon points="${pts([sc(x, z1), sc(x + bw * 0.1, z1), sc(x + bw * 0.1, z1 + hh), sc(x, z1 + hh)])}" fill="#2ee6ff" opacity=".75"/>` }).join('')
+    add(bu, bv, s)
   }
-  // Verde: planta entre las ventanillas y el archivo, planta alta en la esquina de salida
-  add(-0.25, -0.75, art('planta', at(r, s(-0.25), s(-0.75)), s(26)))
-  add(hu - 0.35, hv - 1.25, art('planta_alta', at(r, s(hu - 0.35), s(hv - 1.25)), s(46)))
+  const ob = pl.boxes.obra
+  if (ob) for (const [u, v] of [[ob[0] - 0.12 * f, ob[1] - 0.12 * f], [ob[2] + 0.12 * f, ob[3] + 0.12 * f]] as UV[]) {
+    const b = at(r, u, v), t = at(r, u, v, 0.32 * kf), w = 7 * kf
+    add(u, v, `<polygon points="${pts([[b[0] - w, b[1]], [b[0] + w, b[1]], t])}" fill="#ff8a1f" stroke="#c45f00" stroke-width="1"/><rect x="${(b[0] - w * 0.55).toFixed(1)}" y="${(b[1] - 0.13 * kf * 40).toFixed(1)}" width="${(w * 1.1).toFixed(1)}" height="${(2.2 * kf).toFixed(1)}" fill="#fff"/>`)
+  }
+  const free = (u: number, v: number): boolean => !Object.values(pl.boxes).some((b) => b && u > b[0] - 0.6 * f && u < b[2] + 0.6 * f && v > b[1] - 0.6 * f && v < b[3] + 0.6 * f)
+  const vF = pl.hv - 0.78 - 0.45 * f
+  for (const [u, v, name, h] of [[pl.hu - 0.4 * f, vF, 'planta_alta', 44], [-pl.hu + 0.45 * f, vF, 'arbol', 34]] as [number, number, string, number][])
+    if (free(u, v)) add(u, v, art(name, at(r, u, v), h * kf))
   return out
 }
 
-/** Detalles de cada puesto según su ritmo: lo continuo tiene un ecualizador que alterna sus barras; el
- * puesto principal, dos monitores más. Lo planeado no lleva nada. */
+/** Detalles de cada puesto según su ritmo: lo continuo tiene un ecualizador que alterna sus barras (a saltos,
+ * con el reloj de la sala); el puesto principal, dos monitores más. */
 export function ecoExtra(r: Room, pl: EcoPlan, i: number, c: ObsComp): string {
-  const [u, v] = pl.slots[i], k = pl.ks[i], dv = v - 0.18 * k, z = zoneOf(c)
-  if (z === 'jefe') return [-0.3, 0.38].map((du) => art('monitor', at(r, u + du * k, dv - 0.02 * k, 0.26 * k), 15 * k)).join('')
-  if (z === 'continuo') {
+  const [u, v] = pl.slots[i], k = pl.ks[i], dv = v - 0.18 * k
+  if (pl.zones[i] === 'hub' && k > pl.k) return [-0.3, 0.38].map((du) => art('monitor', at(r, u + du * k, dv - 0.02 * k, 0.26 * k), 15 * k)).join('')
+  if (c.built !== 'planeado' && continuo(c)) {
     const b = at(r, u - 0.24 * k, dv, 0.27 * k)
     return [6, 9, 4].map((h, j) => `<rect x="${(b[0] + j * 3.2 * k).toFixed(1)}" y="${(b[1] - h * k).toFixed(1)}" width="${(2.2 * k).toFixed(1)}" height="${(h * k).toFixed(1)}" fill="#2ee6ff" class="iso-eq"${j % 2 ? ' style="animation-delay:-0.8s"' : ''}/>`).join('')
   }
   return ''
 }
 
-/** Todo lo que la sala pinta además de los puestos: piso (zonas, flujos, salidas) y mobiliario con profundidad. */
-export function ecoDraw(r: Room, pl: EcoPlan, ctx: EcoCtx, accent: string): { floor: string; props: { svg: string; depth: number }[] } {
-  return { floor: zonesFloor(r, pl, accent, ctx.detail) + innerFlows(r, pl, ctx) + exits(r, pl, ctx), props: props(r, pl) }
+/** Lo que la sala pinta además de los puestos: piso (zonas, flujos, salidas), mobiliario con profundidad y,
+ * aparte, las placas de salidas y de zonas (capa de arriba, solo en la sala ampliada). */
+export function ecoDraw(r: Room, pl: EcoPlan, ctx: EcoCtx, accent: string): { floor: string; props: { svg: string; depth: number }[]; top: string } {
+  const [ex, chips] = exits(r, pl, ctx)
+  return { floor: zonesFloor(r, pl, accent) + innerFlows(r, pl, ctx) + ex, props: props(r, pl), top: ctx.detail ? chips + zoneTags(r, pl, ctx, accent) : '' }
 }

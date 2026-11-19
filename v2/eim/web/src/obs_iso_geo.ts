@@ -43,3 +43,21 @@ export const lineBR = (r: Room, uz: [number, number][], attrs: string): string =
   `<polyline points="${pts(uz.map(([u, z]) => onBR(r, u, z)))}" fill="none" ${attrs}/>`
 export const lineBL = (r: Room, vz: [number, number][], attrs: string): string =>
   `<polyline points="${pts(vz.map(([v, z]) => onBL(r, v, z)))}" fill="none" ${attrs}/>`
+
+/** Flechas pequeñas y quietas a lo largo de un trazo en pantalla (sentido de la información), una cada
+ * `every` px y siempre a medio tramo para no caer en las esquinas. Sustituye a las flechas que viajaban:
+ * nada se mueve, así la capa no se repinta. */
+export function arrowsAlong(sp: [number, number][], every: number, size: number, fill: string, cls = 'iso-arrow'): string {
+  let out = ''
+  for (let i = 0; i + 1 < sp.length; i++) {
+    const [x0, y0] = sp[i], [x1, y1] = sp[i + 1], len = Math.hypot(x1 - x0, y1 - y0)
+    if (len < size * 3) continue
+    const n = Math.max(1, Math.floor(len / every)), c = (x1 - x0) / len, s = (y1 - y0) / len
+    for (let j = 0; j < n; j++) {
+      const t = (j + 0.5) / n, cx = x0 + (x1 - x0) * t, cy = y0 + (y1 - y0) * t
+      const p = ([u, v]: [number, number]): string => `${(cx + u * c - v * s).toFixed(1)},${(cy + u * s + v * c).toFixed(1)}`
+      out += `<polygon class="${cls}" points="${p([size, 0])} ${p([-size * 0.7, -size * 0.75])} ${p([-size * 0.35, 0])} ${p([-size * 0.7, size * 0.75])}" fill="${fill}"/>`
+    }
+  }
+  return out
+}

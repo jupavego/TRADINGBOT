@@ -33,11 +33,9 @@
 .iso-tiles line { stroke: #c6ccd6; stroke-width: 1; }
 .iso-fname { font-family: "Inter", system-ui, sans-serif; font-weight: 800; letter-spacing: .08em; text-anchor: middle; opacity: .85; pointer-events: none; }
 .iso-link .iso-flow { stroke-linejoin: round; }
-.iso-link.t-ok .iso-flow, .iso-link.t-bad .iso-flow { stroke-dasharray: 14 8; animation: iso-dash .8s linear infinite; }
-.iso-link.t-bad .iso-flow { animation: iso-dash 2.2s linear infinite, iso-fade-s 1.1s ease-in-out infinite; }
+/* Líneas del piso quietas: el sentido lo dan flechas pequeñas fijas (.iso-arrow); lo que falla, el color */
 .iso-link.t-none .iso-flow, .iso-link.t-plan .iso-flow { stroke-dasharray: 3 9; }
-.iso-dotm { stroke: #fff; stroke-width: .8; }
-.iso-link.t-bad .iso-dotm { animation: iso-fade-f .9s ease-in-out infinite; }
+.iso-arrow { stroke: none; opacity: .95; pointer-events: none; }
 .iso-flab rect, .iso-label rect { fill: #070c33; stroke-opacity: .7; }
 .iso-flab text { fill: #e8ecff; font: 600 10.5px "IBM Plex Mono", ui-monospace, monospace; text-anchor: middle; }
 .iso-label rect { fill: #0a1146; opacity: .95; }
@@ -90,28 +88,23 @@
 @media (max-width: 700px) { [data-view="iso"] .obs-body > .obs-side { position: static; width: auto; max-height: none; pointer-events: auto; } }
 /* Fuera de la vista el mapa no anima: lo detiene el reloj de motion.ts (antes una clase en la raíz que, al
    entrar o salir de pantalla, recalculaba el estilo de miles de figuras justo durante el desplazamiento) */
-@keyframes iso-dash { to { stroke-dashoffset: -22; } }
 /* Solo propiedades de pintura (stroke/fill-opacity): animar `opacity` obliga a recalcular las capas de toda la página */
-@keyframes iso-fade-s { 50% { stroke-opacity: .3; } }
-@keyframes iso-fade-f { 50% { fill-opacity: .3; stroke-opacity: .3; } }
 @keyframes iso-new { 30% { opacity: .55; } }
 @keyframes iso-blink { 50% { fill-opacity: .2; } }
 @keyframes iso-halo-blink { 0%, 100% { fill-opacity: 1; } 50% { fill-opacity: .36; } }   /* mismo compás que iso-blink */
-@media (prefers-reduced-motion: reduce) { .iso-pulse, .iso-blink, .iso-orb, .iso-link .iso-flow, .iso-dotm { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .iso-pulse, .iso-blink { animation: none !important; } }
 /* Microecosistema de una sala (obs_iso_eco): zonas pintadas, flujos internos y salidas sobre el piso.
    Van en la capa de las salas, que solo se redibuja cada 0,8 s (quant del reloj): todo avanza a saltos en esos
    mismos instantes — los flujos marchan medio trazo y el ecualizador alterna barras —, nunca en cada cuadro. */
 .iso-inner path { stroke-linecap: round; stroke-linejoin: round; }
-.iso-inner.t-ok .iso-flow, .iso-inner.t-bad .iso-flow { stroke-dasharray: 9 6; animation: iso-march 1.6s linear infinite; }
-.iso-inner.t-bad .iso-flow { animation-name: iso-march-bad; }
 .iso-inner.t-none .iso-flow, .iso-inner.t-plan .iso-flow { stroke-dasharray: 2 6; }
 .iso-inner.t-plan { opacity: .55; }
-.iso-zname { font-family: "Inter", system-ui, sans-serif; font-weight: 800; letter-spacing: .1em; opacity: .7; pointer-events: none; }
+.iso-ztag { pointer-events: none; }
+.iso-ztag rect { fill: #070c33; fill-opacity: .82; stroke-width: 1.3; }
+.iso-ztag text { fill: #e8ecff; font: 700 9.5px "Inter", system-ui, sans-serif; letter-spacing: .08em; text-anchor: middle; }
 .iso-exit { pointer-events: none; }
 .iso-exit rect { fill: #070c33; fill-opacity: .9; stroke-width: 1.3; }
 .iso-exit text { fill: #e8ecff; font: 600 10.5px "IBM Plex Mono", ui-monospace, monospace; text-anchor: middle; }
 .iso-eq { animation: iso-eq 1.6s linear infinite; }
-@keyframes iso-march { 0%, 49.9% { stroke-dashoffset: 0; } 50%, 100% { stroke-dashoffset: -7.5; } }
-@keyframes iso-march-bad { 0%, 49.9% { stroke-dashoffset: 0; } 50%, 100% { stroke-dashoffset: -7.5; stroke-opacity: .35; } }
 @keyframes iso-eq { 0%, 49.9% { fill-opacity: 1; } 50%, 100% { fill-opacity: .25; } }
-@media (prefers-reduced-motion: reduce) { .iso-eq, .iso-inner .iso-flow { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .iso-eq { animation: none !important; } }

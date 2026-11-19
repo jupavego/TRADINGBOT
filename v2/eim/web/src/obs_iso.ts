@@ -3,15 +3,17 @@
  * tres colores: verde = funciona, rojo = falla, gris = sin información. Las líneas salen de las
  * conexiones declaradas entre etapas y cierran el ciclo de Validación a Datos. Todas las salas se apoyan
  * sobre un mismo piso gris claro de oficina; el nombre de cada área va pintado en su franja del frente y el
- * centro es un área común con salitas (obs_iso_lounge) que no pisa las pistas. Las salas con microecosistema
- * (obs_iso_eco; por ahora «1. Datos») ubican cada puesto según cómo sale la información, no en rejilla. */
+ * centro es un área común con salitas (obs_iso_lounge) que no pisa las pistas. Cada sala es un microecosistema
+ * (obs_iso_eco): sus puestos van por zonas según cómo entra, se trabaja y sale la información. Las líneas del
+ * piso son quietas, con flechas pequeñas de sentido. */
 import './obs_iso.css'
 import { compState } from './obs_graph'
-import { P, pts, S, type Room } from './obs_iso_geo'
+import { arrowsAlong, P, pts, S, type Room } from './obs_iso_geo'
 import { ART_DEFS } from './obs_iso_art'
 import { avatar, avatarDefs } from './obs_iso_avatar'
 import { ecoDraw, ecoExtra, ecoPlan, hasEco, type EcoCtx, type EcoPlan } from './obs_iso_eco'
 import { focusLayout, nameTags } from './obs_iso_focus'
+import { FLOOR, floorName, floorSlab, G, hitsAny, hitsRoom, separate, tiles, toUV } from './obs_iso_floor'
 import { lounges, type UVRect } from './obs_iso_lounge'
 import { NAME_STRIP, station, STRIP, themeOf, WALL_H } from './obs_iso_props'
 import { esc, STATE_ICON, STATE_LABEL, type ObsComp, type ObsData, type ObsState } from './obs_types'
@@ -49,7 +51,7 @@ const rank: Record<ObsState, number> = { error: 0, obsoleto: 1, degradado: 2, si
 
 function areas(d: ObsData, inc: boolean): Area[] {
   const st = d.graph.stages
-  return st.map((stage, i) => {
+  return separate(st.map((stage, i): Area => {
     const list = d.comps.filter((c) => c.stage === stage).sort((a, b) => rank[compState(d, a)] - rank[compState(d, b)])
     const n = Math.max(list.length, 1), cols = Math.max(2, Math.ceil(Math.sqrt(n * 1.15))), rows = Math.max(2, Math.ceil(n / cols))
     const cell = n > 16 ? 0.72 : n > 6 ? 0.88 : 1.1, pad = 0.28
@@ -58,11 +60,11 @@ function areas(d: ObsData, inc: boolean): Area[] {
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) slots.push([-(cols * cell) / 2 + cell * (c + 0.5), -hv + pad + STRIP + cell * (r + 0.5)])
     const [x, y] = posOf(i, st.length), tone = worstTone(list.map((c) => toneOf(compState(d, c), inc)))
     if (hasEco(stage)) {                 // microecosistema: cada puesto donde le toca según cómo sale la información
-      const eco = ecoPlan(list)
+      const eco = ecoPlan(stage, list)
       return { stage, i, list, slots: eco.slots, k: eco.k, ks: eco.ks, eco, cx: x * S, cy: y * S, hu: eco.hu, hv: eco.hv, tone }
     }
     return { stage, i, list, slots, k: cell / 1.1, cx: x * S, cy: y * S, hu, hv, tone }
-  })
+  }))
 }
 
 function links(d: ObsData, inc: boolean, A: Area[]): Link[] {
@@ -93,13 +95,12 @@ function links(d: ObsData, inc: boolean, A: Area[]): Link[] {
 }
 
 /** Coordenadas del piso común: la vista entera comparte un solo plano (U, V) en unidades. */
-const toUV = (x: number, y: number): [number, number] => [(x / (0.866 * S) + y / (0.5 * S)) / 2, (y / (0.5 * S) - x / (0.866 * S)) / 2]
-const G = (u: number, v: number, z = 0): [number, number] => P(0, 0, u, v, z)
 const sgn = (x: number): number => (x >= 0 ? 1 : -1)
 
 /** Pista sobre el piso entre dos salas: sale por el borde de la de origen, gira en ángulo recto
  * siguiendo los ejes del piso y entra por el borde de la de destino, con flechas de sentido. */
-function drawLink(l: Link, A: Area[], i: number, focus: string | null, motion: boolean, mid: [number, number], taken: number[][], tracks: UVRect[]): [string, string, string] {
+function drawLink(l: Link, A: Area[], i: number, focus: string | null, mid: [number, number], taken: number[][], tracks: UVRect[]): [string, string] {
+  const free = (r: number[]): boolean => !hitsAny(taken, r) && !hitsRoom(A, r, WALL_H)
   const a = A.find((x) => x.stage === l.a)!, b = A.find((x) => x.stage === l.b)!
   const [ua, va] = toUV(a.cx, a.cy), [ub, vb] = toUV(b.cx, b.cy)
   const o = l.main || l.fb ? 0 : ((i % 3) - 1) * 0.32                       // carriles para no pisarse
@@ -114,67 +115,32 @@ function drawLink(l: Link, A: Area[], i: number, focus: string | null, motion: b
     tracks.push([Math.min(p1[0], p2[0]) - m, Math.min(p1[1], p2[1]) - m, Math.max(p1[0], p2[0]) + m, Math.max(p1[1], p2[1]) + m])
   }
   const sp = way.map(([u, v]) => G(u, v))
-  const dPath = `M${sp.map((q) => `${q[0].toFixed(1)},${q[1].toFixed(1)}`).join(' L')}`, id = `iso-l${i}`, c = COLOR[l.tone]
+  const dPath = `M${sp.map((q) => `${q[0].toFixed(1)},${q[1].toFixed(1)}`).join(' L')}`, c = COLOR[l.tone]
   const on = !focus || l.a === focus || l.b === focus, w = l.fb ? 6 : l.main ? 5 : 2.6
   const cls = `iso-link t-${l.tone}${l.main || l.fb ? ' main' : ''}${on ? '' : ' iso-dim'}${!l.main && !l.fb && focus && on ? ' focus' : ''}`
+  // Quieta: borde, cuerpo blanco, halo, trazo de color y flechas pequeñas que dicen hacia dónde va la información
+  // (sin trazos que corren ni flechas que viajan: nada se repinta). Lo que falla se dice con el color.
   const still = `<path d="${dPath}" stroke="#c7cfdc" stroke-width="${w + 9}" opacity=".85"/><path d="${dPath}" stroke="#ffffff" stroke-width="${w + 5}"/><path d="${dPath}" stroke="${c}" stroke-width="${w + 12}" class="iso-halo"/>`
-  let parts = `<path id="${id}" d="${dPath}" stroke="${c}" stroke-width="${w * 0.55}" opacity=".45"/>`
     + `<path d="${dPath}" stroke="${c}" stroke-width="${w}" class="iso-flow" marker-end="url(#iso-ah-${l.tone})"/>`
-  if (motion && l.tone !== 'none' && l.tone !== 'plan') {
-    const n = l.fb ? 3 : l.main ? 2 : 1, dur = l.tone === 'bad' ? 8 : 4, k = l.main || l.fb ? 1.25 : 0.85
-    for (let q = 0; q < n; q++) parts += `<path d="M0,0" fill="${c}" class="iso-dotm" data-path="${id}" data-dur="${dur}" data-off="${(q / n).toFixed(3)}" data-k="${k}"/>`   // obs_iso_arrows
-  }
+    + arrowsAlong(sp, l.main || l.fb ? 90 : 110, l.main || l.fb ? 5.5 : 4.2, '#ffffff', 'iso-arrow') 
   const tip = l.fb ? 'Cierre del ciclo: el catálogo aún no declara una conexión directa; toma el estado de la última etapa.'
     : `${l.n} conexiones declaradas · entrega: ${l.label} · ${TONE_ES[l.tone]}`
-  const g = (x: string): string => `<g class="${cls}" fill="none"><title>${esc(`${l.a} → ${l.b}: ${tip}`)}</title>${x}</g>`   // quieto (piso) · animado (capa de líneas)
+  const g = (x: string): string => `<g class="${cls}" fill="none"><title>${esc(`${l.a} → ${l.b}: ${tip}`)}</title>${x}</g>`
   let lab = ''
   if (l.main || l.fb || (focus && on)) {
-    const seg = Math.hypot(sp[1][0] - sp[0][0], sp[1][1] - sp[0][1]) >= Math.hypot(sp[2][0] - sp[1][0], sp[2][1] - sp[1][1]) ? 0 : 1
-    const lx = (sp[seg][0] + sp[seg + 1][0]) / 2, txt = `${l.label} ➜`, tw = txt.length * 6 + 16
-    let ly = (sp[seg][1] + sp[seg + 1][1]) / 2
-    const hit = (y: number): boolean => taken.some((r) => lx - tw / 2 < r[2] && lx + tw / 2 > r[0] && y - 11 < r[3] && y + 11 > r[1])
-    for (let k = 0; k < 6 && hit(ly); k++) ly += 22           // etiquetas que chocan se apartan hacia abajo
+    const txt = `${l.label} ➜`, tw = txt.length * 6 + 16, long = Math.hypot(sp[1][0] - sp[0][0], sp[1][1] - sp[0][1]) >= Math.hypot(sp[2][0] - sp[1][0], sp[2][1] - sp[1][1]) ? 0 : 1
+    const spots = [long, 1 - long].flatMap((s) => [0.5, 0.3, 0.7].flatMap((q) => [0, 22, -22, 44, -44, 66, -66, 110, -110]
+      .map((o): [number, number] => [sp[s][0] + (sp[s + 1][0] - sp[s][0]) * q, sp[s][1] + (sp[s + 1][1] - sp[s][1]) * q + o])))   // se aparta de salas y etiquetas
+    const [cx0, cy0] = spots[0], ring = Array.from({ length: 400 }, (_, n): [number, number] => [cx0 + ((n % 20) - 10) * 24, cy0 + (Math.floor(n / 20) - 10) * 14])
+      .sort((p, q) => Math.hypot(p[0] - cx0, p[1] - cy0) - Math.hypot(q[0] - cx0, q[1] - cy0))      // si no cabe junto a la línea, lo más cerca
+    const [lx, ly] = [...spots, ...ring].find(([x, y]) => free([x - tw / 2, y - 11, x + tw / 2, y + 11])) ?? spots[0]
     taken.push([lx - tw / 2, ly - 11, lx + tw / 2, ly + 11])
     lab = `<g class="iso-flab${on ? '' : ' iso-dim'}"><rect x="${(lx - tw / 2).toFixed(1)}" y="${(ly - 10).toFixed(1)}" width="${tw}" height="19" rx="9" stroke="${c}"/><text x="${lx.toFixed(1)}" y="${(ly + 3.5).toFixed(1)}">${esc(txt)}</text></g>`
   }
-  return [g(still), g(parts), lab]
+  return [g(still), lab]
 }
 
-/** Líneas de baldosa del piso común entre (u0, v0) y (u1, v1), en coordenadas globales: así el piso
- * se ve continuo aunque una sala lo vuelva a pintar encima (para tapar las pistas que pasan por debajo). */
-function tiles(u0: number, v0: number, u1: number, v1: number): string {
-  let s = ''
-  for (let u = Math.ceil(u0); u < u1; u++) { const p1 = G(u, v0), p2 = G(u, v1); s += `<line x1="${p1[0].toFixed(1)}" y1="${p1[1].toFixed(1)}" x2="${p2[0].toFixed(1)}" y2="${p2[1].toFixed(1)}"/>` }
-  for (let v = Math.ceil(v0); v < v1; v++) { const p1 = G(u0, v), p2 = G(u1, v); s += `<line x1="${p1[0].toFixed(1)}" y1="${p1[1].toFixed(1)}" x2="${p2[0].toFixed(1)}" y2="${p2[1].toFixed(1)}"/>` }
-  return s
-}
-
-const FLOOR = '#d8dce3'           // gris claro: el mismo en todo el piso, dentro y fuera de las salas
-
-/** Piso común bajo todas las salas: una sola losa gris clara de oficina, en vez de islas separadas. */
-function floorSlab(A: Area[]): [string, number[]] {
-  const uv = A.flatMap((a) => { const [u, v] = toUV(a.cx, a.cy); return [[u - a.hu, v - a.hv], [u + a.hu, v + a.hv]] })
-  const m = 1.4, u0 = Math.floor(Math.min(...uv.map((q) => q[0])) - m), u1 = Math.ceil(Math.max(...uv.map((q) => q[0])) + m)
-  const v0 = Math.floor(Math.min(...uv.map((q) => q[1])) - m), v1 = Math.ceil(Math.max(...uv.map((q) => q[1])) + m), t = 0.45
-  const [a0, b, c, d] = [G(u0, v0), G(u1, v0), G(u1, v1), G(u0, v1)], [b0, c0, d0] = [G(u1, v0, -t), G(u1, v1, -t), G(u0, v1, -t)]
-  const s = `<polygon points="${pts([d, c, c0, d0])}" fill="#bfc6d1"/><polygon points="${pts([c, b, b0, c0])}" fill="#a5aebc"/>`
-    + `<polygon points="${pts([a0, b, c, d])}" fill="${FLOOR}" class="iso-ground"/>${tiles(u0, v0, u1, v1)}`
-    + `<polyline points="${pts([d, c, b])}" fill="none" stroke="#e6e9ee" stroke-width="2"/>`
-  const xs = [a0, b, c, d, b0, c0, d0].map((q) => q[0]), ys = [a0, b, c, d, b0, c0, d0].map((q) => q[1])
-  return [`<g class="iso-tiles">${s}</g>`, [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]]
-}
-
-/** Nombre del área pintado en el piso, en la franja del frente («1. DATOS»), siguiendo el eje u. */
-function floorName(a: Area, title: string, accent: string): string {
-  const { cx, cy, hu, hv } = a, vMid = hv - 0.22 - NAME_STRIP / 2, txt = `${a.i + 1}. ${title.split(/ \/ | y /)[0].toLocaleUpperCase('es')}`
-  const avail = (2 * hu - 0.4) * S, fs = Math.min(0.5 * S, avail / (txt.length * 0.7))
-  const [ox, oy] = P(cx, cy, 0, vMid)
-  const fr = [P(cx, cy, -hu + 0.12, hv - 0.18 - NAME_STRIP), P(cx, cy, hu - 0.12, hv - 0.18 - NAME_STRIP), P(cx, cy, hu - 0.12, hv - 0.18), P(cx, cy, -hu + 0.12, hv - 0.18)]
-  return `<polygon points="${pts(fr)}" fill="${accent}" fill-opacity=".07" stroke="${accent}" stroke-opacity=".55" stroke-width="1.5"/>`
-    + `<text class="iso-fname" transform="matrix(0.866 0.5 -0.866 0.5 ${ox.toFixed(1)} ${oy.toFixed(1)})" y="${(fs * 0.36).toFixed(1)}" font-size="${fs.toFixed(1)}" fill="#111111">${esc(txt)}</text>`
-}
-
-function drawArea(d: ObsData, a: Area, inc: boolean, stage: string | null, sel: string | null): [string, string, number[]] {
+function drawArea(d: ObsData, a: Area, inc: boolean, stage: string | null, sel: string | null, avoid?: (r: number[]) => boolean): [string, string, number[]] {
   const th = themeOf(a.stage), { cx, cy, hu, hv } = a, c = COLOR[a.tone]
   const p = (u: number, v: number, z = 0): [number, number] => P(cx, cy, u, v, z)
   const A0 = p(-hu, -hv), B = p(hu, -hv), C = p(hu, hv), D = p(-hu, hv)
@@ -187,21 +153,23 @@ function drawArea(d: ObsData, a: Area, inc: boolean, stage: string | null, sel: 
     + `<line x1="${A0[0]}" y1="${A0[1]}" x2="${AH[0]}" y2="${AH[1]}" stroke="#9aa3b3" opacity=".6"/>`
     + th.walls(a) + th.props(a)
   const items: { svg: string; depth: number }[] = []
+  let top = ''
   if (a.eco) {                         // piso con zonas, flujos internos y salidas; mobiliario ordenado con los puestos
     const by = new Map(d.comps.map((x) => [x.id, x]))
     const ctx: EcoCtx = { list: a.list, edges: d.graph.edges, stage: a.stage, detail: a.eco.f > 1,
       tone: (id) => { const x = by.get(id); return x ? toneOf(compState(d, x), inc) : 'none' },
       stageOf: (id) => by.get(id)?.stage, title: (st) => d.graph.stage_titles_es[st] ?? st }
     const eco = ecoDraw(a, a.eco, ctx, th.accent)
-    s += eco.floor; items.push(...eco.props)
+    s += eco.floor; items.push(...eco.props); top = eco.top
   }
   s += `<polyline points="${pts([D, C, B])}" fill="none" stroke="${c}" stroke-width="${stage === a.stage ? 5 : 3.5}" class="iso-edge t-${a.tone}"/>`
   a.list.forEach((comp, i) => items.push({ svg: person(d, a, comp, a.slots[i], inc, th.shirt, th.accent, sel, i), depth: a.slots[i][0] + a.slots[i][1] }))
   for (const it of items.sort((x, y) => x.depth - y.depth)) s += it.svg
+  s += top                             // placas de zonas y salidas (sala ampliada): encima de los puestos
   const dim = stage && stage !== a.stage ? ' iso-dim' : ''
   const room = `<g class="obs-n iso-area${dim}${stage === a.stage ? ' sel' : ''}" data-stage="${esc(a.stage)}" role="button" tabindex="0"
     aria-label="${esc(`${d.graph.stage_titles_es[a.stage]} (${th.room}): ${TONE_ES[a.tone]}`)}">${s}</g>`
-  const [tag, bounds] = label(d, a, th.room, inc, dim)
+  const [tag, bounds] = label(d, a, th.room, inc, dim, avoid)
   return [room, tag, bounds]
 }
 
@@ -216,7 +184,7 @@ function person(d: ObsData, a: Area, comp: ObsComp, [u, v]: [number, number], in
     <title>${esc(`${comp.title_es} — ${STATE_ICON[st]} ${STATE_LABEL[st]} (${comp.id} · ${comp.task})`)}</title>${ring}${floor}${station(a, u, v, k, comp.kind, shirt, accent, plan ? '#9aa6d6' : c, n)}${a.eco ? ecoExtra(a, a.eco, n, comp) : ''}${beacon}</g>`
 }
 
-function label(d: ObsData, a: Area, room: string, inc: boolean, dim: string): [string, number[]] {
+function label(d: ObsData, a: Area, room: string, inc: boolean, dim: string, avoid?: (r: number[]) => boolean): [string, number[]] {
   const cnt: Partial<Record<ObsState, number>> = {}
   a.list.forEach((c) => { const s = compState(d, c); cnt[s] = (cnt[s] ?? 0) + 1 })
   const order: ObsState[] = ['ok', 'degradado', 'obsoleto', 'error', 'sin_datos', 'pausado', 'en_espera', 'planeado']
@@ -231,6 +199,12 @@ function label(d: ObsData, a: Area, room: string, inc: boolean, dim: string): [s
   else if (sy > 1) { const f = P(cx, cy, hu, hv, -0.38); x = cx; y = f[1] + 34 }
   else if (cx < 0) { const f = P(cx, cy, -hu, hv, -0.38); x = f[0] + 40 - w / 2; y = f[1] + 50 }
   else { const f = P(cx, cy, hu, -hv, -0.38); x = f[0] - 40 + w / 2; y = f[1] + 50 }
+  if (avoid?.([x - w / 2, y - 24, x + w / 2, y + 32])) {          // ocupado: prueba los cuatro costados de la sala
+    const tp = P(cx, cy, -hu, -hv, WALL_H), bt = P(cx, cy, hu, hv, -0.38), lf = P(cx, cy, -hu, hv, -0.38), rt = P(cx, cy, hu, -hv, -0.38)
+    const c2 = ([[tp[0], tp[1] - 52], [bt[0], bt[1] + 34], [lf[0] - w / 2 - 10, lf[1]], [rt[0] + w / 2 + 10, rt[1]], [tp[0], tp[1] - 110], [bt[0], bt[1] + 92]] as [number, number][])
+      .find(([px, py]) => !avoid([px - w / 2, py - 24, px + w / 2, py + 32]))
+    if (c2) { [x, y] = c2; stem = '' }
+  }
   return [`<g class="obs-n iso-label${dim}" data-stage="${esc(a.stage)}">${stem}<rect x="${(x - w / 2).toFixed(1)}" y="${(y - 22).toFixed(1)}" width="${w.toFixed(1)}" height="52" rx="10" stroke="${c}"/>
     <circle cx="${(x - w / 2 + 14).toFixed(1)}" cy="${(y - 8).toFixed(1)}" r="4.5" fill="${c}"/>
     <text class="iso-l1" x="${(x - w / 2 + 26).toFixed(1)}" y="${(y - 4).toFixed(1)}">${esc(name)}</text>
@@ -258,9 +232,9 @@ const legendBar = (inc: boolean): string => `<div class="iso-legend"><span><i cl
       <span><i class="t-none"></i>Sin información (? sin datos · ❚❚ pausa · ◌ en espera)</span><span class="muted">Puesto translúcido = planeado</span>
       <label><input type="checkbox" data-act="iso-inc"${inc ? ' checked' : ''}> ▲ cuenta como falla</label></div>`
 
-/** Sala con microecosistema, ampliada: la misma distribución, más separada para que quepan los nombres. */
+/** Sala con microecosistema, ampliada: las mismas zonas, más separadas para que quepan los nombres. */
 function ecoFocus(a: Area): Area {
-  const eco = ecoPlan(a.list, 2.6, 1.7)
+  const eco = ecoPlan(a.stage, a.list, true)
   return { ...a, eco, slots: eco.slots, ks: eco.ks, k: eco.k, hu: eco.hu, hv: eco.hv }
 }
 
@@ -269,9 +243,10 @@ function ecoFocus(a: Area): Area {
 function focusHtml(d: ObsData, a0: Area, inc: boolean, sel: string | null): string {
   const a = a0.eco ? ecoFocus(a0) : focusLayout(a0), [room, tag, b] = drawArea(d, a, inc, a.stage, sel), [floor] = floorSlab([a]), e = (a.hu + a.hv) * S
   const names = nameTags(a, a.list.map((c, i) => { const st = compState(d, c), t = toneOf(st, inc)
-    const z = a.eco?.zones[i], side = z === 'fuente' || z === 'obra' ? 'l' as const : z === 'continuo' ? 'r' as const : undefined
+    const z = a.eco?.zones[i], side = !z ? undefined : z === 'left' ? 'r' as const : 'l' as const
     return { id: c.id, name: c.title_es, color: t === 'plan' ? '#9aa6d6' : COLOR[t], side, tip: `${c.title_es} — ${STATE_ICON[st]} ${STATE_LABEL[st]} · pulsa para ver su información` } }), sel)
-  const x0 = Math.min(b[0], a.cx - e * 0.866) - 60, x1 = Math.max(b[2], a.cx + e * 0.866) + 60
+  const mx = a.eco ? 200 : 60                  // las placas de salida quedan fuera de la sala, a los lados
+  const x0 = Math.min(b[0], a.cx - e * 0.866) - mx, x1 = Math.max(b[2], a.cx + e * 0.866) + mx
   const y0 = Math.min(b[1], a.cy - e * 0.5 - WALL_H * S) - 28, y1 = Math.max(b[3], a.cy + e * 0.5 + 0.4 * S) + 28
   return `<div class="iso-wrap iso-focus"><button class="iso-back" data-home title="Volver al mapa con todas las áreas">← Ruta completa</button>
     <svg class="iso-svg" viewBox="${x0.toFixed(0)} ${y0.toFixed(0)} ${(x1 - x0).toFixed(0)} ${(y1 - y0).toFixed(0)}" role="img" aria-label="${esc(`Área ${d.graph.stage_titles_es[a.stage] ?? a.stage} ampliada`)}">
@@ -284,16 +259,16 @@ export function isoHtml(d: ObsData, stage: string | null, sel: string | null): s
   const inc = isoIncFail(), A = areas(d, inc), focus = stage ? A.find((a) => a.stage === stage) : undefined
   if (focus) return focusHtml(d, focus, inc, sel)
   const L = links(d, inc, A)
-  const motion = !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
-  const lines: string[] = [], flows: string[] = [], labs: string[] = [], taken: number[][] = [], tracks: UVRect[] = [], uvs = A.map((a) => toUV(a.cx, a.cy))
+  const lines: string[] = [], labs: string[] = [], taken: number[][] = [], tracks: UVRect[] = [], uvs = A.map((a) => toUV(a.cx, a.cy))
   const mid: [number, number] = [uvs.reduce((t, q) => t + q[0], 0) / uvs.length, uvs.reduce((t, q) => t + q[1], 0) / uvs.length]
   L.map((l, i) => ({ l, i })).sort((x, y) => Number(x.l.main || !!x.l.fb) - Number(y.l.main || !!y.l.fb))
-    .forEach(({ l, i }) => { const [g, fx, lab] = drawLink(l, A, i, stage, motion, mid, taken, tracks); lines.push(g); flows.push(fx); labs.push(lab) })
+    .forEach(({ l, i }) => { const [g, lab] = drawLink(l, A, i, stage, mid, taken, tracks); lines.push(g); labs.push(lab) })
   const [floor] = floorSlab(A)        // el piso sigue más allá del encuadre: se enfoca en las salas
   const marks = (Object.keys(COLOR) as Tone[]).map((t) => `<marker id="iso-ah-${t}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${COLOR[t]}"/></marker>`).join('')
   const items: { svg: string; depth: number }[] = [], tags: string[] = [], boxes: number[][] = [], xs: number[] = [], ys: number[] = []
   A.forEach((a) => {
-    const [r, t, b] = drawArea(d, a, inc, stage, sel); items.push({ svg: r, depth: a.cy }); tags.push(t); boxes.push(b)
+    const avoid = (r: number[]): boolean => hitsAny([...boxes, ...taken], r) || hitsRoom(A, r, WALL_H)    // tarjeta en sitio libre
+    const [r, t, b] = drawArea(d, a, inc, stage, sel, avoid); items.push({ svg: r, depth: a.cy }); tags.push(t); boxes.push(b)
     xs.push(b[0], b[2], a.cx - (a.hu + a.hv) * 0.866 * S, a.cx + (a.hu + a.hv) * 0.866 * S)
     ys.push(b[1], b[3], a.cy - (a.hu + a.hv) * 0.5 * S - WALL_H * S, a.cy + (a.hu + a.hv) * 0.5 * S + 0.4 * S)
   })
@@ -306,16 +281,17 @@ export function isoHtml(d: ObsData, stage: string | null, sel: string | null): s
   const byX = A.map((_, i) => i).sort((i, j) => A[i].cx - A[j].cx), two = (ix: number[]): number => (A[ix[0]].cy + A[ix[1]].cy) / 2
   const avL: [number, number] = [Math.min(...ext.map((e) => e[0])) - 100, two(byX.slice(0, 2)) - 75]
   const avR: [number, number] = [Math.max(...ext.map((e) => e[1])) + 5, two(byX.slice(-2)) - 20]
+  for (const [av, dx] of [[avL, -30], [avR, 30]] as [[number, number], number][])     // sin tapar salas ni tarjetas
+    for (let k = 0; k < 12 && (hitsAny(boxes, [av[0] - 50, av[1] - 195, av[0] + 50, av[1] + 40]) || hitsRoom(A, [av[0] - 50, av[1] - 195, av[0] + 50, av[1] + 40], WALL_H)); k++) av[0] += dx
   const avs = avatar('SV', avL[0], avL[1]) + avatar('JP', avR[0], avR[1])
   xs.push(avL[0] - 50, avR[0] + 50); ys.push(avL[1] - 180, avR[1] - 180, avL[1] + 40, avR[1] + 40)
   const pad = 16; xs.push(Math.min(...xs) - pad, Math.max(...xs) + pad); ys.push(Math.min(...ys) - pad, Math.max(...ys) + pad)
   const x0 = Math.min(...xs), y0 = Math.min(...ys), vw = Math.max(...xs) - x0, vh = Math.max(...ys) - y0
-  // Tres capas con el mismo encuadre (piso con el trazo quieto de las líneas · lo que corre por ellas ·
-  // salas): una animación solo repinta su capa; las ~1.900 figuras de las salas no se redibujan con ella.
+  // Dos capas con el mismo encuadre (piso con las líneas quietas · salas): las líneas ya no se mueven, así
+  // que solo la capa de las salas tiene parpadeos (a saltos, con el reloj compartido).
   const vb = `viewBox="${x0.toFixed(0)} ${y0.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}"`
   return `<div class="iso-wrap"><div class="iso-stage">
-    <svg class="iso-svg iso-base" ${vb} aria-hidden="true">${floor}<g class="iso-lines">${lines.join('')}</g></svg>
-    <svg class="iso-svg iso-layer iso-fx" ${vb} aria-hidden="true"><defs>${marks}</defs><g class="iso-lines">${flows.join('')}</g></svg>
+    <svg class="iso-svg iso-base" ${vb} aria-hidden="true"><defs>${marks}</defs>${floor}<g class="iso-lines">${lines.join('')}</g></svg>
     <svg class="iso-svg iso-layer iso-top" ${vb} role="img" aria-label="Mapa isométrico: ${d.graph.stages.length} etapas como salas de trabajo">
       <g>${rooms.join('')}</g><g>${avs}</g><g>${tags.join('')}</g><g class="iso-flabs">${labs.join('')}</g></svg></div>
     ${legendBar(inc)}</div>`
