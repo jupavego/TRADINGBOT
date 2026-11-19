@@ -81,11 +81,16 @@ def test_summary_profiles_and_strategies(client):
         assert p["equity"] > 0 and set(p["weights"]) == {s["id"] for s in v["strategies"]}
     assert sum(p["n_closed"] for p in v["profiles"]) > 0     # el Conservador solo opera lo probado
     assert sum(s["n"] for s in v["strategies"]) > 0 and v["insights"]
-    b = v["balance"]
+    b = v["balance_all"]            # T195: la vista recalculada, aparte y con su etiqueta
     assert list(b) == ["todo", "30d", "7d", "24h"]
     a = b["todo"]["all"]
     assert a["wins"]["n"] + a["losses"]["n"] == sum(p["n_closed"] for p in v["profiles"])
     assert set(b["todo"]["profiles"]) == {"conservador", "moderado", "agresivo", "ppp_btcusdt"}
+    assert sum(b["todo"]["by_origin"].values()) == a["n"]
+    o = v["balance"]                # T195: por defecto, el universo oficial de T144
+    assert v["balance_lens"]["default"] == "oficial" and not v["balance_lens"]["error"]
+    assert list(o) == ["todo", "30d", "7d", "24h"]
+    assert o["todo"]["all"]["n"] == v["accounting"]["n"]
     assert client.get("/v2/paper?symbol=XRPUSDT").status_code == 400
 
 

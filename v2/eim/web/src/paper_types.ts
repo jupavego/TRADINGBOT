@@ -120,6 +120,13 @@ export interface BalanceWindow {
   label: string; since: number | null; all: BalanceSummary; profiles: Record<string, BalanceSummary>
   timeframes: Record<string, BalanceSummary>
   feedback: { kind: 'funciono' | 'no_funciono' | 'mejorar'; text: string }[]
+  /** T195: solo en `balance_all` (la vista): cuántas por origen (vivo / backtest). */
+  by_origin?: Record<string, number>
+}
+
+/** T195: qué es cada lente del balance; la oficial (T144) manda. */
+export interface BalanceLens {
+  default: 'oficial' | 'todo'; universe: string; labels: Record<'oficial' | 'todo', string>; error: string
 }
 
 export interface Insight { tone: 'good' | 'bad' | 'warn' | 'info'; text: string }
@@ -161,7 +168,11 @@ export interface PaperSummary {
   /** T182: libros solo con lo vivo; lo reconstruido, solo como opinión inicial del aprendizaje. */
   live_first?: boolean
   insights: Insight[]; job: Job; live: { last_tick: number | null; started: number | null; error: string }
-  balance: Record<string, BalanceWindow>
+  /** T195: universo oficial de T144 (null si el libro no se pudo leer: ver `balance_lens.error`). */
+  balance: Record<string, BalanceWindow> | null
+  /** T195: la vista recalculada desde todos los contextos (reconstruidas incluidas), etiquetada. */
+  balance_all?: Record<string, BalanceWindow>
+  balance_lens?: BalanceLens
   /** Frescura de la vista: con la puesta al día en curso se entrega la última calculada mientras se rehace. */
   view?: { computed: number; stale: boolean; refreshing: boolean; error: string }
   /** T118: instantánea guardada de esta vista (se vuelve a leer por su id) y su alcance. */

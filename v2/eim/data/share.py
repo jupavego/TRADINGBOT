@@ -57,10 +57,13 @@ def _setup(a: argparse.Namespace) -> int:
         raise ShareError("indica --git-url <repo privado> o --shared-dir <carpeta de nube>")
     if a.shared_dir:
         Path(a.shared_dir).mkdir(parents=True, exist_ok=True)
-    cfg = save_config(a.data_dir, a.shared_dir, a.machine, a.git_url)
+    cfg = save_config(a.data_dir, a.shared_dir, a.machine, a.git_url, a.start)
     machine = machine_id(a.data_dir, {"EIM_MACHINE": a.machine or ""})
     where = f"repo privado {a.git_url}" if a.git_url else f"carpeta compartida {a.shared_dir}"
     print(f"configurado: máquina {machine} · {where}")
+    if a.start:
+        print(f"encendido programado (T196): dormido hasta {a.start} UTC; después importa y "
+              "exporta solo, sin reiniciar")
     print(f"guardado en {cfg}. Reinicia la API y el servicio de líderes: desde entonces "
           "importan y exportan solos (ver GET /v2/share/status).")
     return 0
@@ -76,6 +79,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--api", default=DEFAULT_API, help="si la base está en uso, copia en caliente")
     ap.add_argument("--machine", default=None, help="setup: alias único de esta máquina")
     ap.add_argument("--git-url", default=None, help="setup: repo git PRIVADO que hace de nube")
+    ap.add_argument("--start", default=None,
+                    help="setup: fecha ISO UTC del encendido programado (T196); antes, dormido")
     ap.add_argument("--apply", action="store_true", help="import: aplicar (por defecto simulacro)")
     ap.add_argument("--from", dest="only", action="append", help="import: solo esa(s) máquina(s)")
     ap.add_argument("--no-recompute", action="store_true",

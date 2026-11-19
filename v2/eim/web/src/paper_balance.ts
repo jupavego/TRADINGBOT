@@ -63,17 +63,40 @@ function middle(w: BalanceWindow): string {
     `<dt>Costos pagados</dt><dd class="num">${nf(a.costs, 0)} USDT</dd></dl></div>`
 }
 
-/** Sección completa; `period` = clave de `v.balance` (todo, 30d, 7d, 24h). */
-export function balanceView(v: PaperSummary, period: string): string {
-  const b = v.balance
-  if (!b) return ''
+const ORIGIN: Record<string, string> = { vivo: 'vividas', backtest: 'reconstruidas' }
+
+/** T195: la lente que se muestra. `oficial` = universo de T144 (manda); `todo` = la vista recalculada. */
+export type BalLens = 'oficial' | 'todo'
+
+function lensBar(v: PaperSummary, lens: BalLens): string {
+  const L = v.balance_lens
+  if (!L || !v.balance_all) return ''
+  const btn = (k: BalLens, t: string, n: number | undefined) =>
+    `<button type="button" class="pp-chip" data-bal-lens="${k}" aria-pressed="${k === lens}">${t} <small class="num">${n ?? '—'}</small></button>`
+  return `<div class="pp-chips pp-bal-lens" role="group" aria-label="Qué operaciones se cuentan">` +
+    btn('oficial', 'Oficial · T144', v.balance?.todo?.all.n) + btn('todo', 'Todo lo calculado', v.balance_all.todo?.all.n) + '</div>'
+}
+
+function lensNote(v: PaperSummary, lens: BalLens, byOrigin?: Record<string, number>): string {
+  const L = v.balance_lens
+  if (!L) return ''
+  const origins = byOrigin ? Object.entries(byOrigin).map(([k, n]) => `${nf(n, 0)} ${ORIGIN[k] ?? k}`).join(' · ') : ''
+  const err = L.error ? ` <b class="down">El libro oficial no se pudo leer: ${esc(L.error)}</b>` : ''
+  return `<small class="pp-bal-note" data-k="${lens}">${esc(L.labels[lens])}${origins ? ` <b>(${origins})</b>` : ''}${err}</small>`
+}
+
+/** Sección completa; `period` = clave del balance (todo, 30d, 7d, 24h) y `lens` la lente (T195). */
+export function balanceView(v: PaperSummary, period: string, lens: BalLens = 'oficial'): string {
+  const b = lens === 'todo' && v.balance_all ? v.balance_all : v.balance
+  if (!b) return lensBar(v, lens) + lensNote(v, lens)
   const w = b[period] ?? b.todo
   const chips = Object.entries(b).map(([k, x]) =>
     `<button type="button" class="pp-chip" data-bal="${k}" aria-pressed="${k === period}">${esc(x.label)} <small class="num">${x.all.n}</small></button>`).join('')
   const fb = w.feedback.map((f) => `<li data-k="${f.kind}"><b>${FB[f.kind][0]} ${FB[f.kind][1]}:</b> ${esc(f.text)}</li>`).join('')
   return `<div class="pp-bal-head"><h4 class="sh">Balance de operaciones · ponderado de los ${v.profiles.length} perfiles</h4>` +
-    `<div class="pp-chips">${chips}</div>` +
-    '<small class="muted">Cada operación cerrada pesa igual · ganada = PnL neto &gt; 0 después de comisiones, deslizamiento y funding</small></div>' +
+    lensBar(v, lens) + `<div class="pp-chips">${chips}</div>` +
+    '<small class="muted">Cada operación cerrada pesa igual · ganada = PnL neto &gt; 0 después de comisiones, deslizamiento y funding</small>' +
+    lensNote(v, lens, w.by_origin) + '</div>' +
     `<div class="pp-bal-grid">${card('win', w, v)}${middle(w)}${card('loss', w, v)}</div>` +
     `<ul class="pp-bal-fb">${fb}</ul>` + costView(v.cost)
 }

@@ -1,7 +1,7 @@
 /** Vista «Bróker simulado» (T47/T48): cuentas de papel por perfil en 15 m, 1 h y 4 h. */
 import { fetchSnapshot, openStream, type StreamHandle } from './api'
 import { PaperArb } from './paper_arb'
-import { balanceView } from './paper_balance'
+import { type BalLens, balanceView } from './paper_balance'
 import { EquityChart, PaperPriceChart } from './paper_chart'
 import { getPaper, PaperError, px, usd } from './paper_fmt'
 import { acctHtml, covText, jobHtml, liveStrip } from './paper_head'
@@ -25,6 +25,7 @@ export class PaperView {
   private profile = 'moderado'
   private tab = 'live'
   private bal = 'todo'
+  private lens: BalLens = 'oficial'   // T195: el universo oficial manda por defecto
   private ctf = '1h'
   private liveTimer: number | undefined
   private v: PaperSummary | null = null
@@ -47,11 +48,11 @@ export class PaperView {
   private bodies: Record<string, HTMLElement> = {}
 
   constructor(private root: HTMLElement) {
-    try { const s = JSON.parse(localStorage.getItem(KEY) ?? '{}'); this.profile = s.profile ?? this.profile; this.tab = s.tab ?? this.tab; this.bal = s.bal ?? this.bal; this.ctf = s.ctf ?? this.ctf } catch { /* sin almacenamiento */ }
+    try { const s = JSON.parse(localStorage.getItem(KEY) ?? '{}'); this.profile = s.profile ?? this.profile; this.tab = s.tab ?? this.tab; this.bal = s.bal ?? this.bal; this.lens = s.lens === 'todo' ? 'todo' : 'oficial'; this.ctf = s.ctf ?? this.ctf } catch { /* sin almacenamiento */ }
   }
 
   private q<T extends HTMLElement>(k: string): T { return this.root.querySelector<T>(`[data-x="${k}"]`)! }
-  private save(): void { try { localStorage.setItem(KEY, JSON.stringify({ profile: this.profile, tab: this.tab, bal: this.bal, ctf: this.ctf })) } catch { /* ignora */ } }
+  private save(): void { try { localStorage.setItem(KEY, JSON.stringify({ profile: this.profile, tab: this.tab, bal: this.bal, lens: this.lens, ctf: this.ctf })) } catch { /* ignora */ } }
 
   private build(): void {
     this.root.innerHTML = TEMPLATE
@@ -166,7 +167,7 @@ export class PaperView {
     // principal; sus datos siguen en cada instantánea guardada (/v2/paper/snapshot/{id}).
     this.q('live').innerHTML = liveStrip(v)
     this.paintJob(v.job)
-    this.q('bal').innerHTML = balanceView(v, this.bal)
+    this.q('bal').innerHTML = balanceView(v, this.bal, this.lens)
     const pv = this.prof()
     this.q('acct').innerHTML = pv ? acctHtml(pv) : ''
     this.eq!.set(v.profiles, this.profile)   // la leyenda del capital es también el selector de perfil
@@ -228,8 +229,10 @@ export class PaperView {
   }
 
   private onClick(t: HTMLElement): void {
+    const lens = t.closest<HTMLElement>('[data-bal-lens]')
+    if (lens && this.v) { this.lens = lens.dataset.balLens === 'todo' ? 'todo' : 'oficial'; this.save(); this.q('bal').innerHTML = balanceView(this.v, this.bal, this.lens); return }
     const bal = t.closest<HTMLElement>('[data-bal]')
-    if (bal && this.v) { this.bal = bal.dataset.bal!; this.save(); this.q('bal').innerHTML = balanceView(this.v, this.bal); return }
+    if (bal && this.v) { this.bal = bal.dataset.bal!; this.save(); this.q('bal').innerHTML = balanceView(this.v, this.bal, this.lens); return }
     const card = t.closest<HTMLElement>('[data-prof]')
     if (card) { this.profile = card.dataset.prof!; this.focus = null; this.save(); this.eq!.select(this.profile); void this.reload(); return }
     const tab = t.closest<HTMLElement>('.pp-tabs button')

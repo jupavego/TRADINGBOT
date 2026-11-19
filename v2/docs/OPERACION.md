@@ -205,6 +205,15 @@ el servicio de líderes (`servicio_continuo.ps1`). Desde entonces, **dentro de e
   `data/share/import_<id>.json`. `EIM_SHARE_AUTO=0` lo apaga.
 Los líderes importados empiezan a capturarse en el siguiente reinicio del servicio de líderes.
 
+**Libro central y encendido programado (T196).** Desde T196 también viaja el libro fijo del bróker
+simulado (`paper_ledger`): lo vivido en otro equipo cuenta en el universo oficial (T144) con el
+`retro` que calculó ese equipo, y la misma vela vivida en los dos es UNA operación (gana la local;
+las diferencias quedan en `share_conflicts`). `GET /v2/paper/accounting` declara `by_machine` y
+acepta `machines=local` (solo este equipo; así se lee el cierre de T31). `setup --start <ISO UTC>`
+(o `EIM_SHARE_FROM`) deja el agente dormido hasta esa fecha y se despierta solo, sin reiniciar
+(`GET /v2/share/status` → `start`, `dormant`). Para encenderlo en un equipo:
+`v2\scripts\activar_libro_central.ps1` (una vez; reinicia los servicios).
+
 **Manual (equipo nuevo, o sin servicios en marcha).** Los comandos de abajo hacen lo mismo a mano.
 Variables (PowerShell: `$env:NAME='…'`; para que persistan, variables de usuario de Windows):
 

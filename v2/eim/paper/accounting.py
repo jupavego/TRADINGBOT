@@ -15,7 +15,8 @@ import hashlib
 import math
 from collections.abc import Iterable, Mapping, Sequence
 
-from eim.paper.ledger import window_rows
+from eim.paper import provenance
+from eim.paper.ledger import causes, window_rows
 from eim.paper.universe import (
     PROFILES,
     counts_as_result,
@@ -152,21 +153,54 @@ def window(rows: Iterable[Mapping], t0: int, t1: int) -> list[Mapping]:
     return out
 
 
-def from_store(pstore, symbol: str | None = None, t0: int = 0, t1: int = 2 ** 62) -> dict:
+def from_store(pstore, symbol: str | None = None, t0: int = 0, t1: int = 2 ** 62,
+               machines: str = provenance.ALL) -> dict:
     """Cifras oficiales leídas del libro fijo, para el panel y la API (T144).
 
     Salen del libro y no de la vista recalculada: solo el libro sabe qué filas son `retro` (las
     trajo su estreno o un recálculo y nadie las vivió), y ninguna cifra de resultado puede
     incluirlas. Las tarjetas de capital del panel siguen siendo la mecánica del motor; esto es lo
     que decide. Si el libro no se puede leer, se dice y no se inventa una cifra oficial.
+
+    T196: el libro es CENTRAL (lo vivido en cualquier equipo, una vela = una operación) y cada fila
+    declara qué equipo la vivió (`by_machine`). `machines="local"` deja solo lo de este equipo,
+    p. ej. para reproducir el cierre de T31, que se tomó antes de unir los libros.
     """
     try:
         rows = [r for r in window_rows(pstore, t0, t1)
                 if symbol is None or r["symbol"] == symbol]
-        return {"ok": True, **figures(rows)}
+        rows = provenance.keep(provenance.annotate(rows, provenance.origins(pstore)), machines)
+        out = figures(rows)
+        return {"ok": True, **out, "machines": machines,
+                "machines_label": provenance.LABEL[machines],
+                "by_machine": provenance.by_machine(result_rows(rows))}
     except Exception as exc:  # noqa: BLE001 - un libro ilegible no tumba la vista ni la API
         return {"ok": False, "error": f"{type(exc).__name__}: {exc}",
                 "declaration": declaration()}
+
+
+def balance_trades(pstore, symbol: str | None) -> dict[str, list[dict]]:
+    """Las operaciones que CUENTAN (T144), por perfil y con la forma que usa `paper.balance`.
+
+    Es lo que alimenta el balance del panel por defecto (T195): antes ese balance salía de la vista
+    recalculada desde todos los contextos (reconstruidas y `retro` incluidas) y publicaba acierto,
+    acierto necesario y neto sobre operaciones que no cuentan.
+    """
+    rows = [r for r in window_rows(pstore, 0, 2 ** 62)
+            if symbol is None or r["symbol"] == symbol]
+    kept = result_rows(provenance.annotate(rows, provenance.origins(pstore)))
+    why = causes(pstore, [str(r["ledger_id"]) for r in kept])
+    out: dict[str, list[dict]] = {p: [] for p in PROFILES}
+    for r in sorted(kept, key=lambda r: (_f(r, "exit_t"), str(r.get("ledger_id") or ""))):
+        out.setdefault(str(r.get("profile")), []).append({
+            "id": r.get("idea_id"), "pnl": _f(r, "pnl_usdt"), "r": _num(r.get("r")),
+            "reason": r.get("reason"), "fees": _f(r, "fees"), "slip": _f(r, "slip"),
+            "funding": _f(r, "funding"), "side": int(_f(r, "side")),
+            "strategy": r.get("strategy"), "sid": r.get("sid") or r.get("strategy"),
+            "timeframe": r.get("timeframe"), "exit_t": int(_f(r, "exit_t")),
+            "origin": r.get("origin"), "machine": r.get("machine"),
+            "cause": why.get(str(r["ledger_id"]))})
+    return out
 
 
 def cuadre(published: Iterable[Mapping], book: Iterable[Mapping],

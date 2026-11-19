@@ -23,6 +23,10 @@
 .pp-bal-head > small { flex-basis: 100%; font-size: 11.5px; }
 .pp-bal-head button.pp-chip[aria-pressed="false"] { opacity: .75; }
 .pp-bal-head button.pp-chip[aria-pressed="true"] { color: var(--text); border-color: var(--accent); }
+/* T195: la lente oficial manda; «todo lo calculado» lleva su aviso */
+.pp-bal-lens { margin-bottom: 4px; }
+.pp-bal-note { display: block; margin-top: 4px; }
+.pp-bal-note[data-k="todo"] { color: var(--warn, #e0a030); }
 .pp-bal-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, .9fr) minmax(0, 1fr); gap: 12px; }
 .pp-bal-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; min-width: 0; }
 .pp-bal-card[data-k="win"] { border-top: 3px solid var(--up); }

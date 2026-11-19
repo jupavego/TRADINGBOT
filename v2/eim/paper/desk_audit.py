@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from eim.core.authority import params_fingerprint
-from eim.paper import ledger, snapshot
+from eim.paper import ledger, provenance, snapshot
 from eim.paper.generate import now_ms
 from eim.paper.policy import POLICY_VERSION
 from eim.paper.view_scope import scope_of
@@ -63,8 +63,10 @@ class DeskAudit:
 
     def _reconcile(self, v: View, payload: dict) -> None:
         try:
-            rec = ledger.reconcile(ledger.query(self.pstore, v.symbol, "perfil", None, ALL_ROWS),
-                                   v.books)
+            rows = ledger.query(self.pstore, v.symbol, "perfil", None, ALL_ROWS)
+            # T196: la vista de este equipo solo puede reproducir lo que vivió este equipo
+            away = provenance.origins(self.pstore)
+            rec = ledger.reconcile([r for r in rows if r["ledger_id"] not in away], v.books)
         except Exception as exc:  # noqa: BLE001 - conciliar nunca tumba la vista
             self.ledger_error, rec = f"{type(exc).__name__}: {exc}", {}
         for p in payload["profiles"]:

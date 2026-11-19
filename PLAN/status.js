@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-18T18:25:16",
+ "generated": "2026-11-18T20:16:08",
  "phases": [
   {
    "n": 0,
@@ -358,6 +358,14 @@ window.EIM_STATUS = {
     "T183",
     "T184",
     "T185"
+   ]
+  },
+  {
+   "n": 31,
+   "name": "Libro central entre equipos",
+   "ids": [
+    "T195",
+    "T196"
    ]
   }
  ],
@@ -2749,6 +2757,33 @@ window.EIM_STATUS = {
    "effort": "bajo",
    "phase": 28,
    "goal": "Que la barra inferior diga de un vistazo qué alimenta al cerebro y con qué pilar, y que nada"
+  },
+  {
+   "id": "T195",
+   "title": "El balance del panel muestra el universo oficial (T144); «todo lo calculado» aparte",
+   "deps": [
+    "T48",
+    "T144",
+    "T182"
+   ],
+   "state": "progress",
+   "notes": "**Construida 2026-11-18; falta el gate en la portátil y desplegar.** El panel decía «Todo 1 620» (1 500 reconstruidas + 120 vividas, neto −9 890 USDT) frente a 87 del universo oficial: salía de la vista y se saltaba T144. Ahora `balance` = universo oficial (`accounting.balance_trades` → `universe.result_rows`) y `balance_all` = la vista con su desglose por origen (`paper/balance_lens.py`); selector «Oficial · T144 / Todo lo calculado» en la interfaz. Ficha `PLAN/T195.md`; pruebas `tests/paper/test_t195_balance_lens.py`.",
+   "effort": "bajo",
+   "phase": 31
+  },
+  {
+   "id": "T196",
+   "title": "Libro central entre equipos: lo vivido en cualquier equipo cuenta, una vela = una operación",
+   "deps": [
+    "T61",
+    "T117",
+    "T144",
+    "T182"
+   ],
+   "state": "progress",
+   "notes": "**Construida 2026-11-18; falta el gate en la portátil, desplegar y el encendido del 2026-11-28 00:00 UTC.** `paper_ledger` viaja en la experiencia compartida por `ledger_id` (gana lo local; diferencias a `share_conflicts`; `retro` del equipo que la vivió), procedencia por equipo (`paper/provenance.py`, `by_machine`, `GET /v2/paper/accounting?machines=all|local`), conciliación solo con lo propio y encendido programado (`setup --start`, `EIM_SHARE_FROM`: dormido hasta la fecha, sin reiniciar). Enmienda de los pre-registros T187/T190 antes de mirar: `PLAN/notas/T196_enmienda_preregistros.md` (huella `e35b229cb592`). T31 se cierra con `machines=local`. Ficha `PLAN/T196.md`; pruebas `tests/share/test_t196_ledger.py`.",
+   "effort": "medio",
+   "phase": 31
   }
  ]
 };
