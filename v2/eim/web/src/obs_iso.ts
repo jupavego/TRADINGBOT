@@ -4,19 +4,20 @@
  * conexiones declaradas entre etapas y cierran el ciclo de Validación a Datos. Todas las salas se apoyan
  * sobre un mismo piso gris claro de oficina; el nombre de cada área va pintado en su franja del frente y el
  * centro es un área común con salitas (obs_iso_lounge) que no pisa las pistas. Cada sala es un microecosistema
- * (obs_iso_eco): sus puestos van por zonas según cómo entra, se trabaja y sale la información. Las líneas del
- * piso son quietas, con flechas pequeñas de sentido. */
+ * (obs_iso_eco): sus puestos van por zonas según cómo entra, se trabaja y sale la información. En el mapa completo
+ * solo se ven las líneas entre áreas (las de dentro de cada sala aparecen al ampliarla): quietas, con grosor por
+ * importancia, flechas de sentido y un recorrido (obs_iso_route) que no pasa por debajo de salas ni tarjetas. */
 import './obs_iso.css'
 import { compState } from './obs_graph'
-import { arrowsAlong, P, pts, S, type Room } from './obs_iso_geo'
+import { arrowsAlong, endArrow, lineBoxes, P, pts, S, type Room } from './obs_iso_geo'
 import { ART_DEFS } from './obs_iso_art'
-import { avatar, avatarDefs } from './obs_iso_avatar'
 import { artAsImages, buildArtImages } from './obs_iso_img'
 import { ecoDraw, ecoExtra, ecoPlan, hasEco, type EcoCtx, type EcoPlan } from './obs_iso_eco'
 import { focusLayout, nameTags } from './obs_iso_focus'
 import { FLOOR, floorName, floorSlab, G, hitsAny, hitsRoom, separate, tiles, toUV } from './obs_iso_floor'
 import { lounges, type UVRect } from './obs_iso_lounge'
 import { NAME_STRIP, station, STRIP, themeOf, WALL_H } from './obs_iso_props'
+import { Router, type Route } from './obs_iso_route'
 import { esc, STATE_ICON, STATE_LABEL, type ObsComp, type ObsData, type ObsState } from './obs_types'
 
 export type Tone = 'ok' | 'bad' | 'none' | 'plan'
@@ -95,50 +96,36 @@ function links(d: ObsData, inc: boolean, A: Area[]): Link[] {
   return out
 }
 
-/** Coordenadas del piso común: la vista entera comparte un solo plano (U, V) en unidades. */
-const sgn = (x: number): number => (x >= 0 ? 1 : -1)
+/** Grosor por importancia: cuantas más conexiones declaradas lleva entre las dos áreas, más gruesa; la ruta
+ * principal suma un punto y el cierre del ciclo tiene grosor fijo. */
+const widthOf = (l: Link): number => (l.fb ? 5 : Math.min(9, 2.6 + 1.7 * Math.log2(1 + l.n)) + (l.main ? 1 : 0))
+type XY = [number, number]
 
-/** Pista sobre el piso entre dos salas: sale por el borde de la de origen, gira en ángulo recto
- * siguiendo los ejes del piso y entra por el borde de la de destino, con flechas de sentido. */
-function drawLink(l: Link, A: Area[], i: number, focus: string | null, mid: [number, number], taken: number[][], tracks: UVRect[]): [string, string] {
-  const free = (r: number[]): boolean => !hitsAny(taken, r) && !hitsRoom(A, r, WALL_H)
-  const a = A.find((x) => x.stage === l.a)!, b = A.find((x) => x.stage === l.b)!
-  const [ua, va] = toUV(a.cx, a.cy), [ub, vb] = toUV(b.cx, b.cy)
-  const o = l.main || l.fb ? 0 : ((i % 3) - 1) * 0.32                       // carriles para no pisarse
-  const far = (u: number, v: number): number => Math.hypot(u - mid[0], v - mid[1])
-  const uFirst = (far(ub, va) >= far(ua, vb)) === (l.main || !!l.fb)          // las principales rodean; las demás cruzan
-  const su = sgn(ub - ua), sv = sgn(vb - va)
-  const way: [number, number][] = uFirst
-    ? [[ua + su * (a.hu + 0.15), va + o], [ub + o, va + o], [ub + o, vb - sv * (b.hv + 0.3)]]
-    : [[ua + o, va + sv * (a.hv + 0.15)], [ua + o, vb + o], [ub - su * (b.hu + 0.3), vb + o]]
-  for (let q = 0; q + 1 < way.length; q++) {               // tramos ocupados: el área común no los pisa
-    const [p1, p2] = [way[q], way[q + 1]], m = 0.42
-    tracks.push([Math.min(p1[0], p2[0]) - m, Math.min(p1[1], p2[1]) - m, Math.max(p1[0], p2[0]) + m, Math.max(p1[1], p2[1]) + m])
-  }
-  const sp = way.map(([u, v]) => G(u, v))
-  const dPath = `M${sp.map((q) => `${q[0].toFixed(1)},${q[1].toFixed(1)}`).join(' L')}`, c = COLOR[l.tone]
-  const on = !focus || l.a === focus || l.b === focus, w = l.fb ? 6 : l.main ? 5 : 2.6
-  const cls = `iso-link t-${l.tone}${l.main || l.fb ? ' main' : ''}${on ? '' : ' iso-dim'}${!l.main && !l.fb && focus && on ? ' focus' : ''}`
-  // Quieta: borde, cuerpo blanco, halo, trazo de color y flechas pequeñas que dicen hacia dónde va la información
-  // (sin trazos que corren ni flechas que viajan: nada se repinta). Lo que falla se dice con el color.
-  const still = `<path d="${dPath}" stroke="#c7cfdc" stroke-width="${w + 9}" opacity=".85"/><path d="${dPath}" stroke="#ffffff" stroke-width="${w + 5}"/><path d="${dPath}" stroke="${c}" stroke-width="${w + 12}" class="iso-halo"/>`
-    + `<path d="${dPath}" stroke="${c}" stroke-width="${w}" class="iso-flow" marker-end="url(#iso-ah-${l.tone})"/>`
-    + arrowsAlong(sp, l.main || l.fb ? 90 : 110, l.main || l.fb ? 5.5 : 4.2, '#ffffff', 'iso-arrow') 
+/** Línea entre dos áreas sobre su recorrido: borde gris, cuerpo blanco, halo, trazo de color con el grosor de su
+ * importancia, flechas de sentido más anchas que el trazo (con borde blanco, se leen sobre él) y punta al entrar.
+ * Quieta: nada corre ni se repinta. Lo que falla se dice con el color. */
+function drawLink(l: Link, r: Route): { svg: string; sp: XY[]; w: number } {
+  const sp = r.way.map(([u, v]) => G(u, v)), dPath = `M${sp.map((q) => `${q[0].toFixed(1)},${q[1].toFixed(1)}`).join(' L')}`
+  const c = COLOR[l.tone], w = widthOf(l), cls = `iso-link t-${l.tone}${l.main || l.fb ? ' main' : ''}`
+  const body = `<path d="${dPath}" stroke="#aeb8c8" stroke-width="${(w + 9).toFixed(1)}" opacity=".9"/><path d="${dPath}" stroke="#ffffff" stroke-width="${(w + 5).toFixed(1)}"/>`
+    + `<path d="${dPath}" stroke="${c}" stroke-width="${(w + 12).toFixed(1)}" class="iso-halo"/><path d="${dPath}" stroke="${c}" stroke-width="${w.toFixed(1)}" class="iso-flow"/>`
+    + arrowsAlong(sp, 85, w * 0.9 + 4, c, 'iso-arrow iso-larrow') + endArrow(sp, w * 1.3 + 7, c)
   const tip = l.fb ? 'Cierre del ciclo: el catálogo aún no declara una conexión directa; toma el estado de la última etapa.'
     : `${l.n} conexiones declaradas · entrega: ${l.label} · ${TONE_ES[l.tone]}`
-  const g = (x: string): string => `<g class="${cls}" fill="none"><title>${esc(`${l.a} → ${l.b}: ${tip}`)}</title>${x}</g>`
-  let lab = ''
-  if (l.main || l.fb || (focus && on)) {
-    const txt = `${l.label} ➜`, tw = txt.length * 6 + 16, long = Math.hypot(sp[1][0] - sp[0][0], sp[1][1] - sp[0][1]) >= Math.hypot(sp[2][0] - sp[1][0], sp[2][1] - sp[1][1]) ? 0 : 1
-    const spots = [long, 1 - long].flatMap((s) => [0.5, 0.3, 0.7].flatMap((q) => [0, 22, -22, 44, -44, 66, -66, 110, -110]
-      .map((o): [number, number] => [sp[s][0] + (sp[s + 1][0] - sp[s][0]) * q, sp[s][1] + (sp[s + 1][1] - sp[s][1]) * q + o])))   // se aparta de salas y etiquetas
-    const [cx0, cy0] = spots[0], ring = Array.from({ length: 400 }, (_, n): [number, number] => [cx0 + ((n % 20) - 10) * 24, cy0 + (Math.floor(n / 20) - 10) * 14])
-      .sort((p, q) => Math.hypot(p[0] - cx0, p[1] - cy0) - Math.hypot(q[0] - cx0, q[1] - cy0))      // si no cabe junto a la línea, lo más cerca
-    const [lx, ly] = [...spots, ...ring].find(([x, y]) => free([x - tw / 2, y - 11, x + tw / 2, y + 11])) ?? spots[0]
-    taken.push([lx - tw / 2, ly - 11, lx + tw / 2, ly + 11])
-    lab = `<g class="iso-flab${on ? '' : ' iso-dim'}"><rect x="${(lx - tw / 2).toFixed(1)}" y="${(ly - 10).toFixed(1)}" width="${tw}" height="19" rx="9" stroke="${c}"/><text x="${lx.toFixed(1)}" y="${(ly + 3.5).toFixed(1)}">${esc(txt)}</text></g>`
-  }
-  return [g(still), lab]
+  return { svg: `<g class="${cls}" fill="none"><title>${esc(`${l.a} → ${l.b}: ${tip}`)}</title>${body}</g>`, sp, w }
+}
+
+/** Etiqueta de lo que entrega la línea: junto a su tramo más largo, sin tapar ninguna línea, sala ni tarjeta. */
+function linkLabel(l: Link, sp: XY[], free: (r: number[]) => boolean, taken: number[][]): string {
+  const c = COLOR[l.tone], txt = `${l.label} ➜`, tw = txt.length * 6 + 16
+  const segs = sp.slice(0, -1).map((p, i) => ({ i, len: Math.hypot(sp[i + 1][0] - p[0], sp[i + 1][1] - p[1]) })).sort((x, y) => y.len - x.len)
+  const spots = segs.flatMap(({ i }) => [0.5, 0.3, 0.7].flatMap((q) => [24, -24, 36, -36, 50, -50, 70, -70, 110, -110]
+    .map((o): XY => [sp[i][0] + (sp[i + 1][0] - sp[i][0]) * q, sp[i][1] + (sp[i + 1][1] - sp[i][1]) * q + o])))
+  const [cx0, cy0] = spots[0], ring = Array.from({ length: 400 }, (_, n): XY => [cx0 + ((n % 20) - 10) * 24, cy0 + (Math.floor(n / 20) - 10) * 14])
+    .sort((p, q) => Math.hypot(p[0] - cx0, p[1] - cy0) - Math.hypot(q[0] - cx0, q[1] - cy0))      // si no cabe junto a la línea, lo más cerca
+  const [lx, ly] = [...spots, ...ring].find(([x, y]) => free([x - tw / 2, y - 11, x + tw / 2, y + 11])) ?? spots[0]
+  taken.push([lx - tw / 2, ly - 11, lx + tw / 2, ly + 11])
+  return `<g class="iso-flab"><rect x="${(lx - tw / 2).toFixed(1)}" y="${(ly - 10).toFixed(1)}" width="${tw}" height="19" rx="9" stroke="${c}"/><text x="${lx.toFixed(1)}" y="${(ly + 3.5).toFixed(1)}">${esc(txt)}</text></g>`
 }
 
 function drawArea(d: ObsData, a: Area, inc: boolean, stage: string | null, sel: string | null, avoid?: (r: number[]) => boolean): [string, string, number[]] {
@@ -223,7 +210,7 @@ export function isoKey(d: ObsData, stage: string | null, sel: string | null): st
  * como <symbol> en la página y cada redibujo los usa con <use>. */
 export function ensureIsoDefs(): void {
   if (typeof document === 'undefined' || document.getElementById('iso-shared-defs')) return
-  const defs = ART_DEFS + avatarDefs(), box = document.createElement('div')
+  const defs = ART_DEFS, box = document.createElement('div')
   buildArtImages(defs)
   box.innerHTML = `<svg id="iso-shared-defs" aria-hidden="true" focusable="false" width="0" height="0"
     style="position:absolute;width:0;height:0;overflow:hidden"><defs>${artAsImages() ? '' : defs}</defs></svg>`
@@ -231,7 +218,7 @@ export function ensureIsoDefs(): void {
 }
 
 const legendBar = (inc: boolean): string => `<div class="iso-legend"><span><i class="t-ok"></i>Funciona</span><span><i class="t-bad"></i>Falla (✖ error · ◷ dato viejo${inc ? ' · ▲ incompleto' : ''})</span>
-      <span><i class="t-none"></i>Sin información (? sin datos · ❚❚ pausa · ◌ en espera)</span><span class="muted">Puesto translúcido = planeado</span>
+      <span><i class="t-none"></i>Sin información (? sin datos · ❚❚ pausa · ◌ en espera)</span><span class="muted">Puesto translúcido = planeado · Línea más gruesa = más conexiones entre áreas</span>
       <label><input type="checkbox" data-act="iso-inc"${inc ? ' checked' : ''}> ▲ cuenta como falla</label></div>`
 
 /** Sala con microecosistema, ampliada: las mismas zonas, más separadas para que quepan los nombres. */
@@ -260,41 +247,48 @@ export function isoHtml(d: ObsData, stage: string | null, sel: string | null): s
   ensureIsoDefs()
   const inc = isoIncFail(), A = areas(d, inc), focus = stage ? A.find((a) => a.stage === stage) : undefined
   if (focus) return focusHtml(d, focus, inc, sel)
-  const L = links(d, inc, A)
-  const lines: string[] = [], labs: string[] = [], taken: number[][] = [], tracks: UVRect[] = [], uvs = A.map((a) => toUV(a.cx, a.cy))
-  const mid: [number, number] = [uvs.reduce((t, q) => t + q[0], 0) / uvs.length, uvs.reduce((t, q) => t + q[1], 0) / uvs.length]
-  L.map((l, i) => ({ l, i })).sort((x, y) => Number(x.l.main || !!x.l.fb) - Number(y.l.main || !!y.l.fb))
-    .forEach(({ l, i }) => { const [g, lab] = drawLink(l, A, i, stage, mid, taken, tracks); lines.push(g); labs.push(lab) })
-  const [floor] = floorSlab(A)        // el piso sigue más allá del encuadre: se enfoca en las salas
-  const marks = (Object.keys(COLOR) as Tone[]).map((t) => `<marker id="iso-ah-${t}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${COLOR[t]}"/></marker>`).join('')
+  const L = links(d, inc, A), uvs = A.map((a) => toUV(a.cx, a.cy)), at = new Map(A.map((a, i) => [a.stage, i]))
+  const router = new Router(A.map((a, i) => ({ u: uvs[i][0], v: uvs[i][1], hu: a.hu, hv: a.hv })))
+  const prio = (l: Link): number => (l.main || l.fb ? 1000 : 0) + l.n           // las importantes eligen pasillo primero
+  const labs: string[] = [], taken: number[][] = [], tracks: UVRect[] = [], wayUV: [number, number][] = []
+  const drawn = [...L].sort((x, y) => prio(y) - prio(x)).map((l) => {
+    const r = router.route(at.get(l.a)!, at.get(l.b)!)
+    for (let q = 0; q + 1 < r.way.length; q++) {             // tramos ocupados: el área común no los pisa
+      const [p1, p2] = [r.way[q], r.way[q + 1]], m = 0.42
+      tracks.push([Math.min(p1[0], p2[0]) - m, Math.min(p1[1], p2[1]) - m, Math.max(p1[0], p2[0]) + m, Math.max(p1[1], p2[1]) + m])
+    }
+    wayUV.push(...r.way)
+    return { l, r, ...drawLink(l, r) }
+  })
+  const onLines = drawn.flatMap((x) => lineBoxes(x.sp, x.w))
+  const free = (r: number[]): boolean => !hitsAny(taken, r) && !hitsAny(onLines, r) && !hitsRoom(A, r, WALL_H)
+  drawn.filter((x) => x.l.main || x.l.fb).forEach((x) => labs.push(linkLabel(x.l, x.sp, free, taken)))
+  // Las importantes van encima de las demás; las que no hallaron pasillo libre, encima de las salas.
+  const under = drawn.filter((x) => !x.r.blocked).reverse().map((x) => x.svg), over = drawn.filter((x) => x.r.blocked).reverse().map((x) => x.svg)
+  // El piso abarca también los recorridos que rodean las salas por fuera.
+  const wu = wayUV.map((q) => q[0]), wv = wayUV.map((q) => q[1]), [gu0, gv0, gu1, gv1] = [Math.min(...wu), Math.min(...wv), Math.max(...wu), Math.max(...wv)]
+  const [gx, gy] = G((gu0 + gu1) / 2, (gv0 + gv1) / 2), span: Room = { cx: gx, cy: gy, hu: (gu1 - gu0) / 2, hv: (gv1 - gv0) / 2 }
+  const [floor] = floorSlab(wayUV.length ? [...A, span] : A)        // el piso sigue más allá del encuadre: se enfoca en las salas
   const items: { svg: string; depth: number }[] = [], tags: string[] = [], boxes: number[][] = [], xs: number[] = [], ys: number[] = []
   A.forEach((a) => {
-    const avoid = (r: number[]): boolean => hitsAny([...boxes, ...taken], r) || hitsRoom(A, r, WALL_H)    // tarjeta en sitio libre
+    const avoid = (r: number[]): boolean => hitsAny([...boxes, ...taken, ...onLines], r) || hitsRoom(A, r, WALL_H)    // tarjeta en sitio libre, sin tapar líneas
     const [r, t, b] = drawArea(d, a, inc, stage, sel, avoid); items.push({ svg: r, depth: a.cy }); tags.push(t); boxes.push(b)
     xs.push(b[0], b[2], a.cx - (a.hu + a.hv) * 0.866 * S, a.cx + (a.hu + a.hv) * 0.866 * S)
     ys.push(b[1], b[3], a.cy - (a.hu + a.hv) * 0.5 * S - WALL_H * S, a.cy + (a.hu + a.hv) * 0.5 * S + 0.4 * S)
   })
   const roomUV = A.map((a, i): UVRect => [uvs[i][0] - a.hu, uvs[i][1] - a.hv, uvs[i][0] + a.hu, uvs[i][1] + a.hv])
   const zone: UVRect = [Math.min(...uvs.map((q) => q[0])), Math.min(...uvs.map((q) => q[1])), Math.max(...uvs.map((q) => q[0])), Math.max(...uvs.map((q) => q[1]))]
-  items.push(...lounges(zone, roomUV, tracks, [...boxes, ...taken]))         // área común en los huecos del centro
+  items.push(...lounges(zone, roomUV, tracks, [...boxes, ...taken, ...onLines]))   // área común en los huecos, sin tapar líneas
   const rooms = items.sort((x, y) => x.depth - y.depth).map((x) => x.svg)
-  // Avatares SV (izquierda) y JP (derecha) de pie en el piso, a los costados de las salas.
-  const ext = A.map((a) => [a.cx - (a.hu + a.hv) * 0.866 * S, a.cx + (a.hu + a.hv) * 0.866 * S, a.cy])
-  const byX = A.map((_, i) => i).sort((i, j) => A[i].cx - A[j].cx), two = (ix: number[]): number => (A[ix[0]].cy + A[ix[1]].cy) / 2
-  const avL: [number, number] = [Math.min(...ext.map((e) => e[0])) - 100, two(byX.slice(0, 2)) - 75]
-  const avR: [number, number] = [Math.max(...ext.map((e) => e[1])) + 5, two(byX.slice(-2)) - 20]
-  for (const [av, dx] of [[avL, -30], [avR, 30]] as [[number, number], number][])     // sin tapar salas ni tarjetas
-    for (let k = 0; k < 12 && (hitsAny(boxes, [av[0] - 50, av[1] - 195, av[0] + 50, av[1] + 40]) || hitsRoom(A, [av[0] - 50, av[1] - 195, av[0] + 50, av[1] + 40], WALL_H)); k++) av[0] += dx
-  const avs = avatar('SV', avL[0], avL[1]) + avatar('JP', avR[0], avR[1])
-  xs.push(avL[0] - 50, avR[0] + 50); ys.push(avL[1] - 180, avR[1] - 180, avL[1] + 40, avR[1] + 40)
+  for (const q of wayUV) { const [x, y] = G(q[0], q[1]); xs.push(x - 14, x + 14); ys.push(y - 14, y + 14) }   // las líneas caben en el encuadre
   const pad = 16; xs.push(Math.min(...xs) - pad, Math.max(...xs) + pad); ys.push(Math.min(...ys) - pad, Math.max(...ys) + pad)
   const x0 = Math.min(...xs), y0 = Math.min(...ys), vw = Math.max(...xs) - x0, vh = Math.max(...ys) - y0
   // Dos capas con el mismo encuadre (piso con las líneas quietas · salas): las líneas ya no se mueven, así
   // que solo la capa de las salas tiene parpadeos (a saltos, con el reloj compartido).
   const vb = `viewBox="${x0.toFixed(0)} ${y0.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}"`
   return `<div class="iso-wrap"><div class="iso-stage">
-    <svg class="iso-svg iso-base" ${vb} aria-hidden="true"><defs>${marks}</defs>${floor}<g class="iso-lines">${lines.join('')}</g></svg>
+    <svg class="iso-svg iso-base" ${vb} aria-hidden="true">${floor}<g class="iso-lines">${under.join('')}</g></svg>
     <svg class="iso-svg iso-layer iso-top" ${vb} role="img" aria-label="Mapa isométrico: ${d.graph.stages.length} etapas como salas de trabajo">
-      <g>${rooms.join('')}</g><g>${avs}</g><g>${tags.join('')}</g><g class="iso-flabs">${labs.join('')}</g></svg></div>
+      <g>${rooms.join('')}</g><g class="iso-lines">${over.join('')}</g><g>${tags.join('')}</g><g class="iso-flabs">${labs.join('')}</g></svg></div>
     ${legendBar(inc)}</div>`
 }

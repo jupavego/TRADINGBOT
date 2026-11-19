@@ -61,3 +61,20 @@ export function arrowsAlong(sp: [number, number][], every: number, size: number,
   }
   return out
 }
+
+/** Punta de flecha en la entrada del área de destino, orientada con el último tramo. */
+export function endArrow(sp: [number, number][], size: number, c: string): string {
+  const [x0, y0] = sp[sp.length - 2], [x1, y1] = sp[sp.length - 1], L = Math.hypot(x1 - x0, y1 - y0) || 1, ux = (x1 - x0) / L, uy = (y1 - y0) / L
+  const p = (a: number, b: number): string => `${(x1 + a * ux - b * uy).toFixed(1)},${(y1 + a * uy + b * ux).toFixed(1)}`
+  return `<polygon class="iso-lhead" points="${p(0, 0)} ${p(-size, -size * 0.62)} ${p(-size * 0.68, 0)} ${p(-size, size * 0.62)}" fill="${c}"/>`
+}
+
+/** Cajas pequeñas a lo largo de una línea en pantalla: tarjetas y etiquetas no se ponen encima. */
+export function lineBoxes(sp: [number, number][], w: number): number[][] {
+  const h = w / 2 + 5, out: number[][] = []
+  for (let i = 0; i + 1 < sp.length; i++) {
+    const [x0, y0] = sp[i], [x1, y1] = sp[i + 1], n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 12))
+    for (let j = 0; j <= n; j++) { const x = x0 + ((x1 - x0) * j) / n, y = y0 + ((y1 - y0) * j) / n; out.push([x - h, y - h, x + h, y + h]) }
+  }
+  return out
+}
