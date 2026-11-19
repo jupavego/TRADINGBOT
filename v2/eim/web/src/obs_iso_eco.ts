@@ -79,7 +79,7 @@ function floorText(r: Room, u: number, v: number, txt: string, fs: number, axis:
 
 /** Zonas pintadas en el piso con su nombre (el nombre solo en la sala enfocada, para no ensuciar el mapa). */
 function zonesFloor(r: Room, pl: EcoPlan, accent: string, detail: boolean): string {
-  const f = pl.f, hu = pl.hu / f, hv = pl.hv / f, vF = -2.7 + STRIP + 0.4, s = (x: number): number => x * f
+  const f = pl.f, hu = pl.hu / f, vF = -2.7 + STRIP + 0.4, s = (x: number): number => x * f
   const tint = (c: string, o = 0.09): string => `fill="${c}" fill-opacity="${o}" stroke="${c}" stroke-opacity=".55" stroke-width="1.3" stroke-dasharray="6 4"`
   let out = quad(r, s(pl.uF0 - 0.45), s(vF - 0.5), s(hu - 0.12), s(vF + 0.62), tint(accent))                     // ventanillas
     + quad(r, s(-hu + 0.12), s(vF - 0.5), s(-hu + 1.0), s(1.75), tint('#2ee6ff', 0.1))                       // monitoreo continuo
