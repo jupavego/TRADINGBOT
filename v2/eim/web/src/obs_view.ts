@@ -7,6 +7,7 @@
  * última vela y el recorrido guiado se retiraron de esta vista. */
 import { detailHtml } from './obs_detail'
 import { isoHtml, isoIncFail, isoKey, setIsoIncFail } from './obs_iso'
+import { IsoPan } from './obs_iso_pan'
 import { queueHtml, queuesSummary } from './obs_queues'
 import { compState, stageSentence } from './obs_graph'
 import { glossarize, legendHtml } from './obs_legend'
@@ -54,6 +55,7 @@ export class ObsView {
   private tick = 0
   private ageBase: { age: number; at: number } | null = null   // edad del último evento al cargar
   private isoLast = ''          // clave del último dibujo isométrico (no se rehace si nada cambió)
+  private pan: IsoPan | null = null   // zoom con la rueda y arrastre con clic sostenido
 
   constructor(private root: HTMLElement) {}
 
@@ -98,6 +100,7 @@ export class ObsView {
     this.root.dataset.view = 'iso'   // única vista: la leyenda y el detalle flotan dentro del diagrama (obs_iso.css)
     let folded = false
     try { folded = localStorage.getItem(FOLD_KEY) === '1' } catch { /* sin almacenamiento: desplegado */ }
+    this.pan = new IsoPan(this.q('map'))
     this.setFolded(folded)
     this.root.addEventListener('click', (e) => this.onClick(e))
     this.root.addEventListener('keydown', (e) => {
@@ -193,7 +196,12 @@ export class ObsView {
     if (!d?.graph) { this.q('map').innerHTML = '<p class="muted">Sin conexión con el observatorio.</p>'; this.q('crumb').innerHTML = ''; return }
     const crumb = this.q('crumb'), map = this.q('map')
     const k = isoKey(d, this.stage, this.sel)   // se rehace solo si cambió algo visible: las animaciones no saltan en cada sondeo
-    if (k !== this.isoLast || !map.querySelector('.iso-wrap')) { map.innerHTML = isoHtml(d, this.stage, this.sel); this.isoLast = k; if (!this.open) this.setMotion(false) }
+    if (k !== this.isoLast || !map.querySelector('.iso-wrap')) {
+      map.innerHTML = isoHtml(d, this.stage, this.sel); this.isoLast = k; if (!this.open) this.setMotion(false)
+      map.querySelector('.iso-wrap')?.insertAdjacentHTML('afterbegin', '<button class="iso-reset" data-act="iso-reset" title="Volver al encuadre inicial (también doble clic en el fondo)">⟲ Encuadre</button>'
+        + '<span class="iso-hint">Rueda: zoom · clic sostenido: mover</span>')
+      this.pan?.apply(this.stage ?? '')
+    }
     if (!this.stage) {
       crumb.innerHTML = '<b>Ruta completa</b> · pulsa una sala o un puesto'
       return
