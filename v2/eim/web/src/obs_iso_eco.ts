@@ -7,8 +7,9 @@
  *   · frente derecho                → CONSOLIDA Y SALE: el puesto principal (más grande) y la salida gruesa
  *   · frente izquierdo              → EN OBRA: lo planeado, translúcido, con cinta y conos
  * Cada sala solo declara qué pieza va en qué zona (`obs_iso_eco_specs`); lo desconocido cae en su zona por
- * defecto y lo planeado siempre en obra. En el piso van, quietos, los flujos internos del catálogo y las
- * salidas hacia otras salas por el borde abierto más cercano, con flechas pequeñas de sentido. Solo ordena y
+ * defecto y lo planeado siempre en obra. Con la sala ampliada van en el piso, quietos, los flujos internos del
+ * catálogo y las salidas hacia otras salas por el borde abierto más cercano, con flechas pequeñas de sentido (en
+ * el mapa completo no: allí solo se ven las líneas entre áreas). Solo ordena y
  * decora: los estados salen de `compState` y las conexiones del catálogo. */
 import { arrowsAlong, box, P, pts, type Room } from './obs_iso_geo'
 import { continuo, SPECS, ZONES, type Zone } from './obs_iso_eco_specs'
@@ -259,6 +260,8 @@ export function ecoExtra(r: Room, pl: EcoPlan, i: number, c: ObsComp): string {
 /** Lo que la sala pinta además de los puestos: piso (zonas, flujos, salidas), mobiliario con profundidad y,
  * aparte, las placas de salidas y de zonas (capa de arriba, solo en la sala ampliada). */
 export function ecoDraw(r: Room, pl: EcoPlan, ctx: EcoCtx, accent: string): { floor: string; props: { svg: string; depth: number }[]; top: string } {
+  // Los flujos internos y las salidas solo en la sala ampliada: en el mapa completo mandan las líneas entre áreas.
+  if (!ctx.detail) return { floor: zonesFloor(r, pl, accent), props: props(r, pl), top: '' }
   const [ex, chips] = exits(r, pl, ctx)
-  return { floor: zonesFloor(r, pl, accent) + innerFlows(r, pl, ctx) + ex, props: props(r, pl), top: ctx.detail ? chips + zoneTags(r, pl, ctx, accent) : '' }
+  return { floor: zonesFloor(r, pl, accent) + innerFlows(r, pl, ctx) + ex, props: props(r, pl), top: chips + zoneTags(r, pl, ctx, accent) }
 }

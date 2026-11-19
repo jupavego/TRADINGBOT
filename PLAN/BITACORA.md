@@ -3597,3 +3597,10 @@ pm run build.
 - **Hecho:** opción «Vigía de tareas (en curso)» en el icono de la bandeja (`v2/scripts/icono_bandeja.ps1`, abre `roadmap.html#vigia`) y botón «Vigía de tareas ↓» en la cabecera de la hoja de ruta; abierta con `#vigia`, la página baja a la sección al primer dibujo. Va con `main`, así que el otro colaborador lo tiene al traer cambios (la opción nueva de la bandeja aparece al reabrir el icono).
 - **Pruebas:** Chrome sin cabeza: botón en la cabecera (captura) y, con `#vigia`, la sección queda arriba de la ventana (posición medida en el DOM).
 - **Abierto:** el usuario borra a mano los dos Vigía de claude.ai (la sesión no puede borrarlos).
+
+
+## 2026-11-19 · sesión «Mapa del sistema: sin avatares y líneas entre áreas legibles»
+- **Hecho:** a pedido del usuario, (1) se quitan del mapa los dos avatares SV y JP (se borra obs_iso_avatar.ts); (2) en el mapa con todas las áreas ya no se ven los flujos internos ni las salidas de cada sala: solo aparecen al ampliar un área; (3) las líneas entre áreas tienen prioridad: grosor según cuántas conexiones lleva cada una (la ruta principal suma un punto), flechas de sentido más anchas que el trazo con borde blanco y punta al entrar al área de destino; su recorrido (nuevo obs_iso_route.ts) sale y entra por los bordes abiertos del frente y busca, en ángulo recto, el pasillo más corto que no pase por salas ni por la franja que tapan sus paredes, sin montarse sobre otra línea (las importantes eligen primero); si no hubiera pasillo libre, la línea se dibuja encima de las salas. Tarjetas de área, etiquetas de entrega y el área común ya no se ponen encima de las líneas. La leyenda explica el grosor.
+- **Archivos:** 2/eim/web/src/obs_iso.ts, obs_iso_route.ts (nuevo), obs_iso_geo.ts, obs_iso_eco.ts, obs_iso_floor.ts, obs_iso.css; borrado obs_iso_avatar.ts.
+- **Pruebas:** en la sesión, tipos revisados con tsc y el mapa renderizado con datos de ejemplo (captura: ninguna línea oculta, ninguna sin pasillo libre); en el equipo: ruff, pruebas que leen la web y `npm run build`.
+- **Abierto:** ninguno. **Siguiente paso:** ninguno obligatorio.

@@ -80,7 +80,7 @@ function inside(poly: [number, number][], x: number, y: number): boolean {
   }
   return c
 }
-/** ¿La caja toca alguna sala (piso o paredes)? Para que tarjetas, etiquetas y avatares busquen sitio libre. */
+/** ¿La caja toca alguna sala (piso o paredes)? Para que tarjetas y etiquetas busquen sitio libre. */
 export function hitsRoom(A: Room[], r: Rect, wallH: number): boolean {
   const xs = [r[0], (r[0] + r[2]) / 2, r[2]], ys = [r[1], (r[1] + r[3]) / 2, r[3]]
   return A.some((a) => { const s = shape(a, wallH)

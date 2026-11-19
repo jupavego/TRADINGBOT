@@ -13,8 +13,7 @@
 .iso-stage > .iso-svg { will-change: transform; }
 .iso-area, .iso-person, .iso-label { cursor: pointer; outline: none; }
 .iso-area:hover .iso-floor { fill: #cdd6e4; }
-.iso-lounge, .iso-avatar { pointer-events: none; }
-.iso-av-name { fill: #e8f0ff; font: 800 13px "Inter", system-ui, sans-serif; letter-spacing: .12em; text-anchor: middle; }
+.iso-lounge { pointer-events: none; }
 .iso-area:focus-visible .iso-floor, .iso-person:focus-visible ellipse { stroke: var(--accent, #22e1ff); stroke-width: 3; }
 .iso-edge { stroke-opacity: .95; }   /* sin drop-shadow: se recalculaba en cada cuadro de animación */
 .iso-edge.t-ok { color: #0fbf7a; } .iso-edge.t-bad { color: #f0324f; } .iso-edge.t-none { stroke-dasharray: 6 5; color: transparent; }
@@ -29,13 +28,15 @@
 .iso-orb { opacity: .35; }   /* esfera decorativa quieta: su latido redibujaba la capa de las salas en cada cuadro */
 .iso-link path { stroke-linecap: round; }
 .iso-halo { opacity: .1; }   /* halo sin blur: mismo resplandor, sin filtro por línea */
-.iso-link:not(.main):not(.focus) { opacity: .6; }
+.iso-link:not(.main) { opacity: .88; }   /* secundarias un poco más suaves, pero legibles */
 .iso-tiles line { stroke: #c6ccd6; stroke-width: 1; }
 .iso-fname { font-family: "Inter", system-ui, sans-serif; font-weight: 800; letter-spacing: .08em; text-anchor: middle; opacity: .85; pointer-events: none; }
 .iso-link .iso-flow { stroke-linejoin: round; }
 /* Líneas del piso quietas: el sentido lo dan flechas pequeñas fijas (.iso-arrow); lo que falla, el color */
 .iso-link.t-none .iso-flow, .iso-link.t-plan .iso-flow { stroke-dasharray: 3 9; }
 .iso-arrow { stroke: none; opacity: .95; pointer-events: none; }
+/* Flechas de las líneas entre áreas: del color de la línea, más anchas que el trazo y con borde blanco para leerse encima */
+.iso-larrow, .iso-lhead { stroke: #ffffff; stroke-width: 1.6; stroke-linejoin: round; opacity: 1; pointer-events: none; }
 .iso-flab rect, .iso-label rect { fill: #070c33; stroke-opacity: .7; }
 .iso-flab text { fill: #e8ecff; font: 600 10.5px "IBM Plex Mono", ui-monospace, monospace; text-anchor: middle; }
 .iso-label rect { fill: #0a1146; opacity: .95; }
