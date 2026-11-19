@@ -2,6 +2,7 @@
  * mobiliario según su actividad, y el puesto de cada pieza según su tipo (agente, puerta, almacén…).
  * Solo decora: ningún estado se deduce de aquí (los estados salen de `stateOf`). */
 import { ART } from './obs_iso_art'
+import { artTag } from './obs_iso_img'
 import { box, lineBL, lineBR, onBackLeft, onBackRight, onBL, onBR, P, pts, type Room } from './obs_iso_geo'
 
 export const WALL_H = 1.3
@@ -13,7 +14,7 @@ export const NAME_STRIP = 0.78     // franja del frente donde va pintado el nomb
 export function art(name: string, [x, y]: [number, number], hpx: number, at: 'piso' | 'pared' = 'piso', flip = false, extra = ''): string {
   const d = ART[name]; if (!d) return ''
   const k = hpx / d[1], w = d[0] * k, x0 = x - w / 2, y0 = at === 'piso' ? y - hpx : y - hpx / 2
-  const use = `<use href="#iso-a-${name}" x="${x0.toFixed(1)}" y="${y0.toFixed(1)}" width="${w.toFixed(1)}" height="${hpx.toFixed(1)}"${extra}/>`
+  const use = artTag(`iso-a-${name}`, x0, y0, w, hpx, extra)
   return flip ? `<g transform="translate(${(2 * x).toFixed(1)},0) scale(-1,1)">${use}</g>` : use
 }
 const onFloor = (r: Room, u: number, v: number): [number, number] => P(r.cx, r.cy, u, v, 0)

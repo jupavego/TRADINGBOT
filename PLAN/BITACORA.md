@@ -3542,3 +3542,17 @@ pm run build.
   todas las placas de zona presentes; capturas revisadas.
 - **Abierto:** en salas con pocos puestos (Plan) la sala ampliada queda holgada.
 - **Siguiente paso:** en el equipo, `npm run build` y revisar con el catálogo vivo; afinar zonas si aparecen piezas nuevas.
+
+## 2026-11-19 20:10 UTC · claude-web · Mapa del sistema sin lag: objetos como imágenes
+- **Causa:** cada objeto dibujado (personas, monitores, muebles, plantas, avatares) se colocaba con `<use>` de un
+  `<symbol>`; el navegador clona por dentro todas sus figuras: ~254 objetos = **42.420 figuras ocultas** que se
+  recorrían al pintar, al rasterizar, al pasar el puntero y al redibujar.
+- **Hecho:** `obs_iso_img.ts` (nuevo) convierte cada símbolo una sola vez en un SVG independiente (URL `blob:`) y
+  se coloca con `<image>`: se rasteriza una vez por tamaño y para el puntero es un rectángulo. Mismo vector (nítido
+  con zoom); si no hay documento o algo falla vuelve a `<use>`. Los muebles ya no tapan clics (`.iso-art`); durante
+  el zoom o el arrastre el dibujo no hace prueba de impacto (`.iso-moving`). Aspecto idéntico (capturas comparadas).
+- **Archivos:** `obs_iso_img.ts` (nuevo), `obs_iso.ts`, `obs_iso_props.ts`, `obs_iso_avatar.ts`, `obs_iso_pan.ts`, `obs_iso.css`.
+- **Pruebas:** banco en Chrome sin cabeza con el catálogo real (90 piezas): redibujo 220 → 33 ms; reposo
+  87 → 18 ms/s; pasar el puntero 322 → 41 ms/s; arrastre 364 → 120 ms/s; zoom 508 → ~200 ms/s (35 → 47 cuadros/s);
+  sala ampliada 89 → 28 ms. Clics en puestos y salas funcionan; `tsc --noEmit` sin errores nuevos.
+- **Siguiente paso:** en el equipo, `npm run build` y revisar con el catálogo vivo.

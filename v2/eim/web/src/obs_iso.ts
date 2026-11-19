@@ -11,6 +11,7 @@ import { compState } from './obs_graph'
 import { arrowsAlong, P, pts, S, type Room } from './obs_iso_geo'
 import { ART_DEFS } from './obs_iso_art'
 import { avatar, avatarDefs } from './obs_iso_avatar'
+import { artAsImages, buildArtImages } from './obs_iso_img'
 import { ecoDraw, ecoExtra, ecoPlan, hasEco, type EcoCtx, type EcoPlan } from './obs_iso_eco'
 import { focusLayout, nameTags } from './obs_iso_focus'
 import { FLOOR, floorName, floorSlab, G, hitsAny, hitsRoom, separate, tiles, toUV } from './obs_iso_floor'
@@ -218,13 +219,14 @@ export function isoKey(d: ObsData, stage: string | null, sel: string | null): st
     d.graph.observed.map((o) => `${o.source}>${o.target}`).join('|')].join('#')
 }
 
-/** Pone una sola vez en la página los objetos del mapa (~1.900 figuras como <symbol>) y los degradados
- * de los avatares: cada redibujo del mapa los usa con <use> sin volver a analizar ~400 KB de SVG. */
+/** Prepara una vez los objetos del mapa como imágenes reutilizables (obs_iso_img); si no se puede, quedan
+ * como <symbol> en la página y cada redibujo los usa con <use>. */
 export function ensureIsoDefs(): void {
   if (typeof document === 'undefined' || document.getElementById('iso-shared-defs')) return
-  const box = document.createElement('div')
+  const defs = ART_DEFS + avatarDefs(), box = document.createElement('div')
+  buildArtImages(defs)
   box.innerHTML = `<svg id="iso-shared-defs" aria-hidden="true" focusable="false" width="0" height="0"
-    style="position:absolute;width:0;height:0;overflow:hidden"><defs>${ART_DEFS}${avatarDefs()}</defs></svg>`
+    style="position:absolute;width:0;height:0;overflow:hidden"><defs>${artAsImages() ? '' : defs}</defs></svg>`
   document.body.appendChild(box.firstElementChild!)
 }
 
