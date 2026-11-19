@@ -41,16 +41,19 @@ export function focusLayout<T extends Layout>(a: T): T {
   return best ? { ...a, ...best, k: FOCUS_K } : a
 }
 
-export interface Tag { id: string; name: string; color: string; tip: string }
+/** `side`: hacia dónde se abre el nombre desde los pies del puesto ('l' izquierda, 'r' derecha; por defecto centrado),
+ * para que en filas diagonales no tape al vecino de al lado. */
+export interface Tag { id: string; name: string; color: string; tip: string; side?: 'l' | 'r' }
 
 /** Nombre de cada puesto, debajo de sus pies; va en la capa de arriba para que nada lo tape. */
 export function nameTags(a: Layout, tags: Tag[], sel: string | null): string {
   return tags.map((t, i) => {
     const [u, v] = a.slots[i], f = P(a.cx, a.cy, u, v + 0.22 * a.k, 0)
     const txt = t.name.length > MAXC ? `${t.name.slice(0, MAXC - 1)}…` : t.name, w = txt.length * 7 + 26, y = f[1] + 24
+    const x0 = t.side === 'l' ? f[0] - w + 18 : t.side === 'r' ? f[0] - 18 : f[0] - w / 2
     return `<g class="obs-n iso-tag${t.id === sel ? ' sel' : ''}" data-id="${esc(t.id)}" role="button" tabindex="0" aria-label="${esc(t.tip)}"><title>${esc(t.tip)}</title>`
-      + `<rect x="${(f[0] - w / 2).toFixed(1)}" y="${(y - 11).toFixed(1)}" width="${w.toFixed(1)}" height="22" rx="11" stroke="${t.color}"/>`
-      + `<circle cx="${(f[0] - w / 2 + 11).toFixed(1)}" cy="${y.toFixed(1)}" r="3.6" fill="${t.color}"/>`
-      + `<text x="${(f[0] + 6).toFixed(1)}" y="${(y + 4).toFixed(1)}">${esc(txt)}</text></g>`
+      + `<rect x="${x0.toFixed(1)}" y="${(y - 11).toFixed(1)}" width="${w.toFixed(1)}" height="22" rx="11" stroke="${t.color}"/>`
+      + `<circle cx="${(x0 + 11).toFixed(1)}" cy="${y.toFixed(1)}" r="3.6" fill="${t.color}"/>`
+      + `<text x="${(x0 + w / 2 + 6).toFixed(1)}" y="${(y + 4).toFixed(1)}">${esc(txt)}</text></g>`
   }).join('')
 }

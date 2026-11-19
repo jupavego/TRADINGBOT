@@ -98,3 +98,20 @@
 @keyframes iso-blink { 50% { fill-opacity: .2; } }
 @keyframes iso-halo-blink { 0%, 100% { fill-opacity: 1; } 50% { fill-opacity: .36; } }   /* mismo compás que iso-blink */
 @media (prefers-reduced-motion: reduce) { .iso-pulse, .iso-blink, .iso-orb, .iso-link .iso-flow, .iso-dotm { animation: none !important; } }
+/* Microecosistema de una sala (obs_iso_eco): zonas pintadas, flujos internos y salidas sobre el piso.
+   Van en la capa de las salas, que solo se redibuja cada 0,8 s (quant del reloj): todo avanza a saltos en esos
+   mismos instantes — los flujos marchan medio trazo y el ecualizador alterna barras —, nunca en cada cuadro. */
+.iso-inner path { stroke-linecap: round; stroke-linejoin: round; }
+.iso-inner.t-ok .iso-flow, .iso-inner.t-bad .iso-flow { stroke-dasharray: 9 6; animation: iso-march 1.6s linear infinite; }
+.iso-inner.t-bad .iso-flow { animation-name: iso-march-bad; }
+.iso-inner.t-none .iso-flow, .iso-inner.t-plan .iso-flow { stroke-dasharray: 2 6; }
+.iso-inner.t-plan { opacity: .55; }
+.iso-zname { font-family: "Inter", system-ui, sans-serif; font-weight: 800; letter-spacing: .1em; opacity: .7; pointer-events: none; }
+.iso-exit { pointer-events: none; }
+.iso-exit rect { fill: #070c33; fill-opacity: .9; stroke-width: 1.3; }
+.iso-exit text { fill: #e8ecff; font: 600 10.5px "IBM Plex Mono", ui-monospace, monospace; text-anchor: middle; }
+.iso-eq { animation: iso-eq 1.6s linear infinite; }
+@keyframes iso-march { 0%, 49.9% { stroke-dashoffset: 0; } 50%, 100% { stroke-dashoffset: -7.5; } }
+@keyframes iso-march-bad { 0%, 49.9% { stroke-dashoffset: 0; } 50%, 100% { stroke-dashoffset: -7.5; stroke-opacity: .35; } }
+@keyframes iso-eq { 0%, 49.9% { fill-opacity: 1; } 50%, 100% { fill-opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .iso-eq, .iso-inner .iso-flow { animation: none !important; } }
