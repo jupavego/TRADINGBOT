@@ -3488,3 +3488,10 @@ ameTags), 2/eim/web/src/obs_iso.ts (ocusHtml los usa), 2/eim/web/src/obs_iso.
 - **Pruebas:** en la sesión, render en Chrome sin cabeza de Análisis con 31 puestos y de Datos con 3: 0 etiquetas solapadas; 	sc --strict sin errores. En el equipo: ruff, pruebas que leen la web y 
 pm run build.
 - **Abierto:** con muchas piezas (Análisis) el texto se ve pequeño en pantallas angostas; el nombre completo sale al pasar el cursor. **Siguiente paso:** ninguno obligatorio.
+
+## 2026-11-19 · sesión «Zoom y arrastre del mapa del sistema»
+- **Hecho:** a pedido del usuario, la rueda del mouse acerca o aleja el mapa hacia el puntero (hasta 8×) y el clic sostenido lo arrastra en cualquier dirección, con o sin zoom, en el mapa completo y en la sala ampliada. Se hace cambiando el iewBox (el dibujo sigue nítido). El encuadre se conserva entre los repintados del sondeo de 5 s; al cambiar de vista vuelve al encuadre de esa vista. Soltar tras arrastrar no abre salas ni puestos. Botón «⟲ Encuadre» (visible solo con zoom o desplazamiento) y doble clic en el fondo devuelven al encuadre inicial; una pista en la esquina recuerda los gestos.
+- **Archivos:** 2/eim/web/src/obs_iso_pan.ts (nuevo, IsoPan), 2/eim/web/src/obs_view.ts (lo monta y lo repone tras cada redibujo), 2/eim/web/src/obs_iso.css.
+- **Pruebas:** en la sesión, Chrome sin cabeza sobre el mapa completo y la sala Análisis: zoom con rueda, arrastre, clic tras arrastre descartado, clic normal con y sin zoom abre la pieza, «Encuadre» restaura el viewBox. En el equipo: ruff, pruebas que leen la web y 
+pm run build.
+- **Abierto:** sobre el mapa la rueda ya no desplaza la página (hace zoom); fuera del mapa sí. **Siguiente paso:** ninguno obligatorio.
