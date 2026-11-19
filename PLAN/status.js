@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-19T10:06:00",
+ "generated": "2026-11-19T15:40:08",
  "phases": [
   {
    "n": 0,
@@ -2579,8 +2579,8 @@ window.EIM_STATUS = {
     "T168",
     "T170"
    ],
-   "state": "pending",
-   "notes": "—",
+   "state": "done",
+   "notes": "Hecha (2026-11-19): pestaña «Cantera» (tras Escuadrón) con la panorámica por agente como entrada y la ficha del prospecto como detalle; cabecera con modo SIMULADO, **contabilidad aparte** de los cuatro perfiles y de T144, promesas falsas que espera el azar (0,0068) y cobertura. Orden por agente y etapa (nunca por rendimiento), n < 30 atenuado con «muestra insuficiente», d̃ bruto/encogido y días hasta veredicto (MinTRL con α = 0,05/m, z = 3,09). `v2/eim/nursery/panel.py`, `GET /v2/nursery` (`panel`) y `GET /v2/nursery/prospect/{id}`, `v2/eim/web/src/cantera_*.ts`; nota `PLAN/notas/T171_panel_cantera.md`",
    "effort": "medio",
    "phase": 27
   },

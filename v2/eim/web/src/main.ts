@@ -5,6 +5,8 @@ import './arb.css'
 import './leaders.css'
 import './squad.css'
 import { SquadPanel } from './squad_ui'
+import './cantera.css'
+import { CanteraPanelView } from './cantera_ui'
 import './paper.css'
 import './obs.css'
 import './obs_trace.css'
@@ -63,6 +65,7 @@ const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('ri
 const leaders = new LeadersPanel($('t-lead'), $('tab-lead'))
 const squad = new SquadPanel($('t-squad'), () => ({ symbol, tf }), () => scenarios.refresh()) // T60
 squadSupport = squad
+const cantera = new CanteraPanelView($('t-cantera')) // T171: escalafón por agente, contabilidad aparte
 const obs = new ObsView($('obs')) // Mapa del sistema (T75), en su pestaña de la barra superior (views.ts)
 const paper = new PaperView($('paper')) // bróker simulado (T47): en la mesa, bajo el mapa del sistema; modo Simulado en su cabecera
 
@@ -208,6 +211,7 @@ function build(): void {
       if (b.dataset.tab === 't-arb') void arb.reload()
       if (b.dataset.tab === 't-lead') void leaders.reload()
       if (b.dataset.tab === 't-squad') void squad.reload()
+      if (b.dataset.tab === 't-cantera') void cantera.reload()
       if (b.dataset.tab === 't-lib') void library.reload()
       if (b.dataset.tab === 't-log') renderJournal($('journal'), journal)
       more.show(b.dataset.tab!)
