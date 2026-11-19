@@ -217,6 +217,7 @@ $mEstado.Enabled = $false
 $menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator)) | Out-Null
 Opcion "Abrir interfaz" { Start-Process $web } | Out-Null
 Opcion "Hoja de ruta" { Start-Process $ruta } | Out-Null
+Opcion "Vigía de tareas (en curso)" { Start-Process "$ruta#vigia" } | Out-Null
 Opcion "Ver registros" { if (Test-Path $logs) { Start-Process explorer.exe $logs } } | Out-Null
 Opcion "Actualizar desde GitHub (main)" { Sincronizar } | Out-Null
 $menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator)) | Out-Null

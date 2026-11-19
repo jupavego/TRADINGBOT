@@ -121,7 +121,7 @@ code{background:var(--block-bg);padding:1px 6px;border-radius:5px;font-size:12.5
 .vigia{margin-top:28px;border-left:4px solid var(--prog)}
 .vgh{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
 .vgh h2{margin:0}
-.vgh a.btn{margin-left:auto;font-size:13px;color:var(--tx);text-decoration:none;border:1px solid var(--line2);border-radius:8px;padding:4px 12px}
+.sp a.btn,.vgh a.btn{margin-left:auto;font-size:13px;color:var(--tx);text-decoration:none;border:1px solid var(--line2);border-radius:8px;padding:4px 12px}
 .vgh a.btn:hover{background:var(--bg)}
 .vgd{color:var(--tx2);font-size:13px;margin:0 0 12px}
 .vgk{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
@@ -143,6 +143,7 @@ code{background:var(--block-bg);padding:1px 6px;border-radius:5px;font-size:12.5
     </div>
     <div class="sp">
       <span class="live" id="live"><i></i><span id="upd">cargando…</span></span>
+      <a class="btn" href="#vigia" id="go-vigia" title="Tareas en curso: avance, requisitos y desde qué equipo">Vigía de tareas ↓</a>
       <button id="theme" type="button">Tema</button>
     </div>
   </header>
@@ -268,6 +269,8 @@ function render(){
   var gen=new Date(data.generated),age=(Date.now()-gen.getTime())/60000;
   document.getElementById("upd").textContent="Actualizado "+gen.toLocaleString("es-CO",{dateStyle:"short",timeStyle:"short"});
   renderVigia(tasks);
+  // Abierta como roadmap.html#vigia (icono de la bandeja): al primer dibujo, ir al Vigía
+  if(location.hash==="#vigia"&&!window.__vgScrolled){window.__vgScrolled=true;var v=document.getElementById("vigia");if(v)v.scrollIntoView()}
 }
 // Sección del Vigía: tareas en curso, listas y decisiones pendientes, leídas del mismo status.js
 function renderVigia(tasks){

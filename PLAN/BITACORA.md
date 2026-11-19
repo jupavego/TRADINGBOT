@@ -3592,3 +3592,8 @@ pm run build.
 - **Visto:** el usuario veía T172 como «Lista» porque su carpeta viva no se republicó tras #328/#329 (lo corrige este mismo PR en `sincronizar_main.ps1`).
 - **Pruebas:** `roadmap.html` en Chrome sin cabeza con el `status.js` nuevo (captura revisada).
 - **Siguiente paso:** al cambiar el estado de una tarea en curso, actualizar su fila de «Seguimiento» y correr `python PLAN/build_roadmap.py`.
+
+## 2026-11-19 22:05 UTC · claude-web · El Vigía de tareas, a un clic desde la bandeja y la hoja de ruta
+- **Hecho:** opción «Vigía de tareas (en curso)» en el icono de la bandeja (`v2/scripts/icono_bandeja.ps1`, abre `roadmap.html#vigia`) y botón «Vigía de tareas ↓» en la cabecera de la hoja de ruta; abierta con `#vigia`, la página baja a la sección al primer dibujo. Va con `main`, así que el otro colaborador lo tiene al traer cambios (la opción nueva de la bandeja aparece al reabrir el icono).
+- **Pruebas:** Chrome sin cabeza: botón en la cabecera (captura) y, con `#vigia`, la sección queda arriba de la ventana (posición medida en el DOM).
+- **Abierto:** el usuario borra a mano los dos Vigía de claude.ai (la sesión no puede borrarlos).
