@@ -24,6 +24,25 @@ PHASE_ROW = re.compile(r"^\|\s*(\d+)\s+([^|]+?)\s*\|")      # «| 20 Estabilizac
 COND_ROW = re.compile(r"^\|\s*(T\d+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]*?)\s*\|\s*$")
 
 
+TRACK_ROW = re.compile(r"^\|\s*(T\d+)\s*\|" + r"\s*([^|]*?)\s*\|" * 7 + r"\s*$")
+TRACK_KEYS = ("start", "end", "milestone", "progress", "requires", "machine", "needs")
+
+
+def tracking() -> dict[str, dict]:
+    """Seguimiento de cada tarea en curso (tabla «Seguimiento» de PLAN/CONDICIONANTES.md)."""
+    f = PLAN / "CONDICIONANTES.md"
+    out: dict[str, dict] = {}
+    if not f.exists():
+        return out
+    for ln in f.read_text(encoding="utf-8").splitlines():
+        if m := TRACK_ROW.match(ln.strip()):
+            vals = [None if v in ("", "—", "-") else v.replace("`", "") for v in m.groups()[1:]]
+            row = dict(zip(TRACK_KEYS, vals, strict=True))
+            row["requires"] = [x.strip() for x in (row["requires"] or "").split(",") if x.strip()]
+            out[m.group(1)] = row
+    return out
+
+
 def conditions() -> dict[str, list[dict]]:
     """Condicionantes por tarea de PLAN/CONDICIONANTES.md: qué se hace desde qué equipo."""
     f = PLAN / "CONDICIONANTES.md"
@@ -165,6 +184,7 @@ def previous_plan(path: Path) -> tuple[list, list] | None:
 def main() -> int:
     status = PLAN / "STATUS.md"
     conds = conditions()
+    track = tracking()
     tasks = []
     for ln in status.read_text(encoding="utf-8").splitlines():
         m = ROW.match(ln.strip())
@@ -181,6 +201,8 @@ def main() -> int:
         t.update(head_info(tid))
         if tid in conds:
             t["where"] = conds[tid]
+        if tid in track:
+            t["track"] = track[tid]
         tasks.append(t)
     if undeclared := [t["id"] for t in tasks if "phase" not in t]:
         print("ERROR: " + ", ".join(undeclared) + " no declaran fase: la segunda línea de su "

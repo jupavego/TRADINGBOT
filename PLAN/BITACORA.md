@@ -3586,3 +3586,9 @@ pm run build.
 - **Hecho:** `sincronizar_main.ps1` publica la hoja de ruta también cuando `main` ya está al día, copiando solo lo que difiere de `PLAN/` (hash). Antes solo copiaba en la vuelta que traía el cambio, y esa vuelta corre la versión vieja del script: la carpeta viva se habría quedado atrás hasta el siguiente cambio de `PLAN/`. `CLAUDE.md` (paso 4) dice que la hoja de ruta es compartida y que lo de una rama se ve al fusionar.
 - **Pruebas:** revisión del script (Windows; no ejecutable en la sesión web).
 - **Siguiente paso:** fusionar; en ≤ 5 min cada equipo muestra la hoja de ruta de `main` (con #328 y #329).
+
+## 2026-11-19 21:55 UTC · claude-web · Vigía de la hoja de ruta con avance, requisitos y equipo
+- **Hecho:** a pedido del usuario, la sección «Vigía» muestra por cada tarea en curso su avance (calculado en vivo por fechas, o el texto de avance), hasta cuándo y qué hito, «Qué necesita», requisitos (PC encendido, API en marcha, tu decisión ◆…), desde qué equipo y sus condicionantes. Fuente: tabla «Seguimiento de las tareas en curso» de `PLAN/CONDICIONANTES.md` → `status.js` (`track`). Las 12 tareas en curso tienen su fila.
+- **Visto:** el usuario veía T172 como «Lista» porque su carpeta viva no se republicó tras #328/#329 (lo corrige este mismo PR en `sincronizar_main.ps1`).
+- **Pruebas:** `roadmap.html` en Chrome sin cabeza con el `status.js` nuevo (captura revisada).
+- **Siguiente paso:** al cambiar el estado de una tarea en curso, actualizar su fila de «Seguimiento» y correr `python PLAN/build_roadmap.py`.
