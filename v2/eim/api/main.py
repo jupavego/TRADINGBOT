@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from eim.agents.registry import AgentRegistry, default_registry
 from eim.api.arb_execution import arb_loop, build_arb_execution_router, build_arb_runtime
 from eim.api.arbitrage import ArbDesk, build_arbitrage_router
+from eim.api.asym_watch import AsymWatch, build_asym_router
 from eim.api.backup import build_backup_router
 from eim.api.bots import build_bots_router
 from eim.api.calib_watch import CalibWatch
@@ -158,9 +159,11 @@ def create_app(
     runtime.extra_open = arb_rt.open_symbols
     # T47: bróker simulado; servicio en vivo solo con la fuente real.
     paper = PaperDesk(store, paper_store, reg,
-                      exec_params=ExecParams(live_first_from_ms=cfg.paper_live_first_from_ms),
+                      exec_params=ExecParams(live_first_from_ms=cfg.paper_live_first_from_ms,
+                                             phase2_from_ms=cfg.paper_phase2_from_ms),
                       provider=BinanceFutures() if source is None else None,
-                      poll_s=cfg.paper_poll_s)
+                      poll_s=cfg.paper_poll_s,
+                      asym_adopted=str(cfg.data_dir / "paper" / "asym" / "adopted.json"))
     paper.alerts = op.alerts if op is not None else AlertCenter(rcon, rlock)   # T110 → op_alerts
     # T143: corridas aparte (misma decisión, otra ejecución), cada una con su base y su libro
     variants = (make_variants(cfg.paper_variants, store, cfg.data_dir, paper_store, reg)
@@ -268,6 +271,13 @@ def create_app(
         paper.hooks.add("calibracion", calib_watch.maybe_run, "forecast.calibration")
     app.state.calib_watch = calib_watch
     app.include_router(build_calibration_router(store, forecaster, calib_watch))
+    # T187–T189: vigía de asimetría cada hora (sombras, miradas fijas y adopción de la fase 3)
+    asym_watch = (AsymWatch(paper, cfg.data_dir, adopt=cfg.asym_adopt)
+                  if source is None and cfg.paper else None)
+    if asym_watch is not None:
+        paper.hooks.add("asimetria", asym_watch.maybe_run, "paper.asymmetry")
+    app.state.asym_watch = asym_watch
+    app.include_router(build_asym_router(lambda: asym_watch))
     # T190–T193: vigía de dirección cada 6 h (boleta por informante y sombras de la entrada)
     direction_watch = (DirectionWatch(reports, store, cfg.data_dir)
                        if source is None and cfg.paper else None)

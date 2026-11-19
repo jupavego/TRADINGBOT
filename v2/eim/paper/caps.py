@@ -21,8 +21,11 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from functools import lru_cache
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_serializer
+
+from eim.paper.asym.prereg import PHASE2_DD_STEPS  # prereg no depende de nada del paquete
 
 HOUR_MS = 3_600_000
 CVAR_WINDOW = 500           # cierres recientes que se guardan para el CVaR
@@ -51,6 +54,28 @@ class CapParams(BaseModel):
     cvar_limit_r: float | None = None
     cvar_min_n: int = 30
     cvar_cut: float = 0.5
+    # T194: el freno gradual mide la caída desde el capital que había al encenderse, no desde el
+    # máximo histórico de la corrida. Sin esto, un perfil que ya cayó antes de encenderlo
+    # arrancaría en el tramo más profundo y no saldría de él. Lo pone `phase2_caps`.
+    fresh_peak: bool = False
+
+    @model_serializer(mode="wrap")
+    def _without_default_fresh_peak(self, handler):
+        """Sin `fresh_peak` en el volcado mientras esté apagado: `params_fingerprint` firma los
+        perfiles con sus topes, y un campo nuevo a False cambiaría la versión de los cuatro."""
+        data = handler(self)
+        if not data.get("fresh_peak"):
+            data.pop("fresh_peak", None)
+        return data
+
+
+@lru_cache(maxsize=64)
+def phase2_caps(caps: CapParams) -> CapParams:
+    """Topes de la fase 2 (T194, ◆ del usuario 2026-11-18): el freno gradual de T136 con parada
+    en 10 % y último tramo ×0,25 (nunca se detiene del todo) **en lugar** del todo o nada, con la
+    caída medida desde el capital al encenderse. El tope por dirección y el CVaR no cambian."""
+    return caps.model_copy(update={"dd_steps": PHASE2_DD_STEPS, "dd_brake": None,
+                                   "fresh_peak": True})
 
 
 def cvar95_r(rs: list[float] | tuple[float, ...], level: float = 0.95) -> float:
@@ -102,6 +127,7 @@ class Brake:
     activations: int = 0
     rs: deque[float] = field(default_factory=lambda: deque(maxlen=CVAR_WINDOW))
     cvar_r: float = 0.0        # CVaR 95 % de los cierres recientes, recalculado al cerrar
+    g_peak: float = 0.0        # T194: máximo del freno gradual desde que se encendió (0 = aún no)
 
     def veto(self, t: int) -> str | None:
         if t < self.halt_until:
@@ -115,7 +141,13 @@ class Brake:
         Se multiplican porque son dos razones distintas para arriesgar menos: la cuenta va cayendo
         y su cola es peor de lo admitido. El motivo que se informa es el del recorte más fuerte.
         """
-        a, why_a = dd_scale(caps, self.peak, equity)
+        if caps.fresh_peak and caps.dd_steps:
+            if self.g_peak <= 0:          # primera decisión con el freno encendido
+                self.g_peak = equity
+            peak = self.g_peak
+        else:
+            peak = self.peak
+        a, why_a = dd_scale(caps, peak, equity)
         b, why_b = cvar_scale(caps, self.cvar_r, len(self.rs))
         why = why_a if a <= b else why_b
         return a * b, why if a * b < 1.0 else ""
@@ -127,6 +159,8 @@ class Brake:
             self.rs.append(r)
             self.cvar_r = cvar95_r(tuple(self.rs))
         self.peak = max(self.peak or initial, equity)
+        if self.g_peak > 0:
+            self.g_peak = max(self.g_peak, equity)
         dd = 1 - equity / self.peak
         if caps.dd_brake is None or dd < caps.dd_brake or exit_t < self.halt_until:
             return None

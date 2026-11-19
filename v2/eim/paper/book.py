@@ -202,7 +202,9 @@ def _close(st: ProfileState, o: Outcome) -> None:
     if st.exhausted_t is None and (why := exhausted(st.p, st.equity)):
         st.exhausted_t = o.exit_t
         ev(st, o.exit_t, "cuenta", o, why, equity=st.equity)
-    if why := st.brake.closed(st.p.caps, st.equity, st.p.initial_equity, o.exit_t, r):
+    # T194: desde la fase 2 los topes vigentes no traen el freno todo o nada (`caps_at`)
+    if why := st.brake.closed(st.p.caps_at(o.exit_t), st.equity, st.p.initial_equity, o.exit_t,
+                              r):
         ev(st, o.exit_t, "aprendizaje", o,
            f"freno de entradas {st.p.caps.dd_pause_hours:g} h: {why}")
     if o.ladder and st.p.stop_driven and (why := st.lrisk.closed(

@@ -18,6 +18,7 @@ from eim.data.timeframes import FOCUS, tf_ms
 from eim.operation.priority import lower_thread
 from eim.paper import accounting, ledger, tf_gate
 from eim.paper.adaptive import policies_for
+from eim.paper.asym.adoption import AdoptedFile, exec_params_with, profiles_with
 from eim.paper.authority_obs import DecisionEmitter
 from eim.paper.balance import balance
 from eim.paper.book import ProfileState
@@ -77,9 +78,11 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
     def __init__(self, store: Store, pstore: PaperStore, registry: AgentRegistry | None = None,
                  exec_params: ExecParams | None = None,
                  profiles: tuple[ProfileParams, ...] = PROFILES, provider: Provider | None = None,
-                 symbols: tuple[str, ...] = FOCUS, poll_s: float = 60.0) -> None:
+                 symbols: tuple[str, ...] = FOCUS, poll_s: float = 60.0,
+                 asym_adopted: str | None = None) -> None:
         self.store, self.pstore = store, pstore
-        self.ep = exec_params or ExecParams()
+        self.ep = self._ep_base = exec_params or ExecParams()
+        self.asym = AdoptedFile(asym_adopted)   # T187–T189 (fase 3): solo la mesa principal
         self.tfs = self.ep.timeframes
         self.profiles, self.provider = profiles, provider
         self.symbols, self.poll_s = symbols, poll_s
@@ -170,6 +173,10 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
         return ev
 
     def _compute(self, symbol: str, stamp: tuple) -> View:
+        # T189/T187 (fase 3) y T194 (fase 2): lo adoptado y la fase 2, desde su instante
+        inst = self.asym.instants()
+        self.ep = exec_params_with(self._ep_base, inst)
+        profiles = profiles_with(self.profiles, inst, self.ep.phase2_from_ms)
         by_tf = {tf: self.pstore.load(symbol, tf) for tf in self.tfs}
         v = View(symbol, stamp, computed=now_ms())
         v.live_ctx = [(tf, int(c["t"])) for tf, cs in by_tf.items() for c in cs
@@ -205,7 +212,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
         # T143 (3): el marco caro no opera; la sombra y el aprendizaje los siguen viendo todos.
         v.tf_cost, tradable = tf_gate.gate(self.tfs, v.outcomes, self.ep, self.profiles)
         by_p = self._tradable(v, tradable)              # T179: por perfil y marco, si toca
-        v.books = profile_books(self.profiles, by_p, learner, mmr, sim, lf, self.ep.prior_cap)
+        v.books = profile_books(profiles, by_p, learner, mmr, sim, lf, self.ep.prior_cap)
         self._record_ledger(v)
         self._emit_decisions(v)
         self._sync_protection(v, fine)
