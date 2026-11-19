@@ -19,9 +19,9 @@
     los recolectores siguen con el código anterior hasta «Parar» + «Arrancar servicio».
   - Si cambió `v2/eim/web/package-lock.json`, corre `npm install` en la web.
   - Si cambiaron las dependencias de Python, lo avisa: hay que correr `actualizar_colaborador.ps1`.
-  - Si cambió la hoja de ruta (`PLAN/roadmap.html`, `status.js` o `CONDICIONANTES.md`), la copia
-    a `v2/data/roadmap_live/`: así los dos colaboradores ven la misma, como mucho 5 min después
-    de fusionar en GitHub.
+  - Con main igual a GitHub (al día o recién avanzado), deja `v2/data/roadmap_live/` idéntica a
+    `PLAN/roadmap.html`, `status.js` y `CONDICIONANTES.md`: así los dos colaboradores ven la misma
+    hoja de ruta, como mucho 5 min después de fusionar en GitHub.
   Deja el resultado en `v2/data/operation/sync_main.json` (lo lee el icono de la bandeja para
   avisar) y una línea por vuelta en `v2/data/operation/logs/sync_main.log`. Git va sin preguntas:
   si pide credenciales, falla y lo registra en vez de quedarse esperando.
@@ -75,6 +75,27 @@ function Terminar([string]$estado, [string]$mensaje) {
   exit 0
 }
 
+function Publicar-HojaDeRuta {
+  # Hoja de ruta compartida: con main igual a GitHub, la carpeta viva que sirve el icono
+  # (roadmap.html, status.js y CONDICIONANTES.md) queda idéntica en todos los equipos. Copia solo
+  # lo que difiere, así que se repara sola aunque la vuelta que trajo el cambio fuera de otra versión.
+  $vivo = Join-Path $raiz "v2\data\roadmap_live"
+  $copiados = 0
+  try {
+    New-Item -ItemType Directory -Force -Path $vivo | Out-Null
+    foreach ($f in "roadmap.html", "status.js", "CONDICIONANTES.md") {
+      $src = Join-Path $raiz "PLAN\$f"
+      $dst = Join-Path $vivo $f
+      if (-not (Test-Path $src)) { continue }
+      if ((Test-Path $dst) -and ((Get-FileHash $src).Hash -eq (Get-FileHash $dst).Hash)) { continue }
+      Copy-Item -LiteralPath $src -Destination $dst -Force
+      $copiados++
+    }
+  } catch { return $false }
+  if ($copiados -gt 0) { $res.roadmap = $true }
+  return ($copiados -gt 0)
+}
+
 try {
   G -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=30 fetch --quiet origin main | Out-Null
   if ($LASTEXITCODE -ne 0) { Terminar "error" "No se pudo consultar GitHub (sin red o sin credenciales)." }
@@ -109,7 +130,8 @@ try {
   }
   if ($antes -eq $remoto) {
     $res.to = $res.from
-    Terminar "up_to_date" "Al día con GitHub (main $($res.from))."
+    $hr = if (Publicar-HojaDeRuta) { " Hoja de ruta actualizada." } else { "" }
+    Terminar "up_to_date" "Al día con GitHub (main $($res.from)).$hr"
   }
 
   $res.commits = [int](((G rev-list --count "$antes..$remoto") -join "").Trim())
@@ -148,20 +170,7 @@ try {
     }
   }
 
-  # Hoja de ruta compartida: lo que llega de GitHub se publica al momento en la carpeta viva que
-  # sirve el icono (roadmap.html, status.js y CONDICIONANTES.md), igual en todos los equipos.
-  if (@($cambios | Where-Object { $_ -match '^PLAN/(roadmap\.html|status\.js|CONDICIONANTES\.md)$' }).Count -gt 0) {
-    $vivo = Join-Path $raiz "v2\data\roadmap_live"
-    try {
-      New-Item -ItemType Directory -Force -Path $vivo | Out-Null
-      foreach ($f in "roadmap.html", "status.js", "CONDICIONANTES.md") {
-        $src = Join-Path $raiz "PLAN\$f"
-        if (Test-Path $src) { Copy-Item -LiteralPath $src -Destination (Join-Path $vivo $f) -Force }
-      }
-      $res.roadmap = $true
-      $extra += "hoja de ruta actualizada"
-    } catch { $extra += "no se pudo publicar la hoja de ruta: $_" }
-  }
+  if (Publicar-HojaDeRuta) { $extra += "hoja de ruta actualizada" }
 
   $msg = "main actualizado: $($res.commits) commits nuevos ($($res.from) -> $($res.to))."
   if ($extra.Count -gt 0) { $msg += " " + ($extra -join "; ") + "." }

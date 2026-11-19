@@ -3581,3 +3581,8 @@ pm run build.
 - **Pruebas:** revisión del script (solo copia archivos ya versionados; no regenera ni ensucia `main`); `build_roadmap.py` sin cambios en el plan.
 - **Decisión del usuario:** se retira el Vigía de claude.ai; el Vigía de tareas EIM es la sección «Vigía» de la hoja de ruta (quitado el botón que abría el artefacto).
 - **Siguiente paso:** en cada equipo, el icono de la bandeja recoge esto solo al traer `main`.
+
+## 2026-11-19 21:50 UTC · claude-web · Hoja de ruta: publicación que se repara sola
+- **Hecho:** `sincronizar_main.ps1` publica la hoja de ruta también cuando `main` ya está al día, copiando solo lo que difiere de `PLAN/` (hash). Antes solo copiaba en la vuelta que traía el cambio, y esa vuelta corre la versión vieja del script: la carpeta viva se habría quedado atrás hasta el siguiente cambio de `PLAN/`. `CLAUDE.md` (paso 4) dice que la hoja de ruta es compartida y que lo de una rama se ve al fusionar.
+- **Pruebas:** revisión del script (Windows; no ejecutable en la sesión web).
+- **Siguiente paso:** fusionar; en ≤ 5 min cada equipo muestra la hoja de ruta de `main` (con #328 y #329).
