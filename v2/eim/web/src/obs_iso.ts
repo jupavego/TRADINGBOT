@@ -17,7 +17,6 @@ import { esc, STATE_ICON, STATE_LABEL, type ObsComp, type ObsData, type ObsState
 export type Tone = 'ok' | 'bad' | 'none' | 'plan'
 const COLOR: Record<Tone, string> = { ok: '#0fbf7a', bad: '#f0324f', none: '#8b95aa', plan: '#8b95aa' }   // legibles sobre el piso blanco
 const TONE_ES: Record<Tone, string> = { ok: 'funciona', bad: 'falla', none: 'sin información', plan: 'planeado' }
-
 /** ▲ «datos incompletos» cuenta como falla salvo que el usuario diga lo contrario. */
 export const isoIncFail = (): boolean => { try { return localStorage.getItem('eim.obs.iso.inc') !== '0' } catch { return true } }
 export const setIsoIncFail = (v: boolean): void => { try { localStorage.setItem('eim.obs.iso.inc', v ? '1' : '0') } catch { /* sin almacenamiento */ } }
@@ -35,10 +34,8 @@ const worstTone = (ts: Tone[]): Tone => { const t = ts.filter((x) => x !== 'plan
 const RING: [number, number][] = [[-9.4, 0.9], [-8.7, -5.9], [0.6, -6.9], [6.3, -4.7], [9.6, 0.9], [5.6, 5.8], [-3.9, 6.0]]
 const posOf = (i: number, n: number): [number, number] => (n === RING.length ? RING[i]
   : [Math.cos(Math.PI + (i / n) * Math.PI * 2) * 9.4, Math.sin(Math.PI + (i / n) * Math.PI * 2) * 6.2])
-
 interface Area extends Room { stage: string; i: number; list: ObsComp[]; slots: [number, number][]; k: number; tone: Tone }
 interface Link { a: string; b: string; tone: Tone; n: number; label: string; main: boolean; fb?: boolean }
-
 const ART_ES: Record<string, string> = {
   snapshot: 'fotografía del mercado', agent_report: 'opiniones', synthesis: 'opinión conjunta', plan: 'plan', proposal: 'propuesta',
   risk_decision: 'decisión de riesgo', order: 'orden', fill: 'llenado', paper_trade: 'operaciones en papel', forecast_set: 'escenarios',
@@ -96,7 +93,7 @@ const sgn = (x: number): number => (x >= 0 ? 1 : -1)
 
 /** Pista sobre el piso entre dos salas: sale por el borde de la de origen, gira en ángulo recto
  * siguiendo los ejes del piso y entra por el borde de la de destino, con flechas de sentido. */
-function drawLink(l: Link, A: Area[], i: number, focus: string | null, motion: boolean, mid: [number, number], taken: number[][], tracks: UVRect[]): [string, string] {
+function drawLink(l: Link, A: Area[], i: number, focus: string | null, motion: boolean, mid: [number, number], taken: number[][], tracks: UVRect[]): [string, string, string] {
   const a = A.find((x) => x.stage === l.a)!, b = A.find((x) => x.stage === l.b)!
   const [ua, va] = toUV(a.cx, a.cy), [ub, vb] = toUV(b.cx, b.cy)
   const o = l.main || l.fb ? 0 : ((i % 3) - 1) * 0.32                       // carriles para no pisarse
@@ -114,17 +111,16 @@ function drawLink(l: Link, A: Area[], i: number, focus: string | null, motion: b
   const dPath = `M${sp.map((q) => `${q[0].toFixed(1)},${q[1].toFixed(1)}`).join(' L')}`, id = `iso-l${i}`, c = COLOR[l.tone]
   const on = !focus || l.a === focus || l.b === focus, w = l.fb ? 6 : l.main ? 5 : 2.6
   const cls = `iso-link t-${l.tone}${l.main || l.fb ? ' main' : ''}${on ? '' : ' iso-dim'}${!l.main && !l.fb && focus && on ? ' focus' : ''}`
-  let parts = `<path d="${dPath}" stroke="#c7cfdc" stroke-width="${w + 9}" opacity=".85"/><path d="${dPath}" stroke="#ffffff" stroke-width="${w + 5}"/><path d="${dPath}" stroke="${c}" stroke-width="${w + 12}" class="iso-halo"/>`
-    + `<path id="${id}" d="${dPath}" stroke="${c}" stroke-width="${w * 0.55}" opacity=".45"/>`
+  const still = `<path d="${dPath}" stroke="#c7cfdc" stroke-width="${w + 9}" opacity=".85"/><path d="${dPath}" stroke="#ffffff" stroke-width="${w + 5}"/><path d="${dPath}" stroke="${c}" stroke-width="${w + 12}" class="iso-halo"/>`
+  let parts = `<path id="${id}" d="${dPath}" stroke="${c}" stroke-width="${w * 0.55}" opacity=".45"/>`
     + `<path d="${dPath}" stroke="${c}" stroke-width="${w}" class="iso-flow" marker-end="url(#iso-ah-${l.tone})"/>`
   if (motion && l.tone !== 'none' && l.tone !== 'plan') {
     const n = l.fb ? 3 : l.main ? 2 : 1, dur = l.tone === 'bad' ? 8 : 4, k = l.main || l.fb ? 1.25 : 0.85
-    for (let q = 0; q < n; q++) parts += `<path d="M${-7 * k},${-5 * k} L${5 * k},0 L${-7 * k},${5 * k} L${-3.5 * k},0 Z" fill="${c}" class="iso-dotm">`
-      + `<animateMotion dur="${dur}s" repeatCount="indefinite" rotate="auto" begin="${(-q * dur / n).toFixed(2)}s"><mpath href="#${id}"/></animateMotion></path>`
+    for (let q = 0; q < n; q++) parts += `<path d="M0,0" fill="${c}" class="iso-dotm" data-path="${id}" data-dur="${dur}" data-off="${(q / n).toFixed(3)}" data-k="${k}"/>`   // obs_iso_arrows
   }
   const tip = l.fb ? 'Cierre del ciclo: el catálogo aún no declara una conexión directa; toma el estado de la última etapa.'
     : `${l.n} conexiones declaradas · entrega: ${l.label} · ${TONE_ES[l.tone]}`
-  const g = `<g class="${cls}" fill="none"><title>${esc(`${l.a} → ${l.b}: ${tip}`)}</title>${parts}</g>`
+  const g = (x: string): string => `<g class="${cls}" fill="none"><title>${esc(`${l.a} → ${l.b}: ${tip}`)}</title>${x}</g>`   // quieto (piso) · animado (capa de líneas)
   let lab = ''
   if (l.main || l.fb || (focus && on)) {
     const seg = Math.hypot(sp[1][0] - sp[0][0], sp[1][1] - sp[0][1]) >= Math.hypot(sp[2][0] - sp[1][0], sp[2][1] - sp[1][1]) ? 0 : 1
@@ -135,7 +131,7 @@ function drawLink(l: Link, A: Area[], i: number, focus: string | null, motion: b
     taken.push([lx - tw / 2, ly - 11, lx + tw / 2, ly + 11])
     lab = `<g class="iso-flab${on ? '' : ' iso-dim'}"><rect x="${(lx - tw / 2).toFixed(1)}" y="${(ly - 10).toFixed(1)}" width="${tw}" height="19" rx="9" stroke="${c}"/><text x="${lx.toFixed(1)}" y="${(ly + 3.5).toFixed(1)}">${esc(txt)}</text></g>`
   }
-  return [g, lab]
+  return [g(still), g(parts), lab]
 }
 
 /** Líneas de baldosa del piso común entre (u0, v0) y (u1, v1), en coordenadas globales: así el piso
@@ -198,7 +194,7 @@ function person(d: ObsData, a: Area, comp: ObsComp, [u, v]: [number, number], in
   const st = compState(d, comp), tone = toneOf(st, inc), c = COLOR[tone], plan = tone === 'plan', k = a.k
   const f = P(a.cx, a.cy, u, v + 0.22 * k, 0.001), bz = P(a.cx, a.cy, u, v + 0.22 * k, 1.12 * k), hd = P(a.cx, a.cy, u, v + 0.22 * k, 0.86 * k)
   const floor = plan ? `<ellipse cx="${f[0]}" cy="${f[1]}" rx="${20 * k}" ry="${10 * k}" fill="none" stroke="#9aa6d6" stroke-dasharray="3 3"/>`
-    : `<ellipse cx="${f[0]}" cy="${f[1]}" rx="${20 * k}" ry="${10 * k}" fill="${c}" class="iso-pulse"/>`
+    : `<ellipse cx="${f[0]}" cy="${f[1]}" rx="${20 * k}" ry="${10 * k}" fill="${c}" class="${tone === 'bad' ? 'iso-pulse' : 'iso-glow'}"/>`
   const beacon = plan ? '' : `<line x1="${hd[0]}" y1="${hd[1] - 6 * k}" x2="${bz[0]}" y2="${bz[1] + 3}" stroke="${c}" opacity=".5"/><circle cx="${bz[0]}" cy="${bz[1]}" r="${3.6 * k + 0.6}" fill="${c}" class="iso-beacon"/>`
   const ring = comp.id === sel ? `<ellipse cx="${f[0]}" cy="${f[1]}" rx="${26 * k}" ry="${13 * k}" fill="none" stroke="var(--accent, #22e1ff)" stroke-width="2.5"/>` : ''
   return `<g class="obs-n iso-person${plan ? ' plan' : ''}" data-id="${esc(comp.id)}" role="button" tabindex="0" aria-label="${esc(`${comp.title_es}: ${STATE_LABEL[st]}`)}">
@@ -266,10 +262,10 @@ export function isoHtml(d: ObsData, stage: string | null, sel: string | null): s
   if (focus) return focusHtml(d, focus, inc, sel)
   const L = links(d, inc, A)
   const motion = !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
-  const lines: string[] = [], labs: string[] = [], taken: number[][] = [], tracks: UVRect[] = [], uvs = A.map((a) => toUV(a.cx, a.cy))
+  const lines: string[] = [], flows: string[] = [], labs: string[] = [], taken: number[][] = [], tracks: UVRect[] = [], uvs = A.map((a) => toUV(a.cx, a.cy))
   const mid: [number, number] = [uvs.reduce((t, q) => t + q[0], 0) / uvs.length, uvs.reduce((t, q) => t + q[1], 0) / uvs.length]
   L.map((l, i) => ({ l, i })).sort((x, y) => Number(x.l.main || !!x.l.fb) - Number(y.l.main || !!y.l.fb))
-    .forEach(({ l, i }) => { const [g, lab] = drawLink(l, A, i, stage, motion, mid, taken, tracks); lines.push(g); labs.push(lab) })
+    .forEach(({ l, i }) => { const [g, fx, lab] = drawLink(l, A, i, stage, motion, mid, taken, tracks); lines.push(g); flows.push(fx); labs.push(lab) })
   const [floor] = floorSlab(A)        // el piso sigue más allá del encuadre: se enfoca en las salas
   const marks = (Object.keys(COLOR) as Tone[]).map((t) => `<marker id="iso-ah-${t}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${COLOR[t]}"/></marker>`).join('')
   const items: { svg: string; depth: number }[] = [], tags: string[] = [], boxes: number[][] = [], xs: number[] = [], ys: number[] = []
@@ -291,8 +287,13 @@ export function isoHtml(d: ObsData, stage: string | null, sel: string | null): s
   xs.push(avL[0] - 50, avR[0] + 50); ys.push(avL[1] - 180, avR[1] - 180, avL[1] + 40, avR[1] + 40)
   const pad = 16; xs.push(Math.min(...xs) - pad, Math.max(...xs) + pad); ys.push(Math.min(...ys) - pad, Math.max(...ys) + pad)
   const x0 = Math.min(...xs), y0 = Math.min(...ys), vw = Math.max(...xs) - x0, vh = Math.max(...ys) - y0
-  return `<div class="iso-wrap">
-    <svg class="iso-svg" viewBox="${x0.toFixed(0)} ${y0.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}" role="img" aria-label="Mapa isométrico: ${d.graph.stages.length} etapas como salas de trabajo">
-      <defs>${marks}</defs>${floor}<g class="iso-lines">${lines.join('')}</g><g>${rooms.join('')}</g><g>${avs}</g><g>${tags.join('')}</g><g class="iso-flabs">${labs.join('')}</g></svg>
+  // Tres capas con el mismo encuadre (piso con el trazo quieto de las líneas · lo que corre por ellas ·
+  // salas): una animación solo repinta su capa; las ~1.900 figuras de las salas no se redibujan con ella.
+  const vb = `viewBox="${x0.toFixed(0)} ${y0.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}"`
+  return `<div class="iso-wrap"><div class="iso-stage">
+    <svg class="iso-svg iso-base" ${vb} aria-hidden="true">${floor}<g class="iso-lines">${lines.join('')}</g></svg>
+    <svg class="iso-svg iso-layer iso-fx" ${vb} aria-hidden="true"><defs>${marks}</defs><g class="iso-lines">${flows.join('')}</g></svg>
+    <svg class="iso-svg iso-layer iso-top" ${vb} role="img" aria-label="Mapa isométrico: ${d.graph.stages.length} etapas como salas de trabajo">
+      <g>${rooms.join('')}</g><g>${avs}</g><g>${tags.join('')}</g><g class="iso-flabs">${labs.join('')}</g></svg></div>
     ${legendBar(inc)}</div>`
 }

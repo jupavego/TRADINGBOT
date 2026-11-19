@@ -5,8 +5,9 @@
  * delantera pasan por delante de la esfera y en la trasera por detrás (capa `front`/`back`).
  * La fase vive en el módulo y solo avanza mientras nada la detiene, así un re-renderizado del
  * río deja cada planeta donde estaba. Se detiene con el puntero encima de un agente, con un
- * detalle abierto, con el río fuera de pantalla o con «reducir movimiento». Un único bucle
- * `requestAnimationFrame` busca los nodos vigentes en cada cuadro y se apaga si el río desaparece. */
+ * detalle abierto, con el río fuera de pantalla, mientras se desplaza la página o con «reducir
+ * movimiento». La mueve el reloj compartido de `motion` (busca los nodos vigentes en cada cuadro). */
+import { stepMotion } from './motion'
 
 interface Orbit { rx: number; ry: number; roll: number; dy: number; period: number }
 
@@ -35,8 +36,6 @@ export function orbitPaths(cx: number, cy: number): string {
 }
 
 let t = 0                     // segundos de órbita transcurridos (persiste entre renderizados)
-let last = 0
-let running = false
 let hold = false              // puntero sobre un agente
 let frozen = (): boolean => false
 let center: [number, number] = [0, 0]
@@ -69,38 +68,28 @@ export function orbitPos(k: number, n: number, cx: number, cy: number): OrbitPos
 export const orbitTransform = (p: OrbitPos): string =>
   `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) scale(${p.s.toFixed(3)})`
 
-const FRAME_MS = 1000 / 30 - 2
-let onScreen = true, watched = false
-
 /** Marca si el puntero está sobre un agente (pausa la órbita mientras tanto). */
 export function holdOrbit(on: boolean): void { hold = on }
 
-/** Arranca (una sola vez) el bucle que mueve los `g.trib[data-k]` de `root` entre las capas
- * `g.orbit-back` (bajo la esfera) y `g.orbit-front` (sobre ella), ordenados por profundidad.
- * `paused` se consulta en cada cuadro (p. ej. hay un detalle abierto). */
+/** Pone el río bajo el reloj compartido (`motion`): en cada cuadro (24/s) mueve los `g.trib[data-k]`
+ * de `root` entre las capas `g.orbit-back` (bajo la esfera) y `g.orbit-front` (sobre ella), ordenados
+ * por profundidad, y en ese mismo cuadro avanza los anillos punteados que giran (CSS `hspin`); antes
+ * cada cosa repintaba el río a su propio ritmo (30/s la órbita y 60/s el CSS). `paused` se consulta en
+ * cada cuadro (p. ej. hay un detalle abierto). Fuera de pantalla o con la página desplazándose no avanza. */
 export function animateOrbit(root: HTMLElement, cx: number, cy: number, paused: () => boolean): void {
   frozen = paused
   center = [cx, cy]
-  if (running || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  running = true
-  last = performance.now()
-  if (!watched) {               // fuera de pantalla la órbita se detiene (antes solo con la pestaña oculta)
-    watched = true
-    new IntersectionObserver((es) => { onScreen = es.some((e) => e.isIntersecting) }).observe(root)
-  }
-  const loop = (now: number): void => {
-    const back = root.querySelector('g.orbit-back'), front = root.querySelector('g.orbit-front')
-    if (!back || !front || !document.contains(root)) { running = false; return }
-    if (now - last < FRAME_MS) { requestAnimationFrame(loop); return }   // ~30 cuadros/s bastan para la órbita
-    const dt = Math.min(0.1, (now - last) / 1000)
-    last = now
-    if (!(hold || frozen() || document.hidden || !root.offsetParent || !onScreen)) {
-      t += dt
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  stepMotion(root, {
+    fps: 24,
+    hold: () => hold || frozen(),
+    onTick: (dt) => {
+      const back = root.querySelector('g.orbit-back'), front = root.querySelector('g.orbit-front')
+      if (!back || !front) return
+      t += Math.min(0.1, dt / 1000)
       place(root, back, front)
-    }
-    requestAnimationFrame(loop)
-  }
-  requestAnimationFrame(loop)
+    },
+  })
 }
 
 function place(root: HTMLElement, back: Element, front: Element): void {

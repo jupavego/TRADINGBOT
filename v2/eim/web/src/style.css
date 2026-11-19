@@ -417,3 +417,6 @@ td[data-sign="-1"] { color: var(--down); }
 @media (max-width: 900px) { .desk { grid-template-rows: auto; } }
 #banner { position: static; transform: none; margin: 12px 20px 0; max-width: none; }
 #banner[hidden] { display: none; }
+/* Reloj compartido de animaciones (motion.ts): dentro de una pista las animaciones CSS no corren solas;
+   el reloj las avanza a su ritmo (24 o 12 cuadros/s) y las congela fuera de pantalla o al desplazarse. */
+.motion-stepped * { animation-play-state: paused !important; }
