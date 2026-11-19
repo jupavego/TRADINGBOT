@@ -5,6 +5,11 @@ tarea programada (`ESTADO_PROYECTO.md` §0: «Lo que vive solo en `juanpablo-cpu
 (`roadmap.html`, sección «Vigía») y el Vigía de tareas EIM lo leen de aquí por
 `python PLAN/build_roadmap.py` → `status.js` (campo `where` de cada tarea).
 
+Es información compartida: al fusionarse en `main`, el icono de la bandeja de cada equipo la trae
+en ≤ 5 min (`v2/scripts/sincronizar_main.ps1`) y la publica en la hoja de ruta, así que los dos
+colaboradores ven lo mismo. Para añadir o quitar un condicionante, se edita aquí, se corre
+`python PLAN/build_roadmap.py` y se fusiona.
+
 Una fila por condicionante. Al cumplirse, se borra la fila (queda en la BITÁCORA). Columnas:
 tarea · equipo · qué hay que hacer allí · fecha (desde cuándo se puede, o «ya»).
 

@@ -3575,3 +3575,9 @@ pm run build.
 - **Hecho:** a pedido del usuario, `PLAN/CONDICIONANTES.md` lista lo que de las tareas en curso solo puede hacerse desde `juanpablo-cpu` (T31, T116, T135, T143, T172, T178). `build_roadmap.py` lo lleva a `status.js` (`where`) y `roadmap.html` lo muestra: etiqueta «🖥 juanpablo-cpu» en cada tarea, contador y lista «Condicionantes: se hacen desde juanpablo-cpu» en la sección del Vigía; el botón «Abrir el Vigía» apunta a la versión vigente. Rama de T172 rehecha sobre `main` (conflictos de STATUS, BACKLOG y status.js resueltos).
 - **Pruebas:** `roadmap.html` en Chrome sin cabeza con el `status.js` nuevo: sección del Vigía con los 7 condicionantes y etiquetas en las tareas (captura revisada).
 - **Siguiente paso:** al cumplir un condicionante, borrar su fila y correr `python PLAN/build_roadmap.py`.
+
+## 2026-11-19 21:45 UTC · claude-web · Hoja de ruta y Vigía compartidos en vivo entre equipos
+- **Hecho:** a pedido del usuario, `v2/scripts/sincronizar_main.ps1` (el que corre el icono de la bandeja cada 5 min) publica en `v2/data/roadmap_live/` la hoja de ruta que llega de GitHub (`roadmap.html`, `status.js`, `CONDICIONANTES.md`): los dos colaboradores ven la misma, como mucho 5 min después de fusionar. La sección «Vigía» de la hoja de ruta queda como el Vigía compartido (en curso, decisiones y condicionantes por equipo). PR #326 cerrado (lo reemplazó #328, ya fusionado).
+- **Pruebas:** revisión del script (solo copia archivos ya versionados; no regenera ni ensucia `main`); `build_roadmap.py` sin cambios en el plan.
+- **Abierto:** el Vigía de claude.ai sigue siendo una foto (su página no se puede editar desde una sesión sin red): actualizarlo desde un chat abierto en su página con `estado.json`, o retirarlo en favor de la sección de la hoja de ruta.
+- **Siguiente paso:** en cada equipo, el icono de la bandeja recoge esto solo al traer `main`.
