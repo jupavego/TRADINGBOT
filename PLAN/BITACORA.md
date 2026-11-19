@@ -3367,6 +3367,26 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Siguiente paso:** reiniciar la API cuando convenga y comprobar en el mapa `data.intermarket`, `agent.intermarket` y `forecast.calibration` latiendo.
 
 - **Corrección (2026-11-18, mismo día):** el primer gate dio 3 fallos. Dos eran del agente nuevo: 	ests/agents/test_runner.py no lo tenía entre los que dicen «sin datos» con el CSV de prueba, y la cantera (T167) exige un expediente por agente (eim/nursery/dossiers/intermarket.json, «excluido» hasta medir su aporte). El tercero, 	est_ladder_final, ya fallaba antes en esta portátil porque al entorno le faltaba rch==8.0.0 (extra stats de T161): se instaló en el .venv.
+## 2026-11-18 · T190–T193 · El acierto de la entrada (Claude, PC de Santivego)
+
+**Pedido del usuario:** «lo que de verdad movería la rentabilidad es acertar la dirección en las
+entradas»; balance del cerebro y, sin una pieza que apunte a eso, ejecutar el plan de acción.
+
+**Balance.** El cerebro ya midió la dirección una vez y la cerró (T27, T137, T139 P1, T150: 46,1 %;
+decisión D de T145). Lo que faltaba era el control continuo: ningún componente calificaba, sin parar
+y por informante, si lo que cada agente dice en vivo acierta la dirección.
+
+**Hecho (solo mide; no toca síntesis, bróker ni T31):**
+- Pre-registro `direccion_v1` congelado antes de mirar: `PLAN/notas/T190_preregistro.md` y
+  `v2/eim/direction/params.py`. Familia propia declarada; la nula es la de P1.
+- T190 `eim/direction/{board,score,stats}.py`: boleta por informante (lo guardado en
+  `reports.duckdb` contra las velas), horizontes 1/4/12 velas, sin solape, Wilson, Holm, veredicto.
+- T191 `eim/direction/watch.py` + `eim/api/direction_watch.py`: vigía cada 6 h, historial en
+  `data/direction/watch.jsonl`, pieza `validation.direction` en el mapa, `GET /v2/direction/watch`.
+- T192/T193 `eim/direction/shadow.py`: sombras walk-forward de abstención y de pesos por acierto,
+  comparadas con la síntesis v1 (McNemar, Holm, puerta sostenida).
+
+**Siguiente:** primera lectura formal el 2026-11-28 (cierre de T31). Bloque en la interfaz pendiente.
 ## 2026-11-18 · sesión «Retomar lo que quedó en proceso» · T178: dónde crece la base de líderes y qué se retiene
 - **Hecho:** medido sobre la copia completa de las 13:07 UTC (nunca sobre la base viva), el diagnóstico de la ficha cambia: la **poda de T128 está al día** (de 2,67 M ejecuciones de rechazados solo 2 371 tienen más de 7 días; `leader_fills` y `leader_follow` están en régimen) y los **+53 MB/día son casi enteros las fotos de posiciones**: ≈ 6,5 KB cada una en disco × 10 600/día ≈ 52 MB/día, frente a 0,4 MB/día de las 41 300 reconciliaciones diarias (9,6 B por fila). Además, **el 66 % de las fotos de más de 7 días son cambios de forma de verdad** (102 771 de 155 698), así que deduplicar apenas tiene qué quitar.
 - **Entregado** (`eim/data/leader_retention.py`): reconciliaciones con más de 7 días → se quedan todas las que no cuadran o resincronizaron y una por líder cada 2 min (por debajo del `recon_gap_ms` de 5 min de la copia simulada, para no inventar huecos de flujo), y de las borradas queda el resumen por día y líder en `leader_recon_daily`, que `leader_report.summary` vuelve a sumar; fotos con más de 7 días → cada cambio de forma y una por hora, guardando antes en `leader_photo_cover` el tiempo que cubrían las originales para que el `observed_ms` que mide T49 no cambie (`leader_eval.context` lo lee de ahí). Corre tras la poda diaria del servicio y en frío antes de compactar; se lee y se borra en la misma transacción, en tandas de 5 000 filas.

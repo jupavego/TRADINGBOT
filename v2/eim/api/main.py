@@ -17,6 +17,7 @@ from eim.api.bots import build_bots_router
 from eim.api.calib_watch import CalibWatch
 from eim.api.calibration import build_calibration_router
 from eim.api.config import Settings
+from eim.api.direction_watch import DirectionWatch, build_direction_router
 from eim.api.execution import build_execution_router, build_runtime, recon_loop
 from eim.api.forecast import Forecaster, build_forecast_router
 from eim.api.history import HistoryLoader
@@ -267,6 +268,13 @@ def create_app(
         paper.hooks.add("calibracion", calib_watch.maybe_run, "forecast.calibration")
     app.state.calib_watch = calib_watch
     app.include_router(build_calibration_router(store, forecaster, calib_watch))
+    # T190–T193: vigía de dirección cada 6 h (boleta por informante y sombras de la entrada)
+    direction_watch = (DirectionWatch(reports, store, cfg.data_dir)
+                       if source is None and cfg.paper else None)
+    if direction_watch is not None:
+        paper.hooks.add("direccion", direction_watch.maybe_run, "validation.direction")
+    app.state.direction_watch = direction_watch
+    app.include_router(build_direction_router(direction_watch))
     app.include_router(build_more_router(store, more, cfg.data_dir / "cache" / "liquidations"))
     app.include_router(build_arbitrage_router(arb_desk))
     app.state.arb_desk = arb_desk

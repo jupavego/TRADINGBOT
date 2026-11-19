@@ -255,6 +255,13 @@ VALIDATION: tuple[Component, ...] = (
       "historial, avisa si se desvía y prueba en sombra las recalibraciones (T184).",
       cadence="cada 6 h (vigía) y a demanda", cadence_s=21600,
       consumes=(("forecast.engine", "forecast_set"),), produces=("calibration",)),
+    c("validation.direction", "validation", "validacion", "engine", "api", "T191",
+      "Acierto de la entrada", "Califica cada 6 h si cada informante y la opinión conjunta "
+      "acertaron la dirección del precio después, con reglas fijadas antes de mirar; prueba en "
+      "sombra entrar solo con quien acierta (T190–T193). Nunca cambia operaciones.",
+      cadence="cada 6 h (vigía)", cadence_s=21600,
+      consumes=(("synthesis.thesis", "synthesis"), ("data.store", "candles")),
+      produces=("direction_board",)),
     c("backtest.engine", "validation", "validacion", "engine", "cli", "T25", "Simulador histórico",
       "Repite la estrategia sobre el pasado, vela a vela y sin ver el futuro, con costos de "
       "perpetuos, funding y liquidación.", consumes=(("data.store", "candles"),),
