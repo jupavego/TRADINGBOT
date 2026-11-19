@@ -255,6 +255,12 @@ VALIDATION: tuple[Component, ...] = (
       "historial, avisa si se desvía y prueba en sombra las recalibraciones (T184).",
       cadence="cada 6 h (vigía) y a demanda", cadence_s=21600,
       consumes=(("forecast.engine", "forecast_set"),), produces=("calibration",)),
+    c("paper.asymmetry", "paper", "validacion", "engine", "api", "T187", "Vigía de asimetría",
+      "Cada hora compara cada operación viva con lo que habría dejado con las reglas de T187–T189 "
+      "(pérdida acotada, una idea un riesgo, peso sin rasguños, corredor y entrada límite). Decide "
+      "solo en tres fechas fijas y adopta sola lo de costo y riesgo que pase.",
+      cadence="cada hora", cadence_s=3600,
+      consumes=(("paper.broker", "paper_trade"),), produces=("asymmetry",)),
     c("validation.direction", "validation", "validacion", "engine", "api", "T191",
       "Acierto de la entrada", "Califica cada 6 h si cada informante y la opinión conjunta "
       "acertaron la dirección del precio después, con reglas fijadas antes de mirar; prueba en "

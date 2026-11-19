@@ -146,6 +146,7 @@ Modo: **SIMULADO** en todo (API: `mode: SIMULADO`). Dinero real imposible: `REAL
 configuración de riesgo; la puerta de edge (T27) **NO PASA**.
 
 ## 2. Tareas en curso y su siguiente paso
+- **T187–T189 y T194 (2026-11-18, fase 30):** la asimetría ganancias/pérdidas se mide en sombra desde el 19-nov (pre-registro `t187_asimetria_v1`, vigía `paper.asymmetry` cada hora, `GET /v2/paper/asymmetry`). Miradas que deciden: 2026-12-17, 2027-01-14 y 2027-02-11; lo de costo y riesgo que pase se adopta solo (`data/paper/asym/adopted.json`), T188 lo decide el usuario. **La fase 2 (riesgo con costos y freno gradual, nunca se detiene del todo) se enciende sola el 2026-11-28 00:00 UTC** (`EIM_PAPER_PHASE2_FROM`); si T31 se alarga, mover esa fecha y la de T182.
 
 | Tarea | Estado real | Siguiente paso |
 |---|---|---|
@@ -215,6 +216,7 @@ T79–T86 (HFT), T87–T103 (multiactivo), T167–T172 (fase 27, cantera de perf
 - **La publicación externa del 2026-11-05 01:30 UTC terminó incompleta** (experiencia y paquete de ramas locales; los datos sí subieron) y `continuity check` no lo avisa: BACKLOG T125 (2026-11-05).
 
 ## 4. Decisiones vigentes del usuario (no reabrir sin preguntar)
+- **2026-11-18 (T187–T189 y T194):** las reglas nuevas de salida, tamaño y entrada se miden en sombra con pre-registro antes de adoptarse; solo costo y riesgo se adoptan solos; freno gradual con parada en 10 % y **nunca se detiene del todo** (último tramo ×0,25); lo que tenga fecha queda programado con encendido automático.
 
 - **El acierto de la entrada (T190–T193, 2026-11-18, pedido del usuario):** la dirección de cada informante se califica sin parar con lo que dijo en vivo (`GET /v2/direction/watch`, pieza `validation.direction`), con reglas congeladas en `PLAN/notas/T190_preregistro.md` (`direccion_v1`). Las sombras T192 (abstención) y T193 (pesos por acierto) solo miden; adoptar algo exige ◆ del usuario después del cierre de T31 (primera lectura 2026-11-28). No reabre T139 P1 por sí sola ni toca la síntesis, el bróker o T31.
 - **El cerebro integrado (T183–T185, 2026-11-18, «los 7 pasos»):** toda pieza se clasifica por los pilares (control, proyección, validación, retroalimentación, mejora continua, automatización). Un agente nuevo entra con peso 0 y nunca `degraded` hasta que la prueba de aporte marginal lo mida (intermercado). La calibración la revisa un vigía cada 6 h; **no se enciende ninguna recalibración** sin un pre-registro nuevo (T160 las rechazó). Las vistas que duplican a un agente son su lupa, no una pestaña; backtest/VRM e historial de sugerencias salieron de la barra; lo documental va tras «Documental».

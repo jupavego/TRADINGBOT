@@ -43,7 +43,9 @@ class Settings:
     pb/día ajustados) y EIM_ARB_ALERT_S (segundos seguidos sobre el umbral antes de avisar);
     EIM_PAPER=0 desactiva el servicio en vivo del bróker simulado (T47) y EIM_PAPER_S fija los
     segundos entre ciclos; EIM_PAPER_LIVE_FIRST_FROM (fecha ISO UTC u `off`; por defecto el cierre
-    de T31) enciende solo «lo vivo manda» en el bróker (T182); EIM_ARB_ASSETS (p. ej. "BTC" o
+    de T31) enciende solo «lo vivo manda» en el bróker (T182); EIM_PAPER_PHASE2_FROM (igual)
+    enciende sola la fase 2 de T194 (riesgo con costos y freno gradual); EIM_ASYM_ADOPT=0 impide
+    que el vigía de asimetría adopte solo lo que pase (T187–T189); EIM_ARB_ASSETS (p. ej. "BTC" o
     "BTC,ETH") elige los activos del escáner
     de arbitraje y EIM_ARB_TRI_ASSETS los de sus ciclos triangulares (foco actual, T122: BTC, sin
     ETH)."""
@@ -93,6 +95,10 @@ class Settings:
     # T182: desde cuándo «lo vivo manda» en el bróker simulado (UTC, ms). None en las pruebas;
     # `from_env` pone el cierre de T31 salvo EIM_PAPER_LIVE_FIRST_FROM (fecha ISO u `off`)
     paper_live_first_from_ms: int | None = None
+    # T194: desde cuándo se encienden solos el riesgo con costos y el freno gradual (UTC, ms).
+    # None en las pruebas; `from_env` pone el cierre de T31 salvo EIM_PAPER_PHASE2_FROM
+    paper_phase2_from_ms: int | None = None
+    asym_adopt: bool = True      # T187–T189 (fase 3): EIM_ASYM_ADOPT=0 impide adoptar solo
     extra: dict[str, str] = field(default_factory=dict)
 
     @property
@@ -144,4 +150,6 @@ class Settings:
             nursery=env.get("EIM_NURSERY", "0") == "1",
             paper_live_first_from_ms=_when(env.get("EIM_PAPER_LIVE_FIRST_FROM",
                                                    T31_CLOSE_UTC)),
+            paper_phase2_from_ms=_when(env.get("EIM_PAPER_PHASE2_FROM", T31_CLOSE_UTC)),
+            asym_adopt=env.get("EIM_ASYM_ADOPT", "1") != "0",
         )

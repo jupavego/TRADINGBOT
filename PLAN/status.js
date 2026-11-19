@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-18T20:16:58",
+ "generated": "2026-11-18T21:21:33",
  "phases": [
   {
    "n": 0,
@@ -368,6 +368,16 @@ window.EIM_STATUS = {
     "T191",
     "T192",
     "T193"
+   ]
+  },
+  {
+   "n": 30,
+   "name": "La asimetría ganancias/pérdidas",
+   "ids": [
+    "T187",
+    "T188",
+    "T189",
+    "T194"
    ]
   },
   {
@@ -2816,6 +2826,63 @@ window.EIM_STATUS = {
    "notes": "**En sombra desde 2026-11-18.** Pesos = máx(0, 2·acierto encogido − 1) por (informante, régimen), previo de 100 votos hacia el 50 %. Misma puerta y familia de Holm que T192. Primera lectura 2026-11-28; adoptar exige ◆",
    "effort": "medio",
    "phase": 29
+  },
+  {
+   "id": "T187",
+   "title": "El lado de la pérdida: pérdida acotada, una idea un riesgo y peso sin rasguños",
+   "deps": [
+    "T118",
+    "T136",
+    "T144",
+    "T182"
+   ],
+   "state": "progress",
+   "notes": "**Midiendo desde 2026-11-19 (◆ del usuario 2026-11-18); entra al reiniciar la API.** Pre-registro `t187_asimetria_v1` (`PLAN/notas/T187_preregistro.md`, huella fijada por prueba): solo cuentan operaciones abiertas desde el 19-nov; tres miradas fijas 2026-12-17, 2027-01-14 y 2027-02-11 con IC 98,33 % por bloques de día; el primer veredicto no se revisa. Vigía `eim/api/asym_watch.py` cada hora (mapa `paper.asymmetry`, `GET /v2/paper/asymmetry`, `data/paper/asym/`). a (pérdida acotada) solo informa: se enciende con T194; b (una idea un riesgo) y c (peso > 1 solo con `m − se > 0`) se adoptan solas si pasan, desde el siguiente 00:00 UTC y nunca antes del cierre de T31. Ficha `PLAN/T187.md`",
+   "effort": "medio",
+   "phase": 30,
+   "goal": "Medir en sombra, sobre cada operación viva del libro fijo, tres reglas del lado de la pérdida, y"
+  },
+  {
+   "id": "T188",
+   "title": "El lado de la ganancia: la mitad sigue corriendo con un stop más amplio",
+   "deps": [
+    "T129",
+    "T134",
+    "T187"
+   ],
+   "state": "progress",
+   "notes": "**Midiendo desde 2026-11-19 (◆ del usuario).** Corredor en sombra: 50 % escalera, 50 % SL inicial → break-even + costo tras +1 R → stop a 1 R del extremo, plazo 2/5/14 d por marco, orden adverso en la vela (`eim/paper/asym/runner.py`). **Aunque pase no se adopta solo** (cambia la salida, T139 P1): ◆ del usuario. Ficha `PLAN/T188.md`",
+   "effort": "medio",
+   "phase": 30,
+   "goal": "Medir en sombra un corredor: la mitad sale como sale hoy (escalera) y la otra mitad sigue con el SL"
+  },
+  {
+   "id": "T189",
+   "title": "Entrada límite por defecto, medida en vivo y por marco",
+   "deps": [
+    "T143",
+    "T182",
+    "T187"
+   ],
+   "state": "progress",
+   "notes": "**Midiendo desde 2026-11-19 (◆ del usuario).** Cada idea viva a mercado contra la misma como límite, 1 vela, la no ejecución cuenta 0 R (`maker_ab.pair_up` en `eim/paper/asym/maker_live.py`), por marco: 15 m por primera vez, 1 h/4 h confirmación en vivo de T143. Criterio de T143 §4 con ≥ 200 ideas por marco. Si pasa se adopta sola en ese marco (`ExecParams.maker_from_ms`, solo ideas posteriores, fuera de `exec_fingerprint`). Ficha `PLAN/T189.md`",
+   "effort": "bajo",
+   "phase": 30,
+   "goal": "Cada idea viva a mercado contra la misma idea como límite al precio pedido, 1 vela de vigencia"
+  },
+  {
+   "id": "T194",
+   "title": "Fase 2 y fase 3 con encendido automático",
+   "deps": [
+    "T31",
+    "T136",
+    "T182",
+    "T187"
+   ],
+   "state": "progress",
+   "notes": "**Programada (◆ del usuario 2026-11-18): se enciende sola el 2026-11-28 00:00 UTC, sin reiniciar.** `EIM_PAPER_PHASE2_FROM` (por defecto el cierre de T31, `off` la apaga): riesgo con costos y freno gradual **en lugar** del todo o nada en los cuatro perfiles (×0,5 desde −5 %, ×0,25 desde −10 %, medido desde el capital al encenderse; nunca se detiene del todo), solo para decisiones posteriores; sin cambiar `params_fingerprint`. Fase 3: el vigía adopta lo de costo y riesgo que pase (`EIM_ASYM_ADOPT=0` lo impide). Tareas programadas de verificación el 28-nov y en cada mirada. Ficha `PLAN/T194.md`",
+   "effort": "bajo",
+   "phase": 30
   },
   {
    "id": "T195",
