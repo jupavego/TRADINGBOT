@@ -12,6 +12,9 @@ corrupta…) se anota en el estado y se reintenta; nunca detiene la operación.
 
 Configuración: `EIM_SHARED_DIR`/`EIM_MACHINE` o, una vez, `python -m eim.data.share setup`
 (`data/share_config.json`). Sin carpeta compartida, no hace nada. Siempre SIMULADO.
+
+T196: `setup --start <ISO UTC>` (o `EIM_SHARE_FROM`) lo deja DORMIDO hasta esa fecha y se
+despierta solo, sin reiniciar (se configura hoy y empieza al cerrar T31 sin tocar su corrida).
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ import shutil
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 from eim.data.backup import copy_db_hot
@@ -51,15 +55,27 @@ def load_config(data_dir: Path, env: dict | None = None) -> dict:
         cfg["shared_dir"] = env["EIM_SHARED_DIR"]
     if env.get("EIM_SHARE_GIT_URL"):
         cfg["git_url"] = env["EIM_SHARE_GIT_URL"]
+    if env.get("EIM_SHARE_FROM"):
+        cfg["start"] = env["EIM_SHARE_FROM"]
     return cfg
 
 
+def start_s(value: str | None) -> float | None:
+    """Fecha ISO (sin zona = UTC) → segundos; vacío u `off` → None (sin espera)."""
+    if not (v := (value or "").strip()) or v.lower() == "off":
+        return None
+    d = datetime.fromisoformat(v)
+    return (d if d.tzinfo else d.replace(tzinfo=UTC)).timestamp()
+
+
 def save_config(data_dir: Path, shared_dir: str | None, machine: str | None = None,
-                git_url: str | None = None) -> Path:
+                git_url: str | None = None, start: str | None = None) -> Path:
     p = data_dir / CONFIG
     p.parent.mkdir(parents=True, exist_ok=True)
+    start_s(start)                             # una fecha mal escrita falla aquí, no en vivo
     cfg = {k: v for k, v in (("shared_dir", shared_dir and str(shared_dir)),
-                             ("git_url", git_url), ("machine", machine)) if v}
+                             ("git_url", git_url), ("machine", machine),
+                             ("start", start)) if v}
     p.write_text(json.dumps(cfg, indent=1), encoding="utf-8")
     return p
 
@@ -78,8 +94,9 @@ class ShareAgent:
                  import_every_s: float = 3600.0, export_every_s: float = 6 * 3600.0,
                  keep: int = 3, clock: Callable[[], float] = time.time,
                  on_imported: Callable[[], object] | None = None,
-                 transport: GitTransport | None = None) -> None:
+                 transport: GitTransport | None = None, start: float | None = None) -> None:
         self.transport = transport      # None = carpeta de nube; GitTransport = repo privado
+        self.start = start              # T196: dormido hasta esta hora (s UNIX); None = ya
         self.role, self.data_dir = role, data_dir
         self.shared_dir, self.machine = shared_dir, machine
         self.live, self.backup_dir = live, backup_dir
@@ -95,7 +112,11 @@ class ShareAgent:
         self.error = ""
 
     # --- calendario ---------------------------------------------------------------------
+    def dormant(self) -> bool:      # T196: antes de su encendido programado
+        return self.start is not None and self.clock() < self.start
     def due(self) -> bool:
+        if self.dormant():
+            return False
         now = self.clock()
         return now >= self.next_import or now >= self.next_export
 
@@ -104,10 +125,12 @@ class ShareAgent:
                 "dbs": sorted(self.live), "last_import": self.state.get("last_import"),
                 "last_export": self.state.get("last_export"),
                 "imported": self.state["imported"], "last_report": self.state.get("last_report"),
-                "error": self.error}
+                "error": self.error, "start": self.start, "dormant": self.dormant()}
 
     def tick(self) -> None:
         """Importa y/o exporta lo que toque. Nunca lanza: el error queda en `status()`."""
+        if self.dormant():
+            return
         now = self.clock()
         self.error = ""
         try:
@@ -250,6 +273,7 @@ def make_agent(role: str, data_dir: Path, live: dict[str, Live], *, backup_dir: 
     cfg = load_config(data_dir, e)
     if not (cfg.get("shared_dir") or cfg.get("git_url")) or e.get("EIM_SHARE_AUTO", "1") == "0":
         return None
+    start = start_s(cfg.get("start"))
     machine = machine_id(data_dir, {"EIM_MACHINE": e.get("EIM_MACHINE") or cfg.get("machine", "")})
     transport = shared = None
     if cfg.get("git_url"):
@@ -259,7 +283,7 @@ def make_agent(role: str, data_dir: Path, live: dict[str, Live], *, backup_dir: 
                       backup_dir=backup_dir, on_imported=on_imported, transport=transport,
                       import_every_s=float(e.get("EIM_SHARE_IMPORT_S", 3600)),
                       export_every_s=float(e.get("EIM_SHARE_EXPORT_S", 6 * 3600)),
-                      keep=int(e.get("EIM_SHARE_KEEP", 3)))
+                      keep=int(e.get("EIM_SHARE_KEEP", 3)), start=start)
 
 
 async def share_loop(agent: ShareAgent, poll_s: float = 60.0, first_s: float = 120.0) -> None:

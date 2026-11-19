@@ -1665,7 +1665,8 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Archivos:** 2/eim/web/src/{paper_template,paper_view}.ts, 2/eim/paper/snapshot.py, 2/tests/paper/test_auditable.py, PLAN/UI_SPEC.md.
 - **Pruebas:** nueva 	est_la_instantanea_guarda_alcance_y_universo_oficial_aunque_el_panel_no_los_pinte; ruff, 	ests/paper/test_auditable.py, 	ests/api y 
 pm run build en el equipo del usuario.
-- **Abierto:** la API toma el cambio del backend al reiniciarse (einiciar_t174.cmd); hasta entonces las instantáneas nuevas siguen sin ccounting (la franja ya no se ve tras el build).
+- **Abierto:** la API toma el cambio del backend al reiniciarse (
+einiciar_t174.cmd); hasta entonces las instantáneas nuevas siguen sin ccounting (la franja ya no se ve tras el build).
 - **Siguiente paso:** ninguno obligatorio; si se quiere ver la franja otra vez, scopeHtml/universeHtml siguen en paper_audit.ts/paper_universe.ts.
 
 ## 2026-11-18 · sesión «Mapa solo isométrico» · fuera los botones Mapa / Isométrico
@@ -3357,6 +3358,58 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Pruebas:** ruff limpio; 18 pruebas de T182 en verde aquí (+1 de configuración con un sustituto de `fastapi`); mismos fallos de entorno que antes en `tests/{paper,nursery,validation,analytics,literature,operation}`.
 - **Abierto:** en cada equipo, traer `main`, `npm run build` y reiniciar la API una vez (carga el código nuevo; el encendido del 28 ya no necesita reinicio). Si T31 se alarga, mover `EIM_PAPER_LIVE_FIRST_FROM` antes del 28.
 - **Siguiente paso:** el 28 de noviembre, comprobar en el panel que la cabecera dice «reconstruidas, solo como opinión inicial del aprendizaje» y revisar el aviso único de la conciliación.
+
+
+## 2026-11-18 · sesión «El cerebro integrado» (T183–T185) · las pestañas por pilar
+- **Hecho:** a pedido del usuario se clasificaron las 17 pestañas inferiores por su conexión con el mapa del sistema y se aprobaron «los 7 pasos» con el enfoque de los pilares (control, proyección, validación, retroalimentación, mejora continua, automatización). **T183:** el multi-activo entra al cerebro como agente informante `intermarket` 0.1.0 (oro, S&P 500, Nasdaq y la cripto en diario: impulso de 20 sesiones, tendencia sobre la media de 50 y correlación de 60), con datos sincronizados por el ciclo cada 6 h por activo (`eim/data/intermarket.py`) y `MarketSnapshot.intermarket`; peso 0 y nunca `degraded`, así que la síntesis v1, el riesgo y T31 no cambian. **T184:** vigía de calibración como gancho del bróker (cada 6 h, reglas declaradas, historial en `data/calibration/watch.jsonl`, latido en el mapa, ámbar con alerta sostenida) que repite en sombra M1/M2 de T160 con Holm; no enciende ninguna recalibración (T160 las rechazó). **T185:** VWAP, liquidaciones, estacionalidad y multi-activo son ahora la lupa de su esfera; salen Backtest/VRM (pestaña y `/v2/more/backtest`) e Historial de sugerencias de la barra; las conectadas llevan su pilar y las documentales van tras «Documental».
+- **Archivos:** `v2/eim/agents/intermarket/`, `v2/eim/data/{intermarket,snapshot}.py`, `v2/eim/core/market.py`, `v2/eim/operation/cycle.py`, `v2/eim/synthesis/params.py`, `v2/eim/agents/registry.py`, `v2/eim/forecast/calib_watch.py`, `v2/eim/api/{calib_watch,calibration,main,more}.py`, `v2/eim/observability/{hooks,switches}.py` y catálogo, `v2/eim/web/{index.html,src/*}`, `v2/docs/OPERACION.md` (`EIM_INTERMARKET`), fichas `PLAN/T183.md`–`T185.md`, fase 28 en `00_MASTER.md`, `UI_SPEC.md`, `ESTADO_PROYECTO.md` §4.
+- **Pruebas:** nuevas `tests/agents/intermarket/test_intermarket.py`, `tests/data/test_intermarket_store.py`, `tests/forecast/test_calib_watch.py`, `tests/api/test_calib_watch.py`; ajustadas `test_more.py` (backtest → 404), `test_t174_map.py` (interruptor encendido por defecto), `conftest.py` y `test_suite_env.py` (`EIM_INTERMARKET=0` en la suite). Gate completo y `npm run build` por `aplicar_cerebro_integrado.cmd` en el equipo del usuario.
+- **Abierto:** el intermercado y el vigía empiezan al reiniciar la API (`reiniciar_t174.cmd`). Medir el aporte marginal del intermercado con ≥ 3 meses de reportes; una recalibración solo con pre-registro nuevo y tras T31 (BACKLOG T183/T184).
+- **Siguiente paso:** reiniciar la API cuando convenga y comprobar en el mapa `data.intermarket`, `agent.intermarket` y `forecast.calibration` latiendo.
+
+- **Corrección (2026-11-18, mismo día):** el primer gate dio 3 fallos. Dos eran del agente nuevo: 	ests/agents/test_runner.py no lo tenía entre los que dicen «sin datos» con el CSV de prueba, y la cantera (T167) exige un expediente por agente (eim/nursery/dossiers/intermarket.json, «excluido» hasta medir su aporte). El tercero, 	est_ladder_final, ya fallaba antes en esta portátil porque al entorno le faltaba rch==8.0.0 (extra stats de T161): se instaló en el .venv.
+## 2026-11-18 · T190–T193 · El acierto de la entrada (Claude, PC de Santivego)
+
+**Pedido del usuario:** «lo que de verdad movería la rentabilidad es acertar la dirección en las
+entradas»; balance del cerebro y, sin una pieza que apunte a eso, ejecutar el plan de acción.
+
+**Balance.** El cerebro ya midió la dirección una vez y la cerró (T27, T137, T139 P1, T150: 46,1 %;
+decisión D de T145). Lo que faltaba era el control continuo: ningún componente calificaba, sin parar
+y por informante, si lo que cada agente dice en vivo acierta la dirección.
+
+**Hecho (solo mide; no toca síntesis, bróker ni T31):**
+- Pre-registro `direccion_v1` congelado antes de mirar: `PLAN/notas/T190_preregistro.md` y
+  `v2/eim/direction/params.py`. Familia propia declarada; la nula es la de P1.
+- T190 `eim/direction/{board,score,stats}.py`: boleta por informante (lo guardado en
+  `reports.duckdb` contra las velas), horizontes 1/4/12 velas, sin solape, Wilson, Holm, veredicto.
+- T191 `eim/direction/watch.py` + `eim/api/direction_watch.py`: vigía cada 6 h, historial en
+  `data/direction/watch.jsonl`, pieza `validation.direction` en el mapa, `GET /v2/direction/watch`.
+- T192/T193 `eim/direction/shadow.py`: sombras walk-forward de abstención y de pesos por acierto,
+  comparadas con la síntesis v1 (McNemar, Holm, puerta sostenida).
+
+**Siguiente:** primera lectura formal el 2026-11-28 (cierre de T31). Bloque en la interfaz pendiente.
+## 2026-11-18 · sesión «Retomar lo que quedó en proceso» · T178: dónde crece la base de líderes y qué se retiene
+- **Hecho:** medido sobre la copia completa de las 13:07 UTC (nunca sobre la base viva), el diagnóstico de la ficha cambia: la **poda de T128 está al día** (de 2,67 M ejecuciones de rechazados solo 2 371 tienen más de 7 días; `leader_fills` y `leader_follow` están en régimen) y los **+53 MB/día son casi enteros las fotos de posiciones**: ≈ 6,5 KB cada una en disco × 10 600/día ≈ 52 MB/día, frente a 0,4 MB/día de las 41 300 reconciliaciones diarias (9,6 B por fila). Además, **el 66 % de las fotos de más de 7 días son cambios de forma de verdad** (102 771 de 155 698), así que deduplicar apenas tiene qué quitar.
+- **Entregado** (`eim/data/leader_retention.py`): reconciliaciones con más de 7 días → se quedan todas las que no cuadran o resincronizaron y una por líder cada 2 min (por debajo del `recon_gap_ms` de 5 min de la copia simulada, para no inventar huecos de flujo), y de las borradas queda el resumen por día y líder en `leader_recon_daily`, que `leader_report.summary` vuelve a sumar; fotos con más de 7 días → cada cambio de forma y una por hora, guardando antes en `leader_photo_cover` el tiempo que cubrían las originales para que el `observed_ms` que mide T49 no cambie (`leader_eval.context` lo lee de ahí). Corre tras la poda diaria del servicio y en frío antes de compactar; se lee y se borra en la misma transacción, en tandas de 5 000 filas.
+- **Archivos:** `v2/eim/data/{leader_retention,leader_store,leader_eval,leader_report,leader_score_store,leader_service}.py`, `v2/eim/leaders/cli.py`, `v2/tests/data/test_leader_retention.py`, `PLAN/notas/T178_retencion.md`, `PLAN/{STATUS,BACKLOG}.md`.
+- **Pruebas:** 7 propias; `tests/data`, `tests/leaders` y `tests/copytrading` entre ellos; **gate completo verde por la cola: ruff limpio, 3 886 pasadas, 8 omitidas, 0 fallos**.
+- **Abierto:** con esto el crecimiento baja de 53 a ≈ 32 MB/día, no a cero. **◆ del usuario:** recodificar la foto de posiciones (hoy repite `leader_id`, `address`, `source`, `t` y `observed_at` en cada posición, que ya son columnas de la fila) la deja en el 25 % y, con la poda por hora, en el **9 % (≈ 5 MB/día)**; medido en disco con 20 000 fotos reales. Sin esa decisión, T178 queda en ◐.
+- **Siguiente paso:** la ◆; luego fusionar y medir una semana con las copias diarias (criterio de aceptación).
+
+## 2026-11-18 · sesión «Retomar lo que quedó en proceso» · T178: ◆ resuelta, la foto se recodifica
+- **Hecho:** el usuario eligió recodificar la foto de posiciones, así que T178 entrega también eso. `eim/data/leader_photos.py` guarda la foto como `{"v":2,"h":{…},"p":[[…],…]}`: lo que se repetía en cada posición (`leader_id`, 65 caracteres; `address`, 42; `source`, `t` y `observed_at`) sale **una vez por foto**, y ningún campo se pierde; si alguna foto trajera posiciones que no comparten cabecera, se guarda en el formato de antes antes que perder nada. `decode` lee los dos formatos, así que las fotos viejas se siguen leyendo tal cual, y `recode_photos` las migra: 50 000 por vuelta con el servicio en marcha (tandas de 5 000, cada una en su transacción) y sin tope en frío, donde el compactado que viene detrás devuelve el espacio. Escriben y leen por el códec `leader_store.save_positions`/`positions_at`, `leader_score_store.positions_near` y `copy_replay`.
+- **Cifras (medidas en disco con 20 000 fotos reales):** como estaban 129,2 MB · solo con la poda por hora 78,9 · solo recodificadas 32,0 · **las dos cosas 11,5 MB**. El crecimiento pasa de ≈ 53 MB/día a **≈ 5 MB/día**, y rehacer las 227 338 fotos guardadas devuelve ~800 MB.
+- **Archivos:** `v2/eim/data/{leader_photos,leader_retention,leader_store,leader_score_store,copy_replay}.py`, `v2/eim/leaders/cli.py`, `v2/tests/data/test_leader_photos.py`, `PLAN/notas/T178_retencion.md`, `PLAN/{STATUS,BACKLOG}.md`.
+- **Pruebas:** 15 propias entre las dos tareas; **gate completo verde por la cola en 7 trozos, ya con main (T183-T185) fusionado: ruff limpio, 3 886 pasadas, 8 omitidas, 0 fallos**.
+- **Abierto:** T178 sigue en ◐ hasta desplegar y medir una semana con las copias diarias (su criterio de aceptación). La recodificación en frío (`python -m eim.leaders prune` con el servicio parado) devolvería los ~800 MB de una vez en lugar de a 50 000 fotos por vuelta.
+- **Siguiente paso:** fusionar el PR #314 con el sí del usuario y, en `juanpablo-cpu`, reiniciar el servicio de líderes para que la retención empiece a correr.
+
+## 2026-11-18 · sesión «Libro central entre equipos» (T195–T196)
+- **Hecho:** a la pregunta del usuario «¿por qué 87 operaciones si el panel muestra más de 1 000?» se midió en la API de la portátil: el balance del panel salía de la vista recalculada desde todos los contextos (**1 620 = 1 500 reconstruidas + 120 vividas**, neto −9 890 USDT en «Todo») y se saltaba T144; el universo oficial cuenta **87 de 124 filas (37 `retro`)**, neto −49,9 USDT. La experiencia compartida estaba apagada (`enabled: false`) y el libro fijo no viajaba: lo de otro equipo quedaba `retro` y nunca contaba. **T195:** el panel muestra por defecto la cifra oficial y deja «todo lo calculado» aparte con su desglose por origen. **T196:** `paper_ledger` viaja por `ledger_id` (una vela = una operación, gana lo local, `retro` del equipo que la vivió), procedencia por equipo (`by_machine`, `machines=all|local`), conciliación solo con lo propio, encendido programado (`setup --start`, el mapa lo pinta pausado con la fecha) y enmienda de los pre-registros T187/T190 antes de mirar (huella `e35b229cb592`). El usuario decidió: solo BTCUSDT, solo la portátil y `juanpablo-cpu` (el tercer equipo fuera); encender cuando convenga → el 28-nov al cerrar T31.
+- **Archivos:** `v2/eim/paper/{provenance,balance_lens,accounting,ledger,desk,desk_audit}.py`, `v2/eim/data/{share_spec,share_auto,share}.py`, `v2/eim/observability/switches.py`, `v2/eim/api/paper.py`, `v2/eim/web/src/paper_{balance,view,types}.ts`, `paper.css`, `v2/scripts/activar_libro_central.ps1`, `v2/docs/OPERACION.md` §3.1, `PLAN/{T195,T196}.md`, `PLAN/notas/T196_enmienda_preregistros.md`; en la carpeta de la portátil, `aplicar_libro_central.{cmd,ps1}`.
+- **Pruebas:** nuevas `tests/share/test_t196_ledger.py` (4), `tests/paper/test_t195_balance_lens.py` (2), una más en `tests/observability/test_t174_map.py`; ajustada `tests/api/test_paper_api.py`. Aquí (sin DuckDB ni red) ruff limpio, tipos de la interfaz sin errores propios y en verde lo que no necesita DuckDB (guardias de T144, encendido programado, libro ilegible, interruptores del mapa) más la lógica contra almacenes simulados; **el gate completo se corre en la portátil** con `aplicar_libro_central.cmd`.
+- **Abierto:** desplegar después de T187 (tocan los mismos archivos del bróker); en `juanpablo-cpu`, traer `main` y correr `activar_libro_central.ps1`; confirmar que ese equipo sigue corriendo el bróker (si no corre, el libro central no gana operaciones).
+- **Siguiente paso:** el 2026-11-28 comprobar que `GET /v2/share/status` pasa a `dormant=false`, la primera importación y `by_machine` en `GET /v2/paper/accounting`.
 
 
 ## 2026-11-18 · sesión «El cerebro integrado» (T183–T185) · las pestañas por pilar

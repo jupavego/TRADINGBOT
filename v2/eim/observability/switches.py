@@ -11,7 +11,16 @@ from __future__ import annotations
 import json
 import os
 from collections.abc import Callable, Mapping
+from datetime import UTC, datetime
 from pathlib import Path
+
+
+def _share_cfg(data_dir: Path | None) -> dict:
+    try:
+        return json.loads((data_dir / "share_config.json").read_text(encoding="utf-8")) \
+            if data_dir else {}
+    except (OSError, ValueError):
+        return {}
 
 
 def _share_on(env: Mapping[str, str], data_dir: Path | None) -> bool:
@@ -19,12 +28,32 @@ def _share_on(env: Mapping[str, str], data_dir: Path | None) -> bool:
         return False
     if env.get("EIM_SHARED_DIR") or env.get("EIM_SHARE_GIT_URL"):
         return True
-    try:
-        cfg = json.loads((data_dir / "share_config.json").read_text(encoding="utf-8")) \
-            if data_dir else {}
-    except (OSError, ValueError):
-        cfg = {}
+    cfg = _share_cfg(data_dir)
     return bool(cfg.get("shared_dir") or cfg.get("git_url"))
+
+
+def _share_wait(env: Mapping[str, str], data_dir: Path | None) -> str | None:
+    """T196: configurada pero con encendido programado aún por llegar → la fecha; si no, None."""
+    start = (env.get("EIM_SHARE_FROM") or _share_cfg(data_dir).get("start") or "").strip()
+    if not start or start.lower() == "off":
+        return None
+    try:
+        d = datetime.fromisoformat(start)
+    except ValueError:
+        return None
+    d = d if d.tzinfo else d.replace(tzinfo=UTC)
+    return start if datetime.now(UTC) < d else None
+
+
+def _share(env: Mapping[str, str], data_dir: Path | None) -> str | None:
+    if not _share_on(env, data_dir):
+        return ("Apagado: no hay carpeta ni repo de experiencia compartida (EIM_SHARED_DIR / "
+                "EIM_SHARE_GIT_URL o `python -m eim.data.share setup`). Solo hace falta con "
+                "varios equipos.")
+    if (start := _share_wait(env, data_dir)) is not None:
+        return (f"Encendido programado (T196): configurada y dormida hasta {start} UTC; desde "
+                "entonces une el libro central de los equipos sola, sin reiniciar.")
+    return None
 
 
 Check = Callable[[Mapping[str, str], Path | None], str | None]
@@ -38,9 +67,7 @@ CHECKS: dict[str, Check] = {
     "EIM_ARB_EXECUTION=testnet, tras su prueba extremo a extremo (T45).",
     "hft_live": lambda _e, _d: "Construido y probado, pero aún sin servicio en vivo: lo arranca "
     "la tarea T85 (que depende de la puerta de T84).",
-    "share": lambda e, d: None if _share_on(e, d) else "Apagado: no hay carpeta ni repo de "
-    "experiencia compartida (EIM_SHARED_DIR / EIM_SHARE_GIT_URL o "
-    "`python -m eim.data.share setup`). Solo hace falta con varios equipos.",
+    "share": _share,
     "context_llm": lambda e, _d: None if (e.get("EIM_CONTEXT_LLM", "").lower() == "local"
                                           or e.get("ANTHROPIC_API_KEY")) else
     "Apagado: no hay modelo de lenguaje. Se enciende con Ollama (EIM_CONTEXT_LLM=local, lo "

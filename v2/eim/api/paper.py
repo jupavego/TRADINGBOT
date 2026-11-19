@@ -144,19 +144,22 @@ def build_paper_router(desk: PaperDesk) -> APIRouter:
 
     @router.get("/accounting")
     def official_accounting(symbol: str | None = None, from_t: int | None = None,
-                            to_t: int | None = None) -> dict:
+                            to_t: int | None = None, machines: str = "all") -> dict:
         """Cifras de resultado del universo OFICIAL de T31 (T144): solo lo que cuenta.
 
         Una sola función decide qué entra (`eim.paper.universe.counts_as_result`) y la respuesta
         lleva la regla escrita, el recuento (cuántas existen, cuántas cuentan, por qué quedan
         fuera las demás) y las `retro` aparte con su etiqueta. Sin `from_t`/`to_t`, todo el libro.
+        T196: `machines=all` (libro central de todos los equipos) o `local` (solo este equipo).
         """
         if symbol is not None:
             _check(symbol)
+        if machines not in ("all", "local"):
+            raise HTTPException(400, "machines debe ser 'all' o 'local'")
         t0, t1 = from_t or 0, to_t or 2 ** 62
         return {"mode": "SIMULADO", "symbol": symbol, "from_t": from_t, "to_t": to_t,
                 "error": desk.ledger_error,
-                **accounting.from_store(desk.pstore, symbol, t0, t1)}
+                **accounting.from_store(desk.pstore, symbol, t0, t1, machines)}
 
     @router.get("/ledger.csv")
     def ledger_csv(symbol: str | None = None,

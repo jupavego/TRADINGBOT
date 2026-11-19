@@ -8,6 +8,14 @@ Clasificación (decisión del usuario 2026-10-18, `PLAN/T61.md`):
 - No viajan: lo reproducible (velas, funding, calendario, biblioteca), lo derivado
   (`val_verdicts`, `forecasts`, tablero de líderes) y el estado de la máquina (kill-switch,
   latidos, `copy_state`, libro de la subcuenta, `op_*`, `risk_decisions`) ni los secretos.
+
+T196 (2026-11-18): el libro fijo del bróker simulado (`paper_ledger`) también viaja. Antes se
+daba por derivable de `paper_ctx`, pero lo recalculado al importar queda `retro` (se registra
+horas después del cierre) y el universo oficial de T144 lo excluye: lo vivido en otro equipo no
+podía contar nunca. Ahora viaja la fila tal como la escribió el equipo que la vivió, con su
+`retro` calculado allí. La clave `ledger_id` (alcance|perfil|símbolo|idea, y la idea es
+símbolo:marco:vela:estrategia) hace que la misma vela vivida en dos equipos sea UNA operación:
+gana la local y la otra queda en `share_conflicts` si su resultado difiere.
 """
 
 from __future__ import annotations
@@ -47,6 +55,12 @@ SPECS: tuple[Spec, ...] = (
     Spec(REPORTS, "sim_trades", "keyed", ("id",)),
     Spec(PAPER, "paper_ctx", "keyed", ("symbol", "timeframe", "asof_ms"),
          ("origin", "created_ms"), "contexto por vela: de él salen, deterministas, las ideas"),
+    # T196: el tamaño, el capital y los tiempos de registro dependen del camino de capital de cada
+    # equipo (volátiles); el resultado de la operación (precios, salida, R, `retro`) no.
+    Spec(PAPER, "paper_ledger", "keyed", ("ledger_id",),
+         ("pnl_usdt", "qty", "notional", "leverage", "fees", "slip", "funding", "weight",
+          "floor_trade", "recorded_ms", "payload", "capital_before", "capital_after"),
+         "libro fijo: la operación tal como la vivió su equipo; una vela = una operación"),
     Spec(PAPER, "val_versions", "versions"),
     Spec(PAPER, "val_windows", "versions"),
     Spec(LEADERS, "leaders", "keyed", ("id",),

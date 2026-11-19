@@ -16,11 +16,10 @@ from eim.data.providers.base import Provider
 from eim.data.store import Store
 from eim.data.timeframes import FOCUS, tf_ms
 from eim.operation.priority import lower_thread
-from eim.paper import accounting, ledger, tf_gate
+from eim.paper import accounting, balance_lens, ledger, tf_gate
 from eim.paper.adaptive import policies_for
 from eim.paper.asym.adoption import AdoptedFile, exec_params_with, profiles_with
 from eim.paper.authority_obs import DecisionEmitter
-from eim.paper.balance import balance
 from eim.paper.book import ProfileState
 from eim.paper.catalog import CATALOG, generate_ideas
 from eim.paper.desk_audit import DeskAudit
@@ -297,8 +296,9 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
             "family_stats": fams, "tf_stats": timeframe_stats(v.outcomes),
             "live_first": v.live_first,                # T182: libros solo con lo vivo
             "insights": insights(rows, fams, profiles, cov["origins"]),
-            "balance": balance({pid: b.trades for pid, b in v.books.items()},
-                               {i["id"]: i["name"] for i in infos}, now, self.tfs),
+            # T195: el balance por defecto es el universo oficial; la vista va aparte y etiquetada
+            **balance_lens.payload(self.pstore, v.symbol, v.books,
+                                   {i["id"]: i["name"] for i in infos}, now, self.tfs),
             "accounting": accounting.from_store(self.pstore, v.symbol),   # T144: universo
             "job": self.job.to_json(), "live": self.live_status(), "protection": v.protection,
             # T143 (4): costo vivido del libro fijo y puerta de marcos, cada uno con su `source`

@@ -140,6 +140,23 @@ def window_rows(pstore: PaperStore, t0: int, t1: int,
     return [dict(zip(cols, r, strict=True)) for r in pstore.execute(sql, params)]
 
 
+def causes(pstore: PaperStore, ids: Sequence[str]) -> dict[str, str]:
+    """`ledger_id` → causa de la pérdida (T48) guardada en la carga de la fila, si la tiene."""
+    want, out = set(ids), {}
+    if not want:
+        return out
+    for lid, payload in pstore.execute("SELECT ledger_id, payload FROM paper_ledger "
+                                       "WHERE scope = 'perfil'"):
+        if lid in want and payload:
+            try:
+                cause = json.loads(payload).get("cause")
+            except (TypeError, ValueError, AttributeError):
+                cause = None
+            if cause:
+                out[lid] = str(cause)
+    return out
+
+
 def counts(pstore: PaperStore) -> dict[str, int]:
     rows = pstore.execute("SELECT scope, symbol, count(*) FROM paper_ledger GROUP BY 1, 2")
     return {f"{s}:{sym}": int(n) for s, sym, n in rows}
