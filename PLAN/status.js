@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-18T21:21:33",
+ "generated": "2026-11-19T10:06:00",
  "phases": [
   {
    "n": 0,
@@ -2892,8 +2892,8 @@ window.EIM_STATUS = {
     "T144",
     "T182"
    ],
-   "state": "progress",
-   "notes": "**Construida 2026-11-18; falta el gate en la portátil y desplegar.** El panel decía «Todo 1 620» (1 500 reconstruidas + 120 vividas, neto −9 890 USDT) frente a 87 del universo oficial: salía de la vista y se saltaba T144. Ahora `balance` = universo oficial (`accounting.balance_trades` → `universe.result_rows`) y `balance_all` = la vista con su desglose por origen (`paper/balance_lens.py`); selector «Oficial · T144 / Todo lo calculado» en la interfaz. Ficha `PLAN/T195.md`; pruebas `tests/paper/test_t195_balance_lens.py`.",
+   "state": "done",
+   "notes": "**Hecha 2026-11-19.** Gate completo en `juanpablo-cpu` (ruff limpio; una sola prueba roñosa, `test_env_vars` por `EIM_SHARE_FROM` sin documentar, arreglada en el commit `7556411`) y **verificada en vivo** tras el arranque de las 15:00 UTC: la vista sirve `balance` (oficial, 441 operaciones), `balance_all` (todo lo calculado, 722) y `balance_lens` con las dos etiquetas. El panel decía «Todo 1 620» (1 500 reconstruidas + 120 vividas, neto −9 890 USDT) frente a 87 del universo oficial: salía de la vista y se saltaba T144. Ahora `balance` = universo oficial (`accounting.balance_trades` → `universe.result_rows`) y `balance_all` = la vista con su desglose por origen (`paper/balance_lens.py`); selector «Oficial · T144 / Todo lo calculado» en la interfaz. Ficha `PLAN/T195.md`; pruebas `tests/paper/test_t195_balance_lens.py`.",
    "effort": "bajo",
    "phase": 31
   },
@@ -2907,7 +2907,7 @@ window.EIM_STATUS = {
     "T182"
    ],
    "state": "progress",
-   "notes": "**Construida 2026-11-18; falta el gate en la portátil, desplegar y el encendido del 2026-11-28 00:00 UTC.** `paper_ledger` viaja en la experiencia compartida por `ledger_id` (gana lo local; diferencias a `share_conflicts`; `retro` del equipo que la vivió), procedencia por equipo (`paper/provenance.py`, `by_machine`, `GET /v2/paper/accounting?machines=all|local`), conciliación solo con lo propio y encendido programado (`setup --start`, `EIM_SHARE_FROM`: dormido hasta la fecha, sin reiniciar). Enmienda de los pre-registros T187/T190 antes de mirar: `PLAN/notas/T196_enmienda_preregistros.md` (huella `e35b229cb592`). T31 se cierra con `machines=local`. Ficha `PLAN/T196.md`; pruebas `tests/share/test_t196_ledger.py`.",
+   "notes": "**Gate y despliegue hechos 2026-11-19; falta el encendido del 2026-11-28 00:00 UTC.** Gate completo en `juanpablo-cpu` (ver T195) y verificado en vivo: `GET /v2/paper/accounting` declara `machines: all`, `machines_label: «todos los equipos (libro central, T196)»` y `by_machine`; `GET /v2/share/status` responde `enabled: false`, dormido hasta su fecha, como estaba previsto. `paper_ledger` viaja en la experiencia compartida por `ledger_id` (gana lo local; diferencias a `share_conflicts`; `retro` del equipo que la vivió), procedencia por equipo (`paper/provenance.py`, `by_machine`, `GET /v2/paper/accounting?machines=all|local`), conciliación solo con lo propio y encendido programado (`setup --start`, `EIM_SHARE_FROM`: dormido hasta la fecha, sin reiniciar). Enmienda de los pre-registros T187/T190 antes de mirar: `PLAN/notas/T196_enmienda_preregistros.md` (huella `e35b229cb592`). T31 se cierra con `machines=local`. Ficha `PLAN/T196.md`; pruebas `tests/share/test_t196_ledger.py`.",
    "effort": "medio",
    "phase": 31
   }
