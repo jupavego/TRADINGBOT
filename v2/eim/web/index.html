@@ -20,11 +20,14 @@
       <button id="evclock" class="evclock" type="button" hidden aria-live="off" aria-label="Próximo evento económico"></button>
       <div class="spacer"></div>
       <span id="mode" class="mode" title="Modo de operación">Modo: Análisis</span>
+      <!-- El mapa del sistema tiene su propia pestaña: abierta, la mesa se oculta y deja de animar (menos lag) -->
+      <button id="view-map" class="view-tab" type="button" aria-pressed="false" aria-controls="obs"
+        title="Abrir el mapa del sistema en pantalla propia (vuelve a pulsar para regresar a la mesa)">🗺 Mapa del sistema</button>
     </header>
     <div id="banner" class="banner" hidden></div>
     <section id="river" class="river" aria-label="Río de decisión"></section>
-    <!-- Mapa del sistema (T75) bajo el río (T122): el río explica la decisión; el mapa, el flujo que la produjo -->
-    <section id="obs" class="obs" aria-label="Mapa del sistema"></section>
+    <!-- Mapa del sistema (T75): en su propia pestaña (botón de la barra superior), oculto mientras se ve la mesa -->
+    <section id="obs" class="obs" aria-label="Mapa del sistema" hidden></section>
     <!-- Bróker simulado: ya no es una vista aparte; vive en la mesa, bajo el mapa del sistema -->
     <section id="paper" class="paper" aria-label="Bróker simulado"></section>
     <main class="desk">

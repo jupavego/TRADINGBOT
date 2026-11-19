@@ -3515,3 +3515,11 @@ pm run build.
   ampliada con la foto del catálogo (15 piezas de Datos, 3 planeadas).
 - **Abierto:** las otras seis salas siguen en rejilla.
 - **Siguiente paso:** definir el microecosistema de «2. Análisis»; en el equipo, `npm run build` para verlo.
+
+
+## 2026-11-19 · sesión «Mapa del sistema en pestaña propia»
+- **Hecho:** a pedido del usuario, para evitar lag y ver mejor el mapa, el mapa del sistema sale de la mesa y se abre con la pestaña «🗺 Mapa del sistema» de la barra superior, a la derecha de «Modo: Análisis». Abierta, la mesa (río, bróker simulado y pestañas inferiores) se oculta; al pulsar «← Volver a la mesa» se oculta el mapa. Lo oculto deja de sondear y de animar solo (IntersectionObserver ya existente), así que no corren a la vez. La vista elegida se recuerda; «ver la validación en el bróker simulado» vuelve a la mesa. El mapa (zoom, arrastre, salas, detalle, plegado, sondeo de 5 s) no cambió.
+- **Archivos:** 2/eim/web/src/views.ts (nuevo), 2/eim/web/index.html, 2/eim/web/src/main.ts, 2/eim/web/src/style.css. Sin cambios en obs_*.
+- **Pruebas:** tipos de iews.ts revisados en la sesión; en el equipo: ruff, pruebas que leen la web y 
+pm run build.
+- **Abierto:** ninguno. **Siguiente paso:** ninguno obligatorio.
