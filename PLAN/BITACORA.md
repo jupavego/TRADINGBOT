@@ -3579,5 +3579,5 @@ pm run build.
 ## 2026-11-19 21:45 UTC · claude-web · Hoja de ruta y Vigía compartidos en vivo entre equipos
 - **Hecho:** a pedido del usuario, `v2/scripts/sincronizar_main.ps1` (el que corre el icono de la bandeja cada 5 min) publica en `v2/data/roadmap_live/` la hoja de ruta que llega de GitHub (`roadmap.html`, `status.js`, `CONDICIONANTES.md`): los dos colaboradores ven la misma, como mucho 5 min después de fusionar. La sección «Vigía» de la hoja de ruta queda como el Vigía compartido (en curso, decisiones y condicionantes por equipo). PR #326 cerrado (lo reemplazó #328, ya fusionado).
 - **Pruebas:** revisión del script (solo copia archivos ya versionados; no regenera ni ensucia `main`); `build_roadmap.py` sin cambios en el plan.
-- **Abierto:** el Vigía de claude.ai sigue siendo una foto (su página no se puede editar desde una sesión sin red): actualizarlo desde un chat abierto en su página con `estado.json`, o retirarlo en favor de la sección de la hoja de ruta.
+- **Decisión del usuario:** se retira el Vigía de claude.ai; el Vigía de tareas EIM es la sección «Vigía» de la hoja de ruta (quitado el botón que abría el artefacto).
 - **Siguiente paso:** en cada equipo, el icono de la bandeja recoge esto solo al traer `main`.

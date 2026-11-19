@@ -146,7 +146,7 @@ Modo: **SIMULADO** en todo (API: `mode: SIMULADO`). Dinero real imposible: `REAL
 configuración de riesgo; la puerta de edge (T27) **NO PASA**.
 
 ## 2. Tareas en curso y su siguiente paso
-- **Qué se hace desde qué equipo:** `PLAN/CONDICIONANTES.md` (una fila por condicionante; se borra al cumplirse). La hoja de ruta y el Vigía lo muestran (`build_roadmap.py` → campo `where` de `status.js`).
+- **Qué se hace desde qué equipo:** `PLAN/CONDICIONANTES.md` (una fila por condicionante; se borra al cumplirse). La hoja de ruta lo muestra (`build_roadmap.py` → campo `where` de `status.js`). **El Vigía de tareas EIM es la sección «Vigía» de la hoja de ruta** (decisión del usuario 2026-11-19: el de claude.ai se retira); se comparte en vivo entre los dos equipos con `sincronizar_main.ps1`.
 - **T187–T189 y T194 (2026-11-18, fase 30):** la asimetría ganancias/pérdidas se mide en sombra desde el 19-nov (pre-registro `t187_asimetria_v1`, vigía `paper.asymmetry` cada hora, `GET /v2/paper/asymmetry`). Miradas que deciden: 2026-12-17, 2027-01-14 y 2027-02-11; lo de costo y riesgo que pase se adopta solo (`data/paper/asym/adopted.json`), T188 lo decide el usuario. **La fase 2 (riesgo con costos y freno gradual, nunca se detiene del todo) se enciende sola el 2026-11-28 00:00 UTC** (`EIM_PAPER_PHASE2_FROM`); si T31 se alarga, mover esa fecha y la de T182.
 
 | Tarea | Estado real | Siguiente paso |
