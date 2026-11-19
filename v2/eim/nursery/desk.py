@@ -62,6 +62,7 @@ class NurseryDesk:
         self.live_error = ""
         self._stamp: tuple | None = None
         self._summary: dict | None = None
+        self._book: Book | None = None
         self._lock = threading.Lock()
 
     def live_status(self) -> dict:
@@ -94,16 +95,31 @@ class NurseryDesk:
         first = next((c for c in ctxs.get(self.tfs[0], []) if c["t"] >= start), None)
         ladder = None
         if self.prereg is not None:
-            from eim.nursery.ladder_io import standings
+            from eim.nursery.ladder_io import account_data, standings
             regimes = {tf: {c["t"]: c.get("regime") for c in cs} for tf, cs in ctxs.items()}
             ladder = (self.prereg, start, standings(book, self.prereg, start, at, regimes))
+        summary = summarize(book, path, first, ladder)
+        if ladder is not None:          # T171: la panorámica por agente del panel «Cantera»
+            from eim.nursery.panel import build_panel
+            summary["panel"] = build_panel(book, summary, self.prereg, start, ladder[2],
+                                           account_data(book, regimes), at)
         with self._lock:
-            self._summary = summarize(book, path, first, ladder)
+            self._summary, self._book = summary, book
         return book
 
     def summary(self) -> dict | None:
         with self._lock:
             return self._summary
+
+    def card(self, prospect_id: str) -> dict | None:
+        """Ficha de un prospecto (T171) con el último libro calculado; None si no existe."""
+        from eim.nursery.panel import prospect_card
+        from eim.nursery.prospect import load_dossiers
+        with self._lock:
+            book, summary = self._book, self._summary
+        if book is None or summary is None:
+            return None
+        return prospect_card(book, summary, prospect_id, load_dossiers())
 
     def tick(self) -> None:
         if self.blocked:
