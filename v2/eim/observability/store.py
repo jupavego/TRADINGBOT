@@ -100,6 +100,23 @@ class ObsStore:
             self.con.execute("INSERT OR REPLACE INTO meta VALUES ('schema_version', ?)",
                              [str(SCHEMA_VERSION)])
 
+    def reconnect(self) -> None:
+        """Reabre la conexión tras un error FATAL de DuckDB.
+
+        Un fallo fatal (p. ej. un índice inconsistente) deja la base «invalidated»: toda consulta
+        posterior falla con el mismo error hasta reabrirla. Sin esto, un tropiezo de una pasada
+        dejaba el observatorio muerto hasta reiniciar la API (incidente del 2026-11-19)."""
+        with self.lock:
+            try:
+                self.con.close()
+            except Exception:  # noqa: BLE001 - la conexión ya puede estar inservible
+                pass
+            self.con = duckdb.connect(self.path)
+            self.con.execute(_DDL)
+            self.con.execute("INSERT OR REPLACE INTO meta VALUES ('schema_version', ?)",
+                             [str(SCHEMA_VERSION)])
+            self._schema = {}
+
     # --- escritura (solo el indexador) ---------------------------------------------------
     def begin(self) -> None:
         self.con.execute("BEGIN TRANSACTION")

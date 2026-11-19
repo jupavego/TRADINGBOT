@@ -84,7 +84,8 @@ class Operation:
         self.alerts = AlertCenter(con, lock, [self.log.alert_sink, *chosen])
         self.forecasts = ForecastStore(con, lock)
         self.state_path = self.root / f"state_{self.mode.lower()}.json"
-        self.cursors = state.load(self.state_path, rt.svc, self.mode)
+        self.cursors = state.load(self.state_path, rt.svc, self.mode,
+                                  on_corrupt=self._state_corrupt)
         self.cycle = OperationCycle(store, provider, reports, registry, desk, self.book,
                                     self.alerts, self.log, params, self.cursors, forecaster,
                                     bots)
@@ -96,6 +97,15 @@ class Operation:
                              "symbols": list(params.symbols)}
         self.log.write("servicio_iniciado", mode=self.mode, trades=len(rt.svc.trades)
                        if rt.svc else 0, cursors=self.cursors.to_json())
+
+    def _state_corrupt(self, dest: Path, exc: Exception) -> None:
+        """Estado ilegible: se arrancó con el libro plano. Hay que avisarlo, no callarlo."""
+        self.alerts.emit(Alert(
+            t=self.clock(), kind=SERVICE, level=CRITICAL, key="estado_corrupto",
+            title="El estado del servicio estaba ilegible",
+            detail=(f"{self.state_path.name}: {type(exc).__name__}. Se apartó en "
+                    f"{dest.name} y el servicio arrancó con el libro plano y los cursores "
+                    "vacíos. Revisa si había posiciones abiertas antes del corte.")))
 
     # --- un paso (bloqueante: corre en un hilo) ----------------------------
     def step(self) -> CycleResult:

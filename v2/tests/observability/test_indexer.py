@@ -6,6 +6,7 @@ import os
 import random
 import time
 
+import duckdb
 import pytest
 
 from eim.observability import thresholds as T
@@ -216,3 +217,32 @@ def test_status_reports_lag_and_pending(env):
     st = ix.status()
     assert st["pending_bytes"] == 0 and st["ok"] and st["index_lag_s"] <= T.INDEX_LAG_S_MAX
     assert st["counts"]["events"] == 1
+
+
+def test_fatal_reabre_la_conexion_y_la_pasada_siguiente_indexa(env):
+    """Incidente 2026-11-19: un error FATAL de DuckDB deja la base «invalidated» y, sin
+    reabrirla, toda pasada siguiente falla igual: el observatorio no volvía hasta reiniciar."""
+    store, spool, ix = env
+    write(spool / "api.20251001.1.jsonl", candle_trace())
+    assert ix.run_once()["new"] == 11
+
+    class ConexionInvalidada:
+        def __init__(self, real):
+            self.real = real
+
+        def execute(self, *a, **k):
+            raise duckdb.FatalException(
+                "FATAL Error: Failed: database has been invalidated because of a previous "
+                "fatal error. The database must be restarted prior to being used again.")
+
+        def close(self):
+            self.real.close()
+
+    store.con = ConexionInvalidada(store.con)
+    ix.run_once()                                   # no lanza: el observatorio nunca tumba la API
+    assert ix.last_error is not None
+    assert not isinstance(store.con, ConexionInvalidada)   # se reabrió sola
+
+    ix.run_once()                                   # la pasada siguiente ya va bien
+    assert ix.last_error is None
+    assert store.con.execute("SELECT count(*) FROM events").fetchone()[0] == 11

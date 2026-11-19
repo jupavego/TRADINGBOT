@@ -21,6 +21,8 @@ from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Any
 
+import duckdb
+
 from eim.observability import thresholds as T
 from eim.observability.derive import fold_decision, fold_run
 from eim.observability.events import ObsEvent
@@ -162,6 +164,17 @@ class Indexer:
             total_bad += bad
         return total_new, total_bad
 
+    def _recover_if_fatal(self, exc: BaseException) -> None:
+        """Un error FATAL deja la base invalidada: sin reabrirla, todas las pasadas siguientes
+        fallan igual y el observatorio no vuelve hasta reiniciar la API (2026-11-19)."""
+        if not isinstance(exc, duckdb.FatalException) and "invalidated" not in str(exc):
+            return
+        try:
+            self.store.reconnect()
+            log.warning("observatorio: conexión reabierta tras un error fatal")
+        except Exception:  # noqa: BLE001 - se reintenta en la pasada siguiente
+            log.exception("observatorio: no se pudo reabrir la conexión")
+
     def run_once(self) -> dict[str, Any]:
         """Una pasada: spool + puentes. Nunca lanza; deja el último error en `status()`."""
         out = {"new": 0, "corrupt": 0, "files": 0, "bridge": 0}
@@ -182,6 +195,7 @@ class Indexer:
         except Exception as e:  # noqa: BLE001 - el observatorio no puede tumbar a la API
             self.last_error = f"{type(e).__name__}: {e}"
             log.exception("observatorio: pasada fallida")
+            self._recover_if_fatal(e)
         self.last_pass_ms = self.now_ms()
         self.passes += 1
         try:   # lo lee la regla de alerta «indexador atrasado» (otro proceso, T75)

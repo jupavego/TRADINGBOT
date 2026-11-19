@@ -8,6 +8,9 @@ lo sería. Con testnet el exchange es la fuente de verdad; aquí solo va el libr
 from __future__ import annotations
 
 import json
+import os
+import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -44,15 +47,37 @@ def save(path: Path, svc: ExecutionService | None, cursors: Cursors, mode: str) 
             data["broker"] = svc.broker.dump()
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(data), encoding="utf-8")
+    with tmp.open("w", encoding="utf-8") as fh:
+        fh.write(json.dumps(data))
+        fh.flush()
+        os.fsync(fh.fileno())      # sin esto un corte deja el archivo lleno de NUL (2026-11-19)
     tmp.replace(path)
 
 
-def load(path: Path, svc: ExecutionService | None, mode: str) -> Cursors:
-    """Restaura en `svc` (si coincide el modo) y devuelve los cursores. Sin archivo → vacíos."""
+def quarantine(path: Path) -> Path:
+    """Aparta un estado ilegible para poder examinarlo; devuelve su nueva ruta."""
+    dest = path.with_suffix(f".corrupto-{time.strftime('%Y%m%d-%H%M%S')}")
+    path.replace(dest)
+    return dest
+
+
+def load(path: Path, svc: ExecutionService | None, mode: str,
+         on_corrupt: Callable[[Path, Exception], None] | None = None) -> Cursors:
+    """Restaura en `svc` (si coincide el modo) y devuelve los cursores. Sin archivo → vacíos.
+
+    Un archivo ilegible (corte de luz a medio escribir) se aparta y se sigue con cursores
+    vacíos: el libro arranca plano y las velas se vuelven a analizar (el libro de papel es
+    idempotente). Antes la excepción subía y dejaba la API en bucle de reinicios.
+    """
     if not path.exists():
         return Cursors()
-    data = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        dest = quarantine(path)
+        if on_corrupt is not None:
+            on_corrupt(dest, exc)
+        return Cursors()
     if data.get("mode") != mode:          # otro modo: no se mezclan libros
         return Cursors()
     if svc is not None:
