@@ -102,6 +102,10 @@ button:hover{background:var(--card)}
 .tag.ready{background:var(--ready-bg);color:var(--ready)}
 .tag.block{background:var(--block-bg);color:var(--tx3)}
 .tag.gate{background:transparent;color:var(--gate);border:1px solid var(--gate)}
+.tag.req{background:transparent;color:var(--fg2,inherit);border:1px solid currentColor;opacity:.8}
+.vgb{margin:4px 0 6px 26px;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.vgp{height:6px;border-radius:3px;background:rgba(127,127,127,.25);overflow:hidden;max-width:520px}.vgp span{display:block;height:100%;background:var(--prog)}
+.vgm{opacity:.8}.vgn b{font-weight:600}.vgtags{display:flex;flex-wrap:wrap;gap:4px}.vgc{margin:2px 0 0 18px;padding:0}
 .tag.where{background:transparent;color:var(--where);border:1px solid var(--where)}
 .det{display:none;margin:8px 0 4px 26px;font-size:13px;color:var(--tx2)}
 .t.open .det{display:block}
@@ -287,13 +291,36 @@ function renderVigia(tasks){
       (GATES[t.id]?'<div class="vge" style="margin-left:26px;color:var(--gate)">'+esc(GATES[t.id])+'</div>':"")+'</div>';
   }
   document.getElementById("vg-l").innerHTML=
-    '<h3>En curso ahora</h3>'+(prog.length?prog.map(row).join(""):'<p class="vge">Ninguna tarea marcada en curso en STATUS.md.</p>')+
+    '<h3>En curso ahora</h3>'+(prog.length?prog.map(progRow).join(""):'<p class="vge">Ninguna tarea marcada en curso en STATUS.md.</p>')+
     (gate.length?'<h3>Esperan tu decisión</h3>'+gate.map(row).join(""):"")+
     Object.keys(where).map(function(mq){
       var it=where[mq].slice().sort(function(a,b){return (a.c.when==="ya"?"0":a.c.when)<(b.c.when==="ya"?"0":b.c.when)?-1:1});
       return '<h3>Condicionantes: se hacen desde '+esc(mq)+'</h3>'+it.map(function(x){
         return '<div class="t progress"><div class="tr"><span class="tag where">🖥 '+esc(mq)+'</span><span class="tid">'+x.t.id+'</span><span class="tt">'+esc(x.c.text)+'</span>'+
           '<span class="tag '+(x.c.when==="ya"?"ready":"block")+'">'+(x.c.when==="ya"?"ya":"desde "+esc(x.c.when))+'</span></div></div>'}).join("")}).join("");
+}
+// Tarea en curso con su seguimiento (PLAN/CONDICIONANTES.md): avance en vivo por fechas, requisitos y equipo
+function progRow(t){
+  var ph={};(data.phases||[]).forEach(function(p){p.ids.forEach(function(i){ph[i]=p})});
+  var k=t.track||{},p=ph[t.id],bar="",meta=[];
+  var d0=k.start?new Date(k.start):null,d1=k.end?new Date(k.end):null;
+  if(d0&&d1&&!isNaN(d0)&&!isNaN(d1)){
+    var f=Math.max(0,Math.min(1,(Date.now()-d0)/(d1-d0))),dd=(Date.now()-d0)/864e5,tot=(d1-d0)/864e5;
+    bar='<div class="vgp"><span style="width:'+(f*100).toFixed(1)+'%"></span></div>';
+    meta.push(Math.round(f*100)+' % · día '+Math.max(0,dd).toFixed(1).replace(".",",")+' de '+tot.toFixed(1).replace(".",","));
+  }
+  if(k.progress)meta.push(esc(k.progress));
+  if(d1&&!isNaN(d1))meta.push((Date.now()>d1?"venció ":"hasta ")+d1.toLocaleString("es-CO",{dateStyle:"medium",timeStyle:"short"})+(k.milestone?' ('+esc(k.milestone)+')':""));
+  var mach=k.machine&&k.machine!=="cualquiera"?k.machine:"";
+  var tags=(k.requires||[]).map(function(r){return '<span class="tag '+(/◆/.test(r)?"gate":"req")+'">'+esc(r)+'</span>'}).join("")+
+    (mach?'<span class="tag where">🖥 desde '+esc(mach)+'</span>':(k.machine?'<span class="tag req">desde cualquier equipo</span>':""));
+  var conds=(t.where||[]).map(function(c){return '<li>🖥 '+esc(c.machine)+' · '+(c.when==="ya"?"ya":"desde "+esc(c.when))+': '+esc(c.text)+'</li>'}).join("");
+  return '<div class="t progress vgt"><div class="tr"><span class="st progress">'+icon("progress")+'</span><span class="tid">'+t.id+'</span><span class="tt">'+esc(t.title)+'</span>'+
+    (p?'<span class="tag block">Cap. '+esc(p.n)+'</span>':"")+(GATES[t.id]?'<span class="tag gate" title="'+esc(GATES[t.id])+'">◆ decisión</span>':"")+
+    '<button type="button" data-copy="Ejecuta PLAN/'+t.id+'.md">Copiar</button></div>'+
+    '<div class="vgb">'+bar+(meta.length?'<div class="vgm">'+meta.join(" · ")+'</div>':"")+
+    (k.needs?'<div class="vgn"><b>Qué necesita:</b> '+esc(k.needs)+'</div>':(t.track?"":'<div class="vgm">Sin seguimiento en PLAN/CONDICIONANTES.md</div>'))+
+    (tags?'<div class="vgtags">'+tags+'</div>':"")+(conds?'<ul class="vgc">'+conds+'</ul>':"")+'</div></div>';
 }
 function whereTags(t){
   var ms={};(t.where||[]).forEach(function(c){ms[c.machine]=1});

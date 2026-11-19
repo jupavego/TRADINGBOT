@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-19T16:17:39",
+ "generated": "2026-11-19T16:43:46",
  "phases": [
   {
    "n": 0,
@@ -777,7 +777,19 @@ window.EIM_STATUS = {
      "text": "Cerrar la corrida oficial de ≥ 4 semanas con su informe final: la corrida que cuenta es la de ese equipo",
      "when": "2026-11-27"
     }
-   ]
+   ],
+   "track": {
+    "start": "2026-10-30T23:35Z",
+    "end": "2026-11-27T23:35Z",
+    "milestone": "cierre de la corrida (4 semanas)",
+    "progress": null,
+    "requires": [
+     "PC encendido",
+     "API en marcha"
+    ],
+    "machine": "juanpablo-cpu",
+    "needs": "El bróker simulado vive dentro de la API: si se cierra, la corrida se detiene. Al cerrar, el informe final; riesgo con costo y freno gradual se encienden solos el 28-nov (T194)"
+   }
   },
   {
    "id": "T32",
@@ -956,7 +968,18 @@ window.EIM_STATUS = {
    "notes": "**Construido y probado contra el exchange simulado; falta la corrida E2E en testnet real con claves** (`python -m eim.execution.arb_smoke`: carry abierto→mantenido→cerrado, pata fallida deshecha, corte de red; su lógica pasa contra el simulado, `tests/execution/test_arb_smoke.py`). Brokers: `execution/binance_rest.py` (firma común, extraída de T30), `binance_spot_testnet.py` (spot testnet, comisión en base vía `fills`/`myTrades`), `binance_testnet.py` + libro, profundidad, riesgo de posición, `positionMargin`, funding cobrado. Ejecutor `arb_executor.py`/`arb_legs.py`/`arb_book.py`: la pata menos líquida (profundidad de la testnet) primero, LIMIT con tiempo límite y cancelación, persecución de la 2.ª acotada por el tope, **unwind** de la 1.ª (precio límite = tope 50 pb; si no llena, a mercado + kill-switch `regla:pata`), ids `eia-` deterministas, idempotencia, fills parciales, orden anotada antes de enviarse. `arb_recon.py`: órdenes sin respuesta por id, descubiertos recortados (sin huérfanas tras cortar la red), liquidación/cierre externo adoptados, margen, liquidación y funding real vs esperado; desconexión ≥ 5 min → kill-switch compartido → cierre de ambas patas. Gestión pura `eim/arbitrage/live/` (rebalanceo al 50 % del margen objetivo: margen libre o reducir ambas patas; cierre por funding < 0 en 3 lecturas, base agotada, vencimiento, tenencia, liquidación < 8 %). Selector `arb_runner.py`: fotografía T38 re-seleccionada a la hora real, estrategias Viable/Marginal (T43), riesgo `risk/arb_engine.py` + `versions/risk_arb_v1.json` (solo TESTNET; margen y exposición de TODA la cuenta; conflicto con el carril direccional) → la de mayor puntuación aprobada, 1 por ciclo, enfriamiento 1 h tras una apertura fallida; puerta `ArbGateway` (sello). T30 respeta los futuros del arbitraje (`Reconciler.external`, `flatten(keep)`). Bitácora y estado en `data/arb_exec/`. API `EIM_ARB_EXECUTION=testnet` → `/v2/arbitrage/execution` (+`/cycle`, `/close`, `/flatten`, `X-EIM-Confirm`); UI «Arbitraje» → «Ejecución automática» (Modo: Testnet; verificada en navegador con API de demostración). Tests: 81 nuevos (pata incompleta, rechazo, desconexión con posición abierta, funding que cambia de signo, libro que se vacía, rebalanceo, riesgo, API); gate 1124. Revisión de código: 8 hallazgos, 7 corregidos. **Pruebas en el bróker simulado (decisión del usuario 2026-10-18, sin cuenta de Binance):** exchange en memoria `execution/arb_sim.py` + `arb_sim_brokers.py` (modo SIMULADO, un venue por mercado, comisiones VIP 0, liquidación, funding; riesgo `risk_arb_sim_v1`, solo SIMULADO; el ejecutor toma el modo de sus brokers, nunca REAL) movido por velas reales de 1 h (spot y perpetuo) y funding realizado (`data/arb_sim_data.py`); escenarios `paper/arb_tests.py` (CLI `python -m eim.paper.arb_cli`, API `/v2/paper/arbitrage` + `/run` con `X-EIM-Confirm: paper-arb`), pestaña «Arbitraje» del Bróker simulado con gráfico spot/perpetuo y cada orden marcada (`web/src/paper_arb.ts`). **Corrida real 2026-10-14 16:00 → 10-16 23:00 UTC: 3 de 3 superados** — carry abierto, 48 h con 7 cobros de funding (+0,19 USD real vs +0,10 esperado), cerrado (−3,23 USD: comisiones 2,93; el carry necesita semanas, T43); pata fallida deshecha (−0,19 USD, tope 5 USD); corte de red sin huérfanas. Verificado en navegador. Pendientes en BACKLOG (T45). **2026-11-07, aparcada por decisión delegada («toma tu la mejor decision»):** lo único que falta, la corrida en testnet real, necesita una cuenta de Binance testnet con claves sin permiso de retiro. Solo el usuario puede crearlas (Claude no crea cuentas ni maneja claves), y el 2026-10-18 decidió seguir sin cuenta. No se cambia la aceptación ni se cierra con el simulado: el código sigue listo y probado (3/3) y se retoma el día que haya claves (BACKLOG T45 (1)). Sin trabajo en curso mientras tanto.",
    "effort": "alto",
    "phase": 9,
-   "goal": "Ejecutar automáticamente, **solo en testnet**, las estrategias que T43 declaró Viable o Marginal, con selección automática entre ellas."
+   "goal": "Ejecutar automáticamente, **solo en testnet**, las estrategias que T43 declaró Viable o Marginal, con selección automática entre ellas.",
+   "track": {
+    "start": null,
+    "end": null,
+    "milestone": null,
+    "progress": "Código 100 % · prueba real 0 % (aparcada)",
+    "requires": [
+     "claves de testnet"
+    ],
+    "machine": "cualquiera",
+    "needs": "Se retoma si creas claves de Binance testnet sin permiso de retiro"
+   }
   },
   {
    "id": "T46",
@@ -1875,7 +1898,19 @@ window.EIM_STATUS = {
      "text": "Decidir si el gate aguanta Ollama generando y hacer 3 corridas con el equipo descargado (◆ permiso para parar servicios)",
      "when": "ya"
     }
-   ]
+   ],
+   "track": {
+    "start": null,
+    "end": null,
+    "milestone": null,
+    "progress": "Portátil: 6 corridas verdes · juanpablo-cpu: faltan 3 con los servicios parados",
+    "requires": [
+     "PC encendido",
+     "tu decisión ◆"
+    ],
+    "machine": "juanpablo-cpu",
+    "needs": "Tu permiso para parar los servicios (corta el bróker simulado) o esperar al cierre de T31 y T143 el 28-nov; y decidir si el gate debe aguantar Ollama generando"
+   }
   },
   {
    "id": "T117",
@@ -2119,7 +2154,18 @@ window.EIM_STATUS = {
      "text": "Leer el veredicto del A/B de M8: la tarea semanal y la copia backups/t135_ab están instaladas allí",
      "when": "2026-12-06"
     }
-   ]
+   ],
+   "track": {
+    "start": "2026-11-08T00:00Z",
+    "end": "2026-12-06T00:00Z",
+    "milestone": "veredicto del A/B de M8 (como pronto)",
+    "progress": null,
+    "requires": [
+     "PC encendido"
+    ],
+    "machine": "juanpablo-cpu",
+    "needs": "Corre sobre una copia, sin tocar el vivo ni T31; necesita unas 315 operaciones emparejadas. El veredicto no se revisa"
+   }
   },
   {
    "id": "T136",
@@ -2231,7 +2277,20 @@ window.EIM_STATUS = {
      "text": "Decidir si la variante t143 pasa a oficial: la variante y su data/paper/tf_gate_t143.json solo corren allí",
      "when": "2026-11-27"
     }
-   ]
+   ],
+   "track": {
+    "start": "2026-11-10T04:17Z",
+    "end": "2026-11-27T23:35Z",
+    "milestone": "fin de la corrida aparte t143",
+    "progress": null,
+    "requires": [
+     "PC encendido",
+     "API en marcha",
+     "tu decisión ◆"
+    ],
+    "machine": "juanpablo-cpu",
+    "needs": "La corrida t143 vive dentro de la API, como T31. Los entregables 2–5 esperan tu decisión; al cerrar, si la variante pasa a oficial"
+   }
   },
   {
    "id": "T144",
@@ -2636,7 +2695,19 @@ window.EIM_STATUS = {
      "text": "Comprobar el primer informe real (v2/reports/nursery/) y que los hechos se ven en la Biblioteca (tras reiniciar la API)",
      "when": "2026-12-18"
     }
-   ]
+   ],
+   "track": {
+    "start": "2026-11-17T03:25Z",
+    "end": "2026-12-17T03:25Z",
+    "milestone": "1.ª revisión de la cantera (el informe sale el 18)",
+    "progress": "Herramienta hecha; falta el primer informe con datos reales",
+    "requires": [
+     "PC encendido",
+     "API en marcha"
+    ],
+    "machine": "juanpablo-cpu",
+    "needs": "Traer main, correr el gate por la cola e instalar la tarea del informe mensual (cantera_informe_mensual.ps1 -Instalar)"
+   }
   },
   {
    "id": "T173",
@@ -2723,7 +2794,18 @@ window.EIM_STATUS = {
      "text": "Desplegar la retención y medir una semana con las copias diarias de leaders.duckdb del servicio de líderes de ese equipo",
      "when": "ya"
     }
-   ]
+   ],
+   "track": {
+    "start": null,
+    "end": null,
+    "milestone": null,
+    "progress": "Entregables 1, 2 y 4 hechos; falta desplegar y medir una semana",
+    "requires": [
+     "PC encendido"
+    ],
+    "machine": "juanpablo-cpu",
+    "needs": "Reiniciar el servicio de líderes para que corra la retención y medir una semana con las copias diarias"
+   }
   },
   {
    "id": "T179",
@@ -2887,7 +2969,19 @@ window.EIM_STATUS = {
    "notes": "**Midiendo desde 2026-11-19 (◆ del usuario 2026-11-18); entra al reiniciar la API.** Pre-registro `t187_asimetria_v1` (`PLAN/notas/T187_preregistro.md`, huella fijada por prueba): solo cuentan operaciones abiertas desde el 19-nov; tres miradas fijas 2026-12-17, 2027-01-14 y 2027-02-11 con IC 98,33 % por bloques de día; el primer veredicto no se revisa. Vigía `eim/api/asym_watch.py` cada hora (mapa `paper.asymmetry`, `GET /v2/paper/asymmetry`, `data/paper/asym/`). a (pérdida acotada) solo informa: se enciende con T194; b (una idea un riesgo) y c (peso > 1 solo con `m − se > 0`) se adoptan solas si pasan, desde el siguiente 00:00 UTC y nunca antes del cierre de T31. Ficha `PLAN/T187.md`",
    "effort": "medio",
    "phase": 30,
-   "goal": "Medir en sombra, sobre cada operación viva del libro fijo, tres reglas del lado de la pérdida, y"
+   "goal": "Medir en sombra, sobre cada operación viva del libro fijo, tres reglas del lado de la pérdida, y",
+   "track": {
+    "start": "2026-11-19T00:00Z",
+    "end": "2026-12-17T00:00Z",
+    "milestone": "1.ª mirada (luego 14-ene y 11-feb)",
+    "progress": null,
+    "requires": [
+     "PC encendido",
+     "API en marcha"
+    ],
+    "machine": "cualquiera",
+    "needs": "Mide sola en la API (vigía cada hora); lo de costo y riesgo que pase se adopta solo"
+   }
   },
   {
    "id": "T188",
@@ -2901,7 +2995,20 @@ window.EIM_STATUS = {
    "notes": "**Midiendo desde 2026-11-19 (◆ del usuario).** Corredor en sombra: 50 % escalera, 50 % SL inicial → break-even + costo tras +1 R → stop a 1 R del extremo, plazo 2/5/14 d por marco, orden adverso en la vela (`eim/paper/asym/runner.py`). **Aunque pase no se adopta solo** (cambia la salida, T139 P1): ◆ del usuario. Ficha `PLAN/T188.md`",
    "effort": "medio",
    "phase": 30,
-   "goal": "Medir en sombra un corredor: la mitad sale como sale hoy (escalera) y la otra mitad sigue con el SL"
+   "goal": "Medir en sombra un corredor: la mitad sale como sale hoy (escalera) y la otra mitad sigue con el SL",
+   "track": {
+    "start": "2026-11-19T00:00Z",
+    "end": "2026-12-17T00:00Z",
+    "milestone": "1.ª mirada (luego 14-ene y 11-feb)",
+    "progress": null,
+    "requires": [
+     "PC encendido",
+     "API en marcha",
+     "tu decisión ◆"
+    ],
+    "machine": "cualquiera",
+    "needs": "Corredor en sombra; aunque pase no se adopta solo: tu decisión"
+   }
   },
   {
    "id": "T189",
@@ -2915,7 +3022,19 @@ window.EIM_STATUS = {
    "notes": "**Midiendo desde 2026-11-19 (◆ del usuario).** Cada idea viva a mercado contra la misma como límite, 1 vela, la no ejecución cuenta 0 R (`maker_ab.pair_up` en `eim/paper/asym/maker_live.py`), por marco: 15 m por primera vez, 1 h/4 h confirmación en vivo de T143. Criterio de T143 §4 con ≥ 200 ideas por marco. Si pasa se adopta sola en ese marco (`ExecParams.maker_from_ms`, solo ideas posteriores, fuera de `exec_fingerprint`). Ficha `PLAN/T189.md`",
    "effort": "bajo",
    "phase": 30,
-   "goal": "Cada idea viva a mercado contra la misma idea como límite al precio pedido, 1 vela de vigencia"
+   "goal": "Cada idea viva a mercado contra la misma idea como límite al precio pedido, 1 vela de vigencia",
+   "track": {
+    "start": "2026-11-19T00:00Z",
+    "end": "2026-12-17T00:00Z",
+    "milestone": "1.ª mirada (luego 14-ene y 11-feb)",
+    "progress": null,
+    "requires": [
+     "PC encendido",
+     "API en marcha"
+    ],
+    "machine": "cualquiera",
+    "needs": "Entrada límite medida en vivo por marco; si pasa se adopta sola en ese marco"
+   }
   },
   {
    "id": "T194",
@@ -2929,7 +3048,19 @@ window.EIM_STATUS = {
    "state": "progress",
    "notes": "**Programada (◆ del usuario 2026-11-18): se enciende sola el 2026-11-28 00:00 UTC, sin reiniciar.** `EIM_PAPER_PHASE2_FROM` (por defecto el cierre de T31, `off` la apaga): riesgo con costos y freno gradual **en lugar** del todo o nada en los cuatro perfiles (×0,5 desde −5 %, ×0,25 desde −10 %, medido desde el capital al encenderse; nunca se detiene del todo), solo para decisiones posteriores; sin cambiar `params_fingerprint`. Fase 3: el vigía adopta lo de costo y riesgo que pase (`EIM_ASYM_ADOPT=0` lo impide). Tareas programadas de verificación el 28-nov y en cada mirada. Ficha `PLAN/T194.md`",
    "effort": "bajo",
-   "phase": 30
+   "phase": 30,
+   "track": {
+    "start": "2026-11-18T00:00Z",
+    "end": "2026-11-28T00:00Z",
+    "milestone": "encendido automático de la fase 2",
+    "progress": null,
+    "requires": [
+     "PC encendido",
+     "API en marcha"
+    ],
+    "machine": "cualquiera",
+    "needs": "Nada: se enciende sola si la API ya corre el código nuevo"
+   }
   },
   {
    "id": "T195",
@@ -2956,7 +3087,19 @@ window.EIM_STATUS = {
    "state": "progress",
    "notes": "**Gate y despliegue hechos 2026-11-19; falta el encendido del 2026-11-28 00:00 UTC.** Gate completo en `juanpablo-cpu` (ver T195) y verificado en vivo: `GET /v2/paper/accounting` declara `machines: all`, `machines_label: «todos los equipos (libro central, T196)»` y `by_machine`; `GET /v2/share/status` responde `enabled: false`, dormido hasta su fecha, como estaba previsto. `paper_ledger` viaja en la experiencia compartida por `ledger_id` (gana lo local; diferencias a `share_conflicts`; `retro` del equipo que la vivió), procedencia por equipo (`paper/provenance.py`, `by_machine`, `GET /v2/paper/accounting?machines=all|local`), conciliación solo con lo propio y encendido programado (`setup --start`, `EIM_SHARE_FROM`: dormido hasta la fecha, sin reiniciar). Enmienda de los pre-registros T187/T190 antes de mirar: `PLAN/notas/T196_enmienda_preregistros.md` (huella `e35b229cb592`). T31 se cierra con `machines=local`. Ficha `PLAN/T196.md`; pruebas `tests/share/test_t196_ledger.py`.",
    "effort": "medio",
-   "phase": 31
+   "phase": 31,
+   "track": {
+    "start": "2026-11-19T00:00Z",
+    "end": "2026-11-28T00:00Z",
+    "milestone": "encendido del libro central",
+    "progress": "Gate y despliegue hechos",
+    "requires": [
+     "PC encendido",
+     "API en marcha"
+    ],
+    "machine": "cualquiera",
+    "needs": "Nada: se enciende solo en su fecha"
+   }
   }
  ]
 };
