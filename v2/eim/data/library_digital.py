@@ -65,6 +65,11 @@ class DigitalPaths:
         return self.root / "trace.jsonl"
 
     @property
+    def nursery_facts(self) -> Path:
+        """Hechos de aprendizaje de la cantera (T172): prospecto × obra × revisión."""
+        return self.root / "nursery_facts.jsonl"
+
+    @property
     def research_log(self) -> Path:
         return self.root / "research.jsonl"
 
@@ -252,6 +257,27 @@ def read_traces(paths: DigitalPaths, n: int = 50) -> list[dict]:
         return []
     lines = [x for x in paths.trace.read_text(encoding="utf-8").splitlines() if x.strip()]
     return [json.loads(x) for x in reversed(lines[-n:])]
+
+
+def append_nursery_facts(paths: DigitalPaths, facts: list[dict]) -> int:
+    """Añade los hechos de la cantera nuevos (por `key`); solo adición, nunca reescribe (T172)."""
+    f = paths.nursery_facts
+    seen = {json.loads(x).get("key") for x in f.read_text(encoding="utf-8").splitlines()
+            if x.strip()} if f.exists() else set()
+    new = [x for x in facts if x.get("key") and x["key"] not in seen]
+    if new:
+        f.parent.mkdir(parents=True, exist_ok=True)
+        with f.open("a", encoding="utf-8") as fh:
+            for x in new:
+                fh.write(json.dumps({"recorded": _today(), **x}, ensure_ascii=False) + "\n")
+    return len(new)
+
+
+def read_nursery_facts(paths: DigitalPaths) -> list[dict]:
+    f = paths.nursery_facts
+    if not f.exists():
+        return []
+    return [json.loads(x) for x in f.read_text(encoding="utf-8").splitlines() if x.strip()]
 
 
 def recent_research(paths: DigitalPaths, n: int = 10) -> list[dict]:

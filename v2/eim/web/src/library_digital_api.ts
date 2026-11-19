@@ -22,7 +22,7 @@ export interface DigFragment { text: string; where: string }
 export interface DigRef extends DigRefBrief {
   venue: string | null; publisher: string | null; doc_type: string | null; description: string
   methods: string[]; application: string; markets: string[]; verified_at: string | null
-  stances: DigStance[]; problem: string | null
+  stances: DigStance[]; problem: string | null; nursery?: DigNurseryFact[]
   card: { coverage: string; findings: DigFragment[]; limitations: DigFragment[]; level: string
           stances_verified: string[]; stances_pending: string[]; operational_rules: string[] } | null
 }
@@ -37,6 +37,11 @@ export interface DigLearning {
   verdict: string; traces: DigTrace[]
   concepts: { concept: string; by_verdict: Record<string, DigSummary>; useful: string }[]
 }
+export interface DigNurseryFact {
+  prospect: string; agent: string; theme: string; work: string; concept: string | null
+  verdict: string; motivo: string; review: number; n: number | null; d_mean: number | null
+}
+export interface DigNursery { items: DigNurseryFact[]; by_work: Record<string, Record<string, number>>; n: number; review: number | null; note: string }
 export interface DigConsensus { concept: string; name: string; verdict: string; net: number; explanation: string[] }
 
 async function get<T>(path: string, params: Record<string, string> = {}): Promise<T> {
@@ -51,3 +56,4 @@ export const fetchDigRefs = (p: Record<string, string>) => get<{ refs: DigRefBri
 export const fetchDigRef = (id: string) => get<DigRef>(`/refs/${encodeURIComponent(id)}`)
 export const fetchDigLearning = () => get<DigLearning>('/learning', { traces: '8' })
 export const fetchDigContradictions = () => get<{ concepts: DigConsensus[] }>('/contradictions')
+export const fetchDigNursery = () => get<DigNursery>('/learning/nursery')

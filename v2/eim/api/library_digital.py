@@ -10,6 +10,7 @@
     GET  /v2/library/digital/learning            utilidad del conocimiento con el libro fijo (T155)
     POST /v2/library/digital/learning/record     guarda las trazas nuevas (X-EIM-Confirm)
     GET  /v2/library/digital/profiles            lentes de los cuatro perfiles (T156)
+    GET  /v2/library/digital/learning/nursery    hechos de aprendizaje de la cantera (T172)
 
 Todo es complemento: nada aquí abre, cierra, veta ni cambia perfiles. Sin conexión funciona igual:
 lee el catálogo y las fichas versionados y la caché local.
@@ -27,6 +28,7 @@ from eim.data.library_digital import (
     DigitalPaths,
     append_traces,
     load_kb,
+    read_nursery_facts,
     read_traces,
     recent_research,
 )
@@ -58,6 +60,25 @@ class _KbCache:
 def _counted(rows: list[dict]) -> list[dict]:
     from eim.paper.universe import counts_as_result
     return [r for r in rows if counts_as_result(r).counts]
+
+
+def nursery_view(facts: list[dict], work: str | None = None) -> dict:
+    """Último veredicto de la cantera por (prospecto, obra) y recuento por obra (T172)."""
+    last: dict[tuple[str, str], dict] = {}
+    for f in facts:
+        k = (f.get("prospect", ""), f.get("work", ""))
+        if k not in last or (f.get("review") or 0) >= (last[k].get("review") or 0):
+            last[k] = f
+    items = [f for f in last.values() if work is None or f.get("work") == work]
+    by_work: dict[str, dict[str, int]] = {}
+    for f in items:
+        w = by_work.setdefault(f.get("work", ""), {})
+        w[f["verdict"]] = w.get(f["verdict"], 0) + 1
+    return {"items": sorted(items, key=lambda f: (f.get("work", ""), f.get("prospect", ""))),
+            "by_work": by_work, "n": len(items),
+            "review": max((f.get("review") or 0 for f in items), default=None),
+            "note": "Veredictos de la cantera hacia adelante (BTC, SIMULADO): sostenida, "
+                    "refutada o no concluyente (por defecto). No cambian los pesos de consenso."}
 
 
 def build_library_digital_router(rows: Rows | None = None,
@@ -103,7 +124,8 @@ def build_library_digital_router(rows: Rows | None = None,
         k = get_kb()
         if ref_id not in k.refs:
             raise HTTPException(404, f"obra inexistente o sin verificar: {ref_id}")
-        return cat.view(k.refs[ref_id], k.cards.get(ref_id))
+        return {**cat.view(k.refs[ref_id], k.cards.get(ref_id)),
+                "nursery": nursery_view(read_nursery_facts(paths()), ref_id)["items"]}
 
     @router.get("/consensus/{concept}")
     def get_consensus(concept: str) -> dict:
@@ -152,6 +174,10 @@ def build_library_digital_router(rows: Rows | None = None,
         res = evaluate(rs, get_kb())
         res["traces"] = res["traces"][:traces]
         return {**res, "mode": "SIMULADO", "profile": profile}
+
+    @router.get("/learning/nursery")
+    def learning_nursery(work: str | None = None) -> dict:
+        return {**nursery_view(read_nursery_facts(paths()), work), "mode": "SIMULADO"}
 
     @router.post("/learning/record")
     def record(x_eim_confirm: str | None = Header(None)) -> dict:

@@ -84,7 +84,22 @@ def markdown(a: dict) -> str:
         lines += [f"- Oportunidades nuevas: {', '.join(d['new']) or 'ninguna'}; resueltas: "
                   f"{', '.join(d['gone']) or 'ninguna'}; disparadores nuevos: "
                   f"{', '.join(d['triggers_new']) or 'ninguno'}."]
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines + nursery_lines(a.get("nursery") or {})) + "\n"
+
+
+def nursery_lines(n: dict) -> list[str]:
+    """Sección de la cantera (T172, nota §9.4): describe; no es una mirada del escalafón."""
+    out = ["", "## 5. Cantera (fase 27, T172)", ""]
+    if not n:
+        return out + ["Sin resumen: corre `python -m eim.nursery report` (lo deja en "
+                      "`reports/nursery/latest.json`)."]
+    out.append(f"Lectura del {n.get('date')} (día {n.get('elapsed_days')}, revisiones "
+               f"{n.get('reviews_done')}): etapas {n.get('stages')}, {n.get('n_closed')} cierres, "
+               f"rentabilidad neta mediana {n.get('median_net_return_pct')} % frente a comprar y "
+               f"mantener {n.get('buy_hold_pct')} %, {n.get('events')} eventos de AUTO_ADAPT. "
+               "Describe; ascensos y bajas solo en las revisiones mensuales.")
+    out += [f"- [{o['route']}] {o['text']}" for o in n.get("opportunities") or []]
+    return out
 
 
 def console(a: dict) -> str:
@@ -115,5 +130,9 @@ def console(a: dict) -> str:
         out.append(f" nuevas: {d['new'] or '—'} · resueltas: {d['gone'] or '—'}")
     else:
         out.append("PRIMERA AUDITORÍA (línea base)")
+    n = a.get("nursery") or {}
+    if n:
+        out.append(f"CANTERA {n.get('date')}: día {n.get('elapsed_days')}, etapas "
+                   f"{n.get('stages')}, revisiones {n.get('reviews_done')}")
     out.append(f"INFORME: {a['paths']['md']}")
     return "\n".join(out)

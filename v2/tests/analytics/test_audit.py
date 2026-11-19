@@ -208,3 +208,18 @@ def test_auto_gate_not_reflected_in_variant_is_flagged():
     assert o["route"].startswith("◆") and "agresivo 0.200 R" in o["evidence"]
     assert "moderado" not in o["evidence"]
     assert levers.auto_not_reflected(build.variant_block(var[30:], var[30:])) == []
+
+
+def test_audit_reads_the_nursery_summary(tmp_path):
+    """T172: la auditoría lee el resumen de la cantera y lo describe sin decidir nada."""
+    from eim.analytics.audit import render as rnd
+    from eim.analytics.audit import sources as src
+
+    assert src.nursery(tmp_path / "no_existe.json") == {}
+    assert "python -m eim.nursery report" in "\n".join(rnd.nursery_lines({}))
+    p = tmp_path / "latest.json"
+    p.write_text('{"date": "2026-12-17", "elapsed_days": 30.1, "reviews_done": 1, '
+                 '"stages": {"cantera": 3}, "opportunities": [{"route": "◆", '
+                 '"text": "versión nueva de x"}]}', encoding="utf-8")
+    lines = "\n".join(rnd.nursery_lines(src.nursery(p)))
+    assert "2026-12-17" in lines and "[◆] versión nueva de x" in lines
