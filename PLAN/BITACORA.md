@@ -3523,3 +3523,22 @@ pm run build.
 - **Pruebas:** tipos de iews.ts revisados en la sesión; en el equipo: ruff, pruebas que leen la web y 
 pm run build.
 - **Abierto:** ninguno. **Siguiente paso:** ninguno obligatorio.
+
+## 2026-11-19 18:20 UTC · claude-web · Mapa del sistema: las 7 salas como microecosistemas · líneas quietas
+- **Hecho:** un solo motor (`obs_iso_eco.ts`) con la misma gramática de zonas en todas las salas: fondo =
+  entradas, pared izquierda = vigilancia/soporte, centro = trabajo, lateral = archivo/registro, frente derecho =
+  consolida y sale (puesto principal, tablero, salida gruesa), frente izquierdo = obra. Cada sala declara sus
+  zonas en `obs_iso_eco_specs.ts` (Datos, Análisis, Proyección, Plan, Riesgo, Ejecución, Validación); lo nuevo cae
+  en su zona por defecto y lo planeado en obra. **Líneas del piso quietas** (entre salas y dentro de cada sala):
+  sin trazos que corren, sin parpadeo y sin flechas viajeras; el sentido lo dan flechas pequeñas fijas
+  (`arrowsAlong`). Se quitó la capa `iso-fx` y `obs_iso_arrows.ts` (y su pista de 24 cuadros/s). **Sin solapes:**
+  las salas se separan solas con su franja de paredes (`separate`); tarjetas de etapa, etiquetas de líneas y
+  avatares buscan sitio libre de salas y de otras etiquetas; en la sala ampliada las placas de zona eligen la
+  primera posición libre y las de salida se agrupan por destino.
+- **Archivos:** `v2/eim/web/src/obs_iso_eco.ts`, `obs_iso_eco_specs.ts` (nuevo), `obs_iso_floor.ts` (nuevo: piso
+  común, separación y choques), `obs_iso.ts`, `obs_iso_geo.ts`, `obs_iso.css`, `obs_view.ts`; borrado `obs_iso_arrows.ts`.
+- **Pruebas:** `tsc --noEmit` sin errores nuevos; detector de solapes en Chrome sin cabeza (cajas de nombres,
+  placas, tarjetas, etiquetas y figuras) → 0 en el mapa completo y 0 en cada una de las 7 salas ampliadas, con
+  todas las placas de zona presentes; capturas revisadas.
+- **Abierto:** en salas con pocos puestos (Plan) la sala ampliada queda holgada.
+- **Siguiente paso:** en el equipo, `npm run build` y revisar con el catálogo vivo; afinar zonas si aparecen piezas nuevas.

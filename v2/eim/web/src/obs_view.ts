@@ -7,7 +7,6 @@
  * última vela y el recorrido guiado se retiraron de esta vista. */
 import { detailHtml } from './obs_detail'
 import { isoHtml, isoIncFail, isoKey, setIsoIncFail } from './obs_iso'
-import { IsoArrows } from './obs_iso_arrows'
 import { IsoPan } from './obs_iso_pan'
 import { stepMotion } from './motion'
 import { queueHtml, queuesSummary } from './obs_queues'
@@ -58,7 +57,6 @@ export class ObsView {
   private ageBase: { age: number; at: number } | null = null   // edad del último evento al cargar
   private isoLast = ''          // clave del último dibujo isométrico (no se rehace si nada cambió)
   private pan: IsoPan | null = null   // zoom con la rueda y arrastre con clic sostenido
-  private arrows = new IsoArrows()     // flechas que viajan por las líneas (sin SMIL)
 
   constructor(private root: HTMLElement) {}
 
@@ -88,14 +86,11 @@ export class ObsView {
     this.tick = window.setInterval(() => this.paintAge(), TICK_MS)
   }
 
-  /** Pone las capas animadas del mapa bajo el reloj compartido: las líneas (flechas y trazos que corren)
-   * a 24 cuadros/s; las salas solo cuando cambia un parpadeo (≈1 vez por segundo: redibujarlas cuesta
-   * ~1.900 figuras). Nada avanza fuera
+  /** Pone la capa de las salas bajo el reloj compartido: solo cambia cuando cambia un parpadeo (≈1 vez por
+   * segundo: redibujarlas cuesta ~1.900 figuras). Las líneas del piso son quietas. Nada avanza fuera
    * de la vista, con la página desplazándose ni mientras se hace zoom o se arrastra el mapa. */
   private stepMap(map: HTMLElement): void {
     const hold = (): boolean => !this.open || !!this.pan?.moving
-    const fx = map.querySelector('svg.iso-fx')
-    if (fx) stepMotion(fx, { fps: 24, hold, onTick: (dt) => this.arrows.step(fx, dt) })
     // salas: solo parpadeos a dos tiempos (pilotos y halos de lo que falla, 1,6 s con cambio a 0,4 y 1,2 s)
     map.querySelectorAll('svg.iso-top, .iso-focus svg.iso-svg').forEach((s) => stepMotion(s, { hold, quant: [800, 400] }))
   }
