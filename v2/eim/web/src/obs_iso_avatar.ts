@@ -1,6 +1,7 @@
 /** Avatares del mapa isométrico (SV a la izquierda, JP a la derecha): una figura de pie cuya cabeza es
  * la esfera «red de nodos» principal de la interfaz (misma geometría de `river_sphere_mesh`), en azul y
  * quieta: se dibuja una vez como <symbol> en SVG y se reutiliza en los dos avatares. Solo decora. */
+import { artTag } from './obs_iso_img'
 import { EDGES, FACETS, NODES, RINGS, type V3 } from './river_sphere_mesh'
 
 const RGB = '64,140,255', HI = '170,205,255', R = 50          // radio de la esfera en el símbolo (unidades)
@@ -71,7 +72,7 @@ export function avatarDefs(): string {
 /** Un avatar de `h` píxeles de alto con los pies en (x, y) y su nombre debajo. */
 export function avatar(name: string, x: number, y: number, h = 190): string {
   const w = (h * 140) / 290, ny = y + 26
-  return `<g class="iso-avatar" role="img" aria-label="${name}"><use href="#iso-av" x="${f(x - w / 2)}" y="${f(y - (h * 270) / 290)}" width="${f(w)}" height="${f(h)}"/>`
+  return `<g class="iso-avatar" role="img" aria-label="${name}">${artTag('iso-av', x - w / 2, y - (h * 270) / 290, w, h)}`
     + `<rect x="${f(x - 26)}" y="${f(ny - 14)}" width="52" height="24" rx="12" fill="#0a1146" stroke="rgb(${RGB})" stroke-width="1.5"/>`
     + `<text x="${f(x)}" y="${f(ny + 3)}" class="iso-av-name">${name}</text></g>`
 }

@@ -77,6 +77,7 @@ export class IsoPan {
     if (this.moving) return
     const st = this.stage(); if (!st) return
     this.moving = true
+    this.host.classList.add('iso-moving')     // sin prueba de impacto en las figuras mientras dura el gesto
     this.rect = st.getBoundingClientRect()    // aún sin transformar: el encuadre fijado es el que se ve
     st.style.transformOrigin = '0 0'
     st.style.willChange = 'transform'          // capa propia solo mientras dura el gesto
@@ -108,6 +109,7 @@ export class IsoPan {
     if (st) { st.style.transform = ''; st.style.willChange = '' }
     this.shown = [...b]
     this.moving = false
+    this.host.classList.remove('iso-moving')
     this.rect = null
     const cx = b[0] + b[2] / 2, cy = b[1] + b[3] / 2
     this.host.classList.toggle('iso-zoomed', Math.abs(b[2] - bs[2]) > 1 || Math.abs(cx - bs[0] - bs[2] / 2) > 1 || Math.abs(cy - bs[1] - bs[3] / 2) > 1)

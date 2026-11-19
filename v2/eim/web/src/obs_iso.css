@@ -67,6 +67,13 @@
 /* Con la captura del puntero el cursor lo da el contenedor: sin selector universal (recalcular el estilo de
    miles de figuras al empezar a arrastrar daba un tirón) */
 [data-x="map"].iso-grabbing { cursor: grabbing; }
+/* Durante el zoom o el arrastre nada del dibujo responde al puntero: cada vuelta de rueda ya no recorre las
+   ~2.300 figuras buscando cuál está debajo (el evento cae en el SVG, que basta para el gesto).
+   pointer-events se hereda sin recalcular el estilo de cada figura */
+[data-x="map"].iso-moving .iso-svg > * { pointer-events: none; }
+/* Los objetos dibujados (muebles, plantas, paredes decoradas) no tapan los clics: solo los del puesto cuentan */
+.iso-art { pointer-events: none; }
+.iso-person .iso-art { pointer-events: auto; }
 .iso-reset { position: absolute; top: 12px; left: 12px; z-index: 4; display: none; padding: 6px 12px; border-radius: 999px; cursor: pointer;
   border: 1px solid rgba(var(--glow, 34, 225, 255), .55); background: rgba(7, 12, 51, .9); color: #e8ecff; font: 600 12px "Inter", system-ui, sans-serif; }
 .iso-focus .iso-reset { left: 160px; }
