@@ -7,7 +7,9 @@
  * última vela y el recorrido guiado se retiraron de esta vista. */
 import { detailHtml } from './obs_detail'
 import { isoHtml, isoIncFail, isoKey, setIsoIncFail } from './obs_iso'
+import { IsoArrows } from './obs_iso_arrows'
 import { IsoPan } from './obs_iso_pan'
+import { stepMotion } from './motion'
 import { queueHtml, queuesSummary } from './obs_queues'
 import { compState, stageSentence } from './obs_graph'
 import { glossarize, legendHtml } from './obs_legend'
@@ -56,6 +58,7 @@ export class ObsView {
   private ageBase: { age: number; at: number } | null = null   // edad del último evento al cargar
   private isoLast = ''          // clave del último dibujo isométrico (no se rehace si nada cambió)
   private pan: IsoPan | null = null   // zoom con la rueda y arrastre con clic sostenido
+  private arrows = new IsoArrows()     // flechas que viajan por las líneas (sin SMIL)
 
   constructor(private root: HTMLElement) {}
 
@@ -78,18 +81,23 @@ export class ObsView {
     this.open = show
     clearInterval(this.timer)
     clearInterval(this.tick)
-    this.setMotion(show)           // fuera de la vista el mapa no anima: no gasta GPU ni CPU
+    // fuera de la vista el mapa no anima (reloj de `motion`, `stepMap`): no gasta GPU ni CPU
     if (!show) return              // la carga en curso termina; solo se deja de sondear
     if (Date.now() - this.loadedAt >= POLL_MS) void this.reload()
     this.timer = window.setInterval(() => void this.reload(), POLL_MS)
     this.tick = window.setInterval(() => this.paintAge(), TICK_MS)
   }
 
-  /** Congela o reanuda las animaciones del mapa (CSS y las flechas SMIL que viajan por las líneas). */
-  private setMotion(on: boolean): void {
-    this.root.classList.toggle('iso-paused', !on)
-    const svg = this.root.querySelector<SVGSVGElement>('svg.iso-svg')
-    if (svg) { if (on) svg.unpauseAnimations(); else svg.pauseAnimations() }
+  /** Pone las capas animadas del mapa bajo el reloj compartido: las líneas (flechas y trazos que corren)
+   * a 24 cuadros/s; las salas solo cuando cambia un parpadeo (≈1 vez por segundo: redibujarlas cuesta
+   * ~1.900 figuras). Nada avanza fuera
+   * de la vista, con la página desplazándose ni mientras se hace zoom o se arrastra el mapa. */
+  private stepMap(map: HTMLElement): void {
+    const hold = (): boolean => !this.open || !!this.pan?.moving
+    const fx = map.querySelector('svg.iso-fx')
+    if (fx) stepMotion(fx, { fps: 24, hold, onTick: (dt) => this.arrows.step(fx, dt) })
+    // salas: solo parpadeos a dos tiempos (pilotos y halos de lo que falla, 1,6 s con cambio a 0,4 y 1,2 s)
+    map.querySelectorAll('svg.iso-top, .iso-focus svg.iso-svg').forEach((s) => stepMotion(s, { hold, quant: [800, 400] }))
   }
 
   private build(): void {
@@ -197,7 +205,7 @@ export class ObsView {
     const crumb = this.q('crumb'), map = this.q('map')
     const k = isoKey(d, this.stage, this.sel)   // se rehace solo si cambió algo visible: las animaciones no saltan en cada sondeo
     if (k !== this.isoLast || !map.querySelector('.iso-wrap')) {
-      map.innerHTML = isoHtml(d, this.stage, this.sel); this.isoLast = k; if (!this.open) this.setMotion(false)
+      map.innerHTML = isoHtml(d, this.stage, this.sel); this.isoLast = k; this.stepMap(map)
       map.querySelector('.iso-wrap')?.insertAdjacentHTML('afterbegin', '<button class="iso-reset" data-act="iso-reset" title="Volver al encuadre inicial (también doble clic en el fondo)">⟲ Encuadre</button>'
         + '<span class="iso-hint">Rueda: zoom · clic sostenido: mover</span>')
       this.pan?.apply(this.stage ?? '')

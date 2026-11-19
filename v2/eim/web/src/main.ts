@@ -65,10 +65,14 @@ squadSupport = squad
 const obs = new ObsView($('obs')) // Mapa del sistema (T75), en la mesa bajo el río (T122)
 const paper = new PaperView($('paper')) // bróker simulado (T47): en la mesa, bajo el mapa del sistema; modo Simulado en su cabecera
 
+let liveShown = ''   // último estado pintado: cada tick del precio no vuelve a tocar el DOM si nada cambió
+
 function paintLive(): void {
   const el = $('live')
   const ok = link && state !== 'down'
   const s = !link ? 'down' : state === 'up' ? 'up' : 'connecting'
+  if (liveShown === `${s}|${ok}`) return
+  liveShown = `${s}|${ok}`
   el.dataset.state = s
   el.querySelector('span')!.textContent =
     ok && s === 'up' ? 'En vivo' : !link ? 'Sin conexión' : s === 'down' ? 'Fuente caída' : 'Conectando…'
@@ -95,7 +99,8 @@ function paintClock(): void {
 
 function paintAgents(): void {
   renderRiver($('river'), infos, latest, synthesis, tf)
-  renderJournal($('journal'), journal)
+  // la bitácora (hasta 200 filas) solo se reconstruye si su pestaña está abierta; si no, al abrirla
+  if (!$('t-log').hidden) renderJournal($('journal'), journal)
 }
 
 async function loadAgents(signal: AbortSignal): Promise<void> {
@@ -156,7 +161,7 @@ function onMsg(m: StreamMsg): void {
 async function load(): Promise<void> {
   stream?.close(); loadAbort?.abort()
   loadAbort = new AbortController()
-  link = false; state = 'connecting'; lastClose = null
+  link = false; state = 'connecting'; lastClose = null; liveShown = ''
   $('price').textContent = '—'; delete $('price').dataset.dir
   paintLive()
   more.setContext(symbol, tf)
@@ -203,6 +208,7 @@ function build(): void {
       if (b.dataset.tab === 't-lead') void leaders.reload()
       if (b.dataset.tab === 't-squad') void squad.reload()
       if (b.dataset.tab === 't-lib') void library.reload()
+      if (b.dataset.tab === 't-log') renderJournal($('journal'), journal)
       more.show(b.dataset.tab!)
     }
   })

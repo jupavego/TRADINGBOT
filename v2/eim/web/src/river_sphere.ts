@@ -2,13 +2,14 @@
  * vecinos, facetas triangulares translúcidas, destellos y cinturones orbitales de partículas.
  * Color = reparto subida/bajada (`data-up`): verde a la izquierda y rojo a la derecha, cada uno
  * con un área proporcional a su % y fundidos en degradado; sin señal → `data-color` (cian).
- * `data-fill` (ventaja del % mayor) aviva la intensidad. Un único bucle `requestAnimationFrame`
+ * `data-fill` (ventaja del % mayor) aviva la intensidad. Un único bucle (el reloj de `motion`)
  * busca el canvas vigente en cada cuadro, así sobrevive a los re-renderizados del río (que
  * sustituyen el HTML) y se detiene si el canvas desaparece; mientras el río no está en pantalla
- * (desplazado u oculto por otra vista) no dibuja (T122). Geometría en `river_sphere_mesh`;
- * colores, destellos y capas estáticas en `river_sphere_paint`. */
+ * (desplazado u oculto por otra vista) o la página se desplaza no dibuja (T122). Geometría en
+ * `river_sphere_mesh`; colores, destellos y capas estáticas en `river_sphere_paint`. */
 
 import { DUST, EDGES, FACETS, NODES, RINGS, type V3 } from './river_sphere_mesh'
+import { onMotionFrame } from './motion'
 import { areaSplit, BAND, colorAt, glowAt, layer, paint, shade, toRgb, type Tint } from './river_sphere_paint'
 
 type Ctx = CanvasRenderingContext2D
@@ -207,9 +208,9 @@ function draw(cv: HTMLCanvasElement, now: number, still: boolean): void {
   }
 }
 
-const FRAME_MS = 1000 / 30 - 2   // margen para no saltarse cuadros de una pantalla de 60 Hz
-
-/** Arranca (una sola vez) el bucle que anima el canvas `.hsphere` dentro de `root`. */
+/** Arranca (una sola vez) el dibujo del canvas `.hsphere` dentro de `root`, al ritmo del reloj
+ * compartido (`motion`, 24 cuadros/s, en el mismo cuadro que la órbita): fuera de pantalla, con la
+ * pestaña oculta o mientras la página se desplaza no dibuja. Se da de baja si el canvas desaparece. */
 export function animateSphere(root: HTMLElement): void {
   const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const first = root.querySelector<HTMLCanvasElement>('canvas.hsphere')
@@ -220,13 +221,9 @@ export function animateSphere(root: HTMLElement): void {
     watched = root
     new IntersectionObserver((es) => { onScreen = es.some((e) => e.isIntersecting) }).observe(root)
   }
-  let lastDraw = 0
-  const loop = (now: number): void => {
+  const stop = onMotionFrame((now) => {
     const cv = root.querySelector<HTMLCanvasElement>('canvas.hsphere')
-    if (!cv || !document.contains(cv)) { running = false; return }
-    // ~30 cuadros/s: el giro es lento y así se pinta la mitad de veces (deja la CPU libre para el resto)
-    if (onScreen && now - lastDraw >= FRAME_MS) { lastDraw = now; draw(cv, now, false) }
-    requestAnimationFrame(loop)
-  }
-  requestAnimationFrame(loop)
+    if (!cv || !document.contains(cv)) { running = false; stop(); return }
+    if (onScreen) draw(cv, now, false)
+  })
 }
