@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-19T10:06:00",
+ "generated": "2026-11-19T15:56:01",
  "phases": [
   {
    "n": 0,
@@ -2593,8 +2593,8 @@ window.EIM_STATUS = {
     "T157",
     "T159"
    ],
-   "state": "pending",
-   "notes": "—",
+   "state": "progress",
+   "notes": "**Herramienta hecha 2026-11-19; falta el primer informe con datos reales (revisión del día 30, 2026-12-17; sale el 18).** `python -m eim.nursery report` (`v2/eim/nursery/report/`) lee el libro de la cantera (vivo en solo lectura o la copia más reciente), reconstruye el escalafón con el mismo código y deja `v2/reports/nursery/cantera_<fecha>.{md,json}` + `latest.json` (lo lee la auditoría, §5). Hechos de aprendizaje por prospecto × obra (sostenida / refutada / no concluyente) en `data/library/digital/nursery_facts.jsonl`, visibles en `GET /v2/library/digital/learning/nursery` y en la Biblioteca; bajas con causa nombrada, propuestas ◆ con MinTRL, informatividad para T150 y graduaciones con el recorte de Harvey-Liu. Tarea diaria `v2/scripts/cantera_informe_mensual.ps1 -Instalar` (solo en `juanpablo-cpu`). Ficha `PLAN/T172.md`",
    "effort": "medio",
    "phase": 27
   },
