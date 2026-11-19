@@ -3570,3 +3570,8 @@ pm run build.
 - **Pruebas:** en la sesión web (sin duckdb, fastapi ni arch instalables): `ruff check eim tests` limpio; `test_report.py` 5/7 (la del cierre pasa con StepM sustituido; la de duckdb no corre aquí), `test_audit.py` 15/15; tipos de la Biblioteca sin errores nuevos. **Falta el gate completo en un equipo** (por la cola).
 - **Abierto:** aceptación con datos reales: primera revisión 2026-12-17 03:25 UTC, informe el 18; cierre de fase 2027-05-18. BACKLOG T172 (1)–(5).
 - **Siguiente paso:** en `juanpablo-cpu`, `git pull`, gate por la cola y `v2\scripts\cantera_informe_mensual.ps1 -Instalar`; reiniciar la API cuando convenga para ver los hechos en la Biblioteca (no interfiere con T31: solo lectura).
+
+## 2026-11-19 21:30 UTC · claude-web · Condicionantes por equipo en la hoja de ruta y el Vigía
+- **Hecho:** a pedido del usuario, `PLAN/CONDICIONANTES.md` lista lo que de las tareas en curso solo puede hacerse desde `juanpablo-cpu` (T31, T116, T135, T143, T172, T178). `build_roadmap.py` lo lleva a `status.js` (`where`) y `roadmap.html` lo muestra: etiqueta «🖥 juanpablo-cpu» en cada tarea, contador y lista «Condicionantes: se hacen desde juanpablo-cpu» en la sección del Vigía; el botón «Abrir el Vigía» apunta a la versión vigente. Rama de T172 rehecha sobre `main` (conflictos de STATUS, BACKLOG y status.js resueltos).
+- **Pruebas:** `roadmap.html` en Chrome sin cabeza con el `status.js` nuevo: sección del Vigía con los 7 condicionantes y etiquetas en las tareas (captura revisada).
+- **Siguiente paso:** al cumplir un condicionante, borrar su fila y correr `python PLAN/build_roadmap.py`.

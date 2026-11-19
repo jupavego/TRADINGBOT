@@ -13,6 +13,7 @@
   --ready:#a86a0c; --ready-bg:#fbefd6;
   --block:#9a9486; --block-bg:#eee9dd;
   --gate:#8a3b8f;
+  --where:#a8570f;
 }
 :root[data-theme="dark"]{
   --bg:#17160f; --card:#201f17; --line:#33311f; --line2:#46432c;
@@ -22,6 +23,7 @@
   --ready:#e6b05a; --ready-bg:#3a2d12;
   --block:#7b7767; --block-bg:#2a281b;
   --gate:#d08ad6;
+  --where:#f0a35a;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
@@ -100,6 +102,7 @@ button:hover{background:var(--card)}
 .tag.ready{background:var(--ready-bg);color:var(--ready)}
 .tag.block{background:var(--block-bg);color:var(--tx3)}
 .tag.gate{background:transparent;color:var(--gate);border:1px solid var(--gate)}
+.tag.where{background:transparent;color:var(--where);border:1px solid var(--where)}
 .det{display:none;margin:8px 0 4px 26px;font-size:13px;color:var(--tx2)}
 .t.open .det{display:block}
 .det p{margin:4px 0}
@@ -121,7 +124,7 @@ code{background:var(--block-bg);padding:1px 6px;border-radius:5px;font-size:12.5
 .vgk div{border:1px solid var(--line);border-radius:10px;padding:8px 12px}
 .vgk b{display:block;font-size:24px;font-weight:600;line-height:1.1}
 .vgk span{font-size:12px;color:var(--tx2)}
-.vgk .k-prog b{color:var(--prog)}.vgk .k-ready b{color:var(--ready)}.vgk .k-gate b{color:var(--gate)}
+.vgk .k-prog b{color:var(--prog)}.vgk .k-ready b{color:var(--ready)}.vgk .k-gate b{color:var(--gate)}.vgk .k-where b{color:var(--where)}
 .vgl h3{font-size:13px;font-weight:600;color:var(--tx2);margin:10px 0 4px}
 .vgl .t{cursor:default}
 .vge{color:var(--tx3);font-size:13px;margin:4px 0}
@@ -169,7 +172,7 @@ code{background:var(--block-bg);padding:1px 6px;border-radius:5px;font-size:12.5
   <section class="card vigia" id="vigia">
     <div class="vgh">
       <h2>Vigía de tareas EIM · control de lo que está en curso</h2>
-      <a class="btn" href="https://claude.ai/artifact/QxazRZrJecoh9qmqM8XL19" target="_blank" rel="noopener">Abrir el Vigía ↗</a>
+      <a class="btn" href="https://claude.ai/artifact/4zneJXdNz9wXSWcUPGjpJ1" target="_blank" rel="noopener">Abrir el Vigía ↗</a>
     </div>
     <p class="vgd">El Vigía muestra, cada hora, cómo van en el PC del EIM las tareas en marcha, los servicios y las alertas. Aquí abajo, lo que la ruta tiene en curso ahora, para cruzarlo con él.</p>
     <div class="vgk" id="vg-k"></div>
@@ -269,21 +272,33 @@ function renderVigia(tasks){
   var prog=tasks.filter(function(t){return t.view==="progress"});
   var ready=tasks.filter(function(t){return t.view==="ready"});
   var gate=ready.filter(function(t){return GATES[t.id]});
+  var where={};prog.concat(ready).forEach(function(t){(t.where||[]).forEach(function(c){(where[c.machine]=where[c.machine]||[]).push({t:t,c:c})})});
   document.getElementById("vg-k").innerHTML=
     '<div class="k-prog"><b>'+prog.length+'</b><span>en curso</span></div>'+
     '<div class="k-ready"><b>'+ready.length+'</b><span>listas para empezar</span></div>'+
-    '<div class="k-gate"><b>'+gate.length+'</b><span>esperan tu decisión ◆</span></div>';
+    '<div class="k-gate"><b>'+gate.length+'</b><span>esperan tu decisión ◆</span></div>'+
+    Object.keys(where).map(function(mq){return '<div class="k-where"><b>'+where[mq].length+'</b><span>se hacen desde '+esc(mq)+'</span></div>'}).join("");
   function row(t){
     var p=ph[t.id];
     return '<div class="t '+t.view+'"><div class="tr"><span class="st '+t.view+'">'+icon(t.view)+'</span><span class="tid">'+t.id+'</span><span class="tt">'+esc(t.title)+'</span>'+
       (p?'<span class="tag block">Cap. '+esc(p.n)+'</span>':"")+
       (GATES[t.id]?'<span class="tag gate" title="'+esc(GATES[t.id])+'">◆ decisión</span>':"")+
+      whereTags(t)+
       '<button type="button" data-copy="Ejecuta PLAN/'+t.id+'.md">Copiar</button></div>'+
       (GATES[t.id]?'<div class="vge" style="margin-left:26px;color:var(--gate)">'+esc(GATES[t.id])+'</div>':"")+'</div>';
   }
   document.getElementById("vg-l").innerHTML=
     '<h3>En curso ahora</h3>'+(prog.length?prog.map(row).join(""):'<p class="vge">Ninguna tarea marcada en curso en STATUS.md.</p>')+
-    (gate.length?'<h3>Esperan tu decisión</h3>'+gate.map(row).join(""):"");
+    (gate.length?'<h3>Esperan tu decisión</h3>'+gate.map(row).join(""):"")+
+    Object.keys(where).map(function(mq){
+      var it=where[mq].slice().sort(function(a,b){return (a.c.when==="ya"?"0":a.c.when)<(b.c.when==="ya"?"0":b.c.when)?-1:1});
+      return '<h3>Condicionantes: se hacen desde '+esc(mq)+'</h3>'+it.map(function(x){
+        return '<div class="t progress"><div class="tr"><span class="tag where">🖥 '+esc(mq)+'</span><span class="tid">'+x.t.id+'</span><span class="tt">'+esc(x.c.text)+'</span>'+
+          '<span class="tag '+(x.c.when==="ya"?"ready":"block")+'">'+(x.c.when==="ya"?"ya":"desde "+esc(x.c.when))+'</span></div></div>'}).join("")}).join("");
+}
+function whereTags(t){
+  var ms={};(t.where||[]).forEach(function(c){ms[c.machine]=1});
+  return Object.keys(ms).map(function(mq){return '<span class="tag where" title="Lo que falta se hace desde '+esc(mq)+' (PLAN/CONDICIONANTES.md)">🖥 '+esc(mq)+'</span>'}).join("");
 }
 function phaseCard(p,m,ts,d){
     var k=function(v){return ts.filter(function(t){return t.view===v}).length};
@@ -299,7 +314,8 @@ function phaseCard(p,m,ts,d){
       var tag=t.view==="ready"?'<span class="tag ready">Lista</span>':t.view==="blocked"?'<span class="tag block">Espera '+t.wait.join(", ")+'</span>':"";
       var gate=GATES[t.id]?'<span class="tag gate" title="'+esc(GATES[t.id])+'">◆ decisión</span>':"";
       var deps=t.deps.length?t.deps.map(function(d){var s=m[d]?m[d].view:"";return '<span class="chip '+s+'">'+d+'</span>'}).join(""):'<span class="chip">sin dependencias</span>';
-      return '<div class="t '+t.view+(OPEN[t.id]?" open":"")+'" data-id="'+t.id+'"><div class="tr"><span class="st '+t.view+'">'+icon(t.view)+'</span><span class="tid">'+t.id+'</span><span class="tt">'+esc(t.title)+'</span>'+gate+tag+'</div><div class="det">'+
+      var wh=(t.where||[]).map(function(c){return '<p style="color:var(--where)">🖥 Desde '+esc(c.machine)+' ('+(c.when==="ya"?"ya":"desde "+esc(c.when))+'): '+esc(c.text)+'</p>'}).join("");
+      return '<div class="t '+t.view+(OPEN[t.id]?" open":"")+'" data-id="'+t.id+'"><div class="tr"><span class="st '+t.view+'">'+icon(t.view)+'</span><span class="tid">'+t.id+'</span><span class="tt">'+esc(t.title)+'</span>'+gate+whereTags(t)+tag+'</div><div class="det">'+wh+
         (t.goal?'<p>'+esc(t.goal)+'</p>':"")+'<div class="chips">Depende de: '+deps+'</div>'+(t.effort?'<p>Esfuerzo: '+esc(t.effort)+'</p>':"")+(GATES[t.id]?'<p style="color:var(--gate)">Decisión: '+esc(GATES[t.id])+'</p>':"")+(t.notes?'<p>Cierre: '+esc(t.notes)+'</p>':"")+
         '<div class="cmd"><code>Ejecuta PLAN/'+t.id+'.md</code><button type="button" data-copy="Ejecuta PLAN/'+t.id+'.md">Copiar</button></div></div></div>'}).join("")+'</div></section>';
 }
