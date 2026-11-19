@@ -40,6 +40,13 @@
 .iso-legend i { display: inline-block; width: 20px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
 .iso-legend i.t-ok { background: #0fbf7a; } .iso-legend i.t-bad { background: #f0324f; } .iso-legend i.t-none { background: #8b95aa; }
 .iso-legend label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+/* Sala enfocada: ocupa todo el espacio del mapa, centrada en lo que deja libre el panel de detalle */
+.iso-focus .iso-svg { width: calc(100% - min(344px, 42%)); max-height: 78vh; margin: 0; min-height: 480px; }
+.iso-focus .iso-area { cursor: default; }
+.iso-back { position: absolute; top: 12px; left: 12px; z-index: 4; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+  border: 1px solid rgba(var(--glow, 34, 225, 255), .55); background: rgba(7, 12, 51, .9); color: #e8ecff; font: 600 12.5px "Inter", system-ui, sans-serif; }
+.iso-back:hover, .iso-back:focus-visible { background: rgba(34, 225, 255, .18); outline: none; }
+@media (max-width: 700px) { .iso-focus .iso-svg { width: 100%; min-height: 0; } }
 .obs-piece-list { list-style: none; padding: 0; margin: 6px 0; font-size: 12px; display: grid; gap: 3px; }
 /* En «Isométrico» el mapa ocupa todo el ancho: «Cómo leer este mapa» y el detalle flotan en la esquina superior derecha del diagrama */
 [data-view="iso"] .obs-body { grid-template-columns: minmax(0, 1fr); position: relative; }

@@ -3472,3 +3472,11 @@ y por informante, si lo que cada agente dice en vivo acierta la dirección.
 - **Pruebas:** gate completo por la cola (1 fallo, el de arriba); tras el arreglo, `tests/docs` + `tests/operation/test_usage_alert.py` verdes y `ruff check eim tests` limpio. Verificación en vivo por la API, no solo por consola: `/v2/paper` (T195), `/v2/paper/accounting` (T196), `/v2/paper/asymmetry`, `/v2/direction/watch`, `/v2/calibration/watch` y `/v2/share/status`, las cuatro últimas a 200.
 - **Abierto:** cuatro huecos anotados en BACKLOG, uno verificado en el código: `eim/continuity/check.py::_api_port` hace `return` **en silencio** cuando «operación» no tiene latido —justo cuando el servicio está muerto—, por eso `continuity check` dio «CON AVISOS» sin mencionar que la API llevaba horas caída. Los otros tres: `load()` sin reserva ante un estado ilegible, `save()` sin `fsync` antes del `replace`, y el vigilante sin avisar de N reinicios seguidos por el mismo error.
 - **Siguiente paso:** decidir si esos cuatro huecos abren tarea propia (son de operación, cerca de T126/T127/T140) y mirar por qué la retención de T178 no bajó `leaders.duckdb`, que pasó de 987 MB anoche a 1 339 MB.
+
+
+## 2026-11-19 · sesión «Sala enfocada en el mapa del sistema» · un área a la vez
+- **Hecho:** a pedido del usuario, al pulsar un área del mapa isométrico (p. ej. «2. ANÁLISIS») esa sala pasa al centro y ocupa todo el espacio del mapa, ampliada; las demás salas, las pistas, el área común y los avatares se ocultan. Se vuelve al mapa entero con «← Ruta completa» (en la miga de pan o en el botón dentro del mapa). Pulsar un puesto mantiene la sala enfocada y abre su detalle; el panel de detalle no tapa la sala (la sala se centra en el espacio libre).
+- **Archivos:** 2/eim/web/src/obs_iso.ts (ocusHtml, legendBar; isoHtml delega cuando hay etapa elegida), 2/eim/web/src/obs_iso.css (.iso-focus, .iso-back).
+- **Pruebas:** revisión de tipos (	sc --strict) en la sesión; ruff, pruebas que leen la web y 
+pm run build en el equipo del usuario.
+- **Abierto:** nada. **Siguiente paso:** ninguno obligatorio.

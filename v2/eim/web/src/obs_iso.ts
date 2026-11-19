@@ -241,10 +241,27 @@ export function ensureIsoDefs(): void {
   document.body.appendChild(box.firstElementChild!)
 }
 
-/** El mapa completo como HTML (SVG + leyenda con el ajuste de «datos incompletos»). */
+const legendBar = (inc: boolean): string => `<div class="iso-legend"><span><i class="t-ok"></i>Funciona</span><span><i class="t-bad"></i>Falla (✖ error · ◷ dato viejo${inc ? ' · ▲ incompleto' : ''})</span>
+      <span><i class="t-none"></i>Sin información (? sin datos · ❚❚ pausa · ◌ en espera)</span><span class="muted">Puesto translúcido = planeado</span>
+      <label><input type="checkbox" data-act="iso-inc"${inc ? ' checked' : ''}> ▲ cuenta como falla</label></div>`
+
+/** Sala enfocada: solo esa área, ampliada y centrada en todo el espacio del mapa; el resto se oculta
+ * hasta pulsar «← Ruta completa». */
+function focusHtml(d: ObsData, a: Area, inc: boolean, sel: string | null): string {
+  const [room, tag, b] = drawArea(d, a, inc, a.stage, sel), [floor] = floorSlab([a]), e = (a.hu + a.hv) * S, pad = 28
+  const x0 = Math.min(b[0], a.cx - e * 0.866) - pad, x1 = Math.max(b[2], a.cx + e * 0.866) + pad
+  const y0 = Math.min(b[1], a.cy - e * 0.5 - WALL_H * S) - pad, y1 = Math.max(b[3], a.cy + e * 0.5 + 0.4 * S) + pad
+  return `<div class="iso-wrap iso-focus"><button class="iso-back" data-home title="Volver al mapa con todas las áreas">← Ruta completa</button>
+    <svg class="iso-svg" viewBox="${x0.toFixed(0)} ${y0.toFixed(0)} ${(x1 - x0).toFixed(0)} ${(y1 - y0).toFixed(0)}" role="img" aria-label="${esc(`Área ${d.graph.stage_titles_es[a.stage] ?? a.stage} ampliada`)}">
+      ${floor}<g>${room}</g><g>${tag}</g></svg>${legendBar(inc)}</div>`
+}
+
+/** El mapa completo como HTML (SVG + leyenda con el ajuste de «datos incompletos»); con una etapa elegida, solo esa sala. */
 export function isoHtml(d: ObsData, stage: string | null, sel: string | null): string {
   ensureIsoDefs()
-  const inc = isoIncFail(), A = areas(d, inc), L = links(d, inc, A)
+  const inc = isoIncFail(), A = areas(d, inc), focus = stage ? A.find((a) => a.stage === stage) : undefined
+  if (focus) return focusHtml(d, focus, inc, sel)
+  const L = links(d, inc, A)
   const motion = !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
   const lines: string[] = [], labs: string[] = [], taken: number[][] = [], tracks: UVRect[] = [], uvs = A.map((a) => toUV(a.cx, a.cy))
   const mid: [number, number] = [uvs.reduce((t, q) => t + q[0], 0) / uvs.length, uvs.reduce((t, q) => t + q[1], 0) / uvs.length]
@@ -274,7 +291,5 @@ export function isoHtml(d: ObsData, stage: string | null, sel: string | null): s
   return `<div class="iso-wrap">
     <svg class="iso-svg" viewBox="${x0.toFixed(0)} ${y0.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}" role="img" aria-label="Mapa isométrico: ${d.graph.stages.length} etapas como salas de trabajo">
       <defs>${marks}</defs>${floor}<g class="iso-lines">${lines.join('')}</g><g>${rooms.join('')}</g><g>${avs}</g><g>${tags.join('')}</g><g class="iso-flabs">${labs.join('')}</g></svg>
-    <div class="iso-legend"><span><i class="t-ok"></i>Funciona</span><span><i class="t-bad"></i>Falla (✖ error · ◷ dato viejo${inc ? ' · ▲ incompleto' : ''})</span>
-      <span><i class="t-none"></i>Sin información (? sin datos · ❚❚ pausa · ◌ en espera)</span><span class="muted">Puesto translúcido = planeado</span>
-      <label><input type="checkbox" data-act="iso-inc"${inc ? ' checked' : ''}> ▲ cuenta como falla</label></div></div>`
+    ${legendBar(inc)}</div>`
 }
