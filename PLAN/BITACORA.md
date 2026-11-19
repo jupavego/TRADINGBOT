@@ -3501,3 +3501,17 @@ pm run build.
 - **Archivos:** `v2/eim/web/src/{motion.ts (nuevo), obs_iso_arrows.ts (nuevo), obs_iso_pan.ts, obs_iso.ts, obs_iso.css, obs_view.ts, river_orbit.ts, river_sphere.ts, main.ts, style.css}`.
 - **Pruebas:** `tsc --strict` sin errores; banco de pruebas en Chrome sin cabeza con el mapa (antes/después, mismo dato sintético con la forma del real): trabajo del hilo principal en reposo con río + mapa a la vista 991 → 430 ms por segundo y cuadros 23 → 57 por segundo; desplazando la página 1.865 → 44 ms/s; arrastre del mapa 3.300 → 730 ms/s con 60 cuadros/s estables (antes ~30). La vista durante el gesto coincide con la fijada al soltar (diferencia media < 1/255) y el encuadre final es el mismo que antes; capturas idénticas del mapa en reposo; sala ampliada, «Encuadre», clics y títulos de las líneas funcionan. Python sin cambios. En el equipo: `npm run build`.
 - **Abierto:** durante el gesto el dibujo se ve algo borroso al acercar (es una imagen escalada) y queda nítido al soltar. El río sigue moviendo planetas con `transform` (recalcula capas 24 veces por segundo); si aún se nota, el siguiente paso es pasar sus planetas a canvas. **Siguiente paso:** que el usuario lo pruebe en su equipo.
+
+## 2026-11-19 17:10 UTC · claude-web · Mapa del sistema: «1. Datos» como microecosistema
+- **Hecho:** la sala Datos deja la rejilla y ubica cada puesto según cómo sale la información: ventanillas
+  (fuentes externas, junto al ventanal), monitoreo continuo (junto a la pared de pantallas, ecualizador),
+  archivo (almacén de velas), fotografía del mercado (puesto principal, tapete y tablero) y obra (video
+  planeado, cinta y conos). En el piso, flujos internos del catálogo y salidas laterales por el borde más
+  cercano; en la sala ampliada, nombres de zona y a qué salas va cada salida. Las animaciones de la sala
+  avanzan a saltos en los instantes del reloj de #321 (quant 800 ms), sin repintar cada cuadro.
+- **Archivos:** `v2/eim/web/src/obs_iso_eco.ts` (nuevo), `obs_iso.ts`, `obs_iso_focus.ts` (nombre que se abre
+  hacia el lado libre), `obs_iso.css`.
+- **Pruebas:** `tsc --noEmit` sin errores nuevos; capturas en Chrome sin cabeza del mapa completo y de la sala
+  ampliada con la foto del catálogo (15 piezas de Datos, 3 planeadas).
+- **Abierto:** las otras seis salas siguen en rejilla.
+- **Siguiente paso:** definir el microecosistema de «2. Análisis»; en el equipo, `npm run build` para verlo.

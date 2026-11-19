@@ -3,12 +3,14 @@
  * tres colores: verde = funciona, rojo = falla, gris = sin información. Las líneas salen de las
  * conexiones declaradas entre etapas y cierran el ciclo de Validación a Datos. Todas las salas se apoyan
  * sobre un mismo piso gris claro de oficina; el nombre de cada área va pintado en su franja del frente y el
- * centro es un área común con salitas (obs_iso_lounge) que no pisa las pistas. */
+ * centro es un área común con salitas (obs_iso_lounge) que no pisa las pistas. Las salas con microecosistema
+ * (obs_iso_eco; por ahora «1. Datos») ubican cada puesto según cómo sale la información, no en rejilla. */
 import './obs_iso.css'
 import { compState } from './obs_graph'
 import { P, pts, S, type Room } from './obs_iso_geo'
 import { ART_DEFS } from './obs_iso_art'
 import { avatar, avatarDefs } from './obs_iso_avatar'
+import { ecoDraw, ecoExtra, ecoPlan, hasEco, type EcoCtx, type EcoPlan } from './obs_iso_eco'
 import { focusLayout, nameTags } from './obs_iso_focus'
 import { lounges, type UVRect } from './obs_iso_lounge'
 import { NAME_STRIP, station, STRIP, themeOf, WALL_H } from './obs_iso_props'
@@ -34,7 +36,7 @@ const worstTone = (ts: Tone[]): Tone => { const t = ts.filter((x) => x !== 'plan
 const RING: [number, number][] = [[-9.4, 0.9], [-8.7, -5.9], [0.6, -6.9], [6.3, -4.7], [9.6, 0.9], [5.6, 5.8], [-3.9, 6.0]]
 const posOf = (i: number, n: number): [number, number] => (n === RING.length ? RING[i]
   : [Math.cos(Math.PI + (i / n) * Math.PI * 2) * 9.4, Math.sin(Math.PI + (i / n) * Math.PI * 2) * 6.2])
-interface Area extends Room { stage: string; i: number; list: ObsComp[]; slots: [number, number][]; k: number; tone: Tone }
+interface Area extends Room { stage: string; i: number; list: ObsComp[]; slots: [number, number][]; k: number; tone: Tone; ks?: number[]; eco?: EcoPlan }
 interface Link { a: string; b: string; tone: Tone; n: number; label: string; main: boolean; fb?: boolean }
 const ART_ES: Record<string, string> = {
   snapshot: 'fotografía del mercado', agent_report: 'opiniones', synthesis: 'opinión conjunta', plan: 'plan', proposal: 'propuesta',
@@ -54,8 +56,12 @@ function areas(d: ObsData, inc: boolean): Area[] {
     const hu = Math.max((cols * cell) / 2 + pad, 1.9), hv = (rows * cell + STRIP + NAME_STRIP) / 2 + pad
     const slots: [number, number][] = []
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) slots.push([-(cols * cell) / 2 + cell * (c + 0.5), -hv + pad + STRIP + cell * (r + 0.5)])
-    const [x, y] = posOf(i, st.length)
-    return { stage, i, list, slots, k: cell / 1.1, cx: x * S, cy: y * S, hu, hv, tone: worstTone(list.map((c) => toneOf(compState(d, c), inc))) }
+    const [x, y] = posOf(i, st.length), tone = worstTone(list.map((c) => toneOf(compState(d, c), inc)))
+    if (hasEco(stage)) {                 // microecosistema: cada puesto donde le toca según cómo sale la información
+      const eco = ecoPlan(list)
+      return { stage, i, list, slots: eco.slots, k: eco.k, ks: eco.ks, eco, cx: x * S, cy: y * S, hu: eco.hu, hv: eco.hv, tone }
+    }
+    return { stage, i, list, slots, k: cell / 1.1, cx: x * S, cy: y * S, hu, hv, tone }
   })
 }
 
@@ -180,9 +186,18 @@ function drawArea(d: ObsData, a: Area, inc: boolean, stage: string | null, sel: 
     + `<polyline points="${pts([DH, AH, BH])}" fill="none" stroke="${th.accent}" stroke-width="4"/>`
     + `<line x1="${A0[0]}" y1="${A0[1]}" x2="${AH[0]}" y2="${AH[1]}" stroke="#9aa3b3" opacity=".6"/>`
     + th.walls(a) + th.props(a)
+  const items: { svg: string; depth: number }[] = []
+  if (a.eco) {                         // piso con zonas, flujos internos y salidas; mobiliario ordenado con los puestos
+    const by = new Map(d.comps.map((x) => [x.id, x]))
+    const ctx: EcoCtx = { list: a.list, edges: d.graph.edges, stage: a.stage, detail: a.eco.f > 1,
+      tone: (id) => { const x = by.get(id); return x ? toneOf(compState(d, x), inc) : 'none' },
+      stageOf: (id) => by.get(id)?.stage, title: (st) => d.graph.stage_titles_es[st] ?? st }
+    const eco = ecoDraw(a, a.eco, ctx, th.accent)
+    s += eco.floor; items.push(...eco.props)
+  }
   s += `<polyline points="${pts([D, C, B])}" fill="none" stroke="${c}" stroke-width="${stage === a.stage ? 5 : 3.5}" class="iso-edge t-${a.tone}"/>`
-  const items = a.list.map((comp, i) => ({ comp, i, depth: a.slots[i][0] + a.slots[i][1] })).sort((x, y) => x.depth - y.depth)
-  for (const { comp, i } of items) s += person(d, a, comp, a.slots[i], inc, th.shirt, th.accent, sel, i)
+  a.list.forEach((comp, i) => items.push({ svg: person(d, a, comp, a.slots[i], inc, th.shirt, th.accent, sel, i), depth: a.slots[i][0] + a.slots[i][1] }))
+  for (const it of items.sort((x, y) => x.depth - y.depth)) s += it.svg
   const dim = stage && stage !== a.stage ? ' iso-dim' : ''
   const room = `<g class="obs-n iso-area${dim}${stage === a.stage ? ' sel' : ''}" data-stage="${esc(a.stage)}" role="button" tabindex="0"
     aria-label="${esc(`${d.graph.stage_titles_es[a.stage]} (${th.room}): ${TONE_ES[a.tone]}`)}">${s}</g>`
@@ -191,14 +206,14 @@ function drawArea(d: ObsData, a: Area, inc: boolean, stage: string | null, sel: 
 }
 
 function person(d: ObsData, a: Area, comp: ObsComp, [u, v]: [number, number], inc: boolean, shirt: string, accent: string, sel: string | null, n: number): string {
-  const st = compState(d, comp), tone = toneOf(st, inc), c = COLOR[tone], plan = tone === 'plan', k = a.k
+  const st = compState(d, comp), tone = toneOf(st, inc), c = COLOR[tone], plan = tone === 'plan', k = a.ks?.[n] ?? a.k
   const f = P(a.cx, a.cy, u, v + 0.22 * k, 0.001), bz = P(a.cx, a.cy, u, v + 0.22 * k, 1.12 * k), hd = P(a.cx, a.cy, u, v + 0.22 * k, 0.86 * k)
   const floor = plan ? `<ellipse cx="${f[0]}" cy="${f[1]}" rx="${20 * k}" ry="${10 * k}" fill="none" stroke="#9aa6d6" stroke-dasharray="3 3"/>`
     : `<ellipse cx="${f[0]}" cy="${f[1]}" rx="${20 * k}" ry="${10 * k}" fill="${c}" class="${tone === 'bad' ? 'iso-pulse' : 'iso-glow'}"/>`
   const beacon = plan ? '' : `<line x1="${hd[0]}" y1="${hd[1] - 6 * k}" x2="${bz[0]}" y2="${bz[1] + 3}" stroke="${c}" opacity=".5"/><circle cx="${bz[0]}" cy="${bz[1]}" r="${3.6 * k + 0.6}" fill="${c}" class="iso-beacon"/>`
   const ring = comp.id === sel ? `<ellipse cx="${f[0]}" cy="${f[1]}" rx="${26 * k}" ry="${13 * k}" fill="none" stroke="var(--accent, #22e1ff)" stroke-width="2.5"/>` : ''
   return `<g class="obs-n iso-person${plan ? ' plan' : ''}" data-id="${esc(comp.id)}" role="button" tabindex="0" aria-label="${esc(`${comp.title_es}: ${STATE_LABEL[st]}`)}">
-    <title>${esc(`${comp.title_es} — ${STATE_ICON[st]} ${STATE_LABEL[st]} (${comp.id} · ${comp.task})`)}</title>${ring}${floor}${station(a, u, v, k, comp.kind, shirt, accent, plan ? '#9aa6d6' : c, n)}${beacon}</g>`
+    <title>${esc(`${comp.title_es} — ${STATE_ICON[st]} ${STATE_LABEL[st]} (${comp.id} · ${comp.task})`)}</title>${ring}${floor}${station(a, u, v, k, comp.kind, shirt, accent, plan ? '#9aa6d6' : c, n)}${a.eco ? ecoExtra(a, a.eco, n, comp) : ''}${beacon}</g>`
 }
 
 function label(d: ObsData, a: Area, room: string, inc: boolean, dim: string): [string, number[]] {
@@ -211,7 +226,8 @@ function label(d: ObsData, a: Area, room: string, inc: boolean, dim: string): [s
   const w = Math.max(name.length * 7.6, room.length * 6.3, plain.length * 6.6) + 34, { cx, cy, hu, hv } = a
   let x: number, y: number, stem = ''
   const [, sy] = posOf(a.i, d.graph.stages.length)
-  if (sy < -1) { const tp = P(cx, cy, -hu, -hv, WALL_H); x = tp[0]; y = tp[1] - 52; stem = `<line x1="${x}" y1="${y + 30}" x2="${tp[0]}" y2="${tp[1] - 3}" stroke="${c}" stroke-dasharray="2 3" opacity=".6"/>` }
+  // Arriba si la sala está en la fila de arriba o es una sala ampliada con microecosistema (así no choca con sus salidas).
+  if (sy < -1 || (a.eco?.f ?? 1) > 1) { const tp = P(cx, cy, -hu, -hv, WALL_H); x = tp[0]; y = tp[1] - 52; stem = `<line x1="${x}" y1="${y + 30}" x2="${tp[0]}" y2="${tp[1] - 3}" stroke="${c}" stroke-dasharray="2 3" opacity=".6"/>` }
   else if (sy > 1) { const f = P(cx, cy, hu, hv, -0.38); x = cx; y = f[1] + 34 }
   else if (cx < 0) { const f = P(cx, cy, -hu, hv, -0.38); x = f[0] + 40 - w / 2; y = f[1] + 50 }
   else { const f = P(cx, cy, hu, -hv, -0.38); x = f[0] - 40 + w / 2; y = f[1] + 50 }
@@ -242,12 +258,19 @@ const legendBar = (inc: boolean): string => `<div class="iso-legend"><span><i cl
       <span><i class="t-none"></i>Sin información (? sin datos · ❚❚ pausa · ◌ en espera)</span><span class="muted">Puesto translúcido = planeado</span>
       <label><input type="checkbox" data-act="iso-inc"${inc ? ' checked' : ''}> ▲ cuenta como falla</label></div>`
 
+/** Sala con microecosistema, ampliada: la misma distribución, más separada para que quepan los nombres. */
+function ecoFocus(a: Area): Area {
+  const eco = ecoPlan(a.list, 2.6, 1.7)
+  return { ...a, eco, slots: eco.slots, ks: eco.ks, k: eco.k, hu: eco.hu, hv: eco.hv }
+}
+
 /** Sala enfocada: solo esa área, ampliada y centrada en todo el espacio del mapa; el resto se oculta
  * hasta pulsar «← Ruta completa». */
 function focusHtml(d: ObsData, a0: Area, inc: boolean, sel: string | null): string {
-  const a = focusLayout(a0), [room, tag, b] = drawArea(d, a, inc, a.stage, sel), [floor] = floorSlab([a]), e = (a.hu + a.hv) * S
-  const names = nameTags(a, a.list.map((c) => { const st = compState(d, c), t = toneOf(st, inc)
-    return { id: c.id, name: c.title_es, color: t === 'plan' ? '#9aa6d6' : COLOR[t], tip: `${c.title_es} — ${STATE_ICON[st]} ${STATE_LABEL[st]} · pulsa para ver su información` } }), sel)
+  const a = a0.eco ? ecoFocus(a0) : focusLayout(a0), [room, tag, b] = drawArea(d, a, inc, a.stage, sel), [floor] = floorSlab([a]), e = (a.hu + a.hv) * S
+  const names = nameTags(a, a.list.map((c, i) => { const st = compState(d, c), t = toneOf(st, inc)
+    const z = a.eco?.zones[i], side = z === 'fuente' || z === 'obra' ? 'l' as const : z === 'continuo' ? 'r' as const : undefined
+    return { id: c.id, name: c.title_es, color: t === 'plan' ? '#9aa6d6' : COLOR[t], side, tip: `${c.title_es} — ${STATE_ICON[st]} ${STATE_LABEL[st]} · pulsa para ver su información` } }), sel)
   const x0 = Math.min(b[0], a.cx - e * 0.866) - 60, x1 = Math.max(b[2], a.cx + e * 0.866) + 60
   const y0 = Math.min(b[1], a.cy - e * 0.5 - WALL_H * S) - 28, y1 = Math.max(b[3], a.cy + e * 0.5 + 0.4 * S) + 28
   return `<div class="iso-wrap iso-focus"><button class="iso-back" data-home title="Volver al mapa con todas las áreas">← Ruta completa</button>
