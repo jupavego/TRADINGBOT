@@ -20,6 +20,7 @@ El capital sale de `account.capital`, la misma lectura que usan el panel y el li
 from __future__ import annotations
 
 import hashlib
+import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -28,6 +29,7 @@ from eim.core.authority import RiskDecision, params_fingerprint
 from eim.paper import risk_budget
 from eim.paper.account import capital, leverage_for
 from eim.paper.adaptive import open_adaptive
+from eim.paper.asym.prereg import WEIGHT_CAP, WEIGHT_MIN_N, WEIGHT_Z
 from eim.paper.book_events import learned_bad
 from eim.paper.caps import fit_risk
 from eim.paper.engine import Outcome
@@ -99,6 +101,18 @@ def open_count(st: ProfileState) -> int:
     return sum(1 for s in st.slots.values() if s.filled or s.o.idea.kind == "market")
 
 
+def same_bet(st: ProfileState, o: Outcome) -> bool:
+    """T187b: ¿hay ya una entrada del perfil en la misma vela, símbolo y sentido?"""
+    i = o.idea
+    return any(s.o.idea.t == i.t and s.side == i.side and s.o.idea.symbol == i.symbol
+               for s in st.slots.values())
+
+
+def edge_backed(j: Judgement) -> bool:
+    """T187c: ¿respaldan los cierres propios un peso por encima de 1?"""
+    return j.n >= WEIGHT_MIN_N and math.isfinite(j.se) and j.m - WEIGHT_Z * j.se > 0
+
+
 def pending_count(st: ProfileState) -> int:
     """Órdenes de entrada pendientes: límites colocados y aún sin llenar."""
     return sum(1 for s in st.slots.values() if not s.filled and s.o.idea.kind == "limit")
@@ -124,13 +138,24 @@ def decide(st: ProfileState, o: Outcome, j: Judgement, jc: Judgement, ck: str, m
         if None in keys or not short or learned_bad(st, keys, i.t, o):
             return _no(o, *vs, equity=eq)
         floor, skipped = True, keys
+    # T187b (fase 3, solo si se adoptó): una idea, un solo riesgo. Otra entrada del perfil en la
+    # misma vela, el mismo símbolo y el mismo sentido es la misma apuesta: no se suma.
+    if p.adopted("t187b", i.t) and same_bet(st, o):
+        return _no(o, Veto("una idea, un solo riesgo: el perfil ya tiene una entrada en esta vela "
+                           "y este sentido (T187b)", None, "una_idea"), equity=eq)
     weight = p.floor_weight if floor else j.weight
+    # T187c (fase 3, solo si se adoptó): el peso no sube de 1 por una racha de rasguños; solo con
+    # muestra propia y `m − z·se > 0` (pre-registro `t187_asimetria_v1`).
+    if not floor and weight > WEIGHT_CAP and p.adopted("t187c", i.t) and not edge_backed(j):
+        weight = WEIGHT_CAP
     entry = o.fill if i.kind == "market" and o.fill else i.entry
     want = eq * p.risk_pct * weight
     # T136 (4): freno GRADUAL por drawdown y límite de CVaR. Recortan el tamaño en vez de parar
     # en seco; con recorte 0 no se abre, y a diferencia del freno todo o nada no hay pausa por
-    # horas: en cuanto la cuenta recupera, el riesgo vuelve. Apagados por defecto.
-    cut, why_cut = st.brake.scale(p.caps, eq)
+    # horas: en cuanto la cuenta recupera, el riesgo vuelve. Apagados por defecto; desde la fase 2
+    # (T194) `caps_at` da el gradual en lugar del todo o nada.
+    caps = p.caps_at(i.t)
+    cut, why_cut = st.brake.scale(caps, eq)
     if cut <= 0:
         return _no(o, Veto(why_cut or "freno gradual por drawdown", None, "freno_gradual"),
                    equity=eq)
@@ -138,15 +163,15 @@ def decide(st: ProfileState, o: Outcome, j: Judgement, jc: Judgement, ck: str, m
     if want <= 0:          # el capital, no el tope: con capital ≤ 0 no cabe ningún riesgo
         return _no(o, Veto(f"capital insuficiente: {eq:.2f} USDT realizados", None,
                            "capital_insuficiente"), equity=eq)
-    risk_usd = fit_risk(p.caps, eq, sum(x.risk_usd for x in st.slots.values()
-                                        if x.side == i.side), want)
+    risk_usd = fit_risk(caps, eq, sum(x.risk_usd for x in st.slots.values()
+                                      if x.side == i.side), want)
     if risk_usd <= 0:
-        return _no(o, Veto(f"tope de riesgo abierto por dirección ({p.caps.max_dir_risk:.1%})",
+        return _no(o, Veto(f"tope de riesgo abierto por dirección ({caps.max_dir_risk:.1%})",
                            None, "tope_direccion"), equity=eq)
     # T136 (1): el riesgo presupuestado incluye el costo de ida y vuelta si el perfil lo
-    # pide; apagado, es la distancia al SL de siempre y no cambia ninguna cifra.
-    qty = risk_budget.qty_for_risk(risk_usd, entry, i.sl, p.est_cost_frac,
-                                   p.risk_includes_costs)
+    # pide (o desde la fase 2, T194); apagado, es la distancia al SL de siempre.
+    with_costs = p.costs_in_risk(i.t)
+    qty = risk_budget.qty_for_risk(risk_usd, entry, i.sl, p.est_cost_frac, with_costs)
     if qty <= 0:           # SL en la entrada: lo veta antes el costo, pero no se aprueba con 0
         return _no(o, Veto(f"geometría inválida: SL {i.sl:g} sobre la entrada {entry:g}", None,
                            "geometria"), equity=eq)
@@ -174,8 +199,7 @@ def decide(st: ProfileState, o: Outcome, j: Judgement, jc: Judgement, ck: str, m
         # la escalera puede recortar la cantidad al paso del instrumento: el riesgo
         # informado se recalcula con la MISMA distancia presupuestada (T136)
         margin = qty * entry / lev
-        risk_usd = qty * risk_budget.budget_distance(entry, i.sl, p.est_cost_frac,
-                                                     p.risk_includes_costs)
+        risk_usd = qty * risk_budget.budget_distance(entry, i.sl, p.est_cost_frac, with_costs)
     note = f" · {why_cut}" if why_cut else ""
     if floor:
         what = f"{p.min_open} abierta(s)" if i.kind == "market" else f"{p.min_pending} pendiente(s)"

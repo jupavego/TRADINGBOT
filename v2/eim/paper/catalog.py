@@ -44,7 +44,17 @@ def generate_ideas(ctxs: Sequence[dict], candles: Sequence[Candle], symbol: str,
     ep = exec_params or ExecParams()
     use = (catalog is None) if maker_entry is None else maker_entry
     bars = ep.maker_entry_bars if use and timeframe in ep.maker_entry_timeframes else 0.0
-    maker = (lambda i: to_limit(i, bars)) if bars > 0 else (lambda i: i)
+    # T189 (fase 3): entrada límite adoptada en este marco desde un instante; solo las ideas
+    # posteriores cambian, así que nada de lo ya decidido se reescribe.
+    since = dict(ep.maker_from_ms).get(timeframe) if use and ep.maker_entry_bars > 0 else None
+
+    def maker(i: Idea) -> Idea:
+        if bars > 0:
+            return to_limit(i, bars)
+        if since is not None and i.t >= since:
+            return to_limit(i, ep.maker_entry_bars)
+        return i
+
     ind = Ind(candles)
     out: list[Idea] = []
     for raw in sorted(ctxs, key=lambda c: c["t"]):

@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_valid
 
 from eim.backtest.params import CostParams
 from eim.paper.adaptive_params import AdaptiveParams
-from eim.paper.caps import CapParams
+from eim.paper.caps import CapParams, phase2_caps
 from eim.paper.ladder_params import SYMBOL_SPECS, LadderParams, SymbolSpec, spec_for  # noqa: F401
 
 FAMILIES: dict[str, str] = {
@@ -54,6 +54,18 @@ class ExecParams(BaseModel):
     # defecto (T31 intacta); la corrida aparte de T143 pone ("1h", "4h").
     maker_entry_timeframes: tuple[str, ...] = ()
     maker_entry_bars: float = 1.0
+    # T189 (fase 3, regla del usuario: el costo se adapta solo): marcos con entrada límite
+    # ADOPTADA tras su veredicto, cada uno con su instante (UTC, ms). A diferencia de
+    # `maker_entry_timeframes`, solo convierte las ideas posteriores a ese instante: la sombra y
+    # los libros no se reescriben hacia atrás. Lo fija la mesa desde `data/paper/asym/adopted.json`
+    # (`eim/paper/asym/adoption.py`). No entra en `exec_fingerprint` (como `live_first_from_ms`):
+    # la columna `kind` del libro fijo dice, operación a operación, cómo se entró.
+    maker_from_ms: tuple[tuple[str, int], ...] = ()
+    # T194 (◆ del usuario 2026-11-18): desde este instante (UTC, ms) se encienden solos, para las
+    # decisiones posteriores, el riesgo con costos y el freno gradual en lugar del todo o nada
+    # (`ProfileParams.phase2_from_ms`, que la mesa copia de aquí). La API lo fija al cierre de
+    # T31 (`EIM_PAPER_PHASE2_FROM`). None = apagado. No entra en `exec_fingerprint`.
+    phase2_from_ms: int | None = None
     # T182 (◆ del usuario 2026-11-18): lo vivo manda. Encendido, (1) los libros de los perfiles
     # (capital, balance, Historial) solo toman ideas decididas en tiempo real (`origin = vivo`);
     # (2) lo reconstruido solo pesa en el aprendizaje como opinión inicial acotada a `prior_cap`
@@ -170,6 +182,15 @@ class ProfileParams(BaseModel):
     symbols: tuple[str, ...] | None = None   # None = todos los símbolos de la mesa
     feedback: FeedbackParams = FeedbackParams()
     caps: CapParams = CapParams()    # topes de riesgo (apagados por defecto)
+    # T194 (fase 2): desde este instante, riesgo con costos y freno gradual en lugar del todo o
+    # nada, solo para las decisiones posteriores. Lo copia la mesa de `ExecParams.phase2_from_ms`.
+    # T187 (fase 3): reglas de riesgo adoptadas tras su veredicto, (regla, instante): "t187b" una
+    # idea un solo riesgo, "t187c" el peso no sube por rasguños. Ninguno de los dos entra en el
+    # volcado que firma `params_fingerprint` (ver `_without_unused_exit`): el instante es la
+    # frontera, como el de «lo vivo manda» (T182), y queda escrito en la bitácora y en
+    # `data/paper/asym/adopted.json`.
+    phase2_from_ms: int | None = None
+    asym_from_ms: tuple[tuple[str, int], ...] = ()
 
     @model_validator(mode="after")
     def _coherent(self) -> ProfileParams:
@@ -195,7 +216,26 @@ class ProfileParams(BaseModel):
         data = handler(self)
         if data.get("adaptive") is None:
             data.pop("adaptive", None)
+        # T194/T187: instantes de encendido, fuera de la firma (la frontera es el instante)
+        data.pop("phase2_from_ms", None)
+        data.pop("asym_from_ms", None)
         return data
+
+    # --- T194 (fase 2) y T187 (fase 3): lo que vale en el instante de cada decisión --------
+    def phase2_on(self, t: int) -> bool:
+        return self.phase2_from_ms is not None and t >= self.phase2_from_ms
+
+    def costs_in_risk(self, t: int) -> bool:
+        """¿Incluye el riesgo el costo de ida y vuelta para una decisión en `t`?"""
+        return self.risk_includes_costs or self.phase2_on(t)
+
+    def caps_at(self, t: int) -> CapParams:
+        """Topes vigentes en `t`: desde la fase 2, el freno gradual en lugar del todo o nada."""
+        return phase2_caps(self.caps) if self.phase2_on(t) else self.caps
+
+    def adopted(self, rule: str, t: int) -> bool:
+        """¿Está adoptada la regla `rule` (T187) para una decisión en `t`?"""
+        return any(r == rule and t >= since for r, since in self.asym_from_ms)
 
     @property
     def stop_driven(self) -> bool:
