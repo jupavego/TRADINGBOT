@@ -52,7 +52,7 @@ def build(rows: list[dict], now_ms: int, generated_at: str, *,
           variant_rows: dict[str, list[dict]] | None = None,
           funding: dict[str, float | None] | None = None, hft: dict | None = None,
           calibration: dict | None = None, calibration_4h: dict | None = None,
-          prev: dict | None = None) -> dict:
+          prev: dict | None = None, nursery: dict | None = None) -> dict:
     book = kpis.book_kpis(rows, now_ms)
     var = {name: variant_block(rows, vr) for name, vr in (variant_rows or {}).items()}
     calibration = {k: v for k, v in (calibration or {}).items() if k != "curve"}
@@ -63,6 +63,6 @@ def build(rows: list[dict], now_ms: int, generated_at: str, *,
     audit = {"mode": "SIMULADO", "generated_at": generated_at, "now_ms": now_ms, "book": book,
              "variants": var, "hft": hft, "funding_apr": funding or {},
              "calibration": calibration, "calibration_4h": cal4,
-             "opportunities": opps, "triggers": trig}
+             "opportunities": opps, "triggers": trig, "nursery": nursery or {}}
     audit["deltas"] = levers.deltas(audit, prev)
     return audit

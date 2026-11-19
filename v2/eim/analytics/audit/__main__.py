@@ -21,6 +21,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", default="reports/audit", type=Path)
     ap.add_argument("--ledger", type=Path, help="libro en CSV en vez de la API (sin variantes)")
     ap.add_argument("--sin-red", action="store_true", help="no consultar el funding público")
+    ap.add_argument("--cantera", default="reports/nursery/latest.json", type=Path,
+                    help="resumen de la cantera (T172)")
     a = ap.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -46,7 +48,7 @@ def main(argv: list[str] | None = None) -> int:
                   hft=sources.hft_quality(a.data_dir),
                   calibration={} if a.ledger else sources.calibration(a.api),
                   calibration_4h={} if a.ledger else sources.calibration(a.api, tf="4h"),
-                  prev=sources.previous(a.out, today))
+                  prev=sources.previous(a.out, today), nursery=sources.nursery(a.cantera))
     base = a.out / f"audit_{today}"
     audit["paths"] = {"json": str(base.with_suffix(".json")), "md": str(base.with_suffix(".md"))}
     base.with_suffix(".json").write_text(json.dumps(audit, ensure_ascii=False, indent=1),

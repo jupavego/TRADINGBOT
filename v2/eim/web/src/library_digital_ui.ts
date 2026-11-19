@@ -2,8 +2,9 @@
  * Solo informa: de dónde sale cada recomendación y qué aportó el conocimiento a las operaciones. */
 import './library_digital.css'
 import {
-  fetchDigContradictions, fetchDigLearning, fetchDigOverview, fetchDigRef, fetchDigRefs,
-  type DigConsensus, type DigLearning, type DigOverview, type DigRef, type DigRefBrief, type DigSummary,
+  fetchDigContradictions, fetchDigLearning, fetchDigNursery, fetchDigOverview, fetchDigRef, fetchDigRefs,
+  type DigConsensus, type DigLearning, type DigNursery, type DigNurseryFact, type DigOverview, type DigRef,
+  type DigRefBrief, type DigSummary,
 } from './library_digital_api'
 import { esc } from './panels'
 
@@ -15,6 +16,8 @@ const KIND: Record<string, string> = { apoya: 'Apoya', objeta: 'Objeta', condici
 
 const num = (x: number | null | undefined, d = 2): string => x == null ? '—' : x.toFixed(d).replace('.', ',')
 const pct = (x: number | null | undefined): string => x == null ? '—' : `${Math.round(x * 100)} %`
+const fact = (f: DigNurseryFact): string => `<li><b>${esc(f.verdict)}</b> · ${esc(f.work)} · prospecto ${esc(f.prospect)} ` +
+  `(${esc(f.agent)}, ${esc(f.theme)}) · n ${f.n ?? 0}, d ${num(f.d_mean, 3)} R <span class="muted">— ${esc(f.motivo)}</span></li>`
 
 export class DigitalPanel {
   private ov: DigOverview | null = null
@@ -22,6 +25,7 @@ export class DigitalPanel {
   private detail: DigRef | null = null
   private learn: DigLearning | null = null
   private contra: DigConsensus[] = []
+  private nursery: DigNursery | null = null
   private filt = { q: '', category: '', availability: '' }
 
   constructor(private root: HTMLElement) {
@@ -38,8 +42,9 @@ export class DigitalPanel {
   }
 
   async reload(): Promise<void> {
-    const [ov, refs, learn, contra] = await Promise.allSettled([
-      fetchDigOverview(), fetchDigRefs(this.filt), fetchDigLearning(), fetchDigContradictions()])
+    const [ov, refs, learn, contra, nur] = await Promise.allSettled([
+      fetchDigOverview(), fetchDigRefs(this.filt), fetchDigLearning(), fetchDigContradictions(), fetchDigNursery()])
+    this.nursery = nur.status === 'fulfilled' ? nur.value : null
     this.ov = ov.status === 'fulfilled' ? ov.value : null
     this.refs = refs.status === 'fulfilled' ? refs.value.refs : []
     this.learn = learn.status === 'fulfilled' ? learn.value : null
@@ -103,11 +108,22 @@ export class DigitalPanel {
       `<p class="meta">En el bot: ${esc(d.application)}</p>` +
       (d.related_strategies.length ? `<p class="meta">Estrategias relacionadas: ${d.related_strategies.map(esc).join(', ')}</p>` : '') +
       (stances ? `<h6>Posturas</h6><ul class="lit-list">${stances}</ul>` : '') +
+      (d.nursery?.length ? `<h6>En la cantera (BTC hacia adelante, T172)</h6><ul class="lit-list">${d.nursery.map(fact).join('')}</ul>` : '') +
       (c?.findings.length ? `<h6>Lo que dice el texto (${READ[c.coverage]})</h6><ul class="lit-list">${frag(c.findings)}</ul>` : '') +
       (c?.limitations.length ? `<h6>Limitaciones</h6><ul class="lit-list">${frag(c.limitations)}</ul>` : '') +
       (!c || c.coverage === 'metadatos' ? '<p class="meta">No se pudo leer el texto: solo hay metadatos; nada de esta obra se presenta como leído.</p>' : '') +
       `<p class="meta">${d.url ? `<a href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">Página oficial ↗</a>` : ''}` +
       `${d.oa_url && d.oa_url !== d.url ? ` · <a href="${esc(d.oa_url)}" target="_blank" rel="noopener noreferrer">Texto legal ↗</a>` : ''}</p></div>`
+  }
+
+  private cantera(): string {
+    const n = this.nursery
+    if (!n || !n.n) return '<p class="meta">Aún sin hechos: la cantera los anota en cada revisión mensual (T172).</p>'
+    const firm = n.items.filter((f) => f.verdict !== 'no concluyente')
+    const count = (v: string): number => n.items.filter((f) => f.verdict === v).length
+    return `<p class="meta">Revisión ${n.review ?? '—'} · ${n.n} hechos: sostenida ${count('sostenida')}, refutada ${count('refutada')}, ` +
+      `no concluyente ${count('no concluyente')}. ${esc(n.note)}</p>` +
+      `<ul class="lit-list">${firm.slice(0, 12).map(fact).join('') || '<li>Todo no concluyente por ahora (veredicto por defecto).</li>'}</ul>`
   }
 
   private trace(): string {
@@ -138,6 +154,7 @@ export class DigitalPanel {
       `<select id="dig-av">${av}</select><button id="dig-go">Buscar</button></div>` +
       (this.detail ? this.detailHtml(this.detail) : '') + this.list() +
       `<details class="dig-sec" open><summary>Trazabilidad: operaciones del bróker y literatura</summary>${this.trace()}</details>` +
+      `<details class="dig-sec"><summary>Cantera: teorías puestas a prueba en BTC (${this.nursery?.n ?? 0})</summary>${this.cantera()}</details>` +
       `<details class="dig-sec"><summary>Contradicciones entre fuentes (${o.contradictions})</summary><ul class="lit-list">${con || '<li>Ninguna.</li>'}</ul></details>` +
       `<details class="dig-sec"><summary>Últimas investigaciones</summary><ul class="lit-list">${res || '<li>Aún ninguna en este equipo.</li>'}</ul></details>` +
       `<p class="meta lit-tag">${TAG}</p></div>`

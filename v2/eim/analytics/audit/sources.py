@@ -97,3 +97,11 @@ def previous(out_dir: Path, today: str) -> dict | None:
         return json.loads(files[-1].read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
+
+
+def nursery(path: Path) -> dict:
+    """Resumen de la cantera que deja el informe de T172 (`reports/nursery/latest.json`)."""
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}

@@ -21,6 +21,21 @@ PLAN = Path(__file__).resolve().parent
 STATE = {"☐": "pending", "◐": "progress", "☑": "done"}
 ROW = re.compile(r"^\|\s*(T\d+)\s*\|(.+?)\|(.*?)\|\s*([☐◐☑])\s*\|(.*)\|\s*$")
 PHASE_ROW = re.compile(r"^\|\s*(\d+)\s+([^|]+?)\s*\|")      # «| 20 Estabilización … | T115… |»
+COND_ROW = re.compile(r"^\|\s*(T\d+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]*?)\s*\|\s*$")
+
+
+def conditions() -> dict[str, list[dict]]:
+    """Condicionantes por tarea de PLAN/CONDICIONANTES.md: qué se hace desde qué equipo."""
+    f = PLAN / "CONDICIONANTES.md"
+    out: dict[str, list[dict]] = {}
+    if not f.exists():
+        return out
+    for ln in f.read_text(encoding="utf-8").splitlines():
+        if m := COND_ROW.match(ln.strip()):
+            tid, machine, text, when = m.groups()
+            out.setdefault(tid, []).append({"machine": machine.strip("` "), "text": text.replace("`", ""),
+                                            "when": when})
+    return out
 
 
 def head_info(task_id: str) -> dict:
@@ -149,6 +164,7 @@ def previous_plan(path: Path) -> tuple[list, list] | None:
 
 def main() -> int:
     status = PLAN / "STATUS.md"
+    conds = conditions()
     tasks = []
     for ln in status.read_text(encoding="utf-8").splitlines():
         m = ROW.match(ln.strip())
@@ -163,6 +179,8 @@ def main() -> int:
             "notes": notes.strip(),
         }
         t.update(head_info(tid))
+        if tid in conds:
+            t["where"] = conds[tid]
         tasks.append(t)
     if undeclared := [t["id"] for t in tasks if "phase" not in t]:
         print("ERROR: " + ", ".join(undeclared) + " no declaran fase: la segunda línea de su "

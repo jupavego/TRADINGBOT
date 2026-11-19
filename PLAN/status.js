@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-19T15:40:08",
+ "generated": "2026-11-19T16:17:39",
  "phases": [
   {
    "n": 0,
@@ -770,7 +770,14 @@ window.EIM_STATUS = {
    "notes": "**Construido; falta la corrida de ≥ 4 semanas** (criterio de aceptación). Por decisión del usuario (2026-10-14) corre en papel con `SimBroker` (T30 sin la prueba E2E en testnet); alertas: notificación local de Windows + UI. v2/eim/operation: `cycle.py` (datos REST → agentes → pronóstico → `RiskDesk.execute` por la puerta única → precio del simulador por el camino de cada vela de 15m con SL/TP en su disparo → capital → kill-switch por drawdown → reconciliación → alertas), `supervisor.py` (bucle con latido `data/operation/heartbeat.json`, reintento exponencial, alerta tras 3 fallos, informe semanal automático cada lunes UTC), `watchdog.py` + `__main__.py` (`python -m eim.operation run`: relanza la API si muere o si el latido se detiene), `state.py` (libro y SimBroker persistidos: sobreviven al reinicio), `equity.py` (historial `op_equity` → inicio de día/semana y pico reales para el motor de riesgo), `alerts.py`/`notify.py` (desconexión, divergencia, kill-switch, drawdown ≥5 %, agentes degradados; por transición, en DuckDB `op_alerts`, registro JSONL por día), `weekly.py`/`report.py` (resultados vs ventanas OOS de T27, desviaciones, calibración de escenarios, incidentes, vetos → `reports/operation/semana_AAAA-Www.md/json`). `RiskDesk` extraído de `api/risk.py` (API y servicio comparten ruta). API `GET /v2/operation`, `POST /v2/operation/report`; UI pestaña «Operación» (`web/src/operation_ui.ts`). Tests en tests/operation (30). **Verificado en vivo (2026-10-14):** ciclo con datos reales de Binance (BTC/ETH 1h), kill-switch → alerta crítica + notificación, informe parcial, `taskkill` del proceso → relanzado en 10 s con cursores restaurados; estado de prueba borrado. Arranque: `python -m eim.operation run` desde `v2/`. **2026-10-31, decisión del usuario: la corrida sigue en `juanpablo-cpu`** con su propia identidad (sin pisar la de la portátil): arrancada el 2026-10-30 23:35 UTC con `servicio_continuo.ps1 -ConWeb`; las ≥ 4 semanas cuentan desde ahí (→ 2026-11-27) y el informe semanal sale solo cada lunes UTC en `v2/reports/operation/`. La corrida de la portátil sigue en paralelo; los libros no se mezclan (la experiencia sí, por T117). **Al cerrar: encender `risk_includes_costs` y el freno gradual (◆1 y ◆3 de T136, decisiones del usuario 2026-11-05; pasos en `PLAN/T31.md`).**",
    "effort": "medio",
    "phase": 7,
-   "goal": "Operar de forma continua en testnet/paper durante semanas con monitoreo y alertas, y producir la evidencia para decidir si se pasa a capital real."
+   "goal": "Operar de forma continua en testnet/paper durante semanas con monitoreo y alertas, y producir la evidencia para decidir si se pasa a capital real.",
+   "where": [
+    {
+     "machine": "juanpablo-cpu",
+     "text": "Cerrar la corrida oficial de ≥ 4 semanas con su informe final: la corrida que cuenta es la de ese equipo",
+     "when": "2026-11-27"
+    }
+   ]
   },
   {
    "id": "T32",
@@ -1861,7 +1868,14 @@ window.EIM_STATUS = {
    "notes": "`tests/conftest.py` retira toda `EIM_*` del equipo (las opcionales, en `tests/opt_in.py`), fija DuckDB/avisos y **corta la red** (`tests/offline.py`): el ciclo de operación descargaba 30 días de liquidaciones por prueba (~20 s c/u, la causa de los > 25 min). `tests/perf.py` mide con calentamiento y ≥ 100 muestras (mismo umbral, mismo índice); 10 pruebas `perf` siguen en el gate; `test_leaders` aísla `EIM_MACHINE`. Gate 25 min 29 s con 1 fallo → **6 corridas verdes seguidas**: 3 con servicios + CPU a medias + `EIM_*` hostiles (~19–20 min) y 3 con solo los servicios (~11 min); ninguna prueba > 60 s sin carga. Cierre en `PLAN/notas/T116_gate.md`. **Pendiente:** 3 corridas con el equipo descargado y 3 con Ollama real en el equipo de referencia (aquí no hay Ollama y parar los servicios rompe T31/T78). **2026-10-31, `juanpablo-cpu` (Ollama `qwen3:4b` generando sin parar, servicios en marcha):** 3 corridas seguidas del gate el 2026-10-31, de 00:32 a 03:38 UTC, con 324 generaciones de Ollama (~35 s cada una) en paralelo: `ruff` limpio en las 3; `pytest` **no verde**: 2 fallos en 63,8 min, 1 en 36,2 min y 10 en 85,8 min (2 415 pasadas). Fallan `test_emit::test_cycle_overhead_within_budget_even_if_disk_fails` (las 3), `test_obs_api::test_queries_over_100k_events_stay_within_the_threshold` (1.ª y 3.ª) y, solo en la 3.ª, `test_emit::test_two_processes_do_not_corrupt_lines[True]`, `test_hft_risk::test_decision_cost_p99_fits_the_latency_budget_fraction`, 3 de `test_service_heartbeats` (escáner y ejecutor de arbitraje, sincronización de experiencia) y 3 de `test_paper_api` (resumen, backtest, señales en vivo). Los 11 casos pasan aislados en 63 s con los servicios en marcha: son sensibles a la carga, no reproducen sin ella. Falta: decidir si el gate debe aguantar Ollama generando (margen de las pruebas con plazo) y 3 corridas con el equipo descargado (servicios parados; ◆ permiso, rompe la captura de T78). **2026-11-02 (gate en IDLE por la cola de T127):** las pruebas `perf` miden en prioridad NORMAL (por debajo de la captura) y con la mediana de 3 rondas, y las que esperaban plazos fijos cortos esperan hasta que se cumple. Con carga sintética, `main` falla `test_obs_api` y la rama pasa 3/3; mismos umbrales, ninguna prueba saltada (`PLAN/notas/T116_gate.md`). Tres gates por la cola: 2 verdes y 1 fallo por una pausa de la cola (un plazo de reloj caducó con el gate congelado) → `jobs submit --retry-paused 1` en el gate. Faltan las 3 corridas con el equipo descargado (tras T78).",
    "effort": "medio",
    "phase": 20,
-   "goal": "Que `python -m ruff check eim tests && python -m pytest -q` dé el mismo resultado en el equipo del usuario, en el del colaborador y con el equipo cargado. Hoy no: la prueba de rendimiento del observatorio falla por milisegundos y la suite completa puede tardar más de 25 minutos con Ollama y los recolectores activos (`PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §B). Un gate que falla por el equipo enseña a ignorarlo."
+   "goal": "Que `python -m ruff check eim tests && python -m pytest -q` dé el mismo resultado en el equipo del usuario, en el del colaborador y con el equipo cargado. Hoy no: la prueba de rendimiento del observatorio falla por milisegundos y la suite completa puede tardar más de 25 minutos con Ollama y los recolectores activos (`PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §B). Un gate que falla por el equipo enseña a ignorarlo.",
+   "where": [
+    {
+     "machine": "juanpablo-cpu",
+     "text": "Decidir si el gate aguanta Ollama generando y hacer 3 corridas con el equipo descargado (◆ permiso para parar servicios)",
+     "when": "ya"
+    }
+   ]
   },
   {
    "id": "T117",
@@ -2098,7 +2112,14 @@ window.EIM_STATUS = {
    "notes": "**Midiendo M8, sin adoptarla (reabierta por el usuario el 2026-11-07).** A/B prospectivo emparejado desde el 2026-11-08 00:00 UTC, veredicto como pronto el 2026-12-06. Corre sobre una copia, sin tocar el vivo ni T31. Reproduce T134 exacta. Pre-registro con huella en `v2/eim/paper/exits/versions/t135_ab_m8_v1.json`: 4 semanas, 315 operaciones y 21 días. Nota `PLAN/notas/T135_ab_m8.md`. Antes (2026-11-06): motor construido y apagado, sin perfil que lo use. Nota `PLAN/notas/T135_motor.md`. Código: `v2/eim/paper/adaptive.py` y `adaptive_params.py` (`exit_mode=\"adaptativo\"`, modo `adaptive_stop` en la autoridad, M2, M3, M5, M6 y M7), suelo del diario T110 en `exits/trail.py`, fase, motivo, fuente y versión en el historial del diario sin columnas nuevas, panel `web/src/paper_adaptive.ts` y potencia E9 en `exits/power.py` + `scripts/t135_potencia.py` (reproduce las 315 operaciones). Comprobado contra `main` con la semilla fija: huellas de los 4 perfiles y de las 111 versiones de T49 idénticas. Falta una salida aprobada, su plan de potencia y el A/B de ≥ 4 semanas. Antes: **aparcada (2026-11-04), no descartada.** Su condición es «solo si T134 aprueba» y T134 rechazó las 87 variantes, así que no hay salida que llevar al bróker. Se reabre el día que se adopte una, y entonces ya tiene la potencia calculada por T134 (E9: σ de las diferencias emparejadas `M8 q=0.95` − M0 = 0,352 R → ≈ 315 operaciones emparejadas para +0,049 R con α 0,05 a una cola y potencia 0,80; el ritmo real por perfil se toma del libro en vivo).",
    "effort": "alto",
    "phase": 22,
-   "goal": "Llevar al bróker simulado la salida que T134 apruebe, como `exit_mode=\"adaptativo\"` junto a `tp` y `ladder`, con la jerarquía de §4.2 de `PLAN/notas/T129_sl_dinamico.md`."
+   "goal": "Llevar al bróker simulado la salida que T134 apruebe, como `exit_mode=\"adaptativo\"` junto a `tp` y `ladder`, con la jerarquía de §4.2 de `PLAN/notas/T129_sl_dinamico.md`.",
+   "where": [
+    {
+     "machine": "juanpablo-cpu",
+     "text": "Leer el veredicto del A/B de M8: la tarea semanal y la copia backups/t135_ab están instaladas allí",
+     "when": "2026-12-06"
+    }
+   ]
   },
   {
    "id": "T136",
@@ -2203,7 +2224,14 @@ window.EIM_STATUS = {
    "notes": "Abierta el 2026-11-09 desde `PLAN/notas/diagnostico_rentabilidad_2026-11-09.md` §3. La fricción del libro vivido (1 630,1 USDT) es **mayor que la pérdida neta** (−1 438,5): 14,1 pb del nocional con el SL a 1,21 % = **0,125 R por operación**. Baja a ~0,06 R encendiendo `risk_includes_costs` (T136 §1: hoy se arriesga ×1,1734 de lo declarado), midiendo maker frente a taker antes de adoptarlo (256 de 411 entradas son `market`) y retirando 15 m mientras su costo siga en 0,157 R. **No crea ventaja: deja de destruirla.** ◆ del usuario antes de tocar perfiles y antes de desplegar durante T31. **En curso (2026-11-09): entregable 1 en marcha.** Pre-registro en `PLAN/notas/T143_preregistro_maker.md` (commit propio, anterior a todo cálculo); medición en `eim/paper/maker_ab.py` + `scripts/t143_maker.py`, 21 pruebas. Dos correcciones de contabilidad posteriores al pre-registro y las dos **en contra** de maker: denominador común (el riesgo planeado ` **2026-11-10: los cinco entregables hechos en `claude/t143-maker`** (puerta de marcos `eim/paper/tf_gate.py`; costo vivido en el panel y en el informe semanal, `eim/paper/cost_ledger.py`; antes/después `reports/t143_antes_despues.md`: costo 0,123 → 0,083 R, E[R] neto −0,150 → −0,153 R, es decir, no crea ventaja). Revisión de código high hecha. **◆ 2026-11-10: T31 intacta hasta su cierre y T143 desde ya en una corrida aparte** (`EIM_PAPER_VARIANTS=t143`, `eim/paper/{t143_config,variant}.py`, base `data/paper_t143.duckdb`, rutas `GET /v2/paper/variant/t143`). Los valores por defecto vuelven a ser los de T31. La automejora sin intervención se limita a costo y riesgo (`AUTO_ADAPT`). Gate completo por la cola verde (`20261110-022744-t143-gate-2-5e44`, rc=0, 1 115 s, sin pausas). **Desplegada el 2026-11-10 a las 04:17 UTC** (PR #243; `EIM_PAPER_VARIANTS=t143` como variable de usuario; parada sin `-Todo`, así que la captura siguió). La API pasó de 1,9 a 2,4 GB. Primera vista: T31 sin cambios (los tres marcos operan); en `t143` la sombra mide 15 m a 0,387 R y 1 h a 0,159 R, **los dos fuera**, y 4 h opera a 0,083 R. Falta comparar al cerrar T31. **Ajuste 2026-11-10 (◆ del usuario):** la puerta mide el costo solo sobre lo que algún perfil aceptaría por su `max_cost_r` (`tf_gate.takeable`), no sobre toda la sombra. Gate verde por la cola (`20261110-042504-t143-puerta-gate-0394`, rc=0). **Redesplegada a las 04:53 UTC (PR #246).** Midiendo solo lo tomable, en `t143` operan los tres marcos: 15 m 0,127 R (n = 189), 1 h 0,108 R, 4 h 0,082 R, todos por debajo de 0,15. **La salida de 15 m que pedía el enunciado ya no se sostiene por costo.** Su neto en sombra sigue siendo el peor (−0,344 R, `reports/t143_antes_despues.md`), pero eso es ventaja, no costo, y la puerta no lo juzga. |entry − SL|`, porque el realizado infla el R de una límite que entra mejor) y **estrés de cola** (el motor llena si la vela *toca* el nivel; se exige que el precio **pase**, porque medir fills de verdad es T79). Entregables 2–5 esperan la ◆ del usuario.",
    "effort": "medio",
    "phase": 24,
-   "goal": "Bajar el costo por operación de 0,125 R a ~0,06 R sin tocar la entrada ni la salida, encendiendo lo que T136 ya midió y apagando el marco donde el costo se come el riesgo. No crea ventaja: deja de destruirla."
+   "goal": "Bajar el costo por operación de 0,125 R a ~0,06 R sin tocar la entrada ni la salida, encendiendo lo que T136 ya midió y apagando el marco donde el costo se come el riesgo. No crea ventaja: deja de destruirla.",
+   "where": [
+    {
+     "machine": "juanpablo-cpu",
+     "text": "Decidir si la variante t143 pasa a oficial: la variante y su data/paper/tf_gate_t143.json solo corren allí",
+     "when": "2026-11-27"
+    }
+   ]
   },
   {
    "id": "T144",
@@ -2593,10 +2621,22 @@ window.EIM_STATUS = {
     "T157",
     "T159"
    ],
-   "state": "pending",
-   "notes": "—",
+   "state": "progress",
+   "notes": "**Herramienta hecha 2026-11-19; falta el primer informe con datos reales (revisión del día 30, 2026-12-17; sale el 18).** `python -m eim.nursery report` (`v2/eim/nursery/report/`) lee el libro de la cantera (vivo en solo lectura o la copia más reciente), reconstruye el escalafón con el mismo código y deja `v2/reports/nursery/cantera_<fecha>.{md,json}` + `latest.json` (lo lee la auditoría, §5). Hechos de aprendizaje por prospecto × obra (sostenida / refutada / no concluyente) en `data/library/digital/nursery_facts.jsonl`, visibles en `GET /v2/library/digital/learning/nursery` y en la Biblioteca; bajas con causa nombrada, propuestas ◆ con MinTRL, informatividad para T150 y graduaciones con el recorte de Harvey-Liu. Tarea diaria `v2/scripts/cantera_informe_mensual.ps1 -Instalar` (solo en `juanpablo-cpu`). Ficha `PLAN/T172.md`",
    "effort": "medio",
-   "phase": 27
+   "phase": 27,
+   "where": [
+    {
+     "machine": "juanpablo-cpu",
+     "text": "Traer main, correr el gate por la cola e instalar la tarea v2\\scripts\\cantera_informe_mensual.ps1 -Instalar: la cantera_v1 y su libro (paper_cantera.duckdb) solo existen allí",
+     "when": "ya"
+    },
+    {
+     "machine": "juanpablo-cpu",
+     "text": "Comprobar el primer informe real (v2/reports/nursery/) y que los hechos se ven en la Biblioteca (tras reiniciar la API)",
+     "when": "2026-12-18"
+    }
+   ]
   },
   {
    "id": "T173",
@@ -2676,7 +2716,14 @@ window.EIM_STATUS = {
    "state": "progress",
    "notes": "**Entregables 1, 2 y 4 hechos; falta la ◆ del 3 y desplegar** (`PLAN/notas/T178_retencion.md`). Medido sobre la copia del 18-nov: la poda de T128 **está al día** (solo 2 371 ejecuciones de rechazados con más de 7 días) y los **+53 MB/día son casi enteros las fotos de posiciones** (≈ 6,5 KB cada una en disco × 10 600/día); las reconciliaciones, 41 300 filas/día, son 0,4 MB/día. `eim/data/leader_retention.py`: de las reconciliaciones con más de 7 días se quedan todas las que no cuadran y una por líder cada 2 min (por debajo del `recon_gap_ms` de 5 min, para no inventar huecos en la copia simulada), con resumen diario en `leader_recon_daily` que `leader_report` suma al informe; de las fotos, cada cambio de forma y una por hora, con el tiempo capturado guardado antes de borrar en `leader_photo_cover` para que `observed_ms` (lo que mide T49) no cambie. Corre tras la poda diaria y en frío antes de compactar. La poda por sí sola ahorra el 39 % de los bytes de las fotos (el 66 % son cambios de forma de verdad): 53 → ≈ 32 MB/día. **◆ resuelta (usuario, 18-nov): también se recodifica la foto** (`eim/data/leader_photos.py`, formato `v2`: lo que se repetía en cada posición —`leader_id`, `address`, `source`, `t`, `observed_at`— sale una vez por foto, sin perder ningún campo; `decode` sigue leyendo las viejas y `recode_photos` las migra, 50 000 por vuelta con el servicio en marcha y sin tope en frío). Medido en disco con 20 000 fotos reales: 129,2 → 11,5 MB, es decir **≈ 5 MB/día** y ~800 MB que devuelve el compactado. 15 pruebas (`test_leader_retention.py`, `test_leader_photos.py`). **Falta:** desplegar y la semana de medición con las copias diarias (criterio de aceptación).",
    "effort": "bajo",
-   "phase": 21
+   "phase": 21,
+   "where": [
+    {
+     "machine": "juanpablo-cpu",
+     "text": "Desplegar la retención y medir una semana con las copias diarias de leaders.duckdb del servicio de líderes de ese equipo",
+     "when": "ya"
+    }
+   ]
   },
   {
    "id": "T179",

@@ -47,3 +47,23 @@ def test_learning_record_requires_confirm(kb, tmp_path):
     assert r.json()["added"] in (0, 1)
     again = c.post("/v2/library/digital/learning/record", headers={"X-EIM-Confirm": CONFIRM})
     assert again.json()["added"] == 0            # solo adición, sin duplicar
+
+
+def test_nursery_facts_are_visible_in_the_library(kb, tmp_path):
+    """T172: los hechos de la cantera se leen en la biblioteca, el último por prospecto y obra."""
+    from eim.data.library_digital import append_nursery_facts
+
+    p = DigitalPaths(tmp_path)
+    base = {"prospect": "ema_precio_200", "agent": "ema", "theme": "tendencia",
+            "work": "mom_a", "concept": "momentum", "motivo": "m", "n": 40, "d_mean": 0.1}
+    assert append_nursery_facts(p, [{**base, "key": "v1|r1", "review": 1,
+                                     "verdict": "no concluyente"},
+                                    {**base, "key": "v1|r2", "review": 2,
+                                     "verdict": "refutada"}]) == 2
+    assert append_nursery_facts(p, [{**base, "key": "v1|r2", "review": 2,
+                                     "verdict": "refutada"}]) == 0
+    c = _client(kb, tmp_path)
+    n = c.get("/v2/library/digital/learning/nursery").json()
+    assert n["n"] == 1 and n["items"][0]["verdict"] == "refutada"
+    assert n["by_work"] == {"mom_a": {"refutada": 1}} and n["mode"] == "SIMULADO"
+    assert c.get("/v2/library/digital/refs/mom_a").json()["nursery"][0]["review"] == 2

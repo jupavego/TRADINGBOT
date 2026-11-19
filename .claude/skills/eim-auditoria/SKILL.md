@@ -62,10 +62,16 @@ no por su muestra efectiva (los horizontes se solapan: 105 pronósticos de 4 h s
    `python -m eim.analytics.audit` → lee **solo la salida de consola** (≈ 25 líneas). El informe
    completo queda en `reports/audit/audit_<fecha>.md` y el JSON al lado (es la referencia de la
    próxima vez). Sin API: `--ledger libro.csv`. Sin red: `--sin-red` (funding «sin medir»).
+   En el equipo de la cantera, antes: `python -m eim.nursery report --sin-biblioteca` refresca
+   `reports/nursery/latest.json`, que la auditoría lee en su §5 (T172). Esa lectura **no es una
+   mirada** del escalafón: ascensos y bajas solo en las revisiones mensuales.
 2. **Hitos de calendario** (comprueba la fecha de hoy contra esta lista; actualízala al cerrarse uno):
    - 2026-11-17 → T128 cerrada: la base de líderes crece ≈ +53 MB/día (antes ≈ +90); lo que falta es T178.
    - 2026-11-27 → **cierre de T31**: informe final, `risk_includes_costs` y freno gradual, ◆ sobre la variante t143.
    - 2026-12-06 → T135: veredicto del A/B de M8 (`reports/t135_ab/`), sin revisar antes.
+   - 2026-12-17 03:25 UTC → **primera revisión de la cantera** (día 30 de `cantera_v1`); el
+     informe de T172 sale solo al día siguiente (`reports/nursery/`). Siguientes: días 61, 91,
+     121, 152 y **182 = 2027-05-18, cierre de la fase** (◆ de graduaciones, aunque no haya ninguna).
    - T78: cumplida al cerrar la hora 2026-11-14T07 UTC (72 h seguidas desde la 11T08); el cierre en `PLAN/STATUS.md` va con su gate.
    - 2027-05-06 → fecha límite de T139. 2027-10 → disparador A de T145.
 3. **Clasificar cada oportunidad por su vía** (columna «vía» del informe):
