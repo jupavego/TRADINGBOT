@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   T196 · Libro central entre equipos: configura la experiencia compartida en ESTE equipo con
   encendido programado. Se corre una vez en cada equipo (la portátil y juanpablo-cpu).
