@@ -3367,3 +3367,23 @@ más reciente por fecha y su siguiente paso. Formato:
 - **Siguiente paso:** reiniciar la API cuando convenga y comprobar en el mapa `data.intermarket`, `agent.intermarket` y `forecast.calibration` latiendo.
 
 - **Corrección (2026-11-18, mismo día):** el primer gate dio 3 fallos. Dos eran del agente nuevo: 	ests/agents/test_runner.py no lo tenía entre los que dicen «sin datos» con el CSV de prueba, y la cantera (T167) exige un expediente por agente (eim/nursery/dossiers/intermarket.json, «excluido» hasta medir su aporte). El tercero, 	est_ladder_final, ya fallaba antes en esta portátil porque al entorno le faltaba rch==8.0.0 (extra stats de T161): se instaló en el .venv.
+## 2026-11-18 · T190–T193 · El acierto de la entrada (Claude, PC de Santivego)
+
+**Pedido del usuario:** «lo que de verdad movería la rentabilidad es acertar la dirección en las
+entradas»; balance del cerebro y, sin una pieza que apunte a eso, ejecutar el plan de acción.
+
+**Balance.** El cerebro ya midió la dirección una vez y la cerró (T27, T137, T139 P1, T150: 46,1 %;
+decisión D de T145). Lo que faltaba era el control continuo: ningún componente calificaba, sin parar
+y por informante, si lo que cada agente dice en vivo acierta la dirección.
+
+**Hecho (solo mide; no toca síntesis, bróker ni T31):**
+- Pre-registro `direccion_v1` congelado antes de mirar: `PLAN/notas/T190_preregistro.md` y
+  `v2/eim/direction/params.py`. Familia propia declarada; la nula es la de P1.
+- T190 `eim/direction/{board,score,stats}.py`: boleta por informante (lo guardado en
+  `reports.duckdb` contra las velas), horizontes 1/4/12 velas, sin solape, Wilson, Holm, veredicto.
+- T191 `eim/direction/watch.py` + `eim/api/direction_watch.py`: vigía cada 6 h, historial en
+  `data/direction/watch.jsonl`, pieza `validation.direction` en el mapa, `GET /v2/direction/watch`.
+- T192/T193 `eim/direction/shadow.py`: sombras walk-forward de abstención y de pesos por acierto,
+  comparadas con la síntesis v1 (McNemar, Holm, puerta sostenida).
+
+**Siguiente:** primera lectura formal el 2026-11-28 (cierre de T31). Bloque en la interfaz pendiente.

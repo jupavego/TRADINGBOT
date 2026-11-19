@@ -215,6 +215,7 @@ T79–T86 (HFT), T87–T103 (multiactivo), T167–T172 (fase 27, cantera de perf
 
 ## 4. Decisiones vigentes del usuario (no reabrir sin preguntar)
 
+- **El acierto de la entrada (T190–T193, 2026-11-18, pedido del usuario):** la dirección de cada informante se califica sin parar con lo que dijo en vivo (`GET /v2/direction/watch`, pieza `validation.direction`), con reglas congeladas en `PLAN/notas/T190_preregistro.md` (`direccion_v1`). Las sombras T192 (abstención) y T193 (pesos por acierto) solo miden; adoptar algo exige ◆ del usuario después del cierre de T31 (primera lectura 2026-11-28). No reabre T139 P1 por sí sola ni toca la síntesis, el bróker o T31.
 - **El cerebro integrado (T183–T185, 2026-11-18, «los 7 pasos»):** toda pieza se clasifica por los pilares (control, proyección, validación, retroalimentación, mejora continua, automatización). Un agente nuevo entra con peso 0 y nunca `degraded` hasta que la prueba de aporte marginal lo mida (intermercado). La calibración la revisa un vigía cada 6 h; **no se enciende ninguna recalibración** sin un pre-registro nuevo (T160 las rechazó). Las vistas que duplican a un agente son su lupa, no una pestaña; backtest/VRM e historial de sugerencias salieron de la barra; lo documental va tras «Documental».
 
 - **Decisiones delegadas (2026-11-07, «toma tu la mejor decision» sobre las cuatro tareas que esperaban al usuario):**

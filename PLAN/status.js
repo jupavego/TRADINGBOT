@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-18T14:48:50",
+ "generated": "2026-11-18T19:17:01",
  "phases": [
   {
    "n": 0,
@@ -358,6 +358,16 @@ window.EIM_STATUS = {
     "T183",
     "T184",
     "T185"
+   ]
+  },
+  {
+   "n": 29,
+   "name": "El acierto de la entrada",
+   "ids": [
+    "T190",
+    "T191",
+    "T192",
+    "T193"
    ]
   }
  ],
@@ -2749,6 +2759,55 @@ window.EIM_STATUS = {
    "effort": "bajo",
    "phase": 28,
    "goal": "Que la barra inferior diga de un vistazo qué alimenta al cerebro y con qué pilar, y que nada"
+  },
+  {
+   "id": "T190",
+   "title": "Boleta de dirección: cada informante calificado contra lo que hizo el precio",
+   "deps": [
+    "T44",
+    "T131",
+    "T150",
+    "T183"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-18 (pedido del usuario); entra al reiniciar la API.** Califica lo que cada informante dijo en vivo (`reports.duckdb`) contra el signo del retorno a 1, 4 y 12 velas, sin solape, con IC de Wilson, binomial de una cola y Holm sobre informantes × marcos; la síntesis v1 se califica como `sintesis_v1`. Reglas congeladas antes de mirar en `PLAN/notas/T190_preregistro.md` (`direccion_v1`). No reabre T139 P1: solo mide. Ficha `PLAN/T190.md`",
+   "effort": "medio",
+   "phase": 29,
+   "goal": "Calificar lo que cada informante dijo en vivo (`reports.duckdb`) contra el signo del retorno a 1, 4"
+  },
+  {
+   "id": "T191",
+   "title": "Vigía de dirección: el acierto de la entrada como control automático en el mapa",
+   "deps": [
+    "T184",
+    "T190"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-18; entra al reiniciar la API.** Gancho del bróker que cada 6 h revisa 15m, 1h y 4h, guarda `data/direction/watch.jsonl` y late como `validation.direction` («Acierto de la entrada»); ámbar si la síntesis v1 queda peor que una moneda dos revisiones seguidas. `GET /v2/direction/watch`. Falta el bloque en la interfaz",
+   "effort": "medio",
+   "phase": 29
+  },
+  {
+   "id": "T192",
+   "title": "Sombra de abstención: entrar solo cuando coinciden los que aciertan",
+   "deps": [
+    "T190"
+   ],
+   "state": "done",
+   "notes": "**En sombra desde 2026-11-18.** Walk-forward: entra solo si ≥ 2 informantes calificados en el régimen (≥ 100 votos resueltos sin solape, Wilson > 50 %) coinciden; si no, no opera. Puerta: ≥ 250 pares, Holm < 0,05, +3 pp, sostenida dos revisiones. Primera lectura 2026-11-28; adoptar exige ◆",
+   "effort": "medio",
+   "phase": 29
+  },
+  {
+   "id": "T193",
+   "title": "Sombra de síntesis ponderada por el acierto medido de cada informante",
+   "deps": [
+    "T190"
+   ],
+   "state": "done",
+   "notes": "**En sombra desde 2026-11-18.** Pesos = máx(0, 2·acierto encogido − 1) por (informante, régimen), previo de 100 votos hacia el 50 %. Misma puerta y familia de Holm que T192. Primera lectura 2026-11-28; adoptar exige ◆",
+   "effort": "medio",
+   "phase": 29
   }
  ]
 };
