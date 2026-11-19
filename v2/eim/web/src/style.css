@@ -35,6 +35,16 @@ select, .btn, .seg button {
   border-radius: 999px; font-weight: 600; font-size: 12px; white-space: nowrap;
 }
 
+/* Pestaña «Mapa del sistema» junto al modo: abierta, oculta la mesa (río, bróker y pestañas) */
+.view-tab {
+  font: inherit; font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer;
+  padding: 3px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--muted);
+}
+.view-tab:hover { color: var(--text); border-color: var(--accent); }
+.view-tab[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+#river[hidden], #obs[hidden], #paper[hidden], .desk[hidden] { display: none !important; }
+
 .desk {
   flex: 1; min-height: 0; display: grid; gap: 12px; padding: 12px 20px 16px;
   grid-template-columns: minmax(0, 7fr) minmax(220px, 3fr);

@@ -22,6 +22,7 @@ import { ArbPanel } from './arb_ui'
 import { LeadersPanel } from './leaders_ui'
 import { PaperView } from './paper_view'
 import { ObsView } from './obs_view'
+import { setupViewTabs, showDesk } from './views'
 import { setCalendarClock } from './event_clock'
 import { setCollectorState } from './no_data_label'
 import type { AgentInfo, AgentReport, Candle, Mode, StreamMsg, Synthesis } from './types'
@@ -62,7 +63,7 @@ const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('ri
 const leaders = new LeadersPanel($('t-lead'), $('tab-lead'))
 const squad = new SquadPanel($('t-squad'), () => ({ symbol, tf }), () => scenarios.refresh()) // T60
 squadSupport = squad
-const obs = new ObsView($('obs')) // Mapa del sistema (T75), en la mesa bajo el río (T122)
+const obs = new ObsView($('obs')) // Mapa del sistema (T75), en su pestaña de la barra superior (views.ts)
 const paper = new PaperView($('paper')) // bróker simulado (T47): en la mesa, bajo el mapa del sistema; modo Simulado en su cabecera
 
 let liveShown = ''   // último estado pintado: cada tick del precio no vuelve a tocar el DOM si nada cambió
@@ -220,11 +221,13 @@ function build(): void {
   })
   // «Ver la validación en Bróker simulado» (operaciones sugeridas): baja hasta el bróker
   window.addEventListener('eim:open-paper', () => {
+    showDesk()   // el bróker está en la mesa: si el mapa estaba abierto, se vuelve a ella
     $('paper').scrollIntoView({ behavior: 'smooth', block: 'start' })
   })
 }
 
 build()
+setupViewTabs()
 obs.mount()
 paper.toggle(true, symbol)
 void load()
