@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-18T14:48:50",
+ "generated": "2026-11-18T18:25:16",
  "phases": [
   {
    "n": 0,
@@ -2645,8 +2645,8 @@ window.EIM_STATUS = {
    "deps": [
     "T128"
    ],
-   "state": "pending",
-   "notes": "— (abierta al cerrar T128: +53 MB/día en la semana medida, `PLAN/T178.md`)",
+   "state": "progress",
+   "notes": "**Entregables 1, 2 y 4 hechos; falta la ◆ del 3 y desplegar** (`PLAN/notas/T178_retencion.md`). Medido sobre la copia del 18-nov: la poda de T128 **está al día** (solo 2 371 ejecuciones de rechazados con más de 7 días) y los **+53 MB/día son casi enteros las fotos de posiciones** (≈ 6,5 KB cada una en disco × 10 600/día); las reconciliaciones, 41 300 filas/día, son 0,4 MB/día. `eim/data/leader_retention.py`: de las reconciliaciones con más de 7 días se quedan todas las que no cuadran y una por líder cada 2 min (por debajo del `recon_gap_ms` de 5 min, para no inventar huecos en la copia simulada), con resumen diario en `leader_recon_daily` que `leader_report` suma al informe; de las fotos, cada cambio de forma y una por hora, con el tiempo capturado guardado antes de borrar en `leader_photo_cover` para que `observed_ms` (lo que mide T49) no cambie. Corre tras la poda diaria y en frío antes de compactar. La poda por sí sola ahorra el 39 % de los bytes de las fotos (el 66 % son cambios de forma de verdad): 53 → ≈ 32 MB/día. **◆ resuelta (usuario, 18-nov): también se recodifica la foto** (`eim/data/leader_photos.py`, formato `v2`: lo que se repetía en cada posición —`leader_id`, `address`, `source`, `t`, `observed_at`— sale una vez por foto, sin perder ningún campo; `decode` sigue leyendo las viejas y `recode_photos` las migra, 50 000 por vuelta con el servicio en marcha y sin tope en frío). Medido en disco con 20 000 fotos reales: 129,2 → 11,5 MB, es decir **≈ 5 MB/día** y ~800 MB que devuelve el compactado. 15 pruebas (`test_leader_retention.py`, `test_leader_photos.py`). **Falta:** desplegar y la semana de medición con las copias diarias (criterio de aceptación).",
    "effort": "bajo",
    "phase": 21
   },

@@ -20,6 +20,7 @@ from pathlib import Path
 import duckdb
 
 from eim.core.leaders import Leader, LeaderFill, LeaderFunding, LeaderPosition, LeaderStatus
+from eim.data import leader_photos as photos
 from eim.data.copy_store import COPY_DDL, CopyTables
 from eim.data.duck import tune
 from eim.data.leader_archive import ARCHIVE_DDL
@@ -56,6 +57,14 @@ CREATE TABLE IF NOT EXISTS leader_recon (
 CREATE TABLE IF NOT EXISTS leader_gaps (
     leader_id VARCHAR, symbol VARCHAR, t_from BIGINT, t_to BIGINT, cause VARCHAR,
     detail VARCHAR, observed_at BIGINT, recovered INTEGER, machine VARCHAR);
+CREATE TABLE IF NOT EXISTS leader_photo_cover (   -- T178: lo que cubrían las fotos borradas
+    leader_id VARCHAR PRIMARY KEY, cut_t BIGINT, covered_ms BIGINT, first_at BIGINT,
+    kept BIGINT, dropped BIGINT, last_shape VARCHAR);
+CREATE TABLE IF NOT EXISTS leader_recon_daily (   -- T178: resumen de las que se borran
+    leader_id VARCHAR, day BIGINT, machine VARCHAR, checks BIGINT, size_ok BIGINT,
+    matched BIGINT, resynced BIGINT, coins_checked BIGINT, coins_skipped BIGINT,
+    after_retry BIGINT, offset_sum BIGINT, offset_n BIGINT, offset_max INTEGER,
+    first_at BIGINT, last_at BIGINT, PRIMARY KEY (leader_id, day, machine));
 """
 _MACHINE_TABLES = ("leader_recon", "leader_gaps")     # sin clave natural: T61 les añade `machine`
 _FILL_COLS = ("leader_id, tid, oid, address, symbol, side, action, size, price, start_position, "
@@ -222,12 +231,10 @@ class LeaderStore(ScoreTables, CopyTables):
         last = self._exec("SELECT observed_at, positions FROM leader_positions WHERE "
                           "leader_id = ? ORDER BY observed_at DESC LIMIT 1", [lid])
         if last and observed_at - last[0][0] < keep_ms:
-            prev = [LeaderPosition.model_validate(p) for p in json.loads(last[0][1])]
-            if _shape(prev) == _shape(positions):
+            if _shape(photos.decode(last[0][1])) == _shape(positions):
                 return False
-        payload = json.dumps([p.model_dump() for p in positions])
         return self._insert("leader_positions", "leader_id, t, observed_at, positions",
-                            [(lid, t, observed_at, payload)]) == 1
+                            [(lid, t, observed_at, photos.encode(positions))]) == 1
 
     def positions_at(self, asof: int, statuses: tuple[str, ...] = ("approved",),
                      max_age_ms: int = POSITIONS_MAX_AGE_MS) -> list[LeaderPosition]:
@@ -239,7 +246,7 @@ class LeaderStore(ScoreTables, CopyTables):
                              "leader_id = ? AND observed_at <= ? ORDER BY observed_at DESC "
                              "LIMIT 1", [lid, asof])
             if row and asof - row[0][0] <= max_age_ms:
-                out += [LeaderPosition.model_validate(p) for p in json.loads(row[0][1])]
+                out += photos.decode(row[0][1])
         return out
 
     # --- control de calidad ------------------------------------------------------------------

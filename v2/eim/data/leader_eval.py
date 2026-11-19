@@ -43,10 +43,26 @@ def context(store: LeaderStore, ld: Leader, asof: int) -> LeaderData:
     near = store.positions_near(ld.id, asof)
     positions = near[1] if near and asof - near[0] <= POSITIONS_MAX_AGE_MS else []
     pf = store.portfolio(ld.id)
+    first, observed = _forward(store, ld.id, asof, times)
     return LeaderData(
         leader=ld, fills=[], positions=positions,
         portfolio=pf[1] if pf and pf[0] <= asof else None,
-        forward_start=times[0] if times else None, observed_ms=covered_ms(times, PHOTO_STEP_MS))
+        forward_start=first, observed_ms=observed)
+
+
+def _forward(store: LeaderStore, lid: str, asof: int,
+             times: list[int]) -> tuple[int | None, int]:
+    """Inicio y tiempo capturado. Si la retención de T178 borró fotos, lo anterior a su corte
+    sale del tiempo que se guardó entonces (`leader_photo_cover`), no de las fotos que quedan:
+    así borrarlas no cambia lo que mide T49."""
+    cover = store.photo_cover(lid)
+    if cover is None or cover[0] > asof:
+        return (times[0] if times else None), covered_ms(times, PHOTO_STEP_MS)
+    cut, covered, first = cover
+    rest = [t for t in times if t > cut]
+    link = min(rest[0] - cut, PHOTO_STEP_MS) if rest else 0   # salto entre el corte y lo que queda
+    return (first if first is not None else (times[0] if times else None),
+            covered + link + covered_ms(rest, PHOTO_STEP_MS))
 
 
 def gather(store: LeaderStore, ld: Leader, asof: int) -> LeaderData:

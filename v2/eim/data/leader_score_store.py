@@ -12,6 +12,7 @@ import json
 
 from eim.copytrading.forward import VerdictMark
 from eim.core.leaders import FollowQuote, LeaderFill, LeaderFunding, LeaderPosition
+from eim.data import leader_photos as photos
 
 SCORE_DDL = """
 CREATE TABLE IF NOT EXISTS leader_portfolio (
@@ -62,6 +63,13 @@ class ScoreTables:
             "SELECT observed_at FROM leader_positions WHERE leader_id = ? AND observed_at <= ? "
             "ORDER BY observed_at", [lid, asof])]
 
+    def photo_cover(self, lid: str) -> tuple[int, int, int | None] | None:
+        """(corte, tiempo cubierto hasta el corte, primera foto) que dejó la retención de T178
+        al borrar fotos; None si a ese líder no se le ha borrado ninguna."""
+        row = self._exec("SELECT cut_t, covered_ms, first_at FROM leader_photo_cover "
+                         "WHERE leader_id = ?", [lid])
+        return row[0] if row else None
+
     def positions_near(self, lid: str, asof: int) -> tuple[int, list[LeaderPosition]] | None:
         """Última foto con observed_at ≤ asof (sin límite de edad)."""
         row = self._exec("SELECT observed_at, positions FROM leader_positions WHERE "
@@ -69,7 +77,7 @@ class ScoreTables:
                          [lid, asof])
         if not row:
             return None
-        return row[0][0], [LeaderPosition.model_validate(p) for p in json.loads(row[0][1])]
+        return row[0][0], photos.decode(row[0][1])
 
     def recent_coins(self, since: int) -> set[str]:
         return {r[0] for r in self._exec(
