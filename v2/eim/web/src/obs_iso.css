@@ -47,6 +47,11 @@
   border: 1px solid rgba(var(--glow, 34, 225, 255), .55); background: rgba(7, 12, 51, .9); color: #e8ecff; font: 600 12.5px "Inter", system-ui, sans-serif; }
 .iso-back:hover, .iso-back:focus-visible { background: rgba(34, 225, 255, .18); outline: none; }
 @media (max-width: 700px) { .iso-focus .iso-svg { width: 100%; min-height: 0; } }
+.iso-tag { cursor: pointer; outline: none; }
+.iso-tag rect { fill: #070c33; fill-opacity: .9; stroke-width: 1.4; }
+.iso-tag text { fill: #e8ecff; font: 600 12.5px "Inter", system-ui, sans-serif; text-anchor: middle; pointer-events: none; }
+.iso-tag:hover rect, .iso-tag:focus-visible rect { fill: #13206e; stroke-width: 2.4; }
+.iso-tag.sel rect { fill: #0e3a5c; stroke: var(--accent, #22e1ff); stroke-width: 2.6; }
 .obs-piece-list { list-style: none; padding: 0; margin: 6px 0; font-size: 12px; display: grid; gap: 3px; }
 /* En «Isométrico» el mapa ocupa todo el ancho: «Cómo leer este mapa» y el detalle flotan en la esquina superior derecha del diagrama */
 [data-view="iso"] .obs-body { grid-template-columns: minmax(0, 1fr); position: relative; }

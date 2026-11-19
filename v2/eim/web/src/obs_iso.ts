@@ -9,6 +9,7 @@ import { compState } from './obs_graph'
 import { P, pts, S, type Room } from './obs_iso_geo'
 import { ART_DEFS } from './obs_iso_art'
 import { avatar, avatarDefs } from './obs_iso_avatar'
+import { focusLayout, nameTags } from './obs_iso_focus'
 import { lounges, type UVRect } from './obs_iso_lounge'
 import { NAME_STRIP, station, STRIP, themeOf, WALL_H } from './obs_iso_props'
 import { esc, STATE_ICON, STATE_LABEL, type ObsComp, type ObsData, type ObsState } from './obs_types'
@@ -247,13 +248,15 @@ const legendBar = (inc: boolean): string => `<div class="iso-legend"><span><i cl
 
 /** Sala enfocada: solo esa área, ampliada y centrada en todo el espacio del mapa; el resto se oculta
  * hasta pulsar «← Ruta completa». */
-function focusHtml(d: ObsData, a: Area, inc: boolean, sel: string | null): string {
-  const [room, tag, b] = drawArea(d, a, inc, a.stage, sel), [floor] = floorSlab([a]), e = (a.hu + a.hv) * S, pad = 28
-  const x0 = Math.min(b[0], a.cx - e * 0.866) - pad, x1 = Math.max(b[2], a.cx + e * 0.866) + pad
-  const y0 = Math.min(b[1], a.cy - e * 0.5 - WALL_H * S) - pad, y1 = Math.max(b[3], a.cy + e * 0.5 + 0.4 * S) + pad
+function focusHtml(d: ObsData, a0: Area, inc: boolean, sel: string | null): string {
+  const a = focusLayout(a0), [room, tag, b] = drawArea(d, a, inc, a.stage, sel), [floor] = floorSlab([a]), e = (a.hu + a.hv) * S
+  const names = nameTags(a, a.list.map((c) => { const st = compState(d, c), t = toneOf(st, inc)
+    return { id: c.id, name: c.title_es, color: t === 'plan' ? '#9aa6d6' : COLOR[t], tip: `${c.title_es} — ${STATE_ICON[st]} ${STATE_LABEL[st]} · pulsa para ver su información` } }), sel)
+  const x0 = Math.min(b[0], a.cx - e * 0.866) - 60, x1 = Math.max(b[2], a.cx + e * 0.866) + 60
+  const y0 = Math.min(b[1], a.cy - e * 0.5 - WALL_H * S) - 28, y1 = Math.max(b[3], a.cy + e * 0.5 + 0.4 * S) + 28
   return `<div class="iso-wrap iso-focus"><button class="iso-back" data-home title="Volver al mapa con todas las áreas">← Ruta completa</button>
     <svg class="iso-svg" viewBox="${x0.toFixed(0)} ${y0.toFixed(0)} ${(x1 - x0).toFixed(0)} ${(y1 - y0).toFixed(0)}" role="img" aria-label="${esc(`Área ${d.graph.stage_titles_es[a.stage] ?? a.stage} ampliada`)}">
-      ${floor}<g>${room}</g><g>${tag}</g></svg>${legendBar(inc)}</div>`
+      ${floor}<g>${room}</g><g class="iso-tags">${names}</g><g>${tag}</g></svg>${legendBar(inc)}</div>`
 }
 
 /** El mapa completo como HTML (SVG + leyenda con el ajuste de «datos incompletos»); con una etapa elegida, solo esa sala. */

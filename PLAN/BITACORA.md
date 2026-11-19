@@ -3480,3 +3480,11 @@ y por informante, si lo que cada agente dice en vivo acierta la dirección.
 - **Pruebas:** revisión de tipos (	sc --strict) en la sesión; ruff, pruebas que leen la web y 
 pm run build en el equipo del usuario.
 - **Abierto:** nada. **Siguiente paso:** ninguno obligatorio.
+
+## 2026-11-19 · sesión «Nombres en la sala enfocada» · cada analista con su nombre
+- **Hecho:** a pedido del usuario, en la sala ampliada cada puesto lleva debajo una etiqueta con su nombre (color = estado) y la etiqueta es un botón que abre la información de esa pieza en el panel de detalle (la seleccionada se resalta). Los puestos se reorganizan en filas horizontales de pantalla, alternadas, con 196 px entre puestos y 108 px entre filas, para que ningún nombre pise a otro; la sala toma la proporción más compacta donde caben todos. Nombres de más de 24 letras se recortan con «…» y el completo va en el título.
+- **Archivos:** 2/eim/web/src/obs_iso_focus.ts (nuevo: ocusLayout, 
+ameTags), 2/eim/web/src/obs_iso.ts (ocusHtml los usa), 2/eim/web/src/obs_iso.css (.iso-tag).
+- **Pruebas:** en la sesión, render en Chrome sin cabeza de Análisis con 31 puestos y de Datos con 3: 0 etiquetas solapadas; 	sc --strict sin errores. En el equipo: ruff, pruebas que leen la web y 
+pm run build.
+- **Abierto:** con muchas piezas (Análisis) el texto se ve pequeño en pantallas angostas; el nombre completo sale al pasar el cursor. **Siguiente paso:** ninguno obligatorio.
