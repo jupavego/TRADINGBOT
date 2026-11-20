@@ -45,6 +45,8 @@ Rutas relativas a `v2/` salvo indicación. Tamaños y filas medidos en `laptop-i
 | `data/leaders.duckdb` | Capturas en vivo de líderes de Hyperliquid y copia simulada (**irrepetibles**: el exchange solo sirve las 10 000 ejecuciones más recientes). De los rechazados, 7 días de detalle y lo anterior archivado ya plegado (`leader_archive*`, T128) | 1 125 MB · 12 tablas · 5,17 M filas | crítica | copia diaria + copia externa; experiencia (`leader_*` salvo el archivo, `copy_journal`) |
 | `data/obs/obs.duckdb` | Observatorio (derivado del spool JSONL) | 10 tablas · 894 k filas | media | copia diaria + externa; reconstruible |
 | `data/video.duckdb` | Catálogo de video T64: canales, metadatos point-in-time de videos de YouTube (sin audio ni video), cola de relevancia, consultas y cuota de la Data API | pequeño | baja | aún no entra en la copia diaria (BACKLOG T64); se rehace con `python -m eim.video backfill` salvo `first_seen_at` |
+| `data/video/visual.duckdb` | Lectura visual T66: tabla `video_observations` (solo-añadir; cada observación con fotograma, caja, motor/modelo/SHA y validación) | pequeño | baja | aún no entra en la copia diaria (BACKLOG T66); se rehace con `python -m eim.video.visual read` si siguen las miniaturas |
+| `data/video/frames/<video>/` | Miniaturas JPEG elegidas por T66 + `manifest.json` (el video completo no se guarda) | ~150 KB por fotograma, ≤ 120 por hora de video | baja | no se copia: se regenera desde el material original |
 
 Las operaciones simuladas conservan sus registros originales (no resúmenes): entrada, salida,
 precios, horas UTC, SL/TP vigentes, costos y motivo de cierre están en `paper.duckdb` y
