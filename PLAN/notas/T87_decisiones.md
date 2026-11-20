@@ -1,4 +1,27 @@
-# T87 ◆ — Decisiones de alcance multiactivo (pendientes de tu aprobación por escrito)
+# T87 ◆ — Decisiones de alcance multiactivo
+
+> ## ✅ APROBADAS POR EL USUARIO EL 2026-11-20
+>
+> Aprobó las cinco ◆ tal como están escritas en esta página («Sí, apruebo»), es decir la
+> recomendación de cada una, no ninguna de las alternativas, y **con ello la fase 17 sigue**
+> (descartada la opción de cerrarla de la última sección).
+>
+> **Queda fijado, y T89–T100 ya pueden empezar:**
+> 1. Investigación global, **ejecución solo simulada**, sin intermediarios ni cuentas nuevas. T103 a
+>    BACKLOG hasta que una clase demuestre valor medido.
+> 2. Horizontes **1 h–1 d**, con **`1d` como marco de primera clase** — lo que obliga a que T90
+>    arregle `build_snapshot` (`eim/data/snapshot.py:146`) y saque `1d` de `STORE_ONLY_TF_MS`.
+> 3. **Solo datos públicos y gratuitos**, con licencia verificada en la fuente (T88); ninguna
+>    suscripción hasta que una clase demuestre valor medido.
+> 4. **Orden nuevo** (por potencia ganada, no el de octubre): cripto completo de Binance → índices
+>    en diario (S&P 500, Nasdaq, oro) → acciones y ETF líquidos en diario → FX mayores → futuros
+>    tradicionales → renta fija, derivados y opciones **solo viabilidad** (T100).
+> 5. **Lista de aceptación de 8 puntos** (§9 de `T87_matriz.md`) como requisito vinculante para que
+>    una clase entre, y molde de T97–T100.
+>
+> **Condición que sigue viva:** las condiciones de uso de Yahoo (`yfinance`, de donde salen S&P 500
+> y Nasdaq) **no están verificadas**. Si T88 las rechaza, el punto 2 del orden pierde sus datos
+> gratuitos y el orden hay que revisarlo. No es una objeción a lo aprobado: es el aviso de ◆3.
 
 Fecha: 2026-11-20. Insumos: `PLAN/notas/T87_matriz.md`, `v2/reports/t87_agents_cost.md`,
 `v2/reports/t87_portabilidad.md`, y las dos decisiones que ya tomaste: **T145 (2026-11-10, D: solo
@@ -6,7 +29,8 @@ análisis)** y **T163**, cuya regla general dice que *ninguna hipótesis de Shar
 activo cripto es comprobable —hacen falta (2,4865/S)² años— y la única vía es multiactivo
 (T93–T96)*.
 
-**Nada de T89 en adelante empieza sin tu aprobación de esta página.**
+~~**Nada de T89 en adelante empieza sin tu aprobación de esta página.**~~ → **aprobada el
+2026-11-20; T89–T100 desbloqueadas.**
 
 ---
 
@@ -122,14 +146,15 @@ motivo, nunca un número silencioso*.
 > índices en diario → acciones → FX → futuros → (renta fija solo viabilidad); y la lista de
 > aceptación de 8 puntos como requisito para que una clase entre.
 
-## Si prefieres no seguir con la fase 17
+## Si prefieres no seguir con la fase 17 — **no elegida**
 
-Es una opción legítima y te la debo escrita: T164 ya dio el «no» que el universo de perpetuos podía
-dar, y construir T89–T96 son semanas de trabajo cuyo producto más probable son más «no» medibles.
-La razón para seguir es T163: **sin multiactivo no hay ninguna hipótesis de Sharpe comprobable en
-este sistema**, así que la alternativa no es «buscar la ventaja en otro sitio», es dejar de poder
-medir. Pero la decisión es tuya, y si la respuesta es no, T89–T100 pasan a BACKLOG y la fase se
-cierra sin más trabajo.
+> El usuario **no** tomó esta salida el 2026-11-20: la fase 17 sigue.
+
+Era una opción legítima y se la debía escrita: T164 ya dio el «no» que el universo de perpetuos
+podía dar, y construir T89–T96 son semanas de trabajo cuyo producto más probable son más «no»
+medibles. La razón para seguir es T163: **sin multiactivo no hay ninguna hipótesis de Sharpe
+comprobable en este sistema**, así que la alternativa no era «buscar la ventaja en otro sitio», era
+dejar de poder medir.
 
 ## Lo que NO se decide aquí
 

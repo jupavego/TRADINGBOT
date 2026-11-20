@@ -3756,7 +3756,7 @@ pm run build.
   marginal ya está pagado. `data/hft_panel/` (≈ 80 MB) se puede borrar cuando se quiera.
 - **Siguiente paso:** fusionar #334 (gate verde, 4 021 pruebas) cuando el usuario lo autorice.
 
-## 2026-11-20 · claude-code · T87: auditoría de acoplamientos multiactivo, medición y ◆ de alcance
+## 2026-11-20 · claude-code · T87 ☑: auditoría multiactivo, medición y ◆ aprobada (fase 17 sigue)
 
 - **Hecho:** T87 completa salvo la ◆ del usuario. Tres entregables de auditoría y dos bancos nuevos,
   **sin tocar una línea de `eim/`** (es lo que la ficha exige).
@@ -3822,7 +3822,24 @@ pm run build.
   `nursery/prereg.py:125` que T95 tiene que abrir, y si `v2/scripts/` entra en el gate).
   Las condiciones de uso de Yahoo (`yfinance`, de donde salen S&P 500 y Nasdaq) **siguen sin
   verificar en la fuente**: es T88, y si no pasan, el orden de clases de la ◆ cambia.
-- **En curso:** nada de código. T87 queda ◐ esperando la aprobación escrita.
-- **Siguiente paso:** que el usuario apruebe (o rechace) `PLAN/notas/T87_decisiones.md`. **T89 en
-  adelante no empiezan sin esa aprobación**; si la respuesta es no, T89–T100 pasan a BACKLOG y la
-  fase 17 se cierra.
+- **◆ RESUELTA EL MISMO DÍA — el usuario aprobó las cinco** («Sí, apruebo», las recomendaciones de
+  la nota, no las alternativas), así que **T87 pasa a ☑, la fase 17 sigue** (descartada la salida de
+  cerrarla) y **T89–T100 quedan desbloqueadas**. Queda fijado: (1) investigación global con
+  **ejecución solo simulada**, sin intermediarios ni cuentas nuevas (T103 a BACKLOG hasta que una
+  clase demuestre valor medido); (2) horizontes **1 h–1 d con `1d` de primera clase**, lo que obliga
+  a T90 a arreglar `build_snapshot` y a sacar `1d` de `STORE_ONLY_TF_MS`; (3) **solo datos públicos
+  y gratuitos** con licencia verificada en la fuente, sin suscripciones hasta que una clase
+  demuestre valor; (4) **orden nuevo** por potencia ganada por unidad de trabajo, no el de octubre:
+  cripto completo de Binance → índices en diario (S&P 500, Nasdaq, oro) → acciones y ETF líquidos en
+  diario → FX mayores → futuros tradicionales → renta fija, derivados y opciones **solo viabilidad**;
+  (5) la **lista de aceptación de 8 puntos** (`T87_matriz.md` §9) como requisito vinculante para que
+  una clase entre y molde de T97–T100. Anotado en las filas de T88–T97 de `STATUS.md` lo que cada
+  una hereda de esta ◆.
+- **Condición viva de la aprobación:** las condiciones de uso de **Yahoo** (`yfinance`) siguen sin
+  verificar; es el encargo concreto que la ◆ le deja a **T88**. Si no pasan, el 2.º puesto del orden
+  de clases pierde sus datos gratuitos y hay que revisarlo.
+- **En curso:** nada de código.
+- **Siguiente paso:** **T89**, registro universal de instrumentos y calendarios — es quien sustituye
+  a `SYMBOLS`/`FOCUS` de `data/timeframes.py` (61 importadores) y quien da el calendario de sesiones
+  del que dependen `find_gaps`, el ancla de `vwap` y la anualización. Antes, fusionar el PR #336
+  (gate verde), que está abierto sin fusionar a propósito.
