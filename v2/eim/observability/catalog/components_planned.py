@@ -25,9 +25,12 @@ PLANNED: tuple[Component, ...] = (
       "Obtendrá el texto del video con marcas de tiempo, subtítulos primero y voz local si "
       "faltan. Aún no existe.", consumes=(("video.watcher", "video_queue"),),
       produces=("transcript",), **_P),
+    # T66: construido (a demanda: `python -m eim.video.visual`; sin eventos del observatorio
+    # todavía, como T64; solo con material permitido y la muestra ◆ pendiente)
     c("video.scenes", "video", "datos", "service", "video", "T66", "Escenas y gráficos",
-      "Extraerá fotogramas y leerá gráficos o texto en pantalla. Aún no existe.",
-      consumes=(("video.watcher", "video_queue"),), produces=("frames",), **_P),
+      "Elige fotogramas de un video aportado y lee cifras, titulares, niveles e indicadores, "
+      "cada uno validado contra los datos reales. Se usa a demanda.",
+      consumes=(("video.watcher", "video_queue"),), produces=("frames",)),
     c("video.claims", "video", "analisis", "engine", "video", "T67", "Afirmaciones",
       "Convertirá lo que dice el analista en afirmaciones concretas, cada una con su minuto. "
       "Aún no existe.", consumes=(("video.transcribe", "transcript"), ("video.scenes", "frames")),

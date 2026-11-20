@@ -58,7 +58,8 @@ def test_store_is_append_only_and_ignores_repeats(tmp_path: Path) -> None:
     from eim.data.video.observations import ObservationStore
 
     st = ObservationStore(tmp_path / "visual.duckdb")
-    a = [_obs("f1", "nivel", 64250.0, "confirmada"), _obs("f1", "titular", "Hola mundo", unit="")]
+    a = [_obs("f1", "nivel", 64250.0, "confirmada"),
+         _obs("f1", "titular", "Hola mundo", "no_verificable", unit="")]
     assert st.append(a, now=1) == 2
     assert st.append(a, now=2) == 0                                       # repetidas
     assert st.append([_obs("f1", "nivel", 64250.0, engine="otro")], now=3) == 1
