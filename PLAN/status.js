@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-20T13:13:38",
+ "generated": "2026-11-20T16:35:54",
  "phases": [
   {
    "n": 0,
@@ -386,6 +386,21 @@ window.EIM_STATUS = {
    "ids": [
     "T195",
     "T196"
+   ]
+  },
+  {
+   "n": 32,
+   "name": "El cerebro se automatiza",
+   "ids": [
+    "T205",
+    "T197",
+    "T198",
+    "T199",
+    "T200",
+    "T201",
+    "T202",
+    "T203",
+    "T204"
    ]
   }
  ],
@@ -3120,6 +3135,127 @@ window.EIM_STATUS = {
     "machine": "cualquiera",
     "needs": "Nada: se enciende solo en su fecha"
    }
+  },
+  {
+   "id": "T205",
+   "title": "Orquestador y vigía de la automatización: que todo lo automático funcione de verdad",
+   "deps": [
+    "T116",
+    "T184",
+    "T191"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-20 (pedido del usuario: un orquestador que asegure que lo automático funcione).** Va primero en la fase 32; T197–T204 se registran en él. Ver `PLAN/T205.md`.",
+   "effort": "medio",
+   "phase": 32
+  },
+  {
+   "id": "T197",
+   "title": "Despliegue automático al fusionar: fuera los guiones aplicar_.cmd",
+   "deps": [
+    "T205",
+    "T116"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-20 (pedido del usuario: automatizar lo manual).** Fase 32, bajo el orquestador T205; ver `PLAN/T197.md`. Lo que reinicie nace apagado hasta el cierre de T31.",
+   "effort": "medio",
+   "phase": 32
+  },
+  {
+   "id": "T198",
+   "title": "Reinicio completo y escalonado en ventana tranquila",
+   "deps": [
+    "T205",
+    "T197",
+    "T31"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-20 (pedido del usuario: automatizar lo manual).** Fase 32, bajo el orquestador T205; ver `PLAN/T198.md`. Lo que reinicie nace apagado hasta el cierre de T31.",
+   "effort": "medio",
+   "phase": 32
+  },
+  {
+   "id": "T199",
+   "title": "Configuración por equipo que se aplica sola al sincronizar",
+   "deps": [
+    "T205",
+    "T171",
+    "T196",
+    "T197"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-20 (pedido del usuario: automatizar lo manual).** Fase 32, bajo el orquestador T205; ver `PLAN/T199.md`. Lo que reinicie nace apagado hasta el cierre de T31.",
+   "effort": "bajo",
+   "phase": 32
+  },
+  {
+   "id": "T200",
+   "title": "Autochequeo tras cada encendido, con avisos en el mapa",
+   "deps": [
+    "T205",
+    "T171",
+    "T172",
+    "T191",
+    "T196"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-20 (pedido del usuario: automatizar lo manual).** Fase 32, bajo el orquestador T205; ver `PLAN/T200.md`. Lo que reinicie nace apagado hasta el cierre de T31.",
+   "effort": "bajo",
+   "phase": 32
+  },
+  {
+   "id": "T201",
+   "title": "Gate troceado y programado, y T116 sin intervención",
+   "deps": [
+    "T205",
+    "T116",
+    "T126",
+    "T127"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-20 (pedido del usuario: automatizar lo manual).** Fase 32, bajo el orquestador T205; ver `PLAN/T201.md`. Lo que reinicie nace apagado hasta el cierre de T31.",
+   "effort": "bajo",
+   "phase": 32
+  },
+  {
+   "id": "T202",
+   "title": "Cierres por fecha que escriben su informe solos",
+   "deps": [
+    "T205",
+    "T31",
+    "T135",
+    "T178",
+    "T194"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-20 (pedido del usuario: automatizar lo manual).** Fase 32, bajo el orquestador T205; ver `PLAN/T202.md`. Lo que reinicie nace apagado hasta el cierre de T31.",
+   "effort": "bajo",
+   "phase": 32
+  },
+  {
+   "id": "T203",
+   "title": "Hoja de ruta y condicionantes que se mantienen solos",
+   "deps": [
+    "T205",
+    "T197"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-20 (pedido del usuario: automatizar lo manual).** Fase 32, bajo el orquestador T205; ver `PLAN/T203.md`. Lo que reinicie nace apagado hasta el cierre de T31.",
+   "effort": "bajo",
+   "phase": 32
+  },
+  {
+   "id": "T204",
+   "title": "Diagnósticos al registro del vigilante y raíz limpia",
+   "deps": [
+    "T205",
+    "T197",
+    "T200"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-20 (pedido del usuario: automatizar lo manual).** Fase 32, bajo el orquestador T205; ver `PLAN/T204.md`. Lo que reinicie nace apagado hasta el cierre de T31.",
+   "effort": "bajo",
+   "phase": 32
   }
  ]
 };
