@@ -3880,3 +3880,71 @@ pm run build.
 - **Siguiente paso:** nada pendiente de T80. Limpiado: el worktree `t80-techo` se borró y su
   rama, entera en `main` por el PR #334, también (local y `origin`). Esta rama se rehizo sobre
   `main` tras los PR #336 (T87) y #337 (T66), que tocaban la misma cabecera y la misma bitácora.
+## 2026-11-20 13:40 UTC · claude-code · T88: 246 perpetuos TradFi en Binance, ninguno con un año de histórico
+
+- **Hecho:** T88 completa, salvo la ◆. Auditoría en la fuente de **12 repositorios** y **23 proveedores**
+  de datos, más la cobertura real de Binance y las cuentas de papel de los intermediarios, en el formato de
+  T04/T33: alertas primero, tabla de veredictos con modo **A usar / B proceso aislado / C referencia /
+  D descartar**, y lo no verificado declarado como tal en tres secciones. Clones superficiales y aislados en
+  `C:	88clones` (fuera del proyecto, desechables): **no se instaló ni se ejecutó nada de terceros, no se
+  abrió ninguna cuenta, no se pidió ninguna clave y no se sorteó ninguna verificación anti-bot.** Cuatro
+  grupos en paralelo (un subagente por grupo, como preveía la tarea) y verificación propia de todas las
+  afirmaciones de peso antes de darlas por buenas.
+- **Lo que más cambia el plan — Binance tiene 246 perpetuos TradFi vivos, no cinco.** `exchangeInfo` trae un
+  tipo de contrato propio, `TRADIFI_PERPETUAL`, que `eim/data/` no conoce: 209 acciones y ETF de EE. UU., 15
+  de Hong Kong, 8 de materias primas, 8 de Corea, 3 pre-OPV, 2 de China y 1 de FX, con **39 250 M USDT/24 h**,
+  casi tanto como los 567 perpetuos de cripto. Corrige el supuesto de T87 §4. **Pero ninguno llega a un año
+  de histórico** (alta entre 2025-12-11 y hoy; mediana **134 días**; solo 52 pasan de 180), así que se pueden
+  **observar** en T93 y no **validar** en T95/T97/T101 sin recalcular la potencia. Y **sus comisiones no se
+  pudieron verificar** (la página de parámetros se renderiza por JavaScript y da «No Data»): sin esa cifra,
+  T92 no modela el costo de la clase y no hay veredicto de rentabilidad posible. No se asumió la tabla de
+  cripto.
+- **El contrato no cierra aunque su subyacente sí.** `/fapi/v1/tradingSchedule` publica seis calendarios
+  (`EQUITY`, `COMMODITY`, `FX`, `HK_EQUITY`, `KR_EQUITY`, `CN_EQUITY`) con sesiones `REGULAR`/`PRE_MARKET`/
+  `AFTER_MARKET`/`OVERNIGHT`/`NO_TRADING`, pero son las del **subyacente**: en 400 velas de 1 h hay **cero
+  huecos y cero velas vacías**, también durante las ~48 h de cierre semanal. Medido sobre 1 500 velas y 9
+  cierres: recorrido medio del 0,7–2,6 % con el mercado cerrado, liquidez al **6–28 %** de la de mercado
+  abierto (BTCUSDT conserva el 42 % en la misma ventana, que es el efecto fin de semana puro) y salto en la
+  primera hora tras reabrir con **p90 de 1,63 % en `CLUSDT`**. Esto **invierte** el punto 4 de T87 §2: no hay
+  huecos que confundir con falta de dato (`find_gaps` sigue siendo correcto aquí), lo que hay es precio
+  formándose sin subyacente. T89 necesita **dos calendarios por instrumento**. El precio sale de un índice de
+  proveedores privados (`dxfeed`, `kaiko`, `pyth_pro`, `massive` con un *fair market value*, y el propio
+  `binance_future` al 0,8 %), ninguno auditable desde EIM.
+- **Repos:** entran `exchange_calendars` (Apache-2.0) como **autoridad de calendarios** —es la única que
+  distingue **por excepción** «fuera de horizonte» de «no es sesión», que es justo lo que el almacén
+  necesita—, `pandas_market_calendars` (MIT + NOTICE Apache-2.0) como complemento, y `PyPortfolioOpt` (MIT,
+  cero aciertos en los diez patrones de riesgo) para T96. `Riskfolio-Lib` es BSD-3 **pero arrastra `vectorbt`
+  (Commons Clause) como dependencia obligatoria** → venv aparte. NautilusTrader queda en lectura: su rueda
+  cp312 existe en 1.231.0 pero la v2 exige ≥3.13, copiar su código contagiaría LGPL, y **no tiene clase de
+  renta fija**. **OpenBB descartado** (250 paquetes en el lock, `eval()` en producción que escribe módulos
+  Python en disco, y tres licencias en tres años: MIT → AGPL-3.0 → Apache-2.0 solo desde 5.0.0). QuickFIX y
+  QuestDB descartados, como ya apuntaba T87 §5.
+- **Proveedores:** las únicas de nivel 2 limpio y gratis son las oficiales —**BCE, Frankfurter, FRED/ALFRED y
+  US Treasury**—, y las comprobé respondiendo **sin clave** (EUR/USD 1,1789 del 1999-01-04 por dos vías
+  independientes; curva par de 14 plazos actualizada hoy). **`yfinance` descartado**: es dependencia de
+  producción de EIM hoy, funciona (v1.6.0 devuelve `^GSPC` y `^IXIC`), pero **no tiene licencia de datos** y
+  los Términos de Yahoo prohíben la recolección automatizada y crear archivos con su contenido. Renta
+  variable no tiene fuente limpia gratis: EODHD es el **único** proveedor que autoriza por escrito guardar
+  los datos. **No existe** fuente gratuita de futuros continuos con *roll* documentado → T99 sin histórico
+  utilizable. FMP prohíbe descargar y obliga a borrar la caché; Nasdaq Data Link ya no es gratuita; Polygon
+  es ahora Massive; Stooq exige navegador (verificado).
+- **Dos alertas antiguas cerradas:** la **3 de T04** —OpenBB **no** es un typosquat: es el mismo repositorio
+  trasladado (id 323048702, creado 2020-12-20, 75 595 estrellas conservadas), fusión OpenBB + BrightQuery—, y
+  la **10 de T33** —los términos de Binance Vision ya no son borrador: «Version 1.0, Last Updated: August 26,
+  2026», **CC BY-NC-SA 4.0**, que permite el *backtesting* histórico personal por escrito y **prohíbe la
+  ejecución en real y la distribución de señales**; dos condiciones duras quedan escritas para T103 y para
+  cualquier derivado que se publique.
+- **Archivos:** `PLAN/notas/T88_auditoria.md` (nuevo, 804 líneas), `PLAN/notas/T88_decisiones.md` (nuevo, la
+  ◆), `PLAN/STATUS.md` (fila T88), `PLAN/BACKLOG.md` (4 entradas).
+- **Pruebas:** gate verde por la cola (IDLE, un trabajo a la vez): `ruff check eim tests` sin avisos y 4 021 pruebas pasadas, 7 omitidas, rc=0 en 1 301 s (`v2/data/jobs/out/20261120-133610-t88-pytest-531f.log`). Nota: la cola corre el `python` del PATH, no el del venv; hay que pasarle el intérprete absoluto.
+  T88 no toca código: no hay cambio que pueda romperla.
+- **◆ RESUELTA el 2026-11-20: el usuario APROBÓ la lista** (pregunta 1), así que T88 queda ☑ y los apartados 1
+  y 2 de `T88_decisiones.md` son la lista de dependencias de T89–T100, con los descartes del 3 en firme
+  (§7 de la nota).
+- **Abierto / en curso:** las preguntas 2, 3 y 4 de la ◆ siguen sin respuesta y no bloquean T89. Mientras: no
+  se contrata ningún proveedor de pago (T97 sin proveedor de acciones), `yfinance` sigue en producción sin
+  licencia de datos, y los 246 perpetuos TradFi se observan en T93 sin veredicto de rentabilidad. Dos deudas
+  del código al BACKLOG: sustituir `yfinance` por `SPYUSDT`/`QQQUSDT` de Binance en el visor, y corregir las
+  menciones a Polygon y Nasdaq Data Link.
+- **Siguiente paso:** T89 (registro de instrumentos), que ya tiene su dependencia aprobada; necesita dos
+  calendarios por instrumento y conocer el tipo `TRADIFI_PERPETUAL`.
