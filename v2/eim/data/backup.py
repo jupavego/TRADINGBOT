@@ -44,6 +44,7 @@ from eim.data.backup_dbs import (
     API_DBS,
     DB_NAME,
     DBS,
+    DESKS_GLOB,
     LEADERS,
     LEADERS_WAIT_S,
     OBS_NAME,
@@ -130,7 +131,10 @@ def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | 
             dbs[name] = {"tables": got[0], "via": got[1],
                          "seconds": round(time.perf_counter() - t0, 2)}
 
-    extra = sorted(n for n in live if n not in DBS)   # mesas aparte (T143, T168)
+    # Mesas aparte (T143, T168): sin nombre fijo. Las que la API presta abiertas y, además, las
+    # que haya en `data/`, para que la copia en frío (servicios parados) tampoco las deje fuera.
+    extra = sorted({n for n in live if n not in DBS} |
+                   {p.name for p in data_dir.glob(DESKS_GLOB)})
     try:
         for name in (LEADERS, PAPER, OBS_NAME, *extra):  # sin `hold`: no dependen del ciclo
             take(name)

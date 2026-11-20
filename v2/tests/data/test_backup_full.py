@@ -12,7 +12,7 @@ import duckdb
 import pytest
 
 from eim.data import backup as B
-from eim.data.backup_dbs import DBS, HOT, SNAP, count_file, sha256
+from eim.data.backup_dbs import COLD, DBS, HOT, SNAP, count_file, sha256
 from tests.data.backup_helpers import ROWS, T0, V2, content, data, holding, manifest
 
 
@@ -59,6 +59,20 @@ def test_separate_desk_books_travel_in_the_copy_and_restore(tmp_path):
     assert count_file(d / name)["t"] == 2                       # vuelve a `data/<nombre>`
     aside = d / (name + ".antes-de-restaurar-20261014-174640")
     assert count_file(aside)["t"] == 3                          # y lo de antes no se pierde
+
+def test_a_desk_book_nobody_has_open_is_copied_cold(tmp_path):
+    """Con los servicios parados nadie presta el libro: se encuentra por su nombre en `data/`
+    (`DESKS_GLOB`) y va en frío, para que la copia manual tampoco lo deje fuera."""
+    d, bk = data(tmp_path), tmp_path / "bk"
+    name = "paper_t143.duckdb"
+    con = duckdb.connect(str(d / name))
+    con.execute("CREATE TABLE t (x INT)")
+    con.execute("INSERT INTO t VALUES (7)")
+    con.close()
+    m = manifest(B.create(d, bk, clock=lambda: T0))
+    assert m["dbs"][name] == {"tables": {"t": 1}, "via": COLD,
+                              "seconds": m["dbs"][name]["seconds"]}
+    assert m["absent"] == {}
 
 def test_restore_replaces_whole_and_keeps_the_previous_aside(tmp_path):
     d = data(tmp_path)
