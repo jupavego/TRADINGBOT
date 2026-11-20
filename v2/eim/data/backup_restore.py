@@ -26,15 +26,17 @@ def read_manifest(backup: Path) -> dict | None:
 
 
 def manifest_dbs(m: dict) -> dict[str, dict]:
-    """{base: {"tables", "via", "seconds"}} en el orden de `DBS`. Lee también el formato de T32
-    (`tables` de reports + `extra_tables`), el de las copias anteriores a T115."""
+    """{base: {"tables", "via", "seconds"}} en el orden de `DBS` y, detrás, los libros de las
+    mesas aparte que llevara la copia (T143, T168: no tienen nombre fijo). Lee también el formato
+    de T32 (`tables` de reports + `extra_tables`), el de las copias anteriores a T115."""
     if "dbs" in m:
         got = m["dbs"]
     else:
         old = {DB_NAME: m.get("tables", {}), **m.get("extra_tables", {})}
         got = {n: {"tables": t, "via": None, "seconds": None} for n, t in old.items()
                if n in m.get("files", {})}
-    return {n: got[n] for n in DBS if n in got}
+    rest = sorted(n for n in got if n not in DBS)
+    return {n: got[n] for n in (*DBS, *rest) if n in got}
 
 
 def summary(backup: Path) -> dict:
@@ -103,7 +105,7 @@ def restore(backup: Path, data_dir: Path,
     problems = verify(backup)
     if problems:
         raise BackupError("copia no íntegra: " + "; ".join(problems))
-    targets = {n: data_dir / DBS[n] for n in manifest_dbs(read_manifest(backup))}
+    targets = {n: data_dir / DBS.get(n, n) for n in manifest_dbs(read_manifest(backup))}
     busy = [n for n, p in targets.items() if p.exists() and in_use(p)]
     if busy:
         raise BackupError(f"detén la API y el servicio de líderes antes de restaurar (en uso: "

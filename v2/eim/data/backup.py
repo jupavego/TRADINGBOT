@@ -7,6 +7,9 @@ Una copia es una carpeta `eim_AAAAMMDD-HHMMSS/` con:
   (capturas en vivo de líderes, irrepetibles) y `obs.duckdb` (observatorio, derivado). Cada una
   por su camino: en caliente si la tiene abierta su dueño (API o servicio de líderes), en frío
   si nadie la usa; si está en uso y su dueño no responde, *ausente con motivo* en el manifiesto.
+  Además, los libros de las mesas aparte que la API tenga abiertos y preste por `extra_dbs`
+  (`paper_t143.duckdb` de T143, `paper_cantera.duckdb` de T168): no tienen nombre fijo —van y
+  vienen con `EIM_PAPER_VARIANTS` y `EIM_NURSERY`— y su archivo vive en `data/<nombre>`.
 - `state/`: kill-switch, estado de la operación, registros JSONL y QC de la captura HFT (T78).
 - `config/`: versiones de parámetros (`eim/risk/versions`, `eim/calibration/versions`).
 - `dvol/`: el índice DVOL de Deribit (T165). Siempre, aunque sea redescargable: son ~1,7 MB
@@ -41,6 +44,7 @@ from eim.data.backup_dbs import (
     API_DBS,
     DB_NAME,
     DBS,
+    DESKS_GLOB,
     LEADERS,
     LEADERS_WAIT_S,
     OBS_NAME,
@@ -87,7 +91,8 @@ def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | 
     """Crea una copia y poda las antiguas (`prune`). Devuelve su carpeta.
 
     `con`/`lock`: conexión abierta de `reports.duckdb`; `extra_dbs` = {nombre: (conexión,
-    cerrojo)} de las demás bases que tiene abiertas este proceso (paper, observatorio). `hold`
+    cerrojo)} de las demás bases que tiene abiertas este proceso (paper, observatorio y los
+    libros de las mesas aparte: `paper_t143.duckdb`, `paper_cantera.duckdb`). `hold`
     (el ciclo de operación) se retiene SOLO mientras se copian `reports.duckdb` y el estado del
     servicio, que deben ser coherentes entre sí; líderes, paper y observatorio se copian antes,
     sin él. `strict`: una base de la API en uso sin su conexión → BackupError al empezar (la CLI
@@ -126,8 +131,12 @@ def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | 
             dbs[name] = {"tables": got[0], "via": got[1],
                          "seconds": round(time.perf_counter() - t0, 2)}
 
+    # Mesas aparte (T143, T168): sin nombre fijo. Las que la API presta abiertas y, además, las
+    # que haya en `data/`, para que la copia en frío (servicios parados) tampoco las deje fuera.
+    extra = sorted({n for n in live if n not in DBS} |
+                   {p.name for p in data_dir.glob(DESKS_GLOB)})
     try:
-        for name in (LEADERS, PAPER, OBS_NAME):  # sin `hold`: no dependen del ciclo
+        for name in (LEADERS, PAPER, OBS_NAME, *extra):  # sin `hold`: no dependen del ciclo
             take(name)
         with hold or nullcontext():
             t_hold = time.perf_counter()
@@ -148,7 +157,7 @@ def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | 
                  for p in sorted(tmp.rglob("*")) if p.is_file()}
         manifest = {"format": FORMAT, "created_at": stamp, "git_commit": _git_commit(),
                     "data_dir": str(data_dir), "with_market": with_market,
-                    "dbs": {k: dbs[k] for k in DBS if k in dbs}, "absent": absent,
+                    "dbs": {k: dbs[k] for k in (*DBS, *extra) if k in dbs}, "absent": absent,
                     "held_s": held_s, "seconds": round(time.perf_counter() - t_start, 2),
                     "files": files}
         (tmp / "manifest.json").write_text(json.dumps(manifest, indent=1, ensure_ascii=False),

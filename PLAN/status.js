@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-19T16:43:46",
+ "generated": "2026-11-19T21:56:32",
  "phases": [
   {
    "n": 0,
@@ -1888,28 +1888,27 @@ window.EIM_STATUS = {
     "T73"
    ],
    "state": "progress",
-   "notes": "`tests/conftest.py` retira toda `EIM_*` del equipo (las opcionales, en `tests/opt_in.py`), fija DuckDB/avisos y **corta la red** (`tests/offline.py`): el ciclo de operación descargaba 30 días de liquidaciones por prueba (~20 s c/u, la causa de los > 25 min). `tests/perf.py` mide con calentamiento y ≥ 100 muestras (mismo umbral, mismo índice); 10 pruebas `perf` siguen en el gate; `test_leaders` aísla `EIM_MACHINE`. Gate 25 min 29 s con 1 fallo → **6 corridas verdes seguidas**: 3 con servicios + CPU a medias + `EIM_*` hostiles (~19–20 min) y 3 con solo los servicios (~11 min); ninguna prueba > 60 s sin carga. Cierre en `PLAN/notas/T116_gate.md`. **Pendiente:** 3 corridas con el equipo descargado y 3 con Ollama real en el equipo de referencia (aquí no hay Ollama y parar los servicios rompe T31/T78). **2026-10-31, `juanpablo-cpu` (Ollama `qwen3:4b` generando sin parar, servicios en marcha):** 3 corridas seguidas del gate el 2026-10-31, de 00:32 a 03:38 UTC, con 324 generaciones de Ollama (~35 s cada una) en paralelo: `ruff` limpio en las 3; `pytest` **no verde**: 2 fallos en 63,8 min, 1 en 36,2 min y 10 en 85,8 min (2 415 pasadas). Fallan `test_emit::test_cycle_overhead_within_budget_even_if_disk_fails` (las 3), `test_obs_api::test_queries_over_100k_events_stay_within_the_threshold` (1.ª y 3.ª) y, solo en la 3.ª, `test_emit::test_two_processes_do_not_corrupt_lines[True]`, `test_hft_risk::test_decision_cost_p99_fits_the_latency_budget_fraction`, 3 de `test_service_heartbeats` (escáner y ejecutor de arbitraje, sincronización de experiencia) y 3 de `test_paper_api` (resumen, backtest, señales en vivo). Los 11 casos pasan aislados en 63 s con los servicios en marcha: son sensibles a la carga, no reproducen sin ella. Falta: decidir si el gate debe aguantar Ollama generando (margen de las pruebas con plazo) y 3 corridas con el equipo descargado (servicios parados; ◆ permiso, rompe la captura de T78). **2026-11-02 (gate en IDLE por la cola de T127):** las pruebas `perf` miden en prioridad NORMAL (por debajo de la captura) y con la mediana de 3 rondas, y las que esperaban plazos fijos cortos esperan hasta que se cumple. Con carga sintética, `main` falla `test_obs_api` y la rama pasa 3/3; mismos umbrales, ninguna prueba saltada (`PLAN/notas/T116_gate.md`). Tres gates por la cola: 2 verdes y 1 fallo por una pausa de la cola (un plazo de reloj caducó con el gate congelado) → `jobs submit --retry-paused 1` en el gate. Faltan las 3 corridas con el equipo descargado (tras T78).",
+   "notes": "`tests/conftest.py` retira toda `EIM_*` del equipo (las opcionales, en `tests/opt_in.py`), fija DuckDB/avisos y **corta la red** (`tests/offline.py`): el ciclo de operación descargaba 30 días de liquidaciones por prueba (~20 s c/u, la causa de los > 25 min). `tests/perf.py` mide con calentamiento y ≥ 100 muestras (mismo umbral, mismo índice); 10 pruebas `perf` siguen en el gate; `test_leaders` aísla `EIM_MACHINE`. Gate 25 min 29 s con 1 fallo → **6 corridas verdes seguidas**: 3 con servicios + CPU a medias + `EIM_*` hostiles (~19–20 min) y 3 con solo los servicios (~11 min); ninguna prueba > 60 s sin carga. Cierre en `PLAN/notas/T116_gate.md`. **Pendiente:** 3 corridas con el equipo descargado y 3 con Ollama real en el equipo de referencia (aquí no hay Ollama y parar los servicios rompe T31/T78). **2026-10-31, `juanpablo-cpu` (Ollama `qwen3:4b` generando sin parar, servicios en marcha):** 3 corridas seguidas del gate el 2026-10-31, de 00:32 a 03:38 UTC, con 324 generaciones de Ollama (~35 s cada una) en paralelo: `ruff` limpio en las 3; `pytest` **no verde**: 2 fallos en 63,8 min, 1 en 36,2 min y 10 en 85,8 min (2 415 pasadas). Fallan `test_emit::test_cycle_overhead_within_budget_even_if_disk_fails` (las 3), `test_obs_api::test_queries_over_100k_events_stay_within_the_threshold` (1.ª y 3.ª) y, solo en la 3.ª, `test_emit::test_two_processes_do_not_corrupt_lines[True]`, `test_hft_risk::test_decision_cost_p99_fits_the_latency_budget_fraction`, 3 de `test_service_heartbeats` (escáner y ejecutor de arbitraje, sincronización de experiencia) y 3 de `test_paper_api` (resumen, backtest, señales en vivo). Los 11 casos pasan aislados en 63 s con los servicios en marcha: son sensibles a la carga, no reproducen sin ella. Falta: decidir si el gate debe aguantar Ollama generando (margen de las pruebas con plazo) y 3 corridas con el equipo descargado (servicios parados; ◆ permiso, rompe la captura de T78). **2026-11-02 (gate en IDLE por la cola de T127):** las pruebas `perf` miden en prioridad NORMAL (por debajo de la captura) y con la mediana de 3 rondas, y las que esperaban plazos fijos cortos esperan hasta que se cumple. Con carga sintética, `main` falla `test_obs_api` y la rama pasa 3/3; mismos umbrales, ninguna prueba saltada (`PLAN/notas/T116_gate.md`). Tres gates por la cola: 2 verdes y 1 fallo por una pausa de la cola (un plazo de reloj caducó con el gate congelado) → `jobs submit --retry-paused 1` en el gate. Faltan las 3 corridas con el equipo descargado (tras T78). **◆ resuelta (usuario, 2026-11-20): Ollama generando no es condición de verde**; sus corridas quedan como medición aparte en `PLAN/notas/T116_gate.md` (los 11 casos que fallaron el 31-oct pasan aislados en 63 s con los servicios en marcha: son plazos de reloj con el equipo al límite, no lógica). Se exige verde **con los servicios en marcha**, ya cumplido 6 veces. **Queda solo** lo del entregable 6 en su otra mitad: 3 corridas seguidas con el equipo descargado, **el 2026-11-28** (◆ del usuario: no antes, porque parar los servicios corta el bróker simulado de T31 —cierra el 27-nov— y T143, reinicia el servicio de líderes en mitad de la semana de medición de T178 y deja sin medir una hora a T187, T188 y T189; hay que quitar antes la tarea del vigilante, que relanza lo parado más de 10 min).",
    "effort": "medio",
    "phase": 20,
    "goal": "Que `python -m ruff check eim tests && python -m pytest -q` dé el mismo resultado en el equipo del usuario, en el del colaborador y con el equipo cargado. Hoy no: la prueba de rendimiento del observatorio falla por milisegundos y la suite completa puede tardar más de 25 minutos con Ollama y los recolectores activos (`PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §B). Un gate que falla por el equipo enseña a ignorarlo.",
    "where": [
     {
      "machine": "juanpablo-cpu",
-     "text": "Decidir si el gate aguanta Ollama generando y hacer 3 corridas con el equipo descargado (◆ permiso para parar servicios)",
-     "when": "ya"
+     "text": "3 corridas del gate con los servicios parados, después de cerrar T31, T143 y la semana de T178",
+     "when": "2026-11-28"
     }
    ],
    "track": {
     "start": null,
-    "end": null,
-    "milestone": null,
+    "end": "2026-11-28T00:00Z",
+    "milestone": "3 corridas con los servicios parados",
     "progress": "Portátil: 6 corridas verdes · juanpablo-cpu: faltan 3 con los servicios parados",
     "requires": [
-     "PC encendido",
-     "tu decisión ◆"
+     "PC encendido"
     ],
     "machine": "juanpablo-cpu",
-    "needs": "Tu permiso para parar los servicios (corta el bróker simulado) o esperar al cierre de T31 y T143 el 28-nov; y decidir si el gate debe aguantar Ollama generando"
+    "needs": "Nada hasta el 28-nov (◆ del usuario 2026-11-20: se espera a que cierren T31, T143 y la semana de T178). Lo de Ollama ya está decidido: no es condición de verde"
    }
   },
   {
@@ -2681,15 +2680,10 @@ window.EIM_STATUS = {
     "T159"
    ],
    "state": "progress",
-   "notes": "**Herramienta hecha 2026-11-19; falta el primer informe con datos reales (revisión del día 30, 2026-12-17; sale el 18).** `python -m eim.nursery report` (`v2/eim/nursery/report/`) lee el libro de la cantera (vivo en solo lectura o la copia más reciente), reconstruye el escalafón con el mismo código y deja `v2/reports/nursery/cantera_<fecha>.{md,json}` + `latest.json` (lo lee la auditoría, §5). Hechos de aprendizaje por prospecto × obra (sostenida / refutada / no concluyente) en `data/library/digital/nursery_facts.jsonl`, visibles en `GET /v2/library/digital/learning/nursery` y en la Biblioteca; bajas con causa nombrada, propuestas ◆ con MinTRL, informatividad para T150 y graduaciones con el recorte de Harvey-Liu. Tarea diaria `v2/scripts/cantera_informe_mensual.ps1 -Instalar` (solo en `juanpablo-cpu`). Ficha `PLAN/T172.md`",
+   "notes": "**Herramienta hecha 2026-11-19; falta el primer informe con datos reales (revisión del día 30, 2026-12-17; sale el 18).** `python -m eim.nursery report` (`v2/eim/nursery/report/`) lee el libro de la cantera (vivo en solo lectura o la copia más reciente), reconstruye el escalafón con el mismo código y deja `v2/reports/nursery/cantera_<fecha>.{md,json}` + `latest.json` (lo lee la auditoría, §5). Hechos de aprendizaje por prospecto × obra (sostenida / refutada / no concluyente) en `data/library/digital/nursery_facts.jsonl`, visibles en `GET /v2/library/digital/learning/nursery` y en la Biblioteca; bajas con causa nombrada, propuestas ◆ con MinTRL, informatividad para T150 y graduaciones con el recorte de Harvey-Liu. Tarea diaria `v2/scripts/cantera_informe_mensual.ps1 -Instalar` (solo en `juanpablo-cpu`). **Condicionante cumplido el 2026-11-20 en `juanpablo-cpu`:** `main` ya estaba al día (`f66dbc2`), gate verde por la cola (`20261120-022351-gate-t172-85b3`, **3 967 pasadas, 8 omitidas**, 1 361 s, 0 pausas) y la tarea diaria registrada (01:30 UTC = 20:30 local, primera pasada 2026-11-21). **La primera pasada destapó un fallo:** el informe no puede leer el libro porque `paper_cantera.duckdb` **no entraba en la copia diaria** (`backup.create` solo recorría las cuatro bases fijas de `DBS`; tampoco entraba `paper_t143.duckdb`), y con el servicio en marcha Windows no deja abrirlo ni en solo lectura → código 2 y `FALLO` en `data/operation/logs/cantera_informe.log` cada día. Arreglado en **PR #333** (`claude/t172-copia-cantera`): los libros de las mesas aparte viajan en caliente (los que presta la API) y en frío (`DESKS_GLOB`), con dos pruebas. Hasta fusionarlo y reiniciar la API, la tarea seguirá anotando `FALLO`. Ficha `PLAN/T172.md`",
    "effort": "medio",
    "phase": 27,
    "where": [
-    {
-     "machine": "juanpablo-cpu",
-     "text": "Traer main, correr el gate por la cola e instalar la tarea v2\\scripts\\cantera_informe_mensual.ps1 -Instalar: la cantera_v1 y su libro (paper_cantera.duckdb) solo existen allí",
-     "when": "ya"
-    },
     {
      "machine": "juanpablo-cpu",
      "text": "Comprobar el primer informe real (v2/reports/nursery/) y que los hechos se ven en la Biblioteca (tras reiniciar la API)",
@@ -2700,13 +2694,13 @@ window.EIM_STATUS = {
     "start": "2026-11-17T03:25Z",
     "end": "2026-12-17T03:25Z",
     "milestone": "1.ª revisión de la cantera (el informe sale el 18)",
-    "progress": "Herramienta hecha; falta el primer informe con datos reales",
+    "progress": "Tarea diaria instalada el 2026-11-20; falta el primer informe con datos reales",
     "requires": [
      "PC encendido",
      "API en marcha"
     ],
     "machine": "juanpablo-cpu",
-    "needs": "Traer main, correr el gate por la cola e instalar la tarea del informe mensual (cantera_informe_mensual.ps1 -Instalar)"
+    "needs": "Nada hasta el 18-dic. La tarea escribirá el informe sola; para que pueda leer el libro con el servicio en marcha hace falta el PR #333 (el libro de la cantera no entraba en la copia diaria)"
    }
   },
   {
@@ -2785,26 +2779,26 @@ window.EIM_STATUS = {
     "T128"
    ],
    "state": "progress",
-   "notes": "**Entregables 1, 2 y 4 hechos; falta la ◆ del 3 y desplegar** (`PLAN/notas/T178_retencion.md`). Medido sobre la copia del 18-nov: la poda de T128 **está al día** (solo 2 371 ejecuciones de rechazados con más de 7 días) y los **+53 MB/día son casi enteros las fotos de posiciones** (≈ 6,5 KB cada una en disco × 10 600/día); las reconciliaciones, 41 300 filas/día, son 0,4 MB/día. `eim/data/leader_retention.py`: de las reconciliaciones con más de 7 días se quedan todas las que no cuadran y una por líder cada 2 min (por debajo del `recon_gap_ms` de 5 min, para no inventar huecos en la copia simulada), con resumen diario en `leader_recon_daily` que `leader_report` suma al informe; de las fotos, cada cambio de forma y una por hora, con el tiempo capturado guardado antes de borrar en `leader_photo_cover` para que `observed_ms` (lo que mide T49) no cambie. Corre tras la poda diaria y en frío antes de compactar. La poda por sí sola ahorra el 39 % de los bytes de las fotos (el 66 % son cambios de forma de verdad): 53 → ≈ 32 MB/día. **◆ resuelta (usuario, 18-nov): también se recodifica la foto** (`eim/data/leader_photos.py`, formato `v2`: lo que se repetía en cada posición —`leader_id`, `address`, `source`, `t`, `observed_at`— sale una vez por foto, sin perder ningún campo; `decode` sigue leyendo las viejas y `recode_photos` las migra, 50 000 por vuelta con el servicio en marcha y sin tope en frío). Medido en disco con 20 000 fotos reales: 129,2 → 11,5 MB, es decir **≈ 5 MB/día** y ~800 MB que devuelve el compactado. 15 pruebas (`test_leader_retention.py`, `test_leader_photos.py`). **Falta:** desplegar y la semana de medición con las copias diarias (criterio de aceptación).",
+   "notes": "**Entregables 1, 2 y 4 hechos; falta la ◆ del 3 y desplegar** (`PLAN/notas/T178_retencion.md`). Medido sobre la copia del 18-nov: la poda de T128 **está al día** (solo 2 371 ejecuciones de rechazados con más de 7 días) y los **+53 MB/día son casi enteros las fotos de posiciones** (≈ 6,5 KB cada una en disco × 10 600/día); las reconciliaciones, 41 300 filas/día, son 0,4 MB/día. `eim/data/leader_retention.py`: de las reconciliaciones con más de 7 días se quedan todas las que no cuadran y una por líder cada 2 min (por debajo del `recon_gap_ms` de 5 min, para no inventar huecos en la copia simulada), con resumen diario en `leader_recon_daily` que `leader_report` suma al informe; de las fotos, cada cambio de forma y una por hora, con el tiempo capturado guardado antes de borrar en `leader_photo_cover` para que `observed_ms` (lo que mide T49) no cambie. Corre tras la poda diaria y en frío antes de compactar. La poda por sí sola ahorra el 39 % de los bytes de las fotos (el 66 % son cambios de forma de verdad): 53 → ≈ 32 MB/día. **◆ resuelta (usuario, 18-nov): también se recodifica la foto** (`eim/data/leader_photos.py`, formato `v2`: lo que se repetía en cada posición —`leader_id`, `address`, `source`, `t`, `observed_at`— sale una vez por foto, sin perder ningún campo; `decode` sigue leyendo las viejas y `recode_photos` las migra, 50 000 por vuelta con el servicio en marcha y sin tope en frío). Medido en disco con 20 000 fotos reales: 129,2 → 11,5 MB, es decir **≈ 5 MB/día** y ~800 MB que devuelve el compactado. 15 pruebas (`test_leader_retention.py`, `test_leader_photos.py`). **Desplegada el 2026-11-19 ~14:00 UTC** (el servicio de líderes arrancó con el código de #314 y la poda en frío corrió 30 min después). **Primera medida, copias diarias de las 00:00 UTC: 1 664,8 MB (19-nov) → 944,8 MB (20-nov), −720 MB**; las copias se hacen con `COPY FROM DATABASE`, así que son datos, no fragmentación. En la vuelta del 2026-11-20 02:10 UTC la retención borró 12 454 reconciliaciones (2 días resumidos), 1 245 fotos (3 403 conservadas), recodificó 2 039 y ahorró 6,6 MB. **Entregable 3 medido sobre la copia del 20-nov:** hoy no hay ningún líder `approved` y solo 1 en `watch`, con **29 ejecuciones y 0 cotizaciones** (0,0 % de `leader_fills`); sus fotos son el 1,2 % y sus reconciliaciones el 5,7 %, y eso ya lo recortan los entregables 1 y 2. El detalle que el ◆ cubre **no cuesta nada hoy**; lo que costaría es a futuro: el líder más activo de la base deja 316 085 ejecuciones/día (~0,97 cotizaciones por ejecución, ~152 B/fila de media por reparto) ≈ **95 MB/día si se aprobara**, frente a 0,3–7 MB/día de uno normal. **Falta:** comparar las copias diarias hasta el **2026-11-27** (criterio de aceptación).",
    "effort": "bajo",
    "phase": 21,
    "where": [
     {
      "machine": "juanpablo-cpu",
-     "text": "Desplegar la retención y medir una semana con las copias diarias de leaders.duckdb del servicio de líderes de ese equipo",
-     "when": "ya"
+     "text": "Medir la semana con las copias diarias de leaders.duckdb: la retención ya corre allí desde el 2026-11-19",
+     "when": "2026-11-27"
     }
    ],
    "track": {
-    "start": null,
-    "end": null,
-    "milestone": null,
-    "progress": "Entregables 1, 2 y 4 hechos; falta desplegar y medir una semana",
+    "start": "2026-11-19T14:00Z",
+    "end": "2026-11-27T00:00Z",
+    "milestone": "semana de medición con las copias diarias",
+    "progress": "Desplegada; la base bajó de 1 664,8 a 944,8 MB en la primera copia",
     "requires": [
      "PC encendido"
     ],
     "machine": "juanpablo-cpu",
-    "needs": "Reiniciar el servicio de líderes para que corra la retención y medir una semana con las copias diarias"
+    "needs": "Nada: comparar las copias diarias de leaders.duckdb hasta el 27-nov y ver si deja de crecer"
    }
   },
   {

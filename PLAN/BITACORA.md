@@ -3630,3 +3630,49 @@ pm run build.
   que la mesa enseñe «Sin conexión con la API» durante la carga aunque el servicio esté sano. Ambos en BACKLOG.
 - **En curso:** nada.
 - **Siguiente paso:** ninguno obligatorio. No se abrió ninguna Txx: fue un incidente, no una tarea del plan.
+
+## 2026-11-20 03:05 UTC · claude-code · Condicionantes de `juanpablo-cpu`: T172 instalada, T178 desplegada
+
+- **Hecho:** se atacaron los tres condicionantes marcados «ya» en `PLAN/CONDICIONANTES.md`.
+  (1) **T172.** `main` ya estaba al día (`f66dbc2`); gate verde por la cola
+  (`20261120-022351-gate-t172-85b3`: 3 967 pasadas, 8 omitidas, 1 361 s, 0 pausas) y tarea diaria del
+  informe de la cantera registrada (01:30 UTC = 20:30 local; primera pasada el 2026-11-21).
+  La primera pasada a mano destapó un fallo que habría dejado el informe del 18-dic en nada:
+  `paper_cantera.duckdb` **no entraba en la copia diaria** (`backup.create` solo recorría las cuatro
+  bases fijas de `DBS`; tampoco `paper_t143.duckdb`), y con el servicio en marcha Windows no deja
+  abrirlo ni en solo lectura, así que `eim.nursery report` sale con código 2. Arreglado en una rama
+  aparte: los libros de las mesas aparte viajan en caliente (los que la API presta por `extra_dbs`)
+  y en frío (por su nombre en `data/`, `DESKS_GLOB`), con el manifiesto listándolos detrás de las fijas.
+  (2) **T178.** No hacía falta reiniciar nada: el servicio de líderes ya corre el código de #314 desde
+  el 2026-11-19 ~13:30 UTC y la poda en frío corrió 30 min después. Primera medida con las copias
+  diarias de las 00:00 UTC: **1 664,8 MB (19-nov) → 944,8 MB (20-nov), −720 MB**; como las copias se
+  hacen con `COPY FROM DATABASE`, eso son datos y no fragmentación. En la vuelta de las 02:10 UTC del
+  20-nov: 12 454 reconciliaciones borradas (2 días resumidos), 1 245 fotos borradas y 3 403
+  conservadas, 2 039 recodificadas, 6,6 MB ahorrados, 17 líderes.
+  (3) **T116** no se tocó: pide parar los servicios y eso corta el bróker simulado de T31 y T143.
+- **Entregable 3 de T178, medido** (copia `eim_20261120-000041`): hoy **ningún líder `approved`** y
+  solo 1 en `watch`, con 29 ejecuciones y 0 cotizaciones del seguidor (0,0 % de `leader_fills`); sus
+  fotos son el 1,2 % y sus reconciliaciones el 5,7 %, que ya recortan los entregables 1 y 2. El detalle
+  que cubre la ◆ no cuesta nada hoy. A futuro sí: el líder más activo deja 316 085 ejecuciones/día
+  (~0,97 cotizaciones por ejecución, ~152 B/fila de media por reparto) ≈ 95 MB/día si se aprobara,
+  frente a 0,3–7 MB/día de uno normal.
+- **Archivos:** `v2/eim/data/backup.py`, `v2/eim/data/backup_dbs.py`, `v2/eim/data/backup_restore.py`,
+  `v2/tests/data/test_backup_full.py`, `PLAN/STATUS.md`, `PLAN/CONDICIONANTES.md`.
+  Rama `claude/t172-copia-cantera`, **PR #333** (sin fusionar: es de noche).
+- **Pruebas:** gate verde por la cola en `main` (arriba). En la rama, `ruff` limpio y
+  `pytest tests/data/test_backup{,_full,_service}.py -q`: 31 pasadas; gate completo por la cola
+  (`20261120-023924-gate-pr333-a831`).
+- **Abierto:** mientras #333 no se fusione y la API no se reinicie, la tarea diaria del informe de la
+  cantera anotará `FALLO` en `data/operation/logs/cantera_informe.log` (no escribe nada ni toca la
+  cantera). Ningún líder está `approved`, así que la ◆ del entregable 3 de T178 no aprieta.
+- **En curso:** semana de medición de T178 hasta el 2026-11-27 (comparar las copias diarias).
+- **◆ de T116, resuelta por el usuario esa misma noche:** (a) Ollama generando **no** es condición
+  de verde —sus corridas quedan como medición aparte en `PLAN/notas/T116_gate.md`; los 11 casos que
+  fallaron el 31-oct pasan aislados en 63 s con los servicios en marcha, así que son plazos de reloj
+  con el equipo al límite y no lógica—; (b) las 3 corridas con el equipo descargado **se hacen el
+  2026-11-28**, no ahora: parar los servicios corta el bróker simulado de T31 (cierra el 27-nov) y de
+  T143, reinicia el servicio de líderes en mitad de la semana de medición de T178 y deja sin medir
+  una hora a T187, T188, T189 y a la cantera. El 28-nov esas tres ya han cerrado y T194 y T182 se
+  encienden solos a las 00:00 UTC sin reiniciar. Al pararlos, quitar antes la tarea del vigilante.
+- **Siguiente paso:** fusionar #333 con el gate verde y comprobar que la copia siguiente trae
+  `paper_cantera.duckdb` y `paper_t143.duckdb` en su manifiesto.
