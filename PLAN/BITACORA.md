@@ -4015,3 +4015,22 @@ pm run build.
 - **Pruebas:** solo plan; sin código.
 - **Abierto:** todas ☐. Lo que reinicie servicios nace apagado hasta el cierre de T31 (2026-11-28).
 - **Siguiente paso:** empezar por T205 y luego T197 + T200 (despliegue y autochequeo), luego T198.
+
+## 2026-11-20 · sesión Incidente «la app está caída» → T206
+- **Hecho:** el usuario avisó de que la app estaba caída. Dos fallos a la vez en `juanpablo-cpu`: (1) Vite
+  (5173) no existía — arrancó a las 18:37 UTC y murió sin dejar nada en `web.err.log` (0 bytes); se relanzó
+  con `servicio_continuo.ps1 -ConWeb`. (2) La API respondía, pero `GET /v2/snapshot` llevaba colgado desde
+  las 19:11 UTC (3 h 30 min) por el candado **global** de `HistoryLoader.ensure()`; se reinició matando el
+  uvicorn (el vigilante lo relanzó solo) y volvió a responder. Como la web solo abre el WebSocket en vivo
+  **después** del snapshot (`web/src/main.ts:177`, `:188`), la mesa se quedaba en «SIN CONEXIÓN» con precio
+  `—` mientras `/v2/health` daba todos los componentes VIVO. Verificado en el navegador: EN VIVO con precio.
+- **Archivos:** `PLAN/T206.md` (nueva, fase 21), fila en `STATUS.md`, fase 21 ampliada en `00_MASTER.md`,
+  `status.js`/`roadmap.html`. Sin tocar código del producto.
+- **Pruebas:** ninguna (incidente y plan). Medido en vivo: snapshot 24 s en frío y hasta 64 s con varias
+  pestañas; la mesa llega a EN VIVO a los 60–70 s; WS de la API sano (54 mensajes en 20 s).
+- **Abierto:** T206 ☐. La API llegó a 3,6 GB a los 7 min y los líderes a 2,0 GB (2,7 GB libres de 16,
+  CPU 82 %); el vigilante relanzó la API 3 veces el 2026-11-20 (código 4294967295); `vigilante.err.log` con
+  139 246 líneas iguales (7,5 MB) y sin rotación. En la carpeta principal quedan 6 archivos con cambios sin
+  confirmar que impiden que `sincronizar_main.ps1` avance `main` (lleva desde las 20:34 UTC sin actualizar).
+- **Siguiente paso:** T206, empezando por abrir el WebSocket en paralelo al snapshot (arregla el síntoma) y
+  luego el candado por serie y la medición de `build_snapshot`.
