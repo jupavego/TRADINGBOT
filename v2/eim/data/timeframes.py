@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from eim.instruments import registry
+
 TF_MS: dict[str, int] = {
     "15m": 15 * 60_000,
     "1h": 60 * 60_000,
@@ -13,12 +15,15 @@ TF_MS: dict[str, int] = {
 # y solo en su copia, ningún servicio las pide).
 STORE_ONLY_TF_MS: dict[str, int] = {"1m": 60_000, "5m": 300_000, "1d": 86_400_000}
 
-SYMBOLS: tuple[str, ...] = ("BTCUSDT", "ETHUSDT")
+# T89: SYMBOLS y FOCUS ya no se escriben aquí, se DERIVAN del registro de instrumentos
+# (`eim/instruments/registry.py`), que es donde se da de alta un instrumento desde la fase 17.
+# Su valor no cambia: ("BTCUSDT", "ETHUSDT") y ("BTCUSDT",), y `tests/instruments/` lo fija.
 # Foco actual: lo que los servicios analizan en vivo y lo que muestra la UI. 2026-10-15: solo
 # BTCUSDT; 2026-10-21: volvió ETHUSDT; 2026-10-22 (T122, decisión del usuario): de nuevo solo
 # BTCUSDT. ETHUSDT sigue en SYMBOLS (la API y el almacén conservan y sirven su historia), pero
 # ningún servicio en vivo lo analiza, simula ni propone, y la UI no lo pide.
-FOCUS: tuple[str, ...] = ("BTCUSDT",)
+SYMBOLS: tuple[str, ...] = registry.store_symbols()
+FOCUS: tuple[str, ...] = registry.focus_symbols()
 
 
 def tf_ms(timeframe: str) -> int:
