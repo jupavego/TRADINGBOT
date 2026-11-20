@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-19T21:56:32",
+ "generated": "2026-11-20T06:30:09",
  "phases": [
   {
    "n": 0,
@@ -1428,8 +1428,8 @@ window.EIM_STATUS = {
     "T78",
     "T77"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "**Archivada sin hacer el 2026-11-20 por la ◆ de T80** (`PLAN/notas/T80_decision.md`, decisión delegada por el usuario): la prueba de techo dio NO SUPERA y la restricción es de magnitud, no de muestra. Sin consumidores: T81, T82 y T84 se cierran con ella. El llenado de cola pesimista que iba a validar está medido en `eim/hft/evaluation/labels.py` y en §6 del informe.",
    "effort": "alto",
    "phase": 16,
    "goal": "Un simulador que reproduzca el libro evento a evento y diga **qué habría pasado con una orden**: latencia de feed y de envío, posición en cola, fills parciales, rechazos y comisiones. Es el sustituto honesto de testnet para medir ejecución (el libro de testnet no es el real). Debe ser **más pesimista que optimista** y medir su propio sesgo."
@@ -1441,8 +1441,8 @@ window.EIM_STATUS = {
     "T78",
     "T23"
    ],
-   "state": "pending",
-   "notes": "◆ ¿el techo supera los costos? Si no, se archiva antes de T81–T85.",
+   "state": "done",
+   "notes": "**◆ Veredicto NO SUPERA, pendiente de decisión del usuario** (archivar como T28 o redirigir). Informe `v2/reports/hft_ceiling.{md,json}` sobre 18 días UTC (2026-11-02 → 11-19, 386 horas completas de T78, 1,33 M de cubos de 1 s utilizables, 12 días de prueba). Variables puras en `eim/hft/features/` (microprecio, OFI 1–5, profundidad, spread, flujo agresor, intensidad, RV/bipotencia, VPIN) con prueba de ausencia de look-ahead; marco en `eim/hft/evaluation/` (etiquetas con la reacción de T77, triple barrera, llenado pesimista, walk-forward por días con purga y embargo, IC por bloques de día, Holm sobre los 68 intentos de `eim/hft/attempts_t80.json`); pre-registro congelado `eim/hft/prereg/hft_ceiling_v1.json` con su SHA-256 fijado en el código. Panel en `data/collectors/hft_panel.py` (+ `book_fast.py`, mismo libro que `LocalBook` con top-N en tiempo constante: 1 h pasó de minutos a ~15 s). **Sí hay señal** (C2: `depth_imb`, `tilt_bps`, `ridge_all` y la línea base v1 pasan Holm; IC 1 s ≈ 0,14) y a 30–60 s el movimiento **sí paga** el ida y vuelta (C1), pero ningún horizonte y estilo logra C3: el bruto por operación es 0,05–0,16 pb (decil 0,1–1,0 pb) frente a 4 pb de costo maker-maker, el costo se come el 45–72 % del movimiento en las ventanas que pagan, y las pocas operaciones que superan el umbral tienen el IC 95 % cruzando el 0. **◆ resuelta el 2026-11-20 por delegación del usuario: se ARCHIVA el carril** (`PLAN/notas/T80_decision.md`); T79, T81, T82, T84, T85 y T86 cerradas sin hacer. BACKLOG T80.",
    "effort": "alto",
    "phase": 16,
    "goal": "Construir las variables de microestructura y un marco de evaluación sin trampas, y responder **barato y pronto** a la pregunta que decide el resto de la fase: ¿el movimiento predecible del precio supera los costos? Si no, se detiene la inversión antes de modelos y estrategias."
@@ -1454,8 +1454,8 @@ window.EIM_STATUS = {
     "T80",
     "T79"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "**Archivada sin hacer el 2026-11-20 por la ◆ de T80** (`PLAN/notas/T80_decision.md`, decisión delegada por el usuario): la prueba de techo dio NO SUPERA y la restricción es de magnitud, no de muestra. La línea base lineal ya no muestra señal que pague: `depth_imb`, la mejor del experimento, nunca llega a 4 pb en 1,33 M de cubos.",
    "effort": "alto",
    "phase": 16,
    "goal": "Implementar y medir los modelos econométricos, estocásticos y probabilísticos del catálogo (`PLAN/notas/T77_universo_hft.md` §5) como funciones puras en `eim/hft/models/`. **Un modelo entra solo si mejora su línea base fuera de muestra** (IC 95 % y Holm); si no, queda archivado en el informe con su resultado."
@@ -1467,8 +1467,8 @@ window.EIM_STATUS = {
     "T79",
     "T81"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "**Archivada sin hacer el 2026-11-20 por la ◆ de T80** (`PLAN/notas/T80_decision.md`, decisión delegada por el usuario): la prueba de techo dio NO SUPERA y la restricción es de magnitud, no de muestra. Sin modelo que superara los costos no hay estrategia que construir.",
    "effort": "alto",
    "phase": 16,
    "goal": "Convertir los modelos aprobados en estrategias que compiten bajo las mismas condiciones, y un selector determinista que decide **si conviene proveer liquidez, tomarla, esperar o no operar**. Una señal positiva no basta: la ventaja esperada neta debe superar costos y riesgo de ejecución."
@@ -1494,8 +1494,8 @@ window.EIM_STATUS = {
     "T83",
     "T49"
    ],
-   "state": "pending",
-   "notes": "◆ ¿alguna estrategia supera la validación?",
+   "state": "done",
+   "notes": "**Archivada sin hacer el 2026-11-20 por la ◆ de T80** (`PLAN/notas/T80_decision.md`, decisión delegada por el usuario): la prueba de techo dio NO SUPERA y la restricción es de magnitud, no de muestra. La ◆ «¿alguna estrategia supera la validación?» queda contestada antes de construirlas: no hay candidata. Los 68 intentos de T80 quedan registrados en `eim/hft/attempts_t80.json`.",
    "effort": "alto",
    "phase": 16,
    "goal": "Medir, con criterios fijados antes de mirar, si alguna estrategia tiene ventaja **neta de costos y latencia** fuera de muestra. Es el equivalente de T27/T49 para HFT y puede terminar en «ninguna pasa»: ese resultado es válido y se documenta."
@@ -1509,8 +1509,8 @@ window.EIM_STATUS = {
     "T31",
     "T104"
    ],
-   "state": "pending",
-   "notes": "◆ ¿pasa a testnet funcional? Nunca dinero real sin T31.",
+   "state": "done",
+   "notes": "**Archivada sin hacer el 2026-11-20 por la ◆ de T80** (`PLAN/notas/T80_decision.md`, decisión delegada por el usuario): la prueba de techo dio NO SUPERA y la restricción es de magnitud, no de muestra. La ◆ «¿pasa a testnet funcional?» queda en no. Lo único de T80 que mejora esa esfera (`depth_imb` y `tilt_bps` baten a la línea base v1 en los cuatro horizontes, con Holm) va al BACKLOG como mejora del agente que ya existe, no como carril nuevo.",
    "effort": "alto",
    "phase": 16,
    "goal": "**No se crea una esfera nueva:** el agente existente `microstructure` (la esfera que hoy muestra T104) evoluciona a la versión 2 con lo aprobado en T81–T84. Poner el agente en el sistema y comprobarlo **en vivo con datos reales y órdenes simuladas** durante semanas. El agente de ciclo de vela informa el estado microestructural; el servicio rápido, en proceso aparte, ejecuta el ciclo libro → features → modelos → estrategia → riesgo → bróker simulado. Solo corre lo que T84 dejó pasar."
@@ -1524,8 +1524,8 @@ window.EIM_STATUS = {
     "T10",
     "T72"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "**Archivada sin hacer el 2026-11-20 por la ◆ de T80** (`PLAN/notas/T80_decision.md`, decisión delegada por el usuario): la prueba de techo dio NO SUPERA y la restricción es de magnitud, no de muestra. Nada que integrar.",
    "effort": "alto",
    "phase": 16,
    "goal": "Que el agente de microestructura (v2 de la esfera existente) y su servicio HFT sean ciudadanos completos del sistema: visible, trazable, con su propio cupo de capital y documentado, mostrando siempre el modo (Análisis, Simulado o Testnet) y la evidencia de la puerta T84."
