@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-19T21:48:48",
+ "generated": "2026-11-19T21:56:32",
  "phases": [
   {
    "n": 0,
@@ -1888,28 +1888,27 @@ window.EIM_STATUS = {
     "T73"
    ],
    "state": "progress",
-   "notes": "`tests/conftest.py` retira toda `EIM_*` del equipo (las opcionales, en `tests/opt_in.py`), fija DuckDB/avisos y **corta la red** (`tests/offline.py`): el ciclo de operación descargaba 30 días de liquidaciones por prueba (~20 s c/u, la causa de los > 25 min). `tests/perf.py` mide con calentamiento y ≥ 100 muestras (mismo umbral, mismo índice); 10 pruebas `perf` siguen en el gate; `test_leaders` aísla `EIM_MACHINE`. Gate 25 min 29 s con 1 fallo → **6 corridas verdes seguidas**: 3 con servicios + CPU a medias + `EIM_*` hostiles (~19–20 min) y 3 con solo los servicios (~11 min); ninguna prueba > 60 s sin carga. Cierre en `PLAN/notas/T116_gate.md`. **Pendiente:** 3 corridas con el equipo descargado y 3 con Ollama real en el equipo de referencia (aquí no hay Ollama y parar los servicios rompe T31/T78). **2026-10-31, `juanpablo-cpu` (Ollama `qwen3:4b` generando sin parar, servicios en marcha):** 3 corridas seguidas del gate el 2026-10-31, de 00:32 a 03:38 UTC, con 324 generaciones de Ollama (~35 s cada una) en paralelo: `ruff` limpio en las 3; `pytest` **no verde**: 2 fallos en 63,8 min, 1 en 36,2 min y 10 en 85,8 min (2 415 pasadas). Fallan `test_emit::test_cycle_overhead_within_budget_even_if_disk_fails` (las 3), `test_obs_api::test_queries_over_100k_events_stay_within_the_threshold` (1.ª y 3.ª) y, solo en la 3.ª, `test_emit::test_two_processes_do_not_corrupt_lines[True]`, `test_hft_risk::test_decision_cost_p99_fits_the_latency_budget_fraction`, 3 de `test_service_heartbeats` (escáner y ejecutor de arbitraje, sincronización de experiencia) y 3 de `test_paper_api` (resumen, backtest, señales en vivo). Los 11 casos pasan aislados en 63 s con los servicios en marcha: son sensibles a la carga, no reproducen sin ella. Falta: decidir si el gate debe aguantar Ollama generando (margen de las pruebas con plazo) y 3 corridas con el equipo descargado (servicios parados; ◆ permiso, rompe la captura de T78). **2026-11-02 (gate en IDLE por la cola de T127):** las pruebas `perf` miden en prioridad NORMAL (por debajo de la captura) y con la mediana de 3 rondas, y las que esperaban plazos fijos cortos esperan hasta que se cumple. Con carga sintética, `main` falla `test_obs_api` y la rama pasa 3/3; mismos umbrales, ninguna prueba saltada (`PLAN/notas/T116_gate.md`). Tres gates por la cola: 2 verdes y 1 fallo por una pausa de la cola (un plazo de reloj caducó con el gate congelado) → `jobs submit --retry-paused 1` en el gate. Faltan las 3 corridas con el equipo descargado (tras T78).",
+   "notes": "`tests/conftest.py` retira toda `EIM_*` del equipo (las opcionales, en `tests/opt_in.py`), fija DuckDB/avisos y **corta la red** (`tests/offline.py`): el ciclo de operación descargaba 30 días de liquidaciones por prueba (~20 s c/u, la causa de los > 25 min). `tests/perf.py` mide con calentamiento y ≥ 100 muestras (mismo umbral, mismo índice); 10 pruebas `perf` siguen en el gate; `test_leaders` aísla `EIM_MACHINE`. Gate 25 min 29 s con 1 fallo → **6 corridas verdes seguidas**: 3 con servicios + CPU a medias + `EIM_*` hostiles (~19–20 min) y 3 con solo los servicios (~11 min); ninguna prueba > 60 s sin carga. Cierre en `PLAN/notas/T116_gate.md`. **Pendiente:** 3 corridas con el equipo descargado y 3 con Ollama real en el equipo de referencia (aquí no hay Ollama y parar los servicios rompe T31/T78). **2026-10-31, `juanpablo-cpu` (Ollama `qwen3:4b` generando sin parar, servicios en marcha):** 3 corridas seguidas del gate el 2026-10-31, de 00:32 a 03:38 UTC, con 324 generaciones de Ollama (~35 s cada una) en paralelo: `ruff` limpio en las 3; `pytest` **no verde**: 2 fallos en 63,8 min, 1 en 36,2 min y 10 en 85,8 min (2 415 pasadas). Fallan `test_emit::test_cycle_overhead_within_budget_even_if_disk_fails` (las 3), `test_obs_api::test_queries_over_100k_events_stay_within_the_threshold` (1.ª y 3.ª) y, solo en la 3.ª, `test_emit::test_two_processes_do_not_corrupt_lines[True]`, `test_hft_risk::test_decision_cost_p99_fits_the_latency_budget_fraction`, 3 de `test_service_heartbeats` (escáner y ejecutor de arbitraje, sincronización de experiencia) y 3 de `test_paper_api` (resumen, backtest, señales en vivo). Los 11 casos pasan aislados en 63 s con los servicios en marcha: son sensibles a la carga, no reproducen sin ella. Falta: decidir si el gate debe aguantar Ollama generando (margen de las pruebas con plazo) y 3 corridas con el equipo descargado (servicios parados; ◆ permiso, rompe la captura de T78). **2026-11-02 (gate en IDLE por la cola de T127):** las pruebas `perf` miden en prioridad NORMAL (por debajo de la captura) y con la mediana de 3 rondas, y las que esperaban plazos fijos cortos esperan hasta que se cumple. Con carga sintética, `main` falla `test_obs_api` y la rama pasa 3/3; mismos umbrales, ninguna prueba saltada (`PLAN/notas/T116_gate.md`). Tres gates por la cola: 2 verdes y 1 fallo por una pausa de la cola (un plazo de reloj caducó con el gate congelado) → `jobs submit --retry-paused 1` en el gate. Faltan las 3 corridas con el equipo descargado (tras T78). **◆ resuelta (usuario, 2026-11-20): Ollama generando no es condición de verde**; sus corridas quedan como medición aparte en `PLAN/notas/T116_gate.md` (los 11 casos que fallaron el 31-oct pasan aislados en 63 s con los servicios en marcha: son plazos de reloj con el equipo al límite, no lógica). Se exige verde **con los servicios en marcha**, ya cumplido 6 veces. **Queda solo** lo del entregable 6 en su otra mitad: 3 corridas seguidas con el equipo descargado, **el 2026-11-28** (◆ del usuario: no antes, porque parar los servicios corta el bróker simulado de T31 —cierra el 27-nov— y T143, reinicia el servicio de líderes en mitad de la semana de medición de T178 y deja sin medir una hora a T187, T188 y T189; hay que quitar antes la tarea del vigilante, que relanza lo parado más de 10 min).",
    "effort": "medio",
    "phase": 20,
    "goal": "Que `python -m ruff check eim tests && python -m pytest -q` dé el mismo resultado en el equipo del usuario, en el del colaborador y con el equipo cargado. Hoy no: la prueba de rendimiento del observatorio falla por milisegundos y la suite completa puede tardar más de 25 minutos con Ollama y los recolectores activos (`PLAN/notas/DIAGNOSTICO_ESTABILIDAD_2026-10-22.md` §B). Un gate que falla por el equipo enseña a ignorarlo.",
    "where": [
     {
      "machine": "juanpablo-cpu",
-     "text": "Decidir si el gate aguanta Ollama generando y hacer 3 corridas con el equipo descargado (◆ permiso para parar servicios)",
-     "when": "ya"
+     "text": "3 corridas del gate con los servicios parados, después de cerrar T31, T143 y la semana de T178",
+     "when": "2026-11-28"
     }
    ],
    "track": {
     "start": null,
-    "end": null,
-    "milestone": null,
+    "end": "2026-11-28T00:00Z",
+    "milestone": "3 corridas con los servicios parados",
     "progress": "Portátil: 6 corridas verdes · juanpablo-cpu: faltan 3 con los servicios parados",
     "requires": [
-     "PC encendido",
-     "tu decisión ◆"
+     "PC encendido"
     ],
     "machine": "juanpablo-cpu",
-    "needs": "Tu permiso para parar los servicios (corta el bróker simulado) o esperar al cierre de T31 y T143 el 28-nov; y decidir si el gate debe aguantar Ollama generando"
+    "needs": "Nada hasta el 28-nov (◆ del usuario 2026-11-20: se espera a que cierren T31, T143 y la semana de T178). Lo de Ollama ya está decidido: no es condición de verde"
    }
   },
   {

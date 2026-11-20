@@ -3666,6 +3666,13 @@ pm run build.
   cantera anotará `FALLO` en `data/operation/logs/cantera_informe.log` (no escribe nada ni toca la
   cantera). Ningún líder está `approved`, así que la ◆ del entregable 3 de T178 no aprieta.
 - **En curso:** semana de medición de T178 hasta el 2026-11-27 (comparar las copias diarias).
+- **◆ de T116, resuelta por el usuario esa misma noche:** (a) Ollama generando **no** es condición
+  de verde —sus corridas quedan como medición aparte en `PLAN/notas/T116_gate.md`; los 11 casos que
+  fallaron el 31-oct pasan aislados en 63 s con los servicios en marcha, así que son plazos de reloj
+  con el equipo al límite y no lógica—; (b) las 3 corridas con el equipo descargado **se hacen el
+  2026-11-28**, no ahora: parar los servicios corta el bróker simulado de T31 (cierra el 27-nov) y de
+  T143, reinicia el servicio de líderes en mitad de la semana de medición de T178 y deja sin medir
+  una hora a T187, T188, T189 y a la cantera. El 28-nov esas tres ya han cerrado y T194 y T182 se
+  encienden solos a las 00:00 UTC sin reiniciar. Al pararlos, quitar antes la tarea del vigilante.
 - **Siguiente paso:** fusionar #333 con el gate verde y comprobar que la copia siguiente trae
-  `paper_cantera.duckdb` y `paper_t143.duckdb` en su manifiesto; decidir lo de T116 (parar servicios
-  ahora o esperar al 28-nov, y si el gate debe aguantar Ollama generando).
+  `paper_cantera.duckdb` y `paper_t143.duckdb` en su manifiesto.

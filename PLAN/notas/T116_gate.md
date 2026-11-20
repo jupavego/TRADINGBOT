@@ -142,3 +142,27 @@ falla después de una pausa, y el gate se lanza con `--retry-paused 1`.
 Los huecos de esa hora fueron silencios de 3–8 s en todos los flujos de la captura a la vez, y
 siguieron con el gate ya congelado (la captura tuvo su CPU de siempre, ~4 %). A las 22:07 UTC también
 se cortó la conexión de liquidaciones de OKX: apunta a la red, no al gate.
+
+## 2026-11-20 · ◆ del usuario · Ollama generando no es condición de verde
+
+Queda decidido lo que el entregable 6 dejaba abierto: **el gate no tiene que salir verde con Ollama
+generando**. Las corridas con Ollama se registran como medición aparte (aquí abajo), no como puerta.
+
+Por qué: las 3 corridas del 2026-10-31 con `qwen3:4b` generando sin parar (324 generaciones de ~35 s
+en paralelo) dieron 2, 1 y 10 fallos. Los 11 casos distintos **pasan aislados en 63 s con los
+servicios en marcha**: son pruebas con plazo de reloj que se caen cuando el equipo va al límite, no
+lógica rota. Un gate que exige además un equipo sin carga pesada ajena no lo cumple nadie y acaba
+ignorándose, que es justo lo que esta tarea quería evitar.
+
+Lo que sí se exige sigue igual y ya está cumplido en la mitad que toca: **verde con los servicios en
+marcha**, que es la condición real de trabajo (6 corridas verdes: 3 con servicios + CPU a medias +
+`EIM_*` hostiles y 3 con solo los servicios). Ningún umbral cambia y ninguna prueba se salta.
+
+Queda, para el **2026-11-28**: tres corridas seguidas con el equipo descargado. No antes, porque
+parar los servicios corta el bróker simulado donde viven T31 (cierra el 27-nov) y T143, reinicia el
+servicio de líderes en mitad de la semana de medición de T178 y deja sin medir una hora a T187, T188
+y T189. El 28-nov esas tres ya han cerrado y T194 y T182 se encienden solos a las 00:00 UTC sin
+reiniciar nada.
+
+Al pararlos hay que quitar antes la tarea del vigilante: relanza solo lo que lleve más de 10 min
+parado (`docs/RUNBOOK.md` §parada; `scripts/detener_servicio.ps1 -Todo`).
