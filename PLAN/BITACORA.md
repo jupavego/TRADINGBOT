@@ -3792,9 +3792,15 @@ pm run build.
   estaba anotado; el banco tuvo que armar el snapshot de 1 d a mano para poder medir.
   (d) **El riesgo no es el fallo, es el acierto silencioso.** Ninguno de los 11 agentes falló sobre
   oro, S&P 500 ni Nasdaq (cero excepciones, cero `no_data`), pero `vwap` publica `status="ok"` con
-  sesgo −0,13 y confianza 0,60 en el S&P 500 **con el ancla diaria vacía** (σ = 0,
-  `position = "SIN_DATOS"`) y con las anclas `weekly` y `quincenal` devolviendo **el mismo número**
-  (7 340,81; 63 706,99 en BTCUSDT): cuenta la misma evidencia dos veces. Y
+  sesgo −0,13 y confianza 0,60 en el S&P 500 **con una de sus cuatro anclas muerta y sin que la
+  cifra se mueva**: con velas de 1 d el ancla del día UTC tiene una sola vela (σ = 0,
+  `position = "SIN_DATOS"`); el agente la excluye del voto y penaliza con `len(votes)/len(PERIODS)`
+  = 0,75 (`agents/vwap/agent.py:87`), pero `max_confidence = 0.6` (`params.py:49`) recorta antes,
+  así que publica lo mismo que con las cuatro vivas, y `status` solo degrada por avisos de
+  `partial`. (Corregido durante la sesión: que las anclas `weekly` y `quincenal` devolvieran el
+  mismo número **no** es un defecto de la clase, es coincidencia de calendario —el ancla semanal es
+  el lunes y la quincenal los días 1/16, y el 2026-11-16 fue lunes—; pasa ≈ 2 de cada 7 quincenas y
+  también en cripto.) Y
   `bars_per_year = 8766` (`backtest/params.py:40`) **infla el Sharpe de una serie diaria de acciones
   ×5,9** (√(8766/252)). De ahí el punto 4 de la lista de aceptación: un agente sin el dato que
   declara necesitar no corre; sale `no_data` con motivo, nunca un número silencioso.

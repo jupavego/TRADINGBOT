@@ -56,7 +56,8 @@ diarios (series reales del almacén, T183) y sobre BTCUSDT diario como referenci
 
 | Síntoma | Evidencia | Por qué |
 |---|---|---|
-| `vwap` publica `status="ok"`, sesgo −0,13 (S&P 500) y confianza 0,60 con un ancla vacía | El período `daily` sale `std = 0,0`, `position = "SIN_DATOS"`; los períodos `weekly` y `quincenal` devuelven **exactamente el mismo número** (7 340,81 en S&P 500; 63 706,99 en BTCUSDT) | El agente ancla por día/semana/quincena/mes **UTC** (`agents/vwap/`). Con velas de 1 d, el ancla diaria tiene una sola vela (VWAP = precio típico, σ = 0) y dos anclas colapsan en la misma ventana: el agregado cuenta la misma evidencia dos veces. En acciones y FX el ancla correcta es la **sesión**, no el día UTC |
+| `vwap` publica `status="ok"`, sesgo −0,13 (S&P 500) y confianza 0,60 **con una de sus cuatro anclas muerta**, y perderla no le cuesta nada | El período `daily` sale `std = 0,0` y `position = "SIN_DATOS"` | El agente ancla por día UTC, lunes, quincena (días 1/16) y mes (`agents/vwap/compute.py:16`). Con velas de 1 d, el ancla diaria tiene **una sola vela**: VWAP = precio típico y σ = 0. El agente hace lo correcto al excluirla del voto y penalizar con `len(votes)/len(PERIODS)` = 3/4 = 0,75 (`agent.py:87`), **pero `max_confidence = 0.6`** (`params.py:49`) recorta antes: la confianza publicada sigue siendo 0,600, exactamente la misma que con las cuatro anclas vivas. Y `status` solo degrada si hay avisos de `partial` (`agent.py:93`), así que sale `ok`. En acciones y FX el ancla correcta es además la **sesión**, no el día UTC |
+| Dos de los cuatro votos pueden ser la misma ventana | `weekly` y `quincenal` devolvieron **el mismo número** (7 340,81 en S&P 500; 63 706,99 en BTCUSDT) | **Coincidencia de calendario, no defecto de la clase**: el ancla semanal es el lunes y la quincenal los días 1/16, y el 2026-11-16 de esta corrida **fue lunes**. Pasa ≈ 2 de cada 7 quincenas y **también en cripto**; cuando pasa, esa ventana pesa el doble en el sesgo y en el acuerdo. Anotado para T91, no es un hallazgo multiactivo |
 | `regime`, `levels` razonan en velas, sin saber que una vela puede ser un fin de semana | `regime` etiqueta «volatile» en S&P 500 con permanencia media de 24,9 velas; `levels` da ATR en unidades de precio | No hay noción de sesión ni de calendario de mercado. Para una clase 5×8 h, «20 velas» no es «20 días de mercado» igual que en cripto |
 | La anualización está fijada a 1 h de cripto | `backtest/params.py:40` → `bars_per_year: float = 8766.0`; la usan `backtest/metrics.py:51,65,86`, `backtest/report.py:64` y `analytics/agents_marginal.py:212-228` | 8766 = horas de un año 24/7. En diario cripto son 365; en renta variable, ~252 sesiones. Un Sharpe calculado con 8766 sobre velas diarias de acciones queda inflado ×√(8766/252) ≈ **5,9** |
 
@@ -198,8 +199,9 @@ formato de T04.
 6. **`build_snapshot` no admite 1 d**: es un bloqueo duro para toda clase que solo opera en diario,
    y no estaba anotado.
 7. El riesgo dominante de los agentes no es que fallen, es el **acierto silencioso**: `vwap`
-   publica `ok` con un ancla vacía y dos anclas duplicadas, y `bars_per_year = 8766` infla el
-   Sharpe de una serie diaria de acciones ×5,9.
+   publica `ok` con una de sus cuatro anclas muerta y **sin que la confianza se mueva** (el tope
+   de 0,6 recorta antes que la penalización de 3/4), y `bars_per_year = 8766` infla el Sharpe de
+   una serie diaria de acciones ×5,9.
 
 ## 9. Estándar para T89–T100 (lista de aceptación por clase)
 

@@ -101,9 +101,11 @@ El punto 4 es el que esta auditoría hizo necesario, y es el más importante: **
 que un agente falle, es que acierte en silencio.** Ninguno de los 11 agentes de `candles` falló
 sobre oro, S&P 500 ni Nasdaq —cero excepciones, cero `no_data`— pero:
 
-- `vwap` publica `status="ok"`, sesgo −0,13 y confianza 0,60 en el S&P 500 **con un ancla vacía**
-  (período diario con σ = 0, `position = "SIN_DATOS"`) y con los períodos semanal y quincenal
-  devolviendo **el mismo número**: cuenta la misma evidencia dos veces.
+- `vwap` publica `status="ok"`, sesgo −0,13 y confianza 0,60 en el S&P 500 **con una de sus cuatro
+  anclas muerta** (el período diario sale con σ = 0 y `position = "SIN_DATOS"`, porque con velas de
+  1 d el ancla del día UTC tiene una sola vela). El agente la excluye del voto y penaliza la
+  confianza con 3/4 = 0,75, pero su tope `max_confidence = 0.6` recorta antes: **la cifra publicada
+  no se mueve**, es la misma que con las cuatro anclas vivas, y el estado sigue siendo `ok`.
 - `bars_per_year = 8766` (`eim/backtest/params.py:40`) **infla el Sharpe de una serie diaria de
   acciones ×5,9** (√(8766/252)).
 
