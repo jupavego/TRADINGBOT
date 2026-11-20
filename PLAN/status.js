@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-19T21:56:32",
+ "generated": "2026-11-19T22:41:45",
  "phases": [
   {
    "n": 0,
@@ -1441,8 +1441,8 @@ window.EIM_STATUS = {
     "T78",
     "T23"
    ],
-   "state": "pending",
-   "notes": "◆ ¿el techo supera los costos? Si no, se archiva antes de T81–T85.",
+   "state": "progress",
+   "notes": "◆ ¿el techo supera los costos? Si no, se archiva antes de T81–T85. **En curso 2026-11-20:** variables puras en `eim/hft/features/`, marco en `eim/hft/evaluation/`, panel de la captura en `data/collectors/hft_panel.py` (+ `book_fast.py`, mismo libro que `LocalBook` pero con top-N en tiempo constante) y pre-registro congelado `eim/hft/prereg/hft_ceiling_v1.json`; falta la corrida sobre 18 días y el informe.",
    "effort": "alto",
    "phase": 16,
    "goal": "Construir las variables de microestructura y un marco de evaluación sin trampas, y responder **barato y pronto** a la pregunta que decide el resto de la fase: ¿el movimiento predecible del precio supera los costos? Si no, se detiene la inversión antes de modelos y estrategias."
