@@ -68,12 +68,26 @@ Dos cosas de T80 valen fuera del carril, y van al BACKLOG, no a tareas nuevas (n
    `data/collectors/hft_panel.py` y `book_fast.py` (top-N en tiempo constante, útil a cualquier cosa
    que reproduzca el libro). Nada de esto se borra: es lo que hace barata cualquier remedición.
 
-## Lo que esta decisión NO toca (hace falta la mano del usuario)
+## La captura de T78: medido el 2026-11-20, se queda como está
 
-- **La captura de T78 sigue corriendo** y ninguna tarea abierta la consume ya. Cuesta ≈ 1 099 MB/día
-  (≈ 33 GB a 30 días). Recomendación: bajar la retención de 45 a 30 días, que es lo que
-  `BACKLOG` T78 (8) dejó anotado «tras T80». No se hace aquí porque toca un servicio 24/7 en marcha
-  y su reinicio es del usuario. **Pararla del todo no se recomienda**: es el único libro L2 propio y
-  su costo marginal ya está pagado.
-- **`data/hft_panel/`** (≈ 80 MB) se puede borrar cuando se quiera: es derivado y se reconstruye en
-  ≈ 1 h 36 min por la cola.
+Al cerrar el carril, la captura dejó de tener consumidores y quedó la duda de bajar su retención de 45
+a 30 días, que es lo que `BACKLOG` T78 (8) había anotado «tras T80, **si hace falta**». El usuario
+delegó también esta decisión. Medido antes de decidir: el resumen de QC da **435,5 GB libres** y una
+proyección de **51,8 GB a 45 días** (12 %), con 21,8 GB ocupados hoy. El «81 GB libres» que motivaba
+la nota ya no es el equipo que hay.
+
+**Decisión: no se toca.** La condición no se cumple, y el cambio no es gratis: reiniciar la captura es
+exactamente lo que ha costado ventanas enteras en este proyecto (T147 y T148, de ahí que los
+reinicios haya que declararlos con `--maintenance`). Gastar ese riesgo para liberar disco que no falta
+es un mal cambio. Y los 45 días son el único libro L2 propio, que es justo lo que querría el único
+consumidor que queda: `depth_imb` y `tilt_bps` en el agente `microstructure`. Se revisa solo si
+`free_gb` baja de ~100 GB.
+
+**`data/hft_panel/`** (0,1 GB) se puede borrar cuando se quiera: es derivado y se reconstruye en
+≈ 1 h 36 min por la cola.
+
+**Observado de paso, sin tarea nueva:** la ventana viva de 72 h está al 86,1 % (62 de 72 horas
+completas), lejos del 99,2 % con que T78 cerró; su mejor ventana auditada (148 h al 99,32 %) sigue
+siendo la del expediente. El ciclo lento de hoy a las 08:00 UTC ocurrió **con el equipo en reposo**
+(top de CPU: System, explorer, svchost; ninguna carga ajena), así que no es presión de trabajos
+pesados. Anotado en `BACKLOG` T78; con el carril archivado nada depende de ello.

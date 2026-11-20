@@ -3850,3 +3850,33 @@ pm run build.
 - **Pruebas:** en la nube de Claude no había `ruff`, `duckdb` ni `fastapi` (sin red para instalarlos): pasaron 25 de las 26 pruebas nuevas (la de `frames.py` con OpenCV 5 y un `duckdb` simulado solo para importar); la de la tabla se salta sin `duckdb` y no corrió. Revisión manual de imports, f-strings y líneas ≤ 100. **El gate completo queda por correr en un equipo** (`python -m ruff check eim tests && python -m pytest -q`); ningún archivo existente de `eim/` cambió, solo se añadieron.
 - **Abierto:** BACKLOG T66 (1)–(6). **◆:** ≥ 40 fotogramas reales etiquetados a mano, solo de material permitido (propio, aportado o con permiso escrito); `eval` en `juanpablo-cpu` con RapidOCR; el usuario decide si la lectura visual es fiel y qué tipos pasan a T67.
 - **Siguiente paso:** correr el gate en un equipo; etiquetar la muestra (formato en el README de las etiquetas) y medir.
+## 2026-11-20 11:55 UTC · claude-code · La retención de la captura: medida, se queda en 45 días
+
+- **Hecho:** el usuario delegó también esta decisión. Antes de decidir se midió, que es lo que pedía
+  el propio `BACKLOG` T78 (8) («bajar a 30 **si hace falta**», vigilando `free_gb`): el resumen de QC
+  da **435,5 GB libres** y una proyección de **51,8 GB a 45 días** (12 %), con 21,8 GB ocupados. El
+  «81 GB libres» que motivaba la nota ya no es el equipo que hay, así que **no se toca nada y no se
+  reinicia la captura**. La recomendación que esta misma sesión había dado dos mensajes antes (bajar a
+  30) era anterior a medir y queda corregida en los tres sitios donde estaba escrita.
+- **Por qué no es neutral dejarlo:** reiniciar la captura es lo que ha costado ventanas enteras en
+  este proyecto (T147, T148; de ahí que los reinicios se declaren con `--maintenance`). Gastar ese
+  riesgo para liberar disco que no falta es un mal cambio. Y los 45 días son el único libro L2 propio,
+  que es justo lo que querría el único consumidor que queda (`depth_imb` y `tilt_bps` en el agente
+  `microstructure`, en el BACKLOG). Se revisa si `free_gb` baja de ~100 GB.
+- **Observado de paso, anotado sin abrir tarea:** la ventana viva de 72 h está al **86,1 %** (62 de 72
+  horas completas), lejos del 99,2 % con que T78 cerró; la mejor ventana auditada (148 h al 99,32 %,
+  2026-11-11 → 11-17) sigue siendo la del expediente y no cambia. Horas incompletas: 11-17T22, el
+  bloque 11-18T07→T12 (seis seguidas), 11-19T13 y hoy 11-20T06 y T07. `usage incidents` da el ciclo
+  lento de hoy a las 08:00 UTC **con el equipo en reposo** (top de CPU System, explorer, svchost; sin
+  carga ajena), así que no es presión de trabajos pesados sino del lado de la captura o del exchange.
+  `gaps_by_cause`: 46 silencio, 53 desconexión, 0 sin detectar, 2 reinicios.
+- **Lo que sí fue carga, para que conste:** los dos `reinicio_salida` de hoy llevan al lado procesos
+  fuera de la cola — un `pytest -q` suelto a las 02:59 UTC, que con toda probabilidad fue de esta
+  sesión durante el desarrollo de T80, y un `priority run batch` del worktree
+  `t87-multiactivo-auditoria` a las 11:32. El primero es exactamente lo que `~/.claude/CLAUDE.md`
+  manda pasar por la cola; el resto de esta sesión (panel, techo y gate) sí fue por ella.
+- **Archivos:** `PLAN/BACKLOG.md`, `PLAN/ESTADO_PROYECTO.md`, `PLAN/notas/T80_decision.md`.
+  Rama `claude/t80-retencion` (solo documentos, ni una línea de código).
+- **Siguiente paso:** nada pendiente de T80. Limpiado: el worktree `t80-techo` se borró y su
+  rama, entera en `main` por el PR #334, también (local y `origin`). Esta rama se rehizo sobre
+  `main` tras los PR #336 (T87) y #337 (T66), que tocaban la misma cabecera y la misma bitácora.
