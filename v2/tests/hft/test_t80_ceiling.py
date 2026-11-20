@@ -92,9 +92,12 @@ def _oos(ic: float, net: float, p: float = 0.001) -> dict:
                                    "positive_days": 0.9},
            "gross": {"mean": net + 4.0, "lo": net, "hi": net + 8.0, "n_days": 10},
            "gross_top": {"mean": net + 6.0, "lo": net + 1, "hi": net + 9.0, "n_days": 10},
+           "cal": {"brier": 0.24, "brier_skill": 0.04, "pinball10_skill": 0.02,
+                   "pinball90_skill": 0.03},
            "ic_p": p, "ic_p_holm": p, "overlap": 1,
            "net": {k: {"mean": net, "lo": net / 2, "hi": net * 2, "days": 10, "trades": 500,
-                       "share_of_rows": 0.01, "p": p, "n_days": 10, "positive_days": 0.8}
+                       "share_of_rows": 0.01, "p": p, "n_days": 10, "positive_days": 0.8,
+                       "acc": 0.53}
                    for k in COSTS}}
     return {"attempts": 68, "holm": {}, "horizons": {"30": {"ofi_top_5": sig}}}
 
@@ -140,7 +143,7 @@ def test_informe_y_registro_de_intentos(tmp_path):
     md = ceiling_report.render(rep, pr)
     for piece in ("# T80", "## 1. Criterios", "## 3. (a) Techo", "## 4. (b) IC",
                   "## 5. (c) pb brutos", "pb netos por operación", "## 6. (d) Qué parte",
-                  "## 7. Veredicto", "SUPERA",
+                  "## 7. Veredicto", "SUPERA", "Brier skill",
                   "`ofi_top_5`", "0,05"):
         assert piece in md
     assert "None" not in md and "nan" not in md

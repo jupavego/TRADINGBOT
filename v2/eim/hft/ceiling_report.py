@@ -110,8 +110,25 @@ def how(rep: dict, pr) -> list[str]:
         "es **más pesimista** que la latencia real.",
         "- El camino del mid se mira al cierre de cada cubo: un toque y vuelta dentro del mismo "
         "segundo no se ve.",
+        "- Una fila solo entra si su cubo está completo, todas sus variables son finitas y los "
+        "cubos de su ventana más larga son contiguos "
+        "(una ventana que cruza una hora no capturada mezclaría datos de los dos lados). El VPIN "
+        "se mide en cubos de volumen y es la única ventana que puede arrastrar historia de antes "
+        "de un hueco.",
+        *_thin_note(rep),
         "",
     ]
+
+
+def _thin_note(rep: dict) -> list[str]:
+    s = rep["sample"]
+    thin = s.get("thin_days") or {}
+    if not thin:
+        return []
+    detail = ", ".join(f"{k} ({v})" for k, v in list(thin.items())[:8])
+    return [f"- Días con menos de {s.get('min_rows_per_day', 0)} filas utilizables, "
+            f"descartados del walk-forward: {detail}"
+            + (" …" if len(thin) > 8 else "") + "."]
 
 
 def ceiling_section(rep: dict) -> list[str]:
@@ -170,6 +187,21 @@ def ic_section(rep: dict) -> list[str]:
         out.append(f"| {h} s | `{best}` | {n(s['ic']['mean'], 4)} | {_ci(s['ic'], 4)} | "
                    f"{n(s['ic'].get('positive_days'), 0, True)} | {n(s['ic_p'], 3)} | "
                    f"{n(s['ic_p_holm'], 3)} |")
+    out += ["", "Calibración y acierto de esa misma señal (F0 exige salida probabilística): la "
+            "predicción se juzga como probabilidad y como cuantil con la σ del Δmid medida solo "
+            "en el entrenamiento, frente a la caminata aleatoria (como la C7 de T27). El acierto "
+            "balanceado es sobre la dirección NETA de costos maker (0 = no paga).", "",
+            "| h | señal | Brier skill | pinball 10 | pinball 90 | acierto balanceado |",
+            "|---|---|---|---|---|---|"]
+    for h in hs:
+        block = oos["horizons"][h]
+        best = max(block, key=lambda k: (block[k]["ic"]["mean"] is not None,
+                                         block[k]["ic"]["mean"] or -9))
+        s, cal = block[best], block[best].get("cal", {})
+        acc = s["net"].get("maker", {}).get("acc")
+        out.append(f"| {h} s | `{best}` | {n(cal.get('brier_skill'), 4, True)} | "
+                   f"{n(cal.get('pinball10_skill'), 4, True)} | "
+                   f"{n(cal.get('pinball90_skill'), 4, True)} | {n(acc, 3, True)} |")
     return [*out, ""]
 
 

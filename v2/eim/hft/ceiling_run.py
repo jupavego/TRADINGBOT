@@ -86,17 +86,23 @@ def run(root: str | Path, out_dir: str | Path, version: str = "hft_ceiling_v1",
     usable = ok & valid_rows(x, complete, t, step_ms, params.history_buckets)
     t_u, x_u = t[usable], x[usable]
     ys_u = {h: y[usable] for h, y in ys.items()}
-    days = sorted(day_table(t_u))
+    counts = day_table(t_u)
+    # un día con pocas filas no es un día de prueba: el mínimo está en el pre-registro
+    days = sorted(d for d, c in counts.items() if c >= pr.data.min_rows_per_day)
+    thin = {_iso(d): c for d, c in sorted(counts.items()) if c < pr.data.min_rows_per_day}
     folds = walk_forward(days, pr.split.train_days, pr.split.test_days, pr.split.embargo_days)
     folds_by_h = {h: folds for h in ys_u}
-    say(f"filas utilizables: {t_u.size} · días: {len(days)} · pliegues: {len(folds)}")
+    say(f"filas utilizables: {t_u.size} · días: {len(days)} (descartados {len(thin)} por "
+        f"pocas filas) · pliegues: {len(folds)}")
     oos = edge_oos.evaluate(t_u, x_u, names, ys_u, folds_by_h, pr.costs_bps, pr.metrics.boot_reps,
-                            pr.metrics.level, pr.metrics.seed, step_ms)
+                            pr.metrics.level, pr.metrics.seed, step_ms, pr.reaction.used_ms)
     say(f"fuera de muestra hecho · {time.time() - t_start:.0f} s")
     test_days = len({d for f in folds for d in f.test})
     sample = {"days": len(days), "test_days": test_days, "rows": int(t_u.size),
               "rows_panel": rows_total, "hours": len(hours),
-              "rows_per_day": day_table(t_u),
+              "min_rows_per_day": pr.data.min_rows_per_day,
+              "rows_per_day": {_iso(d): c for d, c in sorted(counts.items())},
+              "thin_days": thin, "test_day_list": [_iso(d) for f in folds for d in f.test],
               "first_day_utc": _iso(days[0]), "last_day_utc": _iso(days[-1])}
     gate = ceiling_gate.decide(pr, bound, oos, sample)
     report = {"task": "T80", "prereg": pr.version, "prereg_sha256": pr.sha256,
