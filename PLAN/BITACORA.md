@@ -3676,3 +3676,46 @@ pm run build.
   encienden solos a las 00:00 UTC sin reiniciar. Al pararlos, quitar antes la tarea del vigilante.
 - **Siguiente paso:** fusionar #333 con el gate verde y comprobar que la copia siguiente trae
   `paper_cantera.duckdb` y `paper_t143.duckdb` en su manifiesto.
+
+## 2026-11-20 11:05 UTC · claude-code · T80: el carril HFT tiene señal pero no paga el peaje
+
+- **Hecho:** T80 completa (☑) con **veredicto NO SUPERA**. Variables puras en `v2/eim/hft/features/`
+  (microprecio, OFI multinivel 1–5 reutilizando `_ofi_step` de T23, desequilibrio de profundidad,
+  spread relativo, flujo agresor, intensidad de llegadas, RV/bipotencia con parte de salto, VPIN por
+  cubos de volumen) más la **línea base del agente `microstructure` v1** como listón, con prueba de
+  ausencia de look-ahead por construcción (se cambia todo lo posterior a una fila y ninguna variable
+  anterior se mueve). Marco de evaluación en `v2/eim/hft/evaluation/`: Δmid con la reacción medida de
+  T77, dirección neta de costos, triple barrera, llenado de cola pesimista (H5 de T77), walk-forward
+  por días UTC contiguos con purga por la etiqueta y embargo de un día, IC de Spearman por día con IC
+  95 % por bloques de día, Brier/pinball frente a la caminata aleatoria (C7 de T27) y **Holm sobre los
+  68 intentos** declarados. Pre-registro congelado ANTES de medir
+  (`v2/eim/hft/prereg/hft_ceiling_v1.json`, SHA-256 fijado en el código: editarlo hace fallar la
+  carga) y registro de intentos `v2/eim/hft/attempts_t80.json`.
+- **Panel:** `v2/eim/data/collectors/hft_panel.py` es el único I/O (caché Parquet por hora en
+  `data/hft_panel/v1/`, ~0,2 MB/hora, derivado y reconstruible). Hizo falta un libro nuevo,
+  `book_fast.py`, porque `LocalBook.top()` ordenaba todo el libro en cada evento: top-N en tiempo
+  constante por listas de precios ordenadas, con test de igualdad nivel a nivel contra `LocalBook`;
+  una hora pasó de minutos a ~15 s. 386 horas reconstruidas en 1 h 36 min por la cola (1 389 105 filas).
+- **Resultado (una sola corrida, 92 s):** 18 días UTC (2026-11-02 → 11-19), 1 330 396 cubos
+  utilizables, 12 días de prueba. **Sí hay señal**: `depth_imb`, `tilt_bps`, `ridge_all` y la línea
+  base v1 pasan Holm con IC ≈ 0,14 a 1 s y ≈ 0,06 a 30 s; `spread_bps` aparece a 60 s. **Sí hay
+  movimiento que pague** a 30–60 s (C1: 5–11 % de ventanas taker, 28–41 % maker). Pero el edge bruto
+  por operación es de **0,05–0,16 pb** (0,1–1,0 pb en el decil de predicción más fuerte) contra **4 pb**
+  del ida y vuelta maker-maker, el costo se lleva el 45–72 % del movimiento en las ventanas que pagan,
+  y las pocas filas cuya predicción supera el umbral (4–707 de 1,33 M) dan IC 95 % cruzando el 0: **C3
+  no se cumple en ningún horizonte ni estilo**. Lectura corta: la microestructura predice la dirección
+  mejor que el azar, pero el tamaño del movimiento a esos horizontes no cubre la comisión VIP 0.
+- **Archivos:** `v2/eim/hft/` (`features/`, `evaluation/`, `ceiling.py`, `ceiling_gate.py`,
+  `ceiling_report.py`, `ceiling_run.py`, `edge_oos.py`, `prereg/`),
+  `v2/eim/data/collectors/hft_panel.py`, `v2/eim/data/collectors/book_fast.py`, `v2/tests/hft/`,
+  `v2/tests/data/test_book_fast.py`, `v2/tests/data/test_hft_panel.py`,
+  `v2/reports/hft_ceiling.{md,json}`, `v2/docs/ALMACENAMIENTO.md`, `v2/docs/ARQUITECTURA.md`,
+  `PLAN/STATUS.md`, `PLAN/BACKLOG.md`. Rama `claude/t80-techo`.
+- **Pruebas:** `ruff check eim tests` limpio; suite completa por la cola (IDLE, un trabajo a la vez).
+- **◆ Abierto, decisión del usuario:** con NO SUPERA, T80 pide elegir entre (a) archivar el carril HFT
+  con el resultado honesto, como se hizo en T28, y dejar T81–T85 sin abrir; (b) redirigir y repetir la
+  prueba con otra ventana: horizontes más largos (5–30 min, donde el peaje de 4 pb pesa mucho menos),
+  otro símbolo, o la comisión de un nivel VIP con rebate de maker, que es lo único que cambia el
+  cociente costo/bruto sin tocar la señal. No se ha fusionado nada.
+- **Siguiente paso:** la decisión ◆; el marco y el panel quedan listos para repetir la prueba con otros
+  costos u horizontes sin reescribir nada (basta una versión nueva del pre-registro).

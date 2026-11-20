@@ -1,0 +1,627 @@
+{
+ "description": "Intentos de T80 (prueba de techo del carril HFT): cuentan en la familia de Holm de T84 aunque se descarten. Solo se añaden archivos; este no se edita.",
+ "task": "T80",
+ "prereg": "hft_ceiling_v1",
+ "prereg_sha256": "a5dbd8e56540191da14724b9e2b6902676f369e27edc557dfd77782d7edfd5c0",
+ "family": 68,
+ "declared_rule": "familia de Holm = (15 variables + 1 línea base + 1 ridge) × 4 horizontes; se declara aquí y el código falla si no cuadra",
+ "window": {
+  "from": "2026-11-02",
+  "to": "2026-11-19",
+  "symbol": "BTCUSDT"
+ },
+ "attempts": [
+  {
+   "signal": "baseline_v1",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.074687,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "depth_imb",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.141026,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "flow_imb_30",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.021118,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "flow_imb_5",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.057494,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "intensity",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.000181,
+   "p": 0.527694,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "jump_share",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.003234,
+   "p": 0.043391,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ofi_all_1",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.067274,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "ofi_all_30",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.021517,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "ofi_all_5",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.05147,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "ofi_top_1",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.03811,
+   "p": 0.026995,
+   "p_holm": 0.944811
+  },
+  {
+   "signal": "ofi_top_30",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.037123,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "ofi_top_5",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.002338,
+   "p": 0.545491,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ridge_all",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.139255,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "rv_bps",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.00894,
+   "p": 1.0,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "spread_bps",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.003608,
+   "p": 0.20156,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "tilt_bps",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.14173,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "vpin",
+   "horizon_s": 1,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 2.4e-05,
+   "p": 0.496101,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "baseline_v1",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.060152,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "depth_imb",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.127969,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "flow_imb_30",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.016612,
+   "p": 0.031794,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "flow_imb_5",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.047316,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "intensity",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.000808,
+   "p": 0.413117,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "jump_share",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.0031,
+   "p": 0.15017,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ofi_all_1",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.04831,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "ofi_all_30",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.014404,
+   "p": 0.010598,
+   "p_holm": 0.392122
+  },
+  {
+   "signal": "ofi_all_5",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.034758,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "ofi_top_1",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.008918,
+   "p": 0.678064,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ofi_top_30",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.031094,
+   "p": 0.002799,
+   "p_holm": 0.117576
+  },
+  {
+   "signal": "ofi_top_5",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.042001,
+   "p": 0.006199,
+   "p_holm": 0.254149
+  },
+  {
+   "signal": "ridge_all",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.125795,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "rv_bps",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.009555,
+   "p": 0.9998,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "spread_bps",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.00172,
+   "p": 0.614277,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "tilt_bps",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.014918,
+   "p": 0.357728,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "vpin",
+   "horizon_s": 5,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.001352,
+   "p": 0.69906,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "baseline_v1",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.011589,
+   "p": 0.178364,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "depth_imb",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.061814,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "flow_imb_30",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.003277,
+   "p": 0.29954,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "flow_imb_5",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.021102,
+   "p": 0.009198,
+   "p_holm": 0.358728
+  },
+  {
+   "signal": "intensity",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.00768,
+   "p": 0.885823,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "jump_share",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.000176,
+   "p": 0.486503,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ofi_all_1",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.018871,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "ofi_all_30",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.008604,
+   "p": 0.057988,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ofi_all_5",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.011758,
+   "p": 0.031794,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ofi_top_1",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.019275,
+   "p": 0.0006,
+   "p_holm": 0.026995
+  },
+  {
+   "signal": "ofi_top_30",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.012802,
+   "p": 0.076385,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ofi_top_5",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.024333,
+   "p": 0.006799,
+   "p_holm": 0.271946
+  },
+  {
+   "signal": "ridge_all",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.053253,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "rv_bps",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.007906,
+   "p": 0.884223,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "spread_bps",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.034659,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "tilt_bps",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.061675,
+   "p": 0.0008,
+   "p_holm": 0.035193
+  },
+  {
+   "signal": "vpin",
+   "horizon_s": 30,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.007656,
+   "p": 0.043591,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "baseline_v1",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.00784,
+   "p": 0.204559,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "depth_imb",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.043848,
+   "p": 0.0004,
+   "p_holm": 0.018396
+  },
+  {
+   "signal": "flow_imb_30",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.004186,
+   "p": 0.269746,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "flow_imb_5",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.014235,
+   "p": 0.015797,
+   "p_holm": 0.568686
+  },
+  {
+   "signal": "intensity",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.011943,
+   "p": 0.974405,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "jump_share",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.005017,
+   "p": 0.764247,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ofi_all_1",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.007852,
+   "p": 0.009398,
+   "p_holm": 0.358728
+  },
+  {
+   "signal": "ofi_all_30",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.007517,
+   "p": 0.122975,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ofi_all_5",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.005684,
+   "p": 0.112777,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ofi_top_1",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.004133,
+   "p": 0.194561,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ofi_top_30",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.002155,
+   "p": 0.639472,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ofi_top_5",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.007581,
+   "p": 0.145971,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "ridge_all",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.028312,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "rv_bps",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": -0.009923,
+   "p": 0.903419,
+   "p_holm": 1.0
+  },
+  {
+   "signal": "spread_bps",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.045461,
+   "p": 0.0002,
+   "p_holm": 0.013597
+  },
+  {
+   "signal": "tilt_bps",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.043542,
+   "p": 0.001,
+   "p_holm": 0.042991
+  },
+  {
+   "signal": "vpin",
+   "horizon_s": 60,
+   "metric": "ic_spearman",
+   "test_days": 12,
+   "ic_mean": 0.009583,
+   "p": 0.086383,
+   "p_holm": 1.0
+  }
+ ]
+}

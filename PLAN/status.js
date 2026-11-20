@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-19T22:41:45",
+ "generated": "2026-11-20T06:03:00",
  "phases": [
   {
    "n": 0,
@@ -189,7 +189,6 @@ window.EIM_STATUS = {
     "T77",
     "T78",
     "T79",
-    "T80",
     "T81",
     "T82",
     "T83",
@@ -1433,19 +1432,6 @@ window.EIM_STATUS = {
    "effort": "alto",
    "phase": 16,
    "goal": "Un simulador que reproduzca el libro evento a evento y diga **qué habría pasado con una orden**: latencia de feed y de envío, posición en cola, fills parciales, rechazos y comisiones. Es el sustituto honesto de testnet para medir ejecución (el libro de testnet no es el real). Debe ser **más pesimista que optimista** y medir su propio sesgo."
-  },
-  {
-   "id": "T80",
-   "title": "HFT: features, marco de evaluación y prueba de techo",
-   "deps": [
-    "T78",
-    "T23"
-   ],
-   "state": "progress",
-   "notes": "◆ ¿el techo supera los costos? Si no, se archiva antes de T81–T85. **En curso 2026-11-20:** variables puras en `eim/hft/features/`, marco en `eim/hft/evaluation/`, panel de la captura en `data/collectors/hft_panel.py` (+ `book_fast.py`, mismo libro que `LocalBook` pero con top-N en tiempo constante) y pre-registro congelado `eim/hft/prereg/hft_ceiling_v1.json`; falta la corrida sobre 18 días y el informe.",
-   "effort": "alto",
-   "phase": 16,
-   "goal": "Construir las variables de microestructura y un marco de evaluación sin trampas, y responder **barato y pronto** a la pregunta que decide el resto de la fase: ¿el movimiento predecible del precio supera los costos? Si no, se detiene la inversión antes de modelos y estrategias."
   },
   {
    "id": "T81",
