@@ -44,6 +44,20 @@ def n_needed(edge: float, sd: float, alpha: float = 0.05, power: float = 0.8) ->
     return (z * sd / edge) ** 2
 
 
+def mde(sd: float, n: float, alpha: float = 0.05, power: float = 0.8,
+        two_sided: bool = True) -> float:
+    """Efecto mínimo detectable: la media más pequeña que `n` observaciones pueden distinguir.
+
+    Es el inverso de `n_needed` (bilateral por omisión, que es lo que pide un contraste sin signo
+    declarado de antemano): `edge = (z_{α} + z_{β})·sd/√n`. Se calcula ANTES de mirar el tramo de
+    prueba, para saber si la pregunta es contestable con los datos que hay (T133, T166, T197).
+    """
+    if sd <= 0 or n <= 0:
+        return math.inf
+    z = _N.inv_cdf(1 - (alpha / 2 if two_sided else alpha)) + _N.inv_cdf(power)
+    return z * sd / math.sqrt(n)
+
+
 @dataclass(frozen=True)
 class PowerRow:
     """MinTRL de una serie frente a 0 y frente al costo, y lo que falta para llegar."""
