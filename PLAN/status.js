@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-20T10:55:43",
+ "generated": "2026-11-20T11:31:27",
  "phases": [
   {
    "n": 0,
@@ -2691,7 +2691,7 @@ window.EIM_STATUS = {
    "where": [
     {
      "machine": "juanpablo-cpu",
-     "text": "Traer main y reiniciar la API para que la pestaña «Cantera» de la barra superior muestre el balance de ganadas y perdidas y el capital por agente (la cantera solo corre allí)",
+     "text": "Traer main y reiniciar la API: la pestaña «Cantera» muestra allí el balance de ganadas y perdidas y el capital por agente, y la API empieza a publicar el **espejo en vivo** que ve la portátil (rama cantera/espejo de Santivego/eim-shared-data; esa cuenta de git necesita permiso de escritura en ese repo). Comprobar mirror_publish.error vacío en GET /v2/nursery",
      "when": "ya"
     }
    ]
