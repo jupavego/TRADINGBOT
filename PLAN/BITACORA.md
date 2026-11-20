@@ -3811,8 +3811,10 @@ pm run build.
   `v2/reports/t87_agents_cost.md`, `v2/reports/t87_agents_cost.json`,
   `v2/reports/t87_portabilidad.md`; tocados `PLAN/STATUS.md` (T87 ☐→◐), `PLAN/BACKLOG.md`,
   `PLAN/BITACORA.md`, `PLAN/ESTADO_PROYECTO.md`, `PLAN/roadmap.html`.
-- **Pruebas:** gate desde `v2/`. `ruff check eim tests` verde; `pytest -q` por la cola en IDLE
-  (`--min-ram-mb 2500`, con los servicios en marcha). Los dos bancos corrieron por
+- **Pruebas:** gate **verde** desde `v2/`. `ruff check eim tests` limpio; `pytest -q` por la cola en
+  IDLE (`20261120-114713-gate-t87-ba3e`: 1 431 s, **1 pausa** que `--retry-paused 1` reintentó sola,
+  rc=0; `--min-ram-mb 2500`, con los servicios en marcha). La rama no cambia ningún `.py` de `eim/`
+  ni de `tests/` respecto de `main`, así que esa corrida es la misma que la de `main`. Los dos bancos corrieron por
   `eim.operation.priority run batch`. Ninguno pide red: la portabilidad lee `data/intermarket/` y el
   costo mide `context` **sin analizador LLM** a propósito.
 - **Abierto:** 5 puntos en `BACKLOG.md` (el `vwap` que duplica anclas, la familia de flujo ausente de
