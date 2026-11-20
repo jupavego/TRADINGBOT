@@ -3,7 +3,8 @@ import { HIDDEN_ASSETS, SYMBOLS } from './api'
 import { bogIso } from './tz'
 
 const base = (): string =>
-  (import.meta.env.VITE_API_URL as string | undefined) ?? `http://${location.hostname}:8000`
+  (import.meta.env.VITE_API_URL as string | undefined) ??
+  (['5173', '4173'].includes(location.port) ? location.origin : `http://${location.hostname}:8000`)
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Json = any

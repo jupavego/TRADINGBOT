@@ -65,7 +65,7 @@ const arb = new ArbPanel($('t-arb'), $('tab-arb'), (p) => refreshArbitrage($('ri
 const leaders = new LeadersPanel($('t-lead'), $('tab-lead'))
 const squad = new SquadPanel($('t-squad'), () => ({ symbol, tf }), () => scenarios.refresh()) // T60
 squadSupport = squad
-const cantera = new CanteraPanelView($('t-cantera')) // T171: escalafón por agente, contabilidad aparte
+const cantera = new CanteraPanelView($('cantera')) // T171: en su pestaña de la barra superior (views.ts)
 const obs = new ObsView($('obs')) // Mapa del sistema (T75), en su pestaña de la barra superior (views.ts)
 const paper = new PaperView($('paper')) // bróker simulado (T47): en la mesa, bajo el mapa del sistema; modo Simulado en su cabecera
 
@@ -211,7 +211,6 @@ function build(): void {
       if (b.dataset.tab === 't-arb') void arb.reload()
       if (b.dataset.tab === 't-lead') void leaders.reload()
       if (b.dataset.tab === 't-squad') void squad.reload()
-      if (b.dataset.tab === 't-cantera') void cantera.reload()
       if (b.dataset.tab === 't-lib') void library.reload()
       if (b.dataset.tab === 't-log') renderJournal($('journal'), journal)
       more.show(b.dataset.tab!)
@@ -231,6 +230,7 @@ function build(): void {
 }
 
 build()
+window.addEventListener('eim:view', (e) => { if ((e as CustomEvent<string>).detail === 'cantera') void cantera.reload() })
 setupViewTabs()
 obs.mount()
 paper.toggle(true, symbol)

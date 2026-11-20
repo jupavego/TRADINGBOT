@@ -99,6 +99,9 @@ class NurseryDesk:
             regimes = {tf: {c["t"]: c.get("regime") for c in cs} for tf, cs in ctxs.items()}
             ladder = (self.prereg, start, standings(book, self.prereg, start, at, regimes))
         summary = summarize(book, path, first, ladder)
+        # ganadas frente a perdidas y capital por agente: la cara «bróker» de la pestaña
+        from eim.nursery.balance import build_balance
+        summary["balance"] = build_balance(book, at)
         if ladder is not None:          # T171: la panorámica por agente del panel «Cantera»
             from eim.nursery.panel import build_panel
             summary["panel"] = build_panel(book, summary, self.prereg, start, ladder[2],

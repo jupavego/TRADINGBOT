@@ -1,11 +1,17 @@
 /** Pestaña «Cantera» (T171): escalafón por agente, honesto con la muestra. Modo SIMULADO.
  *
+ * Desde el 2026-11-20 vive en la barra superior, junto al mapa del sistema, y se presenta como el
+ * bróker simulado: balance de ganadas frente a perdidas, capital por agente (SVG propio, sin el
+ * gráfico de TradingView) y, debajo, el escalafón.
+ *
  * Vista de entrada: la panorámica por agente (cada agente con sus prospectos de un vistazo); la
  * ficha del prospecto es el detalle al que se baja. El orden es por agente y etapa, nunca por
  * rendimiento, y con menos de 30 observaciones la cifra se atenúa con «muestra insuficiente».
  * La contabilidad de la cantera es aparte: no se suma a los cuatro perfiles ni a la de T144. */
 import { fetchNursery, type CanteraPanel, type NurseryPayload, type ProspectRow, type Stage } from './cantera_api'
+import { canteraBalanceView } from './cantera_balance'
 import { CanteraCard } from './cantera_card'
+import { canteraCurveView } from './cantera_curve'
 import { agentLabel, cot, mag, num, pc, rr, STAGE, usd } from './cantera_fmt'
 import { esc } from './panels'
 
@@ -103,15 +109,26 @@ export class CanteraPanelView {
   private err = ''
   private band = ''
   private group: 'agente' | 'banda' = 'agente'
+  private period = 'todo'
+  private readonly hidden = new Set<string>()
   private abort: AbortController | null = null
   private readonly card: CanteraCard
 
+  /** Vive en su propia pestaña de la barra superior (junto al mapa del sistema). La cantera opera
+   * sola en el servicio; esta vista se refresca sola cada 30 s mientras está a la vista. */
   constructor(private readonly el: HTMLElement) {
     this.card = new CanteraCard(() => this.render())
     el.addEventListener('click', (e) => {
       const t = e.target as HTMLElement
-      if (t.closest('#ct-reload')) { void this.reload(); return }
       if (t.closest('[data-ct-back]')) { this.card.close(); return }
+      const bal = t.closest<HTMLElement>('[data-ct-bal]')
+      if (bal?.dataset.ctBal) { this.period = bal.dataset.ctBal; this.render(); return }
+      const ag = t.closest<HTMLElement>('[data-ct-agent]')
+      if (ag?.dataset.ctAgent) {
+        const id = ag.dataset.ctAgent
+        if (this.hidden.has(id)) this.hidden.delete(id); else this.hidden.add(id)
+        this.render(); return
+      }
       const r = t.closest<HTMLElement>('.ct-row')
       if (r?.dataset.id) void this.card.open(r.dataset.id)
     })
@@ -124,7 +141,7 @@ export class CanteraPanelView {
       if (t.id === 'ct-band') { this.band = t.value; this.render() }
       if (t.id === 'ct-group') { this.group = t.value as 'agente' | 'banda'; this.render() }
     })
-    window.setInterval(() => { if (!this.el.hidden && !this.card.isOpen) void this.reload() }, 120_000)
+    window.setInterval(() => { if (!this.el.hidden && !this.card.isOpen) void this.reload() }, 30_000)
   }
 
   async reload(): Promise<void> {
@@ -159,18 +176,40 @@ export class CanteraPanelView {
     }).join('')
   }
 
+  private head(): string {
+    const d = this.data
+    const live = d?.enabled && d.live
+      ? (d.live.error
+        ? `<span class="ct-live" data-s="warn" title="${esc(d.live.error)}">● en vivo · aviso</span>`
+        : `<span class="ct-live" data-s="ok" title="La cantera opera sola en el servicio: cada vela nueva se analiza y sus prospectos abren y cierran sin intervención">● en vivo · último ciclo ${d.live.last_tick ? cot(d.live.last_tick).slice(11) : '—'}</span>`)
+      : d && !d.enabled ? '<span class="ct-live" data-s="off">● no corre en este equipo</span>' : ''
+    const alta = d?.prereg ? `<span class="pp-cov muted">alta ${cot(d.prereg.alta_ms)} COT · pre-registro ${esc(d.prereg.version)}</span>` : ''
+    return '<header class="pp-head"><h2 class="pp-title">Cantera</h2>' +
+      '<span class="mode" data-mode="SIMULADO" title="Toda cifra de esta pestaña es simulada">Modo: Simulado · cuenta propia por prospecto · contabilidad aparte</span>' +
+      '<span class="ct-tag">Perfiles propios por agente · solo hacia adelante · BTCUSDT</span>' +
+      `<span class="spacer"></span>${alta}${live}</header>`
+  }
+
   render(): void {
     const d = this.data
-    const head = `<div class="ct-bar"><b>Cantera</b><span class="ct-tag">Perfiles propios por agente · cuenta propia · solo hacia adelante</span>` +
-      `<span class="ct-mode" title="Toda cifra de esta pestaña es simulada">Modo: SIMULADO</span><button id="ct-reload" type="button">Actualizar</button></div>`
-    if (this.card.isOpen) { this.el.innerHTML = head + this.card.html(); return }
-    if (!d) { this.el.innerHTML = head + `<p class="muted">${esc(this.err || 'Consultando la cantera…')}</p>`; return }
-    if (!d.enabled || !d.panel) {
-      const why = d.reason ?? d.live?.error ?? 'sin pre-registro: el panel necesita la familia de cantera_v1'
-      this.el.innerHTML = head + `<p class="ct-acct">La cantera es una contabilidad aparte de los cuatro perfiles.</p><p class="muted">${esc(why)}</p>`
+    const head = this.head()
+    if (this.card.isOpen) { this.el.innerHTML = head + `<section class="ct-box">${this.card.html()}</section>`; return }
+    if (!d) { this.el.innerHTML = head + `<section class="ct-box"><p class="muted">${esc(this.err || 'Consultando la cantera…')}</p></section>`; return }
+    if (!d.enabled) {
+      this.el.innerHTML = head + '<section class="ct-box"><p class="ct-acct">La cantera es una contabilidad aparte de los cuatro perfiles.</p>' +
+        `<p>${esc(d.reason ?? 'La cantera no corre en este equipo.')}</p></section>`
       return
     }
     const live = d.live?.error ? `<p class="ct-warn" role="status">${esc(d.live.error)}</p>` : ''
-    this.el.innerHTML = head + header(d, d.panel) + live + this.controls(d.panel) + this.groups(d.panel)
+    const bal = d.balance
+      ? `<section class="pp-balance" aria-label="Balance de operaciones ganadas y perdidas">${canteraBalanceView(d.balance, this.period)}</section>` +
+        '<section class="pp-eqbox ct-eqbox" aria-label="Capital por agente"><div class="pp-eq-h"><h4 class="sh">Capital por agente</h4>' +
+        '<small class="muted">capital realizado de las cuentas de sus prospectos sumadas (USDT) · % frente a su capital inicial (línea punteada en 0) · ' +
+        'clic en un agente para ocultar o mostrar su curva</small></div>' + canteraCurveView(d.balance, this.hidden) + '</section>'
+      : `<section class="ct-box"><p class="muted">${esc(d.reason ?? 'Primer cálculo de la cantera en curso…')}</p></section>`
+    const ladder = d.panel
+      ? `<section class="ct-box"><h4 class="sh">Escalafón por agente</h4>${header(d, d.panel)}${this.controls(d.panel)}${this.groups(d.panel)}</section>`
+      : `<section class="ct-box"><p class="muted">${esc(d.live?.error || 'sin pre-registro: el escalafón necesita la familia de cantera_v1')}</p></section>`
+    this.el.innerHTML = head + live + bal + ladder
   }
 }
