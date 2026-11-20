@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-20T06:30:09",
+ "generated": "2026-11-20T08:07:10",
  "phases": [
   {
    "n": 0,
@@ -1534,8 +1534,8 @@ window.EIM_STATUS = {
    "id": "T87",
    "title": "Multiactivo: auditoría de acoplamientos, medición y decisión de alcance",
    "deps": [],
-   "state": "pending",
-   "notes": "Especificada (`PLAN/T87.md`, insumo `PLAN/notas/T87_universo_multiactivo.md`, 2026-10-19). Auditoría rápida ya hecha en la nota (17 agentes: 10 solo `candles`; acoplamientos a cripto localizados). ◆ alcance, horizontes, datos, orden de clases.",
+   "state": "done",
+   "notes": "**Hecha 2026-11-20. ◆ APROBADA POR EL USUARIO ese mismo día** («Sí, apruebo», las cinco recomendaciones de `PLAN/notas/T87_decisiones.md`): investigación global con **ejecución solo simulada** y sin intermediarios nuevos (T103 a BACKLOG); horizontes **1 h–1 d con `1d` de primera clase** (obliga a T90 a arreglar `build_snapshot`); **solo datos públicos y gratuitos** con licencia verificada en la fuente (T88); **orden nuevo** por potencia ganada —cripto completo de Binance → índices en diario → acciones y ETF líquidos → FX mayores → futuros tradicionales → renta fija/derivados **solo viabilidad**—; y la **lista de aceptación de 8 puntos** (matriz §9) como requisito vinculante y molde de T97–T100. **La fase 17 sigue** (descartada la opción de cerrarla). **T89–T100 desbloqueadas.** Condición viva: si T88 rechaza las condiciones de uso de Yahoo, el 2.º puesto del orden pierde sus datos gratuitos y hay que revisarlo. Matriz completa `PLAN/notas/T87_matriz.md` (fila por módulo con clase R/A/C, acoplamiento con archivo y línea, cambio mínimo y riesgo BTC/ETH) e inventario exacto: **117** archivos de `eim/` con literales de cripto (269 apariciones), no «unos 80», más 33 en `web/src`; solo **4** son acoplamientos de arquitectura (`data/timeframes.py`, `data/snapshot.py`, `data/providers/base.py`, `backtest/params.py`) y `eim/observability/` tiene **0**. Agentes: **20**, no 17; de solo `candles`, **11**. Bancos nuevos (fuera de `eim/`, reproducibles): `v2/scripts/agents_cost.py` → `reports/t87_agents_cost.md` y `v2/scripts/agents_portability.py` → `reports/t87_portabilidad.md`. **Hallazgos que cambian T90–T93:** (1) el ciclo cuesta ≈ 1,9 s por instrumento y marco con 20 agentes (no 4,5 s de T72) y **el embudo no se puede definir por `requires`**, porque `plan` solo pide `candles` y se lleva el 73 % del ciclo — se define por costo medido (13 agentes ≤ 20 ms = 1 % del ciclo; 10 000 instrumentos en 0,05 h frente a 5,35 h); (2) **`run_agents` en hilos no acelera** (1 986 ms frente a 1 927 ms en serie): el escáner paraleliza por procesos sobre instrumentos; (3) **`build_snapshot` no admite 1 d** (`data/snapshot.py:146`, `ValueError: '1d' is not in list`), bloqueo duro para toda clase que solo opere en diario; (4) los 11 agentes de `candles` corren sobre oro, S&P 500 y Nasdaq diarios **sin fallar ni uno**, pero el riesgo medido es el **acierto silencioso**: `vwap` publica `ok` con sesgo −0,13 y confianza 0,60 **con una de sus cuatro anclas muerta y sin que la cifra se mueva** (con velas de 1 d el ancla del día UTC tiene una sola vela, σ = 0; el agente penaliza con 3/4 = 0,75 pero `max_confidence = 0.6` recorta antes), y `bars_per_year = 8766` (`backtest/params.py:40`) infla el Sharpe de una serie diaria de acciones **×5,9**. Cobertura de datos por clase en §7 (lo gratuito que ya está: 659 perpetuos de T181, oro/S&P 500/Nasdaq de T183; **las condiciones de uso de Yahoo siguen sin verificar** → T88). **◆ pendiente: `PLAN/notas/T87_decisiones.md`** (alcance de ejecución, horizontes con `1d` de primera clase, datos gratuitos, orden de clases **reordenado** por potencia ganada, y la lista de aceptación de 8 puntos de la matriz §9 como molde de T97–T100), replanteada a la luz de T145 (D, solo análisis) y T163 (multiactivo = único instrumento de potencia). T89 en adelante **no empiezan** sin esa aprobación. **Gate verde:** `ruff check eim tests` limpio y `pytest -q` por la cola en IDLE (`20261120-114713-gate-t87-ba3e`: 1 431 s, 1 pausa reintentada, rc=0). La rama no cambia ningún `.py` de `eim/` ni de `tests/` respecto de `main`, así que esa corrida es la misma que la de `main`.",
    "effort": "medio",
    "phase": 17,
    "goal": "Convertir la auditoría rápida de `PLAN/notas/T87_universo_multiactivo.md` en una **matriz de reutilización completa** (qué se conserva, qué se adapta, qué es específico de cripto) con el costo real de cada agente, y fijar el alcance con el usuario antes de tocar código. Sin cambios en `eim/`."
@@ -1545,7 +1545,7 @@ window.EIM_STATUS = {
    "title": "Multiactivo: auditoría de repositorios y de proveedores de datos",
    "deps": [],
    "state": "pending",
-   "notes": "◆ qué repos y proveedores entran (licencia y condiciones de uso verificadas en la fuente).",
+   "notes": "**La ◆ de T87 (2026-11-20) le pone un encargo concreto y urgente:** verificar en la fuente las condiciones de uso de **Yahoo Finance** (`yfinance`), de donde salen las series diarias de S&P 500 y Nasdaq que hoy usan el visor, `intermarket` y la prueba de portabilidad de T87. Si no pasan, el 2.º puesto del orden de clases aprobado pierde sus datos gratuitos y el orden hay que revisarlo. ◆ qué repos y proveedores entran (licencia y condiciones de uso verificadas en la fuente).",
    "effort": "medio",
    "phase": 17,
    "goal": "Verificar en la fuente lo que la investigación del usuario **declara** (licencia, mantenimiento, pruebas, compatibilidad) y decidir qué repositorios y proveedores entran, con qué rol y con qué límites. Los datos son la mitad del riesgo: sin una fuente con licencia clara no hay clase de activos."
@@ -1557,7 +1557,7 @@ window.EIM_STATUS = {
     "T87"
    ],
    "state": "pending",
-   "notes": "",
+   "notes": "**Desbloqueada** por la ◆ de T87 (2026-11-20). Es la siguiente de la fase: es quien sustituye a `SYMBOLS`/`FOCUS` de `data/timeframes.py` (61 importadores) y quien da el calendario de sesiones y festivos que necesitan `find_gaps`, `vwap` y la anualización.",
    "effort": "alto",
    "phase": 17,
    "goal": "Un catálogo único donde cada instrumento tiene identidad estable, clase, estructura de mercado, reglas contractuales y datos disponibles, de modo que ningún módulo nuevo vuelva a codificar «BTCUSDT». Compatible hacia atrás: el símbolo cripto de hoy sigue siendo un identificador válido."
@@ -1569,7 +1569,7 @@ window.EIM_STATUS = {
     "T89"
    ],
    "state": "pending",
-   "notes": "",
+   "notes": "De la ◆ de T87: **`1d` pasa a marco de primera clase**, así que aquí entra arreglar `build_snapshot` (`data/snapshot.py:146` levanta `ValueError: '1d' is not in list`), sacar `1d` de `STORE_ONLY_TF_MS` y que `find_gaps` juzgue los huecos contra el calendario del instrumento, no contra 24/7. Partir el `Provider` de `providers/base.py` por capacidades.",
    "effort": "alto",
    "phase": 17,
    "goal": "Hacer que el almacén y los proveedores hablen de instrumentos y no de símbolos de Binance, con calidad y procedencia por dato: huecos que entienden calendarios, precios ajustados frente a crudos, marcos diario y semanal, y licencia/uso por fuente. Sin esto no hay clase nueva que pueda validarse."
@@ -1582,7 +1582,7 @@ window.EIM_STATUS = {
     "T89"
    ],
    "state": "pending",
-   "notes": "",
+   "notes": "**Desbloqueada** por la ◆ de T87. Lo que T87 midió que hay que declarar, además de `requires`: ancla temporal (día UTC frente a sesión), si necesita volumen y de qué tipo, velas mínimas de calentamiento y barras por año. Regla aprobada: un agente sin el dato que declara necesitar **no corre** (`no_data` con motivo, nunca un número silencioso); de ahí los puntos 1 y 2 de la entrada T87 de `BACKLOG.md` (`vwap` y la familia de flujo de `technical`).",
    "effort": "alto",
    "phase": 17,
    "goal": "Que cada agente declare **a qué instrumentos, marcos y datos aplica** y que el sistema decida su elegibilidad con una razón escrita, y que los diez agentes de velas funcionen en mercados con sesiones y sin volumen real **sin cambiar ni un resultado en BTC/ETH**."
@@ -1594,7 +1594,7 @@ window.EIM_STATUS = {
     "T89"
    ],
    "state": "pending",
-   "notes": "",
+   "notes": "De T87: `CostParams` **es** un perpetuo lineal (funding 8 h, `mmr`, margen aislado) y pasa a ser una implementación de un protocolo por clase; `bars_per_year` se deriva del calendario y deja de ser 8766 fijo (`backtest/params.py:40`, que sobre una serie diaria de acciones infla el Sharpe ×5,9). Requisito del punto 8 de la lista: los golden de T02/T05 y el camino de perpetuos no mueven una cifra.",
    "effort": "alto",
    "phase": 17,
    "goal": "Generalizar el modelo de perpetuos (comisión, funding, liquidación aislada, apalancamiento entero) a un **modelo de costos y de márgenes por clase**, de modo que backtest, bróker simulado y riesgo valoren una operación en acciones, FX o futuros con sus reglas reales. Es lo que decide si una «oportunidad» sobrevive a los costos."
@@ -1608,7 +1608,7 @@ window.EIM_STATUS = {
     "T91"
    ],
    "state": "pending",
-   "notes": "Primer universo: todos los perpetuos USDⓈ-M de Binance (sin licencias nuevas).",
+   "notes": "Primer universo: todos los perpetuos USDⓈ-M de Binance (sin licencias nuevas; ya descargados por T181, 659 instrumentos). **T87 midió el embudo y el diseño cambia:** no se puede definir por `requires` (el agente más caro, `plan`, solo pide `candles` y se lleva el 73 % del ciclo de ≈ 1,9 s), se define por **costo medido** (13 agentes ≤ 20 ms = 1 % del ciclo: 10 000 instrumentos en 0,05 h frente a 5,35 h); y el paralelismo va **por procesos sobre instrumentos**, no por hilos de agentes (`run_agents` en hilos no acelera: 1 986 ms frente a 1 927 ms en serie).",
    "effort": "alto",
    "phase": 17,
    "goal": "La infraestructura que permite mirar miles de instrumentos con un presupuesto de cómputo medido: descubrir el universo, filtrarlo, calcular una puntuación barata y vectorizada de todo el universo y entregar solo una lista corta a los agentes profundos. **Sin ejecutar órdenes.** Se prueba primero con el universo completo de perpetuos de Binance."
@@ -1633,7 +1633,7 @@ window.EIM_STATUS = {
     "T49"
    ],
    "state": "pending",
-   "notes": "◆ ¿el escáner muestra algo que supere el azar?",
+   "notes": "◆ ¿el escáner muestra algo que supere el azar? De T87: el punto 7 de la lista aprobada exige **ampliar** la familia de hipótesis al nuevo universo, no reiniciarla (Holm va por 841, T164), y antes hay que abrir `eim/nursery/prereg.py:125`, que fija `symbol: Literal[\"BTCUSDT\"]` a nivel de tipo.",
    "effort": "alto",
    "phase": 17,
    "goal": "Hacer comparables oportunidades de instrumentos, horizontes y clases distintos **y** medir cuántas serían falsos descubrimientos por azar. Escanear miles de instrumentos con 17 agentes es una máquina de generar hipótesis: sin este control el panel mostraría ruido con buena presentación (T27 y T49 ya dijeron que en BTC/ETH no hay edge validado)."
@@ -1661,7 +1661,7 @@ window.EIM_STATUS = {
     "T93"
    ],
    "state": "pending",
-   "notes": "◆ ¿la clase sigue? Molde de la lista de aceptación.",
+   "notes": "◆ ¿la clase sigue? Molde de la **lista de aceptación de 8 puntos** aprobada en T87 (`PLAN/notas/T87_matriz.md` §9). Por el orden aprobado, los **índices en diario** (S&P 500, Nasdaq, oro, ya en el almacén por T183) van antes que las acciones.",
    "effort": "alto",
    "phase": 17,
    "goal": "Llevar la primera clase fuera de cripto de punta a punta y comprobar **toda** la lista de aceptación por clase (descubrimiento, datos, agentes, backtesting, riesgo, ejecución simulada, observabilidad, validación). Sirve de molde para las demás clases."

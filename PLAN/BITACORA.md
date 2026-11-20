@@ -3755,3 +3755,91 @@ pm run build.
   que no se hizo aquí. **Pararla del todo no se recomienda:** es el único libro L2 propio y su costo
   marginal ya está pagado. `data/hft_panel/` (≈ 80 MB) se puede borrar cuando se quiera.
 - **Siguiente paso:** fusionar #334 (gate verde, 4 021 pruebas) cuando el usuario lo autorice.
+
+## 2026-11-20 · claude-code · T87 ☑: auditoría multiactivo, medición y ◆ aprobada (fase 17 sigue)
+
+- **Hecho:** T87 completa salvo la ◆ del usuario. Tres entregables de auditoría y dos bancos nuevos,
+  **sin tocar una línea de `eim/`** (es lo que la ficha exige).
+  (1) **Matriz de reutilización** `PLAN/notas/T87_matriz.md`: una fila por módulo (núcleo, agentes,
+  datos, costos/margen/simulación, ejecución, API, interfaz, Observatorio) con clase
+  **R/A/C**, el acoplamiento con archivo y línea, el cambio mínimo y su riesgo para BTC/ETH; más el
+  inventario exacto de literales de cripto y la cobertura de datos por clase (§7) y la lista de
+  aceptación de 8 puntos (§9).
+  (2) **Costo por agente** `v2/scripts/agents_cost.py` → `v2/reports/t87_agents_cost.md` (+ `.json`):
+  20 agentes sobre snapshots reales de BTCUSDT en 1 h / 4 h / 1 d, 7 repeticiones tras calentamiento,
+  con extrapolación a 1 000 y 10 000 instrumentos con 1 y 4 procesos.
+  (3) **Portabilidad** `v2/scripts/agents_portability.py` → `v2/reports/t87_portabilidad.md`: los 11
+  agentes de `candles` sobre oro (XAUUSDT), S&P 500 y Nasdaq diarios —series reales del almacén por
+  T183, sin red— con BTCUSDT diario como referencia.
+  (4) **◆** `PLAN/notas/T87_decisiones.md`, replanteada: tras T145 (D, solo análisis) y T163
+  (ninguna hipótesis de Sharpe sobre un solo activo cripto es comprobable), multiactivo ya no es un
+  buscador de ventajas sino **el único instrumento de potencia estadística** del sistema, y eso
+  cambia cuatro de las cinco decisiones. Incluye la opción de **no seguir** con la fase 17, escrita.
+- **Corregido de la nota de octubre:** los agentes son **20**, no 17; los de solo `candles`, **11**,
+  no 10; los archivos con literales de cripto son **117** (269 apariciones, 240 líneas), no «unos
+  80», más 33 en `web/src`, y solo **4** son acoplamientos de arquitectura. `eim/observability/`
+  tiene **cero**. El ciclo cuesta **≈ 1,9 s**, no los 4,5 s que midió T72 con 13 agentes.
+- **Hallazgos que cambian el diseño de T90–T93:**
+  (a) **El embudo no se puede definir por `requires`**: los agentes «portables por dato» son el
+  100 % del costo, porque el más caro —`plan`, **73 %** del ciclo— solo pide velas. Se define por
+  costo medido: 13 agentes ≤ 20 ms suman 18,7 ms (1,0 %); 10 000 instrumentos en **0,05 h** frente a
+  **5,35 h** con el ciclo completo.
+  (b) **`run_agents` en hilos no acelera nada**: 1 986 ms en paralelo frente a 1 927 ms en serie
+  (4 123 frente a 1 931 en 4 h). Son agentes ligados a CPU y el GIL los serializa: el escáner
+  paraleliza **por procesos sobre instrumentos**, no por agentes dentro de un instrumento.
+  (c) **`build_snapshot` no admite 1 d**: `_neighbor_candles` (`eim/data/snapshot.py:146`) levanta
+  `ValueError: '1d' is not in list`. Bloqueo duro para toda clase que solo opere en diario, y no
+  estaba anotado; el banco tuvo que armar el snapshot de 1 d a mano para poder medir.
+  (d) **El riesgo no es el fallo, es el acierto silencioso.** Ninguno de los 11 agentes falló sobre
+  oro, S&P 500 ni Nasdaq (cero excepciones, cero `no_data`), pero `vwap` publica `status="ok"` con
+  sesgo −0,13 y confianza 0,60 en el S&P 500 **con una de sus cuatro anclas muerta y sin que la
+  cifra se mueva**: con velas de 1 d el ancla del día UTC tiene una sola vela (σ = 0,
+  `position = "SIN_DATOS"`); el agente la excluye del voto y penaliza con `len(votes)/len(PERIODS)`
+  = 0,75 (`agents/vwap/agent.py:87`), pero `max_confidence = 0.6` (`params.py:49`) recorta antes,
+  así que publica lo mismo que con las cuatro vivas, y `status` solo degrada por avisos de
+  `partial`. (Corregido durante la sesión: que las anclas `weekly` y `quincenal` devolvieran el
+  mismo número **no** es un defecto de la clase, es coincidencia de calendario —el ancla semanal es
+  el lunes y la quincenal los días 1/16, y el 2026-11-16 fue lunes—; pasa ≈ 2 de cada 7 quincenas y
+  también en cripto.) Y
+  `bars_per_year = 8766` (`backtest/params.py:40`) **infla el Sharpe de una serie diaria de acciones
+  ×5,9** (√(8766/252)). De ahí el punto 4 de la lista de aceptación: un agente sin el dato que
+  declara necesitar no corre; sale `no_data` con motivo, nunca un número silencioso.
+  (e) `technical` degrada en las cuatro series, **BTCUSDT incluido**, por falta de marcos vecinos y
+  de `taker_buy_v`: en cripto es transitorio, en acciones e índices es **permanente**.
+- **Archivos:** nuevos `PLAN/notas/T87_matriz.md`, `PLAN/notas/T87_decisiones.md`,
+  `v2/scripts/agents_cost.py`, `v2/scripts/agents_portability.py`,
+  `v2/reports/t87_agents_cost.md`, `v2/reports/t87_agents_cost.json`,
+  `v2/reports/t87_portabilidad.md`; tocados `PLAN/STATUS.md` (T87 ☐→◐), `PLAN/BACKLOG.md`,
+  `PLAN/BITACORA.md`, `PLAN/ESTADO_PROYECTO.md`, `PLAN/roadmap.html`.
+- **Pruebas:** gate **verde** desde `v2/`. `ruff check eim tests` limpio; `pytest -q` por la cola en
+  IDLE (`20261120-114713-gate-t87-ba3e`: 1 431 s, **1 pausa** que `--retry-paused 1` reintentó sola,
+  rc=0; `--min-ram-mb 2500`, con los servicios en marcha). La rama no cambia ningún `.py` de `eim/`
+  ni de `tests/` respecto de `main`, así que esa corrida es la misma que la de `main`. Los dos bancos corrieron por
+  `eim.operation.priority run batch`. Ninguno pide red: la portabilidad lee `data/intermarket/` y el
+  costo mide `context` **sin analizador LLM** a propósito.
+- **Abierto:** 5 puntos en `BACKLOG.md` (el `vwap` que duplica anclas, la familia de flujo ausente de
+  forma permanente, `bars_per_year` por calendario, el `Literal["BTCUSDT"]` de
+  `nursery/prereg.py:125` que T95 tiene que abrir, y si `v2/scripts/` entra en el gate).
+  Las condiciones de uso de Yahoo (`yfinance`, de donde salen S&P 500 y Nasdaq) **siguen sin
+  verificar en la fuente**: es T88, y si no pasan, el orden de clases de la ◆ cambia.
+- **◆ RESUELTA EL MISMO DÍA — el usuario aprobó las cinco** («Sí, apruebo», las recomendaciones de
+  la nota, no las alternativas), así que **T87 pasa a ☑, la fase 17 sigue** (descartada la salida de
+  cerrarla) y **T89–T100 quedan desbloqueadas**. Queda fijado: (1) investigación global con
+  **ejecución solo simulada**, sin intermediarios ni cuentas nuevas (T103 a BACKLOG hasta que una
+  clase demuestre valor medido); (2) horizontes **1 h–1 d con `1d` de primera clase**, lo que obliga
+  a T90 a arreglar `build_snapshot` y a sacar `1d` de `STORE_ONLY_TF_MS`; (3) **solo datos públicos
+  y gratuitos** con licencia verificada en la fuente, sin suscripciones hasta que una clase
+  demuestre valor; (4) **orden nuevo** por potencia ganada por unidad de trabajo, no el de octubre:
+  cripto completo de Binance → índices en diario (S&P 500, Nasdaq, oro) → acciones y ETF líquidos en
+  diario → FX mayores → futuros tradicionales → renta fija, derivados y opciones **solo viabilidad**;
+  (5) la **lista de aceptación de 8 puntos** (`T87_matriz.md` §9) como requisito vinculante para que
+  una clase entre y molde de T97–T100. Anotado en las filas de T88–T97 de `STATUS.md` lo que cada
+  una hereda de esta ◆.
+- **Condición viva de la aprobación:** las condiciones de uso de **Yahoo** (`yfinance`) siguen sin
+  verificar; es el encargo concreto que la ◆ le deja a **T88**. Si no pasan, el 2.º puesto del orden
+  de clases pierde sus datos gratuitos y hay que revisarlo.
+- **En curso:** nada de código.
+- **Siguiente paso:** **T89**, registro universal de instrumentos y calendarios — es quien sustituye
+  a `SYMBOLS`/`FOCUS` de `data/timeframes.py` (61 importadores) y quien da el calendario de sesiones
+  del que dependen `find_gaps`, el ancla de `vwap` y la anualización. Antes, fusionar el PR #336
+  (gate verde), que está abierto sin fusionar a propósito.
