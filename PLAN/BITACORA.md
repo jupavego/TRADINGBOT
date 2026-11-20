@@ -3964,3 +3964,47 @@ pm run build.
   menciones a Polygon y Nasdaq Data Link.
 - **Siguiente paso:** T89 (registro de instrumentos), que ya tiene su dependencia aprobada; necesita dos
   calendarios por instrumento y conocer el tipo `TRADIFI_PERPETUAL`.
+
+## 2026-11-20 17:50 UTC · claude-code · T89: el instrumento pasa a ser un dato, no una constante
+- **Hecho:** registro universal de instrumentos y calendarios, la primera pieza de la fase 17 tras la ◆ de
+  T87. Modelo `Instrument` (pydantic `frozen`, `schema_version` 1.0.0) con `id` estable
+  (`crypto.binance.usdm.BTCUSDT`, `index.yahoo.^GSPC`), clase, estructura de mercado, reglas del contrato,
+  **dos calendarios** (contrato y subyacente), `tradable_level` (niveles de T88) y `data_capabilities`.
+  Catálogo en DuckDB (`data/instruments.duckdb`) con historia fechada e idempotencia. Calendarios con
+  `exchange_calendars` 4.13.3 (lo aprobado en T88, extra `calendars`), `24/7` con regla propia.
+- **Lo que decide de verdad:** `classify_absence` distingue **«cerrado» de «sin datos»**, que es lo que
+  `find_gaps` (T90) necesitaba y hoy no tenía; y las capacidades declaradas son la base de la regla de T91
+  (un agente sin su dato no corre). Los índices de Yahoo entran como **nivel 1** y **sin volumen declarado**
+  —el de `^GSPC` es suma de componentes—, así que `vwap` y la familia de flujo de `technical` quedan fuera
+  de esa clase **por contrato**, no por suerte: es el «acierto silencioso» de T87 §9 cerrado en el dato.
+  Los 247 perpetuos TradFi entran como nivel 1 (T88: comisiones sin verificar y haría falta firmar
+  `POST /fapi/v1/stock/contract`).
+- **Catálogo real, no de ejemplo:** 965 fichas. 956 de `exchangeInfo` (701 cripto nivel 2, 239 acciones,
+  8 materias primas, 3 índices y 1 FX TradFi de nivel 1, 4 trimestrales; 819 activos, 138 en liquidación,
+  1 pendiente — el sesgo de supervivencia a la vista), los 2 índices de Yahoo y 7 pares mayores de FX del
+  BCE vía Frankfurter. Correr `discover` dos veces no cambia nada ni duplica historia.
+- **Compatibilidad:** `SYMBOLS` y `FOCUS` de `data/timeframes.py` se **derivan** del registro sin cambiar de
+  valor (`("BTCUSDT","ETHUSDT")`, `("BTCUSDT",)`), así que ni la API ni los servicios cambian de
+  comportamiento y **no hace falta reiniciar nada**. La capa curada (`registry.curate`) evita que el
+  descubrimiento borre lo que la fuente no puede saber (el subyacente CME del oro, el alias `SP500`).
+- **Dos cosas que la realidad corrigió:** Binance lista un símbolo con caracteres chinos (`币安人生USDT`), así
+  que el `id` admite letras de cualquier alfabeto (no puntos: el id tiene que partirse por el último sin
+  ambigüedad); y construir un calendario de bolsa cuesta ~1,5 s, así que se cachea por años enteros —barrer
+  365 ventanas pasó de 6,5 s a 0,28 s, que es lo que `find_gaps` va a hacer miles de veces.
+- **Archivos:** nuevos `v2/eim/instruments/{__init__,models,calendars,calendar_specs,registry,discovery,__main__}.py`
+  y `v2/eim/data/instruments_store.py`; tests `v2/tests/instruments/` (4 archivos) y
+  `v2/tests/data/test_instruments_store.py`; fixtures reales en `v2/tests/fixtures/instruments/`
+  (`exchangeInfo` recortado a 10 símbolos con un caso de cada cosa, y las 30 divisas de Frankfurter).
+  Tocados: `v2/eim/data/timeframes.py` (9 líneas), `v2/pyproject.toml` (extra `calendars`),
+  `PLAN/CONTRATOS.md` (ampliación de la fase 17), `v2/docs/NUEVO_AGENTE.md` (§2 bis: un instrumento se
+  registra, no se codifica).
+- **Pruebas:** 111 pruebas nuevas (esquema, migración de los símbolos de hoy, calendario con festivo, media
+  jornada, cambio de hora y fin de semana, descubrimiento con respuestas simuladas sin red, idempotencia de
+  altas y bajas). Gate completo por la cola en IDLE. Los calendarios de bolsa se omiten si falta el extra
+  `calendars`; `24/7` se prueba siempre.
+- **Abierto:** la línea de órdenes de la cola corre el `python` del PATH, no el del venv (hay que pasarle el
+  intérprete absoluto; ya anotado en T88). `exchange_calendars` quedó instalado en este equipo, no en la
+  portátil: allí los calendarios de bolsa se omiten hasta correr `pip install -e .[calendars]`.
+- **Siguiente paso:** T90 (contratos de datos multifuente, almacén y calidad), que es quien usa
+  `expected_bars`/`classify_absence` en `find_gaps`, arregla `build_snapshot` para `1d` y saca `1d` de
+  `STORE_ONLY_TF_MS`.
