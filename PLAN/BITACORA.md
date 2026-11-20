@@ -4008,3 +4008,10 @@ pm run build.
 - **Siguiente paso:** T90 (contratos de datos multifuente, almacén y calidad), que es quien usa
   `expected_bars`/`classify_absence` en `find_gaps`, arregla `build_snapshot` para `1d` y saca `1d` de
   `STORE_ONLY_TF_MS`.
+
+## 2026-11-20 · sesión Plan de automatización del cerebro (T197–T205)
+- **Hecho:** a pedido del usuario se inventariaron los procesos manuales (guiones `aplicar_*.cmd`, reinicios parciales, activaciones por equipo, comprobaciones tras encender, gate en trozos, cierres por fecha, mantenimiento de la hoja de ruta, diagnósticos sueltos) y se abrió la fase 32 con T197–T204; a pedido del usuario, T205 (orquestador y vigía de la automatización) va primero y todas se registran en él.
+- **Archivos:** `PLAN/T197.md`–`PLAN/T205.md`, filas en `STATUS.md`, fase 32 en `00_MASTER.md`, `status.js`/`roadmap.html`.
+- **Pruebas:** solo plan; sin código.
+- **Abierto:** todas ☐. Lo que reinicie servicios nace apagado hasta el cierre de T31 (2026-11-28).
+- **Siguiente paso:** empezar por T205 y luego T197 + T200 (despliegue y autochequeo), luego T198.
