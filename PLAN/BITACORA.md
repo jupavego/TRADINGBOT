@@ -3604,3 +3604,29 @@ pm run build.
 - **Archivos:** 2/eim/web/src/obs_iso.ts, obs_iso_route.ts (nuevo), obs_iso_geo.ts, obs_iso_eco.ts, obs_iso_floor.ts, obs_iso.css; borrado obs_iso_avatar.ts.
 - **Pruebas:** en la sesión, tipos revisados con tsc y el mapa renderizado con datos de ejemplo (captura: ninguna línea oculta, ninguna sin pasillo libre); en el equipo: ruff, pruebas que leen la web y `npm run build`.
 - **Abierto:** ninguno. **Siguiente paso:** ninguno obligatorio.
+
+## 2026-11-19 18:55 UTC · claude-code · El apagón sucio de las 13:25: tres secuelas y el servicio de vuelta
+- **Hecho:** la API no arrancaba. Un corte sucio a las 13:25 UTC dejó tres daños independientes, no uno.
+  (1) `state_simulado.json` quedó en 9372 bytes NUL: NTFS confirmó el tamaño pero no volcó los datos, y
+  `state.load` reventaba en cada arranque (21–22 reinicios en bucle). `save()` ahora hace `fsync` antes del
+  `replace` —el patrón «tmp + replace» NO es seguro ante un corte sin él— y `load()` aparta el estado ilegible
+  en vez de morir, con una alerta CRÍTICA para que el arranque con el libro plano no pase en silencio.
+  (2) Seis parquet truncados («No magic bytes found at end of file»); uno mataba el proceso de forma nativa
+  (`0xC0000409`), que esquiva a `faulthandler`, por eso no había traza. Apartados con prefijo `corrupto-`,
+  que los saca del patrón de lectura `part-*.parquet`.
+  (3) El índice de `obs.duckdb` quedó inconsistente y su `FatalException` invalida la conexión para siempre:
+  sin reabrirla, todas las pasadas siguientes fallaban igual y el observatorio no volvía hasta reiniciar la API.
+  `ObsStore.reconnect()` la reabre y el indexador se recupera solo tras un error fatal.
+- **Archivos:** `v2/eim/operation/state.py`, `v2/eim/operation/supervisor.py`, `v2/eim/observability/store.py`,
+  `v2/eim/observability/indexer.py`, `v2/tests/observability/test_indexer.py`, `PLAN/BACKLOG.md`.
+  Commit `d921647` en `origin/main` (reordenado sobre las 7 commits de interfaz que había en el remoto).
+- **Pruebas:** gate verde por la cola (ruff + pytest completo). Prueba de regresión nueva: una conexión que
+  lanza `duckdb.FatalException` se reabre sola y la pasada siguiente indexa, con los 11 eventos intactos.
+  Verificado en caliente tras el reinicio: estado cargado sin cuarentena nueva (patrimonio 9809,69 y
+  `recon_ok: true`), 11 ciclos sin uno solo fallido, 5 de 5 componentes vivos, observatorio de 500 a 200 con el
+  atraso del índice de 18,6 h a 2 s, y el mapa del sistema dibujando las 7 salas con «último evento hace 14 s».
+- **Abierto:** el aviso «spool de 868 MB (alerta a 500)» está encendido de forma permanente y no es avería
+  (7 días de retención × ~124 MB/día > el umbral de 500 MB), y `GET /v2/snapshot` tarda ~16 s fijos, lo que hace
+  que la mesa enseñe «Sin conexión con la API» durante la carga aunque el servicio esté sano. Ambos en BACKLOG.
+- **En curso:** nada.
+- **Siguiente paso:** ninguno obligatorio. No se abrió ninguna Txx: fue un incidente, no una tarea del plan.
