@@ -3719,3 +3719,39 @@ pm run build.
   cociente costo/bruto sin tocar la señal. No se ha fusionado nada.
 - **Siguiente paso:** la decisión ◆; el marco y el panel quedan listos para repetir la prueba con otros
   costos u horizontes sin reescribir nada (basta una versión nueva del pre-registro).
+
+## 2026-11-20 11:45 UTC · claude-code · La ◆ de T80, delegada: el carril HFT se archiva
+
+- **Hecho:** el usuario delegó la decisión («toma tú la mejor decisión») y queda tomada y escrita en
+  `PLAN/notas/T80_decision.md`: **se archiva el carril de alta frecuencia**, como se hizo con T28.
+  T79 (simulador), T81 (modelos), T82 (estrategias), T84 (torneo y puerta `hft_v1`), T85
+  (microestructura v2 en vivo) y T86 (integración) quedan **cerradas sin hacer** (☑ con la razón en
+  su fila). T83 se queda hecha: su motor de veto es genérico y no cuelga de este carril.
+- **Lo que decidió, que no es el veredicto sino su detalle:** (1) `depth_imb`, la señal más sólida
+  (IC 0,0618 a 30 s y 0,0438 a 60 s, Holm < 0,02, el mejor acierto balanceado, 0,524), hace **cero
+  operaciones en los tres estilos**: su predicción calibrada no alcanza los 4 pb del ida y vuelta más
+  barato **ni una vez en 1,33 M de cubos** — es magnitud, no muestra, así que más días no la mueven;
+  (2) donde sí hay potencia el neto es **negativo**: `ofi_top_30` a 30 s hace 151/254/384 operaciones
+  y pierde −26,06/−13,90/−8,71 pb; (3) el único neto positivo llamativo (`spread_bps` a 30 s taker,
+  +13,8 pb) son **18 operaciones en 5 de 12 días con acierto balanceado 0,5017**: dos episodios
+  afortunados, y elegirla tras ver la tabla es la pesca que el marco de T80 existe para impedir.
+- **Redirecciones descartadas con razón:** 5–30 min ya no es alta frecuencia (es el horizonte de los
+  agentes que existen, y ahí va el hallazgo útil); VIP con rebate exige volumen y dinero real, contra
+  la ◆ D de T145; otro símbolo exige capturar de cero y el alcance es BTC.
+- **Consecuencia en el plan:** el disparador **BACKLOG T145 (4)** («A en 2027-10, con un año de libro
+  L2 propio, valorar abrir T80») queda **contestado y retirado**: la restricción que manda no es la
+  muestra. Reabrirlo pediría una condición distinta (otra estructura de comisiones, o un horizonte
+  donde 4 pb sean marginales), no más días.
+- **Lo que sobrevive, al BACKLOG y en el terreno del análisis:** `depth_imb` y `tilt_bps` **baten a la
+  línea base del agente `microstructure` v1 en los cuatro horizontes**, con Holm, y la línea base
+  pierde significancia pasados los 5 s (0,0116 a 30 s) mientras ellas la mantienen. Es una mejora
+  medible del agente que ya existe, que es donde T145 D puso al sistema. El marco, el panel y
+  `book_fast.py` se quedan: hacen barata cualquier remedición.
+- **Archivos:** `PLAN/notas/T80_decision.md` (nuevo), `PLAN/STATUS.md` (7 filas), `PLAN/BACKLOG.md`,
+  `PLAN/ESTADO_PROYECTO.md`, `PLAN/status.js`. Rama `claude/t80-techo`, **PR #334** (sin fusionar).
+- **Pendiente de la mano del usuario:** la captura de T78 sigue corriendo y **ninguna tarea abierta la
+  consume ya**, a ≈ 1 099 MB/día (≈ 33 GB a 30 días). Recomendado bajar la retención de 45 a 30 días
+  (lo que BACKLOG T78 (8) dejó anotado «tras T80»); pide editar el servicio y reiniciar la captura, así
+  que no se hizo aquí. **Pararla del todo no se recomienda:** es el único libro L2 propio y su costo
+  marginal ya está pagado. `data/hft_panel/` (≈ 80 MB) se puede borrar cuando se quiera.
+- **Siguiente paso:** fusionar #334 (gate verde, 4 021 pruebas) cuando el usuario lo autorice.
