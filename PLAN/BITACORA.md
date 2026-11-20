@@ -3676,3 +3676,145 @@ pm run build.
   encienden solos a las 00:00 UTC sin reiniciar. Al pararlos, quitar antes la tarea del vigilante.
 - **Siguiente paso:** fusionar #333 con el gate verde y comprobar que la copia siguiente trae
   `paper_cantera.duckdb` y `paper_t143.duckdb` en su manifiesto.
+
+## 2026-11-20 11:05 UTC · claude-code · T80: el carril HFT tiene señal pero no paga el peaje
+
+- **Hecho:** T80 completa (☑) con **veredicto NO SUPERA**. Variables puras en `v2/eim/hft/features/`
+  (microprecio, OFI multinivel 1–5 reutilizando `_ofi_step` de T23, desequilibrio de profundidad,
+  spread relativo, flujo agresor, intensidad de llegadas, RV/bipotencia con parte de salto, VPIN por
+  cubos de volumen) más la **línea base del agente `microstructure` v1** como listón, con prueba de
+  ausencia de look-ahead por construcción (se cambia todo lo posterior a una fila y ninguna variable
+  anterior se mueve). Marco de evaluación en `v2/eim/hft/evaluation/`: Δmid con la reacción medida de
+  T77, dirección neta de costos, triple barrera, llenado de cola pesimista (H5 de T77), walk-forward
+  por días UTC contiguos con purga por la etiqueta y embargo de un día, IC de Spearman por día con IC
+  95 % por bloques de día, Brier/pinball frente a la caminata aleatoria (C7 de T27) y **Holm sobre los
+  68 intentos** declarados. Pre-registro congelado ANTES de medir
+  (`v2/eim/hft/prereg/hft_ceiling_v1.json`, SHA-256 fijado en el código: editarlo hace fallar la
+  carga) y registro de intentos `v2/eim/hft/attempts_t80.json`.
+- **Panel:** `v2/eim/data/collectors/hft_panel.py` es el único I/O (caché Parquet por hora en
+  `data/hft_panel/v1/`, ~0,2 MB/hora, derivado y reconstruible). Hizo falta un libro nuevo,
+  `book_fast.py`, porque `LocalBook.top()` ordenaba todo el libro en cada evento: top-N en tiempo
+  constante por listas de precios ordenadas, con test de igualdad nivel a nivel contra `LocalBook`;
+  una hora pasó de minutos a ~15 s. 386 horas reconstruidas en 1 h 36 min por la cola (1 389 105 filas).
+- **Resultado (una sola corrida, 92 s):** 18 días UTC (2026-11-02 → 11-19), 1 330 396 cubos
+  utilizables, 12 días de prueba. **Sí hay señal**: `depth_imb`, `tilt_bps`, `ridge_all` y la línea
+  base v1 pasan Holm con IC ≈ 0,14 a 1 s y ≈ 0,06 a 30 s; `spread_bps` aparece a 60 s. **Sí hay
+  movimiento que pague** a 30–60 s (C1: 5–11 % de ventanas taker, 28–41 % maker). Pero el edge bruto
+  por operación es de **0,05–0,16 pb** (0,1–1,0 pb en el decil de predicción más fuerte) contra **4 pb**
+  del ida y vuelta maker-maker, el costo se lleva el 45–72 % del movimiento en las ventanas que pagan,
+  y las pocas filas cuya predicción supera el umbral (4–707 de 1,33 M) dan IC 95 % cruzando el 0: **C3
+  no se cumple en ningún horizonte ni estilo**. Lectura corta: la microestructura predice la dirección
+  mejor que el azar, pero el tamaño del movimiento a esos horizontes no cubre la comisión VIP 0.
+- **Archivos:** `v2/eim/hft/` (`features/`, `evaluation/`, `ceiling.py`, `ceiling_gate.py`,
+  `ceiling_report.py`, `ceiling_run.py`, `edge_oos.py`, `prereg/`),
+  `v2/eim/data/collectors/hft_panel.py`, `v2/eim/data/collectors/book_fast.py`, `v2/tests/hft/`,
+  `v2/tests/data/test_book_fast.py`, `v2/tests/data/test_hft_panel.py`,
+  `v2/reports/hft_ceiling.{md,json}`, `v2/docs/ALMACENAMIENTO.md`, `v2/docs/ARQUITECTURA.md`,
+  `PLAN/STATUS.md`, `PLAN/BACKLOG.md`. Rama `claude/t80-techo`.
+- **Pruebas:** `ruff check eim tests` limpio; suite completa por la cola (IDLE, un trabajo a la vez).
+- **◆ Abierto, decisión del usuario:** con NO SUPERA, T80 pide elegir entre (a) archivar el carril HFT
+  con el resultado honesto, como se hizo en T28, y dejar T81–T85 sin abrir; (b) redirigir y repetir la
+  prueba con otra ventana: horizontes más largos (5–30 min, donde el peaje de 4 pb pesa mucho menos),
+  otro símbolo, o la comisión de un nivel VIP con rebate de maker, que es lo único que cambia el
+  cociente costo/bruto sin tocar la señal. No se ha fusionado nada.
+- **Siguiente paso:** la decisión ◆; el marco y el panel quedan listos para repetir la prueba con otros
+  costos u horizontes sin reescribir nada (basta una versión nueva del pre-registro).
+
+## 2026-11-20 11:45 UTC · claude-code · La ◆ de T80, delegada: el carril HFT se archiva
+
+- **Hecho:** el usuario delegó la decisión («toma tú la mejor decisión») y queda tomada y escrita en
+  `PLAN/notas/T80_decision.md`: **se archiva el carril de alta frecuencia**, como se hizo con T28.
+  T79 (simulador), T81 (modelos), T82 (estrategias), T84 (torneo y puerta `hft_v1`), T85
+  (microestructura v2 en vivo) y T86 (integración) quedan **cerradas sin hacer** (☑ con la razón en
+  su fila). T83 se queda hecha: su motor de veto es genérico y no cuelga de este carril.
+- **Lo que decidió, que no es el veredicto sino su detalle:** (1) `depth_imb`, la señal más sólida
+  (IC 0,0618 a 30 s y 0,0438 a 60 s, Holm < 0,02, el mejor acierto balanceado, 0,524), hace **cero
+  operaciones en los tres estilos**: su predicción calibrada no alcanza los 4 pb del ida y vuelta más
+  barato **ni una vez en 1,33 M de cubos** — es magnitud, no muestra, así que más días no la mueven;
+  (2) donde sí hay potencia el neto es **negativo**: `ofi_top_30` a 30 s hace 151/254/384 operaciones
+  y pierde −26,06/−13,90/−8,71 pb; (3) el único neto positivo llamativo (`spread_bps` a 30 s taker,
+  +13,8 pb) son **18 operaciones en 5 de 12 días con acierto balanceado 0,5017**: dos episodios
+  afortunados, y elegirla tras ver la tabla es la pesca que el marco de T80 existe para impedir.
+- **Redirecciones descartadas con razón:** 5–30 min ya no es alta frecuencia (es el horizonte de los
+  agentes que existen, y ahí va el hallazgo útil); VIP con rebate exige volumen y dinero real, contra
+  la ◆ D de T145; otro símbolo exige capturar de cero y el alcance es BTC.
+- **Consecuencia en el plan:** el disparador **BACKLOG T145 (4)** («A en 2027-10, con un año de libro
+  L2 propio, valorar abrir T80») queda **contestado y retirado**: la restricción que manda no es la
+  muestra. Reabrirlo pediría una condición distinta (otra estructura de comisiones, o un horizonte
+  donde 4 pb sean marginales), no más días.
+- **Lo que sobrevive, al BACKLOG y en el terreno del análisis:** `depth_imb` y `tilt_bps` **baten a la
+  línea base del agente `microstructure` v1 en los cuatro horizontes**, con Holm, y la línea base
+  pierde significancia pasados los 5 s (0,0116 a 30 s) mientras ellas la mantienen. Es una mejora
+  medible del agente que ya existe, que es donde T145 D puso al sistema. El marco, el panel y
+  `book_fast.py` se quedan: hacen barata cualquier remedición.
+- **Archivos:** `PLAN/notas/T80_decision.md` (nuevo), `PLAN/STATUS.md` (7 filas), `PLAN/BACKLOG.md`,
+  `PLAN/ESTADO_PROYECTO.md`, `PLAN/status.js`. Rama `claude/t80-techo`, **PR #334** (sin fusionar).
+- **Pendiente de la mano del usuario:** la captura de T78 sigue corriendo y **ninguna tarea abierta la
+  consume ya**, a ≈ 1 099 MB/día (≈ 33 GB a 30 días). Recomendado bajar la retención de 45 a 30 días
+  (lo que BACKLOG T78 (8) dejó anotado «tras T80»); pide editar el servicio y reiniciar la captura, así
+  que no se hizo aquí. **Pararla del todo no se recomienda:** es el único libro L2 propio y su costo
+  marginal ya está pagado. `data/hft_panel/` (≈ 80 MB) se puede borrar cuando se quiera.
+- **Siguiente paso:** fusionar #334 (gate verde, 4 021 pruebas) cuando el usuario lo autorice.
+
+## 2026-11-20 · claude-code · T87: auditoría de acoplamientos multiactivo, medición y ◆ de alcance
+
+- **Hecho:** T87 completa salvo la ◆ del usuario. Tres entregables de auditoría y dos bancos nuevos,
+  **sin tocar una línea de `eim/`** (es lo que la ficha exige).
+  (1) **Matriz de reutilización** `PLAN/notas/T87_matriz.md`: una fila por módulo (núcleo, agentes,
+  datos, costos/margen/simulación, ejecución, API, interfaz, Observatorio) con clase
+  **R/A/C**, el acoplamiento con archivo y línea, el cambio mínimo y su riesgo para BTC/ETH; más el
+  inventario exacto de literales de cripto y la cobertura de datos por clase (§7) y la lista de
+  aceptación de 8 puntos (§9).
+  (2) **Costo por agente** `v2/scripts/agents_cost.py` → `v2/reports/t87_agents_cost.md` (+ `.json`):
+  20 agentes sobre snapshots reales de BTCUSDT en 1 h / 4 h / 1 d, 7 repeticiones tras calentamiento,
+  con extrapolación a 1 000 y 10 000 instrumentos con 1 y 4 procesos.
+  (3) **Portabilidad** `v2/scripts/agents_portability.py` → `v2/reports/t87_portabilidad.md`: los 11
+  agentes de `candles` sobre oro (XAUUSDT), S&P 500 y Nasdaq diarios —series reales del almacén por
+  T183, sin red— con BTCUSDT diario como referencia.
+  (4) **◆** `PLAN/notas/T87_decisiones.md`, replanteada: tras T145 (D, solo análisis) y T163
+  (ninguna hipótesis de Sharpe sobre un solo activo cripto es comprobable), multiactivo ya no es un
+  buscador de ventajas sino **el único instrumento de potencia estadística** del sistema, y eso
+  cambia cuatro de las cinco decisiones. Incluye la opción de **no seguir** con la fase 17, escrita.
+- **Corregido de la nota de octubre:** los agentes son **20**, no 17; los de solo `candles`, **11**,
+  no 10; los archivos con literales de cripto son **117** (269 apariciones, 240 líneas), no «unos
+  80», más 33 en `web/src`, y solo **4** son acoplamientos de arquitectura. `eim/observability/`
+  tiene **cero**. El ciclo cuesta **≈ 1,9 s**, no los 4,5 s que midió T72 con 13 agentes.
+- **Hallazgos que cambian el diseño de T90–T93:**
+  (a) **El embudo no se puede definir por `requires`**: los agentes «portables por dato» son el
+  100 % del costo, porque el más caro —`plan`, **73 %** del ciclo— solo pide velas. Se define por
+  costo medido: 13 agentes ≤ 20 ms suman 18,7 ms (1,0 %); 10 000 instrumentos en **0,05 h** frente a
+  **5,35 h** con el ciclo completo.
+  (b) **`run_agents` en hilos no acelera nada**: 1 986 ms en paralelo frente a 1 927 ms en serie
+  (4 123 frente a 1 931 en 4 h). Son agentes ligados a CPU y el GIL los serializa: el escáner
+  paraleliza **por procesos sobre instrumentos**, no por agentes dentro de un instrumento.
+  (c) **`build_snapshot` no admite 1 d**: `_neighbor_candles` (`eim/data/snapshot.py:146`) levanta
+  `ValueError: '1d' is not in list`. Bloqueo duro para toda clase que solo opere en diario, y no
+  estaba anotado; el banco tuvo que armar el snapshot de 1 d a mano para poder medir.
+  (d) **El riesgo no es el fallo, es el acierto silencioso.** Ninguno de los 11 agentes falló sobre
+  oro, S&P 500 ni Nasdaq (cero excepciones, cero `no_data`), pero `vwap` publica `status="ok"` con
+  sesgo −0,13 y confianza 0,60 en el S&P 500 **con el ancla diaria vacía** (σ = 0,
+  `position = "SIN_DATOS"`) y con las anclas `weekly` y `quincenal` devolviendo **el mismo número**
+  (7 340,81; 63 706,99 en BTCUSDT): cuenta la misma evidencia dos veces. Y
+  `bars_per_year = 8766` (`backtest/params.py:40`) **infla el Sharpe de una serie diaria de acciones
+  ×5,9** (√(8766/252)). De ahí el punto 4 de la lista de aceptación: un agente sin el dato que
+  declara necesitar no corre; sale `no_data` con motivo, nunca un número silencioso.
+  (e) `technical` degrada en las cuatro series, **BTCUSDT incluido**, por falta de marcos vecinos y
+  de `taker_buy_v`: en cripto es transitorio, en acciones e índices es **permanente**.
+- **Archivos:** nuevos `PLAN/notas/T87_matriz.md`, `PLAN/notas/T87_decisiones.md`,
+  `v2/scripts/agents_cost.py`, `v2/scripts/agents_portability.py`,
+  `v2/reports/t87_agents_cost.md`, `v2/reports/t87_agents_cost.json`,
+  `v2/reports/t87_portabilidad.md`; tocados `PLAN/STATUS.md` (T87 ☐→◐), `PLAN/BACKLOG.md`,
+  `PLAN/BITACORA.md`, `PLAN/ESTADO_PROYECTO.md`, `PLAN/roadmap.html`.
+- **Pruebas:** gate desde `v2/`. `ruff check eim tests` verde; `pytest -q` por la cola en IDLE
+  (`--min-ram-mb 2500`, con los servicios en marcha). Los dos bancos corrieron por
+  `eim.operation.priority run batch`. Ninguno pide red: la portabilidad lee `data/intermarket/` y el
+  costo mide `context` **sin analizador LLM** a propósito.
+- **Abierto:** 5 puntos en `BACKLOG.md` (el `vwap` que duplica anclas, la familia de flujo ausente de
+  forma permanente, `bars_per_year` por calendario, el `Literal["BTCUSDT"]` de
+  `nursery/prereg.py:125` que T95 tiene que abrir, y si `v2/scripts/` entra en el gate).
+  Las condiciones de uso de Yahoo (`yfinance`, de donde salen S&P 500 y Nasdaq) **siguen sin
+  verificar en la fuente**: es T88, y si no pasan, el orden de clases de la ◆ cambia.
+- **En curso:** nada de código. T87 queda ◐ esperando la aprobación escrita.
+- **Siguiente paso:** que el usuario apruebe (o rechace) `PLAN/notas/T87_decisiones.md`. **T89 en
+  adelante no empiezan sin esa aprobación**; si la respuesta es no, T89–T100 pasan a BACKLOG y la
+  fase 17 se cierra.

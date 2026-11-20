@@ -1,0 +1,87 @@
+{
+ "version": "hft_ceiling_v1",
+ "task": "T80",
+ "description": "Prueba de techo del carril HFT: ¿el movimiento predecible del mid supera los costos? Criterios congelados ANTES de calcular cualquier resultado con los datos de T78.",
+ "frozen_at": "2026-11-20",
+ "data": {
+  "symbol": "BTCUSDT",
+  "source": "micro_hft (T78) reproducido en el panel hft_panel/v1",
+  "step_ms": 1000,
+  "levels": 5,
+  "from": "2026-11-02T00",
+  "to": "2026-11-19T23",
+  "hours": "solo las horas que el QC de T78 da por completas y sin huecos sin detectar",
+  "min_days": 14,
+  "min_rows_per_day": 30000
+ },
+ "horizons_s": [1, 5, 30, 60],
+ "reaction": {
+  "p50_ms": 233,
+  "p99_ms": 310,
+  "used_ms": 1000,
+  "note": "T77 midió 233/310 ms (p50/p99) de evento a orden en Binance. Con cubos de 1 s la entrada se retrasa un cubo entero, así que lo que se mide es MÁS pesimista que la latencia real; el techo sin reacción se publica aparte como cota de arriba."
+ },
+ "costs_bps": {"taker": 10.0, "mixto": 7.0, "maker": 4.0},
+ "cost_source": "CostParams de eim/backtest/params.py (VIP 0: 5 pb taker, 2 pb maker) en ida y vuelta, como la cota de T77",
+ "split": {
+  "scheme": "walk-forward por días UTC contiguos, con purga por la etiqueta y embargo de días",
+  "train_days": 5,
+  "test_days": 1,
+  "embargo_days": 1,
+  "min_test_days": 8
+ },
+ "signals": {
+  "features": 15,
+  "baseline": 1,
+  "ridge": 1,
+  "note": "las 15 variables de eim/hft/features (orientadas por el signo de su IC en el entrenamiento), la línea base del agente microstructure v1 (T23: OFI + flujo + profundidad con sus pesos) y una ridge conjunta ajustada solo con el entrenamiento"
+ },
+ "attempts": {
+  "family": 68,
+  "rule": "familia de Holm = (15 variables + 1 línea base + 1 ridge) × 4 horizontes; se declara aquí y el código falla si no cuadra",
+  "registry": "eim/hft/attempts_t80.json (cuentan en la familia de T84 aunque se descarten)"
+ },
+ "metrics": {
+  "ic": "Spearman por día UTC entre la señal y el Δmid del horizonte (filas fuera de muestra)",
+  "boot_reps": 5000,
+  "level": 0.95,
+  "seed": 0,
+  "ci": "bootstrap de bloques de día (el mismo de eim/validation/stats.py)",
+  "pvalue": "unilateral de media > 0 con los días recentrados en 0; corrección de Holm sobre la familia completa"
+ },
+ "gates": {
+  "C1_oportunidad": {
+   "rule": "fracción de ventanas con |Δmid| > costo de ida y vuelta (previsión perfecta de la dirección)",
+   "threshold": 0.01,
+   "detail": "al menos 1 % de las ventanas tiene que pagar el ida y vuelta en algún horizonte y estilo; por debajo no hay nada que capturar ni con señal perfecta"
+  },
+  "C2_ic": {
+   "rule": "IC medio por día fuera de muestra de la mejor señal del horizonte",
+   "threshold": 0.0,
+   "alpha": 0.05,
+   "detail": "media > 0, extremo inferior del IC 95 % > 0 y p de Holm < 0,05 sobre los 68 intentos"
+  },
+  "C3_net_bps": {
+   "rule": "pb netos esperados por operación fuera de muestra, con la reacción medida y el costo del estilo",
+   "threshold_bps": 1.0,
+   "detail": "media ≥ +1,0 pb y extremo inferior del IC 95 % > 0; es el umbral H2 de hft_v1 (T77), no uno nuevo"
+  },
+  "C4_sample": {
+   "rule": "muestra mínima",
+   "min_days": 14,
+   "min_test_days": 8,
+   "detail": "días con panel utilizable y días de prueba del walk-forward"
+  }
+ },
+ "verdict_rule": {
+  "SUPERA": "C4 y, en al menos un horizonte con un estilo de ejecución, C1, C2 y C3 a la vez → sigue T81–T85",
+  "NO SUPERA": "C4 pero ningún horizonte cumple C1, C2 y C3 → se archiva con el resultado honesto (como T28) o se redirige (otro horizonte, otro símbolo, comisión VIP/rebate), decisión ◆ del usuario",
+  "SIN POTENCIA": "no se cumple C4: no se publica veredicto de techo"
+ },
+ "notes": [
+  "El techo con previsión perfecta es inalcanzable por construcción (sin selección adversa, sin cola y sin impacto): si no paga ahí, no paga.",
+  "La entrada pasiva solo existe si la cola se llena: se mide con cola pesimista (al final de la cola visible al llegar, sin avanzar por cancelaciones), la regla de H5 de T77.",
+  "No se optimiza ningún parámetro con los días de prueba: las ventanas de las variables son las de FeatureParams por defecto y la penalización de la ridge se elige con la cola del entrenamiento.",
+  "Las velas proyectadas, los modelos y las estrategias NO son de esta tarea (T81, T82)."
+ ]
+}

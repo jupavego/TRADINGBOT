@@ -1,0 +1,4551 @@
+{
+ "task": "T80",
+ "prereg": "hft_ceiling_v1",
+ "prereg_sha256": "a5dbd8e56540191da14724b9e2b6902676f369e27edc557dfd77782d7edfd5c0",
+ "generated_at": 1795172375892,
+ "symbol": "BTCUSDT",
+ "step_ms": 1000,
+ "reaction_ms": 1000,
+ "sample": {
+  "days": 18,
+  "test_days": 12,
+  "rows": 1330396,
+  "rows_panel": 1389105,
+  "hours": 386,
+  "min_rows_per_day": 30000,
+  "rows_per_day": {
+   "2026-11-02": 77254,
+   "2026-11-03": 54458,
+   "2026-11-04": 73016,
+   "2026-11-05": 66238,
+   "2026-11-06": 75353,
+   "2026-11-07": 80931,
+   "2026-11-08": 82887,
+   "2026-11-09": 58071,
+   "2026-11-10": 49588,
+   "2026-11-11": 78168,
+   "2026-11-12": 80361,
+   "2026-11-13": 82625,
+   "2026-11-14": 85145,
+   "2026-11-15": 85798,
+   "2026-11-16": 84519,
+   "2026-11-17": 73035,
+   "2026-11-18": 62767,
+   "2026-11-19": 80182
+  },
+  "thin_days": {},
+  "test_day_list": [
+   "2026-11-08",
+   "2026-11-09",
+   "2026-11-10",
+   "2026-11-11",
+   "2026-11-12",
+   "2026-11-13",
+   "2026-11-14",
+   "2026-11-15",
+   "2026-11-16",
+   "2026-11-17",
+   "2026-11-18",
+   "2026-11-19"
+  ],
+  "first_day_utc": "2026-11-02",
+  "last_day_utc": "2026-11-19"
+ },
+ "queue": {
+  "front_qty_p50": 4.611,
+  "spread_bps_p50": 0.0135,
+  "spread_bps_p95": 0.0158,
+  "volume_per_s_p50": 0.273,
+  "volume_per_s_mean": 2.1854
+ },
+ "fills": {
+  "1": {
+   "buy": 0.0909,
+   "sell": 0.0891,
+   "both": 0.09
+  },
+  "5": {
+   "buy": 0.23,
+   "sell": 0.2212,
+   "both": 0.2256
+  },
+  "30": {
+   "buy": 0.3898,
+   "sell": 0.3802,
+   "both": 0.385
+  }
+ },
+ "ceiling": {
+  "costs_bps": {
+   "taker": 10.0,
+   "mixto": 7.0,
+   "maker": 4.0
+  },
+  "reaction_ms": 1000,
+  "horizons": {
+   "1": {
+    "horizon_s": 1,
+    "no_reaction": {
+     "n": 1388916,
+     "mean_abs_bps": 0.347,
+     "p50_abs_bps": 0.0,
+     "p90_abs_bps": 1.1905,
+     "p95_abs_bps": 1.7433,
+     "p99_abs_bps": 3.3022,
+     "styles": {
+      "taker": {
+       "cost_bps": 10.0,
+       "frac_pays": 0.000236,
+       "ceiling_bps_per_window": 0.00103,
+       "gross_bps_when_pays": 14.3432,
+       "net_bps_when_pays": 4.3432,
+       "cost_share_when_pays": 0.6972,
+       "cost_share_of_mean_move": 28.816
+      },
+      "mixto": {
+       "cost_bps": 7.0,
+       "frac_pays": 0.000836,
+       "ceiling_bps_per_window": 0.0024,
+       "gross_bps_when_pays": 9.8724,
+       "net_bps_when_pays": 2.8724,
+       "cost_share_when_pays": 0.709,
+       "cost_share_of_mean_move": 20.171
+      },
+      "maker": {
+       "cost_bps": 4.0,
+       "frac_pays": 0.00561,
+       "ceiling_bps_per_window": 0.00949,
+       "gross_bps_when_pays": 5.6917,
+       "net_bps_when_pays": 1.6917,
+       "cost_share_when_pays": 0.7028,
+       "cost_share_of_mean_move": 11.527
+      }
+     }
+    },
+    "with_reaction": {
+     "n": 1388847,
+     "mean_abs_bps": 0.347,
+     "p50_abs_bps": 0.0,
+     "p90_abs_bps": 1.1904,
+     "p95_abs_bps": 1.7433,
+     "p99_abs_bps": 3.3018,
+     "styles": {
+      "taker": {
+       "cost_bps": 10.0,
+       "frac_pays": 0.000236,
+       "ceiling_bps_per_window": 0.00103,
+       "gross_bps_when_pays": 14.3432,
+       "net_bps_when_pays": 4.3432,
+       "cost_share_when_pays": 0.6972,
+       "cost_share_of_mean_move": 28.817
+      },
+      "mixto": {
+       "cost_bps": 7.0,
+       "frac_pays": 0.000836,
+       "ceiling_bps_per_window": 0.0024,
+       "gross_bps_when_pays": 9.8724,
+       "net_bps_when_pays": 2.8724,
+       "cost_share_when_pays": 0.709,
+       "cost_share_of_mean_move": 20.172
+      },
+      "maker": {
+       "cost_bps": 4.0,
+       "frac_pays": 0.005609,
+       "ceiling_bps_per_window": 0.00949,
+       "gross_bps_when_pays": 5.692,
+       "net_bps_when_pays": 1.692,
+       "cost_share_when_pays": 0.7027,
+       "cost_share_of_mean_move": 11.527
+      }
+     }
+    }
+   },
+   "5": {
+    "horizon_s": 5,
+    "no_reaction": {
+     "n": 1388895,
+     "mean_abs_bps": 1.1461,
+     "p50_abs_bps": 0.6515,
+     "p90_abs_bps": 2.946,
+     "p95_abs_bps": 4.094,
+     "p99_abs_bps": 7.2982,
+     "styles": {
+      "taker": {
+       "cost_bps": 10.0,
+       "frac_pays": 0.003481,
+       "ceiling_bps_per_window": 0.01375,
+       "gross_bps_when_pays": 13.9487,
+       "net_bps_when_pays": 3.9487,
+       "cost_share_when_pays": 0.7169,
+       "cost_share_of_mean_move": 8.725
+      },
+      "mixto": {
+       "cost_bps": 7.0,
+       "frac_pays": 0.011401,
+       "ceiling_bps_per_window": 0.03333,
+       "gross_bps_when_pays": 9.9233,
+       "net_bps_when_pays": 2.9233,
+       "cost_share_when_pays": 0.7054,
+       "cost_share_of_mean_move": 6.108
+      },
+      "maker": {
+       "cost_bps": 4.0,
+       "frac_pays": 0.052776,
+       "ceiling_bps_per_window": 0.11192,
+       "gross_bps_when_pays": 6.1206,
+       "net_bps_when_pays": 2.1206,
+       "cost_share_when_pays": 0.6535,
+       "cost_share_of_mean_move": 3.49
+      }
+     }
+    },
+    "with_reaction": {
+     "n": 1388853,
+     "mean_abs_bps": 1.1461,
+     "p50_abs_bps": 0.6515,
+     "p90_abs_bps": 2.946,
+     "p95_abs_bps": 4.094,
+     "p99_abs_bps": 7.2982,
+     "styles": {
+      "taker": {
+       "cost_bps": 10.0,
+       "frac_pays": 0.00348,
+       "ceiling_bps_per_window": 0.01375,
+       "gross_bps_when_pays": 13.9505,
+       "net_bps_when_pays": 3.9505,
+       "cost_share_when_pays": 0.7168,
+       "cost_share_of_mean_move": 8.725
+      },
+      "mixto": {
+       "cost_bps": 7.0,
+       "frac_pays": 0.0114,
+       "ceiling_bps_per_window": 0.03333,
+       "gross_bps_when_pays": 9.9234,
+       "net_bps_when_pays": 2.9234,
+       "cost_share_when_pays": 0.7054,
+       "cost_share_of_mean_move": 6.108
+      },
+      "maker": {
+       "cost_bps": 4.0,
+       "frac_pays": 0.052778,
+       "ceiling_bps_per_window": 0.11191,
+       "gross_bps_when_pays": 6.1204,
+       "net_bps_when_pays": 2.1204,
+       "cost_share_when_pays": 0.6536,
+       "cost_share_of_mean_move": 3.49
+      }
+     }
+    }
+   },
+   "30": {
+    "horizon_s": 30,
+    "no_reaction": {
+     "n": 1388035,
+     "mean_abs_bps": 3.2467,
+     "p50_abs_bps": 2.1382,
+     "p90_abs_bps": 7.4124,
+     "p95_abs_bps": 10.0656,
+     "p99_abs_bps": 17.9317,
+     "styles": {
+      "taker": {
+       "cost_bps": 10.0,
+       "frac_pays": 0.050801,
+       "ceiling_bps_per_window": 0.26385,
+       "gross_bps_when_pays": 15.1939,
+       "net_bps_when_pays": 5.1939,
+       "cost_share_when_pays": 0.6582,
+       "cost_share_of_mean_move": 3.08
+      },
+      "mixto": {
+       "cost_bps": 7.0,
+       "frac_pays": 0.112347,
+       "ceiling_bps_per_window": 0.4936,
+       "gross_bps_when_pays": 11.3935,
+       "net_bps_when_pays": 4.3935,
+       "cost_share_when_pays": 0.6144,
+       "cost_share_of_mean_move": 2.156
+      },
+      "maker": {
+       "cost_bps": 4.0,
+       "frac_pays": 0.278293,
+       "ceiling_bps_per_window": 1.03962,
+       "gross_bps_when_pays": 7.7357,
+       "net_bps_when_pays": 3.7357,
+       "cost_share_when_pays": 0.5171,
+       "cost_share_of_mean_move": 1.232
+      }
+     }
+    },
+    "with_reaction": {
+     "n": 1388005,
+     "mean_abs_bps": 3.2467,
+     "p50_abs_bps": 2.1381,
+     "p90_abs_bps": 7.4123,
+     "p95_abs_bps": 10.0653,
+     "p99_abs_bps": 17.9317,
+     "styles": {
+      "taker": {
+       "cost_bps": 10.0,
+       "frac_pays": 0.0508,
+       "ceiling_bps_per_window": 0.26385,
+       "gross_bps_when_pays": 15.194,
+       "net_bps_when_pays": 5.194,
+       "cost_share_when_pays": 0.6582,
+       "cost_share_of_mean_move": 3.08
+      },
+      "mixto": {
+       "cost_bps": 7.0,
+       "frac_pays": 0.112345,
+       "ceiling_bps_per_window": 0.49359,
+       "gross_bps_when_pays": 11.3935,
+       "net_bps_when_pays": 4.3935,
+       "cost_share_when_pays": 0.6144,
+       "cost_share_of_mean_move": 2.156
+      },
+      "maker": {
+       "cost_bps": 4.0,
+       "frac_pays": 0.278292,
+       "ceiling_bps_per_window": 1.03961,
+       "gross_bps_when_pays": 7.7357,
+       "net_bps_when_pays": 3.7357,
+       "cost_share_when_pays": 0.5171,
+       "cost_share_of_mean_move": 1.232
+      }
+     }
+    }
+   },
+   "60": {
+    "horizon_s": 60,
+    "no_reaction": {
+     "n": 1387135,
+     "mean_abs_bps": 4.6326,
+     "p50_abs_bps": 3.1108,
+     "p90_abs_bps": 10.3736,
+     "p95_abs_bps": 14.0168,
+     "p99_abs_bps": 25.1388,
+     "styles": {
+      "taker": {
+       "cost_bps": 10.0,
+       "frac_pays": 0.108023,
+       "ceiling_bps_per_window": 0.66329,
+       "gross_bps_when_pays": 16.1402,
+       "net_bps_when_pays": 6.1402,
+       "cost_share_when_pays": 0.6196,
+       "cost_share_of_mean_move": 2.159
+      },
+      "mixto": {
+       "cost_bps": 7.0,
+       "frac_pays": 0.207391,
+       "ceiling_bps_per_window": 1.11818,
+       "gross_bps_when_pays": 12.3916,
+       "net_bps_when_pays": 5.3916,
+       "cost_share_when_pays": 0.5649,
+       "cost_share_of_mean_move": 1.511
+      },
+      "maker": {
+       "cost_bps": 4.0,
+       "frac_pays": 0.409949,
+       "ceiling_bps_per_window": 2.00995,
+       "gross_bps_when_pays": 8.9029,
+       "net_bps_when_pays": 4.9029,
+       "cost_share_when_pays": 0.4493,
+       "cost_share_of_mean_move": 0.863
+      }
+     }
+    },
+    "with_reaction": {
+     "n": 1387105,
+     "mean_abs_bps": 4.6326,
+     "p50_abs_bps": 3.1108,
+     "p90_abs_bps": 10.3737,
+     "p95_abs_bps": 14.0167,
+     "p99_abs_bps": 25.1388,
+     "styles": {
+      "taker": {
+       "cost_bps": 10.0,
+       "frac_pays": 0.108024,
+       "ceiling_bps_per_window": 0.66329,
+       "gross_bps_when_pays": 16.1402,
+       "net_bps_when_pays": 6.1402,
+       "cost_share_when_pays": 0.6196,
+       "cost_share_of_mean_move": 2.159
+      },
+      "mixto": {
+       "cost_bps": 7.0,
+       "frac_pays": 0.207396,
+       "ceiling_bps_per_window": 1.11818,
+       "gross_bps_when_pays": 12.3915,
+       "net_bps_when_pays": 5.3915,
+       "cost_share_when_pays": 0.5649,
+       "cost_share_of_mean_move": 1.511
+      },
+      "maker": {
+       "cost_bps": 4.0,
+       "frac_pays": 0.409944,
+       "ceiling_bps_per_window": 2.00996,
+       "gross_bps_when_pays": 8.903,
+       "net_bps_when_pays": 4.903,
+       "cost_share_when_pays": 0.4493,
+       "cost_share_of_mean_move": 0.863
+      }
+     }
+    }
+   }
+  }
+ },
+ "oos": {
+  "attempts": 68,
+  "holm": {
+   "tilt_bps@1s": 0.013597280543891222,
+   "depth_imb@1s": 0.013597280543891222,
+   "ofi_all_1@1s": 0.013597280543891222,
+   "ofi_all_5@1s": 0.013597280543891222,
+   "ofi_top_30@1s": 0.013597280543891222,
+   "ofi_all_30@1s": 0.013597280543891222,
+   "flow_imb_5@1s": 0.013597280543891222,
+   "flow_imb_30@1s": 0.013597280543891222,
+   "baseline_v1@1s": 0.013597280543891222,
+   "ridge_all@1s": 0.013597280543891222,
+   "depth_imb@5s": 0.013597280543891222,
+   "ofi_all_1@5s": 0.013597280543891222,
+   "ofi_all_5@5s": 0.013597280543891222,
+   "flow_imb_5@5s": 0.013597280543891222,
+   "baseline_v1@5s": 0.013597280543891222,
+   "ridge_all@5s": 0.013597280543891222,
+   "spread_bps@30s": 0.013597280543891222,
+   "depth_imb@30s": 0.013597280543891222,
+   "ofi_all_1@30s": 0.013597280543891222,
+   "ridge_all@30s": 0.013597280543891222,
+   "spread_bps@60s": 0.013597280543891222,
+   "ridge_all@60s": 0.013597280543891222,
+   "depth_imb@60s": 0.018396320735852827,
+   "ofi_top_1@30s": 0.02699460107978404,
+   "tilt_bps@30s": 0.03519296140771846,
+   "tilt_bps@60s": 0.04299140171965607,
+   "ofi_top_30@5s": 0.1175764847030594,
+   "ofi_top_5@5s": 0.2541491701659668,
+   "ofi_top_5@30s": 0.27194561087782443,
+   "flow_imb_5@30s": 0.3587282543491302,
+   "ofi_all_1@60s": 0.3587282543491302,
+   "ofi_all_30@5s": 0.39212157568486306,
+   "flow_imb_5@60s": 0.5686862627474505,
+   "ofi_top_1@1s": 0.9448110377924416,
+   "flow_imb_30@5s": 1.0,
+   "ofi_all_5@30s": 1.0,
+   "jump_share@1s": 1.0,
+   "vpin@30s": 1.0,
+   "ofi_all_30@30s": 1.0,
+   "ofi_top_30@30s": 1.0,
+   "vpin@60s": 1.0,
+   "ofi_all_5@60s": 1.0,
+   "ofi_all_30@60s": 1.0,
+   "ofi_top_5@60s": 1.0,
+   "jump_share@5s": 1.0,
+   "baseline_v1@30s": 1.0,
+   "ofi_top_1@60s": 1.0,
+   "spread_bps@1s": 1.0,
+   "baseline_v1@60s": 1.0,
+   "flow_imb_30@60s": 1.0,
+   "flow_imb_30@30s": 1.0,
+   "tilt_bps@5s": 1.0,
+   "intensity@5s": 1.0,
+   "jump_share@30s": 1.0,
+   "vpin@1s": 1.0,
+   "intensity@1s": 1.0,
+   "ofi_top_5@1s": 1.0,
+   "spread_bps@5s": 1.0,
+   "ofi_top_30@60s": 1.0,
+   "ofi_top_1@5s": 1.0,
+   "vpin@5s": 1.0,
+   "jump_share@60s": 1.0,
+   "rv_bps@30s": 1.0,
+   "intensity@30s": 1.0,
+   "rv_bps@60s": 1.0,
+   "intensity@60s": 1.0,
+   "rv_bps@5s": 1.0,
+   "rv_bps@1s": 1.0
+  },
+  "horizons": {
+   "1": {
+    "tilt_bps": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.14173047434928307,
+      "lo": 0.13192265236076467,
+      "hi": 0.15208109296806552,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 1,
+       "trades": 4,
+       "share_of_rows": 5e-05,
+       "acc": 0.42024,
+       "n_days": 1,
+       "mean": -11.062677875041663,
+       "lo": null,
+       "hi": null,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "mixto": {
+       "days": 1,
+       "trades": 6,
+       "share_of_rows": 7e-05,
+       "acc": 0.48305,
+       "n_days": 1,
+       "mean": -8.971105400907874,
+       "lo": null,
+       "hi": null,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "maker": {
+       "days": 2,
+       "trades": 8,
+       "share_of_rows": 5e-05,
+       "acc": 0.52088,
+       "n_days": 2,
+       "mean": -4.225185521854751,
+       "lo": -4.5635289660973655,
+       "hi": -3.886842077612137,
+       "positive_days": 0.0,
+       "p": 1.0
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.04432004104221352,
+      "lo": 0.03434465068204119,
+      "hi": 0.05307077908273408,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.10724966658590351,
+      "lo": 0.09645797475064818,
+      "hi": 0.11498781163363539,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.249074,
+      "brier_skill": 0.003704,
+      "pinball10_skill": -0.000514,
+      "pinball90_skill": 0.000966
+     },
+     "overlap": 1,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "spread_bps": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.0036077816106816966,
+      "lo": -0.005467621385044917,
+      "hi": 0.011209612854145859,
+      "positive_days": 0.6666666666666666
+     },
+     "ic_p": 0.20155968806238753,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51096
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50306
+      },
+      "maker": {
+       "days": 1,
+       "trades": 1,
+       "share_of_rows": 1e-05,
+       "acc": 0.50121,
+       "n_days": 1,
+       "mean": -16.92514794823285,
+       "lo": null,
+       "hi": null,
+       "positive_days": 0.0,
+       "p": 1.0
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.0028623600597634876,
+      "lo": 0.0009988187429820234,
+      "hi": 0.004897741785299062,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.011271982974942875,
+      "lo": 0.0018055769490929743,
+      "hi": 0.019779078066461408,
+      "positive_days": 0.75
+     },
+     "cal": {
+      "brier": 0.249454,
+      "brier_skill": 0.002186,
+      "pinball10_skill": -0.000443,
+      "pinball90_skill": 0.000369
+     },
+     "overlap": 1,
+     "ic_p_holm": 1.0
+    },
+    "depth_imb": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.14102585013751046,
+      "lo": 0.13078281693131408,
+      "hi": 0.15154068959320122,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.44216
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49748
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50927
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.05369841852686416,
+      "lo": 0.046432546615071776,
+      "hi": 0.058626413439737145,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.10798046197276233,
+      "lo": 0.0969773988532588,
+      "hi": 0.11706162273799196,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.247125,
+      "brier_skill": 0.011502,
+      "pinball10_skill": 0.001592,
+      "pinball90_skill": 0.003781
+     },
+     "overlap": 1,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "ofi_top_1": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.03810973495441416,
+      "lo": -0.007800195920694099,
+      "hi": 0.07863959534020555,
+      "positive_days": 0.75
+     },
+     "ic_p": 0.026994601079784044,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50927
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49474
+      },
+      "maker": {
+       "days": 1,
+       "trades": 1,
+       "share_of_rows": 1e-05,
+       "acc": 0.50193,
+       "n_days": 1,
+       "mean": -6.043071417364706,
+       "lo": null,
+       "hi": null,
+       "positive_days": 0.0,
+       "p": 1.0
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.004652903497515372,
+      "lo": -0.0010589926825557902,
+      "hi": 0.012018671076493322,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.03009888992432208,
+      "lo": -0.009987750992414456,
+      "hi": 0.06425125898280436,
+      "positive_days": 0.75
+     },
+     "cal": {
+      "brier": 0.24934,
+      "brier_skill": 0.002638,
+      "pinball10_skill": -0.000542,
+      "pinball90_skill": 0.000469
+     },
+     "overlap": 1,
+     "ic_p_holm": 0.9448110377924416
+    },
+    "ofi_all_1": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.06727384081942368,
+      "lo": 0.06246217192306762,
+      "hi": 0.07217586632731418,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49543
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.48424
+      },
+      "maker": {
+       "days": 1,
+       "trades": 1,
+       "share_of_rows": 1e-05,
+       "acc": 0.50575,
+       "n_days": 1,
+       "mean": -4.216711724645435,
+       "lo": null,
+       "hi": null,
+       "positive_days": 0.0,
+       "p": 1.0
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.010150030777102663,
+      "lo": 0.006996249911457899,
+      "hi": 0.013965516743619597,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.0523496461936511,
+      "lo": 0.037233984657298935,
+      "hi": 0.06981523413061283,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.249291,
+      "brier_skill": 0.002835,
+      "pinball10_skill": -0.000494,
+      "pinball90_skill": 0.000517
+     },
+     "overlap": 1,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "ofi_top_5": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.0023383947565640065,
+      "lo": -0.051088394168846564,
+      "hi": 0.04694002500666929,
+      "positive_days": 0.5
+     },
+     "ic_p": 0.5454909018196361,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49712
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51481
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50939
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.004547644407527841,
+      "lo": 0.00121258302810508,
+      "hi": 0.009181548996186254,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.0015850882376409314,
+      "lo": -0.023980767630903944,
+      "hi": 0.02663097620952167,
+      "positive_days": 0.5
+     },
+     "cal": {
+      "brier": 0.249352,
+      "brier_skill": 0.002593,
+      "pinball10_skill": -0.000514,
+      "pinball90_skill": 0.00045
+     },
+     "overlap": 1,
+     "ic_p_holm": 1.0
+    },
+    "ofi_all_5": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.05146958580830598,
+      "lo": 0.04497004661060816,
+      "hi": 0.059038113125569794,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.44944
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.4521
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49802
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.006320127877863409,
+      "lo": 0.0038404885727414363,
+      "hi": 0.009214636296298614,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.021278742550391156,
+      "lo": 0.008307203397423073,
+      "hi": 0.035811362199217316,
+      "positive_days": 0.8333333333333334
+     },
+     "cal": {
+      "brier": 0.249299,
+      "brier_skill": 0.002804,
+      "pinball10_skill": -0.00052,
+      "pinball90_skill": 0.000506
+     },
+     "overlap": 1,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "ofi_top_30": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.03712315325608351,
+      "lo": 0.01606017434109406,
+      "hi": 0.05501724271224233,
+      "positive_days": 0.8333333333333334
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.5351
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50578
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51474
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.0044737967928306765,
+      "lo": 0.0030587023316546265,
+      "hi": 0.005893885651466676,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.02376560650741627,
+      "lo": 0.016890699401920044,
+      "hi": 0.03016899239753432,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.24933,
+      "brier_skill": 0.002681,
+      "pinball10_skill": -0.000579,
+      "pinball90_skill": 0.000497
+     },
+     "overlap": 1,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "ofi_all_30": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.021516612085751077,
+      "lo": 0.01619329510995127,
+      "hi": 0.0274917076641048,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49982
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49529
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51196
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.0024074998010374187,
+      "lo": 0.0005905245253268589,
+      "hi": 0.0043795171740737245,
+      "positive_days": 0.6666666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.00644907614120169,
+      "lo": -0.00461384096765996,
+      "hi": 0.01708772697200533,
+      "positive_days": 0.6666666666666666
+     },
+     "cal": {
+      "brier": 0.249322,
+      "brier_skill": 0.00271,
+      "pinball10_skill": -0.000523,
+      "pinball90_skill": 0.000467
+     },
+     "overlap": 1,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "flow_imb_5": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.05749407324346225,
+      "lo": 0.050529041321621615,
+      "hi": 0.0652162856522503,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.64441
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.55109
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.53296
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.017377387612622107,
+      "lo": 0.01519682839274831,
+      "hi": 0.019605751887028147,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.03535923384561834,
+      "lo": 0.030432126710716188,
+      "hi": 0.03996404333237019,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.249006,
+      "brier_skill": 0.003977,
+      "pinball10_skill": -0.000482,
+      "pinball90_skill": 0.000722
+     },
+     "overlap": 1,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "flow_imb_30": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.021118498352881158,
+      "lo": 0.013723003691406032,
+      "hi": 0.02979597536573097,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.59411
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.54956
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.56405
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.006744218248773015,
+      "lo": 0.004882395915501955,
+      "hi": 0.00884912098654397,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.012815029612554351,
+      "lo": 0.00801611980777329,
+      "hi": 0.018465903729934088,
+      "positive_days": 0.9166666666666666
+     },
+     "cal": {
+      "brier": 0.249265,
+      "brier_skill": 0.002938,
+      "pinball10_skill": -0.00052,
+      "pinball90_skill": 0.000494
+     },
+     "overlap": 1,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "intensity": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.00018112524560889303,
+      "lo": -0.003893952544360972,
+      "hi": 0.004067929762088257,
+      "positive_days": 0.5
+     },
+     "ic_p": 0.5276944611077784,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.53132
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50663
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49266
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.0006597869018937007,
+      "lo": -0.0008480454650755698,
+      "hi": 0.0023162160826273254,
+      "positive_days": 0.5833333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": -0.0009584776788617013,
+      "lo": -0.007422284123499123,
+      "hi": 0.004888884541617672,
+      "positive_days": 0.5
+     },
+     "cal": {
+      "brier": 0.249433,
+      "brier_skill": 0.002266,
+      "pinball10_skill": -0.000229,
+      "pinball90_skill": 0.000166
+     },
+     "overlap": 1,
+     "ic_p_holm": 1.0
+    },
+    "rv_bps": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.008939771818929963,
+      "lo": -0.013675315648016367,
+      "hi": -0.003828945451546588,
+      "positive_days": 0.08333333333333333
+     },
+     "ic_p": 1.0,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.5655
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49806
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49217
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.0019060326920035712,
+      "lo": 3.286342202946358e-05,
+      "hi": 0.0036670692883317684,
+      "positive_days": 0.6666666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": -0.001695343285883378,
+      "lo": -0.011121545457806067,
+      "hi": 0.007113988016836478,
+      "positive_days": 0.5833333333333334
+     },
+     "cal": {
+      "brier": 0.24922,
+      "brier_skill": 0.003121,
+      "pinball10_skill": -0.00093,
+      "pinball90_skill": 0.000885
+     },
+     "overlap": 1,
+     "ic_p_holm": 1.0
+    },
+    "jump_share": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.0032337934836584206,
+      "lo": -0.0006306495027899865,
+      "hi": 0.006802022838027298,
+      "positive_days": 0.5833333333333334
+     },
+     "ic_p": 0.04339132173565287,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.47049
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.4933
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.5
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.002040560629411066,
+      "lo": 0.0003557133496706204,
+      "hi": 0.0038576045598453443,
+      "positive_days": 0.75
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.004551029148517041,
+      "lo": -0.0050182639180521744,
+      "hi": 0.015127414588332848,
+      "positive_days": 0.5833333333333334
+     },
+     "cal": {
+      "brier": 0.249364,
+      "brier_skill": 0.002546,
+      "pinball10_skill": -0.000307,
+      "pinball90_skill": 0.000305
+     },
+     "overlap": 1,
+     "ic_p_holm": 1.0
+    },
+    "vpin": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 2.4355452393688764e-05,
+      "lo": -0.0030156010548271807,
+      "hi": 0.003032149609693659,
+      "positive_days": 0.5
+     },
+     "ic_p": 0.49610077984403117,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51042
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50266
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49817
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.0022021002063211726,
+      "lo": 0.0003442580897213479,
+      "hi": 0.004114136063651764,
+      "positive_days": 0.6666666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.004711461787382282,
+      "lo": -0.0004871406690612576,
+      "hi": 0.011521187757417726,
+      "positive_days": 0.6666666666666666
+     },
+     "cal": {
+      "brier": 0.249278,
+      "brier_skill": 0.00289,
+      "pinball10_skill": -0.0005,
+      "pinball90_skill": 0.000493
+     },
+     "overlap": 1,
+     "ic_p_holm": 1.0
+    },
+    "baseline_v1": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.07468665233826141,
+      "lo": 0.06651851600538305,
+      "hi": 0.0831906683734728,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.53927
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.52013
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.53643
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.022631595673577656,
+      "lo": 0.02040957771771967,
+      "hi": 0.02512886412051567,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.05549025352963013,
+      "lo": 0.04709392816741864,
+      "hi": 0.06400043697194265,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.248637,
+      "brier_skill": 0.005451,
+      "pinball10_skill": -0.00052,
+      "pinball90_skill": 0.00104
+     },
+     "overlap": 1,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "ridge_all": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.13925452206674874,
+      "lo": 0.1294797643934423,
+      "hi": 0.14976059948230253,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.44427
+      },
+      "mixto": {
+       "days": 2,
+       "trades": 2,
+       "share_of_rows": 1e-05,
+       "acc": 0.48836,
+       "n_days": 2,
+       "mean": -11.093670478507727,
+       "lo": -11.699633561588978,
+       "hi": -10.487707395426476,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "maker": {
+       "days": 2,
+       "trades": 5,
+       "share_of_rows": 3e-05,
+       "acc": 0.50049,
+       "n_days": 2,
+       "mean": 0.8377249837524192,
+       "lo": -3.464637657466959,
+       "hi": 5.140087624971797,
+       "positive_days": 0.5,
+       "p": 1.0
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.05302369320296233,
+      "lo": 0.04542778852779314,
+      "hi": 0.05810166890027398,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.09962989361197089,
+      "lo": 0.08936265135313068,
+      "hi": 0.10839568928449847,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.247349,
+      "brier_skill": 0.010605,
+      "pinball10_skill": 0.001218,
+      "pinball90_skill": 0.003809
+     },
+     "overlap": 1,
+     "ic_p_holm": 0.013597280543891222
+    }
+   },
+   "5": {
+    "tilt_bps": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.014917893841536384,
+      "lo": -0.05834564470851515,
+      "hi": 0.08630620308937717,
+      "positive_days": 0.5833333333333334
+     },
+     "ic_p": 0.3577284543091382,
+     "net": {
+      "taker": {
+       "days": 2,
+       "trades": 7,
+       "share_of_rows": 4e-05,
+       "acc": 0.51308,
+       "n_days": 2,
+       "mean": -15.802415176974588,
+       "lo": -21.637161188916185,
+       "hi": -9.96766916503299,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "mixto": {
+       "days": 2,
+       "trades": 11,
+       "share_of_rows": 7e-05,
+       "acc": 0.51359,
+       "n_days": 2,
+       "mean": -11.908140863757293,
+       "lo": -16.848612562481595,
+       "hi": -6.967669165032991,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "maker": {
+       "days": 5,
+       "trades": 24,
+       "share_of_rows": 6e-05,
+       "acc": 0.51771,
+       "n_days": 5,
+       "mean": -4.981539996408404,
+       "lo": -6.441546769228447,
+       "hi": -3.7387385653739855,
+       "positive_days": 0.0,
+       "p": 1.0
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.06451279115640456,
+      "lo": 0.023695229467137275,
+      "hi": 0.10326298808770963,
+      "positive_days": 0.75
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.038540478510958764,
+      "lo": -0.10677371052502051,
+      "hi": 0.1706616157518516,
+      "positive_days": 0.5833333333333334
+     },
+     "cal": {
+      "brier": 0.249108,
+      "brier_skill": 0.003567,
+      "pinball10_skill": -0.001165,
+      "pinball90_skill": 0.000935
+     },
+     "overlap": 5,
+     "ic_p_holm": 1.0
+    },
+    "spread_bps": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.0017204317368718885,
+      "lo": -0.014101528418469423,
+      "hi": 0.01045176503690364,
+      "positive_days": 0.5
+     },
+     "ic_p": 0.6142771445710857,
+     "net": {
+      "taker": {
+       "days": 1,
+       "trades": 1,
+       "share_of_rows": 1e-05,
+       "acc": 0.50133,
+       "n_days": 1,
+       "mean": -13.199132011788564,
+       "lo": null,
+       "hi": null,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "mixto": {
+       "days": 2,
+       "trades": 2,
+       "share_of_rows": 1e-05,
+       "acc": 0.49963,
+       "n_days": 2,
+       "mean": -30.77147860263107,
+       "lo": -51.34382519347358,
+       "hi": -10.199132011788564,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "maker": {
+       "days": 5,
+       "trades": 7,
+       "share_of_rows": 2e-05,
+       "acc": 0.50004,
+       "n_days": 5,
+       "mean": -19.87807929345919,
+       "lo": -34.76046163377045,
+       "hi": -7.337731899249574,
+       "positive_days": 0.0,
+       "p": 0.9958008398320336
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.012406824314398124,
+      "lo": 0.004251408813204509,
+      "hi": 0.020441330612247673,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.025249727548596387,
+      "lo": -0.02781537270164375,
+      "hi": 0.07769635182199955,
+      "positive_days": 0.5833333333333334
+     },
+     "cal": {
+      "brier": 0.249484,
+      "brier_skill": 0.002064,
+      "pinball10_skill": -0.000806,
+      "pinball90_skill": 0.000566
+     },
+     "overlap": 5,
+     "ic_p_holm": 1.0
+    },
+    "depth_imb": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.1279689496623672,
+      "lo": 0.10829392756667382,
+      "hi": 0.1516396342461634,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51718
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51806
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.53252
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.13324288466029421,
+      "lo": 0.12026320318779342,
+      "hi": 0.1432629690088816,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.25092774360555903,
+      "lo": 0.23073482488400168,
+      "hi": 0.27178349056479034,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.246374,
+      "brier_skill": 0.014505,
+      "pinball10_skill": 0.000215,
+      "pinball90_skill": 0.002882
+     },
+     "overlap": 5,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "ofi_top_1": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.008917579812852816,
+      "lo": -0.04213663892858901,
+      "hi": 0.0267712345918914,
+      "positive_days": 0.4166666666666667
+     },
+     "ic_p": 0.6780643871225754,
+     "net": {
+      "taker": {
+       "days": 1,
+       "trades": 1,
+       "share_of_rows": 1e-05,
+       "acc": 0.50324,
+       "n_days": 1,
+       "mean": -9.425803457864248,
+       "lo": null,
+       "hi": null,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "mixto": {
+       "days": 2,
+       "trades": 2,
+       "share_of_rows": 1e-05,
+       "acc": 0.50229,
+       "n_days": 2,
+       "mean": -3.39507866422361,
+       "lo": -6.425803457864248,
+       "hi": -0.3643538705829723,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "maker": {
+       "days": 3,
+       "trades": 4,
+       "share_of_rows": 2e-05,
+       "acc": 0.50419,
+       "n_days": 3,
+       "mean": -7.780566997535485,
+       "lo": -21.977347122023485,
+       "hi": 2.6356461294170277,
+       "positive_days": 0.3333333333333333,
+       "p": 0.8564287142571486
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.016810110143910276,
+      "lo": 0.008717876536103498,
+      "hi": 0.02460413132978715,
+      "positive_days": 0.9166666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": -0.009937890279472832,
+      "lo": -0.07995876033225036,
+      "hi": 0.060777548857518945,
+      "positive_days": 0.4166666666666667
+     },
+     "cal": {
+      "brier": 0.249456,
+      "brier_skill": 0.002177,
+      "pinball10_skill": -0.000863,
+      "pinball90_skill": 0.000758
+     },
+     "overlap": 5,
+     "ic_p_holm": 1.0
+    },
+    "ofi_all_1": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.048310481963315104,
+      "lo": 0.042600744215156104,
+      "hi": 0.05460039053909083,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49131
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50055
+      },
+      "maker": {
+       "days": 1,
+       "trades": 2,
+       "share_of_rows": 3e-05,
+       "acc": 0.50351,
+       "n_days": 1,
+       "mean": -4.289894911294497,
+       "lo": null,
+       "hi": null,
+       "positive_days": 0.0,
+       "p": 1.0
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.018798073329535203,
+      "lo": 0.009670076918879738,
+      "hi": 0.02860329116815336,
+      "positive_days": 0.9166666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.09871856502279346,
+      "lo": 0.07374265018484592,
+      "hi": 0.12755073692919677,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.249424,
+      "brier_skill": 0.002303,
+      "pinball10_skill": -0.000868,
+      "pinball90_skill": 0.000801
+     },
+     "overlap": 5,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "ofi_top_5": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.042001498579986994,
+      "lo": 0.005746306196834636,
+      "hi": 0.07517250098258081,
+      "positive_days": 0.75
+     },
+     "ic_p": 0.0061987602479504095,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51994
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51349
+      },
+      "maker": {
+       "days": 2,
+       "trades": 10,
+       "share_of_rows": 6e-05,
+       "acc": 0.50771,
+       "n_days": 2,
+       "mean": -7.909508237120329,
+       "lo": -11.731825211349852,
+       "hi": -4.087191262890807,
+       "positive_days": 0.0,
+       "p": 1.0
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.014929123368219617,
+      "lo": 0.006748713439865627,
+      "hi": 0.02294359278655777,
+      "positive_days": 0.9166666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.07873483797412519,
+      "lo": 0.02450602787430072,
+      "hi": 0.13330131810510615,
+      "positive_days": 0.75
+     },
+     "cal": {
+      "brier": 0.249457,
+      "brier_skill": 0.002173,
+      "pinball10_skill": -0.000889,
+      "pinball90_skill": 0.000692
+     },
+     "overlap": 5,
+     "ic_p_holm": 0.2541491701659668
+    },
+    "ofi_all_5": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.034757672302625546,
+      "lo": 0.018143334734468292,
+      "hi": 0.05056131363993241,
+      "positive_days": 0.9166666666666666
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50684
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50426
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50425
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.01860043409278753,
+      "lo": 0.009631672803133694,
+      "hi": 0.02798612126920472,
+      "positive_days": 0.9166666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.025542764747924034,
+      "lo": -0.017817084615468156,
+      "hi": 0.07293598214319492,
+      "positive_days": 0.5
+     },
+     "cal": {
+      "brier": 0.249405,
+      "brier_skill": 0.002378,
+      "pinball10_skill": -0.00097,
+      "pinball90_skill": 0.00082
+     },
+     "overlap": 5,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "ofi_top_30": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.031094361667150173,
+      "lo": 0.0134887455761602,
+      "hi": 0.052835794446695214,
+      "positive_days": 0.8333333333333334
+     },
+     "ic_p": 0.0027994401119776045,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51652
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51218
+      },
+      "maker": {
+       "days": 1,
+       "trades": 30,
+       "share_of_rows": 0.00035,
+       "acc": 0.50752,
+       "n_days": 1,
+       "mean": -3.5171158578829798,
+       "lo": null,
+       "hi": null,
+       "positive_days": 0.0,
+       "p": 1.0
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.01751409199474929,
+      "lo": 0.010448084803699213,
+      "hi": 0.02454338693163392,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.09106538595813757,
+      "lo": 0.05827608925726074,
+      "hi": 0.12464790122367987,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.249442,
+      "brier_skill": 0.002232,
+      "pinball10_skill": -0.001052,
+      "pinball90_skill": 0.000753
+     },
+     "overlap": 5,
+     "ic_p_holm": 0.1175764847030594
+    },
+    "ofi_all_30": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.014403607354322633,
+      "lo": 0.005293961301389558,
+      "hi": 0.02605919476416616,
+      "positive_days": 0.8333333333333334
+     },
+     "ic_p": 0.010597880423915218,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50786
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50672
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50376
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.010040959493378363,
+      "lo": 0.0020030502213040802,
+      "hi": 0.01778113525529773,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.007888966768642728,
+      "lo": -0.03673677475974819,
+      "hi": 0.0475997128496423,
+      "positive_days": 0.5833333333333334
+     },
+     "cal": {
+      "brier": 0.249429,
+      "brier_skill": 0.002282,
+      "pinball10_skill": -0.000917,
+      "pinball90_skill": 0.000783
+     },
+     "overlap": 5,
+     "ic_p_holm": 0.39212157568486306
+    },
+    "flow_imb_5": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.04731566200081985,
+      "lo": 0.03455330748900668,
+      "hi": 0.06306915431635199,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.55602
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.52706
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51224
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.043419822796215875,
+      "lo": 0.03043761821629171,
+      "hi": 0.05519677784516014,
+      "positive_days": 0.9166666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.10321508767623812,
+      "lo": 0.08554845285811027,
+      "hi": 0.12199184850545003,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.249013,
+      "brier_skill": 0.003949,
+      "pinball10_skill": -0.000942,
+      "pinball90_skill": 0.001003
+     },
+     "overlap": 5,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "flow_imb_30": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.0166122780615329,
+      "lo": 0.00422967582199774,
+      "hi": 0.03412962157941763,
+      "positive_days": 0.75
+     },
+     "ic_p": 0.03179364127174565,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.57158
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.54347
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51651
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.02364940915353822,
+      "lo": 0.016140863188200457,
+      "hi": 0.03173022133511105,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.03838273466161155,
+      "lo": 0.014290650014024917,
+      "hi": 0.06331005582156182,
+      "positive_days": 0.9166666666666666
+     },
+     "cal": {
+      "brier": 0.249339,
+      "brier_skill": 0.002643,
+      "pinball10_skill": -0.000883,
+      "pinball90_skill": 0.000826
+     },
+     "overlap": 5,
+     "ic_p_holm": 1.0
+    },
+    "intensity": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.0008076480842221246,
+      "lo": -0.005286256006785676,
+      "hi": 0.007588107129175153,
+      "positive_days": 0.5
+     },
+     "ic_p": 0.41311737652469505,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51131
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49781
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49544
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.002024351951083266,
+      "lo": -0.0065844211903401655,
+      "hi": 0.010571711274038558,
+      "positive_days": 0.5833333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": -0.012842501684029922,
+      "lo": -0.04028547962036767,
+      "hi": 0.0144034283668949,
+      "positive_days": 0.5
+     },
+     "cal": {
+      "brier": 0.249564,
+      "brier_skill": 0.001744,
+      "pinball10_skill": -0.000387,
+      "pinball90_skill": 0.000148
+     },
+     "overlap": 5,
+     "ic_p_holm": 1.0
+    },
+    "rv_bps": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.009554892843043238,
+      "lo": -0.015005363000315589,
+      "hi": -0.003947230183671335,
+      "positive_days": 0.08333333333333333
+     },
+     "ic_p": 0.9998000399920016,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50029
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.48889
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49493
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.010158313606614944,
+      "lo": 0.00047679456430418455,
+      "hi": 0.019535697013877595,
+      "positive_days": 0.6666666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": -0.020490980529011733,
+      "lo": -0.07127077381242658,
+      "hi": 0.02815328001866085,
+      "positive_days": 0.5
+     },
+     "cal": {
+      "brier": 0.249384,
+      "brier_skill": 0.002463,
+      "pinball10_skill": -0.002041,
+      "pinball90_skill": 0.001854
+     },
+     "overlap": 5,
+     "ic_p_holm": 1.0
+    },
+    "jump_share": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.0031001264770881796,
+      "lo": -0.002734768822016101,
+      "hi": 0.00853990455013661,
+      "positive_days": 0.5833333333333334
+     },
+     "ic_p": 0.15016996600679863,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50181
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.5
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49997
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.00876874306807538,
+      "lo": 0.0007534088872577588,
+      "hi": 0.017477970511444698,
+      "positive_days": 0.75
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.023254521349041,
+      "lo": -0.01726978131639571,
+      "hi": 0.06867114120408369,
+      "positive_days": 0.5
+     },
+     "cal": {
+      "brier": 0.249487,
+      "brier_skill": 0.002051,
+      "pinball10_skill": -0.000502,
+      "pinball90_skill": 0.000443
+     },
+     "overlap": 5,
+     "ic_p_holm": 1.0
+    },
+    "vpin": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.0013519068821360892,
+      "lo": -0.006676675527324027,
+      "hi": 0.0038721028843479947,
+      "positive_days": 0.5
+     },
+     "ic_p": 0.6990601879624075,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49992
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49881
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.4994
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.01139512822297666,
+      "lo": 0.002404414645857296,
+      "hi": 0.020324596583754614,
+      "positive_days": 0.6666666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.02665815063388588,
+      "lo": -0.0004454728732622096,
+      "hi": 0.06209976814344729,
+      "positive_days": 0.6666666666666666
+     },
+     "cal": {
+      "brier": 0.249437,
+      "brier_skill": 0.002252,
+      "pinball10_skill": -0.000909,
+      "pinball90_skill": 0.000837
+     },
+     "overlap": 5,
+     "ic_p_holm": 1.0
+    },
+    "baseline_v1": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.060151573012661656,
+      "lo": 0.04304140016027419,
+      "hi": 0.08259471748703041,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.55359
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.53246
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51942
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.05678825835194857,
+      "lo": 0.0492335685304357,
+      "hi": 0.06529703714793766,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.12960204751767782,
+      "lo": 0.09856891797397747,
+      "hi": 0.1605490325623027,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.248637,
+      "brier_skill": 0.005454,
+      "pinball10_skill": -0.001139,
+      "pinball90_skill": 0.001276
+     },
+     "overlap": 5,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "ridge_all": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.12579537391006992,
+      "lo": 0.10683287882049466,
+      "hi": 0.14829000542115603,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 2,
+       "trades": 6,
+       "share_of_rows": 4e-05,
+       "acc": 0.51239,
+       "n_days": 2,
+       "mean": -13.865912605674925,
+       "lo": -17.73182521134985,
+       "hi": -10.0,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "mixto": {
+       "days": 4,
+       "trades": 13,
+       "share_of_rows": 4e-05,
+       "acc": 0.51754,
+       "n_days": 4,
+       "mean": -19.807451059012923,
+       "lo": -30.62403164686782,
+       "hi": -10.531783803823554,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "maker": {
+       "days": 7,
+       "trades": 57,
+       "share_of_rows": 0.0001,
+       "acc": 0.52871,
+       "n_days": 7,
+       "mean": -13.895299076677992,
+       "lo": -26.28941938163801,
+       "hi": -5.200423712975171,
+       "positive_days": 0.0,
+       "p": 0.9854029194161168
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.13059127299829765,
+      "lo": 0.11658753365921457,
+      "hi": 0.1414794753069471,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.2425254794785423,
+      "lo": 0.21858055405485313,
+      "hi": 0.2641580050538194,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.246539,
+      "brier_skill": 0.013846,
+      "pinball10_skill": -0.001844,
+      "pinball90_skill": 0.004073
+     },
+     "overlap": 5,
+     "ic_p_holm": 0.013597280543891222
+    }
+   },
+   "30": {
+    "tilt_bps": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.061674590781606975,
+      "lo": 0.042687555565388224,
+      "hi": 0.09047045571629536,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0007998400319936012,
+     "net": {
+      "taker": {
+       "days": 5,
+       "trades": 19,
+       "share_of_rows": 5e-05,
+       "acc": 0.51023,
+       "n_days": 5,
+       "mean": -10.366104090599446,
+       "lo": -27.069033316259755,
+       "hi": 5.470002476490613,
+       "positive_days": 0.2,
+       "p": 0.8848230353929214
+      },
+      "mixto": {
+       "days": 5,
+       "trades": 27,
+       "share_of_rows": 7e-05,
+       "acc": 0.50924,
+       "n_days": 5,
+       "mean": -9.447851517475618,
+       "lo": -22.48058968543766,
+       "hi": 0.4350458895987176,
+       "positive_days": 0.2,
+       "p": 0.9172165566886623
+      },
+      "maker": {
+       "days": 9,
+       "trades": 57,
+       "share_of_rows": 9e-05,
+       "acc": 0.51007,
+       "n_days": 9,
+       "mean": -7.266103524049874,
+       "lo": -12.666155129601426,
+       "hi": -2.220058333249317,
+       "positive_days": 0.2222222222222222,
+       "p": 0.9952009598080384
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.11910967189926541,
+      "lo": 0.060975676373772554,
+      "hi": 0.17584676083850082,
+      "positive_days": 0.9166666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.3987087338956381,
+      "lo": 0.30934302091884586,
+      "hi": 0.4999776097955292,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.249506,
+      "brier_skill": 0.001975,
+      "pinball10_skill": -0.001734,
+      "pinball90_skill": 0.00213
+     },
+     "overlap": 30,
+     "ic_p_holm": 0.03519296140771846
+    },
+    "spread_bps": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.034659126949768825,
+      "lo": 0.0225024264242809,
+      "hi": 0.04600294370911693,
+      "positive_days": 0.9166666666666666
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 5,
+       "trades": 18,
+       "share_of_rows": 5e-05,
+       "acc": 0.50174,
+       "n_days": 5,
+       "mean": 13.796545058056566,
+       "lo": -1.2097958021900568,
+       "hi": 28.933661118378886,
+       "positive_days": 0.6,
+       "p": 0.04579084183163367
+      },
+      "mixto": {
+       "days": 8,
+       "trades": 40,
+       "share_of_rows": 7e-05,
+       "acc": 0.50107,
+       "n_days": 8,
+       "mean": 7.59449301382665,
+       "lo": -3.2805431091598245,
+       "hi": 21.565570302412922,
+       "positive_days": 0.625,
+       "p": 0.12577484503099381
+      },
+      "maker": {
+       "days": 11,
+       "trades": 87,
+       "share_of_rows": 0.00011,
+       "acc": 0.50056,
+       "n_days": 11,
+       "mean": 6.645416368179798,
+       "lo": -1.6204693425730214,
+       "hi": 17.626368750842012,
+       "positive_days": 0.36363636363636365,
+       "p": 0.10417916416716656
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.07967057764728273,
+      "lo": 0.029231020222246717,
+      "hi": 0.12926673938769842,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.5104035551727619,
+      "lo": 0.39573350355060866,
+      "hi": 0.6340640223269632,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.249721,
+      "brier_skill": 0.001118,
+      "pinball10_skill": -0.002087,
+      "pinball90_skill": 0.002404
+     },
+     "overlap": 30,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "depth_imb": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.061813513979298525,
+      "lo": 0.04257943765822741,
+      "hi": 0.09050873284350189,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51891
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.52128
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.5242
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.17898120505818682,
+      "lo": 0.1576846948365493,
+      "hi": 0.1968924541980324,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.3876947685329317,
+      "lo": 0.3007820335635353,
+      "hi": 0.48357261807470764,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.248862,
+      "brier_skill": 0.004551,
+      "pinball10_skill": -0.00163,
+      "pinball90_skill": 0.002398
+     },
+     "overlap": 30,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "ofi_top_1": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.01927462833792075,
+      "lo": 0.008946013021263459,
+      "hi": 0.029647517244568072,
+      "positive_days": 0.8333333333333334
+     },
+     "ic_p": 0.0005998800239952009,
+     "net": {
+      "taker": {
+       "days": 5,
+       "trades": 6,
+       "share_of_rows": 2e-05,
+       "acc": 0.50065,
+       "n_days": 5,
+       "mean": -19.02293191802506,
+       "lo": -45.571744399773614,
+       "hi": -3.0252289563028523,
+       "positive_days": 0.2,
+       "p": 0.9400119976004799
+      },
+      "mixto": {
+       "days": 6,
+       "trades": 8,
+       "share_of_rows": 2e-05,
+       "acc": 0.50076,
+       "n_days": 6,
+       "mean": -17.42744910235797,
+       "lo": -39.5514595038151,
+       "hi": -1.7125808949275463,
+       "positive_days": 0.16666666666666666,
+       "p": 0.9410117976404719
+      },
+      "maker": {
+       "days": 7,
+       "trades": 11,
+       "share_of_rows": 2e-05,
+       "acc": 0.50037,
+       "n_days": 7,
+       "mean": -13.692611421752307,
+       "lo": -32.30981840993713,
+       "hi": -0.4215040869384778,
+       "positive_days": 0.2857142857142857,
+       "p": 0.9272145570885822
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.07577219090066913,
+      "lo": 0.025411971365619956,
+      "hi": 0.1247844782867549,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.21153226346917828,
+      "lo": 0.10888444329611018,
+      "hi": 0.3151440666877534,
+      "positive_days": 0.8333333333333334
+     },
+     "cal": {
+      "brier": 0.249709,
+      "brier_skill": 0.001164,
+      "pinball10_skill": -0.001847,
+      "pinball90_skill": 0.001838
+     },
+     "overlap": 30,
+     "ic_p_holm": 0.02699460107978404
+    },
+    "ofi_all_1": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.018870640548739805,
+      "lo": 0.01443699574296395,
+      "hi": 0.024238726395139604,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50226
+      },
+      "mixto": {
+       "days": 1,
+       "trades": 2,
+       "share_of_rows": 3e-05,
+       "acc": 0.50159,
+       "n_days": 1,
+       "mean": -10.773037850356431,
+       "lo": null,
+       "hi": null,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "maker": {
+       "days": 3,
+       "trades": 5,
+       "share_of_rows": 2e-05,
+       "acc": 0.50072,
+       "n_days": 3,
+       "mean": -8.257638801073993,
+       "lo": -17.866243155054025,
+       "hi": -0.5206567260422865,
+       "positive_days": 0.0,
+       "p": 0.9630073985202959
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.07491128911601767,
+      "lo": 0.027319817156691014,
+      "hi": 0.12356321026268889,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.1837130951688134,
+      "lo": 0.10128113085721664,
+      "hi": 0.2684620588081757,
+      "positive_days": 0.8333333333333334
+     },
+     "cal": {
+      "brier": 0.249709,
+      "brier_skill": 0.001166,
+      "pinball10_skill": -0.001846,
+      "pinball90_skill": 0.001863
+     },
+     "overlap": 30,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "ofi_top_5": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.0243332299020525,
+      "lo": 0.010721756663540576,
+      "hi": 0.04221650190497555,
+      "positive_days": 0.8333333333333334
+     },
+     "ic_p": 0.006798640271945611,
+     "net": {
+      "taker": {
+       "days": 3,
+       "trades": 20,
+       "share_of_rows": 9e-05,
+       "acc": 0.50448,
+       "n_days": 3,
+       "mean": -9.844841971679665,
+       "lo": -21.093858532635448,
+       "hi": 0.45362009384165347,
+       "positive_days": 0.3333333333333333,
+       "p": 0.9590081983603279
+      },
+      "mixto": {
+       "days": 5,
+       "trades": 30,
+       "share_of_rows": 8e-05,
+       "acc": 0.50314,
+       "n_days": 5,
+       "mean": -17.319706160139354,
+       "lo": -41.290165680291544,
+       "hi": -0.6482660836202907,
+       "positive_days": 0.2,
+       "p": 0.9378124375124975
+      },
+      "maker": {
+       "days": 7,
+       "trades": 50,
+       "share_of_rows": 9e-05,
+       "acc": 0.50153,
+       "n_days": 7,
+       "mean": -11.949994765598703,
+       "lo": -29.48821880807466,
+       "hi": -0.7713793928124468,
+       "positive_days": 0.14285714285714285,
+       "p": 0.9292141571685663
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.07963093639138073,
+      "lo": 0.03196570884314781,
+      "hi": 0.127743625368521,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.2471419539638161,
+      "lo": 0.12046523599034892,
+      "hi": 0.3666858059798653,
+      "positive_days": 0.9166666666666666
+     },
+     "cal": {
+      "brier": 0.249709,
+      "brier_skill": 0.001163,
+      "pinball10_skill": -0.001954,
+      "pinball90_skill": 0.001786
+     },
+     "overlap": 30,
+     "ic_p_holm": 0.27194561087782443
+    },
+    "ofi_all_5": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.011757616037379987,
+      "lo": 0.0023293514990621435,
+      "hi": 0.024243101763215907,
+      "positive_days": 0.5833333333333334
+     },
+     "ic_p": 0.03179364127174565,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50315
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50338
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50111
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.07304229833926042,
+      "lo": 0.02828864411922288,
+      "hi": 0.12198308574774613,
+      "positive_days": 0.9166666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.1353106177895875,
+      "lo": 0.030987512443514213,
+      "hi": 0.247690628863775,
+      "positive_days": 0.75
+     },
+     "cal": {
+      "brier": 0.249719,
+      "brier_skill": 0.001125,
+      "pinball10_skill": -0.001865,
+      "pinball90_skill": 0.001854
+     },
+     "overlap": 30,
+     "ic_p_holm": 1.0
+    },
+    "ofi_top_30": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.01280235765669519,
+      "lo": -0.0015780434454454619,
+      "hi": 0.031069828143933102,
+      "positive_days": 0.75
+     },
+     "ic_p": 0.07638472305538892,
+     "net": {
+      "taker": {
+       "days": 4,
+       "trades": 151,
+       "share_of_rows": 0.00052,
+       "acc": 0.51187,
+       "n_days": 4,
+       "mean": -26.064049840097173,
+       "lo": -41.583957797371184,
+       "hi": -12.395169237933583,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "mixto": {
+       "days": 5,
+       "trades": 254,
+       "share_of_rows": 0.00073,
+       "acc": 0.51027,
+       "n_days": 5,
+       "mean": -13.900084810638194,
+       "lo": -21.066562265336383,
+       "hi": -8.99938428497382,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "maker": {
+       "days": 7,
+       "trades": 384,
+       "share_of_rows": 0.00084,
+       "acc": 0.50486,
+       "n_days": 7,
+       "mean": -8.707210075121589,
+       "lo": -15.03085205187172,
+       "hi": -3.488358258722306,
+       "positive_days": 0.14285714285714285,
+       "p": 0.996000799840032
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.07821530547748272,
+      "lo": 0.02432454494006913,
+      "hi": 0.1378674604887373,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.29754815022640263,
+      "lo": 0.03851391429468378,
+      "hi": 0.5609919757704824,
+      "positive_days": 0.6666666666666666
+     },
+     "cal": {
+      "brier": 0.2499,
+      "brier_skill": 0.000401,
+      "pinball10_skill": -0.003622,
+      "pinball90_skill": -0.000803
+     },
+     "overlap": 30,
+     "ic_p_holm": 1.0
+    },
+    "ofi_all_30": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.008603625544879116,
+      "lo": -0.002888470620877199,
+      "hi": 0.019073037172391376,
+      "positive_days": 0.75
+     },
+     "ic_p": 0.05798840231953609,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49744
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49937
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49916
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.05200045755871794,
+      "lo": -0.0008286119246879363,
+      "hi": 0.10896454376923845,
+      "positive_days": 0.75
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.2223869685029547,
+      "lo": -0.044071518561638594,
+      "hi": 0.4924913710712949,
+      "positive_days": 0.6666666666666666
+     },
+     "cal": {
+      "brier": 0.249726,
+      "brier_skill": 0.001097,
+      "pinball10_skill": -0.001583,
+      "pinball90_skill": 0.001868
+     },
+     "overlap": 30,
+     "ic_p_holm": 1.0
+    },
+    "flow_imb_5": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.021101673154262493,
+      "lo": 0.011036005578283489,
+      "hi": 0.036893826904045614,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.009198160367926415,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50653
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50455
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50568
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.074911041456031,
+      "lo": 0.04041963645186843,
+      "hi": 0.10984523571673017,
+      "positive_days": 0.9166666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.21290644363824116,
+      "lo": 0.1616774280527652,
+      "hi": 0.2669775937602603,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.249586,
+      "brier_skill": 0.001656,
+      "pinball10_skill": -0.001901,
+      "pinball90_skill": 0.001951
+     },
+     "overlap": 30,
+     "ic_p_holm": 0.3587282543491302
+    },
+    "flow_imb_30": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.003277171877399225,
+      "lo": -0.00923492430453295,
+      "hi": 0.02205215095448693,
+      "positive_days": 0.3333333333333333
+     },
+     "ic_p": 0.2995400919816037,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49434
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49628
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49813
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.05765615730274041,
+      "lo": 0.015687060922499923,
+      "hi": 0.10330944517632289,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.0654741454783017,
+      "lo": -0.04387321160115346,
+      "hi": 0.1661452394693709,
+      "positive_days": 0.5833333333333334
+     },
+     "cal": {
+      "brier": 0.249706,
+      "brier_skill": 0.001176,
+      "pinball10_skill": -0.001806,
+      "pinball90_skill": 0.001685
+     },
+     "overlap": 30,
+     "ic_p_holm": 1.0
+    },
+    "intensity": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.007679716999983782,
+      "lo": -0.01997389206707866,
+      "hi": 0.004683992755594968,
+      "positive_days": 0.4166666666666667
+     },
+     "ic_p": 0.8858228354329134,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49208
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.48937
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49516
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.015796444204534524,
+      "lo": -0.027374471921313964,
+      "hi": 0.062490543164415616,
+      "positive_days": 0.5833333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": -0.09207847893067783,
+      "lo": -0.2955722728883582,
+      "hi": 0.10317028176728463,
+      "positive_days": 0.5
+     },
+     "cal": {
+      "brier": 0.249838,
+      "brier_skill": 0.00065,
+      "pinball10_skill": -0.002386,
+      "pinball90_skill": 0.001561
+     },
+     "overlap": 30,
+     "ic_p_holm": 1.0
+    },
+    "rv_bps": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.007906210220860454,
+      "lo": -0.020663305113585103,
+      "hi": 0.0049790931352953855,
+      "positive_days": 0.25
+     },
+     "ic_p": 0.8842231553689263,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49771
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49733
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49701
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.06679330711365754,
+      "lo": 0.00324350335462288,
+      "hi": 0.12747649739343475,
+      "positive_days": 0.75
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.07346387797528407,
+      "lo": -0.16969675483530872,
+      "hi": 0.33864801327083555,
+      "positive_days": 0.5
+     },
+     "cal": {
+      "brier": 0.249895,
+      "brier_skill": 0.00042,
+      "pinball10_skill": -0.00451,
+      "pinball90_skill": 0.004149
+     },
+     "overlap": 30,
+     "ic_p_holm": 1.0
+    },
+    "jump_share": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.00017638493067854456,
+      "lo": -0.010666409126583794,
+      "hi": 0.011546496124087587,
+      "positive_days": 0.4166666666666667
+     },
+     "ic_p": 0.486502699460108,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.4987
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.4994
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.499
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.06312273290834143,
+      "lo": 0.014733055566580545,
+      "hi": 0.11324059802357438,
+      "positive_days": 0.75
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.08043129258927378,
+      "lo": -0.1455613089632211,
+      "hi": 0.31455299516158264,
+      "positive_days": 0.4166666666666667
+     },
+     "cal": {
+      "brier": 0.249695,
+      "brier_skill": 0.00122,
+      "pinball10_skill": -0.001536,
+      "pinball90_skill": 0.001489
+     },
+     "overlap": 30,
+     "ic_p_holm": 1.0
+    },
+    "vpin": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.007655961967300171,
+      "lo": -0.001621876555624085,
+      "hi": 0.01654335139018138,
+      "positive_days": 0.6666666666666666
+     },
+     "ic_p": 0.04359128174365127,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49484
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49633
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.4987
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.06991952504598294,
+      "lo": 0.015992004455008448,
+      "hi": 0.12317296969763425,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.24103993865033627,
+      "lo": 0.06266152681366244,
+      "hi": 0.4196477928265616,
+      "positive_days": 0.75
+     },
+     "cal": {
+      "brier": 0.249787,
+      "brier_skill": 0.00085,
+      "pinball10_skill": -0.001955,
+      "pinball90_skill": 0.001983
+     },
+     "overlap": 30,
+     "ic_p_holm": 1.0
+    },
+    "baseline_v1": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.011588830939030098,
+      "lo": -0.004874893524247728,
+      "hi": 0.03690717315870894,
+      "positive_days": 0.5
+     },
+     "ic_p": 0.1783643271345731,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.4958
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49649
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49785
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.03628532061837034,
+      "lo": 0.0025840452473969186,
+      "hi": 0.06780084823290945,
+      "positive_days": 0.75
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.06784440842773908,
+      "lo": -0.05597826729401125,
+      "hi": 0.1884458176438857,
+      "positive_days": 0.5
+     },
+     "cal": {
+      "brier": 0.249657,
+      "brier_skill": 0.001371,
+      "pinball10_skill": -0.002018,
+      "pinball90_skill": 0.001667
+     },
+     "overlap": 30,
+     "ic_p_holm": 1.0
+    },
+    "ridge_all": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.05325324203557386,
+      "lo": 0.039322120740995815,
+      "hi": 0.07175349323277352,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 9,
+       "trades": 209,
+       "share_of_rows": 0.00034,
+       "acc": 0.51675,
+       "n_days": 9,
+       "mean": -5.593211874297192,
+       "lo": -18.446116312170656,
+       "hi": 9.461756624384586,
+       "positive_days": 0.2222222222222222,
+       "p": 0.77124575084983
+      },
+      "mixto": {
+       "days": 10,
+       "trades": 329,
+       "share_of_rows": 0.0005,
+       "acc": 0.51848,
+       "n_days": 10,
+       "mean": -3.7596629641099923,
+       "lo": -10.750010325579822,
+       "hi": 5.228265249906505,
+       "positive_days": 0.3,
+       "p": 0.8200359928014397
+      },
+      "maker": {
+       "days": 12,
+       "trades": 554,
+       "share_of_rows": 0.00067,
+       "acc": 0.52251,
+       "n_days": 12,
+       "mean": -2.6484941524532792,
+       "lo": -6.127017373947134,
+       "hi": 2.1414510297437337,
+       "positive_days": 0.16666666666666666,
+       "p": 0.8864227154569086
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.169538397014195,
+      "lo": 0.13656675893937711,
+      "hi": 0.19998105484527245,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.3465786248612465,
+      "lo": 0.18776972652460164,
+      "hi": 0.4946085085404139,
+      "positive_days": 0.9166666666666666
+     },
+     "cal": {
+      "brier": 0.249362,
+      "brier_skill": 0.002551,
+      "pinball10_skill": -0.005298,
+      "pinball90_skill": 0.000397
+     },
+     "overlap": 30,
+     "ic_p_holm": 0.013597280543891222
+    }
+   },
+   "60": {
+    "tilt_bps": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.04354225565161182,
+      "lo": 0.028544048034595218,
+      "hi": 0.06575583773725939,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0009998000399920016,
+     "net": {
+      "taker": {
+       "days": 4,
+       "trades": 22,
+       "share_of_rows": 8e-05,
+       "acc": 0.50211,
+       "n_days": 4,
+       "mean": -8.19326450917372,
+       "lo": -30.75076177180275,
+       "hi": 21.00177069197648,
+       "positive_days": 0.25,
+       "p": 0.7310537892421516
+      },
+      "mixto": {
+       "days": 7,
+       "trades": 42,
+       "share_of_rows": 8e-05,
+       "acc": 0.50222,
+       "n_days": 7,
+       "mean": -8.578580796689383,
+       "lo": -19.04500871014653,
+       "hi": 1.3550289723219096,
+       "positive_days": 0.14285714285714285,
+       "p": 0.9442111577684463
+      },
+      "maker": {
+       "days": 8,
+       "trades": 66,
+       "share_of_rows": 0.00011,
+       "acc": 0.50237,
+       "n_days": 8,
+       "mean": -5.780524233873994,
+       "lo": -12.572928690968839,
+       "hi": -0.02374461597792356,
+       "positive_days": 0.25,
+       "p": 0.9538092381523695
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.1572874052428117,
+      "lo": 0.05458617914819061,
+      "hi": 0.2585772179222737,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.440468538562446,
+      "lo": 0.2943560098857719,
+      "hi": 0.5818395509166875,
+      "positive_days": 0.9166666666666666
+     },
+     "cal": {
+      "brier": 0.249608,
+      "brier_skill": 0.001568,
+      "pinball10_skill": -0.002512,
+      "pinball90_skill": 0.002864
+     },
+     "overlap": 60,
+     "ic_p_holm": 0.04299140171965607
+    },
+    "spread_bps": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.045460765817348335,
+      "lo": 0.029869565546650333,
+      "hi": 0.061028295357536004,
+      "positive_days": 0.9166666666666666
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 7,
+       "trades": 29,
+       "share_of_rows": 6e-05,
+       "acc": 0.50125,
+       "n_days": 7,
+       "mean": 7.254274281296377,
+       "lo": -8.27693360237819,
+       "hi": 24.930337068944056,
+       "positive_days": 0.5714285714285714,
+       "p": 0.20075984803039393
+      },
+      "mixto": {
+       "days": 10,
+       "trades": 48,
+       "share_of_rows": 7e-05,
+       "acc": 0.50073,
+       "n_days": 10,
+       "mean": 1.2343234475390357,
+       "lo": -12.293179242101111,
+       "hi": 16.78732009642265,
+       "positive_days": 0.4,
+       "p": 0.4257148570285943
+      },
+      "maker": {
+       "days": 11,
+       "trades": 115,
+       "share_of_rows": 0.00014,
+       "acc": 0.5003,
+       "n_days": 11,
+       "mean": 5.672796446061022,
+       "lo": -4.565320704926529,
+       "hi": 19.278225160879977,
+       "positive_days": 0.36363636363636365,
+       "p": 0.17156568686262746
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.15828031323389768,
+      "lo": 0.05740466275568748,
+      "hi": 0.258961021026904,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.9875377522444259,
+      "lo": 0.7558629579449541,
+      "hi": 1.2173962159784228,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.249738,
+      "brier_skill": 0.001049,
+      "pinball10_skill": -0.002775,
+      "pinball90_skill": 0.003116
+     },
+     "overlap": 60,
+     "ic_p_holm": 0.013597280543891222
+    },
+    "depth_imb": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.04384781388167399,
+      "lo": 0.029073327219505753,
+      "hi": 0.06562399343617088,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0003999200159968006,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51127
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51167
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.51508
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.19303956828671795,
+      "lo": 0.15245922714926277,
+      "hi": 0.2337780492896694,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.44731345633464076,
+      "lo": 0.31361338017576107,
+      "hi": 0.5855175530361295,
+      "positive_days": 0.9166666666666666
+     },
+     "cal": {
+      "brier": 0.249279,
+      "brier_skill": 0.002882,
+      "pinball10_skill": -0.002579,
+      "pinball90_skill": 0.002959
+     },
+     "overlap": 60,
+     "ic_p_holm": 0.018396320735852827
+    },
+    "ofi_top_1": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.004132944530418404,
+      "lo": -0.005209981934158272,
+      "hi": 0.013358638556460068,
+      "positive_days": 0.5833333333333334
+     },
+     "ic_p": 0.19456108778244352,
+     "net": {
+      "taker": {
+       "days": 7,
+       "trades": 9,
+       "share_of_rows": 2e-05,
+       "acc": 0.50057,
+       "n_days": 7,
+       "mean": -32.31334282524842,
+       "lo": -58.65864390794585,
+       "hi": -8.596469555602328,
+       "positive_days": 0.14285714285714285,
+       "p": 0.9914017196560688
+      },
+      "mixto": {
+       "days": 8,
+       "trades": 11,
+       "share_of_rows": 2e-05,
+       "acc": 0.50032,
+       "n_days": 8,
+       "mean": -22.65331998312179,
+       "lo": -43.89893799093103,
+       "hi": -5.04994093012718,
+       "positive_days": 0.125,
+       "p": 0.9822035592881424
+      },
+      "maker": {
+       "days": 9,
+       "trades": 21,
+       "share_of_rows": 3e-05,
+       "acc": 0.50017,
+       "n_days": 9,
+       "mean": -10.016317865926274,
+       "lo": -18.934664655738487,
+       "hi": -1.6260820091438464,
+       "positive_days": 0.2222222222222222,
+       "p": 0.9848030393921215
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.1544987486733077,
+      "lo": 0.050326729226866415,
+      "hi": 0.2583885028842761,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.20264975771755792,
+      "lo": 0.02782462969722257,
+      "hi": 0.3634058003712733,
+      "positive_days": 0.75
+     },
+     "cal": {
+      "brier": 0.249731,
+      "brier_skill": 0.001075,
+      "pinball10_skill": -0.002552,
+      "pinball90_skill": 0.00261
+     },
+     "overlap": 60,
+     "ic_p_holm": 1.0
+    },
+    "ofi_all_1": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.007851530456795288,
+      "lo": 0.001891002144002904,
+      "hi": 0.01438255930506509,
+      "positive_days": 0.75
+     },
+     "ic_p": 0.009398120375924815,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49992
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49983
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49992
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.15060311446308083,
+      "lo": 0.053888197495195266,
+      "hi": 0.25128224617677364,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.21495547104333168,
+      "lo": 0.05361076014281758,
+      "hi": 0.36356718143027456,
+      "positive_days": 0.8333333333333334
+     },
+     "cal": {
+      "brier": 0.249725,
+      "brier_skill": 0.001102,
+      "pinball10_skill": -0.002499,
+      "pinball90_skill": 0.00267
+     },
+     "overlap": 60,
+     "ic_p_holm": 0.3587282543491302
+    },
+    "ofi_top_5": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.007580983648525678,
+      "lo": -0.004233136253184054,
+      "hi": 0.023004136245406766,
+      "positive_days": 0.75
+     },
+     "ic_p": 0.14597080583883223,
+     "net": {
+      "taker": {
+       "days": 6,
+       "trades": 40,
+       "share_of_rows": 0.0001,
+       "acc": 0.50446,
+       "n_days": 6,
+       "mean": -22.686527007827465,
+       "lo": -46.48350257909243,
+       "hi": -3.752074002692048,
+       "positive_days": 0.16666666666666666,
+       "p": 0.9628074385122976
+      },
+      "mixto": {
+       "days": 7,
+       "trades": 62,
+       "share_of_rows": 0.00014,
+       "acc": 0.50255,
+       "n_days": 7,
+       "mean": -10.201373238753046,
+       "lo": -21.169580744719298,
+       "hi": -1.6377913143442184,
+       "positive_days": 0.14285714285714285,
+       "p": 0.9686062787442512
+      },
+      "maker": {
+       "days": 9,
+       "trades": 102,
+       "share_of_rows": 0.00016,
+       "acc": 0.50086,
+       "n_days": 9,
+       "mean": -6.378882819882634,
+       "lo": -12.74144960125243,
+       "hi": 0.4604510865729386,
+       "positive_days": 0.2222222222222222,
+       "p": 0.9750049990002
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.15477648340182554,
+      "lo": 0.05277850448672665,
+      "hi": 0.25795211038669263,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.2904557069517337,
+      "lo": 0.0788754820517933,
+      "hi": 0.48772448588472717,
+      "positive_days": 0.75
+     },
+     "cal": {
+      "brier": 0.249753,
+      "brier_skill": 0.000988,
+      "pinball10_skill": -0.002775,
+      "pinball90_skill": 0.002251
+     },
+     "overlap": 60,
+     "ic_p_holm": 1.0
+    },
+    "ofi_all_5": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.005683903647876833,
+      "lo": -0.0018208165051326725,
+      "hi": 0.015457926494586879,
+      "positive_days": 0.6666666666666666
+     },
+     "ic_p": 0.11277744451109778,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50079
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.5002
+      },
+      "maker": {
+       "days": 1,
+       "trades": 5,
+       "share_of_rows": 6e-05,
+       "acc": 0.49964,
+       "n_days": 1,
+       "mean": -10.003629717127088,
+       "lo": null,
+       "hi": null,
+       "positive_days": 0.0,
+       "p": 1.0
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.14516513796145358,
+      "lo": 0.047126131503234005,
+      "hi": 0.23859744554433865,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.17112847482315527,
+      "lo": -0.027112392040639973,
+      "hi": 0.37701147350979825,
+      "positive_days": 0.5
+     },
+     "cal": {
+      "brier": 0.249736,
+      "brier_skill": 0.001057,
+      "pinball10_skill": -0.002488,
+      "pinball90_skill": 0.002646
+     },
+     "overlap": 60,
+     "ic_p_holm": 1.0
+    },
+    "ofi_top_30": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.002154732168819895,
+      "lo": -0.01799490884709659,
+      "hi": 0.011273348394279428,
+      "positive_days": 0.4166666666666667
+     },
+     "ic_p": 0.6394721055788842,
+     "net": {
+      "taker": {
+       "days": 5,
+       "trades": 326,
+       "share_of_rows": 0.00102,
+       "acc": 0.51384,
+       "n_days": 5,
+       "mean": -16.726240529776536,
+       "lo": -22.9412979498742,
+       "hi": -10.801740359250042,
+       "positive_days": 0.0,
+       "p": 1.0
+      },
+      "mixto": {
+       "days": 8,
+       "trades": 527,
+       "share_of_rows": 0.00098,
+       "acc": 0.50888,
+       "n_days": 8,
+       "mean": -10.242953853827135,
+       "lo": -14.272476725726445,
+       "hi": -5.830710476251327,
+       "positive_days": 0.125,
+       "p": 1.0
+      },
+      "maker": {
+       "days": 10,
+       "trades": 707,
+       "share_of_rows": 0.00105,
+       "acc": 0.50336,
+       "n_days": 10,
+       "mean": 7.693371055779077,
+       "lo": -8.99281210088685,
+       "hi": 37.85613077433368,
+       "positive_days": 0.2,
+       "p": 0.26514697060587883
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.13363222736292094,
+      "lo": 0.05646064277029717,
+      "hi": 0.21842421528785158,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.3353082865988504,
+      "lo": -0.05063849353719066,
+      "hi": 0.6889033572623999,
+      "positive_days": 0.6666666666666666
+     },
+     "cal": {
+      "brier": 0.249937,
+      "brier_skill": 0.000252,
+      "pinball10_skill": -0.005723,
+      "pinball90_skill": -0.002543
+     },
+     "overlap": 60,
+     "ic_p_holm": 1.0
+    },
+    "ofi_all_30": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.00751724829835182,
+      "lo": -0.004985809427580329,
+      "hi": 0.020000950602924946,
+      "positive_days": 0.5833333333333334
+     },
+     "ic_p": 0.12297540491901619,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.5057
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50161
+      },
+      "maker": {
+       "days": 1,
+       "trades": 70,
+       "share_of_rows": 0.00082,
+       "acc": 0.49931,
+       "n_days": 1,
+       "mean": 3.1931850461964832,
+       "lo": null,
+       "hi": null,
+       "positive_days": 1.0,
+       "p": 1.0
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.11435671687531886,
+      "lo": 0.021491106040563892,
+      "hi": 0.21585407953449984,
+      "positive_days": 0.75
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.4646170082970771,
+      "lo": 0.0770139379278374,
+      "hi": 0.8737048182327061,
+      "positive_days": 0.6666666666666666
+     },
+     "cal": {
+      "brier": 0.249817,
+      "brier_skill": 0.000733,
+      "pinball10_skill": -0.002505,
+      "pinball90_skill": 0.002733
+     },
+     "overlap": 60,
+     "ic_p_holm": 1.0
+    },
+    "flow_imb_5": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.01423491224321293,
+      "lo": 0.0045646732767983976,
+      "hi": 0.027304677334610304,
+      "positive_days": 0.8333333333333334
+     },
+     "ic_p": 0.015796840631873626,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49638
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49817
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49992
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.1231901876895161,
+      "lo": 0.02609001367627912,
+      "hi": 0.2207780254339515,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.29606820429589814,
+      "lo": 0.18651451383020654,
+      "hi": 0.4201995937047345,
+      "positive_days": 1.0
+     },
+     "cal": {
+      "brier": 0.249662,
+      "brier_skill": 0.00135,
+      "pinball10_skill": -0.002554,
+      "pinball90_skill": 0.002671
+     },
+     "overlap": 60,
+     "ic_p_holm": 0.5686862627474505
+    },
+    "flow_imb_30": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.0041856887212679,
+      "lo": -0.008599674103638846,
+      "hi": 0.020768668498822793,
+      "positive_days": 0.5
+     },
+     "ic_p": 0.26974605078984204,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49963
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49936
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49959
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.14668700383426722,
+      "lo": 0.047259318266229824,
+      "hi": 0.24726717610847826,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.2149351459810425,
+      "lo": 0.0006643072238321376,
+      "hi": 0.4420550097309311,
+      "positive_days": 0.5833333333333334
+     },
+     "cal": {
+      "brier": 0.249719,
+      "brier_skill": 0.001124,
+      "pinball10_skill": -0.00245,
+      "pinball90_skill": 0.002578
+     },
+     "overlap": 60,
+     "ic_p_holm": 1.0
+    },
+    "intensity": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.011942907818542388,
+      "lo": -0.02391236727708497,
+      "hi": 7.853666497944048e-05,
+      "positive_days": 0.3333333333333333
+     },
+     "ic_p": 0.9744051189762047,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49592
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49673
+      },
+      "maker": {
+       "days": 1,
+       "trades": 28,
+       "share_of_rows": 0.00045,
+       "acc": 0.49804,
+       "n_days": 1,
+       "mean": -1.4409489361788583,
+       "lo": null,
+       "hi": null,
+       "positive_days": 0.0,
+       "p": 1.0
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.12117284332359524,
+      "lo": 0.030984178594355115,
+      "hi": 0.21907856139618656,
+      "positive_days": 0.6666666666666666
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": -0.1337837692353887,
+      "lo": -0.46511005513696096,
+      "hi": 0.14956738544434053,
+      "positive_days": 0.5833333333333334
+     },
+     "cal": {
+      "brier": 0.249929,
+      "brier_skill": 0.000284,
+      "pinball10_skill": -0.003539,
+      "pinball90_skill": 0.002686
+     },
+     "overlap": 60,
+     "ic_p_holm": 1.0
+    },
+    "rv_bps": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.009923274838067141,
+      "lo": -0.024680907189040334,
+      "hi": 0.004442366399963463,
+      "positive_days": 0.3333333333333333
+     },
+     "ic_p": 0.9034193161367726,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50204
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49897
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49779
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.14362179901743913,
+      "lo": 0.039687971482259714,
+      "hi": 0.25183713708702415,
+      "positive_days": 0.75
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.19555989785270148,
+      "lo": -0.20015691904704822,
+      "hi": 0.6716302672633309,
+      "positive_days": 0.5
+     },
+     "cal": {
+      "brier": 0.250015,
+      "brier_skill": -6e-05,
+      "pinball10_skill": -0.004995,
+      "pinball90_skill": 0.00455
+     },
+     "overlap": 60,
+     "ic_p_holm": 1.0
+    },
+    "jump_share": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": -0.00501743634310615,
+      "lo": -0.019240494121246735,
+      "hi": 0.008691848080710413,
+      "positive_days": 0.4166666666666667
+     },
+     "ic_p": 0.764247150569886,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49846
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49803
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50041
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.150168303903479,
+      "lo": 0.05219603925138687,
+      "hi": 0.24939468468638373,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.0370238466134185,
+      "lo": -0.2615971769111868,
+      "hi": 0.3863811447667009,
+      "positive_days": 0.4166666666666667
+     },
+     "cal": {
+      "brier": 0.249694,
+      "brier_skill": 0.001225,
+      "pinball10_skill": -0.002054,
+      "pinball90_skill": 0.001965
+     },
+     "overlap": 60,
+     "ic_p_holm": 1.0
+    },
+    "vpin": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.009582594198787651,
+      "lo": -0.00392810901939805,
+      "hi": 0.023329427447246177,
+      "positive_days": 0.6666666666666666
+     },
+     "ic_p": 0.08638272345530894,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49628
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49829
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.50037
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.146560581469115,
+      "lo": 0.03762053885470786,
+      "hi": 0.2517038406118086,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.3736144021449843,
+      "lo": 0.016657620125010594,
+      "hi": 0.7074279415422551,
+      "positive_days": 0.75
+     },
+     "cal": {
+      "brier": 0.249799,
+      "brier_skill": 0.000804,
+      "pinball10_skill": -0.002745,
+      "pinball90_skill": 0.002828
+     },
+     "overlap": 60,
+     "ic_p_holm": 1.0
+    },
+    "baseline_v1": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.007840497271900613,
+      "lo": -0.005953059960589728,
+      "hi": 0.028406482036456113,
+      "positive_days": 0.5833333333333334
+     },
+     "ic_p": 0.20455908818236354,
+     "net": {
+      "taker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49852
+      },
+      "mixto": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.49835
+      },
+      "maker": {
+       "days": 0,
+       "trades": 0,
+       "share_of_rows": 0.0,
+       "acc": 0.4993
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.1390014491082032,
+      "lo": 0.04577516317524585,
+      "hi": 0.23589955721492428,
+      "positive_days": 0.8333333333333334
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.19853498357358132,
+      "lo": -0.01978585869673974,
+      "hi": 0.434480706652652,
+      "positive_days": 0.5833333333333334
+     },
+     "cal": {
+      "brier": 0.249702,
+      "brier_skill": 0.001193,
+      "pinball10_skill": -0.002543,
+      "pinball90_skill": 0.002586
+     },
+     "overlap": 60,
+     "ic_p_holm": 1.0
+    },
+    "ridge_all": {
+     "test_days": 12,
+     "ic": {
+      "n_days": 12,
+      "mean": 0.028312123039161544,
+      "lo": 0.016483042068580003,
+      "hi": 0.04145988403558201,
+      "positive_days": 1.0
+     },
+     "ic_p": 0.0001999600079984003,
+     "net": {
+      "taker": {
+       "days": 10,
+       "trades": 374,
+       "share_of_rows": 0.00057,
+       "acc": 0.51173,
+       "n_days": 10,
+       "mean": -3.911876131554254,
+       "lo": -12.854393406367269,
+       "hi": 9.588618545167286,
+       "positive_days": 0.2,
+       "p": 0.6860627874425115
+      },
+      "mixto": {
+       "days": 11,
+       "trades": 539,
+       "share_of_rows": 0.00073,
+       "acc": 0.51037,
+       "n_days": 11,
+       "mean": -2.419195923893061,
+       "lo": -10.163253466334439,
+       "hi": 9.014446804849184,
+       "positive_days": 0.18181818181818182,
+       "p": 0.6354729054189162
+      },
+      "maker": {
+       "days": 12,
+       "trades": 937,
+       "share_of_rows": 0.00111,
+       "acc": 0.5125,
+       "n_days": 12,
+       "mean": 5.324114445903624,
+       "lo": -7.020246073836472,
+       "hi": 27.275965597002685,
+       "positive_days": 0.16666666666666666,
+       "p": 0.2631473705258948
+      }
+     },
+     "gross": {
+      "n_days": 12,
+      "mean": 0.19458666417600037,
+      "lo": 0.13516588609123048,
+      "hi": 0.2523400104143053,
+      "positive_days": 1.0
+     },
+     "gross_top": {
+      "n_days": 12,
+      "mean": 0.26845606681512263,
+      "lo": 0.07894495990718933,
+      "hi": 0.4672984973450036,
+      "positive_days": 0.75
+     },
+     "cal": {
+      "brier": 0.249979,
+      "brier_skill": 8.2e-05,
+      "pinball10_skill": -0.008048,
+      "pinball90_skill": -0.002125
+     },
+     "overlap": 60,
+     "ic_p_holm": 0.013597280543891222
+    }
+   }
+  }
+ },
+ "gate": {
+  "verdict": "NO SUPERA",
+  "alpha": 0.05,
+  "thresholds": {
+   "C1_oportunidad": 0.01,
+   "C3_net_bps": 1.0
+  },
+  "C4_sample": {
+   "days": 18,
+   "test_days": 12,
+   "min_days": 14,
+   "min_test_days": 8,
+   "pass": true
+  },
+  "by_horizon": {
+   "1": {
+    "c1_styles": [],
+    "c2_signals": [
+     "tilt_bps",
+     "depth_imb",
+     "ridge_all",
+     "baseline_v1",
+     "ofi_all_1",
+     "flow_imb_5",
+     "ofi_all_5",
+     "ofi_top_30",
+     "ofi_all_30",
+     "flow_imb_30"
+    ],
+    "c3_pairs": [],
+    "pass": false
+   },
+   "5": {
+    "c1_styles": [
+     "mixto",
+     "maker"
+    ],
+    "c2_signals": [
+     "depth_imb",
+     "ridge_all",
+     "baseline_v1",
+     "ofi_all_1",
+     "flow_imb_5",
+     "ofi_all_5"
+    ],
+    "c3_pairs": [],
+    "pass": false
+   },
+   "30": {
+    "c1_styles": [
+     "taker",
+     "mixto",
+     "maker"
+    ],
+    "c2_signals": [
+     "depth_imb",
+     "tilt_bps",
+     "ridge_all",
+     "spread_bps",
+     "ofi_top_1",
+     "ofi_all_1"
+    ],
+    "c3_pairs": [],
+    "pass": false
+   },
+   "60": {
+    "c1_styles": [
+     "taker",
+     "mixto",
+     "maker"
+    ],
+    "c2_signals": [
+     "spread_bps",
+     "depth_imb",
+     "tilt_bps",
+     "ridge_all"
+    ],
+    "c3_pairs": [],
+    "pass": false
+   }
+  },
+  "passing_horizons": []
+ },
+ "seconds": 91.5
+}
