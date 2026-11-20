@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-19T16:43:46",
+ "generated": "2026-11-19T21:48:48",
  "phases": [
   {
    "n": 0,
@@ -2681,15 +2681,10 @@ window.EIM_STATUS = {
     "T159"
    ],
    "state": "progress",
-   "notes": "**Herramienta hecha 2026-11-19; falta el primer informe con datos reales (revisión del día 30, 2026-12-17; sale el 18).** `python -m eim.nursery report` (`v2/eim/nursery/report/`) lee el libro de la cantera (vivo en solo lectura o la copia más reciente), reconstruye el escalafón con el mismo código y deja `v2/reports/nursery/cantera_<fecha>.{md,json}` + `latest.json` (lo lee la auditoría, §5). Hechos de aprendizaje por prospecto × obra (sostenida / refutada / no concluyente) en `data/library/digital/nursery_facts.jsonl`, visibles en `GET /v2/library/digital/learning/nursery` y en la Biblioteca; bajas con causa nombrada, propuestas ◆ con MinTRL, informatividad para T150 y graduaciones con el recorte de Harvey-Liu. Tarea diaria `v2/scripts/cantera_informe_mensual.ps1 -Instalar` (solo en `juanpablo-cpu`). Ficha `PLAN/T172.md`",
+   "notes": "**Herramienta hecha 2026-11-19; falta el primer informe con datos reales (revisión del día 30, 2026-12-17; sale el 18).** `python -m eim.nursery report` (`v2/eim/nursery/report/`) lee el libro de la cantera (vivo en solo lectura o la copia más reciente), reconstruye el escalafón con el mismo código y deja `v2/reports/nursery/cantera_<fecha>.{md,json}` + `latest.json` (lo lee la auditoría, §5). Hechos de aprendizaje por prospecto × obra (sostenida / refutada / no concluyente) en `data/library/digital/nursery_facts.jsonl`, visibles en `GET /v2/library/digital/learning/nursery` y en la Biblioteca; bajas con causa nombrada, propuestas ◆ con MinTRL, informatividad para T150 y graduaciones con el recorte de Harvey-Liu. Tarea diaria `v2/scripts/cantera_informe_mensual.ps1 -Instalar` (solo en `juanpablo-cpu`). **Condicionante cumplido el 2026-11-20 en `juanpablo-cpu`:** `main` ya estaba al día (`f66dbc2`), gate verde por la cola (`20261120-022351-gate-t172-85b3`, **3 967 pasadas, 8 omitidas**, 1 361 s, 0 pausas) y la tarea diaria registrada (01:30 UTC = 20:30 local, primera pasada 2026-11-21). **La primera pasada destapó un fallo:** el informe no puede leer el libro porque `paper_cantera.duckdb` **no entraba en la copia diaria** (`backup.create` solo recorría las cuatro bases fijas de `DBS`; tampoco entraba `paper_t143.duckdb`), y con el servicio en marcha Windows no deja abrirlo ni en solo lectura → código 2 y `FALLO` en `data/operation/logs/cantera_informe.log` cada día. Arreglado en **PR #333** (`claude/t172-copia-cantera`): los libros de las mesas aparte viajan en caliente (los que presta la API) y en frío (`DESKS_GLOB`), con dos pruebas. Hasta fusionarlo y reiniciar la API, la tarea seguirá anotando `FALLO`. Ficha `PLAN/T172.md`",
    "effort": "medio",
    "phase": 27,
    "where": [
-    {
-     "machine": "juanpablo-cpu",
-     "text": "Traer main, correr el gate por la cola e instalar la tarea v2\\scripts\\cantera_informe_mensual.ps1 -Instalar: la cantera_v1 y su libro (paper_cantera.duckdb) solo existen allí",
-     "when": "ya"
-    },
     {
      "machine": "juanpablo-cpu",
      "text": "Comprobar el primer informe real (v2/reports/nursery/) y que los hechos se ven en la Biblioteca (tras reiniciar la API)",
@@ -2700,13 +2695,13 @@ window.EIM_STATUS = {
     "start": "2026-11-17T03:25Z",
     "end": "2026-12-17T03:25Z",
     "milestone": "1.ª revisión de la cantera (el informe sale el 18)",
-    "progress": "Herramienta hecha; falta el primer informe con datos reales",
+    "progress": "Tarea diaria instalada el 2026-11-20; falta el primer informe con datos reales",
     "requires": [
      "PC encendido",
      "API en marcha"
     ],
     "machine": "juanpablo-cpu",
-    "needs": "Traer main, correr el gate por la cola e instalar la tarea del informe mensual (cantera_informe_mensual.ps1 -Instalar)"
+    "needs": "Nada hasta el 18-dic. La tarea escribirá el informe sola; para que pueda leer el libro con el servicio en marcha hace falta el PR #333 (el libro de la cantera no entraba en la copia diaria)"
    }
   },
   {
@@ -2785,26 +2780,26 @@ window.EIM_STATUS = {
     "T128"
    ],
    "state": "progress",
-   "notes": "**Entregables 1, 2 y 4 hechos; falta la ◆ del 3 y desplegar** (`PLAN/notas/T178_retencion.md`). Medido sobre la copia del 18-nov: la poda de T128 **está al día** (solo 2 371 ejecuciones de rechazados con más de 7 días) y los **+53 MB/día son casi enteros las fotos de posiciones** (≈ 6,5 KB cada una en disco × 10 600/día); las reconciliaciones, 41 300 filas/día, son 0,4 MB/día. `eim/data/leader_retention.py`: de las reconciliaciones con más de 7 días se quedan todas las que no cuadran y una por líder cada 2 min (por debajo del `recon_gap_ms` de 5 min, para no inventar huecos en la copia simulada), con resumen diario en `leader_recon_daily` que `leader_report` suma al informe; de las fotos, cada cambio de forma y una por hora, con el tiempo capturado guardado antes de borrar en `leader_photo_cover` para que `observed_ms` (lo que mide T49) no cambie. Corre tras la poda diaria y en frío antes de compactar. La poda por sí sola ahorra el 39 % de los bytes de las fotos (el 66 % son cambios de forma de verdad): 53 → ≈ 32 MB/día. **◆ resuelta (usuario, 18-nov): también se recodifica la foto** (`eim/data/leader_photos.py`, formato `v2`: lo que se repetía en cada posición —`leader_id`, `address`, `source`, `t`, `observed_at`— sale una vez por foto, sin perder ningún campo; `decode` sigue leyendo las viejas y `recode_photos` las migra, 50 000 por vuelta con el servicio en marcha y sin tope en frío). Medido en disco con 20 000 fotos reales: 129,2 → 11,5 MB, es decir **≈ 5 MB/día** y ~800 MB que devuelve el compactado. 15 pruebas (`test_leader_retention.py`, `test_leader_photos.py`). **Falta:** desplegar y la semana de medición con las copias diarias (criterio de aceptación).",
+   "notes": "**Entregables 1, 2 y 4 hechos; falta la ◆ del 3 y desplegar** (`PLAN/notas/T178_retencion.md`). Medido sobre la copia del 18-nov: la poda de T128 **está al día** (solo 2 371 ejecuciones de rechazados con más de 7 días) y los **+53 MB/día son casi enteros las fotos de posiciones** (≈ 6,5 KB cada una en disco × 10 600/día); las reconciliaciones, 41 300 filas/día, son 0,4 MB/día. `eim/data/leader_retention.py`: de las reconciliaciones con más de 7 días se quedan todas las que no cuadran y una por líder cada 2 min (por debajo del `recon_gap_ms` de 5 min, para no inventar huecos en la copia simulada), con resumen diario en `leader_recon_daily` que `leader_report` suma al informe; de las fotos, cada cambio de forma y una por hora, con el tiempo capturado guardado antes de borrar en `leader_photo_cover` para que `observed_ms` (lo que mide T49) no cambie. Corre tras la poda diaria y en frío antes de compactar. La poda por sí sola ahorra el 39 % de los bytes de las fotos (el 66 % son cambios de forma de verdad): 53 → ≈ 32 MB/día. **◆ resuelta (usuario, 18-nov): también se recodifica la foto** (`eim/data/leader_photos.py`, formato `v2`: lo que se repetía en cada posición —`leader_id`, `address`, `source`, `t`, `observed_at`— sale una vez por foto, sin perder ningún campo; `decode` sigue leyendo las viejas y `recode_photos` las migra, 50 000 por vuelta con el servicio en marcha y sin tope en frío). Medido en disco con 20 000 fotos reales: 129,2 → 11,5 MB, es decir **≈ 5 MB/día** y ~800 MB que devuelve el compactado. 15 pruebas (`test_leader_retention.py`, `test_leader_photos.py`). **Desplegada el 2026-11-19 ~14:00 UTC** (el servicio de líderes arrancó con el código de #314 y la poda en frío corrió 30 min después). **Primera medida, copias diarias de las 00:00 UTC: 1 664,8 MB (19-nov) → 944,8 MB (20-nov), −720 MB**; las copias se hacen con `COPY FROM DATABASE`, así que son datos, no fragmentación. En la vuelta del 2026-11-20 02:10 UTC la retención borró 12 454 reconciliaciones (2 días resumidos), 1 245 fotos (3 403 conservadas), recodificó 2 039 y ahorró 6,6 MB. **Entregable 3 medido sobre la copia del 20-nov:** hoy no hay ningún líder `approved` y solo 1 en `watch`, con **29 ejecuciones y 0 cotizaciones** (0,0 % de `leader_fills`); sus fotos son el 1,2 % y sus reconciliaciones el 5,7 %, y eso ya lo recortan los entregables 1 y 2. El detalle que el ◆ cubre **no cuesta nada hoy**; lo que costaría es a futuro: el líder más activo de la base deja 316 085 ejecuciones/día (~0,97 cotizaciones por ejecución, ~152 B/fila de media por reparto) ≈ **95 MB/día si se aprobara**, frente a 0,3–7 MB/día de uno normal. **Falta:** comparar las copias diarias hasta el **2026-11-27** (criterio de aceptación).",
    "effort": "bajo",
    "phase": 21,
    "where": [
     {
      "machine": "juanpablo-cpu",
-     "text": "Desplegar la retención y medir una semana con las copias diarias de leaders.duckdb del servicio de líderes de ese equipo",
-     "when": "ya"
+     "text": "Medir la semana con las copias diarias de leaders.duckdb: la retención ya corre allí desde el 2026-11-19",
+     "when": "2026-11-27"
     }
    ],
    "track": {
-    "start": null,
-    "end": null,
-    "milestone": null,
-    "progress": "Entregables 1, 2 y 4 hechos; falta desplegar y medir una semana",
+    "start": "2026-11-19T14:00Z",
+    "end": "2026-11-27T00:00Z",
+    "milestone": "semana de medición con las copias diarias",
+    "progress": "Desplegada; la base bajó de 1 664,8 a 944,8 MB en la primera copia",
     "requires": [
      "PC encendido"
     ],
     "machine": "juanpablo-cpu",
-    "needs": "Reiniciar el servicio de líderes para que corra la retención y medir una semana con las copias diarias"
+    "needs": "Nada: comparar las copias diarias de leaders.duckdb hasta el 27-nov y ver si deja de crecer"
    }
   },
   {
