@@ -31,7 +31,10 @@ DB_NAME = "reports.duckdb"
 PAPER = "paper.duckdb"
 LEADERS = "leaders.duckdb"
 OBS_NAME = "obs.duckdb"
-# nombre dentro de la copia → ruta bajo `data/` (el observatorio vive en `obs/`)
+# nombre dentro de la copia → ruta bajo `data/` (el observatorio vive en `obs/`). Las bases fijas
+# de todo equipo; los libros de las mesas aparte (`paper_t143.duckdb` de T143,
+# `paper_cantera.duckdb` de T168) no están aquí: dependen de la configuración, los presta la API
+# por `extra_dbs` y su archivo es `data/<nombre>` (de ahí los `DBS.get(name, name)`).
 DBS = {DB_NAME: DB_NAME, PAPER: PAPER, LEADERS: LEADERS, OBS_NAME: f"obs/{OBS_NAME}"}
 API_DBS = (DB_NAME, PAPER, OBS_NAME)        # las abre la API cuando está en marcha
 # Instantánea de leaders.duckdb: medida en vivo el 2026-10-24, 454 MB en 278 s (en frío, 26 s);
@@ -157,7 +160,7 @@ def copy_db(name: str, data_dir: Path, dst: Path, live: tuple | None, *,
     de pedírsela a su dueño (`DbBusy`), o dañada → BackupError con el motivo."""
     if live is not None:
         return copy_db_hot(*live, dst), HOT
-    src = data_dir / DBS[name]
+    src = data_dir / DBS.get(name, name)   # las mesas aparte no están en DBS: `data/<nombre>`
     if not src.exists():
         return None
     try:

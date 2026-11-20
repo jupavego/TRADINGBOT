@@ -12,7 +12,7 @@ import duckdb
 import pytest
 
 from eim.data import backup as B
-from eim.data.backup_dbs import DBS, SNAP, count_file, sha256
+from eim.data.backup_dbs import DBS, HOT, SNAP, count_file, sha256
 from tests.data.backup_helpers import ROWS, T0, V2, content, data, holding, manifest
 
 
@@ -36,6 +36,29 @@ def test_full_backup_delete_restore_same_rows_and_sha256(tmp_path):
         assert count_file(d / DBS[n]) == want[n] and content(d / DBS[n]) == rows[n]
     assert json.loads((d / "operation" / "state_paper.json").read_text()) == {"cursor": 1}
 
+
+def test_separate_desk_books_travel_in_the_copy_and_restore(tmp_path):
+    """T143/T168: los libros de las mesas aparte (`paper_t143`, `paper_cantera`) no tienen
+    nombre fijo —dependen de la configuración— y la API los presta abiertos (`extra_dbs`). Si no
+    viajan en la copia, con el servicio en marcha nadie puede leerlos: en Windows DuckDB no deja
+    ni abrirlos en solo lectura, y el informe mensual de la cantera (T172) se queda sin libro."""
+    d, bk = data(tmp_path), tmp_path / "bk"
+    name = "paper_cantera.duckdb"
+    con = duckdb.connect(str(d / name))
+    con.execute("CREATE TABLE t (x INT, s VARCHAR)")
+    con.execute("INSERT INTO t VALUES (1, 'alta'), (2, 'cierre')")
+    out = B.create(d, bk, extra_dbs={name: (con, threading.Lock())}, clock=lambda: T0)
+    m = manifest(out)
+    assert list(m["dbs"]) == [*DBS, name]          # las fijas primero, la mesa aparte detrás
+    assert m["dbs"][name]["tables"] == {"t": 2} and m["dbs"][name]["via"] == HOT
+    assert m["absent"] == {} and B.verify(out) == []
+    assert B.summary(out)["dbs"][name]["tables"] == {"t": 2}
+    con.execute("INSERT INTO t VALUES (3, 'posterior a la copia')")
+    con.close()
+    B.restore(out, d, clock=lambda: T0)
+    assert count_file(d / name)["t"] == 2                       # vuelve a `data/<nombre>`
+    aside = d / (name + ".antes-de-restaurar-20261014-174640")
+    assert count_file(aside)["t"] == 3                          # y lo de antes no se pierde
 
 def test_restore_replaces_whole_and_keeps_the_previous_aside(tmp_path):
     d = data(tmp_path)
