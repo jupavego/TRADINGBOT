@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-20T06:30:09",
+ "generated": "2026-11-20T06:52:23",
  "phases": [
   {
    "n": 0,
@@ -1534,8 +1534,8 @@ window.EIM_STATUS = {
    "id": "T87",
    "title": "Multiactivo: auditoría de acoplamientos, medición y decisión de alcance",
    "deps": [],
-   "state": "pending",
-   "notes": "Especificada (`PLAN/T87.md`, insumo `PLAN/notas/T87_universo_multiactivo.md`, 2026-10-19). Auditoría rápida ya hecha en la nota (17 agentes: 10 solo `candles`; acoplamientos a cripto localizados). ◆ alcance, horizontes, datos, orden de clases.",
+   "state": "progress",
+   "notes": "**Auditoría y mediciones hechas el 2026-11-20; falta solo la ◆ del usuario.** Matriz completa `PLAN/notas/T87_matriz.md` (fila por módulo con clase R/A/C, acoplamiento con archivo y línea, cambio mínimo y riesgo BTC/ETH) e inventario exacto: **117** archivos de `eim/` con literales de cripto (269 apariciones), no «unos 80», más 33 en `web/src`; solo **4** son acoplamientos de arquitectura (`data/timeframes.py`, `data/snapshot.py`, `data/providers/base.py`, `backtest/params.py`) y `eim/observability/` tiene **0**. Agentes: **20**, no 17; de solo `candles`, **11**. Bancos nuevos (fuera de `eim/`, reproducibles): `v2/scripts/agents_cost.py` → `reports/t87_agents_cost.md` y `v2/scripts/agents_portability.py` → `reports/t87_portabilidad.md`. **Hallazgos que cambian T90–T93:** (1) el ciclo cuesta ≈ 1,9 s por instrumento y marco con 20 agentes (no 4,5 s de T72) y **el embudo no se puede definir por `requires`**, porque `plan` solo pide `candles` y se lleva el 73 % del ciclo — se define por costo medido (13 agentes ≤ 20 ms = 1 % del ciclo; 10 000 instrumentos en 0,05 h frente a 5,35 h); (2) **`run_agents` en hilos no acelera** (1 986 ms frente a 1 927 ms en serie): el escáner paraleliza por procesos sobre instrumentos; (3) **`build_snapshot` no admite 1 d** (`data/snapshot.py:146`, `ValueError: '1d' is not in list`), bloqueo duro para toda clase que solo opere en diario; (4) los 11 agentes de `candles` corren sobre oro, S&P 500 y Nasdaq diarios **sin fallar ni uno**, pero el riesgo medido es el **acierto silencioso**: `vwap` publica `ok` con sesgo −0,13 y confianza 0,60 con el ancla diaria vacía (σ = 0) y las anclas semanal y quincenal devolviendo el mismo número, y `bars_per_year = 8766` (`backtest/params.py:40`) infla el Sharpe de una serie diaria de acciones **×5,9**. Cobertura de datos por clase en §7 (lo gratuito que ya está: 659 perpetuos de T181, oro/S&P 500/Nasdaq de T183; **las condiciones de uso de Yahoo siguen sin verificar** → T88). **◆ pendiente: `PLAN/notas/T87_decisiones.md`** (alcance de ejecución, horizontes con `1d` de primera clase, datos gratuitos, orden de clases **reordenado** por potencia ganada, y la lista de aceptación de 8 puntos de la matriz §9 como molde de T97–T100), replanteada a la luz de T145 (D, solo análisis) y T163 (multiactivo = único instrumento de potencia). T89 en adelante **no empiezan** sin esa aprobación. Gate verde.",
    "effort": "medio",
    "phase": 17,
    "goal": "Convertir la auditoría rápida de `PLAN/notas/T87_universo_multiactivo.md` en una **matriz de reutilización completa** (qué se conserva, qué se adapta, qué es específico de cripto) con el costo real de cada agente, y fijar el alcance con el usuario antes de tocar código. Sin cambios en `eim/`."
