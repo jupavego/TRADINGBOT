@@ -48,8 +48,29 @@ export interface CanteraPanel {
   prospects: ProspectRow[]
 }
 
+/** Ganadas frente a perdidas de un grupo de operaciones cerradas (como el balance del bróker). */
+export interface CtHalf { n: number; usd: number; avg_usd: number | null; avg_r: number | null; by_reason: Record<string, number> }
+export interface CtStats {
+  n: number; wins: CtHalf; losses: CtHalf; win_rate: number | null; payoff: number | null
+  breakeven: number | null; expectancy_r: number | null; pf: number | null; net: number; costs: number
+}
+export interface CtWindow {
+  label: string; all: CtStats
+  agents: Record<string, { n: number; wins: { n: number; usd: number }; losses: { n: number; usd: number } }>
+  timeframes: Record<string, { n: number; win_rate: number | null }>
+}
+export interface CtAgentCurve {
+  agent_id: string; accounts: number; initial: number; equity: number; return_pct: number; n: number
+  curve: { t: number; equity: number; pct: number }[]
+}
+export interface CtBalance {
+  mode: string; scope: string; rule: string; initial_per_account: number
+  windows: Record<string, CtWindow>; agents: CtAgentCurve[]
+}
+
 export interface NurseryPayload {
-  mode: string; enabled: boolean; reason?: string; label?: string
+  mode: string; enabled: boolean; reason?: string; label?: string; machine_off?: boolean
+  balance?: CtBalance
   live?: { last_tick: number | null; error: string; blocked: string | null }
   prereg?: { version: string; sha256: string; alta_ms: number }
   panel?: CanteraPanel

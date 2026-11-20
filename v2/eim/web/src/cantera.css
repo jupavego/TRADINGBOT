@@ -67,3 +67,37 @@
 .ct-trades th, .ct-trades td { padding: 3px 8px; border-bottom: 1px solid var(--grid); text-align: left; }
 .ct-trades td[data-t="up"] { color: var(--up); }
 .ct-trades td[data-t="down"] { color: var(--down); }
+
+/* 2026-11-20: la cantera en su pestaña de la barra superior, con la cara del bróker simulado */
+.cantera-view .pp-head { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.cantera-view .ct-tag { white-space: nowrap; }
+.ct-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; min-width: 0; }
+.ct-box > .sh { margin-top: 0; }
+.ct-live { font-size: 12px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+.ct-live[data-s="ok"] { color: var(--up); border-color: var(--up); }
+.ct-live[data-s="warn"] { color: var(--warn); border-color: var(--warn); }
+.ct-live[data-s="off"] { color: var(--muted); }
+.ct-bal-rows li { grid-template-columns: 120px minmax(40px, 1fr) 36px auto; }
+.ct-bal-rows .pp-bal-p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.ct-bal-rows .pp-bal-p i { display: inline-block; margin-right: 6px; vertical-align: middle; }
+.ct-eqbox { padding: 10px 14px; }
+.ct-eqrow { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 12px; margin-top: 8px; }
+.ct-eq { position: relative; height: 280px; padding: 0 0 18px 52px; }
+.ct-eq svg { width: 100%; height: 100%; display: block; }
+.ct-eq-empty { display: flex; align-items: center; justify-content: center; padding: 0; }
+.ct-eq-grid { stroke: var(--grid); stroke-width: 1; }
+.ct-eq-zero { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 4; }
+.ct-eq-plot { position: relative; height: 100%; }
+.ct-eq-y { position: absolute; left: -52px; width: 46px; text-align: right; transform: translateY(-50%); font: 11px var(--f-num); color: var(--muted); }
+.ct-eq-x { position: absolute; bottom: 0; font-size: 11px; color: var(--muted); }
+.ct-eq-x[data-k="a"] { left: 52px; }
+.ct-eq-x[data-k="b"] { right: 0; }
+.ct-eqleg { display: flex; flex-direction: column; gap: 3px; max-height: 280px; overflow-y: auto; }
+.ct-leg { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto 44px; align-items: center; gap: 6px; font: inherit; font-size: 12px;
+  background: none; color: var(--text); border: 1px solid transparent; border-radius: 6px; padding: 3px 6px; cursor: pointer; text-align: left; }
+.ct-leg:hover { border-color: var(--line); }
+.ct-leg[aria-pressed="false"] { opacity: .4; }
+.ct-leg i { width: 10px; height: 10px; border-radius: 50%; }
+.ct-leg span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ct-leg small { color: var(--muted); text-align: right; }
+@media (max-width: 900px) { .ct-eqrow { grid-template-columns: minmax(0, 1fr); } .ct-eqleg { max-height: none; } }

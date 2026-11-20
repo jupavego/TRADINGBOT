@@ -22,6 +22,7 @@ tarea · equipo · qué hay que hacer allí · fecha (desde cuándo se puede, o 
 | T66 | juanpablo-cpu | Medir la muestra etiquetada (`python -m eim.video.visual eval`): RapidOCR y el entorno de motores (`C:\eim-localai`) solo están allí | cuando haya ≥ 40 etiquetas |
 | T116 | juanpablo-cpu | 3 corridas del gate con los servicios parados, después de cerrar T31, T143 y la semana de T178 | 2026-11-28 |
 | T178 | juanpablo-cpu | Medir la semana con las copias diarias de `leaders.duckdb`: la retención ya corre allí desde el 2026-11-19 | 2026-11-27 |
+| T171 | juanpablo-cpu | Traer `main` y reiniciar la API para que la pestaña «Cantera» de la barra superior muestre el balance de ganadas y perdidas y el capital por agente (la cantera solo corre allí) | ya |
 
 ## Seguimiento de las tareas en curso
 

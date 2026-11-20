@@ -16,8 +16,13 @@ from fastapi import APIRouter, HTTPException, Query
 
 from eim.nursery.desk import NurseryDesk
 
-OFF = {"mode": "SIMULADO", "enabled": False,
-       "reason": "cantera apagada (EIM_NURSERY=0); se enciende en T170"}
+# T170 ya la encendió (alta 2026-11-17 03:25:17 UTC), pero solo en el equipo que la corre
+# (`juanpablo-cpu`, `PLAN/CONDICIONANTES.md`): en los demás `EIM_NURSERY` sigue en 0 a propósito,
+# para que no haya dos canteras con relojes distintos para el mismo pre-registro.
+OFF = {"mode": "SIMULADO", "enabled": False, "machine_off": True,
+       "reason": "La cantera no corre en este equipo (EIM_NURSERY=0). T170 ya la encendió el "
+                 "2026-11-17 en el equipo que la corre (juanpablo-cpu): allí opera sola, en "
+                 "vivo, y sus cifras se ven en esta pestaña."}
 
 
 def build_nursery_router(desk: NurseryDesk | None) -> APIRouter:

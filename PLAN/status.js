@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-20T09:24:07",
+ "generated": "2026-11-20T10:55:43",
  "phases": [
   {
    "n": 0,
@@ -1249,7 +1249,7 @@ window.EIM_STATUS = {
     "T64"
    ],
    "state": "progress",
-   "notes": "**Código y pruebas hechos (2026-11-20, rama `claude/t66-video-visual`); falta la muestra ◆.** Fotogramas `v2/eim/data/video/frames.py` (dos pasadas sobre un archivo local aportado: escenas por dHash + rejilla 16×9 —la luminancia media no ve los cortes de pantalla, alerta 14 de T62—, uno cada 30 s sin cortes, casi idénticos fuera, tope de T62 = 120/h de video y 20/h para el modelo visual; miniaturas en `data/video/frames/<video>/` + `manifest.json`; el video no se guarda, `--delete-source`). Lectura en tres capas `v2/eim/video/visual/` (puro salvo motores inyectados): OCR → cifras, titulares, indicadores escritos, activo y marco; visión clásica en numpy (eje de precios por ajuste lineal de las cifras de la franja derecha, rejilla frente a etiquetas, líneas horizontales → nivel); modelo visual solo en gráficos, `ChartReading` con caja o cita por elemento. Validación determinista `validate.py` (precio: acuerdo OCR/visión ≤ 0,2 % o rango real del activo ± 3 %; RSI/EMA/SMA/VWAP **recalculados** con `eim.indicators`). Contrato `VisualObservation` (`v2/eim/core/video.py`, `CONTRATOS.md`) y tabla solo-añadir `video_observations` en `data/video/visual.duckdb`. CLI `python -m eim.video.visual frames|read|label-template|eval|stats`. Pruebas `v2/tests/video/visual/` (23, sin red ni pesos). Informe `v2/reports/video_visual_eval.md` con umbrales fijados antes de medir; hoy «muestra insuficiente». **Falta (◆):** ≥ 40 fotogramas reales etiquetados a mano (`v2/tests/fixtures/video/labels/README.md`), solo de material permitido; `eval` en `juanpablo-cpu` con RapidOCR; el usuario decide si la lectura es fiel.",
+   "notes": "**Código y pruebas hechos (2026-11-20, rama `claude/t66-video-visual`); falta la muestra ◆.** Fotogramas `v2/eim/data/video/frames.py` (dos pasadas sobre un archivo local aportado: escenas por dHash + rejilla 16×9 —la luminancia media no ve los cortes de pantalla, alerta 14 de T62—, uno cada 30 s sin cortes, casi idénticos fuera, tope de T62 = 120/h de video y 20/h para el modelo visual; miniaturas en `data/video/frames/<video>/` + `manifest.json`; el video no se guarda, `--delete-source`). Lectura en tres capas `v2/eim/video/visual/` (puro salvo motores inyectados): OCR → cifras, titulares, indicadores escritos, activo y marco; visión clásica en numpy (eje de precios por ajuste lineal de las cifras de la franja derecha, rejilla frente a etiquetas, líneas horizontales → nivel); modelo visual solo en gráficos, `ChartReading` con caja o cita por elemento. Validación determinista `validate.py` (precio: acuerdo OCR/visión ≤ 0,2 % o rango real del activo ± 3 %; RSI/EMA/SMA/VWAP **recalculados** con `eim.indicators`). Contrato `VisualObservation` (`v2/eim/core/video.py`, `CONTRATOS.md`) y tabla solo-añadir `video_observations` en `data/video/visual.duckdb`. CLI `python -m eim.video.visual frames|read|label-template|eval|stats`. Pruebas `v2/tests/video/visual/` (26, sin red ni pesos). Informe `v2/reports/video_visual_eval.md` con umbrales fijados antes de medir; hoy «muestra insuficiente». **Falta (◆):** ≥ 40 fotogramas reales etiquetados a mano (`v2/tests/fixtures/video/labels/README.md`), solo de material permitido; `eval` en `juanpablo-cpu` con RapidOCR; el usuario decide si la lectura es fiel.",
    "effort": "alto",
    "phase": 14,
    "goal": "Extraer lo que **se ve** y no se dice: cifras en pantalla, titulares, diapositivas, y de los gráficos de precio el activo, el marco temporal, los niveles y los indicadores visibles. Cada observación lleva su fotograma, su caja en la imagen y su marca de tiempo. Se mide contra una muestra revisada a mano antes de confiar en ella.",
@@ -2687,7 +2687,14 @@ window.EIM_STATUS = {
    "state": "done",
    "notes": "Hecha (2026-11-19): pestaña «Cantera» (tras Escuadrón) con la panorámica por agente como entrada y la ficha del prospecto como detalle; cabecera con modo SIMULADO, **contabilidad aparte** de los cuatro perfiles y de T144, promesas falsas que espera el azar (0,0068) y cobertura. Orden por agente y etapa (nunca por rendimiento), n < 30 atenuado con «muestra insuficiente», d̃ bruto/encogido y días hasta veredicto (MinTRL con α = 0,05/m, z = 3,09). `v2/eim/nursery/panel.py`, `GET /v2/nursery` (`panel`) y `GET /v2/nursery/prospect/{id}`, `v2/eim/web/src/cantera_*.ts`; nota `PLAN/notas/T171_panel_cantera.md`",
    "effort": "medio",
-   "phase": 27
+   "phase": 27,
+   "where": [
+    {
+     "machine": "juanpablo-cpu",
+     "text": "Traer main y reiniciar la API para que la pestaña «Cantera» de la barra superior muestre el balance de ganadas y perdidas y el capital por agente (la cantera solo corre allí)",
+     "when": "ya"
+    }
+   ]
   },
   {
    "id": "T172",
