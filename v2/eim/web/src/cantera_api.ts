@@ -71,6 +71,8 @@ export interface CtBalance {
 export interface NurseryPayload {
   mode: string; enabled: boolean; reason?: string; label?: string; machine_off?: boolean
   balance?: CtBalance
+  /** Espejo: foto del equipo que corre la cantera (con la cantera apagada en este equipo). */
+  mirror?: { machine?: string; published_ms?: number; read_ms?: number | null; error?: string; waiting?: boolean }
   live?: { last_tick: number | null; error: string; blocked: string | null }
   prereg?: { version: string; sha256: string; alta_ms: number }
   panel?: CanteraPanel
@@ -92,6 +94,7 @@ export interface ProspectCard {
 
 async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
   const r = await fetch(`${base()}${path}`, { signal })
+  if (!(r.headers.get('content-type') ?? '').includes('json')) throw new Error('la API no respondió (¿interfaz sin reiniciar?)')
   const body = await r.json().catch(() => ({ detail: r.statusText }))
   if (!r.ok) throw new Error(String((body as { detail?: string }).detail ?? r.statusText))
   return body as T

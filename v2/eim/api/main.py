@@ -28,7 +28,7 @@ from eim.api.library_digital import build_library_digital_router
 from eim.api.live import Hub, overlays_of, synthesis_of
 from eim.api.micro import build_micro_router
 from eim.api.more import MoreSources, build_more_router
-from eim.api.nursery import build_nursery_router
+from eim.api.nursery import build_nursery_router, live_payload
 from eim.api.obs import build_obs_router, build_observatory
 from eim.api.operation import build_operation_router
 from eim.api.paper import build_paper_router
@@ -60,6 +60,7 @@ from eim.data.store import Store
 from eim.data.suggestion_store import SuggestionStore
 from eim.data.timeframes import SYMBOLS, TF_MS
 from eim.data.validation_store import ValidationStore
+from eim.nursery.mirror import make_mirror
 from eim.observability.emit import configure
 from eim.operation.alerts import AlertCenter
 from eim.operation.components import components
@@ -174,6 +175,10 @@ def create_app(
                             paper.gens) if source is None and cfg.paper else None)
     if nursery is not None:
         backup_dbs[f"paper_{nursery.name}.duckdb"] = nursery.pstore.connection
+    # espejo de la cantera: aquí publica si la corre; si no, lee la foto del equipo que la corre
+    mirror = (make_mirror(cfg.nursery_mirror, cfg.data_dir, nursery,
+                          (lambda: live_payload(nursery)) if nursery is not None else None)
+              if source is None else None)
     # T49: puerta de validación por estrategia; se recalcula al cierre de cada vela de 4 h.
     validator = Validator(paper, ValidationStore(paper_store),
                           attempts=ATTEMPTS_DIR if cfg.val_attempts else None)
@@ -209,6 +214,8 @@ def create_app(
         variant_tasks = [asyncio.create_task(d.loop()) for d in variants.values()]
         if nursery is not None:
             variant_tasks.append(asyncio.create_task(nursery.loop()))
+        if mirror is not None:
+            variant_tasks.append(asyncio.create_task(mirror.loop()))
         arb_exec_task = (asyncio.create_task(arb_loop(arb_rt))
                          if arb_rt.pilot is not None else None)
         share_task = asyncio.create_task(share_loop(share)) if share is not None else None
@@ -300,7 +307,7 @@ def create_app(
     app.include_router(build_library_digital_router(
         rows=lambda: paper_ledger.query(paper.pstore, scope="perfil", limit=20000)))
     app.include_router(build_variant_router(variants))
-    app.include_router(build_nursery_router(nursery))
+    app.include_router(build_nursery_router(nursery, mirror))
     app.include_router(build_paper_arb_router(store, cfg.data_dir))  # T45: pruebas en papel
     app.state.paper = paper
     app.include_router(build_validation_router(validator))

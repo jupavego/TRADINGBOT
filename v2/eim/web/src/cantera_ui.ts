@@ -178,11 +178,16 @@ export class CanteraPanelView {
 
   private head(): string {
     const d = this.data
-    const live = d?.enabled && d.live
+    const m = d?.mirror
+    const ago = m?.published_ms ? Math.max(0, Math.round((Date.now() - m.published_ms) / 60_000)) : null
+    const live = d?.enabled && m
+      ? `<span class="ct-live" data-s="${m.error || (ago ?? 0) > 45 ? 'warn' : 'ok'}" title="${esc(`Copia en vivo (solo lectura) de la cantera que corre en ${m.machine ?? 'otro equipo'}: se publica tras cada cálculo (como mucho cada 15 min) y aquí se trae cada 5 min.${m.error ? ` Último error al traerla: ${m.error}` : ''}`)}">` +
+        `● espejo en vivo de ${esc(m.machine ?? '—')} · foto ${m.published_ms ? cot(m.published_ms).slice(11) : '—'}${ago === null ? '' : ` (hace ${ago} min)`}</span>`
+      : d?.enabled && d.live
       ? (d.live.error
         ? `<span class="ct-live" data-s="warn" title="${esc(d.live.error)}">● en vivo · aviso</span>`
         : `<span class="ct-live" data-s="ok" title="La cantera opera sola en el servicio: cada vela nueva se analiza y sus prospectos abren y cierran sin intervención">● en vivo · último ciclo ${d.live.last_tick ? cot(d.live.last_tick).slice(11) : '—'}</span>`)
-      : d && !d.enabled ? '<span class="ct-live" data-s="off">● no corre en este equipo</span>' : ''
+      : d && !d.enabled ? `<span class="ct-live" data-s="off">● no corre en este equipo${d.mirror?.waiting ? ' · esperando el espejo' : ''}</span>` : ''
     const alta = d?.prereg ? `<span class="pp-cov muted">alta ${cot(d.prereg.alta_ms)} COT · pre-registro ${esc(d.prereg.version)}</span>` : ''
     return '<header class="pp-head"><h2 class="pp-title">Cantera</h2>' +
       '<span class="mode" data-mode="SIMULADO" title="Toda cifra de esta pestaña es simulada">Modo: Simulado · cuenta propia por prospecto · contabilidad aparte</span>' +
