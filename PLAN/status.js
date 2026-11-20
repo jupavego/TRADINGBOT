@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-20T06:03:00",
+ "generated": "2026-11-20T06:04:02",
  "phases": [
   {
    "n": 0,
@@ -189,6 +189,7 @@ window.EIM_STATUS = {
     "T77",
     "T78",
     "T79",
+    "T80",
     "T81",
     "T82",
     "T83",
@@ -1432,6 +1433,19 @@ window.EIM_STATUS = {
    "effort": "alto",
    "phase": 16,
    "goal": "Un simulador que reproduzca el libro evento a evento y diga **qué habría pasado con una orden**: latencia de feed y de envío, posición en cola, fills parciales, rechazos y comisiones. Es el sustituto honesto de testnet para medir ejecución (el libro de testnet no es el real). Debe ser **más pesimista que optimista** y medir su propio sesgo."
+  },
+  {
+   "id": "T80",
+   "title": "HFT: features, marco de evaluación y prueba de techo",
+   "deps": [
+    "T78",
+    "T23"
+   ],
+   "state": "done",
+   "notes": "**◆ Veredicto NO SUPERA, pendiente de decisión del usuario** (archivar como T28 o redirigir). Informe `v2/reports/hft_ceiling.{md,json}` sobre 18 días UTC (2026-11-02 → 11-19, 386 horas completas de T78, 1,33 M de cubos de 1 s utilizables, 12 días de prueba). Variables puras en `eim/hft/features/` (microprecio, OFI 1–5, profundidad, spread, flujo agresor, intensidad, RV/bipotencia, VPIN) con prueba de ausencia de look-ahead; marco en `eim/hft/evaluation/` (etiquetas con la reacción de T77, triple barrera, llenado pesimista, walk-forward por días con purga y embargo, IC por bloques de día, Holm sobre los 68 intentos de `eim/hft/attempts_t80.json`); pre-registro congelado `eim/hft/prereg/hft_ceiling_v1.json` con su SHA-256 fijado en el código. Panel en `data/collectors/hft_panel.py` (+ `book_fast.py`, mismo libro que `LocalBook` con top-N en tiempo constante: 1 h pasó de minutos a ~15 s). **Sí hay señal** (C2: `depth_imb`, `tilt_bps`, `ridge_all` y la línea base v1 pasan Holm; IC 1 s ≈ 0,14) y a 30–60 s el movimiento **sí paga** el ida y vuelta (C1), pero ningún horizonte y estilo logra C3: el bruto por operación es 0,05–0,16 pb (decil 0,1–1,0 pb) frente a 4 pb de costo maker-maker, el costo se come el 45–72 % del movimiento en las ventanas que pagan, y las pocas operaciones que superan el umbral tienen el IC 95 % cruzando el 0. BACKLOG T80.",
+   "effort": "alto",
+   "phase": 16,
+   "goal": "Construir las variables de microestructura y un marco de evaluación sin trampas, y responder **barato y pronto** a la pregunta que decide el resto de la fase: ¿el movimiento predecible del precio supera los costos? Si no, se detiene la inversión antes de modelos y estrategias."
   },
   {
    "id": "T81",
