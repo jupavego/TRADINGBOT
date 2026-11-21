@@ -4116,3 +4116,52 @@ pm run build.
   en 1h, +0,012 en 4h, a favor del límite, contando la no ejecución como 0 R).
 - **Siguiente paso:** T207, empezando por publicar el valor esperado por idea generada junto al de las
   llenadas; no tocar reglas vivas antes del cierre de T31 (2026-11-28).
+
+## 2026-11-21 · sesión Perfil adicional en la cantera → T208 (la forja)
+
+- **Hecho:** el usuario pidió un perfil adicional para la cantera: BTC en velas de 5 m, intradía (nada
+  abierto de un día para otro), **sesión americana**, compras o ventas, con **miles de estrategias
+  distintas** armadas con todos los indicadores posibles agrupados en familias por lo que miden,
+  variando periodo, dirección, un filtro opcional y la salida; cuenta de 10 000 $ sin interés
+  compuesto, riesgo del 1 %, 1:10 de tope, entrada en la vela siguiente a la señal y costos reales.
+  Se construyó entero y se midió. **Decisión de arquitectura:** familia propia `forja_5m_v1`
+  **aparte de la cantera**, porque meter miles de recetas buscadas en la historia dentro de
+  `prereg_cantera_v1` (42 prospectos, techo 50, parámetros canónicos elegidos sin mirar rendimiento)
+  haría saltar su `m` de 50 a miles y sus veredictos dejarían de significar nada; lo que sobreviva
+  se propone con ◆ para una plaza de reserva y opera **hacia adelante desde cero**.
+- **La rejilla, congelada antes de medir:** 70 disparadores en 7 familias (tendencia, ruptura,
+  reversión, momento, flujo de agresores, volatilidad y hora de la sesión) × 3 direcciones × 9
+  filtros × 10 salidas = **18 900 recetas**, que son el `m` de Romano-Wolf/Holm/e-BH y el `attempts`
+  del Sharpe deflactado. Pre-registro `v2/eim/validation/prereg/prereg_forja_5m_v1.json`
+  (huella `573b4e4602d5f084`) commiteado en `5ac96ed`, **anterior a toda cifra**; reserva
+  2026-05-04 → 2026-11-03 intacta.
+- **Resultado: 0 supervivientes de 18 900** (238 s por la cola, **18 562 364 operaciones**, 827
+  sesiones dentro de muestra). La mejor de la rejilla (`ema_20_100|corto|apertura|vwap_objetivo`,
+  n = 229, +0,168 R) da **t = 0,82**, p de Romano-Wolf **1,000** y **DSR 0,000**, con el máximo nulo
+  esperado en **z = 4,01** (t remuestreado 3,74). **PBO 0,47** frente al 0,20 pre-registrado.
+- **El hallazgo que sí vale: la barrera de costos.** La familia gana **+0,069 R brutos** por
+  operación y pierde **−0,322 R netos**, porque cada operación paga **0,391 R** de comisión y
+  deslizamiento: con riesgo del 1 % y stops de pocas décimas de por ciento el nocional ronda **8
+  veces la cuenta** (el tope de 1:10 muerde). **12 992 de 16 176 recetas son positivas en bruto y
+  solo 126 en neto.** En 5 m no hace falta una idea «un poco buena», hace falta una que gane ≥ 0,4 R
+  brutos por operación. El control de entradas al azar da ≈ −costo (−0,23 a −0,49 R según la
+  salida), así que el motor es sano.
+- **Archivos:** `PLAN/T208.md` (nueva, fase 33), `PLAN/notas/T208_forja_5m.md` (diseño), fila en
+  `STATUS.md`, fase 33 en `00_MASTER.md`, línea en `BACKLOG.md`; código `v2/eim/forge/`
+  (`session`, `anchored`, `features`, `space`, `engine`, `examine`, `fstats`, `report`, `prereg`,
+  `__main__`), pruebas `v2/tests/forge/`, informe `v2/reports/forge/forja_5m_20261121-0744.{md,json}`.
+  Datos: 403 994 velas de 5 m agregadas del 1 m del banco de T131 en `v2/backups/t208_forja/`
+  (2023-01-01 → 2026-11-04, **0 huecos**); no se tocó nada del vivo ni de la cantera.
+- **Pruebas:** 46 nuevas en `v2/tests/forge/` — la sesión americana con horario de verano, festivos
+  de NYSE y medias sesiones; **causalidad por truncado** de las 70+ variables (si se corta la serie
+  en `i`, todas valen lo mismo en `i`); el **motor vectorizado idéntico a un bucle lento** operación
+  por operación en las 10 salidas; y las normas (nocional ≤ 1:10, riesgo de precio ≤ 1 R, nada
+  abierto entre sesiones, sin interés compuesto). Gate completo por la cola.
+- **Abierto:** T208 ◐ esperando la lectura del usuario. No hay nada que ascender a la cantera. Lo
+  que mueve la barrera de costos (entradas límite a 2 pb, riesgo menor, otras sesiones y marcos)
+  está en `BACKLOG.md` T208 y sería `forja_5m_v2`, con `m` y reloj nuevos.
+- **En curso:** sin cambios en T31, T143, T172, T194, T196, T206 ni T207; la forja no toca el libro
+  oficial, ni la cantera, ni `params_fingerprint`.
+- **Siguiente paso:** que el usuario decida si se abre `forja_5m_v2` con entradas límite (tomando el
+  supuesto de llenado de lo que ya miden T189 y T207, no inventado) o si la línea de 5 m se cierra
+  aquí con lo aprendido.

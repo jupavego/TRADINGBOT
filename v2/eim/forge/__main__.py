@@ -121,8 +121,9 @@ def cmd_run(a: argparse.Namespace) -> int:
     for mult in crit["cost_stress"]:
         for i in look:
             r = by[i]
-            sig = space.signal(trig[r.trigger], r.direction, r.filter, f, ss.can_signal)
-            tr = simulate(mk, sig, exits[r.exit], rules, cost_mult=mult)
+            raw = np.asarray(trig[r.trigger].fn(f), dtype=np.int8)
+            sig = space.apply(raw, r.direction, r.filter, f, ss.can_signal)
+            tr = simulate(mk, sig, exits[r.exit], rules, cost_mult=mult, flip=raw)
             keep = tr.day < hold_day
             stress[i][str(mult)] = (float(tr.r[keep].mean()) if keep.any() else None)
     hold = examine.holdout(fam, res["survivors"]) if res["survivors"] else None

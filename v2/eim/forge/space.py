@@ -231,7 +231,12 @@ class Recipe:
 
 def signal(trig: Trigger, direction: str, filt: str, f: Feat, can: np.ndarray) -> np.ndarray:
     """Señal final de un (disparador, dirección, filtro): ±1 solo donde se puede operar."""
-    s = np.asarray(trig.fn(f), dtype=np.int8)
+    return apply(np.asarray(trig.fn(f), dtype=np.int8), direction, filt, f, can)
+
+
+def apply(raw: np.ndarray, direction: str, filt: str, f: Feat, can: np.ndarray) -> np.ndarray:
+    """Dirección y filtro sobre un disparador ya calculado (se reutiliza entre recetas)."""
+    s = raw
     if direction == "largo":
         s = np.where(s > 0, s, 0).astype(np.int8)
     elif direction == "corto":

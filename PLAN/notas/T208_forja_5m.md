@@ -111,8 +111,11 @@ apertura, nunca a un precio mejor.
   ADX ≥ 20 · régimen de volatilidad (ancho de Bollinger sobre o bajo su mediana) · lado del VWAP de
   sesión · volumen relativo ≥ 1 · sub-ventana horaria · delta de agresores a favor.
 - **Salida**: ATR con objetivo en múltiplos de R ((k,m) canónicos) · trailing por ATR · tiempo
-  (6, 12, 24, 48 velas) · giro de la propia señal · vuelta al VWAP de sesión · solo el cierre de
-  sesión con stop de protección. Todas, por encima, con el cierre forzoso de la sesión.
+  (12 y 24 velas) · giro de la propia señal · vuelta al VWAP de sesión · solo el cierre de sesión
+  con stop de protección. Todas llevan stop en ATR (así R siempre está definido) y, por encima, el
+  cierre forzoso de la sesión. La salida **por giro** mira el disparador **crudo**, sin la
+  dirección ni el filtro de entrada: si no, en `largo` o en `corto` nunca habría señal contraria
+  que mirar y la salida degeneraría en el cierre de sesión.
 
 El enumerador **deduplica**: dos recetas con la misma serie de señales cuentan una sola vez. El
 total exacto (objetivo de diseño: **miles**, 3 000–15 000) queda escrito en el pre-registro junto a

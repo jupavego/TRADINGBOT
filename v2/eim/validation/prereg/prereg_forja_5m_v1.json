@@ -40,6 +40,7 @@
   "maker_fee": 0.0002,
   "slippage": "CostParams del proyecto; entradas 0,1 pb; salidas a mercado 1 pb + 0,10*(h-l)/o + impacto, tope 100 pb; el objetivo es limite (maker)",
   "intrabar": "si caben stop y objetivo en la misma vela, se asume el stop primero",
+  "exit_flip": "la salida por giro mira el disparador CRUDO (sin direccion ni filtro) y sale a mercado al cierre de la vela de la senal contraria",
   "one_position_at_a_time": true
  },
  "grid": {
@@ -118,5 +119,5 @@
   "valor esperado del maximo nulo publicado junto al mejor resultado"
  ],
  "promotion": "ningun superviviente entra en la cantera por si solo: se propone con ◆ para una plaza de reserva y, si se aprueba, opera hacia adelante desde cero",
- "fingerprint": "a7eefb2f3ea4850c"
+ "fingerprint": "573b4e4602d5f084"
 }

@@ -23,7 +23,7 @@ DECLARED = "2026-11-21"
 PATH = Path(__file__).resolve().parents[1] / "validation" / "prereg" / f"prereg_{VERSION}.json"
 
 #: Huella del pre-registro, fijada a mano al declararlo (ver `python -m eim.forge prereg`).
-FINGERPRINT = "a7eefb2f3ea4850c"
+FINGERPRINT = "573b4e4602d5f084"
 
 HOLDOUT_FROM = "2026-05-04"      # reserva intacta: se mira una sola vez, al final
 CRITERIA = {
@@ -74,6 +74,8 @@ def declaration() -> dict:
             "slippage": "CostParams del proyecto; entradas 0,1 pb; salidas a mercado 1 pb + "
                         "0,10*(h-l)/o + impacto, tope 100 pb; el objetivo es limite (maker)",
             "intrabar": "si caben stop y objetivo en la misma vela, se asume el stop primero",
+            "exit_flip": ("la salida por giro mira el disparador CRUDO (sin direccion ni filtro) "
+                          "y sale a mercado al cierre de la vela de la senal contraria"),
             "one_position_at_a_time": True,
         },
         "grid": {

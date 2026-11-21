@@ -90,16 +90,18 @@ def simulate_all(s: Series, ss: Sessions, f: dict[str, np.ndarray], hold_day: in
     t0 = time.time()
     done = 0
     for trig in space.TRIGGERS:
+        raw = np.asarray(trig.fn(f), dtype=np.int8)
         for d in space.DIRECTIONS:
             for fl in space.FILTERS:
-                sig = space.signal(trig, d, fl, f, ss.can_signal)
+                sig = space.apply(raw, d, fl, f, ss.can_signal)
                 key = hashlib.blake2b(sig.tobytes(), digest_size=16).digest()
                 twin = seen.get(key)
                 if twin is None:
                     seen[key] = (trig.id, d, fl)
                     for ex in space.EXITS:
                         r = by_id[f"{trig.id}|{d}|{fl}|{ex.id}"]
-                        _put(fam, r, simulate(mk, sig, ex, rules, cost_mult), hold_day)
+                        tr = simulate(mk, sig, ex, rules, cost_mult, flip=raw)
+                        _put(fam, r, tr, hold_day)
                 else:
                     for ex in space.EXITS:                      # gemela: mismos resultados
                         a = by_id[f"{twin[0]}|{twin[1]}|{twin[2]}|{ex.id}"]
@@ -147,8 +149,12 @@ def screen(fam: Family, prereg: dict, reps: int, seed: int) -> dict:
     ds, z_max = fstats.dsr(n, *(fam.pow_[:, k] for k in range(4)), m)
     sl = fstats.slice_means(fam.s, fam.c, crit["cscv_splits"])
     ok = np.flatnonzero(n >= crit["min_trades"])
-    fam_pbo = (pbo({names[i]: sl[i] for i in ok}, crit["cscv_splits"]) if len(ok) >= 2
-               else {"pbo": None, "reason": "hacen falta >= 2 recetas con operaciones"})
+    # el PBO solo admite recetas con operaciones en TODOS los tramos: un tramo vacío (NaN) haría
+    # que el «mejor dentro de muestra» fuese un hueco
+    full = [i for i in ok if np.all(np.isfinite(sl[i]))]
+    fam_pbo = (pbo({names[i]: sl[i] for i in full}, crit["cscv_splits"]) if len(full) >= 2
+               else {"pbo": None, "reason": "hacen falta >= 2 recetas con todos los tramos"})
+    fam_pbo["recipes"] = len(full)
     mean_r = fam.mean_r
     rows = []
     for i in ok:
@@ -156,8 +162,10 @@ def screen(fam: Family, prereg: dict, reps: int, seed: int) -> dict:
         rows.append({"id": names[i], "family": fam.recipes[i].family, "n": int(n[i]),
                      "mean_r": float(mean_r[i]), "t": rw["t"].get(names[i]),
                      "p_raw": rw["p_raw"].get(names[i]), "p_rw": p_rw,
-                     "p_holm": rw["p_holm"].get(names[i]), "dsr": None if np.isnan(ds[i])
-                     else float(ds[i]), "cost_r": float(fam.cost[i].sum() / max(n[i], 1)),
+                     "p_holm": rw["p_holm"].get(names[i]),
+                     "dsr": None if np.isnan(ds[i]) else float(ds[i]),
+                     "cost_r": float(fam.cost[i].sum() / max(n[i], 1)),
+                     "gross_r": float((fam.s[i].sum() + fam.cost[i].sum()) / max(n[i], 1)),
                      "capped": int(fam.capped[i]),
                      "exits": {k: int(v) for k, v in zip(("stop", "objetivo", "senal", "cierre"),
                                                          fam.kinds[i], strict=True)}})
@@ -167,7 +175,15 @@ def screen(fam: Family, prereg: dict, reps: int, seed: int) -> dict:
             if r["n"] >= crit["min_trades"]
             and r["p_rw"] is not None and r["p_rw"] < crit["alpha_rw"]
             and r["dsr"] is not None and r["dsr"] > crit["dsr_min"] and pbo_ok]
+    costs = float(fam.cost[ok].sum() / max(n[ok].sum(), 1)) if len(ok) else None
+    barrier = {"mean_cost_r": costs,
+               "mean_r": float(fam.s[ok].sum() / max(n[ok].sum(), 1)) if len(ok) else None,
+               "mean_gross_r": (float((fam.s[ok].sum() + fam.cost[ok].sum())
+                                      / max(n[ok].sum(), 1)) if len(ok) else None),
+               "positive_gross": int(sum(1 for r in rows if r["gross_r"] > 0)),
+               "positive_net": int(sum(1 for r in rows if r["mean_r"] > 0))}
     return {"m": m, "distinct_signals": fam.distinct_signals, "with_min_trades": int(len(ok)),
+            "cost_barrier": barrier,
             "days": int(fam.days), "seconds": fam.seconds, "pbo": fam_pbo,
             "expected_max_z": z_max, "t_null_max_mean": rw.get("t_null_max_mean"),
             "rows": rows, "survivors": [r["id"] for r in surv],

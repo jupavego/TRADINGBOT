@@ -54,6 +54,7 @@ def build(res: dict, prereg: dict, coverage: dict, control: dict,
         "family": {k: res[k] for k in ("m", "distinct_signals", "with_min_trades", "days",
                                        "trades_total", "seconds", "reps", "seed")},
         "pbo": res["pbo"], "expected_max_z": res["expected_max_z"],
+        "cost_barrier": res["cost_barrier"],
         "t_null_max_mean": res["t_null_max_mean"],
         "best": res["best"], "survivors": res["survivors"],
         "by_family": by_family(res["rows"]),
@@ -98,7 +99,17 @@ def to_markdown(rep: dict) -> str:
         b = d["best"] or {}
         L.append(f"| {fam} | {d['recipes']} | {d['trades']} | {_f(d['mean_r'])} | "
                  f"`{b.get('id', '—')}` ({_f(b.get('mean_r'))}) |")
-    L += ["", "## Control de entradas al azar (debe dar ≈ −costo)", "",
+    cb = rep.get("cost_barrier") or {}
+    L += ["", "## La barrera de costos", "",
+          f"- R medio **neto** de la familia: {_f(cb.get('mean_r'))} · "
+          f"**bruto** (sin comisión ni deslizamiento): {_f(cb.get('mean_gross_r'))}.",
+          f"- Cada operación paga **{_f(cb.get('mean_cost_r'))} R** de costos: con riesgo del "
+          "1 % y "
+          "stops de pocas décimas de por ciento, el nocional ronda las 8 veces la cuenta y la "
+          "comisión de ida y vuelta se lleva una fracción enorme del riesgo.",
+          f"- Recetas con R bruto > 0: **{cb.get('positive_gross')}** de "
+          f"{rep['family']['with_min_trades']}; con R neto > 0: **{cb.get('positive_net')}**.", "",
+          "## Control de entradas al azar (debe dar ≈ −costo)", "",
           "| salida | operaciones | R medio |", "|---|---|---|"]
     for k, v in rep["random_control"].items():
         L.append(f"| {k} | {v['trades']} | {_f(v['mean_r'])} |")

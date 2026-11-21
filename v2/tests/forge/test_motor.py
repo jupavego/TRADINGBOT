@@ -97,3 +97,16 @@ def test_identico_al_bucle_lento(serie, sesiones, rasgos, exit_id):
     np.testing.assert_array_equal(got.exit, [r["exit"] for r in ref])
     np.testing.assert_array_equal(got.kind, [r["kind"] for r in ref])
     np.testing.assert_allclose(got.r, [r["r"] for r in ref], rtol=1e-9, atol=1e-12)
+
+
+def test_giro_mira_el_disparador_crudo(serie, sesiones, rasgos):
+    """En `largo` la señal filtrada no tiene ventas: el giro debe mirar el disparador crudo."""
+    mk = examine.market(serie, sesiones, rasgos)
+    trig = next(t for t in space.TRIGGERS if t.id == "ema_5_20")
+    raw = np.asarray(trig.fn(rasgos), dtype=np.int8)
+    sig = space.apply(raw, "largo", "ninguno", rasgos, sesiones.can_signal)
+    ex = next(e for e in space.EXITS if e.id == "giro")
+    assert np.all(sig >= 0)
+    assert (simulate(mk, sig, ex, Rules()).kind == 2).sum() == 0          # sin giro posible
+    con = simulate(mk, sig, ex, Rules(), flip=raw)
+    assert (con.kind == 2).sum() > 0                                      # con el crudo, sí sale

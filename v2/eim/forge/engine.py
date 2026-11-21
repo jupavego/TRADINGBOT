@@ -98,9 +98,14 @@ def _first(mask: np.ndarray) -> np.ndarray:
 
 
 def simulate(mk: Market, sig: np.ndarray, ex: Exit, rules: Rules,
-             cost_mult: float = 1.0) -> Trades:
-    """Operaciones de una señal con una salida, sin solapamiento (una posición a la vez)."""
+             cost_mult: float = 1.0, flip: np.ndarray | None = None) -> Trades:
+    """Operaciones de una señal con una salida, sin solapamiento (una posición a la vez).
+
+    `flip` es la serie que usa la salida por giro: el disparador **crudo**, sin la dirección ni el
+    filtro de entrada (si no, en `largo` o `corto` nunca habría señal contraria que mirar).
+    """
     idx = np.flatnonzero(sig)
+    idx = idx[idx + 1 < mk.n]            # la última vela no puede señalar: no hay vela siguiente
     if not len(idx):
         return Trades.empty()
     e = idx + 1                                    # entrada: la vela SIGUIENTE a la señal
@@ -149,7 +154,8 @@ def simulate(mk: Market, sig: np.ndarray, ex: Exit, rules: Rules,
 
     j_oth = np.full(len(e), BIG)
     if ex.kind == "giro":
-        ws = sliding_window_view(np.r_[sig, np.zeros(HMAX, np.int8)], HMAX)[e]
+        fsig = sig if flip is None else flip
+        ws = sliding_window_view(np.r_[fsig, np.zeros(HMAX, np.int8)], HMAX)[e]
         j_oth = _first((ws == -side[:, None].astype(np.int8)) & valid)
 
     j = np.minimum(np.minimum(j_adv, j_fav), np.minimum(j_oth, hz))

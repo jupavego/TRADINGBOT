@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-21T00:43:15",
+ "generated": "2026-11-21T03:14:52",
  "phases": [
   {
    "n": 0,
@@ -403,6 +403,13 @@ window.EIM_STATUS = {
     "T202",
     "T203",
     "T204"
+   ]
+  },
+  {
+   "n": 33,
+   "name": "La forja de estrategias",
+   "ids": [
+    "T208"
    ]
   }
  ],
@@ -3286,6 +3293,21 @@ window.EIM_STATUS = {
    "notes": "**Abierta 2026-11-21 (el usuario vio órdenes perfiladas que no se activaron en la caída de 59k a 56k).** No era un fallo: son límite en un retroceso que no llegó, y se cancelan como `OBJETIVO_SIN_LLENAR` (acertaron la dirección sin entrar). Lo medido: de las últimas 300 ideas, 117 límite y **91 sin llenar**; en 1 h las seis estrategias que nacen límite (`strategies.py`) se llenan entre **0,8 % y 2,4 %** (`escenario_retroceso@1h`: 0 de 323, nunca ha operado). Dos agujeros: el `mean_r` del panel va solo sobre las llenadas, y estas estrategias quedan fuera de la medición de T189, que solo toma ideas `kind == \"market\"`. Sombra con pre-registro; nada toca el libro oficial ni `params_fingerprint`. Ver `PLAN/T207.md`.",
    "effort": "medio",
    "phase": 30
+  },
+  {
+   "id": "T208",
+   "title": "◆ La forja: perfil BTC 5 m intradía de sesión americana, con miles de recetas",
+   "deps": [
+    "T131",
+    "T167",
+    "T168",
+    "T170",
+    "T49"
+   ],
+   "state": "progress",
+   "notes": "**Abierta 2026-11-21 (pedido del usuario: un perfil adicional para la cantera).** BTC en 5 m, intradía (nada abierto de un día para otro), sesión americana (`America/New_York` 09:30–16:00, L–V, sin festivos ni medias sesiones), compras y ventas. **Familia propia `forja_5m_v1`, aparte de la cantera**: 18 900 recetas (70 disparadores en 7 familias × 3 direcciones × 9 filtros × 10 salidas) son el `m` de Romano-Wolf/Holm/e-BH y el `attempts` del Sharpe deflactado; meterlas en `prereg_cantera_v1` (42 prospectos, techo 50) destruiría su control de intentos. Pre-registro `v2/eim/validation/prereg/prereg_forja_5m_v1.json` (huella `573b4e4602d5f084`, commit `5ac96ed`, **anterior a toda cifra**), rejilla `86a88f612f5943ef`, reserva 2026-05-04 → 2026-11-03 intacta. Normas del usuario: 10 000 $ sin interés compuesto, 1 % por operación, 1:10 de tope, entrada en la vela siguiente a la señal y la tarifa única del proyecto. Datos: 403 994 velas de 5 m agregadas del 1 m del banco de T131 (2023-01-01 → 2026-11-04, **0 huecos**). Código `v2/eim/forge/`, pruebas `v2/tests/forge/` (44: sesión con horario de verano y festivos, causalidad por truncado, motor vectorizado idéntico a un bucle lento en las 10 salidas, normas). Ver `PLAN/T208.md` y `PLAN/notas/T208_forja_5m.md`. **Medido el 2026-11-21 (238 s por la cola, 18 562 364 operaciones): 0 supervivientes de 18 900.** Informe `v2/reports/forge/forja_5m_20261121-0744.{md,json}`. La mejor de la rejilla (`ema_20_100|corto|apertura|vwap_objetivo`, n = 229, **+0,168 R**) da **t = 0,82**, p de Romano-Wolf **1,000** y **DSR 0,000**, con el máximo nulo esperado en **z = 4,01** (t remuestreado 3,74); **PBO 0,47** frente al 0,20 del pre-registro, y el estrés ×1,5 hunde a 8 de las 10 mejores. **La reserva no se miró** (no había supervivientes). **Hallazgo: la barrera de costos.** La familia gana **+0,069 R brutos** por operación y pierde **−0,322 R netos**: cada operación paga **0,391 R** de comisión y deslizamiento, porque con riesgo del 1 % y stops de pocas décimas de por ciento el nocional ronda **8 veces la cuenta**. **12 992 de 16 176 recetas son positivas en bruto y solo 126 en neto.** El control aleatorio da ≈ −costo (−0,23 a −0,49 R según la salida), así que el motor es sano. Queda la ◆ del usuario: no hay nada que ascender a la cantera; decidir si se abre `forja_5m_v2` con entradas límite (maker 2 pb), que es lo único que mueve esa barrera.",
+   "effort": "alto",
+   "phase": 33
   }
  ]
 };
