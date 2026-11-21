@@ -39,6 +39,7 @@ const mode: Mode = 'ANALISIS' // propuestas del gráfico: análisis (no son órd
 let symbol: string = SYMBOLS[0]
 let tf = '1h'
 let link = false
+let linkTried = false   // T206: antes del primer intento no se dice «sin conexión», se dice «conectando»
 let state: 'connecting' | 'up' | 'down' = 'connecting'
 let stream: StreamHandle | null = null
 let loadAbort: AbortController | null = null
@@ -74,12 +75,14 @@ let liveShown = ''   // último estado pintado: cada tick del precio no vuelve a
 function paintLive(): void {
   const el = $('live')
   const ok = link && state !== 'down'
-  const s = !link ? 'down' : state === 'up' ? 'up' : 'connecting'
+  // Sin enlace y sin haberlo intentado aún (el socket acaba de abrirse): «conectando», no «caída».
+  const s = !link ? (linkTried ? 'down' : 'connecting') : state === 'up' ? 'up' : 'connecting'
   if (liveShown === `${s}|${ok}`) return
   liveShown = `${s}|${ok}`
   el.dataset.state = s
   el.querySelector('span')!.textContent =
-    ok && s === 'up' ? 'En vivo' : !link ? 'Sin conexión' : s === 'down' ? 'Fuente caída' : 'Conectando…'
+    ok && s === 'up' ? 'En vivo'
+      : !link ? (linkTried ? 'Sin conexión' : 'Conectando…') : s === 'down' ? 'Fuente caída' : 'Conectando…'
   const banner = $('banner')
   banner.hidden = ok && s === 'up' || s === 'connecting'
   if (!banner.hidden) {
@@ -87,6 +90,13 @@ function paintLive(): void {
       ? 'Sin conexión con la API — reintentando…'
       : 'La fuente de datos en vivo está caída — mostrando el último dato conocido.'
   }
+}
+
+/** Aviso propio del histórico (T206): aparte del de la conexión, que es cosa de `paintLive`. */
+function paintHistory(msg: string | null): void {
+  const el = $('banner-hist')
+  el.hidden = msg === null
+  if (msg !== null) el.textContent = msg
 }
 
 function paintPrice(c: Candle): void {
@@ -164,28 +174,33 @@ function onMsg(m: StreamMsg): void {
 
 async function load(): Promise<void> {
   stream?.close(); loadAbort?.abort()
-  loadAbort = new AbortController()
-  link = false; state = 'connecting'; lastClose = null; liveShown = ''
+  const abort = loadAbort = new AbortController()
+  link = false; linkTried = false; state = 'connecting'; lastClose = null; liveShown = ''
   $('price').textContent = '—'; delete $('price').dataset.dir
   paintLive()
+  paintHistory(null)
   more.setContext(symbol, tf)
-  void loadAgents(loadAbort.signal)
-  void loadTrades(loadAbort.signal)
+  // T206: el vivo no espera al histórico. El socket se abre ya —antes esto iba después del
+  // `await` de abajo—, así que «En vivo» y el precio aparecen en cuanto conecta aunque
+  // `/v2/snapshot` tarde sus segundos; el histórico pinta cuando llega y avisa aparte si falla.
+  stream = openStream(symbol, tf, onMsg, (up) => {
+    linkTried = true; link = up; if (!up) state = 'down'; paintLive()
+  })
+  void loadAgents(abort.signal)
+  void loadTrades(abort.signal)
   void calibration.reload()
   void risk.reload()
   try {
-    const snap = await fetchSnapshot(symbol, tf, 500, loadAbort.signal)
+    const snap = await fetchSnapshot(symbol, tf, 500, abort.signal)
     const last = snap.forming ?? snap.candles[snap.candles.length - 1]
-    if (last) paintPrice(last)
+    if (last && lastClose === null) paintPrice(last)  // si ya llegó un tick, manda el de en vivo
     scenarios.setLast(snap.candles[snap.candles.length - 1] ?? null)
     void scenarios.reload()
     void squad.reload()
   } catch (e) {
     if ((e as Error).name === 'AbortError') return
-    $('banner').hidden = false
-    $('banner').textContent = `No se pudo cargar el histórico: ${(e as Error).message}`
+    paintHistory(`No se pudo cargar el histórico: ${(e as Error).message}`)
   }
-  stream = openStream(symbol, tf, onMsg, (up) => { link = up; if (!up) state = 'down'; paintLive() })
 }
 
 function build(): void {

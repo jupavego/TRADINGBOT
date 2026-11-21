@@ -4070,6 +4070,32 @@ pm run build.
 - **Siguiente paso:** T65 (☐) ya puede implementarse con la postura vigente; antes, los tres puntos del
   BACKLOG, sobre todo el procedimiento de actualización de `yt-dlp`.
 
+## 2026-11-21 · sesión T206 criterio 1 — el vivo deja de esperar al histórico
+- **Hecho (◆ del usuario, «WS en paralelo»):** `load()` (`eim/web/src/main.ts`) abría el WebSocket
+  **después** de `await fetchSnapshot(...)`, así que mientras el snapshot tardaba —14 s de trabajo
+  real, 30–93 s en la API viva bajo carga— la barra decía «Sin conexión» con el precio en `—`
+  aunque la API estuviera sana. Ahora el socket se abre antes del `await`. Además: el fallo del
+  histórico tiene su propio aviso (`#banner-hist`, ámbar) y ya no escribe en el `#banner` que pinta
+  `paintLive`; `paintLive` distingue «Conectando…» (aún no se ha intentado el enlace) de «Sin
+  conexión» (se intentó y no hay), para no enseñar un corte falso al cargar; y el precio del
+  snapshot no pisa un tick en vivo que haya llegado antes (`lastClose === null`).
+- **Archivos:** `v2/eim/web/src/main.ts`, `v2/eim/web/index.html`, `v2/eim/web/src/style.css`,
+  `v2/tests/architecture/test_t206_vivo_no_espera_historico.py`, `PLAN/STATUS.md` (T206 ☐→◐),
+  `status.js`/`roadmap.html`.
+- **Pruebas:** 6 nuevas (guardián de regresión sobre la fuente: el orden de `openStream` y del
+  `await`, los dos avisos separados, un solo socket por carga) en verde por la cola;
+  `tsc --noEmit` limpio; `ruff` limpio; gate completo por la cola (`gate-t206-ws-paralelo`).
+  **Verificado en el navegador** contra la API viva, con un Vite temporal en 5174 (receta de
+  «Verificar la web de un worktree»): **EN VIVO con precio a los 1 221 ms** con los dos
+  `/v2/snapshot` todavía en vuelo; con `/v2/snapshot` colgado a propósito, a los 13 s seguía EN VIVO
+  con precio y sin aviso falso; con el snapshot fallando, EN VIVO + solo el aviso del histórico;
+  tres cambios de marco → 3 sockets abiertos, 2 cerrados, 1 vivo (sin huérfanos ni duplicados).
+- **Abierto:** esto quita el síntoma, no el costo: `/v2/snapshot` sigue en ~14 s de trabajo real
+  (ver la entrada anterior y `PLAN/BACKLOG.md`). El PR de la poda de `micro/` va aparte y toca la
+  misma fila de `STATUS.md`: al fusionar el segundo habrá que resolver esa línea.
+- **Siguiente paso:** decidir qué hacer con el PR de la poda, y los criterios que quedan de T206
+  (medir `build_snapshot` por tramos en el registro, memoria de la API, `/v2/health` que note una
+  ruta colgada y rotación de `vigilante.err.log`).
 ## 2026-11-21 · sesión Órdenes que no se activaron en la caída → T207
 - **Hecho:** el usuario vio órdenes perfiladas antes de la caída de BTC de 59k a 56k que no se activaron.
   No era un fallo: la vela de 1 h del 21-nov 03:00 UTC abrió en 58 574,6 y cayó a 56 333,0 sin rebotar, y
