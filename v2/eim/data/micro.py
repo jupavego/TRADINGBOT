@@ -18,14 +18,6 @@ import duckdb
 
 from eim.core import Book, MicroBar
 
-
-def _glob(root: Path, kind: str, symbol: str) -> str | None:
-    base = root / "micro" / kind / f"symbol={symbol}"
-    if not any(base.glob("date=*/hour=*/part-*.parquet")):
-        return None
-    return (base / "date=*" / "hour=*" / "part-*.parquet").as_posix().replace("'", "''")
-
-
 HFT = "micro_hft"
 DAY_MS = 86_400_000
 # huecos de la captura que rompen el libro o pierden trades; un silencio no pierde nada
@@ -43,9 +35,13 @@ def _old_gap_filter() -> str:
     return OLD_GAP_SQL if os.environ.get(IGNORE_LIQ_ENV, "") == "1" else "TRUE"
 
 
-def _hft_files(root: Path, kind: str, symbol: str, start: int, end: int) -> str | None:
-    """Lista DuckDB de las partes de `micro_hft/<kind>` de los días que toca la ventana."""
-    base = root / HFT / kind / f"symbol={symbol}"
+def _files(base: Path, start: int, end: int) -> str | None:
+    """Lista DuckDB con las partes de los días UTC que toca [start, end); None si no hay.
+
+    Vale para los dos árboles: el escritor reparte cada fila por su propia hora UTC
+    (`collectors/writer.py`, `hft_writer.py`), así que quedarse con los días de la ventana no
+    deja fuera ninguna fila suya.
+    """
     days = {time.strftime("%Y-%m-%d", time.gmtime(t / 1000))
             for t in range(start - start % DAY_MS, max(end, start + 1), DAY_MS)}
     files = sorted(p for d in days for p in (base / f"date={d}").glob("hour=*/part-*.parquet"))
@@ -54,12 +50,31 @@ def _hft_files(root: Path, kind: str, symbol: str, start: int, end: int) -> str 
     return "[" + ", ".join("'" + f.as_posix().replace("'", "''") + "'" for f in files) + "]"
 
 
+def _hft_files(root: Path, kind: str, symbol: str, start: int, end: int) -> str | None:
+    """Lista DuckDB de las partes de `micro_hft/<kind>` de los días que toca la ventana."""
+    return _files(root / HFT / kind / f"symbol={symbol}", start, end)
+
+
+def _old_files(root: Path, kind: str, symbol: str, start: int, end: int) -> str | None:
+    """Lista DuckDB de las partes de `micro/<kind>` de los días que toca la ventana.
+
+    T206: antes se leía el árbol entero (`date=*/hour=*/part-*.parquet`) y se filtraba por `t`
+    después, así que se listaban los 30 días guardados para responder por los 21 de la ventana.
+    Medido, eso NO era el cuello de botella (DuckDB ya salta los grupos de filas por las
+    estadísticas de `t`: 14,14 s podando frente a 14,12 y 13,36 s sin podar); lo que gana es que
+    el número de archivos que se abren deja de crecer con la captura y que un día de fuera de la
+    ventana no puede estropear la lectura. El tiempo de verdad está en los 21 días de tops que
+    `_read_tops` trae a Python (ver `PLAN/BACKLOG.md`, T206).
+    """
+    return _files(root / "micro" / kind / f"symbol={symbol}", start, end)
+
+
 def _read(root: Path, kind: str, symbol: str, cols: str, start: int, end: int,
           where: str = "TRUE") -> list[tuple]:
-    g = _glob(root, kind, symbol)
+    g = _old_files(root, kind, symbol, start, end)
     if g is None:
         return []
-    q = (f"SELECT {cols} FROM read_parquet('{g}', hive_partitioning=false) "
+    q = (f"SELECT {cols} FROM read_parquet({g}, hive_partitioning=false) "
          f"WHERE t >= ? AND t < ? AND {where} ORDER BY t")
     return duckdb.connect().execute(q, [start, end]).fetchall()
 
@@ -147,8 +162,8 @@ def _read_trade_bars(root: Path, symbol: str, t0: int, step: int, n: int) -> dic
     if (files := _hft_files(root, "trades", symbol, t0, end)) is not None:
         src = (f"(SELECT DISTINCT ON (agg_id) t_ms AS t, q, maker FROM read_parquet({files}, "
                f"union_by_name=true, hive_partitioning=false) WHERE t_ms >= ? AND t_ms < ?)")
-    elif (g := _glob(root, "trades", symbol)) is not None:
-        src = (f"(SELECT t, q, maker FROM read_parquet('{g}', hive_partitioning=false) "
+    elif (g := _old_files(root, "trades", symbol, t0, end)) is not None:
+        src = (f"(SELECT t, q, maker FROM read_parquet({g}, hive_partitioning=false) "
                f"WHERE t >= ? AND t < ?)")
     else:
         return {}
@@ -162,13 +177,13 @@ def _read_trade_bars(root: Path, symbol: str, t0: int, step: int, n: int) -> dic
 def _read_tops(root: Path, symbol: str, start: int, end: int) -> list[tuple]:
     """(t, bid_p, bid_q, ask_p, ask_q, Σ qty bids, Σ qty asks): la suma de niveles se hace en
     DuckDB para no analizar el JSON de cada libro en Python."""
-    g = _glob(root, "top", symbol)
+    g = _old_files(root, "top", symbol, start, end)
     if g is None:
         return []
     q = ("SELECT t, bid_p, bid_q, ask_p, ask_q, "
          "list_sum(CAST(json_extract(bids, '$[*][1]') AS DOUBLE[])), "
          "list_sum(CAST(json_extract(asks, '$[*][1]') AS DOUBLE[])) "
-         f"FROM read_parquet('{g}', hive_partitioning=false) WHERE t >= ? AND t < ? ORDER BY t")
+         f"FROM read_parquet({g}, hive_partitioning=false) WHERE t >= ? AND t < ? ORDER BY t")
     return [(r[0], r[1], r[2], r[3], r[4], r[5] or 0.0, r[6] or 0.0)
             for r in duckdb.connect().execute(q, [start, end]).fetchall()]
 
@@ -198,10 +213,10 @@ def _instants(spans: list[tuple[int, int]], t0: int, step: int, end: int) -> lis
 
 
 def _last_top_levels(root: Path, symbol: str, start: int, end: int):
-    g = _glob(root, "top", symbol)
+    g = _old_files(root, "top", symbol, start, end)
     if g is None:
         return None
-    q = (f"SELECT bids, asks FROM read_parquet('{g}', hive_partitioning=false) "
+    q = (f"SELECT bids, asks FROM read_parquet({g}, hive_partitioning=false) "
          f"WHERE t >= ? AND t < ? ORDER BY t DESC LIMIT 1")
     row = duckdb.connect().execute(q, [start, end]).fetchone()
     return row

@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-20T21:25:12",
+ "generated": "2026-11-20T23:35:00",
  "phases": [
   {
    "n": 0,
@@ -3267,8 +3267,8 @@ window.EIM_STATUS = {
     "T127",
     "T141"
    ],
-   "state": "pending",
-   "notes": "**Abierta 2026-11-20 tras el incidente «la app está caída».** La API respondía, pero `GET /v2/snapshot` estuvo colgado 3 h 30 min (19:11→22:38 UTC) por el candado **global** de `HistoryLoader.ensure()` (`eim/api/history.py:27`), y la web solo abre el WebSocket en vivo **después** del snapshot (`web/src/main.ts:177` y `:188`): mesa en «SIN CONEXIÓN» con precio `—`, mientras `/v2/health` daba todo VIVO. Vite (5173) también estaba muerto, sin rastro en `web.err.log`. Servicios restaurados el mismo día; queda el arreglo de fondo: snapshot a 24–64 s (velas de solo 94 KB), API a 3,6 GB a los 7 min, 3 reinicios de la API (código 4294967295) y 139 246 líneas repetidas en `vigilante.err.log`. Ver `PLAN/T206.md`.",
+   "state": "progress",
+   "notes": "**Abierta 2026-11-20 tras el incidente «la app está caída».** La API respondía, pero `GET /v2/snapshot` estuvo colgado 3 h 30 min (19:11→22:38 UTC) por el candado **global** de `HistoryLoader.ensure()` (`eim/api/history.py:27`), y la web solo abre el WebSocket en vivo **después** del snapshot (`web/src/main.ts:177` y `:188`): mesa en «SIN CONEXIÓN» con precio `—`, mientras `/v2/health` daba todo VIVO. Vite (5173) también estaba muerto, sin rastro en `web.err.log`. Servicios restaurados el mismo día; queda el arreglo de fondo: snapshot a 24–64 s (velas de solo 94 KB), API a 3,6 GB a los 7 min, 3 reinicios de la API (código 4294967295) y 139 246 líneas repetidas en `vigilante.err.log`. Ver `PLAN/T206.md`. **◐ 2026-11-21:** medido el reparto real de `build_snapshot` (BTCUSDT 1h n=500): `read_micro` 13,4–14,1 s de ~14,5 s; dentro, `_read_trade_bars` 5,8 s (árbol HFT, ya podado), `_read_tops` 5,7 s trayendo **1 603 379 filas** a Python y `combine` 2,2 s. `micro/` se leía entero (`date=*/hour=*`) y ahora se poda por los días UTC de la ventana (`_old_files`, `eim/data/micro.py`), con 5 pruebas en `tests/data/test_t206_micro_poda.py`: **correcto pero sin ganancia medible** (14,14 s podado frente a 14,12 y 13,36 s sin podar), porque DuckDB ya salta los grupos de filas por las estadísticas de `t`. El tiempo que queda es trabajo real sobre 21 días de microestructura; bajarlo pide agregar los tops dentro de DuckDB (cambia el orden de suma del OFI) o cachear las horas cerradas: decisión del usuario, sin tocar T31.",
    "effort": "medio",
    "phase": 21
   }

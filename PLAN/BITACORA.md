@@ -4069,3 +4069,33 @@ pm run build.
   `BITACORA.md`, `STATUS.md` y `status.js`): nada se fusionó.
 - **Siguiente paso:** T65 (☐) ya puede implementarse con la postura vigente; antes, los tres puntos del
   BACKLOG, sobre todo el procedimiento de actualización de `yt-dlp`.
+
+## 2026-11-21 · sesión T206 — poda por fecha de `micro/` (y qué NO era el cuello de botella)
+- **Hecho:** se midió el reparto real de `build_snapshot` (BTCUSDT 1h n=500, API en marcha):
+  `read_micro` 13,4–14,1 s de ~14,5 s y todo lo demás en milisegundos. Dentro de `read_micro`:
+  `_read_trade_bars` 5,8 s (árbol HFT, que **ya** poda por día), `_read_tops` 5,7 s trayendo
+  **1 603 379 filas** a Python, `combine` 2,2 s, `_last_top_levels` 0,46 s, `_read_gaps` 0,17 s.
+  El árbol viejo `micro/` se leía entero (`_glob` → `date=*/hour=*/part-*.parquet`) y ahora se poda
+  por los días UTC de la ventana (`_files` / `_old_files`), como ya hacía `_hft_files`.
+- **Resultado medido, contra lo que se esperaba:** la poda es correcta pero **no acelera nada**:
+  14 137 ms podado frente a 14 115 y 13 358 ms sin podar (misma ventana fija de 21 días, 462 barras).
+  La razón es que DuckDB ya salta los grupos de filas por las estadísticas de `t` del parquet, así
+  que los 9 días de más solo costaban abrir sus pies de archivo. Lo que queda es trabajo real sobre
+  21 días de microestructura, no archivos de sobra.
+- **Archivos:** `v2/eim/data/micro.py` (`_glob` fuera; `_files`, `_hft_files` y `_old_files`; cuatro
+  llamadas pasan ya la ventana), `v2/tests/data/test_t206_micro_poda.py` (5 pruebas), `PLAN/STATUS.md`
+  (T206 ☐→◐), `PLAN/BACKLOG.md` (3 puntos), `status.js`/`roadmap.html`.
+- **Pruebas:** las 5 nuevas en verde por la cola en prioridad batch; `ruff check eim tests` limpio;
+  gate completo por la cola (`gate-t206-micro-poda`). Igualdad antes/después comprobada sobre los
+  datos reales: mismas 462 barras y mismo libro; solo cambia el último bit de `buy_v`/`sell_v`/`delta`
+  por el orden de suma en paralelo de DuckDB, que **ya variaba entre corridas del mismo código**
+  (3 corridas, 3 hashes distintos).
+- **Abierto:** el objetivo de T206 (snapshot rápido) **no está cumplido**. Las dos vías que sí lo
+  bajarían están en el BACKLOG y son ◆ del usuario porque cambian números o añaden maquinaria:
+  agregar los tops dentro de DuckDB (el OFI pasaría a depender del orden de `lag()` con `t`
+  repetidos) o cachear los agregados de las horas cerradas. `liq_flow.py` tiene el mismo `_glob`
+  sin podar. En la API viva el snapshot osciló entre 93 s y 30,7 s el mismo día: el multiplicador
+  sobre los ~14 s es la carga del equipo, no el crecimiento de los archivos.
+- **Siguiente paso:** decidir con el usuario cuál de las dos vías, y mientras tanto lo que no cambia
+  ningún número: abrir el WebSocket en paralelo al snapshot en `web/src/main.ts` (criterio 1 de
+  T206), que quita el «SIN CONEXIÓN» aunque el histórico tarde.
