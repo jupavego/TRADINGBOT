@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-20T16:35:54",
+ "generated": "2026-11-20T18:12:16",
  "phases": [
   {
    "n": 0,
@@ -277,7 +277,8 @@ window.EIM_STATUS = {
     "T173",
     "T174",
     "T176",
-    "T178"
+    "T178",
+    "T206"
    ]
   },
   {
@@ -3256,6 +3257,20 @@ window.EIM_STATUS = {
    "notes": "**Abierta 2026-11-20 (pedido del usuario: automatizar lo manual).** Fase 32, bajo el orquestador T205; ver `PLAN/T204.md`. Lo que reinicie nace apagado hasta el cierre de T31.",
    "effort": "bajo",
    "phase": 32
+  },
+  {
+   "id": "T206",
+   "title": "La interfaz arranca en vivo aunque el equipo vaya cargado",
+   "deps": [
+    "T120",
+    "T126",
+    "T127",
+    "T141"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-20 tras el incidente «la app está caída».** La API respondía, pero `GET /v2/snapshot` estuvo colgado 3 h 30 min (19:11→22:38 UTC) por el candado **global** de `HistoryLoader.ensure()` (`eim/api/history.py:27`), y la web solo abre el WebSocket en vivo **después** del snapshot (`web/src/main.ts:177` y `:188`): mesa en «SIN CONEXIÓN» con precio `—`, mientras `/v2/health` daba todo VIVO. Vite (5173) también estaba muerto, sin rastro en `web.err.log`. Servicios restaurados el mismo día; queda el arreglo de fondo: snapshot a 24–64 s (velas de solo 94 KB), API a 3,6 GB a los 7 min, 3 reinicios de la API (código 4294967295) y 139 246 líneas repetidas en `vigilante.err.log`. Ver `PLAN/T206.md`.",
+   "effort": "medio",
+   "phase": 21
   }
  ]
 };
