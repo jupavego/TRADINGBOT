@@ -4034,3 +4034,38 @@ pm run build.
   confirmar que impiden que `sincronizar_main.ps1` avance `main` (lleva desde las 20:34 UTC sin actualizar).
 - **Siguiente paso:** T206, empezando por abrir el WebSocket en paralelo al snapshot (arregla el síntoma) y
   luego el candado por serie y la medición de `build_snapshot`.
+
+## 2026-11-21 02:24 UTC · claude-code · T62: la postura de YouTube se reabre y cambia (◆ del usuario)
+- **Hecho:** el usuario preguntó si servían cinco repositorios (yt-dlp, Pinchflat, TubeArchivist,
+  MeTube, ytdl-sub) para la descarga periódica de la fase 14. Al revisarlos apareció que la ◆ de T62 ya
+  estaba decidida el 2026-11-07 («se cumplen los Términos»: ni `yt-dlp` ni `youtube-transcript-api`), y
+  con ella **T65 y T67–T69 no podían correr sobre canales ajenos**, porque `captions.download` de la API
+  oficial solo baja subtítulos de videos propios. El usuario reabrió la decisión y **aceptó los puntos 3
+  y 4** de la propuesta original: fines académicos, no comercial, sin redistribución.
+- **Lo que queda escrito sin adornos:** los Términos de YouTube no tienen excepción académica ni por uso
+  no comercial, así que es un **incumplimiento contractual asumido**, no una excepción legal; la
+  exposición real es bloqueo de IP y cancelación de la clave de la Data API. Lo que sostiene la intención
+  son los controles: nada audiovisual a git, audio a carpeta temporal con borrado verificado en el test,
+  `yt-dlp` en proceso aislado (`YTDLP_NO_PLUGINS`, `--ignore-config`, versión fijada, sin `-U`), solo
+  audio. **Límites que no se cruzan:** sin cookies ni cuenta, sin proxies rotativos ni evasión de bloqueos
+  o puertas de edad, ritmo bajo en cola nocturna, solo los canales de la lista de T64, y frenar con
+  alerta si YouTube bloquea.
+- **De los cinco repositorios, uno:** `yt-dlp`, que ya estaba auditado en T62 (Unlicense, `2026.10.26`).
+  Los otros cuatro son envoltorios suyos que **guardan biblioteca permanente** (lo más explícitamente
+  prohibido, III.E.1.a) y añaden servicio web con Docker en un equipo de 4 núcleos que sostiene la
+  captura HFT; su programación periódica ya la dan T64, T70 y el director de recursos de T126.
+- **Archivos:** `v2/docs/SEGURIDAD.md` (§ «Videos de YouTube» reescrita, postura anterior conservada por
+  trazabilidad), `PLAN/STATUS.md` (◆ de T62), `PLAN/T65.md` (aviso de postura al inicio; el archivo era
+  del 19-oct y contradecía lo vigente), `PLAN/BACKLOG.md` (3 puntos abiertos).
+- **Pruebas:** ninguna; solo documentos y plan, sin tocar código. El gate no cambia.
+- **Abierto (BACKLOG):** procedimiento de actualización de `yt-dlp` (fijar versión choca con los
+  extractores que YouTube rompe); medir con `captions.list` cuántos videos de la lista tienen subtítulos
+  publicados, que decide cuánto cae en el camino de audio (0,38 h/h frente a 0,20 h/h); registrar el
+  motivo de omisión por canal, porque un canal que bloquea sesga la muestra de T69.
+- **En curso:** nada. Confirmado en `main` de la carpeta principal por decisión delegada del usuario
+  («toma la mejor decisión»): son seis archivos de documentos, sin código, y dejarlos sucios aquí choca
+  con `sincronizar_main.ps1`, que hace `pull` cada 5 min sobre esta misma carpeta. Antes de confirmar
+  hubo que **ponerse al día y re-añadir** (origin/main iba 4 commits delante con T197–T206, que tocan
+  `BITACORA.md`, `STATUS.md` y `status.js`): nada se fusionó.
+- **Siguiente paso:** T65 (☐) ya puede implementarse con la postura vigente; antes, los tres puntos del
+  BACKLOG, sobre todo el procedimiento de actualización de `yt-dlp`.
