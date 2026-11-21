@@ -4096,3 +4096,23 @@ pm run build.
 - **Siguiente paso:** decidir qué hacer con el PR de la poda, y los criterios que quedan de T206
   (medir `build_snapshot` por tramos en el registro, memoria de la API, `/v2/health` que note una
   ruta colgada y rotación de `vigilante.err.log`).
+## 2026-11-21 · sesión Órdenes que no se activaron en la caída → T207
+- **Hecho:** el usuario vio órdenes perfiladas antes de la caída de BTC de 59k a 56k que no se activaron.
+  No era un fallo: la vela de 1 h del 21-nov 03:00 UTC abrió en 58 574,6 y cayó a 56 333,0 sin rebotar, y
+  las siete ideas vivas del tramo eran cortos **límite por encima** del mercado (57 044, 57 292, 58 615,
+  56 876…), esperando un repunte que no llegó; se cancelaron como `OBJETIVO_SIN_LLENAR` (acertaron la
+  dirección sin entrar) y solo se llenó `sugerencia_3@15m`, con la entrada 250 USDT más abajo. Al medir
+  el alcance apareció lo de fondo: de las últimas 300 ideas, 117 límite y **91 sin llenar**, todas de las
+  seis estrategias que nacen límite en `eim/paper/strategies.py` (no de la conversión de T143/T189). Tasa
+  de llenado histórica en 1 h entre **0,8 % y 2,4 %**; `escenario_retroceso@1h` lleva 0 de 323 y nunca ha
+  operado. Dos agujeros: el `mean_r` del panel se calcula solo sobre las llenadas, y `live_market_ideas`
+  (`eim/paper/asym/maker_live.py:40`) solo toma ideas `kind == "market"`, así que estas seis quedan fuera
+  de la comparación de T189.
+- **Archivos:** `PLAN/T207.md` (nueva, fase 30), fila en `STATUS.md`, fase 30 ampliada en `00_MASTER.md`,
+  `status.js`/`roadmap.html`. Sin tocar código del producto.
+- **Pruebas:** ninguna (diagnóstico y plan). Todo medido contra la API viva de `juanpablo-cpu`
+  (`GET /v2/paper`, `GET /v2/paper/ideas`, `GET /v2/paper/asymmetry`) el 2026-11-21 ≈ 04:15 UTC.
+- **Abierto:** T207 ☐. T189 sigue EN CURSO con primera mirada el 2026-12-17 (+0,045 R/op en 15m, +0,020
+  en 1h, +0,012 en 4h, a favor del límite, contando la no ejecución como 0 R).
+- **Siguiente paso:** T207, empezando por publicar el valor esperado por idea generada junto al de las
+  llenadas; no tocar reglas vivas antes del cierre de T31 (2026-11-28).
