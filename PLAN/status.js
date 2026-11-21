@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-20T21:25:12",
+ "generated": "2026-11-21T00:09:12",
  "phases": [
   {
    "n": 0,
@@ -378,7 +378,8 @@ window.EIM_STATUS = {
     "T187",
     "T188",
     "T189",
-    "T194"
+    "T194",
+    "T207"
    ]
   },
   {
@@ -3271,6 +3272,20 @@ window.EIM_STATUS = {
    "notes": "**Abierta 2026-11-20 tras el incidente «la app está caída».** La API respondía, pero `GET /v2/snapshot` estuvo colgado 3 h 30 min (19:11→22:38 UTC) por el candado **global** de `HistoryLoader.ensure()` (`eim/api/history.py:27`), y la web solo abre el WebSocket en vivo **después** del snapshot (`web/src/main.ts:177` y `:188`): mesa en «SIN CONEXIÓN» con precio `—`, mientras `/v2/health` daba todo VIVO. Vite (5173) también estaba muerto, sin rastro en `web.err.log`. Servicios restaurados el mismo día; queda el arreglo de fondo: snapshot a 24–64 s (velas de solo 94 KB), API a 3,6 GB a los 7 min, 3 reinicios de la API (código 4294967295) y 139 246 líneas repetidas en `vigilante.err.log`. Ver `PLAN/T206.md`.",
    "effort": "medio",
    "phase": 21
+  },
+  {
+   "id": "T207",
+   "title": "Lo que cuesta no entrar: las órdenes límite que nacen límite",
+   "deps": [
+    "T143",
+    "T144",
+    "T189",
+    "T49"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-21 (el usuario vio órdenes perfiladas que no se activaron en la caída de 59k a 56k).** No era un fallo: son límite en un retroceso que no llegó, y se cancelan como `OBJETIVO_SIN_LLENAR` (acertaron la dirección sin entrar). Lo medido: de las últimas 300 ideas, 117 límite y **91 sin llenar**; en 1 h las seis estrategias que nacen límite (`strategies.py`) se llenan entre **0,8 % y 2,4 %** (`escenario_retroceso@1h`: 0 de 323, nunca ha operado). Dos agujeros: el `mean_r` del panel va solo sobre las llenadas, y estas estrategias quedan fuera de la medición de T189, que solo toma ideas `kind == \"market\"`. Sombra con pre-registro; nada toca el libro oficial ni `params_fingerprint`. Ver `PLAN/T207.md`.",
+   "effort": "medio",
+   "phase": 30
   }
  ]
 };
