@@ -4091,11 +4091,36 @@ pm run build.
   con precio y sin aviso falso; con el snapshot fallando, EN VIVO + solo el aviso del histórico;
   tres cambios de marco → 3 sockets abiertos, 2 cerrados, 1 vivo (sin huérfanos ni duplicados).
 - **Abierto:** esto quita el síntoma, no el costo: `/v2/snapshot` sigue en ~14 s de trabajo real
-  (ver la entrada anterior y `PLAN/BACKLOG.md`). El PR de la poda de `micro/` va aparte y toca la
-  misma fila de `STATUS.md`: al fusionar el segundo habrá que resolver esa línea.
-- **Siguiente paso:** decidir qué hacer con el PR de la poda, y los criterios que quedan de T206
-  (medir `build_snapshot` por tramos en el registro, memoria de la API, `/v2/health` que note una
-  ruta colgada y rotación de `vigilante.err.log`).
+  (el reparto medido está en la entrada siguiente y lo que falta, en `PLAN/BACKLOG.md`).
+- **Siguiente paso:** los criterios que quedan de T206 (medir `build_snapshot` por tramos en el
+  registro, memoria de la API, `/v2/health` que note una ruta colgada y rotación de
+  `vigilante.err.log`).
+
+## 2026-11-21 · T206 — dónde se va el tiempo del snapshot (y la poda que se probó y se descartó)
+- **Hecho:** se midió el reparto de `build_snapshot` (BTCUSDT 1h, n=500, con la API en marcha) para
+  no optimizar a ciegas. `read_micro` se lleva **13 400–14 100 ms de ~14 500**; todo lo demás son
+  milisegundos (`read_liq_flow` 845 ms, `_neighbor_candles` 76, `read_calendar` 61,
+  `read_liquidations` 59, `read_candles` 51, las cuatro `read_series` 24–29, `read_intermarket` 27,
+  `read_headlines` 21, `BoardStore.at` 5, `ArbStore.at` 4). Dentro de `read_micro`:
+  `_read_trade_bars` 5 806 ms (árbol HFT, que **ya** poda por día), `_read_tops` 5 650 ms trayendo
+  **1 603 379 filas** a Python, `combine` 2 229 ms, `_last_top_levels` 459 ms, `_read_gaps` 166 ms.
+- **Lo que se probó y NO se queda:** podar el árbol viejo `micro/` por los días UTC de la ventana
+  (`_glob` devolvía `date=*/hour=*/part-*.parquet`, o sea los 30 días guardados, para responder por
+  21). Implementado con 5 pruebas y gate verde, **no aceleraba**: 14 137 ms podando frente a 14 115
+  y 13 358 ms sin podar, porque DuckDB ya salta los grupos de filas por las estadísticas de `t` del
+  parquet. ◆ del usuario (2026-11-21): **cerrar el PR #345** en vez de tocar una ruta caliente por
+  una mejora que no se mide, con T31 congelado. La rama `claude/t206-micro-poda` queda publicada.
+- **Dos lecturas que estaban mal y conviene no repetir:** (1) `read_micro` **no** devuelve 2 barras
+  sino 462 — el «2» era un `len()` sobre la tupla `(bars, book)`; la ventana está bien calculada.
+  (2) La progresión «24 → 64 → 93 s» del snapshot en la API viva **no** era acumulación de
+  archivos: el mismo snapshot dio 93 s y, un rato después, 30,7 s el mismo día. El multiplicador
+  sobre los ~14 s de trabajo real es la carga del equipo (4 núcleos, CPU al 80 %).
+- **Archivos:** solo plan (`PLAN/BACKLOG.md`, `PLAN/BITACORA.md`, `PLAN/STATUS.md`); el código de
+  la poda no entra. Medición completa en las notas de la sesión.
+- **Pruebas:** ninguna nueva (documentación). Las 5 de la poda quedaron en la rama cerrada.
+- **Abierto:** los cuatro puntos de `PLAN/BACKLOG.md` (agregar los tops en DuckDB o cachear las
+  horas cerradas, `liq_flow.py` sin podar, y que las sumas ya no son deterministas entre corridas).
+- **Siguiente paso:** cuando se retome, decidir ◆ entre las dos vías antes de escribir código.
 ## 2026-11-21 · sesión Órdenes que no se activaron en la caída → T207
 - **Hecho:** el usuario vio órdenes perfiladas antes de la caída de BTC de 59k a 56k que no se activaron.
   No era un fallo: la vela de 1 h del 21-nov 03:00 UTC abrió en 58 574,6 y cayó a 56 333,0 sin rebotar, y
