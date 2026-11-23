@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Informe de seguimiento del patron de apertura (T210): acumula las aperturas del mes y las mide
+  Informe de seguimiento del patron de apertura (T211): acumula las aperturas del mes y las mide
   contra el pre-registro congelado `prereg_apertura_v1`. No toca el libro de T31, la cantera, la
   sintesis ni la API: solo lee el almacen de velas y escribe en data\apertura y reports\apertura.
 
@@ -27,7 +27,7 @@ $ErrorActionPreference = "Stop"
 $v2 = Split-Path -Parent $PSScriptRoot
 $py = Join-Path $v2 ".venv\Scripts\python.exe"
 $datos = Join-Path $v2 "data"
-$tarea = "EIM - seguimiento del patron de apertura (T210)"
+$tarea = "EIM - seguimiento del patron de apertura (T211)"
 $registro = Join-Path $datos "operation\logs\apertura_informe.log"
 
 function Anota([string]$texto) {

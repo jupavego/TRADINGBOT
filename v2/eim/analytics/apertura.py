@@ -1,4 +1,4 @@
-"""Patrón de apertura de sesión (T210): medición hacia delante, con criterios congelados.
+"""Patrón de apertura de sesión (T211): medición hacia delante, con criterios congelados.
 
 Mide, en velas de 1 m, qué hace el precio tras la apertura de cada plaza y qué habría dado
 operar las reglas que el usuario describió. Los criterios NO se eligen aquí: vienen del

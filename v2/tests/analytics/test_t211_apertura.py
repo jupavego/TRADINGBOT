@@ -1,4 +1,4 @@
-"""T210 — patrón de apertura: rejilla, horarios con verano, reglas y congelado del pre-registro.
+"""T211 — patrón de apertura: rejilla, horarios con verano, reglas y congelado del pre-registro.
 
 Sin red: todas las velas se construyen a mano.
 """

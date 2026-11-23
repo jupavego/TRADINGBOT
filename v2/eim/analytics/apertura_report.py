@@ -1,4 +1,4 @@
-"""Informe del patrón de apertura (T210): acumula cada apertura y la mide contra el pre-registro.
+"""Informe del patrón de apertura (T211): acumula cada apertura y la mide contra el pre-registro.
 
     python -m eim.analytics.apertura_report                     # desde la fecha del pre-registro
     python -m eim.analytics.apertura_report --desde 2026-11-24  # ventana explícita
