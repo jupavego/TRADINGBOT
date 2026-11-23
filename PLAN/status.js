@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-21T03:14:02",
+ "generated": "2026-11-23T03:53:13",
  "phases": [
   {
    "n": 0,
@@ -322,7 +322,8 @@ window.EIM_STATUS = {
    "ids": [
     "T159",
     "T160",
-    "T175"
+    "T175",
+    "T210"
    ]
   },
   {
@@ -3286,6 +3287,20 @@ window.EIM_STATUS = {
    "notes": "**Abierta 2026-11-21 (el usuario vio órdenes perfiladas que no se activaron en la caída de 59k a 56k).** No era un fallo: son límite en un retroceso que no llegó, y se cancelan como `OBJETIVO_SIN_LLENAR` (acertaron la dirección sin entrar). Lo medido: de las últimas 300 ideas, 117 límite y **91 sin llenar**; en 1 h las seis estrategias que nacen límite (`strategies.py`) se llenan entre **0,8 % y 2,4 %** (`escenario_retroceso@1h`: 0 de 323, nunca ha operado). Dos agujeros: el `mean_r` del panel va solo sobre las llenadas, y estas estrategias quedan fuera de la medición de T189, que solo toma ideas `kind == \"market\"`. Sombra con pre-registro; nada toca el libro oficial ni `params_fingerprint`. Ver `PLAN/T207.md`.",
    "effort": "medio",
    "phase": 30
+  },
+  {
+   "id": "T210",
+   "title": "La utilidad por perfil, con su potencia: camino, no ventaja",
+   "deps": [
+    "T144",
+    "T159",
+    "T175",
+    "T31"
+   ],
+   "state": "progress",
+   "notes": "**Abierta 2026-11-23 (pedido del usuario: fase de retroalimentación por el cambio de tendencia en la utilidad de los cuatro perfiles). Diagnóstico HECHO, criterios 1–4 sin empezar.** No hay un cambio de tendencia: hay dos y se cancelan (11-17 → 11-20 **+655,4 USDT**; 11-21 → 11-22 **−625,9**) y los pone el número de topes completos (7 en 154 operaciones frente a 19 en 67; un tope = 5,6 ganancias, −64,6 frente a +11,5 USDT). El giro **no es medible**: ΔE[R] W46 → W47 = +0,0485 ± 0,0845 (t = 1,12) con una diferencia mínima detectable de 0,121 R/op (harían falta ≈ 12 semanas). Los cuatro perfiles son **una apuesta con cuatro tamaños** (587 de 643 operaciones cortas, 91 %). Descartados despliegue (`cost_params` idéntico en las 643), costo (plano 0,11–0,14 R) y pérdidas aparcadas (−38,8 USDT flotantes, solo moderado); la rotación del aprendiz explica ~30 % del ΔE[R] y el resto es el camino del BTC. Conservador está **plano desde el 11-01** (7 operaciones, 5 568 rechazos «en observación») y las fichas del panel siguen en otra contabilidad que el libro oficial (−5 057,1 frente a −2 584,7; agresivo −34,5 % frente a −17,0 %). Diagnóstico `PLAN/notas/T210_utilidad_perfiles.md`; ficha `PLAN/T210.md`.",
+   "effort": "bajo",
+   "phase": 25
   }
  ]
 };
