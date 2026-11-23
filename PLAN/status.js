@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-23T09:47:44",
+ "generated": "2026-11-23T10:01:04",
  "phases": [
   {
    "n": 0,
@@ -323,7 +323,8 @@ window.EIM_STATUS = {
     "T159",
     "T160",
     "T175",
-    "T210"
+    "T210",
+    "T212"
    ]
   },
   {
@@ -3316,6 +3317,21 @@ window.EIM_STATUS = {
    "notes": "**Abierta 2026-11-23 (pedido del usuario: «evaluemos ese patrón» y «dejarla operando con estos criterios e ir evaluando en el tiempo»).** Medido primero sobre **1 522 562 velas de 1 m** reales (2024-01-01 → 2026-11-23, 100 % de cobertura, 6 plazas): **el patrón enunciado no está** —revierte el 49,4 % (p = 0,77), corr(A,B) = −0,02, bruto ±0,3 bps, y 4 527 operaciones con tope de 4 h pierden la comisión, igual que en 2 000 minutos al azar—; sí hay **salto de volatilidad** en el minuto de apertura (NY 9,80 vs 8,71 bps) y el **canal de apertura no rebota, se rompe** (ruptura con bruto positivo en las 5 plazas, +1,55 a +4,14 bps, pero bajo el coste de 6,3). El caso limpio que señaló el usuario (NY, 17-nov: A −80 USD, B +450 USD) es el **percentil 98,8** de 755 días, y hay 18 días de continuación ≥ 50 bps frente a 21 de reversión: por eso se mide con pre-registro y no por días sueltos. **◐ máquina hecha el 2026-11-23:** `prereg_apertura_v1.json` congelado (huella `0411f8fc4069` fijada en `PUBLISHED`; editarlo pone el gate rojo), `eim/analytics/apertura.py` + `apertura_report.py` (registro append-only e idempotente en `data/apertura/aperturas.jsonl`, así la muestra sobrevive a la poda del 1 m) y `tests/analytics/test_t211_apertura.py` (14). **La muestra que decide empieza el 2026-11-24 00:00 UTC**; revisión mensual (primera el 2026-12-24) y **veredicto no antes del 2027-11-24** (n agrupada ≥ 650, t ≥ 2,0): con la sd medida, la ruptura necesita 410-745 aperturas por plaza (1,6-3,0 años) y el patrón enunciado 581-4 664 (2,3-18,5 años), así que este queda como vigilancia, no como candidatura. Nada toca el libro de T31, la cantera ni `params_fingerprint`. Queda ◆ del usuario registrar la tarea diaria (`v2/scripts/apertura_informe_mensual.ps1`). Ver `PLAN/T211.md` y `PLAN/notas/patron_apertura_sesion_2026-11-23.md`.",
    "effort": "medio",
    "phase": 30
+  },
+  {
+   "id": "T212",
+   "title": "La puerta del marco mayor, a la vista: cuándo gira y qué cuesta su retraso",
+   "deps": [
+    "T144",
+    "T159",
+    "T210",
+    "T145",
+    "T139"
+   ],
+   "state": "progress",
+   "notes": "**Abierta 2026-11-23 (observación del usuario: «el análisis no supo asimilar el cambio de tendencia»). Diagnóstico HECHO, criterios 1–4 sin empezar.** Es cierto y medido: con el mínimo de 1 h en **55 127 el 11-21 06:00 UTC** y el cierre del 11-23 14:00 en **63 833 (+15,8 %)**, la puerta de 15m (1h EMA21/55) giró a alcista el **11-22 17:00 — 35 h tarde y con el precio ya +11,1 %** — y las de 1h (4h EMA21/55) y 4h (4h EMA50/200) **siguen bajistas desde el 10-23 y el 10-24 (758 y 718 h)**. Lo que costó: las aperturas posteriores al mínimo son **49, de ellas 45 cortas, −731,7 USDT**, y los dos marcos con la puerta aún bajista son **33 operaciones, todas cortas, −586,6**; el acumulado oficial pasó de −2 584,7 (08:39) a −2 856,3 (15:00) mientras el precio subía. El retraso además **convierte el acierto en pérdida**: los primeros largos entraron +14 a +16 % sobre el mínimo y dos cerraron en el stop 15 min después (−1,31 R cada uno). Y acelerar no es gratis: en 95 días de velas de 1 h la puerta rápida cambia **39 veces** y no distingue dirección (24 h: −0,338 % alcista frente a −0,158 % bajista), mientras las lentas sí (+0,455 % y +0,234 %). **No se toca la puerta** (T139 P1); lo que falta es hacerla visible. Diagnóstico `PLAN/notas/T212_asimilar_el_giro.md`; ficha `PLAN/T212.md`.",
+   "effort": "bajo",
+   "phase": 25
   }
  ]
 };

@@ -59,6 +59,17 @@ diferencia mínima detectable entre dos semanas de ~230 operaciones es 0,121 R/o
 W47 = −1 611 USDT frente a +1 490 de las otras 204), y los cuatro perfiles son **una apuesta con cuatro
 tamaños** (587 de 643 operaciones cortas, 91 %), no cuatro muestras independientes.
 
+**La puerta del marco mayor llega tarde y la rápida no informa (T212, 2026-11-23).** El lado del libro
+lo fija `ProfileParams.htf` (15m → 1h EMA21/55, 1h → 4h EMA21/55, 4h → 4h EMA50/200) con el veto
+`contra_tendencia`: 575 de 609 operaciones de BTCUSDT son cortas (94,4 %). Con el mínimo del 11-21 en
+55 127 y el precio a +15,8 %, la puerta de 15m giró **35 h** tarde y las de 1h y 4h siguen bajistas tras
+**758 y 718 h**; las aperturas posteriores al mínimo son 49, 45 cortas, **−731,7 USDT**. Antes de
+proponer acelerarla: en los 95 días de velas de 1 h del disco la puerta rápida cambia **39 veces** y **no
+distingue dirección** (retorno a 24 h: −0,338 % alcista frente a −0,158 % bajista), mientras las lentas sí
+(+0,455 % y +0,234 %). Acortar las EMAs cambia sesgo por ruido, y tocar la puerta **reabre T139 P1**: es
+◆ del usuario, nunca una propuesta de la auditoría. Detalle: el universo oficial incluye 38 operaciones
+de ETHUSDT (+255,1 USDT) del 10-21 al 10-28, anteriores al foco T122.
+
 **Quinta trampa, de T210: leer una diferencia semanal sin su diferencia mínima detectable.** Con la
 varianza de la escalera (sd ≈ 0,46 R), una semana solo distingue ≈ 0,12 R/op: cualquier Δ menor que eso
 se informa como «dentro del ruido» y no se convierte en hallazgo, ni al alza ni a la baja.

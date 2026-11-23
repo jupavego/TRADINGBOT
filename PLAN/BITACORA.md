@@ -4189,3 +4189,36 @@ pm run build.
   reglas.
 - **Siguiente paso:** T210 criterio 1 (dmd junto a cada E[R] de perfil o semana) antes del informe de
   cierre de T31, para que ese informe no lea como tendencia lo que es camino.
+
+## 2026-11-23 · retroalimentación (2) — por qué el análisis no asimiló el giro al alza
+- **Hecho:** el usuario observó que, tras operar bien la tendencia bajista, el análisis no asimiló el
+  cambio cuando el precio empezó a subir, y que eso pudo costar la tendencia alcista de las ganancias.
+  **Es cierto y queda medido.** Lo que fija el lado es una sola puerta con tres relojes
+  (`ProfileParams.htf`: 15m → 1h EMA21/55, 1h → 4h EMA21/55, 4h → 4h EMA50/200) y el veto
+  `contra_tendencia` de `eim/paper/vetoes.py:60`.
+- **Tres cifras:** con el mínimo de 1 h en **55 127 (11-21 06:00 UTC)** y el cierre del 11-23 14:00 en
+  **63 833 (+15,8 %)**, la puerta de 15m giró a alcista el **11-22 17:00 (35 h tarde, precio ya
+  +11,1 %)** y las de 1h y 4h **siguen bajistas desde el 10-23 y el 10-24 (758 y 718 h)**; las aperturas
+  posteriores al mínimo son **49, 45 de ellas cortas, −731,7 USDT**, de las que **33 (todas cortas,
+  −586,6)** están en los dos marcos cuya puerta no ha girado. El acumulado oficial pasó de −2 584,7
+  (08:39) a **−2 856,3** (15:00) mientras el precio subía: eso es la «pérdida de la tendencia alcista».
+- **Hallazgos:** (1) el retraso **también convierte el acierto en pérdida**: los primeros largos
+  permitidos entraron +14 a +16 % sobre el mínimo y dos de agresivo (`ind_bb_ruptura@15m`,
+  `ind_macd@15m`) cerraron en el stop 15 min después, −1,31 R cada uno; (2) **acelerar la puerta no es
+  gratis**: en 95 días de velas de 1 h del disco, la puerta rápida cambia **39 veces** (mediana 34 h) y
+  no distingue dirección (retorno a 24 h: −0,338 % alcista frente a −0,158 % bajista), mientras las
+  lentas sí (+0,455 % la de 1h y +0,234 % la de 4h) — descriptivo, ventanas solapadas, sin contraste ni
+  Holm; (3) el universo oficial **no es solo BTC**: 38 operaciones de ETHUSDT (+255,1 USDT) del 10-21 al
+  10-28, antes del foco T122, así que parte de lo verde de W43 no era BTC.
+- **Archivos:** `PLAN/notas/T212_asimilar_el_giro.md`, `PLAN/T212.md`, `PLAN/STATUS.md`,
+  `PLAN/BACKLOG.md`, `.claude/skills/eim-auditoria/SKILL.md` §1.
+- **Pruebas:** ninguna (diagnóstico y plan; no se tocó `eim/` ni `tests/`). Medido sobre
+  `data/candles/symbol=BTCUSDT/timeframe={1h,4h}` con `eim.paper.trend.HtfTrend` y
+  `GET /v2/paper/ledger.csv?scope=perfil` el 2026-11-23 ≈ 15:00 UTC.
+- **Abierto:** **T212 ◐** (publicar el estado y el retraso de cada puerta, y el costo de lo que veta).
+  ◆ en BACKLOG bajo T159: si tras cerrar T31 se pre-registra en sombra una puerta alternativa (reabre
+  T139 P1) y si el informe de cierre declara que el libro es direccionalmente una sola apuesta.
+- **En curso:** T31 cierra el 2026-11-27 con las dos puertas lentas aún bajistas; el 2026-11-28 00:00
+  UTC T194 recorta tamaño, lo que reduce la pérdida pero no corrige la dirección.
+- **Siguiente paso:** T212 criterio 1 (estado, giro y retraso de cada puerta en la API y el panel), que
+  es lo que hace falta para que esto se vea sin reconstruirlo a mano.
