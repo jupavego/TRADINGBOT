@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-21T03:14:02",
+ "generated": "2026-11-22T21:13:06",
  "phases": [
   {
    "n": 0,
@@ -80,7 +80,8 @@ window.EIM_STATUS = {
     "T31",
     "T32",
     "T47",
-    "T48"
+    "T48",
+    "T209"
    ]
   },
   {
@@ -3286,6 +3287,21 @@ window.EIM_STATUS = {
    "notes": "**Abierta 2026-11-21 (el usuario vio órdenes perfiladas que no se activaron en la caída de 59k a 56k).** No era un fallo: son límite en un retroceso que no llegó, y se cancelan como `OBJETIVO_SIN_LLENAR` (acertaron la dirección sin entrar). Lo medido: de las últimas 300 ideas, 117 límite y **91 sin llenar**; en 1 h las seis estrategias que nacen límite (`strategies.py`) se llenan entre **0,8 % y 2,4 %** (`escenario_retroceso@1h`: 0 de 323, nunca ha operado). Dos agujeros: el `mean_r` del panel va solo sobre las llenadas, y estas estrategias quedan fuera de la medición de T189, que solo toma ideas `kind == \"market\"`. Sombra con pre-registro; nada toca el libro oficial ni `params_fingerprint`. Ver `PLAN/T207.md`.",
    "effort": "medio",
    "phase": 30
+  },
+  {
+   "id": "T209",
+   "title": "La corrida de operación vuelve a decidir: lo que no cabe en la ventana no es un dato roto",
+   "deps": [
+    "T29",
+    "T31",
+    "T44",
+    "T53"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-23 (el usuario: «el proyecto está detenido»).** Desde el 19-oct la corrida de T31 tuvo 70 decisiones con plan: 7 aprobadas y **59 vetadas por «datos: N agentes degradados»** (`max_degraded_agents = 1`); `literature` estaba en 58. Causas estructurales: `literature` sale `degraded` en 1h siempre desde T53 (la ficha `murphy_weekly_rule` pide 673 velas y el ciclo carga 500) y `vwap` del día ~21 a fin de mes (VWAP mensual parcial). Sin ellas, 33 de los 59 pasaban el filtro de datos y 20 no tenían otro veto. ◆ pendiente: A (semántica en los dos agentes, recomendada), B (más velas) o C (subir el límite, descartada). Despliegue tras el encendido del 2026-11-28. Ver `PLAN/T209.md`.",
+   "effort": "bajo",
+   "phase": 7,
+   "goal": "Que `degraded` signifique lo que la regla de riesgo y la alerta `agentes_degradados` suponen"
   }
  ]
 };
