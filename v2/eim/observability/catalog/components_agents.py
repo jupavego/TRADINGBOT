@@ -27,7 +27,7 @@ AGENTS: tuple[Component, ...] = (
     _a("ema", "1.0.0", "Medias móviles",
        "Mira si las medias móviles de distintos plazos están ordenadas a favor de la subida o de la "
        "bajada. Recibe velas; entrega sesgo y confianza.", "T05"),
-    _a("vwap", "1.0.0", "Precio medio ponderado",
+    _a("vwap", "1.0.1", "Precio medio ponderado",
        "Compara el precio con el promedio ponderado por volumen del día, la semana y el mes. Recibe "
        "velas; entrega si el precio está caro o barato frente a ese promedio.", "T06"),
     _a("price_action", "1.0.0", "Lectura de velas",
@@ -70,7 +70,7 @@ AGENTS: tuple[Component, ...] = (
     _a("smart_money", "0.1.0", "Dinero inteligente",
        "Mira qué posición neta tienen los traders de Hyperliquid mejor evaluados en la moneda del "
        "análisis. Recibe el tablero de líderes; entrega sesgo y confianza.", "T41"),
-    _a("literature", "0.1.0", "Reglas de los libros",
+    _a("literature", "0.1.1", "Reglas de los libros",
        "Revisa si ahora se cumplen reglas de Nison y Murphy (velas, RSI, rupturas) y si apoyan o "
        "contradicen cada escenario, con su cita. Apoyo bibliográfico, no una señal validada.",
        "T53", consumes=_SNAP + (("library.cards", "library_card"),)),

@@ -182,7 +182,9 @@ T79–T86 (HFT), T87–T103 (multiactivo), T167–T172 (fase 27, cantera de perf
   `literature` sale `degraded` en 1h siempre (una ficha pide 673 velas y el ciclo carga 500) y `vwap` del
   día ~21 a fin de mes, así que el único margen de la regla se gasta antes de que falle ningún dato. El libro
   de los cuatro perfiles (la cifra oficial, T144) no pasa por esa regla y siguió operando. Opciones y
-  ◆ pendiente en `PLAN/T209.md`; sin cambios se libera solo el 1-dic 00:00 UTC.
+  ◆ del usuario 2026-11-23: opción A (estado, no señal), implementada en `claude/t209-veto-datos` y sin
+  desplegar: entra tras el encendido del 2026-11-28. Ojo: `vwap` pesa 1 en la síntesis, así que a fin de
+  mes la síntesis (también la del libro de los perfiles) lo contará entero en vez de a la mitad o fuera.
 
 - **`yfinance` es dependencia de producción y no tiene licencia de datos (T88, 2026-11-20).** Está en
   `dependencies` de `v2/pyproject.toml` (no en un extra), instalado (v1.6.0) y en uso en

@@ -4163,3 +4163,28 @@ pm run build.
   normales (costo, estrategias en pausa, observación, freno de drawdown); no se vio fallo, pero conviene
   mirarlo si sigue así el lunes.
 - **Siguiente paso:** con la ◆, implementar T209 en una rama y desplegar tras el encendido del 2026-11-28.
+## 2026-11-23 · sesión T209 implementada (opción A)
+- **Hecho:** ◆ del usuario: opción A. `literature` deja de poner `degraded` cuando una ficha no cabe
+  en las velas cargadas (la lista en el aviso «fuera de alcance» y en `metrics["rules_out_of_window"]`;
+  sin ninguna regla que quepa, `no_data`) y `vwap` cuando un período es parcial (aviso y
+  `metrics["partial_periods"]`; el período parcial sigue votando con su peso). Sesgo y confianza de
+  los dos no cambian. Versiones `literature` 0.1.1 y `vwap` 1.0.1, también en el catálogo del
+  observatorio; `docs/RUNBOOK.md` §7 explica qué es `degraded`.
+- **Recuento retro** (`PLAN/notas/T209_vetos_datos.md`): por decisión 70 / 59 vetadas por datos / 33
+  pasarían / 20 sin otro veto; **por plan** 34 distintos / 26 vetados por datos en su primera
+  decisión / 12 pasarían / 5 sin otro veto. Lo que sigue vetado es `liquidations` + `microstructure`
+  (25) y `calendar` + `liquidations` (1): datos que fallan de verdad.
+- **Archivos:** `v2/eim/agents/literature/agent.py`, `v2/eim/agents/vwap/agent.py`,
+  `v2/eim/observability/catalog/components_agents.py`, `v2/docs/RUNBOOK.md`,
+  `v2/tests/agents/test_window_t209.py` (nueva), `v2/tests/agents/vwap/test_vwap.py`,
+  `v2/tests/agents/literature/test_rules.py`, `PLAN/T209.md`, `PLAN/notas/T209_vetos_datos.md`,
+  `STATUS.md`, `ESTADO_PROYECTO.md`, `status.js`.
+- **Pruebas:** `test_window_t209.py` (33 fechas de octubre de 2026 con 500 velas re-fechadas: los dos
+  `ok`, el mensual parcial desde el día 22, la regla de datos sin veto; dos degradaciones reales
+  siguen vetando), las de los dos agentes, riesgo, catálogo y ejecutor: 117 en verde. Gate completo
+  por la cola (`gate-t209`).
+- **Abierto:** desplegar tras el encendido del 2026-11-28 y verificar en vivo (`GET /v2/operation`,
+  `vetoed`). Efecto en la síntesis: `vwap` pesa 1, así que del día ~21 a fin de mes votará entero
+  en vez de a la mitad o fuera, también para el libro de los cuatro perfiles.
+- **Siguiente paso:** fusionar el PR con el sí del usuario después del 2026-11-28 00:00 UTC; la API
+  toma el código nuevo al reiniciarse (lo hace `sincronizar_main.ps1` cuando avanza `main`).

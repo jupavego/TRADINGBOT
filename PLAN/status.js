@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-22T21:13:06",
+ "generated": "2026-11-22T21:25:54",
  "phases": [
   {
    "n": 0,
@@ -3297,8 +3297,8 @@ window.EIM_STATUS = {
     "T44",
     "T53"
    ],
-   "state": "pending",
-   "notes": "**Abierta 2026-11-23 (el usuario: «el proyecto está detenido»).** Desde el 19-oct la corrida de T31 tuvo 70 decisiones con plan: 7 aprobadas y **59 vetadas por «datos: N agentes degradados»** (`max_degraded_agents = 1`); `literature` estaba en 58. Causas estructurales: `literature` sale `degraded` en 1h siempre desde T53 (la ficha `murphy_weekly_rule` pide 673 velas y el ciclo carga 500) y `vwap` del día ~21 a fin de mes (VWAP mensual parcial). Sin ellas, 33 de los 59 pasaban el filtro de datos y 20 no tenían otro veto. ◆ pendiente: A (semántica en los dos agentes, recomendada), B (más velas) o C (subir el límite, descartada). Despliegue tras el encendido del 2026-11-28. Ver `PLAN/T209.md`.",
+   "state": "progress",
+   "notes": "**◆ del usuario 2026-11-23: opción A, implementada en la rama `claude/t209-veto-datos`; falta desplegar (tras el encendido del 2026-11-28) y verificar en vivo.** `literature` y `vwap` ya no ponen `degraded` por la ventana (avisan y lo dejan en `metrics`); su sesgo y confianza no cambian. Prueba de invariancia `v2/tests/agents/test_window_t209.py` (33 fechas) y recuento retro en `PLAN/notas/T209_vetos_datos.md` (por plan: 34 distintos, 26 vetados por datos, 12 pasarían). **Abierta 2026-11-23 (el usuario: «el proyecto está detenido»).** Desde el 19-oct la corrida de T31 tuvo 70 decisiones con plan: 7 aprobadas y **59 vetadas por «datos: N agentes degradados»** (`max_degraded_agents = 1`); `literature` estaba en 58. Causas estructurales: `literature` sale `degraded` en 1h siempre desde T53 (la ficha `murphy_weekly_rule` pide 673 velas y el ciclo carga 500) y `vwap` del día ~21 a fin de mes (VWAP mensual parcial). Sin ellas, 33 de los 59 pasaban el filtro de datos y 20 no tenían otro veto. ◆ pendiente: A (semántica en los dos agentes, recomendada), B (más velas) o C (subir el límite, descartada). Despliegue tras el encendido del 2026-11-28. Ver `PLAN/T209.md`.",
    "effort": "bajo",
    "phase": 7,
    "goal": "Que `degraded` signifique lo que la regla de riesgo y la alerta `agentes_degradados` suponen"

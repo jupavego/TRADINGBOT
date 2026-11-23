@@ -87,9 +87,19 @@ def test_channel_breakout_four_weeks():
     assert "murphy_weekly_rule" not in active(base + [ohlc(1000, 1000.3)])
 
 
-@pytest.mark.parametrize("tf", ["15m", "1h", "4h", "1d"])
-def test_degraded_when_history_too_short_for_channel(tf):
+@pytest.mark.parametrize("tf,out", [("15m", True), ("1h", True), ("4h", True), ("1d", False)])
+def test_channel_out_of_window_does_not_degrade(tf, out):
+    """T209: la ficha que no cabe en la historia cargada (91 velas; en 1d pide 29) avisa, pero no
+    degrada el reporte."""
     rep = LiteratureAgent().run(snap(DOWN + [ohlc(last(DOWN), last(DOWN) - 0.1)], tf))
-    assert rep.status in {"degraded", "ok"}
-    if rep.status == "degraded":
-        assert any("murphy_weekly_rule" in w for w in rep.warnings)
+    assert rep.status == "ok"
+    assert rep.metrics["rules_out_of_window"] == (["murphy_weekly_rule"] if out else [])
+    assert any("fuera de alcance" in w and "murphy_weekly_rule" in w
+               for w in rep.warnings) == out
+
+
+def test_no_rule_fits_is_no_data():
+    from eim.agents.literature.params import LiteratureParams
+    only_channel = LiteratureParams(coded_cards=frozenset({"murphy_weekly_rule"}))
+    rep = LiteratureAgent(only_channel).run(snap(DOWN, "1h"))
+    assert rep.status == "no_data" and "ninguna regla cabe" in rep.warnings[0]
