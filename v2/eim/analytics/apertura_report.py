@@ -25,7 +25,11 @@ MIN_MS = 60_000
 
 
 def _ms(fecha: str) -> int:
-    return int(datetime.fromisoformat(fecha.replace("Z", "+00:00")).timestamp() * 1000)
+    """Fecha ISO a ms epoch. Sin zona explícita se entiende UTC, no la hora del equipo."""
+    d = datetime.fromisoformat(fecha.replace("Z", "+00:00"))
+    if d.tzinfo is None:
+        d = d.replace(tzinfo=UTC)
+    return int(d.timestamp() * 1000)
 
 
 def _dia(ms: int) -> str:
@@ -194,8 +198,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: almacén: {exc}")
         return 2
     if not candles:
-        print(f"ERROR: sin velas de {sym} {pr['timeframe']} desde {_dia(desde_ms)}")
-        return 2
+        # Distinguir «la ventana aún no ha empezado» de «el almacén no responde»: la primera es
+        # el estado normal hasta que la muestra arranca, y no debe parecer una avería.
+        try:
+            ultimas = store.read_candles(sym, pr["timeframe"], last=1)
+        except (OSError, ValueError):
+            ultimas = []
+        if not ultimas:
+            print(f"ERROR: el almacén no tiene velas de {sym} {pr['timeframe']}")
+            return 2
+        print(f"Sin muestra todavía: la última vela de {sym} es de {_dia(ultimas[-1].t)} y la "
+              f"ventana empieza el {_dia(desde_ms)}. Nada que medir; no se escribe informe.")
+        return 0
     bars = A.bars_from_candles(candles)
     filas = medir(bars, pr, desde_ms)
     reg = Path(a.data_dir) / "apertura" / "aperturas.jsonl"

@@ -145,6 +145,13 @@ def test_prereg_manipulado_falla(tmp_path):
         A.load_prereg(path=p)
 
 
+def test_fecha_sin_zona_se_entiende_en_utc():
+    # `--desde 2026-11-24` debe ser medianoche UTC, no la del equipo (que iba 5 h desplazada).
+    assert R._ms("2026-11-24") == R._ms("2026-11-24T00:00:00Z")
+    assert R._ms("2026-11-24T00:00:00+00:00") == R._ms("2026-11-24")
+    assert R._ms("2026-11-24T02:00:00Z") - R._ms("2026-11-24") == 2 * 60 * 60 * 1000
+
+
 def test_registro_no_duplica_aperturas(tmp_path):
     filas = [{"zona": "londres", "t": 1, "contra_a_3m": -9.0},
              {"zona": "tokio", "t": 2, "contra_a_3m": +3.0}]
