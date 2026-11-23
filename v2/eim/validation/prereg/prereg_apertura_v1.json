@@ -1,0 +1,105 @@
+{
+ "version": "prereg_apertura_v1",
+ "modo": "SIMULADO",
+ "abierto": "2026-11-23",
+ "pedido_por": "el usuario (2026-11-23): dejar el patron de apertura operando con estos criterios e ir evaluando en el tiempo",
+ "que_se_mide": "Si lo que hace el precio en los k primeros minutos de la apertura de una plaza informa de los minutos siguientes, y que habria dado operarlo.",
+ "symbol": "BTCUSDT",
+ "timeframe": "1m",
+ "fuente": "velas de futuros Binance del almacen vivo (data/candles), 100% de cobertura exigida en la ventana de cada apertura",
+ "reloj": {
+  "muestra_hacia_delante_desde": "2026-11-24T00:00:00Z",
+  "por_que": "la linea base se midio con 2024-01-01..2026-11-23; la muestra que decide empieza despues, sin solaparse",
+  "revision": "mensual",
+  "veredicto_no_antes_de": "2027-11-24T00:00:00Z"
+ },
+ "k": 3,
+ "zonas": [
+  {"id": "tokio", "tz": "Asia/Tokyo", "hh": 9, "mm": 0},
+  {"id": "hong_kong", "tz": "Asia/Hong_Kong", "hh": 9, "mm": 30},
+  {"id": "londres", "tz": "Europe/London", "hh": 8, "mm": 0},
+  {"id": "nueva_york", "tz": "America/New_York", "hh": 9, "mm": 30},
+  {"id": "cme", "tz": "America/Chicago", "hh": 17, "mm": 0}
+ ],
+ "zonas_excluidas": {
+  "francfort": "09:00 Europe/Berlin es el MISMO instante que 08:00 Europe/London casi todo el ano: contarlo duplicaria la misma apertura"
+ },
+ "dias": "solo dias de semana en hora local de la plaza",
+ "costes_bps": {
+  "mercado_ida_vuelta": 9.0,
+  "limite_ida_vuelta": 6.3,
+  "nota": "taker 4,5 bps por lado y maker 1,8 bps, tarifas publicas de Binance futuros sin descuentos"
+ },
+ "variantes": [
+  {
+   "id": "contra_a_3m",
+   "regla": "entrar en contra del tramo A en la apertura del minuto k+1, salir a los 3 minutos",
+   "coste": "mercado_ida_vuelta",
+   "papel": "vigilancia",
+   "por_que_vigilancia": "con la sd medida haria falta de 581 a 4664 aperturas por zona para distinguir su filo de cero: no puede dar veredicto en un horizonte util, asi que solo se vigila por si cambia el regimen"
+  },
+  {
+   "id": "canal_rebote",
+   "regla": "limite en el borde del canal de apertura (alto/bajo de las k velas), objetivo en el borde opuesto, stop a una anchura, ventana de llenado 30 min, tope 240 min",
+   "coste": "limite_ida_vuelta",
+   "papel": "vigilancia",
+   "por_que_vigilancia": "las 24 variantes medidas en la linea base dan bruto negativo: se vigila, no se espera filo"
+  },
+  {
+   "id": "canal_ruptura",
+   "regla": "entrada al romper el borde del canal de apertura, objetivo una anchura, stop en el medio, ventana 30 min, tope 240 min",
+   "coste": "limite_ida_vuelta",
+   "papel": "candidatura",
+   "por_que_candidatura": "es la unica variante con bruto positivo en las 5 plazas en la linea base (+1,55 a +4,14 bps), aunque por debajo del coste"
+  }
+ ],
+ "supuestos_conservadores": [
+  "la entrada limite exige que el precio ATRAVIESE el nivel, no que lo toque",
+  "si en un mismo minuto se pueden tocar objetivo y stop, se cuenta el stop",
+  "si el precio rompe los dos bordes en el mismo minuto, la apertura se descarta como ambigua",
+  "nada de deslizamiento favorable: el llenado es al nivel exacto y la salida por tope al cierre"
+ ],
+ "linea_base_2024_2026": {
+  "ventana": "2024-01-01T00:00:00Z..2026-11-23T08:01:00Z",
+  "velas": 1522562,
+  "cobertura_pct": 100.0,
+  "nota": "bruto en bps por operacion, sin coste; sd por operacion; n_necesaria al 95% con potencia 80%",
+  "contra_a_3m": {
+   "tokio": {"n": 753, "bruto_bps": -0.31, "reversion_pct": 47.0},
+   "londres": {"n": 755, "bruto_bps": -0.02, "sd_bps": 9.9, "reversion_pct": 49.4, "n_necesaria": 4664},
+   "nueva_york": {"n": 755, "bruto_bps": 0.25, "sd_bps": 25.4, "reversion_pct": 49.1, "n_necesaria": 581}
+  },
+  "canal_rebote": {
+   "tokio": {"n": 745, "bruto_bps": -0.91, "sd_bps": 19.7},
+   "hong_kong": {"n": 747, "bruto_bps": -2.02, "sd_bps": 22.0},
+   "londres": {"n": 746, "bruto_bps": -0.71, "sd_bps": 17.2},
+   "nueva_york": {"n": 745, "bruto_bps": -4.67, "sd_bps": 40.2},
+   "cme": {"n": 745, "bruto_bps": -1.12, "sd_bps": 20.6}
+  },
+  "canal_ruptura": {
+   "tokio": {"n": 745, "bruto_bps": 1.55, "sd_bps": 15.1, "n_necesaria": 745},
+   "hong_kong": {"n": 747, "bruto_bps": 2.24, "sd_bps": 16.2, "n_necesaria": 410},
+   "londres": {"n": 746, "bruto_bps": 1.57, "sd_bps": 12.6, "n_necesaria": 502},
+   "nueva_york": {"n": 745, "bruto_bps": 4.14, "sd_bps": 30.3, "n_necesaria": 420},
+   "cme": {"n": 745, "bruto_bps": 1.67, "sd_bps": 15.2, "n_necesaria": 652}
+  },
+  "control": "la misma regla en 2000 minutos al azar dio -8,33 bps netos a 3 min: el resultado no es propio de la apertura",
+  "volatilidad_apertura": "|retorno| del minuto de apertura frente a los minutos 15-30: nueva_york 9,80 vs 8,71 bps, cme 6,57 vs 3,99, hong_kong 5,92 vs 4,75, londres 4,67 vs 4,06"
+ },
+ "regla_de_veredicto": {
+  "umbral_t": 2.0,
+  "n_minima_por_zona": {"tokio": 745, "hong_kong": 410, "londres": 502, "nueva_york": 420, "cme": 652},
+  "n_minima_agrupada": 650,
+  "pasa_si": "la media NETA de coste hacia delante es > 0 con t >= 2,0 en la muestra agrupada de canal_ruptura, alcanzada la n minima",
+  "no_pasa_si": "la media hacia delante es <= 0, como en la linea base",
+  "que_pasa_si_pasa": "se propone al usuario como prospecto de la cantera, lo que exige admitir 1m en el contrato de prospectos y un prereg de cantera con reloj nuevo: decision suya, no automatica",
+  "que_pasa_si_no_pasa": "queda registrado como rechazado y se deja de medir, sin reciclar criterios"
+ },
+ "limites_declarados": [
+  "no se opera con dinero real: el proyecto esta en solo analisis (T145) y nada de esto toca el libro oficial de T31 ni params_fingerprint",
+  "sin apalancamiento en la medicion: las cifras son bps del precio; el montaje a 60x de PLAN/notas/patron_apertura_sesion_2026-11-23.md quedo medido y rechazado por identidad (-5,40% del margen por dia)",
+  "no se anade ninguna pata de cobertura simetrica: suman cero por construccion y solo multiplican la comision",
+  "una posicion abierta hasta 4 h puede cruzar un cobro de funding, que no esta en estas cifras",
+  "si el almacen de 1m se poda, la muestra sobrevive porque cada apertura medida se guarda en su propio registro append-only"
+ ]
+}

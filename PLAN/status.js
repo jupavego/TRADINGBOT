@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-23T03:53:13",
+ "generated": "2026-11-23T09:47:44",
  "phases": [
   {
    "n": 0,
@@ -380,7 +380,8 @@ window.EIM_STATUS = {
     "T188",
     "T189",
     "T194",
-    "T207"
+    "T207",
+    "T211"
    ]
   },
   {
@@ -3301,6 +3302,20 @@ window.EIM_STATUS = {
    "notes": "**Abierta 2026-11-23 (pedido del usuario: fase de retroalimentación por el cambio de tendencia en la utilidad de los cuatro perfiles). Diagnóstico HECHO, criterios 1–4 sin empezar.** No hay un cambio de tendencia: hay dos y se cancelan (11-17 → 11-20 **+655,4 USDT**; 11-21 → 11-22 **−625,9**) y los pone el número de topes completos (7 en 154 operaciones frente a 19 en 67; un tope = 5,6 ganancias, −64,6 frente a +11,5 USDT). El giro **no es medible**: ΔE[R] W46 → W47 = +0,0485 ± 0,0845 (t = 1,12) con una diferencia mínima detectable de 0,121 R/op (harían falta ≈ 12 semanas). Los cuatro perfiles son **una apuesta con cuatro tamaños** (587 de 643 operaciones cortas, 91 %). Descartados despliegue (`cost_params` idéntico en las 643), costo (plano 0,11–0,14 R) y pérdidas aparcadas (−38,8 USDT flotantes, solo moderado); la rotación del aprendiz explica ~30 % del ΔE[R] y el resto es el camino del BTC. Conservador está **plano desde el 11-01** (7 operaciones, 5 568 rechazos «en observación») y las fichas del panel siguen en otra contabilidad que el libro oficial (−5 057,1 frente a −2 584,7; agresivo −34,5 % frente a −17,0 %). Diagnóstico `PLAN/notas/T210_utilidad_perfiles.md`; ficha `PLAN/T210.md`.",
    "effort": "bajo",
    "phase": 25
+  },
+  {
+   "id": "T211",
+   "title": "El patrón de apertura, midiéndose solo: pre-registro y seguimiento",
+   "deps": [
+    "T137",
+    "T139",
+    "T145",
+    "T159"
+   ],
+   "state": "progress",
+   "notes": "**Abierta 2026-11-23 (pedido del usuario: «evaluemos ese patrón» y «dejarla operando con estos criterios e ir evaluando en el tiempo»).** Medido primero sobre **1 522 562 velas de 1 m** reales (2024-01-01 → 2026-11-23, 100 % de cobertura, 6 plazas): **el patrón enunciado no está** —revierte el 49,4 % (p = 0,77), corr(A,B) = −0,02, bruto ±0,3 bps, y 4 527 operaciones con tope de 4 h pierden la comisión, igual que en 2 000 minutos al azar—; sí hay **salto de volatilidad** en el minuto de apertura (NY 9,80 vs 8,71 bps) y el **canal de apertura no rebota, se rompe** (ruptura con bruto positivo en las 5 plazas, +1,55 a +4,14 bps, pero bajo el coste de 6,3). El caso limpio que señaló el usuario (NY, 17-nov: A −80 USD, B +450 USD) es el **percentil 98,8** de 755 días, y hay 18 días de continuación ≥ 50 bps frente a 21 de reversión: por eso se mide con pre-registro y no por días sueltos. **◐ máquina hecha el 2026-11-23:** `prereg_apertura_v1.json` congelado (huella `0411f8fc4069` fijada en `PUBLISHED`; editarlo pone el gate rojo), `eim/analytics/apertura.py` + `apertura_report.py` (registro append-only e idempotente en `data/apertura/aperturas.jsonl`, así la muestra sobrevive a la poda del 1 m) y `tests/analytics/test_t211_apertura.py` (14). **La muestra que decide empieza el 2026-11-24 00:00 UTC**; revisión mensual (primera el 2026-12-24) y **veredicto no antes del 2027-11-24** (n agrupada ≥ 650, t ≥ 2,0): con la sd medida, la ruptura necesita 410-745 aperturas por plaza (1,6-3,0 años) y el patrón enunciado 581-4 664 (2,3-18,5 años), así que este queda como vigilancia, no como candidatura. Nada toca el libro de T31, la cantera ni `params_fingerprint`. Queda ◆ del usuario registrar la tarea diaria (`v2/scripts/apertura_informe_mensual.ps1`). Ver `PLAN/T211.md` y `PLAN/notas/patron_apertura_sesion_2026-11-23.md`.",
+   "effort": "medio",
+   "phase": 30
   }
  ]
 };
