@@ -4148,3 +4148,44 @@ pm run build.
 - **Pruebas:** `tests/analytics/test_t211_apertura.py` (14: horario de verano, fin de semana fuera, huecos en NaN, tramo A plano descartado, empate objetivo/stop = stop, día ambiguo, potencia, veredicto, pre-registro inviolable, registro idempotente) y las 162 de `tests/nursery` con el expediente modificado. Gate completo en la cola del equipo.
 - **Abierto:** T211 ◐ — la muestra que decide empieza el 2026-11-24 00:00 UTC, primera revisión el 2026-12-24 y veredicto no antes del 2027-11-24. Queda ◆ del usuario: registrar la tarea diaria del informe, y decidir si algún día se inscribe en la cantera (exigiría admitir 1 m en el contrato de prospectos y un prereg de cantera con reloj nuevo, que reinicia la familia).
 - **Siguiente paso:** dejar correr el seguimiento; no inscribir nada en la cantera mientras la medición hacia delante no pase su propia puerta.
+## 2026-11-23 · fase de retroalimentación — el cambio de tendencia en la utilidad de los cuatro perfiles
+- **Hecho:** el usuario pidió entrar en retroalimentación e identificar a qué se debe el cambio de
+  tendencia en la utilidad de los cuatro perfiles. Tercera auditoría (`python -m eim.analytics.audit`,
+  n = 643, E[R] −0,076 [−0,124, −0,028], bruto +0,049, costo 0,126, acierto 77,8 % frente a un
+  equilibrio del 83,9 %, PnL −2 585) y diagnóstico aparte sobre el libro oficial de T144 y las curvas
+  del panel. **Respuesta corta: no hay un cambio de tendencia, hay dos y se cancelan** —del 11-17 al
+  11-20 el libro ganó +655,4 USDT y del 11-21 al 11-22 devolvió −625,9— y la causa no es ventaja sino
+  **cuántas operaciones tocan el tope completo**: 7 en 154 operaciones en el tramo bueno frente a 19 en
+  67 en el malo. Un tope cuesta −64,6 USDT de media y una ganancia deja +11,5 (**1 tope = 5,6
+  ganancias**), con la escalera en acierto 86,7 % y equilibrio 88,5 %.
+- **Tres cifras con su Δ frente a la auditoría del 2026-11-16:** E[R] −0,110 → **−0,076** (+0,034);
+  acierto 72,4 % → **77,8 %** (+5,3 pts); PnL −2 552 → **−2 585** (−33). El giro de W47 **no es
+  medible**: ΔE[R] W46 → W47 = +0,0485 ± 0,0845 (t = 1,12) y la diferencia mínima detectable entre dos
+  semanas de ~230 operaciones es 0,121 R/op; detectar lo observado pide 1 388 operaciones por lado
+  (≈ 12 semanas).
+- **Hallazgos:** (1) los cuatro perfiles son **una apuesta con cuatro tamaños** —587 de 643 operaciones
+  son cortos (91 %), por el veto «contra la tendencia del marco mayor»—, así que no son cuatro muestras
+  independientes; (2) descartado que sea despliegue (`cost_params` idéntico en las 643), costo (plano
+  en 0,11–0,14 R) o pérdidas aparcadas (solo moderado tiene abierto, −38,8 USDT flotante); (3) la
+  rotación del aprendiz explica ~30 % del ΔE[R] (mezcla +0,0147 frente a misma estrategia +0,0338; por
+  régimen, mezcla −0,0149 frente a +0,0634), el resto es el camino del BTC —días con |variación| ≥ 2 %
+  dejan −222,4 USDT de media frente a −49,7 los demás—; (4) **conservador no tiene tendencia**: 7
+  operaciones, todas anteriores al 11-02, plano en −136,8 con 5 568 rechazos «en observación»; (5) la
+  pendiente de la curva del panel coincide con el libro oficial, pero el **nivel** no (total −2 584,7
+  oficial frente a −5 057,1 en las fichas; agresivo −17,0 % frente a −34,5 %): T195 arregló `balance`,
+  no las fichas por perfil.
+- **Archivos:** `PLAN/notas/T210_utilidad_perfiles.md` (diagnóstico completo), `PLAN/T210.md`,
+  `PLAN/STATUS.md`, `PLAN/BACKLOG.md`, `.claude/skills/eim-auditoria/SKILL.md` §1.
+  Informe de la auditoría en `v2/reports/audit/audit_2026-11-23.{md,json}` (no versionado).
+- **Pruebas:** ninguna (diagnóstico y plan; no se tocó `eim/` ni `tests/`). Todo medido contra la API
+  viva de `juanpablo-cpu` el 2026-11-23 ≈ 08:39 UTC (`python -m eim.analytics.audit`,
+  `GET /v2/paper/ledger.csv?scope=perfil`, `GET /v2/paper`, `GET /v2/paper/live`).
+- **Abierto:** **T210 ◐** (publicar la utilidad por perfil con su potencia y su descomposición). ◆ del
+  usuario en BACKLOG bajo T159: qué se hace con conservador antes del cierre de T31, y si el informe
+  final se publica con una sola contabilidad en las fichas.
+- **En curso:** T31 cierra el 2026-11-27 y el **2026-11-28 00:00 UTC** se encienden solos
+  `risk_includes_costs` (tamaño ×0,8522) y el freno gradual (T194), más «lo vivo manda» (T182): el
+  próximo cambio de pendiente ya está programado y cualquier lectura que cruce esa fecha mezcla dos
+  reglas.
+- **Siguiente paso:** T210 criterio 1 (dmd junto a cada E[R] de perfil o semana) antes del informe de
+  cierre de T31, para que ese informe no lea como tendencia lo que es camino.
