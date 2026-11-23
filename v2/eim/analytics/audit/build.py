@@ -52,17 +52,19 @@ def build(rows: list[dict], now_ms: int, generated_at: str, *,
           variant_rows: dict[str, list[dict]] | None = None,
           funding: dict[str, float | None] | None = None, hft: dict | None = None,
           calibration: dict | None = None, calibration_4h: dict | None = None,
-          prev: dict | None = None, nursery: dict | None = None) -> dict:
+          prev: dict | None = None, nursery: dict | None = None,
+          gates: list[dict] | None = None) -> dict:
     book = kpis.book_kpis(rows, now_ms)
     var = {name: variant_block(rows, vr) for name, vr in (variant_rows or {}).items()}
     calibration = {k: v for k, v in (calibration or {}).items() if k != "curve"}
     cal4 = {k: v for k, v in (calibration_4h or {}).items() if k != "curve"}
-    opps = levers.opportunities(book, var.get("t143"), calibration, cal4)
+    opps = levers.opportunities(book, var.get("t143"), calibration, cal4, gates)
     hft = hft or {}
     trig = levers.triggers(funding or {}, hft.get("l2_days"), hft.get("pct_complete"))
     audit = {"mode": "SIMULADO", "generated_at": generated_at, "now_ms": now_ms, "book": book,
              "variants": var, "hft": hft, "funding_apr": funding or {},
              "calibration": calibration, "calibration_4h": cal4,
+             "gates": gates or [],          # T212: puerta del marco mayor por marco
              "opportunities": opps, "triggers": trig, "nursery": nursery or {}}
     audit["deltas"] = levers.deltas(audit, prev)
     return audit

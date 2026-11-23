@@ -273,14 +273,16 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
         cs = self.store.read_candles(symbol, htf, start=t0 - 4 * slow * bar)
         return HtfTrend(cs, bar, fast, slow).at
 
-    def _gates(self, symbol: str, now: int) -> list[dict]:
+    def _gates(self, v: View, now: int) -> list[dict]:
         """T212: estado de la puerta del marco mayor por marco de decisión, para publicarlo.
 
         Lo mismo que `_htf` le da al generador de ideas, pero mirado al revés: en vez de decidir,
-        cuenta desde cuándo manda esa dirección y a qué distancia está del extremo reciente. No
-        cambia ninguna regla; que el veto exista se ve en `enforced_by`.
+        cuenta desde cuándo manda esa dirección y a qué distancia está del extremo reciente, y
+        cuántas ideas dejó fuera su veto en la ventana (T212 criterio 2). No cambia ninguna regla;
+        que el veto exista se ve en `enforced_by`.
         """
         who = tuple(p.id for p in self.profiles if p.require_htf)
+        off = gates.blocked({pid: st.events for pid, st in v.books.items()}, now)
         out = []
         for tf in self.tfs:
             spec = self.ep.htf.get(tf)
@@ -288,9 +290,10 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
                 continue
             htf, fast, slow = spec
             bar = tf_ms(htf)
-            cs = self.store.read_candles(symbol, htf,
+            cs = self.store.read_candles(v.symbol, htf,
                                          start=now - max(4 * slow * bar, gates.WINDOW_MS))
-            out.append(gates.status(tf, htf, fast, slow, cs, bar, now, who).to_json())
+            out.append(gates.status(tf, htf, fast, slow, cs, bar, now, who,
+                                    off.get(tf)).to_json())
         return out
 
     def _payload(self, v: View, by_tf: dict[str, list[dict]], infos: list[dict],
@@ -316,7 +319,7 @@ class PaperDesk(DeskService, DeskProtection, DeskAudit, DeskGate):
             "family_stats": fams, "tf_stats": timeframe_stats(v.outcomes),
             "live_first": v.live_first,                # T182: libros solo con lo vivo
             # T212: la puerta del marco mayor deja de ser invisible (dirección, giro y retraso)
-            "htf_gates": self._gates(v.symbol, now),
+            "htf_gates": self._gates(v, now),
             "insights": insights(rows, fams, profiles, cov["origins"]),
             # T195: el balance por defecto es el universo oficial; la vista va aparte y etiquetada
             **balance_lens.payload(self.pstore, v.symbol, v.books,

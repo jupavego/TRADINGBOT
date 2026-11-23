@@ -240,6 +240,12 @@ def test_htf_gates_publica_la_puerta_del_marco_mayor(client):
     assert g["extreme_kind"] in ("min", "max") and g["price"] > 0
     assert g["enforced_by"] == ["conservador", "moderado", "agresivo", "ppp_btcusdt"]
     assert g["thresholds"]["disagree_h"] == 24.0 and g["text"].startswith("15m")
+    # T212 criterio 2: lo que el veto dejó fuera, por marco y lado (None si no bloqueó nada)
+    for x in v["htf_gates"]:
+        b = x["blocked"]
+        assert b is None or (b["n"] == b["long"] + b["short"] and b["ideas"] <= b["n"]
+                             and b["live"] <= b["n"] and b["window_h"] == 168.0
+                             and sum(b["profiles"].values()) == b["n"])
     # el lado del libro es el de la puerta: ninguna idea viva va en contra (veto `require_htf`)
     for x in client.get("/v2/paper/ideas?symbol=BTCUSDT&limit=50").json()["ideas"]:
         if x["timeframe"] == "15m" and x.get("htf") is not None:

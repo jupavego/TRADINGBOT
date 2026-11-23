@@ -4251,3 +4251,27 @@ pm run build.
   criterios 3 (panel y API) y 4 (la nota y la skill) están hechos.
 - **Siguiente paso:** criterio 2, y revisar la franja en el panel real tras el próximo reinicio de la
   API (hoy no se reinicia: T31 cierra el 2026-11-27).
+
+## 2026-11-23 · T212 criterio 2 — el veto «contra la tendencia» deja de ser silencioso
+- **Hecho:** `gates.blocked()` (función pura, `eim/paper/gates.py`) recorre los eventos de los cuatro
+  perfiles y cuenta los rechazos del código `contra_tendencia` **por marco y por lado** en la misma
+  ventana de 7 d, con ideas distintas, cuántos fueron en vivo y el reparto por perfil. Cada puerta de
+  `htf_gates` lo lleva dentro (`blocked`), el panel lo dice en su línea y **la auditoría** saca una
+  oportunidad informativa (`levers.gate_opps`, id `puerta_tarde_<marco>`, vía `cerrada (T139 P1)`)
+  cuando una puerta lleva ≥ 24 h y ≥ 2 % en contra del tramo reciente; `sources.gates()` la lee de la
+  API y `build` la guarda en el JSON del informe (`gates`).
+- **Medido con los datos reales de hoy** (2 000 últimos rechazos del diario, ≈ 17:00 UTC): de ellos
+  **181 son del veto de la puerta**, y se reparten así — **1h: 56 ideas dejadas fuera (100 rechazos,
+  los 100 largos)**, **4h: 11 ideas (29 rechazos, los 29 largos)** y 15m: 35 ideas (52 rechazos, 37
+  largos y 15 cortos). Es decir, **los dos marcos cuya puerta sigue bajista solo están bloqueando
+  compras**, con el precio +14 % sobre el mínimo de la ventana.
+- **Verificado en el navegador** (Vite temporal en 5174, datos reales): «1h ▼ bajista desde hace
+  31 d 18 h · precio +14,0 % frente al mínimo de 7 d (55.127) · dejó fuera 56 ideas en 168 h (100
+  rechazos: 100 largos, 0 cortos) ⚠ lleva 14,0 % en contra (umbral 2 % y 24 h)», una puerta por línea.
+- **Lo que NO se tocó:** la puerta, el veto, el libro, los pesos y `params_fingerprint` siguen igual.
+  La auditoría informa y no propone: cambiar la puerta reabre T139 P1 y es ◆ del usuario.
+- **Archivos:** `eim/paper/gates.py`, `eim/paper/desk.py`, `eim/web/src/{paper_gates.ts,paper_types.ts,paper.css}`,
+  `eim/analytics/audit/{sources,build,levers}.py` y `__main__.py`, `tests/paper/test_t212_gates.py`,
+  `tests/analytics/test_audit.py`, `tests/api/test_paper_api.py`.
+- **Siguiente paso:** mirar la franja en el panel real tras el próximo reinicio de la API (hoy no se
+  reinicia: T31 cierra el 2026-11-27) y, con ella delante, decidir las ◆ de BACKLOG.

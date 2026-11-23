@@ -38,6 +38,19 @@ def variants(api: str) -> list[str]:
         return []
 
 
+def gates(api: str, symbol: str = "BTCUSDT") -> list[dict]:
+    """T212: la puerta del marco mayor tal como la publica la mesa (`htf_gates`).
+
+    Si la API es anterior a T212, o la vista está recalculándose, la auditoría sigue sin ella.
+    """
+    try:
+        r = httpx.get(api.rstrip("/") + "/v2/paper", params={"symbol": symbol}, timeout=90.0)
+        r.raise_for_status()
+        return list(r.json().get("htf_gates") or [])
+    except (httpx.HTTPError, ValueError, AttributeError):
+        return []
+
+
 def calibration(api: str, symbol: str = "BTCUSDT", tf: str = "1h") -> dict:
     """Pronósticos persistidos frente a velas (T19/T26), tal como los publica la API."""
     try:

@@ -11,6 +11,7 @@ from eim.analytics.audit import build, kpis, levers, render
 from eim.analytics.audit.__main__ import main
 
 NOW = 1_800_000_000_000
+MIN_ROWS = 25
 COST = json.dumps({"taker_fee": 0.0005, "maker_fee": 0.0002})
 
 
@@ -223,3 +224,34 @@ def test_audit_reads_the_nursery_summary(tmp_path):
                  '"text": "versión nueva de x"}]}', encoding="utf-8")
     lines = "\n".join(rnd.nursery_lines(src.nursery(p)))
     assert "2026-12-17" in lines and "[◆] versión nueva de x" in lines
+
+
+def _gate(tf="1h", dirn=-1, hours=760.0, move=14.0, blocked=None, disagrees=True) -> dict:
+    return {"timeframe": tf, "htf": "4h", "fast": 21, "slow": 55, "dir": dirn,
+            "label": "bajista" if dirn < 0 else "alcista", "since_t": NOW - int(hours * 3_600_000),
+            "hours": hours, "extreme_kind": "min" if dirn < 0 else "max", "move_pct": move,
+            "against_pct": abs(move), "disagrees": disagrees, "enforced_by": ["moderado"],
+            "blocked": blocked, "text": "", "thresholds": {"disagree_h": 24.0,
+                                                           "disagree_pct": 2.0, "window_h": 168.0}}
+
+
+def test_la_auditoria_avisa_de_la_puerta_que_va_en_contra():
+    """T212: el retraso de la puerta se informa con su cifra; cambiarla sigue cerrado (T139 P1)."""
+    g = _gate(blocked={"n": 33, "live": 30, "long": 33, "short": 0, "ideas": 33,
+                       "profiles": {"moderado": 33}, "window_h": 168.0})
+    o = levers.gate_opps([g])[0]
+    assert o["id"] == "puerta_tarde_1h" and o["category"] == "dirección"
+    assert "bajista desde hace 760 h" in o["evidence"] and "+14.0 %" in o["evidence"]
+    assert "33 ideas en 168 h (33 rechazos: 33 largos, 0 cortos)" in o["evidence"]
+    assert o["route"].startswith("cerrada") and o["ref"] == "T212"
+    assert levers.gate_opps([_gate(disagrees=False)]) == []
+    assert levers.gate_opps(None) == []
+
+
+def test_la_puerta_entra_en_el_informe_y_en_la_consola():
+    rows = [_row(-0.1, -10.0) | {"idea_id": f"i{i}"} for i in range(MIN_ROWS)]
+    a = build.build(rows, NOW, "2026-11-23T00:00:00Z", gates=[_gate()])
+    a["paths"] = {"md": "reports/audit/audit_2026-11-23.md"}
+    assert a["gates"] and a["gates"][0]["timeframe"] == "1h"
+    assert any(o["id"] == "puerta_tarde_1h" for o in a["opportunities"])
+    assert "puerta de 1h" in render.console(a) and "puerta de 1h" in render.markdown(a)

@@ -34,8 +34,32 @@ def _opp(oid, cat, title, evidence, route, ref, usdt=None, r_op=None) -> dict:
             "ref": ref, "impact_usdt": usdt, "impact_r_per_op": r_op}
 
 
+def gate_opps(gates: list[dict] | None) -> list[dict]:
+    """T212: la puerta del marco mayor que lleva tiempo en contra del tramo reciente.
+
+    Informativa por definición: cambiar la puerta es una entrada nueva y T139 la cerró con P1, así
+    que la auditoría dice cuánto lleva en contra y cuántas ideas dejó fuera, y nada más.
+    """
+    out = []
+    for g in gates or []:
+        if not g.get("disagrees"):
+            continue
+        b = g.get("blocked") or {}
+        ev = (f"{g['label']} desde hace {g['hours']:.0f} h con el precio {g['move_pct']:+.1f} % "
+              f"frente al {'mínimo' if g['extreme_kind'] == 'min' else 'máximo'} de "
+              f"{g['thresholds']['window_h'] / 24:.0f} d")
+        if b.get("n"):
+            ev += (f"; dejó fuera {b['ideas']} ideas en {b['window_h']:.0f} h "
+                   f"({b['n']} rechazos: {b['long']} largos, {b['short']} cortos)")
+        out.append(_opp(f"puerta_tarde_{g['timeframe']}", "dirección",
+                        f"La puerta de {g['timeframe']} va en contra del tramo reciente", ev,
+                        "cerrada (T139 P1: el retraso se mide, no se cambia)", "T212"))
+    return out
+
+
 def opportunities(k: dict, variant: dict | None = None,
-                  calib: dict | None = None, calib_4h: dict | None = None) -> list[dict]:
+                  calib: dict | None = None, calib_4h: dict | None = None,
+                  gates: list[dict] | None = None) -> list[dict]:
     """Oportunidades ordenadas por impacto en USDT (las informativas, al final)."""
     out: list[dict] = []
     a = k.get("all", {})
@@ -88,6 +112,7 @@ def opportunities(k: dict, variant: dict | None = None,
         out += auto_not_reflected(variant)
     out += calibration_opps(calib or {})
     out += calibration_opps(calib_4h or {}, "4h")
+    out += gate_opps(gates)                 # T212: el retraso de la puerta, informativo
     return sorted(out, key=lambda o: -(o["impact_usdt"] or 0))
 
 

@@ -81,3 +81,48 @@ def test_el_json_lleva_los_umbrales_y_el_texto() -> None:
                                "window_h": gates.WINDOW_MS / H}
     assert j["timeframe"] == "4h" and j["htf"] == "4h" and j["fast"] == 21 and j["slow"] == 55
     assert j["dir"] == -1 and j["label"] == "bajista" and isinstance(j["text"], str)
+
+
+def _rej(tf: str, side: int, t: int, code: str = gates.VETO_CODE, origin: str = "vivo") -> dict:
+    """Evento de rechazo como lo escribe `eim/paper/book_events.py:ev`."""
+    return {"t": t, "cat": "rechazada", "timeframe": tf, "side": side, "code": code,
+            "idea": f"BTCUSDT:{tf}:{t}:{side}", "origin": origin}
+
+
+def test_blocked_cuenta_por_marco_y_lado_solo_el_veto_de_la_puerta() -> None:
+    books = {
+        "moderado": [_rej("15m", 1, T0), _rej("15m", 1, T0 + H), _rej("1h", -1, T0),
+                     _rej("15m", 1, T0, code="costo"),          # otro veto: no cuenta
+                     {"t": T0, "cat": "abierta", "timeframe": "15m", "side": 1}],
+        "agresivo": [_rej("15m", 1, T0, origin="backtest")],    # cuenta, pero no como viva
+    }
+    out = gates.blocked(books, T0 + 2 * H)
+    assert set(out) == {"15m", "1h"}
+    q = out["15m"]
+    assert q["n"] == 3 and q["live"] == 2 and q["long"] == 3 and q["short"] == 0
+    assert q["ideas"] == 2                                      # la misma idea en dos perfiles
+    assert q["profiles"] == {"moderado": 2, "agresivo": 1}
+    assert q["window_h"] == gates.WINDOW_MS / H
+    assert out["1h"]["short"] == 1 and out["1h"]["long"] == 0
+
+
+def test_blocked_deja_fuera_lo_anterior_a_la_ventana() -> None:
+    viejo = T0 - gates.WINDOW_MS - H
+    out = gates.blocked({"moderado": [_rej("4h", -1, viejo), _rej("4h", -1, T0)]}, T0)
+    assert out["4h"]["n"] == 1
+
+
+def test_el_estado_lleva_lo_bloqueado_y_lo_dice_en_su_texto() -> None:
+    cs = candles(BAJA + REBOTE)
+    off = gates.blocked({"moderado": [_rej("15m", 1, cs[-1].t)]}, cs[-1].t + H)
+    g = gates.status("15m", "1h", 21, 55, cs, H, cs[-1].t + H, ("moderado",), off.get("15m"))
+    assert g.blocked is not None and g.blocked["n"] == 1
+    assert g.to_json()["blocked"]["long"] == 1
+    assert "dejó fuera 1 idea en 168 h (1 rechazos: 1 largos, 0 cortos)" in g.text
+
+
+def test_sin_rechazos_de_la_puerta_no_hay_bloqueo() -> None:
+    out = gates.blocked({"moderado": [_rej("15m", 1, T0, code="pausa_estrategia")]}, T0)
+    assert out == {}
+    g = gates.status("15m", "1h", 21, 55, candles(BAJA + REBOTE), H, T0, (), out.get("15m"))
+    assert g.to_json()["blocked"] is None
