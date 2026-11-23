@@ -4222,3 +4222,32 @@ pm run build.
   UTC T194 recorta tamaño, lo que reduce la pérdida pero no corrige la dirección.
 - **Siguiente paso:** T212 criterio 1 (estado, giro y retraso de cada puerta en la API y el panel), que
   es lo que hace falta para que esto se vea sin reconstruirlo a mano.
+
+## 2026-11-23 · T212 criterio 1 — la puerta del marco mayor deja de ser invisible
+- **Hecho:** la puerta que fija el lado del libro (`ProfileParams.htf` + veto `contra_tendencia`) ya
+  publica su estado. Módulo nuevo `eim/paper/gates.py` (función pura, sin red ni disco): por marco de
+  decisión da la **dirección vigente**, el **instante del giro**, las **horas en ese estado**, el
+  **extremo de 7 d que la contradice** (mínimo si es bajista, máximo si es alcista), cuánto recorrido
+  lleva **en contra** y un **aviso de desacuerdo** cuando pasa de 24 h y 2 % (umbrales en el código,
+  `DISAGREE_H` y `DISAGREE_PCT`). Sale en `GET /v2/paper` como `htf_gates`, con `enforced_by` (los
+  cuatro perfiles, que tienen `require_htf`) y los umbrales, y se pinta en una franja nueva del panel
+  bajo la barra de «en vivo» (`eim/web/src/paper_gates.ts`, `pp-gates`).
+- **Verificado con datos reales** (velas del disco de BTCUSDT, 2026-11-23 ≈ 16:30 UTC) y **mirado en el
+  navegador** (Vite temporal en 5174 con `VITE_API_URL=` para ir por el proxy): «15m ▲ alcista desde
+  hace 23 h (giró el 2026-11-22 12:00 COT) · precio −4,0 % frente al máximo de 7 d (65.500)», «1h ▼
+  bajista desde hace 31 d 16 h · precio +14,0 % frente al mínimo de 7 d (55.127) ⚠ lleva 14,0 % en
+  contra (umbral 2 % y 24 h)» y lo mismo en 4h (30 d 0 h). Con la API vieja (sin el campo) la franja
+  queda vacía y se colapsa (`:empty`), así que el panel actual no cambia hasta el próximo reinicio.
+- **Lo que NO se tocó:** `ProfileParams.htf`, `vetoes.py`, el libro, los pesos y `params_fingerprint`
+  siguen igual. Esto es análisis (T145 D) y no reabre T139 P1: no abre, no cierra y no cambia el lado.
+- **Archivos:** `eim/paper/gates.py` (nuevo), `eim/paper/desk.py` (`_gates` + `htf_gates` en el
+  payload), `eim/web/src/paper_gates.ts` (nuevo), `paper_types.ts`, `paper_template.ts`,
+  `paper_view.ts`, `paper.css`, `tests/paper/test_t212_gates.py` (nuevo), `tests/api/test_paper_api.py`.
+- **Pruebas:** `ruff check eim tests` limpio y **18 pasadas, 0 fallos** en
+  `tests/api/test_paper_api.py` + `tests/paper/test_t212_gates.py` por la cola (trabajo
+  `20261123-165948-t212-api-a7f9`); `tsc --noEmit` limpio. El gate completo va por la cola en 5 trozos.
+- **Abierto:** de T212 quedan el **criterio 2** (el recuento de rechazos separado por marco y el costo
+  de lo que veta, en el informe diario) y que la **auditoría** lea el aviso de desacuerdo; los
+  criterios 3 (panel y API) y 4 (la nota y la skill) están hechos.
+- **Siguiente paso:** criterio 2, y revisar la franja en el panel real tras el próximo reinicio de la
+  API (hoy no se reinicia: T31 cierra el 2026-11-27).
