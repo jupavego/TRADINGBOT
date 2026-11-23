@@ -16,10 +16,16 @@ function row(g: HtfGate): string {
   const dist = g.move_pct === null || g.extreme_kind === null ? ''
     : ` · precio <b>${usd(g.move_pct, 1)} %</b> frente al ${KIND[g.extreme_kind] ?? g.extreme_kind}` +
       ` de ${nf(g.thresholds.window_h / 24, 0)} d${g.extreme_px === null ? '' : ` (${nf(g.extreme_px, 0)})`}`
+  const b = g.blocked
+  const off = b && b.n
+    ? ` · dejó fuera <b>${b.ideas}</b> idea${b.ideas === 1 ? '' : 's'} en ${nf(b.window_h, 0)} h` +
+      ` <span class="muted">(${b.n} rechazos: ${b.long} largos, ${b.short} cortos` +
+      `${b.live < b.n ? `; ${b.live} en vivo` : ''})</span>`
+    : ''
   const warn = g.disagrees && g.against_pct !== null
     ? ` <span class="warn">⚠ lleva ${nf(g.against_pct, 1)} % en contra (umbral ${nf(g.thresholds.disagree_pct, 0)} % y ${nf(g.thresholds.disagree_h, 0)} h)</span>`
     : ''
-  return `<li data-k="${k}">${head} <small>${since}${dist}</small>${warn}</li>`
+  return `<li data-k="${k}">${head} <small>${since}${dist}${off}</small>${warn}</li>`
 }
 
 /** Franja completa; vacía si la API todavía no publica las puertas (versión anterior). */

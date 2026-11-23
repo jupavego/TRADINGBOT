@@ -15,7 +15,7 @@ distancia está del extremo reciente, que es lo que había que reconstruir a man
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from eim.core import Candle
@@ -25,6 +25,9 @@ H_MS = 3_600_000
 WINDOW_MS = 7 * 24 * H_MS      # ventana del extremo reciente (mínimo o máximo de 7 días)
 DISAGREE_H = 24.0              # horas en el mismo estado para que el desacuerdo se avise
 DISAGREE_PCT = 2.0             # % recorrido en contra de la puerta que lo convierte en aviso
+
+#: Código del veto que aplica esta puerta (`eim/paper/vetoes.py`).
+VETO_CODE = "contra_tendencia"
 
 #: Dirección → cómo se nombra en la interfaz y qué extremo la contradice.
 LABEL = {1: "alcista", -1: "bajista", 0: "sin dato"}
@@ -51,6 +54,7 @@ class Gate:
     hours_since_extreme: float | None = None
     enforced_by: tuple[str, ...] = ()  # perfiles con `require_htf` (a quiénes veta)
     disagrees: bool = False        # ≥ DISAGREE_H en contra de un tramo de ≥ DISAGREE_PCT
+    blocked: dict | None = None    # lo que este veto dejó fuera en la ventana (`blocked()`)
 
     @property
     def text(self) -> str:
@@ -61,10 +65,15 @@ class Gate:
         who = f"{LABEL[self.dir]} desde hace {self.hours:.0f} h"
         if self.against_pct is None or self.extreme_kind is None:
             return f"{self.tf} ({self.htf} EMA{self.fast}/{self.slow}): {who}"
-        side = AGAINST[self.dir][1]
-        return (f"{self.tf} ({self.htf} EMA{self.fast}/{self.slow}): {who} · precio "
-                f"{self.move_pct:+.1f} % frente al {side} de 7 d"
-                + (f" · lleva {self.against_pct:.1f} % en contra" if self.disagrees else ""))
+        side, b = AGAINST[self.dir][1], self.blocked or {}
+        out = (f"{self.tf} ({self.htf} EMA{self.fast}/{self.slow}): {who} · precio "
+               f"{self.move_pct:+.1f} % frente al {side} de 7 d"
+               + (f" · lleva {self.against_pct:.1f} % en contra" if self.disagrees else ""))
+        if b.get("n"):
+            out += (f" · dejó fuera {b['ideas']} idea{'s' if b['ideas'] != 1 else ''} en "
+                    f"{b['window_h']:.0f} h ({b['n']} rechazos: {b['long']} largos, "
+                    f"{b['short']} cortos)")
+        return out
 
     def to_json(self) -> dict:
         return {
@@ -78,6 +87,7 @@ class Gate:
             "hours_since_extreme": None if self.hours_since_extreme is None
             else round(self.hours_since_extreme, 1),
             "disagrees": self.disagrees, "enforced_by": list(self.enforced_by),
+            "blocked": self.blocked,
             "text": self.text,
             "thresholds": {"disagree_h": DISAGREE_H, "disagree_pct": DISAGREE_PCT,
                            "window_h": WINDOW_MS / H_MS},
@@ -85,13 +95,14 @@ class Gate:
 
 
 def status(tf: str, htf: str, fast: int, slow: int, candles: Sequence[Candle], bar_ms: int,
-           now: int, enforced_by: Sequence[str] = ()) -> Gate:
+           now: int, enforced_by: Sequence[str] = (), blocked_tf: dict | None = None) -> Gate:
     """Estado de la puerta de `tf` en `now`, con las velas de su marco mayor `htf`.
 
     Solo mira velas CERRADAS en `now` o antes, igual que `HtfTrend`, así que no se adelanta a lo
     que la puerta sabía en ese instante.
     """
-    base = Gate(tf=tf, htf=htf, fast=fast, slow=slow, dir=0, enforced_by=tuple(enforced_by))
+    base = Gate(tf=tf, htf=htf, fast=fast, slow=slow, dir=0, enforced_by=tuple(enforced_by),
+                blocked=blocked_tf)
     closed = [c for c in candles if c.t + bar_ms <= now]
     if not closed:
         return base
@@ -118,5 +129,34 @@ def status(tf: str, htf: str, fast: int, slow: int, candles: Sequence[Candle], b
                 extreme_kind=kind, extreme_t=ext.t, extreme_px=ext_px, price=price,
                 move_pct=move, against_pct=against,
                 hours_since_extreme=(now - (ext.t + bar_ms)) / H_MS,
-                enforced_by=tuple(enforced_by),
+                enforced_by=tuple(enforced_by), blocked=blocked_tf,
                 disagrees=hours >= DISAGREE_H and against >= DISAGREE_PCT)
+
+
+def blocked(books: Mapping[str, Sequence[Mapping]], now: int,
+            window_ms: int = WINDOW_MS) -> dict[str, dict]:
+    """Lo que el veto `contra_tendencia` dejó fuera en la ventana, por marco y por lado.
+
+    Sin esto el veto es silencioso: sus rechazos se mezclan con los otros miles y para saber qué
+    bloqueó la puerta había que reconstruirlo del libro a mano (T212 §3). `books` son los eventos
+    de cada perfil (`ProfileState.events`), que ya llevan `code`, `timeframe`, `side` y `origin`.
+    """
+    out: dict[str, dict] = {}
+    seen: dict[str, set] = {}
+    for pid, events in books.items():
+        for e in events:
+            if e.get("cat") != "rechazada" or e.get("code") != VETO_CODE:
+                continue
+            if int(e.get("t", 0)) < now - window_ms:
+                continue
+            tf = str(e.get("timeframe") or "")
+            b = out.setdefault(tf, {"n": 0, "live": 0, "long": 0, "short": 0, "ideas": 0,
+                                    "profiles": {}, "window_h": window_ms / H_MS})
+            b["n"] += 1
+            b["live"] += int(e.get("origin") == "vivo")
+            b["long" if int(e.get("side", 0)) > 0 else "short"] += 1
+            b["profiles"][pid] = b["profiles"].get(pid, 0) + 1
+            seen.setdefault(tf, set()).add(e.get("idea"))
+    for tf, ids in seen.items():
+        out[tf]["ideas"] = len(ids)
+    return out
