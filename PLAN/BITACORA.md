@@ -4301,3 +4301,38 @@ pm run build.
 - **Abierto:** las 2 filas prematuras del registro vivo se borran tras fusionar, para que se midan
   enteras en la corrida siguiente (el almacén de 1 m aún cubre esos días).
 - **Siguiente paso:** corrida del 2026-11-25 a las 02:10 UTC; primera revisión mensual 2026-12-24.
+## 2026-11-24 · T212 cerrada — la franja de puertas, verificada en el panel real
+- **Hecho:** se cierra T212 (☑). Lo único que le faltaba era mirar la franja en el panel con datos
+  reales, y hoy se pudo: la API se reinició **sola** a las 15:12 UTC (reinicio nº 21, por falta de
+  memoria; no se forzó nada) y arrancó ya con el código fusionado, así que `htf_gates` salió a la
+  primera.
+- **Verificado a las 15:47 UTC en `http://127.0.0.1:5173`** (servidor de desarrollo del checkout
+  principal, datos en vivo): «PUERTA DEL MARCO MAYOR · QUÉ LADO DEJA OPERAR — **15m** ▼ bajista desde
+  hace 6 h 12 min (giró el 2026-11-24 04:00 COT) · precio +9,6 % frente al mínimo de 7 d (55.127) ·
+  dejó fuera 66 ideas en 168 h (95 rechazos: 68 largos, 27 cortos; 94 en vivo); **1h** ▼ bajista desde
+  hace 27 d 7 h · 86 ideas (148 rechazos, los 148 largos) ⚠ lleva 9,6 % en contra (umbral 2 % y 24 h);
+  **4h** ▼ bajista desde hace 30 d 23 h · 29 ideas (75 rechazos, los 75 largos) ⚠ 9,6 % en contra», con
+  su pie nombrando a los cuatro perfiles y el recordatorio de que es análisis.
+- **La puerta rápida volvió a girar en el día:** a las 06:36 UTC llevaba 38 h alcista y a las 15:47
+  llevaba 6 h bajista, después de que el BTC cayera de 63 833 a ~59 850. Compró arriba y vendió abajo,
+  que es justo lo que midió el diagnóstico (39 giros en 95 días, sin capacidad de distinguir dirección).
+- **Corrección a una cifra del día:** las horas de la puerta de 1h que se dieron por la mañana (775 h)
+  se habían calculado con las 500 velas de `/v2/snapshot`, un calentamiento más corto que el del
+  almacén; las buenas son las de la API, **655 h** entonces y 27 d 7 h ahora.
+- **Por qué tardó en pintarse (no era el código):** la API tiene un solo trabajador y la mesa le
+  dispara una docena de llamadas pesadas al cargar (`/v2/snapshot` n=1500, `/v2/forecast`), así que
+  `/v2/paper` espera en la cola. Medido con la mesa cargando: `/v2/health`, que son 3 ms, tardó 20 s,
+  luego 7,4 s y luego 1,3 s. Antes de eso, al arrancar en frío con el equipo asfixiado, la vista tardó
+  16 min en contestar la primera vez. Queda anotado en BACKLOG para **T206** (PR #358).
+- **El día en el equipo:** 6 paradas de latido, 3 reinicios ayer y el nº 21 hoy, con el equipo en
+  **233 MB libres de 16 GB** (chrome.exe 8,3 GB comprometidos, NVIDIA Overlay 3,3 GB). El usuario
+  cerró esos programas y quedaron 4,2 GB; la API levantó enseguida. La captura HFT está al 94,44 % de
+  su ventana de 72 h con una racha de 15 h.
+- **Pruebas:** ninguna nueva; el cambio es de documentación (`PLAN/STATUS.md`, `PLAN/BITACORA.md`,
+  `PLAN/roadmap.html`) y no toca nada ejecutable. El gate quedó verde ayer con el criterio 2
+  (4 193 pasadas, 9 omitidas, 0 fallos).
+- **Abierto:** las ◆ de BACKLOG siguen esperando al usuario — qué se hace con conservador, con qué
+  contabilidad se cierra T31, el corte del 2026-11-28 y si se pre-registra en sombra una puerta
+  alternativa (eso reabre T139 P1).
+- **Siguiente paso:** el cierre de T31 el 2026-11-27 (informe final, `risk_includes_costs`, freno
+  gradual y comparación con la variante t143 bajo la contabilidad de T144).
