@@ -4275,6 +4275,32 @@ pm run build.
   `tests/analytics/test_audit.py`, `tests/api/test_paper_api.py`.
 - **Siguiente paso:** mirar la franja en el panel real tras el próximo reinicio de la API (hoy no se
   reinicia: T31 cierra el 2026-11-27) y, con ella delante, decidir las ◆ de BACKLOG.
+
+## 2026-11-24 — La primera corrida real del patrón de apertura destapa un fallo del registro
+
+- **Hecho:** la tarea diaria corrió sola por primera vez (2026-11-24 02:10:02 UTC, resultado 0) y
+  escribió `reports/apertura/apertura_20261124.md` con las 2 aperturas que ya habían abierto a esa
+  hora: Tokio 00:00 UTC y Hong Kong 01:30 UTC, las dos **continuaron** en vez de revertir (contra-A
+  −12,87 y −14,76 bps netos). Con n = 2 no se lee nada, y el pre-registro ya lo dice.
+- **Fallo encontrado al comprobarlo, no en teoría:** a las 02:10 UTC esas dos aperturas todavía no
+  han cerrado su ventana de 4 h, así que se guardaban con `canal_rebote` y `canal_ruptura` en
+  `null`; y como el registro es append-only e idempotente por `(zona, t)`, la medición completa de
+  la corrida siguiente se descartaba por «ya vista». Comprobado en el almacén real a las 07:41 UTC:
+  esas mismas aperturas dan `canal_ruptura` **+7,29 y +14,60 bps**, cifras que se iban a perder. Y
+  no era cosa de un día: con la tarea a hora fija, Tokio y Hong Kong quedaban fuera de la variante
+  candidata **todos los días**, dejándola con 3 plazas de las 5 que el pre-registro declara.
+- **Arreglado:** `apertura.ventana_cerrada()` y `medir()` solo guardan las aperturas cuya ventana
+  cabe entera en la rejilla, y devuelven cuántas se aplazan; el informe y `latest.json` dicen
+  cuántas. Además, dos cifras que engañaban: el titular decía «0 aperturas en la ventana» teniendo
+  2 medidas (hablaba de 0 operaciones de la candidata) y la potencia decía que «harían falta 0,0
+  aperturas», calculada con la sd de dos datos; ahora no se estima por debajo de 30.
+- **Pruebas:** `tests/analytics/test_t211_apertura.py`, 18 (3 nuevas: aplazar y medir entera
+  después, titular con aperturas medidas, potencia con muestra minúscula).
+- **Archivos:** `eim/analytics/apertura.py`, `eim/analytics/apertura_report.py`,
+  `tests/analytics/test_t211_apertura.py`, `PLAN/T211.md`, `PLAN/BACKLOG.md`.
+- **Abierto:** las 2 filas prematuras del registro vivo se borran tras fusionar, para que se midan
+  enteras en la corrida siguiente (el almacén de 1 m aún cubre esos días).
+- **Siguiente paso:** corrida del 2026-11-25 a las 02:10 UTC; primera revisión mensual 2026-12-24.
 ## 2026-11-24 · T212 cerrada — la franja de puertas, verificada en el panel real
 - **Hecho:** se cierra T212 (☑). Lo único que le faltaba era mirar la franja en el panel con datos
   reales, y hoy se pudo: la API se reinició **sola** a las 15:12 UTC (reinicio nº 21, por falta de
