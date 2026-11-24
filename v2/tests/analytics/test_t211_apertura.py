@@ -160,3 +160,43 @@ def test_registro_no_duplica_aperturas(tmp_path):
     assert R.acumular(reg, filas, "abc123") == (0, 2)       # idempotente
     assert len(R.leer_registro(reg, 0)) == 2
     assert len(R.leer_registro(reg, 2)) == 1                 # respeta la ventana
+
+
+def test_apertura_reciente_se_aplaza_y_luego_se_mide_entera():
+    # El fallo real: a las 02:10 UTC, Tokio (00:00) no ha cerrado sus 4 h. Si se guardara ya,
+    # el registro append-only nunca admitiria despues su medicion completa.
+    pr = {"k": 3, "costes_bps": {"mercado_ida_vuelta": 9.0, "limite_ida_vuelta": 6.3},
+          "zonas": [{"id": "prueba", "tz": "UTC", "hh": 8, "mm": 0}]}
+    cierres = [100.0, 101.0, 100.5, 103.0] + [103.0] * 296
+    t0 = ms("2026-11-23T08:00:00")
+    corta = A.bars_from_candles(velas(t0, cierres[:200]))
+    assert not A.ventana_cerrada(corta, 0, 3)
+    assert R.medir(corta, pr, t0) == ([], 1)          # nada a medias en el registro
+    entera = A.bars_from_candles(velas(t0, cierres))
+    filas, aplazadas = R.medir(entera, pr, t0)
+    assert aplazadas == 0 and len(filas) == 1
+    assert filas[0]["canal_ruptura"] is not None      # la candidata si queda medida
+    assert filas[0]["canal_ruptura_motivo"] == "objetivo"
+
+
+def test_veredicto_no_dice_cero_aperturas_cuando_hay_medidas():
+    pr = A.load_prereg()
+    filas = [{"zona": "tokio", "t": 1, "contra_a_3m": -12.9, "canal_ruptura": None},
+             {"zona": "hong_kong", "t": 2, "contra_a_3m": -14.8, "canal_ruptura": None}]
+    res = R.resumir(filas, pr)
+    assert "2 aperturas" in res["veredicto"] and "0 aperturas" not in res["veredicto"]
+    texto = R.render(res, pr, filas, 2, 2, aplazadas=2)
+    assert "Aplazadas" in texto and "None" not in texto
+
+
+def test_la_potencia_no_se_estima_con_muestra_minuscula():
+    pr = A.load_prereg()
+    pocas = [{"zona": "tokio", "t": i, "contra_a_3m": -9.0 - i} for i in range(5)]
+    agr = R.resumir(pocas, pr)["por_variante"]["contra_a_3m"]["agrupada"]
+    assert agr["n"] == 5 and agr["n_necesaria_con_lo_medido"] is None
+    # Con muestra suficiente y una dispersion realista (sd muy mayor que la media, como en la
+    # linea base) la cifra vuelve a tener sentido: decenas de aperturas, no cero.
+    muchas = [{"zona": "tokio", "t": i, "contra_a_3m": -9.0 + 30.0 * ((i % 5) - 2)}
+              for i in range(R.N_PARA_POTENCIA)]
+    agr = R.resumir(muchas, pr)["por_variante"]["contra_a_3m"]["agrupada"]
+    assert agr["n_necesaria_con_lo_medido"] >= 10

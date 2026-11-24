@@ -37,6 +37,10 @@ PUBLISHED: dict[str, str] = {
     "prereg_apertura_v1": "0411f8fc4069465432d6d78e431342e2022d57a9d5a7eb16941847c545d1f572",
 }
 SENTIDOS = ("revirtio", "continuo")
+# Ventana de las variantes de canal, tal como la fija el pre-registro: 30 min para que el
+# límite se llene y un tope de 240 min (4 h) a la operación abierta.
+VENTANA_LLENADO = 30
+TOPE_MIN = 240
 
 
 def file_hash(raw: bytes) -> str:
@@ -144,6 +148,17 @@ def _salida(bars: Bars, s: int, e: int, lado: float, obj: float, stop: float) ->
     if i_stop <= i_obj:
         return stop, i_stop + 1, "stop"
     return obj, i_obj + 1, "objetivo"
+
+
+def ventana_cerrada(bars: Bars, i0: int, k: int, ventana: int = VENTANA_LLENADO,
+                    tope: int = TOPE_MIN) -> bool:
+    """¿Cabe entera en la rejilla la ventana de esa apertura?
+
+    Mientras no quepa, la apertura no está medida sino a medias: las variantes de canal
+    devolverían vacío por falta de vela, no por lo que hizo el precio. Quien acumula muestra
+    debe esperar a la corrida siguiente en vez de congelar una fila incompleta.
+    """
+    return i0 + k + ventana + tope < len(bars)
 
 
 def canal_op(bars: Bars, i0: int, k: int, modo: str, ventana: int, tope: int,
