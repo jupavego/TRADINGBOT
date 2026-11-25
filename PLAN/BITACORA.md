@@ -4364,3 +4364,12 @@ pm run build.
   pasadas) con la cola en prioridad batch; el gate completo se lanzó por la cola de trabajos.
 - **Abierto:** la CPCV sigue en BACKLOG (T161 (3)); nada de este apéndice la implementa.
 - **Siguiente paso:** el cierre de T31 el 2026-11-27, sin cambios por esto.
+
+## 2026-11-25 · T90 — contratos de datos multifuente, almacén y calidad
+
+- **Hecho:** proveedores partidos por capacidades con ficha de fuente (cobertura 1/2/3, licencia, retraso, límites, atribución) tal como la dejó la ◆ de T88; almacén por instrumento (`InstrumentData`) con las series nuevas `corporate_actions`, `adj_factor`, `quotes`, `fundamentals` y `curve`, crudo en disco y ajustado al leer (point-in-time); `1d` y `1w` de primera clase para el almacén y el snapshot sin tocar lo que expone la API; velas de sesión; `find_gaps` que distingue cerrado de roto según el calendario e informe de calidad por serie cuyas marcas viajan en `sources/coverage`; sincronización genérica con tasa, reintentos, reanudación y presupuesto.
+- **Archivos:** `v2/eim/data/{adjust,quality,quality_io,series,session_bars,sync_generic,instrument_snapshot}.py` (nuevos), `v2/eim/data/providers/meta.py` (nuevo), `v2/eim/data/providers/{base,binance,fred,multi_asset}.py`, `v2/eim/data/{timeframes,store,snapshot,sync}.py`; pruebas `v2/tests/data/test_t90_{pure,store,sync}.py` + `t90_helpers.py` y fixtures `v2/tests/fixtures/t90/`; `v2/tests/validation/test_t139_run.py`; `PLAN/{STATUS,CONTRATOS,BACKLOG,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** 34 nuevas sin red; huella antes/después sobre el almacén real: 6 snapshots de BTC/ETH (15m/1h/4h, 1800 velas) idénticos antes y después; gate completo por la cola: pytest: .
+- **Cómo se hizo:** desde claude.ai sobre la copia local (sin acceso directo al repositorio desde la sesión); la entrega la aplicó `aplicar_t90.cmd` en una copia aparte (`git worktree`) partiendo de `origin/main`, con comprobación de que los archivos base no habían cambiado. No reinicia nada: la corrida de T31 sigue intacta.
+- **Abierto:** BACKLOG T90 (mensual sin aprobar, vecinos del snapshot de instrumento con la regla nominal de cierre, vacíos de `_sync/` sin caducidad, costo de la calidad en series de 1 min sin medir, y que el escáner use `build_instrument_snapshot`).
+- **Siguiente paso:** T91 (capacidades declaradas de los agentes: con `DataCapability` y el informe de calidad ya hay de dónde sacar «no corre sin el dato») y T92; T93 arranca cuando las dos estén.
