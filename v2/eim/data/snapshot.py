@@ -13,7 +13,7 @@ from eim.data.leader_board import BoardStore, snapshot_inputs
 from eim.data.liq_flow import read_liq_flow
 from eim.data.micro import read_micro
 from eim.data.store import Store
-from eim.data.timeframes import TF_MS, tf_ms
+from eim.data.timeframes import analysis_ladder, tf_ms, tf_offset
 
 HOUR_MS = 3_600_000
 
@@ -28,8 +28,9 @@ def _level_series(store: Store, kind: str, symbol: str, timeframe: str, lo: int,
     rows = store.read_series(kind, symbol, timeframe, start=lo, end=end) or None
     src_tf = timeframe
     if rows is None and step > HOUR_MS and step % HOUR_MS == 0:
+        off = tf_offset(timeframe)      # T90: la frontera semanal es el lunes, no el epoch
         rows = [r for r in store.read_series(kind, symbol, "1h", start=lo, end=end)
-                if r[0] % step == 0] or None
+                if (r[0] - off) % step == 0] or None
         src_tf = "1h"
     if rows:
         src = store.source(kind, symbol, src_tf) or "desconocida"
@@ -39,7 +40,8 @@ def _level_series(store: Store, kind: str, symbol: str, timeframe: str, lo: int,
 
 
 def build_snapshot(
-    store: Store, symbol: str, timeframe: str, n: int, asof: int | None = None
+    store: Store, symbol: str, timeframe: str, n: int, asof: int | None = None,
+    closed_end: int | None = None,
 ) -> MarketSnapshot:
     """Últimas `n` velas cerradas a `asof` (ms, por defecto ahora) + funding/OI si existen.
 
@@ -51,10 +53,14 @@ def build_snapshot(
     tablero no posterior a `asof` (≤ 10 min); None si no hay tablero (vigilante apagado).
     `intermarket` (T183): velas diarias cerradas a `asof` de oro, índices y cripto; None si nunca
     se sincronizó.
+    `timeframe` admite los marcos de sesión `1d` y `1w` (T90). `closed_end` (T90, opcional) es
+    la cota exclusiva de `t` de las velas cerradas cuando el instrumento tiene sesión
+    (`eim/data/session_bars.closed_before`); sin él, la regla de siempre: `t + marco <= asof`.
     """
     step = tf_ms(timeframe)
     asof = asof if asof is not None else int(time.time() * 1000)
-    candles = store.read_candles(symbol, timeframe, end=asof - step + 1, last=n)
+    end_t = asof - step + 1 if closed_end is None else closed_end
+    candles = store.read_candles(symbol, timeframe, end=end_t, last=n)
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}
     funding = oi = ls = basis = candles_tf = None
@@ -141,12 +147,15 @@ def build_snapshot(
 
 def _neighbor_candles(store: Store, symbol: str, timeframe: str, n: int, asof: int,
                       sources: dict[str, str], coverage: dict[str, tuple[int, int]]):
-    """Velas cerradas a `asof` de los marcos vecinos; None si no hay ninguno almacenado."""
-    ladder = sorted(TF_MS, key=TF_MS.__getitem__)
+    """Velas cerradas a `asof` de los marcos vecinos; None si no hay ninguno almacenado.
+
+    Los marcos de `TF_MS` solo tienen vecinos en `TF_MS` (el 4 h no gana un vecino diario: su
+    snapshot es idéntico al de antes de T90); `1d` y `1w` los tienen también intradía."""
+    ladder = analysis_ladder(timeframe)
     i = ladder.index(timeframe)
     out = {}
     for tf in ladder[max(0, i - 1):i] + ladder[i + 1:i + 2]:
-        cs = store.read_candles(symbol, tf, end=asof - TF_MS[tf] + 1, last=n)
+        cs = store.read_candles(symbol, tf, end=asof - tf_ms(tf) + 1, last=n)
         if cs:
             out[tf] = cs
             sources[f"candles_{tf}"] = store.source("candles", symbol, tf) or "desconocida"

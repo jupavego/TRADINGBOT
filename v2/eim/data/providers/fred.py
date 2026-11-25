@@ -14,6 +14,8 @@ from datetime import UTC, datetime, timedelta
 
 import httpx
 
+from eim.data.providers.meta import FRED
+
 API_URL = "https://api.stlouisfed.org/fred/series/observations"
 ATTRIBUTION = ("This product uses the FRED® API but is not endorsed or certified by the "
                "Federal Reserve Bank of St. Louis.")
@@ -40,6 +42,7 @@ def _transform(kind: str, vals: list[float]) -> float | None:
 
 class FredValues:
     name = "fred"
+    meta = FRED  # T90: ficha de la fuente (atribución obligatoria incluida)
 
     def __init__(self, api_key: str | None = None, client: httpx.Client | None = None) -> None:
         self.key = api_key if api_key is not None else os.environ.get("EIM_FRED_API_KEY")
