@@ -1,0 +1,127 @@
+{
+  "id": "machine-learning-for-trading",
+  "name": "Machine Learning for Algorithmic Trading (ml4t, 3.ª edición)",
+  "repo": "stefan-jansen/machine-learning-for-trading",
+  "commit_sha": "13b75a828c2a2fba1c20d8b16be0070eedbd1597",
+  "commit_date": "2026-11-22",
+  "audited_at": "2026-11-25",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "sha256": "0094a98ecda4424d88af9ab717659aaee3d721c2653ff638aaf8bafbc58ce8c3",
+    "head": "MIT License Copyright (c) 2024-2026 Stefan Jansen Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated docume"
+  },
+  "bot_class": "INFRA",
+  "integration_mode": "C",
+  "binance_markets": [
+    "usdm_futures"
+  ],
+  "strategies": [],
+  "dependencies": [
+    "Python >=3.14,<3.15 (exigencia dura de pyproject.toml; el entorno de EIM no la cumple)",
+    "numpy, pandas, polars, pyarrow",
+    "scipy>=1.12,<1.18 (tope por PyPortfolioOpt)",
+    "scikit-learn, xgboost, lightgbm, optuna",
+    "statsmodels, arch>=8.0 (el mismo paquete que EIM adoptó en T161)",
+    "skfolio>=0.3, riskfolio-lib, PyPortfolioOpt",
+    "torch>=2.2, torchdiffeq (capítulos 5, 13 y 21)",
+    "pymc, dowhy (capítulos 15 y 19)",
+    "crewai (capítulo 24)",
+    "kaleido>=1.3, que necesita un Chrome resoluble en el sistema"
+  ],
+  "risks": [
+    "Exige Python 3.14 exacto: importar el paquete `ml4t` desde EIM obligaría a un intérprete aparte",
+    "El repositorio pesa 1,3 GB (483 notebooks con salidas y datos); no se puede clonar entero en este equipo",
+    "El dominio es renta variable y futuros de CME; de cripto solo trae un capítulo de exploración de perpetuos de Binance, sin ejecución",
+    "El árbol de dependencias arrastra torch, pymc, dowhy y crewai: nada de eso puede entrar en la ruta de señal de EIM",
+    "Es material de libro: los capítulos son demostraciones sobre datos propios, no un servicio que se pueda operar"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "No es un bot: es la biblioteca y los capítulos de la 3.ª edición del libro (`pyproject.toml` declara `name = \"ml4t\"`, versión 3.0.0, MIT)",
+    "Es el repositorio de referencia de PLAN/T25.md, pero reescrito: 436 archivos `tests/test_*.py`, paquete instalable y último commit de hace 3 días, frente a los notebooks sin pruebas que T25 citó",
+    "Tiene con pruebas tres piezas que EIM tiene pendientes o acaba de hacer por su cuenta: CPCV (`06_strategy_definition/02_cv_foundations.py`, el único punto de T161 que sigue en BACKLOG), DSR y contraste múltiple (capítulos 7 y 16) y el acantilado de costos (capítulo 18)",
+    "`02_financial_data_universe/10_crypto_perps_eda.py` trabaja sobre OHLCV horario de 19 perpetuos de Binance Futures con su prima: el único material del repositorio en el mercado de EIM, y pertinente para T93–T96",
+    "MIT permitiría el modo A, pero el pin de Python 3.14 y el árbol de dependencias lo descartan: se reimplementa la idea con pruebas propias (modo C)"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 20,
+      "O2": 15,
+      "O3": 8,
+      "O4": 15,
+      "O5": 5,
+      "O6": 5,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 83,
+    "tests_files": 436,
+    "days_since_commit": 3
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": true,
+      "S7": true,
+      "S8": true,
+      "S9": true
+    },
+    "notes": {
+      "S2": "Las coincidencias de «withdraw» son prosa sobre retirada de órdenes del libro (ITCH, capítulo 3); no hay retiros ni transferencias de cuenta",
+      "S3": "Los únicos `torch.load` son de los checkpoints que escriben esos mismos scripts (`05_synthetic_data/*.py`, CHECKPOINT_PATH local), fuera de las piezas de validación y de costos que interesan",
+      "S4": "Sin telemetría activa: `scripts/verify_ch24_notebooks.py` fija `CREWAI_TELEMETRY_ENABLED=false`, y opentelemetry solo aparece como tope de versión en un comentario del lock",
+      "S6": "Las dependencias de las piezas que interesan (numpy, scipy, pandas, scikit-learn, statsmodels, arch) están mantenidas; el tope `scipy<1.18` lo impone PyPortfolioOpt, no un abandono",
+      "S7": "BeautifulSoup se usa para leer los documentos de EDGAR descargados por el endpoint documentado con `EDGAR_IDENTITY`; no hay sesión de navegador ni endpoints privados"
+    },
+    "red_alerts": [],
+    "total": 100,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia MIT del archivo real",
+      "url": "https://github.com/stefan-jansen/machine-learning-for-trading/blob/13b75a828c2a2fba1c20d8b16be0070eedbd1597/LICENSE"
+    },
+    {
+      "what": "Paquete `ml4t` 3.0.0 y exigencia de Python >=3.14,<3.15",
+      "url": "https://github.com/stefan-jansen/machine-learning-for-trading/blob/13b75a828c2a2fba1c20d8b16be0070eedbd1597/pyproject.toml"
+    },
+    {
+      "what": "CPCV: validación cruzada combinatoria y purgada, la pieza que EIM tiene en BACKLOG",
+      "url": "https://github.com/stefan-jansen/machine-learning-for-trading/blob/13b75a828c2a2fba1c20d8b16be0070eedbd1597/06_strategy_definition/02_cv_foundations.py"
+    },
+    {
+      "what": "Perpetuos de Binance Futures: 19 contratos, OHLCV horario y prima",
+      "url": "https://github.com/stefan-jansen/machine-learning-for-trading/blob/13b75a828c2a2fba1c20d8b16be0070eedbd1597/02_financial_data_universe/10_crypto_perps_eda.py"
+    },
+    {
+      "what": "Validación por Sharpe deflactado (DSR)",
+      "url": "https://github.com/stefan-jansen/machine-learning-for-trading/blob/13b75a828c2a2fba1c20d8b16be0070eedbd1597/16_strategy_simulation/12_dsr_validation.py"
+    },
+    {
+      "what": "El acantilado de costos: bruto frente a neto por frecuencia",
+      "url": "https://github.com/stefan-jansen/machine-learning-for-trading/blob/13b75a828c2a2fba1c20d8b16be0070eedbd1597/18_transaction_costs/11_cost_cliff.py"
+    },
+    {
+      "what": "Pruebas con disciplina de pre-registro (una ventana de reserva gastada se rechaza)",
+      "url": "https://github.com/stefan-jansen/machine-learning-for-trading/blob/13b75a828c2a2fba1c20d8b16be0070eedbd1597/tests/test_a_spent_holdout_window_refuses_at_registration.py"
+    },
+    {
+      "what": "`torch.load` solo sobre su propio checkpoint (S3)",
+      "url": "https://github.com/stefan-jansen/machine-learning-for-trading/blob/13b75a828c2a2fba1c20d8b16be0070eedbd1597/05_synthetic_data/01_timegan.py"
+    }
+  ],
+  "audit_scope": "código .py, pruebas, README y pyproject del commit fijado (clon parcial con filtro de blobs: los 483 notebooks y los datos no se auditaron, 1,3 GB)",
+  "universe_ref": null
+}

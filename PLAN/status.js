@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-24T12:11:40",
+ "generated": "2026-11-25T00:26:44",
  "phases": [
   {
    "n": 0,
@@ -1138,7 +1138,7 @@ window.EIM_STATUS = {
    "title": "Escuadrón de bots: auditoría ampliada y catálogo con ficha común",
    "deps": [],
    "state": "done",
-   "notes": "47 repos clonados aislados (sin ejecutar nada) → 50 fichas en `v2/eim/bots/registry/` (+`SCHEMA.md` con las reglas operativa/seguridad fijadas antes de puntuar; `tests/bots/test_registry_cards.py`) e informe `PLAN/notas/T56_auditoria.md` (alertas, veredictos, universo fila por fila, licencias GPL/AGPL en modo B). **Aprobado por el usuario (2026-10-19) para T58:** `hummingbot-directional` (A), `freqtrade`+`freqtrade-strategies` (B, GPL aceptada para uso privado, sin distribuir; entorno Python 3.12 aparte), `passivbot` (L, B). Fuera por ahora: NFI, Jesse-ejemplos, TrendRider, IA. Alertas: señuelo `fearfulincid/Grid-Trading-Bot` (R1), Superalgos (R5), 3 repos sin licencia (R2), Hummingbot depende de `pandas-ta` sin licencia. Límite: sin API de GitHub, búsqueda por temas parcial (BACKLOG).",
+   "notes": "47 repos clonados aislados (sin ejecutar nada) → 50 fichas en `v2/eim/bots/registry/` (**52 desde el apéndice 9 del 2026-11-25**: `quant-trading` y `machine-learning-for-trading`, las dos de estudio que faltaban de una lista pegada en el chat; la segunda se reescribió como paquete `ml4t` 3.0.0 con 436 pruebas y trae la CPCV que sigue en BACKLOG) (+`SCHEMA.md` con las reglas operativa/seguridad fijadas antes de puntuar; `tests/bots/test_registry_cards.py`) e informe `PLAN/notas/T56_auditoria.md` (alertas, veredictos, universo fila por fila, licencias GPL/AGPL en modo B). **Aprobado por el usuario (2026-10-19) para T58:** `hummingbot-directional` (A), `freqtrade`+`freqtrade-strategies` (B, GPL aceptada para uso privado, sin distribuir; entorno Python 3.12 aparte), `passivbot` (L, B). Fuera por ahora: NFI, Jesse-ejemplos, TrendRider, IA. Alertas: señuelo `fearfulincid/Grid-Trading-Bot` (R1), Superalgos (R5), 3 repos sin licencia (R2), Hummingbot depende de `pandas-ta` sin licencia. Límite: sin API de GitHub, búsqueda por temas parcial (BACKLOG).",
    "effort": "medio",
    "phase": 12,
    "goal": "Convertir el universo de `PLAN/notas/T56_universo_bots.md` (≥ 45 candidatos, la mitad sin verificar) en un **catálogo verificado** de estrategias empaquetadas (`bot@estrategia`), cada una con licencia real, mantenimiento, riesgos y **modo de integración**, para que el usuario apruebe qué entra al escuadrón. Aquí nace la mitad del «concepto» de cada bot: las dimensiones **operativa** y **seguridad** (rendimiento y evidencia las mide T59)."
