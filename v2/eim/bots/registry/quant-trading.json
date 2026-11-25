@@ -1,0 +1,140 @@
+{
+  "id": "quant-trading",
+  "name": "quant-trading",
+  "repo": "je-suis-tm/quant-trading",
+  "commit_sha": "611b73f2c3f577ac5b28aaa19ac8c43d3236c7a5",
+  "commit_date": "2024-04-14",
+  "audited_at": "2026-11-25",
+  "license": {
+    "spdx": "Apache-2.0",
+    "file": "LICENSE",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "head": "Apache License Version 2.0, January 2004 http://www.apache.org/licenses/ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION 1. Definitions. \"License\" shal"
+  },
+  "bot_class": "D",
+  "integration_mode": "C",
+  "binance_markets": [],
+  "strategies": [
+    {
+      "name": "Bollinger Bands Pattern Recognition",
+      "path": "Bollinger Bands Pattern Recognition backtest.py",
+      "note": "Reversión a la media por patrón sobre las bandas; EIM ya tiene `ind_bb_reversion` en el catálogo de T131"
+    },
+    {
+      "name": "RSI Pattern Recognition",
+      "path": "RSI Pattern Recognition backtest.py",
+      "note": "Sobrecompra/sobreventa por patrón; equivalente a `ind_rsi` del catálogo"
+    },
+    {
+      "name": "Pair trading",
+      "path": "Pair trading backtest.py",
+      "note": "Cointegración de dos activos; fuera del alcance BTC (T122), familia de T93–T96"
+    },
+    {
+      "name": "Dual Thrust",
+      "path": "Dual Thrust backtest.py",
+      "note": "Rotura del rango previo; la familia que T137 midió con R bruto −0,000"
+    },
+    {
+      "name": "London Breakout",
+      "path": "London Breakout backtest.py",
+      "note": "Rotura de la sesión asiática en divisas; el horario no aplica a un perpetuo 24/7"
+    },
+    {
+      "name": "MACD Oscillator",
+      "path": "MACD Oscillator backtest.py",
+      "note": "Cruce de MACD; ya está en `eim/indicators` y en el catálogo"
+    }
+  ],
+  "dependencies": [
+    "pandas",
+    "numpy",
+    "matplotlib",
+    "statsmodels",
+    "scipy",
+    "cvxopt",
+    "yfinance",
+    "fix_yahoo_finance (abandonado desde 2019; importado en 5 scripts)",
+    "imageio"
+  ],
+  "risks": [
+    "Sin una sola prueba automatizada: ningún resultado del repositorio es verificable sin reimplementarlo",
+    "Los backtests no descuentan comisiones ni deslizamiento, que es lo que decide el veredicto en EIM (T25, T137)",
+    "Descarga datos de yfinance dentro del propio script: la salida no es reproducible fijando el SHA",
+    "fix_yahoo_finance está abandonado y su importación falla o avisa en instalaciones nuevas"
+  ],
+  "verdict": "referencia",
+  "squad_proposal": "no",
+  "reasons": [
+    "Colección didáctica de 13 scripts de backtest, no un bot: no hay gestión de órdenes, de riesgo ni de estado",
+    "Las ideas que aporta ya están medidas en EIM y salieron negativas: la reversión por bandas y el RSI están en el catálogo de 104 estrategia@marco, y la familia de rotura de rango dio R bruto −0,000 en el banco de T131",
+    "Apache-2.0 permitiría el modo A, pero sin pruebas ni costos no hay nada que portar con garantías: se reimplementa la idea con pruebas propias (modo C)",
+    "Último commit del 2024-04-14, 955 días antes de la auditoría"
+  ],
+  "approval": {
+    "state": "pendiente",
+    "by": null,
+    "at": null
+  },
+  "operational": {
+    "checks": {
+      "O1": 0,
+      "O2": 0,
+      "O3": 0,
+      "O4": 8,
+      "O5": 10,
+      "O6": 5,
+      "O7": 10,
+      "O8": 5
+    },
+    "total": 38,
+    "tests_files": 0,
+    "days_since_commit": 955
+  },
+  "security": {
+    "checks": {
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true,
+      "S6": false,
+      "S7": true,
+      "S8": true,
+      "S9": false
+    },
+    "notes": {
+      "S3": "Sin `exec`, `eval`, `pickle.load`, `joblib.load` ni `torch.load` en todo el repositorio (grep sobre sus 26 archivos .py)",
+      "S6": "fix_yahoo_finance, abandonado desde 2019 y sustituido por yfinance, se importa en 5 scripts de la ruta de señal",
+      "S7": "La única mención a scraping es un comentario de `VIX Calculator.py` (líneas 53–54) que sugiere una URL de CME; el código no la usa",
+      "S9": "Ningún archivo de prueba: los 13 archivos con «test» en el nombre son scripts «… backtest.py»"
+    },
+    "red_alerts": [],
+    "total": 85,
+    "enabled": true
+  },
+  "evidence": [
+    {
+      "what": "Licencia Apache-2.0 del archivo real",
+      "url": "https://github.com/je-suis-tm/quant-trading/blob/611b73f2c3f577ac5b28aaa19ac8c43d3236c7a5/LICENSE"
+    },
+    {
+      "what": "Reversión por bandas de Bollinger, sin costos",
+      "url": "https://github.com/je-suis-tm/quant-trading/blob/611b73f2c3f577ac5b28aaa19ac8c43d3236c7a5/Bollinger%20Bands%20Pattern%20Recognition%20backtest.py"
+    },
+    {
+      "what": "Pair trading por cointegración",
+      "url": "https://github.com/je-suis-tm/quant-trading/blob/611b73f2c3f577ac5b28aaa19ac8c43d3236c7a5/Pair%20trading%20backtest.py"
+    },
+    {
+      "what": "El scraping de CME solo aparece comentado (líneas 53–54)",
+      "url": "https://github.com/je-suis-tm/quant-trading/blob/611b73f2c3f577ac5b28aaa19ac8c43d3236c7a5/VIX%20Calculator.py"
+    },
+    {
+      "what": "README con la lógica de cada estrategia y sus parámetros",
+      "url": "https://github.com/je-suis-tm/quant-trading/blob/611b73f2c3f577ac5b28aaa19ac8c43d3236c7a5/README.md"
+    }
+  ],
+  "audit_scope": "repositorio completo",
+  "universe_ref": null
+}

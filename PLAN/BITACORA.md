@@ -4336,3 +4336,31 @@ pm run build.
   alternativa (eso reabre T139 P1).
 - **Siguiente paso:** el cierre de T31 el 2026-11-27 (informe final, `risk_includes_costs`, freno
   gradual y comparación con la variante t143 bajo la contabilidad de T144).
+
+## 2026-11-25 · T56 apéndice — las dos fichas que faltaban de una lista pegada en el chat
+
+- **Hecho:** el usuario pegó una lista de diez repositorios «de estrategias de inversión» y preguntó si
+  había algo aprovechable. Ocho ya tenían ficha de T56 (Freqtrade, Hummingbot ×3, vectorbt, backtrader,
+  backtesting.py, bt) y las cuatro recomendaciones del texto —detector de régimen, reversión a la media
+  en lateral, filtro de rotura y evaluación neta— ya están hechas y dieron negativo (`agents/regime`,
+  `ind_bb_reversion`/`ind_rsi`, T212, y el aparato de T131/T161). Se auditaron y fichó los dos que
+  faltaban, que no son bots sino material de estudio.
+- **El hallazgo que sí importa:** `stefan-jansen/machine-learning-for-trading`, que `PLAN/T25.md` cita
+  como material, **se reescribió**: hoy es el paquete `ml4t` 3.0.0 (3.ª edición, MIT) con 436 archivos
+  `tests/test_*.py` y commit de hace tres días. Trae con pruebas la **CPCV** (el único punto de T161 que
+  sigue en BACKLOG), DSR y contraste múltiple sobre el mismo `arch` que adoptó T161, el acantilado de
+  costos de su capítulo 18, y un capítulo sobre **19 perpetuos de Binance Futures** (pertinente para
+  T93–T96). Sigue en modo C: exige Python 3.14 exacto y arrastra torch, pymc, dowhy y crewai.
+  `je-suis-tm/quant-trading`, en cambio, no aporta nada: 13 scripts sin una sola prueba ni costos,
+  último commit de 2024-04-14, e importa `fix_yahoo_finance` (abandonado) en cinco de ellos.
+- **Archivos:** `v2/eim/bots/registry/{quant-trading,machine-learning-for-trading}.json` (fichas nuevas,
+  52 en el catálogo), apéndice 9 de `PLAN/notas/T56_auditoria.md` con el método y la evidencia, y una
+  línea en `PLAN/BACKLOG.md` que apunta al oráculo MIT de la CPCV.
+- **Método:** `gh api` para el SHA y la fecha (en T56 la API no respondía), clon `--depth 1` de
+  quant-trading (20 MB) y clon parcial con filtro de blobs de ml4trading, que pesa 1,3 GB y no cabe en
+  este equipo con los servicios en marcha. Los 483 notebooks no se auditaron y la ficha lo declara. No
+  se instaló ni se ejecutó nada de terceros, y no se portó código.
+- **Pruebas:** ruff limpio y `tests/bots/test_registry_cards.py` + `test_contract.py` en verde (173
+  pasadas) con la cola en prioridad batch; el gate completo se lanzó por la cola de trabajos.
+- **Abierto:** la CPCV sigue en BACKLOG (T161 (3)); nada de este apéndice la implementa.
+- **Siguiente paso:** el cierre de T31 el 2026-11-27, sin cambios por esto.
