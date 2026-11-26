@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-26T17:27:04",
+ "generated": "2026-11-26T17:37:50",
  "phases": [
   {
    "n": 0,
@@ -1707,10 +1707,17 @@ window.EIM_STATUS = {
     "T93"
    ],
    "state": "pending",
-   "notes": "◆ ¿la clase sigue? Molde de la **lista de aceptación de 8 puntos** aprobada en T87 (`PLAN/notas/T87_matriz.md` §9). Por el orden aprobado, los **índices en diario** (S&P 500, Nasdaq, oro, ya en el almacén por T183) van antes que las acciones.",
+   "notes": "**En pausa por tu decisión del 2026-11-26:** no hay proveedor de acciones aprobado (◆2 de T88 sin responder; `yfinance` descartado), los 246 perpetuos TradFi tienen ~134 días de histórico y T95 midió que hoy el escáner no supera el azar. Se decide con la revisión automática de T96 del 2026-12-29: si dice «ARRANCAR T96», se te pregunta el proveedor y T97 arranca; si no, sigue en pausa (`PLAN/notas/T97_pausa.md`). Cuando arranque: ◆ ¿la clase sigue?, molde de la lista de aceptación de 8 puntos (T87 §9), índices en diario antes que acciones.",
    "effort": "alto",
    "phase": 17,
-   "goal": "Llevar la primera clase fuera de cripto de punta a punta y comprobar **toda** la lista de aceptación por clase (descubrimiento, datos, agentes, backtesting, riesgo, ejecución simulada, observabilidad, validación). Sirve de molde para las demás clases."
+   "goal": "Llevar la primera clase fuera de cripto de punta a punta y comprobar **toda** la lista de aceptación por clase (descubrimiento, datos, agentes, backtesting, riesgo, ejecución simulada, observabilidad, validación). Sirve de molde para las demás clases.",
+   "where": [
+    {
+     "machine": "laptop",
+     "text": "En pausa por tu decisión del 2026-11-26 (sin proveedor de acciones aprobado, ◆2 de T88): se decide con el informe de la revisión de T96 de ese día (TRADINGBOT/_revision_t96.md). Si dice «ARRANCAR T96», se te pregunta el proveedor y T97 arranca; si no, sigue en pausa con T96 (PLAN/notas/T97_pausa.md)",
+     "when": "2026-12-29"
+    }
+   ]
   },
   {
    "id": "T98",

@@ -4438,3 +4438,11 @@ pm run build.
 - **Hecho:** `v2/scripts/escaner_diario.ps1` (tarea de Windows «EIM - escaner diario (T95)», a diario 00:45 UTC = 19:45 Bogotá, solo en la laptop: catálogo y velas, barrido y pasada de agentes con ranking y registro de intentos; vigía propio con reintento y registro en `data/operation/logs/escaner_diario.log`; resuelve el punto (3) del BACKLOG de T95), `v2/scripts/revision_t96.ps1` (tarea única el 2026-12-29 09:00: calibra, repite el placebo y aplica la regla) con `v2/scripts/scanner_revision.py` y su prueba `v2/tests/scanner/test_scanner_revision.py`, y la regla `PLAN/notas/T96_revision.md` (fijada hoy, antes de ver datos hacia adelante). T96 queda ☐ «en pausa» en STATUS.
 - **Pruebas:** pytest del escaner: verde (codigo 0).
 - **Siguiente paso:** el 2026-12-29 leer `TRADINGBOT/_revision_t96.md` y decidir T96 con su veredicto (ARRANCAR / NO ARRANCAR / POSPONER).
+
+## 2026-11-26 · T97 — en pausa hasta la revisión del 2026-12-29
+
+- **Pedido:** «Ejecuta PLAN/T97.md». Prerrequisitos de STATUS (T90–T93) ☑, pero la tarea no puede arrancar tal como está escrita: **no hay proveedor de acciones aprobado** (◆2 de T88 sin responder; `yfinance` descartado, Stooq sin ingesta automatizada, Massive solo contraste), el ajuste por *splits*/dividendos no está documentado en ningún proveedor, los 246 perpetuos TradFi tienen ~134 días de histórico (sin veredicto por T88 ◆4) y T95 midió que hoy el escáner no supera el azar.
+- **◆ del usuario:** de cuatro opciones (aparcar, versión gratis de observación, probar planes gratuitos de pago, archivar) eligió **aparcar T97 hasta el 2026-12-29**, junto a T96.
+- **Hecho:** regla `PLAN/notas/T97_pausa.md`; nota de T97 en STATUS «**En pausa…» (la hoja de ruta la muestra ⏸ hasta el 29-dic); condicionante de T97 en `CONDICIONANTES.md`. Sin cambios de código; T31 y lo que corre no se tocan.
+- **Pruebas:** pruebas del plan (`tests/plan`) tras regenerar la hoja de ruta.
+- **Siguiente paso:** el 2026-12-29, con `TRADINGBOT/_revision_t96.md`: si dice «ARRANCAR T96», preguntar la ◆2 de T88 (proveedor de acciones) y arrancar T97; si no, sigue en pausa.
