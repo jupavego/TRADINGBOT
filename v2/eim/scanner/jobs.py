@@ -6,6 +6,10 @@ proceso por nombre (Windows arranca los procesos con `spawn`).
   (`eligibility.coverage_of`) y decide con las capacidades declaradas (T91) qué agentes podrían
   correr y por qué no los demás. Su versión incluye la huella de `CAPABILITIES`: si cambia una
   ficha de agente, la caché se invalida sola.
+- `deep_run` (T94, ritmo profundo, CPU, cacheable): corre los agentes **elegibles** del
+  instrumento, la síntesis y la proyección existentes, y arma la oportunidad candidata
+  (`eim/scanner/deep.py`). Su versión incluye la de la etapa, la de la oportunidad, la de las
+  puntuaciones y la huella de capacidades; la de cada agente va en la huella de datos del trabajo.
 - `sync_daily` (red, en línea, con límite de tasa): pone al día las velas de un perpetuo en el
   almacén del universo. Nunca se cachea.
 
@@ -44,6 +48,8 @@ def capabilities_fingerprint() -> str:
 
 
 DEEP_PREP_VERSION = "1"
+#: Versión de la etapa profunda de T94 (`eim/scanner/deep.py` la usa como `DEEP_VERSION`).
+DEEP_RUN_VERSION = "1"
 
 
 def deep_prep(payload: dict) -> dict:
@@ -77,6 +83,21 @@ def deep_prep(payload: dict) -> dict:
             "ineligible": ineligible, "note": "preparado para T94: aquí no corre ningún agente"}
 
 
+def deep_run(payload: dict) -> dict:
+    """Agentes elegibles → síntesis → proyección → oportunidad candidata (T94)."""
+    from eim.scanner.deep import run_payload
+
+    return run_payload(payload)
+
+
+def _deep_run_version() -> str:
+    from eim.core.opportunity import OPPORTUNITY_VERSION
+    from eim.scanner.candidates import SCORING_VERSION
+
+    return (f"deep_run:{DEEP_RUN_VERSION}+opp:{OPPORTUNITY_VERSION}+score:{SCORING_VERSION}"
+            f"+caps:{capabilities_fingerprint()}")
+
+
 def sync_daily(payload: dict) -> dict:
     """Velas que faltan de un perpetuo (como mucho `days` días atrás) en el almacén del universo."""
     from eim.data.scanner_market import sync_symbol
@@ -89,6 +110,7 @@ def _handlers() -> dict[str, Handler]:
     return {
         "deep_prep": Handler("deep_prep", deep_prep,
                              f"deep_prep:{DEEP_PREP_VERSION}+caps:{capabilities_fingerprint()}"),
+        "deep_run": Handler("deep_run", deep_run, _deep_run_version()),
         "sync_daily": Handler("sync_daily", sync_daily, "sync_daily:1", inline=True,
                               cacheable=False, provider="binance"),
     }

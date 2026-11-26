@@ -6,9 +6,14 @@
     python -m eim.scanner sweep --asof latest  # un barrido (reproducible con la última vela)
     python -m eim.scanner sync --discover      # catálogo (1 llamada) + velas que faltan
     python -m eim.scanner budget               # mide y escribe reports/scanner_budget.md
+    python -m eim.scanner deep                 # T94: agentes sobre la lista corta del último
+                                               #      barrido → oportunidades candidatas + vista
+    python -m eim.scanner verify OPP_ID        # T94: relee sus velas, comprueba el hash y la
+                                               #      vuelve a calcular (mismo id y cifras)
 
 Modo ANÁLISIS: nada de esto envía órdenes. Códigos de salida de `budget`: 0 dentro del
 presupuesto y reproducible; 3 fuera del presupuesto; 4 no reproducible; 5 sin catálogo o datos.
+`verify`: 0 reproducida; 4 no reproducida; 5 sin esa oportunidad.
 """
 
 from __future__ import annotations
@@ -64,6 +69,7 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--once", action="store_true")
     r.add_argument("--no-sync", action="store_true", help="no descarga velas")
     r.add_argument("--no-quotes", action="store_true", help="sin cotizaciones ni ritmo rápido")
+    r.add_argument("--no-agents", action="store_true", help="sin la pasada de agentes (T94)")
     sub.add_parser("status", help="estado sin abrir la base")
     s = sub.add_parser("sweep", help="un barrido del embudo")
     s.add_argument("--asof")
@@ -72,6 +78,13 @@ def main(argv: list[str] | None = None) -> int:
     y = sub.add_parser("sync", help="relleno de velas del universo")
     y.add_argument("--discover", action="store_true", help="antes, el descubrimiento de T89")
     y.add_argument("--max", type=int, help="como mucho N símbolos (por defecto, todos)")
+    d = sub.add_parser("deep", help="agentes sobre la lista corta (T94)")
+    d.add_argument("--run", help="barrido base (por defecto, el último)")
+    d.add_argument("--json", action="store_true")
+    d.add_argument("--summary", help="archivo con una línea de resumen (para el plan)")
+    v = sub.add_parser("verify", help="reproduce una oportunidad desde sus datos (T94)")
+    v.add_argument("opportunity_id")
+    v.add_argument("--summary", help="archivo con una línea de resumen (para el plan)")
     b = sub.add_parser("budget", help="mide el presupuesto")
     b.add_argument("--asof", default="latest")
     b.add_argument("--out", default="reports/scanner_budget.md")
@@ -95,8 +108,13 @@ def main(argv: list[str] | None = None) -> int:
 
         configure(process="scanner", spool_dir=data_dir / "obs" / "spool")
         priority.apply_role("scanner")  # T126: prescindible, prioridad baja (si EIM_PRIORITY)
-        return run_loop(svc, once=a.once, sync=not a.no_sync, quotes=not a.no_quotes)
+        return run_loop(svc, once=a.once, sync=not a.no_sync, quotes=not a.no_quotes,
+                        agents=not a.no_agents)
     try:
+        if a.cmd in ("deep", "verify"):
+            from eim.scanner.deep_cli import deep_cmd, verify_cmd
+
+            return deep_cmd(svc, a) if a.cmd == "deep" else verify_cmd(svc, a)
         if a.cmd == "sync":
             out = svc.sync(limit=a.max if a.max is not None else 100_000, discover=a.discover)
         else:
