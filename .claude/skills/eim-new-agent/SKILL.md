@@ -25,7 +25,14 @@ Contrato: `Agent.run(MarketSnapshot) -> AgentReport` (ver `PLAN/CONTRATOS.md`). 
    `title_es` y `explain_es` (1–2 frases llanas, ≤ 280 caracteres). Si estaba `planeado`, pasarlo a
    `construido`. El test `tests/observability/test_catalog.py` lo exige. El agente sigue puro: no
    emite eventos (los emite el corredor).
-8. Gate (desde `v2/`): `python -m ruff check eim tests && python -m pytest -q`.
+8. **Capacidades (T91):** ficha en `eim/agents/capabilities.py` (datos, no lógica): clases de
+   activo, `requires`/`requires_any` (su unión = `agent.requires`), marcos, `min_bars` (el mismo
+   del agente), historia mínima en días, modelos de sesión (24/7 · 24/5 · bolsa), necesidad de
+   volumen (`ninguno` · `opcional` · `preferible` · `obligatorio`), ancla temporal, horizonte y
+   costo medido (`scripts/agents_cost.py`). Si el agente supone 24/7 o volumen real, ese supuesto
+   va en `params.py` con el valor actual por defecto y su adaptación en `eim/agents/adapt.py`.
+   `tests/agents/test_capabilities.py` falla si falta la ficha o si no cuadra con el agente.
+9. Gate (desde `v2/`): `python -m ruff check eim tests && python -m pytest -q`.
 
 ## Plantilla
 ```python

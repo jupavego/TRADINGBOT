@@ -9,6 +9,8 @@ from eim.agents.seasonality.compute import MONTH_NAMES, build_matrix, monthly_cl
 from eim.agents.seasonality.params import SeasonalityParams
 from eim.core import AgentReport, MarketSnapshot
 
+_DAY_MS = 86_400_000
+
 
 class SeasonalityAgent:
     id = "seasonality"
@@ -20,7 +22,8 @@ class SeasonalityAgent:
 
     def run(self, snapshot: MarketSnapshot) -> AgentReport:
         p = self.params
-        monthly = monthly_closes(snapshot.candles, snapshot.timeframe, snapshot.asof)
+        monthly = monthly_closes(snapshot.candles, snapshot.timeframe, snapshot.asof,
+                                 grace_ms=int(p.month_end_grace_days * _DAY_MS))
         if len(monthly) < p.min_months:
             return no_data_report(
                 self.id, self.version, snapshot.asof,
