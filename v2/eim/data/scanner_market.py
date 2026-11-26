@@ -137,6 +137,12 @@ def read_window(root: str | Path, symbol: str, timeframe: str, n: int, cut: int)
     return Store(root).read_candles(symbol, timeframe, end=cut, last=n)
 
 
+def read_closes(root: str | Path, symbol: str, timeframe: str, start: int,
+                end: int) -> dict[int, float]:
+    """{apertura: cierre} de las velas con `start <= t < end` (T95: madurar intentos)."""
+    return {c.t: c.c for c in Store(root).read_candles(symbol, timeframe, start=start, end=end)}
+
+
 def sync_symbol(root: str | Path, symbol: str, timeframe: str, now: int, days: int,
                 futures=None) -> dict:
     """Descarga lo que falta desde la última vela guardada (o `days` días atrás)."""

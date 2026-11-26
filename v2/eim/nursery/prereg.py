@@ -122,7 +122,9 @@ class Prereg(_Frozen):
     declared: str
     description: str
     mode: Literal["SIMULADO"]
-    symbol: Literal["BTCUSDT"]
+    #: T95 abrió el tipo (antes `Literal["BTCUSDT"]`) para familias del universo; `cantera_v1`
+    #: sigue siendo BTCUSDT porque lo fija su archivo publicado (con huella), no el tipo.
+    symbol: str = Field(min_length=1)
     criteria: str
     criteria_sha256: str
     decisions: tuple[str, ...]

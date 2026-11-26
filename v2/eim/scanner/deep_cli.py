@@ -1,4 +1,5 @@
-"""Órdenes `deep` y `verify` del escáner (T94). Modo ANÁLISIS: nada de esto envía órdenes."""
+"""Órdenes `deep`, `verify` (T94) y `calibrate` (T95) del escáner. Modo ANÁLISIS: nada de esto
+envía órdenes."""
 
 from __future__ import annotations
 
@@ -34,6 +35,8 @@ def deep_cmd(svc: ScannerService, a) -> int:
     if ran:
         print(f"  agentes por instrumento: corrieron {min(ran)}–{max(ran)}, omitidos "
               f"{min(skipped)}–{max(skipped)} (con su motivo en la vista)")
+    rk = _ranking_line(out.get("ranking") or {})
+    print(rk)
     print(f"vista publicada: {svc.data_dir / 'scanner' / 'view.json'}")
     if getattr(a, "summary", None):
         from pathlib import Path
@@ -44,7 +47,34 @@ def deep_cmd(svc: ScannerService, a) -> int:
             f"pasada de agentes sobre el barrido {d['base_run']}: {out['n_shortlist']} "
             f"instrumentos de la lista corta, {len(opps)} oportunidades candidatas (no "
             f"validadas), {len(d['failed'])} fallidos; agentes elegibles por instrumento "
-            f"{span}; sin oportunidad: {why}", encoding="utf-8")
+            f"{span}; sin oportunidad: {why}; {rk}", encoding="utf-8")
+    return 0
+
+
+def _ranking_line(r: dict) -> str:
+    """Una línea con el ranking de T95 (para la consola y el plan)."""
+    if not r.get("available"):
+        return f"ranking T95: NO disponible ({r.get('error') or r.get('reason') or 'sin datos'})"
+    t, f = r["threshold"], r["family"]
+    thr = (f"umbral del placebo {t['value']:.3f} ({t['status']}, {t.get('replicas')} réplicas)"
+           if t.get("value") is not None else f"umbral del placebo: {t['status']}")
+    return (f"ranking T95: {r['n_comparable']} comparables en {r['n_groups']} apuestas "
+            f"independientes; {thr}; sobre el umbral: {r['n_above']}; familia de hipótesis "
+            f"{f['total']} ({f['prior']} previas de T49 + {f['scanner']} del escáner), "
+            f"{f['new_observations']} observaciones nuevas, {f['matured']} maduras en total")
+
+
+def calibrate_cmd(svc: ScannerService, a) -> int:
+    """T95: pesos del ranking fuera de muestra con los resultados maduros de la síntesis."""
+    from eim.scanner import rank
+
+    res = rank.calibrate(svc.store.synthesis_matured())
+    print(json.dumps(res, ensure_ascii=False, indent=1))
+    if res["adopted"] and not a.dry_run:
+        w = rank.Weights(res["weights"], True, f"calibrados fuera de muestra ({res['n']} "
+                                               "resultados maduros, T95)")
+        print(f"pesos adoptados: {rank.save_weights(svc.data_dir, w, res)} — el umbral del "
+              "placebo queda desactualizado: repite `python scripts/scanner_placebo.py`")
     return 0
 
 
