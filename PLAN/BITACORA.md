@@ -4393,3 +4393,12 @@ pm run build.
 - **Gate en la laptop:** lanzado desde la sesión con `Trading Bot/gate_t92.cmd` (ruff + pytest por la cola) sobre `main` 804d7d9: ruff limpio; pytest 4 329 pasadas, 31 omitidas, 0 fallos (trabajo `20261126-023333-gate-548c`, 1 411 s, sin pausas). T92 → ☑.
 - **Abierto:** BACKLOG T92 (6 puntos).
 - **Siguiente paso:** T93 (escáner, con T91 y T92 ya dentro).
+
+## 2026-11-26 · T213 — auditoría del lado: por qué casi todo es corto
+
+- **Hecho.** Fase de auditoría y retroalimentación pedida por el usuario por «la gran cantidad de cortos y la poca cantidad de largos». Auditoría de T159 corrida (`reports/audit/audit_2026-11-26.md`): n = 726, E[R] −0,074 R [−0,118, −0,030], bruto +0,051, costo 0,125, acierto 78,1 % frente a 84,2 % de equilibrio, PnL −2 915 USDT; 7 d: n = 250, E[R] −0,040. Diagnóstico del lado medido sobre el libro oficial, la sombra y las velas del disco: **652 de 726 cortas (89,8 %)**, 15 días sin una larga (11-08 → 11-22), 19/236 en los últimos 7 días. Causa: la puerta de T212 — **1h bajista 821 h y 4h bajista 781 h, sin girar en 34 días**; la rápida giró tres veces en cuatro días (11-22, 11-24, 11-26) y sus 18 largos del 11-23 perdieron −302,4 USDT. **El sesgo no es la fuga de esta semana:** en la sombra sin veto el largo rinde −0,333 R (n = 420) frente a +0,156 del corto (n = 667), −0,490 ± 0,154 y −0,530 ± 0,204 agrupado por vela de apertura; la fuga es la fricción (bruto positivo, neto negativo).
+- **Archivos.** `PLAN/notas/T213_sesgo_direccional.md` (nuevo), `PLAN/T213.md` (nuevo), `PLAN/STATUS.md` (fila T213 ◐), `PLAN/BACKLOG.md` (◆ de la puerta alternativa, bajo T159).
+- **Pruebas.** Gate por la cola (`ruff` + `pytest`); nada de `eim/` cambió en esta sesión.
+- **Abierto.** La ◆ del usuario sobre pre-registrar en sombra una puerta alternativa (reabre T139). Y `GET /v2/paper` llevó más de 8 min en «Calculando…» con `/v2/health` sin responder en 30 s, así que el recuento de rechazos por marco se citó del 11-24: es el atasco del único trabajador ya anotado para T206.
+- **En curso.** T213 criterios 1–6 (publicar el sesgo y el signo de cada puerta en cada auditoría).
+- **Siguiente paso.** Implementar T213 (palanca nueva en `eim/analytics/audit/levers.py`, encabezado del informe, línea en la skill y pruebas).

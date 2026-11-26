@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-25T21:59:25",
+ "generated": "2026-11-26T00:41:34",
  "phases": [
   {
    "n": 0,
@@ -324,7 +324,8 @@ window.EIM_STATUS = {
     "T160",
     "T175",
     "T210",
-    "T212"
+    "T212",
+    "T213"
    ]
   },
   {
@@ -3330,6 +3331,23 @@ window.EIM_STATUS = {
    ],
    "state": "done",
    "notes": "**HECHA 2026-11-24 (abierta el 2026-11-23 por una observación del usuario: «el análisis no supo asimilar el cambio de tendencia»). Los cinco criterios cumplidos y la franja verificada en el panel real el 2026-11-24 a las 15:47 UTC**, tras el reinicio nº 21 de la API (se reinició sola por falta de memoria, no se forzó): «15m ▼ bajista desde hace 6 h 12 min (giró el 2026-11-24 04:00 COT) · precio +9,6 % frente al mínimo de 7 d (55.127) · dejó fuera 66 ideas en 168 h (95 rechazos: 68 largos, 27 cortos; 94 en vivo)», con 1h y 4h bajistas desde hace 27 d 7 h y 30 d 23 h, sus dos ⚠ de desacuerdo y 148 y 75 rechazos de largos. La demora en pintarla no fue del código: la API tiene un solo trabajador y la mesa le dispara una docena de llamadas pesadas al cargar, así que `/v2/paper` espera en la cola (con la mesa cargando, `/v2/health` pasó de 3 ms a 20 s, 7,4 s y 1,3 s); anotado en BACKLOG para T206. La puerta ya se publica: `eim/paper/gates.py` (función pura) calcula por marco de decisión la dirección vigente, el instante del giro, las horas en ese estado y la distancia al extremo de 7 d, con aviso de desacuerdo a partir de 24 h y 2 % en contra; sale en `GET /v2/paper` (`htf_gates`, con `enforced_by` y los umbrales) y en una franja nueva del panel (`eim/web/src/paper_gates.ts`), bajo la barra de «en vivo». **Criterio 2 (el veto deja de ser silencioso):** `gates.blocked()` cuenta los rechazos `contra_tendencia` por marco y lado en la misma ventana de 7 d y viajan dentro de cada puerta (`blocked`), y la auditoría (`levers.gate_opps`) saca una línea informativa cuando una puerta lleva ≥ 24 h y ≥ 2 % en contra, con vía `cerrada (T139 P1)`. Medido sobre los 2 000 últimos rechazos reales: **1h dejó fuera 56 ideas (100 rechazos, todos largos) y 4h otras 11 (29 rechazos, todos largos)**, justo los dos marcos cuya puerta sigue bajista. Verificado con las velas reales: «15m alcista desde hace 23 h · precio −4,0 % frente al máximo de 7 d» y «1h bajista desde hace 31 d 16 h · precio +14,0 % frente al mínimo (55 127) ⚠ lleva 14,0 % en contra». No toca la puerta ni ninguna regla (T139 P1). Es cierto y medido: con el mínimo de 1 h en **55 127 el 11-21 06:00 UTC** y el cierre del 11-23 14:00 en **63 833 (+15,8 %)**, la puerta de 15m (1h EMA21/55) giró a alcista el **11-22 17:00 — 35 h tarde y con el precio ya +11,1 %** — y las de 1h (4h EMA21/55) y 4h (4h EMA50/200) **siguen bajistas desde el 10-23 y el 10-24 (758 y 718 h)**. Lo que costó: las aperturas posteriores al mínimo son **49, de ellas 45 cortas, −731,7 USDT**, y los dos marcos con la puerta aún bajista son **33 operaciones, todas cortas, −586,6**; el acumulado oficial pasó de −2 584,7 (08:39) a −2 856,3 (15:00) mientras el precio subía. El retraso además **convierte el acierto en pérdida**: los primeros largos entraron +14 a +16 % sobre el mínimo y dos cerraron en el stop 15 min después (−1,31 R cada uno). Y acelerar no es gratis: en 95 días de velas de 1 h la puerta rápida cambia **39 veces** y no distingue dirección (24 h: −0,338 % alcista frente a −0,158 % bajista), mientras las lentas sí (+0,455 % y +0,234 %). **No se toca la puerta** (T139 P1); lo que falta es hacerla visible. Diagnóstico `PLAN/notas/T212_asimilar_el_giro.md`; ficha `PLAN/T212.md`.",
+   "effort": "bajo",
+   "phase": 25
+  },
+  {
+   "id": "T213",
+   "title": "El lado, puntuado: el sesgo direccional y el signo de cada puerta",
+   "deps": [
+    "T144",
+    "T159",
+    "T175",
+    "T212",
+    "T210",
+    "T145",
+    "T139"
+   ],
+   "state": "progress",
+   "notes": "**Abierta 2026-11-26 (pedido del usuario: fase de auditoría y retroalimentación por «la gran cantidad de cortos y la poca cantidad de largos»). Diagnóstico HECHO, criterios 1–6 sin empezar.** La premisa es correcta y más extrema de lo que parece: **652 de 726 operaciones son cortas (89,8 %)**, con **15 días seguidos sin una sola larga** (11-08 → 11-22) y 19 largas frente a 236 cortas en los últimos 7 días (92,5 %). La causa es la puerta de T212: **dos de las tres no han girado en 34 días** (1h bajista 821 h desde el 10-23, 4h bajista 781 h desde el 10-24), así que los marcos 1h y 4h —dos tercios del libro— solo pueden vender, y la única que autoriza largos giró **tres veces en cuatro días** (11-22 17:00 alcista, 11-24 09:00 bajista, 11-26 05:00 alcista); los 18 largos que abrió el 11-23 perdieron **−302,4 USDT**. **Pero el sesgo no es lo que cuesta esta semana:** en la sombra (sin veto, 11-19 → 11-25) el lado largo rinde **−0,333 R** (n = 420) frente a **+0,156 R** del corto (n = 667), diferencia −0,490 ± 0,154 (t = −6,21) y −0,530 ± 0,204 agrupando por vela de apertura; en el libro oficial la diferencia queda dentro del ruido (−0,165 ± 0,299). Haber operado más largos habría perdido más. Lo que se lleva el dinero es la fricción: auditoría del 11-26 con n = 726, **bruto +0,051 R**, **costo 0,125 R**, neto −0,074 R [−0,118, −0,030], PnL −2 915 USDT. El costo del retraso que midió T212 sigue en pie y es compatible: el sesgo cuesta **en los giros** (49 aperturas tras el mínimo del 11-21, 45 cortas, −731,7). No se toca la puerta (T139 P1); lo que falta es que el lado **se mida y se publique solo** en cada auditoría. Diagnóstico `PLAN/notas/T213_sesgo_direccional.md`; ficha `PLAN/T213.md`.",
    "effort": "bajo",
    "phase": 25
   }
