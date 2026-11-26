@@ -59,15 +59,17 @@ def test_read_only_views_with_mode_and_notice(tmp_path):
         assert u["markets"] == [{"market": "binance·usdm", "asset_class": "crypto", "n": 2,
                                  "abierto": 2, "cerrado": 0, "sin_calendario": 0}]
         assert c.get("/v2/scanner/universe", params={"asset_class": "fx"}).json()["rows"] == []
-        ops = c.get("/v2/scanner/opportunities").json()["opportunities"]
+        body = c.get("/v2/scanner/opportunities").json()
+        ops = body["opportunities"]
         assert [o["opportunity_id"] for o in ops] == [oid]
+        assert body["ranking"]["available"] is False             # vista sin ranking (T95)
         assert c.get("/v2/scanner/opportunities", params={"side": "corto"}).json()[
             "opportunities"] == []
         assert c.get("/v2/scanner/opportunities", params={"horizon_max_days": 5}).json()[
             "opportunities"] == []                       # 25 velas diarias > 5 días
         assert c.get("/v2/scanner/runs").json()["runs"][0]["run_id"] == "barrido-1"
         d = c.get(f"/v2/scanner/instrument/{r1['instrument_id']}").json()
-        assert d["opportunity"]["input_hash"] == r1["input_hash"]
+        assert d["opportunity"]["input_hash"] == r1["input_hash"] and d["rank"] is None
         assert [s["agent_id"] for s in d["deep"]["skipped"]] == ["microstructure"]
         other = c.get("/v2/scanner/instrument/crypto.binance.usdm.BUSDT").json()
         assert other["deep"] is None and "fuera de la lista corta" in other["note"]

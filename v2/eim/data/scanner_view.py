@@ -5,7 +5,9 @@ pasada de agentes el escáner publica `data/scanner/view.json` (escritura atómi
 tal cual. La vista lleva el universo puntuado con su cobertura y el estado de su mercado, las
 últimas corridas, las oportunidades candidatas y el detalle por instrumento (agentes que corrieron,
 los omitidos y por qué, síntesis, proyección y avisos). Siempre en modo ANÁLISIS y con el aviso
-«candidata, no validada».
+«candidata, no validada». Desde T95 lleva también el ranking global (`ranking`): prioridad, umbral
+del placebo, grupos de apuestas correlacionadas y, por candidata, el nº de hipótesis de su familia
+y su p ajustado; las oportunidades salen en el orden del ranking.
 """
 
 from __future__ import annotations
@@ -20,10 +22,12 @@ from eim.core.opportunity import STATUS_LABEL
 from eim.instruments.models import Instrument
 
 VIEW_FILE = "view.json"
-VIEW_VERSION = "1"
+VIEW_VERSION = "2"
 NOTICE = ("Oportunidades CANDIDATAS, NO VALIDADAS: salen del escáner en modo Análisis, no son "
-          "órdenes ni recomendaciones, y ningún motor de riesgo ni de ejecución las usa. El "
-          "control de multiplicidad (¿supera el azar?) es T95.")
+          "órdenes ni recomendaciones, y ningún motor de riesgo ni de ejecución las usa. Solo "
+          "las que superan el umbral del placebo se distinguen del azar, y ninguna está "
+          "validada: eso solo lo da la puerta v1 de T49.")
+NO_RANKING = {"available": False, "reason": "sin ranking en esta pasada (anterior a T95)"}
 
 
 def view_path(data_dir: str | Path) -> Path:
@@ -42,7 +46,8 @@ def _brief_run(r: Mapping) -> dict:
 
 def build_view(*, base: Mapping, scores: Sequence[Mapping], insts: Mapping[str, Instrument],
                market_state: Mapping[str, str], deep_run: Mapping, results: Sequence[Mapping],
-               runs: Sequence[Mapping], now: int | None = None) -> dict:
+               runs: Sequence[Mapping], now: int | None = None,
+               ranking: Mapping | None = None) -> dict:
     """Arma la vista (pura): todo lo que muestra la pestaña sale de aquí."""
     from eim.scanner.candidates import market_of
 
@@ -80,6 +85,12 @@ def build_view(*, base: Mapping, scores: Sequence[Mapping], insts: Mapping[str, 
             "state": market_state.get(r["instrument_id"], "sin_calendario"),
             "opportunity_id": (r.get("opportunity") or {}).get("opportunity_id")}
     opps = [r["opportunity"] for r in results if r.get("opportunity")]
+    ranking = dict(ranking) if ranking else dict(NO_RANKING)
+    if ranking.get("available"):
+        pos = {r["opportunity_id"]: k for k, r in enumerate(ranking["rows"])}
+        opps.sort(key=lambda o: (pos.get(o["opportunity_id"], len(pos)), o["symbol"]))
+    else:
+        opps.sort(key=lambda o: o["symbol"])
     detail = base.get("detail") or {}
     return {
         "version": VIEW_VERSION, "mode": "ANALISIS", "status_label": STATUS_LABEL,
@@ -94,6 +105,7 @@ def build_view(*, base: Mapping, scores: Sequence[Mapping], insts: Mapping[str, 
                                          if r.get("reason")))},
         "runs": [_brief_run(r) for r in runs],
         "opportunities": opps,
+        "ranking": ranking,
         "instruments": instruments,
     }
 
