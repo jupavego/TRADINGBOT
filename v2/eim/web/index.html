@@ -22,6 +22,9 @@
       <span id="mode" class="mode" title="Modo de operación">Modo: Análisis</span>
       <!-- La cantera (fase 27) y el mapa del sistema tienen su propia pestaña: abierta una, la mesa se oculta
            y deja de animar (menos lag) -->
+      <!-- T94: escáner global (oportunidades candidatas, no validadas), con la misma mecánica de pestaña -->
+      <button id="view-scanner" class="view-tab" type="button" aria-pressed="false" aria-controls="scanner"
+        title="Abrir el escáner global: oportunidades candidatas, no validadas, en modo Análisis (vuelve a pulsar para regresar a la mesa)">🔭 Escáner</button>
       <button id="view-cantera" class="view-tab" type="button" aria-pressed="false" aria-controls="cantera"
         title="Abrir la cantera: perfiles propios por agente, con su balance de ganadas y perdidas (vuelve a pulsar para regresar a la mesa)">🌱 Cantera</button>
       <button id="view-map" class="view-tab" type="button" aria-pressed="false" aria-controls="obs"
@@ -33,6 +36,8 @@
     <section id="river" class="river" aria-label="Río de decisión"></section>
     <!-- Mapa del sistema (T75): en su propia pestaña (botón de la barra superior), oculto mientras se ve la mesa -->
     <section id="obs" class="obs" aria-label="Mapa del sistema" hidden></section>
+    <!-- Escáner global (T94): en su propia pestaña de la barra superior; modo Análisis y aviso «candidata, no validada» siempre visibles -->
+    <section id="scanner" class="scanner-view" aria-label="Escáner global" hidden><p class="muted">Consultando el escáner…</p></section>
     <!-- Cantera (T171, fase 27): en su propia pestaña de la barra superior, con la cara del bróker simulado -->
     <section id="cantera" class="paper cantera-view" aria-label="Cantera" hidden><p class="muted">Consultando la cantera…</p></section>
     <!-- Bróker simulado: ya no es una vista aparte; vive en la mesa, bajo el mapa del sistema -->
