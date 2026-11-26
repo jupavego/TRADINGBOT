@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-26T01:15:31",
+ "generated": "2026-11-26T09:57:09",
  "phases": [
   {
    "n": 0,
@@ -407,6 +407,17 @@ window.EIM_STATUS = {
     "T202",
     "T203",
     "T204"
+   ]
+  },
+  {
+   "n": 33,
+   "name": "Integridad de la medición",
+   "ids": [
+    "T214",
+    "T215",
+    "T216",
+    "T217",
+    "T218"
    ]
   }
  ],
@@ -3350,6 +3361,89 @@ window.EIM_STATUS = {
    "notes": "**Abierta 2026-11-26 (pedido del usuario: fase de auditoría y retroalimentación por «la gran cantidad de cortos y la poca cantidad de largos»). Diagnóstico y los seis criterios HECHOS.** La premisa es correcta y más extrema de lo que parece: **652 de 726 operaciones son cortas (89,8 %)**, con **15 días seguidos sin una sola larga** (11-08 → 11-22) y 19 largas frente a 236 cortas en los últimos 7 días (92,5 %). La causa es la puerta de T212: **dos de las tres no han girado en 34 días** (1h bajista 821 h desde el 10-23, 4h bajista 781 h desde el 10-24), así que los marcos 1h y 4h —dos tercios del libro— solo pueden vender, y la única que autoriza largos giró **tres veces en cuatro días** (11-22 17:00 alcista, 11-24 09:00 bajista, 11-26 05:00 alcista); los 18 largos que abrió el 11-23 perdieron **−302,4 USDT**. **Pero el sesgo no es lo que cuesta esta semana:** en la sombra (sin veto, 11-19 → 11-25) el lado largo rinde **−0,333 R** (n = 420) frente a **+0,156 R** del corto (n = 667), diferencia −0,490 ± 0,154 (t = −6,21) y −0,530 ± 0,204 agrupando por vela de apertura; en el libro oficial la diferencia queda dentro del ruido (−0,165 ± 0,299). Haber operado más largos habría perdido más. Lo que se lleva el dinero es la fricción: auditoría del 11-26 con n = 726, **bruto +0,051 R**, **costo 0,125 R**, neto −0,074 R [−0,118, −0,030], PnL −2 915 USDT. El costo del retraso que midió T212 sigue en pie y es compatible: el sesgo cuesta **en los giros** (49 aperturas tras el mínimo del 11-21, 45 cortas, −731,7). No se toca la puerta (T139 P1); lo que falta es que el lado **se mida y se publique solo** en cada auditoría. Diagnóstico `PLAN/notas/T213_sesgo_direccional.md`; ficha `PLAN/T213.md`. **HECHA 2026-11-26 en la misma sesión, los seis criterios cumplidos y verificados sobre el libro real (726 operaciones) y las velas del disco.** El lado ya se mide y se publica solo: `eim/analytics/audit/sides.py` (función pura: reparto por lado, contraste de los dos lados en la sombra agrupando por vela de apertura y signo de cada puerta), el encabezado del informe y la consola traen «LADO: 652/726 cortas (89,8 %) · 7 d 231/19 · última larga hace 50 h · sombra agrupada L −0,388 vs S +0,162 (dif −0,550 ± 0,209: el lado largo rinde peor) · `contra_tendencia` dejó fuera …» y «PUERTAS: …», la §6 del Markdown las tablas, y `sides.short_share` entra en los cambios entre auditorías. Tres líneas informativas nuevas (`sesgo_lado`, `contraste_lados`, `puerta_sin_signo`), todas con vía `cerrada (T139 P1)`. **Hallazgo de método al implementarlo:** el signo de una puerta no puede juzgarse promediando todas las velas de sus tramos —la ventana de las últimas cae al otro lado del giro, y así 10 de 12 caminatas aleatorias puras aparentan señal—, así que se mide **desde el giro**, un dato por giro. Con eso, en los 98 días de velas del disco **ninguna** de las tres puertas distingue dirección: 15m +0,220 % ± 1,157 % (40 giros), 1h +1,973 % ± 6,206 % (3 giros), 4h sin muestra (1 giro). La conclusión de T212 se refuerza y se corrige su §5: el «+0,455 % y +0,234 %» de las lentas era el mismo artefacto con el signo a favor, y su falta de giros es justo lo que haría inmedible cualquier puerta alternativa. Nada tocado de `ExecParams.htf`, `vetoes.py`, `gates.py`, `params_fingerprint`, el libro ni la corrida de T31. Pruebas: `tests/analytics/test_t213_sides.py` (8) y una nueva en `tests/analytics/test_audit.py`. Corregida también §1 de la skill `eim-auditoria`.",
    "effort": "bajo",
    "phase": 25
+  },
+  {
+   "id": "T214",
+   "title": "Prueba de nulidad obligatoria: ninguna medida se publica sin ella",
+   "deps": [
+    "T213",
+    "T212",
+    "T159",
+    "T175",
+    "T49",
+    "T160"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 (fase 33 nueva, aprobada por el usuario tras la retrospectiva de T213).** El proyecto mide el mercado con rigor y **no comprueba sus propias medidas**: el método con que T212 §5 juzgó el signo de las puertas da «señal» significativa en **10 de 12 caminatas aleatorias puras** (midiendo desde el giro, 0 de 12) y vivió **tres días** en §1 de la skill como doctrina. Pide las tres nulidades en código (ruido, permutación, placebo), un **registro de medidas** cuya prueba falla si una no declara nulidad o si su tasa de falsos positivos pasa del nivel, las medidas ya existentes dentro (puerta y lados de T213, calibración de T160, bruto con Holm y emparejado de T175, apertura de T211), y que el informe marque «sin nulidad» lo que no la haya pasado —y eso no pueda sostener una decisión. Ficha `PLAN/T214.md`.",
+   "effort": "medio",
+   "phase": 33
+  },
+  {
+   "id": "T215",
+   "title": "Un veredicto de verificación que no se pueda falsear",
+   "deps": [
+    "T116",
+    "T201",
+    "T126",
+    "T127",
+    "T205"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario).** Hoy una sesión puede declarar el gate verde **sin que haya corrido una sola prueba**: `20261126-054149-gate-t213-3ed6` salió con **código 0** con el trabajo `fallido` **rc=1** y `No module named pytest` (corrió con el Python del sistema porque `python` no resuelve al venv con `--cwd` en un worktree), y `20261126-064802-gate-t213b-a340` quedó `fallido` **rc=None** tras 10 786 s al morir la sesión que lo encoló. Pide que `submit` propague el rc, que la cola resuelva el intérprete o rechace el encolado, un **veredicto firmado** por trabajo (`data/jobs/verdict/<id>.json`: commit, árbol, rc, nº de pruebas, duración, pausas) como única definición de «gate verde», distinguir `interrumpido` de `fallido` con reencolado, y que el cierre de tareas y `continuity check` lo lean. Ficha `PLAN/T215.md`.",
+   "effort": "medio",
+   "phase": 33
+  },
+  {
+   "id": "T216",
+   "title": "Las cifras que cierran decisiones, re-derivables",
+   "deps": [
+    "T214",
+    "T49",
+    "T134",
+    "T137",
+    "T139",
+    "T145",
+    "T160",
+    "T175",
+    "T212"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario).** §0 de la skill `eim-auditoria` resume 158 tareas en **12 decisiones vinculantes**, cada una con su cifra (0 de 520 versiones en T137, 87 variantes en T134, ECE 0,024 en T160, familia de Holm 841 en T49, −0,180 % en T212 §5) y **ninguna lleva el comando que la reproduce**; la de T212 §5 resultó ser un artefacto. Pide un inventario (`PLAN/CIFRAS.md` + `v2/reports/cifras/`) con valor, fecha, commit, comando y nulidad (T214), un `figures verify` que recalcule lo recalculable, que lo «sin fuente» **no pueda citarse para cerrar nada**, el saneamiento del caso T212 §5 y que cerrar una tarea con cifra que decida obligue a registrarla. Ficha `PLAN/T216.md`.",
+   "effort": "medio",
+   "phase": 33
+  },
+  {
+   "id": "T217",
+   "title": "La composición del libro, vigilada por el propio sistema",
+   "deps": [
+    "T213",
+    "T212",
+    "T210",
+    "T144",
+    "T159",
+    "T145"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario).** T213 hizo que **el lado** se mida solo; falta el resto de la composición, que hoy puede apartarse del diseño durante semanas sin aviso: 652 de 726 cortas (89,8 %) con **15 días sin una sola larga** (lo detectó el usuario), conservador **plano desde el 2026-11-01** (7 operaciones, 5 568 rechazos), las fichas del panel en otra contabilidad que el libro oficial (**−5 057,1 frente a −2 584,7 USDT**) y cuatro perfiles que son **una apuesta con cuatro tamaños** (T210). Pide perfil de composición y concentración por lado, marco, perfil, estrategia, apalancamiento y régimen; avisos con umbral en el código; comparación entre contabilidades publicada; e independencia efectiva. Describe, no corrige (T145 D). Ficha `PLAN/T217.md`.",
+   "effort": "bajo",
+   "phase": 33
+  },
+  {
+   "id": "T218",
+   "title": "El contrapeso: el plan deja de crecer más rápido de lo que cierra",
+   "deps": [
+    "T159",
+    "T203",
+    "T205",
+    "T214",
+    "T215",
+    "T216",
+    "T217"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario; es la tarea sustractiva de la fase).** **210 tareas** (166 ☑, 16 ◐, 28 ☐) y **199 líneas de BACKLOG**, y de las 10 oportunidades de la auditoría del 11-26 **4 van a vía `cerrada`** (7 de 13 con las de T213): el plan acumula más de lo que convierte en cambios. Pide estado para **cada** línea de BACKLOG (`→ Txx`, `caduca AAAA-MM-DD` o `archivada` en `PLAN/BACKLOG_ARCHIVO.md`), una comprobación que avise de las que queden sin estado, un **tope de tareas ◐ simultáneas** (propuesta 8) en `PLAN/CONDICIONANTES.md` vigilado por `continuity check`, y nombrar qué líneas absorben T215 (cola y gate), T214/T216 (medición y cifras) y T217 (composición). No se poda historia. Ficha `PLAN/T218.md`.",
+   "effort": "medio",
+   "phase": 33
   }
  ]
 };
