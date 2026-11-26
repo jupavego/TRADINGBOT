@@ -255,3 +255,22 @@ def test_la_puerta_entra_en_el_informe_y_en_la_consola():
     assert a["gates"] and a["gates"][0]["timeframe"] == "1h"
     assert any(o["id"] == "puerta_tarde_1h" for o in a["opportunities"])
     assert "puerta de 1h" in render.console(a) and "puerta de 1h" in render.markdown(a)
+
+
+def test_el_lado_sale_en_el_encabezado_y_en_los_cambios():
+    """T213 criterio 1: el sesgo y lo que el veto dejó fuera, sin reconstruirlo a mano."""
+    rows = [_row(-0.1, -10.0) | {"side": -1, "opened_t": NOW - 2 * kpis.DAY_MS}
+            for _ in range(MIN_ROWS)]
+    blk = {"n": 33, "live": 30, "long": 30, "short": 3, "ideas": 20,
+           "profiles": {"moderado": 33}, "window_h": 168.0}
+    a = build.build(rows, NOW, "2026-11-26T00:00:00Z", gates=[_gate(blocked=blk)])
+    a["paths"] = {"md": "x.md"}
+    s = a["book"]["sides"]
+    assert s["short"] == MIN_ROWS and s["short_share"] == 1.0 and s["no_long_h"] is None
+    line = render.sides_line(a)
+    assert f"{MIN_ROWS}/{MIN_ROWS} cortas (100.0%)" in line and "1h 30L/3C" in line
+    assert line in render.console(a) and line in render.markdown(a)
+    assert any(o["id"] == "sesgo_lado" for o in a["opportunities"])
+    prev = {"book": {"sides": {"short_share": 0.5}}, "generated_at": "2026-11-23T00:00:00Z"}
+    d = levers.deltas(a, prev)
+    assert d["metrics"]["sides.short_share"]["delta"] == pytest.approx(0.5)

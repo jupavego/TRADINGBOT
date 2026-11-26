@@ -66,7 +66,8 @@ lo fija `ProfileParams.htf` (15m → 1h EMA21/55, 1h → 4h EMA21/55, 4h → 4h 
 **758 y 718 h**; las aperturas posteriores al mínimo son 49, 45 cortas, **−731,7 USDT**. Antes de
 proponer acelerarla: en los 95 días de velas de 1 h del disco la puerta rápida cambia **39 veces** y **no
 distingue dirección** (retorno a 24 h: −0,338 % alcista frente a −0,158 % bajista), mientras las lentas sí
-(+0,455 % y +0,234 %). Acortar las EMAs cambia sesgo por ruido, y tocar la puerta **reabre T139 P1**: es
+(+0,455 % y +0,234 %) — **ese «sí» de las lentas no se sostiene: T213 corrige el método, más
+abajo**. Acortar las EMAs cambia sesgo por ruido, y tocar la puerta **reabre T139 P1**: es
 ◆ del usuario, nunca una propuesta de la auditoría. Detalle: el universo oficial incluye 38 operaciones
 de ETHUSDT (+255,1 USDT) del 10-21 al 10-28, anteriores al foco T122.
 
@@ -86,6 +87,16 @@ sombra sin veto (11-19 → 11-25) el lado largo rinde −0,333 R (n = 420) frent
 oficial queda dentro del ruido (−0,165 ± 0,299). Operar más largos habría perdido más. El costo del
 retraso que midió T212 sigue en pie y es compatible: el sesgo cuesta **en los giros**. Cambiar la
 puerta sigue siendo ◆ del usuario (T139 P1). Detalle: `PLAN/notas/T213_sesgo_direccional.md`.
+**Desde T213 esto no se mide a mano:** la auditoría lo trae en el encabezado («LADO: …»), en la
+línea «PUERTAS: …» y en la §6 del informe.
+
+**Corrección a §5 de T212, medida al implementar T213:** el signo de una puerta **no** se juzga
+promediando todas las velas de sus tramos (la ventana de las últimas cae al otro lado del giro, y
+así 10 de 12 caminatas aleatorias puras aparentan señal). Medido **desde el giro**, en los 98 días
+de velas del disco **ninguna** de las tres puertas distingue dirección: 15m +0,220 % con mínimo
+detectable ±1,157 % (40 giros), 1h +1,973 % ± 6,206 % (3 giros) y 4h sin muestra (1 giro). Ya no
+vale decir «las lentas sí distinguen»: era el mismo artefacto con el signo a favor, y la falta de
+giros es justo lo que haría inmedible cualquier puerta alternativa (T139 P1).
 
 **Quinta trampa, de T210: leer una diferencia semanal sin su diferencia mínima detectable.** Con la
 varianza de la escalera (sd ≈ 0,46 R), una semana solo distingue ≈ 0,12 R/op: cualquier Δ menor que eso

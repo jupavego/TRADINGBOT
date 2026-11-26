@@ -86,20 +86,47 @@ no el lado. Un libro con más largos, con este costo, seguiría por debajo de ce
 - **T139 está cerrada con P1 (vinculante hasta 2027-05-06)**: cambiar la puerta —su marco, sus
   EMAs, su veto— **es una entrada nueva**. No se toca sin ◆ del usuario que reabra T139, y cada
   intento contaría en la familia de Holm (841, T49).
-- **Acelerar la puerta no es el arreglo**: en 95 días de velas de 1 h la puerta rápida cambia 39
-  veces y **no distingue dirección** (retorno a 24 h: −0,338 % alcista frente a −0,158 % bajista),
-  mientras las lentas sí (+0,455 % y +0,234 %). Sus tres giros de esta semana y los largos del
-  11-23 lo confirman **en vivo**: acortar EMAs cambia sesgo por ruido.
+- **Acelerar la puerta no es el arreglo**: en los 98 días de velas de 1 h del disco la puerta
+  rápida gira 40 veces y **no distingue dirección** (+0,220 % alcista frente a bajista, con un
+  mínimo detectable de ±1,157 %). Sus tres giros de esta semana y los largos del 11-23 lo
+  confirman **en vivo**: acortar EMAs cambia sesgo por ruido. Y las lentas tampoco distinguen,
+  por falta de giros (§6 corrige el método con que T212 las leyó).
 - **T145 D (solo análisis)**: lo que falta no es operar el otro lado, es **decirlo con número**.
   T212 ya publica la puerta, su retraso y lo que veta. Lo que todavía no existe es la puntuación
   continua del lado: nadie mide si cada puerta acierta, ni compara los dos lados en la sombra, así
   que la pregunta del usuario hubo que contestarla a mano.
 - **T194** (28-nov 00:00 UTC) recorta el tamaño: reduce la pérdida, no corrige la dirección.
 
-## 6. Qué se abre
+## 6. Una corrección al método de T212 §5 (encontrada al implementar T213)
 
-- **T213** (fase 25): el lado, puntuado — el sesgo y el signo de cada puerta, medidos en cada
-  auditoría y publicados, sin tocar la puerta.
+T212 juzgó el signo de cada puerta promediando el retorno a 24 h de **todas las velas** de sus
+tramos: la rápida salía con −0,180 % (alcista peor que bajista) y las lentas con +0,455 % y
++0,234 %. **Ese promedio inventa signo.** La ventana de 24 h de las últimas velas de un tramo cae
+ya al otro lado del giro, y un giro es por construcción una vuelta del precio, así que los tramos
+cortos salen castigados y los largos premiados. Medido así, **10 de 12 caminatas aleatorias puras
+dan «la puerta distingue al revés» con significación**; es un artefacto, no una lectura.
+
+Midiendo **desde el instante del giro** —un dato por giro, sin solapamiento y sin conocer el
+futuro— las tres puertas quedan así en los 98 días de velas de 1 h del disco:
+
+| puerta | giros ↑/↓ | ret. 24 h ↑ | ret. 24 h ↓ | diferencia | mín. detectable | lectura |
+|---|---|---|---|---|---|---|
+| 15m (1h EMA21/55) | 20/20 | +0,138 % | −0,081 % | +0,220 % | ±1,157 % | **no distingue** |
+| 1h (4h EMA21/55) | 3/3 | +1,397 % | −0,576 % | +1,973 % | ±6,206 % | **no distingue** |
+| 4h (4h EMA50/200) | 1/1 | +7,365 % | +1,054 % | — | — | muestra corta |
+
+La conclusión de T212 **se mantiene y se refuerza**: ninguna puerta tiene signo medible con este
+historial. La rápida porque sus 40 giros son ruido; las lentas porque **casi no giran** (3 y 1 giro
+en 98 días), así que no hay muestra con la que juzgarlas ni con la que juzgar una alternativa. Lo
+que cambia es que ya no puede decirse «las lentas sí distinguen»: eso era el mismo artefacto con el
+signo a favor. Y refuerza la línea de T139: una puerta alternativa necesitaría años de historia
+propia antes de poder compararse, exactamente lo que P1 exige.
+
+## 7. Qué se abre
+
+- **T213** (fase 25), **hecha el 2026-11-26 en esta misma sesión**: el sesgo, el contraste de los
+  dos lados y el signo de cada puerta salen ya solos en cada auditoría (`eim/analytics/audit/
+  sides.py`, encabezado del informe, §6 del Markdown y dos líneas de consola), sin tocar la puerta.
 - BACKLOG bajo T159: la ◆ de si, tras cerrar T31, se pre-registra en sombra una puerta alternativa
   (reabre T139), que ya estaba abierta por T212 y esta semana gana una cifra a favor y una en
   contra: el retraso cuesta en los giros, pero el lado largo de esta ventana fue peor.
