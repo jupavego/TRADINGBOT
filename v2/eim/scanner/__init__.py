@@ -16,6 +16,11 @@ y entrega una lista corta a los agentes profundos (T94):
 5. **Servicio** (`service.py`, `runner.py`, `__main__.py`): `python -m eim.scanner run|status`,
    latido, registro en `data/scanner/scanner.duckdb` y eventos muestreados al Observatorio.
 6. **Medición** (`budget.py`): `reports/scanner_budget.md`.
+7. **Agentes y oportunidades** (T94: `deep.py`, `candidates.py`, `deep_service.py`): los agentes
+   elegibles sobre la lista corta y oportunidades candidatas trazables, nunca órdenes.
+8. **Ranking y azar** (T95: `rank.py`, `clusters.py`, `multiplicity.py`, `rank_service.py`,
+   `placebo.py`, `placebo_eval.py`): prioridad comparable, apuestas correlacionadas agrupadas,
+   registro de intentos con Holm/BH sobre la familia completa y umbral del placebo.
 
 La E/S (catálogo, almacén, red, base) vive en `eim/data/scanner_market.py` y
 `eim/data/scanner_store.py`.

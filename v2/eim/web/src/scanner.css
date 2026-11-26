@@ -51,3 +51,8 @@
 .sc-detail td[data-status="degraded"] { color: var(--warn); }
 .sc-detail td[data-status="no_data"] { color: var(--muted); }
 .sc-detail p { color: var(--text); font-size: 13px; }
+/* T95: ranking. «Bajo el umbral del azar» se apaga; el texto lo dice, no solo el tono. */
+.sc-rank div { min-width: 180px; }
+.sc-row[data-above="no"] td { opacity: .62; }
+.sc-row[data-above="no"]:hover td, .sc-row[data-above="no"]:focus td { opacity: 1; }
+.sc-above[data-above="si"] { color: var(--accent); font-weight: 600; }

@@ -15,6 +15,8 @@ Tablas (`asof` es palabra reservada de DuckDB —`ASOF JOIN`—: la columna se l
   por qué), la síntesis, la proyección y la oportunidad o el motivo de que no la haya.
 - `opportunities` (T94): las oportunidades candidatas (`eim/core/opportunity.py`), con su hash de
   datos y su `opportunity_id` determinista. Nunca órdenes.
+- `attempts` y `attempt_obs` (T95): el registro de intentos del escáner y sus observaciones hacia
+  adelante (`eim/data/scanner_attempts.py`).
 - `jobs` y `cache`: la cola persistente (reanudable) y la caché por
   `(instrumento, marco, hash de datos, versión)`. Cumple `JobBackend` y `CacheBackend` de
   `eim/scanner/backends.py`.
@@ -29,6 +31,7 @@ from pathlib import Path
 import duckdb
 
 from eim.data.duck import tune
+from eim.data.scanner_attempts import ATTEMPTS_DDL, AttemptRecords
 from eim.scanner.backends import STATES, CacheKey, Job
 
 DB_DIR, DB_NAME = "scanner", "scanner.duckdb"
@@ -144,7 +147,7 @@ def _run_row(r) -> dict:
             "detail": json.loads(r[4] or "{}"), "started_at": r[5], "finished_at": r[6]}
 
 
-class ScannerStore(DeepRecords):
+class ScannerStore(DeepRecords, AttemptRecords):
     def __init__(self, path: str | Path) -> None:
         self.path = str(path)
         if self.path != ":memory:":
@@ -152,6 +155,7 @@ class ScannerStore(DeepRecords):
         self._con = duckdb.connect(self.path)
         tune(self._con)
         self._con.execute(_DDL)
+        self._con.execute(ATTEMPTS_DDL)
         self._lock = threading.Lock()
 
     def close(self) -> None:

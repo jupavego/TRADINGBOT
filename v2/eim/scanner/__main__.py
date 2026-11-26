@@ -10,6 +10,8 @@
                                                #      barrido → oportunidades candidatas + vista
     python -m eim.scanner verify OPP_ID        # T94: relee sus velas, comprueba el hash y la
                                                #      vuelve a calcular (mismo id y cifras)
+    python -m eim.scanner calibrate            # T95: pesos del ranking fuera de muestra con lo
+                                               #      madurado (solo adopta si mejora)
 
 Modo ANÁLISIS: nada de esto envía órdenes. Códigos de salida de `budget`: 0 dentro del
 presupuesto y reproducible; 3 fuera del presupuesto; 4 no reproducible; 5 sin catálogo o datos.
@@ -85,6 +87,8 @@ def main(argv: list[str] | None = None) -> int:
     v = sub.add_parser("verify", help="reproduce una oportunidad desde sus datos (T94)")
     v.add_argument("opportunity_id")
     v.add_argument("--summary", help="archivo con una línea de resumen (para el plan)")
+    c = sub.add_parser("calibrate", help="pesos del ranking fuera de muestra (T95)")
+    c.add_argument("--dry-run", action="store_true", help="calcula sin adoptar")
     b = sub.add_parser("budget", help="mide el presupuesto")
     b.add_argument("--asof", default="latest")
     b.add_argument("--out", default="reports/scanner_budget.md")
@@ -111,10 +115,11 @@ def main(argv: list[str] | None = None) -> int:
         return run_loop(svc, once=a.once, sync=not a.no_sync, quotes=not a.no_quotes,
                         agents=not a.no_agents)
     try:
-        if a.cmd in ("deep", "verify"):
-            from eim.scanner.deep_cli import deep_cmd, verify_cmd
+        if a.cmd in ("deep", "verify", "calibrate"):
+            from eim.scanner import deep_cli
 
-            return deep_cmd(svc, a) if a.cmd == "deep" else verify_cmd(svc, a)
+            return {"deep": deep_cli.deep_cmd, "verify": deep_cli.verify_cmd,
+                    "calibrate": deep_cli.calibrate_cmd}[a.cmd](svc, a)
         if a.cmd == "sync":
             out = svc.sync(limit=a.max if a.max is not None else 100_000, discover=a.discover)
         else:
@@ -158,7 +163,7 @@ def _budget(a, data_dir: Path, root: Path) -> int:
             f"{m['ms_per_instrument']:.2f} ms/instrumento (presupuesto T87 {m['budget_ms']:g} ms: "
             f"{'dentro' if m['within_budget'] else 'FUERA'}); reproducible: "
             f"{'sí' if m['reproducible'] else 'NO'}; caché en caliente "
-            f"{budget._pct(m['cache_warm'])}; 10 000 instrumentos ≈ "  # noqa: SLF001
+            f"{budget._pct(m['cache_warm'])}; 10 000 instrumentos ≈ "
             f"{m['projection'][-1]['total_s']} s")
     print(line)
     print(f"informe: {out}")

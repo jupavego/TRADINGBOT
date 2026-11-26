@@ -1,4 +1,4 @@
-"""T93/T94 — el escáner no puede llegar a una orden: no importa ejecución, riesgo, papel ni LLM.
+"""T93/T94/T95 — el escáner no puede llegar a una orden: no importa ejecución, riesgo, papel ni LLM.
 
 T94 corre los agentes elegibles y la síntesis existente (`deep.py`), así que la síntesis deja de
 estar prohibida **solo ahí**; el resto del escáner sigue sin tocarla. Y al revés: ningún módulo de
@@ -13,8 +13,8 @@ from pathlib import Path
 PKG = Path(__file__).resolve().parents[2] / "eim"
 FILES = sorted((PKG / "scanner").glob("*.py")) + [
     PKG / "data" / "scanner_market.py", PKG / "data" / "scanner_store.py",
-    PKG / "data" / "scanner_view.py", PKG / "core" / "opportunity.py",
-    PKG / "api" / "scanner.py"]
+    PKG / "data" / "scanner_view.py", PKG / "data" / "scanner_attempts.py",
+    PKG / "core" / "opportunity.py", PKG / "api" / "scanner.py"]
 FORBIDDEN = ("eim.execution", "eim.risk", "eim.paper", "eim.operation.cycle", "eim.synthesis",
              "eim.agents.context", "anthropic", "openai")
 #: T94: la síntesis existente, sin cambios, solo en la activación de agentes.

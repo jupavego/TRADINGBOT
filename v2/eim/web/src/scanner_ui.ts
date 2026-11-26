@@ -5,14 +5,17 @@
  * está a la vista. Arriba, siempre: el modo y el aviso «candidata, no validada»; luego mercados
  * abiertos/cerrados, filtros (clase, mercado, horizonte, lado), las candidatas con sus tres
  * puntuaciones separadas y el universo puntuado; al pulsar una fila, el detalle con los agentes
- * que opinan y los que no (con su motivo), la proyección y la trazabilidad. */
-import { fetchInstrument, fetchOpportunities, fetchUniverse, type InstrumentPayload, type Opportunity, type UniversePayload } from './scanner_api'
-import { ALL, detail, filterOpps, filters, head, markets, matches, oppTable, universeTable, type Filters } from './scanner_render'
+ * que opinan y los que no (con su motivo), la proyección y la trazabilidad. T95: las candidatas van
+ * en el orden del ranking global (prioridad, umbral del azar, nº de hipótesis y p ajustado) y solo
+ * se lista el representante de cada grupo de apuestas correlacionadas. */
+import { fetchInstrument, fetchOpportunities, fetchUniverse, type InstrumentPayload, type Opportunity, type Ranking, type UniversePayload } from './scanner_api'
+import { ALL, detail, filterOpps, filters, head, markets, matches, oppTable, rankCtx, rankHead, universeTable, type Filters } from './scanner_render'
 import { esc } from './panels'
 
 export class ScannerPanelView {
   private u: UniversePayload | null = null
   private opps: Opportunity[] = []
+  private ranking: Ranking | null = null
   private err = ''
   private f: Filters = { cls: ALL, market: ALL, horizon: ALL, side: ALL }
   private card: InstrumentPayload | null = null
@@ -45,6 +48,7 @@ export class ScannerPanelView {
       const [u, o] = await Promise.all([fetchUniverse(ac.signal), fetchOpportunities(ac.signal)])
       this.u = u
       this.opps = o.opportunities ?? []
+      this.ranking = o.ranking ?? null
       this.err = ''
     } catch (e) {
       if (ac.signal.aborted) return
@@ -64,12 +68,14 @@ export class ScannerPanelView {
   }
 
   /** Pinta con los datos ya cargados (también lo usa la verificación con datos renderizados). */
-  show(u: UniversePayload, opps: Opportunity[]): void { this.u = u; this.opps = opps; this.err = ''; this.render() }
+  show(u: UniversePayload, opps: Opportunity[], ranking: Ranking | null = null): void {
+    this.u = u; this.opps = opps; this.ranking = ranking; this.err = ''; this.render()
+  }
 
   render(): void {
     if (this.card) {
       const c = this.card
-      this.el.innerHTML = detail(c.deep, c.opportunity, c.row, c.note)
+      this.el.innerHTML = detail(c.deep, c.opportunity, c.row, c.note, c.rank ?? null)
       return
     }
     const u = this.u
@@ -85,12 +91,20 @@ export class ScannerPanelView {
     }
     const rows = (u.rows ?? []).filter((r) => matches(r, this.f))
     const byId = new Map((u.rows ?? []).map((r) => [r.instrument_id, r]))
-    const shown = filterOpps(this.opps, this.f)
+    const ctx = rankCtx(this.ranking)
+    const ranked = ctx.rows.size > 0
+    const filtered = filterOpps(this.opps, this.f)
+    // la API ya las da en el orden del ranking; sin ranking (vista anterior a T95), alfabético
+    const ordered = ranked ? filtered : [...filtered].sort((a, b) => a.symbol.localeCompare(b.symbol))
+    const shown = ordered.filter((o) => { const k = ctx.rows.get(o.opportunity_id); return !k || k.representative || !k.cluster_id })
+    const hidden = ordered.length - shown.length
     this.el.innerHTML = head(u, this.opps.length) +
       (this.err ? `<p class="sc-warn">${esc(this.err)} (se muestran los últimos datos)</p>` : '') +
-      markets(u.markets ?? []) + filters(u, this.f) +
-      `<h4>Candidatas <small>${shown.length} de ${this.opps.length} · en orden alfabético: el ranking global comparable llega con T95</small></h4>` +
-      `<div class="sc-scroll">${oppTable([...shown].sort((a, b) => a.symbol.localeCompare(b.symbol)), byId)}</div>` +
+      rankHead(this.ranking) + markets(u.markets ?? []) + filters(u, this.f) +
+      `<h4>Candidatas <small>${shown.length} de ${this.opps.length}` +
+      (ranked ? ` · por prioridad (ranking global T95)${hidden ? ` · ${hidden} agrupada${hidden > 1 ? 's' : ''} bajo su representante` : ''}` : ' · en orden alfabético') +
+      `</small></h4>` +
+      `<div class="sc-scroll">${oppTable(shown, byId, ctx)}</div>` +
       `<details class="sc-uni"><summary>Universo puntuado (${rows.length}) · cobertura por instrumento</summary>` +
       `<div class="sc-scroll">${universeTable(rows)}</div></details>`
   }

@@ -8,7 +8,9 @@ Todas las respuestas llevan el modo (ANÁLISIS) y el aviso «candidata, no valid
 - `/v2/scanner/universe` — último barrido: exclusiones, mercados abiertos/cerrados por clase y
   plaza, y cada instrumento puntuado con su cobertura (filtros `asset_class`, `market`).
 - `/v2/scanner/runs` — últimas corridas (barridos, pasadas rápidas y de agentes).
-- `/v2/scanner/opportunities` — oportunidades candidatas (filtros `asset_class`, `market`,
+- `/v2/scanner/opportunities` — oportunidades candidatas en el orden del ranking global (T95),
+  con el bloque `ranking`: prioridad, umbral del placebo, grupos de apuestas correlacionadas y, por
+  candidata, el nº de hipótesis de su familia y su p ajustado (filtros `asset_class`, `market`,
   `side`, `horizon_max_days`).
 - `/v2/scanner/instrument/{id}` — detalle: agentes que corrieron y que no (con su motivo),
   síntesis, proyección, avisos y la oportunidad con su trazabilidad.
@@ -74,7 +76,8 @@ def build_scanner_router(data_dir: Path | Callable[[], Path]) -> APIRouter:
         out = [o for o in v["opportunities"] if _match(o, asset_class, market)
                and (side is None or o["side"] == side)
                and (horizon_max_days is None or o["horizon_ms"] <= horizon_max_days * DAY_MS)]
-        return {**_head(v), "deep": v.get("deep"), "opportunities": out}
+        return {**_head(v), "deep": v.get("deep"), "opportunities": out,
+                "ranking": v.get("ranking") or {"available": False}}
 
     @router.get("/instrument/{instrument_id}")
     def get_instrument(instrument_id: str) -> dict:
@@ -87,7 +90,9 @@ def build_scanner_router(data_dir: Path | Callable[[], Path]) -> APIRouter:
         if d is None and row is None:
             raise HTTPException(404, f"«{instrument_id}» no está en el último barrido publicado")
         opp = next((o for o in v["opportunities"] if o["instrument_id"] == instrument_id), None)
-        return {**_head(v), "row": row, "deep": d, "opportunity": opp,
+        rank_row = next((r for r in (v.get("ranking") or {}).get("rows", [])
+                         if opp and r["opportunity_id"] == opp["opportunity_id"]), None)
+        return {**_head(v), "row": row, "deep": d, "opportunity": opp, "rank": rank_row,
                 "note": None if d else "fuera de la lista corta: los agentes no corrieron"}
 
     return router

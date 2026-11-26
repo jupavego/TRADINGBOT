@@ -1,4 +1,5 @@
-/** Tipos y peticiones de la pestaña «Escáner» (T94). Solo lectura: nada de POST. Modo ANÁLISIS. */
+/** Tipos y peticiones de la pestaña «Escáner» (T94; ranking y multiplicidad de T95). Solo lectura:
+ * nada de POST. Modo ANÁLISIS. */
 import { base } from './api'
 
 export type MarketState = 'abierto' | 'cerrado' | 'sin_calendario'
@@ -44,7 +45,38 @@ export interface Opportunity {
   scores: { signal_quality: number; viability: number; risk_cost: number; components: Record<string, number | null>; notes: string[] }
   versions: Record<string, string>; warnings: string[]
 }
-export interface OpportunitiesPayload extends Head { deep?: DeepSummary | null; opportunities: Opportunity[] }
+export interface Multiplicity {
+  attempt_key: string; n_family: number; n_obs: number; n_matured: number; p_raw: number | null
+  p_holm: number; q_bh: number; dsr: number | null; verdict: string; validation: string
+}
+export interface Normalized {
+  sigma_h: number | null; gross: number | null; cost: number | null; net: number | null
+  edge_sigma: number | null; edge_r: number | null; r_source: string; uncertainty_sigma: number | null
+  scores: Record<'quality' | 'viability' | 'risk' | 'edge', number | null>; comparable: boolean; notes: string[]
+}
+export interface RankRow {
+  opportunity_id: string; instrument_id: string; symbol: string; side: 'largo' | 'corto'
+  priority: number | null; position: number | null; above_threshold: boolean
+  cluster_id: string | null; representative: boolean; normalized: Normalized; multiplicity: Multiplicity
+}
+export interface ClusterMember { opportunity_id: string; instrument_id: string; symbol: string; side: 'largo' | 'corto'; rho_to_rep: number | null; link: string }
+export interface Cluster {
+  cluster_id: string; representative: string; members: ClusterMember[]
+  exposure: { n: number; largo: number; corto: number; same_direction: number; hedging: number; mean_abs_rho: number; effective_bets: number }
+}
+export interface Threshold {
+  status: 'vigente' | 'desactualizado' | 'sin_placebo'; value: number | null; reason: string
+  replicas?: number | null; alpha?: number | null; fdr_estimate?: number | null
+  false_per_pass?: number | null; p_global?: number | null; computed_at?: string | null
+}
+export interface Ranking {
+  available: boolean; error?: string; reason?: string
+  weights?: { values: Record<string, number>; calibrated: boolean; source: string; fingerprint: string }
+  threshold?: Threshold
+  family?: { prior: number; prior_source: string; scanner: number; total: number; alpha: number; min_obs: number; observations: number; matured: number }
+  n_comparable?: number; n_above?: number; n_groups?: number; rows?: RankRow[]; clusters?: Cluster[]
+}
+export interface OpportunitiesPayload extends Head { deep?: DeepSummary | null; opportunities: Opportunity[]; ranking?: Ranking }
 
 export interface RanAgent { agent_id: string; version: string; status: string; bias: number; confidence: number; warnings: string[]; eligibility: string }
 export interface DeepDetail {
@@ -57,6 +89,7 @@ export interface DeepDetail {
 }
 export interface InstrumentPayload extends Head {
   row: UniverseRow | null; deep: DeepDetail | null; opportunity: Opportunity | null; note: string | null
+  rank?: RankRow | null
 }
 
 async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
