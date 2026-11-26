@@ -4455,3 +4455,10 @@ pm run build.
 - **Cómo se hizo:** desde claude.ai leyendo la copia de la laptop (sin clon: el acceso al repo desde la nube no se autorizó en esta sesión). Los modelos se probaron en la nube contra los valores de Hull, Fabozzi, Haug y Diebold–Li; la curva del Tesoro se leyó en su CSV oficial (las tres filas del fixture son reales). El portal del BCE no respondió desde la nube: el contraste lo hace la sonda en la laptop. `aplicar_t100.cmd` aplicó la entrega en una copia aparte desde `origin/main`, pasó ruff y las pruebas, corrió la sonda, pasó el gate y fusionó. No reinicia nada: T31 intacta.
 - **Abierto:** **◆ del usuario** (entregable 5) y BACKLOG T100 (7 puntos).
 - **Siguiente paso:** la ◆ de T100. Si eliges opciones cripto como información: verificar los términos de datos de Deribit/Binance opciones antes de cualquier colector.
+
+## 2026-11-26 · T100 cierre — ◆ del usuario: opciones cripto como información; se abren T213 y T214
+
+- **Hecho:** el usuario eligió la opción 1 del §5 de `v2/reports/fixed_income_options_viability.md`: opciones cripto (BTC/ETH) solo como información sobre la volatilidad, condicionado a sus términos de datos. T100 ☑. Nota `PLAN/notas/T100_decision.md`. Nuevas: **T213** (términos de Deribit/Binance opciones con ◆, y si se aprueban, ficha de fuente y colector de cadenas) y **T214** (agente de superficie de volatilidad con potencia a priori y pre-registro sobre A2 de T165), ambas en la fase 26. Seguimiento de T100 quitado de `CONDICIONANTES.md`.
+- **Archivos:** nuevos `PLAN/T213.md`, `PLAN/T214.md`, `PLAN/notas/T100_decision.md`; cambiados `PLAN/{STATUS,CONDICIONANTES,00_MASTER,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** solo plan (`tests/plan`, catálogo); sin cambios de código.
+- **Siguiente paso:** T213 (leer los términos de Deribit en la fuente y la ◆ de la fuente).

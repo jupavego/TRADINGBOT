@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-26T18:26:32",
+ "generated": "2026-11-26T18:48:05",
  "phases": [
   {
    "n": 0,
@@ -338,7 +338,9 @@ window.EIM_STATUS = {
     "T165",
     "T166",
     "T181",
-    "T182"
+    "T182",
+    "T213",
+    "T214"
    ]
   },
   {
@@ -1750,22 +1752,11 @@ window.EIM_STATUS = {
     "T88",
     "T92"
    ],
-   "state": "progress",
-   "notes": "**Entregables 1–4 hechos 2026-11-26; ◆ PENDIENTE del usuario** (entregable 5: qué producto, si alguno, merece su propia clase y con qué datos; por eso queda ◐). Informe `v2/reports/fixed_income_options_viability.md` (veredicto por producto con costo de datos y particularidades de ejecución; ninguna cifra sin fuente). **(1) Datos:** gratis y con licencia clara solo curvas y tipos de referencia — Tesoro de EE. UU. comprobado (14 plazos, sin clave; último dato 2026-11-25: 10 años 4,85 %), BCE (curva AAA Svensson) y FRED; spreads de crédito de FRED solo uso personal; ETF de renta fija sin proveedor (◆2 de T88 abierta); futuros de bonos solo de pago (CME); repos, swaps y bonos ilíquidos OTC → solo investigables (los repos, como costo de financiación); cadenas de opciones cripto públicas y gratis pero **Deribit/Binance opciones fuera de la lista de T88**. **(2) Modelos puros con pruebas contra referencias publicadas** (`eim/fixed_income/{bond,curve,carry}.py`, `eim/options/{black_scholes,implied_vol,chain}.py`): Hull (bono 94,213 / 2,653 / 7,570; *bootstrap* 10,127…10,808 %; BS 4,76/0,81; griegas 0,522/0,066/12,1/−4,31/8,91; σ implícita 23,5 %), Fabozzi (134,6722; convexidad 164,106), Haug (2,1334; Merton 2,4648; Black-76 1,7011; Garman–Kohlhagen 0,0291), Diebold–Li (curvatura máxima ~30 meses). **(3) Agentes hermanos especificados** (`requires`, costos, validación): curva y carry **implementados de prueba** (`eim/fixed_income/proto.py`, sin registrar, modo ANÁLISIS) sobre el proveedor nuevo `eim/data/providers/treasury.py`; opciones/IV especificado con `eim/options/chain.py` (calidad de cadena + σ ATM y sonrisa) pero sin datos conectados. Sonda real `scripts/fixed_income_probe.py` → `reports/fixed_income_probe.{md,json}` (contraste de Svensson con el BCE incluido): curva del 2026-11-25: 10a 4.85 %, 3m10a +51 pb, Svensson 1.46 pb; carry+roll 10a a 3 meses +24 pb netos (exceso/riesgo +0.05); BCE: coincide (0.0 pb). **(4) Veredicto:** curvas como dato viables ahora; bonos, swaps y crédito solo investigación; ETF, futuros de bonos y opciones de acciones con datos de pago; bonos ilíquidos descartados; **opciones cripto como información viables ahora si se aprueba la fuente** (T165 ya validó la volatilidad implícita de Deribit). Pruebas sin red: `tests/fixed_income/`, `tests/options/`, `tests/data/test_treasury_provider.py` (fixture con filas reales del Tesoro). **Gate:** pytest: 4530 pasadas, 36 omitidas, 0 fallos. Ningún cambio en agentes registrados, síntesis, plan, riesgo, papel ni operación. BACKLOG T100.",
+   "state": "done",
+   "notes": "**Hecha 2026-11-26. ◆ RESUELTA por el usuario (opción 1, `PLAN/notas/T100_decision.md`): opciones cripto solo como información sobre la volatilidad de BTC/ETH** → **T213** (términos de datos de Deribit y colector de cadenas; si no se aprueban, no entra) y **T214** (agente de superficie de volatilidad con pre-registro sobre T165). Ninguna otra clase: los modelos quedan como biblioteca y los agentes de curva y carry fuera del registro. Sonda real: Svensson idéntica a la del BCE (0,0 pb); carry + roll-down del 10 años a 3 meses +24 pb netos. Informe `v2/reports/fixed_income_options_viability.md` (veredicto por producto con costo de datos y particularidades de ejecución; ninguna cifra sin fuente). **(1) Datos:** gratis y con licencia clara solo curvas y tipos de referencia — Tesoro de EE. UU. comprobado (14 plazos, sin clave; último dato 2026-11-25: 10 años 4,85 %), BCE (curva AAA Svensson) y FRED; spreads de crédito de FRED solo uso personal; ETF de renta fija sin proveedor (◆2 de T88 abierta); futuros de bonos solo de pago (CME); repos, swaps y bonos ilíquidos OTC → solo investigables (los repos, como costo de financiación); cadenas de opciones cripto públicas y gratis pero **Deribit/Binance opciones fuera de la lista de T88**. **(2) Modelos puros con pruebas contra referencias publicadas** (`eim/fixed_income/{bond,curve,carry}.py`, `eim/options/{black_scholes,implied_vol,chain}.py`): Hull (bono 94,213 / 2,653 / 7,570; *bootstrap* 10,127…10,808 %; BS 4,76/0,81; griegas 0,522/0,066/12,1/−4,31/8,91; σ implícita 23,5 %), Fabozzi (134,6722; convexidad 164,106), Haug (2,1334; Merton 2,4648; Black-76 1,7011; Garman–Kohlhagen 0,0291), Diebold–Li (curvatura máxima ~30 meses). **(3) Agentes hermanos especificados** (`requires`, costos, validación): curva y carry **implementados de prueba** (`eim/fixed_income/proto.py`, sin registrar, modo ANÁLISIS) sobre el proveedor nuevo `eim/data/providers/treasury.py`; opciones/IV especificado con `eim/options/chain.py` (calidad de cadena + σ ATM y sonrisa) pero sin datos conectados. Sonda real `scripts/fixed_income_probe.py` → `reports/fixed_income_probe.{md,json}` (contraste de Svensson con el BCE incluido): curva del 2026-11-25: 10a 4.85 %, 3m10a +51 pb, Svensson 1.46 pb; carry+roll 10a a 3 meses +24 pb netos (exceso/riesgo +0.05); BCE: coincide (0.0 pb). **(4) Veredicto:** curvas como dato viables ahora; bonos, swaps y crédito solo investigación; ETF, futuros de bonos y opciones de acciones con datos de pago; bonos ilíquidos descartados; **opciones cripto como información viables ahora si se aprueba la fuente** (T165 ya validó la volatilidad implícita de Deribit). Pruebas sin red: `tests/fixed_income/`, `tests/options/`, `tests/data/test_treasury_provider.py` (fixture con filas reales del Tesoro). **Gate:** pytest: 4530 pasadas, 36 omitidas, 0 fallos. Ningún cambio en agentes registrados, síntesis, plan, riesgo, papel ni operación. BACKLOG T100.",
    "effort": "medio",
    "phase": 17,
-   "goal": "Decidir con evidencia si bonos, repos, operaciones de financiación y opciones se pueden cubrir y cómo. **No basta aplicar indicadores técnicos a sus precios**: requieren curvas, duración, convexidad, carry/roll-down, cadenas de opciones, volatilidad implícita y griegas. Esta tarea produce especificación y prototipo mínimo, no una clase completa.",
-   "track": {
-    "start": null,
-    "end": null,
-    "milestone": "tu decisión ◆",
-    "progress": "Entregables 1–4 hechos; falta el 5",
-    "requires": [
-     "tu decisión ◆"
-    ],
-    "machine": "cualquiera",
-    "needs": "Leer v2/reports/fixed_income_options_viability.md §5 y decir qué producto, si alguno, merece su propia clase y con qué datos (recomendación: opciones cripto solo como información, tras verificar la fuente)"
-   }
+   "goal": "Decidir con evidencia si bonos, repos, operaciones de financiación y opciones se pueden cubrir y cómo. **No basta aplicar indicadores técnicos a sus precios**: requieren curvas, duración, convexidad, carry/roll-down, cadenas de opciones, volatilidad implícita y griegas. Esta tarea produce especificación y prototipo mínimo, no una clase completa."
   },
   {
    "id": "T101",
@@ -3357,6 +3348,35 @@ window.EIM_STATUS = {
    "notes": "**HECHA 2026-11-24 (abierta el 2026-11-23 por una observación del usuario: «el análisis no supo asimilar el cambio de tendencia»). Los cinco criterios cumplidos y la franja verificada en el panel real el 2026-11-24 a las 15:47 UTC**, tras el reinicio nº 21 de la API (se reinició sola por falta de memoria, no se forzó): «15m ▼ bajista desde hace 6 h 12 min (giró el 2026-11-24 04:00 COT) · precio +9,6 % frente al mínimo de 7 d (55.127) · dejó fuera 66 ideas en 168 h (95 rechazos: 68 largos, 27 cortos; 94 en vivo)», con 1h y 4h bajistas desde hace 27 d 7 h y 30 d 23 h, sus dos ⚠ de desacuerdo y 148 y 75 rechazos de largos. La demora en pintarla no fue del código: la API tiene un solo trabajador y la mesa le dispara una docena de llamadas pesadas al cargar, así que `/v2/paper` espera en la cola (con la mesa cargando, `/v2/health` pasó de 3 ms a 20 s, 7,4 s y 1,3 s); anotado en BACKLOG para T206. La puerta ya se publica: `eim/paper/gates.py` (función pura) calcula por marco de decisión la dirección vigente, el instante del giro, las horas en ese estado y la distancia al extremo de 7 d, con aviso de desacuerdo a partir de 24 h y 2 % en contra; sale en `GET /v2/paper` (`htf_gates`, con `enforced_by` y los umbrales) y en una franja nueva del panel (`eim/web/src/paper_gates.ts`), bajo la barra de «en vivo». **Criterio 2 (el veto deja de ser silencioso):** `gates.blocked()` cuenta los rechazos `contra_tendencia` por marco y lado en la misma ventana de 7 d y viajan dentro de cada puerta (`blocked`), y la auditoría (`levers.gate_opps`) saca una línea informativa cuando una puerta lleva ≥ 24 h y ≥ 2 % en contra, con vía `cerrada (T139 P1)`. Medido sobre los 2 000 últimos rechazos reales: **1h dejó fuera 56 ideas (100 rechazos, todos largos) y 4h otras 11 (29 rechazos, todos largos)**, justo los dos marcos cuya puerta sigue bajista. Verificado con las velas reales: «15m alcista desde hace 23 h · precio −4,0 % frente al máximo de 7 d» y «1h bajista desde hace 31 d 16 h · precio +14,0 % frente al mínimo (55 127) ⚠ lleva 14,0 % en contra». No toca la puerta ni ninguna regla (T139 P1). Es cierto y medido: con el mínimo de 1 h en **55 127 el 11-21 06:00 UTC** y el cierre del 11-23 14:00 en **63 833 (+15,8 %)**, la puerta de 15m (1h EMA21/55) giró a alcista el **11-22 17:00 — 35 h tarde y con el precio ya +11,1 %** — y las de 1h (4h EMA21/55) y 4h (4h EMA50/200) **siguen bajistas desde el 10-23 y el 10-24 (758 y 718 h)**. Lo que costó: las aperturas posteriores al mínimo son **49, de ellas 45 cortas, −731,7 USDT**, y los dos marcos con la puerta aún bajista son **33 operaciones, todas cortas, −586,6**; el acumulado oficial pasó de −2 584,7 (08:39) a −2 856,3 (15:00) mientras el precio subía. El retraso además **convierte el acierto en pérdida**: los primeros largos entraron +14 a +16 % sobre el mínimo y dos cerraron en el stop 15 min después (−1,31 R cada uno). Y acelerar no es gratis: en 95 días de velas de 1 h la puerta rápida cambia **39 veces** y no distingue dirección (24 h: −0,338 % alcista frente a −0,158 % bajista), mientras las lentas sí (+0,455 % y +0,234 %). **No se toca la puerta** (T139 P1); lo que falta es hacerla visible. Diagnóstico `PLAN/notas/T212_asimilar_el_giro.md`; ficha `PLAN/T212.md`.",
    "effort": "bajo",
    "phase": 25
+  },
+  {
+   "id": "T213",
+   "title": "Opciones cripto (1/2): términos de datos de Deribit y colector de cadenas",
+   "deps": [
+    "T100",
+    "T165",
+    "T88"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 por la ◆ de T100.** Primero leer en la fuente los términos de datos de Deribit (y Binance opciones): ◆ el usuario aprueba o no la fuente. Si se aprueba: ficha de fuente, colector de baja frecuencia de las cadenas de BTC (tarea programada, sin servicio nuevo), calidad de cada toma con `eim/options/chain.py`, volumen medido y si hay histórico público para reconstruir superficies.",
+   "effort": "bajo",
+   "phase": 26
+  },
+  {
+   "id": "T214",
+   "title": "Opciones cripto (2/2): agente de superficie de volatilidad, con pre-registro",
+   "deps": [
+    "T213",
+    "T165",
+    "T162",
+    "T163",
+    "T100"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 por la ◆ de T100; no empieza sin la fuente aprobada en T213.** ¿La superficie (estructura temporal, sesgo, prima por plazo) mejora a A2 de T165? Potencia a priori, pre-registro, QLIKE, MCS y Holm en la familia ampliada; agente informante, nunca dirección; ◆ si entra como insumo de volatilidad.",
+   "effort": "medio",
+   "phase": 26,
+   "goal": "Medir si la **superficie** de volatilidad implícita de BTC añade información sobre la volatilidad"
   }
  ]
 };
