@@ -70,6 +70,13 @@ DATA: tuple[Component, ...] = (
       "propia cripto, como mucho cada 6 h por activo. Las guarda para la fotografía del mercado.",
       cadence="cada 6 h", cadence_s=21600, switch="intermarket",
       produces=("intermarket_bars",)),
+    # T93: a demanda (sin `cadence_s`) a propósito: el escáner se enciende con
+    # `python -m eim.scanner run`; apagado no es «sin latido». Muestrea sus eventos.
+    c("scanner.service", "data", "analisis", "service", "scanner", "T93", "Escáner global",
+      "Proceso aparte que filtra todos los perpetuos de Binance por datos, liquidez y calendario, "
+      "los puntúa en una pasada barata y deja una lista corta para los analistas. Solo lee "
+      "datos: no envía órdenes.", consumes=(("data.store", "candles"),),
+      produces=("scanner_scores",)),
     c("data.snapshot", "data", "datos", "engine", "api", "T03", "Fotografía del mercado",
       "Reúne velas, funding, liquidaciones, noticias, calendario, flujo y líderes en un solo "
       "paquete con la fuente y la cobertura real de cada cifra. Es lo único que ven los agentes.",
