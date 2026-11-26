@@ -4411,3 +4411,4 @@ pm run build.
 - **Pruebas.** `ruff` limpio; `pytest tests/analytics` 57 pasadas; gate completo por la cola (`gate-t213`). Verificado además contra el libro real con `--ledger` y las velas del disco.
 - **Abierto.** La ◆ del usuario sobre pre-registrar en sombra una puerta alternativa (reabre T139). El recuento de rechazos por marco se sigue citando del 11-24 porque `GET /v2/paper` no se asienta (T206).
 - **Siguiente paso.** Que la auditoría del lunes (`eim-auditoria-semanal`) lea ya las líneas nuevas; T93 sigue siendo el siguiente de la fase en curso.
+- **Decidido por el usuario (2026-11-26).** La ◆ de pre-registrar en sombra una puerta alternativa queda **cerrada**: con 3 y 1 giro de las puertas lentas en 98 días no hay muestra con la que juzgarla, y abrirla gastaría un intento de Holm sin concluir en meses (T139 P1, límite 2027-05-06). Registrado en `PLAN/BACKLOG.md` y en §0 de la skill `eim-auditoria` para que ninguna auditoría la reproponga.

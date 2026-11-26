@@ -24,6 +24,7 @@ Esto resume 158 tareas. Si un hallazgo choca con una línea de esta tabla, se in
 | Universo de resultados | Libro de los 4 perfiles, vivas, con peso, **sin `retro`** (`counts_as_result`) | T144 |
 | Al cerrar T31 (2026-11-27) | Encender `risk_includes_costs` y el freno gradual; decidir si la variante t143 pasa a oficial | `PLAN/T31.md`, T136 |
 | Dinero real | Imposible: puerta T27 no pasa | T27, T31 |
+| Puerta alternativa | ◆ **cerrada por el usuario** (2026-11-26): no se pre-registra, ni en sombra. Las puertas lentas giran 3 y 1 vez en 98 d: nada medible | T213, BACKLOG T159 |
 | Multiplicidad | Todo intento cuenta en Holm (familia 841) | T49, T139 |
 | Calibración | Recalibrar cerrado: M1 y M2 fallaron su pre-registro; el motor está casi calibrado en el banco (ECE 0,024) y los desvíos en vivo son de régimen | T160 |
 | Foco | Solo BTCUSDT | T122 |
