@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-26T17:06:09",
+ "generated": "2026-11-26T17:27:04",
  "phases": [
   {
    "n": 0,
@@ -1688,7 +1688,14 @@ window.EIM_STATUS = {
    "notes": "**En pausa por la ◆ de T95 (2026-11-26):** no arranca hasta la revisión automática del 2026-12-29 (`PLAN/notas/T96_revision.md`), y solo si esa revisión dice «ARRANCAR T96» (la síntesis del escáner gana al azar hacia adelante con ≥ 200 resultados maduros **y** el placebo repetido supera el azar). Mientras tanto el escáner corre a diario en modo Análisis para acumular esa evidencia.",
    "effort": "alto",
    "phase": 17,
-   "goal": "Pasar de oportunidades sueltas a una **cartera simulada** con exposición, correlación, concentración, margen y moneda controlados por un componente determinista con poder de veto, independiente de los agentes. Solo simulación."
+   "goal": "Pasar de oportunidades sueltas a una **cartera simulada** con exposición, correlación, concentración, margen y moneda controlados por un componente determinista con poder de veto, independiente de los agentes. Solo simulación.",
+   "where": [
+    {
+     "machine": "laptop",
+     "text": "En pausa por tu decisión en T95: no empezar antes de la revisión automática de ese día (tarea «EIM - revision para decidir T96», informe en TRADINGBOT/_revision_t96.md); arranca solo si dice «ARRANCAR T96»",
+     "when": "2026-12-29"
+    }
+   ]
   },
   {
    "id": "T97",

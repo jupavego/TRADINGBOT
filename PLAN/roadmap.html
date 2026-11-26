@@ -228,7 +228,9 @@ function derive(tasks){
   tasks.forEach(function(t){
     if(t.state==="pending"){
       var wait=t.deps.filter(function(d){return !m[d]||m[d].state!=="done"});
-      t.view=wait.length?"blocked":"ready";t.wait=wait;
+      // En pausa por una decisión tomada (nota de STATUS.md que empieza por «**En pausa»): espera
+      t.pause=/^\*\*En pausa/.test(t.notes||"");
+      t.view=(wait.length||t.pause)?"blocked":"ready";t.wait=wait;
     }else t.view=t.state;
   });
   return m;
@@ -272,17 +274,23 @@ function render(){
   // Abierta como roadmap.html#vigia (icono de la bandeja): al primer dibujo, ir al Vigía
   if(location.hash==="#vigia"&&!window.__vgScrolled){window.__vgScrolled=true;var v=document.getElementById("vigia");if(v)v.scrollIntoView()}
 }
+// Pausa por decisión: fecha de reanudación (condicionante con fecha) y texto sin marcas
+function pauseUntil(t){var d=(t.where||[]).map(function(c){return c.when}).filter(function(w){return /^\d{4}-\d{2}-\d{2}$/.test(w||"")}).sort()[0];return d||""}
+function plain(s){return String(s||"").replace(/\*\*/g,"").replace(/`/g,"")}
+function pauseTag(t){var d=pauseUntil(t);return '<span class="tag gate" title="'+esc(plain(t.notes))+'">⏸ En pausa'+(d?' hasta '+esc(d):"")+'</span>'}
 // Sección del Vigía: tareas en curso, listas y decisiones pendientes, leídas del mismo status.js
 function renderVigia(tasks){
   var ph={};(data.phases||[]).forEach(function(p){p.ids.forEach(function(i){ph[i]=p})});
   var prog=tasks.filter(function(t){return t.view==="progress"});
   var ready=tasks.filter(function(t){return t.view==="ready"});
   var gate=ready.filter(function(t){return GATES[t.id]});
+  var paused=tasks.filter(function(t){return t.pause});
   var where={};prog.concat(ready).forEach(function(t){(t.where||[]).forEach(function(c){(where[c.machine]=where[c.machine]||[]).push({t:t,c:c})})});
   document.getElementById("vg-k").innerHTML=
     '<div class="k-prog"><b>'+prog.length+'</b><span>en curso</span></div>'+
     '<div class="k-ready"><b>'+ready.length+'</b><span>listas para empezar</span></div>'+
     '<div class="k-gate"><b>'+gate.length+'</b><span>esperan tu decisión ◆</span></div>'+
+    (paused.length?'<div class="k-gate"><b>'+paused.length+'</b><span>en pausa por tu decisión</span></div>':"")+
     Object.keys(where).map(function(mq){return '<div class="k-where"><b>'+where[mq].length+'</b><span>se hacen desde '+esc(mq)+'</span></div>'}).join("");
   function row(t){
     var p=ph[t.id];
@@ -296,6 +304,11 @@ function renderVigia(tasks){
   document.getElementById("vg-l").innerHTML=
     '<h3>En curso ahora</h3>'+(prog.length?prog.map(progRow).join(""):'<p class="vge">Ninguna tarea marcada en curso en STATUS.md.</p>')+
     (gate.length?'<h3>Esperan tu decisión</h3>'+gate.map(row).join(""):"")+
+    (paused.length?'<h3>En pausa por tu decisión</h3>'+paused.map(function(t){
+      var p=ph[t.id];
+      return '<div class="t blocked"><div class="tr"><span class="st blocked">⏸</span><span class="tid">'+t.id+'</span><span class="tt">'+esc(t.title)+'</span>'+
+        (p?'<span class="tag block">Cap. '+esc(p.n)+'</span>':"")+pauseTag(t)+whereTags(t)+'</div>'+
+        '<div class="vge" style="margin-left:26px">'+esc(plain(t.notes))+'</div></div>'}).join(""):"")+
     Object.keys(where).map(function(mq){
       var it=where[mq].slice().sort(function(a,b){return (a.c.when==="ya"?"0":a.c.when)<(b.c.when==="ya"?"0":b.c.when)?-1:1});
       return '<h3>Condicionantes: se hacen desde '+esc(mq)+'</h3>'+it.map(function(x){
@@ -340,12 +353,12 @@ function phaseCard(p,m,ts,d){
     '<h3><button type="button" class="phh" aria-expanded="'+open+'" aria-controls="ph-'+p.n+'"><span class="n">'+p.n+'</span><span class="phn">'+p.name+'</span><span class="cnt">'+d+"/"+ts.length+'</span><span class="chev" aria-hidden="true">▸</span></button></h3>'+
     '<div class="pb"><span style="width:'+(ts.length?d/ts.length*100:0)+'%"></span></div><div class="phs">'+sum+'</div><div class="phb" id="ph-'+p.n+'">'+
     ts.map(function(t){
-      var tag=t.view==="ready"?'<span class="tag ready">Lista</span>':t.view==="blocked"?'<span class="tag block">Espera '+t.wait.join(", ")+'</span>':"";
+      var tag=t.pause?pauseTag(t):t.view==="ready"?'<span class="tag ready">Lista</span>':t.view==="blocked"?'<span class="tag block">Espera '+t.wait.join(", ")+'</span>':"";
       var gate=GATES[t.id]?'<span class="tag gate" title="'+esc(GATES[t.id])+'">◆ decisión</span>':"";
       var deps=t.deps.length?t.deps.map(function(d){var s=m[d]?m[d].view:"";return '<span class="chip '+s+'">'+d+'</span>'}).join(""):'<span class="chip">sin dependencias</span>';
       var wh=(t.where||[]).map(function(c){return '<p style="color:var(--where)">🖥 Desde '+esc(c.machine)+' ('+(c.when==="ya"?"ya":"desde "+esc(c.when))+'): '+esc(c.text)+'</p>'}).join("");
       return '<div class="t '+t.view+(OPEN[t.id]?" open":"")+'" data-id="'+t.id+'"><div class="tr"><span class="st '+t.view+'">'+icon(t.view)+'</span><span class="tid">'+t.id+'</span><span class="tt">'+esc(t.title)+'</span>'+gate+whereTags(t)+tag+'</div><div class="det">'+wh+
-        (t.goal?'<p>'+esc(t.goal)+'</p>':"")+'<div class="chips">Depende de: '+deps+'</div>'+(t.effort?'<p>Esfuerzo: '+esc(t.effort)+'</p>':"")+(GATES[t.id]?'<p style="color:var(--gate)">Decisión: '+esc(GATES[t.id])+'</p>':"")+(t.notes?'<p>Cierre: '+esc(t.notes)+'</p>':"")+
+        (t.goal?'<p>'+esc(t.goal)+'</p>':"")+'<div class="chips">Depende de: '+deps+'</div>'+(t.effort?'<p>Esfuerzo: '+esc(t.effort)+'</p>':"")+(GATES[t.id]?'<p style="color:var(--gate)">Decisión: '+esc(GATES[t.id])+'</p>':"")+(t.notes?'<p'+(t.pause?' style="color:var(--gate)"':"")+'>'+(t.pause?"En pausa: ":"Cierre: ")+esc(t.pause?plain(t.notes):t.notes)+'</p>':"")+
         '<div class="cmd"><code>Ejecuta PLAN/'+t.id+'.md</code><button type="button" data-copy="Ejecuta PLAN/'+t.id+'.md">Copiar</button></div></div></div>'}).join("")+'</div></section>';
 }
 document.addEventListener("click",function(e){
