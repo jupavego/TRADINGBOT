@@ -1,0 +1,220 @@
+{
+ "computed_at": "2026-11-26T23:00:47+00:00",
+ "source": "us-treasury",
+ "n_days": 475,
+ "treasury_error": null,
+ "attribution_ecb": "Fuente: Banco Central Europeo",
+ "curve": {
+  "family": "curva",
+  "as_of": "2026-11-25",
+  "source": "us-treasury",
+  "status": "ok",
+  "bias": null,
+  "bias_on": "",
+  "confidence": 0.0,
+  "horizon": "estado del día",
+  "metrics": {
+   "nivel_pct": 4.85,
+   "pendiente_3m10a_pb": 51.0,
+   "curvatura_pb": 3.0,
+   "pend_2s10s_pb": 24.0,
+   "par_3m_pct": 4.34,
+   "par_2a_pct": 4.61,
+   "par_10a_pct": 4.85,
+   "par_30a_pct": 5.24,
+   "rmse_svensson_pb": 1.46,
+   "rmse_ns_pb": 7.476,
+   "sv_b0": 1.5097,
+   "sv_b1": 2.7105,
+   "sv_b2": 3.1875,
+   "sv_b3": 11.5294,
+   "sv_tau1": 1.5,
+   "sv_tau2": 15.0
+  },
+  "evidence": [
+   "10 años 4.85 % · 2 años 4.61 % · 3 meses 4.34 %",
+   "pendiente 3m10a +51 pb · 2s10s +24 pb · curvatura +3 pb",
+   "Svensson reproduce la curva con 1.5 pb de error medio (Nelson–Siegel: 7.5 pb)"
+  ],
+  "warnings": [
+   "τ de Svensson en el borde de la rejilla: sus β no se interpretan (solo sirven para interpolar)"
+  ],
+  "mode": "ANÁLISIS"
+ },
+ "carry": {
+  "2a": {
+   "family": "carry",
+   "as_of": "2026-11-25",
+   "source": "us-treasury",
+   "status": "ok",
+   "bias": 0.101,
+   "bias_on": "duración: largo en el cupón cero a 2 años",
+   "confidence": 0.2,
+   "horizon": "3 meses",
+   "metrics": {
+    "carry_pb": 114.0,
+    "rolldown_pb": 2.2,
+    "financiacion_pb": 107.3,
+    "exceso_pb": 8.8,
+    "vol_rend_horizonte_pb": 50.2,
+    "vol_precio_horizonte_pct": 0.88,
+    "sharpe_ex_ante": 0.101,
+    "punto_muerto_pb": 5.0,
+    "cero_10a_pct": 4.5596,
+    "financiacion_pct": 4.2936
+   },
+   "evidence": [
+    "carry +114 pb + roll-down +2 pb − financiación 107 pb = +9 pb en el horizonte",
+    "volatilidad del rendimiento en el horizonte 50 pb (60 días): exceso / riesgo = +0.10",
+    "el tipo a 2 años puede subir 5 pb antes de perder frente a la financiación"
+   ],
+   "warnings": [
+    "financiación aproximada por la letra del mismo plazo (no repo/SOFR)",
+    "prototipo sin validar (T49 no lo ha evaluado): no es una señal"
+   ],
+   "mode": "ANÁLISIS"
+  },
+  "5a": {
+   "family": "carry",
+   "as_of": "2026-11-25",
+   "source": "us-treasury",
+   "status": "ok",
+   "bias": 0.035,
+   "bias_on": "duración: largo en el cupón cero a 5 años",
+   "confidence": 0.2,
+   "horizon": "3 meses",
+   "metrics": {
+    "carry_pb": 115.0,
+    "rolldown_pb": 0.6,
+    "financiacion_pb": 107.3,
+    "exceso_pb": 8.2,
+    "vol_rend_horizonte_pb": 50.1,
+    "vol_precio_horizonte_pct": 2.38,
+    "sharpe_ex_ante": 0.035,
+    "punto_muerto_pb": 1.7,
+    "cero_10a_pct": 4.5992,
+    "financiacion_pct": 4.2936
+   },
+   "evidence": [
+    "carry +115 pb + roll-down +1 pb − financiación 107 pb = +8 pb en el horizonte",
+    "volatilidad del rendimiento en el horizonte 50 pb (60 días): exceso / riesgo = +0.03",
+    "el tipo a 5 años puede subir 2 pb antes de perder frente a la financiación"
+   ],
+   "warnings": [
+    "financiación aproximada por la letra del mismo plazo (no repo/SOFR)",
+    "prototipo sin validar (T49 no lo ha evaluado): no es una señal"
+   ],
+   "mode": "ANÁLISIS"
+  },
+  "10a": {
+   "family": "carry",
+   "as_of": "2026-11-25",
+   "source": "us-treasury",
+   "status": "ok",
+   "bias": 0.054,
+   "bias_on": "duración: largo en el cupón cero a 10 años",
+   "confidence": 0.2,
+   "horizon": "3 meses",
+   "metrics": {
+    "carry_pb": 120.6,
+    "rolldown_pb": 10.5,
+    "financiacion_pb": 107.3,
+    "exceso_pb": 23.7,
+    "vol_rend_horizonte_pb": 44.8,
+    "vol_precio_horizonte_pct": 4.37,
+    "sharpe_ex_ante": 0.054,
+    "punto_muerto_pb": 2.4,
+    "cero_10a_pct": 4.8237,
+    "financiacion_pct": 4.2936
+   },
+   "evidence": [
+    "carry +121 pb + roll-down +10 pb − financiación 107 pb = +24 pb en el horizonte",
+    "volatilidad del rendimiento en el horizonte 45 pb (60 días): exceso / riesgo = +0.05",
+    "el tipo a 10 años puede subir 2 pb antes de perder frente a la financiación"
+   ],
+   "warnings": [
+    "financiación aproximada por la letra del mismo plazo (no repo/SOFR)",
+    "prototipo sin validar (T49 no lo ha evaluado): no es una señal"
+   ],
+   "mode": "ANÁLISIS"
+  },
+  "30a": {
+   "family": "carry",
+   "as_of": "2026-11-25",
+   "source": "us-treasury",
+   "status": "ok",
+   "bias": 0.013,
+   "bias_on": "duración: largo en el cupón cero a 30 años",
+   "confidence": 0.2,
+   "horizon": "3 meses",
+   "metrics": {
+    "carry_pb": 131.6,
+    "rolldown_pb": -9.5,
+    "financiacion_pb": 107.3,
+    "exceso_pb": 14.8,
+    "vol_rend_horizonte_pb": 37.9,
+    "vol_precio_horizonte_pct": 11.28,
+    "sharpe_ex_ante": 0.013,
+    "punto_muerto_pb": 0.5,
+    "cero_10a_pct": 5.2659,
+    "financiacion_pct": 4.2936
+   },
+   "evidence": [
+    "carry +132 pb + roll-down -10 pb − financiación 107 pb = +15 pb en el horizonte",
+    "volatilidad del rendimiento en el horizonte 38 pb (60 días): exceso / riesgo = +0.01",
+    "el tipo a 30 años puede subir 0 pb antes de perder frente a la financiación"
+   ],
+   "warnings": [
+    "financiación aproximada por la letra del mismo plazo (no repo/SOFR)",
+    "prototipo sin validar (T49 no lo ha evaluado): no es una señal"
+   ],
+   "mode": "ANÁLISIS"
+  }
+ },
+ "ecb": {
+  "status": "coincide",
+  "date": "2026-11-25",
+  "max_dif_pb": 0.0,
+  "tol_pb": 0.5,
+  "params": {
+   "BETA0": 1.6324857032,
+   "BETA1": 0.8597583019,
+   "BETA2": 2.079015257,
+   "BETA3": 6.259746607,
+   "TAU1": 0.8895387847,
+   "TAU2": 14.8041741628
+  },
+  "rows": [
+   {
+    "plazo": 1.0,
+    "bce_pct": 2.9238717697,
+    "eim_pct": 2.923872,
+    "dif_pb": -0.0
+   },
+   {
+    "plazo": 2.0,
+    "bce_pct": 2.9686993028,
+    "eim_pct": 2.968699,
+    "dif_pb": 0.0
+   },
+   {
+    "plazo": 5.0,
+    "bce_pct": 2.9925799666,
+    "eim_pct": 2.99258,
+    "dif_pb": 0.0
+   },
+   {
+    "plazo": 10.0,
+    "bce_pct": 3.2591807487,
+    "eim_pct": 3.259181,
+    "dif_pb": 0.0
+   },
+   {
+    "plazo": 30.0,
+    "bce_pct": 3.5764528468,
+    "eim_pct": 3.576453,
+    "dif_pb": 0.0
+   }
+  ]
+ }
+}

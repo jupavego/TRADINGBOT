@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-26T17:37:50",
+ "generated": "2026-11-26T18:26:32",
  "phases": [
   {
    "n": 0,
@@ -1750,11 +1750,22 @@ window.EIM_STATUS = {
     "T88",
     "T92"
    ],
-   "state": "pending",
-   "notes": "◆ qué producto merece su propia clase.",
+   "state": "progress",
+   "notes": "**Entregables 1–4 hechos 2026-11-26; ◆ PENDIENTE del usuario** (entregable 5: qué producto, si alguno, merece su propia clase y con qué datos; por eso queda ◐). Informe `v2/reports/fixed_income_options_viability.md` (veredicto por producto con costo de datos y particularidades de ejecución; ninguna cifra sin fuente). **(1) Datos:** gratis y con licencia clara solo curvas y tipos de referencia — Tesoro de EE. UU. comprobado (14 plazos, sin clave; último dato 2026-11-25: 10 años 4,85 %), BCE (curva AAA Svensson) y FRED; spreads de crédito de FRED solo uso personal; ETF de renta fija sin proveedor (◆2 de T88 abierta); futuros de bonos solo de pago (CME); repos, swaps y bonos ilíquidos OTC → solo investigables (los repos, como costo de financiación); cadenas de opciones cripto públicas y gratis pero **Deribit/Binance opciones fuera de la lista de T88**. **(2) Modelos puros con pruebas contra referencias publicadas** (`eim/fixed_income/{bond,curve,carry}.py`, `eim/options/{black_scholes,implied_vol,chain}.py`): Hull (bono 94,213 / 2,653 / 7,570; *bootstrap* 10,127…10,808 %; BS 4,76/0,81; griegas 0,522/0,066/12,1/−4,31/8,91; σ implícita 23,5 %), Fabozzi (134,6722; convexidad 164,106), Haug (2,1334; Merton 2,4648; Black-76 1,7011; Garman–Kohlhagen 0,0291), Diebold–Li (curvatura máxima ~30 meses). **(3) Agentes hermanos especificados** (`requires`, costos, validación): curva y carry **implementados de prueba** (`eim/fixed_income/proto.py`, sin registrar, modo ANÁLISIS) sobre el proveedor nuevo `eim/data/providers/treasury.py`; opciones/IV especificado con `eim/options/chain.py` (calidad de cadena + σ ATM y sonrisa) pero sin datos conectados. Sonda real `scripts/fixed_income_probe.py` → `reports/fixed_income_probe.{md,json}` (contraste de Svensson con el BCE incluido): curva del 2026-11-25: 10a 4.85 %, 3m10a +51 pb, Svensson 1.46 pb; carry+roll 10a a 3 meses +24 pb netos (exceso/riesgo +0.05); BCE: coincide (0.0 pb). **(4) Veredicto:** curvas como dato viables ahora; bonos, swaps y crédito solo investigación; ETF, futuros de bonos y opciones de acciones con datos de pago; bonos ilíquidos descartados; **opciones cripto como información viables ahora si se aprueba la fuente** (T165 ya validó la volatilidad implícita de Deribit). Pruebas sin red: `tests/fixed_income/`, `tests/options/`, `tests/data/test_treasury_provider.py` (fixture con filas reales del Tesoro). **Gate:** pytest: 4530 pasadas, 36 omitidas, 0 fallos. Ningún cambio en agentes registrados, síntesis, plan, riesgo, papel ni operación. BACKLOG T100.",
    "effort": "medio",
    "phase": 17,
-   "goal": "Decidir con evidencia si bonos, repos, operaciones de financiación y opciones se pueden cubrir y cómo. **No basta aplicar indicadores técnicos a sus precios**: requieren curvas, duración, convexidad, carry/roll-down, cadenas de opciones, volatilidad implícita y griegas. Esta tarea produce especificación y prototipo mínimo, no una clase completa."
+   "goal": "Decidir con evidencia si bonos, repos, operaciones de financiación y opciones se pueden cubrir y cómo. **No basta aplicar indicadores técnicos a sus precios**: requieren curvas, duración, convexidad, carry/roll-down, cadenas de opciones, volatilidad implícita y griegas. Esta tarea produce especificación y prototipo mínimo, no una clase completa.",
+   "track": {
+    "start": null,
+    "end": null,
+    "milestone": "tu decisión ◆",
+    "progress": "Entregables 1–4 hechos; falta el 5",
+    "requires": [
+     "tu decisión ◆"
+    ],
+    "machine": "cualquiera",
+    "needs": "Leer v2/reports/fixed_income_options_viability.md §5 y decir qué producto, si alguno, merece su propia clase y con qué datos (recomendación: opciones cripto solo como información, tras verificar la fuente)"
+   }
   },
   {
    "id": "T101",
