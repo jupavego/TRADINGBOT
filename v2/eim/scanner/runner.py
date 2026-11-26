@@ -3,7 +3,9 @@
 - **Instancia única** (`scanner.lock`): un segundo `run` sale con código 2 sin tocar nada.
 - **Reanudación**: al arrancar, los trabajos que quedaron `running` por una caída vuelven a la
   cola (`JobQueue.resume`).
-- **Ritmos**: relleno y barrido cada `deep_every_s`; pasada rápida cada `fast_every_s`.
+- **Ritmos**: relleno y barrido cada `deep_every_s`, y tras cada barrido la pasada de agentes
+  sobre su lista corta si se pide (`agents=True`, lo que hace `python -m eim.scanner run`; T94,
+  `deep_service.deep_pass`); pasada rápida cada `fast_every_s`.
 - **Un fallo no mata el bucle**: se registra, va al observatorio y se reintenta con espera
   creciente (tope `max_backoff_s`). Sin catálogo o sin datos espera sin contarlo como fallo.
 - **Latido** en `data/scanner/heartbeat.json` tras cada vuelta, bien o mal (lo que mira un
@@ -20,6 +22,7 @@ from collections.abc import Callable
 
 from eim.observability import hooks_service
 from eim.operation.watchdog import instance_lock, write_heartbeat
+from eim.scanner.deep_service import deep_pass
 from eim.scanner.service import COMPONENT, ScannerError, ScannerService
 
 HEARTBEAT = "heartbeat.json"
@@ -27,7 +30,7 @@ LOCK = "scanner.lock"
 
 
 def run_loop(svc: ScannerService, *, once: bool = False, sync: bool = True,
-             quotes: bool = True, stop: threading.Event | None = None,
+             quotes: bool = True, agents: bool = False, stop: threading.Event | None = None,
              say: Callable[[str], object] = print,
              monotonic: Callable[[], float] = time.monotonic) -> int:
     lock = instance_lock(svc.dir / LOCK)
@@ -52,6 +55,10 @@ def run_loop(svc: ScannerService, *, once: bool = False, sync: bool = True,
                     s = svc.sweep()
                     say(f"barrido {s['run_id']}: {s['n_stage2']}/{s['n_catalog']} puntuados, "
                         f"{s['ms_per_instrument']:.2f} ms/instrumento")
+                    if agents:
+                        d = deep_pass(svc, base_run_id=s["run_id"])
+                        say(f"agentes {d['run_id']}: {len(d['opportunities'])} candidatas de "
+                            f"{d['n_shortlist']} (no validadas)")
                     nxt["deep"] = now + p.deep_every_s
                 if quotes and now >= nxt["fast"]:
                     f = svc.fast()

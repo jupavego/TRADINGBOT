@@ -11,6 +11,10 @@ Tablas (`asof` es palabra reservada de DuckDB —`ASOF JOIN`—: la columna se l
 - `scores`: la puntuación de cada instrumento por corrida, con su rango, calidad, huella de
   datos y métricas.
 - `alerts`: lo que vio el ritmo rápido (precio o diferencial).
+- `deep_results` (T94): por instrumento de la lista corta, qué agentes corrieron y cuáles no (y
+  por qué), la síntesis, la proyección y la oportunidad o el motivo de que no la haya.
+- `opportunities` (T94): las oportunidades candidatas (`eim/core/opportunity.py`), con su hash de
+  datos y su `opportunity_id` determinista. Nunca órdenes.
 - `jobs` y `cache`: la cola persistente (reanudable) y la caché por
   `(instrumento, marco, hash de datos, versión)`. Cumple `JobBackend` y `CacheBackend` de
   `eim/scanner/backends.py`.
@@ -45,6 +49,14 @@ CREATE TABLE IF NOT EXISTS scores (
 CREATE TABLE IF NOT EXISTS alerts (
     run_id VARCHAR, t BIGINT, instrument_id VARCHAR, kind VARCHAR, value DOUBLE,
     detail VARCHAR);
+CREATE TABLE IF NOT EXISTS deep_results (
+    deep_run_id VARCHAR, instrument_id VARCHAR, base_run_id VARCHAR, input_hash VARCHAR,
+    opportunity_id VARCHAR, reason VARCHAR, result_json VARCHAR,
+    PRIMARY KEY (deep_run_id, instrument_id));
+CREATE TABLE IF NOT EXISTS opportunities (
+    opportunity_id VARCHAR, deep_run_id VARCHAR, base_run_id VARCHAR, instrument_id VARCHAR,
+    side VARCHAR, asof_ms BIGINT, timeframe VARCHAR, input_hash VARCHAR, status VARCHAR,
+    opportunity_json VARCHAR, PRIMARY KEY (opportunity_id, deep_run_id));
 CREATE TABLE IF NOT EXISTS jobs (
     job_id VARCHAR PRIMARY KEY, run_id VARCHAR, kind VARCHAR, instrument_id VARCHAR,
     timeframe VARCHAR, rhythm VARCHAR, priority INTEGER, data_hash VARCHAR,
@@ -82,7 +94,57 @@ def _job(r) -> Job:
                updated_at=int(d["updated_at"] or 0))
 
 
-class ScannerStore:
+class DeepRecords:
+    """Lo de T94 sobre la misma conexión (mezclado en `ScannerStore`)."""
+
+    def record_deep(self, deep_run_id: str, base_run_id: str, results: list[dict]) -> None:
+        rows = [(deep_run_id, r["instrument_id"], base_run_id, r.get("input_hash", ""),
+                 (r.get("opportunity") or {}).get("opportunity_id"), r.get("reason", ""),
+                 json.dumps(r, ensure_ascii=False)) for r in results]
+        opps = [(o["opportunity_id"], deep_run_id, base_run_id, o["instrument_id"], o["side"],
+                 o["asof"], o["timeframe"], o["input_hash"], o["status"],
+                 json.dumps(o, ensure_ascii=False))
+                for o in (r.get("opportunity") for r in results) if o]
+        with self._lock:
+            if rows:
+                self._con.executemany(
+                    "INSERT OR REPLACE INTO deep_results VALUES (?,?,?,?,?,?,?)", rows)
+            if opps:
+                self._con.executemany(
+                    "INSERT OR REPLACE INTO opportunities VALUES (?,?,?,?,?,?,?,?,?,?)", opps)
+
+    def deep_results_of(self, deep_run_id: str) -> list[dict]:
+        rows = self._q("SELECT result_json FROM deep_results WHERE deep_run_id = ? "
+                       "ORDER BY instrument_id", [deep_run_id])
+        return [json.loads(r[0]) for r in rows]
+
+    def opportunities_of(self, deep_run_id: str) -> list[dict]:
+        rows = self._q("SELECT opportunity_json FROM opportunities WHERE deep_run_id = ? "
+                       "ORDER BY instrument_id", [deep_run_id])
+        return [json.loads(r[0]) for r in rows]
+
+    def opportunity(self, opportunity_id: str) -> dict | None:
+        rows = self._q("SELECT opportunity_json FROM opportunities WHERE opportunity_id = ? "
+                       "ORDER BY asof_ms DESC LIMIT 1", [opportunity_id])
+        return json.loads(rows[0][0]) if rows else None
+
+    def run_info(self, run_id: str) -> dict | None:
+        rows = self._q("SELECT run_id, rhythm, asof_ms, timeframe, detail_json, started_at, "
+                       "finished_at FROM runs WHERE run_id = ?", [run_id])
+        return _run_row(rows[0]) if rows else None
+
+    def recent_runs(self, limit: int = 20) -> list[dict]:
+        rows = self._q("SELECT run_id, rhythm, asof_ms, timeframe, detail_json, started_at, "
+                       f"finished_at FROM runs ORDER BY finished_at DESC LIMIT {int(limit)}")
+        return [_run_row(r) for r in rows]
+
+
+def _run_row(r) -> dict:
+    return {"run_id": r[0], "rhythm": r[1], "asof": r[2], "timeframe": r[3],
+            "detail": json.loads(r[4] or "{}"), "started_at": r[5], "finished_at": r[6]}
+
+
+class ScannerStore(DeepRecords):
     def __init__(self, path: str | Path) -> None:
         self.path = str(path)
         if self.path != ":memory:":
