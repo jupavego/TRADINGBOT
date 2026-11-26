@@ -23,6 +23,7 @@ tarea · equipo · qué hay que hacer allí · fecha (desde cuándo se puede, o 
 | T116 | juanpablo-cpu | 3 corridas del gate con los servicios parados, después de cerrar T31, T143 y la semana de T178 | 2026-11-28 |
 | T178 | juanpablo-cpu | Medir la semana con las copias diarias de `leaders.duckdb`: la retención ya corre allí desde el 2026-11-19 | 2026-11-27 |
 | T171 | juanpablo-cpu | Traer `main` y reiniciar la API: la pestaña «Cantera» muestra allí el balance de ganadas y perdidas y el capital por agente, y la API empieza a publicar el **espejo en vivo** que ve la portátil (rama `cantera/espejo` de `Santivego/eim-shared-data`; esa cuenta de git necesita permiso de escritura en ese repo). Comprobar `mirror_publish.error` vacío en `GET /v2/nursery` | ya |
+| T96 | laptop | En pausa por tu decisión en T95: no empezar antes de la revisión automática de ese día (tarea «EIM - revision para decidir T96», informe en `TRADINGBOT/_revision_t96.md`); arranca solo si dice «ARRANCAR T96» | 2026-12-29 |
 
 ## Seguimiento de las tareas en curso
 
