@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from eim.core.bots import BotSignal
     from eim.core.events import EconEvent
     from eim.core.leaders import LeaderPosition, LeaderWeight
+    from eim.core.options import OptionChain
 
 
 class Frozen(BaseModel):
@@ -162,6 +163,9 @@ class MarketSnapshot(Frozen):
     # Intermercado (T183, aditivo): velas DIARIAS cerradas a `asof` de otros mercados y de la
     # propia cripto ({"XAUUSDT": [...], "SP500": [...], ...}); None si nunca se sincronizó.
     intermarket: dict[str, list[Candle]] | None = None
+    # Cadena de opciones (T214, aditivo): última toma de Deribit con `taken_ms <= asof` de la
+    # moneda base del símbolo (hoy solo BTC); None si no hay tomas recientes en este equipo.
+    option_chain: OptionChain | None = None
     asof: int
     sources: dict[str, str] = {}
     coverage: dict[str, tuple[int, int]] = {}

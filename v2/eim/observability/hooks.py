@@ -192,7 +192,8 @@ _SOURCE_COMPONENT = {"micro": "data.micro_collector", "orderbook": "data.micro_c
                      "events": "data.calendar", "arb": "data.arb_market",
                      "leaders": "leaders.service", "liquidations": "data.liquidations",
                      "liq_flow": "data.liquidations", "headlines": "data.news",
-                     "intermarket": "data.intermarket"}   # T183
+                     "intermarket": "data.intermarket",   # T183
+                     "option_chain": "data.options_chain"}   # T214
 
 
 def _component_for(key: str) -> str:

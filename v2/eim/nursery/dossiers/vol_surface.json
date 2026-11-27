@@ -1,0 +1,22 @@
+{
+ "agent_id": "vol_surface",
+ "agent_version": "0.1.0",
+ "status": "excluido",
+ "verified": "2026-11-27",
+ "theory": "Superficie de volatilidad implícita de BTC (opciones de Deribit, T213): σ ATM a 7 y 30 días y su pendiente, sesgo 25Δ y 90/110 y prima de varianza por plazo (T214).",
+ "variables": [],
+ "history": {
+  "source": "data/options/BTC/<día>/<HH>.jsonl.gz",
+  "from": "2026-11-27",
+  "to": "2026-11-27",
+  "coverage": "recién encendido: una toma por hora desde el 2026-11-27, solo en la portátil; no se puede volver a descargar",
+  "exam": "solo_adelante"
+ },
+ "cadence": null,
+ "literature": [],
+ "prospects": [],
+ "exclusion_reason": "Informante de volatilidad, no direccional (sesgo siempre 0, NON_DIRECTIONAL en la síntesis; ◆ de T100: las opciones solo informan de la volatilidad). La cantera mide rentabilidad direccional, así que no tiene nada que inscribir. Su único uso posible es como insumo de volatilidad (cono, bandas, stops), y eso lo decide la evaluación pre-registrada de T214, no la cantera.",
+ "reserve": [],
+ "notes": [],
+ "performance_computed": false
+}
