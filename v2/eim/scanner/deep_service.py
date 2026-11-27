@@ -6,7 +6,9 @@ Toma la lista corta de un barrido de T93 (el último, si no se pide otro), encol
 (`opportunities`), manda al Observatorio un resumen y las oportunidades más fuertes (muestreo) y
 publica `data/scanner/view.json` para la API. Desde T95, antes de publicar, el ranking global, los
 grupos de apuestas correlacionadas y el registro de intentos con su control de multiplicidad
-(`eim/scanner/rank_service.py`); si eso falla, la pasada sigue y la vista dice por qué.
+(`eim/scanner/rank_service.py`); si eso falla, la pasada sigue y la vista dice por qué. Desde T102,
+tras publicar, la revisión de salud multiactivo (`health_service.safe_check`): salud por clase y por
+fuente, despliegue gradual, avisos locales y eventos por lotes al Observatorio; nunca la tumba.
 
 La huella de datos del trabajo combina la del panel con la de los agentes (id y versión) y con
 lo que alimenta las puntuaciones: si cambia una vela, un agente o el diferencial, la caché no
@@ -24,7 +26,7 @@ from eim.data import scanner_market as market
 from eim.data.scanner_view import build_view, write_view
 from eim.data.timeframes import tf_ms, tf_offset
 from eim.observability import hooks_service
-from eim.scanner import rank_service, rhythms, universe
+from eim.scanner import health_service, rank_service, rhythms, universe
 from eim.scanner.backends import make_job
 from eim.scanner.service import COMPONENT, ScannerError, ScannerService
 
@@ -94,10 +96,12 @@ def deep_pass(svc: ScannerService, *, base_run_id: str | None = None,
     summary["finished_at"] = svc.clock()
     svc.store.record_run(summary)
     _observe(svc, summary, opps)
-    if publish:
-        publish_view(svc, base, deep_run_id, results, insts, ranking)
+    view = publish_view(svc, base, deep_run_id, results, insts, ranking) if publish else None
     svc.write_status({"last_deep": {"run_id": deep_run_id, "base_run": base["run_id"],
                                     "opportunities": len(opps), "failed": len(failed)}})
+    if view is not None:       # T102: salud, despliegue gradual, avisos y eventos por lotes
+        health_service.safe_check(svc.data_dir, view=view, now=svc.clock(),
+                                  excl_by_class=svc.store.exclusions_by_class(base["run_id"]))
     return summary | {"opportunities": opps, "results": results, "ranking": ranking}
 
 
@@ -113,7 +117,7 @@ def _ranking(svc: ScannerService, deep_run_id: str, base: dict, results: list[di
 
 
 def publish_view(svc: ScannerService, base: dict, deep_run_id: str, results: list[dict],
-                 insts: dict, ranking: dict | None = None) -> None:
+                 insts: dict, ranking: dict | None = None) -> dict:
     now = svc.clock()
     state = {i.id: rhythms.market_state(i, now) for i in insts.values()}
     view = build_view(base=base, scores=svc.store.scores_of(base["run_id"]), insts=insts,
@@ -121,6 +125,7 @@ def publish_view(svc: ScannerService, base: dict, deep_run_id: str, results: lis
                       results=results, runs=svc.store.recent_runs(20), now=now,
                       ranking=ranking)
     write_view(svc.data_dir, view)
+    return view
 
 
 def _observe(svc: ScannerService, s: dict, opps: list[dict]) -> None:

@@ -576,3 +576,47 @@ de EIM tal como estén (y lo anota) y fusiona corridas sucesivas en el mismo inf
 audio (`--audio-dir`) llevan `manifest.json` con `file`, `lang` y `ref` (transcripción corregida a
 mano de los primeros 3 min). Cada colaborador lo corre en su equipo; la lista se escribe para el
 mínimo.
+
+## 8. Plataforma multiactivo: salud, trazas y despliegue gradual (T102)
+
+Todo en modo **Análisis**: el escáner global (T93–T95) no envía órdenes ni las prepara, y nada de esta sección lo cambia. Lo que añade es poder decir en cualquier momento **qué mercados se vigilan, con qué datos y qué no se puede ver**, seguir una candidata desde su dato hasta su decisión y un **protocolo escrito** para que una clase o un agente pase de «alerta» a «simulación» y a «papel».
+
+### 8.1 Salud multiactivo
+
+- **Cuándo se calcula.** Tras cada pasada de agentes (`deep_service.deep_pass` llama a `eim/scanner/health_service.check`) y con `python -m eim.scanner health`, que corre la tarea diaria aunque la pasada falle: un escáner que no corre acaba «obsoleto» y avisa. Deja `data/scanner/health.json` y `data/scanner/rollout.json`. `GET /v2/scanner/health` recalcula la frescura con la hora de la petición.
+- **Por clase:** plan escrito (habilitada · en observación · solo información · descartada, con su tarea), instrumentos puntuados, **cobertura** (puntuados ÷ puntuados + excluidos del último barrido; «no medida» si la base del escáner estaba ocupada), calidad media, filas con datos viejos, mercados abiertos/cerrados/sin calendario, candidatas y cuántas superan el umbral del azar.
+- **Por fuente:** nivel (1 investigación · 2 operativa · 3 ejecución), licencia, retraso, límite publicado, **techo de uso declarado** por la cola (Binance: 40 llamadas/min × peso 5 = 8,3 % de 2 400; el consumo real por proveedor todavía no se mide y se dice así) y errores.
+- **Escáner:** última vista, trabajos fallidos, cola, presupuesto de cómputo (ms por instrumento frente a los 20 de T87; ms de la pasada de agentes) y estado del ranking (umbral del placebo, familia, maduros).
+- **Qué no puede ver:** exclusiones del embudo por motivo, diferencial sin medir y agentes que no pudieron opinar (con su motivo).
+- **Estados:** `ok`, `degradado`, `obsoleto`, `sin_datos`, `error`, `planeado`. **«Sin datos» nunca es sano**: una clase habilitada sin instrumentos, una vista que no existe o un escáner que no corrió son `sin_datos`. La vista se da por degradada a las 36 h (1,5 veces la cadencia diaria) y por obsoleta a las 72 h (3 cadencias, la regla del observatorio de T72).
+- **Avisos locales** (globo de Windows, registro `data/operation/logs/op-*.jsonl` y observatorio): solo de las clases habilitadas (hoy, cripto), de las fuentes en uso y del escáner, al entrar en `sin_datos`, `obsoleto` o `error` y al resolverse. Las condiciones activas viajan en `health.json`, así que la tarea diaria no repite el aviso cada día. `EIM_NOTIFY=0` apaga el globo. Qué hacer: `RUNBOOK.md` §20.
+
+### 8.2 Trazas y eventos por lotes
+
+- **Traza por instrumento:** `trace_for_instrument(id del registro, marco, cierre)` (`eim/observability/events.py`); distingue el mismo símbolo en dos plazas o clases y no coincide con las trazas de vela del flujo de BTC/ETH.
+- **Por lotes** (`eim/scanner/obs_batch.py`): un resumen por clase y paso (datos y agentes) y el recorrido completo (dato → síntesis → proyección → decisión) solo de las 5 candidatas más fuertes, más el latido de la salud y los cambios del despliegue. Nunca más de los 100 eventos por ciclo de T72; el costo medido de cada revisión queda en `health.json["observability"]` y debe estar por debajo de 50 ms. Los ids son deterministas: republicar no duplica.
+- **Recorrido de una candidata:** `python -m eim.scanner trace --first` (o con un `INSTRUMENT_ID`), `GET /v2/scanner/trace/{id}` y el detalle de cada instrumento en la pestaña «Escáner» (bloque «Recorrido»): ocho pasos, del dato (fuente, nivel, licencia, velas exactas y su huella) a la decisión.
+- **Catálogo del Observatorio:** registro de instrumentos, fuentes por clase, agentes sobre el universo, ranking y control del azar, salud multiactivo y despliegue gradual; la cartera (T96) y el papel multiactivo (T103) como planeados.
+
+### 8.3 Protocolo de despliegue gradual
+
+Cada **clase** del universo es una unidad con un nivel; cada **agente** del escáner, una unidad que solo puede estar activa o desactivada (su nivel lo marca la clase de cada instrumento). Código: `eim/scanner/rollout.py`; estado en `data/scanner/rollout.json`; el panel muestra el nivel de cada clase y lo que le falta.
+
+| Nivel | Qué significa | Para entrar (todo a la vez) | Cómo |
+|---|---|---|---|
+| **Alerta** | Sus candidatas se ven en la pestaña «Escáner» como «candidata, no validada» y se registran como intentos (T95). | Estar en el universo. | Automático al aparecer. |
+| **Simulación** | Sus candidatas alimentan la cartera simulada (T96) y se resuelven hacia delante con costos de su clase. | 14 revisiones sanas seguidas; umbral del placebo vigente y alguna candidata de la clase por encima; su celda de la matriz de T101 «publicable» o «en observación»; la cartera de T96 construida. | Automático cuando se cumple todo. |
+| **Papel** | Lo aprobado por la cartera va al intermediario de papel (T103). Nunca dinero real. | Celda de T101 «publicable» (firmada por el usuario en la ◆ de T101); ≥ 30 días en simulación; ≥ 200 resultados maduros hacia delante; el adaptador de T103 construido. | Automático cuando se cumple todo. |
+| **Ejecución limitada** | Fuera de esta fase. | La puerta de edge (T27), el cierre de T31 con su informe y una decisión escrita del usuario. | **Nunca automático.** |
+
+**Desactivación automática.** Una clase pasa a inactiva tras **2 revisiones seguidas** en `sin_datos`, `obsoleto` o `error`; un agente, tras 2 revisiones seguidas dando `no_data` en al menos la mitad de los instrumentos donde corrió (con 5 como mínimo). `degradado` no desactiva: es un peso reducido conocido (p. ej. poca historia). Al desactivarse, la unidad baja a «alerta» si estaba más arriba y **sus candidatas pasan a sombra**: dejan de verse como candidatas (la API las lista aparte en `shadow`, con su motivo; `include_shadow=true` las devuelve) y no pueden promoverse. Una candidata va a la sombra si su clase está inactiva o si al menos la mitad del peso de su síntesis viene de agentes desactivados. **El cálculo sigue:** apagarlo cambiaría la huella de agentes y rompería el pre-registro de T95 (la revisión del 2026-12-29 cuenta resultados maduros por intento), y además impediría ver si se recupera.
+
+**Reactivación automática** tras **2 revisiones sanas seguidas**, siempre en «alerta»: un nivel perdido se vuelve a ganar con sus criterios.
+
+**Hoy** todas las clases están en «alerta» y ninguna puede subir: faltan la matriz de T101 (en espera de T97), la cartera de T96 (en pausa hasta la revisión del 2026-12-29) y el adaptador de T103. **T101 fija los umbrales definitivos** de promoción: su informe `reports/multiasset_validation_<fecha>.json` debe traer `cells: [{agent, asset_class, horizon, verdict ∈ publicable | en observación | rechazada | no aplica}]`, que es lo que lee este protocolo (`health_service.t101_cells`).
+
+### 8.4 Operación continua
+
+- **Arranque supervisado:** la tarea diaria «EIM - escaner diario (T95)» (`scripts/escaner_diario.ps1`, 00:45 UTC, `StartWhenAvailable`, máximo 3 h) pone al día el catálogo y las velas, hace el barrido y la pasada de agentes con instancia única (`scanner.lock`), reintenta una vez a los 20 min y, al final, corre `python -m eim.scanner health` y anota su línea en `data/operation/logs/escaner_diario.log`. El servicio continuo `python -m eim.scanner run` sigue disponible para quien lo quiera en marcha.
+- **Límites de recursos:** prioridad baja (`eim.operation.priority run batch`), como mucho 2 procesos (`max_procs`), tasa por proveedor en la cola (`rate_limits`) y presupuesto de 20 ms por instrumento en el embudo.
+- **Copias:** la copia diaria guarda en `multiactivo/` el registro de instrumentos, `scanner.duckdb` (con el registro de intentos de T95, irrepetible) y los resúmenes (`view.json`, `status.json`, `health.json`, `rollout.json`, `placebo.json`). Si el escáner está en marcha, su base queda ausente con motivo en `manifest.json["multiasset"]` y la copia sigue completa. `restore` no la devuelve sola: con el escáner parado, copiar `multiactivo/instruments.duckdb` a `data/` y `multiactivo/scanner.duckdb` a `data/scanner/`.

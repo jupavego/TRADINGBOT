@@ -7,9 +7,12 @@
  * puntuaciones separadas y el universo puntuado; al pulsar una fila, el detalle con los agentes
  * que opinan y los que no (con su motivo), la proyección y la trazabilidad. T95: las candidatas van
  * en el orden del ranking global (prioridad, umbral del azar, nº de hipótesis y p ajustado) y solo
- * se lista el representante de cada grupo de apuestas correlacionadas. */
-import { fetchInstrument, fetchOpportunities, fetchUniverse, type InstrumentPayload, type Opportunity, type Ranking, type UniversePayload } from './scanner_api'
+ * se lista el representante de cada grupo de apuestas correlacionadas. T102: arriba, la salud multiactivo
+ * (qué se vigila, con qué datos y qué no se ve, y el nivel de cada clase en el despliegue gradual); las
+ * candidatas en sombra se cuentan aparte, y el detalle trae el recorrido del dato a la decisión. */
+import { fetchHealth, fetchInstrument, fetchOpportunities, fetchTrace, fetchUniverse, type CandidateTrace, type HealthPayload, type InstrumentPayload, type Opportunity, type Ranking, type ShadowRow, type UniversePayload } from './scanner_api'
 import { ALL, detail, filterOpps, filters, head, markets, matches, oppTable, rankCtx, rankHead, universeTable, type Filters } from './scanner_render'
+import { healthBlock, pathBlock, shadowNote } from './scanner_health'
 import { esc } from './panels'
 
 export class ScannerPanelView {
@@ -19,6 +22,11 @@ export class ScannerPanelView {
   private err = ''
   private f: Filters = { cls: ALL, market: ALL, horizon: ALL, side: ALL }
   private card: InstrumentPayload | null = null
+  private health: HealthPayload | null = null
+  private healthErr = ''
+  private shadow: ShadowRow[] = []
+  private path: CandidateTrace | null = null
+  private pathErr = ''
   private abort: AbortController | null = null
 
   constructor(private readonly el: HTMLElement) {
@@ -49,10 +57,18 @@ export class ScannerPanelView {
       this.u = u
       this.opps = o.opportunities ?? []
       this.ranking = o.ranking ?? null
+      this.shadow = o.shadow ?? []
       this.err = ''
     } catch (e) {
       if (ac.signal.aborted) return
       this.err = (e as Error).message
+    }
+    try {                               // T102: la salud no tumba la pestaña si falla
+      this.health = await fetchHealth(ac.signal)
+      this.healthErr = ''
+    } catch (e) {
+      if (ac.signal.aborted) return
+      this.healthErr = (e as Error).message
     }
     this.render()
   }
@@ -62,6 +78,13 @@ export class ScannerPanelView {
       this.card = await fetchInstrument(id)
     } catch (e) {
       this.err = (e as Error).message
+    }
+    try {
+      this.path = await fetchTrace(id)
+      this.pathErr = ''
+    } catch (e) {
+      this.path = null
+      this.pathErr = (e as Error).message
     }
     this.render()
     this.el.scrollIntoView({ block: 'start' })
@@ -75,7 +98,7 @@ export class ScannerPanelView {
   render(): void {
     if (this.card) {
       const c = this.card
-      this.el.innerHTML = detail(c.deep, c.opportunity, c.row, c.note, c.rank ?? null)
+      this.el.innerHTML = detail(c.deep, c.opportunity, c.row, c.note, c.rank ?? null) + pathBlock(this.path, this.pathErr)
       return
     }
     const u = this.u
@@ -100,10 +123,11 @@ export class ScannerPanelView {
     const hidden = ordered.length - shown.length
     this.el.innerHTML = head(u, this.opps.length) +
       (this.err ? `<p class="sc-warn">${esc(this.err)} (se muestran los últimos datos)</p>` : '') +
+      healthBlock(this.health, this.healthErr) +
       rankHead(this.ranking) + markets(u.markets ?? []) + filters(u, this.f) +
       `<h4>Candidatas <small>${shown.length} de ${this.opps.length}` +
       (ranked ? ` · por prioridad (ranking global T95)${hidden ? ` · ${hidden} agrupada${hidden > 1 ? 's' : ''} bajo su representante` : ''}` : ' · en orden alfabético') +
-      `</small></h4>` +
+      `</small></h4>` + shadowNote(this.shadow) +
       `<div class="sc-scroll">${oppTable(shown, byId, ctx)}</div>` +
       `<details class="sc-uni"><summary>Universo puntuado (${rows.length}) · cobertura por instrumento</summary>` +
       `<div class="sc-scroll">${universeTable(rows)}</div></details>`

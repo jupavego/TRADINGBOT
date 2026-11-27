@@ -16,6 +16,11 @@
   ademas al Observatorio (servicio del escaner). La revision del 2026-12-29 cuenta los dias que
   corrio. Si ya hay un `python -m eim.scanner run` en marcha, no hace nada (lo hace el servicio).
 
+  T102: al final, pase lo que pase, la revision de salud multiactivo (`python -m eim.scanner
+  health`): salud por clase y por fuente, despliegue gradual, avisos locales y eventos por lotes al
+  Observatorio. Su linea va al mismo registro ("salud (codigo N): ..."). Si la pasada fallo, la
+  revision lo ve: con la vista vieja acaba en "obsoleto" y avisa.
+
   -Instalar registra la tarea diaria; -Quitar la borra. Instalar SOLO en la laptop (es donde
   viven el universo y scanner.duckdb).
 
@@ -75,6 +80,17 @@ function Pasada {
   return "bien: $chk"
 }
 
+function Salud {
+  # T102: revision de salud multiactivo; nunca hace fallar la tarea por si misma
+  $ErrorActionPreference = "Continue"
+  $f = Join-Path $datos "scanner\salud_ultima.txt"
+  if (Test-Path $f) { Remove-Item -Force $f }
+  & $py -m eim.operation.priority run batch -- $py -m eim.scanner --data-dir $datos health --summary $f 2>&1 | Out-Null
+  $c = $LASTEXITCODE
+  $t = if (Test-Path $f) { (Get-Content -Raw -Encoding UTF8 $f).Trim() } else { "sin resumen" }
+  Anota "salud (codigo $c): $t"
+}
+
 try {
   Push-Location $v2
   $res = Pasada
@@ -83,6 +99,7 @@ try {
     Start-Sleep -Seconds 1200
     $res = Pasada
   }
+  Salud
   Pop-Location
   if ($res -eq "ya-en-marcha") { Anota "bien: el servicio del escaner ya estaba en marcha"; exit 0 }
   if (-not ($res -like "bien:*")) { throw $res }
