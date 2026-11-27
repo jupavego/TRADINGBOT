@@ -4493,3 +4493,11 @@ pm run build.
 - **Abierto:** BACKLOG T214 (6 puntos), sobre todo el código y la programación de la revisión de potencia.
 - **En curso:** T214 ◐ hasta la ◆.
 - **Siguiente paso:** ◆ del usuario: ¿`vol_surface` queda como contexto (recomendado) o entra como insumo de volatilidad si la evaluación pre-registrada pasa?
+
+## 2026-11-27 · T214 cierre — ◆ del usuario: `vol_surface` queda como contexto
+
+- **Hecho:** el usuario eligió la opción 1 (la recomendada): el agente `vol_surface` queda como contexto en la interfaz, informante en sombra; solo pasaría a insumo de volatilidad si la evaluación pre-registrada lo aprueba, con otra ◆. Nota `PLAN/notas/T214_decision.md`; T214 ◐ → ☑; fila de T214 quitada de CONDICIONANTES.
+- **Archivos:** `PLAN/notas/T214_decision.md` (nuevo), `PLAN/{STATUS,CONDICIONANTES,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** las del plan y del catálogo (`cerrar_t214.cmd`); sin cambios de código.
+- **Abierto:** BACKLOG T214, sobre todo (1): el código de la revisión de potencia antes del 2027-08-05 y dejarla programada.
+- **Siguiente paso:** el colector de T213 sigue tomando cada hora en la portátil; la revisión de potencia decide si algún día hay evaluación.
