@@ -56,3 +56,18 @@
 .sc-row[data-above="no"] td { opacity: .62; }
 .sc-row[data-above="no"]:hover td, .sc-row[data-above="no"]:focus td { opacity: 1; }
 .sc-above[data-above="si"] { color: var(--accent); font-weight: 600; }
+/* T102: salud multiactivo y recorrido. El estado lleva icono + palabra; los tonos son los de estado. */
+.sc-health { margin: 10px 0 14px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+.sc-health h4 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.sc-hs { white-space: nowrap; font-weight: 600; color: var(--text); }
+.sc-hs[data-hs="degradado"], .sc-hs[data-hs="obsoleto"] { color: var(--warn); }
+.sc-hs[data-hs="error"] { color: var(--down); }
+.sc-hs[data-hs="sin_datos"], .sc-hs[data-hs="planeado"], .sc-hs[data-hs="pausado"] { color: var(--muted); }
+.sc-hclass { min-width: 980px; }
+.sc-hprov { min-width: 760px; }
+.sc-shadow { color: var(--warn); }
+.sc-path ol { margin: 6px 0; padding-left: 22px; color: var(--text); font-size: 13px; }
+.sc-path li { margin: 6px 0; }
+.sc-path li span { color: var(--text); }
+.sc-path code { font-family: var(--f-num); font-size: 12px; }
+

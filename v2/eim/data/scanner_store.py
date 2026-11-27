@@ -279,6 +279,15 @@ class ScannerStore(DeepRecords, AttemptRecords):
             "SELECT reason, count(*) FROM exclusions WHERE run_id = ? GROUP BY reason "
             "ORDER BY reason", [run_id])}
 
+    def exclusions_by_class(self, run_id: str) -> dict[str, dict[str, int]]:
+        """T102: {clase: {motivo: n}} del barrido (la clase es el prefijo del id del registro)."""
+        out: dict[str, dict[str, int]] = {}
+        for cls, reason, n in self._q(
+                "SELECT split_part(instrument_id, '.', 1), reason, count(*) FROM exclusions "
+                "WHERE run_id = ? GROUP BY 1, 2 ORDER BY 1, 2", [run_id]):
+            out.setdefault(str(cls), {})[str(reason)] = int(n)
+        return out
+
 
 def open_scanner_store(data_dir: str | Path) -> ScannerStore:
     return ScannerStore(Path(data_dir) / DB_DIR / DB_NAME)
