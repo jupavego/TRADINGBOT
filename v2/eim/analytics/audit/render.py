@@ -27,7 +27,7 @@ HEAD = ("| Grupo | n | Acierto | Equilibrio | E[R] neto | Costo R | Bruto R | Pn
 
 
 def sides_line(a: dict) -> str:
-    """T213 criterio 1: el reparto por lado y lo que el veto dejó fuera, por marco."""
+    """T215 criterio 1: el reparto por lado y lo que el veto dejó fuera, por marco."""
     b = a["book"].get("sides") or {}
     if not b.get("n"):
         return ""
@@ -41,10 +41,10 @@ def sides_line(a: dict) -> str:
 
 
 def sides_lines(a: dict) -> list[str]:
-    """Sección del lado: los dos lados en la sombra y el signo de cada puerta (T213)."""
+    """Sección del lado: los dos lados en la sombra y el signo de cada puerta (T215)."""
     s = a.get("sides") or {}
     c, signs = s.get("contrast") or {}, s.get("gate_signs") or []
-    out = ["", "## 6. El lado del libro y el signo de las puertas (T213)", "",
+    out = ["", "## 6. El lado del libro y el signo de las puertas (T215)", "",
            f"- Reparto: {sides_line(a) or 'sin operaciones'}", ""]
     if c.get("n"):
         g, raw, dg = c["grouped"], c["by_side"], c["diff_grouped"]
@@ -100,7 +100,7 @@ def markdown(a: dict) -> str:
                   f"{_p(s.get('breakeven_win_rate'))}; ganadora {_r(s['avg_win_r'])} R, perdedora "
                   f"{_r(s['avg_loss_r'])} R. PnL {s['pnl_usdt']:+.1f} USDT, fricción "
                   f"{s['cost_usdt']:.1f} USDT.",
-                  f"- Lado (T213): {sides_line(a) or 'sin operaciones'}.", ""]
+                  f"- Lado (T215): {sides_line(a) or 'sin operaciones'}.", ""]
     lines += [HEAD, _row("todo", s), _row("últimos 28 d", b["last28"]),
               _row("últimos 7 d", b["last7"]), ""]
     for title, key in (("Perfil", "by_profile"), ("Marco", "by_timeframe"),

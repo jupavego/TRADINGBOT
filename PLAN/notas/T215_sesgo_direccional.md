@@ -1,4 +1,4 @@
-# T213 · ¿Por qué casi todo lo que operamos es corto? Auditoría del lado
+# T215 · ¿Por qué casi todo lo que operamos es corto? Auditoría del lado
 
 **Fecha:** 2026-11-26 (05:30 UTC), desde `juanpablo-cpu`. **Modo: SIMULADO.** Abierta por una
 observación del usuario: «la gran cantidad de cortos y la poca cantidad de largos que hemos estado
@@ -97,7 +97,7 @@ no el lado. Un libro con más largos, con este costo, seguiría por debajo de ce
   que la pregunta del usuario hubo que contestarla a mano.
 - **T194** (28-nov 00:00 UTC) recorta el tamaño: reduce la pérdida, no corrige la dirección.
 
-## 6. Una corrección al método de T212 §5 (encontrada al implementar T213)
+## 6. Una corrección al método de T212 §5 (encontrada al implementar T215)
 
 T212 juzgó el signo de cada puerta promediando el retorno a 24 h de **todas las velas** de sus
 tramos: la rápida salía con −0,180 % (alcista peor que bajista) y las lentas con +0,455 % y
@@ -124,7 +124,7 @@ propia antes de poder compararse, exactamente lo que P1 exige.
 
 ## 7. Qué se abre
 
-- **T213** (fase 25), **hecha el 2026-11-26 en esta misma sesión**: el sesgo, el contraste de los
+- **T215** (fase 25), **hecha el 2026-11-26 en esta misma sesión**: el sesgo, el contraste de los
   dos lados y el signo de cada puerta salen ya solos en cada auditoría (`eim/analytics/audit/
   sides.py`, encabezado del informe, §6 del Markdown y dos líneas de consola), sin tocar la puerta.
 - BACKLOG bajo T159: la ◆ de si, tras cerrar T31, se pre-registra en sombra una puerta alternativa

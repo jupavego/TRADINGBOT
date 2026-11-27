@@ -111,6 +111,15 @@ def trace_for(symbol: str, tf: str, close_ts: int) -> str:
     return "tr_" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
 
 
+def trace_for_instrument(instrument_id: str, tf: str, close_ts: int) -> str:
+    """Traza determinista de un instrumento del universo multiactivo (T102): como `trace_for`,
+    pero con el id completo del registro (`crypto.binance.usdm.BTCUSDT`), que distingue el mismo
+    símbolo en dos plazas o clases. El prefijo `I|` impide que coincida con una traza de vela del
+    flujo de BTC/ETH o con una de `trace_for_key`."""
+    key = f"I|{instrument_id.strip()}|{tf.strip().lower()}|{int(close_ts)}"
+    return "tr_" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
+
+
 def trace_for_key(*parts: object) -> str:
     """Traza determinista de algo que no es una vela (una propuesta y su perfil, T114). El
     prefijo `K|` impide que coincida con una traza de vela."""

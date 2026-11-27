@@ -258,7 +258,7 @@ def test_la_puerta_entra_en_el_informe_y_en_la_consola():
 
 
 def test_el_lado_sale_en_el_encabezado_y_en_los_cambios():
-    """T213 criterio 1: el sesgo y lo que el veto dejó fuera, sin reconstruirlo a mano."""
+    """T215 criterio 1: el sesgo y lo que el veto dejó fuera, sin reconstruirlo a mano."""
     rows = [_row(-0.1, -10.0) | {"side": -1, "opened_t": NOW - 2 * kpis.DAY_MS}
             for _ in range(MIN_ROWS)]
     blk = {"n": 33, "live": 30, "long": 30, "short": 3, "ideas": 20,

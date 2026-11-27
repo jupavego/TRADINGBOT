@@ -7,6 +7,8 @@ import './squad.css'
 import { SquadPanel } from './squad_ui'
 import './cantera.css'
 import { CanteraPanelView } from './cantera_ui'
+import './scanner.css'
+import { ScannerPanelView } from './scanner_ui'
 import './paper.css'
 import './obs.css'
 import './obs_trace.css'
@@ -67,6 +69,7 @@ const leaders = new LeadersPanel($('t-lead'), $('tab-lead'))
 const squad = new SquadPanel($('t-squad'), () => ({ symbol, tf }), () => scenarios.refresh()) // T60
 squadSupport = squad
 const cantera = new CanteraPanelView($('cantera')) // T171: en su pestaña de la barra superior (views.ts)
+const scanner = new ScannerPanelView($('scanner')) // T94: escáner global, en su pestaña de la barra superior
 const obs = new ObsView($('obs')) // Mapa del sistema (T75), en su pestaña de la barra superior (views.ts)
 const paper = new PaperView($('paper')) // bróker simulado (T47): en la mesa, bajo el mapa del sistema; modo Simulado en su cabecera
 
@@ -245,7 +248,11 @@ function build(): void {
 }
 
 build()
-window.addEventListener('eim:view', (e) => { if ((e as CustomEvent<string>).detail === 'cantera') void cantera.reload() })
+window.addEventListener('eim:view', (e) => {
+  const v = (e as CustomEvent<string>).detail
+  if (v === 'cantera') void cantera.reload()
+  if (v === 'scanner') void scanner.reload()
+})
 setupViewTabs()
 obs.mount()
 paper.toggle(true, symbol)

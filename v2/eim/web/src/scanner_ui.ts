@@ -1,0 +1,135 @@
+/** Pestaña «Escáner» (T94): oportunidades candidatas del escáner global. Modo ANÁLISIS.
+ *
+ * Vive en la barra superior, junto a la cantera y al mapa del sistema: abierta, la mesa se oculta
+ * (views.ts). Lee la API de solo lectura `/v2/scanner/...` y se refresca sola cada 60 s mientras
+ * está a la vista. Arriba, siempre: el modo y el aviso «candidata, no validada»; luego mercados
+ * abiertos/cerrados, filtros (clase, mercado, horizonte, lado), las candidatas con sus tres
+ * puntuaciones separadas y el universo puntuado; al pulsar una fila, el detalle con los agentes
+ * que opinan y los que no (con su motivo), la proyección y la trazabilidad. T95: las candidatas van
+ * en el orden del ranking global (prioridad, umbral del azar, nº de hipótesis y p ajustado) y solo
+ * se lista el representante de cada grupo de apuestas correlacionadas. T102: arriba, la salud multiactivo
+ * (qué se vigila, con qué datos y qué no se ve, y el nivel de cada clase en el despliegue gradual); las
+ * candidatas en sombra se cuentan aparte, y el detalle trae el recorrido del dato a la decisión. */
+import { fetchHealth, fetchInstrument, fetchOpportunities, fetchTrace, fetchUniverse, type CandidateTrace, type HealthPayload, type InstrumentPayload, type Opportunity, type Ranking, type ShadowRow, type UniversePayload } from './scanner_api'
+import { ALL, detail, filterOpps, filters, head, markets, matches, oppTable, rankCtx, rankHead, universeTable, type Filters } from './scanner_render'
+import { healthBlock, pathBlock, shadowNote } from './scanner_health'
+import { esc } from './panels'
+
+export class ScannerPanelView {
+  private u: UniversePayload | null = null
+  private opps: Opportunity[] = []
+  private ranking: Ranking | null = null
+  private err = ''
+  private f: Filters = { cls: ALL, market: ALL, horizon: ALL, side: ALL }
+  private card: InstrumentPayload | null = null
+  private health: HealthPayload | null = null
+  private healthErr = ''
+  private shadow: ShadowRow[] = []
+  private path: CandidateTrace | null = null
+  private pathErr = ''
+  private abort: AbortController | null = null
+
+  constructor(private readonly el: HTMLElement) {
+    el.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement
+      if (t.closest('[data-sc-back]')) { this.card = null; this.render(); return }
+      const r = t.closest<HTMLElement>('.sc-row')
+      if (r?.dataset.id) void this.open(r.dataset.id)
+    })
+    el.addEventListener('keydown', (e) => {
+      const r = (e.target as HTMLElement).closest<HTMLElement>('.sc-row')
+      if (r?.dataset.id && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); void this.open(r.dataset.id) }
+    })
+    el.addEventListener('change', (e) => {
+      const t = e.target as HTMLSelectElement
+      const k = t.dataset.sc as keyof Filters | undefined
+      if (k) { this.f = { ...this.f, [k]: t.value }; this.render() }
+    })
+    window.setInterval(() => { if (!this.el.hidden && !this.card) void this.reload() }, 60_000)
+  }
+
+  async reload(): Promise<void> {
+    this.abort?.abort()
+    const ac = new AbortController()
+    this.abort = ac
+    try {
+      const [u, o] = await Promise.all([fetchUniverse(ac.signal), fetchOpportunities(ac.signal)])
+      this.u = u
+      this.opps = o.opportunities ?? []
+      this.ranking = o.ranking ?? null
+      this.shadow = o.shadow ?? []
+      this.err = ''
+    } catch (e) {
+      if (ac.signal.aborted) return
+      this.err = (e as Error).message
+    }
+    try {                               // T102: la salud no tumba la pestaña si falla
+      this.health = await fetchHealth(ac.signal)
+      this.healthErr = ''
+    } catch (e) {
+      if (ac.signal.aborted) return
+      this.healthErr = (e as Error).message
+    }
+    this.render()
+  }
+
+  private async open(id: string): Promise<void> {
+    try {
+      this.card = await fetchInstrument(id)
+    } catch (e) {
+      this.err = (e as Error).message
+    }
+    try {
+      this.path = await fetchTrace(id)
+      this.pathErr = ''
+    } catch (e) {
+      this.path = null
+      this.pathErr = (e as Error).message
+    }
+    this.render()
+    this.el.scrollIntoView({ block: 'start' })
+  }
+
+  /** Pinta con los datos ya cargados (también lo usa la verificación con datos renderizados). */
+  show(u: UniversePayload, opps: Opportunity[], ranking: Ranking | null = null): void {
+    this.u = u; this.opps = opps; this.ranking = ranking; this.err = ''; this.render()
+  }
+
+  render(): void {
+    if (this.card) {
+      const c = this.card
+      this.el.innerHTML = detail(c.deep, c.opportunity, c.row, c.note, c.rank ?? null) + pathBlock(this.path, this.pathErr)
+      return
+    }
+    const u = this.u
+    if (!u) {
+      this.el.innerHTML = `<p class="${this.err ? 'sc-warn' : 'muted'}">${esc(this.err || 'Consultando el escáner…')}</p>`
+      return
+    }
+    if (!u.available) {
+      this.el.innerHTML = `<div class="sc-head"><div class="sc-title"><h3>Escáner global</h3><span class="sc-mode">Modo: Análisis</span>` +
+        `<span class="sc-flag">⚠ ${esc(u.status_label)}</span></div><p class="sc-notice">${esc(u.notice)}</p>` +
+        `<p class="sc-warn">${esc(u.reason ?? 'sin datos')}</p></div>`
+      return
+    }
+    const rows = (u.rows ?? []).filter((r) => matches(r, this.f))
+    const byId = new Map((u.rows ?? []).map((r) => [r.instrument_id, r]))
+    const ctx = rankCtx(this.ranking)
+    const ranked = ctx.rows.size > 0
+    const filtered = filterOpps(this.opps, this.f)
+    // la API ya las da en el orden del ranking; sin ranking (vista anterior a T95), alfabético
+    const ordered = ranked ? filtered : [...filtered].sort((a, b) => a.symbol.localeCompare(b.symbol))
+    const shown = ordered.filter((o) => { const k = ctx.rows.get(o.opportunity_id); return !k || k.representative || !k.cluster_id })
+    const hidden = ordered.length - shown.length
+    this.el.innerHTML = head(u, this.opps.length) +
+      (this.err ? `<p class="sc-warn">${esc(this.err)} (se muestran los últimos datos)</p>` : '') +
+      healthBlock(this.health, this.healthErr) +
+      rankHead(this.ranking) + markets(u.markets ?? []) + filters(u, this.f) +
+      `<h4>Candidatas <small>${shown.length} de ${this.opps.length}` +
+      (ranked ? ` · por prioridad (ranking global T95)${hidden ? ` · ${hidden} agrupada${hidden > 1 ? 's' : ''} bajo su representante` : ''}` : ' · en orden alfabético') +
+      `</small></h4>` + shadowNote(this.shadow) +
+      `<div class="sc-scroll">${oppTable(shown, byId, ctx)}</div>` +
+      `<details class="sc-uni"><summary>Universo puntuado (${rows.length}) · cobertura por instrumento</summary>` +
+      `<div class="sc-scroll">${universeTable(rows)}</div></details>`
+  }
+}

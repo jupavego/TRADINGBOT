@@ -1,4 +1,4 @@
-"""El lado del libro y el signo de las puertas (T213): sesgo, contraste y lectura de cada puerta."""
+"""El lado del libro y el signo de las puertas (T215): sesgo, contraste y lectura de cada puerta."""
 
 from __future__ import annotations
 
@@ -122,7 +122,7 @@ def test_las_tres_lineas_son_informativas_y_nunca_proponen_cambiar_la_puerta():
     out = {o["id"]: o for o in sides.side_opps(s, c, signs)}
     assert set(out) == {"sesgo_lado", "contraste_lados", "puerta_sin_signo"}
     assert all(o["route"].startswith("cerrada") for o in out.values())
-    assert all(o["category"] == "dirección" and "T213" in o["ref"] for o in out.values())
+    assert all(o["category"] == "dirección" and "T215" in o["ref"] for o in out.values())
     assert "30 de 30 cortas (100.0%)" in out["sesgo_lado"]["evidence"]
     assert "40 tramos" in out["puerta_sin_signo"]["evidence"]
     assert "al revés" in out["puerta_sin_signo"]["evidence"]

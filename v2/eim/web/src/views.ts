@@ -1,5 +1,5 @@
-/** Pestañas de la barra superior (junto al modo): «Cantera» y «Mapa del sistema». Con una abierta,
- * la mesa (río de decisión, bróker simulado y pestañas inferiores) se oculta y esa vista ocupa la
+/** Pestañas de la barra superior (junto al modo): «Escáner» (T94), «Cantera» y «Mapa del sistema».
+ * Con una abierta, la mesa (río de decisión, bróker simulado y pestañas inferiores) se oculta y esa vista ocupa la
  * pantalla; al volver a pulsarla se regresa a la mesa. Lo oculto deja de sondear y de animar solo
  * (IntersectionObserver de `ObsView` y de `motion`; la cantera solo se refresca a la vista), así
  * que nunca corren dos a la vez: menos lag. Cada vista elegida avisa con `eim:view`. */
@@ -7,9 +7,10 @@
 const KEY = 'eim.view'            // la última vista elegida se recuerda entre visitas
 const DESK = ['river', 'paper']   // secciones de la mesa, además de `.desk`
 
-type View = 'desk' | 'map' | 'cantera'
+type View = 'desk' | 'map' | 'cantera' | 'scanner'
 /** Vista → [botón, sección, texto del botón cerrado]. */
 const TABS: Record<Exclude<View, 'desk'>, [string, string, string]> = {
+  scanner: ['view-scanner', 'scanner', '🔭 Escáner'],
   cantera: ['view-cantera', 'cantera', '🌱 Cantera'],
   map: ['view-map', 'obs', '🗺 Mapa del sistema'],
 }
@@ -46,5 +47,5 @@ export function setupViewTabs(): void {
   }
   let saved = 'desk'
   try { saved = localStorage.getItem(KEY) ?? 'desk' } catch { /* mesa por defecto */ }
-  setView(saved === 'map' || saved === 'cantera' ? saved : 'desk')
+  setView(saved === 'map' || saved === 'cantera' || saved === 'scanner' ? saved : 'desk')
 }

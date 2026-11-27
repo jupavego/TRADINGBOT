@@ -36,6 +36,7 @@ from eim.api.paper_arb import build_paper_arb_router
 from eim.api.paper_variant import build_variant_router, make_nursery, make_variants
 from eim.api.reports_db import ReportStore
 from eim.api.risk import RiskDesk, build_risk_router
+from eim.api.scanner import build_scanner_router
 from eim.api.security import BodyLimitMiddleware, LocalOnlyMiddleware, ws_token_subprotocol
 from eim.api.setups import build_setups_router
 from eim.api.share import build_share_router
@@ -311,6 +312,7 @@ def create_app(
     app.include_router(build_paper_arb_router(store, cfg.data_dir))  # T45: pruebas en papel
     app.state.paper = paper
     app.include_router(build_validation_router(validator))
+    app.include_router(build_scanner_router(cfg.data_dir))   # T94: escáner, solo lectura
     app.state.validator = validator
 
     @app.get("/v2/health")

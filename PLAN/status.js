@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-26T09:57:09",
+ "generated": "2026-11-27T08:26:39",
  "phases": [
   {
    "n": 0,
@@ -325,7 +325,7 @@ window.EIM_STATUS = {
     "T175",
     "T210",
     "T212",
-    "T213"
+    "T215"
    ]
   },
   {
@@ -339,7 +339,9 @@ window.EIM_STATUS = {
     "T165",
     "T166",
     "T181",
-    "T182"
+    "T182",
+    "T213",
+    "T214"
    ]
   },
   {
@@ -413,11 +415,11 @@ window.EIM_STATUS = {
    "n": 33,
    "name": "Integridad de la medición",
    "ids": [
-    "T214",
-    "T215",
     "T216",
     "T217",
-    "T218"
+    "T218",
+    "T219",
+    "T220"
    ]
   }
  ],
@@ -1658,8 +1660,8 @@ window.EIM_STATUS = {
     "T90",
     "T91"
    ],
-   "state": "pending",
-   "notes": "Primer universo: todos los perpetuos USDⓈ-M de Binance (sin licencias nuevas; ya descargados por T181, 659 instrumentos). **T87 midió el embudo y el diseño cambia:** no se puede definir por `requires` (el agente más caro, `plan`, solo pide `candles` y se lleva el 73 % del ciclo de ≈ 1,9 s), se define por **costo medido** (13 agentes ≤ 20 ms = 1 % del ciclo: 10 000 instrumentos en 0,05 h frente a 5,35 h); y el paralelismo va **por procesos sobre instrumentos**, no por hilos de agentes (`run_agents` en hilos no acelera: 1 986 ms frente a 1 927 ms en serie).",
+   "state": "done",
+   "notes": "**Hecha 2026-11-25.** Infraestructura para mirar miles de instrumentos con presupuesto medido, **sin ejecutar órdenes** (`eim/scanner/`, 11 módulos; E/S en `eim/data/scanner_{market,store}.py`). **(1) Universo** (`universe.py`): etapa 1 desde el catálogo de T89 (estado, vencimiento, solo perpetuos, moneda USDT, nivel de permiso y los 3 pre-OPV de T88) con altas/bajas/vencimientos de los últimos 7 días; etapa 2 sobre los datos (velas suficientes, frescura juzgada **contra el calendario** del instrumento —un fin de semana de bolsa no es dato viejo—, mercado abierto, precio válido, liquidez mínima de 1 M/día en moneda de cotización y diferencial ≤ 20 pb si hay cotización; sin cotización se cuenta «spread sin medir», no se inventa). Cada exclusión con motivo estable, detalle y contador. **(2) Etapa 3** (`screen.py`, NumPy, sin agentes) sobre un panel de matrices (`panel.py`, una consulta DuckDB para todo el universo): rendimientos 1/5/20, momentum ajustado por volatilidad, volatilidades 5/20/60, ATR y rango relativos, cambio de régimen y de tendencia, anomalías robustas de volumen y de precio, fuerza relativa frente a BTC (cripto) o la mediana de su clase, y **calidad** (volumen cero, velas planas, saltos); puntuación de **interés** 0–1 por percentiles (no es una señal), determinista e independiente del orden de entrada (`SCREEN_VERSION` 1.0.0). **(3) Cola** (`queue.py`, `backends.py`, `jobs.py`): trabajos `(instrumento, marco, ritmo)` con prioridad, como mucho 2 procesos (nunca todos los núcleos), caché por `(instrumento, marco, hash de datos, versión del manejador)` —la versión de la preparación profunda lleva la huella de las capacidades de T91—, reintentos con espera creciente, límite de tasa por proveedor (Binance: una llamada cada 1,5 s), reanudación de lo que quedó `running` y cancelación limpia. **(4) Dos ritmos** (`rhythms.py`): rápido (alertas de precio en σ desde el cierre puntuado y de diferencial, con la cotización de `bookTicker`) y profundo (lista corta de 25 a la cola: `deep_prep` dice qué agentes podrían correr y por qué no los demás, **sin correrlos**: eso es T94); ninguno mira un mercado cerrado ni una cotización vieja. **(5) Servicio** `python -m eim.scanner run` (relleno, barrido y ritmo rápido; instancia única, latido en `data/scanner/heartbeat.json`, reintentos, parada limpia) y `status` (sin abrir la base); registro en `data/scanner/scanner.duckdb` (corridas, exclusiones, puntuaciones, alertas, cola y caché); `scanner.service` en el catálogo del Observatorio (a demanda: apagado no es «sin latido») con eventos muestreados. **(6) Medición** (`python -m eim.scanner budget` → `v2/reports/scanner_budget.md`): barrido de 958 instrumentos del catálogo (764 leídos, 564 puntuados, 25 a la lista corta) en 1.13 s = 1.48 ms/instrumento (presupuesto T87 20 ms: dentro); reproducible: sí; caché en caliente 100 %; 10 000 instrumentos ≈ 14.425 s. **(7) Pruebas** sin red en `tests/scanner/` (filtros y motivos, calendario, determinismo de la etapa 3, caché invalidada por datos y por versión, reintentos, tasa, reanudación tras caída, cancelación, procesos reales, mercado cerrado, servicio de punta a punta sobre DuckDB, y que el escáner no importa ejecución, riesgo ni papel). **Gate verde** por la cola en IDLE (pytest: 4392 pasadas, 32 omitidas, 0 fallos) + ruff limpio. Ningún cambio en el flujo de operación (solo se añadió la ficha del catálogo). BACKLOG T93 (8 puntos).",
    "effort": "alto",
    "phase": 17,
    "goal": "La infraestructura que permite mirar miles de instrumentos con un presupuesto de cómputo medido: descubrir el universo, filtrarlo, calcular una puntuación barata y vectorizada de todo el universo y entregar solo una lista corta a los agentes profundos. **Sin ejecutar órdenes.** Se prueba primero con el universo completo de perpetuos de Binance."
@@ -1670,8 +1672,8 @@ window.EIM_STATUS = {
    "deps": [
     "T93"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "**Hecha 2026-11-26.** La lista corta de T93 pasa por los agentes **elegibles** de cada instrumento y sale como **oportunidades candidatas trazables, nunca órdenes** (modo ANÁLISIS). **(1) Activación selectiva** (`eim/scanner/deep.py`): cobertura real del snapshot del universo (`coverage_of`), `select` + `run_eligible` (T91): solo corren los agentes que `eligible(...)` aprueba y el resto queda en el reporte con su motivo («marco no soportado», «no hay interés abierto»…), sin llamarlos; luego la **síntesis y la proyección existentes sin cambios** (`synthesize` con sus parámetros vigentes y `build_forecast` con la deriva de `drift_of` y el SL del plan, como el pronosticador del panel); reporte por instrumento con corrieron/omitidos/por qué, síntesis, proyección, avisos y el motivo si no hay candidata (síntesis neutral, nadie aportó, sin proyección). **(2) Oportunidad candidata** (`eim/core/opportunity.py`, pydantic frozen): instrumento, clase, plaza·mercado, marco, lado, agentes con versión/estado/sesgo/confianza/¿vota?, **hash de las velas exactas** (`input_hash`) y dónde releerlas (`input_ref`), `source` y cobertura, **tres puntuaciones separadas** con sus componentes (calidad de la señal = confianza × acuerdo; viabilidad = datos, liquidez, diferencial si hay cotización y agentes sin degradar; riesgo/costos = costo de ida y vuelta del modelo de la clase de T92 frente al movimiento del escenario a favor × prob. del escenario en contra), horizonte y vigencia (hasta el cierre de la próxima vela), estado fijo `candidata_no_validada`, sin campos de tamaño/orden ni conversión a `TradeProposal`; `opportunity_id` determinista (datos + versiones del código y de cada agente). Almacén: tablas `deep_results` y `opportunities` en `data/scanner/scanner.duckdb`; cola `deep_run` (≤ 2 procesos, caché por datos + agentes). **(3) API de solo lectura** `eim/api/scanner.py`: `/v2/scanner/{universe,runs,opportunities,instrument/{id}}` con filtros, siempre con modo y aviso; lee `data/scanner/view.json` (lo publica el escáner tras cada pasada: la API nunca abre la base de un solo escritor); sin ningún POST. **(4) Pestaña «🔭 Escáner»** en la barra superior (junto a Cantera y Mapa; `scanner_{api,render,ui}.ts`, `scanner.css`): modo Análisis y aviso «candidata, no validada» siempre arriba, mercados abiertos/cerrados por plaza y clase, filtros clase/mercado/horizonte/lado, candidatas con sus tres puntuaciones (barra fina de un tono + cifra; lado con flecha y palabra), universo puntuado con su cobertura y detalle con los agentes que opinan y los que no, la proyección y la trazabilidad; orden alfabético (el ranking global es T95). Verificada con captura y lectura del DOM renderizado (14 filas, filtros lado/horizonte, detalle). **(5) Trazabilidad**: `python -m eim.scanner verify OPP_ID` relee las velas, compara el hash y recalcula (mismo id y cifras); eventos al Observatorio (`scanner.service`: resumen de cada pasada y las candidatas más fuertes, muestreadas). `python -m eim.scanner deep` y `run` (barrido → agentes). **Universo real de Binance:** pasada de agentes sobre el barrido barrido-1795713098640-1: 25 instrumentos de la lista corta, 25 oportunidades candidatas (no validadas), 0 fallidos; agentes elegibles por instrumento 8–11; sin oportunidad: —; verificación de trazabilidad: op-ff512c81180382659d72 (CFGUSDT, corto): hash de datos igual (a4d5b6413ca2556853be850244b3d19b); reproducida: sí (255 velas 1d de CFGUSDT releídas del almacén del universo). **(6) Pruebas** `tests/scanner/test_deep.py`, `test_deep_service.py`, `tests/api/test_scanner_api.py` (elegibilidad respetada —el no elegible no se llama—, reproducible desde el hash, puntuaciones separadas, sin oportunidad con síntesis neutral, la API sin métodos que cambien estado) y `test_no_orders.py` ampliada (la síntesis solo en `deep.py`; nada de riesgo, ejecución ni papel importa el escáner ni sus oportunidades). **Gate verde** por la cola en IDLE (pytest: 4408 pasadas, 32 omitidas, 0 fallos) + ruff limpio. Ningún cambio en síntesis, plan, riesgo ni operación existentes. BACKLOG T94 (6 puntos).",
    "effort": "alto",
    "phase": 17,
    "goal": "Conectar la lista corta de T93 con los agentes **elegibles** de cada instrumento y producir **oportunidades candidatas trazables** (nunca órdenes), visibles en la API y en una pestaña, con el modo siempre a la vista."
@@ -1683,8 +1685,8 @@ window.EIM_STATUS = {
     "T94",
     "T49"
    ],
-   "state": "pending",
-   "notes": "◆ ¿el escáner muestra algo que supere el azar? De T87: el punto 7 de la lista aprobada exige **ampliar** la familia de hipótesis al nuevo universo, no reiniciarla (Holm va por 841, T164), y antes hay que abrir `eim/nursery/prereg.py:125`, que fija `symbol: Literal[\"BTCUSDT\"]` a nivel de tipo.",
+   "state": "done",
+   "notes": "**Hecha 2026-11-26. ◆ RESUELTA por el usuario ese mismo día: acepta el «no» (hoy el escáner no supera el azar) y pausa T96** hasta la revisión automática del 2026-12-29 (regla en `PLAN/notas/T96_revision.md`; tareas de Windows «EIM - escaner diario (T95)», a diario a las 00:45 UTC desde esa noche, y «EIM - revision para decidir T96 (2026-12-29)»). Pregunta de la ◆: ¿con el umbral del placebo el escáner muestra algo que supere el azar en el universo de Binance? Respuesta medida: placebo T95 (30 permutadas + 10 gaussianas, universo de 564): umbral 0.669; reales por encima 0 de 25 (máx. 0.664); falsos esperados por pasada 0.07; FDR ≈ —; p global 0.1613 → NO supera el azar (gaussiana: p global 0.5455). Reglas congeladas antes de calcular en `PLAN/notas/T95_preregistro.md` (su SHA-256 va en el informe). **(1) Ranking comparable** (`eim/scanner/rank.py`): ventaja esperada en σ de su propio horizonte (σ por vela de 60 velas × √horizonte) y en R (distancia a la invalidación del escenario a favor = SL del plan; si no hay, 1 σ y se dice), **neta del costo de ida y vuelta de su clase** (T92), con su incertidumbre (dispersión de los escenarios en σ); invariante a escala y divisa por construcción (fracciones del precio). Cuatro puntuaciones separadas (señal, viabilidad, riesgo/costos de T94 sin tocar, y ventaja = Φ(ventaja en σ)); la **prioridad** es la única combinación, con pesos versionados **iguales y sin calibrar**; `python -m eim.scanner calibrate` los ajusta **fuera de muestra** (mitad anterior elige, posterior comprueba; solo adopta si mejora a los iguales) cuando haya ≥ 200 resultados maduros de la síntesis. Sin costo o sin σ: no comparable, sin prioridad. **(2) Duplicados** (`clusters.py`): mismo subyacente o divisa (sin la moneda de liquidación: `1000PEPE` = `PEPE`; `EURUSD`/`EURJPY` comparten EUR) o correlación de 60 velas ≥ 0,75 en valor absoluto → una apuesta con su representante (el de mayor prioridad) y la exposición agregada (misma dirección, cobertura, ≈ apuestas independientes); la pestaña lista solo representantes. **(3) Registro de intentos** de todo lo que corre (instrumento × agente × marco × versión × horizonte; la síntesis como agente `sintesis`) en `scanner.duckdb` (`attempts`, `attempt_obs`: el almacén de T49 lo tiene abierto la API, mismo motivo que `validation/attempts.py`), con **maduración hacia adelante** (resultado del lado dicho y del contrario en σ, netos del costo) y **corrección sobre la familia completa: 841 previos de T49 + los del escáner** (se amplía, no se reinicia: punto 7 de T87): Holm vinculante, BH informativa, Sharpe deflactado; p bruto con ≥ 10 maduras (lado al azar, réplicas como T49); PBO no aplica (T84 archivada). Ninguna oportunidad se presenta «validada» salvo que la puerta v1 de T49 lo diga para ese intento. **(4) Placebo** (`eim/scanner/placebo.py`, `placebo_eval.py`, `scripts/scanner_placebo.py` → `reports/scanner_placebo.{md,json}` y `data/scanner/placebo.json`): el mismo escáner completo sobre 30 réplicas con permutación conjunta de fechas (conserva σ, distribución y correlación; destruye la estructura temporal) y 10 gaussianas de sensibilidad; umbral = cuantil 95 % del máximo por réplica; el umbral solo vale para las mismas versiones (huella de agentes, pesos, ranking y etapas): si cambian, queda desactualizado y nada se marca. **(5) Presentación:** la pasada de agentes publica el ranking en la vista (`ranking`), la API lo sirve en `/v2/scanner/opportunities` y el detalle, y la pestaña «🔭 Escáner» ordena por prioridad, marca «sobre / bajo el umbral del azar» con palabras y muestra el nº de hipótesis de la familia y el p de Holm de cada candidata (verificada con captura y lectura del DOM renderizado). Pasada real tras el placebo: pasada de agentes sobre el barrido barrido-1795726470356-1: 25 instrumentos de la lista corta, 25 oportunidades candidatas (no validadas), 0 fallidos; agentes elegibles por instrumento 8–11; sin oportunidad: —; ranking T95: 25 comparables en 19 apuestas independientes; umbral del placebo 0.669 (vigente, 30 réplicas); sobre el umbral: 0; familia de hipótesis 1138 (841 previas de T49 + 297 del escáner), 297 observaciones nuevas, 0 maduras en total. **(6) Pruebas** sin red: `tests/scanner/test_{rank,clusters,multiplicity,placebo,rank_service}.py` (invarianza a escala/divisa, horizontes normalizados, puntuaciones separadas, calibración solo fuera de muestra, deduplicación con signo de ρ, familia ampliada, nunca validada sin T49, réplicas que conservan σ/ρ y matan la autocorrelación, umbral que controla los falsos, universo sin estructura sin hallazgos, intentos registrados sin duplicar y maduración de punta a punta sobre DuckDB) y `tests/nursery/test_t95_prereg_symbol.py`. Abierto antes de empezar, como pedía la nota de T87: `eim/nursery/prereg.py` ya no fija `symbol: Literal[\"BTCUSDT\"]` en el tipo (`cantera_v1` sigue siendo BTCUSDT por su archivo con huella). **Gate:** pytest: 4457 pasadas, 32 omitidas, 0 fallos. Ningún cambio en síntesis, plan, riesgo, papel ni operación. BACKLOG T95 (8 puntos).",
    "effort": "alto",
    "phase": 17,
    "goal": "Hacer comparables oportunidades de instrumentos, horizontes y clases distintos **y** medir cuántas serían falsos descubrimientos por azar. Escanear miles de instrumentos con 17 agentes es una máquina de generar hipótesis: sin este control el panel mostraría ruido con buena presentación (T27 y T49 ya dijeron que en BTC/ETH no hay edge validado)."
@@ -1697,10 +1699,17 @@ window.EIM_STATUS = {
     "T95"
    ],
    "state": "pending",
-   "notes": "",
+   "notes": "**En pausa por la ◆ de T95 (2026-11-26):** no arranca hasta la revisión automática del 2026-12-29 (`PLAN/notas/T96_revision.md`), y solo si esa revisión dice «ARRANCAR T96» (la síntesis del escáner gana al azar hacia adelante con ≥ 200 resultados maduros **y** el placebo repetido supera el azar). Mientras tanto el escáner corre a diario en modo Análisis para acumular esa evidencia.",
    "effort": "alto",
    "phase": 17,
-   "goal": "Pasar de oportunidades sueltas a una **cartera simulada** con exposición, correlación, concentración, margen y moneda controlados por un componente determinista con poder de veto, independiente de los agentes. Solo simulación."
+   "goal": "Pasar de oportunidades sueltas a una **cartera simulada** con exposición, correlación, concentración, margen y moneda controlados por un componente determinista con poder de veto, independiente de los agentes. Solo simulación.",
+   "where": [
+    {
+     "machine": "laptop",
+     "text": "En pausa por tu decisión en T95: no empezar antes de la revisión automática de ese día (tarea «EIM - revision para decidir T96», informe en TRADINGBOT/_revision_t96.md); arranca solo si dice «ARRANCAR T96»",
+     "when": "2026-12-29"
+    }
+   ]
   },
   {
    "id": "T97",
@@ -1712,10 +1721,17 @@ window.EIM_STATUS = {
     "T93"
    ],
    "state": "pending",
-   "notes": "◆ ¿la clase sigue? Molde de la **lista de aceptación de 8 puntos** aprobada en T87 (`PLAN/notas/T87_matriz.md` §9). Por el orden aprobado, los **índices en diario** (S&P 500, Nasdaq, oro, ya en el almacén por T183) van antes que las acciones.",
+   "notes": "**En pausa por tu decisión del 2026-11-26:** no hay proveedor de acciones aprobado (◆2 de T88 sin responder; `yfinance` descartado), los 246 perpetuos TradFi tienen ~134 días de histórico y T95 midió que hoy el escáner no supera el azar. Se decide con la revisión automática de T96 del 2026-12-29: si dice «ARRANCAR T96», se te pregunta el proveedor y T97 arranca; si no, sigue en pausa (`PLAN/notas/T97_pausa.md`). Cuando arranque: ◆ ¿la clase sigue?, molde de la lista de aceptación de 8 puntos (T87 §9), índices en diario antes que acciones.",
    "effort": "alto",
    "phase": 17,
-   "goal": "Llevar la primera clase fuera de cripto de punta a punta y comprobar **toda** la lista de aceptación por clase (descubrimiento, datos, agentes, backtesting, riesgo, ejecución simulada, observabilidad, validación). Sirve de molde para las demás clases."
+   "goal": "Llevar la primera clase fuera de cripto de punta a punta y comprobar **toda** la lista de aceptación por clase (descubrimiento, datos, agentes, backtesting, riesgo, ejecución simulada, observabilidad, validación). Sirve de molde para las demás clases.",
+   "where": [
+    {
+     "machine": "laptop",
+     "text": "En pausa por tu decisión del 2026-11-26 (sin proveedor de acciones aprobado, ◆2 de T88): se decide con el informe de la revisión de T96 de ese día (TRADINGBOT/_revision_t96.md). Si dice «ARRANCAR T96», se te pregunta el proveedor y T97 arranca; si no, sigue en pausa con T96 (PLAN/notas/T97_pausa.md)",
+     "when": "2026-12-29"
+    }
+   ]
   },
   {
    "id": "T98",
@@ -1748,8 +1764,8 @@ window.EIM_STATUS = {
     "T88",
     "T92"
    ],
-   "state": "pending",
-   "notes": "◆ qué producto merece su propia clase.",
+   "state": "done",
+   "notes": "**Hecha 2026-11-26. ◆ RESUELTA por el usuario (opción 1, `PLAN/notas/T100_decision.md`): opciones cripto solo como información sobre la volatilidad de BTC/ETH** → **T213** (términos de datos de Deribit y colector de cadenas; si no se aprueban, no entra) y **T214** (agente de superficie de volatilidad con pre-registro sobre T165). Ninguna otra clase: los modelos quedan como biblioteca y los agentes de curva y carry fuera del registro. Sonda real: Svensson idéntica a la del BCE (0,0 pb); carry + roll-down del 10 años a 3 meses +24 pb netos. Informe `v2/reports/fixed_income_options_viability.md` (veredicto por producto con costo de datos y particularidades de ejecución; ninguna cifra sin fuente). **(1) Datos:** gratis y con licencia clara solo curvas y tipos de referencia — Tesoro de EE. UU. comprobado (14 plazos, sin clave; último dato 2026-11-25: 10 años 4,85 %), BCE (curva AAA Svensson) y FRED; spreads de crédito de FRED solo uso personal; ETF de renta fija sin proveedor (◆2 de T88 abierta); futuros de bonos solo de pago (CME); repos, swaps y bonos ilíquidos OTC → solo investigables (los repos, como costo de financiación); cadenas de opciones cripto públicas y gratis pero **Deribit/Binance opciones fuera de la lista de T88**. **(2) Modelos puros con pruebas contra referencias publicadas** (`eim/fixed_income/{bond,curve,carry}.py`, `eim/options/{black_scholes,implied_vol,chain}.py`): Hull (bono 94,213 / 2,653 / 7,570; *bootstrap* 10,127…10,808 %; BS 4,76/0,81; griegas 0,522/0,066/12,1/−4,31/8,91; σ implícita 23,5 %), Fabozzi (134,6722; convexidad 164,106), Haug (2,1334; Merton 2,4648; Black-76 1,7011; Garman–Kohlhagen 0,0291), Diebold–Li (curvatura máxima ~30 meses). **(3) Agentes hermanos especificados** (`requires`, costos, validación): curva y carry **implementados de prueba** (`eim/fixed_income/proto.py`, sin registrar, modo ANÁLISIS) sobre el proveedor nuevo `eim/data/providers/treasury.py`; opciones/IV especificado con `eim/options/chain.py` (calidad de cadena + σ ATM y sonrisa) pero sin datos conectados. Sonda real `scripts/fixed_income_probe.py` → `reports/fixed_income_probe.{md,json}` (contraste de Svensson con el BCE incluido): curva del 2026-11-25: 10a 4.85 %, 3m10a +51 pb, Svensson 1.46 pb; carry+roll 10a a 3 meses +24 pb netos (exceso/riesgo +0.05); BCE: coincide (0.0 pb). **(4) Veredicto:** curvas como dato viables ahora; bonos, swaps y crédito solo investigación; ETF, futuros de bonos y opciones de acciones con datos de pago; bonos ilíquidos descartados; **opciones cripto como información viables ahora si se aprueba la fuente** (T165 ya validó la volatilidad implícita de Deribit). Pruebas sin red: `tests/fixed_income/`, `tests/options/`, `tests/data/test_treasury_provider.py` (fixture con filas reales del Tesoro). **Gate:** pytest: 4530 pasadas, 36 omitidas, 0 fallos. Ningún cambio en agentes registrados, síntesis, plan, riesgo, papel ni operación. BACKLOG T100.",
    "effort": "medio",
    "phase": 17,
    "goal": "Decidir con evidencia si bonos, repos, operaciones de financiación y opciones se pueden cubrir y cómo. **No basta aplicar indicadores técnicos a sus precios**: requieren curvas, duración, convexidad, carry/roll-down, cadenas de opciones, volatilidad implícita y griegas. Esta tarea produce especificación y prototipo mínimo, no una clase completa."
@@ -1774,8 +1790,8 @@ window.EIM_STATUS = {
     "T94",
     "T72"
    ],
-   "state": "pending",
-   "notes": "",
+   "state": "done",
+   "notes": "**Hecha 2026-11-26** (modo ANÁLISIS; protocolo provisional en los umbrales de promoción hasta que T101 publique su matriz, que es la que lee). **(1) Catálogo y trazas:** registro de instrumentos, fuentes por clase, agentes sobre el universo, ranking y control del azar, salud multiactivo y despliegue gradual en el catálogo del Observatorio con textos llanos (`eim/observability/catalog/components_multiasset.py`; cartera T96 y papel T103 como planeados); `trace_for_instrument(id del registro, marco, cierre)` determinista; eventos **por lotes** (`eim/scanner/obs_batch.py`): un resumen por clase y paso y el recorrido completo solo de las 5 candidatas más fuertes, ≤ 100 eventos por ciclo, ids deterministas. **(2) Salud multiactivo** (`eim/scanner/health.py`): por clase (plan escrito, cobertura = puntuados ÷ puntuados + excluidos, calidad, datos viejos, mercados abiertos/cerrados, candidatas y sobre el umbral) y por fuente (nivel, licencia, techo de uso declarado —el consumo real no se mide y se dice—, errores); estado y presupuesto del escáner; qué no puede ver; «sin datos» nunca sano; avisos locales con transición que sobreviven a la tarea diaria (`health_alerts.py`, globo de Windows + registro + observatorio; solo clases habilitadas, fuentes en uso y escáner). **(3) Panel** en la pestaña «Escáner» (`web/src/scanner_health.ts`): salud por clase con su nivel de despliegue y qué le falta, fuentes, qué no se ve, candidatas en sombra contadas aparte y, en el detalle, el **recorrido del dato a la decisión** (8 pasos, misma traza que el mapa); `GET /v2/scanner/health` (frescura recalculada a la hora de la petición) y `/v2/scanner/trace/{id}`; modo siempre visible. **(4) Protocolo** `docs/OPERACION.md` §8 (`eim/scanner/rollout.py`): alerta → simulación → papel automáticos solo con todos sus criterios (14 revisiones sanas, umbral del placebo superado, celda de T101, T96/T103 construidos, ≥ 30 días y ≥ 200 maduros para papel); ejecución limitada nunca automática; **desactivación automática** de clase (2 revisiones sin datos/obsoleta/error) o agente (2 revisiones con `no_data` en ≥ la mitad) a **sombra**, sin apagar el cálculo para no romper el pre-registro de T95; reactivación sola tras 2 sanas, en alerta. Hoy: todas las clases en alerta y ninguna puede subir (faltan T101, T96, T103). **(5) Operación continua:** la pasada de agentes y la tarea diaria (`escaner_diario.ps1`, al final) corren la revisión (`python -m eim.scanner health`, `health.json`/`rollout.json`); la copia diaria guarda en `multiactivo/` el catálogo, `scanner.duckdb` (registro de intentos de T95) y los resúmenes (`eim/data/backup_multiasset.py`; con el escáner en marcha, ausente con motivo y la copia sigue completa). **(6) Pruebas** `tests/scanner/test_{health,rollout,trace,obs_batch,health_service,t102_e2e}.py`, `tests/api/test_scanner_health_api.py`, `tests/data/test_backup_multiasset.py`, `tests/observability/test_catalog_multiasset.py`: trazabilidad de punta a punta de una candidata, «sin datos» honesto, desactivación y reactivación simuladas, tope y costo de eventos. **Real (laptop):** ok; vista hace 1.52 h; Cripto ok (427, cobertura 61%, 20 candidatas); Acciones ok (127, cobertura 53%, 3 candidatas); Índices ok (1, cobertura 33%, 0 candidatas); Divisas ok (1, cobertura 100%, 0 candidatas); Materias primas ok (8, cobertura 100%, 1 candidatas); niveles commodity alerta, crypto alerta, equity alerta, fx alerta, index alerta; avisos activos 0; observatorio 31 eventos en 2.4 ms (dentro del umbral). **Recorrido:** recorrido de ZECUSDT (tr_3e3f8f4dec914ae5): 8 pasos, del dato (500 velas de binance-futures (escáner global, T93) (nivel 2); calidad 1.00; mercado abierto) a la decisión (candidata, no validada · nivel Alerta · visible). **Gate:** pytest: 4575 pasadas, 36 omitidas, 0 fallos. Sin cambios en agentes, síntesis, riesgo, papel ni operación. BACKLOG T102.",
    "effort": "medio",
    "phase": 17,
    "goal": "Que cada instrumento, dato, agente, oportunidad y decisión sea rastreable de punta a punta y que el paso de «alerta» a «simulación» y a «papel» siga un protocolo escrito. El sistema debe poder decir en cualquier momento qué mercados vigila, con qué datos y qué no puede ver."
@@ -3284,7 +3300,7 @@ window.EIM_STATUS = {
     "T141"
    ],
    "state": "progress",
-   "notes": "**Abierta 2026-11-20 tras el incidente «la app está caída».** La API respondía, pero `GET /v2/snapshot` estuvo colgado 3 h 30 min (19:11→22:38 UTC) por el candado **global** de `HistoryLoader.ensure()` (`eim/api/history.py:27`), y la web solo abre el WebSocket en vivo **después** del snapshot (`web/src/main.ts:177` y `:188`): mesa en «SIN CONEXIÓN» con precio `—`, mientras `/v2/health` daba todo VIVO. Vite (5173) también estaba muerto, sin rastro en `web.err.log`. Servicios restaurados el mismo día; queda el arreglo de fondo: snapshot a 24–64 s (velas de solo 94 KB), API a 3,6 GB a los 7 min, 3 reinicios de la API (código 4294967295) y 139 246 líneas repetidas en `vigilante.err.log`. Ver `PLAN/T206.md`. **◐ 2026-11-21, criterio 1 hecho (◆ del usuario: «WS en paralelo»):** `load()` abre el WebSocket **antes** del `await fetchSnapshot(...)`, así que «En vivo» y el precio ya no esperan al histórico; el aviso del histórico sale en su propio `#banner-hist` (ámbar) y deja de pisar el de la conexión, y `paintLive` dice «Conectando…» mientras no se haya intentado el enlace, en vez de «Sin conexión». Verificado en el navegador sobre la API viva (Vite temporal en 5174): **EN VIVO con precio a los 1,2 s** con los dos `/v2/snapshot` aún en vuelo; con el snapshot colgado a propósito sigue en vivo y sin aviso falso; con el snapshot fallando, en vivo + aviso solo del histórico; tres cambios de marco abren 3 sockets, cierran 2 y dejan 1. `tests/architecture/test_t206_vivo_no_espera_historico.py` (6) + `tsc --noEmit` limpio. **Queda el costo, no el síntoma:** `/v2/snapshot` sigue en ~14 s de trabajo real, de los que `read_micro` se lleva el 99 % (`_read_tops` trae 1 603 379 filas a Python). Podar `micro/` por días se probó con gate verde y **no aceleraba** (14 137 ms frente a 14 115 sin podar: DuckDB ya salta los grupos de filas por las estadísticas de `t`), así que el usuario cerró ese PR el 2026-11-21; lo que falta y sus dos vías, en `PLAN/BACKLOG.md`.",
+   "notes": "**Abierta 2026-11-20 tras el incidente «la app está caída».** La API respondía, pero `GET /v2/snapshot` estuvo colgado 3 h 30 min (19:11→22:38 UTC) por el candado **global** de `HistoryLoader.ensure()` (`eim/api/history.py:27`), y la web solo abre el WebSocket en vivo **después** del snapshot (`web/src/main.ts:177` y `:188`): mesa en «SIN CONEXIÓN» con precio `—`, mientras `/v2/health` daba todo VIVO. Vite (5173) también estaba muerto, sin rastro en `web.err.log`. Servicios restaurados el mismo día; queda el arreglo de fondo: snapshot a 24–64 s (velas de solo 94 KB), API a 3,6 GB a los 7 min, 3 reinicios de la API (código 4294967295) y 139 246 líneas repetidas en `vigilante.err.log`. Ver `PLAN/T206.md`. **◐ 2026-11-21, criterio 1 hecho (◆ del usuario: «WS en paralelo»):** `load()` abre el WebSocket **antes** del `await fetchSnapshot(...)`, así que «En vivo» y el precio ya no esperan al histórico; el aviso del histórico sale en su propio `#banner-hist` (ámbar) y deja de pisar el de la conexión, y `paintLive` dice «Conectando…» mientras no se haya intentado el enlace, en vez de «Sin conexión». Verificado en el navegador sobre la API viva (Vite temporal en 5174): **EN VIVO con precio a los 1,2 s** con los dos `/v2/snapshot` aún en vuelo; con el snapshot colgado a propósito sigue en vivo y sin aviso falso; con el snapshot fallando, en vivo + aviso solo del histórico; tres cambios de marco abren 3 sockets, cierran 2 y dejan 1. `tests/architecture/test_t206_vivo_no_espera_historico.py` (6) + `tsc --noEmit` limpio. **Queda el costo, no el síntoma:** `/v2/snapshot` sigue en ~14 s de trabajo real, de los que `read_micro` se lleva el 99 % (`_read_tops` trae 1 603 379 filas a Python). Podar `micro/` por días se probó con gate verde y **no aceleraba** (14 137 ms frente a 14 115 sin podar: DuckDB ya salta los grupos de filas por las estadísticas de `t`), así que el usuario cerró ese PR el 2026-11-21; lo que falta y sus dos vías, en `PLAN/BACKLOG.md`. **◐ 2026-11-26, tras otro «el proyecto está caído» del usuario (esta vez eran 7 h sin interfaz):** tres cosas dentro y medidas. (a) **Los agregados de microestructura de las velas cerradas se guardan** en `data/micro_cache/` y no se recalculan, que es la vía exacta de BACKLOG T206 (2): sobre datos reales (24 velas de 1 h de BTCUSDT) **4,49 s → 0,49 s, 9,1×, con cero diferencias** en OFI, desequilibrio, velas completas y trades, y el mismo libro. Guarda dos OFI por vela (encadenado y sin pareja previa) y la firma de los huecos que la tocaban, para recalcularla si alguno se anota tarde; `EIM_MICRO_CACHE=0` la apaga y borrarla es seguro. (b) **La interfaz entra en el vigilante del conjunto** (revisa la decisión de T148 «solo los cinco de datos»): puerto 5173, 10 min, `-ConWeb`, cuenta de intentos propia; `EIM_FLEET_WEB=0` la deja fuera. (c) **El registro del vigilante deja de repetir la misma línea** (72 MB eran 366 812 copias de `socket.send() raised exception.`), y el `stderr_tail` de un reinicio vuelve a decir algo. Lo medido esa noche contra la API viva, y lo que falta (el reparto de `build_snapshot`, `liq_flow`, la memoria en vivo y rotar el registro por tamaño), en `PLAN/T206.md` y `BACKLOG.md`. **Gate verde el 2026-11-26** por la cola: 4 372 pasadas, 9 omitidas, 0 fallos (1 856 s, 3 pausas); ruff limpio. PR #367, sin fusionar. Costó cuatro intentos: el trabajo se reencoló tres veces por presión de memoria **ajena** (el gate gasta 436 MB) y solo entró tras relanzar la evaluación de líderes, que estaba en 2 562 MB con código anterior a la evaluación incremental (RUNBOOK §10); el defecto de la cola queda anotado en BACKLOG de T149.",
    "effort": "medio",
    "phase": 21
   },
@@ -3347,6 +3363,35 @@ window.EIM_STATUS = {
   },
   {
    "id": "T213",
+   "title": "Opciones cripto (1/2): términos de datos de Deribit y colector de cadenas",
+   "deps": [
+    "T100",
+    "T165",
+    "T88"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 por la ◆ de T100.** Primero leer en la fuente los términos de datos de Deribit (y Binance opciones): ◆ el usuario aprueba o no la fuente. Si se aprueba: ficha de fuente, colector de baja frecuencia de las cadenas de BTC (tarea programada, sin servicio nuevo), calidad de cada toma con `eim/options/chain.py`, volumen medido y si hay histórico público para reconstruir superficies.",
+   "effort": "bajo",
+   "phase": 26
+  },
+  {
+   "id": "T214",
+   "title": "Opciones cripto (2/2): agente de superficie de volatilidad, con pre-registro",
+   "deps": [
+    "T213",
+    "T165",
+    "T162",
+    "T163",
+    "T100"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 por la ◆ de T100; no empieza sin la fuente aprobada en T213.** ¿La superficie (estructura temporal, sesgo, prima por plazo) mejora a A2 de T165? Potencia a priori, pre-registro, QLIKE, MCS y Holm en la familia ampliada; agente informante, nunca dirección; ◆ si entra como insumo de volatilidad.",
+   "effort": "medio",
+   "phase": 26,
+   "goal": "Medir si la **superficie** de volatilidad implícita de BTC añade información sobre la volatilidad"
+  },
+  {
+   "id": "T215",
    "title": "El lado, puntuado: el sesgo direccional y el signo de cada puerta",
    "deps": [
     "T144",
@@ -3358,15 +3403,15 @@ window.EIM_STATUS = {
     "T139"
    ],
    "state": "done",
-   "notes": "**Abierta 2026-11-26 (pedido del usuario: fase de auditoría y retroalimentación por «la gran cantidad de cortos y la poca cantidad de largos»). Diagnóstico y los seis criterios HECHOS.** La premisa es correcta y más extrema de lo que parece: **652 de 726 operaciones son cortas (89,8 %)**, con **15 días seguidos sin una sola larga** (11-08 → 11-22) y 19 largas frente a 236 cortas en los últimos 7 días (92,5 %). La causa es la puerta de T212: **dos de las tres no han girado en 34 días** (1h bajista 821 h desde el 10-23, 4h bajista 781 h desde el 10-24), así que los marcos 1h y 4h —dos tercios del libro— solo pueden vender, y la única que autoriza largos giró **tres veces en cuatro días** (11-22 17:00 alcista, 11-24 09:00 bajista, 11-26 05:00 alcista); los 18 largos que abrió el 11-23 perdieron **−302,4 USDT**. **Pero el sesgo no es lo que cuesta esta semana:** en la sombra (sin veto, 11-19 → 11-25) el lado largo rinde **−0,333 R** (n = 420) frente a **+0,156 R** del corto (n = 667), diferencia −0,490 ± 0,154 (t = −6,21) y −0,530 ± 0,204 agrupando por vela de apertura; en el libro oficial la diferencia queda dentro del ruido (−0,165 ± 0,299). Haber operado más largos habría perdido más. Lo que se lleva el dinero es la fricción: auditoría del 11-26 con n = 726, **bruto +0,051 R**, **costo 0,125 R**, neto −0,074 R [−0,118, −0,030], PnL −2 915 USDT. El costo del retraso que midió T212 sigue en pie y es compatible: el sesgo cuesta **en los giros** (49 aperturas tras el mínimo del 11-21, 45 cortas, −731,7). No se toca la puerta (T139 P1); lo que falta es que el lado **se mida y se publique solo** en cada auditoría. Diagnóstico `PLAN/notas/T213_sesgo_direccional.md`; ficha `PLAN/T213.md`. **HECHA 2026-11-26 en la misma sesión, los seis criterios cumplidos y verificados sobre el libro real (726 operaciones) y las velas del disco.** El lado ya se mide y se publica solo: `eim/analytics/audit/sides.py` (función pura: reparto por lado, contraste de los dos lados en la sombra agrupando por vela de apertura y signo de cada puerta), el encabezado del informe y la consola traen «LADO: 652/726 cortas (89,8 %) · 7 d 231/19 · última larga hace 50 h · sombra agrupada L −0,388 vs S +0,162 (dif −0,550 ± 0,209: el lado largo rinde peor) · `contra_tendencia` dejó fuera …» y «PUERTAS: …», la §6 del Markdown las tablas, y `sides.short_share` entra en los cambios entre auditorías. Tres líneas informativas nuevas (`sesgo_lado`, `contraste_lados`, `puerta_sin_signo`), todas con vía `cerrada (T139 P1)`. **Hallazgo de método al implementarlo:** el signo de una puerta no puede juzgarse promediando todas las velas de sus tramos —la ventana de las últimas cae al otro lado del giro, y así 10 de 12 caminatas aleatorias puras aparentan señal—, así que se mide **desde el giro**, un dato por giro. Con eso, en los 98 días de velas del disco **ninguna** de las tres puertas distingue dirección: 15m +0,220 % ± 1,157 % (40 giros), 1h +1,973 % ± 6,206 % (3 giros), 4h sin muestra (1 giro). La conclusión de T212 se refuerza y se corrige su §5: el «+0,455 % y +0,234 %» de las lentas era el mismo artefacto con el signo a favor, y su falta de giros es justo lo que haría inmedible cualquier puerta alternativa. Nada tocado de `ExecParams.htf`, `vetoes.py`, `gates.py`, `params_fingerprint`, el libro ni la corrida de T31. Pruebas: `tests/analytics/test_t213_sides.py` (8) y una nueva en `tests/analytics/test_audit.py`. Corregida también §1 de la skill `eim-auditoria`.",
+   "notes": "**(Antes T213; renumerada el 2026-11-27.)** **Abierta 2026-11-26 (pedido del usuario: fase de auditoría y retroalimentación por «la gran cantidad de cortos y la poca cantidad de largos»). Diagnóstico y los seis criterios HECHOS.** La premisa es correcta y más extrema de lo que parece: **652 de 726 operaciones son cortas (89,8 %)**, con **15 días seguidos sin una sola larga** (11-08 → 11-22) y 19 largas frente a 236 cortas en los últimos 7 días (92,5 %). La causa es la puerta de T212: **dos de las tres no han girado en 34 días** (1h bajista 821 h desde el 10-23, 4h bajista 781 h desde el 10-24), así que los marcos 1h y 4h —dos tercios del libro— solo pueden vender, y la única que autoriza largos giró **tres veces en cuatro días** (11-22 17:00 alcista, 11-24 09:00 bajista, 11-26 05:00 alcista); los 18 largos que abrió el 11-23 perdieron **−302,4 USDT**. **Pero el sesgo no es lo que cuesta esta semana:** en la sombra (sin veto, 11-19 → 11-25) el lado largo rinde **−0,333 R** (n = 420) frente a **+0,156 R** del corto (n = 667), diferencia −0,490 ± 0,154 (t = −6,21) y −0,530 ± 0,204 agrupando por vela de apertura; en el libro oficial la diferencia queda dentro del ruido (−0,165 ± 0,299). Haber operado más largos habría perdido más. Lo que se lleva el dinero es la fricción: auditoría del 11-26 con n = 726, **bruto +0,051 R**, **costo 0,125 R**, neto −0,074 R [−0,118, −0,030], PnL −2 915 USDT. El costo del retraso que midió T212 sigue en pie y es compatible: el sesgo cuesta **en los giros** (49 aperturas tras el mínimo del 11-21, 45 cortas, −731,7). No se toca la puerta (T139 P1); lo que falta es que el lado **se mida y se publique solo** en cada auditoría. Diagnóstico `PLAN/notas/T215_sesgo_direccional.md`; ficha `PLAN/T215.md`. **HECHA 2026-11-26 en la misma sesión, los seis criterios cumplidos y verificados sobre el libro real (726 operaciones) y las velas del disco.** El lado ya se mide y se publica solo: `eim/analytics/audit/sides.py` (función pura: reparto por lado, contraste de los dos lados en la sombra agrupando por vela de apertura y signo de cada puerta), el encabezado del informe y la consola traen «LADO: 652/726 cortas (89,8 %) · 7 d 231/19 · última larga hace 50 h · sombra agrupada L −0,388 vs S +0,162 (dif −0,550 ± 0,209: el lado largo rinde peor) · `contra_tendencia` dejó fuera …» y «PUERTAS: …», la §6 del Markdown las tablas, y `sides.short_share` entra en los cambios entre auditorías. Tres líneas informativas nuevas (`sesgo_lado`, `contraste_lados`, `puerta_sin_signo`), todas con vía `cerrada (T139 P1)`. **Hallazgo de método al implementarlo:** el signo de una puerta no puede juzgarse promediando todas las velas de sus tramos —la ventana de las últimas cae al otro lado del giro, y así 10 de 12 caminatas aleatorias puras aparentan señal—, así que se mide **desde el giro**, un dato por giro. Con eso, en los 98 días de velas del disco **ninguna** de las tres puertas distingue dirección: 15m +0,220 % ± 1,157 % (40 giros), 1h +1,973 % ± 6,206 % (3 giros), 4h sin muestra (1 giro). La conclusión de T212 se refuerza y se corrige su §5: el «+0,455 % y +0,234 %» de las lentas era el mismo artefacto con el signo a favor, y su falta de giros es justo lo que haría inmedible cualquier puerta alternativa. Nada tocado de `ExecParams.htf`, `vetoes.py`, `gates.py`, `params_fingerprint`, el libro ni la corrida de T31. Pruebas: `tests/analytics/test_t215_sides.py` (8) y una nueva en `tests/analytics/test_audit.py`. Corregida también §1 de la skill `eim-auditoria`.",
    "effort": "bajo",
    "phase": 25
   },
   {
-   "id": "T214",
+   "id": "T216",
    "title": "Prueba de nulidad obligatoria: ninguna medida se publica sin ella",
    "deps": [
-    "T213",
+    "T215",
     "T212",
     "T159",
     "T175",
@@ -3374,12 +3419,12 @@ window.EIM_STATUS = {
     "T160"
    ],
    "state": "pending",
-   "notes": "**Abierta 2026-11-26 (fase 33 nueva, aprobada por el usuario tras la retrospectiva de T213).** El proyecto mide el mercado con rigor y **no comprueba sus propias medidas**: el método con que T212 §5 juzgó el signo de las puertas da «señal» significativa en **10 de 12 caminatas aleatorias puras** (midiendo desde el giro, 0 de 12) y vivió **tres días** en §1 de la skill como doctrina. Pide las tres nulidades en código (ruido, permutación, placebo), un **registro de medidas** cuya prueba falla si una no declara nulidad o si su tasa de falsos positivos pasa del nivel, las medidas ya existentes dentro (puerta y lados de T213, calibración de T160, bruto con Holm y emparejado de T175, apertura de T211), y que el informe marque «sin nulidad» lo que no la haya pasado —y eso no pueda sostener una decisión. Ficha `PLAN/T214.md`.",
+   "notes": "**Abierta 2026-11-26 (fase 33 nueva, aprobada por el usuario tras la retrospectiva de T215).** El proyecto mide el mercado con rigor y **no comprueba sus propias medidas**: el método con que T212 §5 juzgó el signo de las puertas da «señal» significativa en **10 de 12 caminatas aleatorias puras** (midiendo desde el giro, 0 de 12) y vivió **tres días** en §1 de la skill como doctrina. Pide las tres nulidades en código (ruido, permutación, placebo), un **registro de medidas** cuya prueba falla si una no declara nulidad o si su tasa de falsos positivos pasa del nivel, las medidas ya existentes dentro (puerta y lados de T215, calibración de T160, bruto con Holm y emparejado de T175, apertura de T211), y que el informe marque «sin nulidad» lo que no la haya pasado —y eso no pueda sostener una decisión. Ficha `PLAN/T216.md`.",
    "effort": "medio",
    "phase": 33
   },
   {
-   "id": "T215",
+   "id": "T217",
    "title": "Un veredicto de verificación que no se pueda falsear",
    "deps": [
     "T116",
@@ -3389,15 +3434,15 @@ window.EIM_STATUS = {
     "T205"
    ],
    "state": "pending",
-   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario).** Hoy una sesión puede declarar el gate verde **sin que haya corrido una sola prueba**: `20261126-054149-gate-t213-3ed6` salió con **código 0** con el trabajo `fallido` **rc=1** y `No module named pytest` (corrió con el Python del sistema porque `python` no resuelve al venv con `--cwd` en un worktree), y `20261126-064802-gate-t213b-a340` quedó `fallido` **rc=None** tras 10 786 s al morir la sesión que lo encoló. Pide que `submit` propague el rc, que la cola resuelva el intérprete o rechace el encolado, un **veredicto firmado** por trabajo (`data/jobs/verdict/<id>.json`: commit, árbol, rc, nº de pruebas, duración, pausas) como única definición de «gate verde», distinguir `interrumpido` de `fallido` con reencolado, y que el cierre de tareas y `continuity check` lo lean. Ficha `PLAN/T215.md`.",
+   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario).** Hoy una sesión puede declarar el gate verde **sin que haya corrido una sola prueba**: `20261126-054149-gate-t213-3ed6` salió con **código 0** con el trabajo `fallido` **rc=1** y `No module named pytest` (corrió con el Python del sistema porque `python` no resuelve al venv con `--cwd` en un worktree), y `20261126-064802-gate-t213b-a340` quedó `fallido` **rc=None** tras 10 786 s al morir la sesión que lo encoló. Pide que `submit` propague el rc, que la cola resuelva el intérprete o rechace el encolado, un **veredicto firmado** por trabajo (`data/jobs/verdict/<id>.json`: commit, árbol, rc, nº de pruebas, duración, pausas) como única definición de «gate verde», distinguir `interrumpido` de `fallido` con reencolado, y que el cierre de tareas y `continuity check` lo lean. Ficha `PLAN/T217.md`.",
    "effort": "medio",
    "phase": 33
   },
   {
-   "id": "T216",
+   "id": "T218",
    "title": "Las cifras que cierran decisiones, re-derivables",
    "deps": [
-    "T214",
+    "T216",
     "T49",
     "T134",
     "T137",
@@ -3408,15 +3453,15 @@ window.EIM_STATUS = {
     "T212"
    ],
    "state": "pending",
-   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario).** §0 de la skill `eim-auditoria` resume 158 tareas en **12 decisiones vinculantes**, cada una con su cifra (0 de 520 versiones en T137, 87 variantes en T134, ECE 0,024 en T160, familia de Holm 841 en T49, −0,180 % en T212 §5) y **ninguna lleva el comando que la reproduce**; la de T212 §5 resultó ser un artefacto. Pide un inventario (`PLAN/CIFRAS.md` + `v2/reports/cifras/`) con valor, fecha, commit, comando y nulidad (T214), un `figures verify` que recalcule lo recalculable, que lo «sin fuente» **no pueda citarse para cerrar nada**, el saneamiento del caso T212 §5 y que cerrar una tarea con cifra que decida obligue a registrarla. Ficha `PLAN/T216.md`.",
+   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario).** §0 de la skill `eim-auditoria` resume 158 tareas en **12 decisiones vinculantes**, cada una con su cifra (0 de 520 versiones en T137, 87 variantes en T134, ECE 0,024 en T160, familia de Holm 841 en T49, −0,180 % en T212 §5) y **ninguna lleva el comando que la reproduce**; la de T212 §5 resultó ser un artefacto. Pide un inventario (`PLAN/CIFRAS.md` + `v2/reports/cifras/`) con valor, fecha, commit, comando y nulidad (T216), un `figures verify` que recalcule lo recalculable, que lo «sin fuente» **no pueda citarse para cerrar nada**, el saneamiento del caso T212 §5 y que cerrar una tarea con cifra que decida obligue a registrarla. Ficha `PLAN/T218.md`.",
    "effort": "medio",
    "phase": 33
   },
   {
-   "id": "T217",
+   "id": "T219",
    "title": "La composición del libro, vigilada por el propio sistema",
    "deps": [
-    "T213",
+    "T215",
     "T212",
     "T210",
     "T144",
@@ -3424,24 +3469,24 @@ window.EIM_STATUS = {
     "T145"
    ],
    "state": "pending",
-   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario).** T213 hizo que **el lado** se mida solo; falta el resto de la composición, que hoy puede apartarse del diseño durante semanas sin aviso: 652 de 726 cortas (89,8 %) con **15 días sin una sola larga** (lo detectó el usuario), conservador **plano desde el 2026-11-01** (7 operaciones, 5 568 rechazos), las fichas del panel en otra contabilidad que el libro oficial (**−5 057,1 frente a −2 584,7 USDT**) y cuatro perfiles que son **una apuesta con cuatro tamaños** (T210). Pide perfil de composición y concentración por lado, marco, perfil, estrategia, apalancamiento y régimen; avisos con umbral en el código; comparación entre contabilidades publicada; e independencia efectiva. Describe, no corrige (T145 D). Ficha `PLAN/T217.md`.",
+   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario).** T215 hizo que **el lado** se mida solo; falta el resto de la composición, que hoy puede apartarse del diseño durante semanas sin aviso: 652 de 726 cortas (89,8 %) con **15 días sin una sola larga** (lo detectó el usuario), conservador **plano desde el 2026-11-01** (7 operaciones, 5 568 rechazos), las fichas del panel en otra contabilidad que el libro oficial (**−5 057,1 frente a −2 584,7 USDT**) y cuatro perfiles que son **una apuesta con cuatro tamaños** (T210). Pide perfil de composición y concentración por lado, marco, perfil, estrategia, apalancamiento y régimen; avisos con umbral en el código; comparación entre contabilidades publicada; e independencia efectiva. Describe, no corrige (T145 D). Ficha `PLAN/T219.md`.",
    "effort": "bajo",
    "phase": 33
   },
   {
-   "id": "T218",
+   "id": "T220",
    "title": "El contrapeso: el plan deja de crecer más rápido de lo que cierra",
    "deps": [
     "T159",
     "T203",
     "T205",
-    "T214",
-    "T215",
     "T216",
-    "T217"
+    "T217",
+    "T218",
+    "T219"
    ],
    "state": "pending",
-   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario; es la tarea sustractiva de la fase).** **210 tareas** (166 ☑, 16 ◐, 28 ☐) y **199 líneas de BACKLOG**, y de las 10 oportunidades de la auditoría del 11-26 **4 van a vía `cerrada`** (7 de 13 con las de T213): el plan acumula más de lo que convierte en cambios. Pide estado para **cada** línea de BACKLOG (`→ Txx`, `caduca AAAA-MM-DD` o `archivada` en `PLAN/BACKLOG_ARCHIVO.md`), una comprobación que avise de las que queden sin estado, un **tope de tareas ◐ simultáneas** (propuesta 8) en `PLAN/CONDICIONANTES.md` vigilado por `continuity check`, y nombrar qué líneas absorben T215 (cola y gate), T214/T216 (medición y cifras) y T217 (composición). No se poda historia. Ficha `PLAN/T218.md`.",
+   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario; es la tarea sustractiva de la fase).** **210 tareas** (166 ☑, 16 ◐, 28 ☐) y **199 líneas de BACKLOG**, y de las 10 oportunidades de la auditoría del 11-26 **4 van a vía `cerrada`** (7 de 13 con las de T215): el plan acumula más de lo que convierte en cambios. Pide estado para **cada** línea de BACKLOG (`→ Txx`, `caduca AAAA-MM-DD` o `archivada` en `PLAN/BACKLOG_ARCHIVO.md`), una comprobación que avise de las que queden sin estado, un **tope de tareas ◐ simultáneas** (propuesta 8) en `PLAN/CONDICIONANTES.md` vigilado por `continuity check`, y nombrar qué líneas absorben T217 (cola y gate), T216/T218 (medición y cifras) y T219 (composición). No se poda historia. Ficha `PLAN/T220.md`.",
    "effort": "medio",
    "phase": 33
   }

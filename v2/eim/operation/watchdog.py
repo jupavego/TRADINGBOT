@@ -26,6 +26,8 @@ from eim.operation.notify import JsonLog, WindowsToast
 from eim.operation.origin import stamp
 from eim.operation.port_watch import GRACE_S, LOST_S, PortWatch, Probe
 
+REPEAT_FLUSH = 500      # tope de repeticiones calladas antes de dejar un recuento
+
 
 def heartbeat_t(path: Path) -> int | None:
     try:
@@ -75,19 +77,52 @@ def instance_lock(path: Path) -> IO[bytes] | None:
     return f
 
 
+def _write(stream: str, text: str) -> None:
+    """Escribe con hora UTC. Nunca lanza: si este hilo muriera, la tubería se llenaría y el
+    servicio se quedaría parado al escribir en ella."""
+    try:
+        out = getattr(sys, stream)
+        out.write(f"{datetime.now(UTC):%Y-%m-%dT%H:%M:%SZ} {text}")
+        out.flush()
+    except (OSError, ValueError):          # `UnicodeEncodeError` es un `ValueError`
+        pass
+
+
 def _pump(source: IO[str], stream: str, tail: deque | None = None) -> None:
-    """Copia cada línea a `sys.<stream>` con su hora UTC. Sin ella, el 2026-11-06 no se pudo fechar
-    el fallo del socket (T140). Nunca deja de leer aunque no pueda escribir: si este hilo muriera,
-    la tubería se llenaría y el servicio se quedaría parado al escribir en ella."""
+    """Copia cada línea a `sys.<stream>` con su hora UTC, **colapsando las repetidas** (T206).
+
+    La hora viene de T140: sin ella, el 2026-11-06 no se pudo fechar el fallo del socket. El
+    colapso viene del 2026-11-25: `vigilante.err.log` tenía 72 MB y **366 812** de sus líneas eran
+    la misma (`socket.send() raised exception.`), de modo que ni el registro servía para mirar ni
+    las 8 líneas de `stderr_tail` de un reinicio decían nada. Una línea igual a la anterior no se
+    escribe: se cuenta, y el recuento sale cuando cambia la línea o cada `REPEAT_FLUSH`, así que
+    una tanda larga tampoco deja el registro mudo. El resumen también entra en `tail`.
+    """
+    prev: str | None = None
+    repeat = 0
+
+    def flush() -> None:
+        nonlocal repeat
+        if repeat:
+            note = f"(la línea anterior, {repeat} veces más)"
+            if tail is not None:
+                tail.append(note)
+            _write(stream, note + "\n")
+            repeat = 0
+
     for line in source:
+        clean = line.rstrip()
+        if clean == prev:
+            repeat += 1
+            if repeat >= REPEAT_FLUSH:
+                flush()
+            continue
+        flush()
+        prev = clean
         if tail is not None:
-            tail.append(line.rstrip())
-        try:
-            out = getattr(sys, stream)
-            out.write(f"{datetime.now(UTC):%Y-%m-%dT%H:%M:%SZ} {line}")
-            out.flush()
-        except (OSError, ValueError):      # `UnicodeEncodeError` es un `ValueError`
-            pass
+            tail.append(clean)
+        _write(stream, line)
+    flush()
 
 
 def spawn_with_tail(cmd: list[str], env: dict[str, str], keep: int = 30,

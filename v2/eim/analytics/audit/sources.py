@@ -53,7 +53,7 @@ def gates(api: str, symbol: str = "BTCUSDT") -> list[dict]:
 
 def candles(data_dir: Path, symbol: str = "BTCUSDT", tfs: tuple[str, ...] = ("1h", "4h"),
             bars: int = 3000) -> dict:
-    """Velas del disco para el signo de las puertas (T213): solo lectura, sin tocar la API.
+    """Velas del disco para el signo de las puertas (T215): solo lectura, sin tocar la API.
 
     El almacén es parquet, así que leerlo no compite con el servicio (al contrario que
     `paper.duckdb`). Si no hay velas de un marco, ese marco se queda sin medir.
