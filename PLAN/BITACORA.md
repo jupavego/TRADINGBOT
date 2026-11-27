@@ -4472,3 +4472,11 @@ pm run build.
 - **Decisión de diseño:** desactivar una clase o un agente **no** apaga su cálculo (cambiaría la huella de agentes y rompería el pre-registro de T95 que decide la revisión del 2026-12-29); sus candidatas pasan a sombra.
 - **Abierto:** BACKLOG T102 (7 puntos). Los umbrales de promoción los confirma T101.
 - **Siguiente paso:** T213 (términos de datos de Deribit), o T101 cuando T97 arranque.
+
+## 2026-11-27 · Cierre de T31 (corrida en papel, 4 semanas) y de T178 (retención de líderes)
+
+- **Hecho:** T31 ☑. Hay informe del periodo 2026-10-30 23:35 → 2026-11-27 14:38 UTC y la nota `PLAN/notas/T31_cierre.md`, con la aceptación, el universo oficial (667 operaciones, −0,06 R [−0,10, −0,03], −2 257 USDT), el backtest, la calibración y los incidentes. El periodo completo lo añade la tarea programada `t31-informe-final` a las 23:40 UTC. T178 ☑: las copias diarias de `leaders.duckdb` pasan de 945 a 821 MB entre el 20 y el 27-nov, así que la base dejó de crecer. ◆3 del usuario: el detalle de aprobados y `watch` se queda entero, con alarma en BACKLOG.
+- **Archivos:** `PLAN/notas/T31_cierre.md` (nuevo), `PLAN/notas/T178_retencion.md` (§ Cierre), `PLAN/{STATUS,BACKLOG,BITACORA}.md`, `status.js`.
+- **Pruebas:** no hay cambios de código. Informe vía `POST /v2/operation/report` (3 min 28 s); filas contadas en sólo lectura sobre 4 copias.
+- **Abierto:** las cifras del periodo completo (23:40 UTC). Capital real: no; lo decide el usuario por escrito.
+- **Siguiente paso:** el 28-nov, comprobar que T194 y T182 se encendieron a las 00:00 UTC; T143 compara contra este cierre.
