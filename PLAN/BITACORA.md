@@ -4525,3 +4525,8 @@ pm run build.
 
 - **Hecho:** la rama solo existía en `juanpablo-cpu` (4 commits sin subir y una nota sin guardar: los dos supuestos de ejecución, optimista al cierre y conservador en el nivel). Se guardó, se puso al día con `main` y se sube como PR. El número T208 seguía libre en `main`. La ficha pasa de «Fase 33» a la **fase 27 (cantera)**, porque la 33 es ahora la de integridad de la medición (PR #368).
 - **Abierto:** T208 ◐ espera la lectura del usuario; ninguna receta sobrevive y no hay nada que ascender.
+
+## 2026-11-27 · ◆ del usuario: T208 se cierra, T45 sigue aparcada, T66 espera el video
+
+- **Hecho:** se sigue lo recomendado en cada caso. T208 ☑ como «medida, sin supervivientes»: `forja_5m_v2` queda en BACKLOG hasta que T189 mida el ahorro de la entrada límite. T45 sigue ◐ y aparcada hasta que haya claves de testnet. T66 sigue ◐: el usuario está descargando un video para la muestra de ≥ 40 fotogramas.
+- **Siguiente paso:** con el video, sacar los fotogramas (`python -m eim.video.visual frames` y luego `label-template`) para que el usuario los etiquete.
