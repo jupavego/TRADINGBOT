@@ -82,6 +82,10 @@ AGENTS: tuple[Component, ...] = (
        "Mira el oro y los índices de EE. UU. (Nasdaq, S&P 500): si hay apetito o miedo al riesgo y "
        "cuánto se mueve hoy la cripto con ellos. Solo informa: pesa 0 hasta que se mida su aporte.",
        "T183", switch="intermarket"),
+    _a("vol_surface", "0.1.0", "Superficie de volatilidad",
+       "Lee las opciones de BTC de Deribit: cuánta volatilidad paga el mercado a 7 y 30 días, si "
+       "las coberturas bajistas cuestan más y la prima frente a la realizada. Solo informa: nunca "
+       "vota dirección.", "T214"),
     _a("plan", "1.0.0", "Plan de operación",
        "Propone una operación completa: precio de entrada, salida de pérdida (SL), objetivos (TP) y "
        "relación ganancia/riesgo, a partir de estructura y niveles. Siempre en modo Análisis.",

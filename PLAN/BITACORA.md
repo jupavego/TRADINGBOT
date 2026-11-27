@@ -4142,6 +4142,54 @@ pm run build.
 - **Siguiente paso:** T207, empezando por publicar el valor esperado por idea generada junto al de las
   llenadas; no tocar reglas vivas antes del cierre de T31 (2026-11-28).
 
+## 2026-11-21 · sesión Perfil adicional en la cantera → T208 (la forja)
+
+- **Hecho:** el usuario pidió un perfil adicional para la cantera: BTC en velas de 5 m, intradía (nada
+  abierto de un día para otro), **sesión americana**, compras o ventas, con **miles de estrategias
+  distintas** armadas con todos los indicadores posibles agrupados en familias por lo que miden,
+  variando periodo, dirección, un filtro opcional y la salida; cuenta de 10 000 $ sin interés
+  compuesto, riesgo del 1 %, 1:10 de tope, entrada en la vela siguiente a la señal y costos reales.
+  Se construyó entero y se midió. **Decisión de arquitectura:** familia propia `forja_5m_v1`
+  **aparte de la cantera**, porque meter miles de recetas buscadas en la historia dentro de
+  `prereg_cantera_v1` (42 prospectos, techo 50, parámetros canónicos elegidos sin mirar rendimiento)
+  haría saltar su `m` de 50 a miles y sus veredictos dejarían de significar nada; lo que sobreviva
+  se propone con ◆ para una plaza de reserva y opera **hacia adelante desde cero**.
+- **La rejilla, congelada antes de medir:** 70 disparadores en 7 familias (tendencia, ruptura,
+  reversión, momento, flujo de agresores, volatilidad y hora de la sesión) × 3 direcciones × 9
+  filtros × 10 salidas = **18 900 recetas**, que son el `m` de Romano-Wolf/Holm/e-BH y el `attempts`
+  del Sharpe deflactado. Pre-registro `v2/eim/validation/prereg/prereg_forja_5m_v1.json`
+  (huella `573b4e4602d5f084`) commiteado en `5ac96ed`, **anterior a toda cifra**; reserva
+  2026-05-04 → 2026-11-03 intacta.
+- **Resultado: 0 supervivientes de 18 900** (238 s por la cola, **18 562 364 operaciones**, 827
+  sesiones dentro de muestra). La mejor de la rejilla (`ema_20_100|corto|apertura|vwap_objetivo`,
+  n = 229, +0,168 R) da **t = 0,82**, p de Romano-Wolf **1,000** y **DSR 0,000**, con el máximo nulo
+  esperado en **z = 4,01** (t remuestreado 3,74). **PBO 0,47** frente al 0,20 pre-registrado.
+- **El hallazgo que sí vale: la barrera de costos.** La familia gana **+0,069 R brutos** por
+  operación y pierde **−0,322 R netos**, porque cada operación paga **0,391 R** de comisión y
+  deslizamiento: con riesgo del 1 % y stops de pocas décimas de por ciento el nocional ronda **8
+  veces la cuenta** (el tope de 1:10 muerde). **12 992 de 16 176 recetas son positivas en bruto y
+  solo 126 en neto.** En 5 m no hace falta una idea «un poco buena», hace falta una que gane ≥ 0,4 R
+  brutos por operación. El control de entradas al azar da ≈ −costo (−0,23 a −0,49 R según la
+  salida), así que el motor es sano.
+- **Archivos:** `PLAN/T208.md` (nueva, fase 33), `PLAN/notas/T208_forja_5m.md` (diseño), fila en
+  `STATUS.md`, fase 33 en `00_MASTER.md`, línea en `BACKLOG.md`; código `v2/eim/forge/`
+  (`session`, `anchored`, `features`, `space`, `engine`, `examine`, `fstats`, `report`, `prereg`,
+  `__main__`), pruebas `v2/tests/forge/`, informe `v2/reports/forge/forja_5m_20261121-0744.{md,json}`.
+  Datos: 403 994 velas de 5 m agregadas del 1 m del banco de T131 en `v2/backups/t208_forja/`
+  (2023-01-01 → 2026-11-04, **0 huecos**); no se tocó nada del vivo ni de la cantera.
+- **Pruebas:** 46 nuevas en `v2/tests/forge/` — la sesión americana con horario de verano, festivos
+  de NYSE y medias sesiones; **causalidad por truncado** de las 70+ variables (si se corta la serie
+  en `i`, todas valen lo mismo en `i`); el **motor vectorizado idéntico a un bucle lento** operación
+  por operación en las 10 salidas; y las normas (nocional ≤ 1:10, riesgo de precio ≤ 1 R, nada
+  abierto entre sesiones, sin interés compuesto). Gate completo por la cola.
+- **Abierto:** T208 ◐ esperando la lectura del usuario. No hay nada que ascender a la cantera. Lo
+  que mueve la barrera de costos (entradas límite a 2 pb, riesgo menor, otras sesiones y marcos)
+  está en `BACKLOG.md` T208 y sería `forja_5m_v2`, con `m` y reloj nuevos.
+- **En curso:** sin cambios en T31, T143, T172, T194, T196, T206 ni T207; la forja no toca el libro
+  oficial, ni la cantera, ni `params_fingerprint`.
+- **Siguiente paso:** que el usuario decida si se abre `forja_5m_v2` con entradas límite (tomando el
+  supuesto de llenado de lo que ya miden T189 y T207, no inventado) o si la línea de 5 m se cierra
+  aquí con lo aprendido.
 ## 2026-11-23 — El patrón de apertura, medido y puesto a medirse solo (T211)
 - **Hecho:** el usuario describió el «patrón de apertura» (lo que hacen los 3 primeros minutos de una apertura se deshace en los 3 siguientes) y pidió evaluarlo aprovechando la apertura de Europa. Se midió con velas reales, no con memoria: 1 522 562 velas de 1 m de BTCUSDT (2024-01-01 → 2026-11-23 08:01 UTC, 100 % de cobertura, descargadas a un parquet aparte sin tocar el almacén vivo) y 6 plazas con horarios en hora local. **No está**: reversión 49,4 % (p = 0,77), corr(A,B) = −0,02, bruto ±0,3 bps; 4 527 operaciones con tope de 4 h dan −8,7 a −9,5 bps de media, estable en 2024/2025/2026 y **idéntico en 2 000 minutos al azar**. En el control de los 1440 minutos del día las aperturas quedan por debajo de la media de reversión. La apertura de Europa de hoy (08:00 UTC) continuó, no revirtió. Lo que sí hay: salto de volatilidad en el minuto de apertura, y que el canal de apertura **no rebota, se rompe** (las 24 variantes de reversión dan bruto negativo; la ruptura, bruto positivo en las 5 plazas, +1,55 a +4,14 bps, bajo el coste de 6,3). Con órdenes límite en el extremo del canal el llenado es del 98,5-98,8 %, y meter el nivel hacia dentro empeora llenado y resultado. Las 2 coberturas simétricas a 60x que pidió el usuario dan **−5,40 % del margen todos los días por identidad** (gana el 0 % de las veces) y dejar correr la perdedora liquida una pata en el 19-45 % de los días. El ejemplo limpio que señaló (NY, 17-nov: A −80 USD, B +450 USD, +69,4 bps) es el percentil 98,8 de 755 días, con 18 continuaciones ≥ 50 bps frente a 21 reversiones: la simetría que explica una media de cero. Como el usuario pidió dejarlo operando y evaluando, se abrió T211 con los criterios **congelados antes** de acumular muestra.
 - **Archivos:** `PLAN/notas/patron_apertura_sesion_2026-11-23.md` (medición completa), `PLAN/T211.md`, fila en `STATUS.md`, 2 líneas en `BACKLOG.md`, nota en el expediente de `levels` de la cantera (medido y rechazado, no inscrito), `v2/eim/validation/prereg/prereg_apertura_v1.json`, `v2/eim/analytics/apertura.py`, `apertura_report.py`, `v2/scripts/apertura_informe_mensual.ps1` y 4 scripts de medición en `v2/scripts/` (`descargar_1m_btc.py`, `patron_apertura_sesion.py`, `patron_apertura_canales.py`, `patron_apertura_coberturas.py`).
@@ -4394,6 +4442,24 @@ pm run build.
 - **Abierto:** BACKLOG T92 (6 puntos).
 - **Siguiente paso:** T93 (escáner, con T91 y T92 ya dentro).
 
+## 2026-11-26 · T215 — auditoría del lado: por qué casi todo es corto
+
+- **Hecho.** Fase de auditoría y retroalimentación pedida por el usuario por «la gran cantidad de cortos y la poca cantidad de largos». Auditoría de T159 corrida (`reports/audit/audit_2026-11-26.md`): n = 726, E[R] −0,074 R [−0,118, −0,030], bruto +0,051, costo 0,125, acierto 78,1 % frente a 84,2 % de equilibrio, PnL −2 915 USDT; 7 d: n = 250, E[R] −0,040. Diagnóstico del lado medido sobre el libro oficial, la sombra y las velas del disco: **652 de 726 cortas (89,8 %)**, 15 días sin una larga (11-08 → 11-22), 19/236 en los últimos 7 días. Causa: la puerta de T212 — **1h bajista 821 h y 4h bajista 781 h, sin girar en 34 días**; la rápida giró tres veces en cuatro días (11-22, 11-24, 11-26) y sus 18 largos del 11-23 perdieron −302,4 USDT. **El sesgo no es la fuga de esta semana:** en la sombra sin veto el largo rinde −0,333 R (n = 420) frente a +0,156 del corto (n = 667), −0,490 ± 0,154 y −0,530 ± 0,204 agrupado por vela de apertura; la fuga es la fricción (bruto positivo, neto negativo).
+- **Archivos.** `PLAN/notas/T215_sesgo_direccional.md` (nuevo), `PLAN/T215.md` (nuevo), `PLAN/STATUS.md` (fila T215 ◐), `PLAN/BACKLOG.md` (◆ de la puerta alternativa, bajo T159).
+- **Pruebas.** Gate por la cola (`ruff` + `pytest`); nada de `eim/` cambió en esta sesión.
+- **Abierto.** La ◆ del usuario sobre pre-registrar en sombra una puerta alternativa (reabre T139). Y `GET /v2/paper` llevó más de 8 min en «Calculando…» con `/v2/health` sin responder en 30 s, así que el recuento de rechazos por marco se citó del 11-24: es el atasco del único trabajador ya anotado para T206.
+- **En curso.** T215 criterios 1–6 (publicar el sesgo y el signo de cada puerta en cada auditoría).
+- **Siguiente paso.** Implementar T215 (palanca nueva en `eim/analytics/audit/levers.py`, encabezado del informe, línea en la skill y pruebas).
+
+## 2026-11-26 (cont.) · T215 ☑ — el lado y el signo de las puertas, medidos solos
+
+- **Hecho.** Implementados los seis criterios de T215 tras el «sí» del usuario. Nuevo módulo puro `v2/eim/analytics/audit/sides.py` (reparto por lado, contraste de los dos lados sobre la sombra agrupando por vela de apertura, signo de cada puerta) enganchado a `kpis.book_kpis` (`book.sides`), `build.build` (`sides.contrast`, `sides.gate_signs`), `levers.opportunities` (tres líneas informativas con vía `cerrada (T139 P1)`), los cambios entre auditorías (`sides.short_share`) y el informe (encabezado, líneas «LADO:» y «PUERTAS:» de consola, §6 del Markdown). La forma de una oportunidad se movió a `eim/analytics/audit/__init__.py` (`opp`) para que `levers` y `sides` la compartan sin ciclo y sin pasar de 300 líneas.
+- **Hallazgo de método.** Promediar el retorno a 24 h de todas las velas de cada tramo **inventa signo** (la ventana de las últimas cae al otro lado del giro): 10 de 12 caminatas aleatorias puras aparentaban «distingue al revés». Se mide desde el giro, un dato por giro. Resultado en los 98 d del disco: ninguna puerta distingue dirección (15m +0,220 % ± 1,157 %, 40 giros; 1h +1,973 % ± 6,206 %, 3 giros; 4h 1 giro). Corrige §5 de T212 sin cambiar su conclusión y refuerza T139 P1.
+- **Archivos.** `v2/eim/analytics/audit/{sides.py (nuevo), __init__.py, kpis.py, build.py, levers.py, render.py, sources.py, __main__.py}`, `v2/tests/analytics/{test_t215_sides.py (nuevo), test_audit.py}`, `PLAN/T215.md`, `PLAN/notas/T215_sesgo_direccional.md` (§6 nueva), `PLAN/STATUS.md`, `.claude/skills/eim-auditoria/SKILL.md`.
+- **Pruebas.** `ruff` limpio; `pytest tests/analytics` 57 pasadas; gate completo por la cola (`gate-t213`). Verificado además contra el libro real con `--ledger` y las velas del disco.
+- **Abierto.** La ◆ del usuario sobre pre-registrar en sombra una puerta alternativa (reabre T139). El recuento de rechazos por marco se sigue citando del 11-24 porque `GET /v2/paper` no se asienta (T206).
+- **Siguiente paso.** Que la auditoría del lunes (`eim-auditoria-semanal`) lea ya las líneas nuevas; T93 sigue siendo el siguiente de la fase en curso.
+- **Decidido por el usuario (2026-11-26).** La ◆ de pre-registrar en sombra una puerta alternativa queda **cerrada**: con 3 y 1 giro de las puertas lentas en 98 días no hay muestra con la que juzgarla, y abrirla gastaría un intento de Holm sin concluir en meses (T139 P1, límite 2027-05-06). Registrado en `PLAN/BACKLOG.md` y en §0 de la skill `eim-auditoria` para que ninguna auditoría la reproponga.
 ## 2026-11-26 · T206 — «el proyecto está caído»: la interfaz vigilada y la microestructura en caché
 
 - **Por qué:** el usuario avisó de que el proyecto estaba caído. No lo estaba del todo: los cinco servicios de datos latían y el vigilante del conjunto decía «ok» en cada pasada, pero **Vite llevaba muerto desde las 16:27 UTC** (7 h), arrastrado por uno de los cuelgues de la API, y nadie la levanta porque T148 la dejó fuera a propósito. La API, además, en bucle: **6 reinicios ese día** (30 acumulados), todos por `latido detenido ~910 s`, con 4,6–7 GB privados y el equipo en ~300 MB libres de 16 GB (`NVIDIA Overlay` se llevaba 4,0 GB él solo).
@@ -4404,7 +4470,9 @@ pm run build.
 - **Gate (2026-11-26, 15:25→15:56 UTC): VERDE por la cola — 4 372 pasadas, 9 omitidas, 0 fallos** (1 856 s, 3 pausas, trabajo `20261126-152526-gate-t206-fddd`); ruff limpio. Costó cuatro intentos: las tres primeras vueltas acabaron en `reencolado_por_memoria` sin fallar una prueba, por presión **ajena** (el gate gasta 436 MB de pico), y la cola le subía lo que pedía en cada vuelta (1 000 → 1 792 MB). Entró tras **relanzar la evaluación de líderes** (2 562 → 530 MB; estaba con código anterior a la evaluación incremental, RUNBOOK §10) y tras cerrar el usuario la superposición de NVIDIA (4 GB). El defecto de la cola queda en BACKLOG de T149.
 - **Abierto:** la medición de 500 velas sigue sin correr (se canceló para dejar paso al gate), con el equipo sin memoria libre. Falta el reparto de `build_snapshot` (velas, funding, `liq_flow`), rotar `vigilante.err.log` por tamaño y ver en vivo si la API deja de crecer; todo en `BACKLOG.md`.
 - **Dos cosas que decidir el usuario:** meter la interfaz en el vigilante **revisa la decisión de T148** («solo los cinco servicios de datos»), y `NVIDIA Overlay` lleva 4 GB retenidos (programa suyo, no se cierra desde las sesiones).
-- **Siguiente paso:** gate verde, fusionar y reiniciar la API para que la caché entre en vivo.
+- **Desplegado el 2026-11-26 a las 18:59 UTC** (PR #367 → `0336106`; lo trajo y reinició la API `sincronizar_main.ps1` en su pasada de los 5 min, sin tocar nada a mano). **Medido en vivo a las 19:30, con el equipo en uso: `/v2/snapshot` n=500 en 2,76 s y luego 1,72 s; n=1500 en 2,24 s; `/v2/health` 0,18 s** —seis horas antes, esa misma llamada eran 113 s en caliente y 232 s en frío—. La caché ocupa 366 KB para 3 729 velas de los tres marcos.
+- **Dos cosas aprendidas al desplegar:** (1) **la primera lectura de una ventana grande no cabe dentro de la API**: tres llamadas seguidas de 500 velas dejaron sin latido al único trabajador y el vigilante la reinició (19:14, `latido detenido 909 s`), así que la caché se calienta desde fuera (`read_micro` contra la misma carpeta escribe los mismos archivos); (2) la memoria de la API sigue en 4,3 GB: el pico de lectura desaparece, pero lo que el proceso ya tomó no lo devuelve, y eso solo se juzga con un día de observación.
+- **Siguiente paso:** mirar la memoria de la API mañana y, si no crece, cerrar los dos criterios que quedan (candado por serie y `/v2/health` que marque una ruta colgada).
 ## 2026-11-25 · T93 — escáner global (1/2): universo, embudo, cola y caché
 
 - **Hecho:** escáner del universo completo de perpetuos USDⓈ-M de Binance, sin órdenes: etapas 1 y 2 con motivo y contador de cada exclusión (frescura contra el calendario del instrumento), etapa 3 vectorizada con NumPy sobre un panel cargado en una sola consulta (puntuación de interés con métricas de calidad, determinista), cola con prioridad, 2 procesos como mucho, caché por (instrumento, marco, hash de datos, versión), reintentos, tasa por proveedor, reanudación y cancelación limpia; dos ritmos (rápido: alertas de precio y diferencial; profundo: lista corta preparada para T94 sin correr agentes); servicio supervisado `python -m eim.scanner run|status` con latido y registro en `scanner.duckdb`; ficha `scanner.service` en el catálogo del Observatorio.
@@ -4480,3 +4548,58 @@ pm run build.
 - **Pruebas:** no hay cambios de código. Informe vía `POST /v2/operation/report` (3 min 28 s); filas contadas en sólo lectura sobre 4 copias.
 - **Abierto:** las cifras del periodo completo (23:40 UTC). Capital real: no; lo decide el usuario por escrito.
 - **Siguiente paso:** el 28-nov, comprobar que T194 y T182 se encendieron a las 00:00 UTC; T143 compara contra este cierre.
+## 2026-11-27 · T197 (pesos por régimen) se sube como T221
+
+- **Hecho:** la rama `claude/t197-pesos-regimen` solo existía en `juanpablo-cpu`, con el pre-registro y la medición del 2026-11-19, y nunca se registró en `STATUS.md`. Mientras tanto, `main` abrió otra T197 (despliegue automático, fase 32). Se pone al día con `main`, se renumera **T221** (fase 28) y se registra ◐. Los informes pasan a `reports/t221_pesos_regimen.*`. El banco conserva su nombre `data/t197_banco`.
+- **Siguiente paso:** correr la medición por la cola y escribir el veredicto según el pre-registro.
+## 2026-11-27 · T208 (la forja) se sube y se pone al día
+
+- **Hecho:** la rama solo existía en `juanpablo-cpu` (4 commits sin subir y una nota sin guardar: los dos supuestos de ejecución, optimista al cierre y conservador en el nivel). Se guardó, se puso al día con `main` y se sube como PR. El número T208 seguía libre en `main`. La ficha pasa de «Fase 33» a la **fase 27 (cantera)**, porque la 33 es ahora la de integridad de la medición (PR #368).
+- **Abierto:** T208 ◐ espera la lectura del usuario; ninguna receta sobrevive y no hay nada que ascender.
+
+## 2026-11-27 · ◆ del usuario: T208 se cierra, T45 sigue aparcada, T66 espera el video
+
+- **Hecho:** se sigue lo recomendado en cada caso. T208 ☑ como «medida, sin supervivientes»: `forja_5m_v2` queda en BACKLOG hasta que T189 mida el ahorro de la entrada límite. T45 sigue ◐ y aparcada hasta que haya claves de testnet. T66 sigue ◐: el usuario está descargando un video para la muestra de ≥ 40 fotogramas.
+- **Siguiente paso:** con el video, sacar los fotogramas (`python -m eim.video.visual frames` y luego `label-template`) para que el usuario los etiquete.
+## 2026-11-27 · Renumeración: T213 (lado del libro) pasa a T215
+
+- **Hecho:** mientras el PR #366 esperaba, `main` usó T213 y T214 para las opciones cripto (T100). Esta rama se puso al día con `main` y su tarea pasa a **T215** (`PLAN/T215.md`, `PLAN/notas/T215_sesgo_direccional.md`, `tests/analytics/test_t215_sides.py`); solo se renumeró lo que añade la rama. El nombre del trabajo `gate-t213` de la cola se deja como está: es el que figura en `data/jobs`.
+- **Siguiente paso:** fusionar #366; la fase 33 (#368) pasa a T216–T220.
+
+## 2026-11-26 (cont.) · Fase 33 abierta — integridad de la medición (T216–T220)
+
+- **Hecho.** Tras la retrospectiva que pidió el usuario («si nos pusiéramos retrospectivos y estructurales») y su «sí, las cinco», queda abierta la **fase 33 · Integridad de la medición** con cinco tareas ☐: **T216** prueba de nulidad obligatoria (el método de T212 §5 daba señal en 10 de 12 caminatas aleatorias puras), **T217** veredicto de verificación que no se pueda falsear (la cola devolvió 0 con el trabajo `fallido` rc=1 y `No module named pytest`), **T218** las cifras que cierran decisiones, re-derivables (las 12 decisiones de §0 de la skill no llevan el comando que las produjo), **T219** la composición del libro vigilada (89,8 % cortas, conservador plano desde el 11-01, panel y libro discrepando ≈ 2 500 USDT) y **T220** el contrapeso sustractivo (210 tareas y 199 líneas de BACKLOG; 4 de 10 oportunidades con vía `cerrada`). Ninguna implementada: esta sesión solo escribe el plan.
+- **Archivos.** `PLAN/T216.md` … `PLAN/T220.md` (nuevos), `PLAN/STATUS.md` (cinco filas ☐ tras la de T215), `PLAN/BACKLOG.md` (la línea de la fase y qué absorbe T220), `PLAN/BITACORA.md`, `PLAN/roadmap.html` y `PLAN/status.js` regenerados.
+- **Pruebas.** `ruff` limpio y gate completo por la cola con el intérprete explícito del venv (`gate-fase33`), comprobado por estado y rc y no por el código de salida, que es la lección de T217. Solo cambian `.md`: no se tocó `v2/eim/` ni `v2/tests/`.
+- **Abierto.** Las cinco tareas, sin empezar. El gate de T215 (`gate-t213b`) seguía en la cola al escribir esto, así que el PR #366 no debe fusionarse todavía.
+- **En curso.** Nada de la fase 33; la rama es `claude/fase33-integridad`, apilada sobre la de T215.
+- **Siguiente paso.** Decidir con el usuario el orden: T217 es la más barata y la que protege todo lo demás; T216 es la que evita repetir el artefacto de T212 §5.
+- **Renumerada el 2026-11-27:** esta fase se abrió como T214–T218; `main` había usado T213/T214 para las opciones cripto, así que pasa a **T216–T220** (T214→T216, T215→T217, T216→T218, T217→T219, T218→T220) y la T213 del lado del libro a T215.
+## 2026-11-27 · T213 — términos de datos de Deribit y colector de cadenas de opciones
+
+- **Hecho:** T213 completa en modo ANÁLISIS. (1) Términos leídos en la fuente (`PLAN/notas/T213_terminos.md`): Deribit FZE permite el uso personal de sus datos de mercado y derivados (cl. 2.10), no exige atribución y no habla de guardar en local; la cl. 27.1(i) sobre recolección automatizada queda ambigua para la API pública documentada; Binance opciones no se pudo leer. (2) **◆ del usuario: aprobada a nivel 1, solo uso personal**, con confirmación escrita a Deribit en paralelo (si dice que no, se retiran este colector y el del DVOL). (3) Ficha `DERIBIT` (cubre también el DVOL), proveedor `option_book_summary`, colector `eim/data/options_chain.py` + `options_parse.py`, tarea `scripts/opciones_colector.ps1`, copia diaria y `restore` de `options/`. (4) Volumen medido en la portátil antes de programar: una toma de BTC = 35.2 kB (956 filas, 13 vencimientos, 0 descartadas); una toma de ETH = 27.9 kB (762 filas, 13 vencimientos, 0 descartadas) (medido 2026-11-27T16:07:18Z); presupuesto 1.0 MB/día → cada 1 h con BTC: 0.84 MB/día, 308.2 MB/año; copias diarias a un año ≤ 4314.84 MB. Programada: cada 1 h, monedas BTC, tarea «EIM - colector de opciones de Deribit (T213)» en la portátil (minuto 1 de las horas UTC múltiplo de la cadencia, siempre las 00:00 UTC). (5) Histórico: T214 acumula hacia adelante.
+- **Archivos:** nuevos `v2/eim/data/{options_chain,options_parse}.py`, `v2/scripts/opciones_colector.ps1`, `v2/tests/data/{options_helpers,test_options_chain,test_options_fixture,test_backup_options}.py`, `v2/tests/fixtures/options/deribit_btc_book_summary.json` (recorte real), `PLAN/notas/T213_terminos.md`; cambiados `v2/eim/data/providers/{deribit,meta}.py`, `v2/eim/data/{backup,backup_restore}.py`, `v2/docs/{OPERACION,ALMACENAMIENTO}.md`, `PLAN/{STATUS,CONTRATOS,BACKLOG,CONDICIONANTES,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** sin red; en la nube pasaron las 21 de opciones con un sustituto de `httpx` (sin `duckdb` allí); en la portátil, el recorte real (78 filas reales de BTC de 956 opciones vivas (vencimientos 2026-11-29T08:00:00Z, 2026-12-18T08:00:00Z)) y el gate completo: pytest: 4594 pasadas, 36 omitidas, 0 fallos.
+- **Cómo se hizo:** desde claude.ai leyendo la copia de la portátil (sin shell en el equipo). `aplicar_t213.cmd` grabó el recorte real, midió el volumen, aplicó la entrega en una copia aparte desde `origin/main`, pasó ruff, las pruebas, el análisis de los `.ps1` y el gate, fusionó en `main`, trajo `main` a la carpeta principal e instaló la tarea. No reinicia nada ni toca T31.
+- **Decisión de diseño:** una cara vacía del libro no es una fila incompleta (es un dato: nadie compra o vende); la calidad pasa los precios de BTC a USD con el subyacente de cada fila y usa Black-76, y guarda al lado la σ ATM de la marca de Deribit para que un error de unidades se vea.
+- **Abierto:** BACKLOG T213 (7 puntos), sobre todo la respuesta de Deribit.
+- **Siguiente paso:** T214 (agente de superficie de volatilidad, con pre-registro: cuántos días de tomas necesita y qué potencia tiene).
+
+## 2026-11-27 · T214 — superficie de volatilidad: potencia, pre-registro y agente informante
+
+- **Hecho:** entregables 1–4 de T214 en modo ANÁLISIS; queda la ◆ (entregable 5). (1) Rasgos puros de la superficie (`eim/options/surface.py` 1.0.0) con calidad propia en el dinero; (2) potencia a priori (`eim/options/surface_power.py`): con Holm en la familia ampliada (1 141) y la s de T165, 1 615–7 808 días puntuados → evaluación en 2032–2048, más allá del tope 2029-11-27; (3) pre-registro `PLAN/notas/T214_preregistro.md` en un commit propio anterior al código, con revisión de potencia a los 250 días válidos (no antes del 2027-08-05) que fija la fecha o cierra SIN POTENCIA sin gastar intentos; (4) agente `vol_surface` 0.1.0, informante, sesgo 0, no direccional, nunca `degraded`; `option_chain` en el snapshot; fuera del escáner para no tocar sus huellas.
+- **Archivos:** nuevos `v2/eim/core/options.py`, `v2/eim/data/options_read.py`, `v2/eim/options/{surface,surface_power,realized}.py`, `v2/eim/agents/vol_surface/{__init__,agent,params}.py`, `v2/eim/nursery/dossiers/vol_surface.json` (excluido de la cantera: no direccional), `v2/scripts/t214_superficie.py`, `v2/reports/t214_superficie.{md,json}`, `v2/tests/options/{surface_helpers,test_surface,test_surface_power}.py`, `v2/tests/agents/vol_surface/test_vol_surface.py`, `v2/tests/data/test_options_read.py`, `v2/tests/scanner/test_t214_out_of_scanner.py`, `PLAN/notas/T214_preregistro.md`; cambiados `v2/eim/core/{market,__init__}.py`, `v2/eim/data/snapshot.py`, `v2/eim/agents/{registry,capabilities,eligibility}.py`, `v2/eim/synthesis/params.py`, `v2/eim/observability/hooks.py`, `v2/eim/observability/catalog/{components_flow,components_agents}.py`, `v2/eim/scanner/{jobs,deep}.py`, `v2/eim/options/__init__.py`, `v2/tests/agents/{test_capabilities,test_runner}.py`, `PLAN/{STATUS,CONTRATOS,BACKLOG,CONDICIONANTES,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** en la nube, 33 de las 35 nuevas (superficie, potencia, agente y lectura; sin red, con la toma real de la portátil y el recorte de T213; las 2 del escáner necesitan el registro completo); en la portátil, huellas del escáner antes/después iguales y el gate completo: pytest: 4631 pasadas, 36 omitidas, 0 fallos.
+- **Cómo se hizo:** desde claude.ai leyendo la copia de la portátil (sin shell en el equipo). `aplicar_t214.cmd` aplicó la entrega en una copia aparte desde `origin/main`, comprobó que las huellas de agentes y capacidades del escáner no cambian, hizo un commit solo con el pre-registro y otro con el resto, pasó ruff, las pruebas y el gate, fusionó en `main` y trajo `main` a la carpeta principal. No reinicia nada ni toca T31.
+- **Decisión de diseño:** la calidad de la toma se mide en el dinero (marca contra precio medio), no con el estado por vencimiento de T213, que marca degradado ante una mariposa de un tick en las alas; el agente sigue a `intermarket` (nunca `degraded`) para que el motor de riesgo y la corrida de T31 no lo cuenten.
+- **Abierto:** BACKLOG T214 (6 puntos), sobre todo el código y la programación de la revisión de potencia.
+- **En curso:** T214 ◐ hasta la ◆.
+- **Siguiente paso:** ◆ del usuario: ¿`vol_surface` queda como contexto (recomendado) o entra como insumo de volatilidad si la evaluación pre-registrada pasa?
+
+## 2026-11-27 · T214 cierre — ◆ del usuario: `vol_surface` queda como contexto
+
+- **Hecho:** el usuario eligió la opción 1 (la recomendada): el agente `vol_surface` queda como contexto en la interfaz, informante en sombra; solo pasaría a insumo de volatilidad si la evaluación pre-registrada lo aprueba, con otra ◆. Nota `PLAN/notas/T214_decision.md`; T214 ◐ → ☑; fila de T214 quitada de CONDICIONANTES.
+- **Archivos:** `PLAN/notas/T214_decision.md` (nuevo), `PLAN/{STATUS,CONDICIONANTES,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** las del plan y del catálogo (`cerrar_t214.cmd`); sin cambios de código.
+- **Abierto:** BACKLOG T214, sobre todo (1): el código de la revisión de potencia antes del 2027-08-05 y dejarla programada.
+- **Siguiente paso:** el colector de T213 sigue tomando cada hora en la portátil; la revisión de potencia decide si algún día hay evaluación.

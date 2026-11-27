@@ -10,4 +10,7 @@ módulos dan esas piezas con pruebas contra valores publicados; no son una clase
 - `implied_vol`: volatilidad implícita con las cotas de no arbitraje comprobadas antes.
 - `chain`: calidad de una cadena (diferenciales, cruces, monotonía, convexidad, paridad) y su
   resumen (volatilidad ATM y pendiente de la sonrisa): el agente de prueba de la familia.
+- `surface` (T214): rasgos de la superficie de una toma de Deribit (σ ATM a 7 y 30 días y su
+  pendiente, sesgo 25Δ y 90/110, prima por plazo) y su calidad; `realized`: la σ realizada que
+  hace falta para la prima; `surface_power`: la potencia a priori del pre-registro de T214.
 """

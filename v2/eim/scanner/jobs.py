@@ -33,12 +33,19 @@ class Handler:
     provider: str | None = None  # límite de tasa que consume
 
 
+#: Agentes del registro que el escáner no considera (T214). `vol_surface` lee la cadena de
+#: opciones de Deribit de BTC, que ningún perpetuo del universo tiene: no podría correr nunca y,
+#: si contara, cambiaría las huellas de capacidades y de agentes, dejaría «desactualizado» el
+#: umbral del placebo de T95 y abriría intentos nuevos de la síntesis sin ninguna razón.
+OUT_OF_SCANNER: frozenset[str] = frozenset({"vol_surface"})
+
+
 def capabilities_fingerprint() -> str:
-    """Huella de las fichas de capacidades de los agentes (T91)."""
+    """Huella de las fichas de capacidades de los agentes (T91), sin los de `OUT_OF_SCANNER`."""
     from eim.agents.capabilities import CAPABILITIES
 
     d = hashlib.blake2b(digest_size=6)
-    for aid in sorted(CAPABILITIES):
+    for aid in sorted(set(CAPABILITIES) - OUT_OF_SCANNER):
         caps = CAPABILITIES[aid]
         for f in fields(caps):
             v = getattr(caps, f.name)
@@ -67,7 +74,7 @@ def deep_prep(payload: dict) -> dict:
                           asof=int(payload["asof"]))
     cov = coverage_of(snap, inst)
     eligible, degraded, ineligible, cheap = [], {}, {}, []
-    for aid in sorted(CAPABILITIES):
+    for aid in sorted(set(CAPABILITIES) - OUT_OF_SCANNER):
         ok, why = check(CAPABILITIES[aid], inst, cov)
         if not ok:
             ineligible[aid] = why

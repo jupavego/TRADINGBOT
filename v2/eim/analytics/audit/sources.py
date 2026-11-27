@@ -51,6 +51,25 @@ def gates(api: str, symbol: str = "BTCUSDT") -> list[dict]:
         return []
 
 
+def candles(data_dir: Path, symbol: str = "BTCUSDT", tfs: tuple[str, ...] = ("1h", "4h"),
+            bars: int = 3000) -> dict:
+    """Velas del disco para el signo de las puertas (T215): solo lectura, sin tocar la API.
+
+    El almacén es parquet, así que leerlo no compite con el servicio (al contrario que
+    `paper.duckdb`). Si no hay velas de un marco, ese marco se queda sin medir.
+    """
+    from eim.data.store import Store
+
+    st = Store(data_dir)
+    out = {}
+    for tf in tfs:
+        try:
+            out[tf] = st.read_candles(symbol, tf, last=bars)
+        except Exception:               # noqa: BLE001 — sin velas = sin medir, no un fallo
+            out[tf] = []
+    return out
+
+
 def calibration(api: str, symbol: str = "BTCUSDT", tf: str = "1h") -> dict:
     """Pronósticos persistidos frente a velas (T19/T26), tal como los publica la API."""
     try:
