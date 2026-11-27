@@ -82,6 +82,16 @@ Dentro de una vela, si caben stop y objetivo, **se asume el stop primero** (regl
 vigente en `eim/backtest/perp.py`). Un hueco de apertura más allá del nivel se ejecuta a la
 apertura, nunca a un precio mejor.
 
+Dos supuestos que conviene tener presentes al leer los números:
+
+- **Optimista:** las salidas por tiempo, por giro y por cierre de sesión se ejecutan **al cierre**
+  de su vela (con costo de tomador y deslizamiento). Al cierre de esa vela la señal ya se conoce,
+  así que es la aproximación habitual de «cerrar en el cierre», pero una versión estricta saldría
+  en la apertura de la siguiente. Afecta poco: ninguna de las mejores recetas sale por giro y la
+  familia pierde por costos, no por el instante de salida.
+- **Conservador:** el objetivo se ejecuta **en el nivel** (orden límite, sin deslizamiento y con
+  tarifa de creador), nunca mejor, aunque la vela lo haya pasado de largo.
+
 ## 6. El espacio de estrategias (esto es lo que se congela)
 
 `receta = disparador(familia · variable · periodo · umbral) × dirección × filtro opcional × salida`
