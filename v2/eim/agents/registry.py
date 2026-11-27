@@ -66,6 +66,7 @@ def default_registry(arb_assets: tuple[str, ...] | None = None) -> AgentRegistry
     from eim.agents.smart_money import SmartMoneyAgent
     from eim.agents.structure import StructureAgent
     from eim.agents.technical import TechnicalAgent
+    from eim.agents.vol_surface import VolSurfaceAgent
     from eim.agents.vwap import VWAPAgent
     from eim.data.providers.claude_context import make_context_analyzer
     from eim.data.providers.local_context import ollama_problem
@@ -80,7 +81,7 @@ def default_registry(arb_assets: tuple[str, ...] | None = None) -> AgentRegistry
                   TechnicalAgent(), CalendarAgent(), _arb(ArbitrageAgent, ArbAgentParams,
                                                           arb_assets), SmartMoneyAgent(),
                   LiteratureAgent(), BotsAgent(provider=lambda: params_of(current_policy())),
-                  IntermarketAgent(), PlanAgent()):
+                  IntermarketAgent(), VolSurfaceAgent(), PlanAgent()):
         reg.register(agent)
     return reg
 
