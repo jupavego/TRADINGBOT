@@ -12,8 +12,7 @@ def _month_start(ts: pd.Series) -> pd.Series:
     return ts.dt.normalize() - pd.to_timedelta(ts.dt.day - 1, unit="D")
 
 
-def period_keys(ts: pd.Series) -> dict[str, pd.Series]:
-    """Inicio de período por vela: día UTC, lunes, quincena (días 1/16) y mes."""
+def _keys(ts: pd.Series) -> dict[str, pd.Series]:
     day = ts.dt.floor("D")
     ms = _month_start(ts)
     return {
@@ -22,6 +21,20 @@ def period_keys(ts: pd.Series) -> dict[str, pd.Series]:
         "quincenal": ms.where(ts.dt.day <= 15, ms + pd.to_timedelta(15, unit="D")),
         "monthly": ms,
     }
+
+
+def period_keys(ts: pd.Series, tz: str = "UTC") -> dict[str, pd.Series]:
+    """Inicio de período por vela: día, lunes, quincena (días 1/16) y mes.
+
+    `tz="UTC"` (por defecto) es el corte de siempre. Con la zona de un calendario de bolsa
+    (T91), el día es el de la sesión en su zona —la NYSE abre a las 14:30 o 13:30 UTC según el
+    horario de verano— y el inicio de cada período se devuelve en UTC, comparable con las velas.
+    """
+    if tz == "UTC":
+        return _keys(ts)
+    local = ts.dt.tz_convert(tz).dt.tz_localize(None)
+    return {k: v.dt.tz_localize(tz, ambiguous=True, nonexistent="shift_forward")
+            .dt.tz_convert("UTC") for k, v in _keys(local).items()}
 
 
 def _typical(df: pd.DataFrame) -> pd.Series:
@@ -53,7 +66,8 @@ def classify_position(close: pd.Series, vwap: pd.Series, std: pd.Series) -> pd.S
     return pd.Series(np.where(invalid, "SIN_DATOS", out), index=close.index)
 
 
-def compute_vwap(ohlcv: pd.DataFrame, periods: tuple[str, ...] = PERIODS) -> pd.DataFrame:
+def compute_vwap(ohlcv: pd.DataFrame, periods: tuple[str, ...] = PERIODS,
+                 tz: str = "UTC") -> pd.DataFrame:
     """VWAP anclado + por período, con bandas, posición y pendiente (columnas del legado)."""
     df = ohlcv.copy().reset_index(drop=True)
     tp, vol = _typical(df), df["volume"]
@@ -63,7 +77,7 @@ def compute_vwap(ohlcv: pd.DataFrame, periods: tuple[str, ...] = PERIODS) -> pd.
     df["VWAP_ANCHOR"], df["VWAP_ANCHOR_STD"] = vwap, std
     df["VWAP_ANCHOR_UPPER_1"], df["VWAP_ANCHOR_LOWER_1"] = vwap + std, vwap - std
 
-    keys = period_keys(df["timestamp"])
+    keys = period_keys(df["timestamp"], tz)
     for period in periods:
         pre = PREFIX[period]
         df[f"{pre}_PERIOD"] = keys[period]

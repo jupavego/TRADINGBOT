@@ -1,0 +1,293 @@
+[
+ {
+  "meta": {
+   "mode": "SIMULADO",
+   "instrument": "equity.test.ACME",
+   "symbol": "ACME",
+   "asset_class": "equity",
+   "timeframe": "1d",
+   "calendar": "XNYS",
+   "multiplier": 1.0,
+   "cost_model": "equity_v1",
+   "kind": "equity",
+   "fingerprint": "4886b450b3eb15f7",
+   "bars_per_year": null,
+   "bars_per_year_source": "sin anualizar: el calendario 'XNYS' necesita `exchange_calendars` (extra `calendars`: pip install -e .[calendars]). No se adivinan festivos.",
+   "data_source": "fixture T90 (SINT\u00c9TICA, no son datos de mercado)",
+   "assumptions": {
+    "commission_per_share": "supuesto: tarifa fija p\u00fablica de un intermediario minorista de EE. UU. (0,005 USD/acci\u00f3n), no verificada en la fuente en T92 (no hay intermediario elegido: T103)",
+    "commission_min": "supuesto: m\u00ednimo por orden de esa misma tarifa (1 USD)",
+    "commission_max_frac": "supuesto: m\u00e1ximo del 1 % del valor negociado de esa tarifa",
+    "slippage.spread_bps": "supuesto: diferencial t\u00edpico de un instrumento l\u00edquido de la clase; sustituir por el medido (T97/T98/T99)",
+    "slippage.liquidity_notional": "supuesto: nocional negociado por vela cuando la fuente no declara volumen real (FX, \u00edndices)",
+    "shortable": "supuesto: disponible para pr\u00e9stamo; la disponibilidad real es por valor y por d\u00eda (sin fuente gratuita, T88)",
+    "borrow_rate_annual": "supuesto: 0,25 % anual de un valor de pr\u00e9stamo general; los dif\u00edciles de prestar pagan mucho m\u00e1s",
+    "borrow_day_count": "supuesto: base 360 de la convenci\u00f3n del pr\u00e9stamo de valores en USD",
+    "dividend_withholding": "supuesto: sin retenci\u00f3n (depende del pa\u00eds del inversor)"
+   }
+  },
+  "metrics": {
+   "n_trades": 2,
+   "n_bars": 43,
+   "initial_equity": 100000.0,
+   "final_equity": 101696.58608651352,
+   "total_return": 0.016965860865135074,
+   "sharpe": null,
+   "sortino": null,
+   "max_drawdown": 0.00035564885308994674,
+   "expectancy_r": 0.8484689333857726,
+   "win_rate": 1.0,
+   "profit_factor": null,
+   "exposure": 0.813953488372093,
+   "ci95": {
+    "expectancy_r": [
+     0.21309306401010628,
+     1.4838448027614388
+    ],
+    "win_rate": [
+     1.0,
+     1.0
+    ],
+    "profit_factor": null
+   },
+   "warning_few_trades": "2 operaciones: los intervalos son muy anchos",
+   "warning_annualization": "sin anualizar: el calendario 'XNYS' necesita `exchange_calendars` (extra `calendars`: pip install -e .[calendars]). No se adivinan festivos."
+  },
+  "costs": {
+   "gross_pnl": 1727.8574999999978,
+   "fees": 4.0,
+   "slippage": 113.27141348648082,
+   "financing": 0.0,
+   "dividends": 86.0,
+   "roll_costs": 0.0,
+   "net_pnl": 1696.5860865135169,
+   "total_costs": 117.27141348648082,
+   "rolls": 0,
+   "reasons": {
+    "end": 1,
+    "tp": 1
+   }
+  },
+  "stats": {
+   "bars_in_position": 35,
+   "signals": 2,
+   "rejected": 0,
+   "vetoed": 0,
+   "waited_closed": 0,
+   "splits": 1,
+   "dividends": 1,
+   "rolls": 0,
+   "ruined": false,
+   "n_bars": 43,
+   "final_equity": 101696.58608651352,
+   "veto_reasons": []
+  },
+  "trades": [
+   {
+    "side": 1,
+    "reason": "tp",
+    "qty": 172.0,
+    "bars": 30,
+    "gross": 1434.0499999999986,
+    "net": 1480.9216285000011,
+    "r": 1.4838448027614388
+   },
+   {
+    "side": 1,
+    "reason": "end",
+    "qty": 163.0,
+    "bars": 5,
+    "gross": 293.80749999999915,
+    "net": 215.66445801351585,
+    "r": 0.21309306401010628
+   }
+  ]
+ },
+ {
+  "meta": {
+   "mode": "SIMULADO",
+   "instrument": "fx.test.EURUSD",
+   "symbol": "EURUSD",
+   "asset_class": "fx",
+   "timeframe": "1h",
+   "calendar": "24/5",
+   "multiplier": 1.0,
+   "cost_model": "fx_v1",
+   "kind": "fx",
+   "fingerprint": "aab65ce0f0cdecd7",
+   "bars_per_year": null,
+   "bars_per_year_source": "sin anualizar: el calendario '24/5' necesita `exchange_calendars` (extra `calendars`: pip install -e .[calendars]). No se adivinan festivos.",
+   "data_source": "fixture T90 (SINT\u00c9TICA, no son datos de mercado)",
+   "assumptions": {
+    "regulation": "supuesto: r\u00e9gimen minorista europeo (ESMA) hasta elegir intermediario",
+    "commission_per_million": "supuesto: cuenta de solo diferencial, sin comisi\u00f3n aparte",
+    "slippage.spread_bps": "supuesto: diferencial t\u00edpico de un instrumento l\u00edquido de la clase; sustituir por el medido (T97/T98/T99)",
+    "slippage.liquidity_notional": "supuesto: nocional negociado por vela cuando la fuente no declara volumen real (FX, \u00edndices)",
+    "spread_bps_by_session": "supuesto: diferencial de un par mayor por franja (UTC); el rollover es la hora m\u00e1s cara",
+    "rate_base_annual": "supuesto: 0; el tipo real de la divisa base viene de T98 (BCE/FRED)",
+    "rate_quote_annual": "supuesto: 0; el tipo real de la divisa cotizada viene de T98",
+    "swap_markup_annual": "supuesto: margen del intermediario sobre el diferencial (0,5 %)",
+    "swap_day_count": "supuesto: base 365"
+   }
+  },
+  "metrics": {
+   "n_trades": 1,
+   "n_bars": 45,
+   "initial_equity": 100000.0,
+   "final_equity": 100156.37265069617,
+   "total_return": 0.0015637265069616824,
+   "sharpe": null,
+   "sortino": null,
+   "max_drawdown": 0.00037109363253139577,
+   "expectancy_r": 0.15637265069616788,
+   "win_rate": 1.0,
+   "profit_factor": null,
+   "exposure": 0.8444444444444444,
+   "ci95": {},
+   "warning_few_trades": "1 operaciones: los intervalos son muy anchos",
+   "warning_annualization": "sin anualizar: el calendario '24/5' necesita `exchange_calendars` (extra `calendars`: pip install -e .[calendars]). No se adivinan festivos."
+  },
+  "costs": {
+   "gross_pnl": 195.618153364632,
+   "fees": 0.0,
+   "slippage": 38.746135077836634,
+   "financing": 0.4993675906274799,
+   "dividends": 0.0,
+   "roll_costs": 0.0,
+   "net_pnl": 156.37265069616788,
+   "total_costs": 39.24550266846411,
+   "rolls": 0,
+   "reasons": {
+    "end": 1
+   }
+  },
+  "stats": {
+   "bars_in_position": 38,
+   "signals": 1,
+   "rejected": 0,
+   "vetoed": 0,
+   "waited_closed": 0,
+   "splits": 0,
+   "dividends": 0,
+   "rolls": 0,
+   "ruined": false,
+   "n_bars": 45,
+   "final_equity": 100156.37265069617,
+   "veto_reasons": []
+  },
+  "trades": [
+   {
+    "side": 1,
+    "reason": "end",
+    "qty": 15649.452269170617,
+    "bars": 38,
+    "gross": 195.618153364632,
+    "net": 156.37265069616788,
+    "r": 0.15637265069616788
+   }
+  ]
+ },
+ {
+  "meta": {
+   "mode": "SIMULADO",
+   "instrument": "future.test.CLX",
+   "symbol": "CLX",
+   "asset_class": "future",
+   "timeframe": "1d",
+   "calendar": "CMES",
+   "multiplier": 1000.0,
+   "cost_model": "futures_v1",
+   "kind": "future",
+   "fingerprint": "d5157b7ea3b567da",
+   "bars_per_year": null,
+   "bars_per_year_source": "sin anualizar: el calendario 'CMES' necesita `exchange_calendars` (extra `calendars`: pip install -e .[calendars]). No se adivinan festivos.",
+   "data_source": "fixture T90 (SINT\u00c9TICA, no son datos de mercado)",
+   "assumptions": {
+    "commission_per_contract": "supuesto: 2,25 USD por contrato y lado (intermediario + mercado + c\u00e1mara) de un futuro est\u00e1ndar de CME; no verificada en la fuente en T92",
+    "commission_frac": "supuesto: 0 (solo plazas que cobran sobre nocional la usan)",
+    "slippage.spread_bps": "supuesto: diferencial t\u00edpico de un instrumento l\u00edquido de la clase; sustituir por el medido (T97/T98/T99)",
+    "slippage.liquidity_notional": "supuesto: nocional negociado por vela cuando la fuente no declara volumen real (FX, \u00edndices)",
+    "spread_ticks": "supuesto: diferencial de 1 tick en un contrato l\u00edquido",
+    "initial_margin_frac": "supuesto: 10 % del nocional; el real es por contrato y lo publica la c\u00e1mara (SPAN)",
+    "maintenance_margin_frac": "supuesto: 9 % del nocional (90 % del inicial, la proporci\u00f3n habitual en CME)",
+    "roll_days_before_expiry": "supuesto: roll 5 d\u00edas antes del vencimiento (antes del aviso de entrega)"
+   }
+  },
+  "metrics": {
+   "n_trades": 2,
+   "n_bars": 45,
+   "initial_equity": 100000.0,
+   "final_equity": 101853.2735430995,
+   "total_return": 0.018532735430994984,
+   "sharpe": null,
+   "sortino": null,
+   "max_drawdown": 0.00020099387843172203,
+   "expectancy_r": 1.1212342253784242,
+   "win_rate": 1.0,
+   "profit_factor": null,
+   "exposure": 0.8222222222222222,
+   "ci95": {
+    "expectancy_r": [
+     0.897641649393643,
+     1.3448268013632056
+    ],
+    "win_rate": [
+     1.0,
+     1.0
+    ],
+    "profit_factor": null
+   },
+   "warning_few_trades": "2 operaciones: los intervalos son muy anchos",
+   "warning_annualization": "sin anualizar: el calendario 'CMES' necesita `exchange_calendars` (extra `calendars`: pip install -e .[calendars]). No se adivinan festivos."
+  },
+  "costs": {
+   "gross_pnl": 2035.854999999998,
+   "fees": 9.0,
+   "slippage": 101.6709707574961,
+   "financing": 0.0,
+   "dividends": 0.0,
+   "roll_costs": 71.91048614300027,
+   "net_pnl": 1853.2735430995017,
+   "total_costs": 182.58145690049636,
+   "rolls": 1,
+   "reasons": {
+    "end": 1,
+    "tp": 1
+   }
+  },
+  "stats": {
+   "bars_in_position": 37,
+   "signals": 2,
+   "rejected": 0,
+   "vetoed": 0,
+   "waited_closed": 0,
+   "splits": 0,
+   "dividends": 0,
+   "rolls": 1,
+   "ruined": false,
+   "n_bars": 45,
+   "final_equity": 101853.2735430995,
+   "veto_reasons": []
+  },
+  "trades": [
+   {
+    "side": 1,
+    "reason": "tp",
+    "qty": 1.0,
+    "bars": 21,
+    "gross": 1142.6000000000158,
+    "net": 1104.9097000000147,
+    "r": 1.3448268013632056
+   },
+   {
+    "side": 1,
+    "reason": "end",
+    "qty": 1.0,
+    "bars": 16,
+    "gross": 893.2549999999821,
+    "net": 748.3638430994869,
+    "r": 0.897641649393643
+   }
+  ]
+ }
+]

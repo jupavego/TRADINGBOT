@@ -41,9 +41,10 @@ import subprocess
 import sys
 import time
 from collections.abc import Callable, Mapping
+from functools import partial
 from pathlib import Path
 
-from eim.operation import fleet_cause
+from eim.operation import fleet_cause, fleet_web, port_watch
 from eim.operation.alerts import Alert
 from eim.operation.fleet_alert import alert_for, announce, stuck_alert
 from eim.operation.fleet_state import Decision, State
@@ -191,13 +192,16 @@ def script_path() -> Path:
     return Path(__file__).resolve().parents[2] / "scripts" / "servicio_continuo.ps1"
 
 
-def launch(data_dir: Path, timeout_s: float = 600.0) -> tuple[int, str]:
-    """Corre `servicio_continuo.ps1` SIN `-ConWeb` (decisión del usuario: solo los de datos).
+def launch(data_dir: Path, timeout_s: float = 600.0, con_web: bool = False) -> tuple[int, str]:
+    """Corre `servicio_continuo.ps1`. Sin `-ConWeb` (decisión del usuario de T148: los cinco de
+    datos) salvo cuando lo que falta es la interfaz (T206), que no se levanta sola de ninguna otra
+    forma; el guion es idempotente, así que no toca lo que ya corre.
 
     Devuelve (código de salida, últimas líneas). No lanza: un arranque que falla es un dato que
     hay que registrar, no una excepción que tumbe la pasada."""
     cmd = ["powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
-           "-WindowStyle", "Hidden", "-File", str(script_path()), "-DataDir", str(data_dir)]
+           "-WindowStyle", "Hidden", "-File", str(script_path()), "-DataDir", str(data_dir),
+           *(["-ConWeb"] if con_web else [])]
     try:
         p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8",  # noqa: S603
                            errors="replace", timeout=timeout_s, check=False)
@@ -213,11 +217,13 @@ def launch(data_dir: Path, timeout_s: float = 600.0) -> tuple[int, str]:
 
 def check(data_dir: Path, now_s: float | None = None, down_s: float = DOWN_S,
           dry_run: bool = False, launcher: Callable[[Path], tuple[int, str]] | None = None,
-          notify: bool = True, ops: list[dict] | None = None) -> dict:
+          notify: bool = True, ops: list[dict] | None = None,
+          web_probe: Callable[[], bool | None] | None = None) -> dict:
     """Una pasada: mirar, decidir, levantar si toca y dejarlo todo registrado.
 
     `ops` permite pasar los eventos de operación ya leídos (las pruebas lo usan); si no, se leen
-    de `data/operation/logs`."""
+    de `data/operation/logs`. `web_probe` es la sonda del puerto de la interfaz (T206): por
+    defecto, mirar si alguien escucha en 5173."""
     now = time.time() if now_s is None else now_s
     now_ms = int(now * 1000)
     data_dir = Path(data_dir)
@@ -232,9 +238,13 @@ def check(data_dir: Path, now_s: float | None = None, down_s: float = DOWN_S,
     blocked = (fleet_cause.network_cause(rows, now_ms, trust_open_alert=api_up)
                if missing(seen, down_s) else None)
     d = decide(seen, st, now_ms, down_s, blocked=blocked, beats=beats)
+    sonda = web_probe or (lambda: port_watch.listening(fleet_web.PORT))
+    web = (fleet_web.decide(sonda(), st, now_ms, down_s)
+           if fleet_web.enabled() else fleet_web.WebDecision())
     rc, tail = None, ""
-    if d.lift and not dry_run:
-        rc, tail = (launcher or launch)(data_dir)
+    if (d.lift or web.lift) and not dry_run:
+        propio = partial(launch, con_web=True) if web.lift else launch
+        rc, tail = (launcher or propio)(data_dir)
     stuck = fleet_cause.not_producing(data_dir, now)
     out = {"action": "simulado" if (d.lift and dry_run) else d.action, "missing": list(d.missing),
            "down_s": d.down_s, "tries": d.tries, "wait_s": d.wait_s,
@@ -243,6 +253,8 @@ def check(data_dir: Path, now_s: float | None = None, down_s: float = DOWN_S,
            **({"red": d.blocked} if d.blocked else {}),
            **({"dentro_de_otro": list(d.inside)} if d.inside else {}),
            **({"late_sin_producir": stuck} if stuck else {}),
+           **({"interfaz": web.action, "interfaz_down_s": web.down_s} if web.action != "ok"
+              else {}),
            **({"detail": tail} if tail else {})}
     if dry_run:
         return out
@@ -269,6 +281,9 @@ def check(data_dir: Path, now_s: float | None = None, down_s: float = DOWN_S,
     # veces en el registro y avisó una sola, que es lo que hay que hacer con los dos.
     repetido = d.holding and st.said == d.action
     st.said = d.action if d.holding else ""
+    fleet_web.remember(st, web, now_ms, rc)
+    repetido_web = web.holding and st.web_said == web.action
+    st.web_said = web.action if web.holding else ""
     nuevo_atasco = bool(stuck) and str(stuck.get("hour") or "") != st.stuck_hour
     st.stuck_hour = str((stuck or {}).get("hour") or "")
     st.save(state_path)
@@ -278,10 +293,15 @@ def check(data_dir: Path, now_s: float | None = None, down_s: float = DOWN_S,
                   component=COMPONENT, **{k: v for k, v in out.items() if k != "action"})
     if nuevo_atasco:
         log.write("conjunto_late_sin_producir", "warn", component=COMPONENT, **stuck)
+    if web.action not in ("ok",) and not repetido_web:
+        log.write(f"interfaz_{web.action}", "info" if web.action == "recuperada" else "warn",
+                  component=COMPONENT, down_s=web.down_s, tries=web.tries, wait_s=web.wait_s,
+                  rc=rc)
     a = alert_for(d.action, d.missing, d.down_s, d.tries, MAX_TRIES, rc, GIVE_UP_S,
                   waiting=bool(d.wait_s), blocked=d.blocked, inside=d.inside,
                   no_effect=d.no_effect) if not repetido else None
-    for x in (a, stuck_alert(stuck) if nuevo_atasco else None):
+    web_alert = fleet_web.alert(web, now_ms, rc) if not repetido_web else None
+    for x in (a, stuck_alert(stuck) if nuevo_atasco else None, web_alert):
         if x is not None:
             announce(Alert(now_ms, x.kind, x.level, x.title, x.detail, x.key, x.resolved),
                      log.alert_sink, WindowsToast() if notify else None,

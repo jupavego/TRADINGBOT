@@ -4,6 +4,7 @@ import { PaperArb } from './paper_arb'
 import { type BalLens, balanceView } from './paper_balance'
 import { EquityChart, PaperPriceChart } from './paper_chart'
 import { getPaper, PaperError, px, usd } from './paper_fmt'
+import { gatesView } from './paper_gates'
 import { acctHtml, covText, jobHtml, liveStrip } from './paper_head'
 import { PaperJournal } from './paper_journal'
 import { PaperLearn } from './paper_learn'
@@ -166,6 +167,7 @@ export class PaperView {
     // 2026-11-18: la franja «Instantánea · alcance · universo oficial» ya no se pinta en la vista
     // principal; sus datos siguen en cada instantánea guardada (/v2/paper/snapshot/{id}).
     this.q('live').innerHTML = liveStrip(v)
+    this.q('gates').innerHTML = gatesView(v.htf_gates)      // T212: la puerta, a la vista
     this.paintJob(v.job)
     this.q('bal').innerHTML = balanceView(v, this.bal, this.lens)
     const pv = this.prof()

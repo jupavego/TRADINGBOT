@@ -49,6 +49,31 @@ la variante sigue operando 15 m a 0,157 R vividos (agresivo 0,180) · funding 12
 calibración BTC 1 h: Brier skill −0,004, acierto direccional 46,8 %, n efectiva 29,5 («bear»
 27 % frente a 45 %, dentro de 2 errores típicos) · BTC 4 h: n efectiva 4,2, no se lee.
 
+**Tercera auditoría (2026-11-23):** n = 643 · E[R] −0,076 R (IC −0,124 … −0,028) · bruto +0,049 ·
+costo 0,126 R · acierto 77,8 % frente a 83,9 % · PnL −2 585 USDT · 7 d: n = 233, E[R] −0,016 ·
+funding 12 m BTC 3,435 % (sigue «cerca» del 4 %) · calidad HFT 0,972. Δ frente al 11-16: E[R] +0,034,
+acierto +5,3 pts, PnL −33. **Ese «giro» no es medible** y la retroalimentación del 2026-11-23 lo dejó
+escrito (`PLAN/notas/T210_utilidad_perfiles.md`): ΔE[R] W46 → W47 = +0,0485 ± 0,0845 (t = 1,12), la
+diferencia mínima detectable entre dos semanas de ~230 operaciones es 0,121 R/op y lo observado pediría
+≈ 12 semanas. Lo que mueve la utilidad es **cuántas operaciones tocan el tope completo** (29 de 233 en
+W47 = −1 611 USDT frente a +1 490 de las otras 204), y los cuatro perfiles son **una apuesta con cuatro
+tamaños** (587 de 643 operaciones cortas, 91 %), no cuatro muestras independientes.
+
+**La puerta del marco mayor llega tarde y la rápida no informa (T212, 2026-11-23).** El lado del libro
+lo fija `ProfileParams.htf` (15m → 1h EMA21/55, 1h → 4h EMA21/55, 4h → 4h EMA50/200) con el veto
+`contra_tendencia`: 575 de 609 operaciones de BTCUSDT son cortas (94,4 %). Con el mínimo del 11-21 en
+55 127 y el precio a +15,8 %, la puerta de 15m giró **35 h** tarde y las de 1h y 4h siguen bajistas tras
+**758 y 718 h**; las aperturas posteriores al mínimo son 49, 45 cortas, **−731,7 USDT**. Antes de
+proponer acelerarla: en los 95 días de velas de 1 h del disco la puerta rápida cambia **39 veces** y **no
+distingue dirección** (retorno a 24 h: −0,338 % alcista frente a −0,158 % bajista), mientras las lentas sí
+(+0,455 % y +0,234 %). Acortar las EMAs cambia sesgo por ruido, y tocar la puerta **reabre T139 P1**: es
+◆ del usuario, nunca una propuesta de la auditoría. Detalle: el universo oficial incluye 38 operaciones
+de ETHUSDT (+255,1 USDT) del 10-21 al 10-28, anteriores al foco T122.
+
+**Quinta trampa, de T210: leer una diferencia semanal sin su diferencia mínima detectable.** Con la
+varianza de la escalera (sd ≈ 0,46 R), una semana solo distingue ≈ 0,12 R/op: cualquier Δ menor que eso
+se informa como «dentro del ruido» y no se convierte en hallazgo, ni al alza ni a la baja.
+
 **Tres trampas que T175 quitó de la herramienta y que no hay que reintroducir a mano:**
 comparar medias de dos mesas que toman ideas distintas (se empareja por perfil e idea); llevar al
 usuario una estrategia porque su **neto** pierde (el costo solo ya lo produce: se juzga el bruto con

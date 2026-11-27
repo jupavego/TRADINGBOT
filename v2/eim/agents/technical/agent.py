@@ -24,6 +24,22 @@ def _sign(b: float, neutral: float) -> int:
     return 0 if abs(b) < neutral else (1 if b > 0 else -1)
 
 
+_VOLUME_FAMILIES = ("volumen", "flujo")
+_VOLUME_NOTE = {
+    "tick": "volumen de ticks (cuenta de cotizaciones, no volumen negociado): la familia "
+            "«volumen» pondera actividad, no volumen",
+    "none": "el instrumento no tiene volumen negociado: las familias «volumen» y «flujo» no "
+            "aplican (no se inventa un volumen)",
+}
+
+
+def absent_families(p: TechnicalParams) -> tuple[str, ...]:
+    """Familias que no aplican al instrumento (T91): las declaradas y, sin volumen, las dos de
+    volumen. No cuentan en la cobertura; lo que sí degrada es el aviso de volumen."""
+    extra = _VOLUME_FAMILIES if p.volume_kind == "none" else ()
+    return tuple(f for f in FAMILIES if f in p.families_absent or f in extra)
+
+
 class TechnicalAgent:
     id = "technical"
     version = "0.1.0"
@@ -33,6 +49,9 @@ class TechnicalAgent:
                  rules: dict[str, Rule] | None = None) -> None:
         self.params = params or TechnicalParams()
         self.rules = rules if rules is not None else RULES
+        self.absent = absent_families(self.params)
+        if self.absent:
+            self.rules = {k: r for k, r in self.rules.items() if r.family not in self.absent}
 
     # --- multi-marco -----------------------------------------------------------------------
     def _frames(self, snap: MarketSnapshot) -> tuple[dict[str, dict], list[str]]:
@@ -110,7 +129,8 @@ class TechnicalAgent:
         live = {f: d["vote"] for f, d in fams.items() if d["vote"] is not None}
         wsum = sum(weights[f] for f in live)
         fam_agree = 1 - sum(weights[f] * abs(v - bias) for f, v in live.items()) / wsum / 2
-        coverage = len(live) / len(FAMILIES)
+        applicable = [f for f in FAMILIES if f not in self.absent]
+        coverage = len(live) / len(applicable)
         frames, notes = self._frames(snapshot)
         agree = self._agreement(bias, frames)
         mtf = 1.0 if agree is None else p.mtf_min_factor + (1 - p.mtf_min_factor) * agree
@@ -118,18 +138,24 @@ class TechnicalAgent:
         confidence = max(0.0, min(p.max_confidence, fam_agree * magnitude * coverage * mtf))
 
         warnings = list(notes)
-        missing = [f for f in FAMILIES if f not in live]
+        missing = [f for f in applicable if f not in live]
         if missing:
             warnings.append(f"familias sin datos: {', '.join(missing)} (p. ej. flujo requiere "
-                            f"taker_buy_v); cobertura {len(live)}/{len(FAMILIES)}")
+                            f"taker_buy_v); cobertura {len(live)}/{len(applicable)}")
         if n < p.warmup_bars:
             warnings.append(f"solo {n} velas (< {p.warmup_bars}): calentamiento incompleto")
         if agree is None:
             warnings.append("sin otros marcos con datos: acuerdo multi-marco no medido")
-        status = "degraded" if (missing or n < p.warmup_bars) else "ok"
+        volume_note = _VOLUME_NOTE.get(p.volume_kind)
+        if volume_note:
+            warnings.append(volume_note)
+        status = "degraded" if (missing or n < p.warmup_bars or volume_note) else "ok"
 
         evidence = [f"Régimen {regime}: ADX {_num(fr.adx[-1])}, ancho BOLL en percentil "
                     f"{_num(fr.width_pct[-1])} → pesos {weights}"]
+        if self.absent:
+            evidence.append(f"Familias que no aplican a este instrumento: "
+                            f"{', '.join(self.absent)} (capacidad ausente, fuera de la cobertura)")
         for fam, d in fams.items():
             if d["vote"] is None:
                 continue
@@ -161,6 +187,7 @@ class TechnicalAgent:
                 "family_agreement": round(fam_agree, 4), "family_coverage": coverage,
                 "frames": {snapshot.timeframe: {"bias": round(bias, 4), "source": src,
                                                 "bars": n}, **frames},
+                **({"families_absent": list(self.absent)} if self.absent else {}),
                 "mtf_agreement": agree, "bars": n, "source": src,
                 "coverage": snapshot.coverage.get("candles"),
             },

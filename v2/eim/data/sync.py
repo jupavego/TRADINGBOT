@@ -6,7 +6,7 @@ import time
 
 from eim.data.providers.base import Provider
 from eim.data.store import Store
-from eim.data.timeframes import tf_ms
+from eim.data.timeframes import align, tf_ms
 from eim.observability import hooks_service
 
 
@@ -25,7 +25,7 @@ def sync_candles(
     """
     step = tf_ms(timeframe)
     end = end if end is not None else int(time.time() * 1000)
-    start -= start % step
+    start = align(start, timeframe)     # T90: `1w` alinea al lunes; el resto, igual que antes
     bounds = store.bounds(symbol, timeframe, kind)
     ranges: list[tuple[int, int]] = []
     if bounds is None:

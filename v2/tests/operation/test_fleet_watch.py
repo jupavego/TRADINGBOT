@@ -52,7 +52,8 @@ class Lanzador:
 
 
 def _check(tmp_path, now_s, lanzador, **kw):
-    return fleet_watch.check(tmp_path, now_s=now_s, launcher=lanzador, notify=False, **kw)
+    return fleet_watch.check(tmp_path, now_s=now_s, launcher=lanzador, notify=False,
+                             web_probe=lambda: True, **kw)
 
 
 # ------------------------------------------------------------------------------ lo que ve

@@ -33,8 +33,16 @@ class State:
     # T173 E4: la última hora de captura que se avisó como «late sin producir», para avisar una
     # vez por hora y no en cada pasada mientras el QC de esa hora siga siendo el último.
     stuck_hour: str = ""
+    # T206: la interfaz se vigila aparte de los cinco, con su propia cuenta y su propia espera,
+    # para que una interfaz que no arranque no gaste los intentos de la captura ni del bróker.
+    web_tries: int = 0
+    web_down_since_ms: int | None = None
+    web_last_try_ms: int | None = None
+    web_gave_up_ms: int | None = None
+    web_said: str = ""
 
     _KEYS = ("tries", "down_since_ms", "last_try_ms", "gave_up_ms")
+    _WEB = ("web_tries", "web_down_since_ms", "web_last_try_ms", "web_gave_up_ms")
 
     @classmethod
     def load(cls, path: Path) -> State:
@@ -44,10 +52,15 @@ class State:
             return cls()
         f = {k: d.get(k) for k in cls._KEYS}
         beats = d.get("last_try_beats")
-        return cls(int(f["tries"] or 0), f["down_since_ms"], f["last_try_ms"], f["gave_up_ms"],
-                   list(d.get("last_missing") or []),
-                   dict(beats) if isinstance(beats, dict) else {}, str(d.get("said") or ""),
-                   str(d.get("stuck_hour") or ""))
+        st = cls(int(f["tries"] or 0), f["down_since_ms"], f["last_try_ms"], f["gave_up_ms"],
+                 list(d.get("last_missing") or []),
+                 dict(beats) if isinstance(beats, dict) else {}, str(d.get("said") or ""),
+                 str(d.get("stuck_hour") or ""))
+        for k in cls._WEB:
+            setattr(st, k, int(d[k]) if isinstance(d.get(k), (int, float)) else None)
+        st.web_tries = int(d.get("web_tries") or 0)
+        st.web_said = str(d.get("web_said") or "")
+        return st
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -55,7 +68,8 @@ class State:
         tmp.write_text(json.dumps({**{k: getattr(self, k) for k in self._KEYS},
                                    "last_missing": self.last_missing,
                                    "last_try_beats": self.last_try_beats, "said": self.said,
-                                   "stuck_hour": self.stuck_hour},
+                                   "stuck_hour": self.stuck_hour, "web_said": self.web_said,
+                                   **{k: getattr(self, k) for k in self._WEB}},
                                   ensure_ascii=False), encoding="utf-8")
         tmp.replace(path)
 

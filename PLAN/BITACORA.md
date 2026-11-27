@@ -3468,7 +3468,7 @@ y por informante, si lo que cada agente dice en vivo acierta la dirección.
 ## 2026-11-19 · sesión «Traer lo del colaborador» · El gate de T195/T196 y la API caída desde el reinicio
 - **Hecho:** no había nada que traer (main local, `origin/main` y GitHub los tres en `d9af5c7`; lo de Santivego ya estaba aquí). Corrido el **gate completo** por la cola (21,6 min, pico 821 MB, 0 pausas: la captura no sufrió): falló **una** prueba, `tests/docs/test_env_vars.py::test_every_variable_the_code_reads_is_documented`, porque `EIM_SHARE_FROM` (T196, #316) entró sin su fila en `docs/OPERACION.md` §2. Añadida la fila; `tests/docs` y `tests/operation/test_usage_alert.py` (las dos únicas que leen ese documento) pasan y ruff queda limpio. **T195 cerrada** y verificada en vivo: la vista sirve `balance` oficial (441 operaciones), `balance_all` (722) y `balance_lens`. T196 con gate y despliegue hechos, a la espera del encendido del 28-nov (`GET /v2/share/status` → `enabled: false`, dormido).
 - **Incidente (lo gordo):** el equipo se reinició a las 08:29 local y **la API no arrancó en toda la mañana**. Tras el apagado sucio, `data/operation/state_simulado.json` quedó en **9 372 bytes de ceros** (NTFS confirmó el tamaño del archivo, no sus datos) y `eim/operation/state.py::load` hace `json.loads` sin red, así que el arranque abortaba; el vigilante la relanzó **21 veces** cada 5 min, en silencio, con T31 y las sombras de T187–T189 paradas ≈ 6,5 h. Restaurado el archivo desde `backups/eim_20261119-000032` (6 operaciones vivas, balance 9 809,69), con el dañado al lado como `state_simulado.json.antes-de-restaurar-20261119-095650`; descartado el `restore` completo del RUNBOOK porque habría revertido las tres bases 9 h por un solo JSON. API arriba en el intento 22 (15:00:36 UTC). El mismo apagón truncó **6 parquets** de la captura (`micro/liqs`, `micro/top`, `micro_hft/{bbo,depth,mark,trades}`, todos de `hour=13`): los apartó **otra sesión de Claude que trabajaba el mismo incidente en esta misma carpeta** renombrándolos a `corrupto-20261119-*`; esa sesión atribuye además a uno de ellos la caída dura de la API de las 15:04:35 UTC (código 3221226505 = 0xC0000409, caída nativa de DuckDB que Python no atrapa), y dejó sin confirmar cambios propios en `eim/operation/{state,supervisor}.py` (fsync al guardar y cuarentena del estado ilegible). No los toqué.
-- **Archivos:** `v2/docs/OPERACION.md` (fila de `EIM_SHARE_FROM`), `PLAN/{STATUS,BACKLOG,BITACORA}.md`, `PLAN/roadmap.html`; fuera del repo, `~/.claude/eim-vigia/estado_tareas.py` (reglas de las 12 tareas ◐).
+- **Archivos:** `v2/docs/OPERACION.md` (fila de `EIM_SHARE_FROM`), `PLAN/{STATUS,BACKLOG,BITACORA}.md`, `PLAN/status.js`. fuera del repo, `~/.claude/eim-vigia/estado_tareas.py` (reglas de las 12 tareas ◐).
 - **Pruebas:** gate completo por la cola (1 fallo, el de arriba); tras el arreglo, `tests/docs` + `tests/operation/test_usage_alert.py` verdes y `ruff check eim tests` limpio. Verificación en vivo por la API, no solo por consola: `/v2/paper` (T195), `/v2/paper/accounting` (T196), `/v2/paper/asymmetry`, `/v2/direction/watch`, `/v2/calibration/watch` y `/v2/share/status`, las cuatro últimas a 200.
 - **Abierto:** cuatro huecos anotados en BACKLOG, uno verificado en el código: `eim/continuity/check.py::_api_port` hace `return` **en silencio** cuando «operación» no tiene latido —justo cuando el servicio está muerto—, por eso `continuity check` dio «CON AVISOS» sin mencionar que la API llevaba horas caída. Los otros tres: `load()` sin reserva ante un estado ilegible, `save()` sin `fsync` antes del `replace`, y el vigilante sin avisar de N reinicios seguidos por el mismo error.
 - **Siguiente paso:** decidir si esos cuatro huecos abren tarea propia (son de operación, cerca de T126/T127/T140) y mirar por qué la retención de T178 no bajó `leaders.duckdb`, que pasó de 987 MB anoche a 1 339 MB.
@@ -4190,3 +4190,338 @@ pm run build.
 - **Siguiente paso:** que el usuario decida si se abre `forja_5m_v2` con entradas límite (tomando el
   supuesto de llenado de lo que ya miden T189 y T207, no inventado) o si la línea de 5 m se cierra
   aquí con lo aprendido.
+## 2026-11-23 — El patrón de apertura, medido y puesto a medirse solo (T211)
+- **Hecho:** el usuario describió el «patrón de apertura» (lo que hacen los 3 primeros minutos de una apertura se deshace en los 3 siguientes) y pidió evaluarlo aprovechando la apertura de Europa. Se midió con velas reales, no con memoria: 1 522 562 velas de 1 m de BTCUSDT (2024-01-01 → 2026-11-23 08:01 UTC, 100 % de cobertura, descargadas a un parquet aparte sin tocar el almacén vivo) y 6 plazas con horarios en hora local. **No está**: reversión 49,4 % (p = 0,77), corr(A,B) = −0,02, bruto ±0,3 bps; 4 527 operaciones con tope de 4 h dan −8,7 a −9,5 bps de media, estable en 2024/2025/2026 y **idéntico en 2 000 minutos al azar**. En el control de los 1440 minutos del día las aperturas quedan por debajo de la media de reversión. La apertura de Europa de hoy (08:00 UTC) continuó, no revirtió. Lo que sí hay: salto de volatilidad en el minuto de apertura, y que el canal de apertura **no rebota, se rompe** (las 24 variantes de reversión dan bruto negativo; la ruptura, bruto positivo en las 5 plazas, +1,55 a +4,14 bps, bajo el coste de 6,3). Con órdenes límite en el extremo del canal el llenado es del 98,5-98,8 %, y meter el nivel hacia dentro empeora llenado y resultado. Las 2 coberturas simétricas a 60x que pidió el usuario dan **−5,40 % del margen todos los días por identidad** (gana el 0 % de las veces) y dejar correr la perdedora liquida una pata en el 19-45 % de los días. El ejemplo limpio que señaló (NY, 17-nov: A −80 USD, B +450 USD, +69,4 bps) es el percentil 98,8 de 755 días, con 18 continuaciones ≥ 50 bps frente a 21 reversiones: la simetría que explica una media de cero. Como el usuario pidió dejarlo operando y evaluando, se abrió T211 con los criterios **congelados antes** de acumular muestra.
+- **Archivos:** `PLAN/notas/patron_apertura_sesion_2026-11-23.md` (medición completa), `PLAN/T211.md`, fila en `STATUS.md`, 2 líneas en `BACKLOG.md`, nota en el expediente de `levels` de la cantera (medido y rechazado, no inscrito), `v2/eim/validation/prereg/prereg_apertura_v1.json`, `v2/eim/analytics/apertura.py`, `apertura_report.py`, `v2/scripts/apertura_informe_mensual.ps1` y 4 scripts de medición en `v2/scripts/` (`descargar_1m_btc.py`, `patron_apertura_sesion.py`, `patron_apertura_canales.py`, `patron_apertura_coberturas.py`).
+- **Pruebas:** `tests/analytics/test_t211_apertura.py` (14: horario de verano, fin de semana fuera, huecos en NaN, tramo A plano descartado, empate objetivo/stop = stop, día ambiguo, potencia, veredicto, pre-registro inviolable, registro idempotente) y las 162 de `tests/nursery` con el expediente modificado. Gate completo en la cola del equipo.
+- **Abierto:** T211 ◐ — la muestra que decide empieza el 2026-11-24 00:00 UTC, primera revisión el 2026-12-24 y veredicto no antes del 2027-11-24. Queda ◆ del usuario: registrar la tarea diaria del informe, y decidir si algún día se inscribe en la cantera (exigiría admitir 1 m en el contrato de prospectos y un prereg de cantera con reloj nuevo, que reinicia la familia).
+- **Siguiente paso:** dejar correr el seguimiento; no inscribir nada en la cantera mientras la medición hacia delante no pase su propia puerta.
+## 2026-11-23 · fase de retroalimentación — el cambio de tendencia en la utilidad de los cuatro perfiles
+- **Hecho:** el usuario pidió entrar en retroalimentación e identificar a qué se debe el cambio de
+  tendencia en la utilidad de los cuatro perfiles. Tercera auditoría (`python -m eim.analytics.audit`,
+  n = 643, E[R] −0,076 [−0,124, −0,028], bruto +0,049, costo 0,126, acierto 77,8 % frente a un
+  equilibrio del 83,9 %, PnL −2 585) y diagnóstico aparte sobre el libro oficial de T144 y las curvas
+  del panel. **Respuesta corta: no hay un cambio de tendencia, hay dos y se cancelan** —del 11-17 al
+  11-20 el libro ganó +655,4 USDT y del 11-21 al 11-22 devolvió −625,9— y la causa no es ventaja sino
+  **cuántas operaciones tocan el tope completo**: 7 en 154 operaciones en el tramo bueno frente a 19 en
+  67 en el malo. Un tope cuesta −64,6 USDT de media y una ganancia deja +11,5 (**1 tope = 5,6
+  ganancias**), con la escalera en acierto 86,7 % y equilibrio 88,5 %.
+- **Tres cifras con su Δ frente a la auditoría del 2026-11-16:** E[R] −0,110 → **−0,076** (+0,034);
+  acierto 72,4 % → **77,8 %** (+5,3 pts); PnL −2 552 → **−2 585** (−33). El giro de W47 **no es
+  medible**: ΔE[R] W46 → W47 = +0,0485 ± 0,0845 (t = 1,12) y la diferencia mínima detectable entre dos
+  semanas de ~230 operaciones es 0,121 R/op; detectar lo observado pide 1 388 operaciones por lado
+  (≈ 12 semanas).
+- **Hallazgos:** (1) los cuatro perfiles son **una apuesta con cuatro tamaños** —587 de 643 operaciones
+  son cortos (91 %), por el veto «contra la tendencia del marco mayor»—, así que no son cuatro muestras
+  independientes; (2) descartado que sea despliegue (`cost_params` idéntico en las 643), costo (plano
+  en 0,11–0,14 R) o pérdidas aparcadas (solo moderado tiene abierto, −38,8 USDT flotante); (3) la
+  rotación del aprendiz explica ~30 % del ΔE[R] (mezcla +0,0147 frente a misma estrategia +0,0338; por
+  régimen, mezcla −0,0149 frente a +0,0634), el resto es el camino del BTC —días con |variación| ≥ 2 %
+  dejan −222,4 USDT de media frente a −49,7 los demás—; (4) **conservador no tiene tendencia**: 7
+  operaciones, todas anteriores al 11-02, plano en −136,8 con 5 568 rechazos «en observación»; (5) la
+  pendiente de la curva del panel coincide con el libro oficial, pero el **nivel** no (total −2 584,7
+  oficial frente a −5 057,1 en las fichas; agresivo −17,0 % frente a −34,5 %): T195 arregló `balance`,
+  no las fichas por perfil.
+- **Archivos:** `PLAN/notas/T210_utilidad_perfiles.md` (diagnóstico completo), `PLAN/T210.md`,
+  `PLAN/STATUS.md`, `PLAN/BACKLOG.md`, `.claude/skills/eim-auditoria/SKILL.md` §1.
+  Informe de la auditoría en `v2/reports/audit/audit_2026-11-23.{md,json}` (no versionado).
+- **Pruebas:** ninguna (diagnóstico y plan; no se tocó `eim/` ni `tests/`). Todo medido contra la API
+  viva de `juanpablo-cpu` el 2026-11-23 ≈ 08:39 UTC (`python -m eim.analytics.audit`,
+  `GET /v2/paper/ledger.csv?scope=perfil`, `GET /v2/paper`, `GET /v2/paper/live`).
+- **Abierto:** **T210 ◐** (publicar la utilidad por perfil con su potencia y su descomposición). ◆ del
+  usuario en BACKLOG bajo T159: qué se hace con conservador antes del cierre de T31, y si el informe
+  final se publica con una sola contabilidad en las fichas.
+- **En curso:** T31 cierra el 2026-11-27 y el **2026-11-28 00:00 UTC** se encienden solos
+  `risk_includes_costs` (tamaño ×0,8522) y el freno gradual (T194), más «lo vivo manda» (T182): el
+  próximo cambio de pendiente ya está programado y cualquier lectura que cruce esa fecha mezcla dos
+  reglas.
+- **Siguiente paso:** T210 criterio 1 (dmd junto a cada E[R] de perfil o semana) antes del informe de
+  cierre de T31, para que ese informe no lea como tendencia lo que es camino.
+
+## 2026-11-23 · retroalimentación (2) — por qué el análisis no asimiló el giro al alza
+- **Hecho:** el usuario observó que, tras operar bien la tendencia bajista, el análisis no asimiló el
+  cambio cuando el precio empezó a subir, y que eso pudo costar la tendencia alcista de las ganancias.
+  **Es cierto y queda medido.** Lo que fija el lado es una sola puerta con tres relojes
+  (`ProfileParams.htf`: 15m → 1h EMA21/55, 1h → 4h EMA21/55, 4h → 4h EMA50/200) y el veto
+  `contra_tendencia` de `eim/paper/vetoes.py:60`.
+- **Tres cifras:** con el mínimo de 1 h en **55 127 (11-21 06:00 UTC)** y el cierre del 11-23 14:00 en
+  **63 833 (+15,8 %)**, la puerta de 15m giró a alcista el **11-22 17:00 (35 h tarde, precio ya
+  +11,1 %)** y las de 1h y 4h **siguen bajistas desde el 10-23 y el 10-24 (758 y 718 h)**; las aperturas
+  posteriores al mínimo son **49, 45 de ellas cortas, −731,7 USDT**, de las que **33 (todas cortas,
+  −586,6)** están en los dos marcos cuya puerta no ha girado. El acumulado oficial pasó de −2 584,7
+  (08:39) a **−2 856,3** (15:00) mientras el precio subía: eso es la «pérdida de la tendencia alcista».
+- **Hallazgos:** (1) el retraso **también convierte el acierto en pérdida**: los primeros largos
+  permitidos entraron +14 a +16 % sobre el mínimo y dos de agresivo (`ind_bb_ruptura@15m`,
+  `ind_macd@15m`) cerraron en el stop 15 min después, −1,31 R cada uno; (2) **acelerar la puerta no es
+  gratis**: en 95 días de velas de 1 h del disco, la puerta rápida cambia **39 veces** (mediana 34 h) y
+  no distingue dirección (retorno a 24 h: −0,338 % alcista frente a −0,158 % bajista), mientras las
+  lentas sí (+0,455 % la de 1h y +0,234 % la de 4h) — descriptivo, ventanas solapadas, sin contraste ni
+  Holm; (3) el universo oficial **no es solo BTC**: 38 operaciones de ETHUSDT (+255,1 USDT) del 10-21 al
+  10-28, antes del foco T122, así que parte de lo verde de W43 no era BTC.
+- **Archivos:** `PLAN/notas/T212_asimilar_el_giro.md`, `PLAN/T212.md`, `PLAN/STATUS.md`,
+  `PLAN/BACKLOG.md`, `.claude/skills/eim-auditoria/SKILL.md` §1.
+- **Pruebas:** ninguna (diagnóstico y plan; no se tocó `eim/` ni `tests/`). Medido sobre
+  `data/candles/symbol=BTCUSDT/timeframe={1h,4h}` con `eim.paper.trend.HtfTrend` y
+  `GET /v2/paper/ledger.csv?scope=perfil` el 2026-11-23 ≈ 15:00 UTC.
+- **Abierto:** **T212 ◐** (publicar el estado y el retraso de cada puerta, y el costo de lo que veta).
+  ◆ en BACKLOG bajo T159: si tras cerrar T31 se pre-registra en sombra una puerta alternativa (reabre
+  T139 P1) y si el informe de cierre declara que el libro es direccionalmente una sola apuesta.
+- **En curso:** T31 cierra el 2026-11-27 con las dos puertas lentas aún bajistas; el 2026-11-28 00:00
+  UTC T194 recorta tamaño, lo que reduce la pérdida pero no corrige la dirección.
+- **Siguiente paso:** T212 criterio 1 (estado, giro y retraso de cada puerta en la API y el panel), que
+  es lo que hace falta para que esto se vea sin reconstruirlo a mano.
+
+## 2026-11-23 · T212 criterio 1 — la puerta del marco mayor deja de ser invisible
+- **Hecho:** la puerta que fija el lado del libro (`ProfileParams.htf` + veto `contra_tendencia`) ya
+  publica su estado. Módulo nuevo `eim/paper/gates.py` (función pura, sin red ni disco): por marco de
+  decisión da la **dirección vigente**, el **instante del giro**, las **horas en ese estado**, el
+  **extremo de 7 d que la contradice** (mínimo si es bajista, máximo si es alcista), cuánto recorrido
+  lleva **en contra** y un **aviso de desacuerdo** cuando pasa de 24 h y 2 % (umbrales en el código,
+  `DISAGREE_H` y `DISAGREE_PCT`). Sale en `GET /v2/paper` como `htf_gates`, con `enforced_by` (los
+  cuatro perfiles, que tienen `require_htf`) y los umbrales, y se pinta en una franja nueva del panel
+  bajo la barra de «en vivo» (`eim/web/src/paper_gates.ts`, `pp-gates`).
+- **Verificado con datos reales** (velas del disco de BTCUSDT, 2026-11-23 ≈ 16:30 UTC) y **mirado en el
+  navegador** (Vite temporal en 5174 con `VITE_API_URL=` para ir por el proxy): «15m ▲ alcista desde
+  hace 23 h (giró el 2026-11-22 12:00 COT) · precio −4,0 % frente al máximo de 7 d (65.500)», «1h ▼
+  bajista desde hace 31 d 16 h · precio +14,0 % frente al mínimo de 7 d (55.127) ⚠ lleva 14,0 % en
+  contra (umbral 2 % y 24 h)» y lo mismo en 4h (30 d 0 h). Con la API vieja (sin el campo) la franja
+  queda vacía y se colapsa (`:empty`), así que el panel actual no cambia hasta el próximo reinicio.
+- **Lo que NO se tocó:** `ProfileParams.htf`, `vetoes.py`, el libro, los pesos y `params_fingerprint`
+  siguen igual. Esto es análisis (T145 D) y no reabre T139 P1: no abre, no cierra y no cambia el lado.
+- **Archivos:** `eim/paper/gates.py` (nuevo), `eim/paper/desk.py` (`_gates` + `htf_gates` en el
+  payload), `eim/web/src/paper_gates.ts` (nuevo), `paper_types.ts`, `paper_template.ts`,
+  `paper_view.ts`, `paper.css`, `tests/paper/test_t212_gates.py` (nuevo), `tests/api/test_paper_api.py`.
+- **Pruebas:** `ruff check eim tests` limpio y **18 pasadas, 0 fallos** en
+  `tests/api/test_paper_api.py` + `tests/paper/test_t212_gates.py` por la cola (trabajo
+  `20261123-165948-t212-api-a7f9`); `tsc --noEmit` limpio. El gate completo va por la cola en 5 trozos.
+- **Abierto:** de T212 quedan el **criterio 2** (el recuento de rechazos separado por marco y el costo
+  de lo que veta, en el informe diario) y que la **auditoría** lea el aviso de desacuerdo; los
+  criterios 3 (panel y API) y 4 (la nota y la skill) están hechos.
+- **Siguiente paso:** criterio 2, y revisar la franja en el panel real tras el próximo reinicio de la
+  API (hoy no se reinicia: T31 cierra el 2026-11-27).
+
+## 2026-11-23 · T212 criterio 2 — el veto «contra la tendencia» deja de ser silencioso
+- **Hecho:** `gates.blocked()` (función pura, `eim/paper/gates.py`) recorre los eventos de los cuatro
+  perfiles y cuenta los rechazos del código `contra_tendencia` **por marco y por lado** en la misma
+  ventana de 7 d, con ideas distintas, cuántos fueron en vivo y el reparto por perfil. Cada puerta de
+  `htf_gates` lo lleva dentro (`blocked`), el panel lo dice en su línea y **la auditoría** saca una
+  oportunidad informativa (`levers.gate_opps`, id `puerta_tarde_<marco>`, vía `cerrada (T139 P1)`)
+  cuando una puerta lleva ≥ 24 h y ≥ 2 % en contra del tramo reciente; `sources.gates()` la lee de la
+  API y `build` la guarda en el JSON del informe (`gates`).
+- **Medido con los datos reales de hoy** (2 000 últimos rechazos del diario, ≈ 17:00 UTC): de ellos
+  **181 son del veto de la puerta**, y se reparten así — **1h: 56 ideas dejadas fuera (100 rechazos,
+  los 100 largos)**, **4h: 11 ideas (29 rechazos, los 29 largos)** y 15m: 35 ideas (52 rechazos, 37
+  largos y 15 cortos). Es decir, **los dos marcos cuya puerta sigue bajista solo están bloqueando
+  compras**, con el precio +14 % sobre el mínimo de la ventana.
+- **Verificado en el navegador** (Vite temporal en 5174, datos reales): «1h ▼ bajista desde hace
+  31 d 18 h · precio +14,0 % frente al mínimo de 7 d (55.127) · dejó fuera 56 ideas en 168 h (100
+  rechazos: 100 largos, 0 cortos) ⚠ lleva 14,0 % en contra (umbral 2 % y 24 h)», una puerta por línea.
+- **Lo que NO se tocó:** la puerta, el veto, el libro, los pesos y `params_fingerprint` siguen igual.
+  La auditoría informa y no propone: cambiar la puerta reabre T139 P1 y es ◆ del usuario.
+- **Archivos:** `eim/paper/gates.py`, `eim/paper/desk.py`, `eim/web/src/{paper_gates.ts,paper_types.ts,paper.css}`,
+  `eim/analytics/audit/{sources,build,levers}.py` y `__main__.py`, `tests/paper/test_t212_gates.py`,
+  `tests/analytics/test_audit.py`, `tests/api/test_paper_api.py`.
+- **Siguiente paso:** mirar la franja en el panel real tras el próximo reinicio de la API (hoy no se
+  reinicia: T31 cierra el 2026-11-27) y, con ella delante, decidir las ◆ de BACKLOG.
+
+## 2026-11-24 — La primera corrida real del patrón de apertura destapa un fallo del registro
+
+- **Hecho:** la tarea diaria corrió sola por primera vez (2026-11-24 02:10:02 UTC, resultado 0) y
+  escribió `reports/apertura/apertura_20261124.md` con las 2 aperturas que ya habían abierto a esa
+  hora: Tokio 00:00 UTC y Hong Kong 01:30 UTC, las dos **continuaron** en vez de revertir (contra-A
+  −12,87 y −14,76 bps netos). Con n = 2 no se lee nada, y el pre-registro ya lo dice.
+- **Fallo encontrado al comprobarlo, no en teoría:** a las 02:10 UTC esas dos aperturas todavía no
+  han cerrado su ventana de 4 h, así que se guardaban con `canal_rebote` y `canal_ruptura` en
+  `null`; y como el registro es append-only e idempotente por `(zona, t)`, la medición completa de
+  la corrida siguiente se descartaba por «ya vista». Comprobado en el almacén real a las 07:41 UTC:
+  esas mismas aperturas dan `canal_ruptura` **+7,29 y +14,60 bps**, cifras que se iban a perder. Y
+  no era cosa de un día: con la tarea a hora fija, Tokio y Hong Kong quedaban fuera de la variante
+  candidata **todos los días**, dejándola con 3 plazas de las 5 que el pre-registro declara.
+- **Arreglado:** `apertura.ventana_cerrada()` y `medir()` solo guardan las aperturas cuya ventana
+  cabe entera en la rejilla, y devuelven cuántas se aplazan; el informe y `latest.json` dicen
+  cuántas. Además, dos cifras que engañaban: el titular decía «0 aperturas en la ventana» teniendo
+  2 medidas (hablaba de 0 operaciones de la candidata) y la potencia decía que «harían falta 0,0
+  aperturas», calculada con la sd de dos datos; ahora no se estima por debajo de 30.
+- **Pruebas:** `tests/analytics/test_t211_apertura.py`, 18 (3 nuevas: aplazar y medir entera
+  después, titular con aperturas medidas, potencia con muestra minúscula).
+- **Archivos:** `eim/analytics/apertura.py`, `eim/analytics/apertura_report.py`,
+  `tests/analytics/test_t211_apertura.py`, `PLAN/T211.md`, `PLAN/BACKLOG.md`.
+- **Abierto:** las 2 filas prematuras del registro vivo se borran tras fusionar, para que se midan
+  enteras en la corrida siguiente (el almacén de 1 m aún cubre esos días).
+- **Siguiente paso:** corrida del 2026-11-25 a las 02:10 UTC; primera revisión mensual 2026-12-24.
+## 2026-11-24 · T212 cerrada — la franja de puertas, verificada en el panel real
+- **Hecho:** se cierra T212 (☑). Lo único que le faltaba era mirar la franja en el panel con datos
+  reales, y hoy se pudo: la API se reinició **sola** a las 15:12 UTC (reinicio nº 21, por falta de
+  memoria; no se forzó nada) y arrancó ya con el código fusionado, así que `htf_gates` salió a la
+  primera.
+- **Verificado a las 15:47 UTC en `http://127.0.0.1:5173`** (servidor de desarrollo del checkout
+  principal, datos en vivo): «PUERTA DEL MARCO MAYOR · QUÉ LADO DEJA OPERAR — **15m** ▼ bajista desde
+  hace 6 h 12 min (giró el 2026-11-24 04:00 COT) · precio +9,6 % frente al mínimo de 7 d (55.127) ·
+  dejó fuera 66 ideas en 168 h (95 rechazos: 68 largos, 27 cortos; 94 en vivo); **1h** ▼ bajista desde
+  hace 27 d 7 h · 86 ideas (148 rechazos, los 148 largos) ⚠ lleva 9,6 % en contra (umbral 2 % y 24 h);
+  **4h** ▼ bajista desde hace 30 d 23 h · 29 ideas (75 rechazos, los 75 largos) ⚠ 9,6 % en contra», con
+  su pie nombrando a los cuatro perfiles y el recordatorio de que es análisis.
+- **La puerta rápida volvió a girar en el día:** a las 06:36 UTC llevaba 38 h alcista y a las 15:47
+  llevaba 6 h bajista, después de que el BTC cayera de 63 833 a ~59 850. Compró arriba y vendió abajo,
+  que es justo lo que midió el diagnóstico (39 giros en 95 días, sin capacidad de distinguir dirección).
+- **Corrección a una cifra del día:** las horas de la puerta de 1h que se dieron por la mañana (775 h)
+  se habían calculado con las 500 velas de `/v2/snapshot`, un calentamiento más corto que el del
+  almacén; las buenas son las de la API, **655 h** entonces y 27 d 7 h ahora.
+- **Por qué tardó en pintarse (no era el código):** la API tiene un solo trabajador y la mesa le
+  dispara una docena de llamadas pesadas al cargar (`/v2/snapshot` n=1500, `/v2/forecast`), así que
+  `/v2/paper` espera en la cola. Medido con la mesa cargando: `/v2/health`, que son 3 ms, tardó 20 s,
+  luego 7,4 s y luego 1,3 s. Antes de eso, al arrancar en frío con el equipo asfixiado, la vista tardó
+  16 min en contestar la primera vez. Queda anotado en BACKLOG para **T206** (PR #358).
+- **El día en el equipo:** 6 paradas de latido, 3 reinicios ayer y el nº 21 hoy, con el equipo en
+  **233 MB libres de 16 GB** (chrome.exe 8,3 GB comprometidos, NVIDIA Overlay 3,3 GB). El usuario
+  cerró esos programas y quedaron 4,2 GB; la API levantó enseguida. La captura HFT está al 94,44 % de
+  su ventana de 72 h con una racha de 15 h.
+- **Pruebas:** ninguna nueva; el cambio es de documentación (`PLAN/STATUS.md`, `PLAN/BITACORA.md`,
+  `PLAN/roadmap.html`) y no toca nada ejecutable. El gate quedó verde ayer con el criterio 2
+  (4 193 pasadas, 9 omitidas, 0 fallos).
+- **Abierto:** las ◆ de BACKLOG siguen esperando al usuario — qué se hace con conservador, con qué
+  contabilidad se cierra T31, el corte del 2026-11-28 y si se pre-registra en sombra una puerta
+  alternativa (eso reabre T139 P1).
+- **Siguiente paso:** el cierre de T31 el 2026-11-27 (informe final, `risk_includes_costs`, freno
+  gradual y comparación con la variante t143 bajo la contabilidad de T144).
+
+## 2026-11-25 · T56 apéndice — las dos fichas que faltaban de una lista pegada en el chat
+
+- **Hecho:** el usuario pegó una lista de diez repositorios «de estrategias de inversión» y preguntó si
+  había algo aprovechable. Ocho ya tenían ficha de T56 (Freqtrade, Hummingbot ×3, vectorbt, backtrader,
+  backtesting.py, bt) y las cuatro recomendaciones del texto —detector de régimen, reversión a la media
+  en lateral, filtro de rotura y evaluación neta— ya están hechas y dieron negativo (`agents/regime`,
+  `ind_bb_reversion`/`ind_rsi`, T212, y el aparato de T131/T161). Se auditaron y fichó los dos que
+  faltaban, que no son bots sino material de estudio.
+- **El hallazgo que sí importa:** `stefan-jansen/machine-learning-for-trading`, que `PLAN/T25.md` cita
+  como material, **se reescribió**: hoy es el paquete `ml4t` 3.0.0 (3.ª edición, MIT) con 436 archivos
+  `tests/test_*.py` y commit de hace tres días. Trae con pruebas la **CPCV** (el único punto de T161 que
+  sigue en BACKLOG), DSR y contraste múltiple sobre el mismo `arch` que adoptó T161, el acantilado de
+  costos de su capítulo 18, y un capítulo sobre **19 perpetuos de Binance Futures** (pertinente para
+  T93–T96). Sigue en modo C: exige Python 3.14 exacto y arrastra torch, pymc, dowhy y crewai.
+  `je-suis-tm/quant-trading`, en cambio, no aporta nada: 13 scripts sin una sola prueba ni costos,
+  último commit de 2024-04-14, e importa `fix_yahoo_finance` (abandonado) en cinco de ellos.
+- **Archivos:** `v2/eim/bots/registry/{quant-trading,machine-learning-for-trading}.json` (fichas nuevas,
+  52 en el catálogo), apéndice 9 de `PLAN/notas/T56_auditoria.md` con el método y la evidencia, y una
+  línea en `PLAN/BACKLOG.md` que apunta al oráculo MIT de la CPCV.
+- **Método:** `gh api` para el SHA y la fecha (en T56 la API no respondía), clon `--depth 1` de
+  quant-trading (20 MB) y clon parcial con filtro de blobs de ml4trading, que pesa 1,3 GB y no cabe en
+  este equipo con los servicios en marcha. Los 483 notebooks no se auditaron y la ficha lo declara. No
+  se instaló ni se ejecutó nada de terceros, y no se portó código.
+- **Pruebas:** ruff limpio y `tests/bots/test_registry_cards.py` + `test_contract.py` en verde (173
+  pasadas) con la cola en prioridad batch; el gate completo se lanzó por la cola de trabajos.
+- **Abierto:** la CPCV sigue en BACKLOG (T161 (3)); nada de este apéndice la implementa.
+- **Siguiente paso:** el cierre de T31 el 2026-11-27, sin cambios por esto.
+
+## 2026-11-25 · T90 — contratos de datos multifuente, almacén y calidad
+
+- **Hecho:** proveedores partidos por capacidades con ficha de fuente (cobertura 1/2/3, licencia, retraso, límites, atribución) tal como la dejó la ◆ de T88; almacén por instrumento (`InstrumentData`) con las series nuevas `corporate_actions`, `adj_factor`, `quotes`, `fundamentals` y `curve`, crudo en disco y ajustado al leer (point-in-time); `1d` y `1w` de primera clase para el almacén y el snapshot sin tocar lo que expone la API; velas de sesión; `find_gaps` que distingue cerrado de roto según el calendario e informe de calidad por serie cuyas marcas viajan en `sources/coverage`; sincronización genérica con tasa, reintentos, reanudación y presupuesto.
+- **Archivos:** `v2/eim/data/{adjust,quality,quality_io,series,session_bars,sync_generic,instrument_snapshot}.py` (nuevos), `v2/eim/data/providers/meta.py` (nuevo), `v2/eim/data/providers/{base,binance,fred,multi_asset}.py`, `v2/eim/data/{timeframes,store,snapshot,sync}.py`; pruebas `v2/tests/data/test_t90_{pure,store,sync}.py` + `t90_helpers.py` y fixtures `v2/tests/fixtures/t90/`; `v2/tests/validation/test_t139_run.py`; `PLAN/{STATUS,CONTRATOS,BACKLOG,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** 34 nuevas sin red; huella antes/después sobre el almacén real: 6 snapshots de BTC/ETH (15m/1h/4h, 1800 velas) idénticos antes y después; gate completo por la cola: pytest: 4 215 pasadas, 30 omitidas, 0 fallos.
+- **Cómo se hizo:** desde claude.ai sobre la copia local (sin acceso directo al repositorio desde la sesión); la entrega la aplicó `aplicar_t90.cmd` en una copia aparte (`git worktree`) partiendo de `origin/main`, con comprobación de que los archivos base no habían cambiado. No reinicia nada: la corrida de T31 sigue intacta.
+- **Abierto:** BACKLOG T90 (mensual sin aprobar, vecinos del snapshot de instrumento con la regla nominal de cierre, vacíos de `_sync/` sin caducidad, costo de la calidad en series de 1 min sin medir, y que el escáner use `build_instrument_snapshot`).
+- **Siguiente paso:** T91 (capacidades declaradas de los agentes: con `DataCapability` y el informe de calidad ya hay de dónde sacar «no corre sin el dato») y T92; T93 arranca cuando las dos estén.
+
+## 2026-11-25 · T91 — capacidades declaradas, elegibilidad y supuestos de tiempo de los agentes
+
+- **Hecho:** ficha de capacidades de los 20 agentes (datos, sin tocar el `Protocol`); elegibilidad contra los datos reales del snapshot con el motivo escrito y `run_eligible` como puerta de los instrumentos nuevos; supuestos de tiempo y volumen de `vwap`, `seasonality` y `technical` parametrizados con el valor de siempre por defecto y adaptados por instrumento (un perpetuo 24/7 con volumen real recibe los mismos agentes); velas por año y por día de mercado desde el calendario; contratos `requires` de los cuatro hermanos pendientes.
+- **Archivos:** `v2/eim/agents/{capabilities,eligibility,adapt}.py` y `v2/eim/instruments/timebase.py` (nuevos); `v2/eim/agents/vwap/{params,compute,agent}.py`, `v2/eim/agents/seasonality/{params,compute,agent}.py`, `v2/eim/agents/technical/{params,agent}.py`; `v2/scripts/agents_eligibility.py` → `v2/reports/t91_portabilidad.md`; pruebas `v2/tests/agents/{test_capabilities,test_eligibility,test_t91_sessions,_t91_series}.py` y `v2/tests/instruments/test_timebase.py`; `v2/docs/NUEVO_AGENTE.md` y la skill `eim-new-agent`; `PLAN/{STATUS,CONTRATOS,BACKLOG,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** nuevas sin red (cobertura 100 % de capacidades, motivos, identidad en BTC/ETH/XAU, sesiones con huecos y sin volumen o con ticks); huella sobre el almacén real: 120 reportes de agentes sobre BTC/ETH (15m/1h/4h, mismos snapshots) idénticos antes y después; por run_eligible, 15–17 agentes elegibles por par y todos dan el mismo reporte; portabilidad de T87 repetida: portabilidad T87 repetida en 4 series (60 celdas no cripto): 23 elegibles, 4 degradadas con aviso, 33 no elegibles con motivo, 0 sin datos con motivo, 0 excepciones; gate completo por la cola: pytest: 4263 pasadas, 31 omitidas, 0 fallos.
+- **Hallazgo:** `structure` (razón de volumen F-008) y `plan` levantan NaN sin volumen; quedan no elegibles con motivo donde no hay volumen (BACKLOG T91 (1)).
+- **Cómo se hizo:** desde claude.ai sobre la copia local y el repositorio público; la entrega la aplicó `aplicar_t91.cmd` en una copia aparte (`git worktree`) desde `origin/main`, con comprobación de que los archivos base no habían cambiado y huella de los reportes de BTC/ETH antes y después. No reinicia nada: la corrida de T31 sigue intacta.
+- **Abierto:** BACKLOG T91 (8 puntos).
+- **Siguiente paso:** T92 (costos y margen por clase; `bars_per_year` ya sale del calendario) y, con T91 y T92, T93 (el escáner corre por `run_eligible`).
+
+## 2026-11-25 · T92 — costos, margen y simulación por clase de activo
+
+- **Hecho:** modelo de costos y márgenes por clase en `eim/backtest/costs/` (perpetuo envuelto sin cambios, acciones/ETF, FX, futuros y trimestrales de Binance; versionados, con huella y con la fuente o «supuesto» de cada parámetro); motor de backtest por instrumento con sesiones, splits, dividendos, empalmes, vencimiento, financiación de clase, cierre por margen y moneda de la cuenta (un perpetuo cede el paso entero al motor de siempre); `Sizer` por clase; `SimBroker` con fichas de instrumento y libro de papel por instrumento; informe con anualización por calendario y desglose de costos.
+- **Archivos:** `v2/eim/backtest/costs/{__init__,base,perpetual,equity,fx,futures,sizing}.py`, `v2/eim/backtest/{class_engine,class_types,class_report}.py`, `v2/eim/risk/sizers.py`, `v2/eim/execution/sim_instrument.py`, `v2/eim/paper/instrument_book.py` (nuevos); `v2/eim/execution/sim_broker.py` (fichas opcionales; sin ficha, el código de siempre); `v2/scripts/t92_class_backtest.py`, `v2/reports/t92_costos_por_clase.{md,json}`; pruebas `v2/tests/{backtest,risk,execution,paper}/test_t92_*.py` y golden `v2/tests/fixtures/golden/t92_perp_backtest.json`; `PLAN/{STATUS,BACKLOG,BITACORA}.md`, `PLAN/status.js`.
+- **Pruebas:** golden de perpetuos generado con `main` antes de tocar nada (tres configuraciones con sl/tp/liq/time/end) e idéntico después; el despacho por instrumento de BTC da las mismas operaciones, curva y estadísticas que `run_backtest`; `PerpSizer` = `size_position`; `SimBroker` sin ficha con las cifras de antes calculadas a mano; papel de un perpetuo = `simulate`. Integridad por clase: sin anticipación, costos 0 = bruto, split 4×1 y dividendo, corto que paga préstamo y dividendo, roll de futuro, vencimiento, swap con el miércoles triple, mercado cerrado (espera y hueco), stop no ejecutado con el mercado cerrado, cierre por margen. Ruff limpio; pytest en la nube sin `duckdb`/`httpx`/`fastapi`: mismo conjunto de fallos de entorno antes y después (614), 3 319 → 3 384 pasadas.
+- **Cómo se hizo:** desde claude.ai en una sesión en la nube sobre un clon de `main` (142dc8f); sin acceso al shell del equipo, así que el gate completo queda para la cola.
+- **Gate en la laptop:** lanzado desde la sesión con `Trading Bot/gate_t92.cmd` (ruff + pytest por la cola) sobre `main` 804d7d9: ruff limpio; pytest 4 329 pasadas, 31 omitidas, 0 fallos (trabajo `20261126-023333-gate-548c`, 1 411 s, sin pausas). T92 → ☑.
+- **Abierto:** BACKLOG T92 (6 puntos).
+- **Siguiente paso:** T93 (escáner, con T91 y T92 ya dentro).
+
+## 2026-11-26 · T206 — «el proyecto está caído»: la interfaz vigilada y la microestructura en caché
+
+- **Por qué:** el usuario avisó de que el proyecto estaba caído. No lo estaba del todo: los cinco servicios de datos latían y el vigilante del conjunto decía «ok» en cada pasada, pero **Vite llevaba muerto desde las 16:27 UTC** (7 h), arrastrado por uno de los cuelgues de la API, y nadie la levanta porque T148 la dejó fuera a propósito. La API, además, en bucle: **6 reinicios ese día** (30 acumulados), todos por `latido detenido ~910 s`, con 4,6–7 GB privados y el equipo en ~300 MB libres de 16 GB (`NVIDIA Overlay` se llevaba 4,0 GB él solo).
+- **Hecho en vivo:** interfaz relanzada con `servicio_continuo.ps1 -ConWeb` y comprobada en el navegador (EN VIVO con precio y el Río dibujando); API reiniciada a mano con permiso del usuario (RUNBOOK §16). Medido antes y después: `/v2/snapshot` n=500 no contestaba en 150 s; recién reiniciada, **232 s en frío y 113 s en caliente** (eran 40 s el 23-nov) y la memoria pasó de 1,2 a 3,4 GB con **dos** snapshots: el gasto va con ellos, no con el tiempo.
+- **Hecho en código (rama `claude/t206-cache-micro`):** (1) `eim/data/micro_cache.py` + `micro_bars.py`: los agregados de las velas **ya cerradas** se guardan en `data/micro_cache/` y no se recalculan —la vía exacta de BACKLOG T206 (2), con dos OFI por vela (encadenado y sin pareja previa) y la firma de los huecos que la tocaban para recalcularla si alguno se anota tarde—; (2) `eim/operation/fleet_web.py`: el vigilante del conjunto mira el puerto 5173 y levanta la interfaz con `-ConWeb` tras 10 min, con cuenta de intentos propia; (3) `_pump` colapsa las líneas repetidas del registro del vigilante.
+- **Archivos:** `v2/eim/data/micro.py`, `micro_bars.py`, `micro_cache.py`; `v2/eim/operation/fleet_web.py`, `fleet_watch.py`, `fleet_state.py`, `watchdog.py`; `v2/docs/{OPERACION,RUNBOOK,ALMACENAMIENTO}.md`; `PLAN/{T206,STATUS,BACKLOG}.md`.
+- **Pruebas:** 3 archivos nuevos (`test_t206_micro_cache.py`, `test_t206_interfaz_vigilada.py`, `test_t206_registro_repetido.py`, 20 pruebas). Ruff limpio; `tests/data` (374), `tests/operation` (249), `tests/api` y `tests/architecture`, verdes en local. **Sobre datos reales** (24 velas de 1 h de BTCUSDT): 4,49 s → 0,49 s, **9,1×**, con **cero diferencias** en OFI, desequilibrio, velas completas y trades, y el mismo libro.
+- **Gate (2026-11-26, 15:25→15:56 UTC): VERDE por la cola — 4 372 pasadas, 9 omitidas, 0 fallos** (1 856 s, 3 pausas, trabajo `20261126-152526-gate-t206-fddd`); ruff limpio. Costó cuatro intentos: las tres primeras vueltas acabaron en `reencolado_por_memoria` sin fallar una prueba, por presión **ajena** (el gate gasta 436 MB de pico), y la cola le subía lo que pedía en cada vuelta (1 000 → 1 792 MB). Entró tras **relanzar la evaluación de líderes** (2 562 → 530 MB; estaba con código anterior a la evaluación incremental, RUNBOOK §10) y tras cerrar el usuario la superposición de NVIDIA (4 GB). El defecto de la cola queda en BACKLOG de T149.
+- **Abierto:** la medición de 500 velas sigue sin correr (se canceló para dejar paso al gate), con el equipo sin memoria libre. Falta el reparto de `build_snapshot` (velas, funding, `liq_flow`), rotar `vigilante.err.log` por tamaño y ver en vivo si la API deja de crecer; todo en `BACKLOG.md`.
+- **Dos cosas que decidir el usuario:** meter la interfaz en el vigilante **revisa la decisión de T148** («solo los cinco servicios de datos»), y `NVIDIA Overlay` lleva 4 GB retenidos (programa suyo, no se cierra desde las sesiones).
+- **Siguiente paso:** gate verde, fusionar y reiniciar la API para que la caché entre en vivo.
+## 2026-11-25 · T93 — escáner global (1/2): universo, embudo, cola y caché
+
+- **Hecho:** escáner del universo completo de perpetuos USDⓈ-M de Binance, sin órdenes: etapas 1 y 2 con motivo y contador de cada exclusión (frescura contra el calendario del instrumento), etapa 3 vectorizada con NumPy sobre un panel cargado en una sola consulta (puntuación de interés con métricas de calidad, determinista), cola con prioridad, 2 procesos como mucho, caché por (instrumento, marco, hash de datos, versión), reintentos, tasa por proveedor, reanudación y cancelación limpia; dos ritmos (rápido: alertas de precio y diferencial; profundo: lista corta preparada para T94 sin correr agentes); servicio supervisado `python -m eim.scanner run|status` con latido y registro en `scanner.duckdb`; ficha `scanner.service` en el catálogo del Observatorio.
+- **Archivos:** `v2/eim/scanner/{__init__,__main__,params,universe,panel,screen,backends,queue,jobs,rhythms,service,runner,budget}.py`, `v2/eim/data/{scanner_market,scanner_store}.py` (nuevos); `v2/eim/observability/catalog/components_flow.py` (una ficha); `v2/reports/scanner_budget.md`; pruebas `v2/tests/scanner/`; `PLAN/{STATUS,CONTRATOS,BACKLOG,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** nuevas sin red (filtros y motivos, calendario, determinismo e independencia del orden de la etapa 3, caché invalidada por datos y por versión, reintentos con espera, tasa, reanudación tras caída, cancelación limpia, procesos reales con `spawn`, mercado cerrado y cotización vieja, servicio de punta a punta sobre DuckDB, el escáner no importa ejecución, riesgo ni papel); presupuesto sobre el universo real: barrido de 958 instrumentos del catálogo (764 leídos, 564 puntuados, 25 a la lista corta) en 1.13 s = 1.48 ms/instrumento (presupuesto T87 20 ms: dentro); reproducible: sí; caché en caliente 100 %; 10 000 instrumentos ≈ 14.425 s; gate completo por la cola: pytest: 4392 pasadas, 32 omitidas, 0 fallos.
+- **Cómo se hizo:** desde claude.ai sobre un clon de `main`; el código se probó en la nube sin `duckdb` (las partes de DuckDB las prueba el gate). La entrega la aplicó `aplicar_t93.cmd` en una copia aparte (`git worktree`) desde `origin/main`: comprobó la base, marcó T93 ◐, corrió las pruebas del escáner, descargó el catálogo (1 llamada) y las velas diarias de los perpetuos activos que faltaban (una llamada cada 1,5 s), midió el presupuesto, pasó el gate y fusionó. No reinicia nada: la corrida de T31 sigue intacta. Hicieron falta tres pasadas: `asof` es palabra reservada de DuckDB (la columna pasó a `asof_ms`) y el escáner tenía que declarar su papel de prioridad (`scanner` → `batch` en `ROLES`, T126); el relleno ya no gasta turno de tasa en los símbolos que están al día.
+- **Abierto:** BACKLOG T93 (8 puntos).
+- **Siguiente paso:** T94 (agentes sobre la lista corta por `run_eligible`, oportunidades trazables, API y panel); encender el servicio con `python -m eim.scanner run` cuando haga falta en continuo.
+
+## 2026-11-26 · T94 — escáner global (2/2): agentes sobre el universo, oportunidades trazables, API y panel
+
+- **Hecho:** activación selectiva sobre la lista corta (solo los agentes que `eligible(...)` aprueba; el resto con su motivo y sin llamarlos), síntesis y proyección existentes sin cambios, oportunidad candidata trazable (`eim/core/opportunity.py`: hash de las velas, dónde releerlas, versiones de código y de cada agente, tres puntuaciones separadas, estado fijo «candidata, no validada»), tablas `deep_results` y `opportunities` en `scanner.duckdb`, cola `deep_run`, vista publicada `data/scanner/view.json`, API de solo lectura `/v2/scanner/...`, pestaña «🔭 Escáner» en la barra superior, `python -m eim.scanner deep|verify` y la pasada de agentes tras cada barrido en `run`; eventos al Observatorio.
+- **Archivos:** nuevos `v2/eim/core/opportunity.py`, `v2/eim/scanner/{deep,candidates,deep_service,deep_cli}.py`, `v2/eim/data/scanner_view.py`, `v2/eim/api/scanner.py`, `v2/eim/web/src/{scanner_api,scanner_render,scanner_ui}.ts`, `scanner.css`, pruebas `v2/tests/scanner/{test_deep,test_deep_service}.py` y `v2/tests/api/test_scanner_api.py`; cambiados `v2/eim/scanner/{jobs,runner,__main__}.py`, `v2/eim/data/scanner_store.py`, `v2/eim/api/main.py` (una línea), `v2/eim/web/{index.html,src/main.ts,src/views.ts}`, `v2/tests/scanner/test_no_orders.py`; `PLAN/{STATUS,CONTRATOS,BACKLOG,BITACORA,UI_SPEC}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** nuevas sin red (elegibilidad respetada, reproducible desde el hash, otra vela u otra versión de agente cambian el id, sin candidata con síntesis neutral o sin elegibles, lado corto, diferencial sin medir declarado, la oportunidad no puede volverse orden, pasada de punta a punta sobre DuckDB con caché, CLI `deep`/`verify`, el bucle con agentes, API con filtros y sin métodos que cambien estado); pestaña verificada con captura y lectura del DOM renderizado; universo real: pasada de agentes sobre el barrido barrido-1795713098640-1: 25 instrumentos de la lista corta, 25 oportunidades candidatas (no validadas), 0 fallidos; agentes elegibles por instrumento 8–11; sin oportunidad: —; verificación: op-ff512c81180382659d72 (CFGUSDT, corto): hash de datos igual (a4d5b6413ca2556853be850244b3d19b); reproducida: sí (255 velas 1d de CFGUSDT releídas del almacén del universo); gate completo por la cola: pytest: 4408 pasadas, 32 omitidas, 0 fallos.
+- **Cómo se hizo:** desde claude.ai, leyendo la copia de la laptop (sin clon: el acceso al repo desde la nube no se autorizó en esta sesión). El código nuevo se probó en la nube sin `duckdb` ni `fastapi` (las partes de DuckDB y de la API las prueba el gate); la pestaña se compiló con `tsc` y se renderizó en Chrome con una vista de prueba. La entrega la aplicó `aplicar_t94.cmd` en una copia aparte (`git worktree`) desde `origin/main`: comprobó la base, marcó T94 ◐, corrió ruff, las pruebas nuevas y la comprobación de tipos de la web, un barrido `--asof latest` y la pasada de agentes sobre el universo real (sin relleno nuevo: la última vela guardada), verificó una oportunidad, pasó el gate y fusionó. No reinicia nada: la corrida de T31 sigue intacta; la pestaña aparece al siguiente reinicio normal de la interfaz.
+- **Abierto:** BACKLOG T94 (6 puntos).
+- **Siguiente paso:** T95 (ranking global y control de multiplicidad con placebo, ◆); encender `python -m eim.scanner run` si se quiere el escáner en continuo.
+
+## 2026-11-26 · T95 — ranking global y control de multiplicidad (placebo, Holm/FDR)
+
+- **Hecho:** ranking comparable (`eim/scanner/rank.py`: ventaja neta del costo de su clase en σ de su horizonte y en R, incertidumbre, cuatro puntuaciones separadas y una sola prioridad con pesos iguales sin calibrar, calibración fuera de muestra), duplicados y correlación (`clusters.py`: un representante por apuesta con la exposición agregada), registro de intentos con maduración hacia adelante y corrección sobre la familia completa 841 + escáner (`multiplicity.py`, `eim/data/scanner_attempts.py`, tablas `attempts` y `attempt_obs` en `scanner.duckdb`), control placebo (`placebo.py`, `placebo_eval.py`, `scripts/scanner_placebo.py` → `reports/scanner_placebo.{md,json}` y `data/scanner/placebo.json`), el ranking en cada pasada de agentes (`rank_service.py`), en la vista, en la API y en la pestaña «🔭 Escáner», y `python -m eim.scanner calibrate`. Pre-registro `PLAN/notas/T95_preregistro.md`. `eim/nursery/prereg.py` abierto (el tipo ya no fija BTCUSDT).
+- **Archivos:** nuevos `v2/eim/scanner/{rank,clusters,multiplicity,placebo,placebo_eval,rank_service}.py`, `v2/eim/data/scanner_attempts.py`, `v2/scripts/scanner_placebo.py`, `v2/tests/scanner/test_{rank,clusters,multiplicity,placebo,rank_service}.py`, `v2/tests/nursery/test_t95_prereg_symbol.py`, `PLAN/notas/T95_preregistro.md`, `v2/reports/scanner_placebo.{md,json}`; cambiados `v2/eim/scanner/{deep_service,deep_cli,__main__}.py`, `v2/eim/data/{scanner_store,scanner_market,scanner_view}.py`, `v2/eim/api/scanner.py`, `v2/eim/nursery/prereg.py`, `v2/eim/web/src/{scanner_api,scanner_render,scanner_ui}.ts`, `scanner.css`, `v2/tests/scanner/test_no_orders.py`, `v2/tests/api/test_scanner_api.py`; `PLAN/{STATUS,CONTRATOS,BACKLOG,BITACORA,UI_SPEC}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** nuevas sin red (ver la fila de STATUS); placebo real: placebo T95 (30 permutadas + 10 gaussianas, universo de 564): umbral 0.669; reales por encima 0 de 25 (máx. 0.664); falsos esperados por pasada 0.07; FDR ≈ —; p global 0.1613 → NO supera el azar (gaussiana: p global 0.5455); pasada real con ranking: pasada de agentes sobre el barrido barrido-1795726470356-1: 25 instrumentos de la lista corta, 25 oportunidades candidatas (no validadas), 0 fallidos; agentes elegibles por instrumento 8–11; sin oportunidad: —; ranking T95: 25 comparables en 19 apuestas independientes; umbral del placebo 0.669 (vigente, 30 réplicas); sobre el umbral: 0; familia de hipótesis 1138 (841 previas de T49 + 297 del escáner), 297 observaciones nuevas, 0 maduras en total; gate completo: pytest: 4457 pasadas, 32 omitidas, 0 fallos.
+- **Cómo se hizo:** desde claude.ai leyendo la copia de la laptop (sin clon: el acceso al repo desde la nube no se autorizó en esta sesión). El código puro se probó en la nube con agentes reales sobre universos sintéticos (placebo de punta a punta con 4+2 réplicas: «no supera», como debe en paseos aleatorios); lo de DuckDB, con un doble en SQLite y en el gate. La pestaña se compiló con `tsc` y se renderizó en Chromium con una vista de prueba (captura y lectura del DOM). `aplicar_t95.cmd` aplicó la entrega en una copia aparte desde `origin/main`, pasó ruff, las pruebas y `tsc`, barrió el universo real con la última vela guardada, corrió el placebo (30 + 10 réplicas) y la pasada de agentes con el ranking, pasó el gate y fusionó. No reinicia nada: T31 intacta; la pestaña cambia al siguiente reinicio normal de la interfaz.
+- **Abierto:** **◆ del usuario** (¿supera el azar?) y BACKLOG T95 (8 puntos). El registro hacia adelante solo crece si la pasada de agentes corre cada día (`python -m eim.scanner run`, que el vigilante aún no relanza: BACKLOG T93 (8)).
+- **Siguiente paso:** la ◆ de T95; luego T96 (cartera) solo si el usuario decide seguir con la fase 17.
+
+## 2026-11-26 · T95 — cierre: ◆ resuelta y escáner diario programado
+
+- **◆ del usuario:** acepta el resultado del placebo (con el universo real de hoy el escáner **no supera el azar**: mejor candidata 0,664 frente al umbral 0,669, ninguna de 25 por encima, p global 0,16; gaussiana 0,55) y **pausa T96**. T95 queda ☑.
+- **Hecho:** `v2/scripts/escaner_diario.ps1` (tarea de Windows «EIM - escaner diario (T95)», a diario 00:45 UTC = 19:45 Bogotá, solo en la laptop: catálogo y velas, barrido y pasada de agentes con ranking y registro de intentos; vigía propio con reintento y registro en `data/operation/logs/escaner_diario.log`; resuelve el punto (3) del BACKLOG de T95), `v2/scripts/revision_t96.ps1` (tarea única el 2026-12-29 09:00: calibra, repite el placebo y aplica la regla) con `v2/scripts/scanner_revision.py` y su prueba `v2/tests/scanner/test_scanner_revision.py`, y la regla `PLAN/notas/T96_revision.md` (fijada hoy, antes de ver datos hacia adelante). T96 queda ☐ «en pausa» en STATUS.
+- **Pruebas:** pytest del escaner: verde (codigo 0).
+- **Siguiente paso:** el 2026-12-29 leer `TRADINGBOT/_revision_t96.md` y decidir T96 con su veredicto (ARRANCAR / NO ARRANCAR / POSPONER).
+
+## 2026-11-26 · T97 — en pausa hasta la revisión del 2026-12-29
+
+- **Pedido:** «Ejecuta PLAN/T97.md». Prerrequisitos de STATUS (T90–T93) ☑, pero la tarea no puede arrancar tal como está escrita: **no hay proveedor de acciones aprobado** (◆2 de T88 sin responder; `yfinance` descartado, Stooq sin ingesta automatizada, Massive solo contraste), el ajuste por *splits*/dividendos no está documentado en ningún proveedor, los 246 perpetuos TradFi tienen ~134 días de histórico (sin veredicto por T88 ◆4) y T95 midió que hoy el escáner no supera el azar.
+- **◆ del usuario:** de cuatro opciones (aparcar, versión gratis de observación, probar planes gratuitos de pago, archivar) eligió **aparcar T97 hasta el 2026-12-29**, junto a T96.
+- **Hecho:** regla `PLAN/notas/T97_pausa.md`; nota de T97 en STATUS «**En pausa…» (la hoja de ruta la muestra ⏸ hasta el 29-dic); condicionante de T97 en `CONDICIONANTES.md`. Sin cambios de código; T31 y lo que corre no se tocan.
+- **Pruebas:** pruebas del plan (`tests/plan`) tras regenerar la hoja de ruta.
+- **Siguiente paso:** el 2026-12-29, con `TRADINGBOT/_revision_t96.md`: si dice «ARRANCAR T96», preguntar la ◆2 de T88 (proveedor de acciones) y arrancar T97; si no, sigue en pausa.
+
+## 2026-11-26 · T100 — renta fija, derivados y opciones: viabilidad y modelos propios
+
+- **Hecho:** entregables 1–4 de T100. Modelos puros con pruebas contra referencias publicadas (`eim/fixed_income/{bond,curve,carry}.py`, `eim/options/{black_scholes,implied_vol,chain}.py`), proveedor de la curva par del Tesoro (`eim/data/providers/treasury.py`, fuente aprobada en T88), agentes de prueba de curva y carry (`eim/fixed_income/proto.py`, sin registrar), sonda sobre datos reales con contraste de Svensson frente al BCE (`scripts/fixed_income_probe.py`) e informe de viabilidad por producto (`v2/reports/fixed_income_options_viability.md`).
+- **Archivos:** nuevos `v2/eim/fixed_income/{__init__,bond,curve,carry,proto}.py`, `v2/eim/options/{__init__,black_scholes,implied_vol,chain}.py`, `v2/eim/data/providers/treasury.py`, `v2/scripts/fixed_income_probe.py`, `v2/tests/fixed_income/test_{bond,curve,carry,proto,probe_script}.py`, `v2/tests/options/test_{black_scholes,implied_vol,chain}.py`, `v2/tests/data/test_treasury_provider.py`, `v2/tests/fixtures/treasury/par_curve_2026_sample.csv`, `v2/reports/fixed_income_options_viability.md`, `v2/reports/fixed_income_probe.{md,json}`; cambiados `PLAN/{STATUS,CONTRATOS,BACKLOG,BITACORA,CONDICIONANTES}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** nuevas sin red (ver la fila de STATUS); sonda real: curva del 2026-11-25: 10a 4.85 %, 3m10a +51 pb, Svensson 1.46 pb; carry+roll 10a a 3 meses +24 pb netos (exceso/riesgo +0.05); BCE: coincide (0.0 pb); gate completo: pytest: 4530 pasadas, 36 omitidas, 0 fallos.
+- **Cómo se hizo:** desde claude.ai leyendo la copia de la laptop (sin clon: el acceso al repo desde la nube no se autorizó en esta sesión). Los modelos se probaron en la nube contra los valores de Hull, Fabozzi, Haug y Diebold–Li; la curva del Tesoro se leyó en su CSV oficial (las tres filas del fixture son reales). El portal del BCE no respondió desde la nube: el contraste lo hace la sonda en la laptop. `aplicar_t100.cmd` aplicó la entrega en una copia aparte desde `origin/main`, pasó ruff y las pruebas, corrió la sonda, pasó el gate y fusionó. No reinicia nada: T31 intacta.
+- **Abierto:** **◆ del usuario** (entregable 5) y BACKLOG T100 (7 puntos).
+- **Siguiente paso:** la ◆ de T100. Si eliges opciones cripto como información: verificar los términos de datos de Deribit/Binance opciones antes de cualquier colector.
+
+## 2026-11-26 · T100 cierre — ◆ del usuario: opciones cripto como información; se abren T213 y T214
+
+- **Hecho:** el usuario eligió la opción 1 del §5 de `v2/reports/fixed_income_options_viability.md`: opciones cripto (BTC/ETH) solo como información sobre la volatilidad, condicionado a sus términos de datos. T100 ☑. Nota `PLAN/notas/T100_decision.md`. Nuevas: **T213** (términos de Deribit/Binance opciones con ◆, y si se aprueban, ficha de fuente y colector de cadenas) y **T214** (agente de superficie de volatilidad con potencia a priori y pre-registro sobre A2 de T165), ambas en la fase 26. Seguimiento de T100 quitado de `CONDICIONANTES.md`.
+- **Archivos:** nuevos `PLAN/T213.md`, `PLAN/T214.md`, `PLAN/notas/T100_decision.md`; cambiados `PLAN/{STATUS,CONDICIONANTES,00_MASTER,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** solo plan (`tests/plan`, catálogo); sin cambios de código.
+- **Siguiente paso:** T213 (leer los términos de Deribit en la fuente y la ◆ de la fuente).
+
+## 2026-11-26 · T102 — observabilidad y despliegue gradual multiactivo
+
+- **Hecho:** T102 completa en modo ANÁLISIS. Salud multiactivo por clase y por fuente (`eim/scanner/health.py`) con avisos locales con transición (`health_alerts.py`), despliegue gradual con desactivación automática a sombra y promoción por criterios (`rollout.py`, protocolo en `docs/OPERACION.md` §8), recorrido de una candidata del dato a la decisión (`trace.py`, `trace_for_instrument`), eventos por lotes al Observatorio (`obs_batch.py`), revisión tras cada pasada y en la tarea diaria (`health_service.py`, `health_cli.py`: `python -m eim.scanner health|trace`), panel en la pestaña «Escáner» (`web/src/scanner_health.ts`), API `GET /v2/scanner/{health,trace/{id}}` y sombra en `/opportunities`, catálogo del Observatorio (`components_multiasset.py`) y copia diaria de lo multiactivo (`eim/data/backup_multiasset.py`).
+- **Archivos:** nuevos `v2/eim/scanner/{health,health_alerts,rollout,trace,obs_batch,health_service,health_cli}.py`, `v2/eim/observability/catalog/components_multiasset.py`, `v2/eim/data/backup_multiasset.py`, `v2/eim/web/src/scanner_health.ts`, `v2/tests/scanner/{_t102,test_health,test_rollout,test_trace,test_obs_batch,test_health_service,test_t102_e2e}.py`, `v2/tests/api/test_scanner_health_api.py`, `v2/tests/data/test_backup_multiasset.py`, `v2/tests/observability/test_catalog_multiasset.py`; cambiados `v2/eim/observability/{events.py,catalog/components.py}`, `v2/eim/scanner/{deep_service,__main__}.py`, `v2/eim/data/{scanner_store,backup}.py`, `v2/eim/api/scanner.py`, `v2/tests/api/test_scanner_api.py` (la guarda de rutas públicas pasa de 4 a 6 lecturas), `v2/eim/web/src/{scanner_api.ts,scanner_ui.ts,scanner.css}`, `v2/scripts/escaner_diario.ps1`, `v2/docs/{OPERACION,RUNBOOK,ARQUITECTURA}.md`, `PLAN/{STATUS,CONTRATOS,BACKLOG,UI_SPEC,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** nuevas sin red (trazabilidad de punta a punta, «sin datos» honesto, desactivación y reactivación simuladas, tope y costo de eventos, copia con el escáner en marcha); en la nube pasaron las puras (34) y la interfaz compiló con `tsc` y se revisó renderizada con la vista real del 2026-11-26. Real en la laptop: ok; vista hace 1.52 h; Cripto ok (427, cobertura 61%, 20 candidatas); Acciones ok (127, cobertura 53%, 3 candidatas); Índices ok (1, cobertura 33%, 0 candidatas); Divisas ok (1, cobertura 100%, 0 candidatas); Materias primas ok (8, cobertura 100%, 1 candidatas); niveles commodity alerta, crypto alerta, equity alerta, fx alerta, index alerta; avisos activos 0; observatorio 31 eventos en 2.4 ms (dentro del umbral). Recorrido: recorrido de ZECUSDT (tr_3e3f8f4dec914ae5): 8 pasos, del dato (500 velas de binance-futures (escáner global, T93) (nivel 2); calidad 1.00; mercado abierto) a la decisión (candidata, no validada · nivel Alerta · visible). Gate completo: pytest: 4575 pasadas, 36 omitidas, 0 fallos.
+- **Cómo se hizo:** desde claude.ai leyendo la copia de la laptop (sin clon: el acceso al repo desde la nube no se autorizó). `aplicar_t102.cmd` aplicó la entrega en una copia aparte desde `origin/main`, pasó ruff, las pruebas del escáner, del observatorio, de las copias y de la API, `tsc`, la revisión sobre los datos reales y el gate, y fusionó. No reinicia nada ni toca T31.
+- **Decisión de diseño:** desactivar una clase o un agente **no** apaga su cálculo (cambiaría la huella de agentes y rompería el pre-registro de T95 que decide la revisión del 2026-12-29); sus candidatas pasan a sombra.
+- **Abierto:** BACKLOG T102 (7 puntos). Los umbrales de promoción los confirma T101.
+- **Siguiente paso:** T213 (términos de datos de Deribit), o T101 cuando T97 arranque.
+
+## 2026-11-27 · T208 (la forja) se sube y se pone al día
+
+- **Hecho:** la rama solo existía en `juanpablo-cpu` (4 commits sin subir y una nota sin guardar: los dos supuestos de ejecución, optimista al cierre y conservador en el nivel). Se guardó, se puso al día con `main` y se sube como PR. El número T208 seguía libre en `main`. La ficha pasa de «Fase 33» a la **fase 27 (cantera)**, porque la 33 es ahora la de integridad de la medición (PR #368).
+- **Abierto:** T208 ◐ espera la lectura del usuario; ninguna receta sobrevive y no hay nada que ascender.

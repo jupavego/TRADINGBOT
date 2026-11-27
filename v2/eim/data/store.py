@@ -19,6 +19,7 @@ import numpy as np
 
 from eim.core import Candle
 from eim.data import revisions
+from eim.data.quality_io import gaps_in
 from eim.data.timeframes import tf_ms
 
 _CANDLE_SCHEMA = (
@@ -140,17 +141,12 @@ class Store:
 
     def find_gaps(
         self, symbol: str, timeframe: str, start: int | None = None, end: int | None = None,
-        kind: str = "candles",
+        kind: str = "candles", calendar=None,
     ) -> list[tuple[int, int]]:
-        """Huecos como (t de la primera vela faltante, t de la última faltante)."""
-        step = tf_ms(timeframe)
-        src = self.sql_source(kind, symbol, timeframe, start, end)
-        if src is None:
-            return []
-        rows = duckdb.connect().execute(
-            f"SELECT t, nxt FROM (SELECT t, lead(t) OVER (ORDER BY t) AS nxt FROM {src}) "
-            f"WHERE nxt - t > {step} ORDER BY t").fetchall()
-        return [(int(a) + step, int(b) - step) for a, b in rows]
+        """Huecos como (t de la primera vela faltante, t de la última faltante). Con `calendar`
+        (T90: id o instrumento) solo los que tenían el mercado abierto; sin él, la regla 24/7
+        de siempre. La lógica vive en `eim/data/quality_io.py`."""
+        return gaps_in(self, symbol, timeframe, start, end, kind, calendar)
 
     def bounds(self, symbol: str, timeframe: str,
                kind: str = "candles") -> tuple[int, int] | None:

@@ -14,3 +14,6 @@ class SeasonalityParams(BaseModel):
     max_confidence: float = 0.4  # tope: la estacionalidad es contexto débil
     horizon_bars: int = 30
     strict_gaps: bool = True  # hueco de meses → retorno NaN (el legado F7 lo interpolaba)
+    # T91 · calendario bursátil: días sin sesión que puede haber entre la última vela del mes y
+    # el día 1 (fin de semana + festivo). 0 = 24/7, lo de siempre; en bolsa, `eim/agents/adapt`.
+    month_end_grace_days: float = 0.0

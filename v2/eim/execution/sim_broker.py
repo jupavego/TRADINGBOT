@@ -11,6 +11,11 @@ T83 (carril HFT): `GTX` (post-only) que casaría al instante → rechazo `-5022`
 llena entera → el resto expira; nocional por debajo de `min_notional` → rechazo `-4164` (salvo
 reduce-only); `on_update(nuevo, anterior)` avisa de cada cambio de estado de una orden (la
 fuente de los eventos del flujo de usuario simulado, `eim/execution/user_stream.py`).
+
+T92 (multiactivo): `instruments` da a un símbolo su ficha (`sim_instrument.BrokerInstrument`):
+sesión, multiplicador, lote, tick y comisión de su clase. Con el mercado cerrado no se casa
+nada y la orden se llena con el primer precio en sesión. **Un símbolo sin ficha (BTC/ETH) sigue
+por el código de siempre, sin un solo cambio de cifra.**
 """
 
 from __future__ import annotations
@@ -18,6 +23,7 @@ from __future__ import annotations
 import math
 from collections.abc import Callable
 from dataclasses import asdict, replace
+from typing import TYPE_CHECKING
 
 from eim.core import Mode
 from eim.core.fees import T31_TAKER
@@ -38,6 +44,8 @@ from eim.execution.broker import (
     Position,
 )
 
+if TYPE_CHECKING:   # solo el tipo: un símbolo sin ficha no carga nada nuevo
+    from eim.execution.sim_instrument import BrokerInstrument
 
 class SimBroker:
     mode = Mode.SIMULADO
@@ -45,7 +53,8 @@ class SimBroker:
     def __init__(self, balance: float = 10_000.0, fee_rate: float = T31_TAKER,
                  step: float = 0.001, tick: float = 0.1, min_qty: float = 0.001,
                  fill_cap: float | None = None, min_notional: float = 0.0,
-                 maker_fee: float | None = None) -> None:
+                 maker_fee: float | None = None,
+                 instruments: dict[str, BrokerInstrument] | None = None) -> None:
         # T143: `fee_rate` es la de TOMADOR y `maker_fee` la de creador. La tarifa verificada es
         # la de `eim.core.fees` (5 pb / 2 pb), pero el carril de T31 corre con 4 pb para los dos
         # papeles desde su arranque y **no cambia hasta su cierre** (◆ 2026-11-10): sin
@@ -63,10 +72,16 @@ class SimBroker:
         self._px: dict[str, float] = {}
         self._limit_px: dict[str, float | None] = {}
         self._seq = 0
+        self.instruments: dict[str, BrokerInstrument] = dict(instruments or {})
+        self._t: dict[str, int] = {}          # último instante recibido por símbolo (sesiones)
 
     # --- mercado -----------------------------------------------------------
-    def set_price(self, symbol: str, price: float) -> None:
+    def set_price(self, symbol: str, price: float, t: int | None = None) -> None:
         self._px[symbol] = price
+        if t is not None:
+            self._t[symbol] = t
+        if self._closed(symbol):
+            return                                    # mercado cerrado: nada se casa
         for o in list(self._orders.values()):
             if o.symbol == symbol and o.is_open:
                 self._match(o)
@@ -79,11 +94,16 @@ class SimBroker:
         self.leverage[symbol] = leverage
 
     def round_qty(self, symbol: str, qty: float) -> float:
+        bi = self.instruments.get(symbol)
+        if bi is not None and bi.step:
+            return round(math.floor(qty / bi.step + 1e-9) * bi.step, 10)
         q = round(math.floor(qty / self.step + 1e-9) * self.step, 10)
         return q if q >= self.min_qty else 0.0
 
     def round_price(self, symbol: str, price: float) -> float:
-        return round(round(price / self.tick) * self.tick, 10)
+        bi = self.instruments.get(symbol)
+        tick = bi.tick if bi is not None and bi.tick else self.tick
+        return round(round(price / tick) * tick, 10)
 
     def post_order(self, spec: OrderSpec) -> OrderState:
         old = self._orders.get(spec.client_id)
@@ -105,7 +125,7 @@ class SimBroker:
             raise OrderRejected("Post Only order will be rejected (would be taker)", -5022)
         ref = spec.price if spec.kind == LIMIT else px
         if (not spec.reduce_only and not spec.close_position and not spec.conditional
-                and (spec.qty or 0) * (ref or 0) < self.min_notional):
+                and (spec.qty or 0) * (ref or 0) * self._mult(spec.symbol) < self.min_notional):
             raise OrderRejected(f"Order's notional must be no smaller than {self.min_notional}",
                                 -4164)
         self._seq += 1
@@ -147,8 +167,20 @@ class SimBroker:
         return Position(symbol, q, e)
 
     def equity(self) -> float:
-        upnl = sum(q * (self._px.get(s, e or 0.0) - (e or 0.0)) for s, (q, e) in self._pos.items())
+        upnl = sum(q * (self._px.get(s, e or 0.0) - (e or 0.0)) * self._mult(s)
+                   for s, (q, e) in self._pos.items())
         return self.balance + upnl
+
+    def _mult(self, symbol: str) -> float:
+        bi = self.instruments.get(symbol)
+        return bi.multiplier if bi is not None else 1.0
+
+    def _closed(self, symbol: str) -> bool:
+        """¿Mercado cerrado ahora para ese símbolo? Sin ficha o sin sesión: nunca."""
+        bi = self.instruments.get(symbol)
+        if bi is None or bi.is_open is None or symbol not in self._t:
+            return False
+        return not bi.is_open(self._t[symbol])
 
     # --- persistencia (paper trading continuo, T31) --------------------------
     def dump(self) -> dict:
@@ -186,6 +218,8 @@ class SimBroker:
         return px <= trigger if down else px >= trigger
 
     def _match(self, o: OrderState) -> None:
+        if self._closed(o.symbol):
+            return                                    # espera a la apertura
         px = self._px[o.symbol]
         if o.conditional:
             if not self._triggers(o.kind, o.side, o.trigger, px):
@@ -225,11 +259,17 @@ class SimBroker:
               maker: bool = False) -> None:
         cur, entry = self._pos.get(symbol, (0.0, None))
         new = round(cur + side * q, 10)
+        bi = self.instruments.get(symbol)
         if cur * side >= 0:                           # abre o aumenta
             entry = ((entry or 0) * abs(cur) + px * q) / abs(new)
         else:                                         # reduce (reduce-only: nunca invierte)
-            self.balance += (px - (entry or px)) * min(q, abs(cur)) * (1 if cur > 0 else -1)
+            pnl = (px - (entry or px)) * min(q, abs(cur)) * (1 if cur > 0 else -1)
+            self.balance += pnl if bi is None else pnl * bi.multiplier
             if new == 0:
                 entry = None
-        self.balance -= px * q * (self.maker_fee if maker else self.fee_rate)
+        if bi is not None and bi.commission is not None:
+            self.balance -= bi.commission(q, px, maker)
+        else:
+            self.balance -= px * q * (self.maker_fee if maker else self.fee_rate) * \
+                (1.0 if bi is None else bi.multiplier)
         self._pos[symbol] = (new, entry)
