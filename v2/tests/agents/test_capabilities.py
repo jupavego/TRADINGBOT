@@ -51,7 +51,8 @@ def test_candle_agents_are_portable_with_declared_assumptions():
 
 def test_cost_classes_follow_t87_measurement():
     cheap = {k for k, c in CAPABILITIES.items() if c.cost_class is CostClass.CHEAP}
-    assert len(cheap) == 13 and "plan" not in cheap      # T87: 13 agentes ≤ 20 ms
+    # T87: 13 agentes ≤ 20 ms; T214 suma `vol_surface` (≈ 5 ms con una toma real de 956 opciones)
+    assert len(cheap) == 14 and "plan" not in cheap and "vol_surface" in cheap
     assert CAPABILITIES["plan"].cost_class is CostClass.EXPENSIVE
 
 

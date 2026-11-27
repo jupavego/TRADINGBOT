@@ -5,7 +5,8 @@ Regla de CLAUDE.md: «nunca presentar datos asumidos como reales; toda cifra exp
 desde T90 cada serie puede llevar al lado lo que esa fuente permite hacer con ella.
 
 Las fichas copian lo que la ◆ de T88 dejó escrito (`PLAN/notas/T88_decisiones.md` §2-§3), sin
-mejorarlo: si allí pone «no verificado», aquí también. El nivel de cobertura es el de
+mejorarlo: si allí pone «no verificado», aquí también; la de Deribit copia la nota de términos de
+la ◆ de T213 (`PLAN/notas/T213_terminos.md`) con el mismo criterio. El nivel de cobertura es el de
 `TradableLevel` del registro (1 investigación · 2 operativa · 3 ejecución); hoy ninguna fuente
 es de nivel 3 y el alcance aprobado es solo análisis.
 
@@ -75,10 +76,22 @@ YAHOO = SourceMeta(
     license=("SIN licencia de datos: los Términos de Yahoo prohíben la recolección automatizada "
              "y crear bases de datos (◆ T88 §3)"),
     notes="Solo investigación; descartado para T90+ (sustitución en BACKLOG)")
+#: T213 (◆ del usuario, 2026-11-27): términos leídos en `PLAN/notas/T213_terminos.md`. Nivel 1
+#: y no 2: el límite por IP no tiene cifra publicada y la cl. 27.1(i) queda ambigua.
+DERIBIT = SourceMeta(
+    name="deribit", coverage=1, delay_ms=0, rate_limit_per_min=None,
+    license=("Términos de Deribit FZE (26-01-2026), cl. 2.10: datos de mercado y derivados solo "
+             "para uso personal; prohibido publicar, reenviar o redistribuir sin aprobación "
+             "escrita. Cl. 27.1(i) (recolección automatizada) ambigua para la API pública: "
+             "aprobada por el usuario a nivel 1 (◆ T213, 2026-11-27). Términos de DRB Panama "
+             "NO VERIFICADOS"),
+    notes=("API pública sin clave (DVOL de T165 y cadenas de opciones de T213); límite por IP "
+           "sin cifra publicada; el interés abierto llega con 8 h de retraso; nada sale del "
+           "proyecto"))
 
 #: Catálogo por nombre canónico.
 SOURCES: dict[str, SourceMeta] = {m.name: m for m in (
-    BINANCE_FUTURES, BINANCE_VISION, FRED, US_TREASURY, ECB, FRANKFURTER, YAHOO)}
+    BINANCE_FUTURES, BINANCE_VISION, FRED, US_TREASURY, ECB, FRANKFURTER, YAHOO, DERIBIT)}
 
 #: Cómo se escribe la fuente en `meta.json` de series antiguas → nombre canónico. Se compara
 #: en minúsculas y por prefijo, en este orden (lo más específico primero).
@@ -88,7 +101,7 @@ _PREFIXES: tuple[tuple[str, str], ...] = (
     ("binance-futures", "binance-futures"), ("binance futures", "binance-futures"),
     ("yahoo", "yahoo"), ("fred", "fred"), ("alfred", "fred"),
     ("us-treasury", "us-treasury"), ("frankfurter", "frankfurter"), ("ecb", "ecb"),
-    ("bce", "ecb"),
+    ("bce", "ecb"), ("deribit", "deribit"),   # `deribit-dvol` (T165) y `deribit-options` (T213)
 )
 
 

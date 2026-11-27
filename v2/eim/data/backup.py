@@ -18,6 +18,9 @@ Una copia es una carpeta `eim_AAAAMMDD-HHMMSS/` con:
 - `dvol/`: el índice DVOL de Deribit (T165). Siempre, aunque sea redescargable: son ~1,7 MB
   frente a los ~90 MB de las velas, y congelarlo es lo que hace repetible la medición de T165
   si Deribit alguna vez cambia o recorta su historia.
+- `options/`: las tomas de las cadenas de opciones de Deribit (T213). Siempre: a diferencia del
+  DVOL **no se pueden volver a descargar** (Deribit no publica la cadena pasada), y su volumen se
+  midió antes de programar el colector (presupuesto de `eim/data/options_chain.py`).
 - `market/` (opcional, `--with-market`): velas/funding en parquet; se pueden volver a descargar.
 - `manifest.json`: SHA-256 y tamaño de cada archivo, filas por tabla de cada base, camino y
   segundos de cada copia, bases ausentes, commit de git.
@@ -152,6 +155,7 @@ def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | 
             held_s = round(time.perf_counter() - t_hold, 2)
         copy_tree(data_dir / "micro_hft" / "qc", tmp / "state" / "micro_hft_qc", "*.json")
         copy_tree(data_dir / "dvol", tmp / "dvol")   # T165: pequeño, va siempre
+        copy_tree(data_dir / "options", tmp / "options")  # T213: irrepetible, va siempre
         multi = copy_multiasset(data_dir, tmp)        # T102: catálogo, escáner y resúmenes
         for name, d in CONFIG_DIRS.items():
             copy_tree(d, tmp / "config" / name, "*.json")

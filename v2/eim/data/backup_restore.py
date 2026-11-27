@@ -135,6 +135,9 @@ def restore(backup: Path, data_dir: Path,
     if (backup / "dvol").exists():
         copy_tree(backup / "dvol", data_dir / "dvol")
         restored.append("dvol/")
+    if (backup / "options").exists():   # T213: cadenas de opciones; se añade, no se borra nada
+        copy_tree(backup / "options", data_dir / "options")
+        restored.append("options/")
     if (backup / "market").exists():
         copy_tree(backup / "market", data_dir)
         restored.append("market")
