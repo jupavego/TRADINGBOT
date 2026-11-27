@@ -4142,6 +4142,54 @@ pm run build.
 - **Siguiente paso:** T207, empezando por publicar el valor esperado por idea generada junto al de las
   llenadas; no tocar reglas vivas antes del cierre de T31 (2026-11-28).
 
+## 2026-11-21 · sesión Perfil adicional en la cantera → T208 (la forja)
+
+- **Hecho:** el usuario pidió un perfil adicional para la cantera: BTC en velas de 5 m, intradía (nada
+  abierto de un día para otro), **sesión americana**, compras o ventas, con **miles de estrategias
+  distintas** armadas con todos los indicadores posibles agrupados en familias por lo que miden,
+  variando periodo, dirección, un filtro opcional y la salida; cuenta de 10 000 $ sin interés
+  compuesto, riesgo del 1 %, 1:10 de tope, entrada en la vela siguiente a la señal y costos reales.
+  Se construyó entero y se midió. **Decisión de arquitectura:** familia propia `forja_5m_v1`
+  **aparte de la cantera**, porque meter miles de recetas buscadas en la historia dentro de
+  `prereg_cantera_v1` (42 prospectos, techo 50, parámetros canónicos elegidos sin mirar rendimiento)
+  haría saltar su `m` de 50 a miles y sus veredictos dejarían de significar nada; lo que sobreviva
+  se propone con ◆ para una plaza de reserva y opera **hacia adelante desde cero**.
+- **La rejilla, congelada antes de medir:** 70 disparadores en 7 familias (tendencia, ruptura,
+  reversión, momento, flujo de agresores, volatilidad y hora de la sesión) × 3 direcciones × 9
+  filtros × 10 salidas = **18 900 recetas**, que son el `m` de Romano-Wolf/Holm/e-BH y el `attempts`
+  del Sharpe deflactado. Pre-registro `v2/eim/validation/prereg/prereg_forja_5m_v1.json`
+  (huella `573b4e4602d5f084`) commiteado en `5ac96ed`, **anterior a toda cifra**; reserva
+  2026-05-04 → 2026-11-03 intacta.
+- **Resultado: 0 supervivientes de 18 900** (238 s por la cola, **18 562 364 operaciones**, 827
+  sesiones dentro de muestra). La mejor de la rejilla (`ema_20_100|corto|apertura|vwap_objetivo`,
+  n = 229, +0,168 R) da **t = 0,82**, p de Romano-Wolf **1,000** y **DSR 0,000**, con el máximo nulo
+  esperado en **z = 4,01** (t remuestreado 3,74). **PBO 0,47** frente al 0,20 pre-registrado.
+- **El hallazgo que sí vale: la barrera de costos.** La familia gana **+0,069 R brutos** por
+  operación y pierde **−0,322 R netos**, porque cada operación paga **0,391 R** de comisión y
+  deslizamiento: con riesgo del 1 % y stops de pocas décimas de por ciento el nocional ronda **8
+  veces la cuenta** (el tope de 1:10 muerde). **12 992 de 16 176 recetas son positivas en bruto y
+  solo 126 en neto.** En 5 m no hace falta una idea «un poco buena», hace falta una que gane ≥ 0,4 R
+  brutos por operación. El control de entradas al azar da ≈ −costo (−0,23 a −0,49 R según la
+  salida), así que el motor es sano.
+- **Archivos:** `PLAN/T208.md` (nueva, fase 33), `PLAN/notas/T208_forja_5m.md` (diseño), fila en
+  `STATUS.md`, fase 33 en `00_MASTER.md`, línea en `BACKLOG.md`; código `v2/eim/forge/`
+  (`session`, `anchored`, `features`, `space`, `engine`, `examine`, `fstats`, `report`, `prereg`,
+  `__main__`), pruebas `v2/tests/forge/`, informe `v2/reports/forge/forja_5m_20261121-0744.{md,json}`.
+  Datos: 403 994 velas de 5 m agregadas del 1 m del banco de T131 en `v2/backups/t208_forja/`
+  (2023-01-01 → 2026-11-04, **0 huecos**); no se tocó nada del vivo ni de la cantera.
+- **Pruebas:** 46 nuevas en `v2/tests/forge/` — la sesión americana con horario de verano, festivos
+  de NYSE y medias sesiones; **causalidad por truncado** de las 70+ variables (si se corta la serie
+  en `i`, todas valen lo mismo en `i`); el **motor vectorizado idéntico a un bucle lento** operación
+  por operación en las 10 salidas; y las normas (nocional ≤ 1:10, riesgo de precio ≤ 1 R, nada
+  abierto entre sesiones, sin interés compuesto). Gate completo por la cola.
+- **Abierto:** T208 ◐ esperando la lectura del usuario. No hay nada que ascender a la cantera. Lo
+  que mueve la barrera de costos (entradas límite a 2 pb, riesgo menor, otras sesiones y marcos)
+  está en `BACKLOG.md` T208 y sería `forja_5m_v2`, con `m` y reloj nuevos.
+- **En curso:** sin cambios en T31, T143, T172, T194, T196, T206 ni T207; la forja no toca el libro
+  oficial, ni la cantera, ni `params_fingerprint`.
+- **Siguiente paso:** que el usuario decida si se abre `forja_5m_v2` con entradas límite (tomando el
+  supuesto de llenado de lo que ya miden T189 y T207, no inventado) o si la línea de 5 m se cierra
+  aquí con lo aprendido.
 ## 2026-11-23 — El patrón de apertura, medido y puesto a medirse solo (T211)
 - **Hecho:** el usuario describió el «patrón de apertura» (lo que hacen los 3 primeros minutos de una apertura se deshace en los 3 siguientes) y pidió evaluarlo aprovechando la apertura de Europa. Se midió con velas reales, no con memoria: 1 522 562 velas de 1 m de BTCUSDT (2024-01-01 → 2026-11-23 08:01 UTC, 100 % de cobertura, descargadas a un parquet aparte sin tocar el almacén vivo) y 6 plazas con horarios en hora local. **No está**: reversión 49,4 % (p = 0,77), corr(A,B) = −0,02, bruto ±0,3 bps; 4 527 operaciones con tope de 4 h dan −8,7 a −9,5 bps de media, estable en 2024/2025/2026 y **idéntico en 2 000 minutos al azar**. En el control de los 1440 minutos del día las aperturas quedan por debajo de la media de reversión. La apertura de Europa de hoy (08:00 UTC) continuó, no revirtió. Lo que sí hay: salto de volatilidad en el minuto de apertura, y que el canal de apertura **no rebota, se rompe** (las 24 variantes de reversión dan bruto negativo; la ruptura, bruto positivo en las 5 plazas, +1,55 a +4,14 bps, bajo el coste de 6,3). Con órdenes límite en el extremo del canal el llenado es del 98,5-98,8 %, y meter el nivel hacia dentro empeora llenado y resultado. Las 2 coberturas simétricas a 60x que pidió el usuario dan **−5,40 % del margen todos los días por identidad** (gana el 0 % de las veces) y dejar correr la perdedora liquida una pata en el 19-45 % de los días. El ejemplo limpio que señaló (NY, 17-nov: A −80 USD, B +450 USD, +69,4 bps) es el percentil 98,8 de 755 días, con 18 continuaciones ≥ 50 bps frente a 21 reversiones: la simetría que explica una media de cero. Como el usuario pidió dejarlo operando y evaluando, se abrió T211 con los criterios **congelados antes** de acumular muestra.
 - **Archivos:** `PLAN/notas/patron_apertura_sesion_2026-11-23.md` (medición completa), `PLAN/T211.md`, fila en `STATUS.md`, 2 líneas en `BACKLOG.md`, nota en el expediente de `levels` de la cantera (medido y rechazado, no inscrito), `v2/eim/validation/prereg/prereg_apertura_v1.json`, `v2/eim/analytics/apertura.py`, `apertura_report.py`, `v2/scripts/apertura_informe_mensual.ps1` y 4 scripts de medición en `v2/scripts/` (`descargar_1m_btc.py`, `patron_apertura_sesion.py`, `patron_apertura_canales.py`, `patron_apertura_coberturas.py`).
@@ -4497,6 +4545,15 @@ pm run build.
 
 - **Hecho:** la rama `claude/t197-pesos-regimen` solo existía en `juanpablo-cpu`, con el pre-registro y la medición del 2026-11-19, y nunca se registró en `STATUS.md`. Mientras tanto, `main` abrió otra T197 (despliegue automático, fase 32). Se pone al día con `main`, se renumera **T221** (fase 28) y se registra ◐. Los informes pasan a `reports/t221_pesos_regimen.*`. El banco conserva su nombre `data/t197_banco`.
 - **Siguiente paso:** correr la medición por la cola y escribir el veredicto según el pre-registro.
+## 2026-11-27 · T208 (la forja) se sube y se pone al día
+
+- **Hecho:** la rama solo existía en `juanpablo-cpu` (4 commits sin subir y una nota sin guardar: los dos supuestos de ejecución, optimista al cierre y conservador en el nivel). Se guardó, se puso al día con `main` y se sube como PR. El número T208 seguía libre en `main`. La ficha pasa de «Fase 33» a la **fase 27 (cantera)**, porque la 33 es ahora la de integridad de la medición (PR #368).
+- **Abierto:** T208 ◐ espera la lectura del usuario; ninguna receta sobrevive y no hay nada que ascender.
+
+## 2026-11-27 · ◆ del usuario: T208 se cierra, T45 sigue aparcada, T66 espera el video
+
+- **Hecho:** se sigue lo recomendado en cada caso. T208 ☑ como «medida, sin supervivientes»: `forja_5m_v2` queda en BACKLOG hasta que T189 mida el ahorro de la entrada límite. T45 sigue ◐ y aparcada hasta que haya claves de testnet. T66 sigue ◐: el usuario está descargando un video para la muestra de ≥ 40 fotogramas.
+- **Siguiente paso:** con el video, sacar los fotogramas (`python -m eim.video.visual frames` y luego `label-template`) para que el usuario los etiquete.
 ## 2026-11-27 · Renumeración: T213 (lado del libro) pasa a T215
 
 - **Hecho:** mientras el PR #366 esperaba, `main` usó T213 y T214 para las opciones cripto (T100). Esta rama se puso al día con `main` y su tarea pasa a **T215** (`PLAN/T215.md`, `PLAN/notas/T215_sesgo_direccional.md`, `tests/analytics/test_t215_sides.py`); solo se renumeró lo que añade la rama. El nombre del trabajo `gate-t213` de la cola se deja como está: es el que figura en `data/jobs`.
