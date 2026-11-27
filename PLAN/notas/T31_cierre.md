@@ -73,5 +73,27 @@ Es el libro fijo de los cuatro perfiles, solo con lo vivido, con peso y sin `ret
 
 ## 6. Cifras del periodo completo (23:40 UTC)
 
-_Pendiente: la tarea programada `t31-informe-final` regenera el informe con fin a las 23:35 UTC y
-completa esta sección. Si alguna cifra de §2 cambia de signo o de conclusión, lo dice aquí._
+Informe: `v2/reports/operation/periodo_1793403300000_1795822500000.{md,json}` (fin 2026-11-27
+23:35 UTC, generado a las 23:41 UTC). Mismo universo oficial que §2 (T144).
+
+| Alcance | Cuentan | R medio | IC95 % | Acierto | R total | PnL (USDT) |
+|---|--:|--:|--:|--:|--:|--:|
+| **Total** | **685** de 719 | **−0,06** | −0,09 … −0,02 | 83 % | −37,79 | **−2 031,81** |
+| agresivo | 227 | −0,07 | — | 85 % | −15,27 | −1 501,60 |
+| moderado | 321 | −0,06 | — | 82 % | −19,47 | −377,37 |
+| ppp_btcusdt | 137 | −0,02 | — | 82 % | −3,05 | −152,84 |
+
+- Drawdown: 2 292,83 USDT (8,20 %), el mismo que en §2. Huella de lo contado: `498b4209a391`.
+- `retro` excluidas: 34 (−862,98 USDT, −14,59 R), las mismas que en §2.
+- Costo medido: 0,125 R de media (mediana 0,119) por operación, 4 425,95 USDT en total (17,9 pb
+  del nocional). Por marco: 15m 0,156 R · 1h 0,125 R · 4h 0,077 R. Por entrada: límite 0,095 R
+  frente a mercado 0,136 R.
+- Calibración: 900 pronósticos (≈ 36 independientes). Brier skill −0,1 %, pinball +0,3 %, acierto
+  direccional 54,4 % (n = 884). No supera a la caminata aleatoria.
+- Reconciliación sin resolver: ninguna. 609 alertas (531 `obs_sin_latido`, 44 del indexador,
+  21 de agentes degradados, 7 de dato obsoleto, 6 de protección).
+- Semanas operadas: 4,0. La corrida de operación sigue en 2 operaciones (+0,37 R, n = 2) y 74 de 76
+  decisiones vetadas por «datos».
+
+**La conclusión de §2 se mantiene:** el R medio sigue en −0,06 con un IC95 % que excluye el 0, no hay
+ventaja y el costo sigue en ~0,125 R por operación.
