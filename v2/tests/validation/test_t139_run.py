@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from eim.data.timeframes import STORE_ONLY_TF_MS, TF_MS, tf_ms
+from eim.data.timeframes import SESSION_TF_MS, STORE_ONLY_TF_MS, TF_MS, tf_ms
 from eim.paper.catalog import CATALOG
 from eim.validation.attempts import load_attempts, write_attempts
 from eim.validation.criteria import load_criteria
@@ -65,9 +65,11 @@ def test_hypotheses_never_enter_the_live_catalog_or_are_imported_by_paper():
         assert "validation.hypotheses" not in f.read_text(encoding="utf-8"), f
 
 
-def test_daily_timeframe_is_store_only():
-    """La API sigue sin exponer 1 d: solo existe para que la sombra de H5 sepa cuánto dura."""
-    assert tf_ms("1d") == 86_400_000 and "1d" in STORE_ONLY_TF_MS and "1d" not in TF_MS
+def test_daily_timeframe_is_not_exposed_by_the_api():
+    """La API sigue sin exponer 1 d. Desde T90 es marco de sesión (de primera clase para el
+    almacén y el snapshot), ya no «solo almacén»; la sombra de H5 sigue sabiendo cuánto dura."""
+    assert tf_ms("1d") == 86_400_000 and "1d" in SESSION_TF_MS and "1d" not in TF_MS
+    assert "1d" not in STORE_ONLY_TF_MS
 
 
 def test_be_plus_is_extended_to_1d_without_changing_1h_and_4h():

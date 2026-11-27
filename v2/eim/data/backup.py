@@ -12,6 +12,9 @@ Una copia es una carpeta `eim_AAAAMMDD-HHMMSS/` con:
   vienen con `EIM_PAPER_VARIANTS` y `EIM_NURSERY`— y su archivo vive en `data/<nombre>`.
 - `state/`: kill-switch, estado de la operación, registros JSONL y QC de la captura HFT (T78).
 - `config/`: versiones de parámetros (`eim/risk/versions`, `eim/calibration/versions`).
+- `multiactivo/` (T102, `eim/data/backup_multiasset.py`): el registro de instrumentos, la base del
+  escáner global (con el registro de intentos de T95) y sus resúmenes publicados; si el escáner
+  está en marcha, su base queda ausente con motivo en `manifest.json["multiasset"]`.
 - `dvol/`: el índice DVOL de Deribit (T165). Siempre, aunque sea redescargable: son ~1,7 MB
   frente a los ~90 MB de las velas, y congelarlo es lo que hace repetible la medición de T165
   si Deribit alguna vez cambia o recorta su historia.
@@ -57,6 +60,7 @@ from eim.data.backup_dbs import (
     in_use,
     sha256,
 )
+from eim.data.backup_multiasset import copy_multiasset
 from eim.data.backup_restore import complete, copy_tree, restore, summary, verify
 from eim.data.local_api import DEFAULT_API, post_local
 
@@ -148,6 +152,7 @@ def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | 
             held_s = round(time.perf_counter() - t_hold, 2)
         copy_tree(data_dir / "micro_hft" / "qc", tmp / "state" / "micro_hft_qc", "*.json")
         copy_tree(data_dir / "dvol", tmp / "dvol")   # T165: pequeño, va siempre
+        multi = copy_multiasset(data_dir, tmp)        # T102: catálogo, escáner y resúmenes
         for name, d in CONFIG_DIRS.items():
             copy_tree(d, tmp / "config" / name, "*.json")
         if with_market:
@@ -158,6 +163,7 @@ def create(data_dir: Path, dest_root: Path, *, con=None, lock: threading.Lock | 
         manifest = {"format": FORMAT, "created_at": stamp, "git_commit": _git_commit(),
                     "data_dir": str(data_dir), "with_market": with_market,
                     "dbs": {k: dbs[k] for k in (*DBS, *extra) if k in dbs}, "absent": absent,
+                    "multiasset": multi,
                     "held_s": held_s, "seconds": round(time.perf_counter() - t_start, 2),
                     "files": files}
         (tmp / "manifest.json").write_text(json.dumps(manifest, indent=1, ensure_ascii=False),

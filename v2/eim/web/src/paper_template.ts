@@ -17,6 +17,7 @@ export const TEMPLATE = `
   <span class="pp-job" data-x="job" title="Puesta al día automática: el servicio analiza solo las velas que faltan (no decidió en tiempo real: cuentan como reconstruidas)"></span>
 </header>
 <div class="pp-livebar" data-x="live" aria-live="polite"></div>
+<section class="pp-gates" data-x="gates" aria-label="Puerta del marco mayor"></section>
 <section class="pp-balance" data-x="bal" aria-label="Balance de operaciones ganadas y perdidas"></section>
 <section class="pp-eqbox" aria-label="Capital por perfil">
   <div class="pp-eq-h"><h4 class="sh">Capital por perfil</h4>

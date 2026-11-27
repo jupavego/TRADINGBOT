@@ -98,19 +98,22 @@ Auditoría completa en `PLAN/notas/T62_auditoria.md`; aquí solo las reglas que 
 - **Sin descargas en ejecución:** faster-whisper con `local_files_only=True` desde su carpeta; RapidOCR solo si sus ONNX ya están en el paquete; un modelo de Ollama no descargado ⇒ `no_data` (el `pull` es un paso de instalación).
 - **Contenido como dato:** el texto externo va serializado en `<untrusted_data>`, con las etiquetas falsificadas neutralizadas y los patrones de inyección avisados; la salida se valida con pydantic y nunca se completa con valores inventados.
 
-## Videos de YouTube (T62) — decidida el 2026-11-07
+## Videos de YouTube (T62) — decidida el 2026-11-07, reabierta y cambiada el 2026-11-20
 **Hechos** (auditoría T62, grupo A): los Términos de YouTube prohíben descargar el contenido sin permiso y acceder por medios automatizados; las Developer Policies de la API prohíben guardar copias del audiovisual y separar el audio; la API oficial solo baja subtítulos de videos propios; `youtube-transcript-api` usa un endpoint interno no documentado y sufre bloqueos de IP; el RSS de canal no está documentado (404 en las pruebas).
 
-**Postura vigente** (2026-11-07). El usuario delegó la decisión («toma tu la mejor decision») y Claude eligió la que no le crea riesgo: **se cumplen los Términos de YouTube.**
-- **Sí:** puntos 1, 2, 5 y 6 de la propuesta de abajo.
-- **No:**
-  - **No al punto 3:** no se usa `youtube-transcript-api`, que es un acceso automatizado por un endpoint interno.
-  - **No al punto 4:** no se descarga audio ni video de YouTube con `yt-dlp`.
-- **Qué se puede transcribir:** solo lo que se puede usar sin chocar con los Términos. Son los videos propios del usuario (`captions.download` de la API oficial), el audio o video que él aporte y lo que el autor permita por escrito. Los demás videos se omiten: de ellos solo quedan los metadatos de la Data API v3.
-- **La clave de la Data API** (T64, 2026-11-10) vive fuera del repo, en `~/.eim/youtube_api_key.txt` (o en `EIM_YOUTUBE_API_KEY`). Restringida a YouTube Data API v3, sin permisos de cuenta; no viaja en la copia entre equipos: cada equipo crea la suya. Nunca en el chat ni en capturas.
-- **Consecuencia:** T64–T66 trabajan con esas fuentes, no con «cualquier video de un canal».
+**Postura vigente** (2026-11-20). El usuario reabrió la decisión del 7-nov y **acepta los puntos 3 y 4** de la propuesta de abajo, con sus controles: el uso es análisis personal con fines académicos, no comercial y sin redistribución.
+- **Sí:** los seis puntos de la propuesta, completos.
+- **Qué es esto, sin adornos:** los Términos de YouTube **no tienen excepción académica ni por uso no comercial**, así que esto es un incumplimiento contractual asumido a conciencia por el dueño del proyecto, no una excepción legal; que la práctica esté extendida no cambia el texto. La exposición real y acotada: bloqueo de IP, y que Google cancele la clave de la Data API si la relaciona con este cliente (API Services Terms §2.1 y §3.1). No hay redistribución, así que no se toca el derecho de autor de terceros: lo que queda guardado son afirmaciones derivadas con enlace y segundo, nunca el contenido.
+- **Controles que hacen cierto el «no comercial y sin redistribuir»** (código, no promesas): nada de video, audio ni transcripción completa entra a git ni a la mezcla entre equipos (punto 1); el audio va a carpeta temporal y **se borra al terminar la transcripción, con el borrado verificado en el test** (T65); `yt-dlp` en proceso aislado, entorno sin claves, `YTDLP_NO_PLUGINS`, `--ignore-config`, versión fijada, sin `-U`; solo audio, nunca el archivo de video.
+- **Límites que no se cruzan:** sin cookies ni cuenta del usuario; **sin proxies rotativos ni ningún otro medio para esquivar bloqueos o puertas de edad**; ritmo bajo en cola nocturna; solo los canales de la lista versionada de T64. Si YouTube bloquea, la cadena **se frena y avisa** por el canal de alertas de T31 — no se intenta sortear el bloqueo.
+- **Qué se puede transcribir:** subtítulos publicados como primera fuente; si no hay o son malos, audio como respaldo y ASR local de T63. Siguen fuera los atajos del punto anterior.
 
-**Propuesta original** (para el registro; los puntos 3 y 4 quedaron rechazados):
+**Postura anterior** (2026-11-07, sustituida; se deja por trazabilidad): se cumplían los Términos — sin `youtube-transcript-api` ni `yt-dlp`, y solo se transcribían los videos propios del usuario (`captions.download`), el material que él aportara o lo que el autor permitiera por escrito. Esa postura dejaba sin texto a **todo canal ajeno** (la API oficial solo baja subtítulos de videos propios) y con ello T65 y T67–T69 no podían correr: ese fue el motivo de reabrirla.
+- **La clave de la Data API** (T64, 2026-11-10) vive fuera del repo, en `~/.eim/youtube_api_key.txt` (o en `EIM_YOUTUBE_API_KEY`). Restringida a YouTube Data API v3, sin permisos de cuenta; no viaja en la copia entre equipos: cada equipo crea la suya. Nunca en el chat ni en capturas.
+- **Consecuencia:** T64–T66 trabajan con los canales de la lista versionada de T64 (subtítulos primero, audio de respaldo), nunca con «todo lo de todos los canales».
+- **Lectura visual (T66):** solo sobre un archivo local que el usuario aporta; se guardan miniaturas elegidas (fuera de git) y nunca el video (`--delete-source` lo borra al terminar si era temporal). El texto de la imagen es dato: no llega al modelo visual, cuya pregunta es fija, y una línea que «ordena» algo se guarda tal cual como titular. No se reconocen personas ni rostros ni se infieren señales de trading de la imagen. Las miniaturas de videos ajenos no se suben a git (la muestra etiquetada solo lleva sus `.json`).
+
+**Propuesta original** (aprobada completa el 2026-11-20; los puntos 3 y 4 estuvieron rechazados entre el 7 y el 20 de noviembre):
 1. **Uso personal, local y sin redistribuir.** Nada de video, audio ni transcripción completa entra a git, a la mezcla entre equipos de T61 ni a ningún servicio; sí viajan las afirmaciones derivadas (paráfrasis corta + enlace + segundo), como las fichas de la biblioteca (T52).
 2. **Primero lo oficial:** descubrimiento y metadatos solo con la YouTube Data API v3 (clave propia del usuario, dentro de su cuota) o el RSS cuando responda.
 3. **Subtítulos antes que audio:** subtítulos ya publicados por el canal como primera fuente; `youtube-transcript-api` solo si el usuario acepta que es un acceso no oficial, con ritmo bajo (cola nocturna, pocos videos) y sin proxies rotativos para esquivar bloqueos.

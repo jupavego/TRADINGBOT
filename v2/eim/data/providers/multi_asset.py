@@ -13,10 +13,13 @@ from datetime import UTC, datetime, timedelta
 
 from eim.core import Candle
 from eim.data.providers.binance import BinanceFutures
+from eim.data.providers.meta import BINANCE_FUTURES, YAHOO, SourceMeta
 
 BINANCE_STEP_MS = {"1h": 3_600_000, "4h": 14_400_000, "1d": 86_400_000}
 _BINANCE_SRC = "binance futures (fapi/v1/klines)"
 _YAHOO_SRC = "yahoo finance (yfinance)"
+# T90: ficha de cada fuente del visor (Yahoo, nivel 1 y sin licencia de datos: ◆ T88 §3).
+SOURCE_META: dict[str, SourceMeta] = {"binance": BINANCE_FUTURES, "yahoo": YAHOO}
 _YAHOO_LOOKBACK_DAYS = {
     "1d": lambda n: int(n * 1.6) + 15,
     "1wk": lambda n: n * 7 + 30,

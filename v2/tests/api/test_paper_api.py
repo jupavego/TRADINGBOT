@@ -226,3 +226,31 @@ def test_hooks_are_registered_in_order_and_run_outside_the_cycle(client):
     live = client.get("/v2/paper?symbol=BTCUSDT").json()["live"]
     assert live["hooks"]["passes"] == 2 and set(live["hooks"]["hooks"]) == {
         "validacion", "libro", "bots", "setups"}
+
+
+def test_htf_gates_publica_la_puerta_del_marco_mayor(client):
+    """T212: la puerta deja de ser invisible (dirección, giro, retraso y a quién veta)."""
+    v = _fresh(client, "/v2/paper?symbol=BTCUSDT")
+    gs = {g["timeframe"]: g for g in v["htf_gates"]}
+    assert set(gs) <= {"15m", "1h", "4h"} and "15m" in gs
+    g = gs["15m"]
+    assert g["htf"] == "1h" and (g["fast"], g["slow"]) == (21, 55)
+    assert g["dir"] in (-1, 1) and g["label"] in ("alcista", "bajista")
+    assert g["since_t"] <= v["now"] and g["hours"] >= 0
+    assert g["extreme_kind"] in ("min", "max") and g["price"] > 0
+    assert g["enforced_by"] == ["conservador", "moderado", "agresivo", "ppp_btcusdt"]
+    assert g["thresholds"]["disagree_h"] == 24.0 and g["text"].startswith("15m")
+    # T212 criterio 2: lo que el veto dejó fuera, por marco y lado (None si no bloqueó nada)
+    for x in v["htf_gates"]:
+        b = x["blocked"]
+        assert b is None or (b["n"] == b["long"] + b["short"] and b["ideas"] <= b["n"]
+                             and b["live"] <= b["n"] and b["window_h"] == 168.0
+                             and sum(b["profiles"].values()) == b["n"])
+    # el lado del libro es el de la puerta: ninguna idea viva va en contra (veto `require_htf`)
+    for x in client.get("/v2/paper/ideas?symbol=BTCUSDT&limit=50").json()["ideas"]:
+        if x["timeframe"] == "15m" and x.get("htf") is not None:
+            assert x["htf"] >= 0 or not x.get("taken", False)
+    # sin velas del marco mayor la puerta no inventa dirección (aquí no hay 4 h)
+    for tf, x in gs.items():
+        if tf != "15m":
+            assert x["dir"] == 0 and x["since_t"] is None and x["disagrees"] is False

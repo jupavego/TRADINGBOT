@@ -5,9 +5,12 @@ import type { AgentInfo, Overlay, AgentReport, Snapshot, StreamMsg, Decision, Tr
 import type { ArbPayload } from './arb_types'
 import type { LeadersPayload } from './leaders_types'
 
-/** Base de la API: variable VITE_API_URL o el mismo host en el puerto 8000. */
+/** Base de la API: variable VITE_API_URL; servida por Vite (5173 / 4173), el mismo origen, que
+ * reenvía `/v2` a la API (vite.config.ts; el navegador integrado bloquea otro puerto); si no, el
+ * mismo host en el puerto 8000. */
 export const base = (): string =>
-  (import.meta.env.VITE_API_URL as string | undefined) ?? `http://${location.hostname}:8000`
+  (import.meta.env.VITE_API_URL as string | undefined) ??
+  (['5173', '4173'].includes(location.port) ? location.origin : `http://${location.hostname}:8000`)
 
 /** Foco: solo BTCUSDT (T122, 2026-10-22: ETH deja de ser activo operativo). La API y el almacén
  * siguen admitiendo ETHUSDT (datos históricos), pero la interfaz ya no lo pide ni lo muestra. */

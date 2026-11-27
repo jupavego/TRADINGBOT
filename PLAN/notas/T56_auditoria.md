@@ -1,6 +1,6 @@
 # T56 — Auditoría ampliada de bots y catálogo del escuadrón
 Fecha: 2026-10-19 · Método: clones superficiales aislados (`--depth 1`, sin submódulos ni hooks, fuera del proyecto) de 47 repositorios y lectura de metadatos de PyPI; **no se ejecutó ni instaló nada de terceros**, solo `git clone`, `grep`, lectura y un escáner propio de solo lectura (patrones `pickle`/`eval`/`exec`/`subprocess`/retiros/telemetría/Binance USDⓈ-M, conteo de pruebas, hash de licencias). Formato y criterios como T04/T33; **lo ya dictaminado allí no se repite** (se enlaza).
-Fichas: [`v2/eim/bots/registry/`](../../v2/eim/bots/registry/) (50 archivos + [`SCHEMA.md`](../../v2/eim/bots/registry/SCHEMA.md), con las reglas de puntuación escritas **antes** de puntuar). Cada ficha fija el SHA del commit auditado y enlaza la evidencia a ese commit.
+Fichas: [`v2/eim/bots/registry/`](../../v2/eim/bots/registry/) (52 archivos + [`SCHEMA.md`](../../v2/eim/bots/registry/SCHEMA.md), con las reglas de puntuación escritas **antes** de puntuar). Cada ficha fija el SHA del commit auditado y enlaza la evidencia a ese commit.
 
 **Estado: auditoría completa y lista aprobada por el usuario el 2026-10-19 (sección 8).**
 
@@ -239,3 +239,32 @@ Las 4 fichas aprobadas llevan `approval = {aprobada, usuario, 2026-10-19}`; el r
 
 ### Decisión del usuario (◆), 2026-10-20 — ampliación del escuadrón
 Aprobación escrita de los tres opcionales que la decisión del 2026-10-19 dejó fuera: `nostalgia-for-infinity` (B, GPL-3.0, velas de 5 min, promedia a la baja; mismo riesgo de licencia aceptado en el punto 2: uso privado, sin distribuir, entorno Python 3.12 aparte), `jesse-example-strategies` (A, MIT) y `trendrider-strategy` (A, MIT). Sus fichas pasan a `approval = {aprobada, usuario, 2026-10-20}` y `squad_proposal = propuesto`. Siguen sujetos a la misma puerta de T49 (T59): aprobar no es validar. El punto 4 de arriba queda reemplazado para estos tres.
+
+## 9. Apéndice (2026-11-25) — dos repositorios de estudio que el catálogo no tenía
+El usuario pegó en el chat una lista de repositorios «de estrategias de inversión» y pidió comprobar si había algo aprovechable. Ocho de los diez ya tenían ficha (Freqtrade, Hummingbot ×3, vectorbt, backtrader, backtesting.py, bt). Faltaban los dos que no son bots sino material de estudio, y ahora tienen ficha:
+
+| Ficha | Licencia | Operativa | Seguridad | Veredicto |
+|---|---|---|---|---|
+| [`quant-trading`](../../v2/eim/bots/registry/quant-trading.json) (`je-suis-tm/quant-trading`) | Apache-2.0 | 38 | 85, habilitado | referencia (C) |
+| [`machine-learning-for-trading`](../../v2/eim/bots/registry/machine-learning-for-trading.json) (`stefan-jansen/…`) | MIT | 83 | 100, habilitado | referencia (C) |
+
+**Método, y en qué se aparta de la sección 7.** Esta vez **la API de GitHub sí respondió** (`gh api`), así que el SHA y la fecha del commit vienen de ella y están confirmados contra el clon. `quant-trading` se clonó entero (`--depth 1`, 20 MB). `machine-learning-for-trading` pesa **1,3 GB**, imposible de clonar en este equipo con los servicios en marcha: se usó un clon parcial (`--filter=blob:none` más `sparse-checkout` de `*.py`, `*.md`, `LICENSE` y `requirements*`, 40 MB), de modo que **los 483 notebooks y los datos no se auditaron**; su ficha lo declara en `audit_scope`. Como en la sección 7, no se instaló ni se ejecutó nada de terceros. Los hashes de licencia son del **blob** del commit (`git cat-file blob HEAD:LICENSE`), no del archivo del árbol de trabajo, que en Windows llega con los finales de línea convertidos.
+
+**`quant-trading` (sin novedad).** 13 scripts de backtest sin una sola prueba automatizada (los 13 archivos con «test» en el nombre son `… backtest.py`) y sin comisiones ni deslizamiento. Sus ideas ya están medidas en EIM: la reversión por bandas y el RSI son `ind_bb_reversion` e `ind_rsi` del catálogo de 104 estrategia@marco, y la familia de rotura de rango dio **R bruto −0,000** en el banco de T131. S6 no se cumple: importa `fix_yahoo_finance`, abandonado desde 2019, en cinco scripts. Último commit del 2024-04-14 (955 días). Apache-2.0 permitiría el modo A, pero no hay nada que portar con garantías: modo C.
+
+**`machine-learning-for-trading` (sí cambió, y es lo único nuevo de la lista).** `PLAN/T25.md` lo cita como material, pero el repositorio **se reescribió**: hoy es el paquete instalable `ml4t` 3.0.0 (3.ª edición, MIT), con **436 archivos `tests/test_*.py`**, 26 capítulos y último commit de hace tres días. Trae con pruebas tres piezas que EIM tiene pendientes o acaba de hacer por su cuenta:
+
+- **CPCV** (`06_strategy_definition/02_cv_foundations.py`): el único punto de T161 que sigue en BACKLOG.
+- **Contraste múltiple y DSR** (`07_defining_the_learning_task/07_multiple_testing.py`, `16_strategy_simulation/12_dsr_validation.py`), con el mismo paquete `arch` que EIM adoptó en T161 y con `skfolio` entre sus dependencias.
+- **El acantilado de costos** (`18_transaction_costs/11_cost_cliff.py`, `10_gross_vs_net_performance.py`): bruto frente a neto por frecuencia, que es la forma exacta en que T137 y T145 cerraron la búsqueda de entrada.
+
+Además, `02_financial_data_universe/10_crypto_perps_eda.py` trabaja sobre OHLCV horario de **19 perpetuos de Binance Futures** con su prima: el único material del repositorio en el mercado de EIM, y pertinente para T93–T96. Sus pruebas llevan disciplina de pre-registro (`tests/test_a_spent_holdout_window_refuses_at_registration.py`), que es la misma idea que el pre-registro de T139/T161/T211.
+
+**Por qué sigue siendo modo C y no A, pese a la licencia MIT.** `pyproject.toml` exige **Python >=3.14,<3.15**, que el entorno de EIM no cumple, y el árbol de dependencias arrastra torch, pymc, dowhy y crewai: nada de eso puede entrar en la ruta de señal. Se reimplementa la idea con pruebas propias, como manda el modo C.
+
+**Puntuaciones que piden explicación** (las reglas de `SCHEMA.md` no dan un valor obvio):
+
+- **O3 = 8** en `machine-learning-for-trading`: el código consume datos de Binance USDⓈ-M y eso se verificó, pero no se conecta al exchange ni ejecuta, así que no merece el 15 de «soporte verificado».
+- **O5 = 5**: Python 3.14 exacto, `envs/ml4t/Dockerfile` y ruedas pesadas; se instala con contenedor, no con ruedas sueltas en Windows.
+
+**Lo que no se hizo.** Ninguna cifra de rendimiento de estos repositorios se aceptó ni se midió nada (eso sería T59), y no se portó código. La CPCV sigue en BACKLOG; este apéndice solo añade de dónde copiar la idea y contra qué comparar.

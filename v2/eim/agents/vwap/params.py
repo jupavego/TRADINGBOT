@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict
 
 PERIODS = ("daily", "weekly", "quincenal", "monthly")
@@ -47,3 +49,8 @@ class VWAPParams(BaseModel):
     overlay_bands: tuple[int, ...] = (1, 2)  # ±1σ y ±2σ además del VWAP
     horizon_bars: int = 24
     max_confidence: float = 0.6  # heurística no validada: nunca se declara certeza alta
+    # T91 · supuestos de tiempo y volumen. Los valores por defecto son el comportamiento de
+    # siempre (cripto 24/7); `eim/agents/adapt.py` los cambia solo fuera de cripto.
+    anchor_tz: str = "UTC"  # zona en la que se cortan día/semana/quincena/mes (bolsa: la suya)
+    explicit_dead_anchors: bool = False  # True: el ancla que no aplica al marco se declara
+    volume_kind: Literal["real", "tick", "none"] = "real"  # tick → degrada; none → no_data

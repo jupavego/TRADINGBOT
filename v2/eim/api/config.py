@@ -92,6 +92,7 @@ class Settings:
     paper_variants: tuple[str, ...] = ()   # T143: corridas aparte en papel (EIM_PAPER_VARIANTS)
     val_attempts: bool = False  # T137: da de alta los intentos versionados (1 en from_env)
     nursery: bool = False       # T168: cantera (variante `cantera`); apagada salvo EIM_NURSERY=1
+    nursery_mirror: bool = False  # espejo de la cantera entre equipos (1 en from_env)
     # T182: desde cuándo «lo vivo manda» en el bróker simulado (UTC, ms). None en las pruebas;
     # `from_env` pone el cierre de T31 salvo EIM_PAPER_LIVE_FIRST_FROM (fecha ISO u `off`)
     paper_live_first_from_ms: int | None = None
@@ -148,6 +149,7 @@ class Settings:
             paper_variants=tuple(_csv(env.get("EIM_PAPER_VARIANTS", "")) or ()),
             val_attempts=env.get("EIM_VAL_ATTEMPTS", "1") != "0",
             nursery=env.get("EIM_NURSERY", "0") == "1",
+            nursery_mirror=env.get("EIM_NURSERY_MIRROR", "1") != "0",
             paper_live_first_from_ms=_when(env.get("EIM_PAPER_LIVE_FIRST_FROM",
                                                    T31_CLOSE_UTC)),
             paper_phase2_from_ms=_when(env.get("EIM_PAPER_PHASE2_FROM", T31_CLOSE_UTC)),

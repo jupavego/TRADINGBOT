@@ -19,8 +19,12 @@ tarea · equipo · qué hay que hacer allí · fecha (desde cuándo se puede, o 
 | T31 | juanpablo-cpu | Cerrar la corrida oficial de ≥ 4 semanas con su informe final: la corrida que cuenta es la de ese equipo | 2026-11-27 |
 | T135 | juanpablo-cpu | Leer el veredicto del A/B de M8: la tarea semanal y la copia `backups/t135_ab` están instaladas allí | 2026-12-06 |
 | T143 | juanpablo-cpu | Decidir si la variante t143 pasa a oficial: la variante y su `data/paper/tf_gate_t143.json` solo corren allí | 2026-11-27 |
+| T66 | juanpablo-cpu | Medir la muestra etiquetada (`python -m eim.video.visual eval`): RapidOCR y el entorno de motores (`C:\eim-localai`) solo están allí | cuando haya ≥ 40 etiquetas |
 | T116 | juanpablo-cpu | 3 corridas del gate con los servicios parados, después de cerrar T31, T143 y la semana de T178 | 2026-11-28 |
 | T178 | juanpablo-cpu | Medir la semana con las copias diarias de `leaders.duckdb`: la retención ya corre allí desde el 2026-11-19 | 2026-11-27 |
+| T171 | juanpablo-cpu | Traer `main` y reiniciar la API: la pestaña «Cantera» muestra allí el balance de ganadas y perdidas y el capital por agente, y la API empieza a publicar el **espejo en vivo** que ve la portátil (rama `cantera/espejo` de `Santivego/eim-shared-data`; esa cuenta de git necesita permiso de escritura en ese repo). Comprobar `mirror_publish.error` vacío en `GET /v2/nursery` | ya |
+| T96 | laptop | En pausa por tu decisión en T95: no empezar antes de la revisión automática de ese día (tarea «EIM - revision para decidir T96», informe en `TRADINGBOT/_revision_t96.md`); arranca solo si dice «ARRANCAR T96» | 2026-12-29 |
+| T97 | laptop | En pausa por tu decisión del 2026-11-26 (sin proveedor de acciones aprobado, ◆2 de T88): se decide con el informe de la revisión de T96 de ese día (`TRADINGBOT/_revision_t96.md`). Si dice «ARRANCAR T96», se te pregunta el proveedor y T97 arranca; si no, sigue en pausa con T96 (`PLAN/notas/T97_pausa.md`) | 2026-12-29 |
 
 ## Seguimiento de las tareas en curso
 
@@ -43,4 +47,5 @@ una tarea (☑), se borra su fila.
 | T189 | 2026-11-19T00:00Z | 2026-12-17T00:00Z | 1.ª mirada (luego 14-ene y 11-feb) | — | PC encendido, API en marcha | cualquiera | Entrada límite medida en vivo por marco; si pasa se adopta sola en ese marco |
 | T194 | 2026-11-18T00:00Z | 2026-11-28T00:00Z | encendido automático de la fase 2 | — | PC encendido, API en marcha | cualquiera | Nada: se enciende sola si la API ya corre el código nuevo |
 | T196 | 2026-11-19T00:00Z | 2026-11-28T00:00Z | encendido del libro central | Gate y despliegue hechos | PC encendido, API en marcha | cualquiera | Nada: se enciende solo en su fecha |
+| T66 | 2026-11-20T15:00Z | — | — | Código y pruebas 100 % · muestra etiquetada 0 de 40 fotogramas | tu decisión ◆, material de video permitido | juanpablo-cpu | Etiquetar a mano ≥ 40 fotogramas de videos propios o aportados (formato en `v2/tests/fixtures/video/labels/README.md`); luego `eval` allí y decides si la lectura visual es fiel |
 | T45 | — | — | — | Código 100 % · prueba real 0 % (aparcada) | claves de testnet | cualquiera | Se retoma si creas claves de Binance testnet sin permiso de retiro |

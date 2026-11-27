@@ -20,14 +20,26 @@
       <button id="evclock" class="evclock" type="button" hidden aria-live="off" aria-label="Próximo evento económico"></button>
       <div class="spacer"></div>
       <span id="mode" class="mode" title="Modo de operación">Modo: Análisis</span>
-      <!-- El mapa del sistema tiene su propia pestaña: abierta, la mesa se oculta y deja de animar (menos lag) -->
+      <!-- La cantera (fase 27) y el mapa del sistema tienen su propia pestaña: abierta una, la mesa se oculta
+           y deja de animar (menos lag) -->
+      <!-- T94: escáner global (oportunidades candidatas, no validadas), con la misma mecánica de pestaña -->
+      <button id="view-scanner" class="view-tab" type="button" aria-pressed="false" aria-controls="scanner"
+        title="Abrir el escáner global: oportunidades candidatas, no validadas, en modo Análisis (vuelve a pulsar para regresar a la mesa)">🔭 Escáner</button>
+      <button id="view-cantera" class="view-tab" type="button" aria-pressed="false" aria-controls="cantera"
+        title="Abrir la cantera: perfiles propios por agente, con su balance de ganadas y perdidas (vuelve a pulsar para regresar a la mesa)">🌱 Cantera</button>
       <button id="view-map" class="view-tab" type="button" aria-pressed="false" aria-controls="obs"
         title="Abrir el mapa del sistema en pantalla propia (vuelve a pulsar para regresar a la mesa)">🗺 Mapa del sistema</button>
     </header>
     <div id="banner" class="banner" hidden></div>
+    <!-- T206: el aviso del histórico vive aparte del de la conexión; ni se pisan ni se confunden -->
+    <div id="banner-hist" class="banner banner-warn" hidden></div>
     <section id="river" class="river" aria-label="Río de decisión"></section>
     <!-- Mapa del sistema (T75): en su propia pestaña (botón de la barra superior), oculto mientras se ve la mesa -->
     <section id="obs" class="obs" aria-label="Mapa del sistema" hidden></section>
+    <!-- Escáner global (T94): en su propia pestaña de la barra superior; modo Análisis y aviso «candidata, no validada» siempre visibles -->
+    <section id="scanner" class="scanner-view" aria-label="Escáner global" hidden><p class="muted">Consultando el escáner…</p></section>
+    <!-- Cantera (T171, fase 27): en su propia pestaña de la barra superior, con la cara del bróker simulado -->
+    <section id="cantera" class="paper cantera-view" aria-label="Cantera" hidden><p class="muted">Consultando la cantera…</p></section>
     <!-- Bróker simulado: ya no es una vista aparte; vive en la mesa, bajo el mapa del sistema -->
     <section id="paper" class="paper" aria-label="Bróker simulado"></section>
     <main class="desk">
@@ -44,7 +56,6 @@
           <button role="tab" aria-selected="false" data-tab="t-arb" id="tab-arb" title="Proyección y simulación · carril propio del arbitraje">Arbitraje</button>
           <button role="tab" aria-selected="false" data-tab="t-lead" id="tab-lead" title="Retroalimentación · líderes y su copia simulada">Líderes</button>
           <button role="tab" aria-selected="false" data-tab="t-squad" id="tab-squad" title="Validación · bots puntuados con la misma puerta que las estrategias">Escuadrón</button>
-          <button role="tab" aria-selected="false" data-tab="t-cantera" title="Validación y retroalimentación · perfiles propios por agente, con contabilidad aparte de los cuatro perfiles (T171)">Cantera</button>
           <button role="tab" aria-selected="false" data-tab="t-lib" title="Mejora continua · el conocimiento de los libros, con citas">Biblioteca</button>
           <span class="tabs-sep" role="presentation" title="Pestañas de consulta: no alimentan a los agentes">Documental</span>
           <button role="tab" aria-selected="false" data-tab="t-inv" title="Documental · sistema para inversionistas">Inversionistas</button>
@@ -58,7 +69,6 @@
         <div class="tabbody" id="t-arb" hidden><p class="muted">Consultando el escáner de arbitraje…</p></div>
         <div class="tabbody" id="t-lead" hidden><p class="muted">Consultando el tablero de líderes…</p></div>
         <div class="tabbody" id="t-squad" hidden><p class="muted">Consultando el escuadrón de bots…</p></div>
-        <div class="tabbody" id="t-cantera" hidden><p class="muted">Consultando la cantera…</p></div>
         <div class="tabbody" id="t-lib" hidden><p class="muted">Cargando biblioteca…</p></div>
         <div class="tabbody inv" id="t-inv" hidden><iframe src="inversionistas.html" title="Sistema documental para inversionistas" loading="lazy"></iframe></div>
         <div class="tabbody" id="t-log" hidden><div id="trades-log"></div><h4>Reportes de agentes</h4><div id="journal"></div></div>

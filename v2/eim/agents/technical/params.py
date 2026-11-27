@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict
 
 FAMILIES: tuple[str, ...] = ("tendencia", "momentum", "volatilidad", "volumen", "flujo")
@@ -65,3 +67,9 @@ class TechnicalParams(BaseModel):
     conf_full_bias: float = 0.5  # |sesgo| a partir del cual la magnitud no limita la confianza
     max_confidence: float = 0.8  # sin edge demostrado (reports/technical_ic.md) no se satura
     evidence_per_family: int = 3
+    # T91 · volumen y capacidades ausentes. Por defecto, lo de siempre (cripto con volumen real
+    # y taker_buy_v); `eim/agents/adapt.py` los cambia solo fuera de cripto.
+    volume_kind: Literal["real", "tick", "none"] = "real"  # tick → degrada; none → sin
+    # familias de volumen ni de flujo
+    families_absent: tuple[str, ...] = ()  # capacidad que el instrumento NO tiene (no cuenta
+    # en la cobertura ni degrada: p. ej. «flujo» sin taker_buy_v fuera de Binance)

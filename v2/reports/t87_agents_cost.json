@@ -1,0 +1,830 @@
+[
+ {
+  "timeframe": "1h",
+  "symbol": "BTCUSDT",
+  "store": "C:/Users/jo/Desktop/JP/TRADINGBOT/v2/data",
+  "candles": 500,
+  "asof": 1795174792248,
+  "agents": [
+   {
+    "agent_id": "arbitrage",
+    "version": "1.0.0",
+    "requires": [
+     "arb"
+    ],
+    "status": "degraded",
+    "ms_median": 2.026100002694875,
+    "ms_p90": 2.4507000052835792,
+    "ms_max": 2.4507000052835792,
+    "kib_peak": 144.2890625,
+    "cheap": false
+   },
+   {
+    "agent_id": "bots",
+    "version": "0.1.0",
+    "requires": [
+     "bot_signals"
+    ],
+    "status": "no_data",
+    "ms_median": 0.011799987987615168,
+    "ms_p90": 0.01920000067912042,
+    "ms_max": 0.01920000067912042,
+    "kib_peak": 2.453125,
+    "cheap": false
+   },
+   {
+    "agent_id": "calendar",
+    "version": "1.1.0",
+    "requires": [
+     "events"
+    ],
+    "status": "ok",
+    "ms_median": 0.062099992646835744,
+    "ms_p90": 0.08589999924879521,
+    "ms_max": 0.08589999924879521,
+    "kib_peak": 8.2451171875,
+    "cheap": false
+   },
+   {
+    "agent_id": "context",
+    "version": "1.0.0",
+    "requires": [
+     "headlines"
+    ],
+    "status": "no_data",
+    "ms_median": 0.01340000017080456,
+    "ms_p90": 0.025899993488565087,
+    "ms_max": 0.025899993488565087,
+    "kib_peak": 2.5947265625,
+    "cheap": false
+   },
+   {
+    "agent_id": "derivatives",
+    "version": "1.0.0",
+    "requires": [
+     "candles",
+     "funding",
+     "open_interest"
+    ],
+    "status": "ok",
+    "ms_median": 2.2499000042444095,
+    "ms_p90": 2.8168999997433275,
+    "ms_max": 2.8168999997433275,
+    "kib_peak": 27.8916015625,
+    "cheap": false
+   },
+   {
+    "agent_id": "elliott",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 0.23370000417344272,
+    "ms_p90": 0.2834000042639673,
+    "ms_max": 0.2834000042639673,
+    "kib_peak": 18.4814453125,
+    "cheap": true
+   },
+   {
+    "agent_id": "ema",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 54.77819999214262,
+    "ms_p90": 63.357100007124245,
+    "ms_max": 63.357100007124245,
+    "kib_peak": 381.8779296875,
+    "cheap": true
+   },
+   {
+    "agent_id": "intermarket",
+    "version": "0.1.0",
+    "requires": [
+     "intermarket"
+    ],
+    "status": "ok",
+    "ms_median": 1.927000004798174,
+    "ms_p90": 6.64649999816902,
+    "ms_max": 6.64649999816902,
+    "kib_peak": 55.703125,
+    "cheap": false
+   },
+   {
+    "agent_id": "levels",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 2.062400002614595,
+    "ms_p90": 5.546099986531772,
+    "ms_max": 5.546099986531772,
+    "kib_peak": 40.07421875,
+    "cheap": true
+   },
+   {
+    "agent_id": "liquidations",
+    "version": "2.0.0",
+    "requires": [
+     "liq_flow",
+     "liquidations"
+    ],
+    "status": "degraded",
+    "ms_median": 0.8243000047514215,
+    "ms_p90": 1.2496999988798052,
+    "ms_max": 1.2496999988798052,
+    "kib_peak": 22.20703125,
+    "cheap": false
+   },
+   {
+    "agent_id": "literature",
+    "version": "0.1.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "degraded",
+    "ms_median": 6.818599998950958,
+    "ms_p90": 37.44709999591578,
+    "ms_max": 37.44709999591578,
+    "kib_peak": 66.736328125,
+    "cheap": true
+   },
+   {
+    "agent_id": "microstructure",
+    "version": "1.0.0",
+    "requires": [
+     "candles",
+     "micro"
+    ],
+    "status": "ok",
+    "ms_median": 1.6150000010384247,
+    "ms_p90": 2.6802999927895144,
+    "ms_max": 2.6802999927895144,
+    "kib_peak": 9.609375,
+    "cheap": false
+   },
+   {
+    "agent_id": "plan",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 1414.227100001881,
+    "ms_p90": 2591.9438999990234,
+    "ms_max": 2591.9438999990234,
+    "kib_peak": 1714.4208984375,
+    "cheap": true
+   },
+   {
+    "agent_id": "price_action",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 106.46389999601524,
+    "ms_p90": 139.25639999797568,
+    "ms_max": 139.25639999797568,
+    "kib_peak": 142.4384765625,
+    "cheap": true
+   },
+   {
+    "agent_id": "regime",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 113.07969999324996,
+    "ms_p90": 117.63589999463875,
+    "ms_max": 117.63589999463875,
+    "kib_peak": 70.03125,
+    "cheap": true
+   },
+   {
+    "agent_id": "seasonality",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "no_data",
+    "ms_median": 0.8830000006128103,
+    "ms_p90": 1.4174000098137185,
+    "ms_max": 1.4174000098137185,
+    "kib_peak": 26.41015625,
+    "cheap": true
+   },
+   {
+    "agent_id": "smart_money",
+    "version": "0.1.0",
+    "requires": [
+     "leaders"
+    ],
+    "status": "no_data",
+    "ms_median": 0.00790000194683671,
+    "ms_p90": 0.011399999493733048,
+    "ms_max": 0.011399999493733048,
+    "kib_peak": 1.6875,
+    "cheap": false
+   },
+   {
+    "agent_id": "structure",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 87.06679999886546,
+    "ms_p90": 239.33940001006704,
+    "ms_max": 239.33940001006704,
+    "kib_peak": 1657.876953125,
+    "cheap": true
+   },
+   {
+    "agent_id": "technical",
+    "version": "0.1.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 84.99540000048,
+    "ms_p90": 227.14889999770094,
+    "ms_max": 227.14889999770094,
+    "kib_peak": 925.037109375,
+    "cheap": true
+   },
+   {
+    "agent_id": "vwap",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 48.027500000898726,
+    "ms_p90": 218.6241000017617,
+    "ms_max": 218.6241000017617,
+    "kib_peak": 389.3857421875,
+    "cheap": true
+   }
+  ],
+  "cycle_parallel_ms": 1986.1223999905633,
+  "cycle_serial_ms": 1927.3737999901641,
+  "cheap_ms_threshold": 20.0
+ },
+ {
+  "timeframe": "4h",
+  "symbol": "BTCUSDT",
+  "store": "C:/Users/jo/Desktop/JP/TRADINGBOT/v2/data",
+  "candles": 500,
+  "asof": 1795174839980,
+  "agents": [
+   {
+    "agent_id": "arbitrage",
+    "version": "1.0.0",
+    "requires": [
+     "arb"
+    ],
+    "status": "degraded",
+    "ms_median": 2.0618999988073483,
+    "ms_p90": 3.475699995760806,
+    "ms_max": 3.475699995760806,
+    "kib_peak": 143.9423828125,
+    "cheap": false
+   },
+   {
+    "agent_id": "bots",
+    "version": "0.1.0",
+    "requires": [
+     "bot_signals"
+    ],
+    "status": "no_data",
+    "ms_median": 0.011600001016631722,
+    "ms_p90": 0.017000013031065464,
+    "ms_max": 0.017000013031065464,
+    "kib_peak": 2.359375,
+    "cheap": false
+   },
+   {
+    "agent_id": "calendar",
+    "version": "1.1.0",
+    "requires": [
+     "events"
+    ],
+    "status": "ok",
+    "ms_median": 0.06120000034570694,
+    "ms_p90": 0.07729999197181314,
+    "ms_max": 0.07729999197181314,
+    "kib_peak": 8.2724609375,
+    "cheap": false
+   },
+   {
+    "agent_id": "context",
+    "version": "1.0.0",
+    "requires": [
+     "headlines"
+    ],
+    "status": "no_data",
+    "ms_median": 0.01239999255631119,
+    "ms_p90": 0.0185999961104244,
+    "ms_max": 0.0185999961104244,
+    "kib_peak": 2.5947265625,
+    "cheap": false
+   },
+   {
+    "agent_id": "derivatives",
+    "version": "1.0.0",
+    "requires": [
+     "candles",
+     "funding",
+     "open_interest"
+    ],
+    "status": "ok",
+    "ms_median": 1.786199994967319,
+    "ms_p90": 1.9160000083502382,
+    "ms_max": 1.9160000083502382,
+    "kib_peak": 19.5205078125,
+    "cheap": false
+   },
+   {
+    "agent_id": "elliott",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 0.24599999596830457,
+    "ms_p90": 0.262400004430674,
+    "ms_max": 0.262400004430674,
+    "kib_peak": 19.95703125,
+    "cheap": true
+   },
+   {
+    "agent_id": "ema",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 81.84129999426659,
+    "ms_p90": 190.48299999849405,
+    "ms_max": 190.48299999849405,
+    "kib_peak": 377.0419921875,
+    "cheap": true
+   },
+   {
+    "agent_id": "intermarket",
+    "version": "0.1.0",
+    "requires": [
+     "intermarket"
+    ],
+    "status": "ok",
+    "ms_median": 1.3543999957619235,
+    "ms_p90": 1.4752999995835125,
+    "ms_max": 1.4752999995835125,
+    "kib_peak": 55.703125,
+    "cheap": false
+   },
+   {
+    "agent_id": "levels",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 1.9167999998899177,
+    "ms_p90": 2.274900005431846,
+    "ms_max": 2.274900005431846,
+    "kib_peak": 40.07421875,
+    "cheap": true
+   },
+   {
+    "agent_id": "liquidations",
+    "version": "2.0.0",
+    "requires": [
+     "liq_flow",
+     "liquidations"
+    ],
+    "status": "degraded",
+    "ms_median": 0.3741000109585002,
+    "ms_p90": 0.566099988645874,
+    "ms_max": 0.566099988645874,
+    "kib_peak": 11.85546875,
+    "cheap": false
+   },
+   {
+    "agent_id": "literature",
+    "version": "0.1.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 2.3713999980827793,
+    "ms_p90": 2.7969999937340617,
+    "ms_max": 2.7969999937340617,
+    "kib_peak": 66.736328125,
+    "cheap": true
+   },
+   {
+    "agent_id": "microstructure",
+    "version": "1.0.0",
+    "requires": [
+     "candles",
+     "micro"
+    ],
+    "status": "degraded",
+    "ms_median": 0.7719999994151294,
+    "ms_p90": 0.786900011007674,
+    "ms_max": 0.786900011007674,
+    "kib_peak": 8.037109375,
+    "cheap": false
+   },
+   {
+    "agent_id": "plan",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 1418.1450000032783,
+    "ms_p90": 2304.6355999977095,
+    "ms_max": 2304.6355999977095,
+    "kib_peak": 1774.0546875,
+    "cheap": true
+   },
+   {
+    "agent_id": "price_action",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 98.73290000541601,
+    "ms_p90": 161.83230000024196,
+    "ms_max": 161.83230000024196,
+    "kib_peak": 142.4384765625,
+    "cheap": true
+   },
+   {
+    "agent_id": "regime",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 108.82229999697302,
+    "ms_p90": 119.56609999469947,
+    "ms_max": 119.56609999469947,
+    "kib_peak": 70.03125,
+    "cheap": true
+   },
+   {
+    "agent_id": "seasonality",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 17.802600006689318,
+    "ms_p90": 25.92269999149721,
+    "ms_max": 25.92269999149721,
+    "kib_peak": 51.025390625,
+    "cheap": true
+   },
+   {
+    "agent_id": "smart_money",
+    "version": "0.1.0",
+    "requires": [
+     "leaders"
+    ],
+    "status": "no_data",
+    "ms_median": 0.008500006515532732,
+    "ms_p90": 0.012600008631125093,
+    "ms_max": 0.012600008631125093,
+    "kib_peak": 1.6875,
+    "cheap": false
+   },
+   {
+    "agent_id": "structure",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 88.15429999958724,
+    "ms_p90": 94.44129999610595,
+    "ms_max": 94.44129999610595,
+    "kib_peak": 1657.3388671875,
+    "cheap": true
+   },
+   {
+    "agent_id": "technical",
+    "version": "0.1.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 65.08800000301562,
+    "ms_p90": 120.93460001051426,
+    "ms_max": 120.93460001051426,
+    "kib_peak": 921.57421875,
+    "cheap": true
+   },
+   {
+    "agent_id": "vwap",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 40.91369999514427,
+    "ms_p90": 50.58460000145715,
+    "ms_max": 50.58460000145715,
+    "kib_peak": 389.095703125,
+    "cheap": true
+   }
+  ],
+  "cycle_parallel_ms": 4123.462899995502,
+  "cycle_serial_ms": 1930.4765999986557,
+  "cheap_ms_threshold": 20.0
+ },
+ {
+  "timeframe": "1d",
+  "symbol": "BTCUSDT",
+  "store": "C:/Users/jo/Desktop/JP/TRADINGBOT/v2/data/universe_perps",
+  "candles": 500,
+  "asof": 1794873600000,
+  "agents": [
+   {
+    "agent_id": "arbitrage",
+    "version": "1.0.0",
+    "requires": [
+     "arb"
+    ],
+    "status": "no_data",
+    "ms_median": 0.01069999416358769,
+    "ms_p90": 0.01479999627918005,
+    "ms_max": 0.01479999627918005,
+    "kib_peak": 1.7109375,
+    "cheap": false
+   },
+   {
+    "agent_id": "bots",
+    "version": "0.1.0",
+    "requires": [
+     "bot_signals"
+    ],
+    "status": "no_data",
+    "ms_median": 0.012299991794861853,
+    "ms_p90": 0.022499996703118086,
+    "ms_max": 0.022499996703118086,
+    "kib_peak": 2.3828125,
+    "cheap": false
+   },
+   {
+    "agent_id": "calendar",
+    "version": "1.1.0",
+    "requires": [
+     "events"
+    ],
+    "status": "no_data",
+    "ms_median": 0.008399991202168167,
+    "ms_p90": 0.00960000033956021,
+    "ms_max": 0.00960000033956021,
+    "kib_peak": 1.7890625,
+    "cheap": false
+   },
+   {
+    "agent_id": "context",
+    "version": "1.0.0",
+    "requires": [
+     "headlines"
+    ],
+    "status": "no_data",
+    "ms_median": 0.012400007108226418,
+    "ms_p90": 0.016200006939470768,
+    "ms_max": 0.016200006939470768,
+    "kib_peak": 2.6181640625,
+    "cheap": false
+   },
+   {
+    "agent_id": "derivatives",
+    "version": "1.0.0",
+    "requires": [
+     "candles",
+     "funding",
+     "open_interest"
+    ],
+    "status": "no_data",
+    "ms_median": 0.008400005754083395,
+    "ms_p90": 0.009499999578110874,
+    "ms_max": 0.009499999578110874,
+    "kib_peak": 1.7109375,
+    "cheap": false
+   },
+   {
+    "agent_id": "elliott",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 0.4341999883763492,
+    "ms_p90": 0.4656999954022467,
+    "ms_max": 0.4656999954022467,
+    "kib_peak": 68.4873046875,
+    "cheap": true
+   },
+   {
+    "agent_id": "ema",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 83.56759999878705,
+    "ms_p90": 96.09419999469537,
+    "ms_max": 96.09419999469537,
+    "kib_peak": 377.166015625,
+    "cheap": true
+   },
+   {
+    "agent_id": "intermarket",
+    "version": "0.1.0",
+    "requires": [
+     "intermarket"
+    ],
+    "status": "no_data",
+    "ms_median": 0.010400006431154907,
+    "ms_p90": 0.015300000086426735,
+    "ms_max": 0.015300000086426735,
+    "kib_peak": 1.7265625,
+    "cheap": false
+   },
+   {
+    "agent_id": "levels",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 2.537100008339621,
+    "ms_p90": 4.094400006579235,
+    "ms_max": 4.094400006579235,
+    "kib_peak": 40.07421875,
+    "cheap": true
+   },
+   {
+    "agent_id": "liquidations",
+    "version": "2.0.0",
+    "requires": [
+     "liq_flow",
+     "liquidations"
+    ],
+    "status": "no_data",
+    "ms_median": 0.012799995602108538,
+    "ms_p90": 0.06310000026132911,
+    "ms_max": 0.06310000026132911,
+    "kib_peak": 1.6875,
+    "cheap": false
+   },
+   {
+    "agent_id": "literature",
+    "version": "0.1.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 3.827399996225722,
+    "ms_p90": 4.993199996533804,
+    "ms_max": 4.993199996533804,
+    "kib_peak": 66.736328125,
+    "cheap": true
+   },
+   {
+    "agent_id": "microstructure",
+    "version": "1.0.0",
+    "requires": [
+     "candles",
+     "micro"
+    ],
+    "status": "no_data",
+    "ms_median": 0.034899989259429276,
+    "ms_p90": 0.0577000027988106,
+    "ms_max": 0.0577000027988106,
+    "kib_peak": 1.7265625,
+    "cheap": false
+   },
+   {
+    "agent_id": "plan",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 1299.8499000095762,
+    "ms_p90": 2096.7284999933327,
+    "ms_max": 2096.7284999933327,
+    "kib_peak": 1690.46875,
+    "cheap": true
+   },
+   {
+    "agent_id": "price_action",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 95.6162999937078,
+    "ms_p90": 129.92259999737144,
+    "ms_max": 129.92259999737144,
+    "kib_peak": 142.7353515625,
+    "cheap": true
+   },
+   {
+    "agent_id": "regime",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 166.85639999923296,
+    "ms_p90": 202.2766000009142,
+    "ms_max": 202.2766000009142,
+    "kib_peak": 70.2109375,
+    "cheap": true
+   },
+   {
+    "agent_id": "seasonality",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 13.72050000645686,
+    "ms_p90": 17.938200006028637,
+    "ms_max": 17.938200006028637,
+    "kib_peak": 52.5458984375,
+    "cheap": true
+   },
+   {
+    "agent_id": "smart_money",
+    "version": "0.1.0",
+    "requires": [
+     "leaders"
+    ],
+    "status": "no_data",
+    "ms_median": 0.008499991963617504,
+    "ms_p90": 0.011800002539530396,
+    "ms_max": 0.011800002539530396,
+    "kib_peak": 1.6875,
+    "cheap": false
+   },
+   {
+    "agent_id": "structure",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 142.51470001181588,
+    "ms_p90": 313.6384999961592,
+    "ms_max": 313.6384999961592,
+    "kib_peak": 1665.5537109375,
+    "cheap": true
+   },
+   {
+    "agent_id": "technical",
+    "version": "0.1.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 25.351500007673167,
+    "ms_p90": 26.758199994219467,
+    "ms_max": 26.758199994219467,
+    "kib_peak": 556.001953125,
+    "cheap": true
+   },
+   {
+    "agent_id": "vwap",
+    "version": "1.0.0",
+    "requires": [
+     "candles"
+    ],
+    "status": "ok",
+    "ms_median": 40.551400001277216,
+    "ms_p90": 50.270799998543225,
+    "ms_max": 50.270799998543225,
+    "kib_peak": 388.84765625,
+    "cheap": true
+   }
+  ],
+  "cycle_parallel_ms": 1786.746600002516,
+  "cycle_serial_ms": 1874.945799994748,
+  "cheap_ms_threshold": 20.0
+ }
+]

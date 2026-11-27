@@ -16,12 +16,16 @@ def _next_month_start(year: int, month: int) -> int:
     return int(datetime(y, m, 1, tzinfo=UTC).timestamp() * 1000)
 
 
-def monthly_closes(candles: list[Candle], timeframe: str, asof: int) -> pd.DataFrame:
+def monthly_closes(candles: list[Candle], timeframe: str, asof: int,
+                   grace_ms: int = 0) -> pd.DataFrame:
     """Cierre de cada mes CALENDARIO COMPLETO presente en las velas (columnas timestamp, close).
 
     `timestamp` = inicio del mes (UTC). Un mes cuenta como completo si la serie continúa en un
     mes posterior, o si las velas llegan hasta su fin y `asof` ya pasó el cambio de mes. El mes
     en curso nunca entra: no se inventa un cierre que todavía no existe.
+
+    `grace_ms` (T91): en un mercado con sesiones, el mes termina en su última sesión, que puede
+    ser un viernes 28; con `grace_ms` de unos días esa vela «llega al fin» del mes. 0 = 24/7.
     """
     if not candles:
         return pd.DataFrame({"timestamp": pd.to_datetime([], utc=True), "close": []})
@@ -36,7 +40,7 @@ def monthly_closes(candles: list[Candle], timeframe: str, asof: int) -> pd.DataF
     for (y, m), c in sorted(by_month.items()):
         nxt = _next_month_start(y, m)
         if (y, m) == last_key:
-            reaches_end = timeframe == "1M" or (step is not None and c.t + step >= nxt)
+            reaches_end = timeframe == "1M" or (step is not None and c.t + step + grace_ms >= nxt)
             if not (asof >= nxt and reaches_end):
                 continue
         rows.append((pd.Timestamp(datetime(y, m, 1, tzinfo=UTC)), c.c))

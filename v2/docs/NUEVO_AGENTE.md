@@ -32,9 +32,42 @@ plantilla. Esta guía es el mismo procedimiento para hacerlo a mano y lo que vie
    Un servicio nuevo en segundo plano llama `hooks_service.beat("<id>")` en cada vuelta y
    `hooks_service.service_error` al fallar (`eim/observability/hooks_service.py`) y fija su nombre
    de proceso con `configure(process=…)` al arrancar.
-7. Gate: `python -m ruff check eim tests && python -m pytest -q`.
-8. UI (opcional): overlays con `id` estable; panel en `eim/web/src/` según `PLAN/UI_SPEC.md`.
+7. **Capacidades (T91):** ficha en `eim/agents/capabilities.py` —datos, no lógica; el `Protocol`
+   `Agent` no cambia—: `asset_classes`, `requires`/`requires_any` (su unión es `agent.requires`),
+   `timeframes`, `min_bars` (el mismo del agente), `min_history_days`, `session_models`,
+   `needs_real_volume` (`ninguno` · `opcional` · `preferible` · `obligatorio`), `time_anchor`,
+   `horizon` y `cost_ms` medido con `scripts/agents_cost.py`. Todo supuesto de tiempo o de volumen
+   (día UTC, 24/7, volumen real) va en `params.py` **con el valor actual por defecto**, y su versión
+   para otras clases en `eim/agents/adapt.py`. `tests/agents/test_capabilities.py` lo exige.
+8. Gate: `python -m ruff check eim tests && python -m pytest -q`.
+9. UI (opcional): overlays con `id` estable; panel en `eim/web/src/` según `PLAN/UI_SPEC.md`.
    Verificar inspeccionando los datos renderizados o con captura, no solo «sin errores».
+
+## 2 bis. Un instrumento nuevo se REGISTRA, no se codifica (T89)
+Desde la fase 17 ningún archivo nuevo vuelve a escribir `"BTCUSDT"` ni ninguna lista de símbolos.
+El catálogo único es `eim/instruments/`:
+
+- **Alta:** si es de una fuente que ya se descubre (los USDⓈ-M de Binance), sale sola con
+  `python -m eim.instruments --data-dir data discover`. Si no, una ficha en
+  `eim/instruments/registry.py` (semilla) y, si hace falta, un mapeo **puro** en `discovery.py`.
+  Nunca una constante en el módulo que lo usa.
+- **Resolver:** `store.resolve("BTCUSDT")`, `"SP500"` o el id completo — símbolo nativo y alias
+  legado siguen siendo identificadores válidos. `SYMBOLS` y `FOCUS` de `eim/data/timeframes.py`
+  se derivan del registro; cambiar el foco se hace ahí, no en 73 importadores.
+- **Capacidades:** un agente declara qué datos necesita y el registro dice si existen
+  (`Instrument.has(...)`). Si falta uno, el agente **no corre**: `no_data` con motivo, nunca un
+  número silencioso. Es la regla del punto 4 de la lista aprobada en T87 y la implanta T91
+  (`eim/agents/eligibility.py`: `eligible(agente, instrumento, cobertura) -> (bool, motivo)` y
+  `run_eligible`, que además adapta los supuestos con `eim/agents/adapt.py`); el caso medido fue
+  `vwap` publicando `ok` con confianza 0,60 y un ancla muerta en el S&P 500. Un perpetuo 24/7 con
+  volumen real recibe los mismos agentes: BTC/ETH no cambian. Velas por año o por día de mercado:
+  `eim/instruments/timebase.py` (24/7 con 1 h = 8766, la NYSE en diario ≈ 252).
+- **Tiempo:** nada supone 24/7. `eim/instruments/calendars.py` dice si estaba abierto
+  (`is_open`), cuántas velas debería haber (`expected_bars`) y, ante un hueco, si fue «cerrado» o
+  «sin datos» (`classify_absence`). Un instrumento puede tener **dos** calendarios: el del
+  contrato y el del subyacente (un perpetuo TradFi de Binance no cierra aunque CME sí).
+- **Permiso:** `tradable_level` (1 investigación · 2 operativa · 3 ejecución) es el límite escrito
+  de la ◆ de T88. Una tarea que vaya a publicar un veredicto pide `min_level=2` en la consulta.
 
 ## 3. Después: ¿vota en la síntesis o en el plan?
 Un agente nuevo **no gana peso por existir**. Hoy el plan solo usa `structure` + `levels`

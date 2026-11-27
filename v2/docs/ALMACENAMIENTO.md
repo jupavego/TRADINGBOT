@@ -45,6 +45,8 @@ Rutas relativas a `v2/` salvo indicación. Tamaños y filas medidos en `laptop-i
 | `data/leaders.duckdb` | Capturas en vivo de líderes de Hyperliquid y copia simulada (**irrepetibles**: el exchange solo sirve las 10 000 ejecuciones más recientes). De los rechazados, 7 días de detalle y lo anterior archivado ya plegado (`leader_archive*`, T128) | 1 125 MB · 12 tablas · 5,17 M filas | crítica | copia diaria + copia externa; experiencia (`leader_*` salvo el archivo, `copy_journal`) |
 | `data/obs/obs.duckdb` | Observatorio (derivado del spool JSONL) | 10 tablas · 894 k filas | media | copia diaria + externa; reconstruible |
 | `data/video.duckdb` | Catálogo de video T64: canales, metadatos point-in-time de videos de YouTube (sin audio ni video), cola de relevancia, consultas y cuota de la Data API | pequeño | baja | aún no entra en la copia diaria (BACKLOG T64); se rehace con `python -m eim.video backfill` salvo `first_seen_at` |
+| `data/video/visual.duckdb` | Lectura visual T66: tabla `video_observations` (solo-añadir; cada observación con fotograma, caja, motor/modelo/SHA y validación) | pequeño | baja | aún no entra en la copia diaria (BACKLOG T66); se rehace con `python -m eim.video.visual read` si siguen las miniaturas |
+| `data/video/frames/<video>/` | Miniaturas JPEG elegidas por T66 + `manifest.json` (el video completo no se guarda) | ~150 KB por fotograma, ≤ 120 por hora de video | baja | no se copia: se regenera desde el material original |
 
 Las operaciones simuladas conservan sus registros originales (no resúmenes): entrada, salida,
 precios, horas UTC, SL/TP vigentes, costos y motivo de cierre están en `paper.duckdb` y
@@ -87,6 +89,8 @@ de esos días solo sigue en las copias diarias (14) y en las versiones de la cop
 | `data/dvol` | Índice DVOL de Deribit, σ implícita de **BTC** en velas de 1 h (T165; ≈ 0,9 MB, 49 400 filas desde 2021-03-24). Solo BTC: la serie de ETH se borró el 2026-11-11, porque el alcance es BTC | baja | se descarga solo (`scripts/dvol_colector.ps1`, cada hora) y **entra en la copia diaria** (`dvol/` de cada `eim_*`, siempre, sin `--with-market`) |
 | `data/micro` | Microestructura del agente: fotos top-10 por segundo (`top`, de la captura HFT desde T128), liquidaciones en vivo y lo que dejó el recolector T23 (`trades`, `depth`, `gaps`: ya no crecen) (2,2 GB) | alta (irrepetible) | **no viaja**; se poda sola; para conservar un tramo, copiarlo a un disco externo |
 | `data/micro_hft` | Captura HFT T78 (3,1 GB; ≈ 830 MB/día; poda a 45 días) | alta (irrepetible) | solo el QC en la copia; crudos a disco externo a mano |
+| `data/micro_cache` | Agregados por vela **ya cerrada** de la microestructura (OFI, desequilibrio, volumen agresor) que `/v2/snapshot` ya no recalcula (T206): un JSON por símbolo, marco y día, unos pocos KB | ninguna (derivado) | **no viaja**; borrarlo es seguro y se rehace solo leyendo otra vez los Parquet |
+| `data/hft_panel` | Panel muestreado de la captura HFT (T80): una fila por segundo con el libro top-5 al cierre del cubo, el OFI multinivel del cubo y el flujo agresor (≈ 0,2 MB por hora, ≈ 5 MB/día) | baja (derivado) | **no viaja**; se rehace con `python -m eim.data.collectors.hft_panel --from … --to …` mientras exista `micro_hft` |
 | `data/library/index` | Índice de la biblioteca de libros (T52) | baja | se rehace con `python -m eim.library ingest`; los libros (`17.0 - TRADING\Books`) nunca se suben |
 | `data/roadmap_live` | Hoja de ruta servida por el icono | baja | `python PLAN/build_roadmap.py` |
 
