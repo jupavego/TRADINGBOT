@@ -49,7 +49,8 @@ def main(argv: list[str] | None = None) -> int:
                   calibration={} if a.ledger else sources.calibration(a.api),
                   calibration_4h={} if a.ledger else sources.calibration(a.api, tf="4h"),
                   prev=sources.previous(a.out, today), nursery=sources.nursery(a.cantera),
-                  gates=[] if a.ledger else sources.gates(a.api))
+                  gates=[] if a.ledger else sources.gates(a.api),
+                  candles=sources.candles(a.data_dir))
     base = a.out / f"audit_{today}"
     audit["paths"] = {"json": str(base.with_suffix(".json")), "md": str(base.with_suffix(".md"))}
     base.with_suffix(".json").write_text(json.dumps(audit, ensure_ascii=False, indent=1),

@@ -12,6 +12,7 @@ from eim.data.intermarket import read_intermarket
 from eim.data.leader_board import BoardStore, snapshot_inputs
 from eim.data.liq_flow import read_liq_flow
 from eim.data.micro import read_micro
+from eim.data.options_read import read_option_chain
 from eim.data.store import Store
 from eim.data.timeframes import analysis_ladder, tf_ms, tf_offset
 
@@ -53,6 +54,8 @@ def build_snapshot(
     tablero no posterior a `asof` (≤ 10 min); None si no hay tablero (vigilante apagado).
     `intermarket` (T183): velas diarias cerradas a `asof` de oro, índices y cripto; None si nunca
     se sincronizó.
+    `option_chain` (T214): última toma de opciones de Deribit con `taken_ms <= asof` (≤ 26 h) de
+    la moneda base del símbolo; None si este equipo no tiene tomas (el colector es de la portátil).
     `timeframe` admite los marcos de sesión `1d` y `1w` (T90). `closed_end` (T90, opcional) es
     la cota exclusiva de `t` de las velas cerradas cuando el instrumento tiene sesión
     (`eim/data/session_bars.closed_before`); sin él, la regla de siempre: `t + marco <= asof`.
@@ -120,6 +123,10 @@ def build_snapshot(
         intermarket, im_src, im_cov = im
         sources |= im_src
         coverage |= im_cov
+    option_chain = read_option_chain(store.root, symbol, asof)
+    if option_chain is not None:
+        sources["option_chain"] = option_chain.source
+        coverage["option_chain"] = (option_chain.taken_ms, option_chain.taken_ms)
     return MarketSnapshot(
         symbol=symbol,
         timeframe=timeframe,
@@ -139,6 +146,7 @@ def build_snapshot(
         leaders=leaders,
         leader_weights=weights,
         intermarket=intermarket,
+        option_chain=option_chain,
         asof=asof,
         sources=sources,
         coverage=coverage,

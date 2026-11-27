@@ -6,6 +6,7 @@ import math
 import statistics
 
 from eim.analytics.audit import kpis, levers
+from eim.analytics.audit import sides as sides_mod
 
 
 def _key(r: dict) -> tuple[str, str]:
@@ -48,23 +49,42 @@ def variant_block(official_rows: list[dict], variant_rows: list[dict]) -> dict:
             "official_same_window": kpis.stats(same), "paired": paired(same, v_off)}
 
 
+def gate_signs(candles: dict) -> list[dict]:
+    """El signo de las puertas vigentes (`ExecParams.htf`), con las velas que se le pasen.
+
+    La auditoría no elige la puerta: lee la misma que veta en los cuatro perfiles, para que si
+    `htf` cambiara algún día el informe hable de la puerta real y no de una copia.
+    """
+    from eim.data.timeframes import tf_ms
+    from eim.paper.params import ExecParams
+
+    htf_map = ExecParams().htf
+    bars = {spec[0]: tf_ms(spec[0]) for spec in htf_map.values()}
+    return sides_mod.gate_signs(candles, htf_map, bars)
+
+
 def build(rows: list[dict], now_ms: int, generated_at: str, *,
           variant_rows: dict[str, list[dict]] | None = None,
           funding: dict[str, float | None] | None = None, hft: dict | None = None,
           calibration: dict | None = None, calibration_4h: dict | None = None,
           prev: dict | None = None, nursery: dict | None = None,
-          gates: list[dict] | None = None) -> dict:
+          gates: list[dict] | None = None, candles: dict | None = None,
+          symbol: str = "BTCUSDT") -> dict:
     book = kpis.book_kpis(rows, now_ms)
     var = {name: variant_block(rows, vr) for name, vr in (variant_rows or {}).items()}
     calibration = {k: v for k, v in (calibration or {}).items() if k != "curve"}
     cal4 = {k: v for k, v in (calibration_4h or {}).items() if k != "curve"}
-    opps = levers.opportunities(book, var.get("t143"), calibration, cal4, gates)
+    # T215: los dos lados sobre la sombra y el signo de cada puerta (sin velas, no se publican)
+    contrast = sides_mod.contrast(rows, now_ms, symbol)
+    signs = gate_signs(candles) if candles else []
+    opps = levers.opportunities(book, var.get("t143"), calibration, cal4, gates, contrast, signs)
     hft = hft or {}
     trig = levers.triggers(funding or {}, hft.get("l2_days"), hft.get("pct_complete"))
     audit = {"mode": "SIMULADO", "generated_at": generated_at, "now_ms": now_ms, "book": book,
              "variants": var, "hft": hft, "funding_apr": funding or {},
              "calibration": calibration, "calibration_4h": cal4,
              "gates": gates or [],          # T212: puerta del marco mayor por marco
+             "sides": {"contrast": contrast, "gate_signs": signs},   # T215
              "opportunities": opps, "triggers": trig, "nursery": nursery or {}}
     audit["deltas"] = levers.deltas(audit, prev)
     return audit

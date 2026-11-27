@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-27T10:30:37",
+ "generated": "2026-11-27T13:58:06",
  "phases": [
   {
    "n": 0,
@@ -324,7 +324,8 @@ window.EIM_STATUS = {
     "T160",
     "T175",
     "T210",
-    "T212"
+    "T212",
+    "T215"
    ]
   },
   {
@@ -409,6 +410,17 @@ window.EIM_STATUS = {
     "T202",
     "T203",
     "T204"
+   ]
+  },
+  {
+   "n": 33,
+   "name": "Integridad de la medición",
+   "ids": [
+    "T216",
+    "T217",
+    "T218",
+    "T219",
+    "T220"
    ]
   }
  ],
@@ -3289,7 +3301,7 @@ window.EIM_STATUS = {
     "T141"
    ],
    "state": "progress",
-   "notes": "**Abierta 2026-11-20 tras el incidente «la app está caída».** La API respondía, pero `GET /v2/snapshot` estuvo colgado 3 h 30 min (19:11→22:38 UTC) por el candado **global** de `HistoryLoader.ensure()` (`eim/api/history.py:27`), y la web solo abre el WebSocket en vivo **después** del snapshot (`web/src/main.ts:177` y `:188`): mesa en «SIN CONEXIÓN» con precio `—`, mientras `/v2/health` daba todo VIVO. Vite (5173) también estaba muerto, sin rastro en `web.err.log`. Servicios restaurados el mismo día; queda el arreglo de fondo: snapshot a 24–64 s (velas de solo 94 KB), API a 3,6 GB a los 7 min, 3 reinicios de la API (código 4294967295) y 139 246 líneas repetidas en `vigilante.err.log`. Ver `PLAN/T206.md`. **◐ 2026-11-21, criterio 1 hecho (◆ del usuario: «WS en paralelo»):** `load()` abre el WebSocket **antes** del `await fetchSnapshot(...)`, así que «En vivo» y el precio ya no esperan al histórico; el aviso del histórico sale en su propio `#banner-hist` (ámbar) y deja de pisar el de la conexión, y `paintLive` dice «Conectando…» mientras no se haya intentado el enlace, en vez de «Sin conexión». Verificado en el navegador sobre la API viva (Vite temporal en 5174): **EN VIVO con precio a los 1,2 s** con los dos `/v2/snapshot` aún en vuelo; con el snapshot colgado a propósito sigue en vivo y sin aviso falso; con el snapshot fallando, en vivo + aviso solo del histórico; tres cambios de marco abren 3 sockets, cierran 2 y dejan 1. `tests/architecture/test_t206_vivo_no_espera_historico.py` (6) + `tsc --noEmit` limpio. **Queda el costo, no el síntoma:** `/v2/snapshot` sigue en ~14 s de trabajo real, de los que `read_micro` se lleva el 99 % (`_read_tops` trae 1 603 379 filas a Python). Podar `micro/` por días se probó con gate verde y **no aceleraba** (14 137 ms frente a 14 115 sin podar: DuckDB ya salta los grupos de filas por las estadísticas de `t`), así que el usuario cerró ese PR el 2026-11-21; lo que falta y sus dos vías, en `PLAN/BACKLOG.md`. **◐ 2026-11-26, tras otro «el proyecto está caído» del usuario (esta vez eran 7 h sin interfaz):** tres cosas dentro y medidas. (a) **Los agregados de microestructura de las velas cerradas se guardan** en `data/micro_cache/` y no se recalculan, que es la vía exacta de BACKLOG T206 (2): sobre datos reales (24 velas de 1 h de BTCUSDT) **4,49 s → 0,49 s, 9,1×, con cero diferencias** en OFI, desequilibrio, velas completas y trades, y el mismo libro. Guarda dos OFI por vela (encadenado y sin pareja previa) y la firma de los huecos que la tocaban, para recalcularla si alguno se anota tarde; `EIM_MICRO_CACHE=0` la apaga y borrarla es seguro. (b) **La interfaz entra en el vigilante del conjunto** (revisa la decisión de T148 «solo los cinco de datos»): puerto 5173, 10 min, `-ConWeb`, cuenta de intentos propia; `EIM_FLEET_WEB=0` la deja fuera. (c) **El registro del vigilante deja de repetir la misma línea** (72 MB eran 366 812 copias de `socket.send() raised exception.`), y el `stderr_tail` de un reinicio vuelve a decir algo. Lo medido esa noche contra la API viva, y lo que falta (el reparto de `build_snapshot`, `liq_flow`, la memoria en vivo y rotar el registro por tamaño), en `PLAN/T206.md` y `BACKLOG.md`. **Gate verde el 2026-11-26** por la cola: 4 372 pasadas, 9 omitidas, 0 fallos (1 856 s, 3 pausas); ruff limpio. PR #367, sin fusionar. Costó cuatro intentos: el trabajo se reencoló tres veces por presión de memoria **ajena** (el gate gasta 436 MB) y solo entró tras relanzar la evaluación de líderes, que estaba en 2 562 MB con código anterior a la evaluación incremental (RUNBOOK §10); el defecto de la cola queda anotado en BACKLOG de T149.",
+   "notes": "**Abierta 2026-11-20 tras el incidente «la app está caída».** La API respondía, pero `GET /v2/snapshot` estuvo colgado 3 h 30 min (19:11→22:38 UTC) por el candado **global** de `HistoryLoader.ensure()` (`eim/api/history.py:27`), y la web solo abre el WebSocket en vivo **después** del snapshot (`web/src/main.ts:177` y `:188`): mesa en «SIN CONEXIÓN» con precio `—`, mientras `/v2/health` daba todo VIVO. Vite (5173) también estaba muerto, sin rastro en `web.err.log`. Servicios restaurados el mismo día; queda el arreglo de fondo: snapshot a 24–64 s (velas de solo 94 KB), API a 3,6 GB a los 7 min, 3 reinicios de la API (código 4294967295) y 139 246 líneas repetidas en `vigilante.err.log`. Ver `PLAN/T206.md`. **◐ 2026-11-21, criterio 1 hecho (◆ del usuario: «WS en paralelo»):** `load()` abre el WebSocket **antes** del `await fetchSnapshot(...)`, así que «En vivo» y el precio ya no esperan al histórico; el aviso del histórico sale en su propio `#banner-hist` (ámbar) y deja de pisar el de la conexión, y `paintLive` dice «Conectando…» mientras no se haya intentado el enlace, en vez de «Sin conexión». Verificado en el navegador sobre la API viva (Vite temporal en 5174): **EN VIVO con precio a los 1,2 s** con los dos `/v2/snapshot` aún en vuelo; con el snapshot colgado a propósito sigue en vivo y sin aviso falso; con el snapshot fallando, en vivo + aviso solo del histórico; tres cambios de marco abren 3 sockets, cierran 2 y dejan 1. `tests/architecture/test_t206_vivo_no_espera_historico.py` (6) + `tsc --noEmit` limpio. **Queda el costo, no el síntoma:** `/v2/snapshot` sigue en ~14 s de trabajo real, de los que `read_micro` se lleva el 99 % (`_read_tops` trae 1 603 379 filas a Python). Podar `micro/` por días se probó con gate verde y **no aceleraba** (14 137 ms frente a 14 115 sin podar: DuckDB ya salta los grupos de filas por las estadísticas de `t`), así que el usuario cerró ese PR el 2026-11-21; lo que falta y sus dos vías, en `PLAN/BACKLOG.md`. **◐ 2026-11-26, tras otro «el proyecto está caído» del usuario (esta vez eran 7 h sin interfaz):** tres cosas dentro y medidas. (a) **Los agregados de microestructura de las velas cerradas se guardan** en `data/micro_cache/` y no se recalculan, que es la vía exacta de BACKLOG T206 (2): sobre datos reales (24 velas de 1 h de BTCUSDT) **4,49 s → 0,49 s, 9,1×, con cero diferencias** en OFI, desequilibrio, velas completas y trades, y el mismo libro. Guarda dos OFI por vela (encadenado y sin pareja previa) y la firma de los huecos que la tocaban, para recalcularla si alguno se anota tarde; `EIM_MICRO_CACHE=0` la apaga y borrarla es seguro. (b) **La interfaz entra en el vigilante del conjunto** (revisa la decisión de T148 «solo los cinco de datos»): puerto 5173, 10 min, `-ConWeb`, cuenta de intentos propia; `EIM_FLEET_WEB=0` la deja fuera. (c) **El registro del vigilante deja de repetir la misma línea** (72 MB eran 366 812 copias de `socket.send() raised exception.`), y el `stderr_tail` de un reinicio vuelve a decir algo. Lo medido esa noche contra la API viva, y lo que falta (el reparto de `build_snapshot`, `liq_flow`, la memoria en vivo y rotar el registro por tamaño), en `PLAN/T206.md` y `BACKLOG.md`. **Gate verde el 2026-11-26** por la cola: 4 372 pasadas, 9 omitidas, 0 fallos (1 856 s, 3 pausas); ruff limpio. PR #367, sin fusionar. Costó cuatro intentos: el trabajo se reencoló tres veces por presión de memoria **ajena** (el gate gasta 436 MB) y solo entró tras relanzar la evaluación de líderes, que estaba en 2 562 MB con código anterior a la evaluación incremental (RUNBOOK §10); el defecto de la cola queda anotado en BACKLOG de T149. **DESPLEGADO el 2026-11-26 a las 18:59 UTC** (PR #367 fusionado en `0336106`; lo trajo y reinició la API el propio `sincronizar_main.ps1`). **Medido en vivo a las 19:30, con el equipo en uso: `/v2/snapshot` n=500 en 2,76 s la primera vez y 1,72 s la segunda, y n=1500 —lo que pide el panel al cargar— en 2,24 s**, frente a los 113 s en caliente y 232 s en frío de esa misma llamada seis horas antes; `/v2/health` en 0,18 s. Con eso el criterio de «por debajo de 3 s» queda cumplido. La caché ocupa **366 KB** para 3 729 velas de 15 m, 1 h y 4 h. Dos cosas que NO se arreglan con esto: la memoria de la API sigue en 4,3 GB (hay que mirarla un día entero antes de decir nada) y **la primera lectura de una ventana grande no cabe dentro de la API** —tres llamadas seguidas de 500 velas dejaron sin latido al único trabajador y el vigilante la reinició a las 19:14—, así que la caché se calienta por fuera. **Gate de confirmación sobre el árbol ya fusionado con `main`: VERDE** (2026-11-26, trabajo `20261126-181424-gate-t206-fusion-4883`): **5 032 pasadas, 9 omitidas, 0 fallos**, 14 909 s con 7 pausas por memoria. Las 660 pruebas de más frente al gate de la rama sola son el escáner de T94, que entró por `main`.",
    "effort": "medio",
    "phase": 21
   },
@@ -3373,8 +3385,8 @@ window.EIM_STATUS = {
     "T165",
     "T88"
    ],
-   "state": "pending",
-   "notes": "**Abierta 2026-11-26 por la ◆ de T100.** Primero leer en la fuente los términos de datos de Deribit (y Binance opciones): ◆ el usuario aprueba o no la fuente. Si se aprueba: ficha de fuente, colector de baja frecuencia de las cadenas de BTC (tarea programada, sin servicio nuevo), calidad de cada toma con `eim/options/chain.py`, volumen medido y si hay histórico público para reconstruir superficies.",
+   "state": "done",
+   "notes": "**Hecha 2026-11-27. ◆ RESUELTA por el usuario: Deribit (API pública) aprobada a nivel 1, solo uso personal** (`PLAN/notas/T213_terminos.md` §6). **(1) Términos leídos en la fuente** (nota con cita corta y URL por cláusula): Deribit FZE (26-01-2026) cl. 2.10 permite el uso personal de datos de mercado y derivados y prohíbe publicarlos, reenviarlos o redistribuirlos sin aprobación escrita; **no exige atribución** ni habla de guardar en local; la cl. 27.1(i) (recolección automatizada) queda **ambigua** para la API pública que la propia Deribit documenta para canales de datos de opciones; términos de DRB Panama, límite por IP y cobertura de `history.deribit.com` **no verificados**; Binance opciones: términos ilegibles (PDF embebido) → no verificado. En paralelo el usuario pide confirmación escrita a Deribit; si dice que no, se retiran este colector y el del DVOL. **(2) Ficha** `DERIBIT` nivel 1 en `eim/data/providers/meta.py` (cubre también el DVOL de T165, que no tenía; la salud de T102 la lista como prevista). **(3) Colector** `eim/data/options_chain.py` + `options_parse.py` (puro): una llamada `public/get_book_summary_by_currency?kind=option` por moneda y toma (`DeribitPublic.option_book_summary`, reintentos, nunca respuestas a medias), filas completas en `data/options/<MONEDA>/<día>/<HH>.jsonl.gz` (bid/ask/marca en moneda base, IV de marca en %, subyacente, tipo, interés abierto con 8 h de retraso; una cara vacía se guarda como dato, la fila incompleta se descarta contada) y calidad por vencimiento al lado (`<HH>.quality.json`: cruces, horquillas, arbitraje estático, σ ATM y sesgo 90/110 con `eim/options/chain.py` en USD y Black-76, y la σ ATM de la marca de Deribit para contrastar unidades); escritura atómica, sin repetir una hora ya tomada; `options/` entra en la copia diaria y en `restore`. Tarea programada `scripts/opciones_colector.ps1` (prioridad de lote, minuto 1 de las horas UTC múltiplo de la cadencia, siempre las 00:00 UTC; registro `data/operation/logs/opciones.log`), instalada en la portátil: cada 1 h, monedas BTC, tarea «EIM - colector de opciones de Deribit (T213)» en la portátil (minuto 1 de las horas UTC múltiplo de la cadencia, siempre las 00:00 UTC). **(4) Volumen medido** en la portátil antes de programar (presupuesto declarado 1 MB/día; si no cabe, se baja la frecuencia, nunca los campos): una toma de BTC = 35.2 kB (956 filas, 13 vencimientos, 0 descartadas); una toma de ETH = 27.9 kB (762 filas, 13 vencimientos, 0 descartadas) (medido 2026-11-27T16:07:18Z); presupuesto 1.0 MB/día → cada 1 h con BTC: 0.84 MB/día, 308.2 MB/año; copias diarias a un año ≤ 4314.84 MB. **(5) Histórico:** las operaciones públicas traen `iv` (1 000 por petición), pero la cobertura de `history.deribit.com` no está en la documentación oficial y sin bid/ask pasados una superficie reconstruida queda sesgada → **T214 cuenta con acumular hacia adelante** y debe decirlo en su pre-registro. **Pruebas sin red:** `tests/data/test_options_chain.py` (sintéticas: unidades BTC→USD que recuperan la sonrisa, descartes, atomicidad, hora repetida, cadencia, proveedor), `tests/data/test_options_fixture.py` sobre un **recorte real grabado** (78 filas reales de BTC de 956 opciones vivas (vencimientos 2026-11-29T08:00:00Z, 2026-12-18T08:00:00Z)), `tests/data/test_backup_options.py`. **Gate:** pytest: 4594 pasadas, 36 omitidas, 0 fallos. Ningún cambio en agentes, síntesis, plan, riesgo, papel ni operación. BACKLOG T213.",
    "effort": "bajo",
    "phase": 26
   },
@@ -3388,11 +3400,111 @@ window.EIM_STATUS = {
     "T163",
     "T100"
    ],
-   "state": "pending",
-   "notes": "**Abierta 2026-11-26 por la ◆ de T100; no empieza sin la fuente aprobada en T213.** ¿La superficie (estructura temporal, sesgo, prima por plazo) mejora a A2 de T165? Potencia a priori, pre-registro, QLIKE, MCS y Holm en la familia ampliada; agente informante, nunca dirección; ◆ si entra como insumo de volatilidad.",
+   "state": "done",
+   "notes": "**Hecha 2026-11-27. ◆ RESUELTA por el usuario (opción 1, `PLAN/notas/T214_decision.md`): `vol_surface` queda como contexto** (informante en sombra; solo pasaría a insumo de volatilidad si la evaluación pre-registrada lo aprueba, con otra ◆). Entregables 1–4: **Respuesta corta: con la regla de la tarea (Holm en la familia ampliada de T95, 1 141 hipótesis) la superficie no se puede evaluar en un plazo útil** — con la s publicada en T165 (0,12–0,27) y una mejora mínima del 5 % sobre A2 harían falta 1 615–7 808 días puntuados + 250 de calentamiento (2032–2048); tope pre-registrado 2029-11-27; haría falta s ≤ 0,090. **Recomendación: queda como contexto** (informante en sombra) y solo entra como insumo de volatilidad si la evaluación pre-registrada pasa. **(1) Rasgos** `eim/options/surface.py` 1.0.0 (puro): σ ATM 7 y 30 d (varianza total entre vencimientos, sin extrapolar), pendiente ln(σ7²/σ30²), sesgo 25Δ (delta forward Black-76) y 90/110 a 30 d, prima por plazo, **calidad propia en el dinero** (marca vs medio ≤ 2 puntos, dos lados sin cruzar, ≥ 6 opciones fuera del dinero, varianza total creciente); `no_data`/`degradado` no se rellenan. Primera toma (16:37 UTC): σ7 48,5 %, σ30 47,4 %, sesgo 25Δ +7,6 puntos, calidad ok (el estado por vencimiento de T213 marca 12/13 degradados por mariposas de un tick en las alas: no se usa como filtro). **(2) Potencia a priori** `eim/options/surface_power.py` (método de T163). **(3) Pre-registro** `PLAN/notas/T214_preregistro.md` (commit propio anterior al código; SHA-256 en el informe): QLIKE 1 d, referencia A2, C1 estructura, C2 sesgo 25Δ (intento propio), C3 prima por plazo; MCS (semilla 214), Holm en la familia ampliada sin reiniciar, ACI 80 % ± 2 pp; día válido = toma `ok` de las 22–24 h UTC del día anterior; **revisión de potencia** a los 250 días válidos (no antes del 2027-08-05): solo s y κ, nunca la media; fija la fecha de evaluación o cierra SIN POTENCIA sin gastar los 3 intentos. **(4) Agente** `agents/vol_surface` 0.1.0 (`requires` = `option_chain`, sin cadena → `no_data` con motivo; sesgo 0 siempre; `NON_DIRECTIONAL` y papel «contexto» en la síntesis; nunca `degraded`, como `intermarket`), ficha en el catálogo, expediente de la cantera como excluido (no direccional) (+ `data.options_chain` de T213 alimentando la fotografía) y en capacidades; el snapshot trae `option_chain` (`eim/core/options.py`, `eim/data/options_read.py`: última toma con `taken_ms ≤ asof`, ≤ 26 h); el escáner no lo considera (`scanner/jobs.OUT_OF_SCANNER`: huellas de agentes y capacidades iguales, umbral del placebo de T95 vigente). Estado de la muestra: `scripts/t214_superficie.py`. Informe `v2/reports/t214_superficie.md`. **Gate:** pytest: 4631 pasadas, 36 omitidas, 0 fallos. Sin cambios en síntesis (salvo declararlo no direccional), plan, riesgo ni bróker; T31 no cambia (en `juanpablo-cpu` no hay tomas: el agente sale «sin datos»). BACKLOG T214.",
    "effort": "medio",
    "phase": 26,
    "goal": "Medir si la **superficie** de volatilidad implícita de BTC añade información sobre la volatilidad"
+  },
+  {
+   "id": "T215",
+   "title": "El lado, puntuado: el sesgo direccional y el signo de cada puerta",
+   "deps": [
+    "T144",
+    "T159",
+    "T175",
+    "T212",
+    "T210",
+    "T145",
+    "T139"
+   ],
+   "state": "done",
+   "notes": "**(Antes T213; renumerada el 2026-11-27.)** **Abierta 2026-11-26 (pedido del usuario: fase de auditoría y retroalimentación por «la gran cantidad de cortos y la poca cantidad de largos»). Diagnóstico y los seis criterios HECHOS.** La premisa es correcta y más extrema de lo que parece: **652 de 726 operaciones son cortas (89,8 %)**, con **15 días seguidos sin una sola larga** (11-08 → 11-22) y 19 largas frente a 236 cortas en los últimos 7 días (92,5 %). La causa es la puerta de T212: **dos de las tres no han girado en 34 días** (1h bajista 821 h desde el 10-23, 4h bajista 781 h desde el 10-24), así que los marcos 1h y 4h —dos tercios del libro— solo pueden vender, y la única que autoriza largos giró **tres veces en cuatro días** (11-22 17:00 alcista, 11-24 09:00 bajista, 11-26 05:00 alcista); los 18 largos que abrió el 11-23 perdieron **−302,4 USDT**. **Pero el sesgo no es lo que cuesta esta semana:** en la sombra (sin veto, 11-19 → 11-25) el lado largo rinde **−0,333 R** (n = 420) frente a **+0,156 R** del corto (n = 667), diferencia −0,490 ± 0,154 (t = −6,21) y −0,530 ± 0,204 agrupando por vela de apertura; en el libro oficial la diferencia queda dentro del ruido (−0,165 ± 0,299). Haber operado más largos habría perdido más. Lo que se lleva el dinero es la fricción: auditoría del 11-26 con n = 726, **bruto +0,051 R**, **costo 0,125 R**, neto −0,074 R [−0,118, −0,030], PnL −2 915 USDT. El costo del retraso que midió T212 sigue en pie y es compatible: el sesgo cuesta **en los giros** (49 aperturas tras el mínimo del 11-21, 45 cortas, −731,7). No se toca la puerta (T139 P1); lo que falta es que el lado **se mida y se publique solo** en cada auditoría. Diagnóstico `PLAN/notas/T215_sesgo_direccional.md`; ficha `PLAN/T215.md`. **HECHA 2026-11-26 en la misma sesión, los seis criterios cumplidos y verificados sobre el libro real (726 operaciones) y las velas del disco.** El lado ya se mide y se publica solo: `eim/analytics/audit/sides.py` (función pura: reparto por lado, contraste de los dos lados en la sombra agrupando por vela de apertura y signo de cada puerta), el encabezado del informe y la consola traen «LADO: 652/726 cortas (89,8 %) · 7 d 231/19 · última larga hace 50 h · sombra agrupada L −0,388 vs S +0,162 (dif −0,550 ± 0,209: el lado largo rinde peor) · `contra_tendencia` dejó fuera …» y «PUERTAS: …», la §6 del Markdown las tablas, y `sides.short_share` entra en los cambios entre auditorías. Tres líneas informativas nuevas (`sesgo_lado`, `contraste_lados`, `puerta_sin_signo`), todas con vía `cerrada (T139 P1)`. **Hallazgo de método al implementarlo:** el signo de una puerta no puede juzgarse promediando todas las velas de sus tramos —la ventana de las últimas cae al otro lado del giro, y así 10 de 12 caminatas aleatorias puras aparentan señal—, así que se mide **desde el giro**, un dato por giro. Con eso, en los 98 días de velas del disco **ninguna** de las tres puertas distingue dirección: 15m +0,220 % ± 1,157 % (40 giros), 1h +1,973 % ± 6,206 % (3 giros), 4h sin muestra (1 giro). La conclusión de T212 se refuerza y se corrige su §5: el «+0,455 % y +0,234 %» de las lentas era el mismo artefacto con el signo a favor, y su falta de giros es justo lo que haría inmedible cualquier puerta alternativa. Nada tocado de `ExecParams.htf`, `vetoes.py`, `gates.py`, `params_fingerprint`, el libro ni la corrida de T31. Pruebas: `tests/analytics/test_t215_sides.py` (8) y una nueva en `tests/analytics/test_audit.py`. Corregida también §1 de la skill `eim-auditoria`.",
+   "effort": "bajo",
+   "phase": 25
+  },
+  {
+   "id": "T216",
+   "title": "Prueba de nulidad obligatoria: ninguna medida se publica sin ella",
+   "deps": [
+    "T215",
+    "T212",
+    "T159",
+    "T175",
+    "T49",
+    "T160"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 (fase 33 nueva, aprobada por el usuario tras la retrospectiva de T215).** El proyecto mide el mercado con rigor y **no comprueba sus propias medidas**: el método con que T212 §5 juzgó el signo de las puertas da «señal» significativa en **10 de 12 caminatas aleatorias puras** (midiendo desde el giro, 0 de 12) y vivió **tres días** en §1 de la skill como doctrina. Pide las tres nulidades en código (ruido, permutación, placebo), un **registro de medidas** cuya prueba falla si una no declara nulidad o si su tasa de falsos positivos pasa del nivel, las medidas ya existentes dentro (puerta y lados de T215, calibración de T160, bruto con Holm y emparejado de T175, apertura de T211), y que el informe marque «sin nulidad» lo que no la haya pasado —y eso no pueda sostener una decisión. Ficha `PLAN/T216.md`.",
+   "effort": "medio",
+   "phase": 33
+  },
+  {
+   "id": "T217",
+   "title": "Un veredicto de verificación que no se pueda falsear",
+   "deps": [
+    "T116",
+    "T201",
+    "T126",
+    "T127",
+    "T205"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario).** Hoy una sesión puede declarar el gate verde **sin que haya corrido una sola prueba**: `20261126-054149-gate-t213-3ed6` salió con **código 0** con el trabajo `fallido` **rc=1** y `No module named pytest` (corrió con el Python del sistema porque `python` no resuelve al venv con `--cwd` en un worktree), y `20261126-064802-gate-t213b-a340` quedó `fallido` **rc=None** tras 10 786 s al morir la sesión que lo encoló. Pide que `submit` propague el rc, que la cola resuelva el intérprete o rechace el encolado, un **veredicto firmado** por trabajo (`data/jobs/verdict/<id>.json`: commit, árbol, rc, nº de pruebas, duración, pausas) como única definición de «gate verde», distinguir `interrumpido` de `fallido` con reencolado, y que el cierre de tareas y `continuity check` lo lean. Ficha `PLAN/T217.md`.",
+   "effort": "medio",
+   "phase": 33
+  },
+  {
+   "id": "T218",
+   "title": "Las cifras que cierran decisiones, re-derivables",
+   "deps": [
+    "T216",
+    "T49",
+    "T134",
+    "T137",
+    "T139",
+    "T145",
+    "T160",
+    "T175",
+    "T212"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario).** §0 de la skill `eim-auditoria` resume 158 tareas en **12 decisiones vinculantes**, cada una con su cifra (0 de 520 versiones en T137, 87 variantes en T134, ECE 0,024 en T160, familia de Holm 841 en T49, −0,180 % en T212 §5) y **ninguna lleva el comando que la reproduce**; la de T212 §5 resultó ser un artefacto. Pide un inventario (`PLAN/CIFRAS.md` + `v2/reports/cifras/`) con valor, fecha, commit, comando y nulidad (T216), un `figures verify` que recalcule lo recalculable, que lo «sin fuente» **no pueda citarse para cerrar nada**, el saneamiento del caso T212 §5 y que cerrar una tarea con cifra que decida obligue a registrarla. Ficha `PLAN/T218.md`.",
+   "effort": "medio",
+   "phase": 33
+  },
+  {
+   "id": "T219",
+   "title": "La composición del libro, vigilada por el propio sistema",
+   "deps": [
+    "T215",
+    "T212",
+    "T210",
+    "T144",
+    "T159",
+    "T145"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario).** T215 hizo que **el lado** se mida solo; falta el resto de la composición, que hoy puede apartarse del diseño durante semanas sin aviso: 652 de 726 cortas (89,8 %) con **15 días sin una sola larga** (lo detectó el usuario), conservador **plano desde el 2026-11-01** (7 operaciones, 5 568 rechazos), las fichas del panel en otra contabilidad que el libro oficial (**−5 057,1 frente a −2 584,7 USDT**) y cuatro perfiles que son **una apuesta con cuatro tamaños** (T210). Pide perfil de composición y concentración por lado, marco, perfil, estrategia, apalancamiento y régimen; avisos con umbral en el código; comparación entre contabilidades publicada; e independencia efectiva. Describe, no corrige (T145 D). Ficha `PLAN/T219.md`.",
+   "effort": "bajo",
+   "phase": 33
+  },
+  {
+   "id": "T220",
+   "title": "El contrapeso: el plan deja de crecer más rápido de lo que cierra",
+   "deps": [
+    "T159",
+    "T203",
+    "T205",
+    "T216",
+    "T217",
+    "T218",
+    "T219"
+   ],
+   "state": "pending",
+   "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario; es la tarea sustractiva de la fase).** **210 tareas** (166 ☑, 16 ◐, 28 ☐) y **199 líneas de BACKLOG**, y de las 10 oportunidades de la auditoría del 11-26 **4 van a vía `cerrada`** (7 de 13 con las de T215): el plan acumula más de lo que convierte en cambios. Pide estado para **cada** línea de BACKLOG (`→ Txx`, `caduca AAAA-MM-DD` o `archivada` en `PLAN/BACKLOG_ARCHIVO.md`), una comprobación que avise de las que queden sin estado, un **tope de tareas ◐ simultáneas** (propuesta 8) en `PLAN/CONDICIONANTES.md` vigilado por `continuity check`, y nombrar qué líneas absorben T217 (cola y gate), T216/T218 (medición y cifras) y T219 (composición). No se poda historia. Ficha `PLAN/T220.md`.",
+   "effort": "medio",
+   "phase": 33
   }
  ]
 };
