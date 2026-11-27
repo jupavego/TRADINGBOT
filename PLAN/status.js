@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-27T13:58:06",
+ "generated": "2026-11-27T14:00:26",
  "phases": [
   {
    "n": 0,
@@ -364,7 +364,8 @@ window.EIM_STATUS = {
    "ids": [
     "T183",
     "T184",
-    "T185"
+    "T185",
+    "T221"
    ]
   },
   {
@@ -3505,6 +3506,19 @@ window.EIM_STATUS = {
    "notes": "**Abierta 2026-11-26 (fase 33, aprobada por el usuario; es la tarea sustractiva de la fase).** **210 tareas** (166 ☑, 16 ◐, 28 ☐) y **199 líneas de BACKLOG**, y de las 10 oportunidades de la auditoría del 11-26 **4 van a vía `cerrada`** (7 de 13 con las de T215): el plan acumula más de lo que convierte en cambios. Pide estado para **cada** línea de BACKLOG (`→ Txx`, `caduca AAAA-MM-DD` o `archivada` en `PLAN/BACKLOG_ARCHIVO.md`), una comprobación que avise de las que queden sin estado, un **tope de tareas ◐ simultáneas** (propuesta 8) en `PLAN/CONDICIONANTES.md` vigilado por `continuity check`, y nombrar qué líneas absorben T217 (cola y gate), T216/T218 (medición y cifras) y T219 (composición). No se poda historia. Ficha `PLAN/T220.md`.",
    "effort": "medio",
    "phase": 33
+  },
+  {
+   "id": "T221",
+   "title": "Pesos por régimen (regime_weights): medición pre-registrada y veredicto",
+   "deps": [
+    "T22",
+    "T44",
+    "T131"
+   ],
+   "state": "progress",
+   "notes": "**(Antes T197, renumerada el 2026-11-27: la rama nunca se subió y en `main` T197 es el despliegue automático.)** Pre-registro `PLAN/notas/T221_preregistro.md` (commit `a634b8f`, 2026-11-19, **antes de toda cifra**) y medición hechos: `v2/eim/analytics/regime_weights.py` (IC por agente y régimen sobre el panel de T44, escalera ±0,02 con n ≥ 200, bootstrap en bloques de 30 días, puerta de potencia primero: sin MDE ≤ 0,01 la mitad de prueba no se mira), informe `regime_weights_report.py`, `mde` en `eim/validation/power.py`, 11 pruebas. **Falta correr la medición por la cola** (`python -m eim.analytics.regime_weights_report --store data/t197_banco --workers 2`; el banco ya está en el worktree) y escribir el veredicto. `SynthesisParams.regime_weights` sigue `{}`: mide, no adopta.",
+   "effort": "medio",
+   "phase": 28
   }
  ]
 };

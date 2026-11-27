@@ -4541,6 +4541,10 @@ pm run build.
 - **Abierto:** BACKLOG T102 (7 puntos). Los umbrales de promoción los confirma T101.
 - **Siguiente paso:** T213 (términos de datos de Deribit), o T101 cuando T97 arranque.
 
+## 2026-11-27 · T197 (pesos por régimen) se sube como T221
+
+- **Hecho:** la rama `claude/t197-pesos-regimen` solo existía en `juanpablo-cpu`, con el pre-registro y la medición del 2026-11-19, y nunca se registró en `STATUS.md`. Mientras tanto, `main` abrió otra T197 (despliegue automático, fase 32). Se pone al día con `main`, se renumera **T221** (fase 28) y se registra ◐. Los informes pasan a `reports/t221_pesos_regimen.*`. El banco conserva su nombre `data/t197_banco`.
+- **Siguiente paso:** correr la medición por la cola y escribir el veredicto según el pre-registro.
 ## 2026-11-27 · T208 (la forja) se sube y se pone al día
 
 - **Hecho:** la rama solo existía en `juanpablo-cpu` (4 commits sin subir y una nota sin guardar: los dos supuestos de ejecución, optimista al cierre y conservador en el nivel). Se guardó, se puso al día con `main` y se sube como PR. El número T208 seguía libre en `main`. La ficha pasa de «Fase 33» a la **fase 27 (cantera)**, porque la 33 es ahora la de integridad de la medición (PR #368).
