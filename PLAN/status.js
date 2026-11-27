@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-26T21:56:41",
+ "generated": "2026-11-27T08:29:44",
  "phases": [
   {
    "n": 0,
@@ -362,7 +362,8 @@ window.EIM_STATUS = {
    "ids": [
     "T183",
     "T184",
-    "T185"
+    "T185",
+    "T221"
    ]
   },
   {
@@ -3377,6 +3378,19 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 26,
    "goal": "Medir si la **superficie** de volatilidad implícita de BTC añade información sobre la volatilidad"
+  },
+  {
+   "id": "T221",
+   "title": "Pesos por régimen (regime_weights): medición pre-registrada y veredicto",
+   "deps": [
+    "T22",
+    "T44",
+    "T131"
+   ],
+   "state": "progress",
+   "notes": "**(Antes T197, renumerada el 2026-11-27: la rama nunca se subió y en `main` T197 es el despliegue automático.)** Pre-registro `PLAN/notas/T221_preregistro.md` (commit `a634b8f`, 2026-11-19, **antes de toda cifra**) y medición hechos: `v2/eim/analytics/regime_weights.py` (IC por agente y régimen sobre el panel de T44, escalera ±0,02 con n ≥ 200, bootstrap en bloques de 30 días, puerta de potencia primero: sin MDE ≤ 0,01 la mitad de prueba no se mira), informe `regime_weights_report.py`, `mde` en `eim/validation/power.py`, 11 pruebas. **Falta correr la medición por la cola** (`python -m eim.analytics.regime_weights_report --store data/t197_banco --workers 2`; el banco ya está en el worktree) y escribir el veredicto. `SynthesisParams.regime_weights` sigue `{}`: mide, no adopta.",
+   "effort": "medio",
+   "phase": 28
   }
  ]
 };

@@ -1,4 +1,6 @@
-# T197 — Pre-registro: pesos por régimen (`regime_weights`)
+# T221 — Pre-registro: pesos por régimen (`regime_weights`)
+
+> Renumerada el 2026-11-27 (antes T197). Solo cambió el número de tarea; el texto fijado antes de toda cifra es el del commit `a634b8f`.
 
 Fijado el 2026-11-19, **antes de calcular ninguna cifra del banco**, en un commit propio. Nada de
 lo que sigue se cambia después de mirar cifras; si un defecto del código obliga a repetir, se
@@ -78,7 +80,7 @@ la mejora mínima detectable al 80 % de potencia y α = 0,05 a dos colas (`eim/v
 3. `ΔE[R]` neto `≥ 0` — modular pesos no puede empeorar el resultado con costos.
 
 Las tres se cumplen o **no se adopta**. «No se adopta» significa: `regime_weights` se queda `{}`,
-el informe dice por qué y la nota de T197 lo cierra. No hay segunda rejilla, ni otro umbral, ni
+el informe dice por qué y la nota de T221 lo cierra. No hay segunda rejilla, ni otro umbral, ni
 otro horizonte: cambiar cualquiera de ellos después de ver la prueba sería otro intento, y esta
 tarea solo tiene uno.
 

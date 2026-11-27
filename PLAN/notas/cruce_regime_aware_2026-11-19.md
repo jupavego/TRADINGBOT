@@ -57,7 +57,7 @@ con pre-registro y no pasaron** (T166 sin potencia, T133 descartada en su cota d
 2. **`regime_weights` vacío.** El mecanismo existe (`eim/synthesis/synth.py:25` multiplica el peso
    de cada agente por el multiplicador de su régimen) pero `SynthesisParams.regime_weights` es
    `{}` desde T22: nunca se calibró. Es el único punto donde el régimen que EIM ya calcula podría
-   cambiar una decisión sin construir nada nuevo. → **T197**.
+   cambiar una decisión sin construir nada nuevo. → **T221**.
 
 ## 5. Contraste de fondo
 

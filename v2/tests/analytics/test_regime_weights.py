@@ -1,4 +1,4 @@
-"""T197: pesos por régimen — escalera de multiplicadores, potencia y puerta (sin red)."""
+"""T221: pesos por régimen — escalera de multiplicadores, potencia y puerta (sin red)."""
 from __future__ import annotations
 
 import math

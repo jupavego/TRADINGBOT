@@ -50,7 +50,7 @@ def mde(sd: float, n: float, alpha: float = 0.05, power: float = 0.8,
 
     Es el inverso de `n_needed` (bilateral por omisión, que es lo que pide un contraste sin signo
     declarado de antemano): `edge = (z_{α} + z_{β})·sd/√n`. Se calcula ANTES de mirar el tramo de
-    prueba, para saber si la pregunta es contestable con los datos que hay (T133, T166, T197).
+    prueba, para saber si la pregunta es contestable con los datos que hay (T133, T166, T221).
     """
     if sd <= 0 or n <= 0:
         return math.inf

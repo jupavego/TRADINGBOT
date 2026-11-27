@@ -1,7 +1,7 @@
-"""Pesos por régimen (T197): ¿cambia el régimen **qué agente acierta**?
+"""Pesos por régimen (T221): ¿cambia el régimen **qué agente acierta**?
 
 Mide, sobre el panel histórico de T44 (`agent_panel`) y con el pre-registro
-`PLAN/notas/T197_preregistro.md`, si modular el peso de cada agente por el régimen que etiqueta
+`PLAN/notas/T221_preregistro.md`, si modular el peso de cada agente por el régimen que etiqueta
 `regime` (T22) mejora la señal de la síntesis fuera de muestra, después de costos.
 
 Dos cosas que esta medición respeta y que son el motivo de la tarea:
@@ -185,7 +185,7 @@ def _bt_row(candles: list[Candle], funding, sig: pd.Series, cut: int, symbol: st
 
 def evaluate(df: pd.DataFrame, candles: list[Candle], funding, symbol: str,
              log: Callable[[str], None] = print) -> dict:
-    """Medición completa de T197. Si no hay potencia, no se calcula nada sobre la prueba."""
+    """Medición completa de T221. Si no hay potencia, no se calcula nada sobre la prueba."""
     asofs = sorted(int(a) for a in df["asof"].unique())
     cut = split_at(asofs)
     disc, test = df[df["asof"] < cut], df[df["asof"] >= cut]

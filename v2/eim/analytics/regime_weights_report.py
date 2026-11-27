@@ -1,11 +1,11 @@
-"""Informe de los pesos por régimen (T197) → `reports/t197_pesos_regimen.md` y `.json`.
+"""Informe de los pesos por régimen (T221) → `reports/t221_pesos_regimen.md` y `.json`.
 
 Uso (desde `v2/`, con la copia del banco de T131 como almacén):
 
     python -m eim.analytics.regime_weights_report --store data/t197_banco --workers 2
 
 El panel se guarda en `<store>/cache/agent_panel/` (`--refresh` lo recalcula). El veredicto sale
-de la puerta pre-registrada (`PLAN/notas/T197_preregistro.md`): esta tarea **no** escribe
+de la puerta pre-registrada (`PLAN/notas/T221_preregistro.md`): esta tarea **no** escribe
 `regime_weights` en `eim/synthesis/params.py`, pase o no pase; adoptarlo es una ◆ del usuario y va
 después del cierre de T31.
 """
@@ -77,7 +77,7 @@ def _test_table(t: dict) -> list[str]:
 
 
 def to_markdown(r: dict, made: str, store: str) -> str:
-    L = ["# Pesos por régimen en la síntesis (T197)", "",
+    L = ["# Pesos por régimen en la síntesis (T221)", "",
          f"Generado {made} con `python -m eim.analytics.regime_weights_report`. "
          "Análisis histórico sobre una copia: **no es una promesa de resultados**.", "",
          f"## Veredicto: **{r.get('verdict', '—')}**", "", r.get("why", ""), "",
@@ -154,10 +154,10 @@ def main(argv: list[str] | None = None) -> None:
     made = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    (out / "t197_pesos_regimen.json").write_text(
+    (out / "t221_pesos_regimen.json").write_text(
         json.dumps({"made": made, "store": a.store, "result": res}, ensure_ascii=False,
                    indent=1, default=float), encoding="utf-8")
-    (out / "t197_pesos_regimen.md").write_text(to_markdown(res, made, a.store), encoding="utf-8")
+    (out / "t221_pesos_regimen.md").write_text(to_markdown(res, made, a.store), encoding="utf-8")
     print(f"{res.get('verdict')}: {res.get('why')}")
 
 
