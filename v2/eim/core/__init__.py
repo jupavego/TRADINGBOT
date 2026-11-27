@@ -43,6 +43,7 @@ from eim.core.market import (
     NewsItem,
 )
 from eim.core.mode import Mode
+from eim.core.options import OptionChain, OptionRow
 from eim.core.report import AgentReport, Overlay
 
 MarketSnapshot.model_rebuild()
@@ -89,6 +90,8 @@ __all__ = [
     "MicroBar",
     "Mode",
     "NewsItem",
+    "OptionChain",
+    "OptionRow",
     "Opportunity",
     "Overlay",
     "PositionChange",

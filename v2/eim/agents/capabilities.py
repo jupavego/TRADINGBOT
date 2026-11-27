@@ -158,6 +158,16 @@ _ALL: tuple[AgentCapabilities, ...] = (
         time_anchor=TimeAnchor.SESSION, horizon="5 días de sesión", cost_ms=1.93,
         notes="velas DIARIAS cerradas de otros mercados (T183); el mínimo de sesiones comunes "
               "(min_common) lo comprueba el agente sobre esas series, no sobre las del marco"),
+    AgentCapabilities(
+        agent_id="vol_surface", asset_classes=frozenset({A.CRYPTO}),
+        requires=frozenset({"option_chain"}), min_bars=0, session_models=PERP_ONLY,
+        needs_real_volume=VolumeNeed.NONE, time_anchor=TimeAnchor.WALL_CLOCK,
+        horizon="0 velas (volatilidad implícita, no dirección)", cost_ms=4.70,
+        notes="T214: cadena de opciones de Deribit de la moneda base (hoy BTC; ◆ de T213, nivel "
+              "1, solo uso personal); las velas solo sirven para la prima de varianza y su falta "
+              "se avisa. Realiza para BTC el contrato hermano `options_iv` de T100, que sigue "
+              "abierto para opciones de acciones e índices. Costo medido en la nube con una toma "
+              "real (956 opciones), no en la portátil como T87"),
     # --- específicos de perpetuos y de Binance --------------------------------------------------
     AgentCapabilities(
         agent_id="derivatives", asset_classes=PRICED,

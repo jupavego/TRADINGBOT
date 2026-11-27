@@ -169,12 +169,14 @@ _AGENTS: list[Agent] | None = None
 
 
 def default_agents() -> list[Agent]:
-    """Última versión de cada agente del registro (una vez por proceso)."""
+    """Última versión de cada agente del registro (una vez por proceso), sin los que el escáner
+    no considera (`jobs.OUT_OF_SCANNER`, T214)."""
     global _AGENTS
     if _AGENTS is None:
         from eim.agents.registry import default_registry
+        from eim.scanner.jobs import OUT_OF_SCANNER
 
-        _AGENTS = default_registry().latest()
+        _AGENTS = [a for a in default_registry().latest() if a.id not in OUT_OF_SCANNER]
     return _AGENTS
 
 

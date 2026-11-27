@@ -30,7 +30,7 @@ DEGRADED = "degradado con aviso"
 #: Campos del snapshot que un agente puede declarar en `requires`.
 SNAPSHOT_FIELDS = ("candles", "funding", "open_interest", "long_short_ratio", "basis",
                    "orderbook", "micro", "liquidations", "liq_flow", "headlines", "candles_tf",
-                   "events", "arb", "leaders", "bot_signals", "intermarket")
+                   "events", "arb", "leaders", "bot_signals", "intermarket", "option_chain")
 
 #: Dato del snapshot → capacidad del instrumento que lo hace posible (si la hay).
 FIELD_CAPABILITY: dict[str, DataCapability] = {
