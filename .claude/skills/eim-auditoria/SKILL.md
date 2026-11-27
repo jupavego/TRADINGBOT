@@ -24,7 +24,7 @@ Esto resume 158 tareas. Si un hallazgo choca con una línea de esta tabla, se in
 | Universo de resultados | Libro de los 4 perfiles, vivas, con peso, **sin `retro`** (`counts_as_result`) | T144 |
 | Al cerrar T31 (2026-11-27) | Encender `risk_includes_costs` y el freno gradual; decidir si la variante t143 pasa a oficial | `PLAN/T31.md`, T136 |
 | Dinero real | Imposible: puerta T27 no pasa | T27, T31 |
-| Puerta alternativa | ◆ **cerrada por el usuario** (2026-11-26): no se pre-registra, ni en sombra. Las puertas lentas giran 3 y 1 vez en 98 d: nada medible | T213, BACKLOG T159 |
+| Puerta alternativa | ◆ **cerrada por el usuario** (2026-11-26): no se pre-registra, ni en sombra. Las puertas lentas giran 3 y 1 vez en 98 d: nada medible | T215, BACKLOG T159 |
 | Multiplicidad | Todo intento cuenta en Holm (familia 841) | T49, T139 |
 | Calibración | Recalibrar cerrado: M1 y M2 fallaron su pre-registro; el motor está casi calibrado en el banco (ECE 0,024) y los desvíos en vivo son de régimen | T160 |
 | Foco | Solo BTCUSDT | T122 |
@@ -67,7 +67,7 @@ lo fija `ProfileParams.htf` (15m → 1h EMA21/55, 1h → 4h EMA21/55, 4h → 4h 
 **758 y 718 h**; las aperturas posteriores al mínimo son 49, 45 cortas, **−731,7 USDT**. Antes de
 proponer acelerarla: en los 95 días de velas de 1 h del disco la puerta rápida cambia **39 veces** y **no
 distingue dirección** (retorno a 24 h: −0,338 % alcista frente a −0,158 % bajista), mientras las lentas sí
-(+0,455 % y +0,234 %) — **ese «sí» de las lentas no se sostiene: T213 corrige el método, más
+(+0,455 % y +0,234 %) — **ese «sí» de las lentas no se sostiene: T215 corrige el método, más
 abajo**. Acortar las EMAs cambia sesgo por ruido, y tocar la puerta **reabre T139 P1**: es
 ◆ del usuario, nunca una propuesta de la auditoría. Detalle: el universo oficial incluye 38 operaciones
 de ETHUSDT (+255,1 USDT) del 10-21 al 10-28, anteriores al foco T122.
@@ -77,7 +77,7 @@ costo 0,125 R · acierto 78,1 % frente a 84,2 % · PnL −2 915 USDT · 7 d: n =
 funding 12 m BTC 3,477 % (sigue «cerca» del 4 %) · calidad HFT 0,958. Δ frente al 11-23: E[R] +0,002,
 PnL −330: dentro del ruido.
 
-**El lado del libro, medido (T213, 2026-11-26).** Si se pregunta por el sesgo —«muchos cortos, pocos
+**El lado del libro, medido (T215, 2026-11-26).** Si se pregunta por el sesgo —«muchos cortos, pocos
 largos»— la respuesta son estas tres cifras y no hace falta rehacerla: **652 de 726 operaciones son
 cortas (89,8 %)**, con 15 días seguidos sin una sola larga (11-08 → 11-22) y 19/236 en los últimos
 7 días; **dos de las tres puertas de T212 no han girado en 34 días** (1h bajista 821 h, 4h bajista
@@ -87,11 +87,11 @@ sombra sin veto (11-19 → 11-25) el lado largo rinde −0,333 R (n = 420) frent
 (n = 667), diferencia −0,490 ± 0,154 y −0,530 ± 0,204 agrupando por vela de apertura; en el libro
 oficial queda dentro del ruido (−0,165 ± 0,299). Operar más largos habría perdido más. El costo del
 retraso que midió T212 sigue en pie y es compatible: el sesgo cuesta **en los giros**. Cambiar la
-puerta sigue siendo ◆ del usuario (T139 P1). Detalle: `PLAN/notas/T213_sesgo_direccional.md`.
-**Desde T213 esto no se mide a mano:** la auditoría lo trae en el encabezado («LADO: …»), en la
+puerta sigue siendo ◆ del usuario (T139 P1). Detalle: `PLAN/notas/T215_sesgo_direccional.md`.
+**Desde T215 esto no se mide a mano:** la auditoría lo trae en el encabezado («LADO: …»), en la
 línea «PUERTAS: …» y en la §6 del informe.
 
-**Corrección a §5 de T212, medida al implementar T213:** el signo de una puerta **no** se juzga
+**Corrección a §5 de T212, medida al implementar T215:** el signo de una puerta **no** se juzga
 promediando todas las velas de sus tramos (la ventana de las últimas cae al otro lado del giro, y
 así 10 de 12 caminatas aleatorias puras aparentan señal). Medido **desde el giro**, en los 98 días
 de velas del disco **ninguna** de las tres puertas distingue dirección: 15m +0,220 % con mínimo
@@ -103,7 +103,7 @@ giros es justo lo que haría inmedible cualquier puerta alternativa (T139 P1).
 varianza de la escalera (sd ≈ 0,46 R), una semana solo distingue ≈ 0,12 R/op: cualquier Δ menor que eso
 se informa como «dentro del ruido» y no se convierte en hallazgo, ni al alza ni a la baja.
 
-**Sexta trampa, de T213: contar el sesgo como si fuera la causa.** El desequilibrio es del veto, no de
+**Sexta trampa, de T215: contar el sesgo como si fuera la causa.** El desequilibrio es del veto, no de
 las estrategias (la sombra genera 39 % de largos), y en una ventana en que el lado largo rinde peor,
 «pocos largos» no explica la pérdida: el bruto es positivo y lo que la produce es el costo. El sesgo
 se informa con su cifra y con el contraste de los dos lados agrupado por vela de apertura, nunca como

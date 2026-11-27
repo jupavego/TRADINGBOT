@@ -1,4 +1,4 @@
-"""El lado del libro y el signo de cada puerta (T213). Puro: filas y velas → cifras.
+"""El lado del libro y el signo de cada puerta (T215). Puro: filas y velas → cifras.
 
 Nace de una observación del usuario el 2026-11-26 («muchos cortos y pocos largos») que hubo que
 contestar a mano: el libro era **652 de 726 cortas (89,8 %)** con 15 días seguidos sin una sola
@@ -11,7 +11,7 @@ cada auditoría, y con dos cautelas que el diagnóstico aprendió:
 2. **El contraste se agrupa por vela de apertura.** Decenas de estrategias miran la misma vela, así
    que contar ideas como independientes infla la muestra (la misma trampa que la calibración).
 
-No decide nada: cambiar la puerta es una entrada nueva y T139 la cerró con P1 (`PLAN/T213.md`).
+No decide nada: cambiar la puerta es una entrada nueva y T139 la cerró con P1 (`PLAN/T215.md`).
 """
 
 from __future__ import annotations
@@ -205,7 +205,7 @@ def gate_signs(candles: Mapping[str, Sequence[Candle]], htf_map: Mapping[str, Se
 
 def side_opps(sides: dict | None, contrast: dict | None,
               signs: list[dict] | None = None) -> list[dict]:
-    """T213: el sesgo del libro, el contraste de los dos lados y el signo de cada puerta.
+    """T215: el sesgo del libro, el contraste de los dos lados y el signo de cada puerta.
 
     Las tres son informativas por definición —el lado lo fija la puerta y T139 la cerró con P1—,
     y van juntas a propósito: el desequilibrio solo engaña. El 2026-11-26 el libro era 89,8 %
@@ -224,7 +224,7 @@ def side_opps(sides: dict | None, contrast: dict | None,
             ev += f"; última larga hace {s['no_long_h']:.0f} h"
         out.append(opp("sesgo_lado", "dirección",
                         "El libro es direccionalmente una sola apuesta", ev,
-                        "cerrada (T139 P1: el lado lo fija la puerta)", "T213 · T212"))
+                        "cerrada (T139 P1: el lado lo fija la puerta)", "T215 · T212"))
     c = contrast or {}
     if c.get("n"):
         g, dg = c["grouped"], c["diff_grouped"]
@@ -236,7 +236,7 @@ def side_opps(sides: dict | None, contrast: dict | None,
                    "velas por lado)")
         out.append(opp("contraste_lados", "dirección",
                         f"Los dos lados, contrastados: {c['verdict']}", ev,
-                        "cerrada (T139 P1: informativo, no cambia el lado)", "T213 · T144"))
+                        "cerrada (T139 P1: informativo, no cambia el lado)", "T215 · T144"))
     odd = [x for x in (signs or []) if x.get("reads") and x["verdict"] != SIGN_OK]
     if odd:
         ev = "; ".join(f"{x['timeframe']} ({x['htf']} EMA{x['fast']}/{x['slow']}): "
@@ -247,7 +247,7 @@ def side_opps(sides: dict | None, contrast: dict | None,
         out.append(opp("puerta_sin_signo", "dirección",
                        f"{len(odd)} puerta(s) cuyo signo no respalda su uso en la ventana", ev,
                        "cerrada (T139 P1: tocar la puerta, invertirla o acortar sus EMAs es una "
-                       "entrada nueva · ◆)", "T213 · T212"))
+                       "entrada nueva · ◆)", "T215 · T212"))
     return out
 
 def text(sides: dict, con: dict | None = None) -> str:

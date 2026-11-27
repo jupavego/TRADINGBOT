@@ -123,7 +123,7 @@ def book_kpis(rows: Sequence[dict], now_ms: int) -> dict:
         "excluded": dict(Counter(r.get("exclusion") or "sin cerrar" for r in rows
                                  if id(r) not in kept)),
         "first_exit_t": int(first),
-        # T213: el lado del libro (el sesgo direccional), para que no haya que contarlo a mano
+        # T215: el lado del libro (el sesgo direccional), para que no haya que contarlo a mano
         "sides": sides_mod.book_sides(off, now_ms),
         "all": stats(off), "last7": stats(window(off, now_ms, 7)),
         "last28": stats(window(off, now_ms, 28)),

@@ -74,7 +74,7 @@ def build(rows: list[dict], now_ms: int, generated_at: str, *,
     var = {name: variant_block(rows, vr) for name, vr in (variant_rows or {}).items()}
     calibration = {k: v for k, v in (calibration or {}).items() if k != "curve"}
     cal4 = {k: v for k, v in (calibration_4h or {}).items() if k != "curve"}
-    # T213: los dos lados sobre la sombra y el signo de cada puerta (sin velas, no se publican)
+    # T215: los dos lados sobre la sombra y el signo de cada puerta (sin velas, no se publican)
     contrast = sides_mod.contrast(rows, now_ms, symbol)
     signs = gate_signs(candles) if candles else []
     opps = levers.opportunities(book, var.get("t143"), calibration, cal4, gates, contrast, signs)
@@ -84,7 +84,7 @@ def build(rows: list[dict], now_ms: int, generated_at: str, *,
              "variants": var, "hft": hft, "funding_apr": funding or {},
              "calibration": calibration, "calibration_4h": cal4,
              "gates": gates or [],          # T212: puerta del marco mayor por marco
-             "sides": {"contrast": contrast, "gate_signs": signs},   # T213
+             "sides": {"contrast": contrast, "gate_signs": signs},   # T215
              "opportunities": opps, "triggers": trig, "nursery": nursery or {}}
     audit["deltas"] = levers.deltas(audit, prev)
     return audit

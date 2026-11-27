@@ -29,10 +29,10 @@ HFT_MIN_COMPLETE = 0.99     # T78
 CALIB_BIAS = 0.05           # 5 pp entre probabilidad media y frecuencia real de un escenario
 CALIB_MIN_EFF = 10          # T175: muestra efectiva mínima para leer una calibración
 NEAR = 0.75                 # un disparador «cerca» al 75 % de su umbral
-SIDE_SKEW = 0.70            # T213: desde qué reparto el libro es «una sola apuesta»
+SIDE_SKEW = 0.70            # T215: desde qué reparto el libro es «una sola apuesta»
 
 
-_opp = opp              # la forma de una oportunidad vive en el paquete (la comparte T213)
+_opp = opp              # la forma de una oportunidad vive en el paquete (la comparte T215)
 
 
 def gate_opps(gates: list[dict] | None) -> list[dict]:
@@ -115,7 +115,7 @@ def opportunities(k: dict, variant: dict | None = None,
     out += calibration_opps(calib or {})
     out += calibration_opps(calib_4h or {}, "4h")
     out += gate_opps(gates)                 # T212: el retraso de la puerta, informativo
-    # T213: el lado y el signo de las puertas (en sides.py, que es su módulo)
+    # T215: el lado y el signo de las puertas (en sides.py, que es su módulo)
     out += sides.side_opps(k.get("sides"), contrast, signs)
     return sorted(out, key=lambda o: -(o["impact_usdt"] or 0))
 
