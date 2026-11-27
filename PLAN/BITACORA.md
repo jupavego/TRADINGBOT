@@ -4141,6 +4141,53 @@ pm run build.
   en 1h, +0,012 en 4h, a favor del límite, contando la no ejecución como 0 R).
 - **Siguiente paso:** T207, empezando por publicar el valor esperado por idea generada junto al de las
   llenadas; no tocar reglas vivas antes del cierre de T31 (2026-11-28).
+## 2026-11-23 · sesión «El proyecto está detenido» → interfaz relanzada y T209
+- **Hecho:** los servicios corrían (API, bróker simulado, captura HFT, líderes; `GET /v2/health` todo vivo).
+  Lo caído era la **interfaz**: Vite (5173) murió el 22-nov después de las 16:47 UTC sin dejar error y
+  nadie lo relanza; se relanzó con `servicio_continuo.ps1 -ConWeb` y se comprobó en el navegador (mesa
+  cargada, precio en vivo, sin errores en consola). Lo parado de verdad era la **corrida de operación**:
+  desde el 19-oct, 70 decisiones con plan, 7 aprobadas y **59 vetadas por «datos: N agentes degradados»**
+  (`literature` en 58). Causa: `literature` sale `degraded` en 1h siempre desde T53 (`murphy_weekly_rule`
+  pide 673 velas, el ciclo carga 500) y `vwap` del día ~21 a fin de mes (VWAP mensual parcial), y
+  `max_degraded_agents = 1`. Sin esas dos, 33 de los 59 pasaban el filtro de datos y 20 no tenían otro veto.
+  La API se colgó y el vigilante la reinició 3 veces el 22-nov (12:14, 16:14, 16:29 UTC, latido parado
+  ~15 min); al abrir la mesa pasó de 2,3 a 5,3 GB y dejó 0,75 GB libres (T206).
+- **Archivos:** `PLAN/T209.md` (nueva, fase 7), fila en `STATUS.md`, fase 7 en `00_MASTER.md`, §3 de
+  `ESTADO_PROYECTO.md`, dos líneas en `BACKLOG.md` (Vite sin vigilante; memoria al abrir la mesa, T206),
+  `status.js`/`roadmap.html`. Sin tocar código del producto. T208 ya estaba tomado por la rama local
+  `claude/t208-forja-5m` (sin publicar), por eso es T209.
+- **Pruebas:** ninguna (diagnóstico y plan). Medido contra la API viva de `juanpablo-cpu` y
+  `v2/data/operation/logs/op-*.jsonl` el 2026-11-23 ≈ 02:00 UTC.
+- **Abierto:** T209 ☐ con ◆ pendiente (A semántica en los agentes, recomendada; B más velas; C subir el
+  límite, descartada). El libro de los cuatro perfiles no abre nada desde el 22-nov 12:15 UTC por sus filtros
+  normales (costo, estrategias en pausa, observación, freno de drawdown); no se vio fallo, pero conviene
+  mirarlo si sigue así el lunes.
+- **Siguiente paso:** con la ◆, implementar T209 en una rama y desplegar tras el encendido del 2026-11-28.
+## 2026-11-23 · sesión T209 implementada (opción A)
+- **Hecho:** ◆ del usuario: opción A. `literature` deja de poner `degraded` cuando una ficha no cabe
+  en las velas cargadas (la lista en el aviso «fuera de alcance» y en `metrics["rules_out_of_window"]`;
+  sin ninguna regla que quepa, `no_data`) y `vwap` cuando un período es parcial (aviso y
+  `metrics["partial_periods"]`; el período parcial sigue votando con su peso). Sesgo y confianza de
+  los dos no cambian. Versiones `literature` 0.1.1 y `vwap` 1.0.1, también en el catálogo del
+  observatorio; `docs/RUNBOOK.md` §7 explica qué es `degraded`.
+- **Recuento retro** (`PLAN/notas/T209_vetos_datos.md`): por decisión 70 / 59 vetadas por datos / 33
+  pasarían / 20 sin otro veto; **por plan** 34 distintos / 26 vetados por datos en su primera
+  decisión / 12 pasarían / 5 sin otro veto. Lo que sigue vetado es `liquidations` + `microstructure`
+  (25) y `calendar` + `liquidations` (1): datos que fallan de verdad.
+- **Archivos:** `v2/eim/agents/literature/agent.py`, `v2/eim/agents/vwap/agent.py`,
+  `v2/eim/observability/catalog/components_agents.py`, `v2/docs/RUNBOOK.md`,
+  `v2/tests/agents/test_window_t209.py` (nueva), `v2/tests/agents/vwap/test_vwap.py`,
+  `v2/tests/agents/literature/test_rules.py`, `PLAN/T209.md`, `PLAN/notas/T209_vetos_datos.md`,
+  `STATUS.md`, `ESTADO_PROYECTO.md`, `status.js`.
+- **Pruebas:** `test_window_t209.py` (33 fechas de octubre de 2026 con 500 velas re-fechadas: los dos
+  `ok`, el mensual parcial desde el día 22, la regla de datos sin veto; dos degradaciones reales
+  siguen vetando), las de los dos agentes, riesgo, catálogo y ejecutor: 117 en verde. Gate completo
+  por la cola (`gate-t209`).
+- **Abierto:** desplegar tras el encendido del 2026-11-28 y verificar en vivo (`GET /v2/operation`,
+  `vetoed`). Efecto en la síntesis: `vwap` pesa 1, así que del día ~21 a fin de mes votará entero
+  en vez de a la mitad o fuera, también para el libro de los cuatro perfiles.
+- **Siguiente paso:** fusionar el PR con el sí del usuario después del 2026-11-28 00:00 UTC; la API
+  toma el código nuevo al reiniciarse (lo hace `sincronizar_main.ps1` cuando avanza `main`).
 
 ## 2026-11-21 · sesión Perfil adicional en la cantera → T208 (la forja)
 
