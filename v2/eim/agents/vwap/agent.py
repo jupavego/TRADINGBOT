@@ -131,4 +131,6 @@ class VWAPAgent:
             confidence=confidence, horizon_bars=p.horizon_bars, evidence=evidence,
             metrics=metrics, warnings=warnings,
             overlays=_overlays(row, first_ts, p, confidence, src, dead),
+            # T91: un ancla que no aplica al marco sí degrada; el período parcial no (T209)
+            status="degraded" if dead else "ok",
         )
