@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-26T21:56:41",
+ "generated": "2026-11-27T11:36:50",
  "phases": [
   {
    "n": 0,
@@ -3357,8 +3357,8 @@ window.EIM_STATUS = {
     "T165",
     "T88"
    ],
-   "state": "pending",
-   "notes": "**Abierta 2026-11-26 por la ◆ de T100.** Primero leer en la fuente los términos de datos de Deribit (y Binance opciones): ◆ el usuario aprueba o no la fuente. Si se aprueba: ficha de fuente, colector de baja frecuencia de las cadenas de BTC (tarea programada, sin servicio nuevo), calidad de cada toma con `eim/options/chain.py`, volumen medido y si hay histórico público para reconstruir superficies.",
+   "state": "done",
+   "notes": "**Hecha 2026-11-27. ◆ RESUELTA por el usuario: Deribit (API pública) aprobada a nivel 1, solo uso personal** (`PLAN/notas/T213_terminos.md` §6). **(1) Términos leídos en la fuente** (nota con cita corta y URL por cláusula): Deribit FZE (26-01-2026) cl. 2.10 permite el uso personal de datos de mercado y derivados y prohíbe publicarlos, reenviarlos o redistribuirlos sin aprobación escrita; **no exige atribución** ni habla de guardar en local; la cl. 27.1(i) (recolección automatizada) queda **ambigua** para la API pública que la propia Deribit documenta para canales de datos de opciones; términos de DRB Panama, límite por IP y cobertura de `history.deribit.com` **no verificados**; Binance opciones: términos ilegibles (PDF embebido) → no verificado. En paralelo el usuario pide confirmación escrita a Deribit; si dice que no, se retiran este colector y el del DVOL. **(2) Ficha** `DERIBIT` nivel 1 en `eim/data/providers/meta.py` (cubre también el DVOL de T165, que no tenía; la salud de T102 la lista como prevista). **(3) Colector** `eim/data/options_chain.py` + `options_parse.py` (puro): una llamada `public/get_book_summary_by_currency?kind=option` por moneda y toma (`DeribitPublic.option_book_summary`, reintentos, nunca respuestas a medias), filas completas en `data/options/<MONEDA>/<día>/<HH>.jsonl.gz` (bid/ask/marca en moneda base, IV de marca en %, subyacente, tipo, interés abierto con 8 h de retraso; una cara vacía se guarda como dato, la fila incompleta se descarta contada) y calidad por vencimiento al lado (`<HH>.quality.json`: cruces, horquillas, arbitraje estático, σ ATM y sesgo 90/110 con `eim/options/chain.py` en USD y Black-76, y la σ ATM de la marca de Deribit para contrastar unidades); escritura atómica, sin repetir una hora ya tomada; `options/` entra en la copia diaria y en `restore`. Tarea programada `scripts/opciones_colector.ps1` (prioridad de lote, minuto 1 de las horas UTC múltiplo de la cadencia, siempre las 00:00 UTC; registro `data/operation/logs/opciones.log`), instalada en la portátil: cada 1 h, monedas BTC, tarea «EIM - colector de opciones de Deribit (T213)» en la portátil (minuto 1 de las horas UTC múltiplo de la cadencia, siempre las 00:00 UTC). **(4) Volumen medido** en la portátil antes de programar (presupuesto declarado 1 MB/día; si no cabe, se baja la frecuencia, nunca los campos): una toma de BTC = 35.2 kB (956 filas, 13 vencimientos, 0 descartadas); una toma de ETH = 27.9 kB (762 filas, 13 vencimientos, 0 descartadas) (medido 2026-11-27T16:07:18Z); presupuesto 1.0 MB/día → cada 1 h con BTC: 0.84 MB/día, 308.2 MB/año; copias diarias a un año ≤ 4314.84 MB. **(5) Histórico:** las operaciones públicas traen `iv` (1 000 por petición), pero la cobertura de `history.deribit.com` no está en la documentación oficial y sin bid/ask pasados una superficie reconstruida queda sesgada → **T214 cuenta con acumular hacia adelante** y debe decirlo en su pre-registro. **Pruebas sin red:** `tests/data/test_options_chain.py` (sintéticas: unidades BTC→USD que recuperan la sonrisa, descartes, atomicidad, hora repetida, cadencia, proveedor), `tests/data/test_options_fixture.py` sobre un **recorte real grabado** (78 filas reales de BTC de 956 opciones vivas (vencimientos 2026-11-29T08:00:00Z, 2026-12-18T08:00:00Z)), `tests/data/test_backup_options.py`. **Gate:** pytest: 4594 pasadas, 36 omitidas, 0 fallos. Ningún cambio en agentes, síntesis, plan, riesgo, papel ni operación. BACKLOG T213.",
    "effort": "bajo",
    "phase": 26
   },
@@ -3376,7 +3376,14 @@ window.EIM_STATUS = {
    "notes": "**Abierta 2026-11-26 por la ◆ de T100; no empieza sin la fuente aprobada en T213.** ¿La superficie (estructura temporal, sesgo, prima por plazo) mejora a A2 de T165? Potencia a priori, pre-registro, QLIKE, MCS y Holm en la familia ampliada; agente informante, nunca dirección; ◆ si entra como insumo de volatilidad.",
    "effort": "medio",
    "phase": 26,
-   "goal": "Medir si la **superficie** de volatilidad implícita de BTC añade información sobre la volatilidad"
+   "goal": "Medir si la **superficie** de volatilidad implícita de BTC añade información sobre la volatilidad",
+   "where": [
+    {
+     "machine": "laptop",
+     "text": "Las tomas de las cadenas de opciones (data/options, no se pueden volver a descargar) viven en la portátil desde T213: el pre-registro y la medición de T214 se hacen allí o con una copia de esa carpeta; el DVOL sí se puede volver a descargar en la portátil",
+     "when": "cuando el pre-registro de T214 diga cuántos días hacen falta"
+    }
+   ]
   }
  ]
 };
