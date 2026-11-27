@@ -12,7 +12,8 @@ from eim.observability.catalog.model import Component, c
 _VOTERS = ("structure", "ema", "vwap", "price_action", "elliott", "seasonality", "liquidations",
            "levels", "derivatives", "microstructure", "regime", "technical", "smart_money")
 # T174 (desvío visto en T75): informan a la síntesis aunque no voten o voten con peso propio
-_INFORMERS = ("arbitrage", "bots", "calendar", "context", "literature", "intermarket")  # +T183
+_INFORMERS = ("arbitrage", "bots", "calendar", "context", "literature", "intermarket",  # +T183
+              "vol_surface")  # +T214: llega a la síntesis y no vota (NON_DIRECTIONAL)
 
 DATA: tuple[Component, ...] = (
     c("data.binance_rest", "data", "datos", "provider", "api", "T03", "Binance (consulta REST)",
@@ -70,6 +71,13 @@ DATA: tuple[Component, ...] = (
       "propia cripto, como mucho cada 6 h por activo. Las guarda para la fotografía del mercado.",
       cadence="cada 6 h", cadence_s=21600, switch="intermarket",
       produces=("intermarket_bars",)),
+    # T214: sin `cadence_s` a propósito: las tomas solo existen en la portátil (◆ de T213); en
+    # otro equipo no hay eventos y no es un fallo. Sus eventos salen con cada fotografía.
+    c("data.options_chain", "data", "datos", "provider", "collector", "T213",
+      "Cadenas de opciones (Deribit)",
+      "Cada hora guarda en la portátil todas las opciones vivas de BTC de Deribit (precios, "
+      "volatilidad implícita, interés abierto) con su calidad. Solo uso personal; no se operan.",
+      cadence="cada hora (solo en la portátil)", produces=("option_chain",)),
     # T93: a demanda (sin `cadence_s`) a propósito: el escáner se enciende con
     # `python -m eim.scanner run`; apagado no es «sin latido». Muestrea sus eventos.
     c("scanner.service", "data", "analisis", "service", "scanner", "T93", "Escáner global",
@@ -87,7 +95,8 @@ DATA: tuple[Component, ...] = (
                 ("data.calendar", "econ_events"), ("data.micro_collector", "micro_bars"),
                 ("data.liq_collector", "liq_flow"),
                 ("data.arb_market", "arb_market"), ("leaders.service", "leader_board"),
-                ("data.intermarket", "intermarket_bars")),
+                ("data.intermarket", "intermarket_bars"),
+                ("data.options_chain", "option_chain")),
       produces=("snapshot",)),
 )
 
