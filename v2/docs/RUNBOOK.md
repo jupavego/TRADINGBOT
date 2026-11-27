@@ -306,6 +306,13 @@ Stop-Process -Id <pid de la hija> -Force
 Salen dos filas: la hija es la que tiene por `ParentProcessId` el `ProcessId` de la otra. El
 vigilante la relanza en segundos. `GET /v2/paper` da 503 hasta que calcula su primera vista.
 
+**La mesa va lenta y `/v2/snapshot` tarda minutos (T206).** Desde el 2026-11-26 los agregados de
+microestructura de las velas **ya cerradas** se guardan en `data/micro_cache/` (un JSON por
+símbolo, marco y día) y no se recalculan: la ventana de 500 velas de 1 h dejó de releer 1,6
+millones de fotos del libro en cada carga. Si se sospecha de la caché: `EIM_MICRO_CACHE=0`
+recalcula todo sin tocarla, y **borrar la carpeta es seguro** (se rehace sola leyendo los Parquet).
+Una vela se guarda 10 min después de cerrar y se recalcula sola si aparecen huecos que la toquen.
+
 **Reiniciar el vigilante y la API** (hace falta para que entre un cambio del propio vigilante o de
 la línea de órdenes de la API). Solo para esos dos, y luego lanza lo que falte sin duplicar nada:
 ```powershell
@@ -371,7 +378,15 @@ de siempre solo relanzan a sus hijos; si mueren ellos, solo queda este.
 `v2\scripts\vigilante_conjunto.ps1` → `python -m eim.operation.fleet_watch check`. Mira los cinco
 latidos (`operation/`, `paper/`, `leaders/`, `micro_hft/heartbeat.json` y la última muestra de
 `data/usage/`) y, si alguno lleva **10 min** sin señal, corre `servicio_continuo.ps1` **sin
-`-ConWeb`** (solo los servicios de datos; decisión del usuario). Si el arranque falla: hasta **4
+`-ConWeb`** (solo los servicios de datos; decisión del usuario).
+
+**La interfaz, desde T206 (2026-11-26).** Aparte de los cinco, mira si alguien escucha en **5173**; si no,
+tras los mismos 10 min corre el guion **con** `-ConWeb`, con su propia cuenta de intentos (0, 5, 15 y
+60 min) para no gastar los de la captura ni los del bróker. Motivo: el 2026-11-25 Vite murió a las
+16:27 UTC arrastrado por un cuelgue de la API y **nadie la levantó en siete horas**; los cinco estaban
+vivos y cada pasada decía «ok», así que el icono del escritorio no abría nada y para quien usa el EIM
+estaba caído. Se deja fuera otra vez con `EIM_FLEET_WEB=0`. Sus avisos y sus líneas del registro van
+aparte (`interfaz_levantar`, `interfaz_recuperada`, `interfaz_rendirse`). Si el arranque falla: hasta **4
 intentos** con espera creciente (0, 5, 15 y 30 min) y, agotados, aviso crítico y **6 h** sin volver a
 probar: un arranque roto no se arregla repitiéndolo. Avisa (registro de operación + notificación
 de Windows) al levantar, al fallar, al rendirse y al volver.
@@ -500,3 +515,16 @@ con código anterior a T120; se ve tras relanzarlo.
 **Diagnóstico repetible** de una esfera (skill `eim-diagnose-agent`): desde `v2/`,
 `python -m eim.analytics.why_no_data --symbol BTCUSDT --tf 1h` lista cada agente con su estado, su
 etiqueta y su motivo completo, más el estado de los recolectores y de los componentes.
+
+## 20. Escáner multiactivo: salud, avisos y despliegue gradual (T102)
+
+Síntoma: aviso «Cripto: sin datos / con datos obsoletos», «Escáner global: …» o «Fuente binance-futures: …», o la pestaña «Escáner» con la salud en rojo o candidatas «en sombra».
+
+1. **Mirar la salud:** desde `v2/`, `python -m eim.scanner health` (una línea; `--json` para todo). Código 3 = sin datos u obsoleto; 4 = error.
+2. **¿Corrió la tarea diaria?** `data/operation/logs/escaner_diario.log`: cada noche deja «bien: …» o «FALLO: …». Si no hay línea de anoche, el equipo estaba apagado o la tarea no está instalada: `powershell -ExecutionPolicy Bypass -File v2\scripts\escaner_diario.ps1` la corre a mano (`-Instalar` la registra; solo en la laptop).
+3. **Obsoleto** (vista de más de 72 h): correr la pasada a mano (paso 2). **Sin datos** en cripto con vista fresca: el catálogo o las velas no se pusieron al día; `python -m eim.scanner sync --discover` y otra pasada.
+4. **Trabajos fallidos o sin ranking:** el detalle está en `python -m eim.scanner status` y en el observatorio (servicio del escáner). Un fallo del ranking no tumba la pasada: la vista lo dice.
+5. **Candidatas en sombra:** su clase o sus agentes principales se desactivaron solos tras dos revisiones malas (motivo en `data/scanner/rollout.json` y en el panel). No hay que hacer nada: vuelven solas tras dos revisiones sanas, en «alerta». El cálculo no se detiene (pre-registro de T95).
+6. **El aviso no se resuelve aunque todo está bien:** las condiciones activas viven en `data/scanner/health.json` (`alerts_active`); la siguiente revisión sana emite el «Resuelta». Borrar el archivo solo hace que la próxima revisión vuelva a avisar de lo que siga mal.
+
+Nada de esto toca T31, el bróker simulado ni la API: el escáner solo lee datos.

@@ -36,7 +36,8 @@ def _corte(t0: float, t1: float, cada_s: float = 80.0) -> list[dict]:
 
 
 def _check(tmp_path, now_s, lz, ops):
-    return fleet_watch.check(tmp_path, now_s=now_s, launcher=lz, notify=False, ops=ops)
+    return fleet_watch.check(tmp_path, now_s=now_s, launcher=lz, notify=False, ops=ops,
+                         web_probe=lambda: True)
 
 
 def _rows(tmp_path: Path) -> list[dict]:
