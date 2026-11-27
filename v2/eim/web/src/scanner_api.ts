@@ -76,7 +76,39 @@ export interface Ranking {
   family?: { prior: number; prior_source: string; scanner: number; total: number; alpha: number; min_obs: number; observations: number; matured: number }
   n_comparable?: number; n_above?: number; n_groups?: number; rows?: RankRow[]; clusters?: Cluster[]
 }
-export interface OpportunitiesPayload extends Head { deep?: DeepSummary | null; opportunities: Opportunity[]; ranking?: Ranking }
+export interface ShadowRow { opportunity_id: string; instrument_id: string; symbol: string; reason: string }
+export interface OpportunitiesPayload extends Head { deep?: DeepSummary | null; opportunities: Opportunity[]; ranking?: Ranking; shadow?: ShadowRow[] }
+
+/* T102: salud multiactivo, despliegue gradual y recorrido de una candidata. */
+export type HealthState = 'ok' | 'degradado' | 'error' | 'obsoleto' | 'sin_datos' | 'pausado' | 'planeado'
+export interface HealthClass {
+  asset_class: string; label: string; plan: string; task: string; note: string; state: HealthState; alerting: boolean
+  n_scored: number; n_excluded: number | null; coverage: number | null; exclusions: Record<string, number>
+  quality_mean: number | null; quality_incomplete: number; stale_rows: number
+  markets: { abierto: number; cerrado: number; sin_calendario: number }
+  candidates: number; above_threshold: number; reasons: string[]
+}
+export interface HealthProvider {
+  name: string; used: boolean; classes: string[]; level: number; license: string; delay_ms: number | null
+  rate_limit_per_min: number | null; usage_share: number | null; usage_note: string; errors: number; state: HealthState
+}
+export interface RolloutUnit { kind: 'class' | 'agent'; id: string; level: string; active: boolean; reason: string; next: string[] }
+export interface HealthPayload {
+  mode: 'ANALISIS'; notice: string; overall: HealthState; generated_at: number; checked_at?: number | null; note?: string
+  view: { state: HealthState; age_h: number | null; asof: number | null; timeframe: string }
+  watching: { classes: string[]; n_instruments: number }
+  classes: HealthClass[]; providers: HealthProvider[]; blind_spots: string[]
+  scanner: {
+    state: HealthState; reasons: string[]; failed_jobs: number
+    budget: { ms_per_instrument: number | null; budget_ms: number; within_budget: boolean | null; deep_ms_total: number; deep_ms_per_instrument: number; max_procs: number }
+    ranking: { available: boolean; threshold_status: string | null; n_above: number | null; family_total: number | null; matured: number | null }
+  }
+  alerts_active?: Record<string, number> | null
+  rollout?: { units: Record<string, RolloutUnit>; levels: string[] } | null
+  observability?: { events: number; build_ms?: number; emit_ms?: number; within?: boolean } | null
+}
+export interface TraceStep { key: string; title: string; status: string; summary: string; detail: Record<string, unknown> }
+export interface CandidateTrace extends Head { trace_id: string; instrument_id: string; symbol: string; asset_class: string; timeframe: string; steps: TraceStep[] }
 
 export interface RanAgent { agent_id: string; version: string; status: string; bias: number; confidence: number; warnings: string[]; eligibility: string }
 export interface DeepDetail {
@@ -104,3 +136,6 @@ export const fetchUniverse = (signal?: AbortSignal): Promise<UniversePayload> =>
 export const fetchOpportunities = (signal?: AbortSignal): Promise<OpportunitiesPayload> => get('/v2/scanner/opportunities', signal)
 export const fetchInstrument = (id: string, signal?: AbortSignal): Promise<InstrumentPayload> =>
   get(`/v2/scanner/instrument/${encodeURIComponent(id)}`, signal)
+export const fetchHealth = (signal?: AbortSignal): Promise<HealthPayload> => get('/v2/scanner/health', signal)
+export const fetchTrace = (id: string, signal?: AbortSignal): Promise<CandidateTrace> =>
+  get(`/v2/scanner/trace/${encodeURIComponent(id)}`, signal)

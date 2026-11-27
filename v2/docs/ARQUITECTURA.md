@@ -148,6 +148,9 @@ una señal contraria no cierra en ninguna fuente. Sombras que NO son posiciones:
 (`execution/sim_ledger.py`, T15) y la sombra de ideas (`paper/engine.run_shadow`) simulan cada
 propuesta para medirla, sin cuenta ni orden.
 
+## Plataforma multiactivo (Fase 17)
+Registro de instrumentos (T89) → fuentes por clase con ficha y licencia (T90) → escáner global en embudo (T93) → agentes elegibles sobre la lista corta (T94) → ranking con placebo y Holm/BH sobre la familia completa (T95) → **salud multiactivo y despliegue gradual** (T102: `eim/scanner/{health,health_alerts,rollout,trace,obs_batch,health_service}.py`). Todo en modo Análisis: ningún módulo de riesgo, ejecución ni papel importa el escáner (`tests/scanner/test_no_orders.py`). La salud dice por clase y por fuente qué se vigila y qué no; el despliegue lleva cada clase por alerta → simulación → papel con desactivación automática a sombra (el cálculo sigue para no romper el pre-registro de T95); los eventos van al Observatorio por lotes con una traza por instrumento. Protocolo: `OPERACION.md` §8.
+
 ## Modos
 `Análisis` (sin ejecución) · `Simulado` (SimBroker, papel) · `Testnet` (`EIM_EXECUTION=testnet`).
 `REAL` está prohibido por validación de la configuración de riesgo hasta superar la puerta de edge

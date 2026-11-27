@@ -80,7 +80,10 @@ def test_no_method_changes_state(tmp_path):
     _publish(tmp_path)
     app = _app(tmp_path)
     paths = {p: ops for p, ops in app.openapi()["paths"].items() if p.startswith("/v2/scanner")}
-    assert len(paths) == 4                                   # esquema público, no rutas internas
+    assert set(paths) == {               # esquema público, no rutas internas (T102: +2 lecturas)
+        "/v2/scanner/universe", "/v2/scanner/opportunities", "/v2/scanner/runs",
+        "/v2/scanner/instrument/{instrument_id}", "/v2/scanner/health",
+        "/v2/scanner/trace/{instrument_id}"}
     assert {m for ops in paths.values() for m in ops} == {"get"}
     with LocalClient(app) as c:
         for verb in ("post", "put", "delete", "patch"):

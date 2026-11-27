@@ -12,6 +12,10 @@
                                                #      vuelve a calcular (mismo id y cifras)
     python -m eim.scanner calibrate            # T95: pesos del ranking fuera de muestra con lo
                                                #      madurado (solo adopta si mejora)
+    python -m eim.scanner health               # T102: salud por clase y fuente, despliegue
+                                               #       gradual, avisos y eventos por lotes
+    python -m eim.scanner trace --first        # T102: recorrido de una candidata, del dato a
+                                               #       su decisión (o un INSTRUMENT_ID)
 
 Modo ANÁLISIS: nada de esto envía órdenes. Códigos de salida de `budget`: 0 dentro del
 presupuesto y reproducible; 3 fuera del presupuesto; 4 no reproducible; 5 sin catálogo o datos.
@@ -29,6 +33,7 @@ from pathlib import Path
 
 from eim.data import scanner_market as market
 from eim.data.timeframes import tf_ms
+from eim.scanner import health_cli
 from eim.scanner.params import DEFAULT_PARAMS
 
 
@@ -93,11 +98,14 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--asof", default="latest")
     b.add_argument("--out", default="reports/scanner_budget.md")
     b.add_argument("--summary", help="archivo con una línea de resumen (para el plan)")
+    health_cli.add_parsers(sub)
     a = ap.parse_args(argv)
 
     data_dir = Path(a.data_dir)
     if a.cmd == "status":
         return _status(data_dir)
+    if a.cmd in ("health", "trace"):
+        return (health_cli.health_cmd if a.cmd == "health" else health_cli.trace_cmd)(data_dir, a)
     from eim.scanner.service import ScannerError, ScannerService
 
     root = Path(a.universe_root) if a.universe_root else market.universe_root(data_dir)
