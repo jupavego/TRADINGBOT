@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from eim.analytics.audit import sides as sides_mod
+
 
 def _r(x, d=3) -> str:
     return "—" if x is None else f"{x:+.{d}f}"
@@ -22,6 +24,58 @@ def _row(name: str, s: dict) -> str:
 
 HEAD = ("| Grupo | n | Acierto | Equilibrio | E[R] neto | Costo R | Bruto R | PnL USDT |\n"
         "|---|---|---|---|---|---|---|---|")
+
+
+def sides_line(a: dict) -> str:
+    """T215 criterio 1: el reparto por lado y lo que el veto dejó fuera, por marco."""
+    b = a["book"].get("sides") or {}
+    if not b.get("n"):
+        return ""
+    out = sides_mod.text(b, (a.get("sides") or {}).get("contrast"))
+    veto = [f"{g['timeframe']} {(g.get('blocked') or {})['long']}L/"
+            f"{(g.get('blocked') or {})['short']}C"
+            for g in a.get("gates") or [] if (g.get("blocked") or {}).get("n")]
+    if veto:
+        out += f" · `contra_tendencia` dejó fuera {', '.join(veto)}"
+    return out
+
+
+def sides_lines(a: dict) -> list[str]:
+    """Sección del lado: los dos lados en la sombra y el signo de cada puerta (T215)."""
+    s = a.get("sides") or {}
+    c, signs = s.get("contrast") or {}, s.get("gate_signs") or []
+    out = ["", "## 6. El lado del libro y el signo de las puertas (T215)", "",
+           f"- Reparto: {sides_line(a) or 'sin operaciones'}", ""]
+    if c.get("n"):
+        g, raw, dg = c["grouped"], c["by_side"], c["diff_grouped"]
+        out += [f"**Los dos lados en la {c['universe']}** ({c['n']} ideas). El veredicto sale del "
+                "agrupado por vela de apertura, que no infla la muestra con ideas solapadas.", "",
+                "| Lado | ideas | E[R] por idea | velas | E[R] por vela |", "|---|---|---|---|---|"]
+        for k, name in (("long", "largo"), ("short", "corto")):
+            out.append(f"| {name} | {raw[k]['n']} | {_r(raw[k]['e_r'])} | {g[k]['n']} "
+                       f"| {_r(g[k]['e_r'])} |")
+        out += ["", f"Diferencia largo − corto: **{_r(dg['diff'])} R** con mínimo detectable "
+                f"{_r(dg['mdd'])} → **{c['verdict']}**"
+                + ("" if c.get("reads") else " · muestra corta, no se lee"), ""]
+    if signs:
+        span = max((x.get("span_days") or 0) for x in signs)
+        out += [f"**El signo de cada puerta** en los {span:.0f} d de velas del disco: el retorno "
+                f"de las {signs[0].get('horizon_h')} h siguientes **desde el instante en que "
+                "gira**, un dato por giro (promediar las velas del tramo inventa signo, porque su "
+                "ventana cae ya al otro lado del giro).", "",
+                "| Puerta | giros ↑/↓ | ret. ↑ | ret. ↓ | diferencia | mín. detectable "
+                "| lectura |", "|---|---|---|---|---|---|---|"]
+        for x in signs:
+            d = f"{_r(x['diff_pct'])} % | {_r(x['mdd_pct'])} %" if x.get("reads") else "— | —"
+            out.append(f"| {x['timeframe']} ({x['htf']} EMA{x['fast']}/{x['slow']}) | "
+                       f"{x['up']['stretches']}/{x['down']['stretches']} | "
+                       f"{_r(x['up']['ret_pct'])} % | {_r(x['down']['ret_pct'])} % | {d} "
+                       f"| {x['verdict']} |")
+        out += ["", "Mientras la lectura de una puerta no sea «distingue (alcista rinde mejor)», "
+                "acelerarla, invertirla o acortar sus EMAs cambia sesgo por ruido o por una "
+                "ventana: es una entrada nueva, T139 la cerró con P1 y la decisión es ◆ del "
+                "usuario, con pre-registro y contando en la familia de Holm (T49).", ""]
+    return out
 
 
 def _impact(o: dict) -> str:
@@ -45,7 +99,8 @@ def markdown(a: dict) -> str:
                   f"- Acierto {_p(s['win_rate'])} frente a equilibrio "
                   f"{_p(s.get('breakeven_win_rate'))}; ganadora {_r(s['avg_win_r'])} R, perdedora "
                   f"{_r(s['avg_loss_r'])} R. PnL {s['pnl_usdt']:+.1f} USDT, fricción "
-                  f"{s['cost_usdt']:.1f} USDT.", ""]
+                  f"{s['cost_usdt']:.1f} USDT.",
+                  f"- Lado (T215): {sides_line(a) or 'sin operaciones'}.", ""]
     lines += [HEAD, _row("todo", s), _row("últimos 28 d", b["last28"]),
               _row("últimos 7 d", b["last7"]), ""]
     for title, key in (("Perfil", "by_profile"), ("Marco", "by_timeframe"),
@@ -84,7 +139,7 @@ def markdown(a: dict) -> str:
         lines += [f"- Oportunidades nuevas: {', '.join(d['new']) or 'ninguna'}; resueltas: "
                   f"{', '.join(d['gone']) or 'ninguna'}; disparadores nuevos: "
                   f"{', '.join(d['triggers_new']) or 'ninguno'}."]
-    return "\n".join(lines + nursery_lines(a.get("nursery") or {})) + "\n"
+    return "\n".join(lines + nursery_lines(a.get("nursery") or {}) + sides_lines(a)) + "\n"
 
 
 def nursery_lines(n: dict) -> list[str]:
@@ -114,6 +169,15 @@ def console(a: dict) -> str:
     l7 = a["book"]["last7"]
     if l7.get("n"):
         out.append(f"7 d: n={l7['n']} E[R] {_r(l7['e_r'])} costo {_r(l7.get('cost_r'))}")
+    sl = sides_line(a)
+    if sl:
+        out.append(f"LADO: {sl}")
+    signs = (a.get("sides") or {}).get("gate_signs") or []
+    if signs:
+        out.append("PUERTAS: " + " · ".join(
+            f"{x['timeframe']} {x['verdict']} ({x['stretches']} tramos"
+            + (f", dif {_r(x['diff_pct'])} ± {_r(x['mdd_pct'])} %)" if x.get("reads") else ")")
+            for x in signs))
     out.append("OPORTUNIDADES:")
     out += [f" {i}. [{o['category']}] {o['title']} — {_impact(o)} — vía: {o['route']} ({o['ref']})"
             for i, o in enumerate(a["opportunities"], 1)]

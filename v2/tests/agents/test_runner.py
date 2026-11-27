@@ -84,7 +84,8 @@ NO_DATA = {"seasonality", "liquidations", "derivatives", "microstructure", "cont
            "arbitrage",  # arbitrage: el CSV no trae fotografía de libros (T39)
            "smart_money",  # smart_money: sin tablero de líderes (T41)
            "bots",  # bots: el snapshot del CSV no trae señales del servicio de bots (T57)
-           "intermarket"}  # intermarket: el CSV no trae velas diarias de oro ni índices (T183)
+           "intermarket",  # intermarket: el CSV no trae velas diarias de oro ni índices (T183)
+           "vol_surface"}  # vol_surface: el CSV no trae cadena de opciones de Deribit (T214)
 
 
 def test_new_agents_registered_and_run():

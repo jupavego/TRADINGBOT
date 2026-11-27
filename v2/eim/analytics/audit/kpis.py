@@ -14,6 +14,7 @@ import statistics
 from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable, Sequence
 
+from eim.analytics.audit import sides as sides_mod
 from eim.paper.cost_ledger import trade_cost
 
 DAY_MS = 86_400_000
@@ -122,6 +123,8 @@ def book_kpis(rows: Sequence[dict], now_ms: int) -> dict:
         "excluded": dict(Counter(r.get("exclusion") or "sin cerrar" for r in rows
                                  if id(r) not in kept)),
         "first_exit_t": int(first),
+        # T215: el lado del libro (el sesgo direccional), para que no haya que contarlo a mano
+        "sides": sides_mod.book_sides(off, now_ms),
         "all": stats(off), "last7": stats(window(off, now_ms, 7)),
         "last28": stats(window(off, now_ms, 28)),
         "by_profile": by(off, lambda r: r.get("profile", "")),
