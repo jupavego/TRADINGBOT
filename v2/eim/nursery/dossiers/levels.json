@@ -261,7 +261,8 @@
  "exclusion_reason": null,
  "reserve": [],
  "notes": [
-  "T168 (2026-11-11): `niveles_rebote` lee además los bordes de las zonas para atribuir los toques a la zona de soporte o resistencia más cercana; sin parámetros nuevos (la regla aprobada ya lo pedía)."
+  "T168 (2026-11-11): `niveles_rebote` lee además los bordes de las zonas para atribuir los toques a la zona de soporte o resistencia más cercana; sin parámetros nuevos (la regla aprobada ya lo pedía).",
+  "2026-11-23: medido y RECHAZADO un perfil de «canal de apertura de sesión» en 1m (alto/bajo de los 3 primeros minutos de Tokio, Hong Kong, Londres, Fráncfort, Nueva York y la reapertura de CME; 4 527 operaciones, 2024-01-01 → 2026-11-23, velas al 100 % de cobertura). No se inscribe: no pasa la puerta de costo. Resultados que importan a `niveles_canal_extremos` y `niveles_ruptura`: el canal de apertura NO rebota en sus bordes —las 24 variantes de reversión medidas dan bruto negativo (−0,7 a −9,7 bps)— y sí se rompe, con bruto positivo en las 5 zonas (+1,55 a +4,14 bps) pero por debajo del coste maker+taker de 6,3 bps. El canal es estrecho (W medio 14,1 bps en Londres, 34,8 en Nueva York) y la orden límite se llena el 98,5-98,8 % de los días si se pone en el extremo; meter el nivel hacia dentro empeora llenado y resultado. Medición y método: `PLAN/notas/patron_apertura_sesion_2026-11-23.md`."
  ],
  "performance_computed": false,
  "discarded": [

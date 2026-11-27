@@ -17,6 +17,7 @@ from pathlib import Path
 import duckdb
 
 from eim.core import Book, MicroBar
+from eim.data import micro_bars, micro_cache
 
 
 def _glob(root: Path, kind: str, symbol: str) -> str | None:
@@ -37,6 +38,7 @@ HFT_GAP_SQL = "stream IN ('depth', 'trades') AND cause <> 'silencio'"
 # T143): el arreglo se enciende con EIM_MICRO_IGNORE_LIQ_GAPS=1 (apagado por defecto).
 OLD_GAP_SQL = "stream NOT LIKE 'liq:%'"
 IGNORE_LIQ_ENV = "EIM_MICRO_IGNORE_LIQ_GAPS"
+CACHE_ENV = "EIM_MICRO_CACHE"        # `0` = recalcular siempre (T206)
 
 
 def _old_gap_filter() -> str:
@@ -64,13 +66,7 @@ def _read(root: Path, kind: str, symbol: str, cols: str, start: int, end: int,
     return duckdb.connect().execute(q, [start, end]).fetchall()
 
 
-def _ofi_step(prev: tuple, cur: tuple) -> float:
-    """Evento OFI entre dos muestras (bid_p, bid_q, ask_p, ask_q) del mejor nivel."""
-    bp0, bq0, ap0, aq0 = prev
-    bp1, bq1, ap1, aq1 = cur
-    e = (bq1 if bp1 >= bp0 else 0.0) - (bq0 if bp1 <= bp0 else 0.0)
-    e -= (aq1 if ap1 <= ap0 else 0.0) - (aq0 if ap1 >= ap0 else 0.0)
-    return e
+_ofi_step = micro_bars.ofi_step   # nombre de siempre (lo usa eim/hft/features/book.py)
 
 
 def _trade_bars(trades: list[tuple], t0: int, step: int, n: int) -> dict[int, tuple]:
@@ -173,6 +169,19 @@ def _read_tops(root: Path, symbol: str, start: int, end: int) -> list[tuple]:
             for r in duckdb.connect().execute(q, [start, end]).fetchall()]
 
 
+def _prev_top(root: Path, symbol: str, before: int, back_ms: int = DAY_MS):
+    """La última foto **anterior** a `before` (dentro de `back_ms`), para encadenar el OFI del
+    primer par de un tramo. Un día acota la lectura sin cambiar nada: un silencio más largo deja
+    tramos de hueco y ese par no contaría igualmente."""
+    g = _glob(root, "top", symbol)
+    if g is None:
+        return None
+    q = (f"SELECT t, bid_p, bid_q, ask_p, ask_q FROM read_parquet('{g}', hive_partitioning=false) "
+         "WHERE t >= ? AND t < ? ORDER BY t DESC LIMIT 1")
+    row = duckdb.connect().execute(q, [before - back_ms, before]).fetchone()
+    return (row[0], tuple(row[1:5])) if row else None
+
+
 def _read_gaps(root: Path, symbol: str, start: int, end: int) -> list[tuple[int, int]]:
     """Tramos (ms) de hueco que tocan la ventana: los instantes de T23 y los tramos marcados de
     la captura HFT. Con `EIM_MICRO_IGNORE_LIQ_GAPS=1`, las reconexiones del recolector de
@@ -234,17 +243,58 @@ def read_micro(
     raise AssertionError("inalcanzable")  # pragma: no cover
 
 
+def _range_aggs(root: Path, symbol: str, rs: int, step: int, m: int) -> list[micro_bars.Agg]:
+    """Calcula de cero los agregados de `m` velas desde `rs`, como lo haría `combine`.
+
+    Los huecos se leen para el tramo **y un día antes**, no para la ventana que pidió el panel:
+    así una vela no depende de dónde empezaba esa ventana, que es lo que permite guardarla (la
+    rejilla de `_instants` coincide porque el día es múltiplo de todos los marcos)."""
+    end = rs + m * step
+    tb = _read_trade_bars(root, symbol, rs, step, m)
+    tops = _read_tops(root, symbol, rs, end)
+    gaps = sorted(_instants(_read_gaps(root, symbol, rs - DAY_MS, end), rs - DAY_MS, step, end))
+    agg = micro_bars.entries_from_tops(tops, _prev_top(root, symbol, rs), rs, step, m, gaps)
+    out = []
+    for j in range(m):
+        buy, sell, cnt = tb.get(j, (0.0, 0.0, 0))
+        ofi, ofi0, imb, imb_n, seen = agg.get(j, [0.0, 0.0, 0.0, 0, False])
+        out.append((buy, sell, cnt, ofi, ofi0, imb, imb_n, seen))
+    return out
+
+
 def _read_micro_once(root: Path, symbol: str, t0: int, step: int,
                      n: int) -> tuple[list[MicroBar], Book | None]:
+    """Las velas de la ventana, tomando de la caché las que ya estaban calculadas (T206)."""
     end = t0 + n * step
-    tb = _read_trade_bars(root, symbol, t0, step, n)
-    tops = _read_tops(root, symbol, t0, end)
-    gaps = _instants(_read_gaps(root, symbol, t0, end), t0, step, end)
-    bars = combine(tb, tops, gaps, t0, step, n)
+    ignore_liq = os.environ.get(IGNORE_LIQ_ENV, "") == "1"
+    spans = _read_gaps(root, symbol, t0, end)
+    sig = micro_bars.gap_signature(spans, t0, step, n)
+    usa_cache = os.environ.get(CACHE_ENV, "") != "0"
+    guardadas = (micro_cache.load(root, symbol, step, ignore_liq, t0, end) if usa_cache else {})
+    aggs: list[micro_bars.Agg | None] = [None] * n
+    for i in range(n):
+        e = guardadas.get(t0 + i * step)
+        if e is not None and e[8] == sig[i]:
+            aggs[i] = e[:8]
+    nuevas: dict[int, micro_cache.Entry] = {}
+    for a, b in micro_bars.missing_ranges([i for i in range(n) if aggs[i] is None]):
+        for j, agg in enumerate(_range_aggs(root, symbol, t0 + a * step, step, b - a + 1)):
+            aggs[a + j] = agg
+            nuevas[t0 + (a + j) * step] = (*agg, sig[a + j])
+    if usa_cache:
+        micro_cache.save(root, symbol, step, ignore_liq, nuevas)
+    bad = [False] * n
+    for g in _instants(spans, t0, step, end):
+        if 0 <= (g - t0) // step < n:
+            bad[(g - t0) // step] = True
+    listas: list[micro_bars.Agg] = [a or micro_bars.EMPTY for a in aggs]
+    bars = micro_bars.assemble(listas, bad, t0, step)
     book = None
-    last = _last_top_levels(root, symbol, t0, end) if tops else None
-    if last:
-        book = Book(bids=[tuple(x) for x in json.loads(last[0])],
-                    asks=[tuple(x) for x in json.loads(last[1])],
-                    source="binance_ws:top10")
+    ultima = max((i for i, a in enumerate(listas) if a[7]), default=None)
+    if ultima is not None:
+        last = _last_top_levels(root, symbol, t0 + ultima * step, t0 + (ultima + 1) * step)
+        if last:
+            book = Book(bids=[tuple(x) for x in json.loads(last[0])],
+                        asks=[tuple(x) for x in json.loads(last[1])],
+                        source="binance_ws:top10")
     return bars, book

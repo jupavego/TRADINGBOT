@@ -9,6 +9,7 @@ from typing import Any
 import httpx
 
 from eim.core import Candle
+from eim.data.providers.meta import BINANCE_FUTURES
 from eim.data.timeframes import tf_ms
 
 BASE_URL = "https://fapi.binance.com"
@@ -25,6 +26,7 @@ class BinanceFutures:
     """Klines, funding rate y open interest históricos con reintentos y límite de tasa."""
 
     name = SOURCE
+    meta = BINANCE_FUTURES  # T90: cobertura, retraso, límites y licencia de la fuente
 
     def __init__(
         self,

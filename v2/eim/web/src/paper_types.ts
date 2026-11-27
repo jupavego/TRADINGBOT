@@ -154,6 +154,19 @@ export interface ViewScope {
   error?: string
 }
 
+/** T212: estado de la puerta del marco mayor de un marco de decisión (solo lectura). */
+export interface HtfGate {
+  timeframe: string; htf: string; fast: number; slow: number
+  dir: number; label: string; since_t: number | null; hours: number | null
+  extreme_kind: string | null; extreme_t: number | null; extreme_px: number | null
+  price: number | null; move_pct: number | null; against_pct: number | null
+  hours_since_extreme: number | null; disagrees: boolean; enforced_by: string[]; text: string
+  /** T212 criterio 2: lo que el veto dejó fuera en la ventana (null si no bloqueó nada). */
+  blocked: { n: number; live: number; long: number; short: number; ideas: number
+    profiles: Record<string, number>; window_h: number } | null
+  thresholds: { disagree_h: number; disagree_pct: number; window_h: number }
+}
+
 export interface PaperSummary {
   mode: string; symbol: string; timeframe: string; path_tf: string; now: number; mark: number | null
   timeframes: string[]; causes: Record<string, string>
@@ -167,6 +180,8 @@ export interface PaperSummary {
   family_stats: { family: string; n: number; sum_r: number; mean_r: number | null; strategies: number }[]
   /** T182: libros solo con lo vivo; lo reconstruido, solo como opinión inicial del aprendizaje. */
   live_first?: boolean
+  /** T212: puerta del marco mayor por marco de decisión (ausente en APIs anteriores). */
+  htf_gates?: HtfGate[]
   insights: Insight[]; job: Job; live: { last_tick: number | null; started: number | null; error: string }
   /** T195: universo oficial de T144 (null si el libro no se pudo leer: ver `balance_lens.error`). */
   balance: Record<string, BalanceWindow> | null
