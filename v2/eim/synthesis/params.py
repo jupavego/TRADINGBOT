@@ -8,8 +8,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 # Agentes NO direccionales (T44): jamás suman al sesgo, aunque se vacíe `excluded` o se les dé
 # peso. `calendar` solo modula la confianza (ventana de evento) y el tamaño (motor de riesgo);
-# `arbitrage` vive en su carril propio (pestaña y satélite del río).
-NON_DIRECTIONAL: frozenset[str] = frozenset({"calendar", "arbitrage"})
+# `arbitrage` vive en su carril propio (pestaña y satélite del río). T214: `vol_surface` describe
+# la volatilidad implícita (opciones de Deribit) y nunca vota dirección (◆ de T100).
+NON_DIRECTIONAL: frozenset[str] = frozenset({"calendar", "arbitrage", "vol_surface"})
 
 # Núcleo con el que se mide la correlación de un agente nuevo (T44) o de un bot (T59/T60).
 PEERS: tuple[str, ...] = ("ema", "structure", "technical")
@@ -17,7 +18,8 @@ PEERS: tuple[str, ...] = ("ema", "structure", "technical")
 Role = Literal["direccional", "riesgo", "carril", "derivado", "contexto"]
 # Papel de cada agente que no vota como uno más (el resto es «direccional").
 ROLES: dict[str, Role] = {"calendar": "riesgo", "regime": "riesgo", "arbitrage": "carril",
-                          "plan": "derivado", "intermarket": "contexto"}
+                          "plan": "derivado", "intermarket": "contexto",
+                          "vol_surface": "contexto"}
 # Papel mientras el agente siga en `excluded`: al sacarlo (T60, tras la puerta de edge de T59)
 # `role_of` lo devuelve como «direccional» sin tocar nada más.
 EXCLUDED_ROLES: dict[str, Role] = {"bots": "contexto"}

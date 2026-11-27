@@ -1,0 +1,266 @@
+{
+ "generated_at": "2026-11-27T17:46:14Z",
+ "surface_version": "1.0.0",
+ "preregistro": "PLAN/notas/T214_preregistro.md",
+ "coverage": {
+  "snapshots": 2,
+  "by_status": {
+   "ok": 2
+  },
+  "valid_days": 0,
+  "first_valid_day": null,
+  "candidate_days": 0,
+  "valid_rate": 0.0,
+  "power_review_estimate": null,
+  "last_snapshot": {
+   "taken_at": "2026-11-27T17:01Z",
+   "surface_version": "1.0.0",
+   "surface_status": "ok",
+   "taken_ms": 1795798864429,
+   "n_rows": 956,
+   "n_expiries": 13,
+   "atm_7d": 0.491496,
+   "atm_30d": 0.477386,
+   "term_slope": 0.058254,
+   "rr25": 0.077539,
+   "skew_90_110": 0.089087,
+   "vrp_7d": null,
+   "vrp_30d": null,
+   "expiries_used": [
+    {
+     "expiry_ms": 1796371200000,
+     "days": 6.624,
+     "atm": 0.488303,
+     "mid_atm": 0.490772,
+     "mark_gap": 0.002468,
+     "n_otm": 31,
+     "issues": []
+    },
+    {
+     "expiry_ms": 1796976000000,
+     "days": 13.624,
+     "atm": 0.518056,
+     "mid_atm": 0.519539,
+     "mark_gap": 0.001483,
+     "n_otm": 21,
+     "issues": []
+    },
+    {
+     "expiry_ms": 1798185600000,
+     "days": 27.624,
+     "atm": 0.479542,
+     "mid_atm": 0.482599,
+     "mark_gap": 0.003057,
+     "n_otm": 61,
+     "issues": []
+    },
+    {
+     "expiry_ms": 1801209600000,
+     "days": 62.624,
+     "atm": 0.464113,
+     "mid_atm": 0.464319,
+     "mark_gap": 0.000206,
+     "n_otm": 62,
+     "issues": []
+    }
+   ]
+  }
+ },
+ "power": {
+  "delta": 0.01473,
+  "delta_rel": 0.05,
+  "a2_qlike_t165": 0.2945,
+  "family": 1141,
+  "z": 4.7641,
+  "warmup_days": 250,
+  "cap": "2029-11-27",
+  "central": {
+   "s": 0.2405,
+   "days_scored": 6055,
+   "first_evaluation": "2044-03-03"
+  },
+  "max_s_for_cap": 0.0898,
+  "table": [
+   {
+    "label": "A1 vs M1 (un regresor más)",
+    "s": 0.2731,
+    "family": 3,
+    "delta_rel": 0.03,
+    "delta": 0.00883,
+    "days_scored": 8427,
+    "first_evaluation": "2050-08-31",
+    "before_cap": false
+   },
+   {
+    "label": "A1 vs M1 (un regresor más)",
+    "s": 0.2731,
+    "family": 3,
+    "delta_rel": 0.05,
+    "delta": 0.01473,
+    "days_scored": 3034,
+    "first_evaluation": "2035-11-25",
+    "before_cap": false
+   },
+   {
+    "label": "A1 vs M1 (un regresor más)",
+    "s": 0.2731,
+    "family": 3,
+    "delta_rel": 0.1,
+    "delta": 0.02945,
+    "days_scored": 759,
+    "first_evaluation": "2029-09-02",
+    "before_cap": true
+   },
+   {
+    "label": "A1 vs M1 (un regresor más)",
+    "s": 0.2731,
+    "family": 1141,
+    "delta_rel": 0.03,
+    "delta": 0.00883,
+    "days_scored": 21687,
+    "first_evaluation": "2086-12-20",
+    "before_cap": false
+   },
+   {
+    "label": "A1 vs M1 (un regresor más)",
+    "s": 0.2731,
+    "family": 1141,
+    "delta_rel": 0.05,
+    "delta": 0.01473,
+    "days_scored": 7808,
+    "first_evaluation": "2048-12-20",
+    "before_cap": false
+   },
+   {
+    "label": "A1 vs M1 (un regresor más)",
+    "s": 0.2731,
+    "family": 1141,
+    "delta_rel": 0.1,
+    "delta": 0.02945,
+    "days_scored": 1952,
+    "first_evaluation": "2032-12-08",
+    "before_cap": false
+   },
+   {
+    "label": "A2 vs M1 (dos regresores más)",
+    "s": 0.2405,
+    "family": 3,
+    "delta_rel": 0.03,
+    "delta": 0.00883,
+    "days_scored": 6535,
+    "first_evaluation": "2045-06-26",
+    "before_cap": false
+   },
+   {
+    "label": "A2 vs M1 (dos regresores más)",
+    "s": 0.2405,
+    "family": 3,
+    "delta_rel": 0.05,
+    "delta": 0.01473,
+    "days_scored": 2353,
+    "first_evaluation": "2034-01-13",
+    "before_cap": false
+   },
+   {
+    "label": "A2 vs M1 (dos regresores más)",
+    "s": 0.2405,
+    "family": 3,
+    "delta_rel": 0.1,
+    "delta": 0.02945,
+    "days_scored": 589,
+    "first_evaluation": "2029-03-16",
+    "before_cap": true
+   },
+   {
+    "label": "A2 vs M1 (dos regresores más)",
+    "s": 0.2405,
+    "family": 1141,
+    "delta_rel": 0.03,
+    "delta": 0.00883,
+    "days_scored": 16819,
+    "first_evaluation": "2073-08-22",
+    "before_cap": false
+   },
+   {
+    "label": "A2 vs M1 (dos regresores más)",
+    "s": 0.2405,
+    "family": 1141,
+    "delta_rel": 0.05,
+    "delta": 0.01473,
+    "days_scored": 6055,
+    "first_evaluation": "2044-03-03",
+    "before_cap": false
+   },
+   {
+    "label": "A2 vs M1 (dos regresores más)",
+    "s": 0.2405,
+    "family": 1141,
+    "delta_rel": 0.1,
+    "delta": 0.02945,
+    "days_scored": 1514,
+    "first_evaluation": "2031-09-27",
+    "before_cap": false
+   },
+   {
+    "label": "A3 vs M1 (combinación anidada)",
+    "s": 0.1242,
+    "family": 3,
+    "delta_rel": 0.03,
+    "delta": 0.00883,
+    "days_scored": 1743,
+    "first_evaluation": "2032-05-13",
+    "before_cap": false
+   },
+   {
+    "label": "A3 vs M1 (combinación anidada)",
+    "s": 0.1242,
+    "family": 3,
+    "delta_rel": 0.05,
+    "delta": 0.01473,
+    "days_scored": 628,
+    "first_evaluation": "2029-04-24",
+    "before_cap": true
+   },
+   {
+    "label": "A3 vs M1 (combinación anidada)",
+    "s": 0.1242,
+    "family": 3,
+    "delta_rel": 0.1,
+    "delta": 0.02945,
+    "days_scored": 157,
+    "first_evaluation": "2028-01-09",
+    "before_cap": true
+   },
+   {
+    "label": "A3 vs M1 (combinación anidada)",
+    "s": 0.1242,
+    "family": 1141,
+    "delta_rel": 0.03,
+    "delta": 0.00883,
+    "days_scored": 4486,
+    "first_evaluation": "2039-11-16",
+    "before_cap": false
+   },
+   {
+    "label": "A3 vs M1 (combinación anidada)",
+    "s": 0.1242,
+    "family": 1141,
+    "delta_rel": 0.05,
+    "delta": 0.01473,
+    "days_scored": 1615,
+    "first_evaluation": "2032-01-06",
+    "before_cap": false
+   },
+   {
+    "label": "A3 vs M1 (combinación anidada)",
+    "s": 0.1242,
+    "family": 1141,
+    "delta_rel": 0.1,
+    "delta": 0.02945,
+    "days_scored": 404,
+    "first_evaluation": "2028-09-12",
+    "before_cap": true
+   }
+  ]
+ }
+}
