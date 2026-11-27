@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import math
 
+from eim.analytics.audit import opp, sides
+
 ALPHA = 0.05                # catálogo: p de Holm sobre el bruto (T175)
 TF_MAX_COST_R = 0.15        # mismo umbral que `EXEC_T143.tf_max_cost_r`
 TAIL_SHARE = 0.40           # las 5 peores pérdidas pesan ≥ 40 % de toda la pérdida
@@ -27,11 +29,10 @@ HFT_MIN_COMPLETE = 0.99     # T78
 CALIB_BIAS = 0.05           # 5 pp entre probabilidad media y frecuencia real de un escenario
 CALIB_MIN_EFF = 10          # T175: muestra efectiva mínima para leer una calibración
 NEAR = 0.75                 # un disparador «cerca» al 75 % de su umbral
+SIDE_SKEW = 0.70            # T215: desde qué reparto el libro es «una sola apuesta»
 
 
-def _opp(oid, cat, title, evidence, route, ref, usdt=None, r_op=None) -> dict:
-    return {"id": oid, "category": cat, "title": title, "evidence": evidence, "route": route,
-            "ref": ref, "impact_usdt": usdt, "impact_r_per_op": r_op}
+_opp = opp              # la forma de una oportunidad vive en el paquete (la comparte T215)
 
 
 def gate_opps(gates: list[dict] | None) -> list[dict]:
@@ -59,7 +60,8 @@ def gate_opps(gates: list[dict] | None) -> list[dict]:
 
 def opportunities(k: dict, variant: dict | None = None,
                   calib: dict | None = None, calib_4h: dict | None = None,
-                  gates: list[dict] | None = None) -> list[dict]:
+                  gates: list[dict] | None = None, contrast: dict | None = None,
+                  signs: list[dict] | None = None) -> list[dict]:
     """Oportunidades ordenadas por impacto en USDT (las informativas, al final)."""
     out: list[dict] = []
     a = k.get("all", {})
@@ -113,6 +115,8 @@ def opportunities(k: dict, variant: dict | None = None,
     out += calibration_opps(calib or {})
     out += calibration_opps(calib_4h or {}, "4h")
     out += gate_opps(gates)                 # T212: el retraso de la puerta, informativo
+    # T215: el lado y el signo de las puertas (en sides.py, que es su módulo)
+    out += sides.side_opps(k.get("sides"), contrast, signs)
     return sorted(out, key=lambda o: -(o["impact_usdt"] or 0))
 
 
@@ -262,7 +266,7 @@ def triggers(funding: dict[str, float | None], l2_days: float | None,
 
 DELTA_KEYS = (("all", "n"), ("all", "e_r"), ("all", "win_rate"), ("all", "cost_r"),
               ("all", "gross_r"), ("all", "pnl_usdt"), ("last7", "n"), ("last7", "e_r"),
-              ("taker", "share_market"))
+              ("taker", "share_market"), ("sides", "short_share"))
 
 
 def deltas(cur: dict, prev: dict | None) -> dict:

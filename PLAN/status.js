@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-27T13:46:05",
+ "generated": "2026-11-27T13:56:57",
  "phases": [
   {
    "n": 0,
@@ -324,7 +324,8 @@ window.EIM_STATUS = {
     "T160",
     "T175",
     "T210",
-    "T212"
+    "T212",
+    "T215"
    ]
   },
   {
@@ -3377,6 +3378,23 @@ window.EIM_STATUS = {
    "effort": "medio",
    "phase": 26,
    "goal": "Medir si la **superficie** de volatilidad implícita de BTC añade información sobre la volatilidad"
+  },
+  {
+   "id": "T215",
+   "title": "El lado, puntuado: el sesgo direccional y el signo de cada puerta",
+   "deps": [
+    "T144",
+    "T159",
+    "T175",
+    "T212",
+    "T210",
+    "T145",
+    "T139"
+   ],
+   "state": "done",
+   "notes": "**(Antes T213; renumerada el 2026-11-27.)** **Abierta 2026-11-26 (pedido del usuario: fase de auditoría y retroalimentación por «la gran cantidad de cortos y la poca cantidad de largos»). Diagnóstico y los seis criterios HECHOS.** La premisa es correcta y más extrema de lo que parece: **652 de 726 operaciones son cortas (89,8 %)**, con **15 días seguidos sin una sola larga** (11-08 → 11-22) y 19 largas frente a 236 cortas en los últimos 7 días (92,5 %). La causa es la puerta de T212: **dos de las tres no han girado en 34 días** (1h bajista 821 h desde el 10-23, 4h bajista 781 h desde el 10-24), así que los marcos 1h y 4h —dos tercios del libro— solo pueden vender, y la única que autoriza largos giró **tres veces en cuatro días** (11-22 17:00 alcista, 11-24 09:00 bajista, 11-26 05:00 alcista); los 18 largos que abrió el 11-23 perdieron **−302,4 USDT**. **Pero el sesgo no es lo que cuesta esta semana:** en la sombra (sin veto, 11-19 → 11-25) el lado largo rinde **−0,333 R** (n = 420) frente a **+0,156 R** del corto (n = 667), diferencia −0,490 ± 0,154 (t = −6,21) y −0,530 ± 0,204 agrupando por vela de apertura; en el libro oficial la diferencia queda dentro del ruido (−0,165 ± 0,299). Haber operado más largos habría perdido más. Lo que se lleva el dinero es la fricción: auditoría del 11-26 con n = 726, **bruto +0,051 R**, **costo 0,125 R**, neto −0,074 R [−0,118, −0,030], PnL −2 915 USDT. El costo del retraso que midió T212 sigue en pie y es compatible: el sesgo cuesta **en los giros** (49 aperturas tras el mínimo del 11-21, 45 cortas, −731,7). No se toca la puerta (T139 P1); lo que falta es que el lado **se mida y se publique solo** en cada auditoría. Diagnóstico `PLAN/notas/T215_sesgo_direccional.md`; ficha `PLAN/T215.md`. **HECHA 2026-11-26 en la misma sesión, los seis criterios cumplidos y verificados sobre el libro real (726 operaciones) y las velas del disco.** El lado ya se mide y se publica solo: `eim/analytics/audit/sides.py` (función pura: reparto por lado, contraste de los dos lados en la sombra agrupando por vela de apertura y signo de cada puerta), el encabezado del informe y la consola traen «LADO: 652/726 cortas (89,8 %) · 7 d 231/19 · última larga hace 50 h · sombra agrupada L −0,388 vs S +0,162 (dif −0,550 ± 0,209: el lado largo rinde peor) · `contra_tendencia` dejó fuera …» y «PUERTAS: …», la §6 del Markdown las tablas, y `sides.short_share` entra en los cambios entre auditorías. Tres líneas informativas nuevas (`sesgo_lado`, `contraste_lados`, `puerta_sin_signo`), todas con vía `cerrada (T139 P1)`. **Hallazgo de método al implementarlo:** el signo de una puerta no puede juzgarse promediando todas las velas de sus tramos —la ventana de las últimas cae al otro lado del giro, y así 10 de 12 caminatas aleatorias puras aparentan señal—, así que se mide **desde el giro**, un dato por giro. Con eso, en los 98 días de velas del disco **ninguna** de las tres puertas distingue dirección: 15m +0,220 % ± 1,157 % (40 giros), 1h +1,973 % ± 6,206 % (3 giros), 4h sin muestra (1 giro). La conclusión de T212 se refuerza y se corrige su §5: el «+0,455 % y +0,234 %» de las lentas era el mismo artefacto con el signo a favor, y su falta de giros es justo lo que haría inmedible cualquier puerta alternativa. Nada tocado de `ExecParams.htf`, `vetoes.py`, `gates.py`, `params_fingerprint`, el libro ni la corrida de T31. Pruebas: `tests/analytics/test_t215_sides.py` (8) y una nueva en `tests/analytics/test_audit.py`. Corregida también §1 de la skill `eim-auditoria`.",
+   "effort": "bajo",
+   "phase": 25
   }
  ]
 };
