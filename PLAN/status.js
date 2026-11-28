@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-28T06:44:24",
+ "generated": "2026-11-28T07:00:37",
  "phases": [
   {
    "n": 0,
@@ -1948,20 +1948,21 @@ window.EIM_STATUS = {
    "where": [
     {
      "machine": "juanpablo-cpu",
-     "text": "3 corridas del gate con los servicios parados, después de cerrar T31, T143 y la semana de T178",
-     "when": "2026-11-28"
+     "text": "3 corridas del gate con los servicios parados: ya cerraron T31, T143 y la semana de T178; falta tu permiso para parar los servicios",
+     "when": "ya"
     }
    ],
    "track": {
     "start": null,
-    "end": "2026-11-28T00:00Z",
+    "end": null,
     "milestone": "3 corridas con los servicios parados",
     "progress": "Portátil: 6 corridas verdes · juanpablo-cpu: faltan 3 con los servicios parados",
     "requires": [
-     "PC encendido"
+     "PC encendido",
+     "tu decisión ◆"
     ],
     "machine": "juanpablo-cpu",
-    "needs": "Nada hasta el 28-nov (◆ del usuario 2026-11-20: se espera a que cierren T31, T143 y la semana de T178). Lo de Ollama ya está decidido: no es condición de verde"
+    "needs": "Ya cerraron T31, T143 y la semana de T178. Falta tu permiso para parar los servicios ≈ 1 h (antes hay que quitar la tarea del vigilante, que relanza lo parado): esa hora queda sin medir en T187, T188 y T189"
    }
   },
   {
@@ -3067,15 +3068,15 @@ window.EIM_STATUS = {
    "phase": 30,
    "track": {
     "start": "2026-11-18T00:00Z",
-    "end": "2026-11-28T00:00Z",
-    "milestone": "encendido automático de la fase 2",
-    "progress": null,
+    "end": "2026-12-17T00:00Z",
+    "milestone": "fase 3 en la 1.ª mirada de T187",
+    "progress": "Fase 2 encendida sola el 2026-11-28 00:00 UTC (riesgo con costos y freno gradual)",
     "requires": [
      "PC encendido",
      "API en marcha"
     ],
     "machine": "cualquiera",
-    "needs": "Nada: se enciende sola si la API ya corre el código nuevo"
+    "needs": "Nada: en cada mirada de T187 el vigía adopta solo lo de costo y riesgo que pase (EIM_ASYM_ADOPT=0 lo impide)"
    }
   },
   {
@@ -3238,7 +3239,19 @@ window.EIM_STATUS = {
    "state": "progress",
    "notes": "**Abierta 2026-11-20 tras el incidente «la app está caída».** La API respondía, pero `GET /v2/snapshot` estuvo colgado 3 h 30 min (19:11→22:38 UTC) por el candado **global** de `HistoryLoader.ensure()` (`eim/api/history.py:27`), y la web solo abre el WebSocket en vivo **después** del snapshot (`web/src/main.ts:177` y `:188`): mesa en «SIN CONEXIÓN» con precio `—`, mientras `/v2/health` daba todo VIVO. Vite (5173) también estaba muerto, sin rastro en `web.err.log`. Servicios restaurados el mismo día; queda el arreglo de fondo: snapshot a 24–64 s (velas de solo 94 KB), API a 3,6 GB a los 7 min, 3 reinicios de la API (código 4294967295) y 139 246 líneas repetidas en `vigilante.err.log`. Ver `PLAN/T206.md`. **◐ 2026-11-21, criterio 1 hecho (◆ del usuario: «WS en paralelo»):** `load()` abre el WebSocket **antes** del `await fetchSnapshot(...)`, así que «En vivo» y el precio ya no esperan al histórico; el aviso del histórico sale en su propio `#banner-hist` (ámbar) y deja de pisar el de la conexión, y `paintLive` dice «Conectando…» mientras no se haya intentado el enlace, en vez de «Sin conexión». Verificado en el navegador sobre la API viva (Vite temporal en 5174): **EN VIVO con precio a los 1,2 s** con los dos `/v2/snapshot` aún en vuelo; con el snapshot colgado a propósito sigue en vivo y sin aviso falso; con el snapshot fallando, en vivo + aviso solo del histórico; tres cambios de marco abren 3 sockets, cierran 2 y dejan 1. `tests/architecture/test_t206_vivo_no_espera_historico.py` (6) + `tsc --noEmit` limpio. **Queda el costo, no el síntoma:** `/v2/snapshot` sigue en ~14 s de trabajo real, de los que `read_micro` se lleva el 99 % (`_read_tops` trae 1 603 379 filas a Python). Podar `micro/` por días se probó con gate verde y **no aceleraba** (14 137 ms frente a 14 115 sin podar: DuckDB ya salta los grupos de filas por las estadísticas de `t`), así que el usuario cerró ese PR el 2026-11-21; lo que falta y sus dos vías, en `PLAN/BACKLOG.md`. **◐ 2026-11-26, tras otro «el proyecto está caído» del usuario (esta vez eran 7 h sin interfaz):** tres cosas dentro y medidas. (a) **Los agregados de microestructura de las velas cerradas se guardan** en `data/micro_cache/` y no se recalculan, que es la vía exacta de BACKLOG T206 (2): sobre datos reales (24 velas de 1 h de BTCUSDT) **4,49 s → 0,49 s, 9,1×, con cero diferencias** en OFI, desequilibrio, velas completas y trades, y el mismo libro. Guarda dos OFI por vela (encadenado y sin pareja previa) y la firma de los huecos que la tocaban, para recalcularla si alguno se anota tarde; `EIM_MICRO_CACHE=0` la apaga y borrarla es seguro. (b) **La interfaz entra en el vigilante del conjunto** (revisa la decisión de T148 «solo los cinco de datos»): puerto 5173, 10 min, `-ConWeb`, cuenta de intentos propia; `EIM_FLEET_WEB=0` la deja fuera. (c) **El registro del vigilante deja de repetir la misma línea** (72 MB eran 366 812 copias de `socket.send() raised exception.`), y el `stderr_tail` de un reinicio vuelve a decir algo. Lo medido esa noche contra la API viva, y lo que falta (el reparto de `build_snapshot`, `liq_flow`, la memoria en vivo y rotar el registro por tamaño), en `PLAN/T206.md` y `BACKLOG.md`. **Gate verde el 2026-11-26** por la cola: 4 372 pasadas, 9 omitidas, 0 fallos (1 856 s, 3 pausas); ruff limpio. PR #367, sin fusionar. Costó cuatro intentos: el trabajo se reencoló tres veces por presión de memoria **ajena** (el gate gasta 436 MB) y solo entró tras relanzar la evaluación de líderes, que estaba en 2 562 MB con código anterior a la evaluación incremental (RUNBOOK §10); el defecto de la cola queda anotado en BACKLOG de T149. **DESPLEGADO el 2026-11-26 a las 18:59 UTC** (PR #367 fusionado en `0336106`; lo trajo y reinició la API el propio `sincronizar_main.ps1`). **Medido en vivo a las 19:30, con el equipo en uso: `/v2/snapshot` n=500 en 2,76 s la primera vez y 1,72 s la segunda, y n=1500 —lo que pide el panel al cargar— en 2,24 s**, frente a los 113 s en caliente y 232 s en frío de esa misma llamada seis horas antes; `/v2/health` en 0,18 s. Con eso el criterio de «por debajo de 3 s» queda cumplido. La caché ocupa **366 KB** para 3 729 velas de 15 m, 1 h y 4 h. Dos cosas que NO se arreglan con esto: la memoria de la API sigue en 4,3 GB (hay que mirarla un día entero antes de decir nada) y **la primera lectura de una ventana grande no cabe dentro de la API** —tres llamadas seguidas de 500 velas dejaron sin latido al único trabajador y el vigilante la reinició a las 19:14—, así que la caché se calienta por fuera. **Gate de confirmación sobre el árbol ya fusionado con `main`: VERDE** (2026-11-26, trabajo `20261126-181424-gate-t206-fusion-4883`): **5 032 pasadas, 9 omitidas, 0 fallos**, 14 909 s con 7 pausas por memoria. Las 660 pruebas de más frente al gate de la rama sola son el escáner de T94, que entró por `main`.",
    "effort": "medio",
-   "phase": 21
+   "phase": 21,
+   "track": {
+    "start": "2026-11-20T15:00Z",
+    "end": null,
+    "milestone": null,
+    "progress": "Arreglo fusionado y gate de confirmación verde el 2026-11-26 (5 032 pasadas, 0 fallos)",
+    "requires": [
+     "PC encendido",
+     "API en marcha"
+    ],
+    "machine": "juanpablo-cpu",
+    "needs": "Mirar en vivo si la memoria de la API deja de crecer y cerrar los dos criterios que quedan (candado por serie y /v2/health que marque una ruta colgada). Lo demás está en BACKLOG"
+   }
   },
   {
    "id": "T207",
@@ -3282,7 +3295,18 @@ window.EIM_STATUS = {
    "notes": "**◆ del usuario 2026-11-23: opción A, implementada en la rama `claude/t209-veto-datos`; falta desplegar (tras el encendido del 2026-11-28) y verificar en vivo.** `literature` y `vwap` ya no ponen `degraded` por la ventana (avisan y lo dejan en `metrics`); su sesgo y confianza no cambian. Prueba de invariancia `v2/tests/agents/test_window_t209.py` (33 fechas) y recuento retro en `PLAN/notas/T209_vetos_datos.md` (por plan: 34 distintos, 26 vetados por datos, 12 pasarían). **Abierta 2026-11-23 (el usuario: «el proyecto está detenido»).** Desde el 19-oct la corrida de T31 tuvo 70 decisiones con plan: 7 aprobadas y **59 vetadas por «datos: N agentes degradados»** (`max_degraded_agents = 1`); `literature` estaba en 58. Causas estructurales: `literature` sale `degraded` en 1h siempre desde T53 (la ficha `murphy_weekly_rule` pide 673 velas y el ciclo carga 500) y `vwap` del día ~21 a fin de mes (VWAP mensual parcial). Sin ellas, 33 de los 59 pasaban el filtro de datos y 20 no tenían otro veto. ◆ pendiente: A (semántica en los dos agentes, recomendada), B (más velas) o C (subir el límite, descartada). Despliegue tras el encendido del 2026-11-28. Ver `PLAN/T209.md`.",
    "effort": "bajo",
    "phase": 7,
-   "goal": "Que `degraded` signifique lo que la regla de riesgo y la alerta `agentes_degradados` suponen"
+   "goal": "Que `degraded` signifique lo que la regla de riesgo y la alerta `agentes_degradados` suponen",
+   "track": {
+    "start": "2026-11-23T02:50Z",
+    "end": null,
+    "milestone": null,
+    "progress": "Opción A (tu ◆) fusionada en el PR #349 y ya cargada en la API",
+    "requires": [
+     "API en marcha"
+    ],
+    "machine": "juanpablo-cpu",
+    "needs": "Verificar en vivo que literature y vwap dejan de vetar planes por la ventana de datos y cerrar la tarea"
+   }
   },
   {
    "id": "T210",
@@ -3296,7 +3320,16 @@ window.EIM_STATUS = {
    "state": "progress",
    "notes": "**Abierta 2026-11-23 (pedido del usuario: fase de retroalimentación por el cambio de tendencia en la utilidad de los cuatro perfiles). Diagnóstico HECHO, criterios 1–4 sin empezar.** No hay un cambio de tendencia: hay dos y se cancelan (11-17 → 11-20 **+655,4 USDT**; 11-21 → 11-22 **−625,9**) y los pone el número de topes completos (7 en 154 operaciones frente a 19 en 67; un tope = 5,6 ganancias, −64,6 frente a +11,5 USDT). El giro **no es medible**: ΔE[R] W46 → W47 = +0,0485 ± 0,0845 (t = 1,12) con una diferencia mínima detectable de 0,121 R/op (harían falta ≈ 12 semanas). Los cuatro perfiles son **una apuesta con cuatro tamaños** (587 de 643 operaciones cortas, 91 %). Descartados despliegue (`cost_params` idéntico en las 643), costo (plano 0,11–0,14 R) y pérdidas aparcadas (−38,8 USDT flotantes, solo moderado); la rotación del aprendiz explica ~30 % del ΔE[R] y el resto es el camino del BTC. Conservador está **plano desde el 11-01** (7 operaciones, 5 568 rechazos «en observación») y las fichas del panel siguen en otra contabilidad que el libro oficial (−5 057,1 frente a −2 584,7; agresivo −34,5 % frente a −17,0 %). Diagnóstico `PLAN/notas/T210_utilidad_perfiles.md`; ficha `PLAN/T210.md`.",
    "effort": "bajo",
-   "phase": 25
+   "phase": 25,
+   "track": {
+    "start": "2026-11-23T00:00Z",
+    "end": null,
+    "milestone": null,
+    "progress": "Diagnóstico hecho; criterios 1–4 sin empezar",
+    "requires": [],
+    "machine": "cualquiera",
+    "needs": "Empezar los criterios de PLAN/T210.md (diagnóstico en PLAN/notas/T210_utilidad_perfiles.md)"
+   }
   },
   {
    "id": "T211",
@@ -3310,7 +3343,19 @@ window.EIM_STATUS = {
    "state": "progress",
    "notes": "**Abierta 2026-11-23 (pedido del usuario: «evaluemos ese patrón» y «dejarla operando con estos criterios e ir evaluando en el tiempo»).** Medido primero sobre **1 522 562 velas de 1 m** reales (2024-01-01 → 2026-11-23, 100 % de cobertura, 6 plazas): **el patrón enunciado no está** —revierte el 49,4 % (p = 0,77), corr(A,B) = −0,02, bruto ±0,3 bps, y 4 527 operaciones con tope de 4 h pierden la comisión, igual que en 2 000 minutos al azar—; sí hay **salto de volatilidad** en el minuto de apertura (NY 9,80 vs 8,71 bps) y el **canal de apertura no rebota, se rompe** (ruptura con bruto positivo en las 5 plazas, +1,55 a +4,14 bps, pero bajo el coste de 6,3). El caso limpio que señaló el usuario (NY, 17-nov: A −80 USD, B +450 USD) es el **percentil 98,8** de 755 días, y hay 18 días de continuación ≥ 50 bps frente a 21 de reversión: por eso se mide con pre-registro y no por días sueltos. **◐ máquina hecha el 2026-11-23:** `prereg_apertura_v1.json` congelado (huella `0411f8fc4069` fijada en `PUBLISHED`; editarlo pone el gate rojo), `eim/analytics/apertura.py` + `apertura_report.py` (registro append-only e idempotente en `data/apertura/aperturas.jsonl`, así la muestra sobrevive a la poda del 1 m) y `tests/analytics/test_t211_apertura.py` (14). **La muestra que decide empieza el 2026-11-24 00:00 UTC**; revisión mensual (primera el 2026-12-24) y **veredicto no antes del 2027-11-24** (n agrupada ≥ 650, t ≥ 2,0): con la sd medida, la ruptura necesita 410-745 aperturas por plaza (1,6-3,0 años) y el patrón enunciado 581-4 664 (2,3-18,5 años), así que este queda como vigilancia, no como candidatura. Nada toca el libro de T31, la cantera ni `params_fingerprint`. Queda ◆ del usuario registrar la tarea diaria (`v2/scripts/apertura_informe_mensual.ps1`). Ver `PLAN/T211.md` y `PLAN/notas/patron_apertura_sesion_2026-11-23.md`.",
    "effort": "medio",
-   "phase": 30
+   "phase": 30,
+   "track": {
+    "start": "2026-11-23T00:00Z",
+    "end": "2027-11-24T00:00Z",
+    "milestone": "veredicto, no antes (1.er informe mensual el 2026-12-24)",
+    "progress": "Medido: el patrón enunciado no está; la ruptura del canal queda en vigilancia",
+    "requires": [
+     "PC encendido",
+     "tu decisión ◆"
+    ],
+    "machine": "juanpablo-cpu",
+    "needs": "Tu ◆: registrar la tarea diaria v2/scripts/apertura_informe_mensual.ps1 para que salgan los informes mensuales"
+   }
   },
   {
    "id": "T212",
@@ -3467,7 +3512,18 @@ window.EIM_STATUS = {
    "state": "progress",
    "notes": "**(Antes T197, renumerada el 2026-11-27: la rama nunca se subió y en `main` T197 es el despliegue automático.)** Pre-registro `PLAN/notas/T221_preregistro.md` (commit `a634b8f`, 2026-11-19, **antes de toda cifra**) y medición hechos: `v2/eim/analytics/regime_weights.py` (IC por agente y régimen sobre el panel de T44, escalera ±0,02 con n ≥ 200, bootstrap en bloques de 30 días, puerta de potencia primero: sin MDE ≤ 0,01 la mitad de prueba no se mira), informe `regime_weights_report.py`, `mde` en `eim/validation/power.py`, 11 pruebas. **Falta correr la medición por la cola** (`python -m eim.analytics.regime_weights_report --store data/t197_banco --workers 2`; el banco ya está en el worktree) y escribir el veredicto. `SynthesisParams.regime_weights` sigue `{}`: mide, no adopta.",
    "effort": "medio",
-   "phase": 28
+   "phase": 28,
+   "track": {
+    "start": "2026-11-19T00:00Z",
+    "end": null,
+    "milestone": null,
+    "progress": "Pre-registro y medición escritos (11 pruebas); la medición no ha corrido",
+    "requires": [
+     "PC encendido"
+    ],
+    "machine": "juanpablo-cpu",
+    "needs": "Correr la medición por la cola (python -m eim.analytics.regime_weights_report --store data/t197_banco --workers 2) y escribir el veredicto; mide, no adopta"
+   }
   },
   {
    "id": "T222",
