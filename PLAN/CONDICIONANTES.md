@@ -42,6 +42,5 @@ una tarea (☑), se borra su fila.
 | T188 | 2026-11-19T00:00Z | 2026-12-17T00:00Z | 1.ª mirada (luego 14-ene y 11-feb) | — | PC encendido, API en marcha, tu decisión ◆ | cualquiera | Corredor en sombra; aunque pase no se adopta solo: tu decisión |
 | T189 | 2026-11-19T00:00Z | 2026-12-17T00:00Z | 1.ª mirada (luego 14-ene y 11-feb) | — | PC encendido, API en marcha | cualquiera | Entrada límite medida en vivo por marco; si pasa se adopta sola en ese marco |
 | T194 | 2026-11-18T00:00Z | 2026-11-28T00:00Z | encendido automático de la fase 2 | — | PC encendido, API en marcha | cualquiera | Nada: se enciende sola si la API ya corre el código nuevo |
-| T196 | 2026-11-19T00:00Z | 2026-11-28T00:00Z | encendido del libro central | Gate y despliegue hechos | PC encendido, API en marcha | cualquiera | Nada: se enciende solo en su fecha |
 | T66 | 2026-11-20T15:00Z | — | — | Código y pruebas 100 % · muestra etiquetada 0 de 40 fotogramas | tu decisión ◆, material de video permitido | juanpablo-cpu | Etiquetar a mano ≥ 40 fotogramas de videos propios o aportados (formato en `v2/tests/fixtures/video/labels/README.md`); luego `eval` allí y decides si la lectura visual es fiel |
 | T45 | — | — | — | Código 100 % · prueba real 0 % (aparcada) | claves de testnet | cualquiera | Se retoma si creas claves de Binance testnet sin permiso de retiro |
