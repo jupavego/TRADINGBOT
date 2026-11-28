@@ -55,6 +55,19 @@ def _fine(g: dict, upto: int) -> Path:
                              for n, k in enumerate(("t", "o", "h", "l", "c"))}, M1)
 
 
+def _before_t223(op: dict, fine: Path) -> Path:
+    """Estos casos son de antes de T223, cuando la escalera no miraba la vela del llenado de una
+    límite: la límite se recalcula sin las velas de 1 min de esa vela, con la regla de entonces.
+    Con la de T223, la límite del 2026-11-04 15:31 se habría protegido y cerrado a las 15:35
+    (`tests/paper/test_ladder_fill_bar.py`) y no habría llegado a la vela que la congeló; T142
+    prueba el diario de la protección, no la vela del llenado."""
+    if op["idea"]["kind"] != "limit":
+        return fine
+    t0 = op["expected"]["fill_t"]
+    keep = (fine.t < t0) | (fine.t >= t0 + M15)
+    return Path.from_arrays({k: getattr(fine, k)[keep] for k in ("t", "o", "h", "l", "c")}, M1)
+
+
 def _books(g: dict, path: Path, fine: Path, guards: dict) -> dict[str, ProfileState]:
     """Libros con las cantidades reales: el tamaño ya se decidió; aquí se prueba el diario."""
     books: dict[str, ProfileState] = {}
@@ -63,7 +76,7 @@ def _books(g: dict, path: Path, fine: Path, guards: dict) -> dict[str, ProfileSt
         st = books.setdefault(pid, ProfileState(
             p=PROFILE[pid].model_copy(update={"ladder": lp}), equity=op["equity"]))
         i = Idea(**{**op["idea"], "why": tuple(op["idea"]["why"])})
-        o = simulate_ladder(i, path, EP, lp, op["qty"], fine, spec=spec_for(SYM),
+        o = simulate_ladder(i, path, EP, lp, op["qty"], _before_t223(op, fine), spec=spec_for(SYM),
                             guard=guards.get((pid, i.id)))
         if o.fill_t is None or o.status not in ("ABIERTA", "CERRADA"):
             continue
