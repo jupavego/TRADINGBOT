@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-27T20:31:14",
+ "generated": "2026-11-27T21:16:19",
  "phases": [
   {
    "n": 0,
@@ -3118,22 +3118,10 @@ window.EIM_STATUS = {
     "T144",
     "T182"
    ],
-   "state": "progress",
-   "notes": "**Gate y despliegue hechos 2026-11-19; falta el encendido del 2026-11-28 00:00 UTC.** Gate completo en `juanpablo-cpu` (ver T195) y verificado en vivo: `GET /v2/paper/accounting` declara `machines: all`, `machines_label: «todos los equipos (libro central, T196)»` y `by_machine`; `GET /v2/share/status` responde `enabled: false`, dormido hasta su fecha, como estaba previsto. `paper_ledger` viaja en la experiencia compartida por `ledger_id` (gana lo local; diferencias a `share_conflicts`; `retro` del equipo que la vivió), procedencia por equipo (`paper/provenance.py`, `by_machine`, `GET /v2/paper/accounting?machines=all|local`), conciliación solo con lo propio y encendido programado (`setup --start`, `EIM_SHARE_FROM`: dormido hasta la fecha, sin reiniciar). Enmienda de los pre-registros T187/T190 antes de mirar: `PLAN/notas/T196_enmienda_preregistros.md` (huella `e35b229cb592`). T31 se cierra con `machines=local`. Ficha `PLAN/T196.md`; pruebas `tests/share/test_t196_ledger.py`.",
+   "state": "done",
+   "notes": "**Hecha 2026-11-28.** Encendido en los dos equipos: la portátil despertó sola (exportación 00:04 UTC); en `juanpablo-cpu` faltaba la configuración (`activar_libro_central.ps1` no se había corrido): activada a las 02:00 UTC reiniciando solo la API y los líderes. Verificado en vivo: `GET /v2/share/status` → `enabled: true`, `dormant: false`, sin error; `paper_ledger` de la portátil 948 nuevas, 5 383 ya estaban, 1 338 en conflicto (gana lo local; BACKLOG); exportación `20261128T020546Z-api` en el repo de transporte. `GET /v2/paper/accounting?machines=all` → `by_machine` 751 locales + 75 de la portátil; `machines=local` sigue en 751 (cierre de T31). Falta ver en la portátil que importó la foto de `juanpablo-cpu`. Ficha `PLAN/T196.md`; pruebas `tests/share/test_t196_ledger.py`.",
    "effort": "medio",
-   "phase": 31,
-   "track": {
-    "start": "2026-11-19T00:00Z",
-    "end": "2026-11-28T00:00Z",
-    "milestone": "encendido del libro central",
-    "progress": "Gate y despliegue hechos",
-    "requires": [
-     "PC encendido",
-     "API en marcha"
-    ],
-    "machine": "cualquiera",
-    "needs": "Nada: se enciende solo en su fecha"
-   }
+   "phase": 31
   },
   {
    "id": "T205",
