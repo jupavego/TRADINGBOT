@@ -166,7 +166,9 @@ Reglas dentro de una vela de 15 m (sin anticipación, conservador): 1) manda el 
 abrir** la vela (hueco más allá del SL → se ejecuta a la apertura); 2) el avance de la vela solo
 sube el SL desde la **siguiente**; 3) una vela que cruza varios escalones aplica el último
 confirmado por su extremo, sin inventar los intermedios; 4) la vela de llenado de una orden límite
-solo comprueba el SL inicial.
+se recorre con sus velas de 1 min: en el minuto del llenado solo se comprueba el SL (el orden
+dentro de ese minuto no se conoce) y desde el siguiente rigen 1–3 minuto a minuto, como en una
+entrada a mercado (T223, §15); sin velas de 1 min, esa vela solo comprueba el SL inicial.
 
 ## 5. Persistencia y reinicio (T110)
 
@@ -405,3 +407,23 @@ volver a obtener recalculando. Desde T118:
     TP o perdiera por SL.
 
   Varios perfiles comparten ideas: sus operaciones no son independientes entre sí.
+
+## 15. La vela del llenado de una límite (T223, 2026-11-28)
+
+- **El hecho** (BACKLOG T143 (5), `reports/t143_cierre.md` §5): seis ideas de 1 h que T31 abrió a
+  mercado y la corrida `t143` convirtió a límite entraron al mismo precio y en el mismo minuto;
+  T31 las cerró por stop dinámico (−0,03 a +0,14 R) y t143 por el SL inicial (−1,09 a −1,21 R).
+- **La causa**: la regla 4 del §4. A mercado, la primera vela de 15 m es toda posterior al
+  llenado: si es ambigua se resuelve con 1 min y el SL puede subir en sus primeros minutos. La
+  límite convertida se llena en el primer minuto de esa misma vela, pero la escalera no la miraba:
+  no podía proteger nada hasta la vela siguiente y, si el precio volvía, llegaba al SL inicial.
+  No era la cantidad (×0,85 con riesgo con costo) ni el diario de cada mesa: con la misma
+  cantidad (0,074, agresivo) pasaba igual.
+- **El arreglo** (`paper/ladder_fine.fill_bar`): con velas de 1 min, el minuto del llenado solo
+  comprueba el SL vigente y desde el siguiente rige la regla de cada minuto. Sin ellas, la regla
+  conservadora de siempre. El MFE de la límite empieza también en el minuto siguiente al llenado.
+- **Lo que cambia** (re-simulación de las 907 operaciones que cuentan en la ventana de T143, que
+  con el código anterior reproduce lo registrado, a cartera fija): t143 pasa de −0,082 a −0,068 R
+  por operación y sus convertidas siguen a T31 con +0,018 R de media (la comisión maker); las
+  límite nativas de T31 bajan de +0,058 a +0,027 R, porque la protección se arma antes y a veces
+  cierra antes, como ya pasaba a mercado. Detalle en `PLAN/T223.md`.
