@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-27T21:16:19",
+ "generated": "2026-11-27T20:59:02",
  "phases": [
   {
    "n": 0,
@@ -314,7 +314,8 @@ window.EIM_STATUS = {
     "T146",
     "T150",
     "T179",
-    "T180"
+    "T180",
+    "T222"
    ]
   },
   {
@@ -2316,31 +2317,11 @@ window.EIM_STATUS = {
     "T136",
     "T137"
    ],
-   "state": "progress",
-   "notes": "Abierta el 2026-11-09 desde `PLAN/notas/diagnostico_rentabilidad_2026-11-09.md` §3. La fricción del libro vivido (1 630,1 USDT) es **mayor que la pérdida neta** (−1 438,5): 14,1 pb del nocional con el SL a 1,21 % = **0,125 R por operación**. Baja a ~0,06 R encendiendo `risk_includes_costs` (T136 §1: hoy se arriesga ×1,1734 de lo declarado), midiendo maker frente a taker antes de adoptarlo (256 de 411 entradas son `market`) y retirando 15 m mientras su costo siga en 0,157 R. **No crea ventaja: deja de destruirla.** ◆ del usuario antes de tocar perfiles y antes de desplegar durante T31. **En curso (2026-11-09): entregable 1 en marcha.** Pre-registro en `PLAN/notas/T143_preregistro_maker.md` (commit propio, anterior a todo cálculo); medición en `eim/paper/maker_ab.py` + `scripts/t143_maker.py`, 21 pruebas. Dos correcciones de contabilidad posteriores al pre-registro y las dos **en contra** de maker: denominador común (el riesgo planeado ` **2026-11-10: los cinco entregables hechos en `claude/t143-maker`** (puerta de marcos `eim/paper/tf_gate.py`; costo vivido en el panel y en el informe semanal, `eim/paper/cost_ledger.py`; antes/después `reports/t143_antes_despues.md`: costo 0,123 → 0,083 R, E[R] neto −0,150 → −0,153 R, es decir, no crea ventaja). Revisión de código high hecha. **◆ 2026-11-10: T31 intacta hasta su cierre y T143 desde ya en una corrida aparte** (`EIM_PAPER_VARIANTS=t143`, `eim/paper/{t143_config,variant}.py`, base `data/paper_t143.duckdb`, rutas `GET /v2/paper/variant/t143`). Los valores por defecto vuelven a ser los de T31. La automejora sin intervención se limita a costo y riesgo (`AUTO_ADAPT`). Gate completo por la cola verde (`20261110-022744-t143-gate-2-5e44`, rc=0, 1 115 s, sin pausas). **Desplegada el 2026-11-10 a las 04:17 UTC** (PR #243; `EIM_PAPER_VARIANTS=t143` como variable de usuario; parada sin `-Todo`, así que la captura siguió). La API pasó de 1,9 a 2,4 GB. Primera vista: T31 sin cambios (los tres marcos operan); en `t143` la sombra mide 15 m a 0,387 R y 1 h a 0,159 R, **los dos fuera**, y 4 h opera a 0,083 R. Falta comparar al cerrar T31. **Ajuste 2026-11-10 (◆ del usuario):** la puerta mide el costo solo sobre lo que algún perfil aceptaría por su `max_cost_r` (`tf_gate.takeable`), no sobre toda la sombra. Gate verde por la cola (`20261110-042504-t143-puerta-gate-0394`, rc=0). **Redesplegada a las 04:53 UTC (PR #246).** Midiendo solo lo tomable, en `t143` operan los tres marcos: 15 m 0,127 R (n = 189), 1 h 0,108 R, 4 h 0,082 R, todos por debajo de 0,15. **La salida de 15 m que pedía el enunciado ya no se sostiene por costo.** Su neto en sombra sigue siendo el peor (−0,344 R, `reports/t143_antes_despues.md`), pero eso es ventaja, no costo, y la puerta no lo juzga. |entry − SL|`, porque el realizado infla el R de una límite que entra mejor) y **estrés de cola** (el motor llena si la vela *toca* el nivel; se exige que el precio **pase**, porque medir fills de verdad es T79). Entregables 2–5 esperan la ◆ del usuario.",
+   "state": "done",
+   "notes": "**Hecha 2026-11-28: medida, no se adopta** (◆ delegada por el usuario con el criterio de la rentabilidad). Los cinco entregables (PR #243 y #246) corrieron en la variante `t143` del 10 al 28-nov sin tocar T31. Cierre en `v2/reports/t143_cierre.md` (`eim/paper/run_compare.py`, 10 pruebas): t143 −0,082 R por operación frente a −0,033 R de T31 (−1 647 frente a −974 USDT); en las 288 comunes no se distingue (−0,015 ± 0,011 R). Maker ahorra solo la comisión (+0,022 R con la misma salida) y seis convertidas de 1 h perdieron el stop dinámico (−7,2 R, BACKLOG T143 (5), afecta a T189). La mesa principal no cambia por esto; la variante sigue solo como medición. Ficha `PLAN/T143.md`",
    "effort": "medio",
    "phase": 24,
-   "goal": "Bajar el costo por operación de 0,125 R a ~0,06 R sin tocar la entrada ni la salida, encendiendo lo que T136 ya midió y apagando el marco donde el costo se come el riesgo. No crea ventaja: deja de destruirla.",
-   "where": [
-    {
-     "machine": "juanpablo-cpu",
-     "text": "Decidir si la variante t143 pasa a oficial: la variante y su data/paper/tf_gate_t143.json solo corren allí",
-     "when": "2026-11-27"
-    }
-   ],
-   "track": {
-    "start": "2026-11-10T04:17Z",
-    "end": "2026-11-27T23:35Z",
-    "milestone": "fin de la corrida aparte t143",
-    "progress": null,
-    "requires": [
-     "PC encendido",
-     "API en marcha",
-     "tu decisión ◆"
-    ],
-    "machine": "juanpablo-cpu",
-    "needs": "La corrida t143 vive dentro de la API, como T31. Los entregables 2–5 esperan tu decisión; al cerrar, si la variante pasa a oficial"
-   }
+   "goal": "Bajar el costo por operación de 0,125 R a ~0,06 R sin tocar la entrada ni la salida, encendiendo lo que T136 ya midió y apagando el marco donde el costo se come el riesgo. No crea ventaja: deja de destruirla."
   },
   {
    "id": "T144",
@@ -3118,10 +3099,22 @@ window.EIM_STATUS = {
     "T144",
     "T182"
    ],
-   "state": "done",
-   "notes": "**Hecha 2026-11-28.** Encendido en los dos equipos: la portátil despertó sola (exportación 00:04 UTC); en `juanpablo-cpu` faltaba la configuración (`activar_libro_central.ps1` no se había corrido): activada a las 02:00 UTC reiniciando solo la API y los líderes. Verificado en vivo: `GET /v2/share/status` → `enabled: true`, `dormant: false`, sin error; `paper_ledger` de la portátil 948 nuevas, 5 383 ya estaban, 1 338 en conflicto (gana lo local; BACKLOG); exportación `20261128T020546Z-api` en el repo de transporte. `GET /v2/paper/accounting?machines=all` → `by_machine` 751 locales + 75 de la portátil; `machines=local` sigue en 751 (cierre de T31). Falta ver en la portátil que importó la foto de `juanpablo-cpu`. Ficha `PLAN/T196.md`; pruebas `tests/share/test_t196_ledger.py`.",
+   "state": "progress",
+   "notes": "**Gate y despliegue hechos 2026-11-19; falta el encendido del 2026-11-28 00:00 UTC.** Gate completo en `juanpablo-cpu` (ver T195) y verificado en vivo: `GET /v2/paper/accounting` declara `machines: all`, `machines_label: «todos los equipos (libro central, T196)»` y `by_machine`; `GET /v2/share/status` responde `enabled: false`, dormido hasta su fecha, como estaba previsto. `paper_ledger` viaja en la experiencia compartida por `ledger_id` (gana lo local; diferencias a `share_conflicts`; `retro` del equipo que la vivió), procedencia por equipo (`paper/provenance.py`, `by_machine`, `GET /v2/paper/accounting?machines=all|local`), conciliación solo con lo propio y encendido programado (`setup --start`, `EIM_SHARE_FROM`: dormido hasta la fecha, sin reiniciar). Enmienda de los pre-registros T187/T190 antes de mirar: `PLAN/notas/T196_enmienda_preregistros.md` (huella `e35b229cb592`). T31 se cierra con `machines=local`. Ficha `PLAN/T196.md`; pruebas `tests/share/test_t196_ledger.py`.",
    "effort": "medio",
-   "phase": 31
+   "phase": 31,
+   "track": {
+    "start": "2026-11-19T00:00Z",
+    "end": "2026-11-28T00:00Z",
+    "milestone": "encendido del libro central",
+    "progress": "Gate y despliegue hechos",
+    "requires": [
+     "PC encendido",
+     "API en marcha"
+    ],
+    "machine": "cualquiera",
+    "needs": "Nada: se enciende solo en su fecha"
+   }
   },
   {
    "id": "T205",
@@ -3486,6 +3479,35 @@ window.EIM_STATUS = {
    "notes": "**(Antes T197, renumerada el 2026-11-27: la rama nunca se subió y en `main` T197 es el despliegue automático.)** Pre-registro `PLAN/notas/T221_preregistro.md` (commit `a634b8f`, 2026-11-19, **antes de toda cifra**) y medición hechos: `v2/eim/analytics/regime_weights.py` (IC por agente y régimen sobre el panel de T44, escalera ±0,02 con n ≥ 200, bootstrap en bloques de 30 días, puerta de potencia primero: sin MDE ≤ 0,01 la mitad de prueba no se mira), informe `regime_weights_report.py`, `mde` en `eim/validation/power.py`, 11 pruebas. **Falta correr la medición por la cola** (`python -m eim.analytics.regime_weights_report --store data/t197_banco --workers 2`; el banco ya está en el worktree) y escribir el veredicto. `SynthesisParams.regime_weights` sigue `{}`: mide, no adopta.",
    "effort": "medio",
    "phase": 28
+  },
+  {
+   "id": "T222",
+   "title": "¿Sale 15 m de la mesa principal? Pre-registro por resultado, fuera de muestra",
+   "deps": [
+    "T139",
+    "T143",
+    "T144",
+    "T161",
+    "T175",
+    "T196"
+   ],
+   "state": "progress",
+   "notes": "**Pre-registro congelado el 2026-11-28, antes de mirar ningún dato nuevo; espera tu ◆** (huella `511e9e3796ba064a9991a521814e908e87a36a5b8e0fb88ec86dc83f3401f7e3`, ficha `PLAN/T222.md` §3). Nace de BACKLOG T143 (8): 15 m fue el peor marco en los dos libros (T31 −0,098 ± 0,035 R, n = 230), pero el 2026-11-10 era el mejor, y elegirlo por resultado no prueba nada. Hipótesis de un solo intento (intersección-unión): μ₁₅ < 0 **y** μ₁₅ − μ₁ₕ₊₄ₕ < 0 en el E[R] neto oficial de T144, abiertas desde el 2026-11-28 00:00 UTC, regla de unión de T196, error típico por bloques de día. Holm en la familia ampliada (m ≥ 1 142, z ≥ 4,087), dos miradas fijas **2027-02-28** y **2027-05-28** (tope de 6 meses), futilidad vinculante en la 1.ª. Potencia: detecta Δ ≈ −0,08 R al 80 % en la 2.ª; si el efecto es solo el costo (≈ −0,05 R), no concluye y 15 m se queda. No toca `PROFILES`, `ExecParams`, la puerta del marco mayor (T212) ni la medición de T189. **◆: ¿se gasta el intento?** (recomendación: sí).",
+   "effort": "bajo",
+   "phase": 24,
+   "track": {
+    "start": "2026-11-28T00:00Z",
+    "end": "2027-05-28T00:00Z",
+    "milestone": "veredicto final (1.ª mirada el 2027-02-28)",
+    "progress": "Pre-registro congelado; medición sin herramienta todavía",
+    "requires": [
+     "PC encendido",
+     "API en marcha",
+     "tu decisión ◆"
+    ],
+    "machine": "cualquiera",
+    "needs": "Tu ◆: gastar o no un intento de Holm en retirar 15 m por resultado. Con «sí», la herramienta se escribe y se prueba antes del 2027-02-28 sin leer el tramo de prueba"
+   }
   }
  ]
 };
