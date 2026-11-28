@@ -4658,3 +4658,11 @@ pm run build.
 - **Pruebas:** `tests/plan` y el gate completo por la cola (ver el PR).
 - **Abierto:** fusionar el PR es ◆ del usuario (de noche no se fusiona sin permiso). Sin comprobar en vivo: el encendido de T194/T182/T196 a las 00:00 UTC del 28-nov y que la corrida de operación vuelva a decidir con T209.
 - **Siguiente paso:** con el visto bueno, fusionar #381; luego comprobar el encendido.
+
+## 2026-11-28 · T31: cierre completado (potencia y estado) y fusión del PR #381
+
+- **Hecho:** §7 de `PLAN/notas/T31_cierre.md`, la potencia que pedía BACKLOG T161 (1): con `eim/validation/power.py::mde` sobre el universo oficial del periodo completo (n = 685, σ = 0,46 R; α = 5 % bilateral, potencia 80 %), las 4 semanas detectan ±0,05 R (≈ 0,07 R si los perfiles fueran copias); T161 esperaba ≥ 0,18 R con σ ≈ 1,15 R. `ESTADO_PROYECTO.md` al día (cabecera, calendario y fila de T31). Comprobado en vivo a las 01:18 UTC del 28-nov: servicio operando en SIMULADO, reconciliación sin incidencias, kill-switch apagado, sin alertas activas y `live_first` encendido (T182). T194 va por fecha: ninguna `EIM_PAPER_PHASE2_FROM` la mueve y la API arrancó el 27-nov a las 19:25 UTC con la de por defecto.
+- **Archivos:** `PLAN/notas/T31_cierre.md`, `PLAN/{ESTADO_PROYECTO,BACKLOG,BITACORA}.md`.
+- **Pruebas:** `tests/plan`; sin cambios de código.
+- **Abierto:** todavía no se vio una decisión dimensionada con el costo tras las 00:00 UTC. Las ◆ posteriores al cierre: variante t143 (T143/T175/T179), diagnóstico al bróker (T151 (2)), conos nuevos en paralelo (T162/T165).
+- **Siguiente paso:** la ◆ de la variante t143 con la comparación emparejada de T175.

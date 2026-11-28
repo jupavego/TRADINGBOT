@@ -97,3 +97,20 @@ Informe: `v2/reports/operation/periodo_1793403300000_1795822500000.{md,json}` (f
 
 **La conclusión de §2 se mantiene:** el R medio sigue en −0,06 con un IC95 % que excluye el 0, no hay
 ventaja y el costo sigue en ~0,125 R por operación.
+
+## 7. Potencia (lo que pedía T161)
+
+Con `eim/validation/power.py::mde` sobre el universo oficial del periodo completo (n = 685,
+σ = 0,46 R por operación; α = 5 % bilateral y potencia del 80 %):
+
+- Estas 4 semanas detectan una ventaja neta de **±0,05 R** por operación o mayor.
+- Los cuatro perfiles salen de las mismas ideas, así que la muestra efectiva es menor que 685. En el
+  peor caso, que los perfiles fueran copias unos de otros, quedaría en el perfil más grande
+  (moderado, n = 321) y el mínimo detectable subiría a **≈ 0,07 R**.
+- T161 esperaba ≥ 0,18 R, porque suponía σ ≈ 1,15 R y unas 250 operaciones. El libro fue menos
+  disperso (83 % de acierto con salidas cortas) y cerró casi el triple de operaciones.
+
+**Lectura:** si hubiera una ventaja neta de +0,05 a +0,07 R o mayor, estas 4 semanas la habrían visto
+con un 80 % de probabilidad. No la vieron, y la media sale negativa con el IC95 % fuera del cero. Una
+ventaja más pequeña no se habría podido validar con esta muestra. El bruto ronda +0,07 R, del mismo
+orden que ese mínimo, y el costo de 0,125 R se lo come (§2).
