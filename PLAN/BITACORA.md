@@ -4588,6 +4588,13 @@ pm run build.
 - **Abierto:** BACKLOG T102 (7 puntos). Los umbrales de promoción los confirma T101.
 - **Siguiente paso:** T213 (términos de datos de Deribit), o T101 cuando T97 arranque.
 
+## 2026-11-27 · Cierre de T31 (corrida en papel, 4 semanas) y de T178 (retención de líderes)
+
+- **Hecho:** T31 ☑. Hay informe del periodo 2026-10-30 23:35 → 2026-11-27 14:38 UTC y la nota `PLAN/notas/T31_cierre.md`, con la aceptación, el universo oficial (667 operaciones, −0,06 R [−0,10, −0,03], −2 257 USDT), el backtest, la calibración y los incidentes. El periodo completo lo añade la tarea programada `t31-informe-final` a las 23:40 UTC. T178 ☑: las copias diarias de `leaders.duckdb` pasan de 945 a 821 MB entre el 20 y el 27-nov, así que la base dejó de crecer. ◆3 del usuario: el detalle de aprobados y `watch` se queda entero, con alarma en BACKLOG.
+- **Archivos:** `PLAN/notas/T31_cierre.md` (nuevo), `PLAN/notas/T178_retencion.md` (§ Cierre), `PLAN/{STATUS,BACKLOG,BITACORA}.md`, `status.js`.
+- **Pruebas:** no hay cambios de código. Informe vía `POST /v2/operation/report` (3 min 28 s); filas contadas en sólo lectura sobre 4 copias.
+- **Abierto:** las cifras del periodo completo (23:40 UTC). Capital real: no; lo decide el usuario por escrito.
+- **Siguiente paso:** el 28-nov, comprobar que T194 y T182 se encendieron a las 00:00 UTC; T143 compara contra este cierre.
 ## 2026-11-27 · T197 (pesos por régimen) se sube como T221
 
 - **Hecho:** la rama `claude/t197-pesos-regimen` solo existía en `juanpablo-cpu`, con el pre-registro y la medición del 2026-11-19, y nunca se registró en `STATUS.md`. Mientras tanto, `main` abrió otra T197 (despliegue automático, fase 32). Se pone al día con `main`, se renumera **T221** (fase 28) y se registra ◐. Los informes pasan a `reports/t221_pesos_regimen.*`. El banco conserva su nombre `data/t197_banco`.
@@ -4643,3 +4650,19 @@ pm run build.
 - **Pruebas:** las del plan y del catálogo (`cerrar_t214.cmd`); sin cambios de código.
 - **Abierto:** BACKLOG T214, sobre todo (1): el código de la revisión de potencia antes del 2027-08-05 y dejarla programada.
 - **Siguiente paso:** el colector de T213 sigue tomando cada hora en la portátil; la revisión de potencia decide si algún día hay evaluación.
+
+## 2026-11-28 · PR #381 (cierre de T31 y T178) puesto al día con `main`
+
+- **Hecho:** la rama `claude/t31-t178-cierre` trae `main` (T209, #349). Solo chocaba `PLAN/status.js`, que es generado: se tomó el de `main` y se regeneró con `build_roadmap.py` (220 tareas, 176 hechas; hoja de ruta viva publicada). Las cifras del periodo completo (§6 de `PLAN/notas/T31_cierre.md`) ya las escribió la tarea `t31-informe-final` a las 23:41 UTC: 685 operaciones, −0,06 R [−0,09, −0,02], −2 031,81 USDT, la misma conclusión que el corte de las 14:38.
+- **Archivos:** `PLAN/status.js`, `PLAN/BITACORA.md` (fusión con `main`; los finales de línea eran LF en las dos ramas, sin líneas duplicadas).
+- **Pruebas:** `tests/plan` y el gate completo por la cola (ver el PR).
+- **Abierto:** fusionar el PR es ◆ del usuario (de noche no se fusiona sin permiso). Sin comprobar en vivo: el encendido de T194/T182/T196 a las 00:00 UTC del 28-nov y que la corrida de operación vuelva a decidir con T209.
+- **Siguiente paso:** con el visto bueno, fusionar #381; luego comprobar el encendido.
+
+## 2026-11-28 · T31: cierre completado (potencia y estado) y fusión del PR #381
+
+- **Hecho:** §7 de `PLAN/notas/T31_cierre.md`, la potencia que pedía BACKLOG T161 (1): con `eim/validation/power.py::mde` sobre el universo oficial del periodo completo (n = 685, σ = 0,46 R; α = 5 % bilateral, potencia 80 %), las 4 semanas detectan ±0,05 R (≈ 0,07 R si los perfiles fueran copias); T161 esperaba ≥ 0,18 R con σ ≈ 1,15 R. `ESTADO_PROYECTO.md` al día (cabecera, calendario y fila de T31). Comprobado en vivo a las 01:18 UTC del 28-nov: servicio operando en SIMULADO, reconciliación sin incidencias, kill-switch apagado, sin alertas activas y `live_first` encendido (T182). T194 va por fecha: ninguna `EIM_PAPER_PHASE2_FROM` la mueve y la API arrancó el 27-nov a las 19:25 UTC con la de por defecto.
+- **Archivos:** `PLAN/notas/T31_cierre.md`, `PLAN/{ESTADO_PROYECTO,BACKLOG,BITACORA}.md`.
+- **Pruebas:** `tests/plan`; sin cambios de código.
+- **Abierto:** todavía no se vio una decisión dimensionada con el costo tras las 00:00 UTC. Las ◆ posteriores al cierre: variante t143 (T143/T175/T179), diagnóstico al bróker (T151 (2)), conos nuevos en paralelo (T162/T165).
+- **Siguiente paso:** la ◆ de la variante t143 con la comparación emparejada de T175.

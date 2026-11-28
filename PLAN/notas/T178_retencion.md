@@ -88,3 +88,21 @@ detrás devuelve el espacio (~800 MB).
   borra nada que no sea una repetición exacta de la forma.
 - La poda y la retención corren en la misma vuelta diaria del servicio y, en frío, antes de
   compactar (`python -m eim.leaders prune`).
+
+## Cierre (2026-11-27): una semana con las copias diarias
+
+Tamaño de `leaders.duckdb` en cada copia de las 00:00 UTC (`v2/backups/eim_*`); las filas se cuentan en sólo lectura.
+
+| Copia | MB | Filas | `leader_recon` | `leader_follow` | `leader_fills` | `leader_positions` |
+|---|--:|--:|--:|--:|--:|--:|
+| 2026-11-19 (antes de desplegar) | 1 665 | — | — | — | — | — |
+| 2026-11-20 | 945 | 6 515 380 | 485 320 | 2 597 654 | 2 674 591 | 191 685 |
+| 2026-11-23 | 869 | 5 811 661 | 528 112 | 2 188 247 | 2 275 396 | 216 971 |
+| 2026-11-25 | 812 | 5 391 548 | 542 221 | 1 953 094 | 2 043 692 | 231 297 |
+| 2026-11-27 | 821 | 5 270 502 | 551 192 | 1 871 921 | 1 959 536 | 244 072 |
+
+- Los datos **dejaron de crecer**: −124 MB entre el 20 y el 27-nov, y ≈ +1 MB/día los dos últimos días, frente a +53 MB/día antes. La aceptación se cumple.
+- `leader_recon` crece ≈ +9 400 filas/día (antes +41 300), por lo que se queda una por líder cada 2 min. `leader_recon_daily` añade unas 17 filas/día, el resumen diario por líder, y confirma que la retención corre cada día.
+- `leader_positions` crece ≈ +7 500/día (antes +10 600). Los últimos 7 días van completos y los anteriores con una foto por cambio y otra por hora.
+- `leader_follow` y `leader_fills` bajan porque la poda de T128 recorta a los rechazados.
+- **◆ del entregable 3 (usuario, 2026-11-27): el detalle de aprobados y `watch` se queda entero, con alarma.** Si un líder pasa a `approved` y la base crece más de 20 MB/día durante 3 días, se pliega como el de los rechazados (ver `PLAN/BACKLOG.md`).
