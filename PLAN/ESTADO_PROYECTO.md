@@ -82,7 +82,7 @@ manda es esta sección**. Escrita a las ~03:15 UTC del 2026-11-18.
    da veredicto el **2026-12-06**. La cantera tiene su primera revisión el **2026-12-17**. La auditoría
    semanal (skill `eim-auditoria`) vigila el disparador del carry, que tiene el funding de 12 m en 3,49 %
    y subiendo.
-5. Pendientes con ficha: **T164** (tras la medición). T178 y sus ◆, ☑ el 2026-11-27 (PR #381).
+5. Pendientes con ficha: **T164** (tras la medición). T178 y sus ◆, ☑ el 2026-11-27 (PR #381). **T222** (2026-11-28, ◆ «sí»): se gastó un intento de Holm (familia ≥ 1 142) para decidir si 15 m sale de la mesa principal por resultado. El pre-registro está congelado en `PLAN/T222.md` §3, la herramienta está lista y las miradas son el 2027-02-28 y el 2027-05-28; nadie mira el tramo antes.
 
 **Lo que vive solo en `juanpablo-cpu` y la portátil no tiene:** su corrida de T31, la cantera_v1, la
 variante t143 con `data/paper/tf_gate_t143.json`, `data/universe_perps/`, y las tareas programadas de

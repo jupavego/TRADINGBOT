@@ -4684,3 +4684,14 @@ pm run build.
 - **Abierto:** BACKLOG T143 (5) la divergencia de salidas en las entradas convertidas, antes de que T189 adopte maker sola (2026-12-17); (6) la puerta de marcos decide con la sombra; (7) el ahorro maker previsto por el banco; (8) retirar 15 m por resultado, con pre-registro y ◆.
 - **En curso:** la variante `t143` sigue encendida en la API, sin reinicio.
 - **Siguiente paso:** fusionar el PR de cierre (con permiso del usuario) y aislar la causa de (5).
+
+## 2026-11-28 · T222 abierta — pre-registro para retirar 15 m por resultado; espera ◆
+
+- **Hecho:** ficha `PLAN/T222.md` (fase 24) desde BACKLOG T143 (8). Pre-registro congelado entre las marcas `T222-prereg`, con huella SHA-256 `511e9e3796ba064a9991a521814e908e87a36a5b8e0fb88ec86dc83f3401f7e3`. La hipótesis es un solo intento de intersección-unión: μ₁₅ < 0 y μ₁₅ − μ₁ₕ₊₄ₕ < 0 en el E[R] neto oficial de T144, sobre las abiertas desde el 2026-11-28 00:00 UTC, con la regla de unión de T196 y el error típico robusto por día de cierre (emparejado por día; el de T175 por perfil e idea no aplica, porque no hay libro sin 15 m). Holm en la familia ampliada (m ≥ 1 142, z_c = 4,087) y dos miradas fijas, el 2027-02-28 y el 2027-05-28, con futilidad vinculante en la 1.ª, signo estable en las dos mitades y condición de régimen vigente.
+- **Potencia** (calculada con lo visto: libro exportado el 2026-11-28 01:32 UTC, **descartando todo lo abierto desde las 00:00** antes de leerlo). En T31 completo, 15 m da −0,094 R (n = 266), σ 0,516 y efecto de diseño por día 2,10, con 11,1 operaciones al día. En la 2.ª mirada detecta Δ ≈ −0,08 R al 80 %; si el efecto es solo el costo (≈ −0,05 R), la potencia es del 16 %. El 2026-11-10, con 64 operaciones, 15 m era el mejor marco: el motivo es selección.
+- **Solapes revisados:** T212 (no toca la puerta), T189 (mide en la sombra; su adopción en 15 m es un cambio de régimen), la vía de costo (BACKLOG T143 (6): si cierra 15 m antes, queda sin objeto) y BACKLOG T143 (5) (la estudia T223, en otra sesión).
+- **Archivos:** `PLAN/{T222,STATUS,00_MASTER,BACKLOG,CONDICIONANTES,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`, `PLAN/roadmap.html`.
+- **Pruebas:** sin código; no hay gate que correr.
+- **Abierto:** la ◆ de T222, es decir, si se gasta el intento. Con «sí», la herramienta (`eim/analytics/tf_retire.py`, el script y pruebas sintéticas) debe estar escrita antes del 2027-02-28 sin leer el tramo de prueba.
+- **En curso:** nada se mide todavía. Los datos se acumulan solos en el libro.
+- **Siguiente paso:** la ◆ del usuario. Esta rama está apilada sobre el PR #386 (T143 cierre) y se fusiona después de él.
