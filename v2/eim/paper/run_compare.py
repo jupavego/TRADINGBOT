@@ -17,7 +17,9 @@ Tres lecturas, de la más gruesa a la más limpia:
   límites sin llenar, marcos cerrados por la puerta): no es el mismo experimento y se dice aparte.
 
 R neto = `r` del libro (PnL / riesgo de precio al SL); costo en R con el método del diagnóstico
-de la fase 24 (`cost_ledger.trade_cost`); R bruto = neto + costo. Puro: sin red ni disco.
+de la fase 24 (`cost_ledger.trade_cost`); R bruto = neto + costo. La resta emparejada es la misma
+que la de la auditoría de T175 (`eim/analytics/audit/build.paired`, que lo fija una prueba); aquí se
+desglosa por marco, bruto, conversión a límite y composición. Puro: sin red ni disco.
 """
 
 from __future__ import annotations

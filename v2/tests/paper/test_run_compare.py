@@ -96,3 +96,12 @@ def test_compare_reports_both_books_with_their_digest() -> None:
     assert res["a"]["official"]["counted_digest"] != res["b"]["official"]["counted_digest"]
     assert res["window"]["universe"] == "libro_perfiles"
     assert set(res["a"]["by_timeframe"]) == {"1h"}
+
+
+def test_paired_difference_is_the_same_as_the_t175_audit() -> None:
+    from eim.analytics.audit import build
+
+    a = [row("x", r=0.1), row("y", r=-1.0, pnl=-100.0, reason="SL"), row("z", r=0.2)]
+    b = [row("x", r=0.12, kind="limit"), row("y", r=-1.05, pnl=-105.0, reason="SL"),
+         row("w", r=0.3)]
+    assert rc.paired(a, b)["all"]["d_net_r"]["mean"] == pytest.approx(build.paired(a, b)["d_r"])
