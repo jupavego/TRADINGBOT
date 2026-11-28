@@ -4712,3 +4712,12 @@ pm run build.
 - **Pruebas:** las nuevas y las de escalera, protección, T142, salidas y variantes; gate completo por la cola (ver el PR).
 - **Abierto:** BACKLOG T223: la sombra y el banco de salidas mantienen la regla de la vela entera; la reserva de deslizamiento de la límite; `params_fingerprint` depende de `PYTHONHASHSEED`.
 - **Siguiente paso:** ◆ del usuario: fusionar antes del 2026-12-17 (primera mirada de T189); entra al reiniciar la API.
+
+## 2026-11-28 · T222 — ◆ «Sí, gastarlo» y la herramienta de las miradas
+
+- **Hecho:** el usuario resolvió la ◆ de T222 («Sí, gastarlo»): se gasta un intento de Holm (familia ampliada ≥ 1 142) para decidir si 15 m sale de la mesa principal por resultado. El bloque congelado de `PLAN/T222.md` §3 conserva su huella `511e9e37…f7e3`. La herramienta se escribió el mismo día, antes de cualquier mirada y sin leer el tramo de prueba: `eim/analytics/tf_retire.py` (regla de §3.2–§3.5; interpretaciones declaradas en el docstring: días UTC de cierre, día central fuera con D impar, tramo vigente desde la apertura), `eim/analytics/tf_retire_report.py` (descriptivo: perfil, bruto, USDT, bootstrap con semilla 222, solo este equipo, rechazos por cupo con 15 m abierta) y `scripts/t222_marco_15m.py` (no calcula antes de cada fecha ni reescribe un veredicto).
+- **Archivos:** `PLAN/{T222,STATUS,BACKLOG,CONDICIONANTES,ESTADO_PROYECTO,BITACORA}.md`, los cuatro de código y pruebas de arriba.
+- **Pruebas:** 13 nuevas en `tests/analytics/test_tf_retire.py`, todas sintéticas: la huella, el umbral, el bloqueo por fecha, el universo, el ET calculado a mano, PASA, futilidad, EN CURSO, régimen, mitades, cupo, el bootstrap y que el script no mira antes ni reescribe. Gate completo: `gate-t222` (este código) y `gate-t223`, que juntos cubren el PR de integración #390 (#386 + #387 + #389).
+- **Abierto:** nada de T222 hasta la 1.ª mirada.
+- **En curso:** los datos del tramo se acumulan solos en el libro; nadie los mira.
+- **Siguiente paso:** el 2027-02-28, desde `v2/`: `python scripts/t222_marco_15m.py --look 1 --family <m del día> --api http://127.0.0.1:8000 --regime <cambios de §3.6 en ms>`.
