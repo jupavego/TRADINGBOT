@@ -4650,3 +4650,11 @@ pm run build.
 - **Pruebas:** las del plan y del catálogo (`cerrar_t214.cmd`); sin cambios de código.
 - **Abierto:** BACKLOG T214, sobre todo (1): el código de la revisión de potencia antes del 2027-08-05 y dejarla programada.
 - **Siguiente paso:** el colector de T213 sigue tomando cada hora en la portátil; la revisión de potencia decide si algún día hay evaluación.
+
+## 2026-11-28 · PR #381 (cierre de T31 y T178) puesto al día con `main`
+
+- **Hecho:** la rama `claude/t31-t178-cierre` trae `main` (T209, #349). Solo chocaba `PLAN/status.js`, que es generado: se tomó el de `main` y se regeneró con `build_roadmap.py` (220 tareas, 176 hechas; hoja de ruta viva publicada). Las cifras del periodo completo (§6 de `PLAN/notas/T31_cierre.md`) ya las escribió la tarea `t31-informe-final` a las 23:41 UTC: 685 operaciones, −0,06 R [−0,09, −0,02], −2 031,81 USDT, la misma conclusión que el corte de las 14:38.
+- **Archivos:** `PLAN/status.js`, `PLAN/BITACORA.md` (fusión con `main`; los finales de línea eran LF en las dos ramas, sin líneas duplicadas).
+- **Pruebas:** `tests/plan` y el gate completo por la cola (ver el PR).
+- **Abierto:** fusionar el PR es ◆ del usuario (de noche no se fusiona sin permiso). Sin comprobar en vivo: el encendido de T194/T182/T196 a las 00:00 UTC del 28-nov y que la corrida de operación vuelva a decidir con T209.
+- **Siguiente paso:** con el visto bueno, fusionar #381; luego comprobar el encendido.
