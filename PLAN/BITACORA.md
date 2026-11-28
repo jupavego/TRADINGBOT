@@ -4729,3 +4729,11 @@ pm run build.
 - **Pruebas:** `python PLAN/build_roadmap.py` (15 en curso, 0 sin seguimiento); prueba en seco del script del Vigía.
 - **Abierto:** nada.
 - **Siguiente paso:** fusionar este PR para que la sincronización no devuelva la hoja de ruta a la versión anterior.
+## 2026-11-28 · T194 — fase 2 verificada en vivo y tarea cerrada
+
+- **Hecho:** T194 ☑. La fase 2 se encendió sola a las 00:00 UTC. El libro (`GET /v2/paper/trades`, leído a las 11:59 UTC) tiene 7 decisiones posteriores (00:00, 04:00 y 08:00 UTC; moderado, agresivo y ppp, 4h). En todas, qty × distancia al SL / riesgo = 0,937–0,960, igual hasta el cuarto decimal a d / (d + 0,0016 · precio); antes, 831 de 831 en 1,000. El freno mide desde el capital al encenderse: moderado (−9,5 % del máximo histórico) y agresivo (−30,4 %) siguen con su riesgo por unidad de peso de siempre, sin ×0,5 ni ×0,25 y sin detenerse. Sin `EIM_PAPER_PHASE2_FROM` en el proceso, el usuario ni la máquina. Se quita el seguimiento de T194 de `CONDICIONANTES.md`; la fase 3 queda cubierta por el de T187.
+- **Archivos:** `PLAN/{T194,STATUS,CONDICIONANTES,BACKLOG,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`, `PLAN/roadmap.html`.
+- **Pruebas:** solo cambia el plan; `python PLAN/build_roadmap.py` y el gate por la cola (ver el PR).
+- **Abierto:** no se ha visto el recorte ×0,5 en acción (ningún perfil ha caído un 5 % desde el encendido) ni una decisión de conservador; lo cubren las pruebas. Las tareas programadas de T194 no están en este equipo (BACKLOG).
+- **En curso:** nada de T194. La API se reinició a las 11:59 UTC al traer #390, y la fase 2 sigue porque depende de la hora.
+- **Siguiente paso:** fusionar este PR (◆ del usuario).

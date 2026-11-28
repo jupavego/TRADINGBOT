@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-28T07:00:37",
+ "generated": "2026-11-28T07:09:17",
  "phases": [
   {
    "n": 0,
@@ -3062,22 +3062,10 @@ window.EIM_STATUS = {
     "T182",
     "T187"
    ],
-   "state": "progress",
-   "notes": "**Programada (◆ del usuario 2026-11-18): se enciende sola el 2026-11-28 00:00 UTC, sin reiniciar.** `EIM_PAPER_PHASE2_FROM` (por defecto el cierre de T31, `off` la apaga): riesgo con costos y freno gradual **en lugar** del todo o nada en los cuatro perfiles (×0,5 desde −5 %, ×0,25 desde −10 %, medido desde el capital al encenderse; nunca se detiene del todo), solo para decisiones posteriores; sin cambiar `params_fingerprint`. Fase 3: el vigía adopta lo de costo y riesgo que pase (`EIM_ASYM_ADOPT=0` lo impide). Tareas programadas de verificación el 28-nov y en cada mirada. Ficha `PLAN/T194.md`",
+   "state": "done",
+   "notes": "**HECHA 2026-11-28, verificada en vivo.** La fase 2 se encendió sola a las 00:00 UTC. En las 7 primeras decisiones (moderado, agresivo y ppp, 4h), la cantidad ya descuenta el costo dentro del riesgo: qty × distancia al SL / riesgo = 0,937–0,960, igual a d / (d + 0,0016 · precio). Antes del encendido, las 831 aprobadas daban 1,000. El freno mide desde el capital al encenderse: moderado (−9,5 % del máximo) y agresivo (−30,4 %) siguen con su riesgo de siempre, sin ×0,5 ni ×0,25 y sin detenerse. La fase 3 es automática en las miradas de T187 (desde el 2026-12-17). En este equipo no hay tareas programadas de T194 (BACKLOG). Evidencia en `PLAN/T194.md` §Verificación. — Historia: **Programada (◆ del usuario 2026-11-18): se enciende sola el 2026-11-28 00:00 UTC, sin reiniciar.** `EIM_PAPER_PHASE2_FROM` (por defecto el cierre de T31, `off` la apaga): riesgo con costos y freno gradual **en lugar** del todo o nada en los cuatro perfiles (×0,5 desde −5 %, ×0,25 desde −10 %, medido desde el capital al encenderse; nunca se detiene del todo), solo para decisiones posteriores; sin cambiar `params_fingerprint`. Fase 3: el vigía adopta lo de costo y riesgo que pase (`EIM_ASYM_ADOPT=0` lo impide). Tareas programadas de verificación el 28-nov y en cada mirada. Ficha `PLAN/T194.md`",
    "effort": "bajo",
-   "phase": 30,
-   "track": {
-    "start": "2026-11-18T00:00Z",
-    "end": "2026-12-17T00:00Z",
-    "milestone": "fase 3 en la 1.ª mirada de T187",
-    "progress": "Fase 2 encendida sola el 2026-11-28 00:00 UTC (riesgo con costos y freno gradual)",
-    "requires": [
-     "PC encendido",
-     "API en marcha"
-    ],
-    "machine": "cualquiera",
-    "needs": "Nada: en cada mirada de T187 el vigía adopta solo lo de costo y riesgo que pase (EIM_ASYM_ADOPT=0 lo impide)"
-   }
+   "phase": 30
   },
   {
    "id": "T195",
