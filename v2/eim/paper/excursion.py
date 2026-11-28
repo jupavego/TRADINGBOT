@@ -6,7 +6,8 @@ recortaba al TP/SL mientras la escalera no. Ahora solo cuenta lo que la posició
 con el mismo supuesto de orden que usa cada motor:
 - La ventana empieza en el llenado: la vela del llenado cuenta si se entró a mercado (a su
   apertura); en una entrada límite empieza en la vela siguiente (el orden dentro de la vela del
-  llenado no se conoce).
+  llenado no se conoce), salvo en la escalera con velas de 1 min: en el minuto siguiente al del
+  llenado (T223).
 - En la vela de salida por stop no cuenta el extremo favorable (el motor supone que el stop llegó
   primero); en la de salida por TP, el favorable es el propio TP; una salida por tiempo se ejecuta
   a la apertura de su vela, que no cuenta.

@@ -22,6 +22,9 @@ Reglas (deterministas; ningún agente las toca una vez abierta la posición):
   de 1 min en su orden real, aplicando la misma regla dentro de cada minuto; sin esos datos se
   queda la regla conservadora.
   Si una vela cruza varios escalones se aplica el último confirmado por su extremo.
+- Vela del llenado de una límite (T223, `ladder_fine.fill_bar`): con velas de 1 min, en el minuto
+  del llenado solo se comprueba el SL (orden desconocido) y desde el siguiente rige la regla de
+  cada minuto, como en una entrada a mercado; sin ellas, la vela entera solo comprueba el SL.
 - Estimado vs realizado: el SL se calcula con una RESERVA: el mayor deslizamiento de las últimas
   `slip_lookback` velas (datos ya conocidos) y `funding_reserve` liquidaciones futuras de funding;
   al salir se cobra el de la vela real y el funding hasta ese
@@ -44,6 +47,9 @@ import numpy as np
 from eim.paper.engine import Outcome, Path, _funding, _limit_fill, _slip, _stop_exit, _with_r
 from eim.paper.excursion import Extremes
 from eim.paper.ideas import Idea
+from eim.paper.ladder_fine import fill_bar
+from eim.paper.ladder_fine import fine_covers as _fine_covers  # noqa: F401 (protection_settle, trail)
+from eim.paper.ladder_fine import sub_bars as _sub_bars
 from eim.paper.ladder_floor import Guard, adopt, arm, early, finish, settle_close
 from eim.paper.ladder_math import (  # noqa: F401  (reexportadas: tests y `ladder_book`)
     EPS,
@@ -140,25 +146,6 @@ class _Run:
                               "source": got.source})
 
 
-def _sub_bars(run: _Run, fine: Path, path: Path, ep: ExecParams, fill_t: int, t0: int, step: int,
-              cj: LadderCosts, reserve: float) -> tuple[str, float, int] | None:
-    """Recorre las velas finas de una vela gruesa ambigua, en orden real: en cada una manda el SL
-    vigente al abrirla y el avance sube el SL desde la siguiente. (motivo, precio, t) si cierra."""
-    a, b = int(np.searchsorted(fine.t, t0)), int(np.searchsorted(fine.t, t0 + step))
-    s = run.s
-    for m in range(a, b):
-        o, h, lo = float(fine.o[m]), float(fine.h[m]), float(fine.l[m])
-        end = int(fine.t[m]) + fine.step
-        adopt(run, int(fine.t[m]))
-        if (lo <= run.stop) if s > 0 else (h >= run.stop):
-            gap = (o <= run.stop) if s > 0 else (o >= run.stop)
-            return ("SLD" if run.protected else "SL"), (o if gap else run.stop), end
-        fund = _funding(path, s, fill_t, end, ep)[0] + reserve
-        run.ext.see(h if s > 0 else lo, lo if s > 0 else h)
-        run.apply(run.peek(h if s > 0 else lo, fund, cj), end, cj)
-    return None
-
-
 def _be_levels(idea: Idea, fill: float, risk: float, ep: ExecParams, lp: LadderParams,
                tick: float) -> tuple[float, float] | None:
     """(precio de disparo, SL bloqueado) del BE+ de T48b cuando convive con la escalera (◆3) en
@@ -172,17 +159,6 @@ def _be_levels(idea: Idea, fill: float, risk: float, ep: ExecParams, lp: LadderP
     return fill + s * ep.be_trigger_r * risk, round(n * tick, 8)
 
 
-def _fine_covers(fine: Path | None, t0: int, step: int) -> bool:
-    """¿Hay velas finas completas y válidas para toda la vela gruesa [t0, t0+step)?"""
-    if fine is None or not len(fine.t):
-        return False
-    a, b = int(np.searchsorted(fine.t, t0)), int(np.searchsorted(fine.t, t0 + step))
-    if b - a != step // fine.step:
-        return False
-    return bool(np.isfinite(fine.o[a:b]).all() and np.isfinite(fine.h[a:b]).all()
-                and np.isfinite(fine.l[a:b]).all())
-
-
 def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qty: float,
                     fine: Path | None = None, *, spec: SymbolSpec,
                     guard: Guard | None = None) -> Outcome:
@@ -192,9 +168,10 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
     SU símbolo, nunca con el de otro. Los escalones se resuelven para ESTA operación con
     `lp.steps(riesgo en USDT)`, así que con `basis="r"` dependen del riesgo realmente abierto.
     `fine` (velas de 1 min) resuelve el orden real de los precios SOLO en las velas de 15 m
-    ambiguas (las que pueden subir el SL y volver a tocarlo); sin datos finos se usa la regla
-    conservadora descrita arriba. `guard` (T110) es lo que el diario guardó de esta operación:
-    suelo del SL y, si lo hay, el motivo de su estado inconsistente.
+    ambiguas (las que pueden subir el SL y volver a tocarlo) y en la vela del llenado de una
+    límite (T223); sin datos finos se usa la regla conservadora descrita arriba. `guard` (T110)
+    es lo que el diario guardó de esta operación: suelo del SL y, si lo hay, el motivo de su
+    estado inconsistente.
     """
     s = idea.side
     what, k, start, fill, fee_in, slip_in = _entry(idea, path, ep)
@@ -217,10 +194,19 @@ def simulate_ladder(idea: Idea, path: Path, ep: ExecParams, lp: LadderParams, qt
     reserve = max(0.0, s * ep.funding_8h_assumed) * lp.funding_reserve   # reserva de funding
     incident, fine_bars = "", 0
     reason, ex, jx, ex_t, last_ok = "", None, None, None, k
-    if start > k and ((path.l[k] <= idea.sl) if s > 0 else (path.h[k] >= idea.sl)) and not (
-            hold := hold or early(run, int(path.t[k]) + path.step)):
+    # límite: la vela del llenado, con 1 min desde el minuto siguiente al llenado (T223)
+    resolved, hit = (fill_bar(run, idea, fine, path, ep, k,
+                              replace(run.c0, slip_out=_slip(path, k, ep)), reserve)
+                     if start > k and not hold else (False, None))
+    fine_bars += resolved
+    if hit and not (hold := early(run, hit[2], fine_end=fill_t + path.step)):
+        reason, ex, ex_t = hit
+        jx = k
+    elif start > k and not resolved and (
+            (path.l[k] <= idea.sl) if s > 0 else (path.h[k] >= idea.sl)) and not (
+            hold := hold or early(run, fill_t + path.step)):
         reason, ex, jx = "SL", idea.sl, k                # límite llenada y SL en la misma vela
-    else:
+    if not reason:
         for j in range(start, len(path.t)):
             o, h, lo, cl = float(path.o[j]), float(path.h[j]), float(path.l[j]), float(path.c[j])
             if not all(math.isfinite(x) for x in (o, h, lo, cl)):

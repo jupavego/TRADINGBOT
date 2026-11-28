@@ -4684,3 +4684,40 @@ pm run build.
 - **Pruebas:** sin cambios de código (el gate de T196 se corrió el 2026-11-19); no se corrió gate para este cierre en papel (RAM justa y dos gates en cola).
 - **Abierto:** (1) en la portátil, confirmar que `GET /v2/share/status` lista `juanpablo-cpu|paper.duckdb` → `20261128T020546Z-api`; (2) los conflictos del primer intercambio (BACKLOG). RAM justa en el equipo (643 MB libres tras el reinicio, con dos gates y la copia externa en cola).
 - **Siguiente paso:** fusionar este PR (con permiso del usuario).
+## 2026-11-28 · T143 cierre — la corrida aparte frente a T31; ◆ delegada: no se adopta
+
+- **Hecho:** comparación de los libros fijos de T31 y de la variante `t143` con la contabilidad oficial de T144, en la misma ventana (abiertas desde 2026-11-10 04:17 UTC, cerradas antes de 2026-11-28 00:00 UTC). t143 −0,082 R por operación (n = 385, −1 647 USDT) frente a −0,033 R de T31 (n = 522, −974 USDT). En las 288 comunes, −0,015 ± 0,011 R (la misma resta que la auditoría de T175). Maker ahorra la comisión (10 → 7 pb, +0,022 R con la misma salida), pero seis convertidas de 1 h salieron por el SL inicial en t143 y por stop dinámico en T31 (−7,2 R). El usuario delegó la ◆ con el criterio de la rentabilidad: **no se adopta**; la mesa principal no cambia por esto y la variante sigue solo como medición. T143 ◐ → ☑; filas de T143 quitadas de CONDICIONANTES; regla del Vigía a `quieta` hasta fusionar.
+- **Archivos:** `v2/eim/paper/run_compare.py`, `v2/scripts/t143_cierre.py`, `v2/tests/paper/test_run_compare.py` (nuevos), `v2/reports/t143_cierre.{md,json}`, `PLAN/{T143,STATUS,BACKLOG,CONDICIONANTES,ESTADO_PROYECTO,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** 10 nuevas; gate completo por la cola.
+- **Abierto:** BACKLOG T143 (5) la divergencia de salidas en las entradas convertidas, antes de que T189 adopte maker sola (2026-12-17); (6) la puerta de marcos decide con la sombra; (7) el ahorro maker previsto por el banco; (8) retirar 15 m por resultado, con pre-registro y ◆.
+- **En curso:** la variante `t143` sigue encendida en la API, sin reinicio.
+- **Siguiente paso:** fusionar el PR de cierre (con permiso del usuario) y aislar la causa de (5).
+
+## 2026-11-28 · T222 abierta — pre-registro para retirar 15 m por resultado; espera ◆
+
+- **Hecho:** ficha `PLAN/T222.md` (fase 24) desde BACKLOG T143 (8). Pre-registro congelado entre las marcas `T222-prereg`, con huella SHA-256 `511e9e3796ba064a9991a521814e908e87a36a5b8e0fb88ec86dc83f3401f7e3`. La hipótesis es un solo intento de intersección-unión: μ₁₅ < 0 y μ₁₅ − μ₁ₕ₊₄ₕ < 0 en el E[R] neto oficial de T144, sobre las abiertas desde el 2026-11-28 00:00 UTC, con la regla de unión de T196 y el error típico robusto por día de cierre (emparejado por día; el de T175 por perfil e idea no aplica, porque no hay libro sin 15 m). Holm en la familia ampliada (m ≥ 1 142, z_c = 4,087) y dos miradas fijas, el 2027-02-28 y el 2027-05-28, con futilidad vinculante en la 1.ª, signo estable en las dos mitades y condición de régimen vigente.
+- **Potencia** (calculada con lo visto: libro exportado el 2026-11-28 01:32 UTC, **descartando todo lo abierto desde las 00:00** antes de leerlo). En T31 completo, 15 m da −0,094 R (n = 266), σ 0,516 y efecto de diseño por día 2,10, con 11,1 operaciones al día. En la 2.ª mirada detecta Δ ≈ −0,08 R al 80 %; si el efecto es solo el costo (≈ −0,05 R), la potencia es del 16 %. El 2026-11-10, con 64 operaciones, 15 m era el mejor marco: el motivo es selección.
+- **Solapes revisados:** T212 (no toca la puerta), T189 (mide en la sombra; su adopción en 15 m es un cambio de régimen), la vía de costo (BACKLOG T143 (6): si cierra 15 m antes, queda sin objeto) y BACKLOG T143 (5) (la estudia T223, en otra sesión).
+- **Archivos:** `PLAN/{T222,STATUS,00_MASTER,BACKLOG,CONDICIONANTES,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`, `PLAN/roadmap.html`.
+- **Pruebas:** sin código; no hay gate que correr.
+- **Abierto:** la ◆ de T222, es decir, si se gasta el intento. Con «sí», la herramienta (`eim/analytics/tf_retire.py`, el script y pruebas sintéticas) debe estar escrita antes del 2027-02-28 sin leer el tramo de prueba.
+- **En curso:** nada se mide todavía. Los datos se acumulan solos en el libro.
+- **Siguiente paso:** la ◆ del usuario. Esta rama está apilada sobre el PR #386 (T143 cierre) y se fusiona después de él.
+
+## 2026-11-28 · T223: la vela del llenado de una límite en la escalera (BACKLOG T143 (5))
+
+- **Hecho:** causa de los seis pares de T143 que entraron al mismo precio y minuto y salieron por SL inicial en t143 (−7,2 R) y por SLD en T31. La escalera no miraba la vela del llenado de una límite (regla 4 de `docs/PPP.md`), mientras que a mercado esa vela se resuelve con 1 min y el SL sube en sus primeros minutos. Reproducido al céntimo con las velas guardadas (27-nov: T31 SLD +0,135 R a las 15:02, t143 SL −1,112 R a las 15:45). Arreglo: `ladder_fine.fill_bar` recorre la vela del llenado con 1 min desde el minuto siguiente al llenado; sin velas finas, la regla de siempre. Descartados la cantidad (×0,85) y el diario de cada mesa.
+- **Medido:** re-simulación de las 907 operaciones que cuentan en la ventana de T143 (907/907 idénticas con el código de `main`); con T223, a cartera fija, t143 −0,082 → −0,068 R y sus convertidas +0,018 R sobre T31; las límite nativas de T31 +0,058 → +0,027 R (la protección se arma antes). El veredicto de T143 no cambia.
+- **Archivos:** `v2/eim/paper/{ladder,ladder_fine,excursion}.py`, `v2/tests/paper/{test_ladder_fill_bar,test_t142_real_cases}.py`, `v2/tests/fixtures/paper/t223_fill_bar.json`, `v2/docs/PPP.md` (§4 y §15), `PLAN/{T223,T189,STATUS,BACKLOG,BITACORA}.md`, `PLAN/status.js`, `PLAN/roadmap.html`.
+- **Pruebas:** las nuevas y las de escalera, protección, T142, salidas y variantes; gate completo por la cola (ver el PR).
+- **Abierto:** BACKLOG T223: la sombra y el banco de salidas mantienen la regla de la vela entera; la reserva de deslizamiento de la límite; `params_fingerprint` depende de `PYTHONHASHSEED`.
+- **Siguiente paso:** ◆ del usuario: fusionar antes del 2026-12-17 (primera mirada de T189); entra al reiniciar la API.
+
+## 2026-11-28 · T222 — ◆ «Sí, gastarlo» y la herramienta de las miradas
+
+- **Hecho:** el usuario resolvió la ◆ de T222 («Sí, gastarlo»): se gasta un intento de Holm (familia ampliada ≥ 1 142) para decidir si 15 m sale de la mesa principal por resultado. El bloque congelado de `PLAN/T222.md` §3 conserva su huella `511e9e37…f7e3`. La herramienta se escribió el mismo día, antes de cualquier mirada y sin leer el tramo de prueba: `eim/analytics/tf_retire.py` (regla de §3.2–§3.5; interpretaciones declaradas en el docstring: días UTC de cierre, día central fuera con D impar, tramo vigente desde la apertura), `eim/analytics/tf_retire_report.py` (descriptivo: perfil, bruto, USDT, bootstrap con semilla 222, solo este equipo, rechazos por cupo con 15 m abierta) y `scripts/t222_marco_15m.py` (no calcula antes de cada fecha ni reescribe un veredicto).
+- **Archivos:** `PLAN/{T222,STATUS,BACKLOG,CONDICIONANTES,ESTADO_PROYECTO,BITACORA}.md`, los cuatro de código y pruebas de arriba.
+- **Pruebas:** 13 nuevas en `tests/analytics/test_tf_retire.py`, todas sintéticas: la huella, el umbral, el bloqueo por fecha, el universo, el ET calculado a mano, PASA, futilidad, EN CURSO, régimen, mitades, cupo, el bootstrap y que el script no mira antes ni reescribe. Gate completo: `gate-t222` (este código) y `gate-t223`, que juntos cubren el PR de integración #390 (#386 + #387 + #389).
+- **Abierto:** nada de T222 hasta la 1.ª mirada.
+- **En curso:** los datos del tramo se acumulan solos en el libro; nadie los mira.
+- **Siguiente paso:** el 2027-02-28, desde `v2/`: `python scripts/t222_marco_15m.py --look 1 --family <m del día> --api http://127.0.0.1:8000 --regime <cambios de §3.6 en ms>`.
