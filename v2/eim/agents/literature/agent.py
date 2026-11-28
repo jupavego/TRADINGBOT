@@ -3,6 +3,11 @@
 Informa; no cambia las probabilidades calibradas (T19) ni publica sugerencias. Sesgo =
 Σ(dirección·fuerza)/`bias_norm` de los aciertos activos en la última vela cerrada; confianza con
 techo `max_confidence` mientras no haya medición (T54). Papel en la síntesis: no direccional.
+
+Una ficha que pide más velas de las cargadas (p. ej. el canal de 4 semanas en 1h: 673 > 500) queda
+«fuera de alcance» en el aviso y en `metrics["rules_out_of_window"]`, pero no degrada el reporte:
+es una limitación conocida de la ventana, no un dato roto, y la regla de datos del riesgo solo debe
+contar lo segundo (T209). Sin ninguna regla que quepa, `no_data`.
 """
 
 from __future__ import annotations
@@ -51,7 +56,7 @@ def scenario_support(hits: list[RuleHit], evaluated: int) -> dict[str, dict]:
 
 class LiteratureAgent:
     id = "literature"
-    version = "0.1.0"
+    version = "0.1.1"   # T209: la ficha que no cabe en la ventana ya no degrada
     requires = {"candles"}
 
     def __init__(self, params: LiteratureParams | None = None) -> None:
@@ -73,6 +78,9 @@ class LiteratureAgent:
         x, tf = Ctx.of(snapshot, p), snapshot.timeframe
         runnable = {k: s for k, s in RULES.items() if k in coded and n >= s.min_bars(p, tf)}
         skipped = sorted(coded - set(runnable))
+        if not runnable:
+            return no_data_report(self.id, self.version, snapshot.asof,
+                                  f"ninguna regla cabe en {n} velas de {tf}")
         last = n - 1
         hits = [h for s in runnable.values() if (h := s.fn(x, p, last)) is not None]
         hits.sort(key=lambda h: -h.strength)
@@ -85,7 +93,9 @@ class LiteratureAgent:
 
         warnings = []
         if skipped:
-            warnings.append(f"reglas sin velas suficientes en {tf}: {', '.join(skipped)}")
+            need = ", ".join(f"{k} (pide {RULES[k].min_bars(p, tf)})" for k in skipped)
+            warnings.append(f"fuera de alcance con {n} velas de {tf}: {need}; limitación de la "
+                            "ventana, no fallo de datos")
         markets = {m for h in hits for m in CARD_META[h.card_id].markets}
         if hits:
             warnings.append(f"reglas planteadas en {', '.join(sorted(markets))}, no en cripto: "
@@ -113,12 +123,12 @@ class LiteratureAgent:
                     "conditions": [{"name": c.name, "value": _py(c.value), "ok": bool(c.ok)}
                                    for c in h.conditions]} for h in hits],
                 "rules_evaluated": len(runnable), "rules_coded": len(coded),
+                "rules_out_of_window": skipped,
                 "scenario_support": scenario_support(hits, len(runnable)),
                 "label": TAG, "source": snapshot.sources.get("candles", "desconocida"),
                 "coverage": snapshot.coverage.get("candles"),
             },
             warnings=warnings, overlays=self._overlays(x, p, runnable, last, confidence),
-            status="degraded" if skipped else "ok",
         )
 
     def _overlays(self, x: Ctx, p: LiteratureParams, runnable, last: int,

@@ -27,11 +27,14 @@ def test_contract_and_overlays(snapshot):
     assert len({o.id for o in rep.overlays}) == len(rep.overlays)
 
 
-def test_partial_period_warns(snapshot):
+def test_partial_period_warns_without_degrading(snapshot):
+    """T209: el período parcial avisa, pero es una limitación de la ventana, no un dato roto."""
     rep = VWAPAgent().run(snapshot)
-    assert rep.metrics["periods"]["monthly"]["partial"] or rep.status == "ok"
-    if rep.metrics["periods"]["monthly"]["partial"]:
-        assert rep.status == "degraded" and any("mensual" in w for w in rep.warnings)
+    assert rep.status == "ok"
+    partial = [k for k, v in rep.metrics["periods"].items() if v["partial"]]
+    assert rep.metrics["partial_periods"] == partial
+    if "monthly" in partial:
+        assert any("mensual" in w and "no fallo de datos" in w for w in rep.warnings)
 
 
 def test_no_data_and_determinism(snapshot):

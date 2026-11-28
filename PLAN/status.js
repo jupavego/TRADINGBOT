@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-27T18:41:38",
+ "generated": "2026-11-27T19:46:39",
  "phases": [
   {
    "n": 0,
@@ -80,7 +80,8 @@ window.EIM_STATUS = {
     "T31",
     "T32",
     "T47",
-    "T48"
+    "T48",
+    "T209"
    ]
   },
   {
@@ -3334,6 +3335,21 @@ window.EIM_STATUS = {
    "notes": "**HECHA 2026-11-27 (◆ del usuario: cerrar como «medida, sin supervivientes»).** De 18 900 recetas sobreviven 0: la barrera es el costo (≈ 0,4 R por ida y vuelta con el tope de 1:10). No hay nada que ascender a la cantera. **`forja_5m_v2` (entradas límite y stops más anchos) no se abre por ahora:** se espera a lo que mida T189 en vivo (BACKLOG T208). — Historia: **Abierta 2026-11-21 (pedido del usuario: un perfil adicional para la cantera).** BTC en 5 m, intradía (nada abierto de un día para otro), sesión americana (`America/New_York` 09:30–16:00, L–V, sin festivos ni medias sesiones), compras y ventas. **Familia propia `forja_5m_v1`, aparte de la cantera**: 18 900 recetas (70 disparadores en 7 familias × 3 direcciones × 9 filtros × 10 salidas) son el `m` de Romano-Wolf/Holm/e-BH y el `attempts` del Sharpe deflactado; meterlas en `prereg_cantera_v1` (42 prospectos, techo 50) destruiría su control de intentos. Pre-registro `v2/eim/validation/prereg/prereg_forja_5m_v1.json` (huella `573b4e4602d5f084`, commit `5ac96ed`, **anterior a toda cifra**), rejilla `86a88f612f5943ef`, reserva 2026-05-04 → 2026-11-03 intacta. Normas del usuario: 10 000 $ sin interés compuesto, 1 % por operación, 1:10 de tope, entrada en la vela siguiente a la señal y la tarifa única del proyecto. Datos: 403 994 velas de 5 m agregadas del 1 m del banco de T131 (2023-01-01 → 2026-11-04, **0 huecos**). Código `v2/eim/forge/`, pruebas `v2/tests/forge/` (44: sesión con horario de verano y festivos, causalidad por truncado, motor vectorizado idéntico a un bucle lento en las 10 salidas, normas). Ver `PLAN/T208.md` y `PLAN/notas/T208_forja_5m.md`. **Medido el 2026-11-21 (238 s por la cola, 18 562 364 operaciones): 0 supervivientes de 18 900.** Informe `v2/reports/forge/forja_5m_20261121-0744.{md,json}`. La mejor de la rejilla (`ema_20_100|corto|apertura|vwap_objetivo`, n = 229, **+0,168 R**) da **t = 0,82**, p de Romano-Wolf **1,000** y **DSR 0,000**, con el máximo nulo esperado en **z = 4,01** (t remuestreado 3,74); **PBO 0,47** frente al 0,20 del pre-registro, y el estrés ×1,5 hunde a 8 de las 10 mejores. **La reserva no se miró** (no había supervivientes). **Hallazgo: la barrera de costos.** La familia gana **+0,069 R brutos** por operación y pierde **−0,322 R netos**: cada operación paga **0,391 R** de comisión y deslizamiento, porque con riesgo del 1 % y stops de pocas décimas de por ciento el nocional ronda **8 veces la cuenta**. **12 992 de 16 176 recetas son positivas en bruto y solo 126 en neto.** El control aleatorio da ≈ −costo (−0,23 a −0,49 R según la salida), así que el motor es sano. Queda la ◆ del usuario: no hay nada que ascender a la cantera; decidir si se abre `forja_5m_v2` con entradas límite (maker 2 pb), que es lo único que mueve esa barrera.",
    "effort": "alto",
    "phase": 27
+  },
+  {
+   "id": "T209",
+   "title": "La corrida de operación vuelve a decidir: lo que no cabe en la ventana no es un dato roto",
+   "deps": [
+    "T29",
+    "T31",
+    "T44",
+    "T53"
+   ],
+   "state": "progress",
+   "notes": "**◆ del usuario 2026-11-23: opción A, implementada en la rama `claude/t209-veto-datos`; falta desplegar (tras el encendido del 2026-11-28) y verificar en vivo.** `literature` y `vwap` ya no ponen `degraded` por la ventana (avisan y lo dejan en `metrics`); su sesgo y confianza no cambian. Prueba de invariancia `v2/tests/agents/test_window_t209.py` (33 fechas) y recuento retro en `PLAN/notas/T209_vetos_datos.md` (por plan: 34 distintos, 26 vetados por datos, 12 pasarían). **Abierta 2026-11-23 (el usuario: «el proyecto está detenido»).** Desde el 19-oct la corrida de T31 tuvo 70 decisiones con plan: 7 aprobadas y **59 vetadas por «datos: N agentes degradados»** (`max_degraded_agents = 1`); `literature` estaba en 58. Causas estructurales: `literature` sale `degraded` en 1h siempre desde T53 (la ficha `murphy_weekly_rule` pide 673 velas y el ciclo carga 500) y `vwap` del día ~21 a fin de mes (VWAP mensual parcial). Sin ellas, 33 de los 59 pasaban el filtro de datos y 20 no tenían otro veto. ◆ pendiente: A (semántica en los dos agentes, recomendada), B (más velas) o C (subir el límite, descartada). Despliegue tras el encendido del 2026-11-28. Ver `PLAN/T209.md`.",
+   "effort": "bajo",
+   "phase": 7,
+   "goal": "Que `degraded` signifique lo que la regla de riesgo y la alerta `agentes_degradados` suponen"
   },
   {
    "id": "T210",

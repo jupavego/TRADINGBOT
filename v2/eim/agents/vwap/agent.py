@@ -1,4 +1,10 @@
-"""Agente `vwap`: posición del precio respecto a los VWAP diario/semanal/quincenal/mensual."""
+"""Agente `vwap`: posición del precio respecto a los VWAP diario/semanal/quincenal/mensual.
+
+Un período parcial (la ventana cargada no llega a su inicio: con 500 velas de 1h, el mensual a
+partir del día ~21) se avisa y queda en `metrics["partial_periods"]`, y sigue votando con su peso
+declarado como siempre; pero no degrada el reporte: es una limitación conocida de la ventana, no un
+dato roto, y la regla de datos del riesgo solo debe contar lo segundo (T209).
+"""
 
 from __future__ import annotations
 
@@ -58,7 +64,7 @@ def _overlays(row: pd.Series, first_ts: pd.Timestamp, p: VWAPParams, conf: float
 
 class VWAPAgent:
     id = "vwap"
-    version = "1.0.0"
+    version = "1.0.1"   # T209: el período parcial ya no degrada
     requires = {"candles"}
 
     def __init__(self, params: VWAPParams | None = None) -> None:
@@ -104,7 +110,8 @@ class VWAPAgent:
             }
             evidence.append(f"VWAP {LABEL[period]}: {pos} — {POSITION_NOTES[pos]}")
             if partial:
-                warnings.append(f"VWAP {LABEL[period]} parcial: la ventana no cubre el período")
+                warnings.append(f"VWAP {LABEL[period]} parcial: la ventana no cubre el período "
+                                "(limitación de la ventana, no fallo de datos)")
             if pos != "SIN_DATOS":
                 votes.append(((prob_up - 50) / 50, p.period_weights.get(period, 1.0)))
         if not votes:
@@ -118,10 +125,12 @@ class VWAPAgent:
         else:
             confidence = min(p.max_confidence, agree * len(votes) / len(PERIODS))
         metrics["anchored_vwap"] = float(row["VWAP_ANCHOR"])
+        metrics["partial_periods"] = [k for k, v in metrics["periods"].items() if v.get("partial")]
         return AgentReport(
             agent_id=self.id, version=self.version, asof=snapshot.asof, bias=bias,
             confidence=confidence, horizon_bars=p.horizon_bars, evidence=evidence,
             metrics=metrics, warnings=warnings,
             overlays=_overlays(row, first_ts, p, confidence, src, dead),
-            status="degraded" if warnings else "ok",
+            # T91: un ancla que no aplica al marco sí degrada; el período parcial no (T209)
+            status="degraded" if dead else "ok",
         )

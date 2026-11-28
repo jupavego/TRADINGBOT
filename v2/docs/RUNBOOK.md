@@ -122,6 +122,11 @@ Puerto ocupado: `netstat -ano | findstr :8000` y cerrar el proceso viejo.
 Normal que el riesgo vete: cada veto queda en `GET $API/v2/risk/decisions` con su motivo. Si un
 agente crítico está `degraded`/`no_data`, revisar cobertura del snapshot (`GET $API/v2/agents`) y
 la fuente de datos (§3). No se fuerza la ejecución: el riesgo tiene la última palabra.
+`degraded` es **un dato que falla** (excepción, tiempo agotado, huecos, fuente obsoleta), no una
+limitación de la ventana: desde T209 una ficha de `literature` que no cabe en las velas cargadas o
+un VWAP parcial de `vwap` solo avisan. Si «datos: N agentes degradados» se repite semana tras
+semana con los mismos agentes, mirar si es eso antes de culpar a la fuente
+(`PLAN/notas/T209_vetos_datos.md`).
 
 ## 8. Copia diaria fallida o incompleta
 Alerta `copia_seguridad` con el error (disco lleno, ruta inexistente, permisos). Corregir y esperar

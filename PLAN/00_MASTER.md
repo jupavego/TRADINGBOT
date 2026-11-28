@@ -14,7 +14,7 @@ Cada tarea es autocontenida: qué leer, qué entregar, criterios de aceptación 
 | 4 Proyección | T16 T17 T18 T19 | 3 escenarios con probabilidad sobre el gráfico + calibración |
 | 5 Inteligencia | T20 T21 T22 T23 T24 | Síntesis y agentes nuevos (derivados, régimen, microestructura, contexto) |
 | 6 Validación | T25 T26 T27 (T28 opcional) | Backtest con costos de perpetuos, calibración, **puerta de edge** |
-| 7 Operación | T29 T30 T31 T32 | Riesgo, testnet, paper trading, endurecimiento |
+| 7 Operación | T29 T30 T31 T32 T209 | Riesgo, testnet, paper trading, endurecimiento |
 | 8 Agentes adicionales | T33–T44 | Indicadores técnicos (Binance), calendario económico, arbitraje (solo Binance) y copy trading: datos, agentes, simulación e integración |
 | 9 Carriles de ejecución | T45 T46 | Arbitraje y copy trading en testnet con asignador de capital compartido |
 | 10 Sugerencias validadas | T49 T50 T51 | Las «Operaciones sugeridas intradía» salen solo de estrategias validadas fuera de muestra por el bróker simulado (T47–T48), o el panel dice «Sin operaciones validadas para sugerir» |
