@@ -15,7 +15,7 @@ lo aplazado en `BACKLOG.md` y el registro de sesiones en `BITACORA.md`. Para com
 >   par cerrado es **agresivo@15m** (0,173 R) y **agresivo@4h quedó admitido** (0,105 R), que era el error que la corrección venía a arreglar.
 > - **#308 comprobado en el panel real:** carga, el Río dibuja sus esferas y el Mapa isométrico ocupa todo el ancho; sin `filter` en SVG ni `backdrop-filter`.
 >   Los cuadros por segundo no se midieron en condiciones (panel del navegador oculto y equipo cargado).
-> - **Pendiente de verdad:** **T178** (base de líderes), sin empezar. Y el panel va lento mientras la API siga en ~3 GB
+> - **Pendiente de verdad:** **T178** (base de líderes), sin empezar (☑ el 2026-11-27, PR #381: la base se quedó en ~810 MB). Y el panel va lento mientras la API siga en ~3 GB
 >   (`/v2/snapshot` con `n=500` no contesta en 60 s; es la presión de memoria de T123/T141, no la interfaz).
 > - Los puntos 1 y 2 de «Lo que queda» de abajo están **hechos** (T164 medida y gate del #305 verde); el 3, también (fusión y reinicio).
 
@@ -82,7 +82,7 @@ manda es esta sección**. Escrita a las ~03:15 UTC del 2026-11-18.
    da veredicto el **2026-12-06**. La cantera tiene su primera revisión el **2026-12-17**. La auditoría
    semanal (skill `eim-auditoria`) vigila el disparador del carry, que tiene el funding de 12 m en 3,49 %
    y subiendo.
-5. Pendientes con ficha: **T178** (base de líderes), **T164** (tras la medición) y las ◆ de T178.
+5. Pendientes con ficha: **T164** (tras la medición). T178 y sus ◆, ☑ el 2026-11-27 (PR #381).
 
 **Lo que vive solo en `juanpablo-cpu` y la portátil no tiene:** su corrida de T31, la cantera_v1, la
 variante t143 con `data/paper/tf_gate_t143.json`, `data/universe_perps/`, y las tareas programadas de
@@ -174,7 +174,7 @@ configuración de riesgo; la puerta de edge (T27) **NO PASA**.
 | T129 Stop dinámico (solo lectura) | **Hecha** (☑ 2026-11-03): la escalera deja el stop a menos de un incremento del extremo (27–61 USD de BTC, dentro del ruido de 1 min). Ganadoras de +0,11 R frente a perdedoras de −0,96 R (PF 0,35). Informe `PLAN/notas/T129_sl_dinamico.md` | ◆ resueltas (§4). T130 hecha y **desplegada** el 2026-11-03 16:08 UTC (MFE/MAE desde el llenado, falso positivo de T110, `/v2/paper/exits`). A/B en vivo: en este periodo lateral la escalera supera a la sombra A en los cuatro perfiles (Δ +0,13…+0,46 R/op) y las dos pierden; siguiente: T132 ‖ T133 → T134 ◆ |
 | T131 Banco de salidas | **Hecha** (☑ 2026-11-03): banco `v2/eim/paper/exits/`, pre-registro inmutable (107 intentos, huella en el código) e historia desde 2023 en `v2/backups/t131_banco/` con cobertura 100 % y 0 huecos. Nota `PLAN/notas/T131_banco_salidas.md`, informe `v2/reports/t131_banco.md` | Nada tocado en vivo. **Tres cosas que T132 y T134 tienen que tener presentes:** (1) la escalera queda confirmada fuera de muestra en 3,5 años (acierto 76,1 %, cociente 0,12, PF 0,39) y **las once variantes de M0 y M1 pierden**: el problema está en la entrada; (2) ese **PBO 0,46** frente al 0,2 pre-registrado **estaba mal medido** y T134 lo deja en **0,129** con 89 variantes (el CSCV de T131 solo tenía once casi idénticas entre las que elegir): al citarlo, usar el 0,129; el Sharpe deflactado 0,000 sigue en pie; (3) **el nulo del control aleatorio está mal especificado** para salidas con arrastre sobre la serie real y hay que rehacerlo antes de juzgar las candidatas (BACKLOG T131 (8)) |
 
-Pendientes destacadas: T178 (base de líderes acotada de verdad; fase 21; T128 cerrada el 2026-11-17 con ese criterio en parte), T46, T62–T71 (motores locales y video),
+Pendientes destacadas: T46, T62–T71 (motores locales y video),
 T79–T86 (HFT), T87–T103 (multiactivo), T167–T172 (fase 27, cantera de perfiles por agente: `PLAN/notas/T167_cantera.md`; T167 ☑ (◆ aprobada: 43 prospectos en 13 agentes, de scalping a semanal, techo de 50) y T168 ☑ (motor construido y apagado, `PLAN/notas/T168_motor_cantera.md`) y T169 ☑ (examen físico: 16 de 32 descartados, `v2/reports/t169_examen_fisico.md`, hallazgos en `PLAN/notas/T169_examen_fisico.md`); T177 ☑ (16 reemplazos, 15 entran) y T170 ☑ (pre-registro `cantera_v1` con 42, alta 2026-11-17 03:25:17 UTC; la cantera opera hacia adelante); siguiente T171 (panel); §9 fija la automejora de la cantera y §3 cierra con la decisión del usuario del 2026-11-11: los veredictos de la fase han de ser **muy sensibles**). Orden sugerido en `00_MASTER.md` (fase 20).
 
 ## 3. Problemas conocidos sin resolver

@@ -4666,3 +4666,12 @@ pm run build.
 - **Pruebas:** `tests/plan`; sin cambios de código.
 - **Abierto:** todavía no se vio una decisión dimensionada con el costo tras las 00:00 UTC. Las ◆ posteriores al cierre: variante t143 (T143/T175/T179), diagnóstico al bróker (T151 (2)), conos nuevos en paralelo (T162/T165).
 - **Siguiente paso:** la ◆ de la variante t143 con la comparación emparejada de T175.
+
+## 2026-11-28 · T31 y T178: lo que le faltaba al cierre del PR #381
+
+- **Hecho:** el PR #381 cerró T31 y T178, pero dejó sus filas en `PLAN/CONDICIONANTES.md`, y el archivo pide borrarlas al cerrar la tarea. Quitadas las 4 filas (2 de T31 y 2 de T178), y corregidas en `PLAN/ESTADO_PROYECTO.md` las 3 líneas que daban T178 como pendiente. Fuera del repo, quitada la regla de T178 del Vigía (`~/.claude/eim-vigia/estado_tareas.py`, copia previa en el scratchpad de la sesión). Probado en seco con salida a un directorio aparte: 26 filas, sin T178, sin tocar `estado.json` ni `previo.json`.
+- **Comprobación de la medida:** copias diarias de `leaders.duckdb` del 25 al 28-nov: 811 → 819 → 820 → 809 MB, plana.
+- **Archivos:** `PLAN/{CONDICIONANTES,ESTADO_PROYECTO,BITACORA}.md`, `PLAN/status.js`.
+- **Pruebas:** sin cambios de código; el gate del #381 cubre lo mismo.
+- **Abierto:** (1) con la regla de T178 salió la alarma de tamaño de la base de líderes (`extra="lideres_db"`, que solo cuelga de reglas). El archivo vivo pesa 1 358 MB con ~810 MB de datos: es espacio libre que devuelve el compactado al arrancar el servicio de líderes. (2) La regla de T31 sigue en el Vigía, aunque T31 está ☑.
+- **Siguiente paso:** fusionar este PR (con permiso del usuario).
