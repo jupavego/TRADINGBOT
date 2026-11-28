@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-27T20:39:51",
+ "generated": "2026-11-27T20:59:02",
  "phases": [
   {
    "n": 0,
@@ -314,7 +314,8 @@ window.EIM_STATUS = {
     "T146",
     "T150",
     "T179",
-    "T180"
+    "T180",
+    "T222"
    ]
   },
   {
@@ -3478,6 +3479,35 @@ window.EIM_STATUS = {
    "notes": "**(Antes T197, renumerada el 2026-11-27: la rama nunca se subió y en `main` T197 es el despliegue automático.)** Pre-registro `PLAN/notas/T221_preregistro.md` (commit `a634b8f`, 2026-11-19, **antes de toda cifra**) y medición hechos: `v2/eim/analytics/regime_weights.py` (IC por agente y régimen sobre el panel de T44, escalera ±0,02 con n ≥ 200, bootstrap en bloques de 30 días, puerta de potencia primero: sin MDE ≤ 0,01 la mitad de prueba no se mira), informe `regime_weights_report.py`, `mde` en `eim/validation/power.py`, 11 pruebas. **Falta correr la medición por la cola** (`python -m eim.analytics.regime_weights_report --store data/t197_banco --workers 2`; el banco ya está en el worktree) y escribir el veredicto. `SynthesisParams.regime_weights` sigue `{}`: mide, no adopta.",
    "effort": "medio",
    "phase": 28
+  },
+  {
+   "id": "T222",
+   "title": "¿Sale 15 m de la mesa principal? Pre-registro por resultado, fuera de muestra",
+   "deps": [
+    "T139",
+    "T143",
+    "T144",
+    "T161",
+    "T175",
+    "T196"
+   ],
+   "state": "progress",
+   "notes": "**Pre-registro congelado el 2026-11-28, antes de mirar ningún dato nuevo; espera tu ◆** (huella `511e9e3796ba064a9991a521814e908e87a36a5b8e0fb88ec86dc83f3401f7e3`, ficha `PLAN/T222.md` §3). Nace de BACKLOG T143 (8): 15 m fue el peor marco en los dos libros (T31 −0,098 ± 0,035 R, n = 230), pero el 2026-11-10 era el mejor, y elegirlo por resultado no prueba nada. Hipótesis de un solo intento (intersección-unión): μ₁₅ < 0 **y** μ₁₅ − μ₁ₕ₊₄ₕ < 0 en el E[R] neto oficial de T144, abiertas desde el 2026-11-28 00:00 UTC, regla de unión de T196, error típico por bloques de día. Holm en la familia ampliada (m ≥ 1 142, z ≥ 4,087), dos miradas fijas **2027-02-28** y **2027-05-28** (tope de 6 meses), futilidad vinculante en la 1.ª. Potencia: detecta Δ ≈ −0,08 R al 80 % en la 2.ª; si el efecto es solo el costo (≈ −0,05 R), no concluye y 15 m se queda. No toca `PROFILES`, `ExecParams`, la puerta del marco mayor (T212) ni la medición de T189. **◆: ¿se gasta el intento?** (recomendación: sí).",
+   "effort": "bajo",
+   "phase": 24,
+   "track": {
+    "start": "2026-11-28T00:00Z",
+    "end": "2027-05-28T00:00Z",
+    "milestone": "veredicto final (1.ª mirada el 2027-02-28)",
+    "progress": "Pre-registro congelado; medición sin herramienta todavía",
+    "requires": [
+     "PC encendido",
+     "API en marcha",
+     "tu decisión ◆"
+    ],
+    "machine": "cualquiera",
+    "needs": "Tu ◆: gastar o no un intento de Holm en retirar 15 m por resultado. Con «sí», la herramienta se escribe y se prueba antes del 2027-02-28 sin leer el tramo de prueba"
+   }
   }
  ]
 };
