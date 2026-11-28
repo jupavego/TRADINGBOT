@@ -4721,3 +4721,11 @@ pm run build.
 - **Abierto:** nada de T222 hasta la 1.ª mirada.
 - **En curso:** los datos del tramo se acumulan solos en el libro; nadie los mira.
 - **Siguiente paso:** el 2027-02-28, desde `v2/`: `python scripts/t222_marco_15m.py --look 1 --family <m del día> --api http://127.0.0.1:8000 --regime <cambios de §3.6 en ms>`.
+
+## 2026-11-28 · Vigía al día tras fusionar el #390
+
+- **Hecho:** la sección «Vigía» de la hoja de ruta tenía 5 tareas en curso sin seguimiento (T206, T209, T210, T211, T221) y 2 con la fecha ya pasada (T116, T194). Se añaden las cinco filas con lo que falta según su fila de STATUS, y se corrigen las dos: T116 ya solo espera tu permiso para parar los servicios, y T194 tiene la fase 2 encendida y la fase 3 en las miradas de T187. El condicionante de T116 pasa a «ya». Las 15 tareas en curso tienen seguimiento. Las reglas del Vigía del móvil (`~/.claude/eim-vigia/estado_tareas.py`, fuera del repo) se pusieron igual: salen T31 y T143 y entran T66, T172, T206, T210, T211, T221 y T222.
+- **Archivos:** `PLAN/{CONDICIONANTES,BITACORA}.md`, `status.js`.
+- **Pruebas:** `python PLAN/build_roadmap.py` (15 en curso, 0 sin seguimiento); prueba en seco del script del Vigía.
+- **Abierto:** nada.
+- **Siguiente paso:** fusionar este PR para que la sincronización no devuelva la hoja de ruta a la versión anterior.
