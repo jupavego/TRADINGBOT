@@ -16,12 +16,10 @@ tarea · equipo · qué hay que hacer allí · fecha (desde cuándo se puede, o 
 | Tarea | Equipo | Condicionante | Fecha |
 |---|---|---|---|
 | T172 | juanpablo-cpu | Comprobar el primer informe real (`v2/reports/nursery/`) y que los hechos se ven en la Biblioteca (tras reiniciar la API) | 2026-12-18 |
-| T31 | juanpablo-cpu | Cerrar la corrida oficial de ≥ 4 semanas con su informe final: la corrida que cuenta es la de ese equipo | 2026-11-27 |
 | T135 | juanpablo-cpu | Leer el veredicto del A/B de M8: la tarea semanal y la copia `backups/t135_ab` están instaladas allí | 2026-12-06 |
 | T143 | juanpablo-cpu | Decidir si la variante t143 pasa a oficial: la variante y su `data/paper/tf_gate_t143.json` solo corren allí | 2026-11-27 |
 | T66 | juanpablo-cpu | Medir la muestra etiquetada (`python -m eim.video.visual eval`): RapidOCR y el entorno de motores (`C:\eim-localai`) solo están allí | cuando haya ≥ 40 etiquetas |
 | T116 | juanpablo-cpu | 3 corridas del gate con los servicios parados, después de cerrar T31, T143 y la semana de T178 | 2026-11-28 |
-| T178 | juanpablo-cpu | Medir la semana con las copias diarias de `leaders.duckdb`: la retención ya corre allí desde el 2026-11-19 | 2026-11-27 |
 | T171 | juanpablo-cpu | Traer `main` y reiniciar la API: la pestaña «Cantera» muestra allí el balance de ganadas y perdidas y el capital por agente, y la API empieza a publicar el **espejo en vivo** que ve la portátil (rama `cantera/espejo` de `Santivego/eim-shared-data`; esa cuenta de git necesita permiso de escritura en ese repo). Comprobar `mirror_publish.error` vacío en `GET /v2/nursery` | ya |
 | T96 | laptop | En pausa por tu decisión en T95: no empezar antes de la revisión automática de ese día (tarea «EIM - revision para decidir T96», informe en `TRADINGBOT/_revision_t96.md`); arranca solo si dice «ARRANCAR T96» | 2026-12-29 |
 | T97 | laptop | En pausa por tu decisión del 2026-11-26 (sin proveedor de acciones aprobado, ◆2 de T88): se decide con el informe de la revisión de T96 de ese día (`TRADINGBOT/_revision_t96.md`). Si dice «ARRANCAR T96», se te pregunta el proveedor y T97 arranca; si no, sigue en pausa con T96 (`PLAN/notas/T97_pausa.md`) | 2026-12-29 |
@@ -36,11 +34,9 @@ una tarea (☑), se borra su fila.
 
 | Tarea | Inicio | Fin | Hito del fin | Avance | Requisitos | Equipo | Necesita |
 |---|---|---|---|---|---|---|---|
-| T31 | 2026-10-30T23:35Z | 2026-11-27T23:35Z | cierre de la corrida (4 semanas) | — | PC encendido, API en marcha | juanpablo-cpu | El bróker simulado vive dentro de la API: si se cierra, la corrida se detiene. Al cerrar, el informe final; riesgo con costo y freno gradual se encienden solos el 28-nov (T194) |
 | T143 | 2026-11-10T04:17Z | 2026-11-27T23:35Z | fin de la corrida aparte t143 | — | PC encendido, API en marcha, tu decisión ◆ | juanpablo-cpu | La corrida t143 vive dentro de la API, como T31. Los entregables 2–5 esperan tu decisión; al cerrar, si la variante pasa a oficial |
 | T135 | 2026-11-08T00:00Z | 2026-12-06T00:00Z | veredicto del A/B de M8 (como pronto) | — | PC encendido | juanpablo-cpu | Corre sobre una copia, sin tocar el vivo ni T31; necesita unas 315 operaciones emparejadas. El veredicto no se revisa |
 | T172 | 2026-11-17T03:25Z | 2026-12-17T03:25Z | 1.ª revisión de la cantera (el informe sale el 18) | Tarea diaria instalada el 2026-11-20; falta el primer informe con datos reales | PC encendido, API en marcha | juanpablo-cpu | Nada hasta el 18-dic. La tarea escribirá el informe sola; para que pueda leer el libro con el servicio en marcha hace falta el PR #333 (el libro de la cantera no entraba en la copia diaria) |
-| T178 | 2026-11-19T14:00Z | 2026-11-27T00:00Z | semana de medición con las copias diarias | Desplegada; la base bajó de 1 664,8 a 944,8 MB en la primera copia | PC encendido | juanpablo-cpu | Nada: comparar las copias diarias de `leaders.duckdb` hasta el 27-nov y ver si deja de crecer |
 | T116 | — | 2026-11-28T00:00Z | 3 corridas con los servicios parados | Portátil: 6 corridas verdes · juanpablo-cpu: faltan 3 con los servicios parados | PC encendido | juanpablo-cpu | Nada hasta el 28-nov (◆ del usuario 2026-11-20: se espera a que cierren T31, T143 y la semana de T178). Lo de Ollama ya está decidido: no es condición de verde |
 | T187 | 2026-11-19T00:00Z | 2026-12-17T00:00Z | 1.ª mirada (luego 14-ene y 11-feb) | — | PC encendido, API en marcha | cualquiera | Mide sola en la API (vigía cada hora); lo de costo y riesgo que pase se adopta solo |
 | T188 | 2026-11-19T00:00Z | 2026-12-17T00:00Z | 1.ª mirada (luego 14-ene y 11-feb) | — | PC encendido, API en marcha, tu decisión ◆ | cualquiera | Corredor en sombra; aunque pase no se adopta solo: tu decisión |
