@@ -4684,3 +4684,12 @@ pm run build.
 - **Pruebas:** sin cambios de código (el gate de T196 se corrió el 2026-11-19); no se corrió gate para este cierre en papel (RAM justa y dos gates en cola).
 - **Abierto:** (1) en la portátil, confirmar que `GET /v2/share/status` lista `juanpablo-cpu|paper.duckdb` → `20261128T020546Z-api`; (2) los conflictos del primer intercambio (BACKLOG). RAM justa en el equipo (643 MB libres tras el reinicio, con dos gates y la copia externa en cola).
 - **Siguiente paso:** fusionar este PR (con permiso del usuario).
+
+## 2026-11-28 · T223: la vela del llenado de una límite en la escalera (BACKLOG T143 (5))
+
+- **Hecho:** causa de los seis pares de T143 que entraron al mismo precio y minuto y salieron por SL inicial en t143 (−7,2 R) y por SLD en T31. La escalera no miraba la vela del llenado de una límite (regla 4 de `docs/PPP.md`), mientras que a mercado esa vela se resuelve con 1 min y el SL sube en sus primeros minutos. Reproducido al céntimo con las velas guardadas (27-nov: T31 SLD +0,135 R a las 15:02, t143 SL −1,112 R a las 15:45). Arreglo: `ladder_fine.fill_bar` recorre la vela del llenado con 1 min desde el minuto siguiente al llenado; sin velas finas, la regla de siempre. Descartados la cantidad (×0,85) y el diario de cada mesa.
+- **Medido:** re-simulación de las 907 operaciones que cuentan en la ventana de T143 (907/907 idénticas con el código de `main`); con T223, a cartera fija, t143 −0,082 → −0,068 R y sus convertidas +0,018 R sobre T31; las límite nativas de T31 +0,058 → +0,027 R (la protección se arma antes). El veredicto de T143 no cambia.
+- **Archivos:** `v2/eim/paper/{ladder,ladder_fine,excursion}.py`, `v2/tests/paper/{test_ladder_fill_bar,test_t142_real_cases}.py`, `v2/tests/fixtures/paper/t223_fill_bar.json`, `v2/docs/PPP.md` (§4 y §15), `PLAN/{T223,T189,STATUS,BACKLOG,BITACORA}.md`, `PLAN/status.js`, `PLAN/roadmap.html`.
+- **Pruebas:** las nuevas y las de escalera, protección, T142, salidas y variantes; gate completo por la cola (ver el PR).
+- **Abierto:** BACKLOG T223: la sombra y el banco de salidas mantienen la regla de la vela entera; la reserva de deslizamiento de la límite; `params_fingerprint` depende de `PYTHONHASHSEED`.
+- **Siguiente paso:** ◆ del usuario: fusionar antes del 2026-12-17 (primera mirada de T189); entra al reiniciar la API.

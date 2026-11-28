@@ -1,5 +1,5 @@
 window.EIM_STATUS = {
- "generated": "2026-11-27T21:16:19",
+ "generated": "2026-11-28T03:53:30",
  "phases": [
   {
    "n": 0,
@@ -388,7 +388,8 @@ window.EIM_STATUS = {
     "T189",
     "T194",
     "T207",
-    "T211"
+    "T211",
+    "T223"
    ]
   },
   {
@@ -3486,6 +3487,20 @@ window.EIM_STATUS = {
    "notes": "**(Antes T197, renumerada el 2026-11-27: la rama nunca se subió y en `main` T197 es el despliegue automático.)** Pre-registro `PLAN/notas/T221_preregistro.md` (commit `a634b8f`, 2026-11-19, **antes de toda cifra**) y medición hechos: `v2/eim/analytics/regime_weights.py` (IC por agente y régimen sobre el panel de T44, escalera ±0,02 con n ≥ 200, bootstrap en bloques de 30 días, puerta de potencia primero: sin MDE ≤ 0,01 la mitad de prueba no se mira), informe `regime_weights_report.py`, `mde` en `eim/validation/power.py`, 11 pruebas. **Falta correr la medición por la cola** (`python -m eim.analytics.regime_weights_report --store data/t197_banco --workers 2`; el banco ya está en el worktree) y escribir el veredicto. `SynthesisParams.regime_weights` sigue `{}`: mide, no adopta.",
    "effort": "medio",
    "phase": 28
+  },
+  {
+   "id": "T223",
+   "title": "La vela del llenado de una entrada límite en la escalera",
+   "deps": [
+    "T105",
+    "T130",
+    "T143",
+    "T189"
+   ],
+   "state": "done",
+   "notes": "**Hecha 2026-11-28 (BACKLOG T143 (5)); entra al fusionar y reiniciar la API (◆ del usuario).** Causa de los seis pares de T143 que entraron al mismo precio y minuto y salieron por SL inicial en t143 (−7,2 R) y por SLD en T31: la escalera no miraba la vela del llenado de una límite (regla 4 de `docs/PPP.md`), mientras que a mercado esa vela se resuelve con 1 min. Ahora `ladder_fine.fill_bar` la recorre con velas de 1 min desde el minuto siguiente al llenado; sin ellas, la regla de siempre. Prueba con los seis casos reales (`tests/paper/test_ladder_fill_bar.py`, fixture `t223_fill_bar.json`). Re-simulación de las 907 operaciones que cuentan (907/907 idénticas con `main`), a cartera fija: t143 −0,082 → −0,068 R, sus convertidas +0,018 R sobre T31; las límite nativas de T31 +0,058 → +0,027 R (la protección se arma antes). El veredicto de T143 no cambia. Ficha `PLAN/T223.md`",
+   "effort": "bajo",
+   "phase": 30
   }
  ]
 };
