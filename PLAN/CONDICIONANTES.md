@@ -17,7 +17,6 @@ tarea · equipo · qué hay que hacer allí · fecha (desde cuándo se puede, o 
 |---|---|---|---|
 | T172 | juanpablo-cpu | Comprobar el primer informe real (`v2/reports/nursery/`) y que los hechos se ven en la Biblioteca (tras reiniciar la API) | 2026-12-18 |
 | T135 | juanpablo-cpu | Leer el veredicto del A/B de M8: la tarea semanal y la copia `backups/t135_ab` están instaladas allí | 2026-12-06 |
-| T143 | juanpablo-cpu | Decidir si la variante t143 pasa a oficial: la variante y su `data/paper/tf_gate_t143.json` solo corren allí | 2026-11-27 |
 | T66 | juanpablo-cpu | Medir la muestra etiquetada (`python -m eim.video.visual eval`): RapidOCR y el entorno de motores (`C:\eim-localai`) solo están allí | cuando haya ≥ 40 etiquetas |
 | T116 | juanpablo-cpu | 3 corridas del gate con los servicios parados, después de cerrar T31, T143 y la semana de T178 | 2026-11-28 |
 | T171 | juanpablo-cpu | Traer `main` y reiniciar la API: la pestaña «Cantera» muestra allí el balance de ganadas y perdidas y el capital por agente, y la API empieza a publicar el **espejo en vivo** que ve la portátil (rama `cantera/espejo` de `Santivego/eim-shared-data`; esa cuenta de git necesita permiso de escritura en ese repo). Comprobar `mirror_publish.error` vacío en `GET /v2/nursery` | ya |
@@ -34,7 +33,6 @@ una tarea (☑), se borra su fila.
 
 | Tarea | Inicio | Fin | Hito del fin | Avance | Requisitos | Equipo | Necesita |
 |---|---|---|---|---|---|---|---|
-| T143 | 2026-11-10T04:17Z | 2026-11-27T23:35Z | fin de la corrida aparte t143 | — | PC encendido, API en marcha, tu decisión ◆ | juanpablo-cpu | La corrida t143 vive dentro de la API, como T31. Los entregables 2–5 esperan tu decisión; al cerrar, si la variante pasa a oficial |
 | T135 | 2026-11-08T00:00Z | 2026-12-06T00:00Z | veredicto del A/B de M8 (como pronto) | — | PC encendido | juanpablo-cpu | Corre sobre una copia, sin tocar el vivo ni T31; necesita unas 315 operaciones emparejadas. El veredicto no se revisa |
 | T172 | 2026-11-17T03:25Z | 2026-12-17T03:25Z | 1.ª revisión de la cantera (el informe sale el 18) | Tarea diaria instalada el 2026-11-20; falta el primer informe con datos reales | PC encendido, API en marcha | juanpablo-cpu | Nada hasta el 18-dic. La tarea escribirá el informe sola; para que pueda leer el libro con el servicio en marcha hace falta el PR #333 (el libro de la cantera no entraba en la copia diaria) |
 | T116 | — | 2026-11-28T00:00Z | 3 corridas con los servicios parados | Portátil: 6 corridas verdes · juanpablo-cpu: faltan 3 con los servicios parados | PC encendido | juanpablo-cpu | Nada hasta el 28-nov (◆ del usuario 2026-11-20: se espera a que cierren T31, T143 y la semana de T178). Lo de Ollama ya está decidido: no es condición de verde |

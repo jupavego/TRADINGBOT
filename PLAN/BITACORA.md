@@ -4675,3 +4675,12 @@ pm run build.
 - **Pruebas:** sin cambios de código; el gate del #381 cubre lo mismo.
 - **Abierto:** (1) con la regla de T178 salió la alarma de tamaño de la base de líderes (`extra="lideres_db"`, que solo cuelga de reglas). El archivo vivo pesa 1 358 MB con ~810 MB de datos: es espacio libre que devuelve el compactado al arrancar el servicio de líderes. (2) La regla de T31 sigue en el Vigía, aunque T31 está ☑.
 - **Siguiente paso:** fusionar este PR (con permiso del usuario).
+
+## 2026-11-28 · T143 cierre — la corrida aparte frente a T31; ◆ delegada: no se adopta
+
+- **Hecho:** comparación de los libros fijos de T31 y de la variante `t143` con la contabilidad oficial de T144, en la misma ventana (abiertas desde 2026-11-10 04:17 UTC, cerradas antes de 2026-11-28 00:00 UTC). t143 −0,082 R por operación (n = 385, −1 647 USDT) frente a −0,033 R de T31 (n = 522, −974 USDT). En las 288 comunes, −0,015 ± 0,011 R (la misma resta que la auditoría de T175). Maker ahorra la comisión (10 → 7 pb, +0,022 R con la misma salida), pero seis convertidas de 1 h salieron por el SL inicial en t143 y por stop dinámico en T31 (−7,2 R). El usuario delegó la ◆ con el criterio de la rentabilidad: **no se adopta**; la mesa principal no cambia por esto y la variante sigue solo como medición. T143 ◐ → ☑; filas de T143 quitadas de CONDICIONANTES; regla del Vigía a `quieta` hasta fusionar.
+- **Archivos:** `v2/eim/paper/run_compare.py`, `v2/scripts/t143_cierre.py`, `v2/tests/paper/test_run_compare.py` (nuevos), `v2/reports/t143_cierre.{md,json}`, `PLAN/{T143,STATUS,BACKLOG,CONDICIONANTES,ESTADO_PROYECTO,BITACORA}.md`, `status.js`, `roadmap.html`.
+- **Pruebas:** 10 nuevas; gate completo por la cola.
+- **Abierto:** BACKLOG T143 (5) la divergencia de salidas en las entradas convertidas, antes de que T189 adopte maker sola (2026-12-17); (6) la puerta de marcos decide con la sombra; (7) el ahorro maker previsto por el banco; (8) retirar 15 m por resultado, con pre-registro y ◆.
+- **En curso:** la variante `t143` sigue encendida en la API, sin reinicio.
+- **Siguiente paso:** fusionar el PR de cierre (con permiso del usuario) y aislar la causa de (5).
